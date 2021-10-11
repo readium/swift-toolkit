@@ -4,9 +4,13 @@ SCRIPTS_PATH := r2-navigator-swift/EPUB/Scripts
 help:
 	@echo "Usage: make <target>\n\n\
 	  carthage\tGenerate the Carthage Xcode project\n\
+	  install\tDownload NPM dependencies\n\
 	  scripts\tBundle EPUB scripts with Webpack\n\
 	  lint-scripts\tCheck quality of EPUB scripts\n\
 	"
+
+install:
+	yarn --cwd "$(SCRIPTS_PATH)" install
 
 scripts:
 	yarn --cwd "$(SCRIPTS_PATH)" run format

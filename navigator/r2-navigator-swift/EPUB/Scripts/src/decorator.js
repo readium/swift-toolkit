@@ -11,6 +11,10 @@ import {
 } from "./rect";
 import { log, logErrorMessage, rangeFromLocator } from "./utils";
 
+// Polyfill for iOS 13.3
+import { ResizeObserver as ResizeObserverPolyfill } from "@juggle/resize-observer";
+const ResizeObserver = window.ResizeObserver || ResizeObserverPolyfill;
+
 let styles = new Map();
 let groups = new Map();
 var lastGroupId = 0;

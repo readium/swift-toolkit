@@ -1,8 +1,8 @@
 const path = require("path");
 
 module.exports = {
-  mode: "production",
-  devtool: "eval-source-map",
+  mode: "development",
+  devtool: "hidden-source-map",
   entry: {
     reflowable: "./src/index-reflowable.js",
     fixed: "./src/index-fixed.js",

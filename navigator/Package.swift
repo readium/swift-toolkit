@@ -31,7 +31,10 @@ let package = Package(
                 .product(name: "R2Shared", package: "r2-shared-swift"),
             ],
             path: "./r2-navigator-swift/",
-            exclude: ["Info.plist"],
+            exclude: [
+                "Info.plist",
+                "EPUB/Scripts"
+            ],
             resources: [
                 .copy("EPUB/Assets"),
                 .process("Resources"),

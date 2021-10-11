@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
   s.summary       = "R2 Navigator"
   s.homepage      = "http://readium.github.io"
   s.author        = { "Readium" => "contact@readium.org" }
-  s.source        = { :git => "https://github.com/readium/r2-navigator-swift.git", :branch => "develop" }
+  s.source        = { :git => "https://github.com/readium/r2-navigator-swift.git", :branch => "fix/js-ios12" }
   s.exclude_files = ["**/Info*.plist"]
   s.requires_arc  = true
   s.resources     = ['r2-navigator-swift/Resources/**', 'r2-navigator-swift/EPUB/Assets']

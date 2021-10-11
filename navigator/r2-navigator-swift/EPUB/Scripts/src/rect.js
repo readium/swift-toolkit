@@ -27,7 +27,10 @@ export function toNativeRect(rect) {
  * Adjusts the given coordinates to the viewport for FXL resources.
  */
 export function adjustPointToViewport(point) {
-  let frameRect = frameElement?.getBoundingClientRect();
+  if (!frameElement) {
+    return point;
+  }
+  let frameRect = frameElement.getBoundingClientRect();
   if (!frameRect) {
     return point;
   }

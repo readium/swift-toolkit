@@ -1,1 +1,8087 @@
-(()=>{"use strict";var __webpack_modules__={89:(__unused_webpack_module,exports)=>{eval('var __webpack_unused_export__;\n\n/**\n * Implementation of Myers\' online approximate string matching algorithm [1],\n * with additional optimizations suggested by [2].\n *\n * This has O((k/w) * n) complexity where `n` is the length of the text, `k` is\n * the maximum number of errors allowed (always <= the pattern length) and `w`\n * is the word size. Because JS only supports bitwise operations on 32 bit\n * integers, `w` is 32.\n *\n * As far as I am aware, there aren\'t any online algorithms which are\n * significantly better for a wide range of input parameters. The problem can be\n * solved faster using "filter then verify" approaches which first filter out\n * regions of the text that cannot match using a "cheap" check and then verify\n * the remaining potential matches. The verify step requires an algorithm such\n * as this one however.\n *\n * The algorithm\'s approach is essentially to optimize the classic dynamic\n * programming solution to the problem by computing columns of the matrix in\n * word-sized chunks (ie. dealing with 32 chars of the pattern at a time) and\n * avoiding calculating regions of the matrix where the minimum error count is\n * guaranteed to exceed the input threshold.\n *\n * The paper consists of two parts, the first describes the core algorithm for\n * matching patterns <= the size of a word (implemented by `advanceBlock` here).\n * The second uses the core algorithm as part of a larger block-based algorithm\n * to handle longer patterns.\n *\n * [1] G. Myers, “A Fast Bit-Vector Algorithm for Approximate String Matching\n * Based on Dynamic Programming,” vol. 46, no. 3, pp. 395–415, 1999.\n *\n * [2] Šošić, M. (2014). An simd dynamic programming c/c++ library (Doctoral\n * dissertation, Fakultet Elektrotehnike i računarstva, Sveučilište u Zagrebu).\n */\n__webpack_unused_export__ = ({ value: true });\nfunction reverse(s) {\n    return s\n        .split("")\n        .reverse()\n        .join("");\n}\n/**\n * Given the ends of approximate matches for `pattern` in `text`, find\n * the start of the matches.\n *\n * @param findEndFn - Function for finding the end of matches in\n * text.\n * @return Matches with the `start` property set.\n */\nfunction findMatchStarts(text, pattern, matches) {\n    var patRev = reverse(pattern);\n    return matches.map(function (m) {\n        // Find start of each match by reversing the pattern and matching segment\n        // of text and searching for an approx match with the same number of\n        // errors.\n        var minStart = Math.max(0, m.end - pattern.length - m.errors);\n        var textRev = reverse(text.slice(minStart, m.end));\n        // If there are multiple possible start points, choose the one that\n        // maximizes the length of the match.\n        var start = findMatchEnds(textRev, patRev, m.errors).reduce(function (min, rm) {\n            if (m.end - rm.end < min) {\n                return m.end - rm.end;\n            }\n            return min;\n        }, m.end);\n        return {\n            start: start,\n            end: m.end,\n            errors: m.errors\n        };\n    });\n}\n/**\n * Return 1 if a number is non-zero or zero otherwise, without using\n * conditional operators.\n *\n * This should get inlined into `advanceBlock` below by the JIT.\n *\n * Adapted from https://stackoverflow.com/a/3912218/434243\n */\nfunction oneIfNotZero(n) {\n    return ((n | -n) >> 31) & 1;\n}\n/**\n * Block calculation step of the algorithm.\n *\n * From Fig 8. on p. 408 of [1], additionally optimized to replace conditional\n * checks with bitwise operations as per Section 4.2.3 of [2].\n *\n * @param ctx - The pattern context object\n * @param peq - The `peq` array for the current character (`ctx.peq.get(ch)`)\n * @param b - The block level\n * @param hIn - Horizontal input delta ∈ {1,0,-1}\n * @return Horizontal output delta ∈ {1,0,-1}\n */\nfunction advanceBlock(ctx, peq, b, hIn) {\n    var pV = ctx.P[b];\n    var mV = ctx.M[b];\n    var hInIsNegative = hIn >>> 31; // 1 if hIn < 0 or 0 otherwise.\n    var eq = peq[b] | hInIsNegative;\n    // Step 1: Compute horizontal deltas.\n    var xV = eq | mV;\n    var xH = (((eq & pV) + pV) ^ pV) | eq;\n    var pH = mV | ~(xH | pV);\n    var mH = pV & xH;\n    // Step 2: Update score (value of last row of this block).\n    var hOut = oneIfNotZero(pH & ctx.lastRowMask[b]) -\n        oneIfNotZero(mH & ctx.lastRowMask[b]);\n    // Step 3: Update vertical deltas for use when processing next char.\n    pH <<= 1;\n    mH <<= 1;\n    mH |= hInIsNegative;\n    pH |= oneIfNotZero(hIn) - hInIsNegative; // set pH[0] if hIn > 0\n    pV = mH | ~(xV | pH);\n    mV = pH & xV;\n    ctx.P[b] = pV;\n    ctx.M[b] = mV;\n    return hOut;\n}\n/**\n * Find the ends and error counts for matches of `pattern` in `text`.\n *\n * Only the matches with the lowest error count are reported. Other matches\n * with error counts <= maxErrors are discarded.\n *\n * This is the block-based search algorithm from Fig. 9 on p.410 of [1].\n */\nfunction findMatchEnds(text, pattern, maxErrors) {\n    if (pattern.length === 0) {\n        return [];\n    }\n    // Clamp error count so we can rely on the `maxErrors` and `pattern.length`\n    // rows being in the same block below.\n    maxErrors = Math.min(maxErrors, pattern.length);\n    var matches = [];\n    // Word size.\n    var w = 32;\n    // Index of maximum block level.\n    var bMax = Math.ceil(pattern.length / w) - 1;\n    // Context used across block calculations.\n    var ctx = {\n        P: new Uint32Array(bMax + 1),\n        M: new Uint32Array(bMax + 1),\n        lastRowMask: new Uint32Array(bMax + 1)\n    };\n    ctx.lastRowMask.fill(1 << 31);\n    ctx.lastRowMask[bMax] = 1 << (pattern.length - 1) % w;\n    // Dummy "peq" array for chars in the text which do not occur in the pattern.\n    var emptyPeq = new Uint32Array(bMax + 1);\n    // Map of UTF-16 character code to bit vector indicating positions in the\n    // pattern that equal that character.\n    var peq = new Map();\n    // Version of `peq` that only stores mappings for small characters. This\n    // allows faster lookups when iterating through the text because a simple\n    // array lookup can be done instead of a hash table lookup.\n    var asciiPeq = [];\n    for (var i = 0; i < 256; i++) {\n        asciiPeq.push(emptyPeq);\n    }\n    // Calculate `ctx.peq` - a map of character values to bitmasks indicating\n    // positions of that character within the pattern, where each bit represents\n    // a position in the pattern.\n    for (var c = 0; c < pattern.length; c += 1) {\n        var val = pattern.charCodeAt(c);\n        if (peq.has(val)) {\n            // Duplicate char in pattern.\n            continue;\n        }\n        var charPeq = new Uint32Array(bMax + 1);\n        peq.set(val, charPeq);\n        if (val < asciiPeq.length) {\n            asciiPeq[val] = charPeq;\n        }\n        for (var b = 0; b <= bMax; b += 1) {\n            charPeq[b] = 0;\n            // Set all the bits where the pattern matches the current char (ch).\n            // For indexes beyond the end of the pattern, always set the bit as if the\n            // pattern contained a wildcard char in that position.\n            for (var r = 0; r < w; r += 1) {\n                var idx = b * w + r;\n                if (idx >= pattern.length) {\n                    continue;\n                }\n                var match = pattern.charCodeAt(idx) === val;\n                if (match) {\n                    charPeq[b] |= 1 << r;\n                }\n            }\n        }\n    }\n    // Index of last-active block level in the column.\n    var y = Math.max(0, Math.ceil(maxErrors / w) - 1);\n    // Initialize maximum error count at bottom of each block.\n    var score = new Uint32Array(bMax + 1);\n    for (var b = 0; b <= y; b += 1) {\n        score[b] = (b + 1) * w;\n    }\n    score[bMax] = pattern.length;\n    // Initialize vertical deltas for each block.\n    for (var b = 0; b <= y; b += 1) {\n        ctx.P[b] = ~0;\n        ctx.M[b] = 0;\n    }\n    // Process each char of the text, computing the error count for `w` chars of\n    // the pattern at a time.\n    for (var j = 0; j < text.length; j += 1) {\n        // Lookup the bitmask representing the positions of the current char from\n        // the text within the pattern.\n        var charCode = text.charCodeAt(j);\n        var charPeq = void 0;\n        if (charCode < asciiPeq.length) {\n            // Fast array lookup.\n            charPeq = asciiPeq[charCode];\n        }\n        else {\n            // Slower hash table lookup.\n            charPeq = peq.get(charCode);\n            if (typeof charPeq === "undefined") {\n                charPeq = emptyPeq;\n            }\n        }\n        // Calculate error count for blocks that we definitely have to process for\n        // this column.\n        var carry = 0;\n        for (var b = 0; b <= y; b += 1) {\n            carry = advanceBlock(ctx, charPeq, b, carry);\n            score[b] += carry;\n        }\n        // Check if we also need to compute an additional block, or if we can reduce\n        // the number of blocks processed for the next column.\n        if (score[y] - carry <= maxErrors &&\n            y < bMax &&\n            (charPeq[y + 1] & 1 || carry < 0)) {\n            // Error count for bottom block is under threshold, increase the number of\n            // blocks processed for this column & next by 1.\n            y += 1;\n            ctx.P[y] = ~0;\n            ctx.M[y] = 0;\n            var maxBlockScore = y === bMax ? pattern.length % w : w;\n            score[y] =\n                score[y - 1] +\n                    maxBlockScore -\n                    carry +\n                    advanceBlock(ctx, charPeq, y, carry);\n        }\n        else {\n            // Error count for bottom block exceeds threshold, reduce the number of\n            // blocks processed for the next column.\n            while (y > 0 && score[y] >= maxErrors + w) {\n                y -= 1;\n            }\n        }\n        // If error count is under threshold, report a match.\n        if (y === bMax && score[y] <= maxErrors) {\n            if (score[y] < maxErrors) {\n                // Discard any earlier, worse matches.\n                matches.splice(0, matches.length);\n            }\n            matches.push({\n                start: -1,\n                end: j + 1,\n                errors: score[y]\n            });\n            // Because `search` only reports the matches with the lowest error count,\n            // we can "ratchet down" the max error threshold whenever a match is\n            // encountered and thereby save a small amount of work for the remainder\n            // of the text.\n            maxErrors = score[y];\n        }\n    }\n    return matches;\n}\n/**\n * Search for matches for `pattern` in `text` allowing up to `maxErrors` errors.\n *\n * Returns the start, and end positions and error counts for each lowest-cost\n * match. Only the "best" matches are returned.\n */\nfunction search(text, pattern, maxErrors) {\n    var matches = findMatchEnds(text, pattern, maxErrors);\n    return findMatchStarts(text, pattern, matches);\n}\nexports.Z = search;\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly9yZWFkaXVtLWpzLy4vbm9kZV9tb2R1bGVzL2FwcHJveC1zdHJpbmctbWF0Y2gvZGlzdC9pbmRleC5qcz83MjMwIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7QUFBYTtBQUNiO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLDZCQUE2QyxDQUFDLGNBQWMsQ0FBQztBQUM3RDtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsU0FBUztBQUNUO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSxLQUFLO0FBQ0w7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsMENBQTBDO0FBQzFDLHNDQUFzQztBQUN0QztBQUNBO0FBQ0E7QUFDQTtBQUNBLG1DQUFtQztBQUNuQztBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLDRDQUE0QztBQUM1QztBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLG1CQUFtQixTQUFTO0FBQzVCO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSxtQkFBbUIsb0JBQW9CO0FBQ3ZDO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsdUJBQXVCLFdBQVc7QUFDbEM7QUFDQTtBQUNBO0FBQ0E7QUFDQSwyQkFBMkIsT0FBTztBQUNsQztBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSxtQkFBbUIsUUFBUTtBQUMzQjtBQUNBO0FBQ0E7QUFDQTtBQUNBLG1CQUFtQixRQUFRO0FBQzNCO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSxtQkFBbUIsaUJBQWlCO0FBQ3BDO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLHVCQUF1QixRQUFRO0FBQy9CO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsYUFBYTtBQUNiO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsU0FBZSIsImZpbGUiOiI4OS5qcyIsInNvdXJjZXNDb250ZW50IjpbIlwidXNlIHN0cmljdFwiO1xuLyoqXG4gKiBJbXBsZW1lbnRhdGlvbiBvZiBNeWVycycgb25saW5lIGFwcHJveGltYXRlIHN0cmluZyBtYXRjaGluZyBhbGdvcml0aG0gWzFdLFxuICogd2l0aCBhZGRpdGlvbmFsIG9wdGltaXphdGlvbnMgc3VnZ2VzdGVkIGJ5IFsyXS5cbiAqXG4gKiBUaGlzIGhhcyBPKChrL3cpICogbikgY29tcGxleGl0eSB3aGVyZSBgbmAgaXMgdGhlIGxlbmd0aCBvZiB0aGUgdGV4dCwgYGtgIGlzXG4gKiB0aGUgbWF4aW11bSBudW1iZXIgb2YgZXJyb3JzIGFsbG93ZWQgKGFsd2F5cyA8PSB0aGUgcGF0dGVybiBsZW5ndGgpIGFuZCBgd2BcbiAqIGlzIHRoZSB3b3JkIHNpemUuIEJlY2F1c2UgSlMgb25seSBzdXBwb3J0cyBiaXR3aXNlIG9wZXJhdGlvbnMgb24gMzIgYml0XG4gKiBpbnRlZ2VycywgYHdgIGlzIDMyLlxuICpcbiAqIEFzIGZhciBhcyBJIGFtIGF3YXJlLCB0aGVyZSBhcmVuJ3QgYW55IG9ubGluZSBhbGdvcml0aG1zIHdoaWNoIGFyZVxuICogc2lnbmlmaWNhbnRseSBiZXR0ZXIgZm9yIGEgd2lkZSByYW5nZSBvZiBpbnB1dCBwYXJhbWV0ZXJzLiBUaGUgcHJvYmxlbSBjYW4gYmVcbiAqIHNvbHZlZCBmYXN0ZXIgdXNpbmcgXCJmaWx0ZXIgdGhlbiB2ZXJpZnlcIiBhcHByb2FjaGVzIHdoaWNoIGZpcnN0IGZpbHRlciBvdXRcbiAqIHJlZ2lvbnMgb2YgdGhlIHRleHQgdGhhdCBjYW5ub3QgbWF0Y2ggdXNpbmcgYSBcImNoZWFwXCIgY2hlY2sgYW5kIHRoZW4gdmVyaWZ5XG4gKiB0aGUgcmVtYWluaW5nIHBvdGVudGlhbCBtYXRjaGVzLiBUaGUgdmVyaWZ5IHN0ZXAgcmVxdWlyZXMgYW4gYWxnb3JpdGhtIHN1Y2hcbiAqIGFzIHRoaXMgb25lIGhvd2V2ZXIuXG4gKlxuICogVGhlIGFsZ29yaXRobSdzIGFwcHJvYWNoIGlzIGVzc2VudGlhbGx5IHRvIG9wdGltaXplIHRoZSBjbGFzc2ljIGR5bmFtaWNcbiAqIHByb2dyYW1taW5nIHNvbHV0aW9uIHRvIHRoZSBwcm9ibGVtIGJ5IGNvbXB1dGluZyBjb2x1bW5zIG9mIHRoZSBtYXRyaXggaW5cbiAqIHdvcmQtc2l6ZWQgY2h1bmtzIChpZS4gZGVhbGluZyB3aXRoIDMyIGNoYXJzIG9mIHRoZSBwYXR0ZXJuIGF0IGEgdGltZSkgYW5kXG4gKiBhdm9pZGluZyBjYWxjdWxhdGluZyByZWdpb25zIG9mIHRoZSBtYXRyaXggd2hlcmUgdGhlIG1pbmltdW0gZXJyb3IgY291bnQgaXNcbiAqIGd1YXJhbnRlZWQgdG8gZXhjZWVkIHRoZSBpbnB1dCB0aHJlc2hvbGQuXG4gKlxuICogVGhlIHBhcGVyIGNvbnNpc3RzIG9mIHR3byBwYXJ0cywgdGhlIGZpcnN0IGRlc2NyaWJlcyB0aGUgY29yZSBhbGdvcml0aG0gZm9yXG4gKiBtYXRjaGluZyBwYXR0ZXJucyA8PSB0aGUgc2l6ZSBvZiBhIHdvcmQgKGltcGxlbWVudGVkIGJ5IGBhZHZhbmNlQmxvY2tgIGhlcmUpLlxuICogVGhlIHNlY29uZCB1c2VzIHRoZSBjb3JlIGFsZ29yaXRobSBhcyBwYXJ0IG9mIGEgbGFyZ2VyIGJsb2NrLWJhc2VkIGFsZ29yaXRobVxuICogdG8gaGFuZGxlIGxvbmdlciBwYXR0ZXJucy5cbiAqXG4gKiBbMV0gRy4gTXllcnMsIOKAnEEgRmFzdCBCaXQtVmVjdG9yIEFsZ29yaXRobSBmb3IgQXBwcm94aW1hdGUgU3RyaW5nIE1hdGNoaW5nXG4gKiBCYXNlZCBvbiBEeW5hbWljIFByb2dyYW1taW5nLOKAnSB2b2wuIDQ2LCBuby4gMywgcHAuIDM5NeKAkzQxNSwgMTk5OS5cbiAqXG4gKiBbMl0gxaBvxaFpxIcsIE0uICgyMDE0KS4gQW4gc2ltZCBkeW5hbWljIHByb2dyYW1taW5nIGMvYysrIGxpYnJhcnkgKERvY3RvcmFsXG4gKiBkaXNzZXJ0YXRpb24sIEZha3VsdGV0IEVsZWt0cm90ZWhuaWtlIGkgcmHEjXVuYXJzdHZhLCBTdmV1xI1pbGnFoXRlIHUgWmFncmVidSkuXG4gKi9cbk9iamVjdC5kZWZpbmVQcm9wZXJ0eShleHBvcnRzLCBcIl9fZXNNb2R1bGVcIiwgeyB2YWx1ZTogdHJ1ZSB9KTtcbmZ1bmN0aW9uIHJldmVyc2Uocykge1xuICAgIHJldHVybiBzXG4gICAgICAgIC5zcGxpdChcIlwiKVxuICAgICAgICAucmV2ZXJzZSgpXG4gICAgICAgIC5qb2luKFwiXCIpO1xufVxuLyoqXG4gKiBHaXZlbiB0aGUgZW5kcyBvZiBhcHByb3hpbWF0ZSBtYXRjaGVzIGZvciBgcGF0dGVybmAgaW4gYHRleHRgLCBmaW5kXG4gKiB0aGUgc3RhcnQgb2YgdGhlIG1hdGNoZXMuXG4gKlxuICogQHBhcmFtIGZpbmRFbmRGbiAtIEZ1bmN0aW9uIGZvciBmaW5kaW5nIHRoZSBlbmQgb2YgbWF0Y2hlcyBpblxuICogdGV4dC5cbiAqIEByZXR1cm4gTWF0Y2hlcyB3aXRoIHRoZSBgc3RhcnRgIHByb3BlcnR5IHNldC5cbiAqL1xuZnVuY3Rpb24gZmluZE1hdGNoU3RhcnRzKHRleHQsIHBhdHRlcm4sIG1hdGNoZXMpIHtcbiAgICB2YXIgcGF0UmV2ID0gcmV2ZXJzZShwYXR0ZXJuKTtcbiAgICByZXR1cm4gbWF0Y2hlcy5tYXAoZnVuY3Rpb24gKG0pIHtcbiAgICAgICAgLy8gRmluZCBzdGFydCBvZiBlYWNoIG1hdGNoIGJ5IHJldmVyc2luZyB0aGUgcGF0dGVybiBhbmQgbWF0Y2hpbmcgc2VnbWVudFxuICAgICAgICAvLyBvZiB0ZXh0IGFuZCBzZWFyY2hpbmcgZm9yIGFuIGFwcHJveCBtYXRjaCB3aXRoIHRoZSBzYW1lIG51bWJlciBvZlxuICAgICAgICAvLyBlcnJvcnMuXG4gICAgICAgIHZhciBtaW5TdGFydCA9IE1hdGgubWF4KDAsIG0uZW5kIC0gcGF0dGVybi5sZW5ndGggLSBtLmVycm9ycyk7XG4gICAgICAgIHZhciB0ZXh0UmV2ID0gcmV2ZXJzZSh0ZXh0LnNsaWNlKG1pblN0YXJ0LCBtLmVuZCkpO1xuICAgICAgICAvLyBJZiB0aGVyZSBhcmUgbXVsdGlwbGUgcG9zc2libGUgc3RhcnQgcG9pbnRzLCBjaG9vc2UgdGhlIG9uZSB0aGF0XG4gICAgICAgIC8vIG1heGltaXplcyB0aGUgbGVuZ3RoIG9mIHRoZSBtYXRjaC5cbiAgICAgICAgdmFyIHN0YXJ0ID0gZmluZE1hdGNoRW5kcyh0ZXh0UmV2LCBwYXRSZXYsIG0uZXJyb3JzKS5yZWR1Y2UoZnVuY3Rpb24gKG1pbiwgcm0pIHtcbiAgICAgICAgICAgIGlmIChtLmVuZCAtIHJtLmVuZCA8IG1pbikge1xuICAgICAgICAgICAgICAgIHJldHVybiBtLmVuZCAtIHJtLmVuZDtcbiAgICAgICAgICAgIH1cbiAgICAgICAgICAgIHJldHVybiBtaW47XG4gICAgICAgIH0sIG0uZW5kKTtcbiAgICAgICAgcmV0dXJuIHtcbiAgICAgICAgICAgIHN0YXJ0OiBzdGFydCxcbiAgICAgICAgICAgIGVuZDogbS5lbmQsXG4gICAgICAgICAgICBlcnJvcnM6IG0uZXJyb3JzXG4gICAgICAgIH07XG4gICAgfSk7XG59XG4vKipcbiAqIFJldHVybiAxIGlmIGEgbnVtYmVyIGlzIG5vbi16ZXJvIG9yIHplcm8gb3RoZXJ3aXNlLCB3aXRob3V0IHVzaW5nXG4gKiBjb25kaXRpb25hbCBvcGVyYXRvcnMuXG4gKlxuICogVGhpcyBzaG91bGQgZ2V0IGlubGluZWQgaW50byBgYWR2YW5jZUJsb2NrYCBiZWxvdyBieSB0aGUgSklULlxuICpcbiAqIEFkYXB0ZWQgZnJvbSBodHRwczovL3N0YWNrb3ZlcmZsb3cuY29tL2EvMzkxMjIxOC80MzQyNDNcbiAqL1xuZnVuY3Rpb24gb25lSWZOb3RaZXJvKG4pIHtcbiAgICByZXR1cm4gKChuIHwgLW4pID4+IDMxKSAmIDE7XG59XG4vKipcbiAqIEJsb2NrIGNhbGN1bGF0aW9uIHN0ZXAgb2YgdGhlIGFsZ29yaXRobS5cbiAqXG4gKiBGcm9tIEZpZyA4LiBvbiBwLiA0MDggb2YgWzFdLCBhZGRpdGlvbmFsbHkgb3B0aW1pemVkIHRvIHJlcGxhY2UgY29uZGl0aW9uYWxcbiAqIGNoZWNrcyB3aXRoIGJpdHdpc2Ugb3BlcmF0aW9ucyBhcyBwZXIgU2VjdGlvbiA0LjIuMyBvZiBbMl0uXG4gKlxuICogQHBhcmFtIGN0eCAtIFRoZSBwYXR0ZXJuIGNvbnRleHQgb2JqZWN0XG4gKiBAcGFyYW0gcGVxIC0gVGhlIGBwZXFgIGFycmF5IGZvciB0aGUgY3VycmVudCBjaGFyYWN0ZXIgKGBjdHgucGVxLmdldChjaClgKVxuICogQHBhcmFtIGIgLSBUaGUgYmxvY2sgbGV2ZWxcbiAqIEBwYXJhbSBoSW4gLSBIb3Jpem9udGFsIGlucHV0IGRlbHRhIOKIiCB7MSwwLC0xfVxuICogQHJldHVybiBIb3Jpem9udGFsIG91dHB1dCBkZWx0YSDiiIggezEsMCwtMX1cbiAqL1xuZnVuY3Rpb24gYWR2YW5jZUJsb2NrKGN0eCwgcGVxLCBiLCBoSW4pIHtcbiAgICB2YXIgcFYgPSBjdHguUFtiXTtcbiAgICB2YXIgbVYgPSBjdHguTVtiXTtcbiAgICB2YXIgaEluSXNOZWdhdGl2ZSA9IGhJbiA+Pj4gMzE7IC8vIDEgaWYgaEluIDwgMCBvciAwIG90aGVyd2lzZS5cbiAgICB2YXIgZXEgPSBwZXFbYl0gfCBoSW5Jc05lZ2F0aXZlO1xuICAgIC8vIFN0ZXAgMTogQ29tcHV0ZSBob3Jpem9udGFsIGRlbHRhcy5cbiAgICB2YXIgeFYgPSBlcSB8IG1WO1xuICAgIHZhciB4SCA9ICgoKGVxICYgcFYpICsgcFYpIF4gcFYpIHwgZXE7XG4gICAgdmFyIHBIID0gbVYgfCB+KHhIIHwgcFYpO1xuICAgIHZhciBtSCA9IHBWICYgeEg7XG4gICAgLy8gU3RlcCAyOiBVcGRhdGUgc2NvcmUgKHZhbHVlIG9mIGxhc3Qgcm93IG9mIHRoaXMgYmxvY2spLlxuICAgIHZhciBoT3V0ID0gb25lSWZOb3RaZXJvKHBIICYgY3R4Lmxhc3RSb3dNYXNrW2JdKSAtXG4gICAgICAgIG9uZUlmTm90WmVybyhtSCAmIGN0eC5sYXN0Um93TWFza1tiXSk7XG4gICAgLy8gU3RlcCAzOiBVcGRhdGUgdmVydGljYWwgZGVsdGFzIGZvciB1c2Ugd2hlbiBwcm9jZXNzaW5nIG5leHQgY2hhci5cbiAgICBwSCA8PD0gMTtcbiAgICBtSCA8PD0gMTtcbiAgICBtSCB8PSBoSW5Jc05lZ2F0aXZlO1xuICAgIHBIIHw9IG9uZUlmTm90WmVybyhoSW4pIC0gaEluSXNOZWdhdGl2ZTsgLy8gc2V0IHBIWzBdIGlmIGhJbiA+IDBcbiAgICBwViA9IG1IIHwgfih4ViB8IHBIKTtcbiAgICBtViA9IHBIICYgeFY7XG4gICAgY3R4LlBbYl0gPSBwVjtcbiAgICBjdHguTVtiXSA9IG1WO1xuICAgIHJldHVybiBoT3V0O1xufVxuLyoqXG4gKiBGaW5kIHRoZSBlbmRzIGFuZCBlcnJvciBjb3VudHMgZm9yIG1hdGNoZXMgb2YgYHBhdHRlcm5gIGluIGB0ZXh0YC5cbiAqXG4gKiBPbmx5IHRoZSBtYXRjaGVzIHdpdGggdGhlIGxvd2VzdCBlcnJvciBjb3VudCBhcmUgcmVwb3J0ZWQuIE90aGVyIG1hdGNoZXNcbiAqIHdpdGggZXJyb3IgY291bnRzIDw9IG1heEVycm9ycyBhcmUgZGlzY2FyZGVkLlxuICpcbiAqIFRoaXMgaXMgdGhlIGJsb2NrLWJhc2VkIHNlYXJjaCBhbGdvcml0aG0gZnJvbSBGaWcuIDkgb24gcC40MTAgb2YgWzFdLlxuICovXG5mdW5jdGlvbiBmaW5kTWF0Y2hFbmRzKHRleHQsIHBhdHRlcm4sIG1heEVycm9ycykge1xuICAgIGlmIChwYXR0ZXJuLmxlbmd0aCA9PT0gMCkge1xuICAgICAgICByZXR1cm4gW107XG4gICAgfVxuICAgIC8vIENsYW1wIGVycm9yIGNvdW50IHNvIHdlIGNhbiByZWx5IG9uIHRoZSBgbWF4RXJyb3JzYCBhbmQgYHBhdHRlcm4ubGVuZ3RoYFxuICAgIC8vIHJvd3MgYmVpbmcgaW4gdGhlIHNhbWUgYmxvY2sgYmVsb3cuXG4gICAgbWF4RXJyb3JzID0gTWF0aC5taW4obWF4RXJyb3JzLCBwYXR0ZXJuLmxlbmd0aCk7XG4gICAgdmFyIG1hdGNoZXMgPSBbXTtcbiAgICAvLyBXb3JkIHNpemUuXG4gICAgdmFyIHcgPSAzMjtcbiAgICAvLyBJbmRleCBvZiBtYXhpbXVtIGJsb2NrIGxldmVsLlxuICAgIHZhciBiTWF4ID0gTWF0aC5jZWlsKHBhdHRlcm4ubGVuZ3RoIC8gdykgLSAxO1xuICAgIC8vIENvbnRleHQgdXNlZCBhY3Jvc3MgYmxvY2sgY2FsY3VsYXRpb25zLlxuICAgIHZhciBjdHggPSB7XG4gICAgICAgIFA6IG5ldyBVaW50MzJBcnJheShiTWF4ICsgMSksXG4gICAgICAgIE06IG5ldyBVaW50MzJBcnJheShiTWF4ICsgMSksXG4gICAgICAgIGxhc3RSb3dNYXNrOiBuZXcgVWludDMyQXJyYXkoYk1heCArIDEpXG4gICAgfTtcbiAgICBjdHgubGFzdFJvd01hc2suZmlsbCgxIDw8IDMxKTtcbiAgICBjdHgubGFzdFJvd01hc2tbYk1heF0gPSAxIDw8IChwYXR0ZXJuLmxlbmd0aCAtIDEpICUgdztcbiAgICAvLyBEdW1teSBcInBlcVwiIGFycmF5IGZvciBjaGFycyBpbiB0aGUgdGV4dCB3aGljaCBkbyBub3Qgb2NjdXIgaW4gdGhlIHBhdHRlcm4uXG4gICAgdmFyIGVtcHR5UGVxID0gbmV3IFVpbnQzMkFycmF5KGJNYXggKyAxKTtcbiAgICAvLyBNYXAgb2YgVVRGLTE2IGNoYXJhY3RlciBjb2RlIHRvIGJpdCB2ZWN0b3IgaW5kaWNhdGluZyBwb3NpdGlvbnMgaW4gdGhlXG4gICAgLy8gcGF0dGVybiB0aGF0IGVxdWFsIHRoYXQgY2hhcmFjdGVyLlxuICAgIHZhciBwZXEgPSBuZXcgTWFwKCk7XG4gICAgLy8gVmVyc2lvbiBvZiBgcGVxYCB0aGF0IG9ubHkgc3RvcmVzIG1hcHBpbmdzIGZvciBzbWFsbCBjaGFyYWN0ZXJzLiBUaGlzXG4gICAgLy8gYWxsb3dzIGZhc3RlciBsb29rdXBzIHdoZW4gaXRlcmF0aW5nIHRocm91Z2ggdGhlIHRleHQgYmVjYXVzZSBhIHNpbXBsZVxuICAgIC8vIGFycmF5IGxvb2t1cCBjYW4gYmUgZG9uZSBpbnN0ZWFkIG9mIGEgaGFzaCB0YWJsZSBsb29rdXAuXG4gICAgdmFyIGFzY2lpUGVxID0gW107XG4gICAgZm9yICh2YXIgaSA9IDA7IGkgPCAyNTY7IGkrKykge1xuICAgICAgICBhc2NpaVBlcS5wdXNoKGVtcHR5UGVxKTtcbiAgICB9XG4gICAgLy8gQ2FsY3VsYXRlIGBjdHgucGVxYCAtIGEgbWFwIG9mIGNoYXJhY3RlciB2YWx1ZXMgdG8gYml0bWFza3MgaW5kaWNhdGluZ1xuICAgIC8vIHBvc2l0aW9ucyBvZiB0aGF0IGNoYXJhY3RlciB3aXRoaW4gdGhlIHBhdHRlcm4sIHdoZXJlIGVhY2ggYml0IHJlcHJlc2VudHNcbiAgICAvLyBhIHBvc2l0aW9uIGluIHRoZSBwYXR0ZXJuLlxuICAgIGZvciAodmFyIGMgPSAwOyBjIDwgcGF0dGVybi5sZW5ndGg7IGMgKz0gMSkge1xuICAgICAgICB2YXIgdmFsID0gcGF0dGVybi5jaGFyQ29kZUF0KGMpO1xuICAgICAgICBpZiAocGVxLmhhcyh2YWwpKSB7XG4gICAgICAgICAgICAvLyBEdXBsaWNhdGUgY2hhciBpbiBwYXR0ZXJuLlxuICAgICAgICAgICAgY29udGludWU7XG4gICAgICAgIH1cbiAgICAgICAgdmFyIGNoYXJQZXEgPSBuZXcgVWludDMyQXJyYXkoYk1heCArIDEpO1xuICAgICAgICBwZXEuc2V0KHZhbCwgY2hhclBlcSk7XG4gICAgICAgIGlmICh2YWwgPCBhc2NpaVBlcS5sZW5ndGgpIHtcbiAgICAgICAgICAgIGFzY2lpUGVxW3ZhbF0gPSBjaGFyUGVxO1xuICAgICAgICB9XG4gICAgICAgIGZvciAodmFyIGIgPSAwOyBiIDw9IGJNYXg7IGIgKz0gMSkge1xuICAgICAgICAgICAgY2hhclBlcVtiXSA9IDA7XG4gICAgICAgICAgICAvLyBTZXQgYWxsIHRoZSBiaXRzIHdoZXJlIHRoZSBwYXR0ZXJuIG1hdGNoZXMgdGhlIGN1cnJlbnQgY2hhciAoY2gpLlxuICAgICAgICAgICAgLy8gRm9yIGluZGV4ZXMgYmV5b25kIHRoZSBlbmQgb2YgdGhlIHBhdHRlcm4sIGFsd2F5cyBzZXQgdGhlIGJpdCBhcyBpZiB0aGVcbiAgICAgICAgICAgIC8vIHBhdHRlcm4gY29udGFpbmVkIGEgd2lsZGNhcmQgY2hhciBpbiB0aGF0IHBvc2l0aW9uLlxuICAgICAgICAgICAgZm9yICh2YXIgciA9IDA7IHIgPCB3OyByICs9IDEpIHtcbiAgICAgICAgICAgICAgICB2YXIgaWR4ID0gYiAqIHcgKyByO1xuICAgICAgICAgICAgICAgIGlmIChpZHggPj0gcGF0dGVybi5sZW5ndGgpIHtcbiAgICAgICAgICAgICAgICAgICAgY29udGludWU7XG4gICAgICAgICAgICAgICAgfVxuICAgICAgICAgICAgICAgIHZhciBtYXRjaCA9IHBhdHRlcm4uY2hhckNvZGVBdChpZHgpID09PSB2YWw7XG4gICAgICAgICAgICAgICAgaWYgKG1hdGNoKSB7XG4gICAgICAgICAgICAgICAgICAgIGNoYXJQZXFbYl0gfD0gMSA8PCByO1xuICAgICAgICAgICAgICAgIH1cbiAgICAgICAgICAgIH1cbiAgICAgICAgfVxuICAgIH1cbiAgICAvLyBJbmRleCBvZiBsYXN0LWFjdGl2ZSBibG9jayBsZXZlbCBpbiB0aGUgY29sdW1uLlxuICAgIHZhciB5ID0gTWF0aC5tYXgoMCwgTWF0aC5jZWlsKG1heEVycm9ycyAvIHcpIC0gMSk7XG4gICAgLy8gSW5pdGlhbGl6ZSBtYXhpbXVtIGVycm9yIGNvdW50IGF0IGJvdHRvbSBvZiBlYWNoIGJsb2NrLlxuICAgIHZhciBzY29yZSA9IG5ldyBVaW50MzJBcnJheShiTWF4ICsgMSk7XG4gICAgZm9yICh2YXIgYiA9IDA7IGIgPD0geTsgYiArPSAxKSB7XG4gICAgICAgIHNjb3JlW2JdID0gKGIgKyAxKSAqIHc7XG4gICAgfVxuICAgIHNjb3JlW2JNYXhdID0gcGF0dGVybi5sZW5ndGg7XG4gICAgLy8gSW5pdGlhbGl6ZSB2ZXJ0aWNhbCBkZWx0YXMgZm9yIGVhY2ggYmxvY2suXG4gICAgZm9yICh2YXIgYiA9IDA7IGIgPD0geTsgYiArPSAxKSB7XG4gICAgICAgIGN0eC5QW2JdID0gfjA7XG4gICAgICAgIGN0eC5NW2JdID0gMDtcbiAgICB9XG4gICAgLy8gUHJvY2VzcyBlYWNoIGNoYXIgb2YgdGhlIHRleHQsIGNvbXB1dGluZyB0aGUgZXJyb3IgY291bnQgZm9yIGB3YCBjaGFycyBvZlxuICAgIC8vIHRoZSBwYXR0ZXJuIGF0IGEgdGltZS5cbiAgICBmb3IgKHZhciBqID0gMDsgaiA8IHRleHQubGVuZ3RoOyBqICs9IDEpIHtcbiAgICAgICAgLy8gTG9va3VwIHRoZSBiaXRtYXNrIHJlcHJlc2VudGluZyB0aGUgcG9zaXRpb25zIG9mIHRoZSBjdXJyZW50IGNoYXIgZnJvbVxuICAgICAgICAvLyB0aGUgdGV4dCB3aXRoaW4gdGhlIHBhdHRlcm4uXG4gICAgICAgIHZhciBjaGFyQ29kZSA9IHRleHQuY2hhckNvZGVBdChqKTtcbiAgICAgICAgdmFyIGNoYXJQZXEgPSB2b2lkIDA7XG4gICAgICAgIGlmIChjaGFyQ29kZSA8IGFzY2lpUGVxLmxlbmd0aCkge1xuICAgICAgICAgICAgLy8gRmFzdCBhcnJheSBsb29rdXAuXG4gICAgICAgICAgICBjaGFyUGVxID0gYXNjaWlQZXFbY2hhckNvZGVdO1xuICAgICAgICB9XG4gICAgICAgIGVsc2Uge1xuICAgICAgICAgICAgLy8gU2xvd2VyIGhhc2ggdGFibGUgbG9va3VwLlxuICAgICAgICAgICAgY2hhclBlcSA9IHBlcS5nZXQoY2hhckNvZGUpO1xuICAgICAgICAgICAgaWYgKHR5cGVvZiBjaGFyUGVxID09PSBcInVuZGVmaW5lZFwiKSB7XG4gICAgICAgICAgICAgICAgY2hhclBlcSA9IGVtcHR5UGVxO1xuICAgICAgICAgICAgfVxuICAgICAgICB9XG4gICAgICAgIC8vIENhbGN1bGF0ZSBlcnJvciBjb3VudCBmb3IgYmxvY2tzIHRoYXQgd2UgZGVmaW5pdGVseSBoYXZlIHRvIHByb2Nlc3MgZm9yXG4gICAgICAgIC8vIHRoaXMgY29sdW1uLlxuICAgICAgICB2YXIgY2FycnkgPSAwO1xuICAgICAgICBmb3IgKHZhciBiID0gMDsgYiA8PSB5OyBiICs9IDEpIHtcbiAgICAgICAgICAgIGNhcnJ5ID0gYWR2YW5jZUJsb2NrKGN0eCwgY2hhclBlcSwgYiwgY2FycnkpO1xuICAgICAgICAgICAgc2NvcmVbYl0gKz0gY2Fycnk7XG4gICAgICAgIH1cbiAgICAgICAgLy8gQ2hlY2sgaWYgd2UgYWxzbyBuZWVkIHRvIGNvbXB1dGUgYW4gYWRkaXRpb25hbCBibG9jaywgb3IgaWYgd2UgY2FuIHJlZHVjZVxuICAgICAgICAvLyB0aGUgbnVtYmVyIG9mIGJsb2NrcyBwcm9jZXNzZWQgZm9yIHRoZSBuZXh0IGNvbHVtbi5cbiAgICAgICAgaWYgKHNjb3JlW3ldIC0gY2FycnkgPD0gbWF4RXJyb3JzICYmXG4gICAgICAgICAgICB5IDwgYk1heCAmJlxuICAgICAgICAgICAgKGNoYXJQZXFbeSArIDFdICYgMSB8fCBjYXJyeSA8IDApKSB7XG4gICAgICAgICAgICAvLyBFcnJvciBjb3VudCBmb3IgYm90dG9tIGJsb2NrIGlzIHVuZGVyIHRocmVzaG9sZCwgaW5jcmVhc2UgdGhlIG51bWJlciBvZlxuICAgICAgICAgICAgLy8gYmxvY2tzIHByb2Nlc3NlZCBmb3IgdGhpcyBjb2x1bW4gJiBuZXh0IGJ5IDEuXG4gICAgICAgICAgICB5ICs9IDE7XG4gICAgICAgICAgICBjdHguUFt5XSA9IH4wO1xuICAgICAgICAgICAgY3R4Lk1beV0gPSAwO1xuICAgICAgICAgICAgdmFyIG1heEJsb2NrU2NvcmUgPSB5ID09PSBiTWF4ID8gcGF0dGVybi5sZW5ndGggJSB3IDogdztcbiAgICAgICAgICAgIHNjb3JlW3ldID1cbiAgICAgICAgICAgICAgICBzY29yZVt5IC0gMV0gK1xuICAgICAgICAgICAgICAgICAgICBtYXhCbG9ja1Njb3JlIC1cbiAgICAgICAgICAgICAgICAgICAgY2FycnkgK1xuICAgICAgICAgICAgICAgICAgICBhZHZhbmNlQmxvY2soY3R4LCBjaGFyUGVxLCB5LCBjYXJyeSk7XG4gICAgICAgIH1cbiAgICAgICAgZWxzZSB7XG4gICAgICAgICAgICAvLyBFcnJvciBjb3VudCBmb3IgYm90dG9tIGJsb2NrIGV4Y2VlZHMgdGhyZXNob2xkLCByZWR1Y2UgdGhlIG51bWJlciBvZlxuICAgICAgICAgICAgLy8gYmxvY2tzIHByb2Nlc3NlZCBmb3IgdGhlIG5leHQgY29sdW1uLlxuICAgICAgICAgICAgd2hpbGUgKHkgPiAwICYmIHNjb3JlW3ldID49IG1heEVycm9ycyArIHcpIHtcbiAgICAgICAgICAgICAgICB5IC09IDE7XG4gICAgICAgICAgICB9XG4gICAgICAgIH1cbiAgICAgICAgLy8gSWYgZXJyb3IgY291bnQgaXMgdW5kZXIgdGhyZXNob2xkLCByZXBvcnQgYSBtYXRjaC5cbiAgICAgICAgaWYgKHkgPT09IGJNYXggJiYgc2NvcmVbeV0gPD0gbWF4RXJyb3JzKSB7XG4gICAgICAgICAgICBpZiAoc2NvcmVbeV0gPCBtYXhFcnJvcnMpIHtcbiAgICAgICAgICAgICAgICAvLyBEaXNjYXJkIGFueSBlYXJsaWVyLCB3b3JzZSBtYXRjaGVzLlxuICAgICAgICAgICAgICAgIG1hdGNoZXMuc3BsaWNlKDAsIG1hdGNoZXMubGVuZ3RoKTtcbiAgICAgICAgICAgIH1cbiAgICAgICAgICAgIG1hdGNoZXMucHVzaCh7XG4gICAgICAgICAgICAgICAgc3RhcnQ6IC0xLFxuICAgICAgICAgICAgICAgIGVuZDogaiArIDEsXG4gICAgICAgICAgICAgICAgZXJyb3JzOiBzY29yZVt5XVxuICAgICAgICAgICAgfSk7XG4gICAgICAgICAgICAvLyBCZWNhdXNlIGBzZWFyY2hgIG9ubHkgcmVwb3J0cyB0aGUgbWF0Y2hlcyB3aXRoIHRoZSBsb3dlc3QgZXJyb3IgY291bnQsXG4gICAgICAgICAgICAvLyB3ZSBjYW4gXCJyYXRjaGV0IGRvd25cIiB0aGUgbWF4IGVycm9yIHRocmVzaG9sZCB3aGVuZXZlciBhIG1hdGNoIGlzXG4gICAgICAgICAgICAvLyBlbmNvdW50ZXJlZCBhbmQgdGhlcmVieSBzYXZlIGEgc21hbGwgYW1vdW50IG9mIHdvcmsgZm9yIHRoZSByZW1haW5kZXJcbiAgICAgICAgICAgIC8vIG9mIHRoZSB0ZXh0LlxuICAgICAgICAgICAgbWF4RXJyb3JzID0gc2NvcmVbeV07XG4gICAgICAgIH1cbiAgICB9XG4gICAgcmV0dXJuIG1hdGNoZXM7XG59XG4vKipcbiAqIFNlYXJjaCBmb3IgbWF0Y2hlcyBmb3IgYHBhdHRlcm5gIGluIGB0ZXh0YCBhbGxvd2luZyB1cCB0byBgbWF4RXJyb3JzYCBlcnJvcnMuXG4gKlxuICogUmV0dXJucyB0aGUgc3RhcnQsIGFuZCBlbmQgcG9zaXRpb25zIGFuZCBlcnJvciBjb3VudHMgZm9yIGVhY2ggbG93ZXN0LWNvc3RcbiAqIG1hdGNoLiBPbmx5IHRoZSBcImJlc3RcIiBtYXRjaGVzIGFyZSByZXR1cm5lZC5cbiAqL1xuZnVuY3Rpb24gc2VhcmNoKHRleHQsIHBhdHRlcm4sIG1heEVycm9ycykge1xuICAgIHZhciBtYXRjaGVzID0gZmluZE1hdGNoRW5kcyh0ZXh0LCBwYXR0ZXJuLCBtYXhFcnJvcnMpO1xuICAgIHJldHVybiBmaW5kTWF0Y2hTdGFydHModGV4dCwgcGF0dGVybiwgbWF0Y2hlcyk7XG59XG5leHBvcnRzLmRlZmF1bHQgPSBzZWFyY2g7XG4iXSwic291cmNlUm9vdCI6IiJ9\n//# sourceURL=webpack-internal:///89\n')},992:(__unused_webpack_module,__unused_webpack___webpack_exports__,__webpack_require__)=>{eval('\n// EXTERNAL MODULE: ./node_modules/approx-string-match/dist/index.js\nvar dist = __webpack_require__(89);\n;// CONCATENATED MODULE: ./src/vendor/hypothesis/anchoring/match-quote.js\n\n\n/**\n * @typedef {import(\'approx-string-match\').Match} StringMatch\n */\n\n/**\n * @typedef Match\n * @prop {number} start - Start offset of match in text\n * @prop {number} end - End offset of match in text\n * @prop {number} score -\n *   Score for the match between 0 and 1.0, where 1.0 indicates a perfect match\n *   for the quote and context.\n */\n\n/**\n * Find the best approximate matches for `str` in `text` allowing up to `maxErrors` errors.\n *\n * @param {string} text\n * @param {string} str\n * @param {number} maxErrors\n * @return {StringMatch[]}\n */\nfunction search(text, str, maxErrors) {\n  // Do a fast search for exact matches. The `approx-string-match` library\n  // doesn\'t currently incorporate this optimization itself.\n  let matchPos = 0;\n  let exactMatches = [];\n  while (matchPos !== -1) {\n    matchPos = text.indexOf(str, matchPos);\n    if (matchPos !== -1) {\n      exactMatches.push({\n        start: matchPos,\n        end: matchPos + str.length,\n        errors: 0,\n      });\n      matchPos += 1;\n    }\n  }\n  if (exactMatches.length > 0) {\n    return exactMatches;\n  }\n\n  // If there are no exact matches, do a more expensive search for matches\n  // with errors.\n  return (0,dist/* default */.Z)(text, str, maxErrors);\n}\n\n/**\n * Compute a score between 0 and 1.0 for the similarity between `text` and `str`.\n *\n * @param {string} text\n * @param {string} str\n */\nfunction textMatchScore(text, str) {\n  /* istanbul ignore next - `scoreMatch` will never pass an empty string */\n  if (str.length === 0 || text.length === 0) {\n    return 0.0;\n  }\n  const matches = search(text, str, str.length);\n\n  // prettier-ignore\n  return 1 - (matches[0].errors / str.length);\n}\n\n/**\n * Find the best approximate match for `quote` in `text`.\n *\n * Returns `null` if no match exceeding the minimum quality threshold was found.\n *\n * @param {string} text - Document text to search\n * @param {string} quote - String to find within `text`\n * @param {Object} context -\n *   Context in which the quote originally appeared. This is used to choose the\n *   best match.\n *   @param {string} [context.prefix] - Expected text before the quote\n *   @param {string} [context.suffix] - Expected text after the quote\n *   @param {number} [context.hint] - Expected offset of match within text\n * @return {Match|null}\n */\nfunction matchQuote(text, quote, context = {}) {\n  if (quote.length === 0) {\n    return null;\n  }\n\n  // Choose the maximum number of errors to allow for the initial search.\n  // This choice involves a tradeoff between:\n  //\n  //  - Recall (proportion of "good" matches found)\n  //  - Precision (proportion of matches found which are "good")\n  //  - Cost of the initial search and of processing the candidate matches [1]\n  //\n  // [1] Specifically, the expected-time complexity of the initial search is\n  //     `O((maxErrors / 32) * text.length)`. See `approx-string-match` docs.\n  const maxErrors = Math.min(256, quote.length / 2);\n\n  // Find closest matches for `quote` in `text` based on edit distance.\n  const matches = search(text, quote, maxErrors);\n\n  if (matches.length === 0) {\n    return null;\n  }\n\n  /**\n   * Compute a score between 0 and 1.0 for a match candidate.\n   *\n   * @param {StringMatch} match\n   */\n  const scoreMatch = match => {\n    const quoteWeight = 50; // Similarity of matched text to quote.\n    const prefixWeight = 20; // Similarity of text before matched text to `context.prefix`.\n    const suffixWeight = 20; // Similarity of text after matched text to `context.suffix`.\n    const posWeight = 2; // Proximity to expected location. Used as a tie-breaker.\n\n    const quoteScore = 1 - match.errors / quote.length;\n\n    const prefixScore = context.prefix\n      ? textMatchScore(\n          text.slice(Math.max(0, match.start - context.prefix.length), match.start),\n          context.prefix\n        )\n      : 1.0;\n    const suffixScore = context.suffix\n      ? textMatchScore(\n          text.slice(match.end, match.end + context.suffix.length),\n          context.suffix\n        )\n      : 1.0;\n\n    let posScore = 1.0;\n    if (typeof context.hint === \'number\') {\n      const offset = Math.abs(match.start - context.hint);\n      posScore = 1.0 - offset / text.length;\n    }\n\n    const rawScore =\n      quoteWeight * quoteScore +\n      prefixWeight * prefixScore +\n      suffixWeight * suffixScore +\n      posWeight * posScore;\n    const maxScore = quoteWeight + prefixWeight + suffixWeight + posWeight;\n    const normalizedScore = rawScore / maxScore;\n\n    return normalizedScore;\n  };\n\n  // Rank matches based on similarity of actual and expected surrounding text\n  // and actual/expected offset in the document text.\n  const scoredMatches = matches.map(m => ({\n    start: m.start,\n    end: m.end,\n    score: scoreMatch(m),\n  }));\n\n  // Choose match with highest score.\n  scoredMatches.sort((a, b) => b.score - a.score);\n  return scoredMatches[0];\n}\n\n;// CONCATENATED MODULE: ./src/vendor/hypothesis/anchoring/text-range.js\n/**\n * Return the combined length of text nodes contained in `node`.\n *\n * @param {Node} node\n */\nfunction nodeTextLength(node) {\n  switch (node.nodeType) {\n    case Node.ELEMENT_NODE:\n    case Node.TEXT_NODE:\n      // nb. `textContent` excludes text in comments and processing instructions\n      // when called on a parent element, so we don\'t need to subtract that here.\n\n      return /** @type {string} */ (node.textContent).length;\n    default:\n      return 0;\n  }\n}\n\n/**\n * Return the total length of the text of all previous siblings of `node`.\n *\n * @param {Node} node\n */\nfunction previousSiblingsTextLength(node) {\n  let sibling = node.previousSibling;\n  let length = 0;\n  while (sibling) {\n    length += nodeTextLength(sibling);\n    sibling = sibling.previousSibling;\n  }\n  return length;\n}\n\n/**\n * Resolve one or more character offsets within an element to (text node, position)\n * pairs.\n *\n * @param {Element} element\n * @param {number[]} offsets - Offsets, which must be sorted in ascending order\n * @return {{ node: Text, offset: number }[]}\n */\nfunction resolveOffsets(element, ...offsets) {\n  let nextOffset = offsets.shift();\n  const nodeIter = /** @type {Document} */ (\n    element.ownerDocument\n  ).createNodeIterator(element, NodeFilter.SHOW_TEXT);\n  const results = [];\n\n  let currentNode = nodeIter.nextNode();\n  let textNode;\n  let length = 0;\n\n  // Find the text node containing the `nextOffset`th character from the start\n  // of `element`.\n  while (nextOffset !== undefined && currentNode) {\n    textNode = /** @type {Text} */ (currentNode);\n    if (length + textNode.data.length > nextOffset) {\n      results.push({ node: textNode, offset: nextOffset - length });\n      nextOffset = offsets.shift();\n    } else {\n      currentNode = nodeIter.nextNode();\n      length += textNode.data.length;\n    }\n  }\n\n  // Boundary case.\n  while (nextOffset !== undefined && textNode && length === nextOffset) {\n    results.push({ node: textNode, offset: textNode.data.length });\n    nextOffset = offsets.shift();\n  }\n\n  if (nextOffset !== undefined) {\n    throw new RangeError(\'Offset exceeds text length\');\n  }\n\n  return results;\n}\n\nlet RESOLVE_FORWARDS = 1;\nlet RESOLVE_BACKWARDS = 2;\n\n/**\n * Represents an offset within the text content of an element.\n *\n * This position can be resolved to a specific descendant node in the current\n * DOM subtree of the element using the `resolve` method.\n */\nclass text_range_TextPosition {\n  /**\n   * Construct a `TextPosition` that refers to the text position `offset` within\n   * the text content of `element`.\n   *\n   * @param {Element} element\n   * @param {number} offset\n   */\n  constructor(element, offset) {\n    if (offset < 0) {\n      throw new Error(\'Offset is invalid\');\n    }\n\n    /** Element that `offset` is relative to. */\n    this.element = element;\n\n    /** Character offset from the start of the element\'s `textContent`. */\n    this.offset = offset;\n  }\n\n  /**\n   * Return a copy of this position with offset relative to a given ancestor\n   * element.\n   *\n   * @param {Element} parent - Ancestor of `this.element`\n   * @return {TextPosition}\n   */\n  relativeTo(parent) {\n    if (!parent.contains(this.element)) {\n      throw new Error(\'Parent is not an ancestor of current element\');\n    }\n\n    let el = this.element;\n    let offset = this.offset;\n    while (el !== parent) {\n      offset += previousSiblingsTextLength(el);\n      el = /** @type {Element} */ (el.parentElement);\n    }\n\n    return new text_range_TextPosition(el, offset);\n  }\n\n  /**\n   * Resolve the position to a specific text node and offset within that node.\n   *\n   * Throws if `this.offset` exceeds the length of the element\'s text. In the\n   * case where the element has no text and `this.offset` is 0, the `direction`\n   * option determines what happens.\n   *\n   * Offsets at the boundary between two nodes are resolved to the start of the\n   * node that begins at the boundary.\n   *\n   * @param {Object} [options]\n   *   @param {RESOLVE_FORWARDS|RESOLVE_BACKWARDS} [options.direction] -\n   *     Specifies in which direction to search for the nearest text node if\n   *     `this.offset` is `0` and `this.element` has no text. If not specified\n   *     an error is thrown.\n   * @return {{ node: Text, offset: number }}\n   * @throws {RangeError}\n   */\n  resolve(options = {}) {\n    try {\n      return resolveOffsets(this.element, this.offset)[0];\n    } catch (err) {\n      if (this.offset === 0 && options.direction !== undefined) {\n        const tw = document.createTreeWalker(\n          this.element.getRootNode(),\n          NodeFilter.SHOW_TEXT\n        );\n        tw.currentNode = this.element;\n        const forwards = options.direction === RESOLVE_FORWARDS;\n        const text = /** @type {Text|null} */ (\n          forwards ? tw.nextNode() : tw.previousNode()\n        );\n        if (!text) {\n          throw err;\n        }\n        return { node: text, offset: forwards ? 0 : text.data.length };\n      } else {\n        throw err;\n      }\n    }\n  }\n\n  /**\n   * Construct a `TextPosition` that refers to the `offset`th character within\n   * `node`.\n   *\n   * @param {Node} node\n   * @param {number} offset\n   * @return {TextPosition}\n   */\n  static fromCharOffset(node, offset) {\n    switch (node.nodeType) {\n      case Node.TEXT_NODE:\n        return text_range_TextPosition.fromPoint(node, offset);\n      case Node.ELEMENT_NODE:\n        return new text_range_TextPosition(/** @type {Element} */ (node), offset);\n      default:\n        throw new Error(\'Node is not an element or text node\');\n    }\n  }\n\n  /**\n   * Construct a `TextPosition` representing the range start or end point (node, offset).\n   *\n   * @param {Node} node - Text or Element node\n   * @param {number} offset - Offset within the node.\n   * @return {TextPosition}\n   */\n  static fromPoint(node, offset) {\n    switch (node.nodeType) {\n      case Node.TEXT_NODE: {\n        if (offset < 0 || offset > /** @type {Text} */ (node).data.length) {\n          throw new Error(\'Text node offset is out of range\');\n        }\n\n        if (!node.parentElement) {\n          throw new Error(\'Text node has no parent\');\n        }\n\n        // Get the offset from the start of the parent element.\n        const textOffset = previousSiblingsTextLength(node) + offset;\n\n        return new text_range_TextPosition(node.parentElement, textOffset);\n      }\n      case Node.ELEMENT_NODE: {\n        if (offset < 0 || offset > node.childNodes.length) {\n          throw new Error(\'Child node offset is out of range\');\n        }\n\n        // Get the text length before the `offset`th child of element.\n        let textOffset = 0;\n        for (let i = 0; i < offset; i++) {\n          textOffset += nodeTextLength(node.childNodes[i]);\n        }\n\n        return new text_range_TextPosition(/** @type {Element} */ (node), textOffset);\n      }\n      default:\n        throw new Error(\'Point is not in an element or text node\');\n    }\n  }\n}\n\n/**\n * Represents a region of a document as a (start, end) pair of `TextPosition` points.\n *\n * Representing a range in this way allows for changes in the DOM content of the\n * range which don\'t affect its text content, without affecting the text content\n * of the range itself.\n */\nclass text_range_TextRange {\n  /**\n   * Construct an immutable `TextRange` from a `start` and `end` point.\n   *\n   * @param {TextPosition} start\n   * @param {TextPosition} end\n   */\n  constructor(start, end) {\n    this.start = start;\n    this.end = end;\n  }\n\n  /**\n   * Return a copy of this range with start and end positions relative to a\n   * given ancestor. See `TextPosition.relativeTo`.\n   *\n   * @param {Element} element\n   */\n  relativeTo(element) {\n    return new text_range_TextRange(\n      this.start.relativeTo(element),\n      this.end.relativeTo(element)\n    );\n  }\n\n  /**\n   * Resolve the `TextRange` to a DOM range.\n   *\n   * The resulting DOM Range will always start and end in a `Text` node.\n   * Hence `TextRange.fromRange(range).toRange()` can be used to "shrink" a\n   * range to the text it contains.\n   *\n   * May throw if the `start` or `end` positions cannot be resolved to a range.\n   *\n   * @return {Range}\n   */\n  toRange() {\n    let start;\n    let end;\n\n    if (\n      this.start.element === this.end.element &&\n      this.start.offset <= this.end.offset\n    ) {\n      // Fast path for start and end points in same element.\n      [start, end] = resolveOffsets(\n        this.start.element,\n        this.start.offset,\n        this.end.offset\n      );\n    } else {\n      start = this.start.resolve({ direction: RESOLVE_FORWARDS });\n      end = this.end.resolve({ direction: RESOLVE_BACKWARDS });\n    }\n\n    const range = new Range();\n    range.setStart(start.node, start.offset);\n    range.setEnd(end.node, end.offset);\n    return range;\n  }\n\n  /**\n   * Convert an existing DOM `Range` to a `TextRange`\n   *\n   * @param {Range} range\n   * @return {TextRange}\n   */\n  static fromRange(range) {\n    const start = text_range_TextPosition.fromPoint(\n      range.startContainer,\n      range.startOffset\n    );\n    const end = text_range_TextPosition.fromPoint(range.endContainer, range.endOffset);\n    return new text_range_TextRange(start, end);\n  }\n\n  /**\n   * Return a `TextRange` from the `start`th to `end`th characters in `root`.\n   *\n   * @param {Element} root\n   * @param {number} start\n   * @param {number} end\n   */\n  static fromOffsets(root, start, end) {\n    return new text_range_TextRange(\n      new text_range_TextPosition(root, start),\n      new text_range_TextPosition(root, end)\n    );\n  }\n}\n\n;// CONCATENATED MODULE: ./src/vendor/hypothesis/anchoring/types.js\n/**\n * This module exports a set of classes for converting between DOM `Range`\n * objects and different types of selectors. It is mostly a thin wrapper around a\n * set of anchoring libraries. It serves two main purposes:\n *\n *  1. Providing a consistent interface across different types of anchors.\n *  2. Insulating the rest of the code from API changes in the underlying anchoring\n *     libraries.\n */\n\n\n\n\n\n/**\n * @typedef {import(\'../../types/api\').RangeSelector} RangeSelector\n * @typedef {import(\'../../types/api\').TextPositionSelector} TextPositionSelector\n * @typedef {import(\'../../types/api\').TextQuoteSelector} TextQuoteSelector\n */\n\n/**\n * Converts between `RangeSelector` selectors and `Range` objects.\n */\nclass RangeAnchor {\n  /**\n   * @param {Node} root - A root element from which to anchor.\n   * @param {Range} range -  A range describing the anchor.\n   */\n  constructor(root, range) {\n    this.root = root;\n    this.range = range;\n  }\n\n  /**\n   * @param {Node} root -  A root element from which to anchor.\n   * @param {Range} range -  A range describing the anchor.\n   */\n  static fromRange(root, range) {\n    return new RangeAnchor(root, range);\n  }\n\n  /**\n   * Create an anchor from a serialized `RangeSelector` selector.\n   *\n   * @param {Element} root -  A root element from which to anchor.\n   * @param {RangeSelector} selector\n   */\n  static fromSelector(root, selector) {\n    const startContainer = nodeFromXPath(selector.startContainer, root);\n    if (!startContainer) {\n      throw new Error(\'Failed to resolve startContainer XPath\');\n    }\n\n    const endContainer = nodeFromXPath(selector.endContainer, root);\n    if (!endContainer) {\n      throw new Error(\'Failed to resolve endContainer XPath\');\n    }\n\n    const startPos = TextPosition.fromCharOffset(\n      startContainer,\n      selector.startOffset\n    );\n    const endPos = TextPosition.fromCharOffset(\n      endContainer,\n      selector.endOffset\n    );\n\n    const range = new TextRange(startPos, endPos).toRange();\n    return new RangeAnchor(root, range);\n  }\n\n  toRange() {\n    return this.range;\n  }\n\n  /**\n   * @return {RangeSelector}\n   */\n  toSelector() {\n    // "Shrink" the range so that it tightly wraps its text. This ensures more\n    // predictable output for a given text selection.\n    const normalizedRange = TextRange.fromRange(this.range).toRange();\n\n    const textRange = TextRange.fromRange(normalizedRange);\n    const startContainer = xpathFromNode(textRange.start.element, this.root);\n    const endContainer = xpathFromNode(textRange.end.element, this.root);\n\n    return {\n      type: \'RangeSelector\',\n      startContainer,\n      startOffset: textRange.start.offset,\n      endContainer,\n      endOffset: textRange.end.offset,\n    };\n  }\n}\n\n/**\n * Converts between `TextPositionSelector` selectors and `Range` objects.\n */\nclass TextPositionAnchor {\n  /**\n   * @param {Element} root\n   * @param {number} start\n   * @param {number} end\n   */\n  constructor(root, start, end) {\n    this.root = root;\n    this.start = start;\n    this.end = end;\n  }\n\n  /**\n   * @param {Element} root\n   * @param {Range} range\n   */\n  static fromRange(root, range) {\n    const textRange = text_range_TextRange.fromRange(range).relativeTo(root);\n    return new TextPositionAnchor(\n      root,\n      textRange.start.offset,\n      textRange.end.offset\n    );\n  }\n  /**\n   * @param {Element} root\n   * @param {TextPositionSelector} selector\n   */\n  static fromSelector(root, selector) {\n    return new TextPositionAnchor(root, selector.start, selector.end);\n  }\n\n  /**\n   * @return {TextPositionSelector}\n   */\n  toSelector() {\n    return {\n      type: \'TextPositionSelector\',\n      start: this.start,\n      end: this.end,\n    };\n  }\n\n  toRange() {\n    return text_range_TextRange.fromOffsets(this.root, this.start, this.end).toRange();\n  }\n}\n\n/**\n * @typedef QuoteMatchOptions\n * @prop {number} [hint] - Expected position of match in text. See `matchQuote`.\n */\n\n/**\n * Converts between `TextQuoteSelector` selectors and `Range` objects.\n */\nclass TextQuoteAnchor {\n  /**\n   * @param {Element} root - A root element from which to anchor.\n   * @param {string} exact\n   * @param {Object} context\n   *   @param {string} [context.prefix]\n   *   @param {string} [context.suffix]\n   */\n  constructor(root, exact, context = {}) {\n    this.root = root;\n    this.exact = exact;\n    this.context = context;\n  }\n\n  /**\n   * Create a `TextQuoteAnchor` from a range.\n   *\n   * Will throw if `range` does not contain any text nodes.\n   *\n   * @param {Element} root\n   * @param {Range} range\n   */\n  static fromRange(root, range) {\n    const text = /** @type {string} */ (root.textContent);\n    const textRange = text_range_TextRange.fromRange(range).relativeTo(root);\n\n    const start = textRange.start.offset;\n    const end = textRange.end.offset;\n\n    // Number of characters around the quote to capture as context. We currently\n    // always use a fixed amount, but it would be better if this code was aware\n    // of logical boundaries in the document (paragraph, article etc.) to avoid\n    // capturing text unrelated to the quote.\n    //\n    // In regular prose the ideal content would often be the surrounding sentence.\n    // This is a natural unit of meaning which enables displaying quotes in\n    // context even when the document is not available. We could use `Intl.Segmenter`\n    // for this when available.\n    const contextLen = 32;\n\n    return new TextQuoteAnchor(root, text.slice(start, end), {\n      prefix: text.slice(Math.max(0, start - contextLen), start),\n      suffix: text.slice(end, Math.min(text.length, end + contextLen)),\n    });\n  }\n\n  /**\n   * @param {Element} root\n   * @param {TextQuoteSelector} selector\n   */\n  static fromSelector(root, selector) {\n    const { prefix, suffix } = selector;\n    return new TextQuoteAnchor(root, selector.exact, { prefix, suffix });\n  }\n\n  /**\n   * @return {TextQuoteSelector}\n   */\n  toSelector() {\n    return {\n      type: \'TextQuoteSelector\',\n      exact: this.exact,\n      prefix: this.context.prefix,\n      suffix: this.context.suffix,\n    };\n  }\n\n  /**\n   * @param {QuoteMatchOptions} [options]\n   */\n  toRange(options = {}) {\n    return this.toPositionAnchor(options).toRange();\n  }\n\n  /**\n   * @param {QuoteMatchOptions} [options]\n   */\n  toPositionAnchor(options = {}) {\n    const text = /** @type {string} */ (this.root.textContent);\n    const match = matchQuote(text, this.exact, {\n      ...this.context,\n      hint: options.hint,\n    });\n    if (!match) {\n      throw new Error(\'Quote not found\');\n    }\n    return new TextPositionAnchor(this.root, match.start, match.end);\n  }\n}\n\n;// CONCATENATED MODULE: ./src/selection.js\n//\n//  Copyright 2021 Readium Foundation. All rights reserved.\n//  Use of this source code is governed by the BSD-style license\n//  available in the top-level LICENSE file of the project.\n//\n\n\n\n\n\nconst debug = true;\n\nfunction getCurrentSelection() {\n  const href = readium.link?.href;\n  if (!href) {\n    return null;\n  }\n  const text = getCurrentSelectionText();\n  if (!text) {\n    return null;\n  }\n  const rect = getSelectionRect();\n  return { href, text, rect };\n}\n\nfunction getSelectionRect() {\n  try {\n    let sel = window.getSelection();\n    if (!sel) {\n      return;\n    }\n    let range = sel.getRangeAt(0);\n\n    return toNativeRect(range.getBoundingClientRect());\n  } catch (e) {\n    logError(e);\n    return null;\n  }\n}\n\nfunction getCurrentSelectionText() {\n  const selection = window.getSelection();\n  if (!selection) {\n    return undefined;\n  }\n  if (selection.isCollapsed) {\n    return undefined;\n  }\n  const highlight = selection.toString();\n  const cleanHighlight = highlight\n    .trim()\n    .replace(/\\n/g, " ")\n    .replace(/\\s\\s+/g, " ");\n  if (cleanHighlight.length === 0) {\n    return undefined;\n  }\n  if (!selection.anchorNode || !selection.focusNode) {\n    return undefined;\n  }\n  const range =\n    selection.rangeCount === 1\n      ? selection.getRangeAt(0)\n      : createOrderedRange(\n          selection.anchorNode,\n          selection.anchorOffset,\n          selection.focusNode,\n          selection.focusOffset\n        );\n  if (!range || range.collapsed) {\n    log("$$$$$$$$$$$$$$$$$ CANNOT GET NON-COLLAPSED SELECTION RANGE?!");\n    return undefined;\n  }\n\n  const text = document.body.textContent;\n  const textRange = text_range_TextRange.fromRange(range).relativeTo(document.body);\n  const start = textRange.start.offset;\n  const end = textRange.end.offset;\n\n  const snippetLength = 200;\n\n  // Compute the text before the highlight, ignoring the first "word", which might be cut.\n  let before = text.slice(Math.max(0, start - snippetLength), start);\n  let firstWordStart = before.search(/\\P{L}\\p{L}/gu);\n  if (firstWordStart !== -1) {\n    before = before.slice(firstWordStart + 1);\n  }\n\n  // Compute the text after the highlight, ignoring the last "word", which might be cut.\n  let after = text.slice(end, Math.min(text.length, end + snippetLength));\n  let lastWordEnd = Array.from(after.matchAll(/\\p{L}\\P{L}/gu)).pop();\n  if (lastWordEnd !== undefined && lastWordEnd.index > 1) {\n    after = after.slice(0, lastWordEnd.index + 1);\n  }\n\n  return { highlight, before, after };\n}\n\nfunction createOrderedRange(startNode, startOffset, endNode, endOffset) {\n  const range = new Range();\n  range.setStart(startNode, startOffset);\n  range.setEnd(endNode, endOffset);\n  if (!range.collapsed) {\n    return range;\n  }\n  log(">>> createOrderedRange COLLAPSED ... RANGE REVERSE?");\n  const rangeReverse = new Range();\n  rangeReverse.setStart(endNode, endOffset);\n  rangeReverse.setEnd(startNode, startOffset);\n  if (!rangeReverse.collapsed) {\n    log(">>> createOrderedRange RANGE REVERSE OK.");\n    return range;\n  }\n  log(">>> createOrderedRange RANGE REVERSE ALSO COLLAPSED?!");\n  return undefined;\n}\n\nfunction convertRangeInfo(document, rangeInfo) {\n  const startElement = document.querySelector(\n    rangeInfo.startContainerElementCssSelector\n  );\n  if (!startElement) {\n    log("^^^ convertRangeInfo NO START ELEMENT CSS SELECTOR?!");\n    return undefined;\n  }\n  let startContainer = startElement;\n  if (rangeInfo.startContainerChildTextNodeIndex >= 0) {\n    if (\n      rangeInfo.startContainerChildTextNodeIndex >=\n      startElement.childNodes.length\n    ) {\n      log(\n        "^^^ convertRangeInfo rangeInfo.startContainerChildTextNodeIndex >= startElement.childNodes.length?!"\n      );\n      return undefined;\n    }\n    startContainer =\n      startElement.childNodes[rangeInfo.startContainerChildTextNodeIndex];\n    if (startContainer.nodeType !== Node.TEXT_NODE) {\n      log("^^^ convertRangeInfo startContainer.nodeType !== Node.TEXT_NODE?!");\n      return undefined;\n    }\n  }\n  const endElement = document.querySelector(\n    rangeInfo.endContainerElementCssSelector\n  );\n  if (!endElement) {\n    log("^^^ convertRangeInfo NO END ELEMENT CSS SELECTOR?!");\n    return undefined;\n  }\n  let endContainer = endElement;\n  if (rangeInfo.endContainerChildTextNodeIndex >= 0) {\n    if (\n      rangeInfo.endContainerChildTextNodeIndex >= endElement.childNodes.length\n    ) {\n      log(\n        "^^^ convertRangeInfo rangeInfo.endContainerChildTextNodeIndex >= endElement.childNodes.length?!"\n      );\n      return undefined;\n    }\n    endContainer =\n      endElement.childNodes[rangeInfo.endContainerChildTextNodeIndex];\n    if (endContainer.nodeType !== Node.TEXT_NODE) {\n      log("^^^ convertRangeInfo endContainer.nodeType !== Node.TEXT_NODE?!");\n      return undefined;\n    }\n  }\n  return createOrderedRange(\n    startContainer,\n    rangeInfo.startOffset,\n    endContainer,\n    rangeInfo.endOffset\n  );\n}\n\nfunction location2RangeInfo(location) {\n  const locations = location.locations;\n  const domRange = locations.domRange;\n  const start = domRange.start;\n  const end = domRange.end;\n\n  return {\n    endContainerChildTextNodeIndex: end.textNodeIndex,\n    endContainerElementCssSelector: end.cssSelector,\n    endOffset: end.offset,\n    startContainerChildTextNodeIndex: start.textNodeIndex,\n    startContainerElementCssSelector: start.cssSelector,\n    startOffset: start.offset,\n  };\n}\n\nfunction log() {\n  if (debug) {\n    utils_log.apply(null, arguments);\n  }\n}\n\n;// CONCATENATED MODULE: ./src/utils.js\n//\n//  Copyright 2021 Readium Foundation. All rights reserved.\n//  Use of this source code is governed by the BSD-style license\n//  available in the top-level LICENSE file of the project.\n//\n\n// Catch JS errors to log them in the app.\n\n\n\n\nwindow.addEventListener(\n  "error",\n  function (event) {\n    webkit.messageHandlers.logError.postMessage({\n      message: event.message,\n      filename: event.filename,\n      line: event.lineno,\n    });\n  },\n  false\n);\n\n// Notify native code that the page has loaded.\nwindow.addEventListener(\n  "load",\n  function () {\n    // on page load\n    window.addEventListener("orientationchange", function () {\n      orientationChanged();\n      snapCurrentPosition();\n    });\n    orientationChanged();\n  },\n  false\n);\n\nvar last_known_scrollX_position = 0;\nvar last_known_scrollY_position = 0;\nvar ticking = false;\nvar maxScreenX = 0;\n\n// Position in range [0 - 1].\nfunction update(position) {\n  var positionString = position.toString();\n  webkit.messageHandlers.progressionChanged.postMessage(positionString);\n}\n\nwindow.addEventListener("scroll", function () {\n  last_known_scrollY_position =\n    window.scrollY / document.scrollingElement.scrollHeight;\n  // Using Math.abs because for RTL books, the value will be negative.\n  last_known_scrollX_position = Math.abs(\n    window.scrollX / document.scrollingElement.scrollWidth\n  );\n\n  // Window is hidden\n  if (\n    document.scrollingElement.scrollWidth === 0 ||\n    document.scrollingElement.scrollHeight === 0\n  ) {\n    return;\n  }\n\n  if (!ticking) {\n    window.requestAnimationFrame(function () {\n      update(\n        isScrollModeEnabled()\n          ? last_known_scrollY_position\n          : last_known_scrollX_position\n      );\n      ticking = false;\n    });\n  }\n  ticking = true;\n});\n\ndocument.addEventListener(\n  "selectionchange",\n  debounce(50, function () {\n    webkit.messageHandlers.selectionChanged.postMessage(getCurrentSelection());\n  })\n);\n\nfunction orientationChanged() {\n  maxScreenX =\n    window.orientation === 0 || window.orientation == 180\n      ? screen.width\n      : screen.height;\n}\n\nfunction isScrollModeEnabled() {\n  return (\n    document.documentElement.style\n      .getPropertyValue("--USER__scroll")\n      .toString()\n      .trim() === "readium-scroll-on"\n  );\n}\n\n// Scroll to the given TagId in document and snap.\nfunction scrollToId(id) {\n  let element = document.getElementById(id);\n  if (!element) {\n    return false;\n  }\n\n  scrollToRect(element.getBoundingClientRect());\n  return true;\n}\n\n// Position must be in the range [0 - 1], 0-100%.\nfunction scrollToPosition(position, dir) {\n  console.log("ScrollToPosition");\n  if (position < 0 || position > 1) {\n    console.log("InvalidPosition");\n    return;\n  }\n\n  if (isScrollModeEnabled()) {\n    let offset = document.scrollingElement.scrollHeight * position;\n    document.scrollingElement.scrollTop = offset;\n    // window.scrollTo(0, offset);\n  } else {\n    var documentWidth = document.scrollingElement.scrollWidth;\n    var factor = dir == "rtl" ? -1 : 1;\n    let offset = documentWidth * position * factor;\n    document.scrollingElement.scrollLeft = snapOffset(offset);\n  }\n}\n\n// Scrolls to the first occurrence of the given text snippet.\n//\n// The expected text argument is a Locator Text object, as defined here:\n// https://readium.org/architecture/models/locators/\nfunction scrollToText(text) {\n  let range = rangeFromLocator({ text });\n  if (!range) {\n    return false;\n  }\n  scrollToRange(range);\n  return true;\n}\n\nfunction scrollToRange(range) {\n  scrollToRect(range.getBoundingClientRect());\n}\n\nfunction scrollToRect(rect) {\n  if (isScrollModeEnabled()) {\n    document.scrollingElement.scrollTop =\n      rect.top + window.scrollY - window.innerHeight / 2;\n  } else {\n    document.scrollingElement.scrollLeft = snapOffset(\n      rect.left + window.scrollX\n    );\n  }\n}\n\n// Returns false if the page is already at the left-most scroll offset.\nfunction scrollLeft(dir) {\n  var isRTL = dir == "rtl";\n  var documentWidth = document.scrollingElement.scrollWidth;\n  var pageWidth = window.innerWidth;\n  var offset = window.scrollX - pageWidth;\n  var minOffset = isRTL ? -(documentWidth - pageWidth) : 0;\n  return scrollToOffset(Math.max(offset, minOffset));\n}\n\n// Returns false if the page is already at the right-most scroll offset.\nfunction scrollRight(dir) {\n  var isRTL = dir == "rtl";\n  var documentWidth = document.scrollingElement.scrollWidth;\n  var pageWidth = window.innerWidth;\n  var offset = window.scrollX + pageWidth;\n  var maxOffset = isRTL ? 0 : documentWidth - pageWidth;\n  return scrollToOffset(Math.min(offset, maxOffset));\n}\n\n// Scrolls to the given left offset.\n// Returns false if the page scroll position is already close enough to the given offset.\nfunction scrollToOffset(offset) {\n  var currentOffset = window.scrollX;\n  var pageWidth = window.innerWidth;\n  document.scrollingElement.scrollLeft = offset;\n  // In some case the scrollX cannot reach the position respecting to innerWidth\n  var diff = Math.abs(currentOffset - offset) / pageWidth;\n  return diff > 0.01;\n}\n\n// Snap the offset to the screen width (page width).\nfunction snapOffset(offset) {\n  var value = offset + 1;\n\n  return value - (value % maxScreenX);\n}\n\nfunction snapCurrentPosition() {\n  if (isScrollModeEnabled()) {\n    return;\n  }\n  var currentOffset = window.scrollX;\n  var currentOffsetSnapped = snapOffset(currentOffset + 1);\n\n  document.scrollingElement.scrollLeft = currentOffsetSnapped;\n}\n\nfunction rangeFromLocator(locator) {\n  let text = locator.text;\n  if (!text || !text.highlight) {\n    return null;\n  }\n  try {\n    let anchor = new TextQuoteAnchor(document.body, text.highlight, {\n      prefix: text.before,\n      suffix: text.after,\n    });\n    return anchor.toRange();\n  } catch (e) {\n    logError(e);\n    return null;\n  }\n}\n\n/// User Settings.\n\n// For setting user setting.\nfunction setProperty(key, value) {\n  var root = document.documentElement;\n\n  root.style.setProperty(key, value);\n}\n\n// For removing user setting.\nfunction removeProperty(key) {\n  var root = document.documentElement;\n\n  root.style.removeProperty(key);\n}\n\n/// Toolkit\n\nfunction debounce(delay, func) {\n  var timeout;\n  return function () {\n    var self = this;\n    var args = arguments;\n    function callback() {\n      func.apply(self, args);\n      timeout = null;\n    }\n    clearTimeout(timeout);\n    timeout = setTimeout(callback, delay);\n  };\n}\n\nfunction utils_log() {\n  var message = Array.prototype.slice.call(arguments).join(" ");\n  webkit.messageHandlers.log.postMessage(message);\n}\n\nfunction logErrorMessage(msg) {\n  logError(new Error(msg));\n}\n\nfunction logError(e) {\n  webkit.messageHandlers.logError.postMessage({\n    message: e.message,\n  });\n}\n\n;// CONCATENATED MODULE: ./src/rect.js\n//\n//  Copyright 2021 Readium Foundation. All rights reserved.\n//  Use of this source code is governed by the BSD-style license\n//  available in the top-level LICENSE file of the project.\n//\n\n\n\nconst rect_debug = false;\n\n/**\n * Converts a DOMRect into a JSON object understandable by the native side.\n */\nfunction toNativeRect(rect) {\n  let point = adjustPointToViewport({ x: rect.left, y: rect.top });\n\n  const width = rect.width;\n  const height = rect.height;\n  const left = point.x;\n  const top = point.y;\n  const right = left + width;\n  const bottom = top + height;\n  return { width, height, left, top, right, bottom };\n}\n\n/**\n * Adjusts the given coordinates to the viewport for FXL resources.\n */\nfunction adjustPointToViewport(point) {\n  let frameRect = frameElement?.getBoundingClientRect();\n  if (!frameRect) {\n    return point;\n  }\n\n  let topScrollingElement = window.top.document.documentElement;\n  return {\n    x: point.x + frameRect.x + topScrollingElement.scrollLeft,\n    y: point.y + frameRect.y + topScrollingElement.scrollTop,\n  };\n}\n\nfunction getClientRectsNoOverlap(\n  range,\n  doNotMergeHorizontallyAlignedRects\n) {\n  let clientRects = range.getClientRects();\n\n  const tolerance = 1;\n  const originalRects = [];\n  for (const rangeClientRect of clientRects) {\n    originalRects.push({\n      bottom: rangeClientRect.bottom,\n      height: rangeClientRect.height,\n      left: rangeClientRect.left,\n      right: rangeClientRect.right,\n      top: rangeClientRect.top,\n      width: rangeClientRect.width,\n    });\n  }\n  const mergedRects = mergeTouchingRects(\n    originalRects,\n    tolerance,\n    doNotMergeHorizontallyAlignedRects\n  );\n  const noContainedRects = removeContainedRects(mergedRects, tolerance);\n  const newRects = replaceOverlapingRects(noContainedRects);\n  const minArea = 2 * 2;\n  for (let j = newRects.length - 1; j >= 0; j--) {\n    const rect = newRects[j];\n    const bigEnough = rect.width * rect.height > minArea;\n    if (!bigEnough) {\n      if (newRects.length > 1) {\n        rect_log("CLIENT RECT: remove small");\n        newRects.splice(j, 1);\n      } else {\n        rect_log("CLIENT RECT: remove small, but keep otherwise empty!");\n        break;\n      }\n    }\n  }\n  rect_log(`CLIENT RECT: reduced ${originalRects.length} --\x3e ${newRects.length}`);\n  return newRects;\n}\n\nfunction mergeTouchingRects(\n  rects,\n  tolerance,\n  doNotMergeHorizontallyAlignedRects\n) {\n  for (let i = 0; i < rects.length; i++) {\n    for (let j = i + 1; j < rects.length; j++) {\n      const rect1 = rects[i];\n      const rect2 = rects[j];\n      if (rect1 === rect2) {\n        rect_log("mergeTouchingRects rect1 === rect2 ??!");\n        continue;\n      }\n      const rectsLineUpVertically =\n        almostEqual(rect1.top, rect2.top, tolerance) &&\n        almostEqual(rect1.bottom, rect2.bottom, tolerance);\n      const rectsLineUpHorizontally =\n        almostEqual(rect1.left, rect2.left, tolerance) &&\n        almostEqual(rect1.right, rect2.right, tolerance);\n      const horizontalAllowed = !doNotMergeHorizontallyAlignedRects;\n      const aligned =\n        (rectsLineUpHorizontally && horizontalAllowed) ||\n        (rectsLineUpVertically && !rectsLineUpHorizontally);\n      const canMerge = aligned && rectsTouchOrOverlap(rect1, rect2, tolerance);\n      if (canMerge) {\n        rect_log(\n          `CLIENT RECT: merging two into one, VERTICAL: ${rectsLineUpVertically} HORIZONTAL: ${rectsLineUpHorizontally} (${doNotMergeHorizontallyAlignedRects})`\n        );\n        const newRects = rects.filter((rect) => {\n          return rect !== rect1 && rect !== rect2;\n        });\n        const replacementClientRect = getBoundingRect(rect1, rect2);\n        newRects.push(replacementClientRect);\n        return mergeTouchingRects(\n          newRects,\n          tolerance,\n          doNotMergeHorizontallyAlignedRects\n        );\n      }\n    }\n  }\n  return rects;\n}\n\nfunction getBoundingRect(rect1, rect2) {\n  const left = Math.min(rect1.left, rect2.left);\n  const right = Math.max(rect1.right, rect2.right);\n  const top = Math.min(rect1.top, rect2.top);\n  const bottom = Math.max(rect1.bottom, rect2.bottom);\n  return {\n    bottom,\n    height: bottom - top,\n    left,\n    right,\n    top,\n    width: right - left,\n  };\n}\n\nfunction removeContainedRects(rects, tolerance) {\n  const rectsToKeep = new Set(rects);\n  for (const rect of rects) {\n    const bigEnough = rect.width > 1 && rect.height > 1;\n    if (!bigEnough) {\n      rect_log("CLIENT RECT: remove tiny");\n      rectsToKeep.delete(rect);\n      continue;\n    }\n    for (const possiblyContainingRect of rects) {\n      if (rect === possiblyContainingRect) {\n        continue;\n      }\n      if (!rectsToKeep.has(possiblyContainingRect)) {\n        continue;\n      }\n      if (rectContains(possiblyContainingRect, rect, tolerance)) {\n        rect_log("CLIENT RECT: remove contained");\n        rectsToKeep.delete(rect);\n        break;\n      }\n    }\n  }\n  return Array.from(rectsToKeep);\n}\n\nfunction rectContains(rect1, rect2, tolerance) {\n  return (\n    rectContainsPoint(rect1, rect2.left, rect2.top, tolerance) &&\n    rectContainsPoint(rect1, rect2.right, rect2.top, tolerance) &&\n    rectContainsPoint(rect1, rect2.left, rect2.bottom, tolerance) &&\n    rectContainsPoint(rect1, rect2.right, rect2.bottom, tolerance)\n  );\n}\n\nfunction rectContainsPoint(rect, x, y, tolerance) {\n  return (\n    (rect.left < x || almostEqual(rect.left, x, tolerance)) &&\n    (rect.right > x || almostEqual(rect.right, x, tolerance)) &&\n    (rect.top < y || almostEqual(rect.top, y, tolerance)) &&\n    (rect.bottom > y || almostEqual(rect.bottom, y, tolerance))\n  );\n}\n\nfunction replaceOverlapingRects(rects) {\n  for (let i = 0; i < rects.length; i++) {\n    for (let j = i + 1; j < rects.length; j++) {\n      const rect1 = rects[i];\n      const rect2 = rects[j];\n      if (rect1 === rect2) {\n        rect_log("replaceOverlapingRects rect1 === rect2 ??!");\n        continue;\n      }\n      if (rectsTouchOrOverlap(rect1, rect2, -1)) {\n        let toAdd = [];\n        let toRemove;\n        const subtractRects1 = rectSubtract(rect1, rect2);\n        if (subtractRects1.length === 1) {\n          toAdd = subtractRects1;\n          toRemove = rect1;\n        } else {\n          const subtractRects2 = rectSubtract(rect2, rect1);\n          if (subtractRects1.length < subtractRects2.length) {\n            toAdd = subtractRects1;\n            toRemove = rect1;\n          } else {\n            toAdd = subtractRects2;\n            toRemove = rect2;\n          }\n        }\n        rect_log(`CLIENT RECT: overlap, cut one rect into ${toAdd.length}`);\n        const newRects = rects.filter((rect) => {\n          return rect !== toRemove;\n        });\n        Array.prototype.push.apply(newRects, toAdd);\n        return replaceOverlapingRects(newRects);\n      }\n    }\n  }\n  return rects;\n}\n\nfunction rectSubtract(rect1, rect2) {\n  const rectIntersected = rectIntersect(rect2, rect1);\n  if (rectIntersected.height === 0 || rectIntersected.width === 0) {\n    return [rect1];\n  }\n  const rects = [];\n  {\n    const rectA = {\n      bottom: rect1.bottom,\n      height: 0,\n      left: rect1.left,\n      right: rectIntersected.left,\n      top: rect1.top,\n      width: 0,\n    };\n    rectA.width = rectA.right - rectA.left;\n    rectA.height = rectA.bottom - rectA.top;\n    if (rectA.height !== 0 && rectA.width !== 0) {\n      rects.push(rectA);\n    }\n  }\n  {\n    const rectB = {\n      bottom: rectIntersected.top,\n      height: 0,\n      left: rectIntersected.left,\n      right: rectIntersected.right,\n      top: rect1.top,\n      width: 0,\n    };\n    rectB.width = rectB.right - rectB.left;\n    rectB.height = rectB.bottom - rectB.top;\n    if (rectB.height !== 0 && rectB.width !== 0) {\n      rects.push(rectB);\n    }\n  }\n  {\n    const rectC = {\n      bottom: rect1.bottom,\n      height: 0,\n      left: rectIntersected.left,\n      right: rectIntersected.right,\n      top: rectIntersected.bottom,\n      width: 0,\n    };\n    rectC.width = rectC.right - rectC.left;\n    rectC.height = rectC.bottom - rectC.top;\n    if (rectC.height !== 0 && rectC.width !== 0) {\n      rects.push(rectC);\n    }\n  }\n  {\n    const rectD = {\n      bottom: rect1.bottom,\n      height: 0,\n      left: rectIntersected.right,\n      right: rect1.right,\n      top: rect1.top,\n      width: 0,\n    };\n    rectD.width = rectD.right - rectD.left;\n    rectD.height = rectD.bottom - rectD.top;\n    if (rectD.height !== 0 && rectD.width !== 0) {\n      rects.push(rectD);\n    }\n  }\n  return rects;\n}\n\nfunction rectIntersect(rect1, rect2) {\n  const maxLeft = Math.max(rect1.left, rect2.left);\n  const minRight = Math.min(rect1.right, rect2.right);\n  const maxTop = Math.max(rect1.top, rect2.top);\n  const minBottom = Math.min(rect1.bottom, rect2.bottom);\n  return {\n    bottom: minBottom,\n    height: Math.max(0, minBottom - maxTop),\n    left: maxLeft,\n    right: minRight,\n    top: maxTop,\n    width: Math.max(0, minRight - maxLeft),\n  };\n}\n\nfunction rectsTouchOrOverlap(rect1, rect2, tolerance) {\n  return (\n    (rect1.left < rect2.right ||\n      (tolerance >= 0 && almostEqual(rect1.left, rect2.right, tolerance))) &&\n    (rect2.left < rect1.right ||\n      (tolerance >= 0 && almostEqual(rect2.left, rect1.right, tolerance))) &&\n    (rect1.top < rect2.bottom ||\n      (tolerance >= 0 && almostEqual(rect1.top, rect2.bottom, tolerance))) &&\n    (rect2.top < rect1.bottom ||\n      (tolerance >= 0 && almostEqual(rect2.top, rect1.bottom, tolerance)))\n  );\n}\n\nfunction almostEqual(a, b, tolerance) {\n  return Math.abs(a - b) <= tolerance;\n}\n\nfunction rect_log() {\n  if (rect_debug) {\n    utils_log.apply(null, arguments);\n  }\n}\n\n;// CONCATENATED MODULE: ./src/decorator.js\n//\n//  Copyright 2021 Readium Foundation. All rights reserved.\n//  Use of this source code is governed by the BSD-style license\n//  available in the top-level LICENSE file of the project.\n//\n\n\n\n\nlet styles = new Map();\nlet groups = new Map();\nvar lastGroupId = 0;\n\n/**\n * Registers a list of additional supported Decoration Templates.\n *\n * Each template object is indexed by the style ID.\n */\nfunction registerTemplates(newStyles) {\n  var stylesheet = "";\n\n  for (const [id, style] of Object.entries(newStyles)) {\n    styles.set(id, style);\n    if (style.stylesheet) {\n      stylesheet += style.stylesheet + "\\n";\n    }\n  }\n\n  if (stylesheet) {\n    let styleElement = document.createElement("style");\n    styleElement.innerHTML = stylesheet;\n    document.getElementsByTagName("head")[0].appendChild(styleElement);\n  }\n}\n\n/**\n * Returns an instance of DecorationGroup for the given group name.\n */\nfunction getDecorations(groupName) {\n  var group = groups.get(groupName);\n  if (!group) {\n    let id = "r2-decoration-" + lastGroupId++;\n    group = DecorationGroup(id, groupName);\n    groups.set(groupName, group);\n  }\n  return group;\n}\n\n/**\n * Handles click events on a Decoration.\n * Returns whether a decoration matched this event.\n */\nfunction handleDecorationClickEvent(event, clickEvent) {\n  if (groups.size === 0) {\n    return false;\n  }\n\n  function findTarget() {\n    for (const [group, groupContent] of groups) {\n      if (!groupContent.isActivable()) {\n        continue;\n      }\n\n      for (const item of groupContent.items.reverse()) {\n        if (!item.clickableElements) {\n          continue;\n        }\n        for (const element of item.clickableElements) {\n          let rect = element.getBoundingClientRect().toJSON();\n          if (rectContainsPoint(rect, event.clientX, event.clientY, 1)) {\n            return { group, item, element, rect };\n          }\n        }\n      }\n    }\n  }\n\n  let target = findTarget();\n  if (!target) {\n    return false;\n  }\n  webkit.messageHandlers.decorationActivated.postMessage({\n    id: target.item.decoration.id,\n    group: target.group,\n    rect: toNativeRect(target.item.range.getBoundingClientRect()),\n    click: clickEvent,\n  });\n  return true;\n}\n\n/**\n * Creates a DecorationGroup object from a unique HTML ID and its name.\n */\nfunction DecorationGroup(groupId, groupName) {\n  var items = [];\n  var lastItemId = 0;\n  var container = null;\n  var activable = false;\n\n  function isActivable() {\n    return activable;\n  }\n\n  function setActivable() {\n    activable = true;\n  }\n\n  /**\n   * Adds a new decoration to the group.\n   */\n  function add(decoration) {\n    let id = groupId + "-" + lastItemId++;\n\n    let range = rangeFromLocator(decoration.locator);\n    if (!range) {\n      utils_log("Can\'t locate DOM range for decoration", decoration);\n      return;\n    }\n\n    let item = { id, decoration, range };\n    items.push(item);\n    layout(item);\n  }\n\n  /**\n   * Removes the decoration with given ID from the group.\n   */\n  function remove(decorationId) {\n    let index = items.findIndex((i) => i.decoration.id === decorationId);\n    if (index === -1) {\n      return;\n    }\n\n    let item = items[index];\n    items.splice(index, 1);\n    item.clickableElements = null;\n    if (item.container) {\n      item.container.remove();\n      item.container = null;\n    }\n  }\n\n  /**\n   * Notifies that the given decoration was modified and needs to be updated.\n   */\n  function update(decoration) {\n    remove(decoration.id);\n    add(decoration);\n  }\n\n  /**\n   * Removes all decorations from this group.\n   */\n  function clear() {\n    clearContainer();\n    items.length = 0;\n  }\n\n  /**\n   * Recreates the decoration elements.\n   *\n   * To be called after reflowing the resource, for example.\n   */\n  function requestLayout() {\n    clearContainer();\n    items.forEach((item) => layout(item));\n  }\n\n  /**\n   * Layouts a single Decoration item.\n   */\n  function layout(item) {\n    let groupContainer = requireContainer();\n\n    let style = styles.get(item.decoration.style);\n    if (!style) {\n      logErrorMessage(`Unknown decoration style: ${item.decoration.style}`);\n      return;\n    }\n\n    let itemContainer = document.createElement("div");\n    itemContainer.setAttribute("id", item.id);\n    itemContainer.setAttribute("data-style", item.decoration.style);\n    itemContainer.style.setProperty("pointer-events", "none");\n\n    let viewportWidth = window.innerWidth;\n    let columnCount = parseInt(\n      getComputedStyle(document.documentElement).getPropertyValue(\n        "column-count"\n      )\n    );\n    let pageWidth = viewportWidth / (columnCount || 1);\n    let scrollingElement = document.scrollingElement;\n    let xOffset = scrollingElement.scrollLeft;\n    let yOffset = scrollingElement.scrollTop;\n\n    function positionElement(element, rect, boundingRect) {\n      element.style.position = "absolute";\n\n      if (style.width === "wrap") {\n        element.style.width = `${rect.width}px`;\n        element.style.height = `${rect.height}px`;\n        element.style.left = `${rect.left + xOffset}px`;\n        element.style.top = `${rect.top + yOffset}px`;\n      } else if (style.width === "viewport") {\n        element.style.width = `${viewportWidth}px`;\n        element.style.height = `${rect.height}px`;\n        let left = Math.floor(rect.left / viewportWidth) * viewportWidth;\n        element.style.left = `${left + xOffset}px`;\n        element.style.top = `${rect.top + yOffset}px`;\n      } else if (style.width === "bounds") {\n        element.style.width = `${boundingRect.width}px`;\n        element.style.height = `${rect.height}px`;\n        element.style.left = `${boundingRect.left + xOffset}px`;\n        element.style.top = `${rect.top + yOffset}px`;\n      } else if (style.width === "page") {\n        element.style.width = `${pageWidth}px`;\n        element.style.height = `${rect.height}px`;\n        let left = Math.floor(rect.left / pageWidth) * pageWidth;\n        element.style.left = `${left + xOffset}px`;\n        element.style.top = `${rect.top + yOffset}px`;\n      }\n    }\n\n    let boundingRect = item.range.getBoundingClientRect();\n\n    let elementTemplate;\n    try {\n      let template = document.createElement("template");\n      template.innerHTML = item.decoration.element.trim();\n      elementTemplate = template.content.firstElementChild;\n    } catch (error) {\n      logErrorMessage(\n        `Invalid decoration element "${item.decoration.element}": ${error.message}`\n      );\n      return;\n    }\n\n    if (style.layout === "boxes") {\n      let doNotMergeHorizontallyAlignedRects = true;\n      let clientRects = getClientRectsNoOverlap(\n        item.range,\n        doNotMergeHorizontallyAlignedRects\n      );\n\n      clientRects = clientRects.sort((r1, r2) => {\n        if (r1.top < r2.top) {\n          return -1;\n        } else if (r1.top > r2.top) {\n          return 1;\n        } else {\n          return 0;\n        }\n      });\n\n      for (let clientRect of clientRects) {\n        const line = elementTemplate.cloneNode(true);\n        line.style.setProperty("pointer-events", "none");\n        positionElement(line, clientRect, boundingRect);\n        itemContainer.append(line);\n      }\n    } else if (style.layout === "bounds") {\n      const bounds = elementTemplate.cloneNode(true);\n      bounds.style.setProperty("pointer-events", "none");\n      positionElement(bounds, boundingRect, boundingRect);\n\n      itemContainer.append(bounds);\n    }\n\n    groupContainer.append(itemContainer);\n    item.container = itemContainer;\n    item.clickableElements = Array.from(\n      itemContainer.querySelectorAll("[data-activable=\'1\']")\n    );\n    if (item.clickableElements.length === 0) {\n      item.clickableElements = Array.from(itemContainer.children);\n    }\n  }\n\n  /**\n   * Returns the group container element, after making sure it exists.\n   */\n  function requireContainer() {\n    if (!container) {\n      container = document.createElement("div");\n      container.setAttribute("id", groupId);\n      container.setAttribute("data-group", groupName);\n      container.style.setProperty("pointer-events", "none");\n      document.body.append(container);\n    }\n    return container;\n  }\n\n  /**\n   * Removes the group container.\n   */\n  function clearContainer() {\n    if (container) {\n      container.remove();\n      container = null;\n    }\n  }\n\n  return {\n    add,\n    remove,\n    update,\n    clear,\n    items,\n    requestLayout,\n    isActivable,\n    setActivable,\n  };\n}\n\nwindow.addEventListener(\n  "load",\n  function () {\n    // Will relayout all the decorations when the document body is resized.\n    const body = document.body;\n    var lastSize = { width: 0, height: 0 };\n    const observer = new ResizeObserver(() => {\n      if (\n        lastSize.width === body.clientWidth &&\n        lastSize.height === body.clientHeight\n      ) {\n        return;\n      }\n      lastSize = {\n        width: body.clientWidth,\n        height: body.clientHeight,\n      };\n\n      groups.forEach(function (group) {\n        group.requestLayout();\n      });\n    });\n    observer.observe(body);\n  },\n  false\n);\n\n;// CONCATENATED MODULE: ./src/gestures.js\n//\n//  Copyright 2021 Readium Foundation. All rights reserved.\n//  Use of this source code is governed by the BSD-style license\n//  available in the top-level LICENSE file of the project.\n//\n\n\n\n\nwindow.addEventListener("DOMContentLoaded", function () {\n  // If we don\'t set the CSS cursor property to pointer, then the click events are not triggered pre-iOS 13.\n  document.body.style.cursor = "pointer";\n\n  document.addEventListener("click", onClick, false);\n});\n\nfunction onClick(event) {\n  if (!getSelection().isCollapsed) {\n    // There\'s an on-going selection, the tap will dismiss it so we don\'t forward it.\n    return;\n  }\n\n  let point = adjustPointToViewport({ x: event.clientX, y: event.clientY });\n  let clickEvent = {\n    defaultPrevented: event.defaultPrevented,\n    x: point.x,\n    y: point.y,\n    targetElement: event.target.outerHTML,\n    interactiveElement: nearestInteractiveElement(event.target),\n  };\n\n  if (handleDecorationClickEvent(event, clickEvent)) {\n    return;\n  }\n\n  // Send the tap data over the JS bridge even if it\'s been handled\n  // within the webview, so that it can be preserved and used\n  // by the WKNavigationDelegate if needed.\n  webkit.messageHandlers.tap.postMessage(clickEvent);\n\n  // We don\'t want to disable the default WebView behavior as it breaks some features without bringing any value.\n  // event.stopPropagation();\n  // event.preventDefault();\n}\n\n// See. https://github.com/JayPanoz/architecture/tree/touch-handling/misc/touch-handling\nfunction nearestInteractiveElement(element) {\n  var interactiveTags = [\n    "a",\n    "audio",\n    "button",\n    "canvas",\n    "details",\n    "input",\n    "label",\n    "option",\n    "select",\n    "submit",\n    "textarea",\n    "video",\n  ];\n  if (interactiveTags.indexOf(element.nodeName.toLowerCase()) !== -1) {\n    return element.outerHTML;\n  }\n\n  // Checks whether the element is editable by the user.\n  if (\n    element.hasAttribute("contenteditable") &&\n    element.getAttribute("contenteditable").toLowerCase() != "false"\n  ) {\n    return element.outerHTML;\n  }\n\n  // Checks parents recursively because the touch might be for example on an <em> inside a <a>.\n  if (element.parentElement) {\n    return nearestInteractiveElement(element.parentElement);\n  }\n\n  return null;\n}\n\n;// CONCATENATED MODULE: ./src/index.js\n//\n//  Copyright 2021 Readium Foundation. All rights reserved.\n//  Use of this source code is governed by the BSD-style license\n//  available in the top-level LICENSE file of the project.\n//\n\n// Base script used by both reflowable and fixed layout resources.\n\n\n\n\n\n// Public API used by the navigator.\nwindow.readium = {\n  // utils\n  scrollToId: scrollToId,\n  scrollToPosition: scrollToPosition,\n  scrollToText: scrollToText,\n  scrollLeft: scrollLeft,\n  scrollRight: scrollRight,\n  setProperty: setProperty,\n  removeProperty: removeProperty,\n\n  // decoration\n  registerDecorationTemplates: registerTemplates,\n  getDecorations: getDecorations,\n};\n\n;// CONCATENATED MODULE: ./src/index-reflowable.js\n//\n//  Copyright 2021 Readium Foundation. All rights reserved.\n//  Use of this source code is governed by the BSD-style license\n//  available in the top-level LICENSE file of the project.\n//\n\n// Script used for reflowable resources.\n\n\n\nwindow.addEventListener("load", function () {\n  // Notifies native code that the page is loaded after it is rendered.\n  // Waiting for the next animation frame seems to do the trick to make sure the page is fully rendered.\n  window.requestAnimationFrame(function () {\n    webkit.messageHandlers.spreadLoaded.postMessage({});\n  });\n\n  // Setups the `viewport` meta tag to disable zooming.\n  let meta = document.createElement("meta");\n  meta.setAttribute("name", "viewport");\n  meta.setAttribute(\n    "content",\n    "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no"\n  );\n  document.head.appendChild(meta);\n});\n\n// Injects Readium CSS stylesheets.\ndocument.addEventListener("DOMContentLoaded", function () {\n  function createLink(name) {\n    var link = document.createElement("link");\n    link.setAttribute("rel", "stylesheet");\n    link.setAttribute("type", "text/css");\n    link.setAttribute("href", window.readiumCSSBaseURL + name + ".css");\n    return link;\n  }\n\n  var head = document.getElementsByTagName("head")[0];\n  head.appendChild(createLink("ReadiumCSS-after"));\n  head.insertBefore(createLink("ReadiumCSS-before"), head.children[0]);\n});\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly9yZWFkaXVtLWpzLy4vc3JjL3ZlbmRvci9oeXBvdGhlc2lzL2FuY2hvcmluZy9tYXRjaC1xdW90ZS5qcz9kZDZhIiwid2VicGFjazovL3JlYWRpdW0tanMvLi9zcmMvdmVuZG9yL2h5cG90aGVzaXMvYW5jaG9yaW5nL3RleHQtcmFuZ2UuanM/ZmRlZSIsIndlYnBhY2s6Ly9yZWFkaXVtLWpzLy4vc3JjL3ZlbmRvci9oeXBvdGhlc2lzL2FuY2hvcmluZy90eXBlcy5qcz80MDA0Iiwid2VicGFjazovL3JlYWRpdW0tanMvLi9zcmMvc2VsZWN0aW9uLmpzPzU5YWMiLCJ3ZWJwYWNrOi8vcmVhZGl1bS1qcy8uL3NyYy91dGlscy5qcz8wMjVlIiwid2VicGFjazovL3JlYWRpdW0tanMvLi9zcmMvcmVjdC5qcz80ZDVhIiwid2VicGFjazovL3JlYWRpdW0tanMvLi9zcmMvZGVjb3JhdG9yLmpzPzFiMDQiLCJ3ZWJwYWNrOi8vcmVhZGl1bS1qcy8uL3NyYy9nZXN0dXJlcy5qcz8xNGMyIiwid2VicGFjazovL3JlYWRpdW0tanMvLi9zcmMvaW5kZXguanM/YjYzNSIsIndlYnBhY2s6Ly9yZWFkaXVtLWpzLy4vc3JjL2luZGV4LXJlZmxvd2FibGUuanM/MzkyNSJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7O0FBQStDOztBQUUvQztBQUNBLGFBQWEsb0NBQW9DO0FBQ2pEOztBQUVBO0FBQ0E7QUFDQSxVQUFVLE9BQU87QUFDakIsVUFBVSxPQUFPO0FBQ2pCLFVBQVUsT0FBTztBQUNqQjtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0EsV0FBVyxPQUFPO0FBQ2xCLFdBQVcsT0FBTztBQUNsQixXQUFXLE9BQU87QUFDbEIsWUFBWTtBQUNaO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsT0FBTztBQUNQO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0EsU0FBUyx1QkFBWTtBQUNyQjs7QUFFQTtBQUNBO0FBQ0E7QUFDQSxXQUFXLE9BQU87QUFDbEIsV0FBVyxPQUFPO0FBQ2xCO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsV0FBVyxPQUFPO0FBQ2xCLFdBQVcsT0FBTztBQUNsQixXQUFXLE9BQU87QUFDbEI7QUFDQTtBQUNBLGFBQWEsT0FBTztBQUNwQixhQUFhLE9BQU87QUFDcEIsYUFBYSxPQUFPO0FBQ3BCLFlBQVk7QUFDWjtBQUNPLDZDQUE2QztBQUNwRDtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0EsYUFBYSxZQUFZO0FBQ3pCO0FBQ0E7QUFDQSwyQkFBMkI7QUFDM0IsNEJBQTRCO0FBQzVCLDRCQUE0QjtBQUM1Qix3QkFBd0I7O0FBRXhCOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsR0FBRzs7QUFFSDtBQUNBO0FBQ0E7QUFDQTs7O0FDN0pBO0FBQ0E7QUFDQTtBQUNBLFdBQVcsS0FBSztBQUNoQjtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQSx3QkFBd0IsT0FBTztBQUMvQjtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQSxXQUFXLEtBQUs7QUFDaEI7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQSxXQUFXLFFBQVE7QUFDbkIsV0FBVyxTQUFTO0FBQ3BCLGFBQWEsNkJBQTZCO0FBQzFDO0FBQ0E7QUFDQTtBQUNBLDhCQUE4QixTQUFTO0FBQ3ZDO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0EsMEJBQTBCLEtBQUs7QUFDL0I7QUFDQSxvQkFBb0IsOENBQThDO0FBQ2xFO0FBQ0EsS0FBSztBQUNMO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQSxrQkFBa0IsK0NBQStDO0FBQ2pFO0FBQ0E7O0FBRUE7QUFDQTtBQUNBOztBQUVBO0FBQ0E7O0FBRU87QUFDQTs7QUFFUDtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDTyxNQUFNLHVCQUFZO0FBQ3pCO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsYUFBYSxRQUFRO0FBQ3JCLGFBQWEsT0FBTztBQUNwQjtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsYUFBYSxRQUFRO0FBQ3JCLGNBQWM7QUFDZDtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0Esc0JBQXNCLFFBQVE7QUFDOUI7O0FBRUEsZUFBZSx1QkFBWTtBQUMzQjs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLGFBQWEsT0FBTztBQUNwQixlQUFlLG1DQUFtQztBQUNsRDtBQUNBO0FBQ0E7QUFDQSxlQUFlO0FBQ2YsY0FBYztBQUNkO0FBQ0Esc0JBQXNCO0FBQ3RCO0FBQ0E7QUFDQSxLQUFLO0FBQ0w7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSxnQ0FBZ0MsVUFBVTtBQUMxQztBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsZ0JBQWdCO0FBQ2hCLE9BQU87QUFDUDtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLGFBQWEsS0FBSztBQUNsQixhQUFhLE9BQU87QUFDcEIsY0FBYztBQUNkO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsZUFBZSx1QkFBWTtBQUMzQjtBQUNBLG1CQUFtQix1QkFBWSxZQUFZLFFBQVE7QUFDbkQ7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0EsYUFBYSxLQUFLO0FBQ2xCLGFBQWEsT0FBTztBQUNwQixjQUFjO0FBQ2Q7QUFDQTtBQUNBO0FBQ0E7QUFDQSw4Q0FBOEMsS0FBSztBQUNuRDtBQUNBOztBQUVBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBOztBQUVBLG1CQUFtQix1QkFBWTtBQUMvQjtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQSx1QkFBdUIsWUFBWTtBQUNuQztBQUNBOztBQUVBLG1CQUFtQix1QkFBWSxZQUFZLFFBQVE7QUFDbkQ7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ08sTUFBTSxvQkFBUztBQUN0QjtBQUNBO0FBQ0E7QUFDQSxhQUFhLGFBQWE7QUFDMUIsYUFBYSxhQUFhO0FBQzFCO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQSxhQUFhLFFBQVE7QUFDckI7QUFDQTtBQUNBLGVBQWUsb0JBQVM7QUFDeEI7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsY0FBYztBQUNkO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsS0FBSztBQUNMLGtDQUFrQyw4QkFBOEI7QUFDaEUsOEJBQThCLCtCQUErQjtBQUM3RDs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBLGFBQWEsTUFBTTtBQUNuQixjQUFjO0FBQ2Q7QUFDQTtBQUNBLGtCQUFrQix1QkFBWTtBQUM5QjtBQUNBO0FBQ0E7QUFDQSxnQkFBZ0IsdUJBQVk7QUFDNUIsZUFBZSxvQkFBUztBQUN4Qjs7QUFFQTtBQUNBO0FBQ0E7QUFDQSxhQUFhLFFBQVE7QUFDckIsYUFBYSxPQUFPO0FBQ3BCLGFBQWEsT0FBTztBQUNwQjtBQUNBO0FBQ0EsZUFBZSxvQkFBUztBQUN4QixVQUFVLHVCQUFZO0FBQ3RCLFVBQVUsdUJBQVk7QUFDdEI7QUFDQTtBQUNBOzs7QUN4VUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUUyQztBQUNZO0FBQ0E7O0FBRXZEO0FBQ0EsYUFBYSx3Q0FBd0M7QUFDckQsYUFBYSwrQ0FBK0M7QUFDNUQsYUFBYSw0Q0FBNEM7QUFDekQ7O0FBRUE7QUFDQTtBQUNBO0FBQ087QUFDUDtBQUNBLGFBQWEsS0FBSztBQUNsQixhQUFhLE1BQU07QUFDbkI7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBLGFBQWEsS0FBSztBQUNsQixhQUFhLE1BQU07QUFDbkI7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0EsYUFBYSxRQUFRO0FBQ3JCLGFBQWEsY0FBYztBQUMzQjtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBOztBQUVBO0FBQ0EsY0FBYztBQUNkO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDTztBQUNQO0FBQ0EsYUFBYSxRQUFRO0FBQ3JCLGFBQWEsT0FBTztBQUNwQixhQUFhLE9BQU87QUFDcEI7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0EsYUFBYSxRQUFRO0FBQ3JCLGFBQWEsTUFBTTtBQUNuQjtBQUNBO0FBQ0Esc0JBQXNCLDhCQUFtQjtBQUN6QztBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLGFBQWEsUUFBUTtBQUNyQixhQUFhLHFCQUFxQjtBQUNsQztBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBLGNBQWM7QUFDZDtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0EsV0FBVyxnQ0FBcUI7QUFDaEM7QUFDQTs7QUFFQTtBQUNBO0FBQ0EsVUFBVSxPQUFPO0FBQ2pCOztBQUVBO0FBQ0E7QUFDQTtBQUNPO0FBQ1A7QUFDQSxhQUFhLFFBQVE7QUFDckIsYUFBYSxPQUFPO0FBQ3BCLGFBQWEsT0FBTztBQUNwQixlQUFlLE9BQU87QUFDdEIsZUFBZSxPQUFPO0FBQ3RCO0FBQ0EsdUNBQXVDO0FBQ3ZDO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSxhQUFhLFFBQVE7QUFDckIsYUFBYSxNQUFNO0FBQ25CO0FBQ0E7QUFDQSw0QkFBNEIsT0FBTztBQUNuQyxzQkFBc0IsOEJBQW1COztBQUV6QztBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBLEtBQUs7QUFDTDs7QUFFQTtBQUNBLGFBQWEsUUFBUTtBQUNyQixhQUFhLGtCQUFrQjtBQUMvQjtBQUNBO0FBQ0EsV0FBVyxpQkFBaUI7QUFDNUIsc0RBQXNELGlCQUFpQjtBQUN2RTs7QUFFQTtBQUNBLGNBQWM7QUFDZDtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQSxhQUFhLGtCQUFrQjtBQUMvQjtBQUNBLHNCQUFzQjtBQUN0QjtBQUNBOztBQUVBO0FBQ0EsYUFBYSxrQkFBa0I7QUFDL0I7QUFDQSwrQkFBK0I7QUFDL0IsNEJBQTRCLE9BQU87QUFDbkMsa0JBQWtCLFVBQVU7QUFDNUI7QUFDQTtBQUNBLEtBQUs7QUFDTDtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7OztBQ3BQQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVxRDtBQUNmO0FBQytCOztBQUVyRTs7QUFFTztBQUNQO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLFVBQVU7QUFDVjs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQSxXQUFXLFlBQVk7QUFDdkIsR0FBRztBQUNILElBQUksUUFBUTtBQUNaO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0Esb0JBQW9CLDhCQUFtQjtBQUN2QztBQUNBOztBQUVBOztBQUVBO0FBQ0E7QUFDQSx5Q0FBeUMsRUFBRSxHQUFHLEVBQUU7QUFDaEQ7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQSxrREFBa0QsRUFBRSxHQUFHLEVBQUU7QUFDekQ7QUFDQTtBQUNBOztBQUVBLFVBQVU7QUFDVjs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRU87QUFDUDtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVPO0FBQ1A7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQSxJQUFJLGVBQWU7QUFDbkI7QUFDQTs7O0FDbE1BO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7O0FBRXNFO0FBQ3BCOztBQUVsRDtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLEtBQUs7QUFDTCxHQUFHO0FBQ0g7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsS0FBSztBQUNMO0FBQ0EsR0FBRztBQUNIO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsS0FBSztBQUNMO0FBQ0E7QUFDQSxDQUFDOztBQUVEO0FBQ0E7QUFDQTtBQUNBLHdEQUF3RCxtQkFBbUI7QUFDM0UsR0FBRztBQUNIOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFTztBQUNQO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ087QUFDUDtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7O0FBRUE7QUFDTztBQUNQO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQSxHQUFHO0FBQ0g7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ087QUFDUCxnQ0FBZ0MsT0FBTztBQUN2QztBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsR0FBRztBQUNIO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDTztBQUNQO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ087QUFDUDtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTs7QUFFTztBQUNQO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSxxQkFBcUIsZUFBZTtBQUNwQztBQUNBO0FBQ0EsS0FBSztBQUNMO0FBQ0EsR0FBRztBQUNIO0FBQ0E7QUFDQTtBQUNBOztBQUVBOztBQUVBO0FBQ087QUFDUDs7QUFFQTtBQUNBOztBQUVBO0FBQ087QUFDUDs7QUFFQTtBQUNBOztBQUVBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVPLFNBQVMsU0FBRztBQUNuQjtBQUNBO0FBQ0E7O0FBRU87QUFDUDtBQUNBOztBQUVPO0FBQ1A7QUFDQTtBQUNBLEdBQUc7QUFDSDs7O0FDN1FBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRTJDOztBQUUzQyxNQUFNLFVBQUs7O0FBRVg7QUFDQTtBQUNBO0FBQ087QUFDUCxxQ0FBcUMsNEJBQTRCOztBQUVqRTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSxVQUFVO0FBQ1Y7O0FBRUE7QUFDQTtBQUNBO0FBQ087QUFDUDtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRU87QUFDUDtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLEtBQUs7QUFDTDtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSxtQ0FBbUMsUUFBUTtBQUMzQztBQUNBO0FBQ0E7QUFDQTtBQUNBLFFBQVEsUUFBRztBQUNYO0FBQ0EsT0FBTztBQUNQLFFBQVEsUUFBRztBQUNYO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsRUFBRSxRQUFHLHlCQUF5QixxQkFBcUIsT0FBTyxnQkFBZ0I7QUFDMUU7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsaUJBQWlCLGtCQUFrQjtBQUNuQyx1QkFBdUIsa0JBQWtCO0FBQ3pDO0FBQ0E7QUFDQTtBQUNBLFFBQVEsUUFBRztBQUNYO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSxRQUFRLFFBQUc7QUFDWCwwREFBMEQsc0JBQXNCLGVBQWUsd0JBQXdCLElBQUksbUNBQW1DO0FBQzlKO0FBQ0E7QUFDQTtBQUNBLFNBQVM7QUFDVDtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsTUFBTSxRQUFHO0FBQ1Q7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLFFBQVEsUUFBRztBQUNYO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRU87QUFDUDtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBLGlCQUFpQixrQkFBa0I7QUFDbkMsdUJBQXVCLGtCQUFrQjtBQUN6QztBQUNBO0FBQ0E7QUFDQSxRQUFRLFFBQUc7QUFDWDtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSxTQUFTO0FBQ1Q7QUFDQTtBQUNBO0FBQ0E7QUFDQSxXQUFXO0FBQ1g7QUFDQTtBQUNBO0FBQ0E7QUFDQSxRQUFRLFFBQUcsNENBQTRDLGFBQWE7QUFDcEU7QUFDQTtBQUNBLFNBQVM7QUFDVDtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTs7QUFFQSxTQUFTLFFBQUc7QUFDWixNQUFNLFVBQUs7QUFDWCxJQUFJLGVBQWU7QUFDbkI7QUFDQTs7O0FDMVVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBTWdCO0FBQ2lEOztBQUVqRTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNPO0FBQ1A7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDTztBQUNQO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDTztBQUNQO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLGNBQWMsaUJBQWlCO0FBQy9CLG9CQUFvQjtBQUNwQjtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsVUFBVSxZQUFZO0FBQ3RCO0FBQ0EsR0FBRztBQUNIO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ087QUFDUDtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUEsZ0JBQWdCLGdCQUFnQjtBQUNoQztBQUNBLE1BQU0sU0FBRztBQUNUO0FBQ0E7O0FBRUEsZ0JBQWdCO0FBQ2hCO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBLE1BQU0sZUFBZSw4QkFBOEIsc0JBQXNCO0FBQ3pFO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTs7QUFFQTtBQUNBLGlDQUFpQyxXQUFXO0FBQzVDLGtDQUFrQyxZQUFZO0FBQzlDLGdDQUFnQyxvQkFBb0I7QUFDcEQsK0JBQStCLG1CQUFtQjtBQUNsRCxPQUFPO0FBQ1AsaUNBQWlDLGNBQWM7QUFDL0Msa0NBQWtDLFlBQVk7QUFDOUM7QUFDQSxnQ0FBZ0MsZUFBZTtBQUMvQywrQkFBK0IsbUJBQW1CO0FBQ2xELE9BQU87QUFDUCxpQ0FBaUMsbUJBQW1CO0FBQ3BELGtDQUFrQyxZQUFZO0FBQzlDLGdDQUFnQyw0QkFBNEI7QUFDNUQsK0JBQStCLG1CQUFtQjtBQUNsRCxPQUFPO0FBQ1AsaUNBQWlDLFVBQVU7QUFDM0Msa0NBQWtDLFlBQVk7QUFDOUM7QUFDQSxnQ0FBZ0MsZUFBZTtBQUMvQywrQkFBK0IsbUJBQW1CO0FBQ2xEO0FBQ0E7O0FBRUE7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLEtBQUs7QUFDTCxNQUFNLGVBQWU7QUFDckIsdUNBQXVDLHdCQUF3QixLQUFLLGNBQWM7QUFDbEY7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQSx3QkFBd0IsdUJBQXVCO0FBQy9DO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQSxTQUFTO0FBQ1Q7QUFDQSxTQUFTO0FBQ1Q7QUFDQTtBQUNBLE9BQU87O0FBRVA7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsS0FBSztBQUNMO0FBQ0E7QUFDQTs7QUFFQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0Esb0JBQW9CO0FBQ3BCO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRUE7QUFDQTtBQUNBLE9BQU87QUFDUCxLQUFLO0FBQ0w7QUFDQSxHQUFHO0FBQ0g7QUFDQTs7O0FDeFZBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7O0FBRXlEO0FBQ1Y7O0FBRS9DO0FBQ0E7QUFDQTs7QUFFQTtBQUNBLENBQUM7O0FBRUQ7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQSxjQUFjLHFCQUFxQixFQUFFLHFDQUFxQztBQUMxRTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQSxNQUFNLDBCQUEwQjtBQUNoQztBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7OztBQy9FQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBOztBQUVvQjtBQVNIO0FBQytDOztBQUVoRTtBQUNBO0FBQ0E7QUFDQSxjQUFjLFVBQVU7QUFDeEIsb0JBQW9CLGdCQUFnQjtBQUNwQyxnQkFBZ0IsWUFBWTtBQUM1QixjQUFjLFVBQVU7QUFDeEIsZUFBZSxXQUFXO0FBQzFCLGVBQWUsV0FBVztBQUMxQixrQkFBa0IsY0FBYzs7QUFFaEM7QUFDQSwrQkFBK0IsaUJBQWlCO0FBQ2hELGtCQUFrQixjQUFjO0FBQ2hDOzs7QUNsQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7QUFFQTs7QUFFaUI7O0FBRWpCO0FBQ0E7QUFDQTtBQUNBO0FBQ0Esc0RBQXNEO0FBQ3RELEdBQUc7O0FBRUg7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLENBQUM7O0FBRUQ7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTtBQUNBLENBQUMiLCJmaWxlIjoiOTkyLmpzIiwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IGFwcHJveFNlYXJjaCBmcm9tICdhcHByb3gtc3RyaW5nLW1hdGNoJztcblxuLyoqXG4gKiBAdHlwZWRlZiB7aW1wb3J0KCdhcHByb3gtc3RyaW5nLW1hdGNoJykuTWF0Y2h9IFN0cmluZ01hdGNoXG4gKi9cblxuLyoqXG4gKiBAdHlwZWRlZiBNYXRjaFxuICogQHByb3Age251bWJlcn0gc3RhcnQgLSBTdGFydCBvZmZzZXQgb2YgbWF0Y2ggaW4gdGV4dFxuICogQHByb3Age251bWJlcn0gZW5kIC0gRW5kIG9mZnNldCBvZiBtYXRjaCBpbiB0ZXh0XG4gKiBAcHJvcCB7bnVtYmVyfSBzY29yZSAtXG4gKiAgIFNjb3JlIGZvciB0aGUgbWF0Y2ggYmV0d2VlbiAwIGFuZCAxLjAsIHdoZXJlIDEuMCBpbmRpY2F0ZXMgYSBwZXJmZWN0IG1hdGNoXG4gKiAgIGZvciB0aGUgcXVvdGUgYW5kIGNvbnRleHQuXG4gKi9cblxuLyoqXG4gKiBGaW5kIHRoZSBiZXN0IGFwcHJveGltYXRlIG1hdGNoZXMgZm9yIGBzdHJgIGluIGB0ZXh0YCBhbGxvd2luZyB1cCB0byBgbWF4RXJyb3JzYCBlcnJvcnMuXG4gKlxuICogQHBhcmFtIHtzdHJpbmd9IHRleHRcbiAqIEBwYXJhbSB7c3RyaW5nfSBzdHJcbiAqIEBwYXJhbSB7bnVtYmVyfSBtYXhFcnJvcnNcbiAqIEByZXR1cm4ge1N0cmluZ01hdGNoW119XG4gKi9cbmZ1bmN0aW9uIHNlYXJjaCh0ZXh0LCBzdHIsIG1heEVycm9ycykge1xuICAvLyBEbyBhIGZhc3Qgc2VhcmNoIGZvciBleGFjdCBtYXRjaGVzLiBUaGUgYGFwcHJveC1zdHJpbmctbWF0Y2hgIGxpYnJhcnlcbiAgLy8gZG9lc24ndCBjdXJyZW50bHkgaW5jb3Jwb3JhdGUgdGhpcyBvcHRpbWl6YXRpb24gaXRzZWxmLlxuICBsZXQgbWF0Y2hQb3MgPSAwO1xuICBsZXQgZXhhY3RNYXRjaGVzID0gW107XG4gIHdoaWxlIChtYXRjaFBvcyAhPT0gLTEpIHtcbiAgICBtYXRjaFBvcyA9IHRleHQuaW5kZXhPZihzdHIsIG1hdGNoUG9zKTtcbiAgICBpZiAobWF0Y2hQb3MgIT09IC0xKSB7XG4gICAgICBleGFjdE1hdGNoZXMucHVzaCh7XG4gICAgICAgIHN0YXJ0OiBtYXRjaFBvcyxcbiAgICAgICAgZW5kOiBtYXRjaFBvcyArIHN0ci5sZW5ndGgsXG4gICAgICAgIGVycm9yczogMCxcbiAgICAgIH0pO1xuICAgICAgbWF0Y2hQb3MgKz0gMTtcbiAgICB9XG4gIH1cbiAgaWYgKGV4YWN0TWF0Y2hlcy5sZW5ndGggPiAwKSB7XG4gICAgcmV0dXJuIGV4YWN0TWF0Y2hlcztcbiAgfVxuXG4gIC8vIElmIHRoZXJlIGFyZSBubyBleGFjdCBtYXRjaGVzLCBkbyBhIG1vcmUgZXhwZW5zaXZlIHNlYXJjaCBmb3IgbWF0Y2hlc1xuICAvLyB3aXRoIGVycm9ycy5cbiAgcmV0dXJuIGFwcHJveFNlYXJjaCh0ZXh0LCBzdHIsIG1heEVycm9ycyk7XG59XG5cbi8qKlxuICogQ29tcHV0ZSBhIHNjb3JlIGJldHdlZW4gMCBhbmQgMS4wIGZvciB0aGUgc2ltaWxhcml0eSBiZXR3ZWVuIGB0ZXh0YCBhbmQgYHN0cmAuXG4gKlxuICogQHBhcmFtIHtzdHJpbmd9IHRleHRcbiAqIEBwYXJhbSB7c3RyaW5nfSBzdHJcbiAqL1xuZnVuY3Rpb24gdGV4dE1hdGNoU2NvcmUodGV4dCwgc3RyKSB7XG4gIC8qIGlzdGFuYnVsIGlnbm9yZSBuZXh0IC0gYHNjb3JlTWF0Y2hgIHdpbGwgbmV2ZXIgcGFzcyBhbiBlbXB0eSBzdHJpbmcgKi9cbiAgaWYgKHN0ci5sZW5ndGggPT09IDAgfHwgdGV4dC5sZW5ndGggPT09IDApIHtcbiAgICByZXR1cm4gMC4wO1xuICB9XG4gIGNvbnN0IG1hdGNoZXMgPSBzZWFyY2godGV4dCwgc3RyLCBzdHIubGVuZ3RoKTtcblxuICAvLyBwcmV0dGllci1pZ25vcmVcbiAgcmV0dXJuIDEgLSAobWF0Y2hlc1swXS5lcnJvcnMgLyBzdHIubGVuZ3RoKTtcbn1cblxuLyoqXG4gKiBGaW5kIHRoZSBiZXN0IGFwcHJveGltYXRlIG1hdGNoIGZvciBgcXVvdGVgIGluIGB0ZXh0YC5cbiAqXG4gKiBSZXR1cm5zIGBudWxsYCBpZiBubyBtYXRjaCBleGNlZWRpbmcgdGhlIG1pbmltdW0gcXVhbGl0eSB0aHJlc2hvbGQgd2FzIGZvdW5kLlxuICpcbiAqIEBwYXJhbSB7c3RyaW5nfSB0ZXh0IC0gRG9jdW1lbnQgdGV4dCB0byBzZWFyY2hcbiAqIEBwYXJhbSB7c3RyaW5nfSBxdW90ZSAtIFN0cmluZyB0byBmaW5kIHdpdGhpbiBgdGV4dGBcbiAqIEBwYXJhbSB7T2JqZWN0fSBjb250ZXh0IC1cbiAqICAgQ29udGV4dCBpbiB3aGljaCB0aGUgcXVvdGUgb3JpZ2luYWxseSBhcHBlYXJlZC4gVGhpcyBpcyB1c2VkIHRvIGNob29zZSB0aGVcbiAqICAgYmVzdCBtYXRjaC5cbiAqICAgQHBhcmFtIHtzdHJpbmd9IFtjb250ZXh0LnByZWZpeF0gLSBFeHBlY3RlZCB0ZXh0IGJlZm9yZSB0aGUgcXVvdGVcbiAqICAgQHBhcmFtIHtzdHJpbmd9IFtjb250ZXh0LnN1ZmZpeF0gLSBFeHBlY3RlZCB0ZXh0IGFmdGVyIHRoZSBxdW90ZVxuICogICBAcGFyYW0ge251bWJlcn0gW2NvbnRleHQuaGludF0gLSBFeHBlY3RlZCBvZmZzZXQgb2YgbWF0Y2ggd2l0aGluIHRleHRcbiAqIEByZXR1cm4ge01hdGNofG51bGx9XG4gKi9cbmV4cG9ydCBmdW5jdGlvbiBtYXRjaFF1b3RlKHRleHQsIHF1b3RlLCBjb250ZXh0ID0ge30pIHtcbiAgaWYgKHF1b3RlLmxlbmd0aCA9PT0gMCkge1xuICAgIHJldHVybiBudWxsO1xuICB9XG5cbiAgLy8gQ2hvb3NlIHRoZSBtYXhpbXVtIG51bWJlciBvZiBlcnJvcnMgdG8gYWxsb3cgZm9yIHRoZSBpbml0aWFsIHNlYXJjaC5cbiAgLy8gVGhpcyBjaG9pY2UgaW52b2x2ZXMgYSB0cmFkZW9mZiBiZXR3ZWVuOlxuICAvL1xuICAvLyAgLSBSZWNhbGwgKHByb3BvcnRpb24gb2YgXCJnb29kXCIgbWF0Y2hlcyBmb3VuZClcbiAgLy8gIC0gUHJlY2lzaW9uIChwcm9wb3J0aW9uIG9mIG1hdGNoZXMgZm91bmQgd2hpY2ggYXJlIFwiZ29vZFwiKVxuICAvLyAgLSBDb3N0IG9mIHRoZSBpbml0aWFsIHNlYXJjaCBhbmQgb2YgcHJvY2Vzc2luZyB0aGUgY2FuZGlkYXRlIG1hdGNoZXMgWzFdXG4gIC8vXG4gIC8vIFsxXSBTcGVjaWZpY2FsbHksIHRoZSBleHBlY3RlZC10aW1lIGNvbXBsZXhpdHkgb2YgdGhlIGluaXRpYWwgc2VhcmNoIGlzXG4gIC8vICAgICBgTygobWF4RXJyb3JzIC8gMzIpICogdGV4dC5sZW5ndGgpYC4gU2VlIGBhcHByb3gtc3RyaW5nLW1hdGNoYCBkb2NzLlxuICBjb25zdCBtYXhFcnJvcnMgPSBNYXRoLm1pbigyNTYsIHF1b3RlLmxlbmd0aCAvIDIpO1xuXG4gIC8vIEZpbmQgY2xvc2VzdCBtYXRjaGVzIGZvciBgcXVvdGVgIGluIGB0ZXh0YCBiYXNlZCBvbiBlZGl0IGRpc3RhbmNlLlxuICBjb25zdCBtYXRjaGVzID0gc2VhcmNoKHRleHQsIHF1b3RlLCBtYXhFcnJvcnMpO1xuXG4gIGlmIChtYXRjaGVzLmxlbmd0aCA9PT0gMCkge1xuICAgIHJldHVybiBudWxsO1xuICB9XG5cbiAgLyoqXG4gICAqIENvbXB1dGUgYSBzY29yZSBiZXR3ZWVuIDAgYW5kIDEuMCBmb3IgYSBtYXRjaCBjYW5kaWRhdGUuXG4gICAqXG4gICAqIEBwYXJhbSB7U3RyaW5nTWF0Y2h9IG1hdGNoXG4gICAqL1xuICBjb25zdCBzY29yZU1hdGNoID0gbWF0Y2ggPT4ge1xuICAgIGNvbnN0IHF1b3RlV2VpZ2h0ID0gNTA7IC8vIFNpbWlsYXJpdHkgb2YgbWF0Y2hlZCB0ZXh0IHRvIHF1b3RlLlxuICAgIGNvbnN0IHByZWZpeFdlaWdodCA9IDIwOyAvLyBTaW1pbGFyaXR5IG9mIHRleHQgYmVmb3JlIG1hdGNoZWQgdGV4dCB0byBgY29udGV4dC5wcmVmaXhgLlxuICAgIGNvbnN0IHN1ZmZpeFdlaWdodCA9IDIwOyAvLyBTaW1pbGFyaXR5IG9mIHRleHQgYWZ0ZXIgbWF0Y2hlZCB0ZXh0IHRvIGBjb250ZXh0LnN1ZmZpeGAuXG4gICAgY29uc3QgcG9zV2VpZ2h0ID0gMjsgLy8gUHJveGltaXR5IHRvIGV4cGVjdGVkIGxvY2F0aW9uLiBVc2VkIGFzIGEgdGllLWJyZWFrZXIuXG5cbiAgICBjb25zdCBxdW90ZVNjb3JlID0gMSAtIG1hdGNoLmVycm9ycyAvIHF1b3RlLmxlbmd0aDtcblxuICAgIGNvbnN0IHByZWZpeFNjb3JlID0gY29udGV4dC5wcmVmaXhcbiAgICAgID8gdGV4dE1hdGNoU2NvcmUoXG4gICAgICAgICAgdGV4dC5zbGljZShNYXRoLm1heCgwLCBtYXRjaC5zdGFydCAtIGNvbnRleHQucHJlZml4Lmxlbmd0aCksIG1hdGNoLnN0YXJ0KSxcbiAgICAgICAgICBjb250ZXh0LnByZWZpeFxuICAgICAgICApXG4gICAgICA6IDEuMDtcbiAgICBjb25zdCBzdWZmaXhTY29yZSA9IGNvbnRleHQuc3VmZml4XG4gICAgICA/IHRleHRNYXRjaFNjb3JlKFxuICAgICAgICAgIHRleHQuc2xpY2UobWF0Y2guZW5kLCBtYXRjaC5lbmQgKyBjb250ZXh0LnN1ZmZpeC5sZW5ndGgpLFxuICAgICAgICAgIGNvbnRleHQuc3VmZml4XG4gICAgICAgIClcbiAgICAgIDogMS4wO1xuXG4gICAgbGV0IHBvc1Njb3JlID0gMS4wO1xuICAgIGlmICh0eXBlb2YgY29udGV4dC5oaW50ID09PSAnbnVtYmVyJykge1xuICAgICAgY29uc3Qgb2Zmc2V0ID0gTWF0aC5hYnMobWF0Y2guc3RhcnQgLSBjb250ZXh0LmhpbnQpO1xuICAgICAgcG9zU2NvcmUgPSAxLjAgLSBvZmZzZXQgLyB0ZXh0Lmxlbmd0aDtcbiAgICB9XG5cbiAgICBjb25zdCByYXdTY29yZSA9XG4gICAgICBxdW90ZVdlaWdodCAqIHF1b3RlU2NvcmUgK1xuICAgICAgcHJlZml4V2VpZ2h0ICogcHJlZml4U2NvcmUgK1xuICAgICAgc3VmZml4V2VpZ2h0ICogc3VmZml4U2NvcmUgK1xuICAgICAgcG9zV2VpZ2h0ICogcG9zU2NvcmU7XG4gICAgY29uc3QgbWF4U2NvcmUgPSBxdW90ZVdlaWdodCArIHByZWZpeFdlaWdodCArIHN1ZmZpeFdlaWdodCArIHBvc1dlaWdodDtcbiAgICBjb25zdCBub3JtYWxpemVkU2NvcmUgPSByYXdTY29yZSAvIG1heFNjb3JlO1xuXG4gICAgcmV0dXJuIG5vcm1hbGl6ZWRTY29yZTtcbiAgfTtcblxuICAvLyBSYW5rIG1hdGNoZXMgYmFzZWQgb24gc2ltaWxhcml0eSBvZiBhY3R1YWwgYW5kIGV4cGVjdGVkIHN1cnJvdW5kaW5nIHRleHRcbiAgLy8gYW5kIGFjdHVhbC9leHBlY3RlZCBvZmZzZXQgaW4gdGhlIGRvY3VtZW50IHRleHQuXG4gIGNvbnN0IHNjb3JlZE1hdGNoZXMgPSBtYXRjaGVzLm1hcChtID0+ICh7XG4gICAgc3RhcnQ6IG0uc3RhcnQsXG4gICAgZW5kOiBtLmVuZCxcbiAgICBzY29yZTogc2NvcmVNYXRjaChtKSxcbiAgfSkpO1xuXG4gIC8vIENob29zZSBtYXRjaCB3aXRoIGhpZ2hlc3Qgc2NvcmUuXG4gIHNjb3JlZE1hdGNoZXMuc29ydCgoYSwgYikgPT4gYi5zY29yZSAtIGEuc2NvcmUpO1xuICByZXR1cm4gc2NvcmVkTWF0Y2hlc1swXTtcbn1cbiIsIi8qKlxuICogUmV0dXJuIHRoZSBjb21iaW5lZCBsZW5ndGggb2YgdGV4dCBub2RlcyBjb250YWluZWQgaW4gYG5vZGVgLlxuICpcbiAqIEBwYXJhbSB7Tm9kZX0gbm9kZVxuICovXG5mdW5jdGlvbiBub2RlVGV4dExlbmd0aChub2RlKSB7XG4gIHN3aXRjaCAobm9kZS5ub2RlVHlwZSkge1xuICAgIGNhc2UgTm9kZS5FTEVNRU5UX05PREU6XG4gICAgY2FzZSBOb2RlLlRFWFRfTk9ERTpcbiAgICAgIC8vIG5iLiBgdGV4dENvbnRlbnRgIGV4Y2x1ZGVzIHRleHQgaW4gY29tbWVudHMgYW5kIHByb2Nlc3NpbmcgaW5zdHJ1Y3Rpb25zXG4gICAgICAvLyB3aGVuIGNhbGxlZCBvbiBhIHBhcmVudCBlbGVtZW50LCBzbyB3ZSBkb24ndCBuZWVkIHRvIHN1YnRyYWN0IHRoYXQgaGVyZS5cblxuICAgICAgcmV0dXJuIC8qKiBAdHlwZSB7c3RyaW5nfSAqLyAobm9kZS50ZXh0Q29udGVudCkubGVuZ3RoO1xuICAgIGRlZmF1bHQ6XG4gICAgICByZXR1cm4gMDtcbiAgfVxufVxuXG4vKipcbiAqIFJldHVybiB0aGUgdG90YWwgbGVuZ3RoIG9mIHRoZSB0ZXh0IG9mIGFsbCBwcmV2aW91cyBzaWJsaW5ncyBvZiBgbm9kZWAuXG4gKlxuICogQHBhcmFtIHtOb2RlfSBub2RlXG4gKi9cbmZ1bmN0aW9uIHByZXZpb3VzU2libGluZ3NUZXh0TGVuZ3RoKG5vZGUpIHtcbiAgbGV0IHNpYmxpbmcgPSBub2RlLnByZXZpb3VzU2libGluZztcbiAgbGV0IGxlbmd0aCA9IDA7XG4gIHdoaWxlIChzaWJsaW5nKSB7XG4gICAgbGVuZ3RoICs9IG5vZGVUZXh0TGVuZ3RoKHNpYmxpbmcpO1xuICAgIHNpYmxpbmcgPSBzaWJsaW5nLnByZXZpb3VzU2libGluZztcbiAgfVxuICByZXR1cm4gbGVuZ3RoO1xufVxuXG4vKipcbiAqIFJlc29sdmUgb25lIG9yIG1vcmUgY2hhcmFjdGVyIG9mZnNldHMgd2l0aGluIGFuIGVsZW1lbnQgdG8gKHRleHQgbm9kZSwgcG9zaXRpb24pXG4gKiBwYWlycy5cbiAqXG4gKiBAcGFyYW0ge0VsZW1lbnR9IGVsZW1lbnRcbiAqIEBwYXJhbSB7bnVtYmVyW119IG9mZnNldHMgLSBPZmZzZXRzLCB3aGljaCBtdXN0IGJlIHNvcnRlZCBpbiBhc2NlbmRpbmcgb3JkZXJcbiAqIEByZXR1cm4ge3sgbm9kZTogVGV4dCwgb2Zmc2V0OiBudW1iZXIgfVtdfVxuICovXG5mdW5jdGlvbiByZXNvbHZlT2Zmc2V0cyhlbGVtZW50LCAuLi5vZmZzZXRzKSB7XG4gIGxldCBuZXh0T2Zmc2V0ID0gb2Zmc2V0cy5zaGlmdCgpO1xuICBjb25zdCBub2RlSXRlciA9IC8qKiBAdHlwZSB7RG9jdW1lbnR9ICovIChcbiAgICBlbGVtZW50Lm93bmVyRG9jdW1lbnRcbiAgKS5jcmVhdGVOb2RlSXRlcmF0b3IoZWxlbWVudCwgTm9kZUZpbHRlci5TSE9XX1RFWFQpO1xuICBjb25zdCByZXN1bHRzID0gW107XG5cbiAgbGV0IGN1cnJlbnROb2RlID0gbm9kZUl0ZXIubmV4dE5vZGUoKTtcbiAgbGV0IHRleHROb2RlO1xuICBsZXQgbGVuZ3RoID0gMDtcblxuICAvLyBGaW5kIHRoZSB0ZXh0IG5vZGUgY29udGFpbmluZyB0aGUgYG5leHRPZmZzZXRgdGggY2hhcmFjdGVyIGZyb20gdGhlIHN0YXJ0XG4gIC8vIG9mIGBlbGVtZW50YC5cbiAgd2hpbGUgKG5leHRPZmZzZXQgIT09IHVuZGVmaW5lZCAmJiBjdXJyZW50Tm9kZSkge1xuICAgIHRleHROb2RlID0gLyoqIEB0eXBlIHtUZXh0fSAqLyAoY3VycmVudE5vZGUpO1xuICAgIGlmIChsZW5ndGggKyB0ZXh0Tm9kZS5kYXRhLmxlbmd0aCA+IG5leHRPZmZzZXQpIHtcbiAgICAgIHJlc3VsdHMucHVzaCh7IG5vZGU6IHRleHROb2RlLCBvZmZzZXQ6IG5leHRPZmZzZXQgLSBsZW5ndGggfSk7XG4gICAgICBuZXh0T2Zmc2V0ID0gb2Zmc2V0cy5zaGlmdCgpO1xuICAgIH0gZWxzZSB7XG4gICAgICBjdXJyZW50Tm9kZSA9IG5vZGVJdGVyLm5leHROb2RlKCk7XG4gICAgICBsZW5ndGggKz0gdGV4dE5vZGUuZGF0YS5sZW5ndGg7XG4gICAgfVxuICB9XG5cbiAgLy8gQm91bmRhcnkgY2FzZS5cbiAgd2hpbGUgKG5leHRPZmZzZXQgIT09IHVuZGVmaW5lZCAmJiB0ZXh0Tm9kZSAmJiBsZW5ndGggPT09IG5leHRPZmZzZXQpIHtcbiAgICByZXN1bHRzLnB1c2goeyBub2RlOiB0ZXh0Tm9kZSwgb2Zmc2V0OiB0ZXh0Tm9kZS5kYXRhLmxlbmd0aCB9KTtcbiAgICBuZXh0T2Zmc2V0ID0gb2Zmc2V0cy5zaGlmdCgpO1xuICB9XG5cbiAgaWYgKG5leHRPZmZzZXQgIT09IHVuZGVmaW5lZCkge1xuICAgIHRocm93IG5ldyBSYW5nZUVycm9yKCdPZmZzZXQgZXhjZWVkcyB0ZXh0IGxlbmd0aCcpO1xuICB9XG5cbiAgcmV0dXJuIHJlc3VsdHM7XG59XG5cbmV4cG9ydCBsZXQgUkVTT0xWRV9GT1JXQVJEUyA9IDE7XG5leHBvcnQgbGV0IFJFU09MVkVfQkFDS1dBUkRTID0gMjtcblxuLyoqXG4gKiBSZXByZXNlbnRzIGFuIG9mZnNldCB3aXRoaW4gdGhlIHRleHQgY29udGVudCBvZiBhbiBlbGVtZW50LlxuICpcbiAqIFRoaXMgcG9zaXRpb24gY2FuIGJlIHJlc29sdmVkIHRvIGEgc3BlY2lmaWMgZGVzY2VuZGFudCBub2RlIGluIHRoZSBjdXJyZW50XG4gKiBET00gc3VidHJlZSBvZiB0aGUgZWxlbWVudCB1c2luZyB0aGUgYHJlc29sdmVgIG1ldGhvZC5cbiAqL1xuZXhwb3J0IGNsYXNzIFRleHRQb3NpdGlvbiB7XG4gIC8qKlxuICAgKiBDb25zdHJ1Y3QgYSBgVGV4dFBvc2l0aW9uYCB0aGF0IHJlZmVycyB0byB0aGUgdGV4dCBwb3NpdGlvbiBgb2Zmc2V0YCB3aXRoaW5cbiAgICogdGhlIHRleHQgY29udGVudCBvZiBgZWxlbWVudGAuXG4gICAqXG4gICAqIEBwYXJhbSB7RWxlbWVudH0gZWxlbWVudFxuICAgKiBAcGFyYW0ge251bWJlcn0gb2Zmc2V0XG4gICAqL1xuICBjb25zdHJ1Y3RvcihlbGVtZW50LCBvZmZzZXQpIHtcbiAgICBpZiAob2Zmc2V0IDwgMCkge1xuICAgICAgdGhyb3cgbmV3IEVycm9yKCdPZmZzZXQgaXMgaW52YWxpZCcpO1xuICAgIH1cblxuICAgIC8qKiBFbGVtZW50IHRoYXQgYG9mZnNldGAgaXMgcmVsYXRpdmUgdG8uICovXG4gICAgdGhpcy5lbGVtZW50ID0gZWxlbWVudDtcblxuICAgIC8qKiBDaGFyYWN0ZXIgb2Zmc2V0IGZyb20gdGhlIHN0YXJ0IG9mIHRoZSBlbGVtZW50J3MgYHRleHRDb250ZW50YC4gKi9cbiAgICB0aGlzLm9mZnNldCA9IG9mZnNldDtcbiAgfVxuXG4gIC8qKlxuICAgKiBSZXR1cm4gYSBjb3B5IG9mIHRoaXMgcG9zaXRpb24gd2l0aCBvZmZzZXQgcmVsYXRpdmUgdG8gYSBnaXZlbiBhbmNlc3RvclxuICAgKiBlbGVtZW50LlxuICAgKlxuICAgKiBAcGFyYW0ge0VsZW1lbnR9IHBhcmVudCAtIEFuY2VzdG9yIG9mIGB0aGlzLmVsZW1lbnRgXG4gICAqIEByZXR1cm4ge1RleHRQb3NpdGlvbn1cbiAgICovXG4gIHJlbGF0aXZlVG8ocGFyZW50KSB7XG4gICAgaWYgKCFwYXJlbnQuY29udGFpbnModGhpcy5lbGVtZW50KSkge1xuICAgICAgdGhyb3cgbmV3IEVycm9yKCdQYXJlbnQgaXMgbm90IGFuIGFuY2VzdG9yIG9mIGN1cnJlbnQgZWxlbWVudCcpO1xuICAgIH1cblxuICAgIGxldCBlbCA9IHRoaXMuZWxlbWVudDtcbiAgICBsZXQgb2Zmc2V0ID0gdGhpcy5vZmZzZXQ7XG4gICAgd2hpbGUgKGVsICE9PSBwYXJlbnQpIHtcbiAgICAgIG9mZnNldCArPSBwcmV2aW91c1NpYmxpbmdzVGV4dExlbmd0aChlbCk7XG4gICAgICBlbCA9IC8qKiBAdHlwZSB7RWxlbWVudH0gKi8gKGVsLnBhcmVudEVsZW1lbnQpO1xuICAgIH1cblxuICAgIHJldHVybiBuZXcgVGV4dFBvc2l0aW9uKGVsLCBvZmZzZXQpO1xuICB9XG5cbiAgLyoqXG4gICAqIFJlc29sdmUgdGhlIHBvc2l0aW9uIHRvIGEgc3BlY2lmaWMgdGV4dCBub2RlIGFuZCBvZmZzZXQgd2l0aGluIHRoYXQgbm9kZS5cbiAgICpcbiAgICogVGhyb3dzIGlmIGB0aGlzLm9mZnNldGAgZXhjZWVkcyB0aGUgbGVuZ3RoIG9mIHRoZSBlbGVtZW50J3MgdGV4dC4gSW4gdGhlXG4gICAqIGNhc2Ugd2hlcmUgdGhlIGVsZW1lbnQgaGFzIG5vIHRleHQgYW5kIGB0aGlzLm9mZnNldGAgaXMgMCwgdGhlIGBkaXJlY3Rpb25gXG4gICAqIG9wdGlvbiBkZXRlcm1pbmVzIHdoYXQgaGFwcGVucy5cbiAgICpcbiAgICogT2Zmc2V0cyBhdCB0aGUgYm91bmRhcnkgYmV0d2VlbiB0d28gbm9kZXMgYXJlIHJlc29sdmVkIHRvIHRoZSBzdGFydCBvZiB0aGVcbiAgICogbm9kZSB0aGF0IGJlZ2lucyBhdCB0aGUgYm91bmRhcnkuXG4gICAqXG4gICAqIEBwYXJhbSB7T2JqZWN0fSBbb3B0aW9uc11cbiAgICogICBAcGFyYW0ge1JFU09MVkVfRk9SV0FSRFN8UkVTT0xWRV9CQUNLV0FSRFN9IFtvcHRpb25zLmRpcmVjdGlvbl0gLVxuICAgKiAgICAgU3BlY2lmaWVzIGluIHdoaWNoIGRpcmVjdGlvbiB0byBzZWFyY2ggZm9yIHRoZSBuZWFyZXN0IHRleHQgbm9kZSBpZlxuICAgKiAgICAgYHRoaXMub2Zmc2V0YCBpcyBgMGAgYW5kIGB0aGlzLmVsZW1lbnRgIGhhcyBubyB0ZXh0LiBJZiBub3Qgc3BlY2lmaWVkXG4gICAqICAgICBhbiBlcnJvciBpcyB0aHJvd24uXG4gICAqIEByZXR1cm4ge3sgbm9kZTogVGV4dCwgb2Zmc2V0OiBudW1iZXIgfX1cbiAgICogQHRocm93cyB7UmFuZ2VFcnJvcn1cbiAgICovXG4gIHJlc29sdmUob3B0aW9ucyA9IHt9KSB7XG4gICAgdHJ5IHtcbiAgICAgIHJldHVybiByZXNvbHZlT2Zmc2V0cyh0aGlzLmVsZW1lbnQsIHRoaXMub2Zmc2V0KVswXTtcbiAgICB9IGNhdGNoIChlcnIpIHtcbiAgICAgIGlmICh0aGlzLm9mZnNldCA9PT0gMCAmJiBvcHRpb25zLmRpcmVjdGlvbiAhPT0gdW5kZWZpbmVkKSB7XG4gICAgICAgIGNvbnN0IHR3ID0gZG9jdW1lbnQuY3JlYXRlVHJlZVdhbGtlcihcbiAgICAgICAgICB0aGlzLmVsZW1lbnQuZ2V0Um9vdE5vZGUoKSxcbiAgICAgICAgICBOb2RlRmlsdGVyLlNIT1dfVEVYVFxuICAgICAgICApO1xuICAgICAgICB0dy5jdXJyZW50Tm9kZSA9IHRoaXMuZWxlbWVudDtcbiAgICAgICAgY29uc3QgZm9yd2FyZHMgPSBvcHRpb25zLmRpcmVjdGlvbiA9PT0gUkVTT0xWRV9GT1JXQVJEUztcbiAgICAgICAgY29uc3QgdGV4dCA9IC8qKiBAdHlwZSB7VGV4dHxudWxsfSAqLyAoXG4gICAgICAgICAgZm9yd2FyZHMgPyB0dy5uZXh0Tm9kZSgpIDogdHcucHJldmlvdXNOb2RlKClcbiAgICAgICAgKTtcbiAgICAgICAgaWYgKCF0ZXh0KSB7XG4gICAgICAgICAgdGhyb3cgZXJyO1xuICAgICAgICB9XG4gICAgICAgIHJldHVybiB7IG5vZGU6IHRleHQsIG9mZnNldDogZm9yd2FyZHMgPyAwIDogdGV4dC5kYXRhLmxlbmd0aCB9O1xuICAgICAgfSBlbHNlIHtcbiAgICAgICAgdGhyb3cgZXJyO1xuICAgICAgfVxuICAgIH1cbiAgfVxuXG4gIC8qKlxuICAgKiBDb25zdHJ1Y3QgYSBgVGV4dFBvc2l0aW9uYCB0aGF0IHJlZmVycyB0byB0aGUgYG9mZnNldGB0aCBjaGFyYWN0ZXIgd2l0aGluXG4gICAqIGBub2RlYC5cbiAgICpcbiAgICogQHBhcmFtIHtOb2RlfSBub2RlXG4gICAqIEBwYXJhbSB7bnVtYmVyfSBvZmZzZXRcbiAgICogQHJldHVybiB7VGV4dFBvc2l0aW9ufVxuICAgKi9cbiAgc3RhdGljIGZyb21DaGFyT2Zmc2V0KG5vZGUsIG9mZnNldCkge1xuICAgIHN3aXRjaCAobm9kZS5ub2RlVHlwZSkge1xuICAgICAgY2FzZSBOb2RlLlRFWFRfTk9ERTpcbiAgICAgICAgcmV0dXJuIFRleHRQb3NpdGlvbi5mcm9tUG9pbnQobm9kZSwgb2Zmc2V0KTtcbiAgICAgIGNhc2UgTm9kZS5FTEVNRU5UX05PREU6XG4gICAgICAgIHJldHVybiBuZXcgVGV4dFBvc2l0aW9uKC8qKiBAdHlwZSB7RWxlbWVudH0gKi8gKG5vZGUpLCBvZmZzZXQpO1xuICAgICAgZGVmYXVsdDpcbiAgICAgICAgdGhyb3cgbmV3IEVycm9yKCdOb2RlIGlzIG5vdCBhbiBlbGVtZW50IG9yIHRleHQgbm9kZScpO1xuICAgIH1cbiAgfVxuXG4gIC8qKlxuICAgKiBDb25zdHJ1Y3QgYSBgVGV4dFBvc2l0aW9uYCByZXByZXNlbnRpbmcgdGhlIHJhbmdlIHN0YXJ0IG9yIGVuZCBwb2ludCAobm9kZSwgb2Zmc2V0KS5cbiAgICpcbiAgICogQHBhcmFtIHtOb2RlfSBub2RlIC0gVGV4dCBvciBFbGVtZW50IG5vZGVcbiAgICogQHBhcmFtIHtudW1iZXJ9IG9mZnNldCAtIE9mZnNldCB3aXRoaW4gdGhlIG5vZGUuXG4gICAqIEByZXR1cm4ge1RleHRQb3NpdGlvbn1cbiAgICovXG4gIHN0YXRpYyBmcm9tUG9pbnQobm9kZSwgb2Zmc2V0KSB7XG4gICAgc3dpdGNoIChub2RlLm5vZGVUeXBlKSB7XG4gICAgICBjYXNlIE5vZGUuVEVYVF9OT0RFOiB7XG4gICAgICAgIGlmIChvZmZzZXQgPCAwIHx8IG9mZnNldCA+IC8qKiBAdHlwZSB7VGV4dH0gKi8gKG5vZGUpLmRhdGEubGVuZ3RoKSB7XG4gICAgICAgICAgdGhyb3cgbmV3IEVycm9yKCdUZXh0IG5vZGUgb2Zmc2V0IGlzIG91dCBvZiByYW5nZScpO1xuICAgICAgICB9XG5cbiAgICAgICAgaWYgKCFub2RlLnBhcmVudEVsZW1lbnQpIHtcbiAgICAgICAgICB0aHJvdyBuZXcgRXJyb3IoJ1RleHQgbm9kZSBoYXMgbm8gcGFyZW50Jyk7XG4gICAgICAgIH1cblxuICAgICAgICAvLyBHZXQgdGhlIG9mZnNldCBmcm9tIHRoZSBzdGFydCBvZiB0aGUgcGFyZW50IGVsZW1lbnQuXG4gICAgICAgIGNvbnN0IHRleHRPZmZzZXQgPSBwcmV2aW91c1NpYmxpbmdzVGV4dExlbmd0aChub2RlKSArIG9mZnNldDtcblxuICAgICAgICByZXR1cm4gbmV3IFRleHRQb3NpdGlvbihub2RlLnBhcmVudEVsZW1lbnQsIHRleHRPZmZzZXQpO1xuICAgICAgfVxuICAgICAgY2FzZSBOb2RlLkVMRU1FTlRfTk9ERToge1xuICAgICAgICBpZiAob2Zmc2V0IDwgMCB8fCBvZmZzZXQgPiBub2RlLmNoaWxkTm9kZXMubGVuZ3RoKSB7XG4gICAgICAgICAgdGhyb3cgbmV3IEVycm9yKCdDaGlsZCBub2RlIG9mZnNldCBpcyBvdXQgb2YgcmFuZ2UnKTtcbiAgICAgICAgfVxuXG4gICAgICAgIC8vIEdldCB0aGUgdGV4dCBsZW5ndGggYmVmb3JlIHRoZSBgb2Zmc2V0YHRoIGNoaWxkIG9mIGVsZW1lbnQuXG4gICAgICAgIGxldCB0ZXh0T2Zmc2V0ID0gMDtcbiAgICAgICAgZm9yIChsZXQgaSA9IDA7IGkgPCBvZmZzZXQ7IGkrKykge1xuICAgICAgICAgIHRleHRPZmZzZXQgKz0gbm9kZVRleHRMZW5ndGgobm9kZS5jaGlsZE5vZGVzW2ldKTtcbiAgICAgICAgfVxuXG4gICAgICAgIHJldHVybiBuZXcgVGV4dFBvc2l0aW9uKC8qKiBAdHlwZSB7RWxlbWVudH0gKi8gKG5vZGUpLCB0ZXh0T2Zmc2V0KTtcbiAgICAgIH1cbiAgICAgIGRlZmF1bHQ6XG4gICAgICAgIHRocm93IG5ldyBFcnJvcignUG9pbnQgaXMgbm90IGluIGFuIGVsZW1lbnQgb3IgdGV4dCBub2RlJyk7XG4gICAgfVxuICB9XG59XG5cbi8qKlxuICogUmVwcmVzZW50cyBhIHJlZ2lvbiBvZiBhIGRvY3VtZW50IGFzIGEgKHN0YXJ0LCBlbmQpIHBhaXIgb2YgYFRleHRQb3NpdGlvbmAgcG9pbnRzLlxuICpcbiAqIFJlcHJlc2VudGluZyBhIHJhbmdlIGluIHRoaXMgd2F5IGFsbG93cyBmb3IgY2hhbmdlcyBpbiB0aGUgRE9NIGNvbnRlbnQgb2YgdGhlXG4gKiByYW5nZSB3aGljaCBkb24ndCBhZmZlY3QgaXRzIHRleHQgY29udGVudCwgd2l0aG91dCBhZmZlY3RpbmcgdGhlIHRleHQgY29udGVudFxuICogb2YgdGhlIHJhbmdlIGl0c2VsZi5cbiAqL1xuZXhwb3J0IGNsYXNzIFRleHRSYW5nZSB7XG4gIC8qKlxuICAgKiBDb25zdHJ1Y3QgYW4gaW1tdXRhYmxlIGBUZXh0UmFuZ2VgIGZyb20gYSBgc3RhcnRgIGFuZCBgZW5kYCBwb2ludC5cbiAgICpcbiAgICogQHBhcmFtIHtUZXh0UG9zaXRpb259IHN0YXJ0XG4gICAqIEBwYXJhbSB7VGV4dFBvc2l0aW9ufSBlbmRcbiAgICovXG4gIGNvbnN0cnVjdG9yKHN0YXJ0LCBlbmQpIHtcbiAgICB0aGlzLnN0YXJ0ID0gc3RhcnQ7XG4gICAgdGhpcy5lbmQgPSBlbmQ7XG4gIH1cblxuICAvKipcbiAgICogUmV0dXJuIGEgY29weSBvZiB0aGlzIHJhbmdlIHdpdGggc3RhcnQgYW5kIGVuZCBwb3NpdGlvbnMgcmVsYXRpdmUgdG8gYVxuICAgKiBnaXZlbiBhbmNlc3Rvci4gU2VlIGBUZXh0UG9zaXRpb24ucmVsYXRpdmVUb2AuXG4gICAqXG4gICAqIEBwYXJhbSB7RWxlbWVudH0gZWxlbWVudFxuICAgKi9cbiAgcmVsYXRpdmVUbyhlbGVtZW50KSB7XG4gICAgcmV0dXJuIG5ldyBUZXh0UmFuZ2UoXG4gICAgICB0aGlzLnN0YXJ0LnJlbGF0aXZlVG8oZWxlbWVudCksXG4gICAgICB0aGlzLmVuZC5yZWxhdGl2ZVRvKGVsZW1lbnQpXG4gICAgKTtcbiAgfVxuXG4gIC8qKlxuICAgKiBSZXNvbHZlIHRoZSBgVGV4dFJhbmdlYCB0byBhIERPTSByYW5nZS5cbiAgICpcbiAgICogVGhlIHJlc3VsdGluZyBET00gUmFuZ2Ugd2lsbCBhbHdheXMgc3RhcnQgYW5kIGVuZCBpbiBhIGBUZXh0YCBub2RlLlxuICAgKiBIZW5jZSBgVGV4dFJhbmdlLmZyb21SYW5nZShyYW5nZSkudG9SYW5nZSgpYCBjYW4gYmUgdXNlZCB0byBcInNocmlua1wiIGFcbiAgICogcmFuZ2UgdG8gdGhlIHRleHQgaXQgY29udGFpbnMuXG4gICAqXG4gICAqIE1heSB0aHJvdyBpZiB0aGUgYHN0YXJ0YCBvciBgZW5kYCBwb3NpdGlvbnMgY2Fubm90IGJlIHJlc29sdmVkIHRvIGEgcmFuZ2UuXG4gICAqXG4gICAqIEByZXR1cm4ge1JhbmdlfVxuICAgKi9cbiAgdG9SYW5nZSgpIHtcbiAgICBsZXQgc3RhcnQ7XG4gICAgbGV0IGVuZDtcblxuICAgIGlmIChcbiAgICAgIHRoaXMuc3RhcnQuZWxlbWVudCA9PT0gdGhpcy5lbmQuZWxlbWVudCAmJlxuICAgICAgdGhpcy5zdGFydC5vZmZzZXQgPD0gdGhpcy5lbmQub2Zmc2V0XG4gICAgKSB7XG4gICAgICAvLyBGYXN0IHBhdGggZm9yIHN0YXJ0IGFuZCBlbmQgcG9pbnRzIGluIHNhbWUgZWxlbWVudC5cbiAgICAgIFtzdGFydCwgZW5kXSA9IHJlc29sdmVPZmZzZXRzKFxuICAgICAgICB0aGlzLnN0YXJ0LmVsZW1lbnQsXG4gICAgICAgIHRoaXMuc3RhcnQub2Zmc2V0LFxuICAgICAgICB0aGlzLmVuZC5vZmZzZXRcbiAgICAgICk7XG4gICAgfSBlbHNlIHtcbiAgICAgIHN0YXJ0ID0gdGhpcy5zdGFydC5yZXNvbHZlKHsgZGlyZWN0aW9uOiBSRVNPTFZFX0ZPUldBUkRTIH0pO1xuICAgICAgZW5kID0gdGhpcy5lbmQucmVzb2x2ZSh7IGRpcmVjdGlvbjogUkVTT0xWRV9CQUNLV0FSRFMgfSk7XG4gICAgfVxuXG4gICAgY29uc3QgcmFuZ2UgPSBuZXcgUmFuZ2UoKTtcbiAgICByYW5nZS5zZXRTdGFydChzdGFydC5ub2RlLCBzdGFydC5vZmZzZXQpO1xuICAgIHJhbmdlLnNldEVuZChlbmQubm9kZSwgZW5kLm9mZnNldCk7XG4gICAgcmV0dXJuIHJhbmdlO1xuICB9XG5cbiAgLyoqXG4gICAqIENvbnZlcnQgYW4gZXhpc3RpbmcgRE9NIGBSYW5nZWAgdG8gYSBgVGV4dFJhbmdlYFxuICAgKlxuICAgKiBAcGFyYW0ge1JhbmdlfSByYW5nZVxuICAgKiBAcmV0dXJuIHtUZXh0UmFuZ2V9XG4gICAqL1xuICBzdGF0aWMgZnJvbVJhbmdlKHJhbmdlKSB7XG4gICAgY29uc3Qgc3RhcnQgPSBUZXh0UG9zaXRpb24uZnJvbVBvaW50KFxuICAgICAgcmFuZ2Uuc3RhcnRDb250YWluZXIsXG4gICAgICByYW5nZS5zdGFydE9mZnNldFxuICAgICk7XG4gICAgY29uc3QgZW5kID0gVGV4dFBvc2l0aW9uLmZyb21Qb2ludChyYW5nZS5lbmRDb250YWluZXIsIHJhbmdlLmVuZE9mZnNldCk7XG4gICAgcmV0dXJuIG5ldyBUZXh0UmFuZ2Uoc3RhcnQsIGVuZCk7XG4gIH1cblxuICAvKipcbiAgICogUmV0dXJuIGEgYFRleHRSYW5nZWAgZnJvbSB0aGUgYHN0YXJ0YHRoIHRvIGBlbmRgdGggY2hhcmFjdGVycyBpbiBgcm9vdGAuXG4gICAqXG4gICAqIEBwYXJhbSB7RWxlbWVudH0gcm9vdFxuICAgKiBAcGFyYW0ge251bWJlcn0gc3RhcnRcbiAgICogQHBhcmFtIHtudW1iZXJ9IGVuZFxuICAgKi9cbiAgc3RhdGljIGZyb21PZmZzZXRzKHJvb3QsIHN0YXJ0LCBlbmQpIHtcbiAgICByZXR1cm4gbmV3IFRleHRSYW5nZShcbiAgICAgIG5ldyBUZXh0UG9zaXRpb24ocm9vdCwgc3RhcnQpLFxuICAgICAgbmV3IFRleHRQb3NpdGlvbihyb290LCBlbmQpXG4gICAgKTtcbiAgfVxufVxuIiwiLyoqXG4gKiBUaGlzIG1vZHVsZSBleHBvcnRzIGEgc2V0IG9mIGNsYXNzZXMgZm9yIGNvbnZlcnRpbmcgYmV0d2VlbiBET00gYFJhbmdlYFxuICogb2JqZWN0cyBhbmQgZGlmZmVyZW50IHR5cGVzIG9mIHNlbGVjdG9ycy4gSXQgaXMgbW9zdGx5IGEgdGhpbiB3cmFwcGVyIGFyb3VuZCBhXG4gKiBzZXQgb2YgYW5jaG9yaW5nIGxpYnJhcmllcy4gSXQgc2VydmVzIHR3byBtYWluIHB1cnBvc2VzOlxuICpcbiAqICAxLiBQcm92aWRpbmcgYSBjb25zaXN0ZW50IGludGVyZmFjZSBhY3Jvc3MgZGlmZmVyZW50IHR5cGVzIG9mIGFuY2hvcnMuXG4gKiAgMi4gSW5zdWxhdGluZyB0aGUgcmVzdCBvZiB0aGUgY29kZSBmcm9tIEFQSSBjaGFuZ2VzIGluIHRoZSB1bmRlcmx5aW5nIGFuY2hvcmluZ1xuICogICAgIGxpYnJhcmllcy5cbiAqL1xuXG5pbXBvcnQgeyBtYXRjaFF1b3RlIH0gZnJvbSAnLi9tYXRjaC1xdW90ZSc7XG5pbXBvcnQgeyBUZXh0UmFuZ2UsIFRleHRQb3NpdGlvbiB9IGZyb20gJy4vdGV4dC1yYW5nZSc7XG5pbXBvcnQgeyBub2RlRnJvbVhQYXRoLCB4cGF0aEZyb21Ob2RlIH0gZnJvbSAnLi94cGF0aCc7XG5cbi8qKlxuICogQHR5cGVkZWYge2ltcG9ydCgnLi4vLi4vdHlwZXMvYXBpJykuUmFuZ2VTZWxlY3Rvcn0gUmFuZ2VTZWxlY3RvclxuICogQHR5cGVkZWYge2ltcG9ydCgnLi4vLi4vdHlwZXMvYXBpJykuVGV4dFBvc2l0aW9uU2VsZWN0b3J9IFRleHRQb3NpdGlvblNlbGVjdG9yXG4gKiBAdHlwZWRlZiB7aW1wb3J0KCcuLi8uLi90eXBlcy9hcGknKS5UZXh0UXVvdGVTZWxlY3Rvcn0gVGV4dFF1b3RlU2VsZWN0b3JcbiAqL1xuXG4vKipcbiAqIENvbnZlcnRzIGJldHdlZW4gYFJhbmdlU2VsZWN0b3JgIHNlbGVjdG9ycyBhbmQgYFJhbmdlYCBvYmplY3RzLlxuICovXG5leHBvcnQgY2xhc3MgUmFuZ2VBbmNob3Ige1xuICAvKipcbiAgICogQHBhcmFtIHtOb2RlfSByb290IC0gQSByb290IGVsZW1lbnQgZnJvbSB3aGljaCB0byBhbmNob3IuXG4gICAqIEBwYXJhbSB7UmFuZ2V9IHJhbmdlIC0gIEEgcmFuZ2UgZGVzY3JpYmluZyB0aGUgYW5jaG9yLlxuICAgKi9cbiAgY29uc3RydWN0b3Iocm9vdCwgcmFuZ2UpIHtcbiAgICB0aGlzLnJvb3QgPSByb290O1xuICAgIHRoaXMucmFuZ2UgPSByYW5nZTtcbiAgfVxuXG4gIC8qKlxuICAgKiBAcGFyYW0ge05vZGV9IHJvb3QgLSAgQSByb290IGVsZW1lbnQgZnJvbSB3aGljaCB0byBhbmNob3IuXG4gICAqIEBwYXJhbSB7UmFuZ2V9IHJhbmdlIC0gIEEgcmFuZ2UgZGVzY3JpYmluZyB0aGUgYW5jaG9yLlxuICAgKi9cbiAgc3RhdGljIGZyb21SYW5nZShyb290LCByYW5nZSkge1xuICAgIHJldHVybiBuZXcgUmFuZ2VBbmNob3Iocm9vdCwgcmFuZ2UpO1xuICB9XG5cbiAgLyoqXG4gICAqIENyZWF0ZSBhbiBhbmNob3IgZnJvbSBhIHNlcmlhbGl6ZWQgYFJhbmdlU2VsZWN0b3JgIHNlbGVjdG9yLlxuICAgKlxuICAgKiBAcGFyYW0ge0VsZW1lbnR9IHJvb3QgLSAgQSByb290IGVsZW1lbnQgZnJvbSB3aGljaCB0byBhbmNob3IuXG4gICAqIEBwYXJhbSB7UmFuZ2VTZWxlY3Rvcn0gc2VsZWN0b3JcbiAgICovXG4gIHN0YXRpYyBmcm9tU2VsZWN0b3Iocm9vdCwgc2VsZWN0b3IpIHtcbiAgICBjb25zdCBzdGFydENvbnRhaW5lciA9IG5vZGVGcm9tWFBhdGgoc2VsZWN0b3Iuc3RhcnRDb250YWluZXIsIHJvb3QpO1xuICAgIGlmICghc3RhcnRDb250YWluZXIpIHtcbiAgICAgIHRocm93IG5ldyBFcnJvcignRmFpbGVkIHRvIHJlc29sdmUgc3RhcnRDb250YWluZXIgWFBhdGgnKTtcbiAgICB9XG5cbiAgICBjb25zdCBlbmRDb250YWluZXIgPSBub2RlRnJvbVhQYXRoKHNlbGVjdG9yLmVuZENvbnRhaW5lciwgcm9vdCk7XG4gICAgaWYgKCFlbmRDb250YWluZXIpIHtcbiAgICAgIHRocm93IG5ldyBFcnJvcignRmFpbGVkIHRvIHJlc29sdmUgZW5kQ29udGFpbmVyIFhQYXRoJyk7XG4gICAgfVxuXG4gICAgY29uc3Qgc3RhcnRQb3MgPSBUZXh0UG9zaXRpb24uZnJvbUNoYXJPZmZzZXQoXG4gICAgICBzdGFydENvbnRhaW5lcixcbiAgICAgIHNlbGVjdG9yLnN0YXJ0T2Zmc2V0XG4gICAgKTtcbiAgICBjb25zdCBlbmRQb3MgPSBUZXh0UG9zaXRpb24uZnJvbUNoYXJPZmZzZXQoXG4gICAgICBlbmRDb250YWluZXIsXG4gICAgICBzZWxlY3Rvci5lbmRPZmZzZXRcbiAgICApO1xuXG4gICAgY29uc3QgcmFuZ2UgPSBuZXcgVGV4dFJhbmdlKHN0YXJ0UG9zLCBlbmRQb3MpLnRvUmFuZ2UoKTtcbiAgICByZXR1cm4gbmV3IFJhbmdlQW5jaG9yKHJvb3QsIHJhbmdlKTtcbiAgfVxuXG4gIHRvUmFuZ2UoKSB7XG4gICAgcmV0dXJuIHRoaXMucmFuZ2U7XG4gIH1cblxuICAvKipcbiAgICogQHJldHVybiB7UmFuZ2VTZWxlY3Rvcn1cbiAgICovXG4gIHRvU2VsZWN0b3IoKSB7XG4gICAgLy8gXCJTaHJpbmtcIiB0aGUgcmFuZ2Ugc28gdGhhdCBpdCB0aWdodGx5IHdyYXBzIGl0cyB0ZXh0LiBUaGlzIGVuc3VyZXMgbW9yZVxuICAgIC8vIHByZWRpY3RhYmxlIG91dHB1dCBmb3IgYSBnaXZlbiB0ZXh0IHNlbGVjdGlvbi5cbiAgICBjb25zdCBub3JtYWxpemVkUmFuZ2UgPSBUZXh0UmFuZ2UuZnJvbVJhbmdlKHRoaXMucmFuZ2UpLnRvUmFuZ2UoKTtcblxuICAgIGNvbnN0IHRleHRSYW5nZSA9IFRleHRSYW5nZS5mcm9tUmFuZ2Uobm9ybWFsaXplZFJhbmdlKTtcbiAgICBjb25zdCBzdGFydENvbnRhaW5lciA9IHhwYXRoRnJvbU5vZGUodGV4dFJhbmdlLnN0YXJ0LmVsZW1lbnQsIHRoaXMucm9vdCk7XG4gICAgY29uc3QgZW5kQ29udGFpbmVyID0geHBhdGhGcm9tTm9kZSh0ZXh0UmFuZ2UuZW5kLmVsZW1lbnQsIHRoaXMucm9vdCk7XG5cbiAgICByZXR1cm4ge1xuICAgICAgdHlwZTogJ1JhbmdlU2VsZWN0b3InLFxuICAgICAgc3RhcnRDb250YWluZXIsXG4gICAgICBzdGFydE9mZnNldDogdGV4dFJhbmdlLnN0YXJ0Lm9mZnNldCxcbiAgICAgIGVuZENvbnRhaW5lcixcbiAgICAgIGVuZE9mZnNldDogdGV4dFJhbmdlLmVuZC5vZmZzZXQsXG4gICAgfTtcbiAgfVxufVxuXG4vKipcbiAqIENvbnZlcnRzIGJldHdlZW4gYFRleHRQb3NpdGlvblNlbGVjdG9yYCBzZWxlY3RvcnMgYW5kIGBSYW5nZWAgb2JqZWN0cy5cbiAqL1xuZXhwb3J0IGNsYXNzIFRleHRQb3NpdGlvbkFuY2hvciB7XG4gIC8qKlxuICAgKiBAcGFyYW0ge0VsZW1lbnR9IHJvb3RcbiAgICogQHBhcmFtIHtudW1iZXJ9IHN0YXJ0XG4gICAqIEBwYXJhbSB7bnVtYmVyfSBlbmRcbiAgICovXG4gIGNvbnN0cnVjdG9yKHJvb3QsIHN0YXJ0LCBlbmQpIHtcbiAgICB0aGlzLnJvb3QgPSByb290O1xuICAgIHRoaXMuc3RhcnQgPSBzdGFydDtcbiAgICB0aGlzLmVuZCA9IGVuZDtcbiAgfVxuXG4gIC8qKlxuICAgKiBAcGFyYW0ge0VsZW1lbnR9IHJvb3RcbiAgICogQHBhcmFtIHtSYW5nZX0gcmFuZ2VcbiAgICovXG4gIHN0YXRpYyBmcm9tUmFuZ2Uocm9vdCwgcmFuZ2UpIHtcbiAgICBjb25zdCB0ZXh0UmFuZ2UgPSBUZXh0UmFuZ2UuZnJvbVJhbmdlKHJhbmdlKS5yZWxhdGl2ZVRvKHJvb3QpO1xuICAgIHJldHVybiBuZXcgVGV4dFBvc2l0aW9uQW5jaG9yKFxuICAgICAgcm9vdCxcbiAgICAgIHRleHRSYW5nZS5zdGFydC5vZmZzZXQsXG4gICAgICB0ZXh0UmFuZ2UuZW5kLm9mZnNldFxuICAgICk7XG4gIH1cbiAgLyoqXG4gICAqIEBwYXJhbSB7RWxlbWVudH0gcm9vdFxuICAgKiBAcGFyYW0ge1RleHRQb3NpdGlvblNlbGVjdG9yfSBzZWxlY3RvclxuICAgKi9cbiAgc3RhdGljIGZyb21TZWxlY3Rvcihyb290LCBzZWxlY3Rvcikge1xuICAgIHJldHVybiBuZXcgVGV4dFBvc2l0aW9uQW5jaG9yKHJvb3QsIHNlbGVjdG9yLnN0YXJ0LCBzZWxlY3Rvci5lbmQpO1xuICB9XG5cbiAgLyoqXG4gICAqIEByZXR1cm4ge1RleHRQb3NpdGlvblNlbGVjdG9yfVxuICAgKi9cbiAgdG9TZWxlY3RvcigpIHtcbiAgICByZXR1cm4ge1xuICAgICAgdHlwZTogJ1RleHRQb3NpdGlvblNlbGVjdG9yJyxcbiAgICAgIHN0YXJ0OiB0aGlzLnN0YXJ0LFxuICAgICAgZW5kOiB0aGlzLmVuZCxcbiAgICB9O1xuICB9XG5cbiAgdG9SYW5nZSgpIHtcbiAgICByZXR1cm4gVGV4dFJhbmdlLmZyb21PZmZzZXRzKHRoaXMucm9vdCwgdGhpcy5zdGFydCwgdGhpcy5lbmQpLnRvUmFuZ2UoKTtcbiAgfVxufVxuXG4vKipcbiAqIEB0eXBlZGVmIFF1b3RlTWF0Y2hPcHRpb25zXG4gKiBAcHJvcCB7bnVtYmVyfSBbaGludF0gLSBFeHBlY3RlZCBwb3NpdGlvbiBvZiBtYXRjaCBpbiB0ZXh0LiBTZWUgYG1hdGNoUXVvdGVgLlxuICovXG5cbi8qKlxuICogQ29udmVydHMgYmV0d2VlbiBgVGV4dFF1b3RlU2VsZWN0b3JgIHNlbGVjdG9ycyBhbmQgYFJhbmdlYCBvYmplY3RzLlxuICovXG5leHBvcnQgY2xhc3MgVGV4dFF1b3RlQW5jaG9yIHtcbiAgLyoqXG4gICAqIEBwYXJhbSB7RWxlbWVudH0gcm9vdCAtIEEgcm9vdCBlbGVtZW50IGZyb20gd2hpY2ggdG8gYW5jaG9yLlxuICAgKiBAcGFyYW0ge3N0cmluZ30gZXhhY3RcbiAgICogQHBhcmFtIHtPYmplY3R9IGNvbnRleHRcbiAgICogICBAcGFyYW0ge3N0cmluZ30gW2NvbnRleHQucHJlZml4XVxuICAgKiAgIEBwYXJhbSB7c3RyaW5nfSBbY29udGV4dC5zdWZmaXhdXG4gICAqL1xuICBjb25zdHJ1Y3Rvcihyb290LCBleGFjdCwgY29udGV4dCA9IHt9KSB7XG4gICAgdGhpcy5yb290ID0gcm9vdDtcbiAgICB0aGlzLmV4YWN0ID0gZXhhY3Q7XG4gICAgdGhpcy5jb250ZXh0ID0gY29udGV4dDtcbiAgfVxuXG4gIC8qKlxuICAgKiBDcmVhdGUgYSBgVGV4dFF1b3RlQW5jaG9yYCBmcm9tIGEgcmFuZ2UuXG4gICAqXG4gICAqIFdpbGwgdGhyb3cgaWYgYHJhbmdlYCBkb2VzIG5vdCBjb250YWluIGFueSB0ZXh0IG5vZGVzLlxuICAgKlxuICAgKiBAcGFyYW0ge0VsZW1lbnR9IHJvb3RcbiAgICogQHBhcmFtIHtSYW5nZX0gcmFuZ2VcbiAgICovXG4gIHN0YXRpYyBmcm9tUmFuZ2Uocm9vdCwgcmFuZ2UpIHtcbiAgICBjb25zdCB0ZXh0ID0gLyoqIEB0eXBlIHtzdHJpbmd9ICovIChyb290LnRleHRDb250ZW50KTtcbiAgICBjb25zdCB0ZXh0UmFuZ2UgPSBUZXh0UmFuZ2UuZnJvbVJhbmdlKHJhbmdlKS5yZWxhdGl2ZVRvKHJvb3QpO1xuXG4gICAgY29uc3Qgc3RhcnQgPSB0ZXh0UmFuZ2Uuc3RhcnQub2Zmc2V0O1xuICAgIGNvbnN0IGVuZCA9IHRleHRSYW5nZS5lbmQub2Zmc2V0O1xuXG4gICAgLy8gTnVtYmVyIG9mIGNoYXJhY3RlcnMgYXJvdW5kIHRoZSBxdW90ZSB0byBjYXB0dXJlIGFzIGNvbnRleHQuIFdlIGN1cnJlbnRseVxuICAgIC8vIGFsd2F5cyB1c2UgYSBmaXhlZCBhbW91bnQsIGJ1dCBpdCB3b3VsZCBiZSBiZXR0ZXIgaWYgdGhpcyBjb2RlIHdhcyBhd2FyZVxuICAgIC8vIG9mIGxvZ2ljYWwgYm91bmRhcmllcyBpbiB0aGUgZG9jdW1lbnQgKHBhcmFncmFwaCwgYXJ0aWNsZSBldGMuKSB0byBhdm9pZFxuICAgIC8vIGNhcHR1cmluZyB0ZXh0IHVucmVsYXRlZCB0byB0aGUgcXVvdGUuXG4gICAgLy9cbiAgICAvLyBJbiByZWd1bGFyIHByb3NlIHRoZSBpZGVhbCBjb250ZW50IHdvdWxkIG9mdGVuIGJlIHRoZSBzdXJyb3VuZGluZyBzZW50ZW5jZS5cbiAgICAvLyBUaGlzIGlzIGEgbmF0dXJhbCB1bml0IG9mIG1lYW5pbmcgd2hpY2ggZW5hYmxlcyBkaXNwbGF5aW5nIHF1b3RlcyBpblxuICAgIC8vIGNvbnRleHQgZXZlbiB3aGVuIHRoZSBkb2N1bWVudCBpcyBub3QgYXZhaWxhYmxlLiBXZSBjb3VsZCB1c2UgYEludGwuU2VnbWVudGVyYFxuICAgIC8vIGZvciB0aGlzIHdoZW4gYXZhaWxhYmxlLlxuICAgIGNvbnN0IGNvbnRleHRMZW4gPSAzMjtcblxuICAgIHJldHVybiBuZXcgVGV4dFF1b3RlQW5jaG9yKHJvb3QsIHRleHQuc2xpY2Uoc3RhcnQsIGVuZCksIHtcbiAgICAgIHByZWZpeDogdGV4dC5zbGljZShNYXRoLm1heCgwLCBzdGFydCAtIGNvbnRleHRMZW4pLCBzdGFydCksXG4gICAgICBzdWZmaXg6IHRleHQuc2xpY2UoZW5kLCBNYXRoLm1pbih0ZXh0Lmxlbmd0aCwgZW5kICsgY29udGV4dExlbikpLFxuICAgIH0pO1xuICB9XG5cbiAgLyoqXG4gICAqIEBwYXJhbSB7RWxlbWVudH0gcm9vdFxuICAgKiBAcGFyYW0ge1RleHRRdW90ZVNlbGVjdG9yfSBzZWxlY3RvclxuICAgKi9cbiAgc3RhdGljIGZyb21TZWxlY3Rvcihyb290LCBzZWxlY3Rvcikge1xuICAgIGNvbnN0IHsgcHJlZml4LCBzdWZmaXggfSA9IHNlbGVjdG9yO1xuICAgIHJldHVybiBuZXcgVGV4dFF1b3RlQW5jaG9yKHJvb3QsIHNlbGVjdG9yLmV4YWN0LCB7IHByZWZpeCwgc3VmZml4IH0pO1xuICB9XG5cbiAgLyoqXG4gICAqIEByZXR1cm4ge1RleHRRdW90ZVNlbGVjdG9yfVxuICAgKi9cbiAgdG9TZWxlY3RvcigpIHtcbiAgICByZXR1cm4ge1xuICAgICAgdHlwZTogJ1RleHRRdW90ZVNlbGVjdG9yJyxcbiAgICAgIGV4YWN0OiB0aGlzLmV4YWN0LFxuICAgICAgcHJlZml4OiB0aGlzLmNvbnRleHQucHJlZml4LFxuICAgICAgc3VmZml4OiB0aGlzLmNvbnRleHQuc3VmZml4LFxuICAgIH07XG4gIH1cblxuICAvKipcbiAgICogQHBhcmFtIHtRdW90ZU1hdGNoT3B0aW9uc30gW29wdGlvbnNdXG4gICAqL1xuICB0b1JhbmdlKG9wdGlvbnMgPSB7fSkge1xuICAgIHJldHVybiB0aGlzLnRvUG9zaXRpb25BbmNob3Iob3B0aW9ucykudG9SYW5nZSgpO1xuICB9XG5cbiAgLyoqXG4gICAqIEBwYXJhbSB7UXVvdGVNYXRjaE9wdGlvbnN9IFtvcHRpb25zXVxuICAgKi9cbiAgdG9Qb3NpdGlvbkFuY2hvcihvcHRpb25zID0ge30pIHtcbiAgICBjb25zdCB0ZXh0ID0gLyoqIEB0eXBlIHtzdHJpbmd9ICovICh0aGlzLnJvb3QudGV4dENvbnRlbnQpO1xuICAgIGNvbnN0IG1hdGNoID0gbWF0Y2hRdW90ZSh0ZXh0LCB0aGlzLmV4YWN0LCB7XG4gICAgICAuLi50aGlzLmNvbnRleHQsXG4gICAgICBoaW50OiBvcHRpb25zLmhpbnQsXG4gICAgfSk7XG4gICAgaWYgKCFtYXRjaCkge1xuICAgICAgdGhyb3cgbmV3IEVycm9yKCdRdW90ZSBub3QgZm91bmQnKTtcbiAgICB9XG4gICAgcmV0dXJuIG5ldyBUZXh0UG9zaXRpb25BbmNob3IodGhpcy5yb290LCBtYXRjaC5zdGFydCwgbWF0Y2guZW5kKTtcbiAgfVxufVxuIiwiLy9cbi8vICBDb3B5cmlnaHQgMjAyMSBSZWFkaXVtIEZvdW5kYXRpb24uIEFsbCByaWdodHMgcmVzZXJ2ZWQuXG4vLyAgVXNlIG9mIHRoaXMgc291cmNlIGNvZGUgaXMgZ292ZXJuZWQgYnkgdGhlIEJTRC1zdHlsZSBsaWNlbnNlXG4vLyAgYXZhaWxhYmxlIGluIHRoZSB0b3AtbGV2ZWwgTElDRU5TRSBmaWxlIG9mIHRoZSBwcm9qZWN0LlxuLy9cblxuaW1wb3J0IHsgbG9nIGFzIGxvZ05hdGl2ZSwgbG9nRXJyb3IgfSBmcm9tIFwiLi91dGlsc1wiO1xuaW1wb3J0IHsgdG9OYXRpdmVSZWN0IH0gZnJvbSBcIi4vcmVjdFwiO1xuaW1wb3J0IHsgVGV4dFJhbmdlIH0gZnJvbSBcIi4vdmVuZG9yL2h5cG90aGVzaXMvYW5jaG9yaW5nL3RleHQtcmFuZ2VcIjtcblxuY29uc3QgZGVidWcgPSB0cnVlO1xuXG5leHBvcnQgZnVuY3Rpb24gZ2V0Q3VycmVudFNlbGVjdGlvbigpIHtcbiAgY29uc3QgaHJlZiA9IHJlYWRpdW0ubGluaz8uaHJlZjtcbiAgaWYgKCFocmVmKSB7XG4gICAgcmV0dXJuIG51bGw7XG4gIH1cbiAgY29uc3QgdGV4dCA9IGdldEN1cnJlbnRTZWxlY3Rpb25UZXh0KCk7XG4gIGlmICghdGV4dCkge1xuICAgIHJldHVybiBudWxsO1xuICB9XG4gIGNvbnN0IHJlY3QgPSBnZXRTZWxlY3Rpb25SZWN0KCk7XG4gIHJldHVybiB7IGhyZWYsIHRleHQsIHJlY3QgfTtcbn1cblxuZnVuY3Rpb24gZ2V0U2VsZWN0aW9uUmVjdCgpIHtcbiAgdHJ5IHtcbiAgICBsZXQgc2VsID0gd2luZG93LmdldFNlbGVjdGlvbigpO1xuICAgIGlmICghc2VsKSB7XG4gICAgICByZXR1cm47XG4gICAgfVxuICAgIGxldCByYW5nZSA9IHNlbC5nZXRSYW5nZUF0KDApO1xuXG4gICAgcmV0dXJuIHRvTmF0aXZlUmVjdChyYW5nZS5nZXRCb3VuZGluZ0NsaWVudFJlY3QoKSk7XG4gIH0gY2F0Y2ggKGUpIHtcbiAgICBsb2dFcnJvcihlKTtcbiAgICByZXR1cm4gbnVsbDtcbiAgfVxufVxuXG5mdW5jdGlvbiBnZXRDdXJyZW50U2VsZWN0aW9uVGV4dCgpIHtcbiAgY29uc3Qgc2VsZWN0aW9uID0gd2luZG93LmdldFNlbGVjdGlvbigpO1xuICBpZiAoIXNlbGVjdGlvbikge1xuICAgIHJldHVybiB1bmRlZmluZWQ7XG4gIH1cbiAgaWYgKHNlbGVjdGlvbi5pc0NvbGxhcHNlZCkge1xuICAgIHJldHVybiB1bmRlZmluZWQ7XG4gIH1cbiAgY29uc3QgaGlnaGxpZ2h0ID0gc2VsZWN0aW9uLnRvU3RyaW5nKCk7XG4gIGNvbnN0IGNsZWFuSGlnaGxpZ2h0ID0gaGlnaGxpZ2h0XG4gICAgLnRyaW0oKVxuICAgIC5yZXBsYWNlKC9cXG4vZywgXCIgXCIpXG4gICAgLnJlcGxhY2UoL1xcc1xccysvZywgXCIgXCIpO1xuICBpZiAoY2xlYW5IaWdobGlnaHQubGVuZ3RoID09PSAwKSB7XG4gICAgcmV0dXJuIHVuZGVmaW5lZDtcbiAgfVxuICBpZiAoIXNlbGVjdGlvbi5hbmNob3JOb2RlIHx8ICFzZWxlY3Rpb24uZm9jdXNOb2RlKSB7XG4gICAgcmV0dXJuIHVuZGVmaW5lZDtcbiAgfVxuICBjb25zdCByYW5nZSA9XG4gICAgc2VsZWN0aW9uLnJhbmdlQ291bnQgPT09IDFcbiAgICAgID8gc2VsZWN0aW9uLmdldFJhbmdlQXQoMClcbiAgICAgIDogY3JlYXRlT3JkZXJlZFJhbmdlKFxuICAgICAgICAgIHNlbGVjdGlvbi5hbmNob3JOb2RlLFxuICAgICAgICAgIHNlbGVjdGlvbi5hbmNob3JPZmZzZXQsXG4gICAgICAgICAgc2VsZWN0aW9uLmZvY3VzTm9kZSxcbiAgICAgICAgICBzZWxlY3Rpb24uZm9jdXNPZmZzZXRcbiAgICAgICAgKTtcbiAgaWYgKCFyYW5nZSB8fCByYW5nZS5jb2xsYXBzZWQpIHtcbiAgICBsb2coXCIkJCQkJCQkJCQkJCQkJCQkJCBDQU5OT1QgR0VUIE5PTi1DT0xMQVBTRUQgU0VMRUNUSU9OIFJBTkdFPyFcIik7XG4gICAgcmV0dXJuIHVuZGVmaW5lZDtcbiAgfVxuXG4gIGNvbnN0IHRleHQgPSBkb2N1bWVudC5ib2R5LnRleHRDb250ZW50O1xuICBjb25zdCB0ZXh0UmFuZ2UgPSBUZXh0UmFuZ2UuZnJvbVJhbmdlKHJhbmdlKS5yZWxhdGl2ZVRvKGRvY3VtZW50LmJvZHkpO1xuICBjb25zdCBzdGFydCA9IHRleHRSYW5nZS5zdGFydC5vZmZzZXQ7XG4gIGNvbnN0IGVuZCA9IHRleHRSYW5nZS5lbmQub2Zmc2V0O1xuXG4gIGNvbnN0IHNuaXBwZXRMZW5ndGggPSAyMDA7XG5cbiAgLy8gQ29tcHV0ZSB0aGUgdGV4dCBiZWZvcmUgdGhlIGhpZ2hsaWdodCwgaWdub3JpbmcgdGhlIGZpcnN0IFwid29yZFwiLCB3aGljaCBtaWdodCBiZSBjdXQuXG4gIGxldCBiZWZvcmUgPSB0ZXh0LnNsaWNlKE1hdGgubWF4KDAsIHN0YXJ0IC0gc25pcHBldExlbmd0aCksIHN0YXJ0KTtcbiAgbGV0IGZpcnN0V29yZFN0YXJ0ID0gYmVmb3JlLnNlYXJjaCgvXFxQe0x9XFxwe0x9L2d1KTtcbiAgaWYgKGZpcnN0V29yZFN0YXJ0ICE9PSAtMSkge1xuICAgIGJlZm9yZSA9IGJlZm9yZS5zbGljZShmaXJzdFdvcmRTdGFydCArIDEpO1xuICB9XG5cbiAgLy8gQ29tcHV0ZSB0aGUgdGV4dCBhZnRlciB0aGUgaGlnaGxpZ2h0LCBpZ25vcmluZyB0aGUgbGFzdCBcIndvcmRcIiwgd2hpY2ggbWlnaHQgYmUgY3V0LlxuICBsZXQgYWZ0ZXIgPSB0ZXh0LnNsaWNlKGVuZCwgTWF0aC5taW4odGV4dC5sZW5ndGgsIGVuZCArIHNuaXBwZXRMZW5ndGgpKTtcbiAgbGV0IGxhc3RXb3JkRW5kID0gQXJyYXkuZnJvbShhZnRlci5tYXRjaEFsbCgvXFxwe0x9XFxQe0x9L2d1KSkucG9wKCk7XG4gIGlmIChsYXN0V29yZEVuZCAhPT0gdW5kZWZpbmVkICYmIGxhc3RXb3JkRW5kLmluZGV4ID4gMSkge1xuICAgIGFmdGVyID0gYWZ0ZXIuc2xpY2UoMCwgbGFzdFdvcmRFbmQuaW5kZXggKyAxKTtcbiAgfVxuXG4gIHJldHVybiB7IGhpZ2hsaWdodCwgYmVmb3JlLCBhZnRlciB9O1xufVxuXG5mdW5jdGlvbiBjcmVhdGVPcmRlcmVkUmFuZ2Uoc3RhcnROb2RlLCBzdGFydE9mZnNldCwgZW5kTm9kZSwgZW5kT2Zmc2V0KSB7XG4gIGNvbnN0IHJhbmdlID0gbmV3IFJhbmdlKCk7XG4gIHJhbmdlLnNldFN0YXJ0KHN0YXJ0Tm9kZSwgc3RhcnRPZmZzZXQpO1xuICByYW5nZS5zZXRFbmQoZW5kTm9kZSwgZW5kT2Zmc2V0KTtcbiAgaWYgKCFyYW5nZS5jb2xsYXBzZWQpIHtcbiAgICByZXR1cm4gcmFuZ2U7XG4gIH1cbiAgbG9nKFwiPj4+IGNyZWF0ZU9yZGVyZWRSYW5nZSBDT0xMQVBTRUQgLi4uIFJBTkdFIFJFVkVSU0U/XCIpO1xuICBjb25zdCByYW5nZVJldmVyc2UgPSBuZXcgUmFuZ2UoKTtcbiAgcmFuZ2VSZXZlcnNlLnNldFN0YXJ0KGVuZE5vZGUsIGVuZE9mZnNldCk7XG4gIHJhbmdlUmV2ZXJzZS5zZXRFbmQoc3RhcnROb2RlLCBzdGFydE9mZnNldCk7XG4gIGlmICghcmFuZ2VSZXZlcnNlLmNvbGxhcHNlZCkge1xuICAgIGxvZyhcIj4+PiBjcmVhdGVPcmRlcmVkUmFuZ2UgUkFOR0UgUkVWRVJTRSBPSy5cIik7XG4gICAgcmV0dXJuIHJhbmdlO1xuICB9XG4gIGxvZyhcIj4+PiBjcmVhdGVPcmRlcmVkUmFuZ2UgUkFOR0UgUkVWRVJTRSBBTFNPIENPTExBUFNFRD8hXCIpO1xuICByZXR1cm4gdW5kZWZpbmVkO1xufVxuXG5leHBvcnQgZnVuY3Rpb24gY29udmVydFJhbmdlSW5mbyhkb2N1bWVudCwgcmFuZ2VJbmZvKSB7XG4gIGNvbnN0IHN0YXJ0RWxlbWVudCA9IGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3IoXG4gICAgcmFuZ2VJbmZvLnN0YXJ0Q29udGFpbmVyRWxlbWVudENzc1NlbGVjdG9yXG4gICk7XG4gIGlmICghc3RhcnRFbGVtZW50KSB7XG4gICAgbG9nKFwiXl5eIGNvbnZlcnRSYW5nZUluZm8gTk8gU1RBUlQgRUxFTUVOVCBDU1MgU0VMRUNUT1I/IVwiKTtcbiAgICByZXR1cm4gdW5kZWZpbmVkO1xuICB9XG4gIGxldCBzdGFydENvbnRhaW5lciA9IHN0YXJ0RWxlbWVudDtcbiAgaWYgKHJhbmdlSW5mby5zdGFydENvbnRhaW5lckNoaWxkVGV4dE5vZGVJbmRleCA+PSAwKSB7XG4gICAgaWYgKFxuICAgICAgcmFuZ2VJbmZvLnN0YXJ0Q29udGFpbmVyQ2hpbGRUZXh0Tm9kZUluZGV4ID49XG4gICAgICBzdGFydEVsZW1lbnQuY2hpbGROb2Rlcy5sZW5ndGhcbiAgICApIHtcbiAgICAgIGxvZyhcbiAgICAgICAgXCJeXl4gY29udmVydFJhbmdlSW5mbyByYW5nZUluZm8uc3RhcnRDb250YWluZXJDaGlsZFRleHROb2RlSW5kZXggPj0gc3RhcnRFbGVtZW50LmNoaWxkTm9kZXMubGVuZ3RoPyFcIlxuICAgICAgKTtcbiAgICAgIHJldHVybiB1bmRlZmluZWQ7XG4gICAgfVxuICAgIHN0YXJ0Q29udGFpbmVyID1cbiAgICAgIHN0YXJ0RWxlbWVudC5jaGlsZE5vZGVzW3JhbmdlSW5mby5zdGFydENvbnRhaW5lckNoaWxkVGV4dE5vZGVJbmRleF07XG4gICAgaWYgKHN0YXJ0Q29udGFpbmVyLm5vZGVUeXBlICE9PSBOb2RlLlRFWFRfTk9ERSkge1xuICAgICAgbG9nKFwiXl5eIGNvbnZlcnRSYW5nZUluZm8gc3RhcnRDb250YWluZXIubm9kZVR5cGUgIT09IE5vZGUuVEVYVF9OT0RFPyFcIik7XG4gICAgICByZXR1cm4gdW5kZWZpbmVkO1xuICAgIH1cbiAgfVxuICBjb25zdCBlbmRFbGVtZW50ID0gZG9jdW1lbnQucXVlcnlTZWxlY3RvcihcbiAgICByYW5nZUluZm8uZW5kQ29udGFpbmVyRWxlbWVudENzc1NlbGVjdG9yXG4gICk7XG4gIGlmICghZW5kRWxlbWVudCkge1xuICAgIGxvZyhcIl5eXiBjb252ZXJ0UmFuZ2VJbmZvIE5PIEVORCBFTEVNRU5UIENTUyBTRUxFQ1RPUj8hXCIpO1xuICAgIHJldHVybiB1bmRlZmluZWQ7XG4gIH1cbiAgbGV0IGVuZENvbnRhaW5lciA9IGVuZEVsZW1lbnQ7XG4gIGlmIChyYW5nZUluZm8uZW5kQ29udGFpbmVyQ2hpbGRUZXh0Tm9kZUluZGV4ID49IDApIHtcbiAgICBpZiAoXG4gICAgICByYW5nZUluZm8uZW5kQ29udGFpbmVyQ2hpbGRUZXh0Tm9kZUluZGV4ID49IGVuZEVsZW1lbnQuY2hpbGROb2Rlcy5sZW5ndGhcbiAgICApIHtcbiAgICAgIGxvZyhcbiAgICAgICAgXCJeXl4gY29udmVydFJhbmdlSW5mbyByYW5nZUluZm8uZW5kQ29udGFpbmVyQ2hpbGRUZXh0Tm9kZUluZGV4ID49IGVuZEVsZW1lbnQuY2hpbGROb2Rlcy5sZW5ndGg/IVwiXG4gICAgICApO1xuICAgICAgcmV0dXJuIHVuZGVmaW5lZDtcbiAgICB9XG4gICAgZW5kQ29udGFpbmVyID1cbiAgICAgIGVuZEVsZW1lbnQuY2hpbGROb2Rlc1tyYW5nZUluZm8uZW5kQ29udGFpbmVyQ2hpbGRUZXh0Tm9kZUluZGV4XTtcbiAgICBpZiAoZW5kQ29udGFpbmVyLm5vZGVUeXBlICE9PSBOb2RlLlRFWFRfTk9ERSkge1xuICAgICAgbG9nKFwiXl5eIGNvbnZlcnRSYW5nZUluZm8gZW5kQ29udGFpbmVyLm5vZGVUeXBlICE9PSBOb2RlLlRFWFRfTk9ERT8hXCIpO1xuICAgICAgcmV0dXJuIHVuZGVmaW5lZDtcbiAgICB9XG4gIH1cbiAgcmV0dXJuIGNyZWF0ZU9yZGVyZWRSYW5nZShcbiAgICBzdGFydENvbnRhaW5lcixcbiAgICByYW5nZUluZm8uc3RhcnRPZmZzZXQsXG4gICAgZW5kQ29udGFpbmVyLFxuICAgIHJhbmdlSW5mby5lbmRPZmZzZXRcbiAgKTtcbn1cblxuZXhwb3J0IGZ1bmN0aW9uIGxvY2F0aW9uMlJhbmdlSW5mbyhsb2NhdGlvbikge1xuICBjb25zdCBsb2NhdGlvbnMgPSBsb2NhdGlvbi5sb2NhdGlvbnM7XG4gIGNvbnN0IGRvbVJhbmdlID0gbG9jYXRpb25zLmRvbVJhbmdlO1xuICBjb25zdCBzdGFydCA9IGRvbVJhbmdlLnN0YXJ0O1xuICBjb25zdCBlbmQgPSBkb21SYW5nZS5lbmQ7XG5cbiAgcmV0dXJuIHtcbiAgICBlbmRDb250YWluZXJDaGlsZFRleHROb2RlSW5kZXg6IGVuZC50ZXh0Tm9kZUluZGV4LFxuICAgIGVuZENvbnRhaW5lckVsZW1lbnRDc3NTZWxlY3RvcjogZW5kLmNzc1NlbGVjdG9yLFxuICAgIGVuZE9mZnNldDogZW5kLm9mZnNldCxcbiAgICBzdGFydENvbnRhaW5lckNoaWxkVGV4dE5vZGVJbmRleDogc3RhcnQudGV4dE5vZGVJbmRleCxcbiAgICBzdGFydENvbnRhaW5lckVsZW1lbnRDc3NTZWxlY3Rvcjogc3RhcnQuY3NzU2VsZWN0b3IsXG4gICAgc3RhcnRPZmZzZXQ6IHN0YXJ0Lm9mZnNldCxcbiAgfTtcbn1cblxuZnVuY3Rpb24gbG9nKCkge1xuICBpZiAoZGVidWcpIHtcbiAgICBsb2dOYXRpdmUuYXBwbHkobnVsbCwgYXJndW1lbnRzKTtcbiAgfVxufVxuIiwiLy9cbi8vICBDb3B5cmlnaHQgMjAyMSBSZWFkaXVtIEZvdW5kYXRpb24uIEFsbCByaWdodHMgcmVzZXJ2ZWQuXG4vLyAgVXNlIG9mIHRoaXMgc291cmNlIGNvZGUgaXMgZ292ZXJuZWQgYnkgdGhlIEJTRC1zdHlsZSBsaWNlbnNlXG4vLyAgYXZhaWxhYmxlIGluIHRoZSB0b3AtbGV2ZWwgTElDRU5TRSBmaWxlIG9mIHRoZSBwcm9qZWN0LlxuLy9cblxuLy8gQ2F0Y2ggSlMgZXJyb3JzIHRvIGxvZyB0aGVtIGluIHRoZSBhcHAuXG5cbmltcG9ydCB7IFRleHRRdW90ZUFuY2hvciB9IGZyb20gXCIuL3ZlbmRvci9oeXBvdGhlc2lzL2FuY2hvcmluZy90eXBlc1wiO1xuaW1wb3J0IHsgZ2V0Q3VycmVudFNlbGVjdGlvbiB9IGZyb20gXCIuL3NlbGVjdGlvblwiO1xuXG53aW5kb3cuYWRkRXZlbnRMaXN0ZW5lcihcbiAgXCJlcnJvclwiLFxuICBmdW5jdGlvbiAoZXZlbnQpIHtcbiAgICB3ZWJraXQubWVzc2FnZUhhbmRsZXJzLmxvZ0Vycm9yLnBvc3RNZXNzYWdlKHtcbiAgICAgIG1lc3NhZ2U6IGV2ZW50Lm1lc3NhZ2UsXG4gICAgICBmaWxlbmFtZTogZXZlbnQuZmlsZW5hbWUsXG4gICAgICBsaW5lOiBldmVudC5saW5lbm8sXG4gICAgfSk7XG4gIH0sXG4gIGZhbHNlXG4pO1xuXG4vLyBOb3RpZnkgbmF0aXZlIGNvZGUgdGhhdCB0aGUgcGFnZSBoYXMgbG9hZGVkLlxud2luZG93LmFkZEV2ZW50TGlzdGVuZXIoXG4gIFwibG9hZFwiLFxuICBmdW5jdGlvbiAoKSB7XG4gICAgLy8gb24gcGFnZSBsb2FkXG4gICAgd2luZG93LmFkZEV2ZW50TGlzdGVuZXIoXCJvcmllbnRhdGlvbmNoYW5nZVwiLCBmdW5jdGlvbiAoKSB7XG4gICAgICBvcmllbnRhdGlvbkNoYW5nZWQoKTtcbiAgICAgIHNuYXBDdXJyZW50UG9zaXRpb24oKTtcbiAgICB9KTtcbiAgICBvcmllbnRhdGlvbkNoYW5nZWQoKTtcbiAgfSxcbiAgZmFsc2Vcbik7XG5cbnZhciBsYXN0X2tub3duX3Njcm9sbFhfcG9zaXRpb24gPSAwO1xudmFyIGxhc3Rfa25vd25fc2Nyb2xsWV9wb3NpdGlvbiA9IDA7XG52YXIgdGlja2luZyA9IGZhbHNlO1xudmFyIG1heFNjcmVlblggPSAwO1xuXG4vLyBQb3NpdGlvbiBpbiByYW5nZSBbMCAtIDFdLlxuZnVuY3Rpb24gdXBkYXRlKHBvc2l0aW9uKSB7XG4gIHZhciBwb3NpdGlvblN0cmluZyA9IHBvc2l0aW9uLnRvU3RyaW5nKCk7XG4gIHdlYmtpdC5tZXNzYWdlSGFuZGxlcnMucHJvZ3Jlc3Npb25DaGFuZ2VkLnBvc3RNZXNzYWdlKHBvc2l0aW9uU3RyaW5nKTtcbn1cblxud2luZG93LmFkZEV2ZW50TGlzdGVuZXIoXCJzY3JvbGxcIiwgZnVuY3Rpb24gKCkge1xuICBsYXN0X2tub3duX3Njcm9sbFlfcG9zaXRpb24gPVxuICAgIHdpbmRvdy5zY3JvbGxZIC8gZG9jdW1lbnQuc2Nyb2xsaW5nRWxlbWVudC5zY3JvbGxIZWlnaHQ7XG4gIC8vIFVzaW5nIE1hdGguYWJzIGJlY2F1c2UgZm9yIFJUTCBib29rcywgdGhlIHZhbHVlIHdpbGwgYmUgbmVnYXRpdmUuXG4gIGxhc3Rfa25vd25fc2Nyb2xsWF9wb3NpdGlvbiA9IE1hdGguYWJzKFxuICAgIHdpbmRvdy5zY3JvbGxYIC8gZG9jdW1lbnQuc2Nyb2xsaW5nRWxlbWVudC5zY3JvbGxXaWR0aFxuICApO1xuXG4gIC8vIFdpbmRvdyBpcyBoaWRkZW5cbiAgaWYgKFxuICAgIGRvY3VtZW50LnNjcm9sbGluZ0VsZW1lbnQuc2Nyb2xsV2lkdGggPT09IDAgfHxcbiAgICBkb2N1bWVudC5zY3JvbGxpbmdFbGVtZW50LnNjcm9sbEhlaWdodCA9PT0gMFxuICApIHtcbiAgICByZXR1cm47XG4gIH1cblxuICBpZiAoIXRpY2tpbmcpIHtcbiAgICB3aW5kb3cucmVxdWVzdEFuaW1hdGlvbkZyYW1lKGZ1bmN0aW9uICgpIHtcbiAgICAgIHVwZGF0ZShcbiAgICAgICAgaXNTY3JvbGxNb2RlRW5hYmxlZCgpXG4gICAgICAgICAgPyBsYXN0X2tub3duX3Njcm9sbFlfcG9zaXRpb25cbiAgICAgICAgICA6IGxhc3Rfa25vd25fc2Nyb2xsWF9wb3NpdGlvblxuICAgICAgKTtcbiAgICAgIHRpY2tpbmcgPSBmYWxzZTtcbiAgICB9KTtcbiAgfVxuICB0aWNraW5nID0gdHJ1ZTtcbn0pO1xuXG5kb2N1bWVudC5hZGRFdmVudExpc3RlbmVyKFxuICBcInNlbGVjdGlvbmNoYW5nZVwiLFxuICBkZWJvdW5jZSg1MCwgZnVuY3Rpb24gKCkge1xuICAgIHdlYmtpdC5tZXNzYWdlSGFuZGxlcnMuc2VsZWN0aW9uQ2hhbmdlZC5wb3N0TWVzc2FnZShnZXRDdXJyZW50U2VsZWN0aW9uKCkpO1xuICB9KVxuKTtcblxuZnVuY3Rpb24gb3JpZW50YXRpb25DaGFuZ2VkKCkge1xuICBtYXhTY3JlZW5YID1cbiAgICB3aW5kb3cub3JpZW50YXRpb24gPT09IDAgfHwgd2luZG93Lm9yaWVudGF0aW9uID09IDE4MFxuICAgICAgPyBzY3JlZW4ud2lkdGhcbiAgICAgIDogc2NyZWVuLmhlaWdodDtcbn1cblxuZXhwb3J0IGZ1bmN0aW9uIGlzU2Nyb2xsTW9kZUVuYWJsZWQoKSB7XG4gIHJldHVybiAoXG4gICAgZG9jdW1lbnQuZG9jdW1lbnRFbGVtZW50LnN0eWxlXG4gICAgICAuZ2V0UHJvcGVydHlWYWx1ZShcIi0tVVNFUl9fc2Nyb2xsXCIpXG4gICAgICAudG9TdHJpbmcoKVxuICAgICAgLnRyaW0oKSA9PT0gXCJyZWFkaXVtLXNjcm9sbC1vblwiXG4gICk7XG59XG5cbi8vIFNjcm9sbCB0byB0aGUgZ2l2ZW4gVGFnSWQgaW4gZG9jdW1lbnQgYW5kIHNuYXAuXG5leHBvcnQgZnVuY3Rpb24gc2Nyb2xsVG9JZChpZCkge1xuICBsZXQgZWxlbWVudCA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKGlkKTtcbiAgaWYgKCFlbGVtZW50KSB7XG4gICAgcmV0dXJuIGZhbHNlO1xuICB9XG5cbiAgc2Nyb2xsVG9SZWN0KGVsZW1lbnQuZ2V0Qm91bmRpbmdDbGllbnRSZWN0KCkpO1xuICByZXR1cm4gdHJ1ZTtcbn1cblxuLy8gUG9zaXRpb24gbXVzdCBiZSBpbiB0aGUgcmFuZ2UgWzAgLSAxXSwgMC0xMDAlLlxuZXhwb3J0IGZ1bmN0aW9uIHNjcm9sbFRvUG9zaXRpb24ocG9zaXRpb24sIGRpcikge1xuICBjb25zb2xlLmxvZyhcIlNjcm9sbFRvUG9zaXRpb25cIik7XG4gIGlmIChwb3NpdGlvbiA8IDAgfHwgcG9zaXRpb24gPiAxKSB7XG4gICAgY29uc29sZS5sb2coXCJJbnZhbGlkUG9zaXRpb25cIik7XG4gICAgcmV0dXJuO1xuICB9XG5cbiAgaWYgKGlzU2Nyb2xsTW9kZUVuYWJsZWQoKSkge1xuICAgIGxldCBvZmZzZXQgPSBkb2N1bWVudC5zY3JvbGxpbmdFbGVtZW50LnNjcm9sbEhlaWdodCAqIHBvc2l0aW9uO1xuICAgIGRvY3VtZW50LnNjcm9sbGluZ0VsZW1lbnQuc2Nyb2xsVG9wID0gb2Zmc2V0O1xuICAgIC8vIHdpbmRvdy5zY3JvbGxUbygwLCBvZmZzZXQpO1xuICB9IGVsc2Uge1xuICAgIHZhciBkb2N1bWVudFdpZHRoID0gZG9jdW1lbnQuc2Nyb2xsaW5nRWxlbWVudC5zY3JvbGxXaWR0aDtcbiAgICB2YXIgZmFjdG9yID0gZGlyID09IFwicnRsXCIgPyAtMSA6IDE7XG4gICAgbGV0IG9mZnNldCA9IGRvY3VtZW50V2lkdGggKiBwb3NpdGlvbiAqIGZhY3RvcjtcbiAgICBkb2N1bWVudC5zY3JvbGxpbmdFbGVtZW50LnNjcm9sbExlZnQgPSBzbmFwT2Zmc2V0KG9mZnNldCk7XG4gIH1cbn1cblxuLy8gU2Nyb2xscyB0byB0aGUgZmlyc3Qgb2NjdXJyZW5jZSBvZiB0aGUgZ2l2ZW4gdGV4dCBzbmlwcGV0LlxuLy9cbi8vIFRoZSBleHBlY3RlZCB0ZXh0IGFyZ3VtZW50IGlzIGEgTG9jYXRvciBUZXh0IG9iamVjdCwgYXMgZGVmaW5lZCBoZXJlOlxuLy8gaHR0cHM6Ly9yZWFkaXVtLm9yZy9hcmNoaXRlY3R1cmUvbW9kZWxzL2xvY2F0b3JzL1xuZXhwb3J0IGZ1bmN0aW9uIHNjcm9sbFRvVGV4dCh0ZXh0KSB7XG4gIGxldCByYW5nZSA9IHJhbmdlRnJvbUxvY2F0b3IoeyB0ZXh0IH0pO1xuICBpZiAoIXJhbmdlKSB7XG4gICAgcmV0dXJuIGZhbHNlO1xuICB9XG4gIHNjcm9sbFRvUmFuZ2UocmFuZ2UpO1xuICByZXR1cm4gdHJ1ZTtcbn1cblxuZnVuY3Rpb24gc2Nyb2xsVG9SYW5nZShyYW5nZSkge1xuICBzY3JvbGxUb1JlY3QocmFuZ2UuZ2V0Qm91bmRpbmdDbGllbnRSZWN0KCkpO1xufVxuXG5mdW5jdGlvbiBzY3JvbGxUb1JlY3QocmVjdCkge1xuICBpZiAoaXNTY3JvbGxNb2RlRW5hYmxlZCgpKSB7XG4gICAgZG9jdW1lbnQuc2Nyb2xsaW5nRWxlbWVudC5zY3JvbGxUb3AgPVxuICAgICAgcmVjdC50b3AgKyB3aW5kb3cuc2Nyb2xsWSAtIHdpbmRvdy5pbm5lckhlaWdodCAvIDI7XG4gIH0gZWxzZSB7XG4gICAgZG9jdW1lbnQuc2Nyb2xsaW5nRWxlbWVudC5zY3JvbGxMZWZ0ID0gc25hcE9mZnNldChcbiAgICAgIHJlY3QubGVmdCArIHdpbmRvdy5zY3JvbGxYXG4gICAgKTtcbiAgfVxufVxuXG4vLyBSZXR1cm5zIGZhbHNlIGlmIHRoZSBwYWdlIGlzIGFscmVhZHkgYXQgdGhlIGxlZnQtbW9zdCBzY3JvbGwgb2Zmc2V0LlxuZXhwb3J0IGZ1bmN0aW9uIHNjcm9sbExlZnQoZGlyKSB7XG4gIHZhciBpc1JUTCA9IGRpciA9PSBcInJ0bFwiO1xuICB2YXIgZG9jdW1lbnRXaWR0aCA9IGRvY3VtZW50LnNjcm9sbGluZ0VsZW1lbnQuc2Nyb2xsV2lkdGg7XG4gIHZhciBwYWdlV2lkdGggPSB3aW5kb3cuaW5uZXJXaWR0aDtcbiAgdmFyIG9mZnNldCA9IHdpbmRvdy5zY3JvbGxYIC0gcGFnZVdpZHRoO1xuICB2YXIgbWluT2Zmc2V0ID0gaXNSVEwgPyAtKGRvY3VtZW50V2lkdGggLSBwYWdlV2lkdGgpIDogMDtcbiAgcmV0dXJuIHNjcm9sbFRvT2Zmc2V0KE1hdGgubWF4KG9mZnNldCwgbWluT2Zmc2V0KSk7XG59XG5cbi8vIFJldHVybnMgZmFsc2UgaWYgdGhlIHBhZ2UgaXMgYWxyZWFkeSBhdCB0aGUgcmlnaHQtbW9zdCBzY3JvbGwgb2Zmc2V0LlxuZXhwb3J0IGZ1bmN0aW9uIHNjcm9sbFJpZ2h0KGRpcikge1xuICB2YXIgaXNSVEwgPSBkaXIgPT0gXCJydGxcIjtcbiAgdmFyIGRvY3VtZW50V2lkdGggPSBkb2N1bWVudC5zY3JvbGxpbmdFbGVtZW50LnNjcm9sbFdpZHRoO1xuICB2YXIgcGFnZVdpZHRoID0gd2luZG93LmlubmVyV2lkdGg7XG4gIHZhciBvZmZzZXQgPSB3aW5kb3cuc2Nyb2xsWCArIHBhZ2VXaWR0aDtcbiAgdmFyIG1heE9mZnNldCA9IGlzUlRMID8gMCA6IGRvY3VtZW50V2lkdGggLSBwYWdlV2lkdGg7XG4gIHJldHVybiBzY3JvbGxUb09mZnNldChNYXRoLm1pbihvZmZzZXQsIG1heE9mZnNldCkpO1xufVxuXG4vLyBTY3JvbGxzIHRvIHRoZSBnaXZlbiBsZWZ0IG9mZnNldC5cbi8vIFJldHVybnMgZmFsc2UgaWYgdGhlIHBhZ2Ugc2Nyb2xsIHBvc2l0aW9uIGlzIGFscmVhZHkgY2xvc2UgZW5vdWdoIHRvIHRoZSBnaXZlbiBvZmZzZXQuXG5mdW5jdGlvbiBzY3JvbGxUb09mZnNldChvZmZzZXQpIHtcbiAgdmFyIGN1cnJlbnRPZmZzZXQgPSB3aW5kb3cuc2Nyb2xsWDtcbiAgdmFyIHBhZ2VXaWR0aCA9IHdpbmRvdy5pbm5lcldpZHRoO1xuICBkb2N1bWVudC5zY3JvbGxpbmdFbGVtZW50LnNjcm9sbExlZnQgPSBvZmZzZXQ7XG4gIC8vIEluIHNvbWUgY2FzZSB0aGUgc2Nyb2xsWCBjYW5ub3QgcmVhY2ggdGhlIHBvc2l0aW9uIHJlc3BlY3RpbmcgdG8gaW5uZXJXaWR0aFxuICB2YXIgZGlmZiA9IE1hdGguYWJzKGN1cnJlbnRPZmZzZXQgLSBvZmZzZXQpIC8gcGFnZVdpZHRoO1xuICByZXR1cm4gZGlmZiA+IDAuMDE7XG59XG5cbi8vIFNuYXAgdGhlIG9mZnNldCB0byB0aGUgc2NyZWVuIHdpZHRoIChwYWdlIHdpZHRoKS5cbmZ1bmN0aW9uIHNuYXBPZmZzZXQob2Zmc2V0KSB7XG4gIHZhciB2YWx1ZSA9IG9mZnNldCArIDE7XG5cbiAgcmV0dXJuIHZhbHVlIC0gKHZhbHVlICUgbWF4U2NyZWVuWCk7XG59XG5cbmZ1bmN0aW9uIHNuYXBDdXJyZW50UG9zaXRpb24oKSB7XG4gIGlmIChpc1Njcm9sbE1vZGVFbmFibGVkKCkpIHtcbiAgICByZXR1cm47XG4gIH1cbiAgdmFyIGN1cnJlbnRPZmZzZXQgPSB3aW5kb3cuc2Nyb2xsWDtcbiAgdmFyIGN1cnJlbnRPZmZzZXRTbmFwcGVkID0gc25hcE9mZnNldChjdXJyZW50T2Zmc2V0ICsgMSk7XG5cbiAgZG9jdW1lbnQuc2Nyb2xsaW5nRWxlbWVudC5zY3JvbGxMZWZ0ID0gY3VycmVudE9mZnNldFNuYXBwZWQ7XG59XG5cbmV4cG9ydCBmdW5jdGlvbiByYW5nZUZyb21Mb2NhdG9yKGxvY2F0b3IpIHtcbiAgbGV0IHRleHQgPSBsb2NhdG9yLnRleHQ7XG4gIGlmICghdGV4dCB8fCAhdGV4dC5oaWdobGlnaHQpIHtcbiAgICByZXR1cm4gbnVsbDtcbiAgfVxuICB0cnkge1xuICAgIGxldCBhbmNob3IgPSBuZXcgVGV4dFF1b3RlQW5jaG9yKGRvY3VtZW50LmJvZHksIHRleHQuaGlnaGxpZ2h0LCB7XG4gICAgICBwcmVmaXg6IHRleHQuYmVmb3JlLFxuICAgICAgc3VmZml4OiB0ZXh0LmFmdGVyLFxuICAgIH0pO1xuICAgIHJldHVybiBhbmNob3IudG9SYW5nZSgpO1xuICB9IGNhdGNoIChlKSB7XG4gICAgbG9nRXJyb3IoZSk7XG4gICAgcmV0dXJuIG51bGw7XG4gIH1cbn1cblxuLy8vIFVzZXIgU2V0dGluZ3MuXG5cbi8vIEZvciBzZXR0aW5nIHVzZXIgc2V0dGluZy5cbmV4cG9ydCBmdW5jdGlvbiBzZXRQcm9wZXJ0eShrZXksIHZhbHVlKSB7XG4gIHZhciByb290ID0gZG9jdW1lbnQuZG9jdW1lbnRFbGVtZW50O1xuXG4gIHJvb3Quc3R5bGUuc2V0UHJvcGVydHkoa2V5LCB2YWx1ZSk7XG59XG5cbi8vIEZvciByZW1vdmluZyB1c2VyIHNldHRpbmcuXG5leHBvcnQgZnVuY3Rpb24gcmVtb3ZlUHJvcGVydHkoa2V5KSB7XG4gIHZhciByb290ID0gZG9jdW1lbnQuZG9jdW1lbnRFbGVtZW50O1xuXG4gIHJvb3Quc3R5bGUucmVtb3ZlUHJvcGVydHkoa2V5KTtcbn1cblxuLy8vIFRvb2xraXRcblxuZnVuY3Rpb24gZGVib3VuY2UoZGVsYXksIGZ1bmMpIHtcbiAgdmFyIHRpbWVvdXQ7XG4gIHJldHVybiBmdW5jdGlvbiAoKSB7XG4gICAgdmFyIHNlbGYgPSB0aGlzO1xuICAgIHZhciBhcmdzID0gYXJndW1lbnRzO1xuICAgIGZ1bmN0aW9uIGNhbGxiYWNrKCkge1xuICAgICAgZnVuYy5hcHBseShzZWxmLCBhcmdzKTtcbiAgICAgIHRpbWVvdXQgPSBudWxsO1xuICAgIH1cbiAgICBjbGVhclRpbWVvdXQodGltZW91dCk7XG4gICAgdGltZW91dCA9IHNldFRpbWVvdXQoY2FsbGJhY2ssIGRlbGF5KTtcbiAgfTtcbn1cblxuZXhwb3J0IGZ1bmN0aW9uIGxvZygpIHtcbiAgdmFyIG1lc3NhZ2UgPSBBcnJheS5wcm90b3R5cGUuc2xpY2UuY2FsbChhcmd1bWVudHMpLmpvaW4oXCIgXCIpO1xuICB3ZWJraXQubWVzc2FnZUhhbmRsZXJzLmxvZy5wb3N0TWVzc2FnZShtZXNzYWdlKTtcbn1cblxuZXhwb3J0IGZ1bmN0aW9uIGxvZ0Vycm9yTWVzc2FnZShtc2cpIHtcbiAgbG9nRXJyb3IobmV3IEVycm9yKG1zZykpO1xufVxuXG5leHBvcnQgZnVuY3Rpb24gbG9nRXJyb3IoZSkge1xuICB3ZWJraXQubWVzc2FnZUhhbmRsZXJzLmxvZ0Vycm9yLnBvc3RNZXNzYWdlKHtcbiAgICBtZXNzYWdlOiBlLm1lc3NhZ2UsXG4gIH0pO1xufVxuIiwiLy9cbi8vICBDb3B5cmlnaHQgMjAyMSBSZWFkaXVtIEZvdW5kYXRpb24uIEFsbCByaWdodHMgcmVzZXJ2ZWQuXG4vLyAgVXNlIG9mIHRoaXMgc291cmNlIGNvZGUgaXMgZ292ZXJuZWQgYnkgdGhlIEJTRC1zdHlsZSBsaWNlbnNlXG4vLyAgYXZhaWxhYmxlIGluIHRoZSB0b3AtbGV2ZWwgTElDRU5TRSBmaWxlIG9mIHRoZSBwcm9qZWN0LlxuLy9cblxuaW1wb3J0IHsgbG9nIGFzIGxvZ05hdGl2ZSB9IGZyb20gXCIuL3V0aWxzXCI7XG5cbmNvbnN0IGRlYnVnID0gZmFsc2U7XG5cbi8qKlxuICogQ29udmVydHMgYSBET01SZWN0IGludG8gYSBKU09OIG9iamVjdCB1bmRlcnN0YW5kYWJsZSBieSB0aGUgbmF0aXZlIHNpZGUuXG4gKi9cbmV4cG9ydCBmdW5jdGlvbiB0b05hdGl2ZVJlY3QocmVjdCkge1xuICBsZXQgcG9pbnQgPSBhZGp1c3RQb2ludFRvVmlld3BvcnQoeyB4OiByZWN0LmxlZnQsIHk6IHJlY3QudG9wIH0pO1xuXG4gIGNvbnN0IHdpZHRoID0gcmVjdC53aWR0aDtcbiAgY29uc3QgaGVpZ2h0ID0gcmVjdC5oZWlnaHQ7XG4gIGNvbnN0IGxlZnQgPSBwb2ludC54O1xuICBjb25zdCB0b3AgPSBwb2ludC55O1xuICBjb25zdCByaWdodCA9IGxlZnQgKyB3aWR0aDtcbiAgY29uc3QgYm90dG9tID0gdG9wICsgaGVpZ2h0O1xuICByZXR1cm4geyB3aWR0aCwgaGVpZ2h0LCBsZWZ0LCB0b3AsIHJpZ2h0LCBib3R0b20gfTtcbn1cblxuLyoqXG4gKiBBZGp1c3RzIHRoZSBnaXZlbiBjb29yZGluYXRlcyB0byB0aGUgdmlld3BvcnQgZm9yIEZYTCByZXNvdXJjZXMuXG4gKi9cbmV4cG9ydCBmdW5jdGlvbiBhZGp1c3RQb2ludFRvVmlld3BvcnQocG9pbnQpIHtcbiAgbGV0IGZyYW1lUmVjdCA9IGZyYW1lRWxlbWVudD8uZ2V0Qm91bmRpbmdDbGllbnRSZWN0KCk7XG4gIGlmICghZnJhbWVSZWN0KSB7XG4gICAgcmV0dXJuIHBvaW50O1xuICB9XG5cbiAgbGV0IHRvcFNjcm9sbGluZ0VsZW1lbnQgPSB3aW5kb3cudG9wLmRvY3VtZW50LmRvY3VtZW50RWxlbWVudDtcbiAgcmV0dXJuIHtcbiAgICB4OiBwb2ludC54ICsgZnJhbWVSZWN0LnggKyB0b3BTY3JvbGxpbmdFbGVtZW50LnNjcm9sbExlZnQsXG4gICAgeTogcG9pbnQueSArIGZyYW1lUmVjdC55ICsgdG9wU2Nyb2xsaW5nRWxlbWVudC5zY3JvbGxUb3AsXG4gIH07XG59XG5cbmV4cG9ydCBmdW5jdGlvbiBnZXRDbGllbnRSZWN0c05vT3ZlcmxhcChcbiAgcmFuZ2UsXG4gIGRvTm90TWVyZ2VIb3Jpem9udGFsbHlBbGlnbmVkUmVjdHNcbikge1xuICBsZXQgY2xpZW50UmVjdHMgPSByYW5nZS5nZXRDbGllbnRSZWN0cygpO1xuXG4gIGNvbnN0IHRvbGVyYW5jZSA9IDE7XG4gIGNvbnN0IG9yaWdpbmFsUmVjdHMgPSBbXTtcbiAgZm9yIChjb25zdCByYW5nZUNsaWVudFJlY3Qgb2YgY2xpZW50UmVjdHMpIHtcbiAgICBvcmlnaW5hbFJlY3RzLnB1c2goe1xuICAgICAgYm90dG9tOiByYW5nZUNsaWVudFJlY3QuYm90dG9tLFxuICAgICAgaGVpZ2h0OiByYW5nZUNsaWVudFJlY3QuaGVpZ2h0LFxuICAgICAgbGVmdDogcmFuZ2VDbGllbnRSZWN0LmxlZnQsXG4gICAgICByaWdodDogcmFuZ2VDbGllbnRSZWN0LnJpZ2h0LFxuICAgICAgdG9wOiByYW5nZUNsaWVudFJlY3QudG9wLFxuICAgICAgd2lkdGg6IHJhbmdlQ2xpZW50UmVjdC53aWR0aCxcbiAgICB9KTtcbiAgfVxuICBjb25zdCBtZXJnZWRSZWN0cyA9IG1lcmdlVG91Y2hpbmdSZWN0cyhcbiAgICBvcmlnaW5hbFJlY3RzLFxuICAgIHRvbGVyYW5jZSxcbiAgICBkb05vdE1lcmdlSG9yaXpvbnRhbGx5QWxpZ25lZFJlY3RzXG4gICk7XG4gIGNvbnN0IG5vQ29udGFpbmVkUmVjdHMgPSByZW1vdmVDb250YWluZWRSZWN0cyhtZXJnZWRSZWN0cywgdG9sZXJhbmNlKTtcbiAgY29uc3QgbmV3UmVjdHMgPSByZXBsYWNlT3ZlcmxhcGluZ1JlY3RzKG5vQ29udGFpbmVkUmVjdHMpO1xuICBjb25zdCBtaW5BcmVhID0gMiAqIDI7XG4gIGZvciAobGV0IGogPSBuZXdSZWN0cy5sZW5ndGggLSAxOyBqID49IDA7IGotLSkge1xuICAgIGNvbnN0IHJlY3QgPSBuZXdSZWN0c1tqXTtcbiAgICBjb25zdCBiaWdFbm91Z2ggPSByZWN0LndpZHRoICogcmVjdC5oZWlnaHQgPiBtaW5BcmVhO1xuICAgIGlmICghYmlnRW5vdWdoKSB7XG4gICAgICBpZiAobmV3UmVjdHMubGVuZ3RoID4gMSkge1xuICAgICAgICBsb2coXCJDTElFTlQgUkVDVDogcmVtb3ZlIHNtYWxsXCIpO1xuICAgICAgICBuZXdSZWN0cy5zcGxpY2UoaiwgMSk7XG4gICAgICB9IGVsc2Uge1xuICAgICAgICBsb2coXCJDTElFTlQgUkVDVDogcmVtb3ZlIHNtYWxsLCBidXQga2VlcCBvdGhlcndpc2UgZW1wdHkhXCIpO1xuICAgICAgICBicmVhaztcbiAgICAgIH1cbiAgICB9XG4gIH1cbiAgbG9nKGBDTElFTlQgUkVDVDogcmVkdWNlZCAke29yaWdpbmFsUmVjdHMubGVuZ3RofSAtLT4gJHtuZXdSZWN0cy5sZW5ndGh9YCk7XG4gIHJldHVybiBuZXdSZWN0cztcbn1cblxuZnVuY3Rpb24gbWVyZ2VUb3VjaGluZ1JlY3RzKFxuICByZWN0cyxcbiAgdG9sZXJhbmNlLFxuICBkb05vdE1lcmdlSG9yaXpvbnRhbGx5QWxpZ25lZFJlY3RzXG4pIHtcbiAgZm9yIChsZXQgaSA9IDA7IGkgPCByZWN0cy5sZW5ndGg7IGkrKykge1xuICAgIGZvciAobGV0IGogPSBpICsgMTsgaiA8IHJlY3RzLmxlbmd0aDsgaisrKSB7XG4gICAgICBjb25zdCByZWN0MSA9IHJlY3RzW2ldO1xuICAgICAgY29uc3QgcmVjdDIgPSByZWN0c1tqXTtcbiAgICAgIGlmIChyZWN0MSA9PT0gcmVjdDIpIHtcbiAgICAgICAgbG9nKFwibWVyZ2VUb3VjaGluZ1JlY3RzIHJlY3QxID09PSByZWN0MiA/PyFcIik7XG4gICAgICAgIGNvbnRpbnVlO1xuICAgICAgfVxuICAgICAgY29uc3QgcmVjdHNMaW5lVXBWZXJ0aWNhbGx5ID1cbiAgICAgICAgYWxtb3N0RXF1YWwocmVjdDEudG9wLCByZWN0Mi50b3AsIHRvbGVyYW5jZSkgJiZcbiAgICAgICAgYWxtb3N0RXF1YWwocmVjdDEuYm90dG9tLCByZWN0Mi5ib3R0b20sIHRvbGVyYW5jZSk7XG4gICAgICBjb25zdCByZWN0c0xpbmVVcEhvcml6b250YWxseSA9XG4gICAgICAgIGFsbW9zdEVxdWFsKHJlY3QxLmxlZnQsIHJlY3QyLmxlZnQsIHRvbGVyYW5jZSkgJiZcbiAgICAgICAgYWxtb3N0RXF1YWwocmVjdDEucmlnaHQsIHJlY3QyLnJpZ2h0LCB0b2xlcmFuY2UpO1xuICAgICAgY29uc3QgaG9yaXpvbnRhbEFsbG93ZWQgPSAhZG9Ob3RNZXJnZUhvcml6b250YWxseUFsaWduZWRSZWN0cztcbiAgICAgIGNvbnN0IGFsaWduZWQgPVxuICAgICAgICAocmVjdHNMaW5lVXBIb3Jpem9udGFsbHkgJiYgaG9yaXpvbnRhbEFsbG93ZWQpIHx8XG4gICAgICAgIChyZWN0c0xpbmVVcFZlcnRpY2FsbHkgJiYgIXJlY3RzTGluZVVwSG9yaXpvbnRhbGx5KTtcbiAgICAgIGNvbnN0IGNhbk1lcmdlID0gYWxpZ25lZCAmJiByZWN0c1RvdWNoT3JPdmVybGFwKHJlY3QxLCByZWN0MiwgdG9sZXJhbmNlKTtcbiAgICAgIGlmIChjYW5NZXJnZSkge1xuICAgICAgICBsb2coXG4gICAgICAgICAgYENMSUVOVCBSRUNUOiBtZXJnaW5nIHR3byBpbnRvIG9uZSwgVkVSVElDQUw6ICR7cmVjdHNMaW5lVXBWZXJ0aWNhbGx5fSBIT1JJWk9OVEFMOiAke3JlY3RzTGluZVVwSG9yaXpvbnRhbGx5fSAoJHtkb05vdE1lcmdlSG9yaXpvbnRhbGx5QWxpZ25lZFJlY3RzfSlgXG4gICAgICAgICk7XG4gICAgICAgIGNvbnN0IG5ld1JlY3RzID0gcmVjdHMuZmlsdGVyKChyZWN0KSA9PiB7XG4gICAgICAgICAgcmV0dXJuIHJlY3QgIT09IHJlY3QxICYmIHJlY3QgIT09IHJlY3QyO1xuICAgICAgICB9KTtcbiAgICAgICAgY29uc3QgcmVwbGFjZW1lbnRDbGllbnRSZWN0ID0gZ2V0Qm91bmRpbmdSZWN0KHJlY3QxLCByZWN0Mik7XG4gICAgICAgIG5ld1JlY3RzLnB1c2gocmVwbGFjZW1lbnRDbGllbnRSZWN0KTtcbiAgICAgICAgcmV0dXJuIG1lcmdlVG91Y2hpbmdSZWN0cyhcbiAgICAgICAgICBuZXdSZWN0cyxcbiAgICAgICAgICB0b2xlcmFuY2UsXG4gICAgICAgICAgZG9Ob3RNZXJnZUhvcml6b250YWxseUFsaWduZWRSZWN0c1xuICAgICAgICApO1xuICAgICAgfVxuICAgIH1cbiAgfVxuICByZXR1cm4gcmVjdHM7XG59XG5cbmZ1bmN0aW9uIGdldEJvdW5kaW5nUmVjdChyZWN0MSwgcmVjdDIpIHtcbiAgY29uc3QgbGVmdCA9IE1hdGgubWluKHJlY3QxLmxlZnQsIHJlY3QyLmxlZnQpO1xuICBjb25zdCByaWdodCA9IE1hdGgubWF4KHJlY3QxLnJpZ2h0LCByZWN0Mi5yaWdodCk7XG4gIGNvbnN0IHRvcCA9IE1hdGgubWluKHJlY3QxLnRvcCwgcmVjdDIudG9wKTtcbiAgY29uc3QgYm90dG9tID0gTWF0aC5tYXgocmVjdDEuYm90dG9tLCByZWN0Mi5ib3R0b20pO1xuICByZXR1cm4ge1xuICAgIGJvdHRvbSxcbiAgICBoZWlnaHQ6IGJvdHRvbSAtIHRvcCxcbiAgICBsZWZ0LFxuICAgIHJpZ2h0LFxuICAgIHRvcCxcbiAgICB3aWR0aDogcmlnaHQgLSBsZWZ0LFxuICB9O1xufVxuXG5mdW5jdGlvbiByZW1vdmVDb250YWluZWRSZWN0cyhyZWN0cywgdG9sZXJhbmNlKSB7XG4gIGNvbnN0IHJlY3RzVG9LZWVwID0gbmV3IFNldChyZWN0cyk7XG4gIGZvciAoY29uc3QgcmVjdCBvZiByZWN0cykge1xuICAgIGNvbnN0IGJpZ0Vub3VnaCA9IHJlY3Qud2lkdGggPiAxICYmIHJlY3QuaGVpZ2h0ID4gMTtcbiAgICBpZiAoIWJpZ0Vub3VnaCkge1xuICAgICAgbG9nKFwiQ0xJRU5UIFJFQ1Q6IHJlbW92ZSB0aW55XCIpO1xuICAgICAgcmVjdHNUb0tlZXAuZGVsZXRlKHJlY3QpO1xuICAgICAgY29udGludWU7XG4gICAgfVxuICAgIGZvciAoY29uc3QgcG9zc2libHlDb250YWluaW5nUmVjdCBvZiByZWN0cykge1xuICAgICAgaWYgKHJlY3QgPT09IHBvc3NpYmx5Q29udGFpbmluZ1JlY3QpIHtcbiAgICAgICAgY29udGludWU7XG4gICAgICB9XG4gICAgICBpZiAoIXJlY3RzVG9LZWVwLmhhcyhwb3NzaWJseUNvbnRhaW5pbmdSZWN0KSkge1xuICAgICAgICBjb250aW51ZTtcbiAgICAgIH1cbiAgICAgIGlmIChyZWN0Q29udGFpbnMocG9zc2libHlDb250YWluaW5nUmVjdCwgcmVjdCwgdG9sZXJhbmNlKSkge1xuICAgICAgICBsb2coXCJDTElFTlQgUkVDVDogcmVtb3ZlIGNvbnRhaW5lZFwiKTtcbiAgICAgICAgcmVjdHNUb0tlZXAuZGVsZXRlKHJlY3QpO1xuICAgICAgICBicmVhaztcbiAgICAgIH1cbiAgICB9XG4gIH1cbiAgcmV0dXJuIEFycmF5LmZyb20ocmVjdHNUb0tlZXApO1xufVxuXG5mdW5jdGlvbiByZWN0Q29udGFpbnMocmVjdDEsIHJlY3QyLCB0b2xlcmFuY2UpIHtcbiAgcmV0dXJuIChcbiAgICByZWN0Q29udGFpbnNQb2ludChyZWN0MSwgcmVjdDIubGVmdCwgcmVjdDIudG9wLCB0b2xlcmFuY2UpICYmXG4gICAgcmVjdENvbnRhaW5zUG9pbnQocmVjdDEsIHJlY3QyLnJpZ2h0LCByZWN0Mi50b3AsIHRvbGVyYW5jZSkgJiZcbiAgICByZWN0Q29udGFpbnNQb2ludChyZWN0MSwgcmVjdDIubGVmdCwgcmVjdDIuYm90dG9tLCB0b2xlcmFuY2UpICYmXG4gICAgcmVjdENvbnRhaW5zUG9pbnQocmVjdDEsIHJlY3QyLnJpZ2h0LCByZWN0Mi5ib3R0b20sIHRvbGVyYW5jZSlcbiAgKTtcbn1cblxuZXhwb3J0IGZ1bmN0aW9uIHJlY3RDb250YWluc1BvaW50KHJlY3QsIHgsIHksIHRvbGVyYW5jZSkge1xuICByZXR1cm4gKFxuICAgIChyZWN0LmxlZnQgPCB4IHx8IGFsbW9zdEVxdWFsKHJlY3QubGVmdCwgeCwgdG9sZXJhbmNlKSkgJiZcbiAgICAocmVjdC5yaWdodCA+IHggfHwgYWxtb3N0RXF1YWwocmVjdC5yaWdodCwgeCwgdG9sZXJhbmNlKSkgJiZcbiAgICAocmVjdC50b3AgPCB5IHx8IGFsbW9zdEVxdWFsKHJlY3QudG9wLCB5LCB0b2xlcmFuY2UpKSAmJlxuICAgIChyZWN0LmJvdHRvbSA+IHkgfHwgYWxtb3N0RXF1YWwocmVjdC5ib3R0b20sIHksIHRvbGVyYW5jZSkpXG4gICk7XG59XG5cbmZ1bmN0aW9uIHJlcGxhY2VPdmVybGFwaW5nUmVjdHMocmVjdHMpIHtcbiAgZm9yIChsZXQgaSA9IDA7IGkgPCByZWN0cy5sZW5ndGg7IGkrKykge1xuICAgIGZvciAobGV0IGogPSBpICsgMTsgaiA8IHJlY3RzLmxlbmd0aDsgaisrKSB7XG4gICAgICBjb25zdCByZWN0MSA9IHJlY3RzW2ldO1xuICAgICAgY29uc3QgcmVjdDIgPSByZWN0c1tqXTtcbiAgICAgIGlmIChyZWN0MSA9PT0gcmVjdDIpIHtcbiAgICAgICAgbG9nKFwicmVwbGFjZU92ZXJsYXBpbmdSZWN0cyByZWN0MSA9PT0gcmVjdDIgPz8hXCIpO1xuICAgICAgICBjb250aW51ZTtcbiAgICAgIH1cbiAgICAgIGlmIChyZWN0c1RvdWNoT3JPdmVybGFwKHJlY3QxLCByZWN0MiwgLTEpKSB7XG4gICAgICAgIGxldCB0b0FkZCA9IFtdO1xuICAgICAgICBsZXQgdG9SZW1vdmU7XG4gICAgICAgIGNvbnN0IHN1YnRyYWN0UmVjdHMxID0gcmVjdFN1YnRyYWN0KHJlY3QxLCByZWN0Mik7XG4gICAgICAgIGlmIChzdWJ0cmFjdFJlY3RzMS5sZW5ndGggPT09IDEpIHtcbiAgICAgICAgICB0b0FkZCA9IHN1YnRyYWN0UmVjdHMxO1xuICAgICAgICAgIHRvUmVtb3ZlID0gcmVjdDE7XG4gICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgY29uc3Qgc3VidHJhY3RSZWN0czIgPSByZWN0U3VidHJhY3QocmVjdDIsIHJlY3QxKTtcbiAgICAgICAgICBpZiAoc3VidHJhY3RSZWN0czEubGVuZ3RoIDwgc3VidHJhY3RSZWN0czIubGVuZ3RoKSB7XG4gICAgICAgICAgICB0b0FkZCA9IHN1YnRyYWN0UmVjdHMxO1xuICAgICAgICAgICAgdG9SZW1vdmUgPSByZWN0MTtcbiAgICAgICAgICB9IGVsc2Uge1xuICAgICAgICAgICAgdG9BZGQgPSBzdWJ0cmFjdFJlY3RzMjtcbiAgICAgICAgICAgIHRvUmVtb3ZlID0gcmVjdDI7XG4gICAgICAgICAgfVxuICAgICAgICB9XG4gICAgICAgIGxvZyhgQ0xJRU5UIFJFQ1Q6IG92ZXJsYXAsIGN1dCBvbmUgcmVjdCBpbnRvICR7dG9BZGQubGVuZ3RofWApO1xuICAgICAgICBjb25zdCBuZXdSZWN0cyA9IHJlY3RzLmZpbHRlcigocmVjdCkgPT4ge1xuICAgICAgICAgIHJldHVybiByZWN0ICE9PSB0b1JlbW92ZTtcbiAgICAgICAgfSk7XG4gICAgICAgIEFycmF5LnByb3RvdHlwZS5wdXNoLmFwcGx5KG5ld1JlY3RzLCB0b0FkZCk7XG4gICAgICAgIHJldHVybiByZXBsYWNlT3ZlcmxhcGluZ1JlY3RzKG5ld1JlY3RzKTtcbiAgICAgIH1cbiAgICB9XG4gIH1cbiAgcmV0dXJuIHJlY3RzO1xufVxuXG5mdW5jdGlvbiByZWN0U3VidHJhY3QocmVjdDEsIHJlY3QyKSB7XG4gIGNvbnN0IHJlY3RJbnRlcnNlY3RlZCA9IHJlY3RJbnRlcnNlY3QocmVjdDIsIHJlY3QxKTtcbiAgaWYgKHJlY3RJbnRlcnNlY3RlZC5oZWlnaHQgPT09IDAgfHwgcmVjdEludGVyc2VjdGVkLndpZHRoID09PSAwKSB7XG4gICAgcmV0dXJuIFtyZWN0MV07XG4gIH1cbiAgY29uc3QgcmVjdHMgPSBbXTtcbiAge1xuICAgIGNvbnN0IHJlY3RBID0ge1xuICAgICAgYm90dG9tOiByZWN0MS5ib3R0b20sXG4gICAgICBoZWlnaHQ6IDAsXG4gICAgICBsZWZ0OiByZWN0MS5sZWZ0LFxuICAgICAgcmlnaHQ6IHJlY3RJbnRlcnNlY3RlZC5sZWZ0LFxuICAgICAgdG9wOiByZWN0MS50b3AsXG4gICAgICB3aWR0aDogMCxcbiAgICB9O1xuICAgIHJlY3RBLndpZHRoID0gcmVjdEEucmlnaHQgLSByZWN0QS5sZWZ0O1xuICAgIHJlY3RBLmhlaWdodCA9IHJlY3RBLmJvdHRvbSAtIHJlY3RBLnRvcDtcbiAgICBpZiAocmVjdEEuaGVpZ2h0ICE9PSAwICYmIHJlY3RBLndpZHRoICE9PSAwKSB7XG4gICAgICByZWN0cy5wdXNoKHJlY3RBKTtcbiAgICB9XG4gIH1cbiAge1xuICAgIGNvbnN0IHJlY3RCID0ge1xuICAgICAgYm90dG9tOiByZWN0SW50ZXJzZWN0ZWQudG9wLFxuICAgICAgaGVpZ2h0OiAwLFxuICAgICAgbGVmdDogcmVjdEludGVyc2VjdGVkLmxlZnQsXG4gICAgICByaWdodDogcmVjdEludGVyc2VjdGVkLnJpZ2h0LFxuICAgICAgdG9wOiByZWN0MS50b3AsXG4gICAgICB3aWR0aDogMCxcbiAgICB9O1xuICAgIHJlY3RCLndpZHRoID0gcmVjdEIucmlnaHQgLSByZWN0Qi5sZWZ0O1xuICAgIHJlY3RCLmhlaWdodCA9IHJlY3RCLmJvdHRvbSAtIHJlY3RCLnRvcDtcbiAgICBpZiAocmVjdEIuaGVpZ2h0ICE9PSAwICYmIHJlY3RCLndpZHRoICE9PSAwKSB7XG4gICAgICByZWN0cy5wdXNoKHJlY3RCKTtcbiAgICB9XG4gIH1cbiAge1xuICAgIGNvbnN0IHJlY3RDID0ge1xuICAgICAgYm90dG9tOiByZWN0MS5ib3R0b20sXG4gICAgICBoZWlnaHQ6IDAsXG4gICAgICBsZWZ0OiByZWN0SW50ZXJzZWN0ZWQubGVmdCxcbiAgICAgIHJpZ2h0OiByZWN0SW50ZXJzZWN0ZWQucmlnaHQsXG4gICAgICB0b3A6IHJlY3RJbnRlcnNlY3RlZC5ib3R0b20sXG4gICAgICB3aWR0aDogMCxcbiAgICB9O1xuICAgIHJlY3RDLndpZHRoID0gcmVjdEMucmlnaHQgLSByZWN0Qy5sZWZ0O1xuICAgIHJlY3RDLmhlaWdodCA9IHJlY3RDLmJvdHRvbSAtIHJlY3RDLnRvcDtcbiAgICBpZiAocmVjdEMuaGVpZ2h0ICE9PSAwICYmIHJlY3RDLndpZHRoICE9PSAwKSB7XG4gICAgICByZWN0cy5wdXNoKHJlY3RDKTtcbiAgICB9XG4gIH1cbiAge1xuICAgIGNvbnN0IHJlY3REID0ge1xuICAgICAgYm90dG9tOiByZWN0MS5ib3R0b20sXG4gICAgICBoZWlnaHQ6IDAsXG4gICAgICBsZWZ0OiByZWN0SW50ZXJzZWN0ZWQucmlnaHQsXG4gICAgICByaWdodDogcmVjdDEucmlnaHQsXG4gICAgICB0b3A6IHJlY3QxLnRvcCxcbiAgICAgIHdpZHRoOiAwLFxuICAgIH07XG4gICAgcmVjdEQud2lkdGggPSByZWN0RC5yaWdodCAtIHJlY3RELmxlZnQ7XG4gICAgcmVjdEQuaGVpZ2h0ID0gcmVjdEQuYm90dG9tIC0gcmVjdEQudG9wO1xuICAgIGlmIChyZWN0RC5oZWlnaHQgIT09IDAgJiYgcmVjdEQud2lkdGggIT09IDApIHtcbiAgICAgIHJlY3RzLnB1c2gocmVjdEQpO1xuICAgIH1cbiAgfVxuICByZXR1cm4gcmVjdHM7XG59XG5cbmZ1bmN0aW9uIHJlY3RJbnRlcnNlY3QocmVjdDEsIHJlY3QyKSB7XG4gIGNvbnN0IG1heExlZnQgPSBNYXRoLm1heChyZWN0MS5sZWZ0LCByZWN0Mi5sZWZ0KTtcbiAgY29uc3QgbWluUmlnaHQgPSBNYXRoLm1pbihyZWN0MS5yaWdodCwgcmVjdDIucmlnaHQpO1xuICBjb25zdCBtYXhUb3AgPSBNYXRoLm1heChyZWN0MS50b3AsIHJlY3QyLnRvcCk7XG4gIGNvbnN0IG1pbkJvdHRvbSA9IE1hdGgubWluKHJlY3QxLmJvdHRvbSwgcmVjdDIuYm90dG9tKTtcbiAgcmV0dXJuIHtcbiAgICBib3R0b206IG1pbkJvdHRvbSxcbiAgICBoZWlnaHQ6IE1hdGgubWF4KDAsIG1pbkJvdHRvbSAtIG1heFRvcCksXG4gICAgbGVmdDogbWF4TGVmdCxcbiAgICByaWdodDogbWluUmlnaHQsXG4gICAgdG9wOiBtYXhUb3AsXG4gICAgd2lkdGg6IE1hdGgubWF4KDAsIG1pblJpZ2h0IC0gbWF4TGVmdCksXG4gIH07XG59XG5cbmZ1bmN0aW9uIHJlY3RzVG91Y2hPck92ZXJsYXAocmVjdDEsIHJlY3QyLCB0b2xlcmFuY2UpIHtcbiAgcmV0dXJuIChcbiAgICAocmVjdDEubGVmdCA8IHJlY3QyLnJpZ2h0IHx8XG4gICAgICAodG9sZXJhbmNlID49IDAgJiYgYWxtb3N0RXF1YWwocmVjdDEubGVmdCwgcmVjdDIucmlnaHQsIHRvbGVyYW5jZSkpKSAmJlxuICAgIChyZWN0Mi5sZWZ0IDwgcmVjdDEucmlnaHQgfHxcbiAgICAgICh0b2xlcmFuY2UgPj0gMCAmJiBhbG1vc3RFcXVhbChyZWN0Mi5sZWZ0LCByZWN0MS5yaWdodCwgdG9sZXJhbmNlKSkpICYmXG4gICAgKHJlY3QxLnRvcCA8IHJlY3QyLmJvdHRvbSB8fFxuICAgICAgKHRvbGVyYW5jZSA+PSAwICYmIGFsbW9zdEVxdWFsKHJlY3QxLnRvcCwgcmVjdDIuYm90dG9tLCB0b2xlcmFuY2UpKSkgJiZcbiAgICAocmVjdDIudG9wIDwgcmVjdDEuYm90dG9tIHx8XG4gICAgICAodG9sZXJhbmNlID49IDAgJiYgYWxtb3N0RXF1YWwocmVjdDIudG9wLCByZWN0MS5ib3R0b20sIHRvbGVyYW5jZSkpKVxuICApO1xufVxuXG5mdW5jdGlvbiBhbG1vc3RFcXVhbChhLCBiLCB0b2xlcmFuY2UpIHtcbiAgcmV0dXJuIE1hdGguYWJzKGEgLSBiKSA8PSB0b2xlcmFuY2U7XG59XG5cbmZ1bmN0aW9uIGxvZygpIHtcbiAgaWYgKGRlYnVnKSB7XG4gICAgbG9nTmF0aXZlLmFwcGx5KG51bGwsIGFyZ3VtZW50cyk7XG4gIH1cbn1cbiIsIi8vXG4vLyAgQ29weXJpZ2h0IDIwMjEgUmVhZGl1bSBGb3VuZGF0aW9uLiBBbGwgcmlnaHRzIHJlc2VydmVkLlxuLy8gIFVzZSBvZiB0aGlzIHNvdXJjZSBjb2RlIGlzIGdvdmVybmVkIGJ5IHRoZSBCU0Qtc3R5bGUgbGljZW5zZVxuLy8gIGF2YWlsYWJsZSBpbiB0aGUgdG9wLWxldmVsIExJQ0VOU0UgZmlsZSBvZiB0aGUgcHJvamVjdC5cbi8vXG5cbmltcG9ydCB7XG4gIGdldENsaWVudFJlY3RzTm9PdmVybGFwLFxuICByZWN0Q29udGFpbnNQb2ludCxcbiAgdG9OYXRpdmVSZWN0LFxufSBmcm9tIFwiLi9yZWN0XCI7XG5pbXBvcnQgeyBsb2csIGxvZ0Vycm9yTWVzc2FnZSwgcmFuZ2VGcm9tTG9jYXRvciB9IGZyb20gXCIuL3V0aWxzXCI7XG5cbmxldCBzdHlsZXMgPSBuZXcgTWFwKCk7XG5sZXQgZ3JvdXBzID0gbmV3IE1hcCgpO1xudmFyIGxhc3RHcm91cElkID0gMDtcblxuLyoqXG4gKiBSZWdpc3RlcnMgYSBsaXN0IG9mIGFkZGl0aW9uYWwgc3VwcG9ydGVkIERlY29yYXRpb24gVGVtcGxhdGVzLlxuICpcbiAqIEVhY2ggdGVtcGxhdGUgb2JqZWN0IGlzIGluZGV4ZWQgYnkgdGhlIHN0eWxlIElELlxuICovXG5leHBvcnQgZnVuY3Rpb24gcmVnaXN0ZXJUZW1wbGF0ZXMobmV3U3R5bGVzKSB7XG4gIHZhciBzdHlsZXNoZWV0ID0gXCJcIjtcblxuICBmb3IgKGNvbnN0IFtpZCwgc3R5bGVdIG9mIE9iamVjdC5lbnRyaWVzKG5ld1N0eWxlcykpIHtcbiAgICBzdHlsZXMuc2V0KGlkLCBzdHlsZSk7XG4gICAgaWYgKHN0eWxlLnN0eWxlc2hlZXQpIHtcbiAgICAgIHN0eWxlc2hlZXQgKz0gc3R5bGUuc3R5bGVzaGVldCArIFwiXFxuXCI7XG4gICAgfVxuICB9XG5cbiAgaWYgKHN0eWxlc2hlZXQpIHtcbiAgICBsZXQgc3R5bGVFbGVtZW50ID0gZG9jdW1lbnQuY3JlYXRlRWxlbWVudChcInN0eWxlXCIpO1xuICAgIHN0eWxlRWxlbWVudC5pbm5lckhUTUwgPSBzdHlsZXNoZWV0O1xuICAgIGRvY3VtZW50LmdldEVsZW1lbnRzQnlUYWdOYW1lKFwiaGVhZFwiKVswXS5hcHBlbmRDaGlsZChzdHlsZUVsZW1lbnQpO1xuICB9XG59XG5cbi8qKlxuICogUmV0dXJucyBhbiBpbnN0YW5jZSBvZiBEZWNvcmF0aW9uR3JvdXAgZm9yIHRoZSBnaXZlbiBncm91cCBuYW1lLlxuICovXG5leHBvcnQgZnVuY3Rpb24gZ2V0RGVjb3JhdGlvbnMoZ3JvdXBOYW1lKSB7XG4gIHZhciBncm91cCA9IGdyb3Vwcy5nZXQoZ3JvdXBOYW1lKTtcbiAgaWYgKCFncm91cCkge1xuICAgIGxldCBpZCA9IFwicjItZGVjb3JhdGlvbi1cIiArIGxhc3RHcm91cElkKys7XG4gICAgZ3JvdXAgPSBEZWNvcmF0aW9uR3JvdXAoaWQsIGdyb3VwTmFtZSk7XG4gICAgZ3JvdXBzLnNldChncm91cE5hbWUsIGdyb3VwKTtcbiAgfVxuICByZXR1cm4gZ3JvdXA7XG59XG5cbi8qKlxuICogSGFuZGxlcyBjbGljayBldmVudHMgb24gYSBEZWNvcmF0aW9uLlxuICogUmV0dXJucyB3aGV0aGVyIGEgZGVjb3JhdGlvbiBtYXRjaGVkIHRoaXMgZXZlbnQuXG4gKi9cbmV4cG9ydCBmdW5jdGlvbiBoYW5kbGVEZWNvcmF0aW9uQ2xpY2tFdmVudChldmVudCwgY2xpY2tFdmVudCkge1xuICBpZiAoZ3JvdXBzLnNpemUgPT09IDApIHtcbiAgICByZXR1cm4gZmFsc2U7XG4gIH1cblxuICBmdW5jdGlvbiBmaW5kVGFyZ2V0KCkge1xuICAgIGZvciAoY29uc3QgW2dyb3VwLCBncm91cENvbnRlbnRdIG9mIGdyb3Vwcykge1xuICAgICAgaWYgKCFncm91cENvbnRlbnQuaXNBY3RpdmFibGUoKSkge1xuICAgICAgICBjb250aW51ZTtcbiAgICAgIH1cblxuICAgICAgZm9yIChjb25zdCBpdGVtIG9mIGdyb3VwQ29udGVudC5pdGVtcy5yZXZlcnNlKCkpIHtcbiAgICAgICAgaWYgKCFpdGVtLmNsaWNrYWJsZUVsZW1lbnRzKSB7XG4gICAgICAgICAgY29udGludWU7XG4gICAgICAgIH1cbiAgICAgICAgZm9yIChjb25zdCBlbGVtZW50IG9mIGl0ZW0uY2xpY2thYmxlRWxlbWVudHMpIHtcbiAgICAgICAgICBsZXQgcmVjdCA9IGVsZW1lbnQuZ2V0Qm91bmRpbmdDbGllbnRSZWN0KCkudG9KU09OKCk7XG4gICAgICAgICAgaWYgKHJlY3RDb250YWluc1BvaW50KHJlY3QsIGV2ZW50LmNsaWVudFgsIGV2ZW50LmNsaWVudFksIDEpKSB7XG4gICAgICAgICAgICByZXR1cm4geyBncm91cCwgaXRlbSwgZWxlbWVudCwgcmVjdCB9O1xuICAgICAgICAgIH1cbiAgICAgICAgfVxuICAgICAgfVxuICAgIH1cbiAgfVxuXG4gIGxldCB0YXJnZXQgPSBmaW5kVGFyZ2V0KCk7XG4gIGlmICghdGFyZ2V0KSB7XG4gICAgcmV0dXJuIGZhbHNlO1xuICB9XG4gIHdlYmtpdC5tZXNzYWdlSGFuZGxlcnMuZGVjb3JhdGlvbkFjdGl2YXRlZC5wb3N0TWVzc2FnZSh7XG4gICAgaWQ6IHRhcmdldC5pdGVtLmRlY29yYXRpb24uaWQsXG4gICAgZ3JvdXA6IHRhcmdldC5ncm91cCxcbiAgICByZWN0OiB0b05hdGl2ZVJlY3QodGFyZ2V0Lml0ZW0ucmFuZ2UuZ2V0Qm91bmRpbmdDbGllbnRSZWN0KCkpLFxuICAgIGNsaWNrOiBjbGlja0V2ZW50LFxuICB9KTtcbiAgcmV0dXJuIHRydWU7XG59XG5cbi8qKlxuICogQ3JlYXRlcyBhIERlY29yYXRpb25Hcm91cCBvYmplY3QgZnJvbSBhIHVuaXF1ZSBIVE1MIElEIGFuZCBpdHMgbmFtZS5cbiAqL1xuZXhwb3J0IGZ1bmN0aW9uIERlY29yYXRpb25Hcm91cChncm91cElkLCBncm91cE5hbWUpIHtcbiAgdmFyIGl0ZW1zID0gW107XG4gIHZhciBsYXN0SXRlbUlkID0gMDtcbiAgdmFyIGNvbnRhaW5lciA9IG51bGw7XG4gIHZhciBhY3RpdmFibGUgPSBmYWxzZTtcblxuICBmdW5jdGlvbiBpc0FjdGl2YWJsZSgpIHtcbiAgICByZXR1cm4gYWN0aXZhYmxlO1xuICB9XG5cbiAgZnVuY3Rpb24gc2V0QWN0aXZhYmxlKCkge1xuICAgIGFjdGl2YWJsZSA9IHRydWU7XG4gIH1cblxuICAvKipcbiAgICogQWRkcyBhIG5ldyBkZWNvcmF0aW9uIHRvIHRoZSBncm91cC5cbiAgICovXG4gIGZ1bmN0aW9uIGFkZChkZWNvcmF0aW9uKSB7XG4gICAgbGV0IGlkID0gZ3JvdXBJZCArIFwiLVwiICsgbGFzdEl0ZW1JZCsrO1xuXG4gICAgbGV0IHJhbmdlID0gcmFuZ2VGcm9tTG9jYXRvcihkZWNvcmF0aW9uLmxvY2F0b3IpO1xuICAgIGlmICghcmFuZ2UpIHtcbiAgICAgIGxvZyhcIkNhbid0IGxvY2F0ZSBET00gcmFuZ2UgZm9yIGRlY29yYXRpb25cIiwgZGVjb3JhdGlvbik7XG4gICAgICByZXR1cm47XG4gICAgfVxuXG4gICAgbGV0IGl0ZW0gPSB7IGlkLCBkZWNvcmF0aW9uLCByYW5nZSB9O1xuICAgIGl0ZW1zLnB1c2goaXRlbSk7XG4gICAgbGF5b3V0KGl0ZW0pO1xuICB9XG5cbiAgLyoqXG4gICAqIFJlbW92ZXMgdGhlIGRlY29yYXRpb24gd2l0aCBnaXZlbiBJRCBmcm9tIHRoZSBncm91cC5cbiAgICovXG4gIGZ1bmN0aW9uIHJlbW92ZShkZWNvcmF0aW9uSWQpIHtcbiAgICBsZXQgaW5kZXggPSBpdGVtcy5maW5kSW5kZXgoKGkpID0+IGkuZGVjb3JhdGlvbi5pZCA9PT0gZGVjb3JhdGlvbklkKTtcbiAgICBpZiAoaW5kZXggPT09IC0xKSB7XG4gICAgICByZXR1cm47XG4gICAgfVxuXG4gICAgbGV0IGl0ZW0gPSBpdGVtc1tpbmRleF07XG4gICAgaXRlbXMuc3BsaWNlKGluZGV4LCAxKTtcbiAgICBpdGVtLmNsaWNrYWJsZUVsZW1lbnRzID0gbnVsbDtcbiAgICBpZiAoaXRlbS5jb250YWluZXIpIHtcbiAgICAgIGl0ZW0uY29udGFpbmVyLnJlbW92ZSgpO1xuICAgICAgaXRlbS5jb250YWluZXIgPSBudWxsO1xuICAgIH1cbiAgfVxuXG4gIC8qKlxuICAgKiBOb3RpZmllcyB0aGF0IHRoZSBnaXZlbiBkZWNvcmF0aW9uIHdhcyBtb2RpZmllZCBhbmQgbmVlZHMgdG8gYmUgdXBkYXRlZC5cbiAgICovXG4gIGZ1bmN0aW9uIHVwZGF0ZShkZWNvcmF0aW9uKSB7XG4gICAgcmVtb3ZlKGRlY29yYXRpb24uaWQpO1xuICAgIGFkZChkZWNvcmF0aW9uKTtcbiAgfVxuXG4gIC8qKlxuICAgKiBSZW1vdmVzIGFsbCBkZWNvcmF0aW9ucyBmcm9tIHRoaXMgZ3JvdXAuXG4gICAqL1xuICBmdW5jdGlvbiBjbGVhcigpIHtcbiAgICBjbGVhckNvbnRhaW5lcigpO1xuICAgIGl0ZW1zLmxlbmd0aCA9IDA7XG4gIH1cblxuICAvKipcbiAgICogUmVjcmVhdGVzIHRoZSBkZWNvcmF0aW9uIGVsZW1lbnRzLlxuICAgKlxuICAgKiBUbyBiZSBjYWxsZWQgYWZ0ZXIgcmVmbG93aW5nIHRoZSByZXNvdXJjZSwgZm9yIGV4YW1wbGUuXG4gICAqL1xuICBmdW5jdGlvbiByZXF1ZXN0TGF5b3V0KCkge1xuICAgIGNsZWFyQ29udGFpbmVyKCk7XG4gICAgaXRlbXMuZm9yRWFjaCgoaXRlbSkgPT4gbGF5b3V0KGl0ZW0pKTtcbiAgfVxuXG4gIC8qKlxuICAgKiBMYXlvdXRzIGEgc2luZ2xlIERlY29yYXRpb24gaXRlbS5cbiAgICovXG4gIGZ1bmN0aW9uIGxheW91dChpdGVtKSB7XG4gICAgbGV0IGdyb3VwQ29udGFpbmVyID0gcmVxdWlyZUNvbnRhaW5lcigpO1xuXG4gICAgbGV0IHN0eWxlID0gc3R5bGVzLmdldChpdGVtLmRlY29yYXRpb24uc3R5bGUpO1xuICAgIGlmICghc3R5bGUpIHtcbiAgICAgIGxvZ0Vycm9yTWVzc2FnZShgVW5rbm93biBkZWNvcmF0aW9uIHN0eWxlOiAke2l0ZW0uZGVjb3JhdGlvbi5zdHlsZX1gKTtcbiAgICAgIHJldHVybjtcbiAgICB9XG5cbiAgICBsZXQgaXRlbUNvbnRhaW5lciA9IGRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoXCJkaXZcIik7XG4gICAgaXRlbUNvbnRhaW5lci5zZXRBdHRyaWJ1dGUoXCJpZFwiLCBpdGVtLmlkKTtcbiAgICBpdGVtQ29udGFpbmVyLnNldEF0dHJpYnV0ZShcImRhdGEtc3R5bGVcIiwgaXRlbS5kZWNvcmF0aW9uLnN0eWxlKTtcbiAgICBpdGVtQ29udGFpbmVyLnN0eWxlLnNldFByb3BlcnR5KFwicG9pbnRlci1ldmVudHNcIiwgXCJub25lXCIpO1xuXG4gICAgbGV0IHZpZXdwb3J0V2lkdGggPSB3aW5kb3cuaW5uZXJXaWR0aDtcbiAgICBsZXQgY29sdW1uQ291bnQgPSBwYXJzZUludChcbiAgICAgIGdldENvbXB1dGVkU3R5bGUoZG9jdW1lbnQuZG9jdW1lbnRFbGVtZW50KS5nZXRQcm9wZXJ0eVZhbHVlKFxuICAgICAgICBcImNvbHVtbi1jb3VudFwiXG4gICAgICApXG4gICAgKTtcbiAgICBsZXQgcGFnZVdpZHRoID0gdmlld3BvcnRXaWR0aCAvIChjb2x1bW5Db3VudCB8fCAxKTtcbiAgICBsZXQgc2Nyb2xsaW5nRWxlbWVudCA9IGRvY3VtZW50LnNjcm9sbGluZ0VsZW1lbnQ7XG4gICAgbGV0IHhPZmZzZXQgPSBzY3JvbGxpbmdFbGVtZW50LnNjcm9sbExlZnQ7XG4gICAgbGV0IHlPZmZzZXQgPSBzY3JvbGxpbmdFbGVtZW50LnNjcm9sbFRvcDtcblxuICAgIGZ1bmN0aW9uIHBvc2l0aW9uRWxlbWVudChlbGVtZW50LCByZWN0LCBib3VuZGluZ1JlY3QpIHtcbiAgICAgIGVsZW1lbnQuc3R5bGUucG9zaXRpb24gPSBcImFic29sdXRlXCI7XG5cbiAgICAgIGlmIChzdHlsZS53aWR0aCA9PT0gXCJ3cmFwXCIpIHtcbiAgICAgICAgZWxlbWVudC5zdHlsZS53aWR0aCA9IGAke3JlY3Qud2lkdGh9cHhgO1xuICAgICAgICBlbGVtZW50LnN0eWxlLmhlaWdodCA9IGAke3JlY3QuaGVpZ2h0fXB4YDtcbiAgICAgICAgZWxlbWVudC5zdHlsZS5sZWZ0ID0gYCR7cmVjdC5sZWZ0ICsgeE9mZnNldH1weGA7XG4gICAgICAgIGVsZW1lbnQuc3R5bGUudG9wID0gYCR7cmVjdC50b3AgKyB5T2Zmc2V0fXB4YDtcbiAgICAgIH0gZWxzZSBpZiAoc3R5bGUud2lkdGggPT09IFwidmlld3BvcnRcIikge1xuICAgICAgICBlbGVtZW50LnN0eWxlLndpZHRoID0gYCR7dmlld3BvcnRXaWR0aH1weGA7XG4gICAgICAgIGVsZW1lbnQuc3R5bGUuaGVpZ2h0ID0gYCR7cmVjdC5oZWlnaHR9cHhgO1xuICAgICAgICBsZXQgbGVmdCA9IE1hdGguZmxvb3IocmVjdC5sZWZ0IC8gdmlld3BvcnRXaWR0aCkgKiB2aWV3cG9ydFdpZHRoO1xuICAgICAgICBlbGVtZW50LnN0eWxlLmxlZnQgPSBgJHtsZWZ0ICsgeE9mZnNldH1weGA7XG4gICAgICAgIGVsZW1lbnQuc3R5bGUudG9wID0gYCR7cmVjdC50b3AgKyB5T2Zmc2V0fXB4YDtcbiAgICAgIH0gZWxzZSBpZiAoc3R5bGUud2lkdGggPT09IFwiYm91bmRzXCIpIHtcbiAgICAgICAgZWxlbWVudC5zdHlsZS53aWR0aCA9IGAke2JvdW5kaW5nUmVjdC53aWR0aH1weGA7XG4gICAgICAgIGVsZW1lbnQuc3R5bGUuaGVpZ2h0ID0gYCR7cmVjdC5oZWlnaHR9cHhgO1xuICAgICAgICBlbGVtZW50LnN0eWxlLmxlZnQgPSBgJHtib3VuZGluZ1JlY3QubGVmdCArIHhPZmZzZXR9cHhgO1xuICAgICAgICBlbGVtZW50LnN0eWxlLnRvcCA9IGAke3JlY3QudG9wICsgeU9mZnNldH1weGA7XG4gICAgICB9IGVsc2UgaWYgKHN0eWxlLndpZHRoID09PSBcInBhZ2VcIikge1xuICAgICAgICBlbGVtZW50LnN0eWxlLndpZHRoID0gYCR7cGFnZVdpZHRofXB4YDtcbiAgICAgICAgZWxlbWVudC5zdHlsZS5oZWlnaHQgPSBgJHtyZWN0LmhlaWdodH1weGA7XG4gICAgICAgIGxldCBsZWZ0ID0gTWF0aC5mbG9vcihyZWN0LmxlZnQgLyBwYWdlV2lkdGgpICogcGFnZVdpZHRoO1xuICAgICAgICBlbGVtZW50LnN0eWxlLmxlZnQgPSBgJHtsZWZ0ICsgeE9mZnNldH1weGA7XG4gICAgICAgIGVsZW1lbnQuc3R5bGUudG9wID0gYCR7cmVjdC50b3AgKyB5T2Zmc2V0fXB4YDtcbiAgICAgIH1cbiAgICB9XG5cbiAgICBsZXQgYm91bmRpbmdSZWN0ID0gaXRlbS5yYW5nZS5nZXRCb3VuZGluZ0NsaWVudFJlY3QoKTtcblxuICAgIGxldCBlbGVtZW50VGVtcGxhdGU7XG4gICAgdHJ5IHtcbiAgICAgIGxldCB0ZW1wbGF0ZSA9IGRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoXCJ0ZW1wbGF0ZVwiKTtcbiAgICAgIHRlbXBsYXRlLmlubmVySFRNTCA9IGl0ZW0uZGVjb3JhdGlvbi5lbGVtZW50LnRyaW0oKTtcbiAgICAgIGVsZW1lbnRUZW1wbGF0ZSA9IHRlbXBsYXRlLmNvbnRlbnQuZmlyc3RFbGVtZW50Q2hpbGQ7XG4gICAgfSBjYXRjaCAoZXJyb3IpIHtcbiAgICAgIGxvZ0Vycm9yTWVzc2FnZShcbiAgICAgICAgYEludmFsaWQgZGVjb3JhdGlvbiBlbGVtZW50IFwiJHtpdGVtLmRlY29yYXRpb24uZWxlbWVudH1cIjogJHtlcnJvci5tZXNzYWdlfWBcbiAgICAgICk7XG4gICAgICByZXR1cm47XG4gICAgfVxuXG4gICAgaWYgKHN0eWxlLmxheW91dCA9PT0gXCJib3hlc1wiKSB7XG4gICAgICBsZXQgZG9Ob3RNZXJnZUhvcml6b250YWxseUFsaWduZWRSZWN0cyA9IHRydWU7XG4gICAgICBsZXQgY2xpZW50UmVjdHMgPSBnZXRDbGllbnRSZWN0c05vT3ZlcmxhcChcbiAgICAgICAgaXRlbS5yYW5nZSxcbiAgICAgICAgZG9Ob3RNZXJnZUhvcml6b250YWxseUFsaWduZWRSZWN0c1xuICAgICAgKTtcblxuICAgICAgY2xpZW50UmVjdHMgPSBjbGllbnRSZWN0cy5zb3J0KChyMSwgcjIpID0+IHtcbiAgICAgICAgaWYgKHIxLnRvcCA8IHIyLnRvcCkge1xuICAgICAgICAgIHJldHVybiAtMTtcbiAgICAgICAgfSBlbHNlIGlmIChyMS50b3AgPiByMi50b3ApIHtcbiAgICAgICAgICByZXR1cm4gMTtcbiAgICAgICAgfSBlbHNlIHtcbiAgICAgICAgICByZXR1cm4gMDtcbiAgICAgICAgfVxuICAgICAgfSk7XG5cbiAgICAgIGZvciAobGV0IGNsaWVudFJlY3Qgb2YgY2xpZW50UmVjdHMpIHtcbiAgICAgICAgY29uc3QgbGluZSA9IGVsZW1lbnRUZW1wbGF0ZS5jbG9uZU5vZGUodHJ1ZSk7XG4gICAgICAgIGxpbmUuc3R5bGUuc2V0UHJvcGVydHkoXCJwb2ludGVyLWV2ZW50c1wiLCBcIm5vbmVcIik7XG4gICAgICAgIHBvc2l0aW9uRWxlbWVudChsaW5lLCBjbGllbnRSZWN0LCBib3VuZGluZ1JlY3QpO1xuICAgICAgICBpdGVtQ29udGFpbmVyLmFwcGVuZChsaW5lKTtcbiAgICAgIH1cbiAgICB9IGVsc2UgaWYgKHN0eWxlLmxheW91dCA9PT0gXCJib3VuZHNcIikge1xuICAgICAgY29uc3QgYm91bmRzID0gZWxlbWVudFRlbXBsYXRlLmNsb25lTm9kZSh0cnVlKTtcbiAgICAgIGJvdW5kcy5zdHlsZS5zZXRQcm9wZXJ0eShcInBvaW50ZXItZXZlbnRzXCIsIFwibm9uZVwiKTtcbiAgICAgIHBvc2l0aW9uRWxlbWVudChib3VuZHMsIGJvdW5kaW5nUmVjdCwgYm91bmRpbmdSZWN0KTtcblxuICAgICAgaXRlbUNvbnRhaW5lci5hcHBlbmQoYm91bmRzKTtcbiAgICB9XG5cbiAgICBncm91cENvbnRhaW5lci5hcHBlbmQoaXRlbUNvbnRhaW5lcik7XG4gICAgaXRlbS5jb250YWluZXIgPSBpdGVtQ29udGFpbmVyO1xuICAgIGl0ZW0uY2xpY2thYmxlRWxlbWVudHMgPSBBcnJheS5mcm9tKFxuICAgICAgaXRlbUNvbnRhaW5lci5xdWVyeVNlbGVjdG9yQWxsKFwiW2RhdGEtYWN0aXZhYmxlPScxJ11cIilcbiAgICApO1xuICAgIGlmIChpdGVtLmNsaWNrYWJsZUVsZW1lbnRzLmxlbmd0aCA9PT0gMCkge1xuICAgICAgaXRlbS5jbGlja2FibGVFbGVtZW50cyA9IEFycmF5LmZyb20oaXRlbUNvbnRhaW5lci5jaGlsZHJlbik7XG4gICAgfVxuICB9XG5cbiAgLyoqXG4gICAqIFJldHVybnMgdGhlIGdyb3VwIGNvbnRhaW5lciBlbGVtZW50LCBhZnRlciBtYWtpbmcgc3VyZSBpdCBleGlzdHMuXG4gICAqL1xuICBmdW5jdGlvbiByZXF1aXJlQ29udGFpbmVyKCkge1xuICAgIGlmICghY29udGFpbmVyKSB7XG4gICAgICBjb250YWluZXIgPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KFwiZGl2XCIpO1xuICAgICAgY29udGFpbmVyLnNldEF0dHJpYnV0ZShcImlkXCIsIGdyb3VwSWQpO1xuICAgICAgY29udGFpbmVyLnNldEF0dHJpYnV0ZShcImRhdGEtZ3JvdXBcIiwgZ3JvdXBOYW1lKTtcbiAgICAgIGNvbnRhaW5lci5zdHlsZS5zZXRQcm9wZXJ0eShcInBvaW50ZXItZXZlbnRzXCIsIFwibm9uZVwiKTtcbiAgICAgIGRvY3VtZW50LmJvZHkuYXBwZW5kKGNvbnRhaW5lcik7XG4gICAgfVxuICAgIHJldHVybiBjb250YWluZXI7XG4gIH1cblxuICAvKipcbiAgICogUmVtb3ZlcyB0aGUgZ3JvdXAgY29udGFpbmVyLlxuICAgKi9cbiAgZnVuY3Rpb24gY2xlYXJDb250YWluZXIoKSB7XG4gICAgaWYgKGNvbnRhaW5lcikge1xuICAgICAgY29udGFpbmVyLnJlbW92ZSgpO1xuICAgICAgY29udGFpbmVyID0gbnVsbDtcbiAgICB9XG4gIH1cblxuICByZXR1cm4ge1xuICAgIGFkZCxcbiAgICByZW1vdmUsXG4gICAgdXBkYXRlLFxuICAgIGNsZWFyLFxuICAgIGl0ZW1zLFxuICAgIHJlcXVlc3RMYXlvdXQsXG4gICAgaXNBY3RpdmFibGUsXG4gICAgc2V0QWN0aXZhYmxlLFxuICB9O1xufVxuXG53aW5kb3cuYWRkRXZlbnRMaXN0ZW5lcihcbiAgXCJsb2FkXCIsXG4gIGZ1bmN0aW9uICgpIHtcbiAgICAvLyBXaWxsIHJlbGF5b3V0IGFsbCB0aGUgZGVjb3JhdGlvbnMgd2hlbiB0aGUgZG9jdW1lbnQgYm9keSBpcyByZXNpemVkLlxuICAgIGNvbnN0IGJvZHkgPSBkb2N1bWVudC5ib2R5O1xuICAgIHZhciBsYXN0U2l6ZSA9IHsgd2lkdGg6IDAsIGhlaWdodDogMCB9O1xuICAgIGNvbnN0IG9ic2VydmVyID0gbmV3IFJlc2l6ZU9ic2VydmVyKCgpID0+IHtcbiAgICAgIGlmIChcbiAgICAgICAgbGFzdFNpemUud2lkdGggPT09IGJvZHkuY2xpZW50V2lkdGggJiZcbiAgICAgICAgbGFzdFNpemUuaGVpZ2h0ID09PSBib2R5LmNsaWVudEhlaWdodFxuICAgICAgKSB7XG4gICAgICAgIHJldHVybjtcbiAgICAgIH1cbiAgICAgIGxhc3RTaXplID0ge1xuICAgICAgICB3aWR0aDogYm9keS5jbGllbnRXaWR0aCxcbiAgICAgICAgaGVpZ2h0OiBib2R5LmNsaWVudEhlaWdodCxcbiAgICAgIH07XG5cbiAgICAgIGdyb3Vwcy5mb3JFYWNoKGZ1bmN0aW9uIChncm91cCkge1xuICAgICAgICBncm91cC5yZXF1ZXN0TGF5b3V0KCk7XG4gICAgICB9KTtcbiAgICB9KTtcbiAgICBvYnNlcnZlci5vYnNlcnZlKGJvZHkpO1xuICB9LFxuICBmYWxzZVxuKTtcbiIsIi8vXG4vLyAgQ29weXJpZ2h0IDIwMjEgUmVhZGl1bSBGb3VuZGF0aW9uLiBBbGwgcmlnaHRzIHJlc2VydmVkLlxuLy8gIFVzZSBvZiB0aGlzIHNvdXJjZSBjb2RlIGlzIGdvdmVybmVkIGJ5IHRoZSBCU0Qtc3R5bGUgbGljZW5zZVxuLy8gIGF2YWlsYWJsZSBpbiB0aGUgdG9wLWxldmVsIExJQ0VOU0UgZmlsZSBvZiB0aGUgcHJvamVjdC5cbi8vXG5cbmltcG9ydCB7IGhhbmRsZURlY29yYXRpb25DbGlja0V2ZW50IH0gZnJvbSBcIi4vZGVjb3JhdG9yXCI7XG5pbXBvcnQgeyBhZGp1c3RQb2ludFRvVmlld3BvcnQgfSBmcm9tIFwiLi9yZWN0XCI7XG5cbndpbmRvdy5hZGRFdmVudExpc3RlbmVyKFwiRE9NQ29udGVudExvYWRlZFwiLCBmdW5jdGlvbiAoKSB7XG4gIC8vIElmIHdlIGRvbid0IHNldCB0aGUgQ1NTIGN1cnNvciBwcm9wZXJ0eSB0byBwb2ludGVyLCB0aGVuIHRoZSBjbGljayBldmVudHMgYXJlIG5vdCB0cmlnZ2VyZWQgcHJlLWlPUyAxMy5cbiAgZG9jdW1lbnQuYm9keS5zdHlsZS5jdXJzb3IgPSBcInBvaW50ZXJcIjtcblxuICBkb2N1bWVudC5hZGRFdmVudExpc3RlbmVyKFwiY2xpY2tcIiwgb25DbGljaywgZmFsc2UpO1xufSk7XG5cbmZ1bmN0aW9uIG9uQ2xpY2soZXZlbnQpIHtcbiAgaWYgKCFnZXRTZWxlY3Rpb24oKS5pc0NvbGxhcHNlZCkge1xuICAgIC8vIFRoZXJlJ3MgYW4gb24tZ29pbmcgc2VsZWN0aW9uLCB0aGUgdGFwIHdpbGwgZGlzbWlzcyBpdCBzbyB3ZSBkb24ndCBmb3J3YXJkIGl0LlxuICAgIHJldHVybjtcbiAgfVxuXG4gIGxldCBwb2ludCA9IGFkanVzdFBvaW50VG9WaWV3cG9ydCh7IHg6IGV2ZW50LmNsaWVudFgsIHk6IGV2ZW50LmNsaWVudFkgfSk7XG4gIGxldCBjbGlja0V2ZW50ID0ge1xuICAgIGRlZmF1bHRQcmV2ZW50ZWQ6IGV2ZW50LmRlZmF1bHRQcmV2ZW50ZWQsXG4gICAgeDogcG9pbnQueCxcbiAgICB5OiBwb2ludC55LFxuICAgIHRhcmdldEVsZW1lbnQ6IGV2ZW50LnRhcmdldC5vdXRlckhUTUwsXG4gICAgaW50ZXJhY3RpdmVFbGVtZW50OiBuZWFyZXN0SW50ZXJhY3RpdmVFbGVtZW50KGV2ZW50LnRhcmdldCksXG4gIH07XG5cbiAgaWYgKGhhbmRsZURlY29yYXRpb25DbGlja0V2ZW50KGV2ZW50LCBjbGlja0V2ZW50KSkge1xuICAgIHJldHVybjtcbiAgfVxuXG4gIC8vIFNlbmQgdGhlIHRhcCBkYXRhIG92ZXIgdGhlIEpTIGJyaWRnZSBldmVuIGlmIGl0J3MgYmVlbiBoYW5kbGVkXG4gIC8vIHdpdGhpbiB0aGUgd2Vidmlldywgc28gdGhhdCBpdCBjYW4gYmUgcHJlc2VydmVkIGFuZCB1c2VkXG4gIC8vIGJ5IHRoZSBXS05hdmlnYXRpb25EZWxlZ2F0ZSBpZiBuZWVkZWQuXG4gIHdlYmtpdC5tZXNzYWdlSGFuZGxlcnMudGFwLnBvc3RNZXNzYWdlKGNsaWNrRXZlbnQpO1xuXG4gIC8vIFdlIGRvbid0IHdhbnQgdG8gZGlzYWJsZSB0aGUgZGVmYXVsdCBXZWJWaWV3IGJlaGF2aW9yIGFzIGl0IGJyZWFrcyBzb21lIGZlYXR1cmVzIHdpdGhvdXQgYnJpbmdpbmcgYW55IHZhbHVlLlxuICAvLyBldmVudC5zdG9wUHJvcGFnYXRpb24oKTtcbiAgLy8gZXZlbnQucHJldmVudERlZmF1bHQoKTtcbn1cblxuLy8gU2VlLiBodHRwczovL2dpdGh1Yi5jb20vSmF5UGFub3ovYXJjaGl0ZWN0dXJlL3RyZWUvdG91Y2gtaGFuZGxpbmcvbWlzYy90b3VjaC1oYW5kbGluZ1xuZnVuY3Rpb24gbmVhcmVzdEludGVyYWN0aXZlRWxlbWVudChlbGVtZW50KSB7XG4gIHZhciBpbnRlcmFjdGl2ZVRhZ3MgPSBbXG4gICAgXCJhXCIsXG4gICAgXCJhdWRpb1wiLFxuICAgIFwiYnV0dG9uXCIsXG4gICAgXCJjYW52YXNcIixcbiAgICBcImRldGFpbHNcIixcbiAgICBcImlucHV0XCIsXG4gICAgXCJsYWJlbFwiLFxuICAgIFwib3B0aW9uXCIsXG4gICAgXCJzZWxlY3RcIixcbiAgICBcInN1Ym1pdFwiLFxuICAgIFwidGV4dGFyZWFcIixcbiAgICBcInZpZGVvXCIsXG4gIF07XG4gIGlmIChpbnRlcmFjdGl2ZVRhZ3MuaW5kZXhPZihlbGVtZW50Lm5vZGVOYW1lLnRvTG93ZXJDYXNlKCkpICE9PSAtMSkge1xuICAgIHJldHVybiBlbGVtZW50Lm91dGVySFRNTDtcbiAgfVxuXG4gIC8vIENoZWNrcyB3aGV0aGVyIHRoZSBlbGVtZW50IGlzIGVkaXRhYmxlIGJ5IHRoZSB1c2VyLlxuICBpZiAoXG4gICAgZWxlbWVudC5oYXNBdHRyaWJ1dGUoXCJjb250ZW50ZWRpdGFibGVcIikgJiZcbiAgICBlbGVtZW50LmdldEF0dHJpYnV0ZShcImNvbnRlbnRlZGl0YWJsZVwiKS50b0xvd2VyQ2FzZSgpICE9IFwiZmFsc2VcIlxuICApIHtcbiAgICByZXR1cm4gZWxlbWVudC5vdXRlckhUTUw7XG4gIH1cblxuICAvLyBDaGVja3MgcGFyZW50cyByZWN1cnNpdmVseSBiZWNhdXNlIHRoZSB0b3VjaCBtaWdodCBiZSBmb3IgZXhhbXBsZSBvbiBhbiA8ZW0+IGluc2lkZSBhIDxhPi5cbiAgaWYgKGVsZW1lbnQucGFyZW50RWxlbWVudCkge1xuICAgIHJldHVybiBuZWFyZXN0SW50ZXJhY3RpdmVFbGVtZW50KGVsZW1lbnQucGFyZW50RWxlbWVudCk7XG4gIH1cblxuICByZXR1cm4gbnVsbDtcbn1cbiIsIi8vXG4vLyAgQ29weXJpZ2h0IDIwMjEgUmVhZGl1bSBGb3VuZGF0aW9uLiBBbGwgcmlnaHRzIHJlc2VydmVkLlxuLy8gIFVzZSBvZiB0aGlzIHNvdXJjZSBjb2RlIGlzIGdvdmVybmVkIGJ5IHRoZSBCU0Qtc3R5bGUgbGljZW5zZVxuLy8gIGF2YWlsYWJsZSBpbiB0aGUgdG9wLWxldmVsIExJQ0VOU0UgZmlsZSBvZiB0aGUgcHJvamVjdC5cbi8vXG5cbi8vIEJhc2Ugc2NyaXB0IHVzZWQgYnkgYm90aCByZWZsb3dhYmxlIGFuZCBmaXhlZCBsYXlvdXQgcmVzb3VyY2VzLlxuXG5pbXBvcnQgXCIuL2dlc3R1cmVzXCI7XG5pbXBvcnQge1xuICByZW1vdmVQcm9wZXJ0eSxcbiAgc2Nyb2xsTGVmdCxcbiAgc2Nyb2xsUmlnaHQsXG4gIHNjcm9sbFRvSWQsXG4gIHNjcm9sbFRvUG9zaXRpb24sXG4gIHNjcm9sbFRvVGV4dCxcbiAgc2V0UHJvcGVydHksXG59IGZyb20gXCIuL3V0aWxzXCI7XG5pbXBvcnQgeyBnZXREZWNvcmF0aW9ucywgcmVnaXN0ZXJUZW1wbGF0ZXMgfSBmcm9tIFwiLi9kZWNvcmF0b3JcIjtcblxuLy8gUHVibGljIEFQSSB1c2VkIGJ5IHRoZSBuYXZpZ2F0b3IuXG53aW5kb3cucmVhZGl1bSA9IHtcbiAgLy8gdXRpbHNcbiAgc2Nyb2xsVG9JZDogc2Nyb2xsVG9JZCxcbiAgc2Nyb2xsVG9Qb3NpdGlvbjogc2Nyb2xsVG9Qb3NpdGlvbixcbiAgc2Nyb2xsVG9UZXh0OiBzY3JvbGxUb1RleHQsXG4gIHNjcm9sbExlZnQ6IHNjcm9sbExlZnQsXG4gIHNjcm9sbFJpZ2h0OiBzY3JvbGxSaWdodCxcbiAgc2V0UHJvcGVydHk6IHNldFByb3BlcnR5LFxuICByZW1vdmVQcm9wZXJ0eTogcmVtb3ZlUHJvcGVydHksXG5cbiAgLy8gZGVjb3JhdGlvblxuICByZWdpc3RlckRlY29yYXRpb25UZW1wbGF0ZXM6IHJlZ2lzdGVyVGVtcGxhdGVzLFxuICBnZXREZWNvcmF0aW9uczogZ2V0RGVjb3JhdGlvbnMsXG59O1xuIiwiLy9cbi8vICBDb3B5cmlnaHQgMjAyMSBSZWFkaXVtIEZvdW5kYXRpb24uIEFsbCByaWdodHMgcmVzZXJ2ZWQuXG4vLyAgVXNlIG9mIHRoaXMgc291cmNlIGNvZGUgaXMgZ292ZXJuZWQgYnkgdGhlIEJTRC1zdHlsZSBsaWNlbnNlXG4vLyAgYXZhaWxhYmxlIGluIHRoZSB0b3AtbGV2ZWwgTElDRU5TRSBmaWxlIG9mIHRoZSBwcm9qZWN0LlxuLy9cblxuLy8gU2NyaXB0IHVzZWQgZm9yIHJlZmxvd2FibGUgcmVzb3VyY2VzLlxuXG5pbXBvcnQgXCIuL2luZGV4XCI7XG5cbndpbmRvdy5hZGRFdmVudExpc3RlbmVyKFwibG9hZFwiLCBmdW5jdGlvbiAoKSB7XG4gIC8vIE5vdGlmaWVzIG5hdGl2ZSBjb2RlIHRoYXQgdGhlIHBhZ2UgaXMgbG9hZGVkIGFmdGVyIGl0IGlzIHJlbmRlcmVkLlxuICAvLyBXYWl0aW5nIGZvciB0aGUgbmV4dCBhbmltYXRpb24gZnJhbWUgc2VlbXMgdG8gZG8gdGhlIHRyaWNrIHRvIG1ha2Ugc3VyZSB0aGUgcGFnZSBpcyBmdWxseSByZW5kZXJlZC5cbiAgd2luZG93LnJlcXVlc3RBbmltYXRpb25GcmFtZShmdW5jdGlvbiAoKSB7XG4gICAgd2Via2l0Lm1lc3NhZ2VIYW5kbGVycy5zcHJlYWRMb2FkZWQucG9zdE1lc3NhZ2Uoe30pO1xuICB9KTtcblxuICAvLyBTZXR1cHMgdGhlIGB2aWV3cG9ydGAgbWV0YSB0YWcgdG8gZGlzYWJsZSB6b29taW5nLlxuICBsZXQgbWV0YSA9IGRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoXCJtZXRhXCIpO1xuICBtZXRhLnNldEF0dHJpYnV0ZShcIm5hbWVcIiwgXCJ2aWV3cG9ydFwiKTtcbiAgbWV0YS5zZXRBdHRyaWJ1dGUoXG4gICAgXCJjb250ZW50XCIsXG4gICAgXCJ3aWR0aD1kZXZpY2Utd2lkdGgsIGluaXRpYWwtc2NhbGU9MS4wLCBtYXhpbXVtLXNjYWxlPTEuMCwgdXNlci1zY2FsYWJsZT1ubywgc2hyaW5rLXRvLWZpdD1ub1wiXG4gICk7XG4gIGRvY3VtZW50LmhlYWQuYXBwZW5kQ2hpbGQobWV0YSk7XG59KTtcblxuLy8gSW5qZWN0cyBSZWFkaXVtIENTUyBzdHlsZXNoZWV0cy5cbmRvY3VtZW50LmFkZEV2ZW50TGlzdGVuZXIoXCJET01Db250ZW50TG9hZGVkXCIsIGZ1bmN0aW9uICgpIHtcbiAgZnVuY3Rpb24gY3JlYXRlTGluayhuYW1lKSB7XG4gICAgdmFyIGxpbmsgPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KFwibGlua1wiKTtcbiAgICBsaW5rLnNldEF0dHJpYnV0ZShcInJlbFwiLCBcInN0eWxlc2hlZXRcIik7XG4gICAgbGluay5zZXRBdHRyaWJ1dGUoXCJ0eXBlXCIsIFwidGV4dC9jc3NcIik7XG4gICAgbGluay5zZXRBdHRyaWJ1dGUoXCJocmVmXCIsIHdpbmRvdy5yZWFkaXVtQ1NTQmFzZVVSTCArIG5hbWUgKyBcIi5jc3NcIik7XG4gICAgcmV0dXJuIGxpbms7XG4gIH1cblxuICB2YXIgaGVhZCA9IGRvY3VtZW50LmdldEVsZW1lbnRzQnlUYWdOYW1lKFwiaGVhZFwiKVswXTtcbiAgaGVhZC5hcHBlbmRDaGlsZChjcmVhdGVMaW5rKFwiUmVhZGl1bUNTUy1hZnRlclwiKSk7XG4gIGhlYWQuaW5zZXJ0QmVmb3JlKGNyZWF0ZUxpbmsoXCJSZWFkaXVtQ1NTLWJlZm9yZVwiKSwgaGVhZC5jaGlsZHJlblswXSk7XG59KTtcbiJdLCJzb3VyY2VSb290IjoiIn0=\n//# sourceURL=webpack-internal:///992\n')}},__webpack_module_cache__={};function __webpack_require__(t){var n=__webpack_module_cache__[t];if(void 0!==n)return n.exports;var e=__webpack_module_cache__[t]={exports:{}};return __webpack_modules__[t](e,e.exports,__webpack_require__),e.exports}var __webpack_exports__=__webpack_require__(992)})();
+/******/ (() => { // webpackBootstrap
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./node_modules/@juggle/resize-observer/lib/DOMRectReadOnly.js":
+/*!*********************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/DOMRectReadOnly.js ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "DOMRectReadOnly": () => (/* binding */ DOMRectReadOnly)
+/* harmony export */ });
+/* harmony import */ var _utils_freeze__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils/freeze */ "./node_modules/@juggle/resize-observer/lib/utils/freeze.js");
+
+var DOMRectReadOnly = (function () {
+    function DOMRectReadOnly(x, y, width, height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.top = this.y;
+        this.left = this.x;
+        this.bottom = this.top + this.height;
+        this.right = this.left + this.width;
+        return (0,_utils_freeze__WEBPACK_IMPORTED_MODULE_0__.freeze)(this);
+    }
+    DOMRectReadOnly.prototype.toJSON = function () {
+        var _a = this, x = _a.x, y = _a.y, top = _a.top, right = _a.right, bottom = _a.bottom, left = _a.left, width = _a.width, height = _a.height;
+        return { x: x, y: y, top: top, right: right, bottom: bottom, left: left, width: width, height: height };
+    };
+    DOMRectReadOnly.fromRect = function (rectangle) {
+        return new DOMRectReadOnly(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+    };
+    return DOMRectReadOnly;
+}());
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/ResizeObservation.js":
+/*!***********************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/ResizeObservation.js ***!
+  \***********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "ResizeObservation": () => (/* binding */ ResizeObservation)
+/* harmony export */ });
+/* harmony import */ var _ResizeObserverBoxOptions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ResizeObserverBoxOptions */ "./node_modules/@juggle/resize-observer/lib/ResizeObserverBoxOptions.js");
+/* harmony import */ var _algorithms_calculateBoxSize__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./algorithms/calculateBoxSize */ "./node_modules/@juggle/resize-observer/lib/algorithms/calculateBoxSize.js");
+/* harmony import */ var _utils_element__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils/element */ "./node_modules/@juggle/resize-observer/lib/utils/element.js");
+
+
+
+var skipNotifyOnElement = function (target) {
+    return !(0,_utils_element__WEBPACK_IMPORTED_MODULE_2__.isSVG)(target)
+        && !(0,_utils_element__WEBPACK_IMPORTED_MODULE_2__.isReplacedElement)(target)
+        && getComputedStyle(target).display === 'inline';
+};
+var ResizeObservation = (function () {
+    function ResizeObservation(target, observedBox) {
+        this.target = target;
+        this.observedBox = observedBox || _ResizeObserverBoxOptions__WEBPACK_IMPORTED_MODULE_0__.ResizeObserverBoxOptions.CONTENT_BOX;
+        this.lastReportedSize = {
+            inlineSize: 0,
+            blockSize: 0
+        };
+    }
+    ResizeObservation.prototype.isActive = function () {
+        var size = (0,_algorithms_calculateBoxSize__WEBPACK_IMPORTED_MODULE_1__.calculateBoxSize)(this.target, this.observedBox, true);
+        if (skipNotifyOnElement(this.target)) {
+            this.lastReportedSize = size;
+        }
+        if (this.lastReportedSize.inlineSize !== size.inlineSize
+            || this.lastReportedSize.blockSize !== size.blockSize) {
+            return true;
+        }
+        return false;
+    };
+    return ResizeObservation;
+}());
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/ResizeObserver.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/ResizeObserver.js ***!
+  \********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "ResizeObserver": () => (/* binding */ ResizeObserver)
+/* harmony export */ });
+/* harmony import */ var _ResizeObserverController__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ResizeObserverController */ "./node_modules/@juggle/resize-observer/lib/ResizeObserverController.js");
+/* harmony import */ var _utils_element__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils/element */ "./node_modules/@juggle/resize-observer/lib/utils/element.js");
+
+
+var ResizeObserver = (function () {
+    function ResizeObserver(callback) {
+        if (arguments.length === 0) {
+            throw new TypeError("Failed to construct 'ResizeObserver': 1 argument required, but only 0 present.");
+        }
+        if (typeof callback !== 'function') {
+            throw new TypeError("Failed to construct 'ResizeObserver': The callback provided as parameter 1 is not a function.");
+        }
+        _ResizeObserverController__WEBPACK_IMPORTED_MODULE_0__.ResizeObserverController.connect(this, callback);
+    }
+    ResizeObserver.prototype.observe = function (target, options) {
+        if (arguments.length === 0) {
+            throw new TypeError("Failed to execute 'observe' on 'ResizeObserver': 1 argument required, but only 0 present.");
+        }
+        if (!(0,_utils_element__WEBPACK_IMPORTED_MODULE_1__.isElement)(target)) {
+            throw new TypeError("Failed to execute 'observe' on 'ResizeObserver': parameter 1 is not of type 'Element");
+        }
+        _ResizeObserverController__WEBPACK_IMPORTED_MODULE_0__.ResizeObserverController.observe(this, target, options);
+    };
+    ResizeObserver.prototype.unobserve = function (target) {
+        if (arguments.length === 0) {
+            throw new TypeError("Failed to execute 'unobserve' on 'ResizeObserver': 1 argument required, but only 0 present.");
+        }
+        if (!(0,_utils_element__WEBPACK_IMPORTED_MODULE_1__.isElement)(target)) {
+            throw new TypeError("Failed to execute 'unobserve' on 'ResizeObserver': parameter 1 is not of type 'Element");
+        }
+        _ResizeObserverController__WEBPACK_IMPORTED_MODULE_0__.ResizeObserverController.unobserve(this, target);
+    };
+    ResizeObserver.prototype.disconnect = function () {
+        _ResizeObserverController__WEBPACK_IMPORTED_MODULE_0__.ResizeObserverController.disconnect(this);
+    };
+    ResizeObserver.toString = function () {
+        return 'function ResizeObserver () { [polyfill code] }';
+    };
+    return ResizeObserver;
+}());
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/ResizeObserverBoxOptions.js":
+/*!******************************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/ResizeObserverBoxOptions.js ***!
+  \******************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "ResizeObserverBoxOptions": () => (/* binding */ ResizeObserverBoxOptions)
+/* harmony export */ });
+var ResizeObserverBoxOptions;
+(function (ResizeObserverBoxOptions) {
+    ResizeObserverBoxOptions["BORDER_BOX"] = "border-box";
+    ResizeObserverBoxOptions["CONTENT_BOX"] = "content-box";
+    ResizeObserverBoxOptions["DEVICE_PIXEL_CONTENT_BOX"] = "device-pixel-content-box";
+})(ResizeObserverBoxOptions || (ResizeObserverBoxOptions = {}));
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/ResizeObserverController.js":
+/*!******************************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/ResizeObserverController.js ***!
+  \******************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "ResizeObserverController": () => (/* binding */ ResizeObserverController)
+/* harmony export */ });
+/* harmony import */ var _utils_scheduler__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils/scheduler */ "./node_modules/@juggle/resize-observer/lib/utils/scheduler.js");
+/* harmony import */ var _ResizeObservation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ResizeObservation */ "./node_modules/@juggle/resize-observer/lib/ResizeObservation.js");
+/* harmony import */ var _ResizeObserverDetail__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ResizeObserverDetail */ "./node_modules/@juggle/resize-observer/lib/ResizeObserverDetail.js");
+/* harmony import */ var _utils_resizeObservers__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./utils/resizeObservers */ "./node_modules/@juggle/resize-observer/lib/utils/resizeObservers.js");
+
+
+
+
+var observerMap = new WeakMap();
+var getObservationIndex = function (observationTargets, target) {
+    for (var i = 0; i < observationTargets.length; i += 1) {
+        if (observationTargets[i].target === target) {
+            return i;
+        }
+    }
+    return -1;
+};
+var ResizeObserverController = (function () {
+    function ResizeObserverController() {
+    }
+    ResizeObserverController.connect = function (resizeObserver, callback) {
+        var detail = new _ResizeObserverDetail__WEBPACK_IMPORTED_MODULE_2__.ResizeObserverDetail(resizeObserver, callback);
+        observerMap.set(resizeObserver, detail);
+    };
+    ResizeObserverController.observe = function (resizeObserver, target, options) {
+        var detail = observerMap.get(resizeObserver);
+        var firstObservation = detail.observationTargets.length === 0;
+        if (getObservationIndex(detail.observationTargets, target) < 0) {
+            firstObservation && _utils_resizeObservers__WEBPACK_IMPORTED_MODULE_3__.resizeObservers.push(detail);
+            detail.observationTargets.push(new _ResizeObservation__WEBPACK_IMPORTED_MODULE_1__.ResizeObservation(target, options && options.box));
+            (0,_utils_scheduler__WEBPACK_IMPORTED_MODULE_0__.updateCount)(1);
+            _utils_scheduler__WEBPACK_IMPORTED_MODULE_0__.scheduler.schedule();
+        }
+    };
+    ResizeObserverController.unobserve = function (resizeObserver, target) {
+        var detail = observerMap.get(resizeObserver);
+        var index = getObservationIndex(detail.observationTargets, target);
+        var lastObservation = detail.observationTargets.length === 1;
+        if (index >= 0) {
+            lastObservation && _utils_resizeObservers__WEBPACK_IMPORTED_MODULE_3__.resizeObservers.splice(_utils_resizeObservers__WEBPACK_IMPORTED_MODULE_3__.resizeObservers.indexOf(detail), 1);
+            detail.observationTargets.splice(index, 1);
+            (0,_utils_scheduler__WEBPACK_IMPORTED_MODULE_0__.updateCount)(-1);
+        }
+    };
+    ResizeObserverController.disconnect = function (resizeObserver) {
+        var _this = this;
+        var detail = observerMap.get(resizeObserver);
+        detail.observationTargets.slice().forEach(function (ot) { return _this.unobserve(resizeObserver, ot.target); });
+        detail.activeTargets.splice(0, detail.activeTargets.length);
+    };
+    return ResizeObserverController;
+}());
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/ResizeObserverDetail.js":
+/*!**************************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/ResizeObserverDetail.js ***!
+  \**************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "ResizeObserverDetail": () => (/* binding */ ResizeObserverDetail)
+/* harmony export */ });
+var ResizeObserverDetail = (function () {
+    function ResizeObserverDetail(resizeObserver, callback) {
+        this.activeTargets = [];
+        this.skippedTargets = [];
+        this.observationTargets = [];
+        this.observer = resizeObserver;
+        this.callback = callback;
+    }
+    return ResizeObserverDetail;
+}());
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/ResizeObserverEntry.js":
+/*!*************************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/ResizeObserverEntry.js ***!
+  \*************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "ResizeObserverEntry": () => (/* binding */ ResizeObserverEntry)
+/* harmony export */ });
+/* harmony import */ var _algorithms_calculateBoxSize__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./algorithms/calculateBoxSize */ "./node_modules/@juggle/resize-observer/lib/algorithms/calculateBoxSize.js");
+/* harmony import */ var _utils_freeze__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils/freeze */ "./node_modules/@juggle/resize-observer/lib/utils/freeze.js");
+
+
+var ResizeObserverEntry = (function () {
+    function ResizeObserverEntry(target) {
+        var boxes = (0,_algorithms_calculateBoxSize__WEBPACK_IMPORTED_MODULE_0__.calculateBoxSizes)(target);
+        this.target = target;
+        this.contentRect = boxes.contentRect;
+        this.borderBoxSize = (0,_utils_freeze__WEBPACK_IMPORTED_MODULE_1__.freeze)([boxes.borderBoxSize]);
+        this.contentBoxSize = (0,_utils_freeze__WEBPACK_IMPORTED_MODULE_1__.freeze)([boxes.contentBoxSize]);
+        this.devicePixelContentBoxSize = (0,_utils_freeze__WEBPACK_IMPORTED_MODULE_1__.freeze)([boxes.devicePixelContentBoxSize]);
+    }
+    return ResizeObserverEntry;
+}());
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/ResizeObserverSize.js":
+/*!************************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/ResizeObserverSize.js ***!
+  \************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "ResizeObserverSize": () => (/* binding */ ResizeObserverSize)
+/* harmony export */ });
+/* harmony import */ var _utils_freeze__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils/freeze */ "./node_modules/@juggle/resize-observer/lib/utils/freeze.js");
+
+var ResizeObserverSize = (function () {
+    function ResizeObserverSize(inlineSize, blockSize) {
+        this.inlineSize = inlineSize;
+        this.blockSize = blockSize;
+        (0,_utils_freeze__WEBPACK_IMPORTED_MODULE_0__.freeze)(this);
+    }
+    return ResizeObserverSize;
+}());
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/algorithms/broadcastActiveObservations.js":
+/*!********************************************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/algorithms/broadcastActiveObservations.js ***!
+  \********************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "broadcastActiveObservations": () => (/* binding */ broadcastActiveObservations)
+/* harmony export */ });
+/* harmony import */ var _utils_resizeObservers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/resizeObservers */ "./node_modules/@juggle/resize-observer/lib/utils/resizeObservers.js");
+/* harmony import */ var _ResizeObserverEntry__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../ResizeObserverEntry */ "./node_modules/@juggle/resize-observer/lib/ResizeObserverEntry.js");
+/* harmony import */ var _calculateDepthForNode__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./calculateDepthForNode */ "./node_modules/@juggle/resize-observer/lib/algorithms/calculateDepthForNode.js");
+/* harmony import */ var _calculateBoxSize__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./calculateBoxSize */ "./node_modules/@juggle/resize-observer/lib/algorithms/calculateBoxSize.js");
+
+
+
+
+var broadcastActiveObservations = function () {
+    var shallowestDepth = Infinity;
+    var callbacks = [];
+    _utils_resizeObservers__WEBPACK_IMPORTED_MODULE_0__.resizeObservers.forEach(function processObserver(ro) {
+        if (ro.activeTargets.length === 0) {
+            return;
+        }
+        var entries = [];
+        ro.activeTargets.forEach(function processTarget(ot) {
+            var entry = new _ResizeObserverEntry__WEBPACK_IMPORTED_MODULE_1__.ResizeObserverEntry(ot.target);
+            var targetDepth = (0,_calculateDepthForNode__WEBPACK_IMPORTED_MODULE_2__.calculateDepthForNode)(ot.target);
+            entries.push(entry);
+            ot.lastReportedSize = (0,_calculateBoxSize__WEBPACK_IMPORTED_MODULE_3__.calculateBoxSize)(ot.target, ot.observedBox);
+            if (targetDepth < shallowestDepth) {
+                shallowestDepth = targetDepth;
+            }
+        });
+        callbacks.push(function resizeObserverCallback() {
+            ro.callback.call(ro.observer, entries, ro.observer);
+        });
+        ro.activeTargets.splice(0, ro.activeTargets.length);
+    });
+    for (var _i = 0, callbacks_1 = callbacks; _i < callbacks_1.length; _i++) {
+        var callback = callbacks_1[_i];
+        callback();
+    }
+    return shallowestDepth;
+};
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/algorithms/calculateBoxSize.js":
+/*!*********************************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/algorithms/calculateBoxSize.js ***!
+  \*********************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "calculateBoxSize": () => (/* binding */ calculateBoxSize),
+/* harmony export */   "calculateBoxSizes": () => (/* binding */ calculateBoxSizes)
+/* harmony export */ });
+/* harmony import */ var _ResizeObserverBoxOptions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../ResizeObserverBoxOptions */ "./node_modules/@juggle/resize-observer/lib/ResizeObserverBoxOptions.js");
+/* harmony import */ var _ResizeObserverSize__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../ResizeObserverSize */ "./node_modules/@juggle/resize-observer/lib/ResizeObserverSize.js");
+/* harmony import */ var _DOMRectReadOnly__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../DOMRectReadOnly */ "./node_modules/@juggle/resize-observer/lib/DOMRectReadOnly.js");
+/* harmony import */ var _utils_element__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils/element */ "./node_modules/@juggle/resize-observer/lib/utils/element.js");
+/* harmony import */ var _utils_freeze__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/freeze */ "./node_modules/@juggle/resize-observer/lib/utils/freeze.js");
+/* harmony import */ var _utils_global__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../utils/global */ "./node_modules/@juggle/resize-observer/lib/utils/global.js");
+
+
+
+
+
+
+var cache = new WeakMap();
+var scrollRegexp = /auto|scroll/;
+var verticalRegexp = /^tb|vertical/;
+var IE = (/msie|trident/i).test(_utils_global__WEBPACK_IMPORTED_MODULE_5__.global.navigator && _utils_global__WEBPACK_IMPORTED_MODULE_5__.global.navigator.userAgent);
+var parseDimension = function (pixel) { return parseFloat(pixel || '0'); };
+var size = function (inlineSize, blockSize, switchSizes) {
+    if (inlineSize === void 0) { inlineSize = 0; }
+    if (blockSize === void 0) { blockSize = 0; }
+    if (switchSizes === void 0) { switchSizes = false; }
+    return new _ResizeObserverSize__WEBPACK_IMPORTED_MODULE_1__.ResizeObserverSize((switchSizes ? blockSize : inlineSize) || 0, (switchSizes ? inlineSize : blockSize) || 0);
+};
+var zeroBoxes = (0,_utils_freeze__WEBPACK_IMPORTED_MODULE_4__.freeze)({
+    devicePixelContentBoxSize: size(),
+    borderBoxSize: size(),
+    contentBoxSize: size(),
+    contentRect: new _DOMRectReadOnly__WEBPACK_IMPORTED_MODULE_2__.DOMRectReadOnly(0, 0, 0, 0)
+});
+var calculateBoxSizes = function (target, forceRecalculation) {
+    if (forceRecalculation === void 0) { forceRecalculation = false; }
+    if (cache.has(target) && !forceRecalculation) {
+        return cache.get(target);
+    }
+    if ((0,_utils_element__WEBPACK_IMPORTED_MODULE_3__.isHidden)(target)) {
+        cache.set(target, zeroBoxes);
+        return zeroBoxes;
+    }
+    var cs = getComputedStyle(target);
+    var svg = (0,_utils_element__WEBPACK_IMPORTED_MODULE_3__.isSVG)(target) && target.ownerSVGElement && target.getBBox();
+    var removePadding = !IE && cs.boxSizing === 'border-box';
+    var switchSizes = verticalRegexp.test(cs.writingMode || '');
+    var canScrollVertically = !svg && scrollRegexp.test(cs.overflowY || '');
+    var canScrollHorizontally = !svg && scrollRegexp.test(cs.overflowX || '');
+    var paddingTop = svg ? 0 : parseDimension(cs.paddingTop);
+    var paddingRight = svg ? 0 : parseDimension(cs.paddingRight);
+    var paddingBottom = svg ? 0 : parseDimension(cs.paddingBottom);
+    var paddingLeft = svg ? 0 : parseDimension(cs.paddingLeft);
+    var borderTop = svg ? 0 : parseDimension(cs.borderTopWidth);
+    var borderRight = svg ? 0 : parseDimension(cs.borderRightWidth);
+    var borderBottom = svg ? 0 : parseDimension(cs.borderBottomWidth);
+    var borderLeft = svg ? 0 : parseDimension(cs.borderLeftWidth);
+    var horizontalPadding = paddingLeft + paddingRight;
+    var verticalPadding = paddingTop + paddingBottom;
+    var horizontalBorderArea = borderLeft + borderRight;
+    var verticalBorderArea = borderTop + borderBottom;
+    var horizontalScrollbarThickness = !canScrollHorizontally ? 0 : target.offsetHeight - verticalBorderArea - target.clientHeight;
+    var verticalScrollbarThickness = !canScrollVertically ? 0 : target.offsetWidth - horizontalBorderArea - target.clientWidth;
+    var widthReduction = removePadding ? horizontalPadding + horizontalBorderArea : 0;
+    var heightReduction = removePadding ? verticalPadding + verticalBorderArea : 0;
+    var contentWidth = svg ? svg.width : parseDimension(cs.width) - widthReduction - verticalScrollbarThickness;
+    var contentHeight = svg ? svg.height : parseDimension(cs.height) - heightReduction - horizontalScrollbarThickness;
+    var borderBoxWidth = contentWidth + horizontalPadding + verticalScrollbarThickness + horizontalBorderArea;
+    var borderBoxHeight = contentHeight + verticalPadding + horizontalScrollbarThickness + verticalBorderArea;
+    var boxes = (0,_utils_freeze__WEBPACK_IMPORTED_MODULE_4__.freeze)({
+        devicePixelContentBoxSize: size(Math.round(contentWidth * devicePixelRatio), Math.round(contentHeight * devicePixelRatio), switchSizes),
+        borderBoxSize: size(borderBoxWidth, borderBoxHeight, switchSizes),
+        contentBoxSize: size(contentWidth, contentHeight, switchSizes),
+        contentRect: new _DOMRectReadOnly__WEBPACK_IMPORTED_MODULE_2__.DOMRectReadOnly(paddingLeft, paddingTop, contentWidth, contentHeight)
+    });
+    cache.set(target, boxes);
+    return boxes;
+};
+var calculateBoxSize = function (target, observedBox, forceRecalculation) {
+    var _a = calculateBoxSizes(target, forceRecalculation), borderBoxSize = _a.borderBoxSize, contentBoxSize = _a.contentBoxSize, devicePixelContentBoxSize = _a.devicePixelContentBoxSize;
+    switch (observedBox) {
+        case _ResizeObserverBoxOptions__WEBPACK_IMPORTED_MODULE_0__.ResizeObserverBoxOptions.DEVICE_PIXEL_CONTENT_BOX:
+            return devicePixelContentBoxSize;
+        case _ResizeObserverBoxOptions__WEBPACK_IMPORTED_MODULE_0__.ResizeObserverBoxOptions.BORDER_BOX:
+            return borderBoxSize;
+        default:
+            return contentBoxSize;
+    }
+};
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/algorithms/calculateDepthForNode.js":
+/*!**************************************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/algorithms/calculateDepthForNode.js ***!
+  \**************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "calculateDepthForNode": () => (/* binding */ calculateDepthForNode)
+/* harmony export */ });
+/* harmony import */ var _utils_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/element */ "./node_modules/@juggle/resize-observer/lib/utils/element.js");
+
+var calculateDepthForNode = function (node) {
+    if ((0,_utils_element__WEBPACK_IMPORTED_MODULE_0__.isHidden)(node)) {
+        return Infinity;
+    }
+    var depth = 0;
+    var parent = node.parentNode;
+    while (parent) {
+        depth += 1;
+        parent = parent.parentNode;
+    }
+    return depth;
+};
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/algorithms/deliverResizeLoopError.js":
+/*!***************************************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/algorithms/deliverResizeLoopError.js ***!
+  \***************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "deliverResizeLoopError": () => (/* binding */ deliverResizeLoopError)
+/* harmony export */ });
+var msg = 'ResizeObserver loop completed with undelivered notifications.';
+var deliverResizeLoopError = function () {
+    var event;
+    if (typeof ErrorEvent === 'function') {
+        event = new ErrorEvent('error', {
+            message: msg
+        });
+    }
+    else {
+        event = document.createEvent('Event');
+        event.initEvent('error', false, false);
+        event.message = msg;
+    }
+    window.dispatchEvent(event);
+};
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/algorithms/gatherActiveObservationsAtDepth.js":
+/*!************************************************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/algorithms/gatherActiveObservationsAtDepth.js ***!
+  \************************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "gatherActiveObservationsAtDepth": () => (/* binding */ gatherActiveObservationsAtDepth)
+/* harmony export */ });
+/* harmony import */ var _utils_resizeObservers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/resizeObservers */ "./node_modules/@juggle/resize-observer/lib/utils/resizeObservers.js");
+/* harmony import */ var _calculateDepthForNode__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./calculateDepthForNode */ "./node_modules/@juggle/resize-observer/lib/algorithms/calculateDepthForNode.js");
+
+
+var gatherActiveObservationsAtDepth = function (depth) {
+    _utils_resizeObservers__WEBPACK_IMPORTED_MODULE_0__.resizeObservers.forEach(function processObserver(ro) {
+        ro.activeTargets.splice(0, ro.activeTargets.length);
+        ro.skippedTargets.splice(0, ro.skippedTargets.length);
+        ro.observationTargets.forEach(function processTarget(ot) {
+            if (ot.isActive()) {
+                if ((0,_calculateDepthForNode__WEBPACK_IMPORTED_MODULE_1__.calculateDepthForNode)(ot.target) > depth) {
+                    ro.activeTargets.push(ot);
+                }
+                else {
+                    ro.skippedTargets.push(ot);
+                }
+            }
+        });
+    });
+};
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/algorithms/hasActiveObservations.js":
+/*!**************************************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/algorithms/hasActiveObservations.js ***!
+  \**************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "hasActiveObservations": () => (/* binding */ hasActiveObservations)
+/* harmony export */ });
+/* harmony import */ var _utils_resizeObservers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/resizeObservers */ "./node_modules/@juggle/resize-observer/lib/utils/resizeObservers.js");
+
+var hasActiveObservations = function () {
+    return _utils_resizeObservers__WEBPACK_IMPORTED_MODULE_0__.resizeObservers.some(function (ro) { return ro.activeTargets.length > 0; });
+};
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/algorithms/hasSkippedObservations.js":
+/*!***************************************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/algorithms/hasSkippedObservations.js ***!
+  \***************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "hasSkippedObservations": () => (/* binding */ hasSkippedObservations)
+/* harmony export */ });
+/* harmony import */ var _utils_resizeObservers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/resizeObservers */ "./node_modules/@juggle/resize-observer/lib/utils/resizeObservers.js");
+
+var hasSkippedObservations = function () {
+    return _utils_resizeObservers__WEBPACK_IMPORTED_MODULE_0__.resizeObservers.some(function (ro) { return ro.skippedTargets.length > 0; });
+};
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/exports/resize-observer.js":
+/*!*****************************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/exports/resize-observer.js ***!
+  \*****************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "ResizeObserver": () => (/* reexport safe */ _ResizeObserver__WEBPACK_IMPORTED_MODULE_0__.ResizeObserver),
+/* harmony export */   "ResizeObserverEntry": () => (/* reexport safe */ _ResizeObserverEntry__WEBPACK_IMPORTED_MODULE_1__.ResizeObserverEntry),
+/* harmony export */   "ResizeObserverSize": () => (/* reexport safe */ _ResizeObserverSize__WEBPACK_IMPORTED_MODULE_2__.ResizeObserverSize)
+/* harmony export */ });
+/* harmony import */ var _ResizeObserver__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../ResizeObserver */ "./node_modules/@juggle/resize-observer/lib/ResizeObserver.js");
+/* harmony import */ var _ResizeObserverEntry__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../ResizeObserverEntry */ "./node_modules/@juggle/resize-observer/lib/ResizeObserverEntry.js");
+/* harmony import */ var _ResizeObserverSize__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../ResizeObserverSize */ "./node_modules/@juggle/resize-observer/lib/ResizeObserverSize.js");
+
+
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/utils/element.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/utils/element.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "isSVG": () => (/* binding */ isSVG),
+/* harmony export */   "isHidden": () => (/* binding */ isHidden),
+/* harmony export */   "isElement": () => (/* binding */ isElement),
+/* harmony export */   "isReplacedElement": () => (/* binding */ isReplacedElement)
+/* harmony export */ });
+var isSVG = function (target) { return target instanceof SVGElement && 'getBBox' in target; };
+var isHidden = function (target) {
+    if (isSVG(target)) {
+        var _a = target.getBBox(), width = _a.width, height = _a.height;
+        return !width && !height;
+    }
+    var _b = target, offsetWidth = _b.offsetWidth, offsetHeight = _b.offsetHeight;
+    return !(offsetWidth || offsetHeight || target.getClientRects().length);
+};
+var isElement = function (obj) {
+    var _a, _b;
+    if (obj instanceof Element) {
+        return true;
+    }
+    var scope = (_b = (_a = obj) === null || _a === void 0 ? void 0 : _a.ownerDocument) === null || _b === void 0 ? void 0 : _b.defaultView;
+    return !!(scope && obj instanceof scope.Element);
+};
+var isReplacedElement = function (target) {
+    switch (target.tagName) {
+        case 'INPUT':
+            if (target.type !== 'image') {
+                break;
+            }
+        case 'VIDEO':
+        case 'AUDIO':
+        case 'EMBED':
+        case 'OBJECT':
+        case 'CANVAS':
+        case 'IFRAME':
+        case 'IMG':
+            return true;
+    }
+    return false;
+};
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/utils/freeze.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/utils/freeze.js ***!
+  \******************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "freeze": () => (/* binding */ freeze)
+/* harmony export */ });
+var freeze = function (obj) { return Object.freeze(obj); };
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/utils/global.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/utils/global.js ***!
+  \******************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "global": () => (/* binding */ global)
+/* harmony export */ });
+var global = typeof window !== 'undefined' ? window : {};
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/utils/process.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/utils/process.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "process": () => (/* binding */ process)
+/* harmony export */ });
+/* harmony import */ var _algorithms_hasActiveObservations__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../algorithms/hasActiveObservations */ "./node_modules/@juggle/resize-observer/lib/algorithms/hasActiveObservations.js");
+/* harmony import */ var _algorithms_hasSkippedObservations__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../algorithms/hasSkippedObservations */ "./node_modules/@juggle/resize-observer/lib/algorithms/hasSkippedObservations.js");
+/* harmony import */ var _algorithms_deliverResizeLoopError__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../algorithms/deliverResizeLoopError */ "./node_modules/@juggle/resize-observer/lib/algorithms/deliverResizeLoopError.js");
+/* harmony import */ var _algorithms_broadcastActiveObservations__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../algorithms/broadcastActiveObservations */ "./node_modules/@juggle/resize-observer/lib/algorithms/broadcastActiveObservations.js");
+/* harmony import */ var _algorithms_gatherActiveObservationsAtDepth__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../algorithms/gatherActiveObservationsAtDepth */ "./node_modules/@juggle/resize-observer/lib/algorithms/gatherActiveObservationsAtDepth.js");
+
+
+
+
+
+var process = function () {
+    var depth = 0;
+    (0,_algorithms_gatherActiveObservationsAtDepth__WEBPACK_IMPORTED_MODULE_4__.gatherActiveObservationsAtDepth)(depth);
+    while ((0,_algorithms_hasActiveObservations__WEBPACK_IMPORTED_MODULE_0__.hasActiveObservations)()) {
+        depth = (0,_algorithms_broadcastActiveObservations__WEBPACK_IMPORTED_MODULE_3__.broadcastActiveObservations)();
+        (0,_algorithms_gatherActiveObservationsAtDepth__WEBPACK_IMPORTED_MODULE_4__.gatherActiveObservationsAtDepth)(depth);
+    }
+    if ((0,_algorithms_hasSkippedObservations__WEBPACK_IMPORTED_MODULE_1__.hasSkippedObservations)()) {
+        (0,_algorithms_deliverResizeLoopError__WEBPACK_IMPORTED_MODULE_2__.deliverResizeLoopError)();
+    }
+    return depth > 0;
+};
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/utils/queueMicroTask.js":
+/*!**************************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/utils/queueMicroTask.js ***!
+  \**************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "queueMicroTask": () => (/* binding */ queueMicroTask)
+/* harmony export */ });
+var trigger;
+var callbacks = [];
+var notify = function () { return callbacks.splice(0).forEach(function (cb) { return cb(); }); };
+var queueMicroTask = function (callback) {
+    if (!trigger) {
+        var toggle_1 = 0;
+        var el_1 = document.createTextNode('');
+        var config = { characterData: true };
+        new MutationObserver(function () { return notify(); }).observe(el_1, config);
+        trigger = function () { el_1.textContent = "" + (toggle_1 ? toggle_1-- : toggle_1++); };
+    }
+    callbacks.push(callback);
+    trigger();
+};
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/utils/queueResizeObserver.js":
+/*!*******************************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/utils/queueResizeObserver.js ***!
+  \*******************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "queueResizeObserver": () => (/* binding */ queueResizeObserver)
+/* harmony export */ });
+/* harmony import */ var _queueMicroTask__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./queueMicroTask */ "./node_modules/@juggle/resize-observer/lib/utils/queueMicroTask.js");
+
+var queueResizeObserver = function (cb) {
+    (0,_queueMicroTask__WEBPACK_IMPORTED_MODULE_0__.queueMicroTask)(function ResizeObserver() {
+        requestAnimationFrame(cb);
+    });
+};
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/utils/resizeObservers.js":
+/*!***************************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/utils/resizeObservers.js ***!
+  \***************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "resizeObservers": () => (/* binding */ resizeObservers)
+/* harmony export */ });
+var resizeObservers = [];
+
+
+
+/***/ }),
+
+/***/ "./node_modules/@juggle/resize-observer/lib/utils/scheduler.js":
+/*!*********************************************************************!*\
+  !*** ./node_modules/@juggle/resize-observer/lib/utils/scheduler.js ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "scheduler": () => (/* binding */ scheduler),
+/* harmony export */   "updateCount": () => (/* binding */ updateCount)
+/* harmony export */ });
+/* harmony import */ var _process__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./process */ "./node_modules/@juggle/resize-observer/lib/utils/process.js");
+/* harmony import */ var _global__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./global */ "./node_modules/@juggle/resize-observer/lib/utils/global.js");
+/* harmony import */ var _queueResizeObserver__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./queueResizeObserver */ "./node_modules/@juggle/resize-observer/lib/utils/queueResizeObserver.js");
+
+
+
+var watching = 0;
+var isWatching = function () { return !!watching; };
+var CATCH_PERIOD = 250;
+var observerConfig = { attributes: true, characterData: true, childList: true, subtree: true };
+var events = [
+    'resize',
+    'load',
+    'transitionend',
+    'animationend',
+    'animationstart',
+    'animationiteration',
+    'keyup',
+    'keydown',
+    'mouseup',
+    'mousedown',
+    'mouseover',
+    'mouseout',
+    'blur',
+    'focus'
+];
+var time = function (timeout) {
+    if (timeout === void 0) { timeout = 0; }
+    return Date.now() + timeout;
+};
+var scheduled = false;
+var Scheduler = (function () {
+    function Scheduler() {
+        var _this = this;
+        this.stopped = true;
+        this.listener = function () { return _this.schedule(); };
+    }
+    Scheduler.prototype.run = function (timeout) {
+        var _this = this;
+        if (timeout === void 0) { timeout = CATCH_PERIOD; }
+        if (scheduled) {
+            return;
+        }
+        scheduled = true;
+        var until = time(timeout);
+        (0,_queueResizeObserver__WEBPACK_IMPORTED_MODULE_2__.queueResizeObserver)(function () {
+            var elementsHaveResized = false;
+            try {
+                elementsHaveResized = (0,_process__WEBPACK_IMPORTED_MODULE_0__.process)();
+            }
+            finally {
+                scheduled = false;
+                timeout = until - time();
+                if (!isWatching()) {
+                    return;
+                }
+                if (elementsHaveResized) {
+                    _this.run(1000);
+                }
+                else if (timeout > 0) {
+                    _this.run(timeout);
+                }
+                else {
+                    _this.start();
+                }
+            }
+        });
+    };
+    Scheduler.prototype.schedule = function () {
+        this.stop();
+        this.run();
+    };
+    Scheduler.prototype.observe = function () {
+        var _this = this;
+        var cb = function () { return _this.observer && _this.observer.observe(document.body, observerConfig); };
+        document.body ? cb() : _global__WEBPACK_IMPORTED_MODULE_1__.global.addEventListener('DOMContentLoaded', cb);
+    };
+    Scheduler.prototype.start = function () {
+        var _this = this;
+        if (this.stopped) {
+            this.stopped = false;
+            this.observer = new MutationObserver(this.listener);
+            this.observe();
+            events.forEach(function (name) { return _global__WEBPACK_IMPORTED_MODULE_1__.global.addEventListener(name, _this.listener, true); });
+        }
+    };
+    Scheduler.prototype.stop = function () {
+        var _this = this;
+        if (!this.stopped) {
+            this.observer && this.observer.disconnect();
+            events.forEach(function (name) { return _global__WEBPACK_IMPORTED_MODULE_1__.global.removeEventListener(name, _this.listener, true); });
+            this.stopped = true;
+        }
+    };
+    return Scheduler;
+}());
+var scheduler = new Scheduler();
+var updateCount = function (n) {
+    !watching && n > 0 && scheduler.start();
+    watching += n;
+    !watching && scheduler.stop();
+};
+
+
+
+/***/ }),
+
+/***/ "./node_modules/approx-string-match/dist/index.js":
+/*!********************************************************!*\
+  !*** ./node_modules/approx-string-match/dist/index.js ***!
+  \********************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/**
+ * Implementation of Myers' online approximate string matching algorithm [1],
+ * with additional optimizations suggested by [2].
+ *
+ * This has O((k/w) * n) complexity where `n` is the length of the text, `k` is
+ * the maximum number of errors allowed (always <= the pattern length) and `w`
+ * is the word size. Because JS only supports bitwise operations on 32 bit
+ * integers, `w` is 32.
+ *
+ * As far as I am aware, there aren't any online algorithms which are
+ * significantly better for a wide range of input parameters. The problem can be
+ * solved faster using "filter then verify" approaches which first filter out
+ * regions of the text that cannot match using a "cheap" check and then verify
+ * the remaining potential matches. The verify step requires an algorithm such
+ * as this one however.
+ *
+ * The algorithm's approach is essentially to optimize the classic dynamic
+ * programming solution to the problem by computing columns of the matrix in
+ * word-sized chunks (ie. dealing with 32 chars of the pattern at a time) and
+ * avoiding calculating regions of the matrix where the minimum error count is
+ * guaranteed to exceed the input threshold.
+ *
+ * The paper consists of two parts, the first describes the core algorithm for
+ * matching patterns <= the size of a word (implemented by `advanceBlock` here).
+ * The second uses the core algorithm as part of a larger block-based algorithm
+ * to handle longer patterns.
+ *
+ * [1] G. Myers, “A Fast Bit-Vector Algorithm for Approximate String Matching
+ * Based on Dynamic Programming,” vol. 46, no. 3, pp. 395–415, 1999.
+ *
+ * [2] Šošić, M. (2014). An simd dynamic programming c/c++ library (Doctoral
+ * dissertation, Fakultet Elektrotehnike i računarstva, Sveučilište u Zagrebu).
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+function reverse(s) {
+    return s
+        .split("")
+        .reverse()
+        .join("");
+}
+/**
+ * Given the ends of approximate matches for `pattern` in `text`, find
+ * the start of the matches.
+ *
+ * @param findEndFn - Function for finding the end of matches in
+ * text.
+ * @return Matches with the `start` property set.
+ */
+function findMatchStarts(text, pattern, matches) {
+    var patRev = reverse(pattern);
+    return matches.map(function (m) {
+        // Find start of each match by reversing the pattern and matching segment
+        // of text and searching for an approx match with the same number of
+        // errors.
+        var minStart = Math.max(0, m.end - pattern.length - m.errors);
+        var textRev = reverse(text.slice(minStart, m.end));
+        // If there are multiple possible start points, choose the one that
+        // maximizes the length of the match.
+        var start = findMatchEnds(textRev, patRev, m.errors).reduce(function (min, rm) {
+            if (m.end - rm.end < min) {
+                return m.end - rm.end;
+            }
+            return min;
+        }, m.end);
+        return {
+            start: start,
+            end: m.end,
+            errors: m.errors
+        };
+    });
+}
+/**
+ * Return 1 if a number is non-zero or zero otherwise, without using
+ * conditional operators.
+ *
+ * This should get inlined into `advanceBlock` below by the JIT.
+ *
+ * Adapted from https://stackoverflow.com/a/3912218/434243
+ */
+function oneIfNotZero(n) {
+    return ((n | -n) >> 31) & 1;
+}
+/**
+ * Block calculation step of the algorithm.
+ *
+ * From Fig 8. on p. 408 of [1], additionally optimized to replace conditional
+ * checks with bitwise operations as per Section 4.2.3 of [2].
+ *
+ * @param ctx - The pattern context object
+ * @param peq - The `peq` array for the current character (`ctx.peq.get(ch)`)
+ * @param b - The block level
+ * @param hIn - Horizontal input delta ∈ {1,0,-1}
+ * @return Horizontal output delta ∈ {1,0,-1}
+ */
+function advanceBlock(ctx, peq, b, hIn) {
+    var pV = ctx.P[b];
+    var mV = ctx.M[b];
+    var hInIsNegative = hIn >>> 31; // 1 if hIn < 0 or 0 otherwise.
+    var eq = peq[b] | hInIsNegative;
+    // Step 1: Compute horizontal deltas.
+    var xV = eq | mV;
+    var xH = (((eq & pV) + pV) ^ pV) | eq;
+    var pH = mV | ~(xH | pV);
+    var mH = pV & xH;
+    // Step 2: Update score (value of last row of this block).
+    var hOut = oneIfNotZero(pH & ctx.lastRowMask[b]) -
+        oneIfNotZero(mH & ctx.lastRowMask[b]);
+    // Step 3: Update vertical deltas for use when processing next char.
+    pH <<= 1;
+    mH <<= 1;
+    mH |= hInIsNegative;
+    pH |= oneIfNotZero(hIn) - hInIsNegative; // set pH[0] if hIn > 0
+    pV = mH | ~(xV | pH);
+    mV = pH & xV;
+    ctx.P[b] = pV;
+    ctx.M[b] = mV;
+    return hOut;
+}
+/**
+ * Find the ends and error counts for matches of `pattern` in `text`.
+ *
+ * Only the matches with the lowest error count are reported. Other matches
+ * with error counts <= maxErrors are discarded.
+ *
+ * This is the block-based search algorithm from Fig. 9 on p.410 of [1].
+ */
+function findMatchEnds(text, pattern, maxErrors) {
+    if (pattern.length === 0) {
+        return [];
+    }
+    // Clamp error count so we can rely on the `maxErrors` and `pattern.length`
+    // rows being in the same block below.
+    maxErrors = Math.min(maxErrors, pattern.length);
+    var matches = [];
+    // Word size.
+    var w = 32;
+    // Index of maximum block level.
+    var bMax = Math.ceil(pattern.length / w) - 1;
+    // Context used across block calculations.
+    var ctx = {
+        P: new Uint32Array(bMax + 1),
+        M: new Uint32Array(bMax + 1),
+        lastRowMask: new Uint32Array(bMax + 1)
+    };
+    ctx.lastRowMask.fill(1 << 31);
+    ctx.lastRowMask[bMax] = 1 << (pattern.length - 1) % w;
+    // Dummy "peq" array for chars in the text which do not occur in the pattern.
+    var emptyPeq = new Uint32Array(bMax + 1);
+    // Map of UTF-16 character code to bit vector indicating positions in the
+    // pattern that equal that character.
+    var peq = new Map();
+    // Version of `peq` that only stores mappings for small characters. This
+    // allows faster lookups when iterating through the text because a simple
+    // array lookup can be done instead of a hash table lookup.
+    var asciiPeq = [];
+    for (var i = 0; i < 256; i++) {
+        asciiPeq.push(emptyPeq);
+    }
+    // Calculate `ctx.peq` - a map of character values to bitmasks indicating
+    // positions of that character within the pattern, where each bit represents
+    // a position in the pattern.
+    for (var c = 0; c < pattern.length; c += 1) {
+        var val = pattern.charCodeAt(c);
+        if (peq.has(val)) {
+            // Duplicate char in pattern.
+            continue;
+        }
+        var charPeq = new Uint32Array(bMax + 1);
+        peq.set(val, charPeq);
+        if (val < asciiPeq.length) {
+            asciiPeq[val] = charPeq;
+        }
+        for (var b = 0; b <= bMax; b += 1) {
+            charPeq[b] = 0;
+            // Set all the bits where the pattern matches the current char (ch).
+            // For indexes beyond the end of the pattern, always set the bit as if the
+            // pattern contained a wildcard char in that position.
+            for (var r = 0; r < w; r += 1) {
+                var idx = b * w + r;
+                if (idx >= pattern.length) {
+                    continue;
+                }
+                var match = pattern.charCodeAt(idx) === val;
+                if (match) {
+                    charPeq[b] |= 1 << r;
+                }
+            }
+        }
+    }
+    // Index of last-active block level in the column.
+    var y = Math.max(0, Math.ceil(maxErrors / w) - 1);
+    // Initialize maximum error count at bottom of each block.
+    var score = new Uint32Array(bMax + 1);
+    for (var b = 0; b <= y; b += 1) {
+        score[b] = (b + 1) * w;
+    }
+    score[bMax] = pattern.length;
+    // Initialize vertical deltas for each block.
+    for (var b = 0; b <= y; b += 1) {
+        ctx.P[b] = ~0;
+        ctx.M[b] = 0;
+    }
+    // Process each char of the text, computing the error count for `w` chars of
+    // the pattern at a time.
+    for (var j = 0; j < text.length; j += 1) {
+        // Lookup the bitmask representing the positions of the current char from
+        // the text within the pattern.
+        var charCode = text.charCodeAt(j);
+        var charPeq = void 0;
+        if (charCode < asciiPeq.length) {
+            // Fast array lookup.
+            charPeq = asciiPeq[charCode];
+        }
+        else {
+            // Slower hash table lookup.
+            charPeq = peq.get(charCode);
+            if (typeof charPeq === "undefined") {
+                charPeq = emptyPeq;
+            }
+        }
+        // Calculate error count for blocks that we definitely have to process for
+        // this column.
+        var carry = 0;
+        for (var b = 0; b <= y; b += 1) {
+            carry = advanceBlock(ctx, charPeq, b, carry);
+            score[b] += carry;
+        }
+        // Check if we also need to compute an additional block, or if we can reduce
+        // the number of blocks processed for the next column.
+        if (score[y] - carry <= maxErrors &&
+            y < bMax &&
+            (charPeq[y + 1] & 1 || carry < 0)) {
+            // Error count for bottom block is under threshold, increase the number of
+            // blocks processed for this column & next by 1.
+            y += 1;
+            ctx.P[y] = ~0;
+            ctx.M[y] = 0;
+            var maxBlockScore = y === bMax ? pattern.length % w : w;
+            score[y] =
+                score[y - 1] +
+                    maxBlockScore -
+                    carry +
+                    advanceBlock(ctx, charPeq, y, carry);
+        }
+        else {
+            // Error count for bottom block exceeds threshold, reduce the number of
+            // blocks processed for the next column.
+            while (y > 0 && score[y] >= maxErrors + w) {
+                y -= 1;
+            }
+        }
+        // If error count is under threshold, report a match.
+        if (y === bMax && score[y] <= maxErrors) {
+            if (score[y] < maxErrors) {
+                // Discard any earlier, worse matches.
+                matches.splice(0, matches.length);
+            }
+            matches.push({
+                start: -1,
+                end: j + 1,
+                errors: score[y]
+            });
+            // Because `search` only reports the matches with the lowest error count,
+            // we can "ratchet down" the max error threshold whenever a match is
+            // encountered and thereby save a small amount of work for the remainder
+            // of the text.
+            maxErrors = score[y];
+        }
+    }
+    return matches;
+}
+/**
+ * Search for matches for `pattern` in `text` allowing up to `maxErrors` errors.
+ *
+ * Returns the start, and end positions and error counts for each lowest-cost
+ * match. Only the "best" matches are returned.
+ */
+function search(text, pattern, maxErrors) {
+    var matches = findMatchEnds(text, pattern, maxErrors);
+    return findMatchStarts(text, pattern, matches);
+}
+exports["default"] = search;
+
+
+/***/ }),
+
+/***/ "./node_modules/call-bind/callBound.js":
+/*!*********************************************!*\
+  !*** ./node_modules/call-bind/callBound.js ***!
+  \*********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var callBind = __webpack_require__(/*! ./ */ "./node_modules/call-bind/index.js");
+
+var $indexOf = callBind(GetIntrinsic('String.prototype.indexOf'));
+
+module.exports = function callBoundIntrinsic(name, allowMissing) {
+	var intrinsic = GetIntrinsic(name, !!allowMissing);
+	if (typeof intrinsic === 'function' && $indexOf(name, '.prototype.') > -1) {
+		return callBind(intrinsic);
+	}
+	return intrinsic;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/call-bind/index.js":
+/*!*****************************************!*\
+  !*** ./node_modules/call-bind/index.js ***!
+  \*****************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var bind = __webpack_require__(/*! function-bind */ "./node_modules/function-bind/index.js");
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $apply = GetIntrinsic('%Function.prototype.apply%');
+var $call = GetIntrinsic('%Function.prototype.call%');
+var $reflectApply = GetIntrinsic('%Reflect.apply%', true) || bind.call($call, $apply);
+
+var $gOPD = GetIntrinsic('%Object.getOwnPropertyDescriptor%', true);
+var $defineProperty = GetIntrinsic('%Object.defineProperty%', true);
+var $max = GetIntrinsic('%Math.max%');
+
+if ($defineProperty) {
+	try {
+		$defineProperty({}, 'a', { value: 1 });
+	} catch (e) {
+		// IE 8 has a broken defineProperty
+		$defineProperty = null;
+	}
+}
+
+module.exports = function callBind(originalFunction) {
+	var func = $reflectApply(bind, $call, arguments);
+	if ($gOPD && $defineProperty) {
+		var desc = $gOPD(func, 'length');
+		if (desc.configurable) {
+			// original length, plus the receiver, minus any additional arguments (after the receiver)
+			$defineProperty(
+				func,
+				'length',
+				{ value: 1 + $max(0, originalFunction.length - (arguments.length - 1)) }
+			);
+		}
+	}
+	return func;
+};
+
+var applyBind = function applyBind() {
+	return $reflectApply(bind, $apply, arguments);
+};
+
+if ($defineProperty) {
+	$defineProperty(module.exports, 'apply', { value: applyBind });
+} else {
+	module.exports.apply = applyBind;
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/define-properties/index.js":
+/*!*************************************************!*\
+  !*** ./node_modules/define-properties/index.js ***!
+  \*************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var keys = __webpack_require__(/*! object-keys */ "./node_modules/object-keys/index.js");
+var hasSymbols = typeof Symbol === 'function' && typeof Symbol('foo') === 'symbol';
+
+var toStr = Object.prototype.toString;
+var concat = Array.prototype.concat;
+var origDefineProperty = Object.defineProperty;
+
+var isFunction = function (fn) {
+	return typeof fn === 'function' && toStr.call(fn) === '[object Function]';
+};
+
+var arePropertyDescriptorsSupported = function () {
+	var obj = {};
+	try {
+		origDefineProperty(obj, 'x', { enumerable: false, value: obj });
+		// eslint-disable-next-line no-unused-vars, no-restricted-syntax
+		for (var _ in obj) { // jscs:ignore disallowUnusedVariables
+			return false;
+		}
+		return obj.x === obj;
+	} catch (e) { /* this is IE 8. */
+		return false;
+	}
+};
+var supportsDescriptors = origDefineProperty && arePropertyDescriptorsSupported();
+
+var defineProperty = function (object, name, value, predicate) {
+	if (name in object && (!isFunction(predicate) || !predicate())) {
+		return;
+	}
+	if (supportsDescriptors) {
+		origDefineProperty(object, name, {
+			configurable: true,
+			enumerable: false,
+			value: value,
+			writable: true
+		});
+	} else {
+		object[name] = value;
+	}
+};
+
+var defineProperties = function (object, map) {
+	var predicates = arguments.length > 2 ? arguments[2] : {};
+	var props = keys(map);
+	if (hasSymbols) {
+		props = concat.call(props, Object.getOwnPropertySymbols(map));
+	}
+	for (var i = 0; i < props.length; i += 1) {
+		defineProperty(object, props[i], map[props[i]], predicates[props[i]]);
+	}
+};
+
+defineProperties.supportsDescriptors = !!supportsDescriptors;
+
+module.exports = defineProperties;
+
+
+/***/ }),
+
+/***/ "./node_modules/es-to-primitive/es2015.js":
+/*!************************************************!*\
+  !*** ./node_modules/es-to-primitive/es2015.js ***!
+  \************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var hasSymbols = typeof Symbol === 'function' && typeof Symbol.iterator === 'symbol';
+
+var isPrimitive = __webpack_require__(/*! ./helpers/isPrimitive */ "./node_modules/es-to-primitive/helpers/isPrimitive.js");
+var isCallable = __webpack_require__(/*! is-callable */ "./node_modules/is-callable/index.js");
+var isDate = __webpack_require__(/*! is-date-object */ "./node_modules/is-date-object/index.js");
+var isSymbol = __webpack_require__(/*! is-symbol */ "./node_modules/is-symbol/index.js");
+
+var ordinaryToPrimitive = function OrdinaryToPrimitive(O, hint) {
+	if (typeof O === 'undefined' || O === null) {
+		throw new TypeError('Cannot call method on ' + O);
+	}
+	if (typeof hint !== 'string' || (hint !== 'number' && hint !== 'string')) {
+		throw new TypeError('hint must be "string" or "number"');
+	}
+	var methodNames = hint === 'string' ? ['toString', 'valueOf'] : ['valueOf', 'toString'];
+	var method, result, i;
+	for (i = 0; i < methodNames.length; ++i) {
+		method = O[methodNames[i]];
+		if (isCallable(method)) {
+			result = method.call(O);
+			if (isPrimitive(result)) {
+				return result;
+			}
+		}
+	}
+	throw new TypeError('No default value');
+};
+
+var GetMethod = function GetMethod(O, P) {
+	var func = O[P];
+	if (func !== null && typeof func !== 'undefined') {
+		if (!isCallable(func)) {
+			throw new TypeError(func + ' returned for property ' + P + ' of object ' + O + ' is not a function');
+		}
+		return func;
+	}
+	return void 0;
+};
+
+// http://www.ecma-international.org/ecma-262/6.0/#sec-toprimitive
+module.exports = function ToPrimitive(input) {
+	if (isPrimitive(input)) {
+		return input;
+	}
+	var hint = 'default';
+	if (arguments.length > 1) {
+		if (arguments[1] === String) {
+			hint = 'string';
+		} else if (arguments[1] === Number) {
+			hint = 'number';
+		}
+	}
+
+	var exoticToPrim;
+	if (hasSymbols) {
+		if (Symbol.toPrimitive) {
+			exoticToPrim = GetMethod(input, Symbol.toPrimitive);
+		} else if (isSymbol(input)) {
+			exoticToPrim = Symbol.prototype.valueOf;
+		}
+	}
+	if (typeof exoticToPrim !== 'undefined') {
+		var result = exoticToPrim.call(input, hint);
+		if (isPrimitive(result)) {
+			return result;
+		}
+		throw new TypeError('unable to convert exotic object to primitive');
+	}
+	if (hint === 'default' && (isDate(input) || isSymbol(input))) {
+		hint = 'string';
+	}
+	return ordinaryToPrimitive(input, hint === 'default' ? 'number' : hint);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-to-primitive/es5.js":
+/*!*********************************************!*\
+  !*** ./node_modules/es-to-primitive/es5.js ***!
+  \*********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var toStr = Object.prototype.toString;
+
+var isPrimitive = __webpack_require__(/*! ./helpers/isPrimitive */ "./node_modules/es-to-primitive/helpers/isPrimitive.js");
+
+var isCallable = __webpack_require__(/*! is-callable */ "./node_modules/is-callable/index.js");
+
+// http://ecma-international.org/ecma-262/5.1/#sec-8.12.8
+var ES5internalSlots = {
+	'[[DefaultValue]]': function (O) {
+		var actualHint;
+		if (arguments.length > 1) {
+			actualHint = arguments[1];
+		} else {
+			actualHint = toStr.call(O) === '[object Date]' ? String : Number;
+		}
+
+		if (actualHint === String || actualHint === Number) {
+			var methods = actualHint === String ? ['toString', 'valueOf'] : ['valueOf', 'toString'];
+			var value, i;
+			for (i = 0; i < methods.length; ++i) {
+				if (isCallable(O[methods[i]])) {
+					value = O[methods[i]]();
+					if (isPrimitive(value)) {
+						return value;
+					}
+				}
+			}
+			throw new TypeError('No default value');
+		}
+		throw new TypeError('invalid [[DefaultValue]] hint supplied');
+	}
+};
+
+// http://ecma-international.org/ecma-262/5.1/#sec-9.1
+module.exports = function ToPrimitive(input) {
+	if (isPrimitive(input)) {
+		return input;
+	}
+	if (arguments.length > 1) {
+		return ES5internalSlots['[[DefaultValue]]'](input, arguments[1]);
+	}
+	return ES5internalSlots['[[DefaultValue]]'](input);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-to-primitive/helpers/isPrimitive.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/es-to-primitive/helpers/isPrimitive.js ***!
+  \*************************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = function isPrimitive(value) {
+	return value === null || (typeof value !== 'function' && typeof value !== 'object');
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/function-bind/implementation.js":
+/*!******************************************************!*\
+  !*** ./node_modules/function-bind/implementation.js ***!
+  \******************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+/* eslint no-invalid-this: 1 */
+
+var ERROR_MESSAGE = 'Function.prototype.bind called on incompatible ';
+var slice = Array.prototype.slice;
+var toStr = Object.prototype.toString;
+var funcType = '[object Function]';
+
+module.exports = function bind(that) {
+    var target = this;
+    if (typeof target !== 'function' || toStr.call(target) !== funcType) {
+        throw new TypeError(ERROR_MESSAGE + target);
+    }
+    var args = slice.call(arguments, 1);
+
+    var bound;
+    var binder = function () {
+        if (this instanceof bound) {
+            var result = target.apply(
+                this,
+                args.concat(slice.call(arguments))
+            );
+            if (Object(result) === result) {
+                return result;
+            }
+            return this;
+        } else {
+            return target.apply(
+                that,
+                args.concat(slice.call(arguments))
+            );
+        }
+    };
+
+    var boundLength = Math.max(0, target.length - args.length);
+    var boundArgs = [];
+    for (var i = 0; i < boundLength; i++) {
+        boundArgs.push('$' + i);
+    }
+
+    bound = Function('binder', 'return function (' + boundArgs.join(',') + '){ return binder.apply(this,arguments); }')(binder);
+
+    if (target.prototype) {
+        var Empty = function Empty() {};
+        Empty.prototype = target.prototype;
+        bound.prototype = new Empty();
+        Empty.prototype = null;
+    }
+
+    return bound;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/function-bind/index.js":
+/*!*********************************************!*\
+  !*** ./node_modules/function-bind/index.js ***!
+  \*********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var implementation = __webpack_require__(/*! ./implementation */ "./node_modules/function-bind/implementation.js");
+
+module.exports = Function.prototype.bind || implementation;
+
+
+/***/ }),
+
+/***/ "./node_modules/get-intrinsic/index.js":
+/*!*********************************************!*\
+  !*** ./node_modules/get-intrinsic/index.js ***!
+  \*********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var undefined;
+
+var $SyntaxError = SyntaxError;
+var $Function = Function;
+var $TypeError = TypeError;
+
+// eslint-disable-next-line consistent-return
+var getEvalledConstructor = function (expressionSyntax) {
+	try {
+		return $Function('"use strict"; return (' + expressionSyntax + ').constructor;')();
+	} catch (e) {}
+};
+
+var $gOPD = Object.getOwnPropertyDescriptor;
+if ($gOPD) {
+	try {
+		$gOPD({}, '');
+	} catch (e) {
+		$gOPD = null; // this is IE 8, which has a broken gOPD
+	}
+}
+
+var throwTypeError = function () {
+	throw new $TypeError();
+};
+var ThrowTypeError = $gOPD
+	? (function () {
+		try {
+			// eslint-disable-next-line no-unused-expressions, no-caller, no-restricted-properties
+			arguments.callee; // IE 8 does not throw here
+			return throwTypeError;
+		} catch (calleeThrows) {
+			try {
+				// IE 8 throws on Object.getOwnPropertyDescriptor(arguments, '')
+				return $gOPD(arguments, 'callee').get;
+			} catch (gOPDthrows) {
+				return throwTypeError;
+			}
+		}
+	}())
+	: throwTypeError;
+
+var hasSymbols = __webpack_require__(/*! has-symbols */ "./node_modules/has-symbols/index.js")();
+
+var getProto = Object.getPrototypeOf || function (x) { return x.__proto__; }; // eslint-disable-line no-proto
+
+var needsEval = {};
+
+var TypedArray = typeof Uint8Array === 'undefined' ? undefined : getProto(Uint8Array);
+
+var INTRINSICS = {
+	'%AggregateError%': typeof AggregateError === 'undefined' ? undefined : AggregateError,
+	'%Array%': Array,
+	'%ArrayBuffer%': typeof ArrayBuffer === 'undefined' ? undefined : ArrayBuffer,
+	'%ArrayIteratorPrototype%': hasSymbols ? getProto([][Symbol.iterator]()) : undefined,
+	'%AsyncFromSyncIteratorPrototype%': undefined,
+	'%AsyncFunction%': needsEval,
+	'%AsyncGenerator%': needsEval,
+	'%AsyncGeneratorFunction%': needsEval,
+	'%AsyncIteratorPrototype%': needsEval,
+	'%Atomics%': typeof Atomics === 'undefined' ? undefined : Atomics,
+	'%BigInt%': typeof BigInt === 'undefined' ? undefined : BigInt,
+	'%Boolean%': Boolean,
+	'%DataView%': typeof DataView === 'undefined' ? undefined : DataView,
+	'%Date%': Date,
+	'%decodeURI%': decodeURI,
+	'%decodeURIComponent%': decodeURIComponent,
+	'%encodeURI%': encodeURI,
+	'%encodeURIComponent%': encodeURIComponent,
+	'%Error%': Error,
+	'%eval%': eval, // eslint-disable-line no-eval
+	'%EvalError%': EvalError,
+	'%Float32Array%': typeof Float32Array === 'undefined' ? undefined : Float32Array,
+	'%Float64Array%': typeof Float64Array === 'undefined' ? undefined : Float64Array,
+	'%FinalizationRegistry%': typeof FinalizationRegistry === 'undefined' ? undefined : FinalizationRegistry,
+	'%Function%': $Function,
+	'%GeneratorFunction%': needsEval,
+	'%Int8Array%': typeof Int8Array === 'undefined' ? undefined : Int8Array,
+	'%Int16Array%': typeof Int16Array === 'undefined' ? undefined : Int16Array,
+	'%Int32Array%': typeof Int32Array === 'undefined' ? undefined : Int32Array,
+	'%isFinite%': isFinite,
+	'%isNaN%': isNaN,
+	'%IteratorPrototype%': hasSymbols ? getProto(getProto([][Symbol.iterator]())) : undefined,
+	'%JSON%': typeof JSON === 'object' ? JSON : undefined,
+	'%Map%': typeof Map === 'undefined' ? undefined : Map,
+	'%MapIteratorPrototype%': typeof Map === 'undefined' || !hasSymbols ? undefined : getProto(new Map()[Symbol.iterator]()),
+	'%Math%': Math,
+	'%Number%': Number,
+	'%Object%': Object,
+	'%parseFloat%': parseFloat,
+	'%parseInt%': parseInt,
+	'%Promise%': typeof Promise === 'undefined' ? undefined : Promise,
+	'%Proxy%': typeof Proxy === 'undefined' ? undefined : Proxy,
+	'%RangeError%': RangeError,
+	'%ReferenceError%': ReferenceError,
+	'%Reflect%': typeof Reflect === 'undefined' ? undefined : Reflect,
+	'%RegExp%': RegExp,
+	'%Set%': typeof Set === 'undefined' ? undefined : Set,
+	'%SetIteratorPrototype%': typeof Set === 'undefined' || !hasSymbols ? undefined : getProto(new Set()[Symbol.iterator]()),
+	'%SharedArrayBuffer%': typeof SharedArrayBuffer === 'undefined' ? undefined : SharedArrayBuffer,
+	'%String%': String,
+	'%StringIteratorPrototype%': hasSymbols ? getProto(''[Symbol.iterator]()) : undefined,
+	'%Symbol%': hasSymbols ? Symbol : undefined,
+	'%SyntaxError%': $SyntaxError,
+	'%ThrowTypeError%': ThrowTypeError,
+	'%TypedArray%': TypedArray,
+	'%TypeError%': $TypeError,
+	'%Uint8Array%': typeof Uint8Array === 'undefined' ? undefined : Uint8Array,
+	'%Uint8ClampedArray%': typeof Uint8ClampedArray === 'undefined' ? undefined : Uint8ClampedArray,
+	'%Uint16Array%': typeof Uint16Array === 'undefined' ? undefined : Uint16Array,
+	'%Uint32Array%': typeof Uint32Array === 'undefined' ? undefined : Uint32Array,
+	'%URIError%': URIError,
+	'%WeakMap%': typeof WeakMap === 'undefined' ? undefined : WeakMap,
+	'%WeakRef%': typeof WeakRef === 'undefined' ? undefined : WeakRef,
+	'%WeakSet%': typeof WeakSet === 'undefined' ? undefined : WeakSet
+};
+
+var doEval = function doEval(name) {
+	var value;
+	if (name === '%AsyncFunction%') {
+		value = getEvalledConstructor('async function () {}');
+	} else if (name === '%GeneratorFunction%') {
+		value = getEvalledConstructor('function* () {}');
+	} else if (name === '%AsyncGeneratorFunction%') {
+		value = getEvalledConstructor('async function* () {}');
+	} else if (name === '%AsyncGenerator%') {
+		var fn = doEval('%AsyncGeneratorFunction%');
+		if (fn) {
+			value = fn.prototype;
+		}
+	} else if (name === '%AsyncIteratorPrototype%') {
+		var gen = doEval('%AsyncGenerator%');
+		if (gen) {
+			value = getProto(gen.prototype);
+		}
+	}
+
+	INTRINSICS[name] = value;
+
+	return value;
+};
+
+var LEGACY_ALIASES = {
+	'%ArrayBufferPrototype%': ['ArrayBuffer', 'prototype'],
+	'%ArrayPrototype%': ['Array', 'prototype'],
+	'%ArrayProto_entries%': ['Array', 'prototype', 'entries'],
+	'%ArrayProto_forEach%': ['Array', 'prototype', 'forEach'],
+	'%ArrayProto_keys%': ['Array', 'prototype', 'keys'],
+	'%ArrayProto_values%': ['Array', 'prototype', 'values'],
+	'%AsyncFunctionPrototype%': ['AsyncFunction', 'prototype'],
+	'%AsyncGenerator%': ['AsyncGeneratorFunction', 'prototype'],
+	'%AsyncGeneratorPrototype%': ['AsyncGeneratorFunction', 'prototype', 'prototype'],
+	'%BooleanPrototype%': ['Boolean', 'prototype'],
+	'%DataViewPrototype%': ['DataView', 'prototype'],
+	'%DatePrototype%': ['Date', 'prototype'],
+	'%ErrorPrototype%': ['Error', 'prototype'],
+	'%EvalErrorPrototype%': ['EvalError', 'prototype'],
+	'%Float32ArrayPrototype%': ['Float32Array', 'prototype'],
+	'%Float64ArrayPrototype%': ['Float64Array', 'prototype'],
+	'%FunctionPrototype%': ['Function', 'prototype'],
+	'%Generator%': ['GeneratorFunction', 'prototype'],
+	'%GeneratorPrototype%': ['GeneratorFunction', 'prototype', 'prototype'],
+	'%Int8ArrayPrototype%': ['Int8Array', 'prototype'],
+	'%Int16ArrayPrototype%': ['Int16Array', 'prototype'],
+	'%Int32ArrayPrototype%': ['Int32Array', 'prototype'],
+	'%JSONParse%': ['JSON', 'parse'],
+	'%JSONStringify%': ['JSON', 'stringify'],
+	'%MapPrototype%': ['Map', 'prototype'],
+	'%NumberPrototype%': ['Number', 'prototype'],
+	'%ObjectPrototype%': ['Object', 'prototype'],
+	'%ObjProto_toString%': ['Object', 'prototype', 'toString'],
+	'%ObjProto_valueOf%': ['Object', 'prototype', 'valueOf'],
+	'%PromisePrototype%': ['Promise', 'prototype'],
+	'%PromiseProto_then%': ['Promise', 'prototype', 'then'],
+	'%Promise_all%': ['Promise', 'all'],
+	'%Promise_reject%': ['Promise', 'reject'],
+	'%Promise_resolve%': ['Promise', 'resolve'],
+	'%RangeErrorPrototype%': ['RangeError', 'prototype'],
+	'%ReferenceErrorPrototype%': ['ReferenceError', 'prototype'],
+	'%RegExpPrototype%': ['RegExp', 'prototype'],
+	'%SetPrototype%': ['Set', 'prototype'],
+	'%SharedArrayBufferPrototype%': ['SharedArrayBuffer', 'prototype'],
+	'%StringPrototype%': ['String', 'prototype'],
+	'%SymbolPrototype%': ['Symbol', 'prototype'],
+	'%SyntaxErrorPrototype%': ['SyntaxError', 'prototype'],
+	'%TypedArrayPrototype%': ['TypedArray', 'prototype'],
+	'%TypeErrorPrototype%': ['TypeError', 'prototype'],
+	'%Uint8ArrayPrototype%': ['Uint8Array', 'prototype'],
+	'%Uint8ClampedArrayPrototype%': ['Uint8ClampedArray', 'prototype'],
+	'%Uint16ArrayPrototype%': ['Uint16Array', 'prototype'],
+	'%Uint32ArrayPrototype%': ['Uint32Array', 'prototype'],
+	'%URIErrorPrototype%': ['URIError', 'prototype'],
+	'%WeakMapPrototype%': ['WeakMap', 'prototype'],
+	'%WeakSetPrototype%': ['WeakSet', 'prototype']
+};
+
+var bind = __webpack_require__(/*! function-bind */ "./node_modules/function-bind/index.js");
+var hasOwn = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+var $concat = bind.call(Function.call, Array.prototype.concat);
+var $spliceApply = bind.call(Function.apply, Array.prototype.splice);
+var $replace = bind.call(Function.call, String.prototype.replace);
+var $strSlice = bind.call(Function.call, String.prototype.slice);
+
+/* adapted from https://github.com/lodash/lodash/blob/4.17.15/dist/lodash.js#L6735-L6744 */
+var rePropName = /[^%.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|%$))/g;
+var reEscapeChar = /\\(\\)?/g; /** Used to match backslashes in property paths. */
+var stringToPath = function stringToPath(string) {
+	var first = $strSlice(string, 0, 1);
+	var last = $strSlice(string, -1);
+	if (first === '%' && last !== '%') {
+		throw new $SyntaxError('invalid intrinsic syntax, expected closing `%`');
+	} else if (last === '%' && first !== '%') {
+		throw new $SyntaxError('invalid intrinsic syntax, expected opening `%`');
+	}
+	var result = [];
+	$replace(string, rePropName, function (match, number, quote, subString) {
+		result[result.length] = quote ? $replace(subString, reEscapeChar, '$1') : number || match;
+	});
+	return result;
+};
+/* end adaptation */
+
+var getBaseIntrinsic = function getBaseIntrinsic(name, allowMissing) {
+	var intrinsicName = name;
+	var alias;
+	if (hasOwn(LEGACY_ALIASES, intrinsicName)) {
+		alias = LEGACY_ALIASES[intrinsicName];
+		intrinsicName = '%' + alias[0] + '%';
+	}
+
+	if (hasOwn(INTRINSICS, intrinsicName)) {
+		var value = INTRINSICS[intrinsicName];
+		if (value === needsEval) {
+			value = doEval(intrinsicName);
+		}
+		if (typeof value === 'undefined' && !allowMissing) {
+			throw new $TypeError('intrinsic ' + name + ' exists, but is not available. Please file an issue!');
+		}
+
+		return {
+			alias: alias,
+			name: intrinsicName,
+			value: value
+		};
+	}
+
+	throw new $SyntaxError('intrinsic ' + name + ' does not exist!');
+};
+
+module.exports = function GetIntrinsic(name, allowMissing) {
+	if (typeof name !== 'string' || name.length === 0) {
+		throw new $TypeError('intrinsic name must be a non-empty string');
+	}
+	if (arguments.length > 1 && typeof allowMissing !== 'boolean') {
+		throw new $TypeError('"allowMissing" argument must be a boolean');
+	}
+
+	var parts = stringToPath(name);
+	var intrinsicBaseName = parts.length > 0 ? parts[0] : '';
+
+	var intrinsic = getBaseIntrinsic('%' + intrinsicBaseName + '%', allowMissing);
+	var intrinsicRealName = intrinsic.name;
+	var value = intrinsic.value;
+	var skipFurtherCaching = false;
+
+	var alias = intrinsic.alias;
+	if (alias) {
+		intrinsicBaseName = alias[0];
+		$spliceApply(parts, $concat([0, 1], alias));
+	}
+
+	for (var i = 1, isOwn = true; i < parts.length; i += 1) {
+		var part = parts[i];
+		var first = $strSlice(part, 0, 1);
+		var last = $strSlice(part, -1);
+		if (
+			(
+				(first === '"' || first === "'" || first === '`')
+				|| (last === '"' || last === "'" || last === '`')
+			)
+			&& first !== last
+		) {
+			throw new $SyntaxError('property names with quotes must have matching quotes');
+		}
+		if (part === 'constructor' || !isOwn) {
+			skipFurtherCaching = true;
+		}
+
+		intrinsicBaseName += '.' + part;
+		intrinsicRealName = '%' + intrinsicBaseName + '%';
+
+		if (hasOwn(INTRINSICS, intrinsicRealName)) {
+			value = INTRINSICS[intrinsicRealName];
+		} else if (value != null) {
+			if (!(part in value)) {
+				if (!allowMissing) {
+					throw new $TypeError('base intrinsic for ' + name + ' exists, but the property is not available.');
+				}
+				return void undefined;
+			}
+			if ($gOPD && (i + 1) >= parts.length) {
+				var desc = $gOPD(value, part);
+				isOwn = !!desc;
+
+				// By convention, when a data property is converted to an accessor
+				// property to emulate a data property that does not suffer from
+				// the override mistake, that accessor's getter is marked with
+				// an `originalValue` property. Here, when we detect this, we
+				// uphold the illusion by pretending to see that original data
+				// property, i.e., returning the value rather than the getter
+				// itself.
+				if (isOwn && 'get' in desc && !('originalValue' in desc.get)) {
+					value = desc.get;
+				} else {
+					value = value[part];
+				}
+			} else {
+				isOwn = hasOwn(value, part);
+				value = value[part];
+			}
+
+			if (isOwn && !skipFurtherCaching) {
+				INTRINSICS[intrinsicRealName] = value;
+			}
+		}
+	}
+	return value;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/has-symbols/index.js":
+/*!*******************************************!*\
+  !*** ./node_modules/has-symbols/index.js ***!
+  \*******************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var origSymbol = typeof Symbol !== 'undefined' && Symbol;
+var hasSymbolSham = __webpack_require__(/*! ./shams */ "./node_modules/has-symbols/shams.js");
+
+module.exports = function hasNativeSymbols() {
+	if (typeof origSymbol !== 'function') { return false; }
+	if (typeof Symbol !== 'function') { return false; }
+	if (typeof origSymbol('foo') !== 'symbol') { return false; }
+	if (typeof Symbol('bar') !== 'symbol') { return false; }
+
+	return hasSymbolSham();
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/has-symbols/shams.js":
+/*!*******************************************!*\
+  !*** ./node_modules/has-symbols/shams.js ***!
+  \*******************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+/* eslint complexity: [2, 18], max-statements: [2, 33] */
+module.exports = function hasSymbols() {
+	if (typeof Symbol !== 'function' || typeof Object.getOwnPropertySymbols !== 'function') { return false; }
+	if (typeof Symbol.iterator === 'symbol') { return true; }
+
+	var obj = {};
+	var sym = Symbol('test');
+	var symObj = Object(sym);
+	if (typeof sym === 'string') { return false; }
+
+	if (Object.prototype.toString.call(sym) !== '[object Symbol]') { return false; }
+	if (Object.prototype.toString.call(symObj) !== '[object Symbol]') { return false; }
+
+	// temp disabled per https://github.com/ljharb/object.assign/issues/17
+	// if (sym instanceof Symbol) { return false; }
+	// temp disabled per https://github.com/WebReflection/get-own-property-symbols/issues/4
+	// if (!(symObj instanceof Symbol)) { return false; }
+
+	// if (typeof Symbol.prototype.toString !== 'function') { return false; }
+	// if (String(sym) !== Symbol.prototype.toString.call(sym)) { return false; }
+
+	var symVal = 42;
+	obj[sym] = symVal;
+	for (sym in obj) { return false; } // eslint-disable-line no-restricted-syntax, no-unreachable-loop
+	if (typeof Object.keys === 'function' && Object.keys(obj).length !== 0) { return false; }
+
+	if (typeof Object.getOwnPropertyNames === 'function' && Object.getOwnPropertyNames(obj).length !== 0) { return false; }
+
+	var syms = Object.getOwnPropertySymbols(obj);
+	if (syms.length !== 1 || syms[0] !== sym) { return false; }
+
+	if (!Object.prototype.propertyIsEnumerable.call(obj, sym)) { return false; }
+
+	if (typeof Object.getOwnPropertyDescriptor === 'function') {
+		var descriptor = Object.getOwnPropertyDescriptor(obj, sym);
+		if (descriptor.value !== symVal || descriptor.enumerable !== true) { return false; }
+	}
+
+	return true;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/has-tostringtag/shams.js":
+/*!***********************************************!*\
+  !*** ./node_modules/has-tostringtag/shams.js ***!
+  \***********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var hasSymbols = __webpack_require__(/*! has-symbols/shams */ "./node_modules/has-symbols/shams.js");
+
+module.exports = function hasToStringTagShams() {
+	return hasSymbols() && !!Symbol.toStringTag;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/has/src/index.js":
+/*!***************************************!*\
+  !*** ./node_modules/has/src/index.js ***!
+  \***************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var bind = __webpack_require__(/*! function-bind */ "./node_modules/function-bind/index.js");
+
+module.exports = bind.call(Function.call, Object.prototype.hasOwnProperty);
+
+
+/***/ }),
+
+/***/ "./node_modules/internal-slot/index.js":
+/*!*********************************************!*\
+  !*** ./node_modules/internal-slot/index.js ***!
+  \*********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+var channel = __webpack_require__(/*! side-channel */ "./node_modules/side-channel/index.js")();
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var SLOT = {
+	assert: function (O, slot) {
+		if (!O || (typeof O !== 'object' && typeof O !== 'function')) {
+			throw new $TypeError('`O` is not an object');
+		}
+		if (typeof slot !== 'string') {
+			throw new $TypeError('`slot` must be a string');
+		}
+		channel.assert(O);
+	},
+	get: function (O, slot) {
+		if (!O || (typeof O !== 'object' && typeof O !== 'function')) {
+			throw new $TypeError('`O` is not an object');
+		}
+		if (typeof slot !== 'string') {
+			throw new $TypeError('`slot` must be a string');
+		}
+		var slots = channel.get(O);
+		return slots && slots['$' + slot];
+	},
+	has: function (O, slot) {
+		if (!O || (typeof O !== 'object' && typeof O !== 'function')) {
+			throw new $TypeError('`O` is not an object');
+		}
+		if (typeof slot !== 'string') {
+			throw new $TypeError('`slot` must be a string');
+		}
+		var slots = channel.get(O);
+		return !!slots && has(slots, '$' + slot);
+	},
+	set: function (O, slot, V) {
+		if (!O || (typeof O !== 'object' && typeof O !== 'function')) {
+			throw new $TypeError('`O` is not an object');
+		}
+		if (typeof slot !== 'string') {
+			throw new $TypeError('`slot` must be a string');
+		}
+		var slots = channel.get(O);
+		if (!slots) {
+			slots = {};
+			channel.set(O, slots);
+		}
+		slots['$' + slot] = V;
+	}
+};
+
+if (Object.freeze) {
+	Object.freeze(SLOT);
+}
+
+module.exports = SLOT;
+
+
+/***/ }),
+
+/***/ "./node_modules/is-callable/index.js":
+/*!*******************************************!*\
+  !*** ./node_modules/is-callable/index.js ***!
+  \*******************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+var fnToStr = Function.prototype.toString;
+var reflectApply = typeof Reflect === 'object' && Reflect !== null && Reflect.apply;
+var badArrayLike;
+var isCallableMarker;
+if (typeof reflectApply === 'function' && typeof Object.defineProperty === 'function') {
+	try {
+		badArrayLike = Object.defineProperty({}, 'length', {
+			get: function () {
+				throw isCallableMarker;
+			}
+		});
+		isCallableMarker = {};
+		// eslint-disable-next-line no-throw-literal
+		reflectApply(function () { throw 42; }, null, badArrayLike);
+	} catch (_) {
+		if (_ !== isCallableMarker) {
+			reflectApply = null;
+		}
+	}
+} else {
+	reflectApply = null;
+}
+
+var constructorRegex = /^\s*class\b/;
+var isES6ClassFn = function isES6ClassFunction(value) {
+	try {
+		var fnStr = fnToStr.call(value);
+		return constructorRegex.test(fnStr);
+	} catch (e) {
+		return false; // not a function
+	}
+};
+
+var tryFunctionObject = function tryFunctionToStr(value) {
+	try {
+		if (isES6ClassFn(value)) { return false; }
+		fnToStr.call(value);
+		return true;
+	} catch (e) {
+		return false;
+	}
+};
+var toStr = Object.prototype.toString;
+var fnClass = '[object Function]';
+var genClass = '[object GeneratorFunction]';
+var hasToStringTag = typeof Symbol === 'function' && !!Symbol.toStringTag; // better: use `has-tostringtag`
+/* globals document: false */
+var documentDotAll = typeof document === 'object' && typeof document.all === 'undefined' && document.all !== undefined ? document.all : {};
+
+module.exports = reflectApply
+	? function isCallable(value) {
+		if (value === documentDotAll) { return true; }
+		if (!value) { return false; }
+		if (typeof value !== 'function' && typeof value !== 'object') { return false; }
+		if (typeof value === 'function' && !value.prototype) { return true; }
+		try {
+			reflectApply(value, null, badArrayLike);
+		} catch (e) {
+			if (e !== isCallableMarker) { return false; }
+		}
+		return !isES6ClassFn(value);
+	}
+	: function isCallable(value) {
+		if (value === documentDotAll) { return true; }
+		if (!value) { return false; }
+		if (typeof value !== 'function' && typeof value !== 'object') { return false; }
+		if (typeof value === 'function' && !value.prototype) { return true; }
+		if (hasToStringTag) { return tryFunctionObject(value); }
+		if (isES6ClassFn(value)) { return false; }
+		var strClass = toStr.call(value);
+		return strClass === fnClass || strClass === genClass;
+	};
+
+
+/***/ }),
+
+/***/ "./node_modules/is-date-object/index.js":
+/*!**********************************************!*\
+  !*** ./node_modules/is-date-object/index.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var getDay = Date.prototype.getDay;
+var tryDateObject = function tryDateGetDayCall(value) {
+	try {
+		getDay.call(value);
+		return true;
+	} catch (e) {
+		return false;
+	}
+};
+
+var toStr = Object.prototype.toString;
+var dateClass = '[object Date]';
+var hasToStringTag = __webpack_require__(/*! has-tostringtag/shams */ "./node_modules/has-tostringtag/shams.js")();
+
+module.exports = function isDateObject(value) {
+	if (typeof value !== 'object' || value === null) {
+		return false;
+	}
+	return hasToStringTag ? tryDateObject(value) : toStr.call(value) === dateClass;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/is-regex/index.js":
+/*!****************************************!*\
+  !*** ./node_modules/is-regex/index.js ***!
+  \****************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
+var hasToStringTag = __webpack_require__(/*! has-tostringtag/shams */ "./node_modules/has-tostringtag/shams.js")();
+var has;
+var $exec;
+var isRegexMarker;
+var badStringifier;
+
+if (hasToStringTag) {
+	has = callBound('Object.prototype.hasOwnProperty');
+	$exec = callBound('RegExp.prototype.exec');
+	isRegexMarker = {};
+
+	var throwRegexMarker = function () {
+		throw isRegexMarker;
+	};
+	badStringifier = {
+		toString: throwRegexMarker,
+		valueOf: throwRegexMarker
+	};
+
+	if (typeof Symbol.toPrimitive === 'symbol') {
+		badStringifier[Symbol.toPrimitive] = throwRegexMarker;
+	}
+}
+
+var $toString = callBound('Object.prototype.toString');
+var gOPD = Object.getOwnPropertyDescriptor;
+var regexClass = '[object RegExp]';
+
+module.exports = hasToStringTag
+	// eslint-disable-next-line consistent-return
+	? function isRegex(value) {
+		if (!value || typeof value !== 'object') {
+			return false;
+		}
+
+		var descriptor = gOPD(value, 'lastIndex');
+		var hasLastIndexDataProperty = descriptor && has(descriptor, 'value');
+		if (!hasLastIndexDataProperty) {
+			return false;
+		}
+
+		try {
+			$exec(value, badStringifier);
+		} catch (e) {
+			return e === isRegexMarker;
+		}
+	}
+	: function isRegex(value) {
+		// In older browsers, typeof regex incorrectly returns 'function'
+		if (!value || (typeof value !== 'object' && typeof value !== 'function')) {
+			return false;
+		}
+
+		return $toString(value) === regexClass;
+	};
+
+
+/***/ }),
+
+/***/ "./node_modules/is-symbol/index.js":
+/*!*****************************************!*\
+  !*** ./node_modules/is-symbol/index.js ***!
+  \*****************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var toStr = Object.prototype.toString;
+var hasSymbols = __webpack_require__(/*! has-symbols */ "./node_modules/has-symbols/index.js")();
+
+if (hasSymbols) {
+	var symToStr = Symbol.prototype.toString;
+	var symStringRegex = /^Symbol\(.*\)$/;
+	var isSymbolObject = function isRealSymbolObject(value) {
+		if (typeof value.valueOf() !== 'symbol') {
+			return false;
+		}
+		return symStringRegex.test(symToStr.call(value));
+	};
+
+	module.exports = function isSymbol(value) {
+		if (typeof value === 'symbol') {
+			return true;
+		}
+		if (toStr.call(value) !== '[object Symbol]') {
+			return false;
+		}
+		try {
+			return isSymbolObject(value);
+		} catch (e) {
+			return false;
+		}
+	};
+} else {
+
+	module.exports = function isSymbol(value) {
+		// this environment does not support Symbols.
+		return  false && 0;
+	};
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/object-inspect/index.js":
+/*!**********************************************!*\
+  !*** ./node_modules/object-inspect/index.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var hasMap = typeof Map === 'function' && Map.prototype;
+var mapSizeDescriptor = Object.getOwnPropertyDescriptor && hasMap ? Object.getOwnPropertyDescriptor(Map.prototype, 'size') : null;
+var mapSize = hasMap && mapSizeDescriptor && typeof mapSizeDescriptor.get === 'function' ? mapSizeDescriptor.get : null;
+var mapForEach = hasMap && Map.prototype.forEach;
+var hasSet = typeof Set === 'function' && Set.prototype;
+var setSizeDescriptor = Object.getOwnPropertyDescriptor && hasSet ? Object.getOwnPropertyDescriptor(Set.prototype, 'size') : null;
+var setSize = hasSet && setSizeDescriptor && typeof setSizeDescriptor.get === 'function' ? setSizeDescriptor.get : null;
+var setForEach = hasSet && Set.prototype.forEach;
+var hasWeakMap = typeof WeakMap === 'function' && WeakMap.prototype;
+var weakMapHas = hasWeakMap ? WeakMap.prototype.has : null;
+var hasWeakSet = typeof WeakSet === 'function' && WeakSet.prototype;
+var weakSetHas = hasWeakSet ? WeakSet.prototype.has : null;
+var hasWeakRef = typeof WeakRef === 'function' && WeakRef.prototype;
+var weakRefDeref = hasWeakRef ? WeakRef.prototype.deref : null;
+var booleanValueOf = Boolean.prototype.valueOf;
+var objectToString = Object.prototype.toString;
+var functionToString = Function.prototype.toString;
+var match = String.prototype.match;
+var bigIntValueOf = typeof BigInt === 'function' ? BigInt.prototype.valueOf : null;
+var gOPS = Object.getOwnPropertySymbols;
+var symToString = typeof Symbol === 'function' && typeof Symbol.iterator === 'symbol' ? Symbol.prototype.toString : null;
+var hasShammedSymbols = typeof Symbol === 'function' && typeof Symbol.iterator === 'object';
+var isEnumerable = Object.prototype.propertyIsEnumerable;
+
+var gPO = (typeof Reflect === 'function' ? Reflect.getPrototypeOf : Object.getPrototypeOf) || (
+    [].__proto__ === Array.prototype // eslint-disable-line no-proto
+        ? function (O) {
+            return O.__proto__; // eslint-disable-line no-proto
+        }
+        : null
+);
+
+var inspectCustom = __webpack_require__(/*! ./util.inspect */ "?4f7e").custom;
+var inspectSymbol = inspectCustom && isSymbol(inspectCustom) ? inspectCustom : null;
+var toStringTag = typeof Symbol === 'function' && typeof Symbol.toStringTag !== 'undefined' ? Symbol.toStringTag : null;
+
+module.exports = function inspect_(obj, options, depth, seen) {
+    var opts = options || {};
+
+    if (has(opts, 'quoteStyle') && (opts.quoteStyle !== 'single' && opts.quoteStyle !== 'double')) {
+        throw new TypeError('option "quoteStyle" must be "single" or "double"');
+    }
+    if (
+        has(opts, 'maxStringLength') && (typeof opts.maxStringLength === 'number'
+            ? opts.maxStringLength < 0 && opts.maxStringLength !== Infinity
+            : opts.maxStringLength !== null
+        )
+    ) {
+        throw new TypeError('option "maxStringLength", if provided, must be a positive integer, Infinity, or `null`');
+    }
+    var customInspect = has(opts, 'customInspect') ? opts.customInspect : true;
+    if (typeof customInspect !== 'boolean' && customInspect !== 'symbol') {
+        throw new TypeError('option "customInspect", if provided, must be `true`, `false`, or `\'symbol\'`');
+    }
+
+    if (
+        has(opts, 'indent')
+        && opts.indent !== null
+        && opts.indent !== '\t'
+        && !(parseInt(opts.indent, 10) === opts.indent && opts.indent > 0)
+    ) {
+        throw new TypeError('options "indent" must be "\\t", an integer > 0, or `null`');
+    }
+
+    if (typeof obj === 'undefined') {
+        return 'undefined';
+    }
+    if (obj === null) {
+        return 'null';
+    }
+    if (typeof obj === 'boolean') {
+        return obj ? 'true' : 'false';
+    }
+
+    if (typeof obj === 'string') {
+        return inspectString(obj, opts);
+    }
+    if (typeof obj === 'number') {
+        if (obj === 0) {
+            return Infinity / obj > 0 ? '0' : '-0';
+        }
+        return String(obj);
+    }
+    if (typeof obj === 'bigint') {
+        return String(obj) + 'n';
+    }
+
+    var maxDepth = typeof opts.depth === 'undefined' ? 5 : opts.depth;
+    if (typeof depth === 'undefined') { depth = 0; }
+    if (depth >= maxDepth && maxDepth > 0 && typeof obj === 'object') {
+        return isArray(obj) ? '[Array]' : '[Object]';
+    }
+
+    var indent = getIndent(opts, depth);
+
+    if (typeof seen === 'undefined') {
+        seen = [];
+    } else if (indexOf(seen, obj) >= 0) {
+        return '[Circular]';
+    }
+
+    function inspect(value, from, noIndent) {
+        if (from) {
+            seen = seen.slice();
+            seen.push(from);
+        }
+        if (noIndent) {
+            var newOpts = {
+                depth: opts.depth
+            };
+            if (has(opts, 'quoteStyle')) {
+                newOpts.quoteStyle = opts.quoteStyle;
+            }
+            return inspect_(value, newOpts, depth + 1, seen);
+        }
+        return inspect_(value, opts, depth + 1, seen);
+    }
+
+    if (typeof obj === 'function') {
+        var name = nameOf(obj);
+        var keys = arrObjKeys(obj, inspect);
+        return '[Function' + (name ? ': ' + name : ' (anonymous)') + ']' + (keys.length > 0 ? ' { ' + keys.join(', ') + ' }' : '');
+    }
+    if (isSymbol(obj)) {
+        var symString = hasShammedSymbols ? String(obj).replace(/^(Symbol\(.*\))_[^)]*$/, '$1') : symToString.call(obj);
+        return typeof obj === 'object' && !hasShammedSymbols ? markBoxed(symString) : symString;
+    }
+    if (isElement(obj)) {
+        var s = '<' + String(obj.nodeName).toLowerCase();
+        var attrs = obj.attributes || [];
+        for (var i = 0; i < attrs.length; i++) {
+            s += ' ' + attrs[i].name + '=' + wrapQuotes(quote(attrs[i].value), 'double', opts);
+        }
+        s += '>';
+        if (obj.childNodes && obj.childNodes.length) { s += '...'; }
+        s += '</' + String(obj.nodeName).toLowerCase() + '>';
+        return s;
+    }
+    if (isArray(obj)) {
+        if (obj.length === 0) { return '[]'; }
+        var xs = arrObjKeys(obj, inspect);
+        if (indent && !singleLineValues(xs)) {
+            return '[' + indentedJoin(xs, indent) + ']';
+        }
+        return '[ ' + xs.join(', ') + ' ]';
+    }
+    if (isError(obj)) {
+        var parts = arrObjKeys(obj, inspect);
+        if (parts.length === 0) { return '[' + String(obj) + ']'; }
+        return '{ [' + String(obj) + '] ' + parts.join(', ') + ' }';
+    }
+    if (typeof obj === 'object' && customInspect) {
+        if (inspectSymbol && typeof obj[inspectSymbol] === 'function') {
+            return obj[inspectSymbol]();
+        } else if (customInspect !== 'symbol' && typeof obj.inspect === 'function') {
+            return obj.inspect();
+        }
+    }
+    if (isMap(obj)) {
+        var mapParts = [];
+        mapForEach.call(obj, function (value, key) {
+            mapParts.push(inspect(key, obj, true) + ' => ' + inspect(value, obj));
+        });
+        return collectionOf('Map', mapSize.call(obj), mapParts, indent);
+    }
+    if (isSet(obj)) {
+        var setParts = [];
+        setForEach.call(obj, function (value) {
+            setParts.push(inspect(value, obj));
+        });
+        return collectionOf('Set', setSize.call(obj), setParts, indent);
+    }
+    if (isWeakMap(obj)) {
+        return weakCollectionOf('WeakMap');
+    }
+    if (isWeakSet(obj)) {
+        return weakCollectionOf('WeakSet');
+    }
+    if (isWeakRef(obj)) {
+        return weakCollectionOf('WeakRef');
+    }
+    if (isNumber(obj)) {
+        return markBoxed(inspect(Number(obj)));
+    }
+    if (isBigInt(obj)) {
+        return markBoxed(inspect(bigIntValueOf.call(obj)));
+    }
+    if (isBoolean(obj)) {
+        return markBoxed(booleanValueOf.call(obj));
+    }
+    if (isString(obj)) {
+        return markBoxed(inspect(String(obj)));
+    }
+    if (!isDate(obj) && !isRegExp(obj)) {
+        var ys = arrObjKeys(obj, inspect);
+        var isPlainObject = gPO ? gPO(obj) === Object.prototype : obj instanceof Object || obj.constructor === Object;
+        var protoTag = obj instanceof Object ? '' : 'null prototype';
+        var stringTag = !isPlainObject && toStringTag && Object(obj) === obj && toStringTag in obj ? toStr(obj).slice(8, -1) : protoTag ? 'Object' : '';
+        var constructorTag = isPlainObject || typeof obj.constructor !== 'function' ? '' : obj.constructor.name ? obj.constructor.name + ' ' : '';
+        var tag = constructorTag + (stringTag || protoTag ? '[' + [].concat(stringTag || [], protoTag || []).join(': ') + '] ' : '');
+        if (ys.length === 0) { return tag + '{}'; }
+        if (indent) {
+            return tag + '{' + indentedJoin(ys, indent) + '}';
+        }
+        return tag + '{ ' + ys.join(', ') + ' }';
+    }
+    return String(obj);
+};
+
+function wrapQuotes(s, defaultStyle, opts) {
+    var quoteChar = (opts.quoteStyle || defaultStyle) === 'double' ? '"' : "'";
+    return quoteChar + s + quoteChar;
+}
+
+function quote(s) {
+    return String(s).replace(/"/g, '&quot;');
+}
+
+function isArray(obj) { return toStr(obj) === '[object Array]' && (!toStringTag || !(typeof obj === 'object' && toStringTag in obj)); }
+function isDate(obj) { return toStr(obj) === '[object Date]' && (!toStringTag || !(typeof obj === 'object' && toStringTag in obj)); }
+function isRegExp(obj) { return toStr(obj) === '[object RegExp]' && (!toStringTag || !(typeof obj === 'object' && toStringTag in obj)); }
+function isError(obj) { return toStr(obj) === '[object Error]' && (!toStringTag || !(typeof obj === 'object' && toStringTag in obj)); }
+function isString(obj) { return toStr(obj) === '[object String]' && (!toStringTag || !(typeof obj === 'object' && toStringTag in obj)); }
+function isNumber(obj) { return toStr(obj) === '[object Number]' && (!toStringTag || !(typeof obj === 'object' && toStringTag in obj)); }
+function isBoolean(obj) { return toStr(obj) === '[object Boolean]' && (!toStringTag || !(typeof obj === 'object' && toStringTag in obj)); }
+
+// Symbol and BigInt do have Symbol.toStringTag by spec, so that can't be used to eliminate false positives
+function isSymbol(obj) {
+    if (hasShammedSymbols) {
+        return obj && typeof obj === 'object' && obj instanceof Symbol;
+    }
+    if (typeof obj === 'symbol') {
+        return true;
+    }
+    if (!obj || typeof obj !== 'object' || !symToString) {
+        return false;
+    }
+    try {
+        symToString.call(obj);
+        return true;
+    } catch (e) {}
+    return false;
+}
+
+function isBigInt(obj) {
+    if (!obj || typeof obj !== 'object' || !bigIntValueOf) {
+        return false;
+    }
+    try {
+        bigIntValueOf.call(obj);
+        return true;
+    } catch (e) {}
+    return false;
+}
+
+var hasOwn = Object.prototype.hasOwnProperty || function (key) { return key in this; };
+function has(obj, key) {
+    return hasOwn.call(obj, key);
+}
+
+function toStr(obj) {
+    return objectToString.call(obj);
+}
+
+function nameOf(f) {
+    if (f.name) { return f.name; }
+    var m = match.call(functionToString.call(f), /^function\s*([\w$]+)/);
+    if (m) { return m[1]; }
+    return null;
+}
+
+function indexOf(xs, x) {
+    if (xs.indexOf) { return xs.indexOf(x); }
+    for (var i = 0, l = xs.length; i < l; i++) {
+        if (xs[i] === x) { return i; }
+    }
+    return -1;
+}
+
+function isMap(x) {
+    if (!mapSize || !x || typeof x !== 'object') {
+        return false;
+    }
+    try {
+        mapSize.call(x);
+        try {
+            setSize.call(x);
+        } catch (s) {
+            return true;
+        }
+        return x instanceof Map; // core-js workaround, pre-v2.5.0
+    } catch (e) {}
+    return false;
+}
+
+function isWeakMap(x) {
+    if (!weakMapHas || !x || typeof x !== 'object') {
+        return false;
+    }
+    try {
+        weakMapHas.call(x, weakMapHas);
+        try {
+            weakSetHas.call(x, weakSetHas);
+        } catch (s) {
+            return true;
+        }
+        return x instanceof WeakMap; // core-js workaround, pre-v2.5.0
+    } catch (e) {}
+    return false;
+}
+
+function isWeakRef(x) {
+    if (!weakRefDeref || !x || typeof x !== 'object') {
+        return false;
+    }
+    try {
+        weakRefDeref.call(x);
+        return true;
+    } catch (e) {}
+    return false;
+}
+
+function isSet(x) {
+    if (!setSize || !x || typeof x !== 'object') {
+        return false;
+    }
+    try {
+        setSize.call(x);
+        try {
+            mapSize.call(x);
+        } catch (m) {
+            return true;
+        }
+        return x instanceof Set; // core-js workaround, pre-v2.5.0
+    } catch (e) {}
+    return false;
+}
+
+function isWeakSet(x) {
+    if (!weakSetHas || !x || typeof x !== 'object') {
+        return false;
+    }
+    try {
+        weakSetHas.call(x, weakSetHas);
+        try {
+            weakMapHas.call(x, weakMapHas);
+        } catch (s) {
+            return true;
+        }
+        return x instanceof WeakSet; // core-js workaround, pre-v2.5.0
+    } catch (e) {}
+    return false;
+}
+
+function isElement(x) {
+    if (!x || typeof x !== 'object') { return false; }
+    if (typeof HTMLElement !== 'undefined' && x instanceof HTMLElement) {
+        return true;
+    }
+    return typeof x.nodeName === 'string' && typeof x.getAttribute === 'function';
+}
+
+function inspectString(str, opts) {
+    if (str.length > opts.maxStringLength) {
+        var remaining = str.length - opts.maxStringLength;
+        var trailer = '... ' + remaining + ' more character' + (remaining > 1 ? 's' : '');
+        return inspectString(str.slice(0, opts.maxStringLength), opts) + trailer;
+    }
+    // eslint-disable-next-line no-control-regex
+    var s = str.replace(/(['\\])/g, '\\$1').replace(/[\x00-\x1f]/g, lowbyte);
+    return wrapQuotes(s, 'single', opts);
+}
+
+function lowbyte(c) {
+    var n = c.charCodeAt(0);
+    var x = {
+        8: 'b',
+        9: 't',
+        10: 'n',
+        12: 'f',
+        13: 'r'
+    }[n];
+    if (x) { return '\\' + x; }
+    return '\\x' + (n < 0x10 ? '0' : '') + n.toString(16).toUpperCase();
+}
+
+function markBoxed(str) {
+    return 'Object(' + str + ')';
+}
+
+function weakCollectionOf(type) {
+    return type + ' { ? }';
+}
+
+function collectionOf(type, size, entries, indent) {
+    var joinedEntries = indent ? indentedJoin(entries, indent) : entries.join(', ');
+    return type + ' (' + size + ') {' + joinedEntries + '}';
+}
+
+function singleLineValues(xs) {
+    for (var i = 0; i < xs.length; i++) {
+        if (indexOf(xs[i], '\n') >= 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function getIndent(opts, depth) {
+    var baseIndent;
+    if (opts.indent === '\t') {
+        baseIndent = '\t';
+    } else if (typeof opts.indent === 'number' && opts.indent > 0) {
+        baseIndent = Array(opts.indent + 1).join(' ');
+    } else {
+        return null;
+    }
+    return {
+        base: baseIndent,
+        prev: Array(depth + 1).join(baseIndent)
+    };
+}
+
+function indentedJoin(xs, indent) {
+    if (xs.length === 0) { return ''; }
+    var lineJoiner = '\n' + indent.prev + indent.base;
+    return lineJoiner + xs.join(',' + lineJoiner) + '\n' + indent.prev;
+}
+
+function arrObjKeys(obj, inspect) {
+    var isArr = isArray(obj);
+    var xs = [];
+    if (isArr) {
+        xs.length = obj.length;
+        for (var i = 0; i < obj.length; i++) {
+            xs[i] = has(obj, i) ? inspect(obj[i], obj) : '';
+        }
+    }
+    var syms = typeof gOPS === 'function' ? gOPS(obj) : [];
+    var symMap;
+    if (hasShammedSymbols) {
+        symMap = {};
+        for (var k = 0; k < syms.length; k++) {
+            symMap['$' + syms[k]] = syms[k];
+        }
+    }
+
+    for (var key in obj) { // eslint-disable-line no-restricted-syntax
+        if (!has(obj, key)) { continue; } // eslint-disable-line no-restricted-syntax, no-continue
+        if (isArr && String(Number(key)) === key && key < obj.length) { continue; } // eslint-disable-line no-restricted-syntax, no-continue
+        if (hasShammedSymbols && symMap['$' + key] instanceof Symbol) {
+            // this is to prevent shammed Symbols, which are stored as strings, from being included in the string key section
+            continue; // eslint-disable-line no-restricted-syntax, no-continue
+        } else if ((/[^\w$]/).test(key)) {
+            xs.push(inspect(key, obj) + ': ' + inspect(obj[key], obj));
+        } else {
+            xs.push(key + ': ' + inspect(obj[key], obj));
+        }
+    }
+    if (typeof gOPS === 'function') {
+        for (var j = 0; j < syms.length; j++) {
+            if (isEnumerable.call(obj, syms[j])) {
+                xs.push('[' + inspect(syms[j]) + ']: ' + inspect(obj[syms[j]], obj));
+            }
+        }
+    }
+    return xs;
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/object-keys/implementation.js":
+/*!****************************************************!*\
+  !*** ./node_modules/object-keys/implementation.js ***!
+  \****************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var keysShim;
+if (!Object.keys) {
+	// modified from https://github.com/es-shims/es5-shim
+	var has = Object.prototype.hasOwnProperty;
+	var toStr = Object.prototype.toString;
+	var isArgs = __webpack_require__(/*! ./isArguments */ "./node_modules/object-keys/isArguments.js"); // eslint-disable-line global-require
+	var isEnumerable = Object.prototype.propertyIsEnumerable;
+	var hasDontEnumBug = !isEnumerable.call({ toString: null }, 'toString');
+	var hasProtoEnumBug = isEnumerable.call(function () {}, 'prototype');
+	var dontEnums = [
+		'toString',
+		'toLocaleString',
+		'valueOf',
+		'hasOwnProperty',
+		'isPrototypeOf',
+		'propertyIsEnumerable',
+		'constructor'
+	];
+	var equalsConstructorPrototype = function (o) {
+		var ctor = o.constructor;
+		return ctor && ctor.prototype === o;
+	};
+	var excludedKeys = {
+		$applicationCache: true,
+		$console: true,
+		$external: true,
+		$frame: true,
+		$frameElement: true,
+		$frames: true,
+		$innerHeight: true,
+		$innerWidth: true,
+		$onmozfullscreenchange: true,
+		$onmozfullscreenerror: true,
+		$outerHeight: true,
+		$outerWidth: true,
+		$pageXOffset: true,
+		$pageYOffset: true,
+		$parent: true,
+		$scrollLeft: true,
+		$scrollTop: true,
+		$scrollX: true,
+		$scrollY: true,
+		$self: true,
+		$webkitIndexedDB: true,
+		$webkitStorageInfo: true,
+		$window: true
+	};
+	var hasAutomationEqualityBug = (function () {
+		/* global window */
+		if (typeof window === 'undefined') { return false; }
+		for (var k in window) {
+			try {
+				if (!excludedKeys['$' + k] && has.call(window, k) && window[k] !== null && typeof window[k] === 'object') {
+					try {
+						equalsConstructorPrototype(window[k]);
+					} catch (e) {
+						return true;
+					}
+				}
+			} catch (e) {
+				return true;
+			}
+		}
+		return false;
+	}());
+	var equalsConstructorPrototypeIfNotBuggy = function (o) {
+		/* global window */
+		if (typeof window === 'undefined' || !hasAutomationEqualityBug) {
+			return equalsConstructorPrototype(o);
+		}
+		try {
+			return equalsConstructorPrototype(o);
+		} catch (e) {
+			return false;
+		}
+	};
+
+	keysShim = function keys(object) {
+		var isObject = object !== null && typeof object === 'object';
+		var isFunction = toStr.call(object) === '[object Function]';
+		var isArguments = isArgs(object);
+		var isString = isObject && toStr.call(object) === '[object String]';
+		var theKeys = [];
+
+		if (!isObject && !isFunction && !isArguments) {
+			throw new TypeError('Object.keys called on a non-object');
+		}
+
+		var skipProto = hasProtoEnumBug && isFunction;
+		if (isString && object.length > 0 && !has.call(object, 0)) {
+			for (var i = 0; i < object.length; ++i) {
+				theKeys.push(String(i));
+			}
+		}
+
+		if (isArguments && object.length > 0) {
+			for (var j = 0; j < object.length; ++j) {
+				theKeys.push(String(j));
+			}
+		} else {
+			for (var name in object) {
+				if (!(skipProto && name === 'prototype') && has.call(object, name)) {
+					theKeys.push(String(name));
+				}
+			}
+		}
+
+		if (hasDontEnumBug) {
+			var skipConstructor = equalsConstructorPrototypeIfNotBuggy(object);
+
+			for (var k = 0; k < dontEnums.length; ++k) {
+				if (!(skipConstructor && dontEnums[k] === 'constructor') && has.call(object, dontEnums[k])) {
+					theKeys.push(dontEnums[k]);
+				}
+			}
+		}
+		return theKeys;
+	};
+}
+module.exports = keysShim;
+
+
+/***/ }),
+
+/***/ "./node_modules/object-keys/index.js":
+/*!*******************************************!*\
+  !*** ./node_modules/object-keys/index.js ***!
+  \*******************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var slice = Array.prototype.slice;
+var isArgs = __webpack_require__(/*! ./isArguments */ "./node_modules/object-keys/isArguments.js");
+
+var origKeys = Object.keys;
+var keysShim = origKeys ? function keys(o) { return origKeys(o); } : __webpack_require__(/*! ./implementation */ "./node_modules/object-keys/implementation.js");
+
+var originalKeys = Object.keys;
+
+keysShim.shim = function shimObjectKeys() {
+	if (Object.keys) {
+		var keysWorksWithArguments = (function () {
+			// Safari 5.0 bug
+			var args = Object.keys(arguments);
+			return args && args.length === arguments.length;
+		}(1, 2));
+		if (!keysWorksWithArguments) {
+			Object.keys = function keys(object) { // eslint-disable-line func-name-matching
+				if (isArgs(object)) {
+					return originalKeys(slice.call(object));
+				}
+				return originalKeys(object);
+			};
+		}
+	} else {
+		Object.keys = keysShim;
+	}
+	return Object.keys || keysShim;
+};
+
+module.exports = keysShim;
+
+
+/***/ }),
+
+/***/ "./node_modules/object-keys/isArguments.js":
+/*!*************************************************!*\
+  !*** ./node_modules/object-keys/isArguments.js ***!
+  \*************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+var toStr = Object.prototype.toString;
+
+module.exports = function isArguments(value) {
+	var str = toStr.call(value);
+	var isArgs = str === '[object Arguments]';
+	if (!isArgs) {
+		isArgs = str !== '[object Array]' &&
+			value !== null &&
+			typeof value === 'object' &&
+			typeof value.length === 'number' &&
+			value.length >= 0 &&
+			toStr.call(value.callee) === '[object Function]';
+	}
+	return isArgs;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/regexp.prototype.flags/implementation.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/regexp.prototype.flags/implementation.js ***!
+  \***************************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+var $Object = Object;
+var $TypeError = TypeError;
+
+module.exports = function flags() {
+	if (this != null && this !== $Object(this)) {
+		throw new $TypeError('RegExp.prototype.flags getter called on non-object');
+	}
+	var result = '';
+	if (this.global) {
+		result += 'g';
+	}
+	if (this.ignoreCase) {
+		result += 'i';
+	}
+	if (this.multiline) {
+		result += 'm';
+	}
+	if (this.dotAll) {
+		result += 's';
+	}
+	if (this.unicode) {
+		result += 'u';
+	}
+	if (this.sticky) {
+		result += 'y';
+	}
+	return result;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/regexp.prototype.flags/index.js":
+/*!******************************************************!*\
+  !*** ./node_modules/regexp.prototype.flags/index.js ***!
+  \******************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var define = __webpack_require__(/*! define-properties */ "./node_modules/define-properties/index.js");
+var callBind = __webpack_require__(/*! call-bind */ "./node_modules/call-bind/index.js");
+
+var implementation = __webpack_require__(/*! ./implementation */ "./node_modules/regexp.prototype.flags/implementation.js");
+var getPolyfill = __webpack_require__(/*! ./polyfill */ "./node_modules/regexp.prototype.flags/polyfill.js");
+var shim = __webpack_require__(/*! ./shim */ "./node_modules/regexp.prototype.flags/shim.js");
+
+var flagsBound = callBind(implementation);
+
+define(flagsBound, {
+	getPolyfill: getPolyfill,
+	implementation: implementation,
+	shim: shim
+});
+
+module.exports = flagsBound;
+
+
+/***/ }),
+
+/***/ "./node_modules/regexp.prototype.flags/polyfill.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/regexp.prototype.flags/polyfill.js ***!
+  \*********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var implementation = __webpack_require__(/*! ./implementation */ "./node_modules/regexp.prototype.flags/implementation.js");
+
+var supportsDescriptors = __webpack_require__(/*! define-properties */ "./node_modules/define-properties/index.js").supportsDescriptors;
+var $gOPD = Object.getOwnPropertyDescriptor;
+var $TypeError = TypeError;
+
+module.exports = function getPolyfill() {
+	if (!supportsDescriptors) {
+		throw new $TypeError('RegExp.prototype.flags requires a true ES5 environment that supports property descriptors');
+	}
+	if ((/a/mig).flags === 'gim') {
+		var descriptor = $gOPD(RegExp.prototype, 'flags');
+		if (descriptor && typeof descriptor.get === 'function' && typeof (/a/).dotAll === 'boolean') {
+			return descriptor.get;
+		}
+	}
+	return implementation;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/regexp.prototype.flags/shim.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/regexp.prototype.flags/shim.js ***!
+  \*****************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var supportsDescriptors = __webpack_require__(/*! define-properties */ "./node_modules/define-properties/index.js").supportsDescriptors;
+var getPolyfill = __webpack_require__(/*! ./polyfill */ "./node_modules/regexp.prototype.flags/polyfill.js");
+var gOPD = Object.getOwnPropertyDescriptor;
+var defineProperty = Object.defineProperty;
+var TypeErr = TypeError;
+var getProto = Object.getPrototypeOf;
+var regex = /a/;
+
+module.exports = function shimFlags() {
+	if (!supportsDescriptors || !getProto) {
+		throw new TypeErr('RegExp.prototype.flags requires a true ES5 environment that supports property descriptors');
+	}
+	var polyfill = getPolyfill();
+	var proto = getProto(regex);
+	var descriptor = gOPD(proto, 'flags');
+	if (!descriptor || descriptor.get !== polyfill) {
+		defineProperty(proto, 'flags', {
+			configurable: true,
+			enumerable: false,
+			get: polyfill
+		});
+	}
+	return polyfill;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/side-channel/index.js":
+/*!********************************************!*\
+  !*** ./node_modules/side-channel/index.js ***!
+  \********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
+var inspect = __webpack_require__(/*! object-inspect */ "./node_modules/object-inspect/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+var $WeakMap = GetIntrinsic('%WeakMap%', true);
+var $Map = GetIntrinsic('%Map%', true);
+
+var $weakMapGet = callBound('WeakMap.prototype.get', true);
+var $weakMapSet = callBound('WeakMap.prototype.set', true);
+var $weakMapHas = callBound('WeakMap.prototype.has', true);
+var $mapGet = callBound('Map.prototype.get', true);
+var $mapSet = callBound('Map.prototype.set', true);
+var $mapHas = callBound('Map.prototype.has', true);
+
+/*
+ * This function traverses the list returning the node corresponding to the
+ * given key.
+ *
+ * That node is also moved to the head of the list, so that if it's accessed
+ * again we don't need to traverse the whole list. By doing so, all the recently
+ * used nodes can be accessed relatively quickly.
+ */
+var listGetNode = function (list, key) { // eslint-disable-line consistent-return
+	for (var prev = list, curr; (curr = prev.next) !== null; prev = curr) {
+		if (curr.key === key) {
+			prev.next = curr.next;
+			curr.next = list.next;
+			list.next = curr; // eslint-disable-line no-param-reassign
+			return curr;
+		}
+	}
+};
+
+var listGet = function (objects, key) {
+	var node = listGetNode(objects, key);
+	return node && node.value;
+};
+var listSet = function (objects, key, value) {
+	var node = listGetNode(objects, key);
+	if (node) {
+		node.value = value;
+	} else {
+		// Prepend the new node to the beginning of the list
+		objects.next = { // eslint-disable-line no-param-reassign
+			key: key,
+			next: objects.next,
+			value: value
+		};
+	}
+};
+var listHas = function (objects, key) {
+	return !!listGetNode(objects, key);
+};
+
+module.exports = function getSideChannel() {
+	var $wm;
+	var $m;
+	var $o;
+	var channel = {
+		assert: function (key) {
+			if (!channel.has(key)) {
+				throw new $TypeError('Side channel does not contain ' + inspect(key));
+			}
+		},
+		get: function (key) { // eslint-disable-line consistent-return
+			if ($WeakMap && key && (typeof key === 'object' || typeof key === 'function')) {
+				if ($wm) {
+					return $weakMapGet($wm, key);
+				}
+			} else if ($Map) {
+				if ($m) {
+					return $mapGet($m, key);
+				}
+			} else {
+				if ($o) { // eslint-disable-line no-lonely-if
+					return listGet($o, key);
+				}
+			}
+		},
+		has: function (key) {
+			if ($WeakMap && key && (typeof key === 'object' || typeof key === 'function')) {
+				if ($wm) {
+					return $weakMapHas($wm, key);
+				}
+			} else if ($Map) {
+				if ($m) {
+					return $mapHas($m, key);
+				}
+			} else {
+				if ($o) { // eslint-disable-line no-lonely-if
+					return listHas($o, key);
+				}
+			}
+			return false;
+		},
+		set: function (key, value) {
+			if ($WeakMap && key && (typeof key === 'object' || typeof key === 'function')) {
+				if (!$wm) {
+					$wm = new $WeakMap();
+				}
+				$weakMapSet($wm, key, value);
+			} else if ($Map) {
+				if (!$m) {
+					$m = new $Map();
+				}
+				$mapSet($m, key, value);
+			} else {
+				if (!$o) {
+					/*
+					 * Initialize the linked list as an empty node, so that we don't have
+					 * to special-case handling of the first node: we can always refer to
+					 * it as (previous node).next, instead of something like (list).head
+					 */
+					$o = { key: {}, next: null };
+				}
+				listSet($o, key, value);
+			}
+		}
+	};
+	return channel;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/string.prototype.matchall/implementation.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/string.prototype.matchall/implementation.js ***!
+  \******************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var Call = __webpack_require__(/*! es-abstract/2021/Call */ "./node_modules/es-abstract/2021/Call.js");
+var Get = __webpack_require__(/*! es-abstract/2021/Get */ "./node_modules/es-abstract/2021/Get.js");
+var GetMethod = __webpack_require__(/*! es-abstract/2021/GetMethod */ "./node_modules/es-abstract/2021/GetMethod.js");
+var IsRegExp = __webpack_require__(/*! es-abstract/2021/IsRegExp */ "./node_modules/es-abstract/2021/IsRegExp.js");
+var ToString = __webpack_require__(/*! es-abstract/2021/ToString */ "./node_modules/es-abstract/2021/ToString.js");
+var RequireObjectCoercible = __webpack_require__(/*! es-abstract/2021/RequireObjectCoercible */ "./node_modules/es-abstract/2021/RequireObjectCoercible.js");
+var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
+var hasSymbols = __webpack_require__(/*! has-symbols */ "./node_modules/has-symbols/index.js")();
+var flagsGetter = __webpack_require__(/*! regexp.prototype.flags */ "./node_modules/regexp.prototype.flags/index.js");
+
+var $indexOf = callBound('String.prototype.indexOf');
+
+var regexpMatchAllPolyfill = __webpack_require__(/*! ./polyfill-regexp-matchall */ "./node_modules/string.prototype.matchall/polyfill-regexp-matchall.js");
+
+var getMatcher = function getMatcher(regexp) { // eslint-disable-line consistent-return
+	var matcherPolyfill = regexpMatchAllPolyfill();
+	if (hasSymbols && typeof Symbol.matchAll === 'symbol') {
+		var matcher = GetMethod(regexp, Symbol.matchAll);
+		if (matcher === RegExp.prototype[Symbol.matchAll] && matcher !== matcherPolyfill) {
+			return matcherPolyfill;
+		}
+		return matcher;
+	}
+	// fallback for pre-Symbol.matchAll environments
+	if (IsRegExp(regexp)) {
+		return matcherPolyfill;
+	}
+};
+
+module.exports = function matchAll(regexp) {
+	var O = RequireObjectCoercible(this);
+
+	if (typeof regexp !== 'undefined' && regexp !== null) {
+		var isRegExp = IsRegExp(regexp);
+		if (isRegExp) {
+			// workaround for older engines that lack RegExp.prototype.flags
+			var flags = 'flags' in regexp ? Get(regexp, 'flags') : flagsGetter(regexp);
+			RequireObjectCoercible(flags);
+			if ($indexOf(ToString(flags), 'g') < 0) {
+				throw new TypeError('matchAll requires a global regular expression');
+			}
+		}
+
+		var matcher = getMatcher(regexp);
+		if (typeof matcher !== 'undefined') {
+			return Call(matcher, regexp, [O]);
+		}
+	}
+
+	var S = ToString(O);
+	// var rx = RegExpCreate(regexp, 'g');
+	var rx = new RegExp(regexp, 'g');
+	return Call(getMatcher(rx), rx, [S]);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/string.prototype.matchall/index.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/string.prototype.matchall/index.js ***!
+  \*********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var callBind = __webpack_require__(/*! call-bind */ "./node_modules/call-bind/index.js");
+var define = __webpack_require__(/*! define-properties */ "./node_modules/define-properties/index.js");
+
+var implementation = __webpack_require__(/*! ./implementation */ "./node_modules/string.prototype.matchall/implementation.js");
+var getPolyfill = __webpack_require__(/*! ./polyfill */ "./node_modules/string.prototype.matchall/polyfill.js");
+var shim = __webpack_require__(/*! ./shim */ "./node_modules/string.prototype.matchall/shim.js");
+
+var boundMatchAll = callBind(implementation);
+
+define(boundMatchAll, {
+	getPolyfill: getPolyfill,
+	implementation: implementation,
+	shim: shim
+});
+
+module.exports = boundMatchAll;
+
+
+/***/ }),
+
+/***/ "./node_modules/string.prototype.matchall/polyfill-regexp-matchall.js":
+/*!****************************************************************************!*\
+  !*** ./node_modules/string.prototype.matchall/polyfill-regexp-matchall.js ***!
+  \****************************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var hasSymbols = __webpack_require__(/*! has-symbols */ "./node_modules/has-symbols/index.js")();
+var regexpMatchAll = __webpack_require__(/*! ./regexp-matchall */ "./node_modules/string.prototype.matchall/regexp-matchall.js");
+
+module.exports = function getRegExpMatchAllPolyfill() {
+	if (!hasSymbols || typeof Symbol.matchAll !== 'symbol' || typeof RegExp.prototype[Symbol.matchAll] !== 'function') {
+		return regexpMatchAll;
+	}
+	return RegExp.prototype[Symbol.matchAll];
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/string.prototype.matchall/polyfill.js":
+/*!************************************************************!*\
+  !*** ./node_modules/string.prototype.matchall/polyfill.js ***!
+  \************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var implementation = __webpack_require__(/*! ./implementation */ "./node_modules/string.prototype.matchall/implementation.js");
+
+module.exports = function getPolyfill() {
+	if (String.prototype.matchAll) {
+		try {
+			''.matchAll(RegExp.prototype);
+		} catch (e) {
+			return String.prototype.matchAll;
+		}
+	}
+	return implementation;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/string.prototype.matchall/regexp-matchall.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/string.prototype.matchall/regexp-matchall.js ***!
+  \*******************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+// var Construct = require('es-abstract/2021/Construct');
+var CreateRegExpStringIterator = __webpack_require__(/*! es-abstract/2021/CreateRegExpStringIterator */ "./node_modules/es-abstract/2021/CreateRegExpStringIterator.js");
+var Get = __webpack_require__(/*! es-abstract/2021/Get */ "./node_modules/es-abstract/2021/Get.js");
+var Set = __webpack_require__(/*! es-abstract/2021/Set */ "./node_modules/es-abstract/2021/Set.js");
+var SpeciesConstructor = __webpack_require__(/*! es-abstract/2021/SpeciesConstructor */ "./node_modules/es-abstract/2021/SpeciesConstructor.js");
+var ToLength = __webpack_require__(/*! es-abstract/2021/ToLength */ "./node_modules/es-abstract/2021/ToLength.js");
+var ToString = __webpack_require__(/*! es-abstract/2021/ToString */ "./node_modules/es-abstract/2021/ToString.js");
+var Type = __webpack_require__(/*! es-abstract/2021/Type */ "./node_modules/es-abstract/2021/Type.js");
+var flagsGetter = __webpack_require__(/*! regexp.prototype.flags */ "./node_modules/regexp.prototype.flags/index.js");
+
+var OrigRegExp = RegExp;
+
+var supportsConstructingWithFlags = 'flags' in RegExp.prototype;
+
+var constructRegexWithFlags = function constructRegex(C, R) {
+	var matcher;
+	// workaround for older engines that lack RegExp.prototype.flags
+	var flags = 'flags' in R ? Get(R, 'flags') : ToString(flagsGetter(R));
+	if (supportsConstructingWithFlags && typeof flags === 'string') {
+		matcher = new C(R, flags);
+	} else if (C === OrigRegExp) {
+		// workaround for older engines that can not construct a RegExp with flags
+		matcher = new C(R.source, flags);
+	} else {
+		matcher = new C(R, flags);
+	}
+	return { flags: flags, matcher: matcher };
+};
+
+var regexMatchAll = function SymbolMatchAll(string) {
+	var R = this;
+	if (Type(R) !== 'Object') {
+		throw new TypeError('"this" value must be an Object');
+	}
+	var S = ToString(string);
+	var C = SpeciesConstructor(R, OrigRegExp);
+
+	var tmp = constructRegexWithFlags(C, R);
+	// var flags = ToString(Get(R, 'flags'));
+	var flags = tmp.flags;
+	// var matcher = Construct(C, [R, flags]);
+	var matcher = tmp.matcher;
+
+	var lastIndex = ToLength(Get(R, 'lastIndex'));
+	Set(matcher, 'lastIndex', lastIndex, true);
+	var global = flags.indexOf('g') > -1;
+	var fullUnicode = flags.indexOf('u') > -1;
+	return CreateRegExpStringIterator(matcher, S, global, fullUnicode);
+};
+
+var defineP = Object.defineProperty;
+var gOPD = Object.getOwnPropertyDescriptor;
+
+if (defineP && gOPD) {
+	var desc = gOPD(regexMatchAll, 'name');
+	if (desc && desc.configurable) {
+		defineP(regexMatchAll, 'name', { value: '[Symbol.matchAll]' });
+	}
+}
+
+module.exports = regexMatchAll;
+
+
+/***/ }),
+
+/***/ "./node_modules/string.prototype.matchall/shim.js":
+/*!********************************************************!*\
+  !*** ./node_modules/string.prototype.matchall/shim.js ***!
+  \********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var define = __webpack_require__(/*! define-properties */ "./node_modules/define-properties/index.js");
+var hasSymbols = __webpack_require__(/*! has-symbols */ "./node_modules/has-symbols/index.js")();
+var getPolyfill = __webpack_require__(/*! ./polyfill */ "./node_modules/string.prototype.matchall/polyfill.js");
+var regexpMatchAllPolyfill = __webpack_require__(/*! ./polyfill-regexp-matchall */ "./node_modules/string.prototype.matchall/polyfill-regexp-matchall.js");
+
+var defineP = Object.defineProperty;
+var gOPD = Object.getOwnPropertyDescriptor;
+
+module.exports = function shimMatchAll() {
+	var polyfill = getPolyfill();
+	define(
+		String.prototype,
+		{ matchAll: polyfill },
+		{ matchAll: function () { return String.prototype.matchAll !== polyfill; } }
+	);
+	if (hasSymbols) {
+		// eslint-disable-next-line no-restricted-properties
+		var symbol = Symbol.matchAll || (Symbol['for'] ? Symbol['for']('Symbol.matchAll') : Symbol('Symbol.matchAll'));
+		define(
+			Symbol,
+			{ matchAll: symbol },
+			{ matchAll: function () { return Symbol.matchAll !== symbol; } }
+		);
+
+		if (defineP && gOPD) {
+			var desc = gOPD(Symbol, symbol);
+			if (!desc || desc.configurable) {
+				defineP(Symbol, symbol, {
+					configurable: false,
+					enumerable: false,
+					value: symbol,
+					writable: false
+				});
+			}
+		}
+
+		var regexpMatchAll = regexpMatchAllPolyfill();
+		var func = {};
+		func[symbol] = regexpMatchAll;
+		var predicate = {};
+		predicate[symbol] = function () {
+			return RegExp.prototype[symbol] !== regexpMatchAll;
+		};
+		define(RegExp.prototype, func, predicate);
+	}
+	return polyfill;
+};
+
+
+/***/ }),
+
+/***/ "./src/decorator.js":
+/*!**************************!*\
+  !*** ./src/decorator.js ***!
+  \**************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "registerTemplates": () => (/* binding */ registerTemplates),
+/* harmony export */   "getDecorations": () => (/* binding */ getDecorations),
+/* harmony export */   "handleDecorationClickEvent": () => (/* binding */ handleDecorationClickEvent),
+/* harmony export */   "DecorationGroup": () => (/* binding */ DecorationGroup)
+/* harmony export */ });
+/* harmony import */ var _rect__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rect */ "./src/rect.js");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils */ "./src/utils.js");
+/* harmony import */ var _juggle_resize_observer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @juggle/resize-observer */ "./node_modules/@juggle/resize-observer/lib/exports/resize-observer.js");
+//
+//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
+//
+
+
+
+
+// Polyfill for iOS 13.3
+
+const ResizeObserver = window.ResizeObserver || _juggle_resize_observer__WEBPACK_IMPORTED_MODULE_2__.ResizeObserver;
+
+let styles = new Map();
+let groups = new Map();
+var lastGroupId = 0;
+
+/**
+ * Registers a list of additional supported Decoration Templates.
+ *
+ * Each template object is indexed by the style ID.
+ */
+function registerTemplates(newStyles) {
+  var stylesheet = "";
+
+  for (const [id, style] of Object.entries(newStyles)) {
+    styles.set(id, style);
+    if (style.stylesheet) {
+      stylesheet += style.stylesheet + "\n";
+    }
+  }
+
+  if (stylesheet) {
+    let styleElement = document.createElement("style");
+    styleElement.innerHTML = stylesheet;
+    document.getElementsByTagName("head")[0].appendChild(styleElement);
+  }
+}
+
+/**
+ * Returns an instance of DecorationGroup for the given group name.
+ */
+function getDecorations(groupName) {
+  var group = groups.get(groupName);
+  if (!group) {
+    let id = "r2-decoration-" + lastGroupId++;
+    group = DecorationGroup(id, groupName);
+    groups.set(groupName, group);
+  }
+  return group;
+}
+
+/**
+ * Handles click events on a Decoration.
+ * Returns whether a decoration matched this event.
+ */
+function handleDecorationClickEvent(event, clickEvent) {
+  if (groups.size === 0) {
+    return false;
+  }
+
+  function findTarget() {
+    for (const [group, groupContent] of groups) {
+      if (!groupContent.isActivable()) {
+        continue;
+      }
+
+      for (const item of groupContent.items.reverse()) {
+        if (!item.clickableElements) {
+          continue;
+        }
+        for (const element of item.clickableElements) {
+          let rect = element.getBoundingClientRect().toJSON();
+          if ((0,_rect__WEBPACK_IMPORTED_MODULE_0__.rectContainsPoint)(rect, event.clientX, event.clientY, 1)) {
+            return { group, item, element, rect };
+          }
+        }
+      }
+    }
+  }
+
+  let target = findTarget();
+  if (!target) {
+    return false;
+  }
+  webkit.messageHandlers.decorationActivated.postMessage({
+    id: target.item.decoration.id,
+    group: target.group,
+    rect: (0,_rect__WEBPACK_IMPORTED_MODULE_0__.toNativeRect)(target.item.range.getBoundingClientRect()),
+    click: clickEvent,
+  });
+  return true;
+}
+
+/**
+ * Creates a DecorationGroup object from a unique HTML ID and its name.
+ */
+function DecorationGroup(groupId, groupName) {
+  var items = [];
+  var lastItemId = 0;
+  var container = null;
+  var activable = false;
+
+  function isActivable() {
+    return activable;
+  }
+
+  function setActivable() {
+    activable = true;
+  }
+
+  /**
+   * Adds a new decoration to the group.
+   */
+  function add(decoration) {
+    let id = groupId + "-" + lastItemId++;
+
+    let range = (0,_utils__WEBPACK_IMPORTED_MODULE_1__.rangeFromLocator)(decoration.locator);
+    if (!range) {
+      (0,_utils__WEBPACK_IMPORTED_MODULE_1__.log)("Can't locate DOM range for decoration", decoration);
+      return;
+    }
+
+    let item = { id, decoration, range };
+    items.push(item);
+    layout(item);
+  }
+
+  /**
+   * Removes the decoration with given ID from the group.
+   */
+  function remove(decorationId) {
+    let index = items.findIndex((i) => i.decoration.id === decorationId);
+    if (index === -1) {
+      return;
+    }
+
+    let item = items[index];
+    items.splice(index, 1);
+    item.clickableElements = null;
+    if (item.container) {
+      item.container.remove();
+      item.container = null;
+    }
+  }
+
+  /**
+   * Notifies that the given decoration was modified and needs to be updated.
+   */
+  function update(decoration) {
+    remove(decoration.id);
+    add(decoration);
+  }
+
+  /**
+   * Removes all decorations from this group.
+   */
+  function clear() {
+    clearContainer();
+    items.length = 0;
+  }
+
+  /**
+   * Recreates the decoration elements.
+   *
+   * To be called after reflowing the resource, for example.
+   */
+  function requestLayout() {
+    clearContainer();
+    items.forEach((item) => layout(item));
+  }
+
+  /**
+   * Layouts a single Decoration item.
+   */
+  function layout(item) {
+    let groupContainer = requireContainer();
+
+    let style = styles.get(item.decoration.style);
+    if (!style) {
+      (0,_utils__WEBPACK_IMPORTED_MODULE_1__.logErrorMessage)(`Unknown decoration style: ${item.decoration.style}`);
+      return;
+    }
+
+    let itemContainer = document.createElement("div");
+    itemContainer.setAttribute("id", item.id);
+    itemContainer.setAttribute("data-style", item.decoration.style);
+    itemContainer.style.setProperty("pointer-events", "none");
+
+    let viewportWidth = window.innerWidth;
+    let columnCount = parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue(
+        "column-count"
+      )
+    );
+    let pageWidth = viewportWidth / (columnCount || 1);
+    let scrollingElement = document.scrollingElement;
+    let xOffset = scrollingElement.scrollLeft;
+    let yOffset = scrollingElement.scrollTop;
+
+    function positionElement(element, rect, boundingRect) {
+      element.style.position = "absolute";
+
+      if (style.width === "wrap") {
+        element.style.width = `${rect.width}px`;
+        element.style.height = `${rect.height}px`;
+        element.style.left = `${rect.left + xOffset}px`;
+        element.style.top = `${rect.top + yOffset}px`;
+      } else if (style.width === "viewport") {
+        element.style.width = `${viewportWidth}px`;
+        element.style.height = `${rect.height}px`;
+        let left = Math.floor(rect.left / viewportWidth) * viewportWidth;
+        element.style.left = `${left + xOffset}px`;
+        element.style.top = `${rect.top + yOffset}px`;
+      } else if (style.width === "bounds") {
+        element.style.width = `${boundingRect.width}px`;
+        element.style.height = `${rect.height}px`;
+        element.style.left = `${boundingRect.left + xOffset}px`;
+        element.style.top = `${rect.top + yOffset}px`;
+      } else if (style.width === "page") {
+        element.style.width = `${pageWidth}px`;
+        element.style.height = `${rect.height}px`;
+        let left = Math.floor(rect.left / pageWidth) * pageWidth;
+        element.style.left = `${left + xOffset}px`;
+        element.style.top = `${rect.top + yOffset}px`;
+      }
+    }
+
+    let boundingRect = item.range.getBoundingClientRect();
+
+    let elementTemplate;
+    try {
+      let template = document.createElement("template");
+      template.innerHTML = item.decoration.element.trim();
+      elementTemplate = template.content.firstElementChild;
+    } catch (error) {
+      (0,_utils__WEBPACK_IMPORTED_MODULE_1__.logErrorMessage)(
+        `Invalid decoration element "${item.decoration.element}": ${error.message}`
+      );
+      return;
+    }
+
+    if (style.layout === "boxes") {
+      let doNotMergeHorizontallyAlignedRects = true;
+      let clientRects = (0,_rect__WEBPACK_IMPORTED_MODULE_0__.getClientRectsNoOverlap)(
+        item.range,
+        doNotMergeHorizontallyAlignedRects
+      );
+
+      clientRects = clientRects.sort((r1, r2) => {
+        if (r1.top < r2.top) {
+          return -1;
+        } else if (r1.top > r2.top) {
+          return 1;
+        } else {
+          return 0;
+        }
+      });
+
+      for (let clientRect of clientRects) {
+        const line = elementTemplate.cloneNode(true);
+        line.style.setProperty("pointer-events", "none");
+        positionElement(line, clientRect, boundingRect);
+        itemContainer.append(line);
+      }
+    } else if (style.layout === "bounds") {
+      const bounds = elementTemplate.cloneNode(true);
+      bounds.style.setProperty("pointer-events", "none");
+      positionElement(bounds, boundingRect, boundingRect);
+
+      itemContainer.append(bounds);
+    }
+
+    groupContainer.append(itemContainer);
+    item.container = itemContainer;
+    item.clickableElements = Array.from(
+      itemContainer.querySelectorAll("[data-activable='1']")
+    );
+    if (item.clickableElements.length === 0) {
+      item.clickableElements = Array.from(itemContainer.children);
+    }
+  }
+
+  /**
+   * Returns the group container element, after making sure it exists.
+   */
+  function requireContainer() {
+    if (!container) {
+      container = document.createElement("div");
+      container.setAttribute("id", groupId);
+      container.setAttribute("data-group", groupName);
+      container.style.setProperty("pointer-events", "none");
+      document.body.append(container);
+    }
+    return container;
+  }
+
+  /**
+   * Removes the group container.
+   */
+  function clearContainer() {
+    if (container) {
+      container.remove();
+      container = null;
+    }
+  }
+
+  return {
+    add,
+    remove,
+    update,
+    clear,
+    items,
+    requestLayout,
+    isActivable,
+    setActivable,
+  };
+}
+
+window.addEventListener(
+  "load",
+  function () {
+    // Will relayout all the decorations when the document body is resized.
+    const body = document.body;
+    var lastSize = { width: 0, height: 0 };
+    const observer = new ResizeObserver(() => {
+      if (
+        lastSize.width === body.clientWidth &&
+        lastSize.height === body.clientHeight
+      ) {
+        return;
+      }
+      lastSize = {
+        width: body.clientWidth,
+        height: body.clientHeight,
+      };
+
+      groups.forEach(function (group) {
+        group.requestLayout();
+      });
+    });
+    observer.observe(body);
+  },
+  false
+);
+
+
+/***/ }),
+
+/***/ "./src/gestures.js":
+/*!*************************!*\
+  !*** ./src/gestures.js ***!
+  \*************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _decorator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./decorator */ "./src/decorator.js");
+/* harmony import */ var _rect__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./rect */ "./src/rect.js");
+//
+//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
+//
+
+
+
+
+window.addEventListener("DOMContentLoaded", function () {
+  // If we don't set the CSS cursor property to pointer, then the click events are not triggered pre-iOS 13.
+  document.body.style.cursor = "pointer";
+
+  document.addEventListener("click", onClick, false);
+});
+
+function onClick(event) {
+  if (!getSelection().isCollapsed) {
+    // There's an on-going selection, the tap will dismiss it so we don't forward it.
+    return;
+  }
+
+  let point = (0,_rect__WEBPACK_IMPORTED_MODULE_1__.adjustPointToViewport)({ x: event.clientX, y: event.clientY });
+  let clickEvent = {
+    defaultPrevented: event.defaultPrevented,
+    x: point.x,
+    y: point.y,
+    targetElement: event.target.outerHTML,
+    interactiveElement: nearestInteractiveElement(event.target),
+  };
+
+  if ((0,_decorator__WEBPACK_IMPORTED_MODULE_0__.handleDecorationClickEvent)(event, clickEvent)) {
+    return;
+  }
+
+  // Send the tap data over the JS bridge even if it's been handled
+  // within the webview, so that it can be preserved and used
+  // by the WKNavigationDelegate if needed.
+  webkit.messageHandlers.tap.postMessage(clickEvent);
+
+  // We don't want to disable the default WebView behavior as it breaks some features without bringing any value.
+  // event.stopPropagation();
+  // event.preventDefault();
+}
+
+// See. https://github.com/JayPanoz/architecture/tree/touch-handling/misc/touch-handling
+function nearestInteractiveElement(element) {
+  var interactiveTags = [
+    "a",
+    "audio",
+    "button",
+    "canvas",
+    "details",
+    "input",
+    "label",
+    "option",
+    "select",
+    "submit",
+    "textarea",
+    "video",
+  ];
+  if (interactiveTags.indexOf(element.nodeName.toLowerCase()) !== -1) {
+    return element.outerHTML;
+  }
+
+  // Checks whether the element is editable by the user.
+  if (
+    element.hasAttribute("contenteditable") &&
+    element.getAttribute("contenteditable").toLowerCase() != "false"
+  ) {
+    return element.outerHTML;
+  }
+
+  // Checks parents recursively because the touch might be for example on an <em> inside a <a>.
+  if (element.parentElement) {
+    return nearestInteractiveElement(element.parentElement);
+  }
+
+  return null;
+}
+
+
+/***/ }),
+
+/***/ "./src/index.js":
+/*!**********************!*\
+  !*** ./src/index.js ***!
+  \**********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _gestures__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./gestures */ "./src/gestures.js");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils */ "./src/utils.js");
+/* harmony import */ var _decorator__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./decorator */ "./src/decorator.js");
+//
+//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
+//
+
+// Base script used by both reflowable and fixed layout resources.
+
+
+
+
+
+// Public API used by the navigator.
+window.readium = {
+  // utils
+  scrollToId: _utils__WEBPACK_IMPORTED_MODULE_1__.scrollToId,
+  scrollToPosition: _utils__WEBPACK_IMPORTED_MODULE_1__.scrollToPosition,
+  scrollToText: _utils__WEBPACK_IMPORTED_MODULE_1__.scrollToText,
+  scrollLeft: _utils__WEBPACK_IMPORTED_MODULE_1__.scrollLeft,
+  scrollRight: _utils__WEBPACK_IMPORTED_MODULE_1__.scrollRight,
+  setProperty: _utils__WEBPACK_IMPORTED_MODULE_1__.setProperty,
+  removeProperty: _utils__WEBPACK_IMPORTED_MODULE_1__.removeProperty,
+
+  // decoration
+  registerDecorationTemplates: _decorator__WEBPACK_IMPORTED_MODULE_2__.registerTemplates,
+  getDecorations: _decorator__WEBPACK_IMPORTED_MODULE_2__.getDecorations,
+};
+
+
+/***/ }),
+
+/***/ "./src/rect.js":
+/*!*********************!*\
+  !*** ./src/rect.js ***!
+  \*********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "toNativeRect": () => (/* binding */ toNativeRect),
+/* harmony export */   "adjustPointToViewport": () => (/* binding */ adjustPointToViewport),
+/* harmony export */   "getClientRectsNoOverlap": () => (/* binding */ getClientRectsNoOverlap),
+/* harmony export */   "rectContainsPoint": () => (/* binding */ rectContainsPoint)
+/* harmony export */ });
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils.js");
+//
+//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
+//
+
+
+
+const debug = false;
+
+/**
+ * Converts a DOMRect into a JSON object understandable by the native side.
+ */
+function toNativeRect(rect) {
+  let point = adjustPointToViewport({ x: rect.left, y: rect.top });
+
+  const width = rect.width;
+  const height = rect.height;
+  const left = point.x;
+  const top = point.y;
+  const right = left + width;
+  const bottom = top + height;
+  return { width, height, left, top, right, bottom };
+}
+
+/**
+ * Adjusts the given coordinates to the viewport for FXL resources.
+ */
+function adjustPointToViewport(point) {
+  if (!frameElement) {
+    return point;
+  }
+  let frameRect = frameElement.getBoundingClientRect();
+  if (!frameRect) {
+    return point;
+  }
+
+  let topScrollingElement = window.top.document.documentElement;
+  return {
+    x: point.x + frameRect.x + topScrollingElement.scrollLeft,
+    y: point.y + frameRect.y + topScrollingElement.scrollTop,
+  };
+}
+
+function getClientRectsNoOverlap(
+  range,
+  doNotMergeHorizontallyAlignedRects
+) {
+  let clientRects = range.getClientRects();
+
+  const tolerance = 1;
+  const originalRects = [];
+  for (const rangeClientRect of clientRects) {
+    originalRects.push({
+      bottom: rangeClientRect.bottom,
+      height: rangeClientRect.height,
+      left: rangeClientRect.left,
+      right: rangeClientRect.right,
+      top: rangeClientRect.top,
+      width: rangeClientRect.width,
+    });
+  }
+  const mergedRects = mergeTouchingRects(
+    originalRects,
+    tolerance,
+    doNotMergeHorizontallyAlignedRects
+  );
+  const noContainedRects = removeContainedRects(mergedRects, tolerance);
+  const newRects = replaceOverlapingRects(noContainedRects);
+  const minArea = 2 * 2;
+  for (let j = newRects.length - 1; j >= 0; j--) {
+    const rect = newRects[j];
+    const bigEnough = rect.width * rect.height > minArea;
+    if (!bigEnough) {
+      if (newRects.length > 1) {
+        log("CLIENT RECT: remove small");
+        newRects.splice(j, 1);
+      } else {
+        log("CLIENT RECT: remove small, but keep otherwise empty!");
+        break;
+      }
+    }
+  }
+  log(`CLIENT RECT: reduced ${originalRects.length} --> ${newRects.length}`);
+  return newRects;
+}
+
+function mergeTouchingRects(
+  rects,
+  tolerance,
+  doNotMergeHorizontallyAlignedRects
+) {
+  for (let i = 0; i < rects.length; i++) {
+    for (let j = i + 1; j < rects.length; j++) {
+      const rect1 = rects[i];
+      const rect2 = rects[j];
+      if (rect1 === rect2) {
+        log("mergeTouchingRects rect1 === rect2 ??!");
+        continue;
+      }
+      const rectsLineUpVertically =
+        almostEqual(rect1.top, rect2.top, tolerance) &&
+        almostEqual(rect1.bottom, rect2.bottom, tolerance);
+      const rectsLineUpHorizontally =
+        almostEqual(rect1.left, rect2.left, tolerance) &&
+        almostEqual(rect1.right, rect2.right, tolerance);
+      const horizontalAllowed = !doNotMergeHorizontallyAlignedRects;
+      const aligned =
+        (rectsLineUpHorizontally && horizontalAllowed) ||
+        (rectsLineUpVertically && !rectsLineUpHorizontally);
+      const canMerge = aligned && rectsTouchOrOverlap(rect1, rect2, tolerance);
+      if (canMerge) {
+        log(
+          `CLIENT RECT: merging two into one, VERTICAL: ${rectsLineUpVertically} HORIZONTAL: ${rectsLineUpHorizontally} (${doNotMergeHorizontallyAlignedRects})`
+        );
+        const newRects = rects.filter((rect) => {
+          return rect !== rect1 && rect !== rect2;
+        });
+        const replacementClientRect = getBoundingRect(rect1, rect2);
+        newRects.push(replacementClientRect);
+        return mergeTouchingRects(
+          newRects,
+          tolerance,
+          doNotMergeHorizontallyAlignedRects
+        );
+      }
+    }
+  }
+  return rects;
+}
+
+function getBoundingRect(rect1, rect2) {
+  const left = Math.min(rect1.left, rect2.left);
+  const right = Math.max(rect1.right, rect2.right);
+  const top = Math.min(rect1.top, rect2.top);
+  const bottom = Math.max(rect1.bottom, rect2.bottom);
+  return {
+    bottom,
+    height: bottom - top,
+    left,
+    right,
+    top,
+    width: right - left,
+  };
+}
+
+function removeContainedRects(rects, tolerance) {
+  const rectsToKeep = new Set(rects);
+  for (const rect of rects) {
+    const bigEnough = rect.width > 1 && rect.height > 1;
+    if (!bigEnough) {
+      log("CLIENT RECT: remove tiny");
+      rectsToKeep.delete(rect);
+      continue;
+    }
+    for (const possiblyContainingRect of rects) {
+      if (rect === possiblyContainingRect) {
+        continue;
+      }
+      if (!rectsToKeep.has(possiblyContainingRect)) {
+        continue;
+      }
+      if (rectContains(possiblyContainingRect, rect, tolerance)) {
+        log("CLIENT RECT: remove contained");
+        rectsToKeep.delete(rect);
+        break;
+      }
+    }
+  }
+  return Array.from(rectsToKeep);
+}
+
+function rectContains(rect1, rect2, tolerance) {
+  return (
+    rectContainsPoint(rect1, rect2.left, rect2.top, tolerance) &&
+    rectContainsPoint(rect1, rect2.right, rect2.top, tolerance) &&
+    rectContainsPoint(rect1, rect2.left, rect2.bottom, tolerance) &&
+    rectContainsPoint(rect1, rect2.right, rect2.bottom, tolerance)
+  );
+}
+
+function rectContainsPoint(rect, x, y, tolerance) {
+  return (
+    (rect.left < x || almostEqual(rect.left, x, tolerance)) &&
+    (rect.right > x || almostEqual(rect.right, x, tolerance)) &&
+    (rect.top < y || almostEqual(rect.top, y, tolerance)) &&
+    (rect.bottom > y || almostEqual(rect.bottom, y, tolerance))
+  );
+}
+
+function replaceOverlapingRects(rects) {
+  for (let i = 0; i < rects.length; i++) {
+    for (let j = i + 1; j < rects.length; j++) {
+      const rect1 = rects[i];
+      const rect2 = rects[j];
+      if (rect1 === rect2) {
+        log("replaceOverlapingRects rect1 === rect2 ??!");
+        continue;
+      }
+      if (rectsTouchOrOverlap(rect1, rect2, -1)) {
+        let toAdd = [];
+        let toRemove;
+        const subtractRects1 = rectSubtract(rect1, rect2);
+        if (subtractRects1.length === 1) {
+          toAdd = subtractRects1;
+          toRemove = rect1;
+        } else {
+          const subtractRects2 = rectSubtract(rect2, rect1);
+          if (subtractRects1.length < subtractRects2.length) {
+            toAdd = subtractRects1;
+            toRemove = rect1;
+          } else {
+            toAdd = subtractRects2;
+            toRemove = rect2;
+          }
+        }
+        log(`CLIENT RECT: overlap, cut one rect into ${toAdd.length}`);
+        const newRects = rects.filter((rect) => {
+          return rect !== toRemove;
+        });
+        Array.prototype.push.apply(newRects, toAdd);
+        return replaceOverlapingRects(newRects);
+      }
+    }
+  }
+  return rects;
+}
+
+function rectSubtract(rect1, rect2) {
+  const rectIntersected = rectIntersect(rect2, rect1);
+  if (rectIntersected.height === 0 || rectIntersected.width === 0) {
+    return [rect1];
+  }
+  const rects = [];
+  {
+    const rectA = {
+      bottom: rect1.bottom,
+      height: 0,
+      left: rect1.left,
+      right: rectIntersected.left,
+      top: rect1.top,
+      width: 0,
+    };
+    rectA.width = rectA.right - rectA.left;
+    rectA.height = rectA.bottom - rectA.top;
+    if (rectA.height !== 0 && rectA.width !== 0) {
+      rects.push(rectA);
+    }
+  }
+  {
+    const rectB = {
+      bottom: rectIntersected.top,
+      height: 0,
+      left: rectIntersected.left,
+      right: rectIntersected.right,
+      top: rect1.top,
+      width: 0,
+    };
+    rectB.width = rectB.right - rectB.left;
+    rectB.height = rectB.bottom - rectB.top;
+    if (rectB.height !== 0 && rectB.width !== 0) {
+      rects.push(rectB);
+    }
+  }
+  {
+    const rectC = {
+      bottom: rect1.bottom,
+      height: 0,
+      left: rectIntersected.left,
+      right: rectIntersected.right,
+      top: rectIntersected.bottom,
+      width: 0,
+    };
+    rectC.width = rectC.right - rectC.left;
+    rectC.height = rectC.bottom - rectC.top;
+    if (rectC.height !== 0 && rectC.width !== 0) {
+      rects.push(rectC);
+    }
+  }
+  {
+    const rectD = {
+      bottom: rect1.bottom,
+      height: 0,
+      left: rectIntersected.right,
+      right: rect1.right,
+      top: rect1.top,
+      width: 0,
+    };
+    rectD.width = rectD.right - rectD.left;
+    rectD.height = rectD.bottom - rectD.top;
+    if (rectD.height !== 0 && rectD.width !== 0) {
+      rects.push(rectD);
+    }
+  }
+  return rects;
+}
+
+function rectIntersect(rect1, rect2) {
+  const maxLeft = Math.max(rect1.left, rect2.left);
+  const minRight = Math.min(rect1.right, rect2.right);
+  const maxTop = Math.max(rect1.top, rect2.top);
+  const minBottom = Math.min(rect1.bottom, rect2.bottom);
+  return {
+    bottom: minBottom,
+    height: Math.max(0, minBottom - maxTop),
+    left: maxLeft,
+    right: minRight,
+    top: maxTop,
+    width: Math.max(0, minRight - maxLeft),
+  };
+}
+
+function rectsTouchOrOverlap(rect1, rect2, tolerance) {
+  return (
+    (rect1.left < rect2.right ||
+      (tolerance >= 0 && almostEqual(rect1.left, rect2.right, tolerance))) &&
+    (rect2.left < rect1.right ||
+      (tolerance >= 0 && almostEqual(rect2.left, rect1.right, tolerance))) &&
+    (rect1.top < rect2.bottom ||
+      (tolerance >= 0 && almostEqual(rect1.top, rect2.bottom, tolerance))) &&
+    (rect2.top < rect1.bottom ||
+      (tolerance >= 0 && almostEqual(rect2.top, rect1.bottom, tolerance)))
+  );
+}
+
+function almostEqual(a, b, tolerance) {
+  return Math.abs(a - b) <= tolerance;
+}
+
+function log() {
+  if (debug) {
+    _utils__WEBPACK_IMPORTED_MODULE_0__.log.apply(null, arguments);
+  }
+}
+
+
+/***/ }),
+
+/***/ "./src/selection.js":
+/*!**************************!*\
+  !*** ./src/selection.js ***!
+  \**************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "getCurrentSelection": () => (/* binding */ getCurrentSelection),
+/* harmony export */   "convertRangeInfo": () => (/* binding */ convertRangeInfo),
+/* harmony export */   "location2RangeInfo": () => (/* binding */ location2RangeInfo)
+/* harmony export */ });
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils.js");
+/* harmony import */ var _rect__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./rect */ "./src/rect.js");
+/* harmony import */ var _vendor_hypothesis_anchoring_text_range__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./vendor/hypothesis/anchoring/text-range */ "./src/vendor/hypothesis/anchoring/text-range.js");
+/* harmony import */ var string_prototype_matchall__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! string.prototype.matchall */ "./node_modules/string.prototype.matchall/index.js");
+/* harmony import */ var string_prototype_matchall__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(string_prototype_matchall__WEBPACK_IMPORTED_MODULE_3__);
+//
+//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
+//
+
+
+
+
+
+// Polyfill for iOS 12
+
+string_prototype_matchall__WEBPACK_IMPORTED_MODULE_3___default().shim();
+
+const debug = true;
+
+function getCurrentSelection() {
+  if (!readium.link) {
+    return null;
+  }
+  const href = readium.link.href;
+  if (!href) {
+    return null;
+  }
+  const text = getCurrentSelectionText();
+  if (!text) {
+    return null;
+  }
+  const rect = getSelectionRect();
+  return { href, text, rect };
+}
+
+function getSelectionRect() {
+  try {
+    let sel = window.getSelection();
+    if (!sel) {
+      return;
+    }
+    let range = sel.getRangeAt(0);
+
+    return (0,_rect__WEBPACK_IMPORTED_MODULE_1__.toNativeRect)(range.getBoundingClientRect());
+  } catch (e) {
+    (0,_utils__WEBPACK_IMPORTED_MODULE_0__.logError)(e);
+    return null;
+  }
+}
+
+function getCurrentSelectionText() {
+  const selection = window.getSelection();
+  if (!selection) {
+    return undefined;
+  }
+  if (selection.isCollapsed) {
+    return undefined;
+  }
+  const highlight = selection.toString();
+  const cleanHighlight = highlight
+    .trim()
+    .replace(/\n/g, " ")
+    .replace(/\s\s+/g, " ");
+  if (cleanHighlight.length === 0) {
+    return undefined;
+  }
+  if (!selection.anchorNode || !selection.focusNode) {
+    return undefined;
+  }
+  const range =
+    selection.rangeCount === 1
+      ? selection.getRangeAt(0)
+      : createOrderedRange(
+          selection.anchorNode,
+          selection.anchorOffset,
+          selection.focusNode,
+          selection.focusOffset
+        );
+  if (!range || range.collapsed) {
+    log("$$$$$$$$$$$$$$$$$ CANNOT GET NON-COLLAPSED SELECTION RANGE?!");
+    return undefined;
+  }
+
+  const text = document.body.textContent;
+  const textRange = _vendor_hypothesis_anchoring_text_range__WEBPACK_IMPORTED_MODULE_2__.TextRange.fromRange(range).relativeTo(document.body);
+  const start = textRange.start.offset;
+  const end = textRange.end.offset;
+
+  const snippetLength = 200;
+
+  // Compute the text before the highlight, ignoring the first "word", which might be cut.
+  let before = text.slice(Math.max(0, start - snippetLength), start);
+  let firstWordStart = before.search(/\P{L}\p{L}/gu);
+  if (firstWordStart !== -1) {
+    before = before.slice(firstWordStart + 1);
+  }
+
+  // Compute the text after the highlight, ignoring the last "word", which might be cut.
+  let after = text.slice(end, Math.min(text.length, end + snippetLength));
+  let lastWordEnd = Array.from(after.matchAll(/\p{L}\P{L}/gu)).pop();
+  if (lastWordEnd !== undefined && lastWordEnd.index > 1) {
+    after = after.slice(0, lastWordEnd.index + 1);
+  }
+
+  return { highlight, before, after };
+}
+
+function createOrderedRange(startNode, startOffset, endNode, endOffset) {
+  const range = new Range();
+  range.setStart(startNode, startOffset);
+  range.setEnd(endNode, endOffset);
+  if (!range.collapsed) {
+    return range;
+  }
+  log(">>> createOrderedRange COLLAPSED ... RANGE REVERSE?");
+  const rangeReverse = new Range();
+  rangeReverse.setStart(endNode, endOffset);
+  rangeReverse.setEnd(startNode, startOffset);
+  if (!rangeReverse.collapsed) {
+    log(">>> createOrderedRange RANGE REVERSE OK.");
+    return range;
+  }
+  log(">>> createOrderedRange RANGE REVERSE ALSO COLLAPSED?!");
+  return undefined;
+}
+
+function convertRangeInfo(document, rangeInfo) {
+  const startElement = document.querySelector(
+    rangeInfo.startContainerElementCssSelector
+  );
+  if (!startElement) {
+    log("^^^ convertRangeInfo NO START ELEMENT CSS SELECTOR?!");
+    return undefined;
+  }
+  let startContainer = startElement;
+  if (rangeInfo.startContainerChildTextNodeIndex >= 0) {
+    if (
+      rangeInfo.startContainerChildTextNodeIndex >=
+      startElement.childNodes.length
+    ) {
+      log(
+        "^^^ convertRangeInfo rangeInfo.startContainerChildTextNodeIndex >= startElement.childNodes.length?!"
+      );
+      return undefined;
+    }
+    startContainer =
+      startElement.childNodes[rangeInfo.startContainerChildTextNodeIndex];
+    if (startContainer.nodeType !== Node.TEXT_NODE) {
+      log("^^^ convertRangeInfo startContainer.nodeType !== Node.TEXT_NODE?!");
+      return undefined;
+    }
+  }
+  const endElement = document.querySelector(
+    rangeInfo.endContainerElementCssSelector
+  );
+  if (!endElement) {
+    log("^^^ convertRangeInfo NO END ELEMENT CSS SELECTOR?!");
+    return undefined;
+  }
+  let endContainer = endElement;
+  if (rangeInfo.endContainerChildTextNodeIndex >= 0) {
+    if (
+      rangeInfo.endContainerChildTextNodeIndex >= endElement.childNodes.length
+    ) {
+      log(
+        "^^^ convertRangeInfo rangeInfo.endContainerChildTextNodeIndex >= endElement.childNodes.length?!"
+      );
+      return undefined;
+    }
+    endContainer =
+      endElement.childNodes[rangeInfo.endContainerChildTextNodeIndex];
+    if (endContainer.nodeType !== Node.TEXT_NODE) {
+      log("^^^ convertRangeInfo endContainer.nodeType !== Node.TEXT_NODE?!");
+      return undefined;
+    }
+  }
+  return createOrderedRange(
+    startContainer,
+    rangeInfo.startOffset,
+    endContainer,
+    rangeInfo.endOffset
+  );
+}
+
+function location2RangeInfo(location) {
+  const locations = location.locations;
+  const domRange = locations.domRange;
+  const start = domRange.start;
+  const end = domRange.end;
+
+  return {
+    endContainerChildTextNodeIndex: end.textNodeIndex,
+    endContainerElementCssSelector: end.cssSelector,
+    endOffset: end.offset,
+    startContainerChildTextNodeIndex: start.textNodeIndex,
+    startContainerElementCssSelector: start.cssSelector,
+    startOffset: start.offset,
+  };
+}
+
+function log() {
+  if (debug) {
+    _utils__WEBPACK_IMPORTED_MODULE_0__.log.apply(null, arguments);
+  }
+}
+
+
+/***/ }),
+
+/***/ "./src/utils.js":
+/*!**********************!*\
+  !*** ./src/utils.js ***!
+  \**********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "isScrollModeEnabled": () => (/* binding */ isScrollModeEnabled),
+/* harmony export */   "scrollToId": () => (/* binding */ scrollToId),
+/* harmony export */   "scrollToPosition": () => (/* binding */ scrollToPosition),
+/* harmony export */   "scrollToText": () => (/* binding */ scrollToText),
+/* harmony export */   "scrollLeft": () => (/* binding */ scrollLeft),
+/* harmony export */   "scrollRight": () => (/* binding */ scrollRight),
+/* harmony export */   "rangeFromLocator": () => (/* binding */ rangeFromLocator),
+/* harmony export */   "setProperty": () => (/* binding */ setProperty),
+/* harmony export */   "removeProperty": () => (/* binding */ removeProperty),
+/* harmony export */   "log": () => (/* binding */ log),
+/* harmony export */   "logErrorMessage": () => (/* binding */ logErrorMessage),
+/* harmony export */   "logError": () => (/* binding */ logError)
+/* harmony export */ });
+/* harmony import */ var _vendor_hypothesis_anchoring_types__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./vendor/hypothesis/anchoring/types */ "./src/vendor/hypothesis/anchoring/types.js");
+/* harmony import */ var _selection__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./selection */ "./src/selection.js");
+//
+//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
+//
+
+// Catch JS errors to log them in the app.
+
+
+
+
+window.addEventListener(
+  "error",
+  function (event) {
+    webkit.messageHandlers.logError.postMessage({
+      message: event.message,
+      filename: event.filename,
+      line: event.lineno,
+    });
+  },
+  false
+);
+
+// Notify native code that the page has loaded.
+window.addEventListener(
+  "load",
+  function () {
+    // on page load
+    window.addEventListener("orientationchange", function () {
+      orientationChanged();
+      snapCurrentPosition();
+    });
+    orientationChanged();
+  },
+  false
+);
+
+var last_known_scrollX_position = 0;
+var last_known_scrollY_position = 0;
+var ticking = false;
+var maxScreenX = 0;
+
+// Position in range [0 - 1].
+function update(position) {
+  var positionString = position.toString();
+  webkit.messageHandlers.progressionChanged.postMessage(positionString);
+}
+
+window.addEventListener("scroll", function () {
+  last_known_scrollY_position =
+    window.scrollY / document.scrollingElement.scrollHeight;
+  // Using Math.abs because for RTL books, the value will be negative.
+  last_known_scrollX_position = Math.abs(
+    window.scrollX / document.scrollingElement.scrollWidth
+  );
+
+  // Window is hidden
+  if (
+    document.scrollingElement.scrollWidth === 0 ||
+    document.scrollingElement.scrollHeight === 0
+  ) {
+    return;
+  }
+
+  if (!ticking) {
+    window.requestAnimationFrame(function () {
+      update(
+        isScrollModeEnabled()
+          ? last_known_scrollY_position
+          : last_known_scrollX_position
+      );
+      ticking = false;
+    });
+  }
+  ticking = true;
+});
+
+document.addEventListener(
+  "selectionchange",
+  debounce(50, function () {
+    webkit.messageHandlers.selectionChanged.postMessage((0,_selection__WEBPACK_IMPORTED_MODULE_1__.getCurrentSelection)());
+  })
+);
+
+function orientationChanged() {
+  maxScreenX =
+    window.orientation === 0 || window.orientation == 180
+      ? screen.width
+      : screen.height;
+}
+
+function isScrollModeEnabled() {
+  return (
+    document.documentElement.style
+      .getPropertyValue("--USER__scroll")
+      .toString()
+      .trim() === "readium-scroll-on"
+  );
+}
+
+// Scroll to the given TagId in document and snap.
+function scrollToId(id) {
+  let element = document.getElementById(id);
+  if (!element) {
+    return false;
+  }
+
+  scrollToRect(element.getBoundingClientRect());
+  return true;
+}
+
+// Position must be in the range [0 - 1], 0-100%.
+function scrollToPosition(position, dir) {
+  console.log("ScrollToPosition");
+  if (position < 0 || position > 1) {
+    console.log("InvalidPosition");
+    return;
+  }
+
+  if (isScrollModeEnabled()) {
+    let offset = document.scrollingElement.scrollHeight * position;
+    document.scrollingElement.scrollTop = offset;
+    // window.scrollTo(0, offset);
+  } else {
+    var documentWidth = document.scrollingElement.scrollWidth;
+    var factor = dir == "rtl" ? -1 : 1;
+    let offset = documentWidth * position * factor;
+    document.scrollingElement.scrollLeft = snapOffset(offset);
+  }
+}
+
+// Scrolls to the first occurrence of the given text snippet.
+//
+// The expected text argument is a Locator Text object, as defined here:
+// https://readium.org/architecture/models/locators/
+function scrollToText(text) {
+  let range = rangeFromLocator({ text });
+  if (!range) {
+    return false;
+  }
+  scrollToRange(range);
+  return true;
+}
+
+function scrollToRange(range) {
+  scrollToRect(range.getBoundingClientRect());
+}
+
+function scrollToRect(rect) {
+  if (isScrollModeEnabled()) {
+    document.scrollingElement.scrollTop =
+      rect.top + window.scrollY - window.innerHeight / 2;
+  } else {
+    document.scrollingElement.scrollLeft = snapOffset(
+      rect.left + window.scrollX
+    );
+  }
+}
+
+// Returns false if the page is already at the left-most scroll offset.
+function scrollLeft(dir) {
+  var isRTL = dir == "rtl";
+  var documentWidth = document.scrollingElement.scrollWidth;
+  var pageWidth = window.innerWidth;
+  var offset = window.scrollX - pageWidth;
+  var minOffset = isRTL ? -(documentWidth - pageWidth) : 0;
+  return scrollToOffset(Math.max(offset, minOffset));
+}
+
+// Returns false if the page is already at the right-most scroll offset.
+function scrollRight(dir) {
+  var isRTL = dir == "rtl";
+  var documentWidth = document.scrollingElement.scrollWidth;
+  var pageWidth = window.innerWidth;
+  var offset = window.scrollX + pageWidth;
+  var maxOffset = isRTL ? 0 : documentWidth - pageWidth;
+  return scrollToOffset(Math.min(offset, maxOffset));
+}
+
+// Scrolls to the given left offset.
+// Returns false if the page scroll position is already close enough to the given offset.
+function scrollToOffset(offset) {
+  var currentOffset = window.scrollX;
+  var pageWidth = window.innerWidth;
+  document.scrollingElement.scrollLeft = offset;
+  // In some case the scrollX cannot reach the position respecting to innerWidth
+  var diff = Math.abs(currentOffset - offset) / pageWidth;
+  return diff > 0.01;
+}
+
+// Snap the offset to the screen width (page width).
+function snapOffset(offset) {
+  var value = offset + 1;
+
+  return value - (value % maxScreenX);
+}
+
+function snapCurrentPosition() {
+  if (isScrollModeEnabled()) {
+    return;
+  }
+  var currentOffset = window.scrollX;
+  var currentOffsetSnapped = snapOffset(currentOffset + 1);
+
+  document.scrollingElement.scrollLeft = currentOffsetSnapped;
+}
+
+function rangeFromLocator(locator) {
+  let text = locator.text;
+  if (!text || !text.highlight) {
+    return null;
+  }
+  try {
+    let anchor = new _vendor_hypothesis_anchoring_types__WEBPACK_IMPORTED_MODULE_0__.TextQuoteAnchor(document.body, text.highlight, {
+      prefix: text.before,
+      suffix: text.after,
+    });
+    return anchor.toRange();
+  } catch (e) {
+    logError(e);
+    return null;
+  }
+}
+
+/// User Settings.
+
+// For setting user setting.
+function setProperty(key, value) {
+  var root = document.documentElement;
+
+  root.style.setProperty(key, value);
+}
+
+// For removing user setting.
+function removeProperty(key) {
+  var root = document.documentElement;
+
+  root.style.removeProperty(key);
+}
+
+/// Toolkit
+
+function debounce(delay, func) {
+  var timeout;
+  return function () {
+    var self = this;
+    var args = arguments;
+    function callback() {
+      func.apply(self, args);
+      timeout = null;
+    }
+    clearTimeout(timeout);
+    timeout = setTimeout(callback, delay);
+  };
+}
+
+function log() {
+  var message = Array.prototype.slice.call(arguments).join(" ");
+  webkit.messageHandlers.log.postMessage(message);
+}
+
+function logErrorMessage(msg) {
+  logError(new Error(msg));
+}
+
+function logError(e) {
+  webkit.messageHandlers.logError.postMessage({
+    message: e.message,
+  });
+}
+
+
+/***/ }),
+
+/***/ "./src/vendor/hypothesis/anchoring/match-quote.js":
+/*!********************************************************!*\
+  !*** ./src/vendor/hypothesis/anchoring/match-quote.js ***!
+  \********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "matchQuote": () => (/* binding */ matchQuote)
+/* harmony export */ });
+/* harmony import */ var approx_string_match__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! approx-string-match */ "./node_modules/approx-string-match/dist/index.js");
+
+
+/**
+ * @typedef {import('approx-string-match').Match} StringMatch
+ */
+
+/**
+ * @typedef Match
+ * @prop {number} start - Start offset of match in text
+ * @prop {number} end - End offset of match in text
+ * @prop {number} score -
+ *   Score for the match between 0 and 1.0, where 1.0 indicates a perfect match
+ *   for the quote and context.
+ */
+
+/**
+ * Find the best approximate matches for `str` in `text` allowing up to `maxErrors` errors.
+ *
+ * @param {string} text
+ * @param {string} str
+ * @param {number} maxErrors
+ * @return {StringMatch[]}
+ */
+function search(text, str, maxErrors) {
+  // Do a fast search for exact matches. The `approx-string-match` library
+  // doesn't currently incorporate this optimization itself.
+  let matchPos = 0;
+  let exactMatches = [];
+  while (matchPos !== -1) {
+    matchPos = text.indexOf(str, matchPos);
+    if (matchPos !== -1) {
+      exactMatches.push({
+        start: matchPos,
+        end: matchPos + str.length,
+        errors: 0,
+      });
+      matchPos += 1;
+    }
+  }
+  if (exactMatches.length > 0) {
+    return exactMatches;
+  }
+
+  // If there are no exact matches, do a more expensive search for matches
+  // with errors.
+  return (0,approx_string_match__WEBPACK_IMPORTED_MODULE_0__["default"])(text, str, maxErrors);
+}
+
+/**
+ * Compute a score between 0 and 1.0 for the similarity between `text` and `str`.
+ *
+ * @param {string} text
+ * @param {string} str
+ */
+function textMatchScore(text, str) {
+  /* istanbul ignore next - `scoreMatch` will never pass an empty string */
+  if (str.length === 0 || text.length === 0) {
+    return 0.0;
+  }
+  const matches = search(text, str, str.length);
+
+  // prettier-ignore
+  return 1 - (matches[0].errors / str.length);
+}
+
+/**
+ * Find the best approximate match for `quote` in `text`.
+ *
+ * Returns `null` if no match exceeding the minimum quality threshold was found.
+ *
+ * @param {string} text - Document text to search
+ * @param {string} quote - String to find within `text`
+ * @param {Object} context -
+ *   Context in which the quote originally appeared. This is used to choose the
+ *   best match.
+ *   @param {string} [context.prefix] - Expected text before the quote
+ *   @param {string} [context.suffix] - Expected text after the quote
+ *   @param {number} [context.hint] - Expected offset of match within text
+ * @return {Match|null}
+ */
+function matchQuote(text, quote, context = {}) {
+  if (quote.length === 0) {
+    return null;
+  }
+
+  // Choose the maximum number of errors to allow for the initial search.
+  // This choice involves a tradeoff between:
+  //
+  //  - Recall (proportion of "good" matches found)
+  //  - Precision (proportion of matches found which are "good")
+  //  - Cost of the initial search and of processing the candidate matches [1]
+  //
+  // [1] Specifically, the expected-time complexity of the initial search is
+  //     `O((maxErrors / 32) * text.length)`. See `approx-string-match` docs.
+  const maxErrors = Math.min(256, quote.length / 2);
+
+  // Find closest matches for `quote` in `text` based on edit distance.
+  const matches = search(text, quote, maxErrors);
+
+  if (matches.length === 0) {
+    return null;
+  }
+
+  /**
+   * Compute a score between 0 and 1.0 for a match candidate.
+   *
+   * @param {StringMatch} match
+   */
+  const scoreMatch = match => {
+    const quoteWeight = 50; // Similarity of matched text to quote.
+    const prefixWeight = 20; // Similarity of text before matched text to `context.prefix`.
+    const suffixWeight = 20; // Similarity of text after matched text to `context.suffix`.
+    const posWeight = 2; // Proximity to expected location. Used as a tie-breaker.
+
+    const quoteScore = 1 - match.errors / quote.length;
+
+    const prefixScore = context.prefix
+      ? textMatchScore(
+          text.slice(Math.max(0, match.start - context.prefix.length), match.start),
+          context.prefix
+        )
+      : 1.0;
+    const suffixScore = context.suffix
+      ? textMatchScore(
+          text.slice(match.end, match.end + context.suffix.length),
+          context.suffix
+        )
+      : 1.0;
+
+    let posScore = 1.0;
+    if (typeof context.hint === 'number') {
+      const offset = Math.abs(match.start - context.hint);
+      posScore = 1.0 - offset / text.length;
+    }
+
+    const rawScore =
+      quoteWeight * quoteScore +
+      prefixWeight * prefixScore +
+      suffixWeight * suffixScore +
+      posWeight * posScore;
+    const maxScore = quoteWeight + prefixWeight + suffixWeight + posWeight;
+    const normalizedScore = rawScore / maxScore;
+
+    return normalizedScore;
+  };
+
+  // Rank matches based on similarity of actual and expected surrounding text
+  // and actual/expected offset in the document text.
+  const scoredMatches = matches.map(m => ({
+    start: m.start,
+    end: m.end,
+    score: scoreMatch(m),
+  }));
+
+  // Choose match with highest score.
+  scoredMatches.sort((a, b) => b.score - a.score);
+  return scoredMatches[0];
+}
+
+
+/***/ }),
+
+/***/ "./src/vendor/hypothesis/anchoring/text-range.js":
+/*!*******************************************************!*\
+  !*** ./src/vendor/hypothesis/anchoring/text-range.js ***!
+  \*******************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "RESOLVE_FORWARDS": () => (/* binding */ RESOLVE_FORWARDS),
+/* harmony export */   "RESOLVE_BACKWARDS": () => (/* binding */ RESOLVE_BACKWARDS),
+/* harmony export */   "TextPosition": () => (/* binding */ TextPosition),
+/* harmony export */   "TextRange": () => (/* binding */ TextRange)
+/* harmony export */ });
+/**
+ * Return the combined length of text nodes contained in `node`.
+ *
+ * @param {Node} node
+ */
+function nodeTextLength(node) {
+  switch (node.nodeType) {
+    case Node.ELEMENT_NODE:
+    case Node.TEXT_NODE:
+      // nb. `textContent` excludes text in comments and processing instructions
+      // when called on a parent element, so we don't need to subtract that here.
+
+      return /** @type {string} */ (node.textContent).length;
+    default:
+      return 0;
+  }
+}
+
+/**
+ * Return the total length of the text of all previous siblings of `node`.
+ *
+ * @param {Node} node
+ */
+function previousSiblingsTextLength(node) {
+  let sibling = node.previousSibling;
+  let length = 0;
+  while (sibling) {
+    length += nodeTextLength(sibling);
+    sibling = sibling.previousSibling;
+  }
+  return length;
+}
+
+/**
+ * Resolve one or more character offsets within an element to (text node, position)
+ * pairs.
+ *
+ * @param {Element} element
+ * @param {number[]} offsets - Offsets, which must be sorted in ascending order
+ * @return {{ node: Text, offset: number }[]}
+ */
+function resolveOffsets(element, ...offsets) {
+  let nextOffset = offsets.shift();
+  const nodeIter = /** @type {Document} */ (
+    element.ownerDocument
+  ).createNodeIterator(element, NodeFilter.SHOW_TEXT);
+  const results = [];
+
+  let currentNode = nodeIter.nextNode();
+  let textNode;
+  let length = 0;
+
+  // Find the text node containing the `nextOffset`th character from the start
+  // of `element`.
+  while (nextOffset !== undefined && currentNode) {
+    textNode = /** @type {Text} */ (currentNode);
+    if (length + textNode.data.length > nextOffset) {
+      results.push({ node: textNode, offset: nextOffset - length });
+      nextOffset = offsets.shift();
+    } else {
+      currentNode = nodeIter.nextNode();
+      length += textNode.data.length;
+    }
+  }
+
+  // Boundary case.
+  while (nextOffset !== undefined && textNode && length === nextOffset) {
+    results.push({ node: textNode, offset: textNode.data.length });
+    nextOffset = offsets.shift();
+  }
+
+  if (nextOffset !== undefined) {
+    throw new RangeError('Offset exceeds text length');
+  }
+
+  return results;
+}
+
+let RESOLVE_FORWARDS = 1;
+let RESOLVE_BACKWARDS = 2;
+
+/**
+ * Represents an offset within the text content of an element.
+ *
+ * This position can be resolved to a specific descendant node in the current
+ * DOM subtree of the element using the `resolve` method.
+ */
+class TextPosition {
+  /**
+   * Construct a `TextPosition` that refers to the text position `offset` within
+   * the text content of `element`.
+   *
+   * @param {Element} element
+   * @param {number} offset
+   */
+  constructor(element, offset) {
+    if (offset < 0) {
+      throw new Error('Offset is invalid');
+    }
+
+    /** Element that `offset` is relative to. */
+    this.element = element;
+
+    /** Character offset from the start of the element's `textContent`. */
+    this.offset = offset;
+  }
+
+  /**
+   * Return a copy of this position with offset relative to a given ancestor
+   * element.
+   *
+   * @param {Element} parent - Ancestor of `this.element`
+   * @return {TextPosition}
+   */
+  relativeTo(parent) {
+    if (!parent.contains(this.element)) {
+      throw new Error('Parent is not an ancestor of current element');
+    }
+
+    let el = this.element;
+    let offset = this.offset;
+    while (el !== parent) {
+      offset += previousSiblingsTextLength(el);
+      el = /** @type {Element} */ (el.parentElement);
+    }
+
+    return new TextPosition(el, offset);
+  }
+
+  /**
+   * Resolve the position to a specific text node and offset within that node.
+   *
+   * Throws if `this.offset` exceeds the length of the element's text. In the
+   * case where the element has no text and `this.offset` is 0, the `direction`
+   * option determines what happens.
+   *
+   * Offsets at the boundary between two nodes are resolved to the start of the
+   * node that begins at the boundary.
+   *
+   * @param {Object} [options]
+   *   @param {RESOLVE_FORWARDS|RESOLVE_BACKWARDS} [options.direction] -
+   *     Specifies in which direction to search for the nearest text node if
+   *     `this.offset` is `0` and `this.element` has no text. If not specified
+   *     an error is thrown.
+   * @return {{ node: Text, offset: number }}
+   * @throws {RangeError}
+   */
+  resolve(options = {}) {
+    try {
+      return resolveOffsets(this.element, this.offset)[0];
+    } catch (err) {
+      if (this.offset === 0 && options.direction !== undefined) {
+        const tw = document.createTreeWalker(
+          this.element.getRootNode(),
+          NodeFilter.SHOW_TEXT
+        );
+        tw.currentNode = this.element;
+        const forwards = options.direction === RESOLVE_FORWARDS;
+        const text = /** @type {Text|null} */ (
+          forwards ? tw.nextNode() : tw.previousNode()
+        );
+        if (!text) {
+          throw err;
+        }
+        return { node: text, offset: forwards ? 0 : text.data.length };
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  /**
+   * Construct a `TextPosition` that refers to the `offset`th character within
+   * `node`.
+   *
+   * @param {Node} node
+   * @param {number} offset
+   * @return {TextPosition}
+   */
+  static fromCharOffset(node, offset) {
+    switch (node.nodeType) {
+      case Node.TEXT_NODE:
+        return TextPosition.fromPoint(node, offset);
+      case Node.ELEMENT_NODE:
+        return new TextPosition(/** @type {Element} */ (node), offset);
+      default:
+        throw new Error('Node is not an element or text node');
+    }
+  }
+
+  /**
+   * Construct a `TextPosition` representing the range start or end point (node, offset).
+   *
+   * @param {Node} node - Text or Element node
+   * @param {number} offset - Offset within the node.
+   * @return {TextPosition}
+   */
+  static fromPoint(node, offset) {
+    switch (node.nodeType) {
+      case Node.TEXT_NODE: {
+        if (offset < 0 || offset > /** @type {Text} */ (node).data.length) {
+          throw new Error('Text node offset is out of range');
+        }
+
+        if (!node.parentElement) {
+          throw new Error('Text node has no parent');
+        }
+
+        // Get the offset from the start of the parent element.
+        const textOffset = previousSiblingsTextLength(node) + offset;
+
+        return new TextPosition(node.parentElement, textOffset);
+      }
+      case Node.ELEMENT_NODE: {
+        if (offset < 0 || offset > node.childNodes.length) {
+          throw new Error('Child node offset is out of range');
+        }
+
+        // Get the text length before the `offset`th child of element.
+        let textOffset = 0;
+        for (let i = 0; i < offset; i++) {
+          textOffset += nodeTextLength(node.childNodes[i]);
+        }
+
+        return new TextPosition(/** @type {Element} */ (node), textOffset);
+      }
+      default:
+        throw new Error('Point is not in an element or text node');
+    }
+  }
+}
+
+/**
+ * Represents a region of a document as a (start, end) pair of `TextPosition` points.
+ *
+ * Representing a range in this way allows for changes in the DOM content of the
+ * range which don't affect its text content, without affecting the text content
+ * of the range itself.
+ */
+class TextRange {
+  /**
+   * Construct an immutable `TextRange` from a `start` and `end` point.
+   *
+   * @param {TextPosition} start
+   * @param {TextPosition} end
+   */
+  constructor(start, end) {
+    this.start = start;
+    this.end = end;
+  }
+
+  /**
+   * Return a copy of this range with start and end positions relative to a
+   * given ancestor. See `TextPosition.relativeTo`.
+   *
+   * @param {Element} element
+   */
+  relativeTo(element) {
+    return new TextRange(
+      this.start.relativeTo(element),
+      this.end.relativeTo(element)
+    );
+  }
+
+  /**
+   * Resolve the `TextRange` to a DOM range.
+   *
+   * The resulting DOM Range will always start and end in a `Text` node.
+   * Hence `TextRange.fromRange(range).toRange()` can be used to "shrink" a
+   * range to the text it contains.
+   *
+   * May throw if the `start` or `end` positions cannot be resolved to a range.
+   *
+   * @return {Range}
+   */
+  toRange() {
+    let start;
+    let end;
+
+    if (
+      this.start.element === this.end.element &&
+      this.start.offset <= this.end.offset
+    ) {
+      // Fast path for start and end points in same element.
+      [start, end] = resolveOffsets(
+        this.start.element,
+        this.start.offset,
+        this.end.offset
+      );
+    } else {
+      start = this.start.resolve({ direction: RESOLVE_FORWARDS });
+      end = this.end.resolve({ direction: RESOLVE_BACKWARDS });
+    }
+
+    const range = new Range();
+    range.setStart(start.node, start.offset);
+    range.setEnd(end.node, end.offset);
+    return range;
+  }
+
+  /**
+   * Convert an existing DOM `Range` to a `TextRange`
+   *
+   * @param {Range} range
+   * @return {TextRange}
+   */
+  static fromRange(range) {
+    const start = TextPosition.fromPoint(
+      range.startContainer,
+      range.startOffset
+    );
+    const end = TextPosition.fromPoint(range.endContainer, range.endOffset);
+    return new TextRange(start, end);
+  }
+
+  /**
+   * Return a `TextRange` from the `start`th to `end`th characters in `root`.
+   *
+   * @param {Element} root
+   * @param {number} start
+   * @param {number} end
+   */
+  static fromOffsets(root, start, end) {
+    return new TextRange(
+      new TextPosition(root, start),
+      new TextPosition(root, end)
+    );
+  }
+}
+
+
+/***/ }),
+
+/***/ "./src/vendor/hypothesis/anchoring/types.js":
+/*!**************************************************!*\
+  !*** ./src/vendor/hypothesis/anchoring/types.js ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "RangeAnchor": () => (/* binding */ RangeAnchor),
+/* harmony export */   "TextPositionAnchor": () => (/* binding */ TextPositionAnchor),
+/* harmony export */   "TextQuoteAnchor": () => (/* binding */ TextQuoteAnchor)
+/* harmony export */ });
+/* harmony import */ var _match_quote__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./match-quote */ "./src/vendor/hypothesis/anchoring/match-quote.js");
+/* harmony import */ var _text_range__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./text-range */ "./src/vendor/hypothesis/anchoring/text-range.js");
+/* harmony import */ var _xpath__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./xpath */ "./src/vendor/hypothesis/anchoring/xpath.js");
+/**
+ * This module exports a set of classes for converting between DOM `Range`
+ * objects and different types of selectors. It is mostly a thin wrapper around a
+ * set of anchoring libraries. It serves two main purposes:
+ *
+ *  1. Providing a consistent interface across different types of anchors.
+ *  2. Insulating the rest of the code from API changes in the underlying anchoring
+ *     libraries.
+ */
+
+
+
+
+
+/**
+ * @typedef {import('../../types/api').RangeSelector} RangeSelector
+ * @typedef {import('../../types/api').TextPositionSelector} TextPositionSelector
+ * @typedef {import('../../types/api').TextQuoteSelector} TextQuoteSelector
+ */
+
+/**
+ * Converts between `RangeSelector` selectors and `Range` objects.
+ */
+class RangeAnchor {
+  /**
+   * @param {Node} root - A root element from which to anchor.
+   * @param {Range} range -  A range describing the anchor.
+   */
+  constructor(root, range) {
+    this.root = root;
+    this.range = range;
+  }
+
+  /**
+   * @param {Node} root -  A root element from which to anchor.
+   * @param {Range} range -  A range describing the anchor.
+   */
+  static fromRange(root, range) {
+    return new RangeAnchor(root, range);
+  }
+
+  /**
+   * Create an anchor from a serialized `RangeSelector` selector.
+   *
+   * @param {Element} root -  A root element from which to anchor.
+   * @param {RangeSelector} selector
+   */
+  static fromSelector(root, selector) {
+    const startContainer = (0,_xpath__WEBPACK_IMPORTED_MODULE_2__.nodeFromXPath)(selector.startContainer, root);
+    if (!startContainer) {
+      throw new Error('Failed to resolve startContainer XPath');
+    }
+
+    const endContainer = (0,_xpath__WEBPACK_IMPORTED_MODULE_2__.nodeFromXPath)(selector.endContainer, root);
+    if (!endContainer) {
+      throw new Error('Failed to resolve endContainer XPath');
+    }
+
+    const startPos = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextPosition.fromCharOffset(
+      startContainer,
+      selector.startOffset
+    );
+    const endPos = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextPosition.fromCharOffset(
+      endContainer,
+      selector.endOffset
+    );
+
+    const range = new _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange(startPos, endPos).toRange();
+    return new RangeAnchor(root, range);
+  }
+
+  toRange() {
+    return this.range;
+  }
+
+  /**
+   * @return {RangeSelector}
+   */
+  toSelector() {
+    // "Shrink" the range so that it tightly wraps its text. This ensures more
+    // predictable output for a given text selection.
+    const normalizedRange = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange.fromRange(this.range).toRange();
+
+    const textRange = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange.fromRange(normalizedRange);
+    const startContainer = (0,_xpath__WEBPACK_IMPORTED_MODULE_2__.xpathFromNode)(textRange.start.element, this.root);
+    const endContainer = (0,_xpath__WEBPACK_IMPORTED_MODULE_2__.xpathFromNode)(textRange.end.element, this.root);
+
+    return {
+      type: 'RangeSelector',
+      startContainer,
+      startOffset: textRange.start.offset,
+      endContainer,
+      endOffset: textRange.end.offset,
+    };
+  }
+}
+
+/**
+ * Converts between `TextPositionSelector` selectors and `Range` objects.
+ */
+class TextPositionAnchor {
+  /**
+   * @param {Element} root
+   * @param {number} start
+   * @param {number} end
+   */
+  constructor(root, start, end) {
+    this.root = root;
+    this.start = start;
+    this.end = end;
+  }
+
+  /**
+   * @param {Element} root
+   * @param {Range} range
+   */
+  static fromRange(root, range) {
+    const textRange = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange.fromRange(range).relativeTo(root);
+    return new TextPositionAnchor(
+      root,
+      textRange.start.offset,
+      textRange.end.offset
+    );
+  }
+  /**
+   * @param {Element} root
+   * @param {TextPositionSelector} selector
+   */
+  static fromSelector(root, selector) {
+    return new TextPositionAnchor(root, selector.start, selector.end);
+  }
+
+  /**
+   * @return {TextPositionSelector}
+   */
+  toSelector() {
+    return {
+      type: 'TextPositionSelector',
+      start: this.start,
+      end: this.end,
+    };
+  }
+
+  toRange() {
+    return _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange.fromOffsets(this.root, this.start, this.end).toRange();
+  }
+}
+
+/**
+ * @typedef QuoteMatchOptions
+ * @prop {number} [hint] - Expected position of match in text. See `matchQuote`.
+ */
+
+/**
+ * Converts between `TextQuoteSelector` selectors and `Range` objects.
+ */
+class TextQuoteAnchor {
+  /**
+   * @param {Element} root - A root element from which to anchor.
+   * @param {string} exact
+   * @param {Object} context
+   *   @param {string} [context.prefix]
+   *   @param {string} [context.suffix]
+   */
+  constructor(root, exact, context = {}) {
+    this.root = root;
+    this.exact = exact;
+    this.context = context;
+  }
+
+  /**
+   * Create a `TextQuoteAnchor` from a range.
+   *
+   * Will throw if `range` does not contain any text nodes.
+   *
+   * @param {Element} root
+   * @param {Range} range
+   */
+  static fromRange(root, range) {
+    const text = /** @type {string} */ (root.textContent);
+    const textRange = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange.fromRange(range).relativeTo(root);
+
+    const start = textRange.start.offset;
+    const end = textRange.end.offset;
+
+    // Number of characters around the quote to capture as context. We currently
+    // always use a fixed amount, but it would be better if this code was aware
+    // of logical boundaries in the document (paragraph, article etc.) to avoid
+    // capturing text unrelated to the quote.
+    //
+    // In regular prose the ideal content would often be the surrounding sentence.
+    // This is a natural unit of meaning which enables displaying quotes in
+    // context even when the document is not available. We could use `Intl.Segmenter`
+    // for this when available.
+    const contextLen = 32;
+
+    return new TextQuoteAnchor(root, text.slice(start, end), {
+      prefix: text.slice(Math.max(0, start - contextLen), start),
+      suffix: text.slice(end, Math.min(text.length, end + contextLen)),
+    });
+  }
+
+  /**
+   * @param {Element} root
+   * @param {TextQuoteSelector} selector
+   */
+  static fromSelector(root, selector) {
+    const { prefix, suffix } = selector;
+    return new TextQuoteAnchor(root, selector.exact, { prefix, suffix });
+  }
+
+  /**
+   * @return {TextQuoteSelector}
+   */
+  toSelector() {
+    return {
+      type: 'TextQuoteSelector',
+      exact: this.exact,
+      prefix: this.context.prefix,
+      suffix: this.context.suffix,
+    };
+  }
+
+  /**
+   * @param {QuoteMatchOptions} [options]
+   */
+  toRange(options = {}) {
+    return this.toPositionAnchor(options).toRange();
+  }
+
+  /**
+   * @param {QuoteMatchOptions} [options]
+   */
+  toPositionAnchor(options = {}) {
+    const text = /** @type {string} */ (this.root.textContent);
+    const match = (0,_match_quote__WEBPACK_IMPORTED_MODULE_0__.matchQuote)(text, this.exact, {
+      ...this.context,
+      hint: options.hint,
+    });
+    if (!match) {
+      throw new Error('Quote not found');
+    }
+    return new TextPositionAnchor(this.root, match.start, match.end);
+  }
+}
+
+
+/***/ }),
+
+/***/ "./src/vendor/hypothesis/anchoring/xpath.js":
+/*!**************************************************!*\
+  !*** ./src/vendor/hypothesis/anchoring/xpath.js ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "xpathFromNode": () => (/* binding */ xpathFromNode),
+/* harmony export */   "nodeFromXPath": () => (/* binding */ nodeFromXPath)
+/* harmony export */ });
+/**
+ * Get the node name for use in generating an xpath expression.
+ *
+ * @param {Node} node
+ */
+function getNodeName(node) {
+  const nodeName = node.nodeName.toLowerCase();
+  let result = nodeName;
+  if (nodeName === '#text') {
+    result = 'text()';
+  }
+  return result;
+}
+
+/**
+ * Get the index of the node as it appears in its parent's child list
+ *
+ * @param {Node} node
+ */
+function getNodePosition(node) {
+  let pos = 0;
+  /** @type {Node|null} */
+  let tmp = node;
+  while (tmp) {
+    if (tmp.nodeName === node.nodeName) {
+      pos += 1;
+    }
+    tmp = tmp.previousSibling;
+  }
+  return pos;
+}
+
+function getPathSegment(node) {
+  const name = getNodeName(node);
+  const pos = getNodePosition(node);
+  return `${name}[${pos}]`;
+}
+
+/**
+ * A simple XPath generator which can generate XPaths of the form
+ * /tag[index]/tag[index].
+ *
+ * @param {Node} node - The node to generate a path to
+ * @param {Node} root - Root node to which the returned path is relative
+ */
+function xpathFromNode(node, root) {
+  let xpath = '';
+
+  /** @type {Node|null} */
+  let elem = node;
+  while (elem !== root) {
+    if (!elem) {
+      throw new Error('Node is not a descendant of root');
+    }
+    xpath = getPathSegment(elem) + '/' + xpath;
+    elem = elem.parentNode;
+  }
+  xpath = '/' + xpath;
+  xpath = xpath.replace(/\/$/, ''); // Remove trailing slash
+
+  return xpath;
+}
+
+/**
+ * Return the `index`'th immediate child of `element` whose tag name is
+ * `nodeName` (case insensitive).
+ *
+ * @param {Element} element
+ * @param {string} nodeName
+ * @param {number} index
+ */
+function nthChildOfType(element, nodeName, index) {
+  nodeName = nodeName.toUpperCase();
+
+  let matchIndex = -1;
+  for (let i = 0; i < element.children.length; i++) {
+    const child = element.children[i];
+    if (child.nodeName.toUpperCase() === nodeName) {
+      ++matchIndex;
+      if (matchIndex === index) {
+        return child;
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Evaluate a _simple XPath_ relative to a `root` element and return the
+ * matching element.
+ *
+ * A _simple XPath_ is a sequence of one or more `/tagName[index]` strings.
+ *
+ * Unlike `document.evaluate` this function:
+ *
+ *  - Only supports simple XPaths
+ *  - Is not affected by the document's _type_ (HTML or XML/XHTML)
+ *  - Ignores element namespaces when matching element names in the XPath against
+ *    elements in the DOM tree
+ *  - Is case insensitive for all elements, not just HTML elements
+ *
+ * The matching element is returned or `null` if no such element is found.
+ * An error is thrown if `xpath` is not a simple XPath.
+ *
+ * @param {string} xpath
+ * @param {Element} root
+ * @return {Element|null}
+ */
+function evaluateSimpleXPath(xpath, root) {
+  const isSimpleXPath =
+    xpath.match(/^(\/[A-Za-z0-9-]+(\[[0-9]+\])?)+$/) !== null;
+  if (!isSimpleXPath) {
+    throw new Error('Expression is not a simple XPath');
+  }
+
+  const segments = xpath.split('/');
+  let element = root;
+
+  // Remove leading empty segment. The regex above validates that the XPath
+  // has at least two segments, with the first being empty and the others non-empty.
+  segments.shift();
+
+  for (let segment of segments) {
+    let elementName;
+    let elementIndex;
+
+    const separatorPos = segment.indexOf('[');
+    if (separatorPos !== -1) {
+      elementName = segment.slice(0, separatorPos);
+
+      const indexStr = segment.slice(separatorPos + 1, segment.indexOf(']'));
+      elementIndex = parseInt(indexStr) - 1;
+      if (elementIndex < 0) {
+        return null;
+      }
+    } else {
+      elementName = segment;
+      elementIndex = 0;
+    }
+
+    const child = nthChildOfType(element, elementName, elementIndex);
+    if (!child) {
+      return null;
+    }
+
+    element = child;
+  }
+
+  return element;
+}
+
+/**
+ * Finds an element node using an XPath relative to `root`
+ *
+ * Example:
+ *   node = nodeFromXPath('/main/article[1]/p[3]', document.body)
+ *
+ * @param {string} xpath
+ * @param {Element} [root]
+ * @return {Node|null}
+ */
+function nodeFromXPath(xpath, root = document.body) {
+  try {
+    return evaluateSimpleXPath(xpath, root);
+  } catch (err) {
+    return document.evaluate(
+      '.' + xpath,
+      root,
+
+      // nb. The `namespaceResolver` and `result` arguments are optional in the spec
+      // but required in Edge Legacy.
+      null /* namespaceResolver */,
+      XPathResult.FIRST_ORDERED_NODE_TYPE,
+      null /* result */
+    ).singleNodeValue;
+  }
+}
+
+
+/***/ }),
+
+/***/ "?4f7e":
+/*!********************************!*\
+  !*** ./util.inspect (ignored) ***!
+  \********************************/
+/***/ (() => {
+
+/* (ignored) */
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2020/IsArray.js":
+/*!**************************************************!*\
+  !*** ./node_modules/es-abstract/2020/IsArray.js ***!
+  \**************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $Array = GetIntrinsic('%Array%');
+
+// eslint-disable-next-line global-require
+var toStr = !$Array.isArray && __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js")('Object.prototype.toString');
+
+// https://ecma-international.org/ecma-262/6.0/#sec-isarray
+
+module.exports = $Array.isArray || function IsArray(argument) {
+	return toStr(argument) === '[object Array]';
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/AdvanceStringIndex.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/AdvanceStringIndex.js ***!
+  \*************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var CodePointAt = __webpack_require__(/*! ./CodePointAt */ "./node_modules/es-abstract/2021/CodePointAt.js");
+var IsIntegralNumber = __webpack_require__(/*! ./IsIntegralNumber */ "./node_modules/es-abstract/2021/IsIntegralNumber.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+var MAX_SAFE_INTEGER = __webpack_require__(/*! ../helpers/maxSafeInteger */ "./node_modules/es-abstract/helpers/maxSafeInteger.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+// https://ecma-international.org/ecma-262/12.0/#sec-advancestringindex
+
+module.exports = function AdvanceStringIndex(S, index, unicode) {
+	if (Type(S) !== 'String') {
+		throw new $TypeError('Assertion failed: `S` must be a String');
+	}
+	if (!IsIntegralNumber(index) || index < 0 || index > MAX_SAFE_INTEGER) {
+		throw new $TypeError('Assertion failed: `length` must be an integer >= 0 and <= 2**53');
+	}
+	if (Type(unicode) !== 'Boolean') {
+		throw new $TypeError('Assertion failed: `unicode` must be a Boolean');
+	}
+	if (!unicode) {
+		return index + 1;
+	}
+	var length = S.length;
+	if ((index + 1) >= length) {
+		return index + 1;
+	}
+	var cp = CodePointAt(S, index);
+	return index + cp['[[CodeUnitCount]]'];
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/Call.js":
+/*!***********************************************!*\
+  !*** ./node_modules/es-abstract/2021/Call.js ***!
+  \***********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var IsArray = __webpack_require__(/*! ./IsArray */ "./node_modules/es-abstract/2021/IsArray.js");
+
+var $apply = GetIntrinsic('%Reflect.apply%', true) || callBound('%Function.prototype.apply%');
+
+// https://ecma-international.org/ecma-262/6.0/#sec-call
+
+module.exports = function Call(F, V) {
+	var argumentsList = arguments.length > 2 ? arguments[2] : [];
+	if (!IsArray(argumentsList)) {
+		throw new $TypeError('Assertion failed: optional `argumentsList`, if provided, must be a List');
+	}
+	return $apply(F, V, argumentsList);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/CodePointAt.js":
+/*!******************************************************!*\
+  !*** ./node_modules/es-abstract/2021/CodePointAt.js ***!
+  \******************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
+var isLeadingSurrogate = __webpack_require__(/*! ../helpers/isLeadingSurrogate */ "./node_modules/es-abstract/helpers/isLeadingSurrogate.js");
+var isTrailingSurrogate = __webpack_require__(/*! ../helpers/isTrailingSurrogate */ "./node_modules/es-abstract/helpers/isTrailingSurrogate.js");
+
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+var UTF16SurrogatePairToCodePoint = __webpack_require__(/*! ./UTF16SurrogatePairToCodePoint */ "./node_modules/es-abstract/2021/UTF16SurrogatePairToCodePoint.js");
+
+var $charAt = callBound('String.prototype.charAt');
+var $charCodeAt = callBound('String.prototype.charCodeAt');
+
+// https://ecma-international.org/ecma-262/12.0/#sec-codepointat
+
+module.exports = function CodePointAt(string, position) {
+	if (Type(string) !== 'String') {
+		throw new $TypeError('Assertion failed: `string` must be a String');
+	}
+	var size = string.length;
+	if (position < 0 || position >= size) {
+		throw new $TypeError('Assertion failed: `position` must be >= 0, and < the length of `string`');
+	}
+	var first = $charCodeAt(string, position);
+	var cp = $charAt(string, position);
+	var firstIsLeading = isLeadingSurrogate(first);
+	var firstIsTrailing = isTrailingSurrogate(first);
+	if (!firstIsLeading && !firstIsTrailing) {
+		return {
+			'[[CodePoint]]': cp,
+			'[[CodeUnitCount]]': 1,
+			'[[IsUnpairedSurrogate]]': false
+		};
+	}
+	if (firstIsTrailing || (position + 1 === size)) {
+		return {
+			'[[CodePoint]]': cp,
+			'[[CodeUnitCount]]': 1,
+			'[[IsUnpairedSurrogate]]': true
+		};
+	}
+	var second = $charCodeAt(string, position + 1);
+	if (!isTrailingSurrogate(second)) {
+		return {
+			'[[CodePoint]]': cp,
+			'[[CodeUnitCount]]': 1,
+			'[[IsUnpairedSurrogate]]': true
+		};
+	}
+
+	return {
+		'[[CodePoint]]': UTF16SurrogatePairToCodePoint(first, second),
+		'[[CodeUnitCount]]': 2,
+		'[[IsUnpairedSurrogate]]': false
+	};
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/CreateIterResultObject.js":
+/*!*****************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/CreateIterResultObject.js ***!
+  \*****************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-createiterresultobject
+
+module.exports = function CreateIterResultObject(value, done) {
+	if (Type(done) !== 'Boolean') {
+		throw new $TypeError('Assertion failed: Type(done) is not Boolean');
+	}
+	return {
+		value: value,
+		done: done
+	};
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/CreateMethodProperty.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/CreateMethodProperty.js ***!
+  \***************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var DefineOwnProperty = __webpack_require__(/*! ../helpers/DefineOwnProperty */ "./node_modules/es-abstract/helpers/DefineOwnProperty.js");
+
+var FromPropertyDescriptor = __webpack_require__(/*! ./FromPropertyDescriptor */ "./node_modules/es-abstract/2021/FromPropertyDescriptor.js");
+var IsDataDescriptor = __webpack_require__(/*! ./IsDataDescriptor */ "./node_modules/es-abstract/2021/IsDataDescriptor.js");
+var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
+var SameValue = __webpack_require__(/*! ./SameValue */ "./node_modules/es-abstract/2021/SameValue.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-createmethodproperty
+
+module.exports = function CreateMethodProperty(O, P, V) {
+	if (Type(O) !== 'Object') {
+		throw new $TypeError('Assertion failed: Type(O) is not Object');
+	}
+
+	if (!IsPropertyKey(P)) {
+		throw new $TypeError('Assertion failed: IsPropertyKey(P) is not true');
+	}
+
+	var newDesc = {
+		'[[Configurable]]': true,
+		'[[Enumerable]]': false,
+		'[[Value]]': V,
+		'[[Writable]]': true
+	};
+	return DefineOwnProperty(
+		IsDataDescriptor,
+		SameValue,
+		FromPropertyDescriptor,
+		O,
+		P,
+		newDesc
+	);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/CreateRegExpStringIterator.js":
+/*!*********************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/CreateRegExpStringIterator.js ***!
+  \*********************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+var hasSymbols = __webpack_require__(/*! has-symbols */ "./node_modules/has-symbols/index.js")();
+
+var $TypeError = GetIntrinsic('%TypeError%');
+var IteratorPrototype = GetIntrinsic('%IteratorPrototype%', true);
+var $defineProperty = GetIntrinsic('%Object.defineProperty%', true);
+
+var AdvanceStringIndex = __webpack_require__(/*! ./AdvanceStringIndex */ "./node_modules/es-abstract/2021/AdvanceStringIndex.js");
+var CreateIterResultObject = __webpack_require__(/*! ./CreateIterResultObject */ "./node_modules/es-abstract/2021/CreateIterResultObject.js");
+var CreateMethodProperty = __webpack_require__(/*! ./CreateMethodProperty */ "./node_modules/es-abstract/2021/CreateMethodProperty.js");
+var Get = __webpack_require__(/*! ./Get */ "./node_modules/es-abstract/2021/Get.js");
+var OrdinaryObjectCreate = __webpack_require__(/*! ./OrdinaryObjectCreate */ "./node_modules/es-abstract/2021/OrdinaryObjectCreate.js");
+var RegExpExec = __webpack_require__(/*! ./RegExpExec */ "./node_modules/es-abstract/2021/RegExpExec.js");
+var Set = __webpack_require__(/*! ./Set */ "./node_modules/es-abstract/2021/Set.js");
+var ToLength = __webpack_require__(/*! ./ToLength */ "./node_modules/es-abstract/2021/ToLength.js");
+var ToString = __webpack_require__(/*! ./ToString */ "./node_modules/es-abstract/2021/ToString.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+var SLOT = __webpack_require__(/*! internal-slot */ "./node_modules/internal-slot/index.js");
+
+var RegExpStringIterator = function RegExpStringIterator(R, S, global, fullUnicode) {
+	if (Type(S) !== 'String') {
+		throw new $TypeError('`S` must be a string');
+	}
+	if (Type(global) !== 'Boolean') {
+		throw new $TypeError('`global` must be a boolean');
+	}
+	if (Type(fullUnicode) !== 'Boolean') {
+		throw new $TypeError('`fullUnicode` must be a boolean');
+	}
+	SLOT.set(this, '[[IteratingRegExp]]', R);
+	SLOT.set(this, '[[IteratedString]]', S);
+	SLOT.set(this, '[[Global]]', global);
+	SLOT.set(this, '[[Unicode]]', fullUnicode);
+	SLOT.set(this, '[[Done]]', false);
+};
+
+if (IteratorPrototype) {
+	RegExpStringIterator.prototype = OrdinaryObjectCreate(IteratorPrototype);
+}
+
+var RegExpStringIteratorNext = function next() {
+	var O = this; // eslint-disable-line no-invalid-this
+	if (Type(O) !== 'Object') {
+		throw new $TypeError('receiver must be an object');
+	}
+	if (
+		!(O instanceof RegExpStringIterator)
+        || !SLOT.has(O, '[[IteratingRegExp]]')
+        || !SLOT.has(O, '[[IteratedString]]')
+        || !SLOT.has(O, '[[Global]]')
+        || !SLOT.has(O, '[[Unicode]]')
+        || !SLOT.has(O, '[[Done]]')
+	) {
+		throw new $TypeError('"this" value must be a RegExpStringIterator instance');
+	}
+	if (SLOT.get(O, '[[Done]]')) {
+		return CreateIterResultObject(undefined, true);
+	}
+	var R = SLOT.get(O, '[[IteratingRegExp]]');
+	var S = SLOT.get(O, '[[IteratedString]]');
+	var global = SLOT.get(O, '[[Global]]');
+	var fullUnicode = SLOT.get(O, '[[Unicode]]');
+	var match = RegExpExec(R, S);
+	if (match === null) {
+		SLOT.set(O, '[[Done]]', true);
+		return CreateIterResultObject(undefined, true);
+	}
+	if (global) {
+		var matchStr = ToString(Get(match, '0'));
+		if (matchStr === '') {
+			var thisIndex = ToLength(Get(R, 'lastIndex'));
+			var nextIndex = AdvanceStringIndex(S, thisIndex, fullUnicode);
+			Set(R, 'lastIndex', nextIndex, true);
+		}
+		return CreateIterResultObject(match, false);
+	}
+	SLOT.set(O, '[[Done]]', true);
+	return CreateIterResultObject(match, false);
+};
+CreateMethodProperty(RegExpStringIterator.prototype, 'next', RegExpStringIteratorNext);
+
+if (hasSymbols) {
+	if (Symbol.toStringTag) {
+		if ($defineProperty) {
+			$defineProperty(RegExpStringIterator.prototype, Symbol.toStringTag, {
+				configurable: true,
+				enumerable: false,
+				value: 'RegExp String Iterator',
+				writable: false
+			});
+		} else {
+			RegExpStringIterator.prototype[Symbol.toStringTag] = 'RegExp String Iterator';
+		}
+	}
+
+	if (Symbol.iterator && typeof RegExpStringIterator.prototype[Symbol.iterator] !== 'function') {
+		var iteratorFn = function SymbolIterator() {
+			return this;
+		};
+		CreateMethodProperty(RegExpStringIterator.prototype, Symbol.iterator, iteratorFn);
+	}
+}
+
+// https://262.ecma-international.org/11.0/#sec-createregexpstringiterator
+module.exports = function CreateRegExpStringIterator(R, S, global, fullUnicode) {
+	// assert R.global === global && R.unicode === fullUnicode?
+	return new RegExpStringIterator(R, S, global, fullUnicode);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/DefinePropertyOrThrow.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/DefinePropertyOrThrow.js ***!
+  \****************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var isPropertyDescriptor = __webpack_require__(/*! ../helpers/isPropertyDescriptor */ "./node_modules/es-abstract/helpers/isPropertyDescriptor.js");
+var DefineOwnProperty = __webpack_require__(/*! ../helpers/DefineOwnProperty */ "./node_modules/es-abstract/helpers/DefineOwnProperty.js");
+
+var FromPropertyDescriptor = __webpack_require__(/*! ./FromPropertyDescriptor */ "./node_modules/es-abstract/2021/FromPropertyDescriptor.js");
+var IsAccessorDescriptor = __webpack_require__(/*! ./IsAccessorDescriptor */ "./node_modules/es-abstract/2021/IsAccessorDescriptor.js");
+var IsDataDescriptor = __webpack_require__(/*! ./IsDataDescriptor */ "./node_modules/es-abstract/2021/IsDataDescriptor.js");
+var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
+var SameValue = __webpack_require__(/*! ./SameValue */ "./node_modules/es-abstract/2021/SameValue.js");
+var ToPropertyDescriptor = __webpack_require__(/*! ./ToPropertyDescriptor */ "./node_modules/es-abstract/2021/ToPropertyDescriptor.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-definepropertyorthrow
+
+module.exports = function DefinePropertyOrThrow(O, P, desc) {
+	if (Type(O) !== 'Object') {
+		throw new $TypeError('Assertion failed: Type(O) is not Object');
+	}
+
+	if (!IsPropertyKey(P)) {
+		throw new $TypeError('Assertion failed: IsPropertyKey(P) is not true');
+	}
+
+	var Desc = isPropertyDescriptor({
+		Type: Type,
+		IsDataDescriptor: IsDataDescriptor,
+		IsAccessorDescriptor: IsAccessorDescriptor
+	}, desc) ? desc : ToPropertyDescriptor(desc);
+	if (!isPropertyDescriptor({
+		Type: Type,
+		IsDataDescriptor: IsDataDescriptor,
+		IsAccessorDescriptor: IsAccessorDescriptor
+	}, Desc)) {
+		throw new $TypeError('Assertion failed: Desc is not a valid Property Descriptor');
+	}
+
+	return DefineOwnProperty(
+		IsDataDescriptor,
+		SameValue,
+		FromPropertyDescriptor,
+		O,
+		P,
+		Desc
+	);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/FromPropertyDescriptor.js":
+/*!*****************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/FromPropertyDescriptor.js ***!
+  \*****************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var assertRecord = __webpack_require__(/*! ../helpers/assertRecord */ "./node_modules/es-abstract/helpers/assertRecord.js");
+
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-frompropertydescriptor
+
+module.exports = function FromPropertyDescriptor(Desc) {
+	if (typeof Desc === 'undefined') {
+		return Desc;
+	}
+
+	assertRecord(Type, 'Property Descriptor', 'Desc', Desc);
+
+	var obj = {};
+	if ('[[Value]]' in Desc) {
+		obj.value = Desc['[[Value]]'];
+	}
+	if ('[[Writable]]' in Desc) {
+		obj.writable = Desc['[[Writable]]'];
+	}
+	if ('[[Get]]' in Desc) {
+		obj.get = Desc['[[Get]]'];
+	}
+	if ('[[Set]]' in Desc) {
+		obj.set = Desc['[[Set]]'];
+	}
+	if ('[[Enumerable]]' in Desc) {
+		obj.enumerable = Desc['[[Enumerable]]'];
+	}
+	if ('[[Configurable]]' in Desc) {
+		obj.configurable = Desc['[[Configurable]]'];
+	}
+	return obj;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/Get.js":
+/*!**********************************************!*\
+  !*** ./node_modules/es-abstract/2021/Get.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var inspect = __webpack_require__(/*! object-inspect */ "./node_modules/object-inspect/index.js");
+
+var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+/**
+ * 7.3.1 Get (O, P) - https://ecma-international.org/ecma-262/6.0/#sec-get-o-p
+ * 1. Assert: Type(O) is Object.
+ * 2. Assert: IsPropertyKey(P) is true.
+ * 3. Return O.[[Get]](P, O).
+ */
+
+module.exports = function Get(O, P) {
+	// 7.3.1.1
+	if (Type(O) !== 'Object') {
+		throw new $TypeError('Assertion failed: Type(O) is not Object');
+	}
+	// 7.3.1.2
+	if (!IsPropertyKey(P)) {
+		throw new $TypeError('Assertion failed: IsPropertyKey(P) is not true, got ' + inspect(P));
+	}
+	// 7.3.1.3
+	return O[P];
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/GetMethod.js":
+/*!****************************************************!*\
+  !*** ./node_modules/es-abstract/2021/GetMethod.js ***!
+  \****************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var GetV = __webpack_require__(/*! ./GetV */ "./node_modules/es-abstract/2021/GetV.js");
+var IsCallable = __webpack_require__(/*! ./IsCallable */ "./node_modules/es-abstract/2021/IsCallable.js");
+var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
+
+/**
+ * 7.3.9 - https://ecma-international.org/ecma-262/6.0/#sec-getmethod
+ * 1. Assert: IsPropertyKey(P) is true.
+ * 2. Let func be GetV(O, P).
+ * 3. ReturnIfAbrupt(func).
+ * 4. If func is either undefined or null, return undefined.
+ * 5. If IsCallable(func) is false, throw a TypeError exception.
+ * 6. Return func.
+ */
+
+module.exports = function GetMethod(O, P) {
+	// 7.3.9.1
+	if (!IsPropertyKey(P)) {
+		throw new $TypeError('Assertion failed: IsPropertyKey(P) is not true');
+	}
+
+	// 7.3.9.2
+	var func = GetV(O, P);
+
+	// 7.3.9.4
+	if (func == null) {
+		return void 0;
+	}
+
+	// 7.3.9.5
+	if (!IsCallable(func)) {
+		throw new $TypeError(P + 'is not a function');
+	}
+
+	// 7.3.9.6
+	return func;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/GetV.js":
+/*!***********************************************!*\
+  !*** ./node_modules/es-abstract/2021/GetV.js ***!
+  \***********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
+var ToObject = __webpack_require__(/*! ./ToObject */ "./node_modules/es-abstract/2021/ToObject.js");
+
+/**
+ * 7.3.2 GetV (V, P)
+ * 1. Assert: IsPropertyKey(P) is true.
+ * 2. Let O be ToObject(V).
+ * 3. ReturnIfAbrupt(O).
+ * 4. Return O.[[Get]](P, V).
+ */
+
+module.exports = function GetV(V, P) {
+	// 7.3.2.1
+	if (!IsPropertyKey(P)) {
+		throw new $TypeError('Assertion failed: IsPropertyKey(P) is not true');
+	}
+
+	// 7.3.2.2-3
+	var O = ToObject(V);
+
+	// 7.3.2.4
+	return O[P];
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/IsAccessorDescriptor.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/IsAccessorDescriptor.js ***!
+  \***************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+
+var assertRecord = __webpack_require__(/*! ../helpers/assertRecord */ "./node_modules/es-abstract/helpers/assertRecord.js");
+
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-isaccessordescriptor
+
+module.exports = function IsAccessorDescriptor(Desc) {
+	if (typeof Desc === 'undefined') {
+		return false;
+	}
+
+	assertRecord(Type, 'Property Descriptor', 'Desc', Desc);
+
+	if (!has(Desc, '[[Get]]') && !has(Desc, '[[Set]]')) {
+		return false;
+	}
+
+	return true;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/IsArray.js":
+/*!**************************************************!*\
+  !*** ./node_modules/es-abstract/2021/IsArray.js ***!
+  \**************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $Array = GetIntrinsic('%Array%');
+
+// eslint-disable-next-line global-require
+var toStr = !$Array.isArray && __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js")('Object.prototype.toString');
+
+// https://ecma-international.org/ecma-262/6.0/#sec-isarray
+
+module.exports = $Array.isArray || function IsArray(argument) {
+	return toStr(argument) === '[object Array]';
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/IsCallable.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/es-abstract/2021/IsCallable.js ***!
+  \*****************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+// http://262.ecma-international.org/5.1/#sec-9.11
+
+module.exports = __webpack_require__(/*! is-callable */ "./node_modules/is-callable/index.js");
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/IsConstructor.js":
+/*!********************************************************!*\
+  !*** ./node_modules/es-abstract/2021/IsConstructor.js ***!
+  \********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! ../GetIntrinsic.js */ "./node_modules/es-abstract/GetIntrinsic.js");
+
+var $construct = GetIntrinsic('%Reflect.construct%', true);
+
+var DefinePropertyOrThrow = __webpack_require__(/*! ./DefinePropertyOrThrow */ "./node_modules/es-abstract/2021/DefinePropertyOrThrow.js");
+try {
+	DefinePropertyOrThrow({}, '', { '[[Get]]': function () {} });
+} catch (e) {
+	// Accessor properties aren't supported
+	DefinePropertyOrThrow = null;
+}
+
+// https://ecma-international.org/ecma-262/6.0/#sec-isconstructor
+
+if (DefinePropertyOrThrow && $construct) {
+	var isConstructorMarker = {};
+	var badArrayLike = {};
+	DefinePropertyOrThrow(badArrayLike, 'length', {
+		'[[Get]]': function () {
+			throw isConstructorMarker;
+		},
+		'[[Enumerable]]': true
+	});
+
+	module.exports = function IsConstructor(argument) {
+		try {
+			// `Reflect.construct` invokes `IsConstructor(target)` before `Get(args, 'length')`:
+			$construct(argument, badArrayLike);
+		} catch (err) {
+			return err === isConstructorMarker;
+		}
+	};
+} else {
+	module.exports = function IsConstructor(argument) {
+		// unfortunately there's no way to truly check this without try/catch `new argument` in old environments
+		return typeof argument === 'function' && !!argument.prototype;
+	};
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/IsDataDescriptor.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/es-abstract/2021/IsDataDescriptor.js ***!
+  \***********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+
+var assertRecord = __webpack_require__(/*! ../helpers/assertRecord */ "./node_modules/es-abstract/helpers/assertRecord.js");
+
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-isdatadescriptor
+
+module.exports = function IsDataDescriptor(Desc) {
+	if (typeof Desc === 'undefined') {
+		return false;
+	}
+
+	assertRecord(Type, 'Property Descriptor', 'Desc', Desc);
+
+	if (!has(Desc, '[[Value]]') && !has(Desc, '[[Writable]]')) {
+		return false;
+	}
+
+	return true;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/IsIntegralNumber.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/es-abstract/2021/IsIntegralNumber.js ***!
+  \***********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var abs = __webpack_require__(/*! ./abs */ "./node_modules/es-abstract/2021/abs.js");
+var floor = __webpack_require__(/*! ./floor */ "./node_modules/es-abstract/2021/floor.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+var $isNaN = __webpack_require__(/*! ../helpers/isNaN */ "./node_modules/es-abstract/helpers/isNaN.js");
+var $isFinite = __webpack_require__(/*! ../helpers/isFinite */ "./node_modules/es-abstract/helpers/isFinite.js");
+
+// https://tc39.es/ecma262/#sec-isintegralnumber
+
+module.exports = function IsIntegralNumber(argument) {
+	if (Type(argument) !== 'Number' || $isNaN(argument) || !$isFinite(argument)) {
+		return false;
+	}
+	var absValue = abs(argument);
+	return floor(absValue) === absValue;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/IsPropertyKey.js":
+/*!********************************************************!*\
+  !*** ./node_modules/es-abstract/2021/IsPropertyKey.js ***!
+  \********************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+// https://ecma-international.org/ecma-262/6.0/#sec-ispropertykey
+
+module.exports = function IsPropertyKey(argument) {
+	return typeof argument === 'string' || typeof argument === 'symbol';
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/IsRegExp.js":
+/*!***************************************************!*\
+  !*** ./node_modules/es-abstract/2021/IsRegExp.js ***!
+  \***************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $match = GetIntrinsic('%Symbol.match%', true);
+
+var hasRegExpMatcher = __webpack_require__(/*! is-regex */ "./node_modules/is-regex/index.js");
+
+var ToBoolean = __webpack_require__(/*! ./ToBoolean */ "./node_modules/es-abstract/2021/ToBoolean.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-isregexp
+
+module.exports = function IsRegExp(argument) {
+	if (!argument || typeof argument !== 'object') {
+		return false;
+	}
+	if ($match) {
+		var isRegExp = argument[$match];
+		if (typeof isRegExp !== 'undefined') {
+			return ToBoolean(isRegExp);
+		}
+	}
+	return hasRegExpMatcher(argument);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/OrdinaryObjectCreate.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/OrdinaryObjectCreate.js ***!
+  \***************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $ObjectCreate = GetIntrinsic('%Object.create%', true);
+var $TypeError = GetIntrinsic('%TypeError%');
+var $SyntaxError = GetIntrinsic('%SyntaxError%');
+
+var IsArray = __webpack_require__(/*! ./IsArray */ "./node_modules/es-abstract/2021/IsArray.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+var hasProto = !({ __proto__: null } instanceof Object);
+
+// https://262.ecma-international.org/6.0/#sec-objectcreate
+
+module.exports = function OrdinaryObjectCreate(proto) {
+	if (proto !== null && Type(proto) !== 'Object') {
+		throw new $TypeError('Assertion failed: `proto` must be null or an object');
+	}
+	var additionalInternalSlotsList = arguments.length < 2 ? [] : arguments[1];
+	if (!IsArray(additionalInternalSlotsList)) {
+		throw new $TypeError('Assertion failed: `additionalInternalSlotsList` must be an Array');
+	}
+	// var internalSlotsList = ['[[Prototype]]', '[[Extensible]]'];
+	if (additionalInternalSlotsList.length > 0) {
+		throw new $SyntaxError('es-abstract does not yet support internal slots');
+		// internalSlotsList.push(...additionalInternalSlotsList);
+	}
+	// var O = MakeBasicObject(internalSlotsList);
+	// setProto(O, proto);
+	// return O;
+
+	if ($ObjectCreate) {
+		return $ObjectCreate(proto);
+	}
+	if (hasProto) {
+		return { __proto__: proto };
+	}
+
+	if (proto === null) {
+		throw new $SyntaxError('native Object.create support is required to create null objects');
+	}
+	var T = function T() {};
+	T.prototype = proto;
+	return new T();
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/RegExpExec.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/es-abstract/2021/RegExpExec.js ***!
+  \*****************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var regexExec = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js")('RegExp.prototype.exec');
+
+var Call = __webpack_require__(/*! ./Call */ "./node_modules/es-abstract/2021/Call.js");
+var Get = __webpack_require__(/*! ./Get */ "./node_modules/es-abstract/2021/Get.js");
+var IsCallable = __webpack_require__(/*! ./IsCallable */ "./node_modules/es-abstract/2021/IsCallable.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-regexpexec
+
+module.exports = function RegExpExec(R, S) {
+	if (Type(R) !== 'Object') {
+		throw new $TypeError('Assertion failed: `R` must be an Object');
+	}
+	if (Type(S) !== 'String') {
+		throw new $TypeError('Assertion failed: `S` must be a String');
+	}
+	var exec = Get(R, 'exec');
+	if (IsCallable(exec)) {
+		var result = Call(exec, R, [S]);
+		if (result === null || Type(result) === 'Object') {
+			return result;
+		}
+		throw new $TypeError('"exec" method must return `null` or an Object');
+	}
+	return regexExec(R, S);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/RequireObjectCoercible.js":
+/*!*****************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/RequireObjectCoercible.js ***!
+  \*****************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+module.exports = __webpack_require__(/*! ../5/CheckObjectCoercible */ "./node_modules/es-abstract/5/CheckObjectCoercible.js");
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/SameValue.js":
+/*!****************************************************!*\
+  !*** ./node_modules/es-abstract/2021/SameValue.js ***!
+  \****************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var $isNaN = __webpack_require__(/*! ../helpers/isNaN */ "./node_modules/es-abstract/helpers/isNaN.js");
+
+// http://262.ecma-international.org/5.1/#sec-9.12
+
+module.exports = function SameValue(x, y) {
+	if (x === y) { // 0 === -0, but they are not identical.
+		if (x === 0) { return 1 / x === 1 / y; }
+		return true;
+	}
+	return $isNaN(x) && $isNaN(y);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/Set.js":
+/*!**********************************************!*\
+  !*** ./node_modules/es-abstract/2021/Set.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
+var SameValue = __webpack_require__(/*! ./SameValue */ "./node_modules/es-abstract/2021/SameValue.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+// IE 9 does not throw in strict mode when writability/configurability/extensibility is violated
+var noThrowOnStrictViolation = (function () {
+	try {
+		delete [].length;
+		return true;
+	} catch (e) {
+		return false;
+	}
+}());
+
+// https://ecma-international.org/ecma-262/6.0/#sec-set-o-p-v-throw
+
+module.exports = function Set(O, P, V, Throw) {
+	if (Type(O) !== 'Object') {
+		throw new $TypeError('Assertion failed: `O` must be an Object');
+	}
+	if (!IsPropertyKey(P)) {
+		throw new $TypeError('Assertion failed: `P` must be a Property Key');
+	}
+	if (Type(Throw) !== 'Boolean') {
+		throw new $TypeError('Assertion failed: `Throw` must be a Boolean');
+	}
+	if (Throw) {
+		O[P] = V; // eslint-disable-line no-param-reassign
+		if (noThrowOnStrictViolation && !SameValue(O[P], V)) {
+			throw new $TypeError('Attempted to assign to readonly property.');
+		}
+		return true;
+	}
+	try {
+		O[P] = V; // eslint-disable-line no-param-reassign
+		return noThrowOnStrictViolation ? SameValue(O[P], V) : true;
+	} catch (e) {
+		return false;
+	}
+
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/SpeciesConstructor.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/SpeciesConstructor.js ***!
+  \*************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $species = GetIntrinsic('%Symbol.species%', true);
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var IsConstructor = __webpack_require__(/*! ./IsConstructor */ "./node_modules/es-abstract/2021/IsConstructor.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-speciesconstructor
+
+module.exports = function SpeciesConstructor(O, defaultConstructor) {
+	if (Type(O) !== 'Object') {
+		throw new $TypeError('Assertion failed: Type(O) is not Object');
+	}
+	var C = O.constructor;
+	if (typeof C === 'undefined') {
+		return defaultConstructor;
+	}
+	if (Type(C) !== 'Object') {
+		throw new $TypeError('O.constructor is not an Object');
+	}
+	var S = $species ? C[$species] : void 0;
+	if (S == null) {
+		return defaultConstructor;
+	}
+	if (IsConstructor(S)) {
+		return S;
+	}
+	throw new $TypeError('no constructor found');
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/ToBoolean.js":
+/*!****************************************************!*\
+  !*** ./node_modules/es-abstract/2021/ToBoolean.js ***!
+  \****************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+// http://262.ecma-international.org/5.1/#sec-9.2
+
+module.exports = function ToBoolean(value) { return !!value; };
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/ToIntegerOrInfinity.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/ToIntegerOrInfinity.js ***!
+  \**************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var ES5ToInteger = __webpack_require__(/*! ../5/ToInteger */ "./node_modules/es-abstract/5/ToInteger.js");
+
+var ToNumber = __webpack_require__(/*! ./ToNumber */ "./node_modules/es-abstract/2021/ToNumber.js");
+
+// https://www.ecma-international.org/ecma-262/11.0/#sec-tointeger
+
+module.exports = function ToInteger(value) {
+	var number = ToNumber(value);
+	if (number !== 0) {
+		number = ES5ToInteger(number);
+	}
+	return number === 0 ? 0 : number;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/ToLength.js":
+/*!***************************************************!*\
+  !*** ./node_modules/es-abstract/2021/ToLength.js ***!
+  \***************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var MAX_SAFE_INTEGER = __webpack_require__(/*! ../helpers/maxSafeInteger */ "./node_modules/es-abstract/helpers/maxSafeInteger.js");
+
+var ToIntegerOrInfinity = __webpack_require__(/*! ./ToIntegerOrInfinity */ "./node_modules/es-abstract/2021/ToIntegerOrInfinity.js");
+
+module.exports = function ToLength(argument) {
+	var len = ToIntegerOrInfinity(argument);
+	if (len <= 0) { return 0; } // includes converting -0 to +0
+	if (len > MAX_SAFE_INTEGER) { return MAX_SAFE_INTEGER; }
+	return len;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/ToNumber.js":
+/*!***************************************************!*\
+  !*** ./node_modules/es-abstract/2021/ToNumber.js ***!
+  \***************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+var $Number = GetIntrinsic('%Number%');
+var $RegExp = GetIntrinsic('%RegExp%');
+var $parseInteger = GetIntrinsic('%parseInt%');
+
+var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
+var regexTester = __webpack_require__(/*! ../helpers/regexTester */ "./node_modules/es-abstract/helpers/regexTester.js");
+var isPrimitive = __webpack_require__(/*! ../helpers/isPrimitive */ "./node_modules/es-abstract/helpers/isPrimitive.js");
+
+var $strSlice = callBound('String.prototype.slice');
+var isBinary = regexTester(/^0b[01]+$/i);
+var isOctal = regexTester(/^0o[0-7]+$/i);
+var isInvalidHexLiteral = regexTester(/^[-+]0x[0-9a-f]+$/i);
+var nonWS = ['\u0085', '\u200b', '\ufffe'].join('');
+var nonWSregex = new $RegExp('[' + nonWS + ']', 'g');
+var hasNonWS = regexTester(nonWSregex);
+
+// whitespace from: https://es5.github.io/#x15.5.4.20
+// implementation from https://github.com/es-shims/es5-shim/blob/v3.4.0/es5-shim.js#L1304-L1324
+var ws = [
+	'\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003',
+	'\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028',
+	'\u2029\uFEFF'
+].join('');
+var trimRegex = new RegExp('(^[' + ws + ']+)|([' + ws + ']+$)', 'g');
+var $replace = callBound('String.prototype.replace');
+var $trim = function (value) {
+	return $replace(value, trimRegex, '');
+};
+
+var ToPrimitive = __webpack_require__(/*! ./ToPrimitive */ "./node_modules/es-abstract/2021/ToPrimitive.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-tonumber
+
+module.exports = function ToNumber(argument) {
+	var value = isPrimitive(argument) ? argument : ToPrimitive(argument, $Number);
+	if (typeof value === 'symbol') {
+		throw new $TypeError('Cannot convert a Symbol value to a number');
+	}
+	if (typeof value === 'bigint') {
+		throw new $TypeError('Conversion from \'BigInt\' to \'number\' is not allowed.');
+	}
+	if (typeof value === 'string') {
+		if (isBinary(value)) {
+			return ToNumber($parseInteger($strSlice(value, 2), 2));
+		} else if (isOctal(value)) {
+			return ToNumber($parseInteger($strSlice(value, 2), 8));
+		} else if (hasNonWS(value) || isInvalidHexLiteral(value)) {
+			return NaN;
+		}
+		var trimmed = $trim(value);
+		if (trimmed !== value) {
+			return ToNumber(trimmed);
+		}
+
+	}
+	return $Number(value);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/ToObject.js":
+/*!***************************************************!*\
+  !*** ./node_modules/es-abstract/2021/ToObject.js ***!
+  \***************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $Object = GetIntrinsic('%Object%');
+
+var RequireObjectCoercible = __webpack_require__(/*! ./RequireObjectCoercible */ "./node_modules/es-abstract/2021/RequireObjectCoercible.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-toobject
+
+module.exports = function ToObject(value) {
+	RequireObjectCoercible(value);
+	return $Object(value);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/ToPrimitive.js":
+/*!******************************************************!*\
+  !*** ./node_modules/es-abstract/2021/ToPrimitive.js ***!
+  \******************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var toPrimitive = __webpack_require__(/*! es-to-primitive/es2015 */ "./node_modules/es-to-primitive/es2015.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-toprimitive
+
+module.exports = function ToPrimitive(input) {
+	if (arguments.length > 1) {
+		return toPrimitive(input, arguments[1]);
+	}
+	return toPrimitive(input);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/ToPropertyDescriptor.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/ToPropertyDescriptor.js ***!
+  \***************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+var ToBoolean = __webpack_require__(/*! ./ToBoolean */ "./node_modules/es-abstract/2021/ToBoolean.js");
+var IsCallable = __webpack_require__(/*! ./IsCallable */ "./node_modules/es-abstract/2021/IsCallable.js");
+
+// https://262.ecma-international.org/5.1/#sec-8.10.5
+
+module.exports = function ToPropertyDescriptor(Obj) {
+	if (Type(Obj) !== 'Object') {
+		throw new $TypeError('ToPropertyDescriptor requires an object');
+	}
+
+	var desc = {};
+	if (has(Obj, 'enumerable')) {
+		desc['[[Enumerable]]'] = ToBoolean(Obj.enumerable);
+	}
+	if (has(Obj, 'configurable')) {
+		desc['[[Configurable]]'] = ToBoolean(Obj.configurable);
+	}
+	if (has(Obj, 'value')) {
+		desc['[[Value]]'] = Obj.value;
+	}
+	if (has(Obj, 'writable')) {
+		desc['[[Writable]]'] = ToBoolean(Obj.writable);
+	}
+	if (has(Obj, 'get')) {
+		var getter = Obj.get;
+		if (typeof getter !== 'undefined' && !IsCallable(getter)) {
+			throw new $TypeError('getter must be a function');
+		}
+		desc['[[Get]]'] = getter;
+	}
+	if (has(Obj, 'set')) {
+		var setter = Obj.set;
+		if (typeof setter !== 'undefined' && !IsCallable(setter)) {
+			throw new $TypeError('setter must be a function');
+		}
+		desc['[[Set]]'] = setter;
+	}
+
+	if ((has(desc, '[[Get]]') || has(desc, '[[Set]]')) && (has(desc, '[[Value]]') || has(desc, '[[Writable]]'))) {
+		throw new $TypeError('Invalid property descriptor. Cannot both specify accessors and a value or writable attribute');
+	}
+	return desc;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/ToString.js":
+/*!***************************************************!*\
+  !*** ./node_modules/es-abstract/2021/ToString.js ***!
+  \***************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $String = GetIntrinsic('%String%');
+var $TypeError = GetIntrinsic('%TypeError%');
+
+// https://ecma-international.org/ecma-262/6.0/#sec-tostring
+
+module.exports = function ToString(argument) {
+	if (typeof argument === 'symbol') {
+		throw new $TypeError('Cannot convert a Symbol value to a string');
+	}
+	return $String(argument);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/Type.js":
+/*!***********************************************!*\
+  !*** ./node_modules/es-abstract/2021/Type.js ***!
+  \***********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var ES5Type = __webpack_require__(/*! ../5/Type */ "./node_modules/es-abstract/5/Type.js");
+
+// https://262.ecma-international.org/11.0/#sec-ecmascript-data-types-and-values
+
+module.exports = function Type(x) {
+	if (typeof x === 'symbol') {
+		return 'Symbol';
+	}
+	if (typeof x === 'bigint') {
+		return 'BigInt';
+	}
+	return ES5Type(x);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/UTF16SurrogatePairToCodePoint.js":
+/*!************************************************************************!*\
+  !*** ./node_modules/es-abstract/2021/UTF16SurrogatePairToCodePoint.js ***!
+  \************************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+var $fromCharCode = GetIntrinsic('%String.fromCharCode%');
+
+var isLeadingSurrogate = __webpack_require__(/*! ../helpers/isLeadingSurrogate */ "./node_modules/es-abstract/helpers/isLeadingSurrogate.js");
+var isTrailingSurrogate = __webpack_require__(/*! ../helpers/isTrailingSurrogate */ "./node_modules/es-abstract/helpers/isTrailingSurrogate.js");
+
+// https://tc39.es/ecma262/2020/#sec-utf16decodesurrogatepair
+
+module.exports = function UTF16DecodeSurrogatePair(lead, trail) {
+	if (!isLeadingSurrogate(lead) || !isTrailingSurrogate(trail)) {
+		throw new $TypeError('Assertion failed: `lead` must be a leading surrogate char code, and `trail` must be a trailing surrogate char code');
+	}
+	// var cp = (lead - 0xD800) * 0x400 + (trail - 0xDC00) + 0x10000;
+	return $fromCharCode(lead) + $fromCharCode(trail);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/abs.js":
+/*!**********************************************!*\
+  !*** ./node_modules/es-abstract/2021/abs.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $abs = GetIntrinsic('%Math.abs%');
+
+// http://262.ecma-international.org/5.1/#sec-5.2
+
+module.exports = function abs(x) {
+	return $abs(x);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2021/floor.js":
+/*!************************************************!*\
+  !*** ./node_modules/es-abstract/2021/floor.js ***!
+  \************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+// var modulo = require('./modulo');
+var $floor = Math.floor;
+
+// http://262.ecma-international.org/5.1/#sec-5.2
+
+module.exports = function floor(x) {
+	// return x - modulo(x, 1);
+	return $floor(x);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/5/CheckObjectCoercible.js":
+/*!************************************************************!*\
+  !*** ./node_modules/es-abstract/5/CheckObjectCoercible.js ***!
+  \************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+
+// http://262.ecma-international.org/5.1/#sec-9.10
+
+module.exports = function CheckObjectCoercible(value, optMessage) {
+	if (value == null) {
+		throw new $TypeError(optMessage || ('Cannot call method on ' + value));
+	}
+	return value;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/5/ToInteger.js":
+/*!*************************************************!*\
+  !*** ./node_modules/es-abstract/5/ToInteger.js ***!
+  \*************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var abs = __webpack_require__(/*! ./abs */ "./node_modules/es-abstract/5/abs.js");
+var floor = __webpack_require__(/*! ./floor */ "./node_modules/es-abstract/5/floor.js");
+var ToNumber = __webpack_require__(/*! ./ToNumber */ "./node_modules/es-abstract/5/ToNumber.js");
+
+var $isNaN = __webpack_require__(/*! ../helpers/isNaN */ "./node_modules/es-abstract/helpers/isNaN.js");
+var $isFinite = __webpack_require__(/*! ../helpers/isFinite */ "./node_modules/es-abstract/helpers/isFinite.js");
+var $sign = __webpack_require__(/*! ../helpers/sign */ "./node_modules/es-abstract/helpers/sign.js");
+
+// http://262.ecma-international.org/5.1/#sec-9.4
+
+module.exports = function ToInteger(value) {
+	var number = ToNumber(value);
+	if ($isNaN(number)) { return 0; }
+	if (number === 0 || !$isFinite(number)) { return number; }
+	return $sign(number) * floor(abs(number));
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/5/ToNumber.js":
+/*!************************************************!*\
+  !*** ./node_modules/es-abstract/5/ToNumber.js ***!
+  \************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var ToPrimitive = __webpack_require__(/*! ./ToPrimitive */ "./node_modules/es-abstract/5/ToPrimitive.js");
+
+// http://262.ecma-international.org/5.1/#sec-9.3
+
+module.exports = function ToNumber(value) {
+	var prim = ToPrimitive(value, Number);
+	if (typeof prim !== 'string') {
+		return +prim; // eslint-disable-line no-implicit-coercion
+	}
+
+	// eslint-disable-next-line no-control-regex
+	var trimmed = prim.replace(/^[ \t\x0b\f\xa0\ufeff\n\r\u2028\u2029\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u0085]+|[ \t\x0b\f\xa0\ufeff\n\r\u2028\u2029\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u0085]+$/g, '');
+	if ((/^0[ob]|^[+-]0x/).test(trimmed)) {
+		return NaN;
+	}
+
+	return +trimmed; // eslint-disable-line no-implicit-coercion
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/5/ToPrimitive.js":
+/*!***************************************************!*\
+  !*** ./node_modules/es-abstract/5/ToPrimitive.js ***!
+  \***************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+// http://262.ecma-international.org/5.1/#sec-9.1
+
+module.exports = __webpack_require__(/*! es-to-primitive/es5 */ "./node_modules/es-to-primitive/es5.js");
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/5/Type.js":
+/*!********************************************!*\
+  !*** ./node_modules/es-abstract/5/Type.js ***!
+  \********************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+// https://262.ecma-international.org/5.1/#sec-8
+
+module.exports = function Type(x) {
+	if (x === null) {
+		return 'Null';
+	}
+	if (typeof x === 'undefined') {
+		return 'Undefined';
+	}
+	if (typeof x === 'function' || typeof x === 'object') {
+		return 'Object';
+	}
+	if (typeof x === 'number') {
+		return 'Number';
+	}
+	if (typeof x === 'boolean') {
+		return 'Boolean';
+	}
+	if (typeof x === 'string') {
+		return 'String';
+	}
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/5/abs.js":
+/*!*******************************************!*\
+  !*** ./node_modules/es-abstract/5/abs.js ***!
+  \*******************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $abs = GetIntrinsic('%Math.abs%');
+
+// http://262.ecma-international.org/5.1/#sec-5.2
+
+module.exports = function abs(x) {
+	return $abs(x);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/5/floor.js":
+/*!*********************************************!*\
+  !*** ./node_modules/es-abstract/5/floor.js ***!
+  \*********************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+// var modulo = require('./modulo');
+var $floor = Math.floor;
+
+// http://262.ecma-international.org/5.1/#sec-5.2
+
+module.exports = function floor(x) {
+	// return x - modulo(x, 1);
+	return $floor(x);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/GetIntrinsic.js":
+/*!**************************************************!*\
+  !*** ./node_modules/es-abstract/GetIntrinsic.js ***!
+  \**************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+// TODO: remove, semver-major
+
+module.exports = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/DefineOwnProperty.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/DefineOwnProperty.js ***!
+  \***************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $defineProperty = GetIntrinsic('%Object.defineProperty%', true);
+
+if ($defineProperty) {
+	try {
+		$defineProperty({}, 'a', { value: 1 });
+	} catch (e) {
+		// IE 8 has a broken defineProperty
+		$defineProperty = null;
+	}
+}
+
+// node v0.6 has a bug where array lengths can be Set but not Defined
+var hasArrayLengthDefineBug = Object.defineProperty && Object.defineProperty([], 'length', { value: 1 }).length === 0;
+
+// eslint-disable-next-line global-require
+var isArray = hasArrayLengthDefineBug && __webpack_require__(/*! ../2020/IsArray */ "./node_modules/es-abstract/2020/IsArray.js"); // this does not depend on any other AOs.
+
+var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
+
+var $isEnumerable = callBound('Object.prototype.propertyIsEnumerable');
+
+// eslint-disable-next-line max-params
+module.exports = function DefineOwnProperty(IsDataDescriptor, SameValue, FromPropertyDescriptor, O, P, desc) {
+	if (!$defineProperty) {
+		if (!IsDataDescriptor(desc)) {
+			// ES3 does not support getters/setters
+			return false;
+		}
+		if (!desc['[[Configurable]]'] || !desc['[[Writable]]']) {
+			return false;
+		}
+
+		// fallback for ES3
+		if (P in O && $isEnumerable(O, P) !== !!desc['[[Enumerable]]']) {
+			// a non-enumerable existing property
+			return false;
+		}
+
+		// property does not exist at all, or exists but is enumerable
+		var V = desc['[[Value]]'];
+		// eslint-disable-next-line no-param-reassign
+		O[P] = V; // will use [[Define]]
+		return SameValue(O[P], V);
+	}
+	if (
+		hasArrayLengthDefineBug
+		&& P === 'length'
+		&& '[[Value]]' in desc
+		&& isArray(O)
+		&& O.length !== desc['[[Value]]']
+	) {
+		// eslint-disable-next-line no-param-reassign
+		O.length = desc['[[Value]]'];
+		return O.length === desc['[[Value]]'];
+	}
+
+	$defineProperty(O, P, FromPropertyDescriptor(desc));
+	return true;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/assertRecord.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/assertRecord.js ***!
+  \**********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+var $SyntaxError = GetIntrinsic('%SyntaxError%');
+
+var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+
+var predicates = {
+	// https://262.ecma-international.org/6.0/#sec-property-descriptor-specification-type
+	'Property Descriptor': function isPropertyDescriptor(Type, Desc) {
+		if (Type(Desc) !== 'Object') {
+			return false;
+		}
+		var allowed = {
+			'[[Configurable]]': true,
+			'[[Enumerable]]': true,
+			'[[Get]]': true,
+			'[[Set]]': true,
+			'[[Value]]': true,
+			'[[Writable]]': true
+		};
+
+		for (var key in Desc) { // eslint-disable-line
+			if (has(Desc, key) && !allowed[key]) {
+				return false;
+			}
+		}
+
+		var isData = has(Desc, '[[Value]]');
+		var IsAccessor = has(Desc, '[[Get]]') || has(Desc, '[[Set]]');
+		if (isData && IsAccessor) {
+			throw new $TypeError('Property Descriptors may not be both accessor and data descriptors');
+		}
+		return true;
+	}
+};
+
+module.exports = function assertRecord(Type, recordType, argumentName, value) {
+	var predicate = predicates[recordType];
+	if (typeof predicate !== 'function') {
+		throw new $SyntaxError('unknown record type: ' + recordType);
+	}
+	if (!predicate(Type, value)) {
+		throw new $TypeError(argumentName + ' must be a ' + recordType);
+	}
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/isFinite.js":
+/*!******************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/isFinite.js ***!
+  \******************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+var $isNaN = Number.isNaN || function (a) { return a !== a; };
+
+module.exports = Number.isFinite || function (x) { return typeof x === 'number' && !$isNaN(x) && x !== Infinity && x !== -Infinity; };
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/isLeadingSurrogate.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/isLeadingSurrogate.js ***!
+  \****************************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = function isLeadingSurrogate(charCode) {
+	return typeof charCode === 'number' && charCode >= 0xD800 && charCode <= 0xDBFF;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/isNaN.js":
+/*!***************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/isNaN.js ***!
+  \***************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = Number.isNaN || function isNaN(a) {
+	return a !== a;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/isPrimitive.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/isPrimitive.js ***!
+  \*********************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = function isPrimitive(value) {
+	return value === null || (typeof value !== 'function' && typeof value !== 'object');
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/isPropertyDescriptor.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/isPropertyDescriptor.js ***!
+  \******************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+var $TypeError = GetIntrinsic('%TypeError%');
+
+module.exports = function IsPropertyDescriptor(ES, Desc) {
+	if (ES.Type(Desc) !== 'Object') {
+		return false;
+	}
+	var allowed = {
+		'[[Configurable]]': true,
+		'[[Enumerable]]': true,
+		'[[Get]]': true,
+		'[[Set]]': true,
+		'[[Value]]': true,
+		'[[Writable]]': true
+	};
+
+	for (var key in Desc) { // eslint-disable-line no-restricted-syntax
+		if (has(Desc, key) && !allowed[key]) {
+			return false;
+		}
+	}
+
+	if (ES.IsDataDescriptor(Desc) && ES.IsAccessorDescriptor(Desc)) {
+		throw new $TypeError('Property Descriptors may not be both accessor and data descriptors');
+	}
+	return true;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/isTrailingSurrogate.js":
+/*!*****************************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/isTrailingSurrogate.js ***!
+  \*****************************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = function isTrailingSurrogate(charCode) {
+	return typeof charCode === 'number' && charCode >= 0xDC00 && charCode <= 0xDFFF;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/maxSafeInteger.js":
+/*!************************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/maxSafeInteger.js ***!
+  \************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $Math = GetIntrinsic('%Math%');
+var $Number = GetIntrinsic('%Number%');
+
+module.exports = $Number.MAX_SAFE_INTEGER || $Math.pow(2, 53) - 1;
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/regexTester.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/regexTester.js ***!
+  \*********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $test = GetIntrinsic('RegExp.prototype.test');
+
+var callBind = __webpack_require__(/*! call-bind */ "./node_modules/call-bind/index.js");
+
+module.exports = function regexTester(regex) {
+	return callBind($test, regex);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/sign.js":
+/*!**************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/sign.js ***!
+  \**************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = function sign(number) {
+	return number >= 0 ? 1 : -1;
+};
+
+
+/***/ })
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
+"use strict";
+/*!*********************************!*\
+  !*** ./src/index-reflowable.js ***!
+  \*********************************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./index */ "./src/index.js");
+//
+//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
+//
+
+// Script used for reflowable resources.
+
+
+
+window.addEventListener("load", function () {
+  // Notifies native code that the page is loaded after it is rendered.
+  // Waiting for the next animation frame seems to do the trick to make sure the page is fully rendered.
+  window.requestAnimationFrame(function () {
+    webkit.messageHandlers.spreadLoaded.postMessage({});
+  });
+
+  // Setups the `viewport` meta tag to disable zooming.
+  let meta = document.createElement("meta");
+  meta.setAttribute("name", "viewport");
+  meta.setAttribute(
+    "content",
+    "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no"
+  );
+  document.head.appendChild(meta);
+});
+
+// Injects Readium CSS stylesheets.
+document.addEventListener("DOMContentLoaded", function () {
+  function createLink(name) {
+    var link = document.createElement("link");
+    link.setAttribute("rel", "stylesheet");
+    link.setAttribute("type", "text/css");
+    link.setAttribute("href", window.readiumCSSBaseURL + name + ".css");
+    return link;
+  }
+
+  var head = document.getElementsByTagName("head")[0];
+  head.appendChild(createLink("ReadiumCSS-after"));
+  head.insertBefore(createLink("ReadiumCSS-before"), head.children[0]);
+});
+
+})();
+
+/******/ })()
+;

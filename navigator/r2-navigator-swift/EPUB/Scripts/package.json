@@ -18,6 +18,8 @@
     "webpack-cli": "^4.7.2"
   },
   "dependencies": {
-    "approx-string-match": "^1.1.0"
+    "@juggle/resize-observer": "^3.3.1",
+    "approx-string-match": "^1.1.0",
+    "string.prototype.matchall": "^4.0.5"
   }
 }

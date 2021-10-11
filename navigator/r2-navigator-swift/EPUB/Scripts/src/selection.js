@@ -8,10 +8,17 @@ import { log as logNative, logError } from "./utils";
 import { toNativeRect } from "./rect";
 import { TextRange } from "./vendor/hypothesis/anchoring/text-range";
 
+// Polyfill for iOS 12
+import matchAll from "string.prototype.matchall";
+matchAll.shim();
+
 const debug = true;
 
 export function getCurrentSelection() {
-  const href = readium.link?.href;
+  if (!readium.link) {
+    return null;
+  }
+  const href = readium.link.href;
   if (!href) {
     return null;
   }
