@@ -1,4 +1,4 @@
-name: ReadiumLCP
+name: Build
 
 on:
   push:
@@ -37,3 +37,7 @@ jobs:
       #   run: |
       #     device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
       #     xcodebuild test-without-building -scheme "$scheme" -destination "platform=$platform,name=$device"
+      - name: Analyze
+        run: |
+          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
+          xcodebuild analyze -scheme "$scheme" -destination "platform=$platform,name=$device"
