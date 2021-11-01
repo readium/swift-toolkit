@@ -10,6 +10,11 @@ All notable changes to this project will be documented in this file.
 
 * Support for Paragraph Margins user setting.
 
+### Fixed
+
+* Improved performances of the search service used with EPUB.
+
+
 ## [2.1.0]
 
 ### Added

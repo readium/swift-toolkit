@@ -54,13 +54,20 @@ public class _DefaultResourceContentExtractorFactory: _ResourceContentExtractorF
 /// notice. Use with caution.
 class _HTMLResourceContentExtractor: _ResourceContentExtractor {
 
+    private let xmlFactory = DefaultXMLDocumentFactory()
+
     func extractText(of resource: Resource) -> ResourceResult<String> {
         resource.readAsString()
-            .flatMap { html in
+            .flatMap { content in
                 do {
-                    var text = try SwiftSoup.parse(html).body()?.text() ?? ""
+                    // First try to parse a valid XML document, then fallback on SwiftSoup, which is slower.
+                    var text = parse(xml: content)
+                        ?? parse(html: content)
+                        ?? ""
+                    
                     // Transform HTML entities into their actual characters.
                     text = try Entities.unescape(text)
+                    
                     return .success(text)
 
                 } catch {
@@ -68,5 +75,26 @@ class _HTMLResourceContentExtractor: _ResourceContentExtractor {
                 }
             }
     }
-
+    
+    // Parse the HTML resource as a strict XML document.
+    //
+    // This is much more efficient than using SwiftSoup, but will fail when encountering
+    // invalid HTML documents.
+    private func parse(xml: String) -> String? {
+        guard let document = try? xmlFactory.open(string: xml, namespaces: [
+                XMLNamespace(prefix: "xhtml", uri: "http://www.w3.org/1999/xhtml")
+            ])
+        else {
+            return nil
+        }
+        
+        return document.first("/xhtml:html/xhtml:body")?.textContent
+    }
+    
+    // Parse the HTML resource with SwiftSoup.
+    //
+    // This may be slow but will recover from broken HTML documents.
+    private func parse(html: String) -> String? {
+        return try? SwiftSoup.parse(html).body()?.text()
+    }
 }

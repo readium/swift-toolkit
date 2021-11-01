@@ -18,6 +18,7 @@ final class FuziXMLDocument: XMLDocument, Loggable {
     
     init(string: String, namespaces: [XMLNamespace]) throws {
         self.document = try Fuzi.XMLDocument(string: string)
+        document.definePrefixes(namespaces)
     }
     
     lazy var documentElement: XMLElement? =
