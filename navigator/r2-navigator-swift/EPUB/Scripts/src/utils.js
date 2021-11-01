@@ -25,6 +25,11 @@ window.addEventListener(
 window.addEventListener(
   "load",
   function () {
+    const observer = new ResizeObserver(() => {
+      appendVirtualColumnIfNeeded();
+    });
+    observer.observe(document.body);
+
     // on page load
     window.addEventListener("orientationchange", function () {
       orientationChanged();
@@ -34,6 +39,34 @@ window.addEventListener(
   },
   false
 );
+
+/**
+ * Having an odd number of columns when displaying two columns per screen causes snapping and page
+ * turning issues. To fix this, we insert a blank virtual column at the end of the resource.
+ */
+function appendVirtualColumnIfNeeded() {
+  const id = "readium-virtual-page";
+  var virtualCol = document.getElementById(id);
+  if (isScrollModeEnabled() || getColumnCountPerScreen() != 2) {
+    virtualCol?.remove();
+  } else {
+    var documentWidth = document.scrollingElement.scrollWidth;
+    var pageWidth = window.innerWidth;
+    var colCount = documentWidth / pageWidth;
+    var hasOddColCount = (Math.round(colCount * 2) / 2) % 1 > 0.1;
+    if (hasOddColCount) {
+      if (virtualCol) {
+        virtualCol.remove();
+      } else {
+        virtualCol = document.createElement("div");
+        virtualCol.setAttribute("id", id);
+        virtualCol.style.breakBefore = "column";
+        virtualCol.innerHTML = "&#8203;"; // zero-width space
+        document.body.appendChild(virtualCol);
+      }
+    }
+  }
+}
 
 var last_known_scrollX_position = 0;
 var last_known_scrollY_position = 0;
@@ -87,6 +120,14 @@ function orientationChanged() {
     window.orientation === 0 || window.orientation == 180
       ? screen.width
       : screen.height;
+}
+
+export function getColumnCountPerScreen() {
+  return parseInt(
+    window
+      .getComputedStyle(document.documentElement)
+      .getPropertyValue("column-count")
+  );
 }
 
 export function isScrollModeEnabled() {
