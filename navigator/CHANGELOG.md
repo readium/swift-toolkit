@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file.
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with
 *caution.
 
-<!--## [Unreleased]-->
+## [Unreleased]
+
+### Added
+
+* A new `translate` EPUB and PDF editing action is available for iOS 15.
+
 
 ## [2.1.0]
 

@@ -17,7 +17,7 @@ public struct EditingAction: Hashable {
 
     /// Default editing actions enabled in the navigator.
     public static var defaultActions: [EditingAction] {
-        [copy, share, lookup]
+        [copy, share, lookup, translate]
     }
 
     /// Copy the text selection.
@@ -25,6 +25,9 @@ public struct EditingAction: Hashable {
 
     /// Look up the text selection in the dictionary.
     public static let lookup = EditingAction(kind: .native("_lookup:"))
+
+    /// Translate the text selection.
+    public static let translate = EditingAction(kind: .native("_translate:"))
 
     /// Share the text selection.
     ///

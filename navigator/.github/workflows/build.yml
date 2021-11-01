@@ -13,6 +13,7 @@ jobs:
     env:
       scheme: ${{ 'r2-navigator-swift' }}
       platform: ${{ 'iOS Simulator' }}
+      device: ${{ 'iPhone 13' }}
 
     steps:
       - name: Checkout
@@ -31,9 +32,7 @@ jobs:
           rm -rf r2-navigator-swift.xcodeproj
       - name: Build
         run: |
-          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
           xcodebuild build-for-testing -scheme "$scheme" -destination "platform=$platform,name=$device"
       - name: Test
         run: |
-          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
           xcodebuild test-without-building -scheme "$scheme" -destination "platform=$platform,name=$device"
