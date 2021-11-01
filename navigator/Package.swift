@@ -19,7 +19,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/ra1028/DifferenceKit.git", from: "1.2.0"),
-        .package(url: "https://github.com/readium/r2-shared-swift.git", .branch("develop")),
+        .package(url: "https://github.com/readium/r2-shared-swift.git", from: "2.2.0"),
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.3.2"),
     ],
     targets: [
