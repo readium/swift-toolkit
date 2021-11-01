@@ -19,7 +19,7 @@ let package = Package(
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.3.8"),
         .package(url: "https://github.com/marmelroy/Zip.git", from: "2.1.1"),
         .package(url: "https://github.com/readium/GCDWebServer.git", from: "3.7.0"),
-        .package(url: "https://github.com/readium/r2-shared-swift.git", .branch("develop")),
+        .package(url: "https://github.com/readium/r2-shared-swift.git", from: "2.2.0"),
     ],
     targets: [
         .target(
