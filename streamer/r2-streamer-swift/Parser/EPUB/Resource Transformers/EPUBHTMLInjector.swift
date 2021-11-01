@@ -38,7 +38,7 @@ final class EPUBHTMLInjector {
             if isReflowable {
                 // User properties injection
                 if let htmlStart = content.endIndex(of: "<html") {
-                    let style = #" style="\(userProperties.css)""#
+                    let style = #" style="\#(self.userProperties.css)""#
                     content = content.insert(string: style, at: htmlStart)
                 }
 
