@@ -1,12 +1,12 @@
 Pod::Spec.new do |s|
 
   s.name          = "ReadiumOPDS"
-  s.version       = "2.1.0"
+  s.version       = "2.2.0"
   s.license       = "BSD 3-Clause License"
   s.summary       = "Readium OPDS"
   s.homepage      = "http://readium.github.io"
   s.author        = { "Readium" => "contact@readium.org" }
-  s.source        = { :git => "https://github.com/readium/r2-opds-swift.git", :branch => 'develop' }
+  s.source        = { :git => "https://github.com/readium/r2-opds-swift.git", :tag => '2.2.0' }
   s.exclude_files = ["**/Info*.plist"]
   s.requires_arc  = true
   s.resources     = ['readium-opds/Resources/**']
