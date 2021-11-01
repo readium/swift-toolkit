@@ -9,6 +9,7 @@ on:
 
 env:
   platform: ${{ 'iOS Simulator' }}
+  device: ${{ 'iPhone 13' }}
 
 jobs:
   spm:
@@ -23,7 +24,6 @@ jobs:
         run: make spm
       - name: Build
         run: |
-          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
           xcodebuild build -scheme R2TestApp -destination "platform=$platform,name=$device"
 
   spm_lcp:
@@ -39,7 +39,6 @@ jobs:
         run: make spm lcp=${{ secrets.LCP_URL_CARTHAGE }}
       - name: Build
         run: |
-          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
           xcodebuild build -scheme R2TestApp -destination "platform=$platform,name=$device"
 
   carthage:
@@ -54,7 +53,6 @@ jobs:
         run: make carthage
       - name: Build
         run: |
-          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
           xcodebuild build -scheme R2TestApp -destination "platform=$platform,name=$device"
 
   carthage_lcp:
@@ -70,7 +68,6 @@ jobs:
         run: make carthage lcp=${{ secrets.LCP_URL_CARTHAGE }}
       - name: Build
         run: |
-          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
           xcodebuild build -scheme R2TestApp -destination "platform=$platform,name=$device"
 
   cocoapods:
@@ -85,7 +82,6 @@ jobs:
         run: make cocoapods
       - name: Build
         run: |
-          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
           xcodebuild build -workspace R2TestApp.xcworkspace -scheme R2TestApp -destination "platform=$platform,name=$device"
 
   cocoapods_lcp:
@@ -101,7 +97,6 @@ jobs:
         run: make cocoapods lcp=${{ secrets.LCP_URL_COCOAPODS }}
       - name: Build
         run: |
-          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
           xcodebuild build -workspace R2TestApp.xcworkspace -scheme R2TestApp -destination "platform=$platform,name=$device"
 
   dev:
@@ -116,7 +111,6 @@ jobs:
         run: make dev
       - name: Build
         run: |
-          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
           xcodebuild build -scheme R2TestApp -destination "platform=$platform,name=$device"
 
   dev_lcp:
@@ -132,5 +126,4 @@ jobs:
         run: make dev lcp=${{ secrets.LCP_URL_CARTHAGE }}
       - name: Build
         run: |
-          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}'`
           xcodebuild build -scheme R2TestApp -destination "platform=$platform,name=$device"
