@@ -1,0 +1,28 @@
+# Use this XcodeGen project spec when using ReadiumLCP with Carthage as a submodule on Xcode 12.5+.
+# See https://github.com/readium/r2-testapp-swift/issues/351#issuecomment-829250100
+name: r2-lcp-swift
+attributes:
+  LastUpgradeCheck: "1250"
+options:
+  bundleIdPrefix: org.readium
+targets:
+  ReadiumLCP:
+    type: framework
+    platform: iOS
+    deploymentTarget: "10.0"
+    sources: 
+      - path: readium-lcp-swift
+    dependencies:
+      - framework: CryptoSwift.framework
+      - framework: Fuzi.framework
+      - framework: Minizip.framework
+      - framework: R2Shared.framework
+      - framework: SQLite.framework
+      - framework: ZIPFoundation.framework
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.readium-lcp-swift
+schemes:
+  r2-lcp-swift:
+    build:
+      targets:
+        ReadiumLCP: all

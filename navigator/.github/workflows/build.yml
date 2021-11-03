@@ -1,0 +1,38 @@
+name: Build
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: macos-latest
+    env:
+      scheme: ${{ 'r2-navigator-swift' }}
+      platform: ${{ 'iOS Simulator' }}
+      device: ${{ 'iPhone 13' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: brew install xcodegen
+      - name: Check Carthage project
+        run: |
+          # Check that the Carthage project is up to date.
+          # FIXME: Carthage is generating a different version even with the cache, when run from the CI
+          #make carthage
+          #git diff --exit-code --name-only r2-navigator-swift.xcodeproj
+      - name: Prepare build
+        run: |
+          # r2-navigator-swift.xcodeproj is only relevant for Carthage. We remove it otherwise xcodebuild will use it.
+          rm -rf r2-navigator-swift.xcodeproj
+      - name: Build
+        run: |
+          xcodebuild build-for-testing -scheme "$scheme" -destination "platform=$platform,name=$device"
+      - name: Test
+        run: |
+          xcodebuild test-without-building -scheme "$scheme" -destination "platform=$platform,name=$device"

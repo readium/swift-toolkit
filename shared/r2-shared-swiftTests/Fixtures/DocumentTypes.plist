@@ -1,0 +1,35 @@
+{
+	"CFBundleDocumentTypes" = (
+		{
+			CFBundleTypeName = "Foo Format";
+			"CFBundleTypeMIMETypes" = (
+				"application/vnd.bar",
+				"application/vnd.bar2",
+			);
+			"CFBundleTypeExtensions" = (
+				foo,
+				FOO,
+				FOO2,
+			);
+		},
+		{
+			CFBundleTypeName = "PDF Publication";
+			"CFBundleTypeMIMETypes" = (
+				"application/pdf",
+				"application/PDF",
+			);
+			"CFBundleTypeExtensions" = (
+				pdff,
+			);
+		},
+		{
+			CFBundleTypeName = "EPUB Publication";
+			LSItemContentTypes = (
+				"org.idpf.epub-container",
+			);
+			"CFBundleTypeExtensions" = (
+				epub2,
+			);
+		},
+	);
+}

@@ -1,0 +1,258 @@
+{
+ "@context": [
+  "http://opds-spec.org/opds.jsonld"
+ ],
+ "metadata": {
+  "@type": "http://schema.org/DataFeed",
+  "title": "Readium 2 OPDS 2.0 Feed",
+  "numberOfItems": 5,
+  "modified": "2017-07-12T17:38:39.105944198+02:00"
+ },
+ "links": [
+  {
+   "href": "https://readium2.feedbooks.net/publications.json",
+   "type": "application/opds+json",
+   "rel": "self"
+  }
+ ],
+ "publications": [
+  {
+   "metadata": {
+    "@type": "http://schema.org/Book",
+    "title": "Smoke Test FXL",
+    "identifier": "urn:uuid:36d5078e-ff7d-468e-a5f3-f47c14b91f2f",
+    "author": [
+     {
+      "name": "Markus Gylling"
+     },
+     {
+      "name": "Vincent Gros"
+     },
+     {
+      "name": "Toshiaki Koike"
+     },
+     {
+      "name": "Marisa DeMeglio"
+     },
+     {
+      "name": "Matt Garrish"
+     },
+     {
+      "name": "Ori Idan"
+     },
+     {
+      "name": "Ric Wright"
+     }
+    ],
+    "publisher": [
+     {
+      "name": "Readium"
+     }
+    ],
+    "language": "en",
+    "modified": "2017-07-12T17:38:39.106050216+02:00",
+    "published": "2014-02-27T00:00:00Z",
+    "rights": "Public Domain",
+    "subject": [
+     {
+      "name": "Smoke Test"
+     }
+    ],
+    "belongs_to": {}
+   },
+   "links": [
+    {
+     "href": "https://readium2.feedbooks.net/Ym9va3MvU21va2VUZXN0RlhM/manifest.json",
+     "type": "application/webpub+json",
+     "rel": "self"
+    }
+   ],
+   "images": [
+    {
+     "href": "https://readium2.feedbooks.net/Ym9va3MvU21va2VUZXN0RlhM/images/EPUB-Logo-Smoke.png",
+     "type": "image/png",
+     "rel": "cover",
+     "properties": {}
+    }
+   ]
+  },
+  {
+   "metadata": {
+    "@type": "http://schema.org/Book",
+    "title": "Children's Literature",
+    "identifier": "http://www.gutenberg.org/ebooks/25545",
+    "author": [
+     {
+      "name": "Charles Madison Curry"
+     },
+     {
+      "name": "Erle Elsworth Clippinger"
+     }
+    ],
+    "language": "en",
+    "modified": "2017-07-12T17:38:39.11311221+02:00",
+    "published": "2008-05-20T00:00:00Z",
+    "source": "http://www.gutenberg.org/files/25545/25545-h/25545-h.htm",
+    "rights": "Public domain in the USA.",
+    "subject": [
+     {
+      "name": "Children -- Books and reading"
+     },
+     {
+      "name": "Children's literature -- Study and teaching"
+     }
+    ],
+    "belongs_to": {}
+   },
+   "links": [
+    {
+     "href": "https://readium2.feedbooks.net/Ym9va3MvY2hpbGRyZW5zLWxpdGVyYXR1cmUuZXB1Yg==/manifest.json",
+     "type": "application/webpub+json",
+     "rel": "self"
+    }
+   ],
+   "images": [
+    {
+     "href": "https://readium2.feedbooks.net/Ym9va3MvY2hpbGRyZW5zLWxpdGVyYXR1cmUuZXB1Yg==/EPUB/images/cover.png",
+     "type": "image/png",
+     "rel": "cover",
+     "properties": {}
+    }
+   ]
+  },
+  {
+   "metadata": {
+    "@type": "http://schema.org/Book",
+    "title": "Moby-Dick",
+    "identifier": "code.google.com.epub-samples.moby-dick-basic",
+    "author": [
+     {
+      "name": "Herman Melville"
+     }
+    ],
+    "contributor": [
+     {
+      "name": "Dave Cramer",
+      "role": "mrk"
+     }
+    ],
+    "publisher": [
+     {
+      "name": "Harper \u0026 Brothers, Publishers"
+     }
+    ],
+    "language": "en-US",
+    "modified": "2017-07-12T17:38:39.116810265+02:00",
+    "published": "0001-01-01T00:00:00Z",
+    "rights": "This work is shared with the public using the Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0) license.",
+    "belongs_to": {}
+   },
+   "links": [
+    {
+     "href": "https://readium2.feedbooks.net/Ym9va3MvbW9ieS1kaWNrLmVwdWI=/manifest.json",
+     "type": "application/webpub+json",
+     "rel": "self"
+    }
+   ],
+   "images": [
+    {
+     "href": "https://readium2.feedbooks.net/Ym9va3MvbW9ieS1kaWNrLmVwdWI=/OPS/images/9780316000000.jpg",
+     "type": "image/jpeg",
+     "rel": "cover",
+     "properties": {}
+    }
+   ]
+  },
+  {
+   "metadata": {
+    "@type": "http://schema.org/Book",
+    "title": "Moby-Dick",
+    "identifier": "urn:isbn:9780316000000",
+    "author": [
+     {
+      "name": "Herman Melville"
+     }
+    ],
+    "contributor": [
+     {
+      "name": "Dave Cramer",
+      "role": "mrk"
+     }
+    ],
+    "publisher": [
+     {
+      "name": "Harper \u0026 Brothers, Publishers"
+     }
+    ],
+    "language": "en-US",
+    "modified": "2017-07-12T17:38:39.121311417+02:00",
+    "published": "0001-01-01T00:00:00Z",
+    "belongs_to": {}
+   },
+   "links": [
+    {
+     "href": "license.lcpl",
+     "type": "application/vnd.readium.lcp.license-1.0+json",
+     "rel": "license",
+     "properties": {}
+    },
+    {
+     "href": "https://readium2.feedbooks.net/Ym9va3MvbW9ieS1kaWNrX2xjcC5lcHVi/manifest.json",
+     "type": "application/webpub+json",
+     "rel": "self"
+    }
+   ],
+   "images": [
+    {
+     "href": "https://readium2.feedbooks.net/Ym9va3MvbW9ieS1kaWNrX2xjcC5lcHVi/OPS/images/9780316000000.jpg",
+     "type": "image/jpeg",
+     "rel": "cover",
+     "properties": {}
+    }
+   ]
+  },
+  {
+   "metadata": {
+    "@type": "http://schema.org/Book",
+    "title": "Creative Commons - A Shared Culture",
+    "identifier": "code.google.com.epub-samples.cc-shared-culture",
+    "author": [
+     {
+      "name": "Jesse Dylan"
+     }
+    ],
+    "contributor": [
+     {
+      "name": "mgylling"
+     }
+    ],
+    "publisher": [
+     {
+      "name": "Creative Commons"
+     }
+    ],
+    "language": "en-US",
+    "modified": "2017-07-12T17:38:39.137153341+02:00",
+    "published": "0001-01-01T00:00:00Z",
+    "description": "Multiple video tests (see Navigation Document (toc) for details)",
+    "rights": "This work is licensed under a Creative Commons Attribution-Noncommercial-Share Alike (CC BY-NC-SA) license.",
+    "belongs_to": {}
+   },
+   "links": [
+    {
+     "href": "https://readium2.feedbooks.net/Ym9va3Mvc2hhcmVkX2N1bHR1cmUuZXB1Yg==/manifest.json",
+     "type": "application/webpub+json",
+     "rel": "self"
+    }
+   ],
+   "images": [
+    {
+     "href": "https://readium2.feedbooks.net/Ym9va3Mvc2hhcmVkX2N1bHR1cmUuZXB1Yg==/EPUB/images/326261902_3fa36f548d.jpg",
+     "type": "image/jpeg",
+     "rel": "cover",
+     "properties": {}
+    }
+   ]
+  }
+ ]
+}

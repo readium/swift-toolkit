@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:opds="http://opds-spec.org/2010/catalog" xmlns:app="http://www.w3.org/2007/app" xmlns:odl="http://opds-spec.org/odl" xmlns:schema="http://schema.org/" xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:thr="http://purl.org/syndication/thread/1.0" xmlns:dcterms="http://purl.org/dc/terms/" xml:lang="en">
+  <id>http://www.feedbooks.com/catalog.atom</id>
+  <title>Feedbooks</title>
+  <updated>2018-01-29T21:19:33Z</updated>
+  <icon>http://assets3.feedbooks.net/images/favicon.ico?t=1516986276</icon>
+  <author>
+    <name>Feedbooks</name>
+    <uri>http://www.feedbooks.com</uri>
+    <email>support@feedbooks.zendesk.com</email>
+  </author>
+  <link type="application/atom+xml; profile=opds-catalog; kind=navigation" href="http://www.feedbooks.com/catalog.atom" rel="self"/>
+  <link type="application/atom+xml;profile=opds-catalog;kind=navigation" href="http://www.feedbooks.com/catalog.atom" rel="start" title="Home"/>
+  <link type="application/opensearchdescription+xml" href="http://www.feedbooks.com/opensearch.xml" rel="search" title="Search on Feedbooks"/>
+  <link type="application/atom+xml;profile=opds-catalog;kind=acquisition" href="https://www.feedbooks.com/user/bookshelf.atom" rel="http://opds-spec.org/shelf" title="Bookshelf"/>
+<link type="application/atom+xml;profile=opds-catalog;kind=acquisition" href="http://www.feedbooks.com/featured.atom" rel="http://opds-spec.org/featured" title="New &amp; Noteworthy"/>
+<link type="application/atom+xml;profile=opds-catalog;kind=acquisition" href="http://www.feedbooks.com/store/top.atom" rel="http://opds-spec.org/sort/popular" title="Best Sellers"/>
+<link type="application/atom+xml;profile=opds-catalog;kind=acquisition" href="http://www.feedbooks.com/books/top.atom?range=month" rel="http://opds-spec.org/sort/popular" title="Public Domain Books"/>
+<link type="application/atom+xml;profile=opds-catalog;kind=acquisition" href="http://www.feedbooks.com/store/selection.atom?lang=fr" rel="http://opds-spec.org/featured" title="Livre en fran&#231;ais"/>
+<entry>
+  <title>Best Sellers</title>
+  <link type="application/atom+xml;profile=opds-catalog;kind=acquisition" href="http://www.feedbooks.com/store/top.atom" rel="http://opds-spec.org/sort/popular"/>
+  <updated>2018-01-29T21:19:33Z</updated>
+  <id>http://www.feedbooks.com/books/top.atom?range=week</id>
+  <content type="text">All categories</content>
+</entry>
+<entry>
+  <title>New Releases</title>
+  <link type="application/atom+xml;profile=opds-catalog;kind=acquisition" href="http://www.feedbooks.com/store/recent.atom" rel="http://opds-spec.org/sort/new"/>
+  <updated>2018-01-29T21:19:33Z</updated>
+  <id>http://www.feedbooks.com/books/recent.atom</id>
+  <content type="text">Freshly arrived on Feedbooks</content>
+</entry>
+<entry>
+  <title>Recommended Readings</title>
+  <link type="application/atom+xml;profile=opds-catalog;kind=navigation" href="http://www.feedbooks.com/store/selection.atom" rel="subsection"/>
+  <updated>2018-01-29T21:19:33Z</updated>
+  <id>http://www.feedbooks.com/store/selection.atom</id>
+  <content type="text">Browse through our lists of recommended books</content>
+</entry>
+<entry>
+  <title>Fiction</title>
+  <id>http://www.feedbooks.com/store/categories/FBFIC000000.atom</id>
+  <link type="application/atom+xml;profile=opds-catalog;kind=navigation" href="http://www.feedbooks.com/store/categories/FBFIC000000.atom" rel="subsection"/>
+  <updated>2018-01-29T21:19:33Z</updated>
+  <content type="text">Literary, Science Fiction, Romance, Thrillers, Fantasy</content>
+</entry>
+<entry>
+  <title>Non-Fiction</title>
+  <id>http://www.feedbooks.com/store/categories/FBNFC000000.atom</id>
+  <link type="application/atom+xml;profile=opds-catalog;kind=navigation" href="http://www.feedbooks.com/store/categories/FBNFC000000.atom" rel="subsection"/>
+  <updated>2018-01-29T21:19:33Z</updated>
+  <content type="text">Biography &amp; autobiography, Travel, History, Health &amp; fitness, Philosophy</content>
+</entry>
+<entry>
+  <title>Free Books</title>
+  <link type="application/atom+xml;profile=opds-catalog;kind=navigation" href="http://www.feedbooks.com/publicdomain/catalog.atom" rel="subsection"/>
+  <updated>2018-01-29T21:19:33Z</updated>
+  <id>http://www.feedbooks.com/publicdomain/catalog.atom</id>
+  <content type="text">Free classics and CC-licensed books</content>
+</entry>
+</feed>

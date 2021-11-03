@@ -1,0 +1,35 @@
+{
+  "@context": "https://readium.org/webpub-manifest/context.jsonld",
+  "metadata": {
+    "@type": "http://schema.org/Audiobook",
+    "identifier": "https://librivox.org/flatland-a-romance-of-many-dimensions-by-edwin-abbott-abbott/",
+    "title": "Flatland",
+    "subtitle": "A Romance of Many Dimensions",
+    "author": {"name": "Edwin Abbott Abbott", "sortAs": "Abbott, Abbott Edwin"},
+    "narrator": "Ruth Golding",
+    "language": "en",
+    "description": "Flatland: A Romance of Many Dimensions is an 1884 science fiction novella by the English schoolmaster Edwin Abbott Abbott. As a satire, Flatland offered pointed observations on the social hierarchy of Victorian culture. However, the novella's more enduring contribution is its examination of dimensions; in a foreword to one of the many publications of the novella, noted science writer Isaac Asimov described Flatland as \"The best introduction one can find into the manner of perceiving dimensions.\" As such, the novella is still popular amongst mathematics, physics and computer science students. (Summary by Wikipedia)",
+    "publisher": "Librivox",
+    "subject": ["General Fiction", "Satire", "Science Fiction"],
+    "modified": "2016-08-11T19:32:18Z",
+    "published": "2008-10-12",
+    "duration": 15153,
+    "abridged": false,
+    "schema:license": "https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+
+  "links": [
+    {"rel": ["self", "other"], "href": "https://readium.org/webpub-manifest/examples/Flatland/manifest.json", "type": "application/audiobook+json"},
+    {"rel": "cover", "href": "https://www.archive.org/download/LibrivoxCdCoverArt12/Flatland_1109.jpg", "type": "image/jpeg", "height": 300, "width": 300}
+  ],
+
+  "readingOrder": [
+    {"href": "http://www.archive.org/download/flatland_rg_librivox/flatland_1_abbott.mp3", "type": "audio/mpeg"},
+    {"href": "flatland_2_abbott.mp3", "type": "audio/mpeg"},
+    {"href": "directory/flatland_2_abbott.mp3", "type": "audio/mpeg"},
+    {"href": "/flatland_3_abbott.mp3", "type": "audio/mpeg"},
+    {"href": "/directory/flatland_4_abbott.mp3", "type": "audio/mpeg"},
+    {"href": "../flatland_5_abbott.mp3", "type": "audio/mpeg"}
+  ],
+
+}

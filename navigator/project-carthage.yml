@@ -1,0 +1,31 @@
+name: r2-navigator-swift
+attributes:
+  LastUpgradeCheck: "1250"
+options:
+  bundleIdPrefix: org.readium
+targets:
+  R2Navigator:
+    type: framework
+    platform: iOS
+    deploymentTarget: "10.0"
+    sources: 
+      - path: r2-navigator-swift
+        excludes:
+          - EPUB/Assets
+          - EPUB/Scripts
+      - path: r2-navigator-swift/EPUB/Assets
+        type: folder
+    dependencies:
+      - framework: Carthage/Build/DifferenceKit.xcframework
+      - framework: Carthage/Build/Fuzi.xcframework
+      - framework: Carthage/Build/Minizip.xcframework
+      - framework: Carthage/Build/R2Shared.xcframework
+      - framework: Carthage/Build/SwiftSoup.xcframework
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-navigator-swift
+      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)/Carthage
+schemes:
+  r2-navigator-swift:
+    build:
+      targets:
+        R2Navigator: all
