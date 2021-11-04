@@ -14,21 +14,6 @@ class PublicationServerTests: XCTestCase, Loggable {
     let streamer = Streamer()
     let publicationServer = PublicationServer()!
 
-
-    /// Add EPUBs the the server then request the server about their 'manifest.json'.
-    func testAddEpub() {
-        let epubs = [
-            fixtures.url(for: "cc-shared-culture.epub"),
-            fixtures.url(for: "SmokeTestFXL.epub"),
-            fixtures.url(for: "cc-shared-culture"),
-            fixtures.url(for: "SmokeTestFXL")
-        ]
-        
-        for epub in epubs {
-            testPublication(at: epub)
-        }
-    }
-    
     private func testPublication(at url: URL) {
         let expect = expectation(description: "Publication tested")
         

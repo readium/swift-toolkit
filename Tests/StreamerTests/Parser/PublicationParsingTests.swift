@@ -13,18 +13,6 @@ class PublicationParsingTests: XCTestCase, Loggable {
     let fixtures = Fixtures()
     let streamer = Streamer()
 
-    /// Try to parse the .epub samples.
-    func testParseEpub() {
-        parse(url: fixtures.url(for: "cc-shared-culture.epub"))
-        parse(url: fixtures.url(for: "SmokeTestFXL.epub"))
-    }
-
-    /// Attemp to parse the Epub directories samples.
-    func testParseEpubDirectory() {
-        parse(url: fixtures.url(for: "cc-shared-culture"))
-        parse(url: fixtures.url(for: "SmokeTestFXL"))
-    }
-
     func testParseCbz() {
         parse(url: fixtures.url(for: "futuristic_tales.cbz"))
     }
