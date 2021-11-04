@@ -4,11 +4,11 @@ target 'TestApp' do
   # Comment the next line if you don't want to use dynamic frameworks
   use_frameworks!
 
-  pod 'R2Shared', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/PM/CocoaPods/ReadiumShared.podspec'
-  pod 'R2Streamer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/PM/CocoaPods/ReadiumStreamer.podspec'
-  pod 'R2Navigator', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/PM/CocoaPods/ReadiumNavigator.podspec'
-  pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/PM/CocoaPods/ReadiumOPDS.podspec'
-  pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/PM/CocoaPods/ReadiumLCP.podspec'
+  pod 'R2Shared', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumShared.podspec'
+  pod 'R2Streamer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumStreamer.podspec'
+  pod 'R2Navigator', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumNavigator.podspec'
+  pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumOPDS.podspec'
+  pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumLCP.podspec'
   pod 'R2LCPClient', podspec: 'LCP_URL'
 
   pod 'GCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/3.6.3/GCDWebServer.podspec'
