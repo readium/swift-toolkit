@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. Take a look at [the migration guide](Documentation/Migration Guide.md) to upgrade between two major versions.
+All notable changes to this project will be documented in this file. Take a look at [the migration guide](Documentation/Migration%20Guide.md) to upgrade between two major versions.
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
