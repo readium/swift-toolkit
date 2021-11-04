@@ -1,0 +1,116 @@
+# Use this XcodeGen project spec when using Readium with Carthage as a submodule on Xcode 12.5+.
+# See https://github.com/readium/swift-toolkit/issues/1#issuecomment-829250100
+name: Readium
+attributes:
+  LastUpgradeCheck: "1250"
+options:
+  bundleIdPrefix: org.readium
+
+targets:
+
+  R2Shared:
+    type: framework
+    platform: iOS
+    deploymentTarget: "10.0"
+    sources: 
+      - path: ../Sources/Shared
+        excludes:
+          - Toolkit/Archive/ZIPFoundation.swift
+    dependencies:
+      - framework: Fuzi.framework
+      - framework: Minizip.framework
+      - framework: SwiftSoup.framework
+      - sdk: CoreServices.framework
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-shared-swift
+
+  R2Streamer:
+    type: framework
+    platform: iOS
+    deploymentTarget: "10.0"
+    sources: 
+      - path: ../Sources/Streamer
+        excludes:
+          - Assets
+      - path: ../Sources/Streamer/Assets
+        type: folder
+    dependencies:
+      - framework: CryptoSwift.framework
+      - framework: Fuzi.framework
+      - framework: GCDWebServer.framework
+      - framework: Minizip.framework
+      - target: R2Shared
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-streamer-swift
+
+  R2Navigator:
+    type: framework
+    platform: iOS
+    deploymentTarget: "10.0"
+    sources: 
+      - path: ../Sources/Navigator
+        excludes:
+          - EPUB/Assets
+          - EPUB/Scripts
+      - path: ../Sources/Navigator/EPUB/Assets
+        type: folder
+    dependencies:
+      - framework: DifferenceKit.framework
+      - framework: Fuzi.framework
+      - framework: Minizip.framework
+      - framework: SwiftSoup.framework
+      - target: R2Shared
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-navigator-swift
+
+  ReadiumOPDS:
+    type: framework
+    platform: iOS
+    deploymentTarget: "10.0"
+    sources: 
+      - path: ../Sources/OPDS
+    dependencies:
+      - framework: Fuzi.framework
+      - framework: Minizip.framework
+      - target: R2Shared
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.readium.readium-opds
+
+  ReadiumLCP:
+    type: framework
+    platform: iOS
+    deploymentTarget: "10.0"
+    sources: 
+      - path: ../Sources/LCP
+    dependencies:
+      - framework: CryptoSwift.framework
+      - framework: Fuzi.framework
+      - framework: Minizip.framework
+      - framework: SQLite.framework
+      - framework: ZIPFoundation..framework
+      - target: R2Shared
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.readium-lcp-swift
+
+schemes:
+  R2Shared:
+    build:
+      targets:
+        R2Shared: all
+  R2Streamer:
+    build:
+      targets:
+        R2Streamer: all
+  R2Navigator:
+    build:
+      targets:
+        R2Navigator: all
+  ReadiumOPDS:
+    build:
+      targets:
+        ReadiumOPDS: all
+  ReadiumLCP:
+    build:
+      targets:
+        ReadiumLCP: all
+
