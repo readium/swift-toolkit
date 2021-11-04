@@ -1,0 +1,41 @@
+name: TestApp
+options:
+  bundleIdPrefix: org.readium
+packages:
+  GRDB:
+    url: https://github.com/groue/GRDB.swift.git
+    from: 5.8.0
+  Kingfisher:
+    url: https://github.com/onevcat/Kingfisher.git
+    from: 5.15.8
+  MBProgressHUD:
+    url: https://github.com/jdg/MBProgressHUD.git
+    from: 1.2.0
+targets:
+  TestApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "13.6"
+    sources: 
+      - path: Sources
+        excludes:
+          - Resources/Samples
+      - path: Sources/Resources/Samples
+        type: folder
+    dependencies:
+      - framework: Carthage/Build/CryptoSwift.xcframework
+      - framework: Carthage/Build/DifferenceKit.xcframework
+      - framework: Carthage/Build/Fuzi.xcframework
+      - framework: Carthage/Build/GCDWebServer.xcframework
+      - framework: Carthage/Build/Minizip.xcframework
+      - framework: Carthage/Build/R2Navigator.xcframework
+      - framework: Carthage/Build/R2Shared.xcframework
+      - framework: Carthage/Build/R2Streamer.xcframework
+      - framework: Carthage/Build/ReadiumOPDS.xcframework
+      - framework: Carthage/Build/SwiftSoup.xcframework
+      - package: GRDB
+      - package: Kingfisher
+      - package: MBProgressHUD
+    settings:
+      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)/Carthage
+

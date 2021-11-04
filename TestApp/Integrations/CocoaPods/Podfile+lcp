@@ -1,0 +1,28 @@
+platform :ios, '10.3.1'
+
+target 'TestApp' do
+  # Comment the next line if you don't want to use dynamic frameworks
+  use_frameworks!
+
+  pod 'R2Shared', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/PM/CocoaPods/ReadiumShared.podspec'
+  pod 'R2Streamer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/PM/CocoaPods/ReadiumStreamer.podspec'
+  pod 'R2Navigator', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/PM/CocoaPods/ReadiumNavigator.podspec'
+  pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/PM/CocoaPods/ReadiumOPDS.podspec'
+  pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/PM/CocoaPods/ReadiumLCP.podspec'
+  pod 'R2LCPClient', podspec: 'LCP_URL'
+
+  pod 'GCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/3.6.3/GCDWebServer.podspec'
+  pod 'GRDB.swift'
+  pod 'Kingfisher'
+  pod 'MBProgressHUD'
+  pod 'SwiftSoup'
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+        config.build_settings['SWIFT_VERSION'] = '5.1.4'
+        config.build_settings['ENABLE_BITCODE'] = 'NO'
+    end
+  end
+end

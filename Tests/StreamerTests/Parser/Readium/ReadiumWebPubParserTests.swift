@@ -41,7 +41,7 @@ class ReadiumWebPubParserTests: XCTestCase {
     }
     
     func testRefusesNonReadiumWebPub() throws {
-        let asset = FileAsset(url: fixtures.url(for: "cc-shared-culture.epub"))
+        let asset = FileAsset(url: fixtures.url(for: "audiotest.zab"))
         let fetcher = try ArchiveFetcher(url: asset.url)
         XCTAssertNil(try parser.parse(asset: asset, fetcher: fetcher, warnings: nil))
     }

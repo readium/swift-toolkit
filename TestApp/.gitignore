@@ -1,0 +1,11 @@
+TestApp.xcodeproj
+TestApp.xcworkspace
+project.yml
+
+Carthage/
+Cartfile
+Cartfile.resolved
+
+Pods/
+Podfile
+Podfile.lock
