@@ -139,15 +139,17 @@ let package = Package(
                 .process("Resources")
             ]
         ),
-        .testTarget(
-            name: "ReadiumLCPTests",
-            dependencies: ["ReadiumLCP"],
-            path: "Tests/LCPTests",
-            exclude: ["Info.plist"],
-            resources: [
-                .copy("Fixtures"),
-            ]
-        ),
+        // These tests require a R2LCPClient.framework to run.
+        // FIXME: Find a solution to run the tests with GitHub action.
+        // .testTarget(
+        //     name: "ReadiumLCPTests",
+        //     dependencies: ["ReadiumLCP"],
+        //     path: "Tests/LCPTests",
+        //     exclude: ["Info.plist"],
+        //     resources: [
+        //         .copy("Fixtures"),
+        //     ]
+        // ),
     ]
 )
 

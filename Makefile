@@ -12,7 +12,7 @@ carthage-project:
 
 .PHONY: scripts
 scripts:
-	yarn --cwd "$(SCRIPTS_PATH)" install
+	yarn --cwd "$(SCRIPTS_PATH)" install --frozen-lockfile
 	yarn --cwd "$(SCRIPTS_PATH)" run format
 	yarn --cwd "$(SCRIPTS_PATH)" run lint
 	yarn --cwd "$(SCRIPTS_PATH)" run bundle

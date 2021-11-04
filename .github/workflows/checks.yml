@@ -1,0 +1,53 @@
+name: Checks
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+
+jobs:
+  build:
+    name: Build
+    runs-on: macos-latest
+    env:
+      scheme: ${{ 'Readium-Package' }}
+      platform: ${{ 'iOS Simulator' }}
+      device: ${{ 'iPhone 12' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: brew install xcodegen
+      - name: Check Carthage project
+        run: |
+          # Check that the Carthage project is up to date.
+          make carthage-project
+          git diff --exit-code --name-only Carthage/Readium.xcodeproj
+      - name: Build
+        run: |
+          xcodebuild build-for-testing -scheme "$scheme" -destination "platform=$platform,name=$device"
+      - name: Test
+        run: |
+          xcodebuild test-without-building -scheme "$scheme" -destination "platform=$platform,name=$device"
+
+  lint:
+    name: Lint
+    runs-on: macos-latest
+    env:
+      scripts: ${{ 'Sources/Navigator/EPUB/Scripts' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: yarn --cwd "$scripts" install --frozen-lockfile
+      - name: Lint JavaScript
+        run: yarn --cwd "$scripts" run lint
+      - name: Check JavaScript formatting
+        run: yarn --cwd "$scripts" run checkformat
+      - name: Check if bundled scripts are up-to-date
+        run: |
+            make scripts
+            git diff --exit-code --name-only Sources/Navigator/EPUB/Assets/Static/scripts/*.js
+
