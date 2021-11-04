@@ -5,14 +5,16 @@ on:
     branches: [ main, develop ]
   pull_request:
 
+env:
+  platform: ${{ 'iOS Simulator' }}
+  device: ${{ 'iPhone 12' }}
+
 jobs:
   build:
     name: Build
     runs-on: macos-latest
     env:
       scheme: ${{ 'Readium-Package' }}
-      platform: ${{ 'iOS Simulator' }}
-      device: ${{ 'iPhone 12' }}
 
     steps:
       - name: Checkout
@@ -50,4 +52,5 @@ jobs:
         run: |
             make scripts
             git diff --exit-code --name-only Sources/Navigator/EPUB/Assets/Static/scripts/*.js
+
 

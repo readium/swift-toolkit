@@ -1,0 +1,14 @@
+name: TestApp
+options:
+  bundleIdPrefix: org.readium
+targets:
+  TestApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "13.6"
+    sources: 
+      - path: Sources
+        excludes:
+          - Resources/Samples
+      - path: Sources/Resources/Samples
+        type: folder

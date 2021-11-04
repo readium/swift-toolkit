@@ -1,5 +1,0 @@
-# Readium 2 dependencies
-github "readium/r2-shared-swift" ~> 2.2.0
-github "readium/r2-streamer-swift" ~> 2.2.0
-github "readium/r2-navigator-swift" ~> 2.2.0
-github "readium/r2-opds-swift" ~> 2.2.0

@@ -1,0 +1,48 @@
+name: TestApp
+options:
+  bundleIdPrefix: org.readium
+packages:
+  Readium:
+    path: ..
+  GRDB:
+    url: https://github.com/groue/GRDB.swift.git
+    from: 5.8.0
+  Kingfisher:
+    url: https://github.com/onevcat/Kingfisher.git
+    from: 5.15.8
+  MBProgressHUD:
+    url: https://github.com/jdg/MBProgressHUD.git
+    from: 1.2.0
+  SwiftSoup:
+    url: https://github.com/scinfu/SwiftSoup.git
+    from: 2.3.2
+targets:
+  TestApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "13.6"
+    sources: 
+      - path: Sources
+        excludes:
+          - Resources/Samples
+      - path: Sources/Resources/Samples
+        type: folder
+    dependencies:
+      - carthage: R2LCPClient
+      - package: Readium
+        product: R2Shared
+      - package: Readium
+        product: R2Streamer
+      - package: Readium
+        product: R2Navigator
+      - package: Readium
+        product: ReadiumOPDS
+      - package: Readium
+        product: ReadiumLCP
+      - package: GRDB
+      - package: Kingfisher
+      - package: MBProgressHUD
+      - package: SwiftSoup
+    settings:
+      OTHER_SWIFT_FLAGS: -DLCP
+
