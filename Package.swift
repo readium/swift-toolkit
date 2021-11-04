@@ -35,7 +35,6 @@ let package = Package(
             dependencies: ["Fuzi", "SwiftSoup", "Zip"],
             path: "Sources/Shared",
             exclude: [
-                "Info.plist",
                 // Support for ZIPFoundation is not yet achieved.
                 "Toolkit/Archive/ZIPFoundation.swift",
             ],
@@ -51,7 +50,6 @@ let package = Package(
             name: "R2SharedTests",
             dependencies: ["R2Shared"],
             path: "Tests/SharedTests",
-            exclude: ["Info.plist"],
             resources: [
                 .copy("Fixtures"),
             ]
@@ -67,7 +65,6 @@ let package = Package(
                 "R2Shared"
             ],
             path: "Sources/Streamer",
-            exclude: ["Info.plist"],
             resources: [
                 .copy("Assets"),
             ]
@@ -76,7 +73,6 @@ let package = Package(
             name: "R2StreamerTests",
             dependencies: ["R2Streamer"],
             path: "Tests/StreamerTests",
-            exclude: ["Info.plist"],
             resources: [
                 .copy("Fixtures"),
             ]
@@ -91,7 +87,6 @@ let package = Package(
             ],
             path: "Sources/Navigator",
             exclude: [
-                "Info.plist",
                 "EPUB/Scripts",
             ],
             resources: [
@@ -102,8 +97,7 @@ let package = Package(
         .testTarget(
             name: "R2NavigatorTests",
             dependencies: ["R2Navigator"],
-            path: "Tests/NavigatorTests",
-            exclude: ["Info.plist"]
+            path: "Tests/NavigatorTests"
         ),
 
         .target(
@@ -112,14 +106,12 @@ let package = Package(
                 "Fuzi",
                 "R2Shared"
             ],
-            path: "Sources/OPDS",
-            exclude: ["Info.plist"]
+            path: "Sources/OPDS"
         ),
         .testTarget(
             name: "ReadiumOPDSTests",
             dependencies: ["ReadiumOPDS"],
             path: "Tests/OPDSTests",
-            exclude: ["Info.plist"],
             resources: [
                 .copy("Samples"),
             ]
@@ -134,7 +126,6 @@ let package = Package(
                 .product(name: "SQLite", package: "SQLite.swift"),
             ],
             path: "Sources/LCP",
-            exclude: ["Info.plist"],
             resources: [
                 .process("Resources")
             ]
@@ -145,7 +136,6 @@ let package = Package(
         //     name: "ReadiumLCPTests",
         //     dependencies: ["ReadiumLCP"],
         //     path: "Tests/LCPTests",
-        //     exclude: ["Info.plist"],
         //     resources: [
         //         .copy("Fixtures"),
         //     ]
