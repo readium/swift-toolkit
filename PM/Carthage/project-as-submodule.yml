@@ -23,6 +23,7 @@ targets:
       - sdk: CoreServices.framework
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-shared-swift
+      INFOPLIST_FILE: Info.plist
 
   R2Streamer:
     type: framework
@@ -42,6 +43,7 @@ targets:
       - target: R2Shared
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-streamer-swift
+      INFOPLIST_FILE: Info.plist
 
   R2Navigator:
     type: framework
@@ -62,6 +64,7 @@ targets:
       - target: R2Shared
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-navigator-swift
+      INFOPLIST_FILE: Info.plist
 
   ReadiumOPDS:
     type: framework
@@ -75,6 +78,7 @@ targets:
       - target: R2Shared
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.readium.readium-opds
+      INFOPLIST_FILE: Info.plist
 
   ReadiumLCP:
     type: framework
@@ -91,6 +95,7 @@ targets:
       - target: R2Shared
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.readium-lcp-swift
+      INFOPLIST_FILE: Info.plist
 
 schemes:
   R2Shared:

@@ -69,6 +69,7 @@
       "deploymentTarget" : "10.0",
       "platform" : "iOS",
       "settings" : {
+        "INFOPLIST_FILE" : "Info.plist",
         "PRODUCT_BUNDLE_IDENTIFIER" : "org.readium.r2-navigator-swift"
       },
       "sources" : [
@@ -104,6 +105,7 @@
       "deploymentTarget" : "10.0",
       "platform" : "iOS",
       "settings" : {
+        "INFOPLIST_FILE" : "Info.plist",
         "PRODUCT_BUNDLE_IDENTIFIER" : "org.readium.r2-shared-swift"
       },
       "sources" : [
@@ -137,6 +139,7 @@
       "deploymentTarget" : "10.0",
       "platform" : "iOS",
       "settings" : {
+        "INFOPLIST_FILE" : "Info.plist",
         "PRODUCT_BUNDLE_IDENTIFIER" : "org.readium.r2-streamer-swift"
       },
       "sources" : [
@@ -177,6 +180,7 @@
       "deploymentTarget" : "10.0",
       "platform" : "iOS",
       "settings" : {
+        "INFOPLIST_FILE" : "Info.plist",
         "PRODUCT_BUNDLE_IDENTIFIER" : "org.readium.readium-lcp-swift"
       },
       "sources" : [
@@ -201,6 +205,7 @@
       "deploymentTarget" : "10.0",
       "platform" : "iOS",
       "settings" : {
+        "INFOPLIST_FILE" : "Info.plist",
         "PRODUCT_BUNDLE_IDENTIFIER" : "com.readium.readium-opds"
       },
       "sources" : [
