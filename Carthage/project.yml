@@ -15,13 +15,13 @@ targets:
         excludes:
           - Toolkit/Archive/ZIPFoundation.swift
     dependencies:
-      - framework: Carthage/Build/Fuzi.xcframework
-      - framework: Carthage/Build/Minizip.xcframework
-      - framework: Carthage/Build/SwiftSoup.xcframework
+      - framework: Build/Fuzi.xcframework
+      - framework: Build/Minizip.xcframework
+      - framework: Build/SwiftSoup.xcframework
       - sdk: CoreServices.framework
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-shared-swift
-      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)/Carthage
+      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)
 
   R2Streamer:
     type: framework
@@ -34,14 +34,14 @@ targets:
       - path: ../Sources/Streamer/Assets
         type: folder
     dependencies:
-      - framework: Carthage/Build/CryptoSwift.xcframework
-      - framework: Carthage/Build/Fuzi.xcframework
-      - framework: Carthage/Build/GCDWebServer.xcframework
-      - framework: Carthage/Build/Minizip.xcframework
+      - framework: Build/CryptoSwift.xcframework
+      - framework: Build/Fuzi.xcframework
+      - framework: Build/GCDWebServer.xcframework
+      - framework: Build/Minizip.xcframework
       - target: R2Shared
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-streamer-swift
-      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)/Carthage
+      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)
 
   R2Navigator:
     type: framework
@@ -55,14 +55,14 @@ targets:
       - path: ../Sources/Navigator/EPUB/Assets
         type: folder
     dependencies:
-      - framework: Carthage/Build/DifferenceKit.xcframework
-      - framework: Carthage/Build/Fuzi.xcframework
-      - framework: Carthage/Build/Minizip.xcframework
-      - framework: Carthage/Build/SwiftSoup.xcframework
+      - framework: Build/DifferenceKit.xcframework
+      - framework: Build/Fuzi.xcframework
+      - framework: Build/Minizip.xcframework
+      - framework: Build/SwiftSoup.xcframework
       - target: R2Shared
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-navigator-swift
-      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)/Carthage
+      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)
 
   ReadiumOPDS:
     type: framework
@@ -71,12 +71,12 @@ targets:
     sources: 
       - path: ../Sources/OPDS
     dependencies:
-      - framework: Carthage/Build/Fuzi.xcframework
-      - framework: Carthage/Build/Minizip.xcframework
+      - framework: Build/Fuzi.xcframework
+      - framework: Build/Minizip.xcframework
       - target: R2Shared
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.readium.readium-opds
-      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)/Carthage
+      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)
 
   ReadiumLCP:
     type: framework
@@ -85,15 +85,15 @@ targets:
     sources: 
       - path: ../Sources/LCP
     dependencies:
-      - framework: Carthage/Build/CryptoSwift.xcframework
-      - framework: Carthage/Build/Fuzi.xcframework
-      - framework: Carthage/Build/Minizip.xcframework
-      - framework: Carthage/Build/SQLite.xcframework
-      - framework: Carthage/Build/ZIPFoundation.xcframework
+      - framework: Build/CryptoSwift.xcframework
+      - framework: Build/Fuzi.xcframework
+      - framework: Build/Minizip.xcframework
+      - framework: Build/SQLite.xcframework
+      - framework: Build/ZIPFoundation.xcframework
       - target: R2Shared
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.readium-lcp-swift
-      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)/Carthage
+      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)
 
 schemes:
   R2Shared:

@@ -24,6 +24,7 @@ targets:
         type: folder
     dependencies:
       - framework: Carthage/Build/CryptoSwift.xcframework
+      - framework: Carthage/Build/DifferenceKit.xcframework
       - framework: Carthage/Build/Fuzi.xcframework
       - framework: Carthage/Build/GCDWebServer.xcframework
       - framework: Carthage/Build/Minizip.xcframework

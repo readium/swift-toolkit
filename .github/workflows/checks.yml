@@ -8,6 +8,9 @@ on:
 env:
   platform: ${{ 'iOS Simulator' }}
   device: ${{ 'iPhone 12' }}
+  # github.sha is the merge commit for a PR event, which fails the Carthage job
+  # since it doesn't exist.
+  commit_sha: ${{ github.event.pull_request.head.sha || github.sha }}
 
 jobs:
   build:
@@ -53,4 +56,57 @@ jobs:
             make scripts
             git diff --exit-code --name-only Sources/Navigator/EPUB/Assets/Static/scripts/*.js
 
+  int-spm:
+    name: Integration (Swift Package Manager)
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: TestApp
+    environment: LCP
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: brew install xcodegen
+      - name: Generate project
+        run: make spm lcp=${{ secrets.LCP_URL_CARTHAGE }} commit=$commit_sha
+      - name: Build
+        run: |
+          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device"
+
+  int-carthage:
+    name: Integration (Carthage)
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: TestApp
+    environment: LCP
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: brew install xcodegen
+      - name: Generate project
+        run: make carthage lcp=${{ secrets.LCP_URL_CARTHAGE }} commit=$commit_sha
+      - name: Build
+        run: |
+          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device"
+
+  int-dev:
+    name: Integration (Local)
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: TestApp
+    environment: LCP
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: brew install xcodegen
+      - name: Generate project
+        run: make dev lcp=${{ secrets.LCP_URL_CARTHAGE }} commit=$commit_sha
+      - name: Build
+        run: |
+          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device"
 
