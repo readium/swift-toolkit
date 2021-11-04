@@ -226,7 +226,6 @@
 ../../Sources/LCP/Content Protection/LCPContentProtection.swift
 ../../Sources/LCP/Content Protection/LCPDecryptor.swift
 ../../Sources/LCP/Deprecated.swift
-../../Sources/LCP/Info.plist
 ../../Sources/LCP/LCPAcquisition.swift
 ../../Sources/LCP/LCPClient.swift
 ../../Sources/LCP/LCPError.swift
@@ -7379,7 +7378,6 @@
 ../../Sources/Navigator/EPUB/Scripts/webpack.config.js
 ../../Sources/Navigator/EPUB/Scripts/yarn.lock
 ../../Sources/Navigator/EPUB/UserSettings.swift
-../../Sources/Navigator/Info.plist
 ../../Sources/Navigator/MediaNavigator.swift
 ../../Sources/Navigator/Navigator.swift
 ../../Sources/Navigator/PDF
@@ -7407,7 +7405,6 @@
 ../../Sources/Navigator/VisualNavigator.swift
 ../../Sources/OPDS
 ../../Sources/OPDS/Deprecated.swift
-../../Sources/OPDS/Info.plist
 ../../Sources/OPDS/OPDS1Parser.swift
 ../../Sources/OPDS/OPDS2Parser.swift
 ../../Sources/OPDS/OPDSParser.swift
@@ -7435,7 +7432,6 @@
 ../../Sources/Shared/Fetcher/Resource/TransformingResource.swift
 ../../Sources/Shared/Fetcher/RoutingFetcher.swift
 ../../Sources/Shared/Fetcher/TransformingFetcher.swift
-../../Sources/Shared/Info.plist
 ../../Sources/Shared/Logger
 ../../Sources/Shared/Logger/Loggable.swift
 ../../Sources/Shared/Logger/Logger.swift
@@ -7583,7 +7579,6 @@
 ../../Sources/Streamer/Assets
 ../../Sources/Streamer/Assets/fonts
 ../../Sources/Streamer/Assets/fonts/OpenDyslexic-Regular.otf
-../../Sources/Streamer/Info.plist
 ../../Sources/Streamer/Model
 ../../Sources/Streamer/Model/Container.swift
 ../../Sources/Streamer/Model/HTTPContainer.swift

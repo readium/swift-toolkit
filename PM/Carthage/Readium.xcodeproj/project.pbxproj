@@ -451,7 +451,6 @@
 		67DEBFCD9D71243C4ACC3A49 /* LCPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPService.swift; sourceTree = "<group>"; };
 		68719C5F09F9193E378DF585 /* LCPDecryptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDecryptor.swift; sourceTree = "<group>"; };
 		691C96D23D42A0C6AC03B1AE /* FileAsset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileAsset.swift; sourceTree = "<group>"; };
-		69A644DDD6AFD1DD04208A28 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		6BC71BAFF7A20D7903E6EE4D /* Properties+EPUB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Properties+EPUB.swift"; sourceTree = "<group>"; };
 		707D6D09349FB31406847ABE /* UserProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProperties.swift; sourceTree = "<group>"; };
 		7214B2366A4E024517FF8C76 /* HTTPRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPRequest.swift; sourceTree = "<group>"; };
@@ -476,7 +475,6 @@
 		8456F28921B65C2FC15D28AE /* FileInputStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileInputStream.swift; sourceTree = "<group>"; };
 		87629BF68F1EDBF06FC0AD54 /* ImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewController.swift; sourceTree = "<group>"; };
 		87727AC33D368A88A60A12B9 /* Encryption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Encryption.swift; sourceTree = "<group>"; };
-		88BC45B5F64A9F476A5AAF8B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		893C5F4086D99997DAF9BEDC /* EPUBEncryptionParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBEncryptionParser.swift; sourceTree = "<group>"; };
 		8A00FF0C84822A134A353BD4 /* DocumentTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentTypes.swift; sourceTree = "<group>"; };
 		8AB3B86AB42261727B2811CF /* HTMLDecorationTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLDecorationTemplate.swift; sourceTree = "<group>"; };
@@ -486,7 +484,6 @@
 		90AE9BB78C8A3FA5708F6AE6 /* Resource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Resource.swift; sourceTree = "<group>"; };
 		925CDE3176715EBEBF40B21F /* GeneratedCoverService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratedCoverService.swift; sourceTree = "<group>"; };
 		93BF3947EBA8736BF20F36FB /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
-		9540ADF945AECA4040F347EE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		9627A9AFF7C08010248E1700 /* Publication+Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publication+Deprecated.swift"; sourceTree = "<group>"; };
 		968B4EB4AD29DFA430C8A563 /* LicenseDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseDocument.swift; sourceTree = "<group>"; };
 		96ABA83305DCD070E3A0D656 /* CachingResource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachingResource.swift; sourceTree = "<group>"; };
@@ -503,7 +500,6 @@
 		9EA3A43B7709F7539F9410CD /* PaginationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaginationView.swift; sourceTree = "<group>"; };
 		9ECD1D0BE2C4BB5B58E32BFD /* AudioSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSession.swift; sourceTree = "<group>"; };
 		9FAAD26EE52713DB9F103610 /* Group.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Group.swift; sourceTree = "<group>"; };
-		A050FFCB71381009BD27D56F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A0A5959877EC9688CB0C370E /* Signature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Signature.swift; sourceTree = "<group>"; };
 		A214B5DC13576FB36935B5EA /* LCPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPClient.swift; sourceTree = "<group>"; };
 		A266D398324C20079B0780BC /* LCPError+wrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LCPError+wrap.swift"; sourceTree = "<group>"; };
@@ -604,7 +600,6 @@
 		F1CBEFCBEB8C144A4429C2E9 /* LicensesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesRepository.swift; sourceTree = "<group>"; };
 		F1F5FEE0323287B9CAA09F03 /* MediaOverlays.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaOverlays.swift; sourceTree = "<group>"; };
 		F28FCF8F6D010982BAE858FD /* Minizip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Minizip.swift; sourceTree = "<group>"; };
-		F2CAA1B2D9A2BFE400F88063 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		F2E780027410F4B6CC872B3D /* OPDSAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSAvailability.swift; sourceTree = "<group>"; };
 		F4937644CB65AE6801CE3295 /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
 		F4FC8F971F00B5876803B62A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -778,7 +773,6 @@
 		1C708ABF037ECFAF5BFE72F5 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				9540ADF945AECA4040F347EE /* Info.plist */,
 				261932356E0E3BFC9A79B903 /* r2-shared-swift.h */,
 				01A72947C91934D96A7EAA23 /* RootFile.swift */,
 				ACF678E2BE7B4761BD204AA7 /* DRM */,
@@ -1059,7 +1053,6 @@
 			isa = PBXGroup;
 			children = (
 				1225F795A69CCB10692A56B5 /* Deprecated.swift */,
-				A050FFCB71381009BD27D56F /* Info.plist */,
 				34B5C938E4973406F110F2E6 /* OPDS1Parser.swift */,
 				9935832F8ECA0AB7A7A486FC /* OPDS2Parser.swift */,
 				07B5469E40752E598C070E5B /* OPDSParser.swift */,
@@ -1370,7 +1363,6 @@
 			isa = PBXGroup;
 			children = (
 				0E1D7FA19C628EA8F967F580 /* Deprecated.swift */,
-				F2CAA1B2D9A2BFE400F88063 /* Info.plist */,
 				F622773881411FB8BE686B9F /* LCPAcquisition.swift */,
 				A214B5DC13576FB36935B5EA /* LCPClient.swift */,
 				A5A115134AA0B8F5254C8139 /* LCPError.swift */,
@@ -1394,7 +1386,6 @@
 			isa = PBXGroup;
 			children = (
 				F5C6D0C5860E802EDA23068C /* EditingAction.swift */,
-				88BC45B5F64A9F476A5AAF8B /* Info.plist */,
 				25FD89B99234B85BD2A8FC3E /* MediaNavigator.swift */,
 				2BD6F93E379D0DC6FA1DCDEE /* Navigator.swift */,
 				26D8FE93E1060D9FAB02557E /* r2-navigator-swift.h */,
@@ -1540,7 +1531,6 @@
 		F6157A0611A8122BC25855A1 /* Streamer */ = {
 			isa = PBXGroup;
 			children = (
-				69A644DDD6AFD1DD04208A28 /* Info.plist */,
 				DE273286DE9B42C181BFC459 /* r2-streamer-swift-Bridging-Header.h */,
 				32C8D72788D924BA3352B5D7 /* r2-streamer-swift.h */,
 				FE961CB4827D937CE3862B51 /* Streamer.swift */,
@@ -2175,7 +2165,6 @@
 					"$(inherited)",
 					"\"../../Carthage/Build\"",
 				);
-				INFOPLIST_FILE = ../../Sources/Streamer/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2203,7 +2192,6 @@
 					"$(inherited)",
 					"\"../../Carthage/Build\"",
 				);
-				INFOPLIST_FILE = ../../Sources/LCP/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2231,7 +2219,6 @@
 					"$(inherited)",
 					"\"../../Carthage/Build\"",
 				);
-				INFOPLIST_FILE = ../../Sources/OPDS/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2259,7 +2246,6 @@
 					"$(inherited)",
 					"\"../../Carthage/Build\"",
 				);
-				INFOPLIST_FILE = ../../Sources/Shared/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2287,7 +2273,6 @@
 					"$(inherited)",
 					"\"../../Carthage/Build\"",
 				);
-				INFOPLIST_FILE = ../../Sources/LCP/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2315,7 +2300,6 @@
 					"$(inherited)",
 					"\"../../Carthage/Build\"",
 				);
-				INFOPLIST_FILE = ../../Sources/Navigator/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2343,7 +2327,6 @@
 					"$(inherited)",
 					"\"../../Carthage/Build\"",
 				);
-				INFOPLIST_FILE = ../../Sources/OPDS/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2433,7 +2416,6 @@
 					"$(inherited)",
 					"\"../../Carthage/Build\"",
 				);
-				INFOPLIST_FILE = ../../Sources/Navigator/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2461,7 +2443,6 @@
 					"$(inherited)",
 					"\"../../Carthage/Build\"",
 				);
-				INFOPLIST_FILE = ../../Sources/Shared/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2489,7 +2470,6 @@
 					"$(inherited)",
 					"\"../../Carthage/Build\"",
 				);
-				INFOPLIST_FILE = ../../Sources/Streamer/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
