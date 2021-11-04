@@ -1,0 +1,657 @@
+# XCODEGEN VERSION
+2.24.0
+
+# SPEC
+{
+  "attributes" : {
+    "LastUpgradeCheck" : "1250"
+  },
+  "name" : "Readium",
+  "options" : {
+    "bundleIdPrefix" : "org.readium"
+  },
+  "schemes" : {
+    "R2Navigator" : {
+      "build" : {
+        "targets" : {
+          "R2Navigator" : "all"
+        }
+      }
+    },
+    "R2Shared" : {
+      "build" : {
+        "targets" : {
+          "R2Shared" : "all"
+        }
+      }
+    },
+    "R2Streamer" : {
+      "build" : {
+        "targets" : {
+          "R2Streamer" : "all"
+        }
+      }
+    },
+    "ReadiumLCP" : {
+      "build" : {
+        "targets" : {
+          "ReadiumLCP" : "all"
+        }
+      }
+    },
+    "ReadiumOPDS" : {
+      "build" : {
+        "targets" : {
+          "ReadiumOPDS" : "all"
+        }
+      }
+    }
+  },
+  "targets" : {
+    "R2Navigator" : {
+      "dependencies" : [
+        {
+          "framework" : "Carthage\/Build\/DifferenceKit.xcframework"
+        },
+        {
+          "framework" : "Carthage\/Build\/Fuzi.xcframework"
+        },
+        {
+          "framework" : "Carthage\/Build\/Minizip.xcframework"
+        },
+        {
+          "framework" : "Carthage\/Build\/SwiftSoup.xcframework"
+        },
+        {
+          "target" : "R2Shared"
+        }
+      ],
+      "deploymentTarget" : "10.0",
+      "platform" : "iOS",
+      "settings" : {
+        "LIBRARY_SEARCH_PATHS" : "$(PROJECT_DIR)\/Carthage",
+        "PRODUCT_BUNDLE_IDENTIFIER" : "org.readium.r2-navigator-swift"
+      },
+      "sources" : [
+        {
+          "excludes" : [
+            "EPUB\/Assets",
+            "EPUB\/Scripts"
+          ],
+          "path" : "..\/Sources\/Navigator"
+        },
+        {
+          "path" : "..\/Sources\/Navigator\/EPUB\/Assets",
+          "type" : "folder"
+        }
+      ],
+      "type" : "framework"
+    },
+    "R2Shared" : {
+      "dependencies" : [
+        {
+          "framework" : "Carthage\/Build\/Fuzi.xcframework"
+        },
+        {
+          "framework" : "Carthage\/Build\/Minizip.xcframework"
+        },
+        {
+          "framework" : "Carthage\/Build\/SwiftSoup.xcframework"
+        },
+        {
+          "sdk" : "CoreServices.framework"
+        }
+      ],
+      "deploymentTarget" : "10.0",
+      "platform" : "iOS",
+      "settings" : {
+        "LIBRARY_SEARCH_PATHS" : "$(PROJECT_DIR)\/Carthage",
+        "PRODUCT_BUNDLE_IDENTIFIER" : "org.readium.r2-shared-swift"
+      },
+      "sources" : [
+        {
+          "excludes" : [
+            "Toolkit\/Archive\/ZIPFoundation.swift"
+          ],
+          "path" : "..\/Sources\/Shared"
+        }
+      ],
+      "type" : "framework"
+    },
+    "R2Streamer" : {
+      "dependencies" : [
+        {
+          "framework" : "Carthage\/Build\/CryptoSwift.xcframework"
+        },
+        {
+          "framework" : "Carthage\/Build\/Fuzi.xcframework"
+        },
+        {
+          "framework" : "Carthage\/Build\/GCDWebServer.xcframework"
+        },
+        {
+          "framework" : "Carthage\/Build\/Minizip.xcframework"
+        },
+        {
+          "target" : "R2Shared"
+        }
+      ],
+      "deploymentTarget" : "10.0",
+      "platform" : "iOS",
+      "settings" : {
+        "LIBRARY_SEARCH_PATHS" : "$(PROJECT_DIR)\/Carthage",
+        "PRODUCT_BUNDLE_IDENTIFIER" : "org.readium.r2-streamer-swift"
+      },
+      "sources" : [
+        {
+          "excludes" : [
+            "Assets"
+          ],
+          "path" : "..\/Sources\/Streamer"
+        },
+        {
+          "path" : "..\/Sources\/Streamer\/Assets",
+          "type" : "folder"
+        }
+      ],
+      "type" : "framework"
+    },
+    "ReadiumLCP" : {
+      "dependencies" : [
+        {
+          "framework" : "Carthage\/Build\/CryptoSwift.xcframework"
+        },
+        {
+          "framework" : "Carthage\/Build\/Fuzi.xcframework"
+        },
+        {
+          "framework" : "Carthage\/Build\/Minizip.xcframework"
+        },
+        {
+          "framework" : "Carthage\/Build\/SQLite.xcframework"
+        },
+        {
+          "framework" : "Carthage\/Build\/ZIPFoundation.xcframework"
+        },
+        {
+          "target" : "R2Shared"
+        }
+      ],
+      "deploymentTarget" : "10.0",
+      "platform" : "iOS",
+      "settings" : {
+        "LIBRARY_SEARCH_PATHS" : "$(PROJECT_DIR)\/Carthage",
+        "PRODUCT_BUNDLE_IDENTIFIER" : "org.readium.readium-lcp-swift"
+      },
+      "sources" : [
+        {
+          "path" : "..\/Sources\/LCP"
+        }
+      ],
+      "type" : "framework"
+    },
+    "ReadiumOPDS" : {
+      "dependencies" : [
+        {
+          "framework" : "Carthage\/Build\/Fuzi.xcframework"
+        },
+        {
+          "framework" : "Carthage\/Build\/Minizip.xcframework"
+        },
+        {
+          "target" : "R2Shared"
+        }
+      ],
+      "deploymentTarget" : "10.0",
+      "platform" : "iOS",
+      "settings" : {
+        "LIBRARY_SEARCH_PATHS" : "$(PROJECT_DIR)\/Carthage",
+        "PRODUCT_BUNDLE_IDENTIFIER" : "com.readium.readium-opds"
+      },
+      "sources" : [
+        {
+          "path" : "..\/Sources\/OPDS"
+        }
+      ],
+      "type" : "framework"
+    }
+  }
+}
+
+# FILES
+../Sources/LCP
+../Sources/LCP/Authentications
+../Sources/LCP/Authentications/Base.lproj
+../Sources/LCP/Authentications/Base.lproj/LCPDialogViewController.xib
+../Sources/LCP/Authentications/LCPAuthenticating.swift
+../Sources/LCP/Authentications/LCPDialogAuthentication.swift
+../Sources/LCP/Authentications/LCPDialogViewController.swift
+../Sources/LCP/Authentications/LCPPassphraseAuthentication.swift
+../Sources/LCP/Content Protection
+../Sources/LCP/Content Protection/LCPContentProtection.swift
+../Sources/LCP/Content Protection/LCPDecryptor.swift
+../Sources/LCP/Deprecated.swift
+../Sources/LCP/Info.plist
+../Sources/LCP/LCPAcquisition.swift
+../Sources/LCP/LCPClient.swift
+../Sources/LCP/LCPError.swift
+../Sources/LCP/LCPLicense.swift
+../Sources/LCP/LCPRenewDelegate.swift
+../Sources/LCP/LCPService.swift
+../Sources/LCP/License
+../Sources/LCP/License/Container
+../Sources/LCP/License/Container/EPUBLicenseContainer.swift
+../Sources/LCP/License/Container/LCPLLicenseContainer.swift
+../Sources/LCP/License/Container/LicenseContainer.swift
+../Sources/LCP/License/Container/ReadiumLicenseContainer.swift
+../Sources/LCP/License/Container/ZIPLicenseContainer.swift
+../Sources/LCP/License/LCPError+wrap.swift
+../Sources/LCP/License/License.swift
+../Sources/LCP/License/LicenseValidation.swift
+../Sources/LCP/License/Model
+../Sources/LCP/License/Model/Components
+../Sources/LCP/License/Model/Components/LCP
+../Sources/LCP/License/Model/Components/LCP/ContentKey.swift
+../Sources/LCP/License/Model/Components/LCP/Encryption.swift
+../Sources/LCP/License/Model/Components/LCP/Rights.swift
+../Sources/LCP/License/Model/Components/LCP/Signature.swift
+../Sources/LCP/License/Model/Components/LCP/User.swift
+../Sources/LCP/License/Model/Components/LCP/UserKey.swift
+../Sources/LCP/License/Model/Components/Link.swift
+../Sources/LCP/License/Model/Components/Links.swift
+../Sources/LCP/License/Model/Components/LSD
+../Sources/LCP/License/Model/Components/LSD/Event.swift
+../Sources/LCP/License/Model/Components/LSD/PotentialRights.swift
+../Sources/LCP/License/Model/LicenseDocument.swift
+../Sources/LCP/License/Model/StatusDocument.swift
+../Sources/LCP/Persistence
+../Sources/LCP/Persistence/Connection.swift
+../Sources/LCP/Persistence/Database.swift
+../Sources/LCP/Persistence/Licenses.swift
+../Sources/LCP/Persistence/Transactions.swift
+../Sources/LCP/readium-lcp-swift.h
+../Sources/LCP/Resources
+../Sources/LCP/Resources/en.lproj
+../Sources/LCP/Resources/en.lproj/Localizable.strings
+../Sources/LCP/Resources/prod-license.lcpl
+../Sources/LCP/Services
+../Sources/LCP/Services/CRLService.swift
+../Sources/LCP/Services/DeviceRepository.swift
+../Sources/LCP/Services/DeviceService.swift
+../Sources/LCP/Services/LicensesRepository.swift
+../Sources/LCP/Services/LicensesService.swift
+../Sources/LCP/Services/NetworkService.swift
+../Sources/LCP/Services/PassphrasesRepository.swift
+../Sources/LCP/Services/PassphrasesService.swift
+../Sources/LCP/Toolkit
+../Sources/LCP/Toolkit/Bundle.swift
+../Sources/LCP/Toolkit/DataCompression.swift
+../Sources/LCP/Toolkit/Deferred.swift
+../Sources/LCP/Toolkit/R2LCPLocalizedString.swift
+../Sources/Navigator
+../Sources/Navigator/Audiobook
+../Sources/Navigator/Audiobook/AudioNavigator.swift
+../Sources/Navigator/Audiobook/PublicationMediaLoader.swift
+../Sources/Navigator/CBZ
+../Sources/Navigator/CBZ/CBZNavigatorViewController.swift
+../Sources/Navigator/CBZ/ImageViewController.swift
+../Sources/Navigator/Decorator
+../Sources/Navigator/Decorator/DecorableNavigator.swift
+../Sources/Navigator/Decorator/DiffableDecoration.swift
+../Sources/Navigator/EditingAction.swift
+../Sources/Navigator/EPUB
+../Sources/Navigator/EPUB/Assets
+../Sources/Navigator/EPUB/Assets/fxl-spread-one.html
+../Sources/Navigator/EPUB/Assets/fxl-spread-two.html
+../Sources/Navigator/EPUB/Assets/Static
+../Sources/Navigator/EPUB/Assets/Static/readium-css
+../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-horizontal
+../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-horizontal/ReadiumCSS-after.css
+../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-horizontal/ReadiumCSS-before.css
+../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-horizontal/ReadiumCSS-default.css
+../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-vertical
+../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-vertical/ReadiumCSS-after.css
+../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-vertical/ReadiumCSS-before.css
+../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-vertical/ReadiumCSS-default.css
+../Sources/Navigator/EPUB/Assets/Static/readium-css/fonts
+../Sources/Navigator/EPUB/Assets/Static/readium-css/fonts/AccessibleDfA.otf
+../Sources/Navigator/EPUB/Assets/Static/readium-css/fonts/iAWriterDuospace-Regular.ttf
+../Sources/Navigator/EPUB/Assets/Static/readium-css/fonts/LICENSE-AccessibleDfa
+../Sources/Navigator/EPUB/Assets/Static/readium-css/fonts/LICENSE-IaWriterDuospace.md
+../Sources/Navigator/EPUB/Assets/Static/readium-css/ReadiumCSS-after.css
+../Sources/Navigator/EPUB/Assets/Static/readium-css/ReadiumCSS-before.css
+../Sources/Navigator/EPUB/Assets/Static/readium-css/ReadiumCSS-default.css
+../Sources/Navigator/EPUB/Assets/Static/readium-css/ReadiumCSS-ebpaj_fonts_patch.css
+../Sources/Navigator/EPUB/Assets/Static/readium-css/ReadMe.md
+../Sources/Navigator/EPUB/Assets/Static/readium-css/rtl
+../Sources/Navigator/EPUB/Assets/Static/readium-css/rtl/ReadiumCSS-after.css
+../Sources/Navigator/EPUB/Assets/Static/readium-css/rtl/ReadiumCSS-before.css
+../Sources/Navigator/EPUB/Assets/Static/readium-css/rtl/ReadiumCSS-default.css
+../Sources/Navigator/EPUB/Assets/Static/scripts
+../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper.js
+../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper.js.map
+../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed.js
+../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed.js.map
+../Sources/Navigator/EPUB/Assets/Static/scripts/readium-reflowable.js
+../Sources/Navigator/EPUB/Assets/Static/scripts/readium-reflowable.js.map
+../Sources/Navigator/EPUB/DiffableDecoration+HTML.swift
+../Sources/Navigator/EPUB/EPUBFixedSpreadView.swift
+../Sources/Navigator/EPUB/EPUBNavigatorViewController.swift
+../Sources/Navigator/EPUB/EPUBReflowableSpreadView.swift
+../Sources/Navigator/EPUB/EPUBSpread.swift
+../Sources/Navigator/EPUB/EPUBSpreadView.swift
+../Sources/Navigator/EPUB/HTMLDecorationTemplate.swift
+../Sources/Navigator/EPUB/Scripts
+../Sources/Navigator/EPUB/Scripts/.eslintrc.json
+../Sources/Navigator/EPUB/Scripts/.gitignore
+../Sources/Navigator/EPUB/Scripts/.prettierignore
+../Sources/Navigator/EPUB/Scripts/.prettierrc.json
+../Sources/Navigator/EPUB/Scripts/package.json
+../Sources/Navigator/EPUB/Scripts/README.md
+../Sources/Navigator/EPUB/Scripts/src
+../Sources/Navigator/EPUB/Scripts/src/decorator.js
+../Sources/Navigator/EPUB/Scripts/src/gestures.js
+../Sources/Navigator/EPUB/Scripts/src/index-fixed-wrapper.js
+../Sources/Navigator/EPUB/Scripts/src/index-fixed.js
+../Sources/Navigator/EPUB/Scripts/src/index-reflowable.js
+../Sources/Navigator/EPUB/Scripts/src/index.js
+../Sources/Navigator/EPUB/Scripts/src/rect.js
+../Sources/Navigator/EPUB/Scripts/src/selection.js
+../Sources/Navigator/EPUB/Scripts/src/utils.js
+../Sources/Navigator/EPUB/Scripts/src/vendor
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/html.js
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/match-quote.js
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/pdf.js
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/placeholder.js
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/test
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/test/fake-pdf-viewer-application.js
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/test/html-anchoring-fixture.html
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/test/html-baselines
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/test/html-baselines/index.js
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/test/html-baselines/minimal.html
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/test/html-baselines/minimal.json
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/test/html-baselines/wikipedia-regression-testing.html
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/test/html-baselines/wikipedia-regression-testing.json
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/test/html-test.js
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/test/match-quote-test.js
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/test/pdf-test.js
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/test/placeholder-test.js
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/test/text-range-test.js
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/test/types-test.js
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/test/xpath-test.js
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/text-range.js
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/types.js
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/xpath.js
+../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/README.md
+../Sources/Navigator/EPUB/Scripts/webpack.config.js
+../Sources/Navigator/EPUB/Scripts/yarn.lock
+../Sources/Navigator/EPUB/UserSettings.swift
+../Sources/Navigator/Info.plist
+../Sources/Navigator/MediaNavigator.swift
+../Sources/Navigator/Navigator.swift
+../Sources/Navigator/PDF
+../Sources/Navigator/PDF/PDFDocumentHolder.swift
+../Sources/Navigator/PDF/PDFDocumentView.swift
+../Sources/Navigator/PDF/PDFNavigatorViewController.swift
+../Sources/Navigator/PDF/PDFTapGestureController.swift
+../Sources/Navigator/r2-navigator-swift.h
+../Sources/Navigator/Resources
+../Sources/Navigator/Resources/en.lproj
+../Sources/Navigator/Resources/en.lproj/Localizable.strings
+../Sources/Navigator/SelectableNavigator.swift
+../Sources/Navigator/Toolkit
+../Sources/Navigator/Toolkit/CompletionList.swift
+../Sources/Navigator/Toolkit/Extensions
+../Sources/Navigator/Toolkit/Extensions/Bundle.swift
+../Sources/Navigator/Toolkit/Extensions/CGRect.swift
+../Sources/Navigator/Toolkit/Extensions/UIColor.swift
+../Sources/Navigator/Toolkit/Extensions/UIView.swift
+../Sources/Navigator/Toolkit/Extensions/WKWebView.swift
+../Sources/Navigator/Toolkit/PaginationView.swift
+../Sources/Navigator/Toolkit/R2NavigatorLocalizedString.swift
+../Sources/Navigator/Toolkit/TargetAction.swift
+../Sources/Navigator/Toolkit/WebView.swift
+../Sources/Navigator/VisualNavigator.swift
+../Sources/OPDS
+../Sources/OPDS/Deprecated.swift
+../Sources/OPDS/Info.plist
+../Sources/OPDS/OPDS1Parser.swift
+../Sources/OPDS/OPDS2Parser.swift
+../Sources/OPDS/OPDSParser.swift
+../Sources/OPDS/ParseData.swift
+../Sources/OPDS/readium_opds.h
+../Sources/OPDS/URLHelper.swift
+../Sources/Shared
+../Sources/Shared/DRM
+../Sources/Shared/DRM/DRM+Deprecated.swift
+../Sources/Shared/Fetcher
+../Sources/Shared/Fetcher/ArchiveFetcher.swift
+../Sources/Shared/Fetcher/Fetcher.swift
+../Sources/Shared/Fetcher/FileFetcher.swift
+../Sources/Shared/Fetcher/HTTPFetcher.swift
+../Sources/Shared/Fetcher/ProxyFetcher.swift
+../Sources/Shared/Fetcher/Resource
+../Sources/Shared/Fetcher/Resource/BufferedResource.swift
+../Sources/Shared/Fetcher/Resource/CachingResource.swift
+../Sources/Shared/Fetcher/Resource/DataResource.swift
+../Sources/Shared/Fetcher/Resource/FailureResource.swift
+../Sources/Shared/Fetcher/Resource/LazyResource.swift
+../Sources/Shared/Fetcher/Resource/ProxyResource.swift
+../Sources/Shared/Fetcher/Resource/Resource.swift
+../Sources/Shared/Fetcher/Resource/ResourceContentExtractor.swift
+../Sources/Shared/Fetcher/Resource/TransformingResource.swift
+../Sources/Shared/Fetcher/RoutingFetcher.swift
+../Sources/Shared/Fetcher/TransformingFetcher.swift
+../Sources/Shared/Info.plist
+../Sources/Shared/Logger
+../Sources/Shared/Logger/Loggable.swift
+../Sources/Shared/Logger/Logger.swift
+../Sources/Shared/Logger/LoggerStub.swift
+../Sources/Shared/OPDS
+../Sources/Shared/OPDS/Facet.swift
+../Sources/Shared/OPDS/Feed.swift
+../Sources/Shared/OPDS/Group.swift
+../Sources/Shared/OPDS/OPDSAcquisition.swift
+../Sources/Shared/OPDS/OPDSAvailability.swift
+../Sources/Shared/OPDS/OPDSCopies.swift
+../Sources/Shared/OPDS/OPDSHolds.swift
+../Sources/Shared/OPDS/OpdsMetadata.swift
+../Sources/Shared/OPDS/OPDSPrice.swift
+../Sources/Shared/Publication
+../Sources/Shared/Publication/Asset
+../Sources/Shared/Publication/Asset/FileAsset.swift
+../Sources/Shared/Publication/Asset/PublicationAsset.swift
+../Sources/Shared/Publication/ContentLayout.swift
+../Sources/Shared/Publication/ContentProtection.swift
+../Sources/Shared/Publication/Contributor.swift
+../Sources/Shared/Publication/Extensions
+../Sources/Shared/Publication/Extensions/Archive
+../Sources/Shared/Publication/Extensions/Archive/Properties+Archive.swift
+../Sources/Shared/Publication/Extensions/Encryption
+../Sources/Shared/Publication/Extensions/Encryption/Encryption.swift
+../Sources/Shared/Publication/Extensions/Encryption/Properties+Encryption.swift
+../Sources/Shared/Publication/Extensions/EPUB
+../Sources/Shared/Publication/Extensions/EPUB/EPUBLayout.swift
+../Sources/Shared/Publication/Extensions/EPUB/Properties+EPUB.swift
+../Sources/Shared/Publication/Extensions/EPUB/Publication+EPUB.swift
+../Sources/Shared/Publication/Extensions/HTML
+../Sources/Shared/Publication/Extensions/HTML/DOMRange.swift
+../Sources/Shared/Publication/Extensions/HTML/Locator+HTML.swift
+../Sources/Shared/Publication/Extensions/OPDS
+../Sources/Shared/Publication/Extensions/OPDS/Properties+OPDS.swift
+../Sources/Shared/Publication/Extensions/OPDS/Publication+OPDS.swift
+../Sources/Shared/Publication/Extensions/Presentation
+../Sources/Shared/Publication/Extensions/Presentation/Metadata+Presentation.swift
+../Sources/Shared/Publication/Extensions/Presentation/Presentation.swift
+../Sources/Shared/Publication/Extensions/Presentation/Properties+Presentation.swift
+../Sources/Shared/Publication/Link.swift
+../Sources/Shared/Publication/LinkRelation.swift
+../Sources/Shared/Publication/LocalizedString.swift
+../Sources/Shared/Publication/Locator.swift
+../Sources/Shared/Publication/Manifest.swift
+../Sources/Shared/Publication/Media Overlays
+../Sources/Shared/Publication/Media Overlays/MediaOverlayNode.swift
+../Sources/Shared/Publication/Media Overlays/MediaOverlays.swift
+../Sources/Shared/Publication/Metadata.swift
+../Sources/Shared/Publication/Properties.swift
+../Sources/Shared/Publication/Publication.swift
+../Sources/Shared/Publication/Publication+Deprecated.swift
+../Sources/Shared/Publication/Publication+JSON.swift
+../Sources/Shared/Publication/PublicationCollection.swift
+../Sources/Shared/Publication/ReadingProgression.swift
+../Sources/Shared/Publication/Services
+../Sources/Shared/Publication/Services/Content Protection
+../Sources/Shared/Publication/Services/Content Protection/ContentProtectionService.swift
+../Sources/Shared/Publication/Services/Content Protection/ContentProtectionService+WS.swift
+../Sources/Shared/Publication/Services/Content Protection/UserRights.swift
+../Sources/Shared/Publication/Services/Cover
+../Sources/Shared/Publication/Services/Cover/CoverService.swift
+../Sources/Shared/Publication/Services/Cover/GeneratedCoverService.swift
+../Sources/Shared/Publication/Services/Locator
+../Sources/Shared/Publication/Services/Locator/DefaultLocatorService.swift
+../Sources/Shared/Publication/Services/Locator/LocatorService.swift
+../Sources/Shared/Publication/Services/Positions
+../Sources/Shared/Publication/Services/Positions/PerResourcePositionsService.swift
+../Sources/Shared/Publication/Services/Positions/PositionsService.swift
+../Sources/Shared/Publication/Services/PublicationService.swift
+../Sources/Shared/Publication/Services/PublicationServicesBuilder.swift
+../Sources/Shared/Publication/Services/Search
+../Sources/Shared/Publication/Services/Search/SearchService.swift
+../Sources/Shared/Publication/Services/Search/StringSearchService.swift
+../Sources/Shared/Publication/Subject.swift
+../Sources/Shared/Publication/User Settings
+../Sources/Shared/Publication/User Settings/UserProperties.swift
+../Sources/Shared/Publication/User Settings/UserSettings.swift
+../Sources/Shared/r2-shared-swift.h
+../Sources/Shared/Resources
+../Sources/Shared/Resources/en.lproj
+../Sources/Shared/Resources/en.lproj/Localizable.strings
+../Sources/Shared/RootFile.swift
+../Sources/Shared/Toolkit
+../Sources/Shared/Toolkit/Archive
+../Sources/Shared/Toolkit/Archive/Archive.swift
+../Sources/Shared/Toolkit/Archive/ExplodedArchive.swift
+../Sources/Shared/Toolkit/Archive/Minizip.swift
+../Sources/Shared/Toolkit/Archive/ZIPFoundation.swift
+../Sources/Shared/Toolkit/Cancellable.swift
+../Sources/Shared/Toolkit/CancellableResult.swift
+../Sources/Shared/Toolkit/ControlFlow.swift
+../Sources/Shared/Toolkit/Date+ISO8601.swift
+../Sources/Shared/Toolkit/Deferred.swift
+../Sources/Shared/Toolkit/DocumentTypes.swift
+../Sources/Shared/Toolkit/DownloadSession.swift
+../Sources/Shared/Toolkit/Either.swift
+../Sources/Shared/Toolkit/Extensions
+../Sources/Shared/Toolkit/Extensions/Array.swift
+../Sources/Shared/Toolkit/Extensions/Bundle.swift
+../Sources/Shared/Toolkit/Extensions/Collection.swift
+../Sources/Shared/Toolkit/Extensions/NSRegularExpression.swift
+../Sources/Shared/Toolkit/Extensions/Optional.swift
+../Sources/Shared/Toolkit/Extensions/Result.swift
+../Sources/Shared/Toolkit/Extensions/String.swift
+../Sources/Shared/Toolkit/Extensions/StringEncoding.swift
+../Sources/Shared/Toolkit/Extensions/UIImage.swift
+../Sources/Shared/Toolkit/Extensions/UInt64.swift
+../Sources/Shared/Toolkit/Extensions/URL.swift
+../Sources/Shared/Toolkit/HREF.swift
+../Sources/Shared/Toolkit/HTTP
+../Sources/Shared/Toolkit/HTTP/DefaultHTTPClient.swift
+../Sources/Shared/Toolkit/HTTP/HTTPClient.swift
+../Sources/Shared/Toolkit/HTTP/HTTPError.swift
+../Sources/Shared/Toolkit/HTTP/HTTPProblemDetails.swift
+../Sources/Shared/Toolkit/HTTP/HTTPRequest.swift
+../Sources/Shared/Toolkit/JSON.swift
+../Sources/Shared/Toolkit/Logging
+../Sources/Shared/Toolkit/Logging/WarningLogger.swift
+../Sources/Shared/Toolkit/Media
+../Sources/Shared/Toolkit/Media Type
+../Sources/Shared/Toolkit/Media Type/MediaType.swift
+../Sources/Shared/Toolkit/Media Type/MediaType+Deprecated.swift
+../Sources/Shared/Toolkit/Media Type/MediaTypeSniffer.swift
+../Sources/Shared/Toolkit/Media Type/MediaTypeSnifferContent.swift
+../Sources/Shared/Toolkit/Media Type/MediaTypeSnifferContext.swift
+../Sources/Shared/Toolkit/Media/AudioSession.swift
+../Sources/Shared/Toolkit/Media/NowPlayingInfo.swift
+../Sources/Shared/Toolkit/Observable.swift
+../Sources/Shared/Toolkit/PDF
+../Sources/Shared/Toolkit/PDF/CGPDF.swift
+../Sources/Shared/Toolkit/PDF/PDFDocument.swift
+../Sources/Shared/Toolkit/PDF/PDFKit.swift
+../Sources/Shared/Toolkit/PDF/PDFOutlineNode.swift
+../Sources/Shared/Toolkit/R2LocalizedString.swift
+../Sources/Shared/Toolkit/ResourcesServer.swift
+../Sources/Shared/Toolkit/URITemplate.swift
+../Sources/Shared/Toolkit/UTI.swift
+../Sources/Shared/Toolkit/Weak.swift
+../Sources/Shared/Toolkit/XML
+../Sources/Shared/Toolkit/XML/Fuzi.swift
+../Sources/Shared/Toolkit/XML/XML.swift
+../Sources/Streamer
+../Sources/Streamer/Assets
+../Sources/Streamer/Assets/fonts
+../Sources/Streamer/Assets/fonts/OpenDyslexic-Regular.otf
+../Sources/Streamer/Info.plist
+../Sources/Streamer/Model
+../Sources/Streamer/Model/Container.swift
+../Sources/Streamer/Model/HTTPContainer.swift
+../Sources/Streamer/Model/PublicationContainer.swift
+../Sources/Streamer/Parser
+../Sources/Streamer/Parser/Audio
+../Sources/Streamer/Parser/Audio/AudioParser.swift
+../Sources/Streamer/Parser/Audio/Services
+../Sources/Streamer/Parser/Audio/Services/AudioLocatorService.swift
+../Sources/Streamer/Parser/EPUB
+../Sources/Streamer/Parser/EPUB/EPUBContainerParser.swift
+../Sources/Streamer/Parser/EPUB/EPUBEncryptionParser.swift
+../Sources/Streamer/Parser/EPUB/EPUBMetadataParser.swift
+../Sources/Streamer/Parser/EPUB/EPUBParser.swift
+../Sources/Streamer/Parser/EPUB/Extensions
+../Sources/Streamer/Parser/EPUB/Extensions/Presentation+EPUB.swift
+../Sources/Streamer/Parser/EPUB/NavigationDocumentParser.swift
+../Sources/Streamer/Parser/EPUB/NCXParser.swift
+../Sources/Streamer/Parser/EPUB/OPFMeta.swift
+../Sources/Streamer/Parser/EPUB/OPFParser.swift
+../Sources/Streamer/Parser/EPUB/Resource Transformers
+../Sources/Streamer/Parser/EPUB/Resource Transformers/EPUBDeobfuscator.swift
+../Sources/Streamer/Parser/EPUB/Resource Transformers/EPUBHTMLInjector.swift
+../Sources/Streamer/Parser/EPUB/Services
+../Sources/Streamer/Parser/EPUB/Services/EPUBPositionsService.swift
+../Sources/Streamer/Parser/EPUB/SMILParser.swift
+../Sources/Streamer/Parser/Image
+../Sources/Streamer/Parser/Image/CBZParser.swift
+../Sources/Streamer/Parser/Image/ImageParser.swift
+../Sources/Streamer/Parser/Parser+Deprecated.swift
+../Sources/Streamer/Parser/PDF
+../Sources/Streamer/Parser/PDF/PDFFileParser.swift
+../Sources/Streamer/Parser/PDF/PDFParser.swift
+../Sources/Streamer/Parser/PDF/Services
+../Sources/Streamer/Parser/PDF/Services/LCPDFPositionsService.swift
+../Sources/Streamer/Parser/PDF/Services/PDFPositionsService.swift
+../Sources/Streamer/Parser/PublicationParser.swift
+../Sources/Streamer/Parser/Readium
+../Sources/Streamer/Parser/Readium/ReadiumWebPubParser.swift
+../Sources/Streamer/r2-streamer-swift-Bridging-Header.h
+../Sources/Streamer/r2-streamer-swift.h
+../Sources/Streamer/Server
+../Sources/Streamer/Server/PublicationServer.swift
+../Sources/Streamer/Server/WebServerResourceResponse.swift
+../Sources/Streamer/Streamer.swift
+../Sources/Streamer/Toolkit
+../Sources/Streamer/Toolkit/DataCompression.swift
+../Sources/Streamer/Toolkit/DataExtension.swift
+../Sources/Streamer/Toolkit/Extensions
+../Sources/Streamer/Toolkit/Extensions/Bundle.swift
+../Sources/Streamer/Toolkit/Extensions/Fetcher.swift
+../Sources/Streamer/Toolkit/Logger.swift
+../Sources/Streamer/Toolkit/Streams
+../Sources/Streamer/Toolkit/Streams/DataInputStream.swift
+../Sources/Streamer/Toolkit/Streams/FileInputStream.swift
+../Sources/Streamer/Toolkit/Streams/ResourceInputStream.swift
+../Sources/Streamer/Toolkit/Streams/Seekable.swift
+../Sources/Streamer/Toolkit/Streams/ZIPInputStream.swift
+../Sources/Streamer/Toolkit/StringExtension.swift
+../Sources/Streamer/Toolkit/ZIPArchive
+../Sources/Streamer/Toolkit/ZIPArchive/Zip.h
+../Sources/Streamer/Toolkit/ZIPArchive/ZIPArchive.swift"
