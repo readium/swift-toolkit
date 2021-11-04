@@ -1,5 +1,3 @@
-# Use this XcodeGen project spec when using Readium with Carthage as a submodule on Xcode 12.5+.
-# See https://github.com/readium/swift-toolkit/issues/1#issuecomment-829250100
 name: Readium
 attributes:
   LastUpgradeCheck: "1250"
@@ -13,13 +11,13 @@ targets:
     platform: iOS
     deploymentTarget: "10.0"
     sources: 
-      - path: ../Sources/Shared
+      - path: ../../Sources/Shared
         excludes:
           - Toolkit/Archive/ZIPFoundation.swift
     dependencies:
-      - framework: Fuzi.framework
-      - framework: Minizip.framework
-      - framework: SwiftSoup.framework
+      - framework: ../../Carthage/Build/Fuzi.xcframework
+      - framework: ../../Carthage/Build/Minizip.xcframework
+      - framework: ../../Carthage/Build/SwiftSoup.xcframework
       - sdk: CoreServices.framework
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-shared-swift
@@ -29,16 +27,16 @@ targets:
     platform: iOS
     deploymentTarget: "10.0"
     sources: 
-      - path: ../Sources/Streamer
+      - path: ../../Sources/Streamer
         excludes:
           - Assets
-      - path: ../Sources/Streamer/Assets
+      - path: ../../Sources/Streamer/Assets
         type: folder
     dependencies:
-      - framework: CryptoSwift.framework
-      - framework: Fuzi.framework
-      - framework: GCDWebServer.framework
-      - framework: Minizip.framework
+      - framework: ../../Carthage/Build/CryptoSwift.xcframework
+      - framework: ../../Carthage/Build/Fuzi.xcframework
+      - framework: ../../Carthage/Build/GCDWebServer.xcframework
+      - framework: ../../Carthage/Build/Minizip.xcframework
       - target: R2Shared
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-streamer-swift
@@ -48,17 +46,17 @@ targets:
     platform: iOS
     deploymentTarget: "10.0"
     sources: 
-      - path: ../Sources/Navigator
+      - path: ../../Sources/Navigator
         excludes:
           - EPUB/Assets
           - EPUB/Scripts
-      - path: ../Sources/Navigator/EPUB/Assets
+      - path: ../../Sources/Navigator/EPUB/Assets
         type: folder
     dependencies:
-      - framework: DifferenceKit.framework
-      - framework: Fuzi.framework
-      - framework: Minizip.framework
-      - framework: SwiftSoup.framework
+      - framework: ../../Carthage/Build/DifferenceKit.xcframework
+      - framework: ../../Carthage/Build/Fuzi.xcframework
+      - framework: ../../Carthage/Build/Minizip.xcframework
+      - framework: ../../Carthage/Build/SwiftSoup.xcframework
       - target: R2Shared
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-navigator-swift
@@ -68,10 +66,10 @@ targets:
     platform: iOS
     deploymentTarget: "10.0"
     sources: 
-      - path: ../Sources/OPDS
+      - path: ../../Sources/OPDS
     dependencies:
-      - framework: Fuzi.framework
-      - framework: Minizip.framework
+      - framework: ../../Carthage/Build/Fuzi.xcframework
+      - framework: ../../Carthage/Build/Minizip.xcframework
       - target: R2Shared
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.readium.readium-opds
@@ -81,13 +79,13 @@ targets:
     platform: iOS
     deploymentTarget: "10.0"
     sources: 
-      - path: ../Sources/LCP
+      - path: ../../Sources/LCP
     dependencies:
-      - framework: CryptoSwift.framework
-      - framework: Fuzi.framework
-      - framework: Minizip.framework
-      - framework: SQLite.framework
-      - framework: ZIPFoundation..framework
+      - framework: ../../Carthage/Build/CryptoSwift.xcframework
+      - framework: ../../Carthage/Build/Fuzi.xcframework
+      - framework: ../../Carthage/Build/Minizip.xcframework
+      - framework: ../../Carthage/Build/SQLite.xcframework
+      - framework: ../../Carthage/Build/ZIPFoundation.xcframework
       - target: R2Shared
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.readium-lcp-swift
@@ -113,4 +111,3 @@ schemes:
     build:
       targets:
         ReadiumLCP: all
-

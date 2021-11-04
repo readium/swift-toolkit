@@ -1,3 +1,5 @@
+# Use this XcodeGen project spec when using Readium with Carthage as a submodule on Xcode 12.5+.
+# See https://github.com/readium/swift-toolkit/issues/1#issuecomment-829250100
 name: Readium
 attributes:
   LastUpgradeCheck: "1250"
@@ -11,89 +13,84 @@ targets:
     platform: iOS
     deploymentTarget: "10.0"
     sources: 
-      - path: ../Sources/Shared
+      - path: ../../Sources/Shared
         excludes:
           - Toolkit/Archive/ZIPFoundation.swift
     dependencies:
-      - framework: Build/Fuzi.xcframework
-      - framework: Build/Minizip.xcframework
-      - framework: Build/SwiftSoup.xcframework
+      - framework: Fuzi.framework
+      - framework: Minizip.framework
+      - framework: SwiftSoup.framework
       - sdk: CoreServices.framework
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-shared-swift
-      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)
 
   R2Streamer:
     type: framework
     platform: iOS
     deploymentTarget: "10.0"
     sources: 
-      - path: ../Sources/Streamer
+      - path: ../../Sources/Streamer
         excludes:
           - Assets
-      - path: ../Sources/Streamer/Assets
+      - path: ../../Sources/Streamer/Assets
         type: folder
     dependencies:
-      - framework: Build/CryptoSwift.xcframework
-      - framework: Build/Fuzi.xcframework
-      - framework: Build/GCDWebServer.xcframework
-      - framework: Build/Minizip.xcframework
+      - framework: CryptoSwift.framework
+      - framework: Fuzi.framework
+      - framework: GCDWebServer.framework
+      - framework: Minizip.framework
       - target: R2Shared
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-streamer-swift
-      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)
 
   R2Navigator:
     type: framework
     platform: iOS
     deploymentTarget: "10.0"
     sources: 
-      - path: ../Sources/Navigator
+      - path: ../../Sources/Navigator
         excludes:
           - EPUB/Assets
           - EPUB/Scripts
-      - path: ../Sources/Navigator/EPUB/Assets
+      - path: ../../Sources/Navigator/EPUB/Assets
         type: folder
     dependencies:
-      - framework: Build/DifferenceKit.xcframework
-      - framework: Build/Fuzi.xcframework
-      - framework: Build/Minizip.xcframework
-      - framework: Build/SwiftSoup.xcframework
+      - framework: DifferenceKit.framework
+      - framework: Fuzi.framework
+      - framework: Minizip.framework
+      - framework: SwiftSoup.framework
       - target: R2Shared
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-navigator-swift
-      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)
 
   ReadiumOPDS:
     type: framework
     platform: iOS
     deploymentTarget: "10.0"
     sources: 
-      - path: ../Sources/OPDS
+      - path: ../../Sources/OPDS
     dependencies:
-      - framework: Build/Fuzi.xcframework
-      - framework: Build/Minizip.xcframework
+      - framework: Fuzi.framework
+      - framework: Minizip.framework
       - target: R2Shared
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.readium.readium-opds
-      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)
 
   ReadiumLCP:
     type: framework
     platform: iOS
     deploymentTarget: "10.0"
     sources: 
-      - path: ../Sources/LCP
+      - path: ../../Sources/LCP
     dependencies:
-      - framework: Build/CryptoSwift.xcframework
-      - framework: Build/Fuzi.xcframework
-      - framework: Build/Minizip.xcframework
-      - framework: Build/SQLite.xcframework
-      - framework: Build/ZIPFoundation.xcframework
+      - framework: CryptoSwift.framework
+      - framework: Fuzi.framework
+      - framework: Minizip.framework
+      - framework: SQLite.framework
+      - framework: ZIPFoundation..framework
       - target: R2Shared
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.readium-lcp-swift
-      LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)
 
 schemes:
   R2Shared:
@@ -116,3 +113,4 @@ schemes:
     build:
       targets:
         ReadiumLCP: all
+
