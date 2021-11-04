@@ -55,7 +55,7 @@ final public class EPUBParser: PublicationParser {
     }
     
     public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
-        guard asset.mediaType() == .epub else {
+        guard asset.mediaTypeTest() == .epub else {
             return nil
         }
         

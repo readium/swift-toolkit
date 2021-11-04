@@ -15,7 +15,7 @@ public protocol PublicationAsset {
     /// Resolves the media type of the asset.
     ///
     /// *Warning*: This should not be called from the UI thread.
-    func mediaType() -> MediaType?
+    func mediaTypeTest() -> MediaType?
     
     /// Creates a fetcher used to access the asset's content.
     func makeFetcher(using dependencies: PublicationAssetDependencies, credentials: String?, completion: @escaping (CancellableResult<Fetcher, Publication.OpeningError>) -> Void) -> Void

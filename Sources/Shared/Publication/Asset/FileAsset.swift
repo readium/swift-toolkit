@@ -35,7 +35,7 @@ public final class FileAsset: PublicationAsset, Loggable {
     
     public var name: String { url.lastPathComponent }
 
-    public func mediaType() -> MediaType? {
+    public func mediaTypeTest() -> MediaType? {
         warnIfMainThread()
         return resolvedMediaType
     }

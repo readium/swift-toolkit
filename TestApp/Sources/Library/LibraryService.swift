@@ -72,7 +72,7 @@ final class LibraryService: Loggable {
     private func openPublication(at url: URL, allowUserInteraction: Bool, sender: UIViewController?) -> AnyPublisher<(Publication, MediaType), LibraryError> {
         Future(on: .global()) { promise in
             let asset = FileAsset(url: url)
-            guard let mediaType = asset.mediaType() else {
+            guard let mediaType = asset.mediaTypeTest() else {
                 promise(.failure(.openFailed(Publication.OpeningError.unsupportedFormat)))
                 return
             }

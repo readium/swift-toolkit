@@ -34,7 +34,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
     }
     
     public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
-        guard let mediaType = asset.mediaType(), mediaType.isReadiumWebPubProfile else {
+        guard let mediaType = asset.mediaTypeTest(), mediaType.isReadiumWebPubProfile else {
             return nil
         }
         
