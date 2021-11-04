@@ -42,15 +42,7 @@ Then, explain the steps to reproduce the problem from the Test App (https://gith
 
 <!-- Fill in the following information -->
 
-#### Readium versions
-
-<!-- Remove unused modules -->
-
-* `r2-shared-swift`:
-* `r2-streamer-swift`:
-* `r2-navigator-swift`:
-* `r2-opds-swift`:
-* `r2-lcp-swift`:
+* Readium version: 
 
 #### Development environment
 
