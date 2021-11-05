@@ -268,7 +268,6 @@
 ../../Sources/LCP/Persistence/Database.swift
 ../../Sources/LCP/Persistence/Licenses.swift
 ../../Sources/LCP/Persistence/Transactions.swift
-../../Sources/LCP/readium-lcp-swift.h
 ../../Sources/LCP/Resources
 ../../Sources/LCP/Resources/en.lproj
 ../../Sources/LCP/Resources/en.lproj/Localizable.strings
@@ -7390,7 +7389,6 @@
 ../../Sources/Navigator/PDF/PDFDocumentView.swift
 ../../Sources/Navigator/PDF/PDFNavigatorViewController.swift
 ../../Sources/Navigator/PDF/PDFTapGestureController.swift
-../../Sources/Navigator/r2-navigator-swift.h
 ../../Sources/Navigator/Resources
 ../../Sources/Navigator/Resources/en.lproj
 ../../Sources/Navigator/Resources/en.lproj/Localizable.strings
@@ -7414,7 +7412,6 @@
 ../../Sources/OPDS/OPDS2Parser.swift
 ../../Sources/OPDS/OPDSParser.swift
 ../../Sources/OPDS/ParseData.swift
-../../Sources/OPDS/readium_opds.h
 ../../Sources/OPDS/URLHelper.swift
 ../../Sources/Shared
 ../../Sources/Shared/DRM
@@ -7516,7 +7513,6 @@
 ../../Sources/Shared/Publication/User Settings
 ../../Sources/Shared/Publication/User Settings/UserProperties.swift
 ../../Sources/Shared/Publication/User Settings/UserSettings.swift
-../../Sources/Shared/r2-shared-swift.h
 ../../Sources/Shared/Resources
 ../../Sources/Shared/Resources/en.lproj
 ../../Sources/Shared/Resources/en.lproj/Localizable.strings
@@ -7623,8 +7619,6 @@
 ../../Sources/Streamer/Parser/PublicationParser.swift
 ../../Sources/Streamer/Parser/Readium
 ../../Sources/Streamer/Parser/Readium/ReadiumWebPubParser.swift
-../../Sources/Streamer/r2-streamer-swift-Bridging-Header.h
-../../Sources/Streamer/r2-streamer-swift.h
 ../../Sources/Streamer/Server
 ../../Sources/Streamer/Server/PublicationServer.swift
 ../../Sources/Streamer/Server/WebServerResourceResponse.swift

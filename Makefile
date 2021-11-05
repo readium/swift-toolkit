@@ -8,7 +8,7 @@ help:
 
 .PHONY: carthage-project
 carthage-project:
-	xcodegen -s PM/Carthage/project.yml --use-cache --cache-path PM/Carthage/.xcodegen
+	xcodegen -s Support/Carthage/project.yml --use-cache --cache-path Support/Carthage/.xcodegen
 
 .PHONY: scripts
 scripts:
