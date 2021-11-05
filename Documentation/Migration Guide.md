@@ -2,6 +2,112 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
+## 2.2.0
+
+With this new release, we migrated all the [`r2-*-swift`](https://github.com/readium/?q=r2-swift) repositories to [a single `swift-toolkit` repository](https://github.com/readium/r2-testapp-swift/issues/404).
+
+The same Readium libraries are available as before, but you will need to update the configuration of your dependency manager.
+
+### Using Swift Package Manager
+
+With SPM, instead of having one Swift Package per Readium library, we now have a single Readium Swift Package offering one product per Readium library.
+
+First, remove all the Readium Swift Packages from your project setting, from the tab **Package Dependencies**. Then, add the new Swift Package using the following URL `https://github.com/readium/swift-toolkit.git`.
+
+Xcode will then ask you which Package Product you want to add to your app. Add the ones you were using previously.
+
+That's all, your project should build successfully.
+
+### Using Carthage
+
+Just replace the former Readium `Cartfile` statements with the new one:
+
+```diff
++github "readium/swift-toolkit" ~> 2.2.0
+-github "readium/r2-shared-swift" ~> 2.2.0
+-github "readium/r2-streamer-swift" ~> 2.2.0
+-github "readium/r2-navigator-swift" ~> 2.2.0
+-github "readium/r2-opds-swift" ~> 2.2.0
+-github "readium/r2-lcp-swift" ~> 2.2.0
+```
+
+Then, rebuild the libraries using `carthage update --platform ios --use-xcframeworks --cache-builds`. Carthage will build all the Readium libraries and their dependencies, but you are free to add only the ones you are using as before. Take a look at the [README](../README.md#carthage) for more information.
+
+### Using CocoaPods
+
+If you are using CocoaPods, you will need to update the URL to the Podspecs in your `Podfile`:
+
+```diff
++  pod 'R2Shared', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.2.0/Support/CocoaPods/ReadiumShared.podspec'
++  pod 'R2Streamer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.2.0/Support/CocoaPods/ReadiumStreamer.podspec'
++  pod 'R2Navigator', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.2.0/Support/CocoaPods/ReadiumNavigator.podspec'
++  pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.2.0/Support/CocoaPods/ReadiumOPDS.podspec'
++  pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.2.0/Support/CocoaPods/ReadiumLCP.podspec'
+
+-  pod 'R2Shared', podspec: 'https://raw.githubusercontent.com/readium/r2-shared-swift/2.2.0/R2Shared.podspec'
+-  pod 'R2Streamer', podspec: 'https://raw.githubusercontent.com/readium/r2-streamer-swift/2.2.0/R2Streamer.podspec'
+-  pod 'R2Navigator', podspec: 'https://raw.githubusercontent.com/readium/r2-navigator-swift/2.2.0/R2Navigator.podspec'
+-  pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/r2-opds-swift/2.2.0/ReadiumOPDS.podspec'
+-  pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/r2-lcp-swift/2.2.0/ReadiumLCP.podspec'
+```
+
+Then, run `pod install` to update your project.
+
+### Using a fork
+
+If you are integrating your own forks of the Readium modules, you will need to migrate them to a single fork and port your changes. Follow strictly the given steps and it should go painlessly.
+
+1. Upgrade your forks to the latest Readium 2.2.0 version from the legacy repositories, as you would with any update. The 2.2.0 version is available on both the legacy repositories and the new `swift-toolkit` one. It will be used to port your changes over to the single repository.
+2. [Fork the new `swift-toolkit` repository](https://github.com/readium/swift-toolkit/fork) on your own GitHub space.
+3. In a new local directory, clone your legacy forks as well as the new single fork:
+    ```sh
+    mkdir readium-migration
+    cd readium-migration
+   
+    # Clone the legacy forks
+    git clone https://github.com/USERNAME/r2-shared-swift.git
+    git clone https://github.com/USERNAME/r2-streamer-swift.git
+    git clone https://github.com/USERNAME/r2-navigator-swift.git
+    git clone https://github.com/USERNAME/r2-opds-swift.git
+    git clone https://github.com/USERNAME/r2-lcp-swift.git
+   
+    # Clone the new single fork
+    git clone https://github.com/USERNAME/swift-toolkit.git
+    ```
+4. Reset the new fork to be in the same state as the 2.2.0 release.
+    ```sh
+    cd swift-toolkit
+    git reset --hard 2.2.0
+    ```
+5. For each Readium module, port your changes over to the new fork.
+    ```sh
+    rm -rf Sources/*/*
+   
+    # Copy module sources
+    cp -r ../r2-shared-swift/r2-shared-swift/* Sources/Shared
+    cp -r ../r2-streamer-swift/r2-streamer-swift/* Sources/Streamer
+    cp -r ../r2-navigator-swift/r2-navigator-swift/* Sources/Navigator
+    cp -r ../r2-opds-swift/readium-opds/* Sources/OPDS
+    cp -r ../r2-lcp-swift/readium-lcp-swift/* Sources/LCP
+
+    # Remove obsolete files
+    rm -rf Sources/*/Info.plist
+    rm -rf Sources/*/*.h
+    ```
+6. Review your changes, then commit.
+    ```sh
+    git add Sources
+    git commit -m "Apply local changes to Readium"
+    ```
+7. Finally, pull the changes to upgrade to the latest version of the fork. You might need to fix some conflicts.
+    ```sh
+    git pull --rebase
+    git push
+    ```
+   
+Your fork is now ready! To integrate it in your app as a local Git clone or submodule, follow the instructions from the [README](../README.md).
+
+
 ## [2.0.0](https://github.com/readium/r2-testapp-swift/compare/2.2.0-beta.2...2.2.0)
 
 Nothing to change in your app to upgrade from 2.0.0-beta.2 to the final 2.0.0 release! Please follow the relevant sections if you are upgrading from an older version.
