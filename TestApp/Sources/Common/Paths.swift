@@ -20,8 +20,6 @@ final class Paths {
     static let documents: URL =
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
     
-    static let samples = Bundle.main.resourceURL!.appendingPathComponent("Samples")
-    
     static let library: URL =
         FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first!
     

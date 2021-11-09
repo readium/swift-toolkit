@@ -18,10 +18,6 @@ targets:
     deploymentTarget: "13.6"
     sources: 
       - path: Sources
-        excludes:
-          - Resources/Samples
-      - path: Sources/Resources/Samples
-        type: folder
     dependencies:
       - framework: Carthage/Build/CryptoSwift.xcframework
       - framework: Carthage/Build/DifferenceKit.xcframework
