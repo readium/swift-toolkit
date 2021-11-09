@@ -94,7 +94,7 @@
       function getPageWithHref(href) {
         for (position in _pages) {
           var page = _pages[position];
-          if (page.link?.href === href) {
+          if (page.link && (page.link.href === href)) {) {
             return page;
           }
         }

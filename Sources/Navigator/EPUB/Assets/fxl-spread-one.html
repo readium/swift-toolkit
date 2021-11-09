@@ -49,7 +49,7 @@
 
         // Evaluates a JavaScript in the context of a resource.
         'eval': function(href, script) {
-          if (href === '#' || href === '' || _page.link?.href === href) {
+          if (href === '#' || href === '' || (_page.link && (_page.link.href === href))) {
             return _page.eval(script);
           }
         },
