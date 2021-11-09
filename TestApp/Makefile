@@ -1,4 +1,4 @@
-version = `git describe --tags --match [0-9]* --abbrev=0 2> /dev/null`
+version = `git describe --tags --abbrev=0 2> /dev/null`
 ifdef commit
 	version = $(commit)
 endif
@@ -32,9 +32,9 @@ else
 	@cp Integrations/SPM/project.yml .
 endif
 ifdef commit
-	@sed -i "" -e "s>VERSION>revision: $(version)>g" project.yml
+	@sed -i "" -e "s>VERSION>revision: $(commit)>g" project.yml
 else
-	@sed -i "" -e "s>VERSION>from: $(commit)>g" project.yml
+	@sed -i "" -e "s>VERSION>from: $(version)>g" project.yml
 endif
 	xcodegen generate
 	@echo "\nopen TestApp.xcodeproj"
