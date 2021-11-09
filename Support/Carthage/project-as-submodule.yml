@@ -91,7 +91,7 @@ targets:
       - framework: Fuzi.framework
       - framework: Minizip.framework
       - framework: SQLite.framework
-      - framework: ZIPFoundation..framework
+      - framework: ZIPFoundation.framework
       - target: R2Shared
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.readium-lcp-swift
