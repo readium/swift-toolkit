@@ -24,40 +24,72 @@ public struct PresentationKey: Hashable {
 
 /// Holds a list of key-value pairs provided by the app to influence a Navigator's Presentation
 /// Properties. The keys must be valid Presentation Keys.
-public struct PresentationSettings: Hashable {
-    public var settings: [PresentationKey: AnyHashable] = [:]
+public struct PresentationValues: Hashable {
+    public private(set) var values: [PresentationKey: AnyHashable] = [:]
+    
+    public init(_ values: [PresentationKey: AnyHashable]) {
+        self.values = values
+    }
     
     public var continuous: Bool? {
-        settings[.continuous] as? Bool
+        get { self[.continuous] }
+        set { self[.continuous] = newValue }
     }
     
-    public var fit: R2Shared.Presentation.Fit? {
-        (settings[.fit] as? String)
-            .flatMap(R2Shared.Presentation.Fit.init(rawValue:))
+    public var fit: PresentationFit? {
+        get { self[.fit] }
+        set { self[.fit] = newValue }
     }
     
-    public var orientation: R2Shared.Presentation.Orientation? {
-        (settings[.orientation] as? String)
-            .flatMap(R2Shared.Presentation.Orientation.init(rawValue:))
+    public var orientation: PresentationOrientation? {
+        get { self[.orientation] }
+        set { self[.orientation] = newValue }
     }
     
-    public var overflow: R2Shared.Presentation.Overflow? {
-        (settings[.overflow] as? String)
-            .flatMap(R2Shared.Presentation.Overflow.init(rawValue:))
+    public var overflow: PresentationOverflow? {
+        get { self[.overflow] }
+        set { self[.overflow] = newValue }
     }
     
     public var pageSpacing: Double? {
-        settings[.pageSpacing] as? Double
+        get { self[.pageSpacing] }
+        set { self[.pageSpacing] = newValue }
     }
     
     public var readingProgression: ReadingProgression? {
-        (settings[.readingProgression] as? String)
-            .flatMap(ReadingProgression.init(rawValue:))
+        get { self[.readingProgression] }
+        set { self[.readingProgression] = newValue }
     }
     
     /// Returns a copy of this object after overwriting any setting with the values from `other`.
-    public func merging(_ other: PresentationSettings) -> PresentationSettings {
-        PresentationSettings(settings: settings.merging(other.settings, uniquingKeysWith: { first, second in second }))
+    public func merging(_ other: PresentationValues) -> PresentationValues {
+        PresentationValues(values.merging(other.values, uniquingKeysWith: { first, second in second }))
+    }
+    
+    subscript<T>(_ key: PresentationKey) -> T? {
+        get {
+            values[key] as? T
+        }
+        set {
+            if let newValue = newValue as? AnyHashable {
+                values[key] = newValue
+            } else {
+                values.removeValue(forKey: key)
+            }
+        }
+    }
+    
+    subscript<T: RawRepresentable>(_ key: PresentationKey) -> T? where T.RawValue == String {
+        get {
+            (values[key] as? String).flatMap(T.init(rawValue:))
+        }
+        set {
+            if let newValue = newValue?.rawValue {
+                values[key] = newValue
+            } else {
+                values.removeValue(forKey: key)
+            }
+        }
     }
 }
 
@@ -65,7 +97,7 @@ public struct PresentationSettings: Hashable {
 /// rendered by a Navigator. For example, "font size" or "playback rate".
 public protocol Presentation {
     
-    var properties: [PresentationKey: AnyHashable] { get }
+    var values: PresentationValues { get }
     
     /// Returns a user-facing localized label for the given value, which can be used in the user
     /// interface.
@@ -81,7 +113,7 @@ public protocol Presentation {
     /// to switch off the "publisher defaults" setting to be active.
     ///
     /// This is useful to determine whether to grey out a view in the user settings interface.
-    func isPropertyActive(_ key: PresentationKey, for settings: PresentationSettings) -> Bool
+    func isPropertyActive(_ key: PresentationKey, for values: PresentationValues) -> Bool
     
     /// Modifies the given settings to make sure the property will be activated when applying them to
     /// the Navigator.
@@ -90,7 +122,7 @@ public protocol Presentation {
     /// property means ensuring the "publisher defaults" setting is disabled.
     ///
     /// If the property cannot be activated, returns a user-facing localized error.
-    func activateProperty(_ key: PresentationKey, in settings: PresentationSettings) throws -> PresentationSettings
+    func activateProperty(_ key: PresentationKey, in values: PresentationValues) throws -> PresentationValues
     
     func stepCount(forRange key: PresentationKey) -> Int?
     
@@ -100,25 +132,28 @@ public protocol Presentation {
 public extension Presentation {
     
     var continuous: TogglePresentationProperty? {
-        toggleProperty(for: .continuous)
+        property(.continuous)
     }
     
     var fit: EnumPresentationProperty<PresentationFit>? {
-        enumProperty(for: .fit)
+        property(.fit)
     }
     
-    func toggleProperty(for key: PresentationKey) -> TogglePresentationProperty? {
-        guard let bool = properties[key] as? Bool else {
-            return nil
-        }
-        return PresentationProperty(key: key, value: bool, presentation: self)
+    var pageSpacing: RangePresentationProperty? {
+        property(.pageSpacing)
     }
     
-    func enumProperty<E: RawRepresentable>(for key: PresentationKey) -> EnumPresentationProperty<E>? where E.RawValue == String {
-        guard let string = properties[key] as? String else {
+    func property<V>(_ key: PresentationKey) -> PresentationProperty<V>? {
+        guard let value: V = values[key] else {
             return nil
         }
-        let value = E(rawValue: string)!
+        return PresentationProperty(key: key, value: value, presentation: self)
+    }
+    
+    func property<E: RawRepresentable>(_ key: PresentationKey) -> EnumPresentationProperty<E>? where E.RawValue == String {
+        guard let value: E = values[key] else {
+            return nil
+        }
         return PresentationProperty(key: key, value: value, unwrapValue: { $0.rawValue }, presentation: self)
     }
 }
@@ -167,8 +202,8 @@ public struct PresentationProperty<Value> {
     /// to switch off the "publisher defaults" setting to be active.
     ///
     /// This is useful to determine whether to grey out a view in the user settings interface.
-    func isActive(for settings: PresentationSettings) -> Bool {
-        presentation.isPropertyActive(key, for: settings)
+    func isActive(for values: PresentationValues) -> Bool {
+        presentation.isPropertyActive(key, for: values)
     }
     
     /// Modifies the given settings to make sure the property will be activated when applying them to
@@ -178,13 +213,15 @@ public struct PresentationProperty<Value> {
     /// property means ensuring the "publisher defaults" setting is disabled.
     ///
     /// If the property cannot be activated, returns a user-facing localized error.
-    func activate(in settings: PresentationSettings) throws -> PresentationSettings {
-        try presentation.activateProperty(key, in: settings)
+    func activate(in values: PresentationValues) throws -> PresentationValues {
+        try presentation.activateProperty(key, in: values)
     }
 }
 
 public typealias TogglePresentationProperty = PresentationProperty<Bool>
-public extension TogglePresentationProperty {
+
+public typealias RangePresentationProperty = PresentationProperty<Double>
+public extension RangePresentationProperty {
     
     var stepCount: Int? {
         presentation.stepCount(forRange: key)
