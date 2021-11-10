@@ -93,7 +93,7 @@ struct EPUBSpread: Loggable {
     ///   - url: Full URL to the resource.
     ///   - page [left|center|right]: (optional) Page position of the linked resource in the spread.
     func json(for publication: Publication) -> [[String: Any]] {
-        func makeLinkJSON(_ link: Link, page: Presentation.Page? = nil) -> [String: Any]? {
+        func makeLinkJSON(_ link: Link, page: R2Shared.Presentation.Page? = nil) -> [String: Any]? {
             guard let url = link.url(relativeTo: publication.baseURL) else {
                 log(.error, "Can't get URL for link \(link.href)")
                 return nil
@@ -147,7 +147,7 @@ struct EPUBSpread: Loggable {
     }
     
     /// Returns the EPUBRendition spread setting for the given UserSettings.
-    private static func spreadSetting(in userSettings: UserSettings) -> Presentation.Spread {
+    private static func spreadSetting(in userSettings: UserSettings) -> R2Shared.Presentation.Spread {
         guard let columnCount = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.columnCount.rawValue) as? Enumerable else {
             return .auto
         }
