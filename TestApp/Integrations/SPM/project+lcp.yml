@@ -24,10 +24,6 @@ targets:
     deploymentTarget: "13.6"
     sources: 
       - path: Sources
-        excludes:
-          - Resources/Samples
-      - path: Sources/Resources/Samples
-        type: folder
     dependencies:
       - carthage: R2LCPClient
       - package: Readium
