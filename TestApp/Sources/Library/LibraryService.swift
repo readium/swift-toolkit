@@ -300,43 +300,6 @@ final class LibraryService: Loggable {
             promise(.success(()))
         }.eraseToAnyPublisher()
     }
-    
-    
-    // MARK: Sample Publications
-    
-    /// Preloads the sample publications from the bundled Samples/ directory in the database, if
-    /// needed.
-    func preloadSamples() -> AnyPublisher<Void, LibraryError> {
-        let version = 1
-        let key = "LIBRARY_VERSION"
-        let currentVersion = UserDefaults.standard.integer(forKey: key)
-        guard currentVersion < version else {
-            return .just(())
-        }
-        
-        UserDefaults.standard.set(version, forKey: key)
-        
-        return samples().flatMap { url in
-            self.openPublication(at: url, allowUserInteraction: false, sender: nil).flatMap { pub, mediaType in
-                self.importCover(of: pub).flatMap { coverPath in
-                    self.insertBook(at: url, publication: pub, mediaType: mediaType, coverPath: coverPath)
-                }
-            }
-            .map { _ in }
-        }.eraseToAnyPublisher()
-    }
-    
-    private func samples() -> AnyPublisher<URL, LibraryError> {
-        do {
-            return try FileManager.default
-                .contentsOfDirectory(at: Paths.samples, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
-                .publisher
-                .setFailureType(to: LibraryError.self)
-                .eraseToAnyPublisher()
-        } catch {
-            return .fail(.importFailed(error))
-        }
-    }
 }
 
 
@@ -364,14 +327,6 @@ private extension Book {
                     return promise(.success(documentURL))
                 }
         
-                // Path relative to the Samples/ directory in the App bundle.
-                if
-                    let sampleURL = Bundle.main.url(forResource: path, withExtension: nil, subdirectory: "Samples"),
-                    (try? sampleURL.checkResourceIsReachable()) == true
-                {
-                    return promise(.success(sampleURL))
-                }
-                
                 promise(.failure(LibraryError.bookNotFound))
 
             } catch {
