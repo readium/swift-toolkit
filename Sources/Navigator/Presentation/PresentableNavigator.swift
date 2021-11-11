@@ -5,14 +5,13 @@
 //
 
 import Foundation
+import R2Shared
 
 /// A navigator supporting observation and/or customization of its presentation properties.
 public protocol PresentableNavigator {
     
     /// Current values for the Presentation Properties and their metadata.
-    var presentation: Presentation { get }
-
-    func observePresentation(onChanged: @escaping OnPresentationChangedCallback)
+    var presentation: ObservableVariable<Presentation> { get }
     
     /// Submits a new set of Presentation Settings used by the Navigator to recompute its
     /// Presentation Properties.
@@ -21,6 +20,4 @@ public protocol PresentableNavigator {
     /// some of the provided settings. They are only used as guidelines to compute the Presentation
     /// Properties.
     func apply(presentationSettings: PresentationValues, completion: @escaping (Presentation) -> ())
-
-    typealias OnPresentationChangedCallback = (_ presentation: Presentation) -> Void
 }
