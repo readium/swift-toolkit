@@ -10,7 +10,8 @@ import Foundation
 /// Represents an observable stream of value.
 ///
 /// This lightweight implementation of reactive programming will ease the transition to Combine
-/// when bumping the minimum deployment target to iOS 13.
+/// when bumping the minimum deployment target to iOS 13. If your app already uses Combine,
+/// you can convert an `Observable` to a publisher with `publisher()`.
 ///
 /// This "abstract" class needs to be overriden to actually send values.
 public class Observable<Value> {
@@ -114,6 +115,12 @@ public class ObservableVariable<Value>: Observable<Value> {
     
     fileprivate var _value: Value {
         didSet { emit(_value) }
+    }
+    
+    public override func subscribe(on queue: DispatchQueue? = nil, observer: @escaping Observer) -> Cancellable {
+        // Sends the current value to the observer.
+        observer(get())
+        return super.subscribe(on: queue, observer: observer)
     }
     
     @available(*, deprecated, renamed: "get")
