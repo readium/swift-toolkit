@@ -99,6 +99,8 @@ public protocol Presentation {
     
     var values: PresentationValues { get }
     
+    var constraints: [PresentationKey: PresentationValueConstraints] { get }
+    
     /// Returns a user-facing localized label for the given value, which can be used in the user
     /// interface.
     ///
@@ -113,7 +115,7 @@ public protocol Presentation {
     /// to switch off the "publisher defaults" setting to be active.
     ///
     /// This is useful to determine whether to grey out a view in the user settings interface.
-    func isPropertyActive(_ key: PresentationKey, for values: PresentationValues) -> Bool
+    func isActive(_ key: PresentationKey, for values: PresentationValues) -> Bool
     
     /// Modifies the given settings to make sure the property will be activated when applying them to
     /// the Navigator.
@@ -122,15 +124,16 @@ public protocol Presentation {
     /// property means ensuring the "publisher defaults" setting is disabled.
     ///
     /// If the property cannot be activated, returns a user-facing localized error.
-    func activateProperty(_ key: PresentationKey, in values: PresentationValues) throws -> PresentationValues
-    
-    func stepCount(forRange key: PresentationKey) -> Int?
-    
-    func supportedValues(forString key: PresentationKey) -> [String]?
+    func activate(_ key: PresentationKey, in values: PresentationValues) throws -> PresentationValues
 }
 
 public extension Presentation {
     
+    func isActive(_ key: PresentationKey) -> Bool {
+        isActive(key, for: values)
+    }
+    
+    /*
     var continuous: TogglePresentationProperty? {
         property(.continuous)
     }
@@ -156,8 +159,53 @@ public extension Presentation {
         }
         return PresentationProperty(key: key, value: value, unwrapValue: { $0.rawValue }, presentation: self)
     }
+     */
 }
 
+public protocol PresentationValueConstraints {
+    func validate(value: AnyHashable) -> Bool
+}
+
+public struct TypedPresentationValueConstraints<Value>: PresentationValueConstraints {
+    public func validate(value: AnyHashable) -> Bool {
+        value is Value
+    }
+}
+
+public struct StringPresentationValueConstraints: PresentationValueConstraints {
+    public let supportedValues: [String]?
+    
+    init(supportedValues: [String]? = nil) {
+        self.supportedValues = supportedValues
+    }
+    
+    init<E: RawRepresentable>(supportedValues: [E]) where E.RawValue == String {
+        self.init(supportedValues: supportedValues.map { $0.rawValue })
+    }
+    
+    public func validate(value: AnyHashable) -> Bool {
+        guard let value = value as? String else {
+            return false
+        }
+        if let supportedValues = supportedValues, !supportedValues.contains(value) {
+            return false
+        }
+        return true
+    }
+}
+
+public struct RangePresentationValueConstraints: PresentationValueConstraints {
+    public let stepCount: Int?
+    
+    public func validate(value: AnyHashable) -> Bool {
+        guard let value = value as? Double else {
+            return false
+        }
+        return 0.0...1.0 ~= value
+    }
+}
+
+/*
 public struct PresentationProperty<Value> {
     public let key: PresentationKey
     public let value: Value
@@ -245,3 +293,5 @@ public extension EnumPresentationProperty where Value.RawValue == String {
             .compactMap { Value(rawValue: $0) }
     }
 }
+
+*/
