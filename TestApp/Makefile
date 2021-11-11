@@ -36,7 +36,7 @@ ifdef commit
 else
 	@sed -i "" -e "s>VERSION>from: $(version)>g" project.yml
 endif
-	xcodegen generate
+	$(call gen-project)
 	@echo "\nopen TestApp.xcodeproj"
 
 carthage: clean
@@ -53,7 +53,7 @@ else
 	@cp Integrations/Carthage/project.yml .
 endif
 	carthage update --verbose --platform ios --use-xcframeworks --cache-builds
-	xcodegen generate
+	$(call gen-project)
 	@echo "\nopen TestApp.xcodeproj"
 
 cocoapods: clean
@@ -65,7 +65,7 @@ else
 	@cp Integrations/CocoaPods/Podfile .
 endif
 	@sed -i "" -e "s>VERSION>$(version)>g" Podfile
-	xcodegen generate
+	$(call gen-project)
 	pod install
 	@echo "\nopen TestApp.xcworkspace"
 
@@ -77,6 +77,11 @@ ifdef lcp
 else
 	@cp Integrations/Local/project.yml .
 endif
-	xcodegen generate
+	$(call gen-project)
 	@echo "\nopen TestApp.xcodeproj"
+
+define gen-project
+	xcodegen generate
+	cp -r Integrations/xcshareddata/* TestApp.xcodeproj/xcshareddata/
+endef
 
