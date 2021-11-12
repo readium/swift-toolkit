@@ -19,7 +19,7 @@ import {
 import { getDecorations, registerTemplates } from "./decorator";
 
 // Public API used by the navigator.
-window.readium = {
+global.readium = {
   // utils
   scrollToId: scrollToId,
   scrollToPosition: scrollToPosition,
