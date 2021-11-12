@@ -8,9 +8,7 @@ on:
 env:
   platform: ${{ 'iOS Simulator' }}
   device: ${{ 'iPhone 12' }}
-  # github.sha is the merge commit for a PR event, which fails the Carthage job
-  # since it doesn't exist.
-  commit_sha: ${{ github.event.pull_request.head.sha || github.sha }}
+  commit_sha: ${{ github.sha }}
 
 jobs:
   build:
@@ -56,8 +54,31 @@ jobs:
             make scripts
             git diff --exit-code --name-only Sources/Navigator/EPUB/Assets/Static/scripts/*.js
 
+  int-dev:
+    name: Integration (Local)
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: TestApp
+    environment: LCP
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: brew install xcodegen
+      - name: Generate project
+        run: make dev lcp=${{ secrets.LCP_URL_CARTHAGE }}
+      - name: Build
+        run: |
+          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device"
+
+  # The following integration jobs are run only when pushing to `develop` or `main`.
+  # As they use a specific commit hash, they can't run properly from a pull request
+  # opened from forks.
+
   int-spm:
     name: Integration (Swift Package Manager)
+    if: github.event_name == 'push'
     runs-on: macos-latest
     defaults:
       run:
@@ -76,6 +97,7 @@ jobs:
 
   int-carthage:
     name: Integration (Carthage)
+    if: github.event_name == 'push'
     runs-on: macos-latest
     defaults:
       run:
@@ -92,11 +114,10 @@ jobs:
         run: |
           xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device"
 
+  # Warning: This job cannot actually test the state of the current commit,
+  # but will check that the latest branch/tag set in the Podspecs are valid.
   int-cocoapods:
     name: Integration (CocoaPods)
-    # Warning: This job cannot actually test the state of the current commit,
-    # but will check that the latest branch/tag set in the Podspecs are valid.
-    # That's the reason for running only with push events.
     if: github.event_name == 'push'
     runs-on: macos-latest
     defaults:
@@ -113,22 +134,3 @@ jobs:
       - name: Build
         run: |
           xcodebuild build -workspace TestApp.xcworkspace -scheme TestApp -destination "platform=$platform,name=$device"
-
-  int-dev:
-    name: Integration (Local)
-    runs-on: macos-latest
-    defaults:
-      run:
-        working-directory: TestApp
-    environment: LCP
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Install dependencies
-        run: brew install xcodegen
-      - name: Generate project
-        run: make dev lcp=${{ secrets.LCP_URL_CARTHAGE }} commit=$commit_sha
-      - name: Build
-        run: |
-          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device"
-
