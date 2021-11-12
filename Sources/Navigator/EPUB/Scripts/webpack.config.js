@@ -6,7 +6,8 @@ module.exports = {
   entry: {
     reflowable: "./src/index-reflowable.js",
     fixed: "./src/index-fixed.js",
-    "fixed-wrapper": "./src/index-fixed-wrapper.js",
+    "fixed-wrapper-one": "./src/index-fixed-wrapper-one.js",
+    "fixed-wrapper-two": "./src/index-fixed-wrapper-two.js",
   },
   output: {
     filename: "readium-[name].js",

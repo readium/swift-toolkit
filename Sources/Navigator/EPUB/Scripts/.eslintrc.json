@@ -5,6 +5,7 @@
     },
     "globals": {
         "webkit": "readonly",
+        "global": "writable",
         "readium": "writable"
     },
     "extends": "eslint:recommended",
