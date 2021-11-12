@@ -27,7 +27,7 @@ public struct PresentationKey: Hashable {
 public struct PresentationValues: Hashable {
     public private(set) var values: [PresentationKey: AnyHashable] = [:]
     
-    public init(_ values: [PresentationKey: AnyHashable]) {
+    public init(_ values: [PresentationKey: AnyHashable] = [:]) {
         self.values = values
     }
     
@@ -99,7 +99,7 @@ public protocol Presentation {
     
     var values: PresentationValues { get }
     
-    var constraints: [PresentationKey: PresentationValueConstraints] { get }
+    func constraints(for key: PresentationKey) -> PresentationValueConstraints?
     
     /// Returns a user-facing localized label for the given value, which can be used in the user
     /// interface.
@@ -132,34 +132,6 @@ public extension Presentation {
     func isActive(_ key: PresentationKey) -> Bool {
         isActive(key, for: values)
     }
-    
-    /*
-    var continuous: TogglePresentationProperty? {
-        property(.continuous)
-    }
-    
-    var fit: EnumPresentationProperty<PresentationFit>? {
-        property(.fit)
-    }
-    
-    var pageSpacing: RangePresentationProperty? {
-        property(.pageSpacing)
-    }
-    
-    func property<V>(_ key: PresentationKey) -> PresentationProperty<V>? {
-        guard let value: V = values[key] else {
-            return nil
-        }
-        return PresentationProperty(key: key, value: value, presentation: self)
-    }
-    
-    func property<E: RawRepresentable>(_ key: PresentationKey) -> EnumPresentationProperty<E>? where E.RawValue == String {
-        guard let value: E = values[key] else {
-            return nil
-        }
-        return PresentationProperty(key: key, value: value, unwrapValue: { $0.rawValue }, presentation: self)
-    }
-     */
 }
 
 public protocol PresentationValueConstraints {
@@ -205,93 +177,22 @@ public struct RangePresentationValueConstraints: PresentationValueConstraints {
     }
 }
 
-/*
-public struct PresentationProperty<Value> {
-    public let key: PresentationKey
-    public let value: Value
+public final class NullPresentation: Presentation {
+    public let values = PresentationValues()
     
-    private let unwrapValue: (Value) -> AnyHashable
-    private let presentation: Presentation
-    
-    public init(
-        key: PresentationKey,
-        value: Value,
-        unwrapValue: @escaping (Value) -> AnyHashable = { $0 as! AnyHashable },
-        presentation: Presentation
-    ) {
-        self.key = key
-        self.value = value
-        self.unwrapValue = unwrapValue
-        self.presentation = presentation
+    public func constraints(for key: PresentationKey) -> PresentationValueConstraints? {
+        nil
     }
     
-    /// Returns a user-facing localized label for the current value, which can be used in the user
-    /// interface.
-    ///
-    /// For example, with the "reading progression" property, the value ltr has for label "Left to
-    /// right" in English.
-    public var label: String {
-        label(for: value)
+    public func label(for key: PresentationKey, value: AnyHashable) -> String {
+        String(describing: value)
     }
     
-    /// Returns a user-facing localized label for the given value, which can be used in the user
-    /// interface.
-    ///
-    /// For example, with the "reading progression" property, the value ltr has for label "Left to
-    /// right" in English.
-    public func label(for value: Value) -> String {
-        presentation.label(for: key, value: unwrapValue(value))
+    public func isActive(_ key: PresentationKey, for values: PresentationValues) -> Bool {
+        true
     }
     
-    /// Determines whether the property will be active when the given settings are applied to the
-    /// Navigator.
-    ///
-    /// For example, with an EPUB Navigator using Readium CSS, the property "letter spacing" requires
-    /// to switch off the "publisher defaults" setting to be active.
-    ///
-    /// This is useful to determine whether to grey out a view in the user settings interface.
-    func isActive(for values: PresentationValues) -> Bool {
-        presentation.isPropertyActive(key, for: values)
-    }
-    
-    /// Modifies the given settings to make sure the property will be activated when applying them to
-    /// the Navigator.
-    ///
-    /// For example, with an EPUB Navigator using Readium CSS, activating the "letter spacing"
-    /// property means ensuring the "publisher defaults" setting is disabled.
-    ///
-    /// If the property cannot be activated, returns a user-facing localized error.
-    func activate(in values: PresentationValues) throws -> PresentationValues {
-        try presentation.activateProperty(key, in: values)
+    public func activate(_ key: PresentationKey, in values: PresentationValues) throws -> PresentationValues {
+        values
     }
 }
-
-public typealias TogglePresentationProperty = PresentationProperty<Bool>
-
-public typealias RangePresentationProperty = PresentationProperty<Double>
-public extension RangePresentationProperty {
-    
-    var stepCount: Int? {
-        presentation.stepCount(forRange: key)
-    }
-}
-
-public typealias StringPresentationProperty = PresentationProperty<String>
-public extension StringPresentationProperty {
-    
-    var supportedValues: [String]? {
-        presentation.supportedValues(forString: key)
-    }
-}
-
-public typealias EnumPresentationProperty<E: RawRepresentable> = PresentationProperty<E>
-
-public extension EnumPresentationProperty where Value.RawValue == String {
-    
-    var supportedValues: [Value]? {
-        presentation.supportedValues(forString: key)?
-            .compactMap { Value(rawValue: $0) }
-    }
-}
-
-*/
