@@ -8,7 +8,7 @@ import Foundation
 import R2Shared
 
 /// A navigator supporting observation and/or customization of its presentation properties.
-public protocol PresentableNavigator {
+public protocol PresentableNavigator: Navigator {
     
     /// Current values for the Presentation Properties and their metadata.
     var presentation: ObservableVariable<Presentation> { get }

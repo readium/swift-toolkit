@@ -23,6 +23,11 @@ public extension Cancellable {
     func store<C>(in collection: inout C) where C : RangeReplaceableCollection, C.Element == Cancellable {
         collection.append(self)
     }
+    
+    /// Stores this cancellable instance in the specified variable.
+    func store(in variable: inout Cancellable?) {
+        variable = self
+    }
 }
 
 /// A `Cancellable` object saving its cancelled state and running an optional closure
