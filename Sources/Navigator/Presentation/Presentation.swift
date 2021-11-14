@@ -96,7 +96,7 @@ public struct PresentationValues: Hashable {
         }
     }
     
-    subscript<T: RawRepresentable>(_ key: PresentationKey) -> T? where T.RawValue == String {
+    subscript<T: RawRepresentable>(key: PresentationKey) -> T? where T.RawValue == String {
         get {
             (values[key] as? String).flatMap(T.init(rawValue:))
         }
@@ -191,25 +191,5 @@ public struct RangePresentationValueConstraints: PresentationValueConstraints {
             return false
         }
         return 0.0...1.0 ~= value
-    }
-}
-
-public final class NullPresentation: Presentation {
-    public let values = PresentationValues()
-    
-    public func constraints(for key: PresentationKey) -> PresentationValueConstraints? {
-        nil
-    }
-    
-    public func label(for key: PresentationKey, value: AnyHashable) -> String? {
-        nil
-    }
-    
-    public func isActive(_ key: PresentationKey, for values: PresentationValues) -> Bool {
-        true
-    }
-    
-    public func activate(_ key: PresentationKey, in values: PresentationValues) throws -> PresentationValues {
-        values
     }
 }

@@ -17,6 +17,7 @@ import R2Navigator
 import R2Shared
 import SwiftSoup
 import WebKit
+import SwiftUI
 
 
 /// This class is meant to be subclassed by each publication format view controller. It contains the shared behavior, eg. navigation bar toggling.
@@ -120,6 +121,10 @@ class ReaderViewController: UIViewController, Loggable {
         var buttons: [UIBarButtonItem] = []
         // Table of Contents
         buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self, action: #selector(presentOutline)))
+        // User settings
+        if navigator is PresentableNavigator {
+            buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "settingsIcon"), style: .plain, target: self, action: #selector(presentUserSettings)))
+        }
         // DRM management
         if publication.isProtected {
             buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "drm"), style: .plain, target: self, action: #selector(presentDRMManagement)))
@@ -184,6 +189,24 @@ class ReaderViewController: UIViewController, Loggable {
             .store(in: &subscriptions)
     }
     
+    // MARK: - User Settings
+    
+    private lazy var presentation = PresentationController(navigator: navigator as! PresentableNavigator)
+    private lazy var userSettingsController = UIHostingController(rootView: FixedSettingsView(model: SettingsViewModel(presentation: presentation)))
+    
+    @objc func presentUserSettings(_ button: UIBarButtonItem) {
+        userSettingsController.modalPresentationStyle = .popover
+        let popoverPresentationController = userSettingsController.popoverPresentationController!
+        
+        popoverPresentationController.delegate = self
+        popoverPresentationController.barButtonItem = button
+
+        present(userSettingsController, animated: true) {
+            // Makes sure that the popover is dismissed also when tapping on one of the other UIBarButtonItems.
+            // ie. http://karmeye.com/2014/11/20/ios8-popovers-and-passthroughviews/
+            popoverPresentationController.passthroughViews = nil
+        }
+    }
     
     // MARK: - DRM
     
@@ -287,7 +310,7 @@ extension ReaderViewController: NavigatorDelegate {
         moduleDelegate?.presentError(error, from: self)
     }
     
-    func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, referrer: String?) -> Bool {
+    func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: R2Shared.Link, content: String, referrer: String?) -> Bool {
         
         var title = referrer
         if let t = title {
@@ -363,4 +386,12 @@ extension ReaderViewController: OutlineTableViewControllerDelegate {
         navigator.go(to: location)
     }
 
+}
+
+extension ReaderViewController: UIPopoverPresentationControllerDelegate {
+    // Prevent the popOver to be presented fullscreen on iPhones.
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return .none
+    }
 }

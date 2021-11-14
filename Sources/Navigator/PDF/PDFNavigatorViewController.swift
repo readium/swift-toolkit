@@ -370,9 +370,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
         }
         
         let paginated = (presentation.values.overflow == .paginated)
-        pdfView.usePageViewController(paginated, withViewOptions: [
-            :]
-)
+        pdfView.usePageViewController(paginated)
         pdfView.displaysPageBreaks = paginated
     }
     

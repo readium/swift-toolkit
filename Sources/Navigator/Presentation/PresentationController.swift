@@ -38,8 +38,7 @@ public final class PresentationController: Loggable {
         let actualSettings = onSettingsChanged?(userSettings) ?? userSettings
         _settings = MutableObservableVariable(Settings(
             userSettings: userSettings,
-            actualSettings: actualSettings,
-            presentation: NullPresentation()
+            actualSettings: actualSettings
         ))
        
         navigator.apply(presentationSettings: actualSettings) { _ in }
@@ -83,14 +82,24 @@ public final class PresentationController: Loggable {
         guard let setting = setting else {
             return
         }
-        
+        set(setting.key, to: value)
+    }
+    
+    public func set<T: RawRepresentable>(_ setting: Setting<T>?, to value: T?) where T.RawValue == String {
+        guard let setting = setting else {
+            return
+        }
+        set(setting.key, to: value?.rawValue)
+    }
+    
+    private func set<T>(_ key: PresentationKey, to value: T?) {
         _settings.set { settings in
             var userSettings = settings.userSettings
-            userSettings[setting.key] = value
+            userSettings[key] = value
             
-            if (autoActivateOnChange) {
+            if let presentation = settings.presentation, autoActivateOnChange {
                 do {
-                    userSettings = try settings.presentation.activate(setting.key, in: userSettings)
+                    userSettings = try presentation.activate(key, in: userSettings)
                 } catch {
                     self.log(.warning, error)
                 }
@@ -112,7 +121,19 @@ public final class PresentationController: Loggable {
     }
     
     /// Inverts the value of the given setting. If the setting is already set to the given value, it is nulled out.
-    public func toggle<T: Equatable>(_ setting: Setting<T>?, value: T) {
+    public func toggle<T: Equatable>(_ setting: Setting<T>?, value: T?) {
+        guard let setting = setting else {
+            return
+        }
+        if (setting.value == value) {
+            reset(setting)
+        } else {
+            set(setting, to: value)
+        }
+    }
+    
+    /// Inverts the value of the given setting. If the setting is already set to the given value, it is nulled out.
+    public func toggle<T: RawRepresentable & Equatable>(_ setting: Setting<T>?, value: T?) where T.RawValue == String {
         guard let setting = setting else {
             return
         }
@@ -148,12 +169,12 @@ public final class PresentationController: Loggable {
     public struct Settings {
         public let userSettings: PresentationValues
         public let actualSettings: PresentationValues
-        public let presentation: Presentation
+        public let presentation: Presentation?
         
         public init(
-            userSettings: PresentationValues,
-            actualSettings: PresentationValues,
-            presentation: Presentation
+            userSettings: PresentationValues = PresentationValues(),
+            actualSettings: PresentationValues = PresentationValues(),
+            presentation: Presentation? = nil
         ) {
             self.presentation = presentation
             self.userSettings = userSettings
@@ -174,13 +195,14 @@ public final class PresentationController: Loggable {
     
         public var continuous: ToggleSetting? { self[.continuous] }
         public var fit: EnumSetting<PresentationFit>? { self[.fit] }
+        public var overflow: EnumSetting<PresentationOverflow>? { self[.overflow] }
         public var pageSpacing: RangeSetting? { self[.pageSpacing] }
         
-        subscript<V>(_ key: PresentationKey, unwrapValue: @escaping (V) -> AnyHashable = { $0 as! AnyHashable }) -> Setting<V>? {
-            let effectiveValue: V? = presentation.values[key]
+        subscript<V>(_ key: PresentationKey) -> Setting<V>? {
+            let effectiveValue: V? = presentation?.values[key]
             let userValue: V? = userSettings[key]
             let isSupported = (effectiveValue != nil)
-            let isActive = presentation.isActive(key, for: actualSettings)
+            let isActive = presentation?.isActive(key, for: actualSettings) ?? false
             
             guard effectiveValue != nil || userValue != nil else {
                 return nil
@@ -191,16 +213,37 @@ public final class PresentationController: Loggable {
                 effectiveValue: effectiveValue,
                 isSupported: isSupported,
                 isActive: isActive,
-                constraints: presentation.constraints(for: key),
+                constraints: presentation?.constraints(for: key),
                 labelForValue: { value in
-                    self.presentation.label(for: key, value: unwrapValue(value))
+                    guard let value = value as? AnyHashable else {
+                        return nil
+                    }
+                    return self.presentation?.label(for: key, value: value)
                 }
             )
         }
         
         /// Subscript for enum values.
         subscript<E: RawRepresentable>(_ key: PresentationKey) -> EnumSetting<E>? where E.RawValue == String {
-            self[key] { $0.rawValue }
+            let effectiveValue: E? = presentation?.values[key]
+            let userValue: E? = userSettings[key]
+            let isSupported = (effectiveValue != nil)
+            let isActive = presentation?.isActive(key, for: actualSettings) ?? false
+            
+            guard effectiveValue != nil || userValue != nil else {
+                return nil
+            }
+            return Setting(
+                key: key,
+                value: userValue,
+                effectiveValue: effectiveValue,
+                isSupported: isSupported,
+                isActive: isActive,
+                constraints: presentation?.constraints(for: key),
+                labelForValue: { value in
+                    self.presentation?.label(for: key, value: value.rawValue)
+                }
+            )
         }
     }
     
