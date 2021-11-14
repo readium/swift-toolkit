@@ -212,7 +212,7 @@ public final class PresentationController: Loggable {
         public let isSupported: Bool
         public let isActive: Bool
         public let constraints: PresentationValueConstraints?
-        private let labelForValue: (Value) -> String
+        private let labelForValue: (Value) -> String?
         
         public init(
             key: PresentationKey,
@@ -221,7 +221,7 @@ public final class PresentationController: Loggable {
             isSupported: Bool,
             isActive: Bool,
             constraints: PresentationValueConstraints?,
-            labelForValue: @escaping (Value) -> String
+            labelForValue: @escaping (Value) -> String?
         ) {
             self.key = key
             self.value = value
@@ -232,21 +232,12 @@ public final class PresentationController: Loggable {
             self.labelForValue = labelForValue
         }
         
-        /// Returns a user-facing localized label for the current value, which can be used in the user
-        /// interface.
-        ///
-        /// For example, with the "reading progression" property, the value ltr has for label "Left to
-        /// right" in English.
-        public var label: String? {
-            value.map { labelForValue($0) }
-        }
-        
         /// Returns a user-facing localized label for the given value, which can be used in the user
         /// interface.
         ///
         /// For example, with the "reading progression" property, the value ltr has for label "Left to
         /// right" in English.
-        public func label(for value: Value) -> String {
+        public func label(for value: Value) -> String? {
             labelForValue(value)
         }
     }

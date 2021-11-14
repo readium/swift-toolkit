@@ -31,6 +31,23 @@ public struct PresentationValues: Hashable {
         self.values = values
     }
     
+    public init(
+        continuous: Bool? = nil,
+        fit: PresentationFit? = nil,
+        orientation: PresentationOrientation? = nil,
+        overflow: PresentationOverflow? = nil,
+        pageSpacing: Double? = nil,
+        readingProgression: ReadingProgression? = nil
+    ) {
+        self.init()
+        self.continuous = continuous
+        self.fit = fit
+        self.orientation = orientation
+        self.overflow = overflow
+        self.pageSpacing = pageSpacing
+        self.readingProgression = readingProgression
+    }
+    
     public var continuous: Bool? {
         get { self[.continuous] }
         set { self[.continuous] = newValue }
@@ -106,7 +123,7 @@ public protocol Presentation {
     ///
     /// For example, with the "reading progression" property, the value ltr has for label "Left to
     /// right" in English.
-    func label(for key: PresentationKey, value: AnyHashable) -> String
+    func label(for key: PresentationKey, value: AnyHashable) -> String?
     
     /// Determines whether a given property will be active when the given settings are applied to the
     /// Navigator.
@@ -184,8 +201,8 @@ public final class NullPresentation: Presentation {
         nil
     }
     
-    public func label(for key: PresentationKey, value: AnyHashable) -> String {
-        String(describing: value)
+    public func label(for key: PresentationKey, value: AnyHashable) -> String? {
+        nil
     }
     
     public func isActive(_ key: PresentationKey, for values: PresentationValues) -> Bool {

@@ -20,10 +20,25 @@ public protocol PDFNavigatorDelegate: VisualNavigatorDelegate { }
 
 /// A view controller used to render a PDF `Publication`.
 @available(iOS 11.0, *)
-open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggable {
+open class PDFNavigatorViewController: UIViewController, VisualNavigator, PresentableNavigator, Loggable {
     
     enum Error: Swift.Error {
         case openPDFFailed
+    }
+    
+    public struct Configuration {
+        /// Initial presentation settings.
+        public var settings: PresentationValues
+        /// Default presentation settings.
+        public var defaultSettings: PresentationValues
+        
+        public init(
+            settings: PresentationValues = PresentationValues(),
+            defaultSettings: PresentationValues = PresentationValues()
+        ) {
+            self.settings = settings
+            self.defaultSettings = defaultSettings
+        }
     }
     
     /// Whether the pages is always scaled to fit the screen, unless the user zoomed in.
@@ -43,13 +58,23 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     
     /// Holds a reference to make sure it is not garbage-collected.
     private var tapGestureController: PDFTapGestureController?
+    
+    private let config: Configuration
 
-    public init(publication: Publication, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
+    public init(publication: Publication, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions, config: Configuration = .init()) {
         assert(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
         
         self.publication = publication
         self.initialLocation = initialLocation
         self.editingActions = EditingActionsController(actions: editingActions, rights: publication.rights)
+        self.config = config
+        
+        self._presentation = MutableObservableVariable(PDFPresentation(
+            publication: publication,
+            settings: config.settings,
+            defaults: config.defaultSettings,
+            fallback: nil
+        ))
         
         super.init(nibName: nil, bundle: nil)
         
@@ -85,6 +110,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
         
         tapGestureController = PDFTapGestureController(pdfView: pdfView, target: self, action: #selector(didTap))
 
+        apply(presentation: presentation.get())
         setupPDFView()
 
         NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: .PDFViewPageChanged, object: pdfView)
@@ -261,10 +287,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
     
     
     // MARK: - Navigator
-
-    public var readingProgression: ReadingProgression {
-        publication.metadata.effectiveReadingProgression
-    }
     
     public var currentLocation: Locator? {
         currentPosition?.copy(text: { [weak self] in
@@ -321,6 +343,82 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Loggab
             return false
         }
         return go(to: previousPosition, animated: animated, completion: completion)
+    }
+    
+    // MARK: - Visual Navigator
+
+    public var readingProgression: ReadingProgression {
+        publication.metadata.effectiveReadingProgression
+    }
+    
+    // MARK: - Presentable Navigator
+    
+    public var presentation: ObservableVariable<Presentation> { _presentation }
+    private let _presentation: MutableObservableVariable<Presentation>
+    
+    public func apply(presentationSettings settings: PresentationValues, completion: @escaping (Presentation) -> ()) {
+        let presentation = _presentation.set { previous in
+            PDFPresentation(publication: publication, settings: settings, defaults: config.defaultSettings, fallback: previous)
+        }
+        apply(presentation: presentation)
+        DispatchQueue.main.async { completion(presentation) }
+    }
+    
+    private func apply(presentation: Presentation) {
+        guard isViewLoaded else {
+            return
+        }
+        
+        let paginated = (presentation.values.overflow == .paginated)
+        pdfView.usePageViewController(paginated, withViewOptions: [
+            :]
+)
+        pdfView.displaysPageBreaks = paginated
+    }
+    
+    private struct PDFPresentation: Presentation {
+        
+        private let overflows: [PresentationOverflow] = [ .paginated, .scrolled ]
+        
+        let values: PresentationValues
+        
+        init(publication: Publication, settings: PresentationValues, defaults: PresentationValues, fallback: Presentation?) {
+            values = PresentationValues(
+                overflow: overflows.firstIn(settings.overflow, fallback?.values.overflow.takeIf { _ in settings.overflow != nil })
+                    ?? overflows.firstIn(publication.metadata.presentation.overflow, defaults.overflow)
+                    ?? .scrolled
+            )
+        }
+        
+        func constraints(for key: PresentationKey) -> PresentationValueConstraints? {
+            switch key {
+            case .overflow:
+                return StringPresentationValueConstraints(supportedValues: overflows)
+            default:
+                return nil
+            }
+        }
+        
+        func label(for key: PresentationKey, value: AnyHashable) -> String? {
+            return nil
+        }
+        
+        func isActive(_ key: PresentationKey, for values: PresentationValues) -> Bool {
+            return true
+        }
+        
+        func activate(_ key: PresentationKey, in values: PresentationValues) throws -> PresentationValues {
+            return values
+        }
+    }
+}
+
+private extension Sequence where Element: Equatable {
+    
+    func firstIn(_ values: Element?...) -> Element? {
+        values
+            .compactMap { $0 }
+            .first { contains($0) }
     }
 }
 

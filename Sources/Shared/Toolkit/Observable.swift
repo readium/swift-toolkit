@@ -141,10 +141,12 @@ public class MutableObservableVariable<Value>: ObservableVariable<Value> {
     }
     
     /// Updates the current value after transforming the current one.
-    public func set(_ transform: (Value) -> Value) {
+    @discardableResult
+    public func set(_ transform: (Value) -> Value) -> Value {
         lock.lock()
         defer { lock.unlock() }
         _value = transform(_value)
+        return _value
     }
     
     public override var value: Value {
