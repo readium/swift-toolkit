@@ -40,7 +40,6 @@ struct SettingPicker<E: RawRepresentable & Hashable>: View where E.RawValue == S
     let label: String
     let setting: PresentationController.EnumSetting<E>
     let values: [E]
-    private let choices: [Choice]
     
     init(
         model: SettingsViewModel,
@@ -52,26 +51,6 @@ struct SettingPicker<E: RawRepresentable & Hashable>: View where E.RawValue == S
         self.label = label
         self.setting = setting
         self.values = values
-        self.choices = [.auto].appending(contentsOf: values
-            .filter { setting.supportedValues?.contains($0) ?? true }
-            .map { .value($0) }
-        )
-    }
-    
-    // The Binding used with the Picker doesn't seem to handle nil values, so we
-    // wrap the value in an additional enum to represent the `auto` option.
-    private enum Choice: Hashable {
-        case auto
-        case value(E)
-        
-        var value: E? {
-            switch self {
-            case .auto:
-                return nil
-            case .value(let value):
-                return value
-            }
-        }
     }
     
     var body: some View {
@@ -80,18 +59,17 @@ struct SettingPicker<E: RawRepresentable & Hashable>: View where E.RawValue == S
                 .font(.headline)
             HStack {
                 Spacer()
-                ForEach(choices, id: \.self) { value in
+                ForEach(values, id: \.self) { value in
                     Button(action: {
                         model.commit { presentation, _ in
-                            presentation.toggle(setting, value: value.value)
+                            presentation.toggle(setting, value: value)
                         }
                     }) {
-                        if let value = value.value {
-                            Text(value.rawValue)
-                        } else {
-                            Text("auto")
-                        }
-                    }.buttonStyle(SettingButtonStyle(setting: setting, value: value.value))
+                        Text(value.rawValue)
+                            .if(setting.effectiveValue == value) {
+                                $0.underline()
+                            }
+                    }.buttonStyle(SettingButtonStyle(setting: setting, value: value))
                 }
                 Spacer()
             }
