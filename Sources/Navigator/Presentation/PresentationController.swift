@@ -197,6 +197,7 @@ public final class PresentationController: Loggable {
         public var fit: EnumSetting<PresentationFit>? { self[.fit] }
         public var overflow: EnumSetting<PresentationOverflow>? { self[.overflow] }
         public var pageSpacing: RangeSetting? { self[.pageSpacing] }
+        public var readingProgression: EnumSetting<ReadingProgression>? { self[.readingProgression] }
         
         subscript<V>(_ key: PresentationKey) -> Setting<V>? {
             let effectiveValue: V? = presentation?.values[key]
@@ -288,7 +289,7 @@ public final class PresentationController: Loggable {
     public typealias ToggleSetting = Setting<Bool>
     public typealias RangeSetting = Setting<Double>
     public typealias StringSetting = Setting<String>
-    public typealias EnumSetting<E: RawRepresentable> = Setting<E>
+    public typealias EnumSetting<E: RawRepresentable & Equatable> = Setting<E>
 }
 
 public extension PresentationController.RangeSetting {
@@ -312,9 +313,8 @@ public extension PresentationController.StringSetting {
 
 public extension PresentationController.EnumSetting where Value.RawValue == String {
     var supportedValues: [Value]? {
-        (constraints as? StringPresentationValueConstraints)?
-            .supportedValues?
-            .compactMap { Value(rawValue: $0) }
+        (constraints as? EnumPresentationValueConstraints<Value>)?
+            .supportedValues
     }
 }
 

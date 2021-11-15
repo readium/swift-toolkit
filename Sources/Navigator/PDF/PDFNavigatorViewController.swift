@@ -348,7 +348,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
     // MARK: - Visual Navigator
 
     public var readingProgression: ReadingProgression {
-        publication.metadata.effectiveReadingProgression
+        presentation.get().values.readingProgression ?? .ttb
     }
     
     // MARK: - Presentable Navigator
@@ -372,11 +372,27 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
         let paginated = (presentation.values.overflow == .paginated)
         pdfView.usePageViewController(paginated)
         pdfView.displaysPageBreaks = paginated
+        
+        switch presentation.values.readingProgression ?? .ttb {
+        case .ltr:
+            pdfView.displayDirection = .horizontal
+            pdfView.displaysRTL = false
+        case .rtl:
+            pdfView.displayDirection = .horizontal
+            pdfView.displaysRTL = true
+        case .btt:
+            pdfView.displayDirection = .vertical
+            pdfView.displaysRTL = true
+        default:
+            pdfView.displayDirection = .vertical
+            pdfView.displaysRTL = false
+        }
     }
     
     private struct PDFPresentation: Presentation {
         
         private let overflows: [PresentationOverflow] = [ .paginated, .scrolled ]
+        private let readingProgressions: [ReadingProgression] = [ .ltr, .rtl, .ttb, .btt ]
         
         let values: PresentationValues
         
@@ -384,14 +400,19 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
             values = PresentationValues(
                 overflow: overflows.firstIn(settings.overflow, fallback?.values.overflow.takeIf { _ in settings.overflow != nil })
                     ?? overflows.firstIn(publication.metadata.presentation.overflow, defaults.overflow)
-                    ?? .scrolled
+                    ?? .scrolled,
+                readingProgression: readingProgressions.firstIn(settings.readingProgression, fallback?.values.readingProgression.takeIf { _ in settings.readingProgression != nil })
+                    ?? readingProgressions.firstIn(publication.metadata.readingProgression, defaults.readingProgression)
+                    ?? .ttb
             )
         }
         
         func constraints(for key: PresentationKey) -> PresentationValueConstraints? {
             switch key {
             case .overflow:
-                return StringPresentationValueConstraints(supportedValues: overflows)
+                return EnumPresentationValueConstraints(supportedValues: overflows)
+            case .readingProgression:
+                return EnumPresentationValueConstraints(supportedValues: readingProgressions)
             default:
                 return nil
             }
@@ -406,6 +427,16 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
         }
         
         func activate(_ key: PresentationKey, in values: PresentationValues) throws -> PresentationValues {
+            var values = values
+            switch key {
+            case .readingProgression:
+                if [.btt, .rtl].contains(values.readingProgression) {
+                    values.overflow = .paginated
+                }
+            default:
+                break
+            }
+            
             return values
         }
     }

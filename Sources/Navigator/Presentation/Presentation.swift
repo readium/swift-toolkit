@@ -164,16 +164,30 @@ public struct TypedPresentationValueConstraints<Value>: PresentationValueConstra
 public struct StringPresentationValueConstraints: PresentationValueConstraints {
     public let supportedValues: [String]?
     
-    init(supportedValues: [String]? = nil) {
+    public init(supportedValues: [String]? = nil) {
         self.supportedValues = supportedValues
-    }
-    
-    init<E: RawRepresentable>(supportedValues: [E]) where E.RawValue == String {
-        self.init(supportedValues: supportedValues.map { $0.rawValue })
     }
     
     public func validate(value: AnyHashable) -> Bool {
         guard let value = value as? String else {
+            return false
+        }
+        if let supportedValues = supportedValues, !supportedValues.contains(value) {
+            return false
+        }
+        return true
+    }
+}
+
+public struct EnumPresentationValueConstraints<E: RawRepresentable & Equatable>: PresentationValueConstraints where E.RawValue == String {
+    public let supportedValues: [E]?
+    
+    public init(supportedValues: [E]? = nil) {
+        self.supportedValues = supportedValues
+    }
+    
+    public func validate(value: AnyHashable) -> Bool {
+        guard let value = value as? E else {
             return false
         }
         if let supportedValues = supportedValues, !supportedValues.contains(value) {

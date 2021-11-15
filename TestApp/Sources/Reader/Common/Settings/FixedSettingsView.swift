@@ -22,6 +22,14 @@ struct FixedSettingsView: View {
                     values: [.paginated, .scrolled]
                 )
             }
+            if let readingProgression = model.settings.readingProgression {
+                SettingPicker(
+                    model: model,
+                    label: "Reading progression",
+                    setting: readingProgression,
+                    values: [.ltr, .rtl, .ttb, .btt]
+                )
+            }
         }
     }
 }
@@ -32,7 +40,7 @@ struct SettingPicker<E: RawRepresentable & Hashable>: View where E.RawValue == S
     let label: String
     let setting: PresentationController.EnumSetting<E>
     let values: [E]
-    private let wrappedValues: [Choice]
+    private let choices: [Choice]
     
     init(
         model: SettingsViewModel,
@@ -44,7 +52,10 @@ struct SettingPicker<E: RawRepresentable & Hashable>: View where E.RawValue == S
         self.label = label
         self.setting = setting
         self.values = values
-        self.wrappedValues = [.auto].appending(contentsOf: values.map { .value($0) })
+        self.choices = [.auto].appending(contentsOf: values
+            .filter { setting.supportedValues?.contains($0) ?? true }
+            .map { .value($0) }
+        )
     }
     
     // The Binding used with the Picker doesn't seem to handle nil values, so we
@@ -66,25 +77,43 @@ struct SettingPicker<E: RawRepresentable & Hashable>: View where E.RawValue == S
     var body: some View {
         VStack {
             Text(label)
-            Picker(label,
-                selection: Binding<Choice>(
-                    get: { setting.value.map { .value($0) } ?? .auto },
-                    set: { value in
+            HStack {
+                ForEach(choices, id: \.self) { value in
+                    Button(action: {
                         model.commit { presentation, _ in
                             presentation.toggle(setting, value: value.value)
                         }
-                    }
-                )
-            ) {
-                ForEach(wrappedValues, id: \.self) {
-                    if let value = $0.value {
-                        Text(value.rawValue.capitalized)
-                    } else {
-                        Text("Auto").id($0)
-                    }
+                    }) {
+                        if let value = value.value {
+                            Text(value.rawValue.capitalized)
+                        } else {
+                            Text("Auto")
+                        }
+                    }.buttonStyle(SettingButtonStyle(setting: setting, value: value.value))
                 }
             }
-            .pickerStyle(SegmentedPickerStyle())
         }
+    }
+}
+
+
+struct SettingButtonStyle<Value: Hashable>: ButtonStyle {
+    let setting: PresentationController.Setting<Value>
+    let value: Value?
+    
+    var isEnabled: Bool {
+        guard let value = value else {
+            return true
+        }
+        return setting.constraints?.validate(value: value) ?? true
+    }
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(8)
+            .scaleEffect(configuration.isPressed ? 0.95: 1)
+            .foregroundColor(setting.value == value ? .red : .primary)
+            .disabled(!isEnabled)
+            .animation(.spring())
     }
 }
