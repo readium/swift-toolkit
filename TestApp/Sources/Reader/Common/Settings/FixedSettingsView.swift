@@ -77,7 +77,9 @@ struct SettingPicker<E: RawRepresentable & Hashable>: View where E.RawValue == S
     var body: some View {
         VStack {
             Text(label)
+                .font(.headline)
             HStack {
+                Spacer()
                 ForEach(choices, id: \.self) { value in
                     Button(action: {
                         model.commit { presentation, _ in
@@ -85,12 +87,13 @@ struct SettingPicker<E: RawRepresentable & Hashable>: View where E.RawValue == S
                         }
                     }) {
                         if let value = value.value {
-                            Text(value.rawValue.capitalized)
+                            Text(value.rawValue)
                         } else {
-                            Text("Auto")
+                            Text("auto")
                         }
                     }.buttonStyle(SettingButtonStyle(setting: setting, value: value.value))
                 }
+                Spacer()
             }
         }
     }
@@ -101,19 +104,13 @@ struct SettingButtonStyle<Value: Hashable>: ButtonStyle {
     let setting: PresentationController.Setting<Value>
     let value: Value?
     
-    var isEnabled: Bool {
-        guard let value = value else {
-            return true
-        }
-        return setting.constraints?.validate(value: value) ?? true
-    }
-    
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .padding(8)
-            .scaleEffect(configuration.isPressed ? 0.95: 1)
-            .foregroundColor(setting.value == value ? .red : .primary)
-            .disabled(!isEnabled)
+            .background(Color.gray.opacity(0.1))
+            .foregroundColor(setting.value == value ? .accentColor : .primary)
+            .cornerRadius(16)
+            .scaleEffect(configuration.isPressed ? 0.9: 1)
             .animation(.spring())
     }
 }

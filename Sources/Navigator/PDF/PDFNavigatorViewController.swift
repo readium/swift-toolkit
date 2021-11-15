@@ -167,8 +167,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
 
     /// Override to customize the PDFDocumentView.
     open func setupPDFView() {
-        pdfView?.displaysAsBook = true
-        pdfView?.autoScales = !scalesDocumentToFit
     }
     
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
@@ -198,6 +196,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
             
             currentResourceIndex = index
             documentHolder.set(document, at: link.href)
+            
+            pdfView.displaysAsBook = (publication.readingOrder.first?.properties.page == .center)
             pdfView.document = document
             updateScaleFactors()
         }
@@ -403,6 +403,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
             pdfView.displayDirection = .vertical
             pdfView.displaysRTL = false
         }
+        
+        pdfView.autoScales = !scalesDocumentToFit
     }
     
     private struct PDFPresentation: Presentation {
