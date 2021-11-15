@@ -385,34 +385,59 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
         guard let pdfView = pdfView else {
             return
         }
-        
+
         let paginated = (presentation.values.overflow == .paginated)
-        pdfView.usePageViewController(paginated)
-        
-        switch presentation.values.readingProgression ?? .ttb {
-        case .ltr:
-            pdfView.displayDirection = .horizontal
-            pdfView.displaysRTL = false
-        case .rtl:
-            pdfView.displayDirection = .horizontal
-            pdfView.displaysRTL = true
-        case .btt:
-            pdfView.displayDirection = .vertical
-            pdfView.displaysRTL = true
-        default:
-            pdfView.displayDirection = .vertical
-            pdfView.displaysRTL = false
+        if paginated {
+            let spread: Bool = {
+                switch presentation.values.spread ?? .none {
+                case .both:
+                    return true
+                case .landscape where view.bounds.width > view.bounds.height:
+                    return true
+                default:
+                    return false
+                }
+            }()
+
+            if spread {
+                pdfView.displayMode = .twoUp
+            } else {
+                pdfView.usePageViewController(true)
+            }
+            
+            switch presentation.values.readingProgression ?? .ttb {
+            case .ltr:
+                pdfView.displayDirection = .horizontal
+                pdfView.displaysRTL = false
+            case .rtl:
+                pdfView.displayDirection = .horizontal
+                pdfView.displaysRTL = true
+            case .btt:
+                pdfView.displayDirection = .vertical
+                pdfView.displaysRTL = true
+            default:
+                pdfView.displayDirection = .vertical
+                pdfView.displaysRTL = false
+            }
+            
+        } else {
+            switch presentation.values.readingProgression ?? .ttb {
+            case .ltr, .rtl:
+                pdfView.displayDirection = .horizontal
+            default:
+                pdfView.displayDirection = .vertical
+            }
         }
-        
+
         pdfView.displaysPageBreaks = true
-        
+
         if let pageSpacing = presentation.values.pageSpacing {
             let value = pageSpacing * 50
             pdfView.pageBreakMargins = .init(top: 0, left: 0, bottom: value, right: 0)
         } else {
             pdfView.pageBreakMargins = .zero
         }
-        
+
         pdfView.autoScales = !scalesDocumentToFit
     }
     
@@ -420,6 +445,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
         
         private let overflows: [PresentationOverflow]
         private let readingProgressions: [ReadingProgression]
+        private let spreads: [PresentationSpread]
         
         let values: PresentationValues
         
@@ -446,10 +472,19 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
                 ?? readingProgressions.firstIn(publication.metadata.readingProgression, defaults.readingProgression)
                 ?? .ttb
             
+            spreads = (overflow == .paginated)
+                ? [ .none, .both, .landscape ]
+                : [ .none ]
+            
+            let spread = spreads.firstIn(settings.spread, fallback?.values.spread.takeIf { _ in settings.spread != nil })
+                ?? spreads.firstIn(publication.metadata.presentation.spread, defaults.spread)
+                ?? .none
+            
             values = PresentationValues(
                 overflow: overflow,
                 pageSpacing: pageSpacing,
-                readingProgression: readingProgression
+                readingProgression: readingProgression,
+                spread: spread
             )
         }
         
@@ -461,6 +496,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
                 return EnumPresentationValueConstraints(supportedValues: readingProgressions)
             case .pageSpacing:
                 return RangePresentationValueConstraints(stepCount: 20)
+            case .spread:
+                return EnumPresentationValueConstraints(supportedValues: spreads)
             default:
                 return nil
             }
@@ -484,6 +521,10 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
             switch key {
             case .readingProgression:
                 if [.btt, .rtl].contains(values.readingProgression) {
+                    values.overflow = .paginated
+                }
+            case .spread:
+                if [.both, .landscape].contains(values.spread) {
                     values.overflow = .paginated
                 }
             default:

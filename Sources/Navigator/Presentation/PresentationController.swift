@@ -198,6 +198,7 @@ public final class PresentationController: Loggable {
         public var overflow: EnumSetting<PresentationOverflow>? { self[.overflow] }
         public var pageSpacing: RangeSetting? { self[.pageSpacing] }
         public var readingProgression: EnumSetting<ReadingProgression>? { self[.readingProgression] }
+        public var spread: EnumSetting<PresentationSpread>? { self[.spread] }
         
         subscript<V>(_ key: PresentationKey) -> Setting<V>? {
             let effectiveValue: V? = presentation?.values[key]

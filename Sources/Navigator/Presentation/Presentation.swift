@@ -10,6 +10,7 @@ import R2Shared
 public typealias PresentationFit = R2Shared.Presentation.Fit
 public typealias PresentationOrientation = R2Shared.Presentation.Orientation
 public typealias PresentationOverflow = R2Shared.Presentation.Overflow
+public typealias PresentationSpread = R2Shared.Presentation.Spread
 
 public struct PresentationKey: Hashable {
     public let id: String
@@ -20,6 +21,7 @@ public struct PresentationKey: Hashable {
     public static let overflow = PresentationKey(id: "overflow")
     public static let pageSpacing = PresentationKey(id: "pageSpacing")
     public static let readingProgression = PresentationKey(id: "readingProgression")
+    public static let spread = PresentationKey(id: "spread")
 }
 
 /// Holds a list of key-value pairs provided by the app to influence a Navigator's Presentation
@@ -37,7 +39,8 @@ public struct PresentationValues: Hashable {
         orientation: PresentationOrientation? = nil,
         overflow: PresentationOverflow? = nil,
         pageSpacing: Double? = nil,
-        readingProgression: ReadingProgression? = nil
+        readingProgression: ReadingProgression? = nil,
+        spread: PresentationSpread? = nil
     ) {
         self.init()
         self.continuous = continuous
@@ -46,6 +49,7 @@ public struct PresentationValues: Hashable {
         self.overflow = overflow
         self.pageSpacing = pageSpacing
         self.readingProgression = readingProgression
+        self.spread = spread
     }
     
     public var continuous: Bool? {
@@ -76,6 +80,11 @@ public struct PresentationValues: Hashable {
     public var readingProgression: ReadingProgression? {
         get { self[.readingProgression] }
         set { self[.readingProgression] = newValue }
+    }
+    
+    public var spread: PresentationSpread? {
+        get { self[.spread] }
+        set { self[.spread] = newValue }
     }
     
     /// Returns a copy of this object after overwriting any setting with the values from `other`.

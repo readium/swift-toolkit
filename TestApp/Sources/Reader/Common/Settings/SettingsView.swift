@@ -34,6 +34,14 @@ struct SettingsView: View {
                     values: [.ltr, .rtl, .ttb, .btt]
                 )
             }
+            if let spread = model.settings.spread {
+                EnumSettingView(
+                    model: model,
+                    label: "Spread",
+                    setting: spread,
+                    values: [.none, .both, .landscape]
+                )
+            }
             if let pageSpacing = model.settings.pageSpacing {
                 RangeSettingView(
                     model: model,
