@@ -4,7 +4,22 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!--## [Unreleased]-->
+## [Unreleased]
+
+### Added
+
+* A new convenience utility `EdgeTapNavigation` to trigger page turns while tapping the screen edges.
+    * It takes into account the navigator reading progression to move into the right direction.
+    * Call it from the `VisualNavigatorDelegate.navigator(_:didTapAt:)` callback as demonstrated below:
+    ```swift
+    func navigator(_ navigator: VisualNavigator, didTapAt point: CGPoint) {
+        let turnedPage = EdgeTapNavigation(navigator: navigator).didTap(at: point)
+        if !turnedPage {
+            // Fallback action, for example toggling a navigation bar.
+        }
+    }
+    ```
+
 
 ## 2.2.0
 

@@ -363,17 +363,8 @@ extension ReaderViewController: NavigatorDelegate {
 extension ReaderViewController: VisualNavigatorDelegate {
     
     func navigator(_ navigator: VisualNavigator, didTapAt point: CGPoint) {
-        let viewport = navigator.view.bounds
-        // Skips to previous/next pages if the tap is on the content edges.
-        let thresholdRange = 0...(0.2 * viewport.width)
-        var moved = false
-        if thresholdRange ~= point.x {
-            moved = navigator.goLeft(animated: false)
-        } else if thresholdRange ~= (viewport.maxX - point.x) {
-            moved = navigator.goRight(animated: false)
-        }
-        
-        if !moved {
+        let turnedPage = EdgeTapNavigation(navigator: navigator).didTap(at: point)
+        if !turnedPage {
             toggleNavigationBar()
         }
     }
