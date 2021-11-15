@@ -404,6 +404,15 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
             pdfView.displaysRTL = false
         }
         
+        pdfView.displaysPageBreaks = true
+        
+        if let pageSpacing = presentation.values.pageSpacing {
+            let value = pageSpacing * 50
+            pdfView.pageBreakMargins = .init(top: 0, left: 0, bottom: value, right: 0)
+        } else {
+            pdfView.pageBreakMargins = .zero
+        }
+        
         pdfView.autoScales = !scalesDocumentToFit
     }
     
@@ -421,6 +430,14 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
                 ?? overflows.firstIn(publication.metadata.presentation.overflow, defaults.overflow)
                 ?? .scrolled
             
+            let pageSpacing = [
+                settings.pageSpacing,
+                fallback?.values.pageSpacing.takeIf { _ in settings.pageSpacing != nil },
+                defaults.pageSpacing
+            ]
+                .compactMap { $0 }
+                .first { 0.0...1.0 ~= $0 } ?? 0.2
+            
             readingProgressions = (overflow == .paginated)
                 ? [ .ltr, .rtl, .ttb, .btt ]
                 : [ .ltr, .ttb ]
@@ -431,6 +448,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
             
             values = PresentationValues(
                 overflow: overflow,
+                pageSpacing: pageSpacing,
                 readingProgression: readingProgression
             )
         }
@@ -441,13 +459,20 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
                 return EnumPresentationValueConstraints(supportedValues: overflows)
             case .readingProgression:
                 return EnumPresentationValueConstraints(supportedValues: readingProgressions)
+            case .pageSpacing:
+                return RangePresentationValueConstraints(stepCount: 20)
             default:
                 return nil
             }
         }
         
         func label(for key: PresentationKey, value: AnyHashable) -> String? {
-            return nil
+            switch key {
+            case .pageSpacing:
+                return (value as? Double).map { String._readium_localizedPercentage($0) }
+            default:
+                return nil
+            }
         }
         
         func isActive(_ key: PresentationKey, for values: PresentationValues) -> Bool {

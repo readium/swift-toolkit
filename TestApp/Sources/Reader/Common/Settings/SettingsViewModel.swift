@@ -16,8 +16,15 @@ final class SettingsViewModel: ObservableObject {
     private let presentation: PresentationController
     private var subscriptions: [Cancellable] = []
     
+    @Published var autoActivateOnChange: Bool {
+        didSet {
+            presentation.autoActivateOnChange = autoActivateOnChange
+        }
+    }
+        
     init(presentation: PresentationController) {
         self.presentation = presentation
+        self.autoActivateOnChange = presentation.autoActivateOnChange
         
         presentation.settings
             .assign(to: \.settings, on: self)

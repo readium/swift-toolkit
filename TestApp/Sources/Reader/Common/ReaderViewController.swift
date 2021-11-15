@@ -192,7 +192,7 @@ class ReaderViewController: UIViewController, Loggable {
     // MARK: - User Settings
     
     private lazy var presentation = PresentationController(navigator: navigator as! PresentableNavigator)
-    private lazy var userSettingsController = UIHostingController(rootView: FixedSettingsView(model: SettingsViewModel(presentation: presentation)))
+    private lazy var userSettingsController = UIHostingController(rootView: SettingsView(model: SettingsViewModel(presentation: presentation)))
     
     @objc func presentUserSettings(_ button: UIBarButtonItem) {
         userSettingsController.modalPresentationStyle = .popover

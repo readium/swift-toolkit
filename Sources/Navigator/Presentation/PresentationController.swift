@@ -281,8 +281,11 @@ public final class PresentationController: Loggable {
         ///
         /// For example, with the "reading progression" property, the value ltr has for label "Left to
         /// right" in English.
-        public func label(for value: Value) -> String? {
-            labelForValue(value)
+        public func label(for value: Value?) -> String? {
+            guard let value = value else {
+                return nil
+            }
+            return labelForValue(value)
         }
     }
 
