@@ -14,7 +14,7 @@ public final class PresentationController: Loggable {
     public typealias OnSettingsChanged = (PresentationValues) -> PresentationValues
     
     /// Requests the navigator to activate a non-active setting when its value is changed.
-    private let autoActivateOnChange: Bool
+    public var autoActivateOnChange: Bool
     
     private let onSettingsChanged: OnSettingsChanged?
     
@@ -309,12 +309,26 @@ public extension PresentationController.StringSetting {
     var supportedValues: [String]? {
         (constraints as? StringPresentationValueConstraints)?.supportedValues
     }
+    
+    func isSupported(value: String?) -> Bool {
+        guard let value = value else {
+            return true
+        }
+        return supportedValues?.contains(value) ?? true
+    }
 }
 
 public extension PresentationController.EnumSetting where Value.RawValue == String {
     var supportedValues: [Value]? {
         (constraints as? EnumPresentationValueConstraints<Value>)?
             .supportedValues
+    }
+    
+    func isSupported(value: Value?) -> Bool {
+        guard let value = value else {
+            return true
+        }
+        return supportedValues?.contains(value) ?? true
     }
 }
 

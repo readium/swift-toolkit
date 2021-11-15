@@ -69,7 +69,11 @@ struct SettingPicker<E: RawRepresentable & Hashable>: View where E.RawValue == S
                             .if(setting.effectiveValue == value) {
                                 $0.underline()
                             }
-                    }.buttonStyle(SettingButtonStyle(setting: setting, value: value))
+                    }
+                    .buttonStyle(SettingButtonStyle(setting: setting, value: value))
+                    .if(!setting.isSupported(value: value)) {
+                        $0.opacity(0.4)
+                    }
                 }
                 Spacer()
             }
@@ -85,6 +89,7 @@ struct SettingButtonStyle<Value: Hashable>: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .padding(8)
+            .frame(minWidth: 50)
             .background(Color.gray.opacity(0.1))
             .foregroundColor(setting.value == value ? .accentColor : .primary)
             .cornerRadius(16)

@@ -409,19 +409,29 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
     
     private struct PDFPresentation: Presentation {
         
-        private let overflows: [PresentationOverflow] = [ .paginated, .scrolled ]
-        private let readingProgressions: [ReadingProgression] = [ .ltr, .rtl, .ttb, .btt ]
+        private let overflows: [PresentationOverflow]
+        private let readingProgressions: [ReadingProgression]
         
         let values: PresentationValues
         
         init(publication: Publication, settings: PresentationValues, defaults: PresentationValues, fallback: Presentation?) {
+            overflows = [ .paginated, .scrolled ]
+            
+            let overflow = overflows.firstIn(settings.overflow, fallback?.values.overflow.takeIf { _ in settings.overflow != nil })
+                ?? overflows.firstIn(publication.metadata.presentation.overflow, defaults.overflow)
+                ?? .scrolled
+            
+            readingProgressions = (overflow == .paginated)
+                ? [ .ltr, .rtl, .ttb, .btt ]
+                : [ .ltr, .ttb ]
+            
+            let readingProgression = readingProgressions.firstIn(settings.readingProgression, fallback?.values.readingProgression.takeIf { _ in settings.readingProgression != nil })
+                ?? readingProgressions.firstIn(publication.metadata.readingProgression, defaults.readingProgression)
+                ?? .ttb
+            
             values = PresentationValues(
-                overflow: overflows.firstIn(settings.overflow, fallback?.values.overflow.takeIf { _ in settings.overflow != nil })
-                    ?? overflows.firstIn(publication.metadata.presentation.overflow, defaults.overflow)
-                    ?? .scrolled,
-                readingProgression: readingProgressions.firstIn(settings.readingProgression, fallback?.values.readingProgression.takeIf { _ in settings.readingProgression != nil })
-                    ?? readingProgressions.firstIn(publication.metadata.readingProgression, defaults.readingProgression)
-                    ?? .ttb
+                overflow: overflow,
+                readingProgression: readingProgression
             )
         }
         
