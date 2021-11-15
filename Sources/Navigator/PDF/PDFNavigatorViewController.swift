@@ -157,6 +157,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
             // Makes sure that the PDF is always properly scaled down when rotating the screen, if the user didn't zoom in.
             let isAtMinScaleFactor = (pdfView.scaleFactor == pdfView.minScaleFactor)
             coordinator.animate(alongsideTransition: { _ in
+                // Reset the PDF view to update the spread if it changes with the orientation
+                let presentation = self.presentation.get()
+                if presentation.values.spread == .landscape {
+                    self.resetPDFView(presentation: presentation, at: self.currentLocation)
+                }
+                
                 self.updateScaleFactors()
                 if isAtMinScaleFactor {
                     pdfView.scaleFactor = pdfView.minScaleFactor
