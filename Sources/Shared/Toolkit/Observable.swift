@@ -142,10 +142,10 @@ public class MutableObservableVariable<Value>: ObservableVariable<Value> {
     
     /// Updates the current value after transforming the current one.
     @discardableResult
-    public func set(_ transform: (Value) -> Value) -> Value {
+    public func set(_ transform: (inout Value) -> Void) -> Value {
         lock.lock()
         defer { lock.unlock() }
-        _value = transform(_value)
+        transform(&_value)
         return _value
     }
     

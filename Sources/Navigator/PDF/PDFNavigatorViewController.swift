@@ -380,8 +380,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
     private let _presentation: MutableObservableVariable<Presentation>
     
     public func apply(presentationSettings settings: PresentationValues, completion: @escaping (Presentation) -> ()) {
-        let presentation = _presentation.set { previous in
-            PDFPresentation(publication: publication, settings: settings, defaults: config.defaultSettings, fallback: previous)
+        let presentation = _presentation.set {
+            $0 = PDFPresentation(publication: publication, settings: settings, defaults: config.defaultSettings, fallback: $0)
         }
         resetPDFView(presentation: presentation, at: currentLocation)
         DispatchQueue.main.async { completion(presentation) }

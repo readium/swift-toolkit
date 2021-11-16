@@ -20,18 +20,16 @@ public final class PresentationSettings: Loggable {
     private let onChanged: OnChanged
     private let onAdjust: OnAdjust
     
-    public private(set) var values: PresentationValues {
-        didSet {
-            adjustedValues = onAdjust(values)
-            didChange()
-        }
-    }
-    
-    private var adjustedValues: PresentationValues
+    public var values: ObservableVariable<PresentationValues> { _values }
+    private let _values: MutableObservableVariable<PresentationValues>
     
     private weak var navigator: PresentableNavigator?
-    private var presentationSubscription: Cancellable?
-    
+    private var subscriptions: [Cancellable] = []
+        
+    private var adjustedValues: PresentationValues {
+        onAdjust(values.get())
+    }
+
     public init(
         navigator: PresentableNavigator,
         settings: PresentationValues? = nil,
@@ -40,8 +38,7 @@ public final class PresentationSettings: Loggable {
         onChanged: @escaping OnChanged = {}
     ) {
         self.navigator = navigator
-        self.values = settings ?? PresentationValues()
-        self.adjustedValues = onAdjust(values)
+        self._values = MutableObservableVariable(settings ?? PresentationValues())
         self.autoActivateOnChange = autoActivateOnChange
         self.onAdjust = onAdjust
         self.onChanged = onChanged
@@ -52,7 +49,13 @@ public final class PresentationSettings: Loggable {
             .subscribe { [weak self] _ in
                 self?.didChange()
             }
-            .store(in: &presentationSubscription)
+            .store(in: &subscriptions)
+        
+        values
+            .subscribe(on: .main) { [weak self] _ in
+                self?.didChange()
+            }
+            .store(in: &subscriptions)
     }
     
     private func didChange() {
@@ -75,7 +78,7 @@ public final class PresentationSettings: Loggable {
     
     /// Clears all user settings to revert to the Navigator default values or the given ones.
     public func reset(_ settings: PresentationValues = PresentationValues()) {
-        values = settings
+        _values.set(settings)
     }
     
     /// Clears the given user setting to revert to the Navigator default value.
@@ -99,18 +102,17 @@ public final class PresentationSettings: Loggable {
     }
     
     private func set<T>(_ key: PresentationKey, to value: T?) {
-        var values = self.values
-        values[key] = value
+        _values.set { values in
+            values[key] = value
         
-        if autoActivateOnChange, let presentation = navigator?.presentation.get() {
-            do {
-                values = try presentation.activate(key, in: values)
-            } catch {
-                self.log(.warning, error)
+            if autoActivateOnChange, let presentation = navigator?.presentation.get() {
+                do {
+                    values = try presentation.activate(key, in: values)
+                } catch {
+                    self.log(.warning, error)
+                }
             }
         }
-        
-        self.values = values
     }
     
     /// Inverts the value of the given toggle setting.
@@ -177,7 +179,7 @@ public final class PresentationSettings: Loggable {
     subscript<V>(_ key: PresentationKey) -> Setting<V>? {
         let presentation = navigator?.presentation.get()
         let effectiveValue: V? = presentation?.values[key]
-        let value: V? = values[key]
+        let value: V? = values.get()[key]
         let isSupported = (effectiveValue != nil)
         let isActive = presentation?.isActive(key, for: adjustedValues) ?? false
         
@@ -204,7 +206,7 @@ public final class PresentationSettings: Loggable {
     subscript<E: RawRepresentable>(_ key: PresentationKey) -> EnumSetting<E>? where E.RawValue == String {
         let presentation = navigator?.presentation.get()
         let effectiveValue: E? = presentation?.values[key]
-        let value: E? = values[key]
+        let value: E? = values.get()[key]
         let isSupported = (effectiveValue != nil)
         let isActive = presentation?.isActive(key, for: adjustedValues) ?? false
         
