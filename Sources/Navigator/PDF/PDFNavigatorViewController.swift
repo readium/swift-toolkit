@@ -194,6 +194,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
         
         if currentResourceIndex != index {
             guard let url = link.url(relativeTo: publication.baseURL),
+                  // FIXME: Reuse PDFDocument
                 let document = PDFDocument(url: url) else
             {
                 log(.error, "Can't open PDF document at \(link)")
@@ -392,6 +393,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
             return
         }
 
+        let readingProgression = (presentation.values.readingProgression ?? .ttb)
+        
         let paginated = (presentation.values.overflow == .paginated)
         if paginated {
             let spread: Bool = {
@@ -411,7 +414,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
                 pdfView.usePageViewController(true)
             }
             
-            switch presentation.values.readingProgression ?? .ttb {
+            switch readingProgression {
             case .ltr:
                 pdfView.displayDirection = .horizontal
                 pdfView.displaysRTL = false
@@ -427,7 +430,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
             }
             
         } else {
-            switch presentation.values.readingProgression ?? .ttb {
+            switch readingProgression {
             case .ltr, .rtl:
                 pdfView.displayDirection = .horizontal
             default:
@@ -435,14 +438,22 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
             }
         }
 
-        pdfView.displaysPageBreaks = true
-
+        var margins: UIEdgeInsets = .zero
         if let pageSpacing = presentation.values.pageSpacing {
             let value = pageSpacing * 50
-            pdfView.pageBreakMargins = .init(top: 0, left: 0, bottom: value, right: 0)
-        } else {
-            pdfView.pageBreakMargins = .zero
+            switch readingProgression {
+            case .ltr, .auto:
+                margins.right = value
+            case .rtl:
+                margins.left = value
+            case .ttb:
+                margins.bottom = value
+            case .btt:
+                margins.top = value
+            }
         }
+        pdfView.pageBreakMargins = margins
+        pdfView.displaysPageBreaks = true
 
         pdfView.autoScales = !scalesDocumentToFit
     }
