@@ -10,54 +10,84 @@ import R2Navigator
 
 struct SettingsView: View {
     
-    @ObservedObject var model: SettingsViewModel
+    @ObservedObject var settings: PresentationSettings
+    @State var autoCommit = true
     
     var body: some View {
         List {
-            Toggle(isOn: $model.autoActivateOnChange) {
+            HStack {
+                button("Reset") {
+                    settings.reset()
+                    if (autoCommit) {
+                        settings.commit()
+                    }
+                }
+                
+                button("Commit") {
+                    settings.commit()
+                }
+            }
+                
+            Toggle(isOn: $settings.autoActivateOnChange) {
                 Text("Auto activate settings")
             }
             
-            if let overflow = model.settings.overflow {
+            Toggle(isOn: $autoCommit) {
+                Text("Auto commit changes")
+            }
+            
+            if let overflow = settings.overflow {
                 EnumSettingView(
-                    model: model,
                     label: "Overflow",
+                    settings: settings,
                     setting: overflow,
-                    values: [.paginated, .scrolled]
+                    values: [.paginated, .scrolled],
+                    autoCommit: $autoCommit
                 )
             }
-            if let readingProgression = model.settings.readingProgression {
+            if let readingProgression = settings.readingProgression {
                 EnumSettingView(
-                    model: model,
                     label: "Reading Progression",
+                    settings: settings,
                     setting: readingProgression,
-                    values: [.ltr, .rtl, .ttb, .btt]
+                    values: [.ltr, .rtl, .ttb, .btt],
+                    autoCommit: $autoCommit
                 )
             }
-            if let spread = model.settings.spread {
+            if let spread = settings.spread {
                 EnumSettingView(
-                    model: model,
                     label: "Spread",
+                    settings: settings,
                     setting: spread,
-                    values: [.none, .both, .landscape]
+                    values: [.none, .both, .landscape],
+                    autoCommit: $autoCommit
                 )
             }
-            if let pageSpacing = model.settings.pageSpacing {
+            if let pageSpacing = settings.pageSpacing {
                 RangeSettingView(
-                    model: model,
                     label: "Page Spacing",
-                    setting: pageSpacing
+                    settings: settings,
+                    setting: pageSpacing,
+                    autoCommit: $autoCommit
                 )
             }
         }
+    }
+    
+    private func button(_ label: String, action: @escaping () -> Void) -> some View {
+        Button(
+            action: action,
+            label: { Text(label) }
+        ).buttonStyle(.borderless)
     }
 }
 
 struct RangeSettingView: View {
     
-    let model: SettingsViewModel
     let label: String
-    let setting: PresentationController.RangeSetting
+    let settings: PresentationSettings
+    let setting: PresentationSettings.RangeSetting
+    @Binding var autoCommit: Bool
     
     var body: some View {
         VStack {
@@ -68,9 +98,8 @@ struct RangeSettingView: View {
                 Spacer()
                 
                 button("minus") {
-                    model.commit { presentation, _ in
-                        presentation.decrement(setting)
-                    }
+                    settings.decrement(setting)
+                    if (autoCommit) { settings.commit() }
                 }
                 
                 Text(setting.label(for: setting.value ?? setting.effectiveValue) ?? "")
@@ -80,9 +109,8 @@ struct RangeSettingView: View {
                     }
                 
                 button("plus") {
-                    model.commit { presentation, _ in
-                        presentation.increment(setting)
-                    }
+                    settings.increment(setting)
+                    if (autoCommit) { settings.commit() }
                 }
                 
                 Spacer()
@@ -101,10 +129,11 @@ struct RangeSettingView: View {
 
 struct EnumSettingView<E: RawRepresentable & Hashable>: View where E.RawValue == String {
     
-    let model: SettingsViewModel
     let label: String
-    let setting: PresentationController.EnumSetting<E>
+    let settings: PresentationSettings
+    let setting: PresentationSettings.EnumSetting<E>
     let values: [E]
+    @Binding var autoCommit: Bool
     
     var body: some View {
         VStack {
@@ -115,9 +144,8 @@ struct EnumSettingView<E: RawRepresentable & Hashable>: View where E.RawValue ==
                 Spacer()
                 ForEach(values, id: \.self) { value in
                     Button(action: {
-                        model.commit { presentation, _ in
-                            presentation.toggle(setting, value: value)
-                        }
+                        settings.toggle(setting, value: value)
+                        if (autoCommit) { settings.commit() }
                     }) {
                         Text(value.rawValue)
                             .if(setting.effectiveValue == value) {
@@ -135,7 +163,7 @@ struct EnumSettingView<E: RawRepresentable & Hashable>: View where E.RawValue ==
     }
 
     struct SettingButtonStyle<Value: Hashable>: ButtonStyle {
-        let setting: PresentationController.Setting<Value>
+        let setting: PresentationSettings.Setting<Value>
         let value: Value?
         
         func makeBody(configuration: Configuration) -> some View {

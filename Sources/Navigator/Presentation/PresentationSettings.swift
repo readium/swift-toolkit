@@ -9,17 +9,25 @@ import R2Shared
 
 /// Helper class which simplifies the modification of Presentation Settings and designing a user
 /// settings interface.
-public final class PresentationController: Loggable {
+public final class PresentationSettings: Loggable {
     
-    public typealias OnSettingsChanged = (PresentationValues) -> PresentationValues
+    public typealias OnChanged = () -> Void
+    public typealias OnAdjust = (PresentationValues) -> PresentationValues
     
     /// Requests the navigator to activate a non-active setting when its value is changed.
     public var autoActivateOnChange: Bool
     
-    private let onSettingsChanged: OnSettingsChanged?
+    private let onChanged: OnChanged
+    private let onAdjust: OnAdjust
     
-    public var settings: ObservableVariable<Settings> { _settings }
-    private let _settings: MutableObservableVariable<Settings>
+    public private(set) var values: PresentationValues {
+        didSet {
+            adjustedValues = onAdjust(values)
+            didChange()
+        }
+    }
+    
+    private var adjustedValues: PresentationValues
     
     private weak var navigator: PresentableNavigator?
     private var presentationSubscription: Cancellable?
@@ -28,48 +36,46 @@ public final class PresentationController: Loggable {
         navigator: PresentableNavigator,
         settings: PresentationValues? = nil,
         autoActivateOnChange: Bool = true,
-        onSettingsChanged: OnSettingsChanged? = nil
+        onAdjust: @escaping OnAdjust = { $0 },
+        onChanged: @escaping OnChanged = {}
     ) {
         self.navigator = navigator
+        self.values = settings ?? PresentationValues()
+        self.adjustedValues = onAdjust(values)
         self.autoActivateOnChange = autoActivateOnChange
-        self.onSettingsChanged = onSettingsChanged
-        
-        let userSettings = settings ?? PresentationValues()
-        let actualSettings = onSettingsChanged?(userSettings) ?? userSettings
-        _settings = MutableObservableVariable(Settings(
-            userSettings: userSettings,
-            actualSettings: actualSettings
-        ))
+        self.onAdjust = onAdjust
+        self.onChanged = onChanged
        
-        navigator.apply(presentationSettings: actualSettings) { _ in }
+        navigator.apply(presentationSettings: adjustedValues) { _ in }
         
         navigator.presentation
-            .subscribe { [weak self] presentation in
-                self?._settings.set { $0.copy(presentation: presentation) }
+            .subscribe { [weak self] _ in
+                self?.didChange()
             }
             .store(in: &presentationSubscription)
     }
     
+    private func didChange() {
+        self.onChanged()
+        
+        if #available(iOS 13.0, *) {
+            objectWillChange.send()
+        }
+    }
+    
     /// Applies the current set of settings to the Navigator.
-    public func commit(changes: (PresentationController, Settings) -> Void = { _, _ in }, completion: @escaping () -> Void = {}) {
-        changes(self, settings.get())
+    public func commit(changes: (PresentationSettings) -> Void = { _ in }, completion: @escaping () -> Void = {}) {
+        changes(self)
         
         navigator?.apply(
-            presentationSettings: settings.get().actualSettings,
+            presentationSettings: adjustedValues,
             completion: { _ in completion() }
         )
     }
     
     /// Clears all user settings to revert to the Navigator default values or the given ones.
     public func reset(_ settings: PresentationValues = PresentationValues()) {
-        let actualSettings = onSettingsChanged?(settings) ?? settings
-        
-        _settings.set {
-            $0.copy(
-                userSettings: settings,
-                actualSettings: actualSettings
-            )
-        }
+        values = settings
     }
     
     /// Clears the given user setting to revert to the Navigator default value.
@@ -93,23 +99,18 @@ public final class PresentationController: Loggable {
     }
     
     private func set<T>(_ key: PresentationKey, to value: T?) {
-        _settings.set { settings in
-            var userSettings = settings.userSettings
-            userSettings[key] = value
-            
-            if let presentation = settings.presentation, autoActivateOnChange {
-                do {
-                    userSettings = try presentation.activate(key, in: userSettings)
-                } catch {
-                    self.log(.warning, error)
-                }
+        var values = self.values
+        values[key] = value
+        
+        if autoActivateOnChange, let presentation = navigator?.presentation.get() {
+            do {
+                values = try presentation.activate(key, in: values)
+            } catch {
+                self.log(.warning, error)
             }
-            
-            return settings.copy(
-                userSettings: userSettings,
-                actualSettings: onSettingsChanged?(userSettings) ?? userSettings
-            )
         }
+        
+        self.values = values
     }
     
     /// Inverts the value of the given toggle setting.
@@ -165,88 +166,62 @@ public final class PresentationController: Loggable {
         
         set(setting, to: max(0.0, (value - step).rounded(toStep: step)))
     }
+
+    public var continuous: ToggleSetting? { self[.continuous] }
+    public var fit: EnumSetting<PresentationFit>? { self[.fit] }
+    public var overflow: EnumSetting<PresentationOverflow>? { self[.overflow] }
+    public var pageSpacing: RangeSetting? { self[.pageSpacing] }
+    public var readingProgression: EnumSetting<ReadingProgression>? { self[.readingProgression] }
+    public var spread: EnumSetting<PresentationSpread>? { self[.spread] }
     
-    public struct Settings {
-        public let userSettings: PresentationValues
-        public let actualSettings: PresentationValues
-        public let presentation: Presentation?
+    subscript<V>(_ key: PresentationKey) -> Setting<V>? {
+        let presentation = navigator?.presentation.get()
+        let effectiveValue: V? = presentation?.values[key]
+        let value: V? = values[key]
+        let isSupported = (effectiveValue != nil)
+        let isActive = presentation?.isActive(key, for: adjustedValues) ?? false
         
-        public init(
-            userSettings: PresentationValues = PresentationValues(),
-            actualSettings: PresentationValues = PresentationValues(),
-            presentation: Presentation? = nil
-        ) {
-            self.presentation = presentation
-            self.userSettings = userSettings
-            self.actualSettings = actualSettings
+        guard effectiveValue != nil || value != nil else {
+            return nil
         }
-        
-        public func copy(
-            userSettings: PresentationValues? = nil,
-            actualSettings: PresentationValues? = nil,
-            presentation: Presentation? = nil
-        ) -> Settings {
-            Settings(
-                userSettings: userSettings ?? self.userSettings,
-                actualSettings: actualSettings ?? self.actualSettings,
-                presentation: presentation ?? self.presentation
-            )
-        }
+        return Setting(
+            key: key,
+            value: value,
+            effectiveValue: effectiveValue,
+            isSupported: isSupported,
+            isActive: isActive,
+            constraints: presentation?.constraints(for: key),
+            labelForValue: { value in
+                guard let value = value as? AnyHashable else {
+                    return nil
+                }
+                return presentation?.label(for: key, value: value)
+            }
+        )
+    }
     
-        public var continuous: ToggleSetting? { self[.continuous] }
-        public var fit: EnumSetting<PresentationFit>? { self[.fit] }
-        public var overflow: EnumSetting<PresentationOverflow>? { self[.overflow] }
-        public var pageSpacing: RangeSetting? { self[.pageSpacing] }
-        public var readingProgression: EnumSetting<ReadingProgression>? { self[.readingProgression] }
-        public var spread: EnumSetting<PresentationSpread>? { self[.spread] }
+    /// Subscript for enum values.
+    subscript<E: RawRepresentable>(_ key: PresentationKey) -> EnumSetting<E>? where E.RawValue == String {
+        let presentation = navigator?.presentation.get()
+        let effectiveValue: E? = presentation?.values[key]
+        let value: E? = values[key]
+        let isSupported = (effectiveValue != nil)
+        let isActive = presentation?.isActive(key, for: adjustedValues) ?? false
         
-        subscript<V>(_ key: PresentationKey) -> Setting<V>? {
-            let effectiveValue: V? = presentation?.values[key]
-            let userValue: V? = userSettings[key]
-            let isSupported = (effectiveValue != nil)
-            let isActive = presentation?.isActive(key, for: actualSettings) ?? false
-            
-            guard effectiveValue != nil || userValue != nil else {
-                return nil
-            }
-            return Setting(
-                key: key,
-                value: userValue,
-                effectiveValue: effectiveValue,
-                isSupported: isSupported,
-                isActive: isActive,
-                constraints: presentation?.constraints(for: key),
-                labelForValue: { value in
-                    guard let value = value as? AnyHashable else {
-                        return nil
-                    }
-                    return self.presentation?.label(for: key, value: value)
-                }
-            )
+        guard effectiveValue != nil || value != nil else {
+            return nil
         }
-        
-        /// Subscript for enum values.
-        subscript<E: RawRepresentable>(_ key: PresentationKey) -> EnumSetting<E>? where E.RawValue == String {
-            let effectiveValue: E? = presentation?.values[key]
-            let userValue: E? = userSettings[key]
-            let isSupported = (effectiveValue != nil)
-            let isActive = presentation?.isActive(key, for: actualSettings) ?? false
-            
-            guard effectiveValue != nil || userValue != nil else {
-                return nil
+        return Setting(
+            key: key,
+            value: value,
+            effectiveValue: effectiveValue,
+            isSupported: isSupported,
+            isActive: isActive,
+            constraints: presentation?.constraints(for: key),
+            labelForValue: { value in
+                presentation?.label(for: key, value: value.rawValue)
             }
-            return Setting(
-                key: key,
-                value: userValue,
-                effectiveValue: effectiveValue,
-                isSupported: isSupported,
-                isActive: isActive,
-                constraints: presentation?.constraints(for: key),
-                labelForValue: { value in
-                    self.presentation?.label(for: key, value: value.rawValue)
-                }
-            )
-        }
+        )
     }
     
     /// Holds the current value and the metadata of a Presentation Setting of type `Value`.
@@ -296,7 +271,7 @@ public final class PresentationController: Loggable {
     public typealias EnumSetting<E: RawRepresentable & Equatable> = Setting<E>
 }
 
-public extension PresentationController.RangeSetting {
+public extension PresentationSettings.RangeSetting {
     var stepCount: Int? {
         (constraints as? RangePresentationValueConstraints)?.stepCount
     }
@@ -309,7 +284,7 @@ public extension PresentationController.RangeSetting {
     }
 }
 
-public extension PresentationController.StringSetting {
+public extension PresentationSettings.StringSetting {
     var supportedValues: [String]? {
         (constraints as? StringPresentationValueConstraints)?.supportedValues
     }
@@ -322,7 +297,7 @@ public extension PresentationController.StringSetting {
     }
 }
 
-public extension PresentationController.EnumSetting where Value.RawValue == String {
+public extension PresentationSettings.EnumSetting where Value.RawValue == String {
     var supportedValues: [Value]? {
         (constraints as? EnumPresentationValueConstraints<Value>)?
             .supportedValues
@@ -341,3 +316,10 @@ private extension Double {
         (self / step).rounded() * step
     }
 }
+
+#if canImport(SwiftUI)
+import SwiftUI
+
+@available(iOS 13.0, *)
+extension PresentationSettings: ObservableObject {}
+#endif
