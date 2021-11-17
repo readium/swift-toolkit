@@ -281,7 +281,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
     }
 
 
-    // MARK: – MediaNavigator
+    // MARK: - MediaNavigator
     
     public var currentTime: Double {
         return player.currentTime().secondsOrZero

@@ -24,7 +24,7 @@ public final class PresentationSettings: Loggable {
     private let _values: MutableObservableVariable<PresentationValues>
     
     private weak var navigator: PresentableNavigator?
-    private var subscriptions: [Cancellable] = []
+    private var subscriptions: [R2Shared.Cancellable] = []
         
     private var adjustedValues: PresentationValues {
         onAdjust(values.get())
@@ -42,8 +42,6 @@ public final class PresentationSettings: Loggable {
         self.autoActivateOnChange = autoActivateOnChange
         self.onAdjust = onAdjust
         self.onChanged = onChanged
-       
-        navigator.apply(presentationSettings: adjustedValues) { _ in }
         
         navigator.presentation
             .subscribe { [weak self] _ in
@@ -67,13 +65,9 @@ public final class PresentationSettings: Loggable {
     }
     
     /// Applies the current set of settings to the Navigator.
-    public func commit(changes: (PresentationSettings) -> Void = { _ in }, completion: @escaping () -> Void = {}) {
+    public func commit(changes: (PresentationSettings) -> Void = { _ in }) {
         changes(self)
-        
-        navigator?.apply(
-            presentationSettings: adjustedValues,
-            completion: { _ in completion() }
-        )
+        navigator?.apply(presentationSettings: adjustedValues)
     }
     
     /// Clears all user settings to revert to the Navigator default values or the given ones.
@@ -319,8 +313,8 @@ private extension Double {
     }
 }
 
-#if canImport(SwiftUI)
-import SwiftUI
+#if canImport(Combine)
+import Combine
 
 @available(iOS 13.0, *)
 extension PresentationSettings: ObservableObject {}

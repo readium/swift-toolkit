@@ -26,7 +26,7 @@ public final class EdgeTapNavigation {
     
     public init(
         navigator: VisualNavigator,
-        minimumEdgeSize: Double = 200.0,
+        minimumEdgeSize: Double = 80.0,
         edgeThresholdPercent: Double? = 0.3,
         animatedTransition: Bool = false
     ) {

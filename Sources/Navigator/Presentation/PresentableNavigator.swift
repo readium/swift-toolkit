@@ -19,5 +19,5 @@ public protocol PresentableNavigator: Navigator {
     /// Note that the Navigator might not update its presentation right away, or might even ignore
     /// some of the provided settings. They are only used as guidelines to compute the Presentation
     /// Properties.
-    func apply(presentationSettings: PresentationValues, completion: @escaping (Presentation) -> ())
+    func apply(presentationSettings: PresentationValues)
 }
