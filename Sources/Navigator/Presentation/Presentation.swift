@@ -12,16 +12,20 @@ public typealias PresentationOrientation = R2Shared.Presentation.Orientation
 public typealias PresentationOverflow = R2Shared.Presentation.Overflow
 public typealias PresentationSpread = R2Shared.Presentation.Spread
 
-public struct PresentationKey: Hashable {
+public struct PresentationKey: Hashable, Codable {
     public let id: String
     
-    public static let continuous = PresentationKey(id: "continuous")
-    public static let fit = PresentationKey(id: "fit")
-    public static let orientation = PresentationKey(id: "orientation")
-    public static let overflow = PresentationKey(id: "overflow")
-    public static let pageSpacing = PresentationKey(id: "pageSpacing")
-    public static let readingProgression = PresentationKey(id: "readingProgression")
-    public static let spread = PresentationKey(id: "spread")
+    public init(_ id: String) {
+        self.id = id
+    }
+    
+    public static let continuous = PresentationKey("continuous")
+    public static let fit = PresentationKey("fit")
+    public static let orientation = PresentationKey("orientation")
+    public static let overflow = PresentationKey("overflow")
+    public static let pageSpacing = PresentationKey("pageSpacing")
+    public static let readingProgression = PresentationKey("readingProgression")
+    public static let spread = PresentationKey("spread")
 }
 
 /// Holds a list of key-value pairs provided by the app to influence a Navigator's Presentation
@@ -116,6 +120,38 @@ public struct PresentationValues: Hashable {
                 values.removeValue(forKey: key)
             }
         }
+    }
+    
+    public func json() throws -> String {
+        let json = values.reduce(into: [:]) {
+            $0[$1.key.id] = $1.value
+        }
+        let data = try JSONSerialization.data(withJSONObject: json)
+        return String(data: data, encoding: .utf8) ?? "{}"
+    }
+    
+}
+
+extension PresentationValues: Codable {
+    
+    public init(from decoder: Decoder) throws {
+        let jsonString = try decoder.singleValueContainer().decode(String.self)
+        let json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8) ?? Data(), options: []) as? [String: AnyHashable] ?? [:]
+        
+        self.init(json.reduce(into: [:]) {
+            $0[PresentationKey($1.key)] = $1.value
+        })
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(try json())
+    }
+}
+
+extension PresentationValues: ExpressibleByDictionaryLiteral {
+    public init(dictionaryLiteral elements: (PresentationKey, AnyHashable)...) {
+        self.init(elements.reduce(into: [:]) { $0[$1.0] = $1.1 })
     }
 }
 
