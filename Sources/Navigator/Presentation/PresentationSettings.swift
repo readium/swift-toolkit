@@ -168,6 +168,7 @@ public final class PresentationSettings: Loggable {
     public var overflow: EnumSetting<PresentationOverflow>? { self[.overflow] }
     public var pageSpacing: RangeSetting? { self[.pageSpacing] }
     public var readingProgression: EnumSetting<ReadingProgression>? { self[.readingProgression] }
+    public var showScrollbar: ToggleSetting? { self[.showScrollbar] }
     public var spread: EnumSetting<PresentationSpread>? { self[.spread] }
     
     subscript<V>(_ key: PresentationKey) -> Setting<V>? {

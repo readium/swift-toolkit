@@ -469,6 +469,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
         pdfView.displaysPageBreaks = true
 
         pdfView.autoScales = !scalesDocumentToFit
+        
+        if let scrollView = pdfView.firstScrollView {
+            let showScrollbar = presentation.values.showScrollbar ?? true
+            scrollView.showsVerticalScrollIndicator = showScrollbar
+            scrollView.showsHorizontalScrollIndicator = showScrollbar
+        }
     }
     
     private struct PDFPresentation: Presentation {
@@ -502,6 +508,10 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
                 ?? readingProgressions.firstIn(publication.metadata.readingProgression, defaults.readingProgression)
                 ?? .ttb
             
+            let showScrollbar = settings.showScrollbar
+                ?? defaults.showScrollbar
+                ?? (overflow == .scrolled)
+            
             spreads = (overflow == .paginated)
                 ? [ .none, .both, .landscape ]
                 : [ .none ]
@@ -514,6 +524,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
                 overflow: overflow,
                 pageSpacing: pageSpacing,
                 readingProgression: readingProgression,
+                showScrollbar: showScrollbar,
                 spread: spread
             )
         }
@@ -526,6 +537,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
                 return EnumPresentationValueConstraints(supportedValues: readingProgressions)
             case .pageSpacing:
                 return RangePresentationValueConstraints(stepCount: 20)
+            case .showScrollbar:
+                return TypedPresentationValueConstraints<Bool>()
             case .spread:
                 return EnumPresentationValueConstraints(supportedValues: spreads)
             default:

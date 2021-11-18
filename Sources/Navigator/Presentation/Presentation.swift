@@ -25,6 +25,7 @@ public struct PresentationKey: Hashable, Codable {
     public static let overflow = PresentationKey("overflow")
     public static let pageSpacing = PresentationKey("pageSpacing")
     public static let readingProgression = PresentationKey("readingProgression")
+    public static let showScrollbar = PresentationKey("showScrollbar")
     public static let spread = PresentationKey("spread")
 }
 
@@ -44,6 +45,7 @@ public struct PresentationValues: Hashable {
         overflow: PresentationOverflow? = nil,
         pageSpacing: Double? = nil,
         readingProgression: ReadingProgression? = nil,
+        showScrollbar: Bool? = nil,
         spread: PresentationSpread? = nil
     ) {
         self.init()
@@ -53,6 +55,7 @@ public struct PresentationValues: Hashable {
         self.overflow = overflow
         self.pageSpacing = pageSpacing
         self.readingProgression = readingProgression
+        self.showScrollbar = showScrollbar
         self.spread = spread
     }
     
@@ -84,6 +87,11 @@ public struct PresentationValues: Hashable {
     public var readingProgression: ReadingProgression? {
         get { self[.readingProgression] }
         set { self[.readingProgression] = newValue }
+    }
+    
+    public var showScrollbar: Bool? {
+        get { self[.showScrollbar] }
+        set { self[.showScrollbar] = newValue }
     }
     
     public var spread: PresentationSpread? {
