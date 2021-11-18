@@ -29,15 +29,27 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
     public struct Configuration {
         /// Initial presentation settings.
         public var settings: PresentationValues
+        
         /// Default presentation settings.
         public var defaultSettings: PresentationValues
         
+        /// Editing actions which will be displayed in the default text selection menu.
+        ///
+        /// The default set of editing actions is `EditingAction.defaultActions`.
+        ///
+        /// You can provide custom actions with `EditingAction(title: "Highlight", action: #selector(highlight:))`.
+        /// Then, implement the selector in one of your classes in the responder chain. Typically, in the
+        /// `UIViewController` wrapping the `PDFNavigatorViewController`.
+        public var editingActions: [EditingAction]
+        
         public init(
             settings: PresentationValues = PresentationValues(),
-            defaultSettings: PresentationValues = PresentationValues()
+            defaultSettings: PresentationValues = PresentationValues(),
+            editingActions: [EditingAction] = EditingAction.defaultActions
         ) {
             self.settings = settings
             self.defaultSettings = defaultSettings
+            self.editingActions = editingActions
         }
     }
     
@@ -61,12 +73,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
     
     private let config: Configuration
 
-    public init(publication: Publication, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions, config: Configuration = .init()) {
+    public init(publication: Publication, initialLocation: Locator? = nil, config: Configuration = .init()) {
         assert(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
         
         self.publication = publication
         self.initialLocation = initialLocation
-        self.editingActions = EditingActionsController(actions: editingActions, rights: publication.rights)
+        self.editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
         self.config = config
         
         self._presentation = MutableObservableVariable(PDFPresentation(
@@ -612,9 +624,13 @@ extension PDFNavigatorViewController {
     
     /// This initializer is deprecated.
     /// `license` is not needed anymore.
-    @available(*, unavailable, renamed: "init(publication:initialLocation:editingActions:)")
+    @available(*, unavailable, renamed: "init(publication:initialLocation:config:)")
     public convenience init(publication: Publication, license: DRMLicense?, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
-        self.init(publication: publication, initialLocation: initialLocation, editingActions: editingActions)
+        self.init(publication: publication, initialLocation: initialLocation, config: Configuration(editingActions: editingActions))
     }
     
+    @available(*, deprecated, renamed: "init(publication:initialLocation:config:)")
+    public convenience init(publication: Publication, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
+        self.init(publication: publication, initialLocation: initialLocation, config: Configuration(editingActions: editingActions))
+    }
 }
