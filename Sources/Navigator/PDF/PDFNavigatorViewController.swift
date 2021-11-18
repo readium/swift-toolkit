@@ -498,7 +498,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
                 defaults.pageSpacing
             ]
                 .compactMap { $0 }
-                .first { 0.0...1.0 ~= $0 } ?? 0.2
+                .first { 0.0...1.0 ~= $0 } ?? 0
             
             readingProgressions = (overflow == .paginated)
                 ? [ .ltr, .rtl, .ttb, .btt ]
