@@ -4,7 +4,12 @@ import Foundation
 import R2Shared
 import ReadiumOPDS
 
+protocol SearchServiceDelegate: AnyObject{
+    func searchResultsChanged(results: [Locator])
+}
+
 final class SearchService {
+    weak var delegate: SearchServiceDelegate?
     
     enum State {
         // Empty state / waiting for a search query
@@ -22,7 +27,11 @@ final class SearchService {
     }
     
     @Published private(set) var state: State = .empty
-    @Published private(set) var results: [Locator] = []
+    @Published private(set) var results: [Locator] = [] {
+        didSet {
+            delegate?.searchResultsChanged(results: results)
+        }
+    }
     
     private var publication: Publication
     
@@ -95,3 +104,4 @@ final class SearchService {
 enum SearchError: LocalizedError {
     case someError
 }
+

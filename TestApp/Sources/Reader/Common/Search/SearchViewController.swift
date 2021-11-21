@@ -7,9 +7,13 @@
 
 import UIKit
 import R2Shared
+import Combine
 
 class SearchViewController: UIViewController {
-    var searchService: SearchService
+    private var searchService: SearchService
+    private var resultsList: UITableView!
+    private var searchResultsBinding: AnyCancellable?
+    let kSearchResultCell = "kSearchResultCell"
     
     init(publication: Publication) {
         searchService = SearchService(publication: publication)
@@ -36,9 +40,17 @@ class SearchViewController: UIViewController {
         view.addSubview(searchBar)
         
         // Results
-        let resultsList = UITableView(frame: CGRect(x: inset, y: inset+searchBarHeight, width: width-inset*2, height: height-(inset+searchBarHeight)), style: .insetGrouped)
+        resultsList = UITableView(frame: CGRect(x: inset, y: inset+searchBarHeight, width: width-inset*2, height: height-(inset+searchBarHeight)), style: .insetGrouped)
         resultsList.backgroundColor = .green
         view.addSubview(resultsList)
+        resultsList.dataSource = self
+        
+        searchService.delegate = self
+        
+        // the following doesn't work, TODO: find why
+//        searchResultsBinding = searchService.results.publisher.sink { _ in
+//            self.resultsList.reloadData()
+//        }
     }
 }
 
@@ -52,8 +64,37 @@ extension SearchViewController: UISearchBarDelegate {
     }
 
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if searchText == "castle" {
-            searchService.search(with: searchText) 
-        }
+        searchService.cancelSearch()
+        searchService.search(with: searchText)
+    }
+}
+
+extension SearchViewController: UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return searchService.results.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = UITableViewCell(style: .default, reuseIdentifier: kSearchResultCell)
+        let item = searchService.results[indexPath.row]
+        
+        let myAttribute = [ NSAttributedString.Key.font: UIFont(name: "Chalkduster", size: 18.0)!, NSAttributedString.Key.foregroundColor: UIColor.red ]
+        
+        let before = NSMutableAttributedString(string: String((item.text.before ?? "").suffix(5)), attributes: [:])
+        let highlight = NSAttributedString(string: item.text.highlight ?? "", attributes: myAttribute)
+        let after = NSMutableAttributedString(string: String((item.text.after ?? "").prefix(5)), attributes: [:])
+        
+        before.append(highlight)
+        before.append(after)
+        
+        cell.textLabel!.attributedText = before
+        
+        return cell
+    }
+}
+
+extension SearchViewController: SearchServiceDelegate {
+    func searchResultsChanged(results: [Locator]) {
+        resultsList.reloadData()
     }
 }
