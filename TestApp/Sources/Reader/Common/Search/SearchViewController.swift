@@ -8,14 +8,17 @@
 import UIKit
 import R2Shared
 import Combine
+import R2Navigator
 
 class SearchViewController: UIViewController {
-    private var searchService: SearchService
+    private let navigator: UIViewController & Navigator
+    private let searchService: SearchService
     private var resultsList: UITableView!
     private var searchResultsBinding: AnyCancellable?
     let kSearchResultCell = "kSearchResultCell"
     
-    init(publication: Publication) {
+    init(navigator: UIViewController & Navigator, publication: Publication) {
+        self.navigator = navigator
         searchService = SearchService(publication: publication)
         super.init(nibName: nil, bundle: nil)
     }
@@ -44,6 +47,7 @@ class SearchViewController: UIViewController {
         resultsList.backgroundColor = .green
         view.addSubview(resultsList)
         resultsList.dataSource = self
+        resultsList.delegate = self
         
         searchService.delegate = self
         
@@ -66,6 +70,15 @@ extension SearchViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         searchService.cancelSearch()
         searchService.search(with: searchText)
+    }
+}
+
+extension SearchViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        self.dismiss(animated: false, completion: nil)
+        navigator.go(to: searchService.results[indexPath.row], animated: true) {
+            
+        }
     }
 }
 

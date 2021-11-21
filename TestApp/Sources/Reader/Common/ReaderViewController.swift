@@ -191,7 +191,7 @@ class ReaderViewController: UIViewController, Loggable {
     
     // MARK: - Search
     @objc func enterSearchMode() {
-        let vc = SearchViewController(publication: publication)
+        let vc = SearchViewController(navigator: navigator, publication: publication)
         vc.modalPresentationStyle = .pageSheet
         present(vc, animated: true, completion: nil)
     }
