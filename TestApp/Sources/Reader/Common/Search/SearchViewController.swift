@@ -49,6 +49,8 @@ class SearchViewController: UIViewController {
         view.addSubview(resultsTable)
         resultsTable.dataSource = self
         resultsTable.delegate = self
+        resultsTable.register(UINib(nibName: "SearchResultCell", bundle: Bundle.main), forCellReuseIdentifier: "kSearchResultCell")
+        //resultsTable.register(SearchResultCell.self, forCellReuseIdentifier: kSearchResultCell)
         
         searchResultsBinding = viewModel.$results.sink { [self] newValue in
             self.cachedResults = newValue
@@ -96,21 +98,31 @@ extension SearchViewController: UITableViewDataSource {
         return cachedResults.count
     }
     
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 100
+    }
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = UITableViewCell(style: .default, reuseIdentifier: kSearchResultCell)
+        let cell = resultsTable.dequeueReusableCell(withIdentifier: kSearchResultCell, for: indexPath) as! SearchResultCell
         let item = cachedResults[indexPath.row]
         
-        let myAttribute = [ NSAttributedString.Key.font: UIFont(name: "Chalkduster", size: 18.0)!, NSAttributedString.Key.foregroundColor: UIColor.red ]
+        let myAttribute = [ NSAttributedString.Key.backgroundColor : UIColor.yellow ]
         
-        let before = NSMutableAttributedString(string: String((item.text.before ?? "").suffix(5)), attributes: [:])
+        // .suffix(5))
+        let before = NSMutableAttributedString(string: String(item.text.before ?? ""), attributes: [:])
         let highlight = NSAttributedString(string: item.text.highlight ?? "", attributes: myAttribute)
-        let after = NSMutableAttributedString(string: String((item.text.after ?? "").prefix(5)), attributes: [:])
+        let after = NSMutableAttributedString(string: String(item.text.after ?? ""), attributes: [:])
         
         before.append(highlight)
         before.append(after)
         
-        cell.textLabel!.attributedText = before
+        cell.textView.isEditable = false
+        cell.textView.isUserInteractionEnabled = false
+        cell.textView.attributedText = before
+        cell.textView.setContentOffset(CGPoint(x: (cell.frame.width-cell.textView.contentSize.width)/2, y: (cell.frame.height-cell.textView.contentSize.height)/2), animated: false)
         
         return cell
     }
 }
+                                              
+                                              
