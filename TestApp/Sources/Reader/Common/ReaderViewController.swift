@@ -126,6 +126,8 @@ class ReaderViewController: UIViewController, Loggable {
         }
         // Bookmarks
         buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(bookmarkCurrentPosition)))
+        // Search
+        buttons.append(UIBarButtonItem(image: UIImage(systemName: "magnifyingglass"), style: .plain, target: self, action: #selector(enterSearchMode)))
         
         return buttons
     }
@@ -184,6 +186,10 @@ class ReaderViewController: UIViewController, Loggable {
             .store(in: &subscriptions)
     }
     
+    // MARK: - Search
+    @objc func enterSearchMode() {
+    
+    }
     
     // MARK: - DRM
     
