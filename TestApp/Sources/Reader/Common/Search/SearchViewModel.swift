@@ -4,13 +4,7 @@ import Foundation
 import R2Shared
 import ReadiumOPDS
 
-protocol SearchServiceDelegate: AnyObject{
-    func searchResultsChanged(results: [Locator])
-}
-
-final class SearchService {
-    weak var delegate: SearchServiceDelegate?
-    
+final class SearchViewModel {
     enum State {
         // Empty state / waiting for a search query
         case empty
@@ -27,11 +21,8 @@ final class SearchService {
     }
     
     @Published private(set) var state: State = .empty
-    @Published private(set) var results: [Locator] = [] {
-        didSet {
-            delegate?.searchResultsChanged(results: results)
-        }
-    }
+    @Published private(set) var results: [Locator] = []
+    private(set) var lastQuery: String?
     
     private var publication: Publication
     
@@ -41,6 +32,7 @@ final class SearchService {
     
     /// Starts a new search with the given query.
     func search(with query: String) {
+        lastQuery = query
         cancelSearch()
         
         let cancellable = publication._search(query: query) { result in

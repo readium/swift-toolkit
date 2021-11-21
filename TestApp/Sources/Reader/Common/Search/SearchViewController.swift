@@ -12,14 +12,15 @@ import R2Navigator
 
 class SearchViewController: UIViewController {
     private let navigator: UIViewController & Navigator
-    private let searchService: SearchService
-    private var resultsList: UITableView!
+    private let viewModel: SearchViewModel
+    private var resultsTable: UITableView!
     private var searchResultsBinding: AnyCancellable?
     let kSearchResultCell = "kSearchResultCell"
+    private var cachedResults = [Locator]()
     
-    init(navigator: UIViewController & Navigator, publication: Publication) {
+    init(navigator: UIViewController & Navigator, viewModel: SearchViewModel) {
         self.navigator = navigator
-        searchService = SearchService(publication: publication)
+        self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -38,23 +39,21 @@ class SearchViewController: UIViewController {
         let width = view.frame.width, height = view.frame.width
         let searchBarHeight: CGFloat = 50
         let searchBar = UISearchBar(frame: CGRect(x: inset, y: inset, width: width-inset*2, height: searchBarHeight))
+        searchBar.text = viewModel.lastQuery ?? ""
         searchBar.delegate = self
         searchBar.placeholder = "Type a text"
         view.addSubview(searchBar)
         
         // Results
-        resultsList = UITableView(frame: CGRect(x: inset, y: inset+searchBarHeight, width: width-inset*2, height: height-(inset+searchBarHeight)), style: .insetGrouped)
-        resultsList.backgroundColor = .green
-        view.addSubview(resultsList)
-        resultsList.dataSource = self
-        resultsList.delegate = self
+        resultsTable = UITableView(frame: CGRect(x: inset, y: inset+searchBarHeight, width: width-inset*2, height: height-(inset+searchBarHeight)), style: .insetGrouped)
+        view.addSubview(resultsTable)
+        resultsTable.dataSource = self
+        resultsTable.delegate = self
         
-        searchService.delegate = self
-        
-        // the following doesn't work, TODO: find why
-//        searchResultsBinding = searchService.results.publisher.sink { _ in
-//            self.resultsList.reloadData()
-//        }
+        searchResultsBinding = viewModel.$results.sink { [self] newValue in
+            self.cachedResults = newValue
+            self.resultsTable.reloadData()
+        }
     }
 }
 
@@ -64,32 +63,42 @@ extension SearchViewController: UISearchBarDelegate {
     }
 
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
-        
+        self.dismiss(animated: true, completion: nil)
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        cachedResults.removeAll()
+        viewModel.cancelSearch()
     }
 
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        searchService.cancelSearch()
-        searchService.search(with: searchText)
+        cachedResults.removeAll()
+        viewModel.cancelSearch()
+        viewModel.search(with: searchText)
     }
 }
 
 extension SearchViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.dismiss(animated: false, completion: nil)
-        navigator.go(to: searchService.results[indexPath.row], animated: true) {
-            
+        navigator.go(to: cachedResults[indexPath.row], animated: true) {
+            if let decorator = self.navigator as? DecorableNavigator {
+                let locator = self.cachedResults[indexPath.row]
+                let decoration = Decoration(id: locator.text.jsonString ?? "", locator: locator, style: Decoration.Style.highlight(tint: .yellow, isActive: false))
+                decorator.apply(decorations: [decoration], in: "search")
+            }
         }
     }
 }
 
 extension SearchViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return searchService.results.count
+        return cachedResults.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .default, reuseIdentifier: kSearchResultCell)
-        let item = searchService.results[indexPath.row]
+        let item = cachedResults[indexPath.row]
         
         let myAttribute = [ NSAttributedString.Key.font: UIFont(name: "Chalkduster", size: 18.0)!, NSAttributedString.Key.foregroundColor: UIColor.red ]
         
@@ -103,11 +112,5 @@ extension SearchViewController: UITableViewDataSource {
         cell.textLabel!.attributedText = before
         
         return cell
-    }
-}
-
-extension SearchViewController: SearchServiceDelegate {
-    func searchResultsChanged(results: [Locator]) {
-        resultsList.reloadData()
     }
 }

@@ -34,6 +34,8 @@ class ReaderViewController: UIViewController, Loggable {
     private lazy var positionLabel = UILabel()
     private var subscriptions = Set<AnyCancellable>()
     
+    private var searchViewModel: SearchViewModel?
+    
     /// This regex matches any string with at least 2 consecutive letters (not limited to ASCII).
     /// It's used when evaluating whether to display the body of a noteref referrer as the note's title.
     /// I.e. a `*` or `1` would not be used as a title, but `on` or `好書` would.
@@ -191,7 +193,10 @@ class ReaderViewController: UIViewController, Loggable {
     
     // MARK: - Search
     @objc func enterSearchMode() {
-        let vc = SearchViewController(navigator: navigator, publication: publication)
+        if searchViewModel == nil {
+            searchViewModel = SearchViewModel(publication: publication)
+        }
+        let vc = SearchViewController(navigator: navigator, viewModel: searchViewModel!)
         vc.modalPresentationStyle = .pageSheet
         present(vc, animated: true, completion: nil)
     }
