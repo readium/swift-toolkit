@@ -14,7 +14,7 @@ class SearchViewController: UIViewController {
     private let navigator: UIViewController & Navigator
     private let viewModel: SearchViewModel
     private var resultsTable: UITableView!
-    private var searchResultsBinding: AnyCancellable?
+    private var searchResultsCancellable: AnyCancellable?
     let kSearchResultCell = "kSearchResultCell"
     private var cachedResults = [Locator]()
     
@@ -50,9 +50,9 @@ class SearchViewController: UIViewController {
         resultsTable.dataSource = self
         resultsTable.delegate = self
         resultsTable.register(UINib(nibName: "SearchResultCell", bundle: Bundle.main), forCellReuseIdentifier: "kSearchResultCell")
-        //resultsTable.register(SearchResultCell.self, forCellReuseIdentifier: kSearchResultCell)
         
-        searchResultsBinding = viewModel.$results.sink { [self] newValue in
+        // Subscription
+        searchResultsCancellable = viewModel.$results.sink { [self] newValue in
             self.cachedResults = newValue
             self.resultsTable.reloadData()
         }
@@ -81,6 +81,12 @@ extension SearchViewController: UISearchBarDelegate {
 }
 
 extension SearchViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if indexPath.row == viewModel.results.count-1 {
+            viewModel.loadNextPage()
+        }
+    }
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.dismiss(animated: false, completion: nil)
         navigator.go(to: cachedResults[indexPath.row], animated: true) {
@@ -104,14 +110,13 @@ extension SearchViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = resultsTable.dequeueReusableCell(withIdentifier: kSearchResultCell, for: indexPath) as! SearchResultCell
-        let item = cachedResults[indexPath.row]
+        let locator = cachedResults[indexPath.row]
         
         let myAttribute = [ NSAttributedString.Key.backgroundColor : UIColor.yellow ]
         
-        // .suffix(5))
-        let before = NSMutableAttributedString(string: String(item.text.before ?? ""), attributes: [:])
-        let highlight = NSAttributedString(string: item.text.highlight ?? "", attributes: myAttribute)
-        let after = NSMutableAttributedString(string: String(item.text.after ?? ""), attributes: [:])
+        let before = NSMutableAttributedString(string: locator.previewTextBefore, attributes: [:])
+        let highlight = NSAttributedString(string: locator.previewTextHighlight, attributes: myAttribute)
+        let after = NSMutableAttributedString(string: locator.previewTextAfter, attributes: [:])
         
         before.append(highlight)
         before.append(after)
@@ -125,4 +130,20 @@ extension SearchViewController: UITableViewDataSource {
     }
 }
                                               
-                                              
+extension Locator {
+    /// Sometimes when there's an image before the text, "text.before" looks like "\n\t\t\n\t\n\n\t\n\n\t Some Seach word"
+    /// This function tries to remove leading tabs and newlines for a more compact preview
+    var previewTextBefore: String {
+        let textBefore = text.before ?? ""
+        return String(textBefore.drop { char in char == "\n" || char == "\t" })
+    }
+    
+    var previewTextHighlight: String {
+        return text.highlight ?? ""
+    }
+    
+    var previewTextAfter: String {
+        return String(text.after ?? "")
+    }
+}
+
