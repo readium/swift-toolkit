@@ -4,7 +4,7 @@ import Foundation
 import R2Shared
 import ReadiumOPDS
 
-final class SearchViewModel {
+final class SearchViewModel: ObservableObject {
     enum State {
         // Empty state / waiting for a search query
         case empty
@@ -22,6 +22,8 @@ final class SearchViewModel {
     
     @Published private(set) var state: State = .empty
     @Published private(set) var results: [Locator] = []
+    @Published var selectedLocator: Locator?
+    
     private(set) var lastQuery: String?
     
     private var publication: Publication
