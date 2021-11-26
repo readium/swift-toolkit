@@ -1,8 +1,7 @@
 //
-//  SearchView.swift
-//  TestApp
-//
-//  Created by Olha Pavliuk on 23.11.2021.
+//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -31,7 +30,7 @@ struct SearchBar: UIViewRepresentable {
     
     func makeUIView(context: UIViewRepresentableContext<SearchBar>) -> UISearchBar {
         let searchBar = UISearchBar(frame: .zero)
-        searchBar.placeholder = "Type a text"
+        searchBar.placeholder = "Search"
         searchBar.delegate = context.coordinator
         searchBar.searchBarStyle = .minimal
         return searchBar
@@ -45,7 +44,6 @@ struct SearchBar: UIViewRepresentable {
 struct SearchView: View {
     @ObservedObject var viewModel: SearchViewModel
     @State var query: String = ""
-    @State var selectedLocator: Locator?
     var body: some View {
         let queryValueBinding = Binding<String>(get: {
             self.query

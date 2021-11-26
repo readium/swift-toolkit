@@ -1,9 +1,14 @@
-// https://github.com/readium/r2-testapp-swift/discussions/402
+//
+//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
+//
 
 import Foundation
 import R2Shared
 import ReadiumOPDS
 
+// See https://github.com/readium/r2-testapp-swift/discussions/402
 final class SearchViewModel: ObservableObject {
     enum State {
         // Empty state / waiting for a search query
@@ -93,9 +98,5 @@ final class SearchViewModel: ObservableObject {
         results.removeAll()
         state = .empty
     }
-}
-
-enum SearchError: LocalizedError {
-    case someError
 }
 
