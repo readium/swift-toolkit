@@ -120,7 +120,7 @@ public struct Link: JSONEquatable, Hashable {
     }
     
     /// Media type of the linked resource.
-    var mediaType: MediaType {
+    public var mediaType: MediaType {
         MediaType.of(
             mediaType: type,
             fileExtension: URL(string: href)?.pathExtension
