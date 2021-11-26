@@ -35,7 +35,7 @@ class PublicationTests: XCTestCase {
         )
     }
     
-    func testConformsToProfile() {
+    func testConformsToExplicitProfile() {
         func makePub(_ conformsTo: [Publication.Profile]) -> Publication {
             Publication(manifest: Manifest(metadata: Metadata(conformsTo: conformsTo, title: "")))
         }
@@ -46,6 +46,27 @@ class PublicationTests: XCTestCase {
         XCTAssertTrue(makePub([.epub]).conforms(to: .epub))
         XCTAssertTrue(makePub([.pdf, .epub]).conforms(to: .epub))
         XCTAssertFalse(makePub([.epub]).conforms(to: .pdf))
+    }
+    
+    func testConformsToImplicitProfile() {
+        func makePub(_ readingOrder: [String]) -> Publication {
+            Publication(manifest: Manifest(
+                metadata: Metadata(title: ""),
+                readingOrder: readingOrder.map { Link(href: $0) }
+            ))
+        }
+        
+        XCTAssertTrue(makePub(["c1.mp3", "c2.aac"]).conforms(to: .audiobook))
+        XCTAssertTrue(makePub(["c1.jpg", "c2.png"]).conforms(to: .divina))
+        XCTAssertTrue(makePub(["c1.pdf", "c2.pdf"]).conforms(to: .pdf))
+        
+        // Mixed media types disable implicit conformance.
+        XCTAssertFalse(makePub(["c1.mp3", "c2.jpg"]).conforms(to: .audiobook))
+        XCTAssertFalse(makePub(["c1.mp3", "c2.jpg"]).conforms(to: .divina))
+        
+        // XHTML could be EPUB or a Web Publication, so we can't implicitly conform.
+        XCTAssertFalse(makePub(["c1.xhtml", "c2.xhtml"]).conforms(to: .epub))
+        XCTAssertFalse(makePub(["c1.html", "c2.html"]).conforms(to: .epub))
     }
     
     func testBaseURL() {
