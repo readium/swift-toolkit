@@ -6,6 +6,20 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
+### Added
+
+#### Shared
+
+* A new `Publication.conforms(to:)` API to identify the profile of a publication.
+* Support for the [`conformsTo` RWPM metadata](https://github.com/readium/webpub-manifest/issues/65), to identify the profile of a `Publication`.
+
+### Deprecated
+
+#### Shared
+
+* `Publication.format` is now deprecated in favor of the new `Publication.conforms(to:)` API which is more accurate.
+    * For example, replace `publication.format == .epub` with `publication.conforms(to: .epub)` before opening a publication with the `EPUBNavigatorViewController`.
+
 ### Fixed
 
 #### Navigator
