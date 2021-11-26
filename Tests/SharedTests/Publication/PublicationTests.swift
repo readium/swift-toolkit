@@ -35,6 +35,19 @@ class PublicationTests: XCTestCase {
         )
     }
     
+    func testConformsToProfile() {
+        func makePub(_ conformsTo: [Publication.Profile]) -> Publication {
+            Publication(manifest: Manifest(metadata: Metadata(conformsTo: conformsTo, title: "")))
+        }
+        
+        XCTAssertTrue(makePub([.audiobook]).conforms(to: .audiobook))
+        XCTAssertTrue(makePub([.divina]).conforms(to: .divina))
+        XCTAssertTrue(makePub([.pdf]).conforms(to: .pdf))
+        XCTAssertTrue(makePub([.epub]).conforms(to: .epub))
+        XCTAssertTrue(makePub([.pdf, .epub]).conforms(to: .epub))
+        XCTAssertFalse(makePub([.epub]).conforms(to: .pdf))
+    }
+    
     func testBaseURL() {
         XCTAssertEqual(
             makePublication(links: [
@@ -256,7 +269,7 @@ class PublicationTests: XCTestCase {
         
         XCTAssertEqual(requestedLink, Link(href: "test?query=param", type: "text/html", templated: false))
     }
-
+    
     private func makePublication(
         metadata: Metadata = Metadata(title: ""),
         links: [Link] = [],

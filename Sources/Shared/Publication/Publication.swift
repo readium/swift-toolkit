@@ -84,6 +84,11 @@ public class Publication: Loggable {
         serializeJSONString(manifest.json)
     }
     
+    /// Returns whether this publication conforms to the given Readium Web Publication Profile.
+    public func conforms(to profile: Profile) -> Bool {
+        manifest.metadata.conformsTo.contains(profile)
+    }
+    
     /// The URL where this publication is served, computed from the `Link` with `self` relation.
     ///
     /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
@@ -177,7 +182,28 @@ public class Publication: Loggable {
             ), at: 0)
         }
     }
-
+    
+    /// Represents a Readium Web Publication Profile a `Publication` can conform to.
+    ///
+    /// For a list of supported profiles, see the registry:
+    /// https://readium.org/webpub-manifest/profiles/
+    public struct Profile: Hashable {
+        public let uri: String
+        
+        public init(_ uri: String) {
+            self.uri = uri
+        }
+        
+        /// Profile for EPUB publications.
+        public static let epub = Profile("https://readium.org/webpub-manifest/profiles/epub")
+        /// Profile for audiobooks.
+        public static let audiobook = Profile("https://readium.org/webpub-manifest/profiles/audiobook")
+        /// Profile for visual narratives (comics, manga and bandes dessinées).
+        public static let divina = Profile("https://readium.org/webpub-manifest/profiles/divina")
+        /// Profile for PDF documents.
+        public static let pdf = Profile("https://readium.org/webpub-manifest/profiles/pdf")
+    }
+    
     public enum Format: Equatable, Hashable {
         /// Formats natively supported by Readium.
         case cbz, epub, pdf, webpub
