@@ -103,6 +103,27 @@ public struct Manifest: JSONEquatable, Hashable {
         ], additional: PublicationCollection.serializeCollections(subcollections))
     }
     
+    /// Returns whether this manifest conforms to the given Readium Web Publication Profile.
+    public func conforms(to profile: Publication.Profile) -> Bool {
+        if metadata.conformsTo.contains(profile) {
+            return true
+        }
+        guard !readingOrder.isEmpty else {
+            return false
+        }
+        
+        switch profile {
+        case .audiobook:
+            return readingOrder.allAreAudio
+        case .divina:
+            return readingOrder.allAreBitmap
+        case .pdf:
+            return readingOrder.all(matchMediaType: .pdf)
+        default:
+            return false
+        }
+    }
+    
     /// Finds the first link with the given relation in the manifest's links.
     public func link(withRel rel: LinkRelation) -> Link? {
         return readingOrder.first(withRel: rel)

@@ -86,23 +86,7 @@ public class Publication: Loggable {
     
     /// Returns whether this publication conforms to the given Readium Web Publication Profile.
     public func conforms(to profile: Profile) -> Bool {
-        if metadata.conformsTo.contains(profile) {
-            return true
-        }
-        guard !readingOrder.isEmpty else {
-            return false
-        }
-        
-        switch profile {
-        case .audiobook:
-            return readingOrder.allAreAudio
-        case .divina:
-            return readingOrder.allAreBitmap
-        case .pdf:
-            return readingOrder.all(matchMediaType: .pdf)
-        default:
-            return false
-        }
+        return manifest.conforms(to: profile)
     }
     
     /// The URL where this publication is served, computed from the `Link` with `self` relation.
