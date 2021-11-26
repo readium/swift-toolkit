@@ -50,9 +50,7 @@ public class Publication: Loggable {
     public init(
         manifest: Manifest,
         fetcher: Fetcher = EmptyFetcher(),
-        servicesBuilder: PublicationServicesBuilder = .init(),
-        format: Format = .unknown,
-        formatVersion: String? = nil
+        servicesBuilder: PublicationServicesBuilder = .init()
     ) {
         let weakPublication = Weak<Publication>()
 
@@ -69,8 +67,6 @@ public class Publication: Loggable {
         self.manifest = manifest
         self.fetcher = fetcher
         self.services = services
-        self.format = format
-        self.formatVersion = formatVersion
 
         weakPublication.ref = self
     }
@@ -347,9 +343,9 @@ public class Publication: Loggable {
             let publication = Publication(
                 manifest: manifest,
                 fetcher: fetcher,
-                servicesBuilder: servicesBuilder
+                servicesBuilder: servicesBuilder,
+                format: format
             )
-            publication.format = format
             setupPublication?(publication)
             return publication
         }

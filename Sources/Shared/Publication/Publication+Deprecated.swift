@@ -16,6 +16,13 @@ public typealias WebPublication = Publication
 
 extension Publication {
     
+    @available(*, deprecated, message: "format and formatVersion are deprecated", renamed: "init(manifest:fetcher:servicesBuilder:)")
+    public convenience init(manifest: Manifest, fetcher: Fetcher = EmptyFetcher(), servicesBuilder: PublicationServicesBuilder = .init(), format: Format = .unknown, formatVersion: String? = nil) {
+        self.init(manifest: manifest, fetcher: fetcher, servicesBuilder: servicesBuilder)
+        self.format = format
+        self.formatVersion = formatVersion
+    }
+    
     @available(*, unavailable, renamed: "init(manifest:)")
     public convenience init() {
         self.init(manifest: Manifest(metadata: Metadata(title: "")))
@@ -24,9 +31,7 @@ extension Publication {
     @available(*, unavailable, renamed: "init(format:formatVersion:manifest:)")
     public convenience init(format: Format = .unknown, formatVersion: String? = nil, positionListFactory: @escaping (Publication) -> [Locator] = { _ in [] }, context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], otherCollections: [String: [PublicationCollection]] = [:]) {
         self.init(
-            manifest: Manifest(context: context, metadata: metadata, links: links, readingOrder: readingOrder, resources: resources, tableOfContents: tableOfContents, subcollections: otherCollections),
-            format: format,
-            formatVersion: formatVersion
+            manifest: Manifest(context: context, metadata: metadata, links: links, readingOrder: readingOrder, resources: resources, tableOfContents: tableOfContents, subcollections: otherCollections)
         )
     }
     
