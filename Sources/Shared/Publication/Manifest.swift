@@ -105,9 +105,6 @@ public struct Manifest: JSONEquatable, Hashable {
     
     /// Returns whether this manifest conforms to the given Readium Web Publication Profile.
     public func conforms(to profile: Publication.Profile) -> Bool {
-        if metadata.conformsTo.contains(profile) {
-            return true
-        }
         guard !readingOrder.isEmpty else {
             return false
         }
@@ -117,11 +114,17 @@ public struct Manifest: JSONEquatable, Hashable {
             return readingOrder.allAreAudio
         case .divina:
             return readingOrder.allAreBitmap
+        case .epub:
+            // EPUB needs to be explicitly indicated in `conformsTo`, otherwise
+            // it could be a regular Web Publication.
+            return readingOrder.allAreHTML && metadata.conformsTo.contains(.epub)
         case .pdf:
             return readingOrder.all(matchMediaType: .pdf)
         default:
-            return false
+            break
         }
+        
+        return metadata.conformsTo.contains(profile)
     }
     
     /// Finds the first link with the given relation in the manifest's links.

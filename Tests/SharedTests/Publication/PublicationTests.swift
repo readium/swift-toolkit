@@ -35,26 +35,19 @@ class PublicationTests: XCTestCase {
         )
     }
     
-    func testConformsToExplicitProfile() {
-        func makePub(_ conformsTo: [Publication.Profile]) -> Publication {
-            Publication(manifest: Manifest(metadata: Metadata(conformsTo: conformsTo, title: "")))
-        }
-        
-        XCTAssertTrue(makePub([.audiobook]).conforms(to: .audiobook))
-        XCTAssertTrue(makePub([.divina]).conforms(to: .divina))
-        XCTAssertTrue(makePub([.pdf]).conforms(to: .pdf))
-        XCTAssertTrue(makePub([.epub]).conforms(to: .epub))
-        XCTAssertTrue(makePub([.pdf, .epub]).conforms(to: .epub))
-        XCTAssertFalse(makePub([.epub]).conforms(to: .pdf))
-    }
-    
-    func testConformsToImplicitProfile() {
-        func makePub(_ readingOrder: [String]) -> Publication {
+    func testConformsToProfile() {
+        func makePub(_ readingOrder: [String], conformsTo: [Publication.Profile] = []) -> Publication {
             Publication(manifest: Manifest(
-                metadata: Metadata(title: ""),
+                metadata: Metadata(
+                    conformsTo: conformsTo,
+                    title: ""
+                ),
                 readingOrder: readingOrder.map { Link(href: $0) }
             ))
         }
+        
+        // An empty reading order doesn't conform to anything.
+        XCTAssertFalse(makePub([], conformsTo: [.epub]).conforms(to: .epub))
         
         XCTAssertTrue(makePub(["c1.mp3", "c2.aac"]).conforms(to: .audiobook))
         XCTAssertTrue(makePub(["c1.jpg", "c2.png"]).conforms(to: .divina))
@@ -64,9 +57,21 @@ class PublicationTests: XCTestCase {
         XCTAssertFalse(makePub(["c1.mp3", "c2.jpg"]).conforms(to: .audiobook))
         XCTAssertFalse(makePub(["c1.mp3", "c2.jpg"]).conforms(to: .divina))
         
-        // XHTML could be EPUB or a Web Publication, so we can't implicitly conform.
+        // XHTML could be EPUB or a Web Publication, so we require an explicit EPUB profile.
         XCTAssertFalse(makePub(["c1.xhtml", "c2.xhtml"]).conforms(to: .epub))
         XCTAssertFalse(makePub(["c1.html", "c2.html"]).conforms(to: .epub))
+        XCTAssertTrue(makePub(["c1.xhtml", "c2.xhtml"], conformsTo: [.epub]).conforms(to: .epub))
+        XCTAssertTrue(makePub(["c1.html", "c2.html"], conformsTo: [.epub]).conforms(to: .epub))
+        
+        // Implicit conformance always take precedence over explicit profiles.
+        XCTAssertTrue(makePub(["c1.mp3", "c2.aac"]).conforms(to: .audiobook))
+        XCTAssertTrue(makePub(["c1.mp3", "c2.aac"], conformsTo: [.divina]).conforms(to: .audiobook))
+        XCTAssertFalse(makePub(["c1.mp3", "c2.aac"], conformsTo: [.divina]).conforms(to: .divina))
+        
+        // Unknown profile
+        let profile = Publication.Profile("http://extension")
+        XCTAssertFalse(makePub(["file"]).conforms(to: profile))
+        XCTAssertTrue(makePub(["file"], conformsTo: [profile]).conforms(to: profile))
     }
     
     func testBaseURL() {
