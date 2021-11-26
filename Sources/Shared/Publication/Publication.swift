@@ -14,10 +14,12 @@ import Foundation
 
 /// Shared model for a Readium Publication.
 public class Publication: Loggable {
-
+    
     /// Format of the publication, if specified.
+    @available(*, deprecated, message: "Use publication.conforms(to:) to check the profile of a Publication")
     public var format: Format = .unknown
     /// Version of the publication's format, eg. 3 for EPUB 3
+    @available(*, deprecated, message: "This API will be removed in a future version. If you still need it, please explain your use case at https://github.com/readium/swift-toolkit/issues/new")
     public var formatVersion: String?
     
     private var manifest: Manifest

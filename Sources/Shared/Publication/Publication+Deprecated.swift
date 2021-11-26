@@ -36,14 +36,7 @@ extension Publication {
     }
     
     @available(*, unavailable, renamed: "formatVersion")
-    public var version: Double {
-        guard let versionString = formatVersion,
-            let version = Double(versionString) else
-        {
-            return 0
-        }
-        return version
-    }
+    public var version: Double { 0 }
 
     /// Factory used to build lazily the `positionList`.
     /// By default, a parser will set this to parse the `positionList` from the publication. But the host app might want to overwrite this with a custom closure to implement for example a cache mechanism.
@@ -56,25 +49,8 @@ extension Publication {
     @available(*, unavailable, message: "This is not used anymore, don't set it")
     public var updatedDate: Date { Date() }
     
-    @available(*, unavailable, message: "Check the publication's type using `format` instead")
-    public var internalData: [String: String] {
-        // The code in the testapp used to check a property in `publication.internalData["type"]` to know which kind of publication this is.
-        // To avoid breaking any app, we reproduce this value here:
-        return [
-            "type": {
-                switch format {
-                case .epub:
-                    return "epub"
-                case .cbz:
-                    return "cbz"
-                case .pdf:
-                    return "pdf"
-                default:
-                    return "unknown"
-                }
-            }()
-        ]
-    }
+    @available(*, unavailable, message: "Check the publication's type using `conforms(to:)` instead")
+    public var internalData: [String: String] { [:] }
     
     @available(*, unavailable, renamed: "json")
     public var manifestCanonical: String { jsonManifest ?? "" }
