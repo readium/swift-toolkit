@@ -50,9 +50,9 @@ struct SearchView: View {
             List(viewModel.results.indices, id: \.self) { index in
                 let locator = viewModel.results[index]
                 (
-                    Text(locator.previewTextBefore) +
-                    Text(locator.previewTextHighlight).foregroundColor(Color.orange) +
-                    Text(locator.previewTextAfter)
+                    Text(locator.text.previewBefore) +
+                    Text(locator.text.previewHighlight).foregroundColor(Color.orange) +
+                    Text(locator.text.previewAfter)
                 )
                 .onAppear(perform: {
                     if index == viewModel.results.count-1 {
@@ -67,20 +67,24 @@ struct SearchView: View {
     }
 }
 
-extension Locator {
-    /// Sometimes when there's an image before the text, "text.before" looks like "\n\t\t\n\t\n\n\t\n\n\t Some Seach word"
-    /// This function tries to remove leading tabs and newlines for a more compact preview
-    var previewTextBefore: String {
-        let textBefore = text.before ?? ""
-        return String(textBefore.drop { char in char == "\n" || char == "\t" })
-    }
-    
-    var previewTextHighlight: String {
-        return text.highlight ?? ""
-    }
-    
-    var previewTextAfter: String {
-        return String(text.after ?? "")
+extension String {
+    /// Replaces multiple whitespaces by a single space.
+    func coalescingWhitespaces() -> String {
+        return replacingOccurrences(of: "[\\s\n]+", with: " ", options: .regularExpression, range: nil)
+            .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
     }
 }
 
+extension Locator.Text {
+    var previewBefore: String {
+        before?.coalescingWhitespaces().removingPrefix(" ") ?? ""
+    }
+
+    var previewHighlight: String {
+        highlight?.coalescingWhitespaces() ?? ""
+    }
+
+    var previewAfter: String {
+        after?.coalescingWhitespaces() ?? ""
+    }
+}

@@ -199,7 +199,6 @@ class ReaderViewController: UIViewController, Loggable {
             searchViewModel?.$selectedLocator.sink(receiveValue: { locator in
                 self.searchViewController?.dismiss(animated: true, completion: nil)
                 if let locator = locator {
-                    //self.dismiss(animated: false, completion: nil)
                     self.navigator.go(to: locator, animated: true) {
                         if let decorator = self.navigator as? DecorableNavigator {
                             let decoration = Decoration(id: "selectedSearchResult", locator: locator, style: Decoration.Style.highlight(tint: .yellow, isActive: false))
