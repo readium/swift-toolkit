@@ -372,6 +372,11 @@ extension ReaderViewController: NavigatorDelegate {
 extension ReaderViewController: VisualNavigatorDelegate {
     
     func navigator(_ navigator: VisualNavigator, didTapAt point: CGPoint) {
+        // clear a current search highlight
+        if let decorator = self.navigator as? DecorableNavigator {
+            decorator.apply(decorations: [], in: "search")
+        }
+        
         let viewport = navigator.view.bounds
         // Skips to previous/next pages if the tap is on the content edges.
         let thresholdRange = 0...(0.2 * viewport.width)
