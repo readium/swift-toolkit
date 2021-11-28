@@ -43,17 +43,10 @@ struct SearchBar: UIViewRepresentable {
 
 struct SearchView: View {
     @ObservedObject var viewModel: SearchViewModel
-    @State var query: String = ""
+    
     var body: some View {
-        let queryValueBinding = Binding<String>(get: {
-            self.query
-        }, set: {
-            self.query = $0
-            viewModel.search(with: query)
-        })
-        
         return VStack {
-            SearchBar(text: queryValueBinding)
+            SearchBar(text: Binding(get: { viewModel.query }, set: { viewModel.search(with: $0) }))
             List(viewModel.results.indices, id: \.self) { index in
                 let locator = viewModel.results[index]
                 (

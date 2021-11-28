@@ -27,9 +27,8 @@ final class SearchViewModel: ObservableObject {
     
     @Published private(set) var state: State = .empty
     @Published private(set) var results: [Locator] = []
+    @Published private(set) var query: String = ""
     @Published var selectedLocator: Locator?
-    
-    private(set) var lastQuery: String?
     
     private var publication: Publication
     
@@ -39,7 +38,7 @@ final class SearchViewModel: ObservableObject {
     
     /// Starts a new search with the given query.
     func search(with query: String) {
-        lastQuery = query
+        self.query = query
         cancelSearch()
         
         let cancellable = publication._search(query: query) { result in
