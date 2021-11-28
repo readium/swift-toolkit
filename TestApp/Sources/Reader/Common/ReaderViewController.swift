@@ -202,7 +202,7 @@ class ReaderViewController: UIViewController, Loggable {
                     //self.dismiss(animated: false, completion: nil)
                     self.navigator.go(to: locator, animated: true) {
                         if let decorator = self.navigator as? DecorableNavigator {
-                            let decoration = Decoration(id: locator.text.jsonString ?? "", locator: locator, style: Decoration.Style.highlight(tint: .yellow, isActive: false))
+                            let decoration = Decoration(id: "selectedSearchResult", locator: locator, style: Decoration.Style.highlight(tint: .yellow, isActive: false))
                             decorator.apply(decorations: [decoration], in: "search")
                         }
                     }
