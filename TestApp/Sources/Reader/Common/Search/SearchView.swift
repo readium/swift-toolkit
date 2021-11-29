@@ -77,7 +77,10 @@ extension String {
 
 extension Locator.Text {
     var previewBefore: String {
-        before?.coalescingWhitespaces().removingPrefix(" ") ?? ""
+        guard let before = before else { return "" }
+        // remove all extra whitespaces, but leave the last one
+        let suffix = before.hasSuffix(" ") ? " " : ""
+        return before.coalescingWhitespaces().removingPrefix(" ") + suffix
     }
 
     var previewHighlight: String {
@@ -85,6 +88,8 @@ extension Locator.Text {
     }
 
     var previewAfter: String {
-        after?.coalescingWhitespaces() ?? ""
+        guard let after = after else { return "" }
+        let prefix = after.hasPrefix(" ") ? " " : ""
+        return prefix + after.coalescingWhitespaces()
     }
 }
