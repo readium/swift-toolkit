@@ -56,6 +56,8 @@ struct SearchView: View {
                         Text(locator.text.previewHighlight).foregroundColor(Color.orange) +
                         Text(locator.text.previewAfter)
                     )
+                    .padding()
+                    .border(index == viewModel.selectedIndex ? Color.orange : Color.clear)
                     .onAppear(perform: {
                         if index == viewModel.results.count-1 {
                             viewModel.loadNextPage()
