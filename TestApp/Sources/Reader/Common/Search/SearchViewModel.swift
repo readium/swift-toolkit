@@ -29,6 +29,12 @@ final class SearchViewModel: ObservableObject {
     @Published private(set) var results: [Locator] = []
     @Published private(set) var query: String = ""
     @Published var selectedLocator: Locator?
+    var selectedIndex: Int?
+    
+    func selectSearchResultCell(locator: Locator?, index: Int) {
+        selectedIndex = index
+        selectedLocator = locator
+    }
     
     private var publication: Publication
     

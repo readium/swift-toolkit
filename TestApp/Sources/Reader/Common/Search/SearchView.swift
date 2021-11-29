@@ -43,26 +43,40 @@ struct SearchBar: UIViewRepresentable {
 
 struct SearchView: View {
     @ObservedObject var viewModel: SearchViewModel
+    @State var viewVisible: Bool = false
     
     var body: some View {
         return VStack {
             SearchBar(text: Binding(get: { viewModel.query }, set: { viewModel.search(with: $0) }))
-            List(viewModel.results.indices, id: \.self) { index in
-                let locator = viewModel.results[index]
-                (
-                    Text(locator.text.previewBefore) +
-                    Text(locator.text.previewHighlight).foregroundColor(Color.orange) +
-                    Text(locator.text.previewAfter)
-                )
-                .onAppear(perform: {
-                    if index == viewModel.results.count-1 {
-                        viewModel.loadNextPage()
+            ScrollViewReader { proxy in
+                List(viewModel.results.indices, id: \.self) { index in
+                    let locator = viewModel.results[index]
+                    (
+                        Text(locator.text.previewBefore) +
+                        Text(locator.text.previewHighlight).foregroundColor(Color.orange) +
+                        Text(locator.text.previewAfter)
+                    )
+                    .onAppear(perform: {
+                        if index == viewModel.results.count-1 {
+                            viewModel.loadNextPage()
+                        }
+                    })
+                    .onTapGesture {
+                        viewModel.selectSearchResultCell(locator: locator, index: index)
                     }
-                })
-                .onTapGesture {
-                    viewModel.selectedLocator = locator
+                }
+                .onChange(of: viewVisible) { newValue in
+                    if newValue, let lastSelectedIndex = viewModel.selectedIndex {
+                        proxy.scrollTo(lastSelectedIndex)
+                    }
                 }
             }
+        }
+        .onAppear {
+            viewVisible = true
+        }
+        .onDisappear{
+            viewVisible = false
         }
     }
 }
