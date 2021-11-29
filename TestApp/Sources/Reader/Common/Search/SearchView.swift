@@ -56,8 +56,6 @@ struct SearchView: View {
                         Text(locator.text.previewHighlight).foregroundColor(Color.orange) +
                         Text(locator.text.previewAfter)
                     )
-                    .padding()
-                    .border(index == viewModel.selectedIndex ? Color.orange : Color.clear)
                     .onAppear(perform: {
                         if index == viewModel.results.count-1 {
                             viewModel.loadNextPage()
@@ -69,7 +67,7 @@ struct SearchView: View {
                 }
                 .onChange(of: viewVisible) { newValue in
                     if newValue, let lastSelectedIndex = viewModel.selectedIndex {
-                        proxy.scrollTo(lastSelectedIndex)
+                        proxy.scrollTo(lastSelectedIndex, anchor: .top)
                     }
                 }
             }
