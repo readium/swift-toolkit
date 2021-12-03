@@ -51,10 +51,11 @@ struct SearchView: View {
             ScrollViewReader { proxy in
                 List(viewModel.results.indices, id: \.self) { index in
                     let locator = viewModel.results[index]
+                    let text = locator.text.sanitized()
                     (
-                        Text(locator.text.previewBefore) +
-                        Text(locator.text.previewHighlight).foregroundColor(Color.orange) +
-                        Text(locator.text.previewAfter)
+                        Text(text.before ?? "") +
+                        Text(text.highlight ?? "").foregroundColor(Color.orange) +
+                        Text(text.after ?? "")
                     )
                     .onAppear(perform: {
                         if index == viewModel.results.count-1 {
@@ -78,32 +79,5 @@ struct SearchView: View {
         .onDisappear{
             viewVisible = false
         }
-    }
-}
-
-extension String {
-    /// Replaces multiple whitespaces by a single space.
-    func coalescingWhitespaces() -> String {
-        return replacingOccurrences(of: "[\\s\n]+", with: " ", options: .regularExpression, range: nil)
-            .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-    }
-}
-
-extension Locator.Text {
-    var previewBefore: String {
-        guard let before = before else { return "" }
-        // remove all extra whitespaces, but leave the last one
-        let suffix = before.hasSuffix(" ") ? " " : ""
-        return before.coalescingWhitespaces().removingPrefix(" ") + suffix
-    }
-
-    var previewHighlight: String {
-        highlight?.coalescingWhitespaces() ?? ""
-    }
-
-    var previewAfter: String {
-        guard let after = after else { return "" }
-        let prefix = after.hasPrefix(" ") ? " " : ""
-        return prefix + after.coalescingWhitespaces()
     }
 }
