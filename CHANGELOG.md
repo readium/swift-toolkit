@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
+### Added
+
+#### Shared
+
+* Get the sanitized `Locator` text ready for user display with `locator.text.sanitized()`.
+
 ### Fixed
 
 #### Navigator

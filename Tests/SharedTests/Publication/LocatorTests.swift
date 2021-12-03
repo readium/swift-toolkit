@@ -578,4 +578,43 @@ class LocatorCollectionTests: XCTestCase {
             ]
         )
     }
+
+    func testGetSanitizedText() {
+        XCTAssertEqual(
+            Locator.Text(
+                after: "\t\n\n  after \n\t  selection  \n\t",
+                before: "\t\n\n  before \n\t  selection  \n\t",
+                highlight: "\t\n\n  current \n\t  selection  \n\t"
+            ).sanitized(),
+            Locator.Text(
+                after: " after selection",
+                before: "before selection ",
+                highlight: " current selection "
+            )
+        )
+        XCTAssertEqual(
+            Locator.Text(
+                after: "after selection",
+                before: "before selection",
+                highlight: " current selection "
+            ).sanitized(),
+            Locator.Text(
+                after: "after selection",
+                before: "before selection",
+                highlight: " current selection "
+            )
+        )
+        XCTAssertEqual(
+            Locator.Text(
+                after: " after selection",
+                before: "before selection ",
+                highlight: "current selection"
+            ).sanitized(),
+            Locator.Text(
+                after: " after selection",
+                before: "before selection ",
+                highlight: "current selection"
+            )
+        )
+    }
 }
