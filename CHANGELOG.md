@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Shared
 
 * Get the sanitized `Locator` text ready for user display with `locator.text.sanitized()`.
+* Support for right-to-left PDF documents by extracting the reading progression from the `ViewerPreferences/Direction` metadata.
 
 ### Fixed
 
