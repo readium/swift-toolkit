@@ -30,6 +30,8 @@ public enum ReadiumCSSReference: String {
     case hyphens            = "bodyHyphens"
     case ligatures          = "ligatures"
     case paragraphMargins   = "paragraphMargins"
+    case textColor          = "textColor"
+    case backgroundColor    = "backgroundColor"
 }
 
 /// List of strings that can identify the name of a CSS custom property
@@ -51,4 +53,6 @@ public enum ReadiumCSSName: String {
     case hyphens            = "--USER__bodyHyphens"
     case ligatures          = "--USER__ligatures"
     case paragraphMargins   = "--USER__paraSpacing"
+    case textColor          = "--USER__textColor"
+    case backgroundColor    = "--USER__backgroundColor"
 }
