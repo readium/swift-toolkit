@@ -1,12 +1,5 @@
-//
-//  Copyright 2021 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by the BSD-style license
-//  available in the top-level LICENSE file of the project.
-//
-
-// Script used for the wrapper HTML pages of fixed layouts resources.
-
-window.FixedPage = function (iframeId) {
+// Manages a fixed layout resource embedded in an iframe.
+export function FixedPage(iframeId) {
   // Fixed dimensions for the page, extracted from the viewport meta tag.
   var _pageSize = null;
   // Available viewport size to fill with the resource.
@@ -140,4 +133,4 @@ window.FixedPage = function (iframeId) {
       _viewport.style.display = "none";
     },
   };
-};
+}

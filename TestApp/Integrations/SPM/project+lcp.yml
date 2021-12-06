@@ -21,7 +21,7 @@ targets:
   TestApp:
     type: application
     platform: iOS
-    deploymentTarget: "13.6"
+    deploymentTarget: "14.0"
     sources: 
       - path: Sources
     dependencies:

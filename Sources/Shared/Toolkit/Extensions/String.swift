@@ -37,6 +37,14 @@ extension String {
         }
         return removingPrefix(prefix).addingPrefix(replacement)
     }
+    
+    /// Returns a copy of the string after removing the given `suffix`, when present.
+    func removingSuffix(_ suffix: String) -> String {
+        guard hasSuffix(suffix) else {
+            return self
+        }
+        return String(dropLast(suffix.count))
+    }
 
     /// Returns a substring before the last occurrence of `delimiter`.
     /// If the string does not contain the delimiter, returns the original string itself.
@@ -51,6 +59,11 @@ extension String {
     public static func _readium_localizedPercentage(_ percentage: Double) -> String {
         percentageFormatter.string(from: NSNumber(value: percentage))
             ?? String(format: "%.0f%%", percentage)
+    }
+    
+    /// Replaces multiple whitespaces by a single space.
+    func coalescingWhitespaces() -> String {
+        replacingOccurrences(of: "[\\s\n]+", with: " ", options: .regularExpression, range: nil)
     }
 }
 

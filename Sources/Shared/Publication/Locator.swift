@@ -258,6 +258,15 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
         }
         
         public var jsonString: String? { serializeJSONString(json) }
+            
+        /// Returns a copy of this text after sanitizing its content for user display.
+        public func sanitized() -> Locator.Text {
+            Locator.Text(
+                after: after?.coalescingWhitespaces().removingSuffix(" "),
+                before: before?.coalescingWhitespaces().removingPrefix(" "),
+                highlight: highlight?.coalescingWhitespaces()
+            )
+        }
         
         @available(*, unavailable, renamed: "init(jsonString:)")
         public init(fromString: String) {

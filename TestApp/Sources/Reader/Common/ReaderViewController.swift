@@ -19,7 +19,6 @@ import SwiftSoup
 import WebKit
 import SwiftUI
 
-
 /// This class is meant to be subclassed by each publication format view controller. It contains the shared behavior, eg. navigation bar toggling.
 class ReaderViewController: UIViewController, Loggable {
     
@@ -34,6 +33,9 @@ class ReaderViewController: UIViewController, Loggable {
     private(set) var stackView: UIStackView!
     private lazy var positionLabel = UILabel()
     private var subscriptions = Set<AnyCancellable>()
+    
+    private var searchViewModel: SearchViewModel?
+    private var searchViewController: UIHostingController<SearchView>?
     
     /// This regex matches any string with at least 2 consecutive letters (not limited to ASCII).
     /// It's used when evaluating whether to display the body of a noteref referrer as the note's title.
@@ -132,6 +134,11 @@ class ReaderViewController: UIViewController, Loggable {
         // Bookmarks
         buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(bookmarkCurrentPosition)))
         
+        // Search
+        if publication._isSearchable {
+            buttons.append(UIBarButtonItem(image: UIImage(systemName: "magnifyingglass"), style: .plain, target: self, action: #selector(showSearchUI)))
+        }
+        
         return buttons
     }
     
@@ -209,6 +216,30 @@ class ReaderViewController: UIViewController, Loggable {
             // ie. http://karmeye.com/2014/11/20/ios8-popovers-and-passthroughviews/
             popoverPresentationController.passthroughViews = nil
         }
+    }
+    
+    // MARK: - Search
+    @objc func showSearchUI() {
+        if searchViewModel == nil {
+            searchViewModel = SearchViewModel(publication: publication)
+            searchViewModel?.$selectedLocator.sink(receiveValue: { locator in
+                self.searchViewController?.dismiss(animated: true, completion: nil)
+                if let locator = locator {
+                    self.navigator.go(to: locator, animated: true) {
+                        if let decorator = self.navigator as? DecorableNavigator {
+                            let decoration = Decoration(id: "selectedSearchResult", locator: locator, style: Decoration.Style.highlight(tint: .yellow, isActive: false))
+                            decorator.apply(decorations: [decoration], in: "search")
+                        }
+                    }
+                }
+            }).store(in: &subscriptions)
+        }
+        
+        let searchView = SearchView(viewModel: searchViewModel!)
+        let vc = UIHostingController(rootView: searchView)
+        vc.modalPresentationStyle = .pageSheet
+        present(vc, animated: true, completion: nil)
+        searchViewController = vc
     }
     
     // MARK: - DRM
@@ -314,7 +345,6 @@ extension ReaderViewController: NavigatorDelegate {
     }
     
     func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: R2Shared.Link, content: String, referrer: String?) -> Bool {
-        
         var title = referrer
         if let t = title {
             title = try? clean(t, .none())
@@ -366,6 +396,11 @@ extension ReaderViewController: NavigatorDelegate {
 extension ReaderViewController: VisualNavigatorDelegate {
     
     func navigator(_ navigator: VisualNavigator, didTapAt point: CGPoint) {
+        // clear a current search highlight
+        if let decorator = self.navigator as? DecorableNavigator {
+            decorator.apply(decorations: [], in: "search")
+        }
+        
         let turnedPage = EdgeTapNavigation(navigator: navigator).didTap(at: point)
         if !turnedPage {
             toggleNavigationBar()

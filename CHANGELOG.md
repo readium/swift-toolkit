@@ -8,6 +8,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Added
 
+#### Shared
+
+* Get the sanitized `Locator` text ready for user display with `locator.text.sanitized()`.
+
+#### Navigator
+
 * A new convenience utility `EdgeTapNavigation` to trigger page turns while tapping the screen edges.
     * It takes into account the navigator reading progression to move into the right direction.
     * Call it from the `VisualNavigatorDelegate.navigator(_:didTapAt:)` callback as demonstrated below:
@@ -19,6 +25,12 @@ All notable changes to this project will be documented in this file. Take a look
         }
     }
     ```
+
+### Fixed
+
+#### Navigator
+
+* [#14](https://github.com/readium/swift-toolkit/issues/14) Backward compatibility (iOS 10+) of JavaScript files is now handled with Babel.
 
 
 ## 2.2.0

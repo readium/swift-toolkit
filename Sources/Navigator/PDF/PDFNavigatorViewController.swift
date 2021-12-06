@@ -15,12 +15,12 @@ import UIKit
 import R2Shared
 
 
-public protocol PDFNavigatorDelegate: VisualNavigatorDelegate { }
+public protocol PDFNavigatorDelegate: VisualNavigatorDelegate, SelectableNavigatorDelegate { }
 
 
 /// A view controller used to render a PDF `Publication`.
 @available(iOS 11.0, *)
-open class PDFNavigatorViewController: UIViewController, VisualNavigator, PresentableNavigator, Loggable {
+open class PDFNavigatorViewController: UIViewController, VisualNavigator, PresentableNavigator, SelectableNavigator, Loggable {
     
     enum Error: Swift.Error {
         case openPDFFailed
@@ -288,7 +288,15 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Presen
         return positions[pageNumber - 1]
     }
     
-    
+    // MARK: – SelectableNavigator
+
+    public var currentSelection: Selection? { editingActions.selection }
+
+    public func clearSelection() {
+        pdfView?.clearSelection()
+    }
+
+
     // MARK: - User Selection
 
     @objc func selectionDidChange(_ note: Notification) {
@@ -612,11 +620,11 @@ extension PDFNavigatorViewController: EditingActionsControllerDelegate {
     }
 
     func editingActions(_ editingActions: EditingActionsController, shouldShowMenuForSelection selection: Selection) -> Bool {
-        true
+        return delegate?.navigator(self, shouldShowMenuForSelection: selection) ?? true
     }
 
     func editingActions(_ editingActions: EditingActionsController, canPerformAction action: EditingAction, for selection: Selection) -> Bool {
-        true
+        return delegate?.navigator(self, canPerformAction: action, for: selection) ?? true
     }
 }
 

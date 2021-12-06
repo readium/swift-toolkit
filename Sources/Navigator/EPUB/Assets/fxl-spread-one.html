@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script type="text/javascript" src="/r2-navigator/epub/scripts/readium-fixed.js"></script>
-  <script type="text/javascript" src="/r2-navigator/epub/scripts/readium-fixed-wrapper.js"></script>
   <style>
   body, html {
     height: 100%;
@@ -30,36 +28,6 @@
 
 <body>
   <iframe id="page"></iframe>
-
-  <script type="text/javascript">
-    var spread = (function() {
-      var _page = FixedPage('page');
-
-      // Public API called from Swift.
-      return {
-        // Loads resources in the spread.
-        'load': function(resources) {
-          if (resources.length === 0) {
-            return;
-          }
-          _page.load(resources[0], function loaded() {
-            webkit.messageHandlers.spreadLoaded.postMessage({});
-          });
-        },
-
-        // Evaluates a JavaScript in the context of a resource.
-        'eval': function(href, script) {
-          if (href === '#' || href === '' || _page.link?.href === href) {
-            return _page.eval(script);
-          }
-        },
-
-        // Updates the available viewport to display the resources.
-        'setViewport': function(viewportSize, safeAreaInsets) {
-          _page.setViewport(viewportSize, safeAreaInsets);
-        }
-      }
-    })();
-  </script>
+  <script type="text/javascript" src="/r2-navigator/epub/scripts/readium-fixed-wrapper-one.js"></script>
 </body>
 </html>
