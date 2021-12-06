@@ -191,16 +191,20 @@ class ReaderViewController: UIViewController, Loggable {
     
     // MARK: - User Settings
     
-    private lazy var userSettingsController = UIHostingController(rootView: SettingsView(settings: PresentationSettings(navigator: navigator as! PresentableNavigator)))
     
     @objc func presentUserSettings(_ button: UIBarButtonItem) {
-        userSettingsController.modalPresentationStyle = .popover
-        let popoverPresentationController = userSettingsController.popoverPresentationController!
+        guard let navigator = navigator as? PresentableNavigator else {
+            return
+        }
+        
+        let vc = UIHostingController(rootView: SettingsView(settings: PresentationSettings(navigator: navigator)))
+        vc.modalPresentationStyle = .popover
+        let popoverPresentationController = vc.popoverPresentationController!
         
         popoverPresentationController.delegate = self
         popoverPresentationController.barButtonItem = button
 
-        present(userSettingsController, animated: true) {
+        present(vc, animated: true) {
             // Makes sure that the popover is dismissed also when tapping on one of the other UIBarButtonItems.
             // ie. http://karmeye.com/2014/11/20/ios8-popovers-and-passthroughviews/
             popoverPresentationController.passthroughViews = nil

@@ -638,12 +638,12 @@ extension PDFNavigatorViewController {
     /// This initializer is deprecated.
     /// `license` is not needed anymore.
     @available(*, unavailable, renamed: "init(publication:initialLocation:config:)")
-    public convenience init(publication: Publication, license: DRMLicense?, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
+    public convenience init(publication: Publication, license: DRMLicense?, initialLocation: Locator?, editingActions: [EditingAction]) {
         self.init(publication: publication, initialLocation: initialLocation, config: Configuration(editingActions: editingActions))
     }
     
     @available(*, deprecated, renamed: "init(publication:initialLocation:config:)")
-    public convenience init(publication: Publication, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
+    public convenience init(publication: Publication, initialLocation: Locator? = nil, editingActions: [EditingAction]) {
         self.init(publication: publication, initialLocation: initialLocation, config: Configuration(editingActions: editingActions))
     }
 }
