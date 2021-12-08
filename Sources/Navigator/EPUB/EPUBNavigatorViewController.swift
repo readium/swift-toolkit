@@ -829,11 +829,11 @@ extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
     }
 
     func editingActions(_ editingActions: EditingActionsController, shouldShowMenuForSelection selection: Selection) -> Bool {
-        true
+        return delegate?.navigator(self, shouldShowMenuForSelection: selection) ?? true
     }
 
     func editingActions(_ editingActions: EditingActionsController, canPerformAction action: EditingAction, for selection: Selection) -> Bool {
-        true
+        return delegate?.navigator(self, canPerformAction: action, for: selection) ?? true
     }
 }
 
