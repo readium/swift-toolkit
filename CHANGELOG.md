@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file. Take a look
 * Get the sanitized `Locator` text ready for user display with `locator.text.sanitized()`.
 * A new `Publication.conforms(to:)` API to identify the profile of a publication.
 * Support for the [`conformsTo` RWPM metadata](https://github.com/readium/webpub-manifest/issues/65), to identify the profile of a `Publication`.
+* Support for right-to-left PDF documents by extracting the reading progression from the `ViewerPreferences/Direction` metadata.
 
 ### Deprecated
 

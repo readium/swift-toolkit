@@ -20,6 +20,8 @@ extension PDFKit.PDFDocument: PDFDocument {
 
     public var cover: UIImage? { documentRef?.cover }
     
+    public var readingProgression: ReadingProgression? { documentRef?.readingProgression }
+    
     public var title: String? { documentRef?.title }
     
     public var author: String? { documentRef?.author }
