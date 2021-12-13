@@ -229,14 +229,14 @@ public extension MediaType {
         if let (isManifest, rwpm) = readRWPM() {
             let isLCPProtected = context.containsArchiveEntry(at: "/license.lcpl")
 
-            if rwpm.metadata.type == "http://schema.org/Audiobook" || rwpm.readingOrder.allAreAudio {
+            if rwpm.conforms(to: .audiobook) {
                 return isManifest ? .readiumAudiobookManifest :
                     isLCPProtected ? .lcpProtectedAudiobook : .readiumAudiobook
             }
-            if rwpm.readingOrder.allAreBitmap {
+            if rwpm.conforms(to: .divina) {
                 return isManifest ? .divinaManifest : .divina
             }
-            if isLCPProtected, rwpm.readingOrder.all(matchMediaType: .pdf) {
+            if isLCPProtected, rwpm.conforms(to: .pdf) {
                 return .lcpProtectedPDF
             }
             if rwpm.link(withRel: .`self`)?.type == "application/webpub+json" {

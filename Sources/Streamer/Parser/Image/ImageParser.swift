@@ -41,6 +41,7 @@ public final class ImageParser: PublicationParser {
             format: .cbz,
             manifest: Manifest(
                 metadata: Metadata(
+                    conformsTo: [.divina],
                     title: fetcher.guessTitle(ignoring: ignores) ?? asset.name
                 ),
                 readingOrder: readingOrder

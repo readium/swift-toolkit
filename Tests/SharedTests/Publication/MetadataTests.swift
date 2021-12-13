@@ -17,6 +17,7 @@ class MetadataTests: XCTestCase {
     let fullMetadata = Metadata(
         identifier: "1234",
         type: "epub",
+        conformsTo: [.epub, .pdf],
         title: ["en": "Title", "fr": "Titre"],
         subtitle: ["en": "Subtitle", "fr": "Sous-titre"],
         modified: Date(timeIntervalSinceReferenceDate: 45387),
@@ -75,6 +76,10 @@ class MetadataTests: XCTestCase {
             try Metadata(json: [
                 "identifier": "1234",
                 "@type": "epub",
+                "conformsTo": [
+                    "https://readium.org/webpub-manifest/profiles/epub",
+                    "https://readium.org/webpub-manifest/profiles/pdf",
+                ],
                 "title": ["en": "Title", "fr": "Titre"],
                 "subtitle": ["en": "Subtitle", "fr": "Sous-titre"],
                 "modified": "2001-01-01T12:36:27+0000",
@@ -113,6 +118,19 @@ class MetadataTests: XCTestCase {
     
     func testParseInvalidJSON() {
         XCTAssertThrowsError(try Metadata(json: []))
+    }
+    
+    func testParseJSONWithSingleProfile() {
+        XCTAssertEqual(
+            try Metadata(json: [
+                "title": "Title",
+                "conformsTo": "https://readium.org/webpub-manifest/profiles/divina"
+            ]),
+            Metadata(
+                conformsTo: [.divina],
+                title: "Title"
+            )
+        )
     }
     
     func testParseJSONWithSingleLanguage() {
@@ -162,6 +180,10 @@ class MetadataTests: XCTestCase {
             [
                 "identifier": "1234",
                 "@type": "epub",
+                "conformsTo": [
+                    "https://readium.org/webpub-manifest/profiles/epub",
+                    "https://readium.org/webpub-manifest/profiles/pdf",
+                ],
                 "title": ["en": "Title", "fr": "Titre"],
                 "subtitle": ["en": "Subtitle", "fr": "Sous-titre"],
                 "modified": "2001-01-01T12:36:27+0000",
@@ -245,6 +267,7 @@ class MetadataTests: XCTestCase {
         let copy = metadata.copy(
             identifier: "copy-identifier",
             type: "copy-type",
+            conformsTo: [.audiobook],
             title: "copy-title",
             subtitle: "copy-subtitle",
             modified: Date(timeIntervalSince1970: 42),
@@ -282,6 +305,9 @@ class MetadataTests: XCTestCase {
             [
                 "identifier": "copy-identifier",
                 "@type": "copy-type",
+                "conformsTo": [
+                    "https://readium.org/webpub-manifest/profiles/audiobook"
+                ],
                 "title": "copy-title",
                 "subtitle": "copy-subtitle",
                 "modified": "1970-01-01T00:00:42+0000",
