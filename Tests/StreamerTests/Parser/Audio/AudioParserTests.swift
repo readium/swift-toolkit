@@ -48,6 +48,12 @@ class AudioParserTests: XCTestCase {
         XCTAssertNotNil(try parser.parse(asset: mp3Asset, fetcher: mp3Fetcher, warnings: nil))
     }
     
+    func testConformsToAudiobook() throws {
+        let publication = try XCTUnwrap(parser.parse(asset: zabAsset, fetcher: zabFetcher, warnings: nil)?.build())
+        
+        XCTAssertEqual(publication.metadata.conformsTo, [.audiobook])
+    }
+    
     /// The reading order is sorted alphabetically, ignores Thumbs.db, hidden files and non-audio
     /// files.
     func testReadingOrderIsSortedAlphabetically() throws {

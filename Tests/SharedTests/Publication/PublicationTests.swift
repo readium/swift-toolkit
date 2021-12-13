@@ -35,6 +35,45 @@ class PublicationTests: XCTestCase {
         )
     }
     
+    func testConformsToProfile() {
+        func makePub(_ readingOrder: [String], conformsTo: [Publication.Profile] = []) -> Publication {
+            Publication(manifest: Manifest(
+                metadata: Metadata(
+                    conformsTo: conformsTo,
+                    title: ""
+                ),
+                readingOrder: readingOrder.map { Link(href: $0) }
+            ))
+        }
+        
+        // An empty reading order doesn't conform to anything.
+        XCTAssertFalse(makePub([], conformsTo: [.epub]).conforms(to: .epub))
+        
+        XCTAssertTrue(makePub(["c1.mp3", "c2.aac"]).conforms(to: .audiobook))
+        XCTAssertTrue(makePub(["c1.jpg", "c2.png"]).conforms(to: .divina))
+        XCTAssertTrue(makePub(["c1.pdf", "c2.pdf"]).conforms(to: .pdf))
+        
+        // Mixed media types disable implicit conformance.
+        XCTAssertFalse(makePub(["c1.mp3", "c2.jpg"]).conforms(to: .audiobook))
+        XCTAssertFalse(makePub(["c1.mp3", "c2.jpg"]).conforms(to: .divina))
+        
+        // XHTML could be EPUB or a Web Publication, so we require an explicit EPUB profile.
+        XCTAssertFalse(makePub(["c1.xhtml", "c2.xhtml"]).conforms(to: .epub))
+        XCTAssertFalse(makePub(["c1.html", "c2.html"]).conforms(to: .epub))
+        XCTAssertTrue(makePub(["c1.xhtml", "c2.xhtml"], conformsTo: [.epub]).conforms(to: .epub))
+        XCTAssertTrue(makePub(["c1.html", "c2.html"], conformsTo: [.epub]).conforms(to: .epub))
+        
+        // Implicit conformance always take precedence over explicit profiles.
+        XCTAssertTrue(makePub(["c1.mp3", "c2.aac"]).conforms(to: .audiobook))
+        XCTAssertTrue(makePub(["c1.mp3", "c2.aac"], conformsTo: [.divina]).conforms(to: .audiobook))
+        XCTAssertFalse(makePub(["c1.mp3", "c2.aac"], conformsTo: [.divina]).conforms(to: .divina))
+        
+        // Unknown profile
+        let profile = Publication.Profile("http://extension")
+        XCTAssertFalse(makePub(["file"]).conforms(to: profile))
+        XCTAssertTrue(makePub(["file"], conformsTo: [profile]).conforms(to: profile))
+    }
+    
     func testBaseURL() {
         XCTAssertEqual(
             makePublication(links: [
@@ -256,7 +295,7 @@ class PublicationTests: XCTestCase {
         
         XCTAssertEqual(requestedLink, Link(href: "test?query=param", type: "text/html", templated: false))
     }
-
+    
     private func makePublication(
         metadata: Metadata = Metadata(title: ""),
         links: [Link] = [],

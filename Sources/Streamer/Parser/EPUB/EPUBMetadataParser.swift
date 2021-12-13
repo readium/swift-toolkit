@@ -49,6 +49,7 @@ final class EPUBMetadataParser: Loggable {
         
         return Metadata(
             identifier: uniqueIdentifier,
+            conformsTo: [.epub],
             title: mainTitle ?? fallbackTitle,
             subtitle: subtitle,
             modified: modifiedDate,

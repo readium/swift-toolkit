@@ -38,6 +38,7 @@ public final class AudioParser: PublicationParser {
             format: .cbz,
             manifest: Manifest(
                 metadata: Metadata(
+                    conformsTo: [.audiobook],
                     title: fetcher.guessTitle(ignoring: ignores) ?? asset.name
                 ),
                 readingOrder: readingOrder

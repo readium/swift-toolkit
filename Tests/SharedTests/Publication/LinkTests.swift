@@ -214,6 +214,20 @@ class LinkTests: XCTestCase {
             ]
         )
     }
+    
+    func testUnknownMediaType() {
+        XCTAssertEqual(Link(href: "file").mediaType, .binary)
+    }
+    
+    func testMediaTypeFromType() {
+        XCTAssertEqual(Link(href: "file", type: "application/epub+zip").mediaType, .epub)
+        XCTAssertEqual(Link(href: "file", type: "application/pdf").mediaType, .pdf)
+    }
+    
+    func testMediaTypeFromExtension() {
+        XCTAssertEqual(Link(href: "file.epub").mediaType, .epub)
+        XCTAssertEqual(Link(href: "file.pdf").mediaType, .pdf)
+    }
 
     func testURLRelativeToBaseURL() {
         XCTAssertEqual(

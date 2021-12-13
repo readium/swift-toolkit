@@ -14,10 +14,12 @@ import Foundation
 
 /// Shared model for a Readium Publication.
 public class Publication: Loggable {
-
+    
     /// Format of the publication, if specified.
+    @available(*, deprecated, message: "Use publication.conforms(to:) to check the profile of a Publication")
     public var format: Format = .unknown
     /// Version of the publication's format, eg. 3 for EPUB 3
+    @available(*, deprecated, message: "This API will be removed in a future version. If you still need it, please explain your use case at https://github.com/readium/swift-toolkit/issues/new")
     public var formatVersion: String?
     
     private var manifest: Manifest
@@ -48,9 +50,7 @@ public class Publication: Loggable {
     public init(
         manifest: Manifest,
         fetcher: Fetcher = EmptyFetcher(),
-        servicesBuilder: PublicationServicesBuilder = .init(),
-        format: Format = .unknown,
-        formatVersion: String? = nil
+        servicesBuilder: PublicationServicesBuilder = .init()
     ) {
         let weakPublication = Weak<Publication>()
 
@@ -67,8 +67,6 @@ public class Publication: Loggable {
         self.manifest = manifest
         self.fetcher = fetcher
         self.services = services
-        self.format = format
-        self.formatVersion = formatVersion
 
         weakPublication.ref = self
     }
@@ -82,6 +80,11 @@ public class Publication: Loggable {
     /// Returns the Readium Web Publication Manifest as JSON.
     public var jsonManifest: String? {
         serializeJSONString(manifest.json)
+    }
+    
+    /// Returns whether this publication conforms to the given Readium Web Publication Profile.
+    public func conforms(to profile: Profile) -> Bool {
+        return manifest.conforms(to: profile)
     }
     
     /// The URL where this publication is served, computed from the `Link` with `self` relation.
@@ -177,7 +180,28 @@ public class Publication: Loggable {
             ), at: 0)
         }
     }
-
+    
+    /// Represents a Readium Web Publication Profile a `Publication` can conform to.
+    ///
+    /// For a list of supported profiles, see the registry:
+    /// https://readium.org/webpub-manifest/profiles/
+    public struct Profile: Hashable {
+        public let uri: String
+        
+        public init(_ uri: String) {
+            self.uri = uri
+        }
+        
+        /// Profile for EPUB publications.
+        public static let epub = Profile("https://readium.org/webpub-manifest/profiles/epub")
+        /// Profile for audiobooks.
+        public static let audiobook = Profile("https://readium.org/webpub-manifest/profiles/audiobook")
+        /// Profile for visual narratives (comics, manga and bandes dessinées).
+        public static let divina = Profile("https://readium.org/webpub-manifest/profiles/divina")
+        /// Profile for PDF documents.
+        public static let pdf = Profile("https://readium.org/webpub-manifest/profiles/pdf")
+    }
+    
     public enum Format: Equatable, Hashable {
         /// Formats natively supported by Readium.
         case cbz, epub, pdf, webpub
@@ -319,9 +343,9 @@ public class Publication: Loggable {
             let publication = Publication(
                 manifest: manifest,
                 fetcher: fetcher,
-                servicesBuilder: servicesBuilder
+                servicesBuilder: servicesBuilder,
+                format: format
             )
-            publication.format = format
             setupPublication?(publication)
             return publication
         }

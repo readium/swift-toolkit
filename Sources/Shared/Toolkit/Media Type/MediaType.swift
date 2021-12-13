@@ -322,14 +322,3 @@ public struct MediaType: Hashable, Loggable {
     }
 
 }
-
-
-public extension Link {
-    
-    /// Media type of the linked resource.
-    var mediaType: MediaType {
-        type.flatMap { MediaType.of(mediaType: $0, fileExtension: URL(string: href)?.pathExtension) }
-            ?? .binary
-    }
-
-}
