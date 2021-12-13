@@ -23,8 +23,8 @@ final class CBZModule: ReaderFormatModule {
         self.delegate = delegate
     }
     
-    var publicationFormats: [Publication.Format] {
-        return [.cbz]
+    func supports(_ publication: Publication) -> Bool {
+        return publication.conforms(to: .divina)
     }
     
     func makeReaderViewController(for publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, resourcesServer: ResourcesServer) throws -> UIViewController {

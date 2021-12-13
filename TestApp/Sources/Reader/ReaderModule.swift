@@ -72,7 +72,7 @@ final class ReaderModule: ReaderModuleAPI {
             navigationController.pushViewController(viewController, animated: true)
         }
         
-        guard let module = self.formatModules.first(where:{ $0.publicationFormats.contains(publication.format) }) else {
+        guard let module = self.formatModules.first(where:{ $0.supports(publication) }) else {
             delegate.presentError(ReaderError.formatNotSupported, from: navigationController)
             completion()
             return

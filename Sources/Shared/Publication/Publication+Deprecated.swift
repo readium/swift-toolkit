@@ -16,6 +16,13 @@ public typealias WebPublication = Publication
 
 extension Publication {
     
+    @available(*, deprecated, message: "format and formatVersion are deprecated", renamed: "init(manifest:fetcher:servicesBuilder:)")
+    public convenience init(manifest: Manifest, fetcher: Fetcher = EmptyFetcher(), servicesBuilder: PublicationServicesBuilder = .init(), format: Format = .unknown, formatVersion: String? = nil) {
+        self.init(manifest: manifest, fetcher: fetcher, servicesBuilder: servicesBuilder)
+        self.format = format
+        self.formatVersion = formatVersion
+    }
+    
     @available(*, unavailable, renamed: "init(manifest:)")
     public convenience init() {
         self.init(manifest: Manifest(metadata: Metadata(title: "")))
@@ -24,9 +31,7 @@ extension Publication {
     @available(*, unavailable, renamed: "init(format:formatVersion:manifest:)")
     public convenience init(format: Format = .unknown, formatVersion: String? = nil, positionListFactory: @escaping (Publication) -> [Locator] = { _ in [] }, context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], otherCollections: [String: [PublicationCollection]] = [:]) {
         self.init(
-            manifest: Manifest(context: context, metadata: metadata, links: links, readingOrder: readingOrder, resources: resources, tableOfContents: tableOfContents, subcollections: otherCollections),
-            format: format,
-            formatVersion: formatVersion
+            manifest: Manifest(context: context, metadata: metadata, links: links, readingOrder: readingOrder, resources: resources, tableOfContents: tableOfContents, subcollections: otherCollections)
         )
     }
     
@@ -36,14 +41,7 @@ extension Publication {
     }
     
     @available(*, unavailable, renamed: "formatVersion")
-    public var version: Double {
-        guard let versionString = formatVersion,
-            let version = Double(versionString) else
-        {
-            return 0
-        }
-        return version
-    }
+    public var version: Double { 0 }
 
     /// Factory used to build lazily the `positionList`.
     /// By default, a parser will set this to parse the `positionList` from the publication. But the host app might want to overwrite this with a custom closure to implement for example a cache mechanism.
@@ -56,25 +54,8 @@ extension Publication {
     @available(*, unavailable, message: "This is not used anymore, don't set it")
     public var updatedDate: Date { Date() }
     
-    @available(*, unavailable, message: "Check the publication's type using `format` instead")
-    public var internalData: [String: String] {
-        // The code in the testapp used to check a property in `publication.internalData["type"]` to know which kind of publication this is.
-        // To avoid breaking any app, we reproduce this value here:
-        return [
-            "type": {
-                switch format {
-                case .epub:
-                    return "epub"
-                case .cbz:
-                    return "cbz"
-                case .pdf:
-                    return "pdf"
-                default:
-                    return "unknown"
-                }
-            }()
-        ]
-    }
+    @available(*, unavailable, message: "Check the publication's type using `conforms(to:)` instead")
+    public var internalData: [String: String] { [:] }
     
     @available(*, unavailable, renamed: "json")
     public var manifestCanonical: String { jsonManifest ?? "" }

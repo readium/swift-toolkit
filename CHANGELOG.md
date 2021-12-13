@@ -11,6 +11,16 @@ All notable changes to this project will be documented in this file. Take a look
 #### Shared
 
 * Get the sanitized `Locator` text ready for user display with `locator.text.sanitized()`.
+* A new `Publication.conforms(to:)` API to identify the profile of a publication.
+* Support for the [`conformsTo` RWPM metadata](https://github.com/readium/webpub-manifest/issues/65), to identify the profile of a `Publication`.
+* Support for right-to-left PDF documents by extracting the reading progression from the `ViewerPreferences/Direction` metadata.
+
+### Deprecated
+
+#### Shared
+
+* `Publication.format` is now deprecated in favor of the new `Publication.conforms(to:)` API which is more accurate.
+    * For example, replace `publication.format == .epub` with `publication.conforms(to: .epub)` before opening a publication with the `EPUBNavigatorViewController`.
 
 #### Navigator
 

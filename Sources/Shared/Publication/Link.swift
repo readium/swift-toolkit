@@ -119,6 +119,14 @@ public struct Link: JSONEquatable, Hashable {
         ])
     }
     
+    /// Media type of the linked resource.
+    public var mediaType: MediaType {
+        MediaType.of(
+            mediaType: type,
+            fileExtension: URL(string: href)?.pathExtension
+        ) ?? .binary
+    }
+    
     /// Computes an absolute URL to the link, relative to the given `baseURL`.
     ///
     /// If the link's `href` is already absolute, the `baseURL` is ignored.
@@ -280,14 +288,14 @@ extension Array where Element == Link {
     
     /// Returns whether all the resources in the collection are matching the given media type.
     public func all(matchMediaType mediaType: MediaType) -> Bool {
-        allSatisfy { mediaType.matches($0.type) }
+        allSatisfy { mediaType.matches($0.mediaType) }
     }
     
     /// Returns whether all the resources in the collection are matching any of the given media types.
     public func all(matchMediaTypes mediaTypes: [MediaType]) -> Bool {
         allSatisfy { link in
             mediaTypes.contains { mediaType in
-                mediaType.matches(link.type)
+                mediaType.matches(link.mediaType)
             }
         }
     }

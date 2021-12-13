@@ -29,6 +29,9 @@ public protocol PDFDocument {
     /// The first page rendered as a cover.
     var cover: UIImage? { get }
     
+    /// Reading progression set with the "Binding" property in Acrobat.
+    var readingProgression: ReadingProgression? { get }
+    
     
     // Values extracted from the document information dictionary, defined in PDF specification.
     
