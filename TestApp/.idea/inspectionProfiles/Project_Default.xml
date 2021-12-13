@@ -1,0 +1,10 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="Eslint" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="SwiftRedundantAttribute" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="SwiftRedundantReturn" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="SwiftUnnecessaryParentheses" enabled="false" level="INFORMATION" enabled_by_default="false" />
+    <inspection_tool class="SwiftUnnecessaryTupleWrap" enabled="false" level="WARNING" enabled_by_default="false" />
+  </profile>
+</component>

@@ -14,7 +14,7 @@ import SafariServices
 import R2Shared
 
 
-public protocol Navigator {
+public protocol Navigator: AnyObject {
     
     /// Current position in the publication.
     /// Can be used to save a bookmark to the current position.

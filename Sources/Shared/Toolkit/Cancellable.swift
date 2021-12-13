@@ -12,9 +12,50 @@ public protocol Cancellable {
     func cancel()
 }
 
-/// A `Cancellable` object saving its cancelled state.
+public extension Cancellable {
+    
+    /// Returns a new cancellable which will automatically cancel `self` when deallocated.
+    func cancelOnDeinit() -> Cancellable {
+        AutoCancellable(self)
+    }
+    
+    /// Stores this cancellable instance in the specified collection.
+    func store<C>(in collection: inout C) where C : RangeReplaceableCollection, C.Element == Cancellable {
+        collection.append(self)
+    }
+    
+    /// Stores this cancellable instance in the specified variable.
+    func store(in variable: inout Cancellable?) {
+        variable = self
+    }
+}
+
+/// A `Cancellable` object saving its cancelled state and running an optional closure
+/// when cancelled.
 public final class CancellableObject: Cancellable {
     public private(set) var isCancelled = false
+    private let onCancel: (() -> Void)?
+    
+    public init(onCancel: (() -> Void)? = nil) {
+        self.onCancel = onCancel
+    }
+
+    public func cancel() {
+        if let onCancel = onCancel, !isCancelled {
+            onCancel()
+        }
+        isCancelled = true
+    }
+}
+
+/// A `Cancellable` which will run a given closure when cancelled.
+public final class CancellableAction: Cancellable {
+    public private(set) var isCancelled = false
+    private let onCancel: () -> Void
+    
+    public init(onCancel: @escaping () -> Void) {
+        self.onCancel = onCancel
+    }
 
     public func cancel() {
         isCancelled = true
@@ -57,5 +98,26 @@ public final class MediatorCancellable: Cancellable {
         isCancelled = true
         cancellable?.cancel()
         cancellable = nil
+    }
+}
+
+/// A `Cancellable` proxying another wrapped `cancellable`.
+public class ProxyCancellable: Cancellable {
+    
+    private let cancellable: Cancellable
+    
+    public init(_ cancellable: Cancellable) {
+        self.cancellable = cancellable
+    }
+    
+    public func cancel() {
+        cancellable.cancel()
+    }
+}
+
+/// A `Cancellable` that is automatically cancelled when deallocated.
+public final class AutoCancellable: ProxyCancellable {
+    deinit {
+        cancel()
     }
 }

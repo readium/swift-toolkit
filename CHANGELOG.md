@@ -22,6 +22,20 @@ All notable changes to this project will be documented in this file. Take a look
 * `Publication.format` is now deprecated in favor of the new `Publication.conforms(to:)` API which is more accurate.
     * For example, replace `publication.format == .epub` with `publication.conforms(to: .epub)` before opening a publication with the `EPUBNavigatorViewController`.
 
+#### Navigator
+
+* A new convenience utility `EdgeTapNavigation` to trigger page turns while tapping the screen edges.
+    * It takes into account the navigator reading progression to move into the right direction.
+    * Call it from the `VisualNavigatorDelegate.navigator(_:didTapAt:)` callback as demonstrated below:
+    ```swift
+    func navigator(_ navigator: VisualNavigator, didTapAt point: CGPoint) {
+        let turnedPage = EdgeTapNavigation(navigator: navigator).didTap(at: point)
+        if !turnedPage {
+            // Fallback action, for example toggling a navigation bar.
+        }
+    }
+    ```
+
 ### Fixed
 
 #### Navigator

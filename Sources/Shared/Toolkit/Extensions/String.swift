@@ -54,9 +54,24 @@ extension String {
         }
         return String(self[...range.lowerBound])
     }
+
+    /// Formats a `percentage` into a localized String.
+    public static func _readium_localizedPercentage(_ percentage: Double) -> String {
+        percentageFormatter.string(from: NSNumber(value: percentage))
+            ?? String(format: "%.0f%%", percentage)
+    }
     
     /// Replaces multiple whitespaces by a single space.
     func coalescingWhitespaces() -> String {
         replacingOccurrences(of: "[\\s\n]+", with: " ", options: .regularExpression, range: nil)
     }
 }
+
+private let percentageFormatter: NumberFormatter = {
+    let formatter = NumberFormatter()
+    formatter.numberStyle = .percent
+    formatter.minimumIntegerDigits = 1
+    formatter.maximumIntegerDigits = 3
+    formatter.maximumFractionDigits = 0
+    return formatter
+}()
