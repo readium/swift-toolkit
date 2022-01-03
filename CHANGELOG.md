@@ -15,6 +15,12 @@ All notable changes to this project will be documented in this file. Take a look
 * Support for the [`conformsTo` RWPM metadata](https://github.com/readium/webpub-manifest/issues/65), to identify the profile of a `Publication`.
 * Support for right-to-left PDF documents by extracting the reading progression from the `ViewerPreferences/Direction` metadata.
 
+#### Navigator
+
+* The new `NavigatorDelegate.navigator(_:didJumpTo:)` API is called every time the navigator jumps to an explicit location, which might break the linear reading progression.
+    * For example, it is called when clicking on internal links or programmatically calling `Navigator.go(to:)`, but not when turning pages.
+    * You can use this callback to implement a navigation history by differentiating between continuous and discontinuous moves.
+
 ### Deprecated
 
 #### Shared
