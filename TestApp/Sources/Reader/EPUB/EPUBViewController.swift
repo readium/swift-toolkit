@@ -18,9 +18,10 @@ class EPUBViewController: ReaderViewController {
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingNavigationController: UserSettingsNavigationController
     @objc func highlightSelection() {
-        if let selection = (navigator as? SelectableNavigator)?.currentSelection {
-            //selection.locator
-            // create decoration and highlight - Decorator.apply + DB.save
+        if let navigator = navigator as? SelectableNavigator, let selection = navigator.currentSelection {
+            let highlight = Highlight(bookId: bookId, locator: selection.locator, color: 1)
+            saveHighlight(highlight)
+            navigator.clearSelection()
         }
     }
     init(publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository, resourcesServer: ResourcesServer) {

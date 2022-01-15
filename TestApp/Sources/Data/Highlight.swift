@@ -26,7 +26,7 @@ struct Highlight: Codable {
     /// Date of creation.
     var created: Date = Date()
     
-    init(id: Id, bookId: Book.Id, locator: Locator, color: HighlightColor, created: Date = Date()) {
+    init(id: Id = UUID().uuidString, bookId: Book.Id, locator: Locator, color: HighlightColor, created: Date = Date()) {
         self.id = id
         self.bookId = bookId
         self.locator = locator

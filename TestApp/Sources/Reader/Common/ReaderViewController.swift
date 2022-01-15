@@ -421,3 +421,53 @@ extension ReaderViewController: OutlineTableViewControllerDelegate {
     }
 }
 
+extension ReaderViewController: HighlightManager {
+    func defaultHighlightColor(for locator: Locator) -> HighlightColor {
+        return 4
+    }
+
+    func color(for highlightColor: HighlightColor) -> UIColor {
+        switch highlightColor {
+        case 1:
+            return .red
+        case 2:
+            return .green
+        case 3:
+            return .blue
+        case 4:
+            return .yellow
+        default:
+            return .black
+        }
+    }
+
+    func saveHighlight(_ highlight: Highlight) {
+        highlights.add(highlight)
+            .sink { completion in
+                switch completion {
+                case .finished:
+                    toast(NSLocalizedString("reader_highlight_success_message", comment: "Success message when adding a bookmark"), on: self.view, duration: 1)
+                case .failure(let error):
+                    print(error)
+                    toast(NSLocalizedString("reader_highlight_failure_message", comment: "Error message when adding a new bookmark failed"), on: self.view, duration: 2)
+                }
+            } receiveValue: { _ in }
+            .store(in: &subscriptions)
+    }
+
+    func updateHighlight(_ highlightID: UUID, withColor color: HighlightColor) {
+        highlights.update(highlightID.uuidString, color: color)
+            .assertNoFailure()
+            .sink { completion in
+                
+            }
+            .store(in: &subscriptions)
+    }
+
+    func deleteHighlight(_ highlightID: UUID)  {
+        highlights.remove(highlightID.uuidString)
+            .assertNoFailure()
+            .sink {}
+            .store(in: &subscriptions)
+    }
+}
