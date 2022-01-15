@@ -45,15 +45,31 @@ class ReaderViewController: UIViewController, Loggable {
         return try! NSRegularExpression(pattern: "[\\p{Ll}\\p{Lu}\\p{Lt}\\p{Lo}]{2}")
     }()
     
-    init(navigator: UIViewController & Navigator, publication: Publication, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository) {
+    init(navigator: UIViewController & Navigator, publication: Publication, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) {
         self.navigator = navigator
         self.publication = publication
         self.bookId = bookId
         self.books = books
         self.bookmarks = bookmarks
-
+        self.highlights = highlights
+        
         super.init(nibName: nil, bundle: nil)
         
+        highlights.all(for: bookId)
+            .assertNoFailure()
+            .sink { highlights in
+                if let decorator = self.navigator as? DecorableNavigator {
+                    let highlightDecorationGroup = "highlights"
+                    self.decorationColors = Dictionary(uniqueKeysWithValues: highlights.map{($0.id, $0.color)})
+                    let decorations = highlights.map { Decoration(id: $0.id, locator: $0.locator, style: .highlight(tint: self.color(for: $0.color), isActive: false)) }
+                    decorator.apply(decorations: decorations, in: highlightDecorationGroup)
+                    decorator.observeDecorationInteractions(inGroup: highlightDecorationGroup) { event in
+                        UIMenuController.shared.showMenu(from: self.view, rect: event.rect!)
+                    }
+                }
+            }
+            .store(in: &subscriptions)
+    
         NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: UIAccessibility.voiceOverStatusDidChangeNotification, object: nil)
     }
 
