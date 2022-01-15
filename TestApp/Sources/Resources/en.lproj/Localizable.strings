@@ -88,6 +88,11 @@
 /* Success message when adding a bookmark */
 "reader_bookmark_success_message" = "Bookmark added";
 
+/* Error message when adding a new highlight failed */
+"reader_highlight_failure_message" = "Could not add highlight";
+/* Success message when adding a highlight */
+"reader_highlight_success_message" = "Highlight added";
+
 /* Error message when trying to read a publication with a unsupported format */
 "reader_error_formatNotSupported" = "Unsupported format";
 /* Error message when trying to read an EPUB that is invalid */
