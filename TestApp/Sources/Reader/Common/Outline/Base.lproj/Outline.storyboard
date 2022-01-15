@@ -28,6 +28,7 @@
                                         <segment title="Bookmarks"/>
                                         <segment title="Pagelist"/>
                                         <segment title="Landmarks"/>
+                                        <segment title="Highlights"/>
                                     </segments>
                                     <connections>
                                         <action selector="segmentChanged:" destination="AqL-ca-49I" eventType="valueChanged" id="KnU-OP-T4v"/>

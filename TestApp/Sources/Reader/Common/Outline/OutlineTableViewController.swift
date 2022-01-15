@@ -16,12 +16,13 @@ import R2Navigator
 import UIKit
 
 protocol OutlineTableViewControllerFactory {
-    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository) -> OutlineTableViewController
+    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository) -> OutlineTableViewController
 }
 
 protocol OutlineTableViewControllerDelegate: AnyObject {
     
     func outline(_ outlineTableViewController: OutlineTableViewController, goTo location: Locator)
+    func outline(_ outlineTableViewController: OutlineTableViewController, uiColorFor highlightColor: HighlightColor) -> UIColor?
 
 }
 
@@ -30,15 +31,18 @@ final class OutlineTableViewController: UITableViewController {
     weak var delegate: OutlineTableViewControllerDelegate?
     
     let kBookmarkCell = "kBookmarkCell"
+    let kHighlightCell = "kHighlightCell"
     let kContentCell = "kContentCell"
     
     var publication: Publication!
     var bookId: Book.Id!
     var bookmarkRepository: BookmarkRepository!
+    var highlightRepository: HighlightRepository!
   
     // Outlines (list of links) to display for each section.
     private var outlines: [Section: [(level: Int, link: Link)]] = [:]
     private var bookmarks: [Bookmark] = []
+    private var highlights: [HighlightRecord] = []
     
     private var subscriptions = Set<AnyCancellable>()
 
@@ -48,7 +52,7 @@ final class OutlineTableViewController: UITableViewController {
     }
 
     private enum Section: Int {
-        case tableOfContents = 0, bookmarks, pageList, landmarks
+        case tableOfContents = 0, bookmarks, pageList, landmarks, highlights
     }
     
     private var section: Section {
@@ -84,13 +88,22 @@ final class OutlineTableViewController: UITableViewController {
                 self.tableView.reloadData()
             }
             .store(in: &subscriptions)
-
+        
+        highlightRepository.all(for: bookId)
+            .assertNoFailure()
+            .sink { highlights in
+                self.highlights = highlights
+                self.tableView.reloadData()
+            }
+            .store(in: &subscriptions)
     }
     
     func locator(at indexPath: IndexPath) -> Locator? {
         switch section {
         case .bookmarks:
             return bookmarks[indexPath.row].locator
+        case .highlights:
+            return highlights[indexPath.row].locator
 
         default:
             guard let outline = outlines[section],
@@ -145,7 +158,20 @@ final class OutlineTableViewController: UITableViewController {
                 }
             }()
             return cell
+        case .highlights:
+            let cell: HighlightCell = {
+                if let cell = tableView.dequeueReusableCell(withIdentifier: kHighlightCell) as? HighlightCell {
+                    return cell
+                }
+                return HighlightCell(style: UITableViewCell.CellStyle.subtitle, reuseIdentifier: kHighlightCell)
+            } ()
             
+            let highlight = highlights[indexPath.row]
+            cell.textLabel?.text = highlight.locator.text.sanitized().highlight
+            if let labelColor = delegate?.outline(self, uiColorFor: highlight.color) {
+                cell.colorLabel.backgroundColor = labelColor
+            }
+            return cell
         default:
             guard let outline = outlines[section] else {
                 return UITableViewCell(style: .default, reuseIdentifier: nil)
@@ -162,6 +188,8 @@ final class OutlineTableViewController: UITableViewController {
         switch section {
         case .bookmarks:
             return bookmarks.count
+        case .highlights:
+            return highlights.count
         default:
             return outlines[section]?.count ?? 0
         }
