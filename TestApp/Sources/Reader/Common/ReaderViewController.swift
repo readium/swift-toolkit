@@ -21,6 +21,7 @@ import SwiftUI
 
 /// This class is meant to be subclassed by each publication format view controller. It contains the shared behavior, eg. navigation bar toggling.
 class ReaderViewController: UIViewController, Loggable {
+    private var decorationColors = [Decoration.Id : HighlightColor]()
     
     weak var moduleDelegate: ReaderFormatModuleDelegate?
     
@@ -61,7 +62,7 @@ class ReaderViewController: UIViewController, Loggable {
                 if let decorator = self.navigator as? DecorableNavigator {
                     let highlightDecorationGroup = "highlights"
                     self.decorationColors = Dictionary(uniqueKeysWithValues: highlights.map{($0.id, $0.color)})
-                    let decorations = highlights.map { Decoration(id: $0.id, locator: $0.locator, style: .highlight(tint: self.color(for: $0.color), isActive: false)) }
+                    let decorations = highlights.map { Decoration(id: $0.id, locator: $0.locator, style: .highlight(tint: .red, isActive: false)) } // self.color(for: $0.color)
                     decorator.apply(decorations: decorations, in: highlightDecorationGroup)
                     decorator.observeDecorationInteractions(inGroup: highlightDecorationGroup) { event in
                         UIMenuController.shared.showMenu(from: self.view, rect: event.rect!)
@@ -411,9 +412,12 @@ extension ReaderViewController: VisualNavigatorDelegate {
 }
 
 extension ReaderViewController: OutlineTableViewControllerDelegate {
+    func outline(_ outlineTableViewController: OutlineTableViewController, uiColorFor highlightColor: HighlightColor) -> UIColor? {
+        return .red
+    }
     
     func outline(_ outlineTableViewController: OutlineTableViewController, goTo location: Locator) {
         navigator.go(to: location)
     }
-
 }
+

@@ -42,7 +42,7 @@ final class OutlineTableViewController: UITableViewController {
     // Outlines (list of links) to display for each section.
     private var outlines: [Section: [(level: Int, link: Link)]] = [:]
     private var bookmarks: [Bookmark] = []
-    private var highlights: [HighlightRecord] = []
+    private var highlights: [Highlight] = []
     
     private var subscriptions = Set<AnyCancellable>()
 

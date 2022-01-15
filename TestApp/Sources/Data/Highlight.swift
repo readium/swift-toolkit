@@ -11,7 +11,9 @@ import R2Shared
 import R2Navigator
 import UIKit
 
-struct HighlightRecord: Codable {
+typealias HighlightColor = UInt8
+
+struct Highlight: Codable {
     typealias Id = String
     
     let id: Id
@@ -31,17 +33,9 @@ struct HighlightRecord: Codable {
         self.color = color
         self.created = created
     }
-    
-    init(bookId: Book.Id, highlight: Highlight) {
-        self.id = highlight.id.uuidString
-        self.bookId = bookId
-        self.locator = highlight.locator
-        self.color = highlight.color
-        self.created = Date()
-    }
 }
 
-extension HighlightRecord: TableRecord, FetchableRecord, PersistableRecord {
+extension Highlight: TableRecord, FetchableRecord, PersistableRecord {
     enum Columns: String, ColumnExpression {
         case id, bookId, locator, color, created
     }
@@ -54,32 +48,32 @@ final class HighlightRepository {
         self.db = db
     }
     
-    func all(for bookId: Book.Id) -> AnyPublisher<[HighlightRecord], Error> {
+    func all(for bookId: Book.Id) -> AnyPublisher<[Highlight], Error> {
         db.observe { db in
-            try HighlightRecord
-                .filter(HighlightRecord.Columns.bookId == bookId)
-                .order(HighlightRecord.Columns.id) // TODO: order by some kind of progression!
+            try Highlight
+                .filter(Highlight.Columns.bookId == bookId)
+                .order(Highlight.Columns.id) // TODO: order by some kind of progression!
                 .fetchAll(db)
         }
     }
     
-    func add(_ highlight: HighlightRecord) -> AnyPublisher<HighlightRecord.Id, Error> {
+    func add(_ highlight: Highlight) -> AnyPublisher<Highlight.Id, Error> {
         return db.write { db in
             try highlight.insert(db)
             return highlight.id
         }.eraseToAnyPublisher()
     }
     
-    func update(_ id: HighlightRecord.Id, color: HighlightColor) -> AnyPublisher<Void, Error> {
+    func update(_ id: Highlight.Id, color: HighlightColor) -> AnyPublisher<Void, Error> {
         return db.write { db in
-            let filtered = HighlightRecord.filter(HighlightRecord.Columns.id == id)
-            let assignment = HighlightRecord.Columns.color.set(to: color)
+            let filtered = Highlight.filter(Highlight.Columns.id == id)
+            let assignment = Highlight.Columns.color.set(to: color)
             try filtered.updateAll(db, onConflict: nil, assignment)
         }.eraseToAnyPublisher()
     }
         
-    func remove(_ id: HighlightRecord.Id) -> AnyPublisher<Void, Error> {
-        db.write { db in try HighlightRecord.deleteOne(db, key: id) }
+    func remove(_ id: Highlight.Id) -> AnyPublisher<Void, Error> {
+        db.write { db in try Highlight.deleteOne(db, key: id) }
     }
 }
 
