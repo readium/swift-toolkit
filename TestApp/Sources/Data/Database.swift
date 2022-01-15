@@ -41,7 +41,7 @@ final class Database {
                 t.column("created", .datetime).notNull()
             }
             
-            try db.create(table: "Highlight", ifNotExists: true) { t in
+            try db.create(table: "highlight", ifNotExists: true) { t in
                 t.column("id", .text).primaryKey()
                 t.column("bookId", .integer).references("book", onDelete: .cascade).notNull()
                 t.column("locator", .text)

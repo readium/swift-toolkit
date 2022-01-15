@@ -46,6 +46,18 @@ class ReaderViewController: UIViewController, Loggable {
         return try! NSRegularExpression(pattern: "[\\p{Ll}\\p{Lu}\\p{Lt}\\p{Lo}]{2}")
     }()
     
+    func activateDecoration(_ event: OnDecorationActivatedEvent) {
+        let decorationFrame = event.rect ?? self.view.bounds
+        let contextMenuFrame = CGRect(x: decorationFrame.minX, y: decorationFrame.minY-44, width: 44*4, height: 44)
+        
+        // The navigation approach taken from here: https://stackoverflow.com/questions/56819063
+        let menu = UIHostingController(rootView: HighlightContextMenu())
+        self.addChild(menu)
+        menu.view.frame = contextMenuFrame
+        self.view.addSubview(menu.view)
+        menu.didMove(toParent: self)
+    }
+    
     init(navigator: UIViewController & Navigator, publication: Publication, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) {
         self.navigator = navigator
         self.publication = publication
@@ -65,7 +77,7 @@ class ReaderViewController: UIViewController, Loggable {
                     let decorations = highlights.map { Decoration(id: $0.id, locator: $0.locator, style: .highlight(tint: .red, isActive: false)) } // self.color(for: $0.color)
                     decorator.apply(decorations: decorations, in: highlightDecorationGroup)
                     decorator.observeDecorationInteractions(inGroup: highlightDecorationGroup) { event in
-                        UIMenuController.shared.showMenu(from: self.view, rect: event.rect!)
+                        self.activateDecoration(event)
                     }
                 }
             }
