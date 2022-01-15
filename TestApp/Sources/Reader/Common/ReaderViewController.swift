@@ -29,6 +29,7 @@ class ReaderViewController: UIViewController, Loggable {
     let bookId: Book.Id
     private let books: BookRepository
     private let bookmarks: BookmarkRepository
+    private let highlights: HighlightRepository
 
     private(set) var stackView: UIStackView!
     private lazy var positionLabel = UILabel()

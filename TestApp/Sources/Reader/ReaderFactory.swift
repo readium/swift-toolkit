@@ -26,11 +26,12 @@ final class ReaderFactory {
 }
 
 extension ReaderFactory: OutlineTableViewControllerFactory {
-    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository) -> OutlineTableViewController {
+    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository) -> OutlineTableViewController {
         let controller = storyboards.outline.instantiateViewController(withIdentifier: "OutlineTableViewController") as! OutlineTableViewController
         controller.publication = publication
         controller.bookId = bookId
         controller.bookmarkRepository = bookmarks
+        controller.highlightRepository = highlights
         return controller
     }
 }
