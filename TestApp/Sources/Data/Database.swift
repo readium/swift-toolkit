@@ -40,6 +40,14 @@ final class Database {
                 t.column("progression", .double).notNull()
                 t.column("created", .datetime).notNull()
             }
+            
+            try db.create(table: "highlightRecord", ifNotExists: true) { t in
+                t.column("id", .text).primaryKey()
+                t.column("bookId", .integer).references("book", onDelete: .cascade).notNull()
+                t.column("locator", .text)
+                t.column("color", .integer).notNull()
+                t.column("created", .datetime).notNull()
+            }
         }
     }
     
