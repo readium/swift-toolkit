@@ -46,16 +46,32 @@ class ReaderViewController: UIViewController, Loggable {
         return try! NSRegularExpression(pattern: "[\\p{Ll}\\p{Lu}\\p{Lt}\\p{Lo}]{2}")
     }()
     
+    private weak var highlightContextMenu: UIViewController?
     func activateDecoration(_ event: OnDecorationActivatedEvent) {
-        let decorationFrame = event.rect ?? self.view.bounds
-        let contextMenuFrame = CGRect(x: decorationFrame.minX, y: decorationFrame.minY-44, width: 44*4, height: 44)
+        let menuView = HighlightContextMenu(colors: [0,1,2], colorSelectedHandler: { color in
+            self.updateHighlight(event.decoration.id, withColor: color)
+            self.highlightContextMenu?.dismiss(animated: true, completion: nil)
+        }, deleteSelectedHandler: {
+            self.deleteHighlight(event.decoration.id)
+            self.highlightContextMenu?.dismiss(animated: true, completion: nil)
+        })
         
-        // The navigation approach taken from here: https://stackoverflow.com/questions/56819063
-        let menu = UIHostingController(rootView: HighlightContextMenu())
-        self.addChild(menu)
-        menu.view.frame = contextMenuFrame
-        self.view.addSubview(menu.view)
-        menu.didMove(toParent: self)
+        let menu = UIHostingController(rootView: menuView)
+        menu.preferredContentSize = CGSize(width: 44*4, height: 44)
+        menu.modalPresentationStyle = .popover
+        
+        if let popoverController = menu.popoverPresentationController {
+            //popoverController.delegate = self;
+            popoverController.permittedArrowDirections = .down
+            popoverController.sourceRect = event.rect ?? .zero
+            popoverController.sourceView = self.view
+            popoverController.backgroundColor = .cyan
+        }
+        
+        highlightContextMenu = menu
+        self.present(menu, animated: true) {
+            //TODO: I don't need to cleanup anything, right?
+        }
     }
     
     init(navigator: UIViewController & Navigator, publication: Publication, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) {
@@ -467,8 +483,8 @@ extension ReaderViewController: HighlightManager {
             .store(in: &subscriptions)
     }
 
-    func updateHighlight(_ highlightID: UUID, withColor color: HighlightColor) {
-        highlights.update(highlightID.uuidString, color: color)
+    func updateHighlight(_ highlightID: Highlight.Id, withColor color: HighlightColor) {
+        highlights.update(highlightID, color: color)
             .assertNoFailure()
             .sink { completion in
                 
@@ -476,8 +492,8 @@ extension ReaderViewController: HighlightManager {
             .store(in: &subscriptions)
     }
 
-    func deleteHighlight(_ highlightID: UUID)  {
-        highlights.remove(highlightID.uuidString)
+    func deleteHighlight(_ highlightID: Highlight.Id)  {
+        highlights.remove(highlightID)
             .assertNoFailure()
             .sink {}
             .store(in: &subscriptions)

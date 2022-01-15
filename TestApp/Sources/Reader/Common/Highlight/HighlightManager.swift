@@ -13,7 +13,7 @@ protocol HighlightManager {
     func color(for highlightColor: HighlightColor) -> UIColor
     
     func saveHighlight(_ highlight: Highlight)
-    func updateHighlight(_ highlightID: UUID, withColor color: HighlightColor)
-    func deleteHighlight(_ highlightID: UUID)
+    func updateHighlight(_ highlightID: Highlight.Id, withColor color: HighlightColor)
+    func deleteHighlight(_ highlightID: Highlight.Id)
 }
 
