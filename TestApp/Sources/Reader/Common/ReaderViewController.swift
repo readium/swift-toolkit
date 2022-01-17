@@ -46,33 +46,35 @@ class ReaderViewController: UIViewController, Loggable {
         return try! NSRegularExpression(pattern: "[\\p{Ll}\\p{Lu}\\p{Lt}\\p{Lo}]{2}")
     }()
     
-    private weak var highlightContextMenu: UIViewController?
+    private var highlightContextMenu: UIHostingController<HighlightContextMenu>?
     func activateDecoration(_ event: OnDecorationActivatedEvent) {
+        print("TADAM: activateDecoration")
+        if highlightContextMenu != nil {
+            print("TADAM: removeFromParent \(highlightContextMenu)")
+            self.highlightContextMenu?.removeFromParent()
+        }
+        
         let menuView = HighlightContextMenu(colors: [1,2,3], colorSelectedHandler: { color in
             self.updateHighlight(event.decoration.id, withColor: color)
+            print("TADAM: dismiss \(self.highlightContextMenu)")
             self.highlightContextMenu?.dismiss(animated: true, completion: nil)
-        },  noteSelectedHandler: {
-            // show note editing view for a highlight
         },  deleteSelectedHandler: {
             self.deleteHighlight(event.decoration.id)
             self.highlightContextMenu?.dismiss(animated: true, completion: nil)
         })
         
-        let menu = UIHostingController(rootView: menuView)
-        menu.preferredContentSize = CGSize(width: 34*5 + 15, height: 34) // sorry for these numbers; the UI looks good on my machine
-        menu.modalPresentationStyle = .popover
+        highlightContextMenu = UIHostingController(rootView: menuView)
+        print("TADAM: init \(highlightContextMenu)")
+        highlightContextMenu!.preferredContentSize = CGSize(width: 34*5 + 15, height: 34) // sorry for these numbers; the UI looks good on my machine
+        highlightContextMenu!.modalPresentationStyle = .popover
         
-        if let popoverController = menu.popoverPresentationController {
-            //popoverController.delegate = self;
+        if let popoverController = highlightContextMenu!.popoverPresentationController {
             popoverController.permittedArrowDirections = .down
             popoverController.sourceRect = event.rect ?? .zero
             popoverController.sourceView = self.view
             popoverController.backgroundColor = .cyan
-        }
-        
-        highlightContextMenu = menu
-        self.present(menu, animated: true) {
-            //TODO: I don't need to cleanup anything, right?
+            print("TADAM: present \(highlightContextMenu)")
+            self.present(highlightContextMenu!, animated: true, completion: nil)
         }
     }
     
@@ -92,7 +94,7 @@ class ReaderViewController: UIViewController, Loggable {
                 if let decorator = self.navigator as? DecorableNavigator {
                     let highlightDecorationGroup = "highlights"
                     self.decorationColors = Dictionary(uniqueKeysWithValues: highlights.map{($0.id, $0.color)})
-                    let decorations = highlights.map { Decoration(id: $0.id, locator: $0.locator, style: .highlight(tint: .red, isActive: false)) } // self.color(for: $0.color)
+                    let decorations = highlights.map { Decoration(id: $0.id, locator: $0.locator, style: .highlight(tint: self.color(for: $0.color), isActive: false)) }
                     decorator.apply(decorations: decorations, in: highlightDecorationGroup)
                     decorator.observeDecorationInteractions(inGroup: highlightDecorationGroup) { event in
                         self.activateDecoration(event)
@@ -443,7 +445,7 @@ extension ReaderViewController: VisualNavigatorDelegate {
 
 extension ReaderViewController: OutlineTableViewControllerDelegate {
     func outline(_ outlineTableViewController: OutlineTableViewController, uiColorFor highlightColor: HighlightColor) -> UIColor? {
-        return .red
+        return color(for: highlightColor)
     }
     
     func outline(_ outlineTableViewController: OutlineTableViewController, goTo location: Locator) {

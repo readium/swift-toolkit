@@ -9,7 +9,6 @@ import SwiftUI
 struct HighlightContextMenu: View {
     let colors: [HighlightColor]
     let colorSelectedHandler: (HighlightColor) -> Void
-    let noteSelectedHandler: () -> Void
     let deleteSelectedHandler: () -> Void
     
     var body: some View {
@@ -22,16 +21,7 @@ struct HighlightContextMenu: View {
                 }
                 Divider()
             }
-    
-            Button {
-                noteSelectedHandler()
-            } label: {
-                Image(systemName: "message")
-                    .font(.system(size: 16))
-            }
-            
-            Divider()
-            
+                
             Button {
                 deleteSelectedHandler()
             } label: {
