@@ -9,32 +9,29 @@ import SwiftUI
 struct HighlightContextMenu: View {
     let colors: [HighlightColor]
     let colorSelectedHandler: (HighlightColor) -> Void
+    let noteSelectedHandler: () -> Void
     let deleteSelectedHandler: () -> Void
     
     var body: some View {
         HStack {
-            Button {
-                colorSelectedHandler(1)
-            } label: {
-                Circle().fill(Color.red)
+            ForEach(0..<colors.count) { index in
+                Button {
+                    colorSelectedHandler(colors[index])
+                } label: {
+                    Text(emoji(for: colors[index]))
+                }
+                Divider()
             }
-            
+    
             Button {
-                colorSelectedHandler(2)
+                noteSelectedHandler()
             } label: {
-                Circle().fill(Color.green)
+                Image(systemName: "message")
                     .font(.system(size: 16))
             }
             
-            Button {
-                colorSelectedHandler(3)
-            } label: {
-                Circle().fill(Color.blue)
-                    .font(.system(size: 16))
-            }
-
+            Divider()
             
-//            Circle().fill(Color.yellow)
             Button {
                 deleteSelectedHandler()
             } label: {
@@ -44,5 +41,20 @@ struct HighlightContextMenu: View {
             
         }
 //        .background(Color.gray)
+    }
+    
+    private func emoji(for color: HighlightColor) -> String {
+        switch color {
+        case 1:
+            return "🔴"
+        case 2:
+            return "🟢"
+        case 3:
+            return "🔵"
+        case 4:
+            return "🟡"
+        default:
+            return "🙀"
+        }
     }
 }

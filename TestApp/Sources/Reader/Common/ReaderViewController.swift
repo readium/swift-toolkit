@@ -48,16 +48,18 @@ class ReaderViewController: UIViewController, Loggable {
     
     private weak var highlightContextMenu: UIViewController?
     func activateDecoration(_ event: OnDecorationActivatedEvent) {
-        let menuView = HighlightContextMenu(colors: [0,1,2], colorSelectedHandler: { color in
+        let menuView = HighlightContextMenu(colors: [1,2,3], colorSelectedHandler: { color in
             self.updateHighlight(event.decoration.id, withColor: color)
             self.highlightContextMenu?.dismiss(animated: true, completion: nil)
-        }, deleteSelectedHandler: {
+        },  noteSelectedHandler: {
+            // show note editing view for a highlight
+        },  deleteSelectedHandler: {
             self.deleteHighlight(event.decoration.id)
             self.highlightContextMenu?.dismiss(animated: true, completion: nil)
         })
         
         let menu = UIHostingController(rootView: menuView)
-        menu.preferredContentSize = CGSize(width: 44*4, height: 44)
+        menu.preferredContentSize = CGSize(width: 34*5 + 15, height: 34) // sorry for these numbers; the UI looks good on my machine
         menu.modalPresentationStyle = .popover
         
         if let popoverController = menu.popoverPresentationController {
