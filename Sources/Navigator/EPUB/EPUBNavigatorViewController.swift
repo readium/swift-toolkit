@@ -532,6 +532,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         
         return paginationView.goToIndex(spreadIndex, location: .locator(locator), animated: animated) {
             self.on(.jumped)
+            self.delegate?.navigator(self, didJumpTo: locator)
             completion()
         }
     }
