@@ -77,9 +77,19 @@ public extension Navigator {
 
 public protocol NavigatorDelegate: AnyObject {
 
-    /// Called when the current position in the publication changed. You should save the locator here to restore the last read page.
+    /// Called when the current position in the publication changed. You should save the locator here to restore the
+    /// last read page.
     func navigator(_ navigator: Navigator, locationDidChange locator: Locator)
-    
+
+    /// Called when the navigator jumps to an explicit location, which might break the linear reading progression.
+    ///
+    /// For example, it is called when clicking on internal links or programmatically calling `go()`, but not when
+    /// turning pages.
+    ///
+    /// You can use this callback to implement a navigation history by differentiating between continuous and
+    /// discontinuous moves.
+    func navigator(_ navigator: Navigator, didJumpTo locator: Locator)
+
     /// Called when an error must be reported to the user.
     func navigator(_ navigator: Navigator, presentError error: NavigatorError)
     
@@ -97,7 +107,9 @@ public protocol NavigatorDelegate: AnyObject {
 
 
 public extension NavigatorDelegate {
-    
+
+    func navigator(_ navigator: Navigator, didJumpTo locator: Locator) {}
+
     func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
         if UIApplication.shared.canOpenURL(url) {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
@@ -107,7 +119,6 @@ public extension NavigatorDelegate {
     func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, referrer: String?) -> Bool {
         return true
     }
-
 }
 
 

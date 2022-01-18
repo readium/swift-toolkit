@@ -238,6 +238,12 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
 
             play()
 
+            if let delegate = delegate, let location = currentLocation {
+                delegate.navigator(self, didJumpTo: location)
+            }
+
+            DispatchQueue.main.async(execute: completion)
+
             return true
 
         } catch {
