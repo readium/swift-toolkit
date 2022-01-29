@@ -48,15 +48,12 @@ class ReaderViewController: UIViewController, Loggable {
     
     private var highlightContextMenu: UIHostingController<HighlightContextMenu>?
     func activateDecoration(_ event: OnDecorationActivatedEvent) {
-        print("TADAM: activateDecoration")
         if highlightContextMenu != nil {
-            print("TADAM: removeFromParent \(highlightContextMenu)")
             self.highlightContextMenu?.removeFromParent()
         }
         
         let menuView = HighlightContextMenu(colors: [1,2,3], colorSelectedHandler: { color in
             self.updateHighlight(event.decoration.id, withColor: color)
-            print("TADAM: dismiss \(self.highlightContextMenu)")
             self.highlightContextMenu?.dismiss(animated: true, completion: nil)
         },  deleteSelectedHandler: {
             self.deleteHighlight(event.decoration.id)
@@ -64,7 +61,6 @@ class ReaderViewController: UIViewController, Loggable {
         })
         
         highlightContextMenu = UIHostingController(rootView: menuView)
-        print("TADAM: init \(highlightContextMenu)")
         highlightContextMenu!.preferredContentSize = CGSize(width: 34*5 + 15, height: 34)
         highlightContextMenu!.modalPresentationStyle = .popover
         
@@ -74,7 +70,6 @@ class ReaderViewController: UIViewController, Loggable {
             popoverController.sourceView = self.view
             popoverController.backgroundColor = .cyan
             popoverController.delegate = self
-            print("TADAM: present \(highlightContextMenu)")
             self.present(highlightContextMenu!, animated: true, completion: nil)
         }
     }
@@ -89,17 +84,19 @@ class ReaderViewController: UIViewController, Loggable {
         
         super.init(nibName: nil, bundle: nil)
         
+        let highlightDecorationGroup = "highlights"
+        if let decorator = self.navigator as? DecorableNavigator {
+            decorator.observeDecorationInteractions(inGroup: highlightDecorationGroup) { event in
+                self.activateDecoration(event)
+            }
+        }
         highlights.all(for: bookId)
             .assertNoFailure()
             .sink { highlights in
                 if let decorator = self.navigator as? DecorableNavigator {
-                    let highlightDecorationGroup = "highlights"
                     self.decorationColors = Dictionary(uniqueKeysWithValues: highlights.map{($0.id, $0.color)})
                     let decorations = highlights.map { Decoration(id: $0.id, locator: $0.locator, style: .highlight(tint: self.color(for: $0.color), isActive: false)) }
                     decorator.apply(decorations: decorations, in: highlightDecorationGroup)
-                    decorator.observeDecorationInteractions(inGroup: highlightDecorationGroup) { event in
-                        self.activateDecoration(event)
-                    }
                 }
             }
             .store(in: &subscriptions)
