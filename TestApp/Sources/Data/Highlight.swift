@@ -15,7 +15,7 @@ enum HighlightColor: UInt8, Codable, SQLExpressible {
     case red = 1
     case green = 2
     case blue = 3
-    case yelow = 4
+    case yellow = 4
 }
 
 struct Highlight: Codable {

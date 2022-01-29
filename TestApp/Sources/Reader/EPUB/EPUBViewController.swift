@@ -19,7 +19,7 @@ class EPUBViewController: ReaderViewController {
     var userSettingNavigationController: UserSettingsNavigationController
     @objc func highlightSelection() {
         if let navigator = navigator as? SelectableNavigator, let selection = navigator.currentSelection {
-            let highlight = Highlight(bookId: bookId, locator: selection.locator, color: .yelow)
+            let highlight = Highlight(bookId: bookId, locator: selection.locator, color: .yellow)
             saveHighlight(highlight)
             navigator.clearSelection()
         }
