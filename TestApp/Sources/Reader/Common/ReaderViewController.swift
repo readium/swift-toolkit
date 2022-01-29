@@ -65,7 +65,7 @@ class ReaderViewController: UIViewController, Loggable {
         
         highlightContextMenu = UIHostingController(rootView: menuView)
         print("TADAM: init \(highlightContextMenu)")
-        highlightContextMenu!.preferredContentSize = CGSize(width: 34*5 + 15, height: 34) // sorry for these numbers; the UI looks good on my machine
+        highlightContextMenu!.preferredContentSize = CGSize(width: 34*5 + 15, height: 34)
         highlightContextMenu!.modalPresentationStyle = .popover
         
         if let popoverController = highlightContextMenu!.popoverPresentationController {
@@ -73,6 +73,7 @@ class ReaderViewController: UIViewController, Loggable {
             popoverController.sourceRect = event.rect ?? .zero
             popoverController.sourceView = self.view
             popoverController.backgroundColor = .cyan
+            popoverController.delegate = self
             print("TADAM: present \(highlightContextMenu)")
             self.present(highlightContextMenu!, animated: true, completion: nil)
         }
@@ -501,5 +502,13 @@ extension ReaderViewController: HighlightManager {
             .assertNoFailure()
             .sink {}
             .store(in: &subscriptions)
+    }
+}
+
+extension ReaderViewController: UIPopoverPresentationControllerDelegate {
+    // Prevent the popOver to be presented fullscreen on iPhones.
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
+    {
+        return .none
     }
 }
