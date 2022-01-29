@@ -11,7 +11,12 @@ import R2Shared
 import R2Navigator
 import UIKit
 
-typealias HighlightColor = UInt8
+enum HighlightColor: UInt8, Codable, SQLExpressible {
+    case red = 1
+    case green = 2
+    case blue = 3
+    case yelow = 4
+}
 
 struct Highlight: Codable {
     typealias Id = String

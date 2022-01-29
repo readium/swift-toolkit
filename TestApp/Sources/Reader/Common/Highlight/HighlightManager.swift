@@ -9,7 +9,6 @@ import UIKit
 import R2Shared
 
 protocol HighlightManager {
-    func defaultHighlightColor(for locator: Locator) -> HighlightColor
     func color(for highlightColor: HighlightColor) -> UIColor
     
     func saveHighlight(_ highlight: Highlight)

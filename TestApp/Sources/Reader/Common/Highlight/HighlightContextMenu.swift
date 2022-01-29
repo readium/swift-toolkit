@@ -35,13 +35,13 @@ struct HighlightContextMenu: View {
     
     private func emoji(for color: HighlightColor) -> String {
         switch color {
-        case 1:
+        case .red:
             return "🔴"
-        case 2:
+        case .green:
             return "🟢"
-        case 3:
+        case .blue:
             return "🔵"
-        case 4:
+        case .yelow:
             return "🟡"
         default:
             return "🙀"

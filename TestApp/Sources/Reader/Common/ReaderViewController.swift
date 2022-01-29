@@ -52,7 +52,7 @@ class ReaderViewController: UIViewController, Loggable {
             self.highlightContextMenu?.removeFromParent()
         }
         
-        let menuView = HighlightContextMenu(colors: [1,2,3], colorSelectedHandler: { color in
+        let menuView = HighlightContextMenu(colors: [.red, .green, .blue], colorSelectedHandler: { color in
             self.updateHighlight(event.decoration.id, withColor: color)
             self.highlightContextMenu?.dismiss(animated: true, completion: nil)
         },  deleteSelectedHandler: {
@@ -452,19 +452,15 @@ extension ReaderViewController: OutlineTableViewControllerDelegate {
 }
 
 extension ReaderViewController: HighlightManager {
-    func defaultHighlightColor(for locator: Locator) -> HighlightColor {
-        return 4
-    }
-
     func color(for highlightColor: HighlightColor) -> UIColor {
         switch highlightColor {
-        case 1:
+        case .red:
             return .red
-        case 2:
+        case .green:
             return .green
-        case 3:
+        case .blue:
             return .blue
-        case 4:
+        case .yelow:
             return .yellow
         default:
             return .black
