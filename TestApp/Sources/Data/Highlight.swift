@@ -46,6 +46,8 @@ extension Highlight: TableRecord, FetchableRecord, PersistableRecord {
     }
 }
 
+struct HighlightNotFoundError: Error {}
+
 final class HighlightRepository {
     private let db: Database
     
@@ -59,6 +61,15 @@ final class HighlightRepository {
                 .filter(Highlight.Columns.bookId == bookId)
                 .order(Highlight.Columns.id) // TODO: order by some kind of progression!
                 .fetchAll(db)
+        }
+    }
+    
+    func highlight(for highlightId: Highlight.Id) -> AnyPublisher<Highlight, Error> {
+        db.observe { db in
+            try Highlight
+                .filter(Highlight.Columns.id == highlightId)
+                .fetchOne(db)
+                .orThrow(HighlightNotFoundError())
         }
     }
     
