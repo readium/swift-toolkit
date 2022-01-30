@@ -92,7 +92,7 @@ final class OutlineTableViewController: UITableViewController {
         highlightRepository.all(for: bookId)
             .assertNoFailure()
             .sink { highlights in
-                self.highlights = highlights
+                self.highlights = highlights.sorted { $0.locator.locations.totalProgression ?? 0 < $1.locator.locations.totalProgression ?? 0 }
                 self.tableView.reloadData()
             }
             .store(in: &subscriptions)

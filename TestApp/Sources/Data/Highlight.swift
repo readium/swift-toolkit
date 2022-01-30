@@ -59,7 +59,6 @@ final class HighlightRepository {
         db.observe { db in
             try Highlight
                 .filter(Highlight.Columns.bookId == bookId)
-                .order(Highlight.Columns.id) // TODO: order by some kind of progression!
                 .fetchAll(db)
         }
     }
