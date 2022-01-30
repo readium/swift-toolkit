@@ -8,6 +8,7 @@ import SwiftUI
 
 struct HighlightContextMenu: View {
     let colors: [HighlightColor]
+    let systemFontSize: CGFloat
     let colorSelectedHandler: (HighlightColor) -> Void
     let deleteSelectedHandler: () -> Void
     
@@ -18,6 +19,7 @@ struct HighlightContextMenu: View {
                     colorSelectedHandler(colors[index])
                 } label: {
                     Text(emoji(for: colors[index]))
+                        .font(.system(size: systemFontSize))
                 }
                 Divider()
             }
@@ -26,11 +28,9 @@ struct HighlightContextMenu: View {
                 deleteSelectedHandler()
             } label: {
                 Image(systemName: "xmark.bin")
-                    .font(.system(size: 16))
+                    .font(.system(size: systemFontSize))
             }
-            
         }
-//        .background(Color.gray)
     }
     
     private func emoji(for color: HighlightColor) -> String {

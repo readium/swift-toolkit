@@ -47,36 +47,7 @@ class ReaderViewController: UIViewController, Loggable {
     }()
     
     private var highlightContextMenu: UIHostingController<HighlightContextMenu>?
-    func activateDecoration(_ event: OnDecorationActivatedEvent) {
-        if highlightContextMenu != nil {
-            self.highlightContextMenu?.removeFromParent()
-        }
-        
-        var clrs: [HighlightColor] = [.red, .green, .blue, .yellow]
-        if let color = self.decorationColors[event.decoration.id] {
-            clrs.removeAll { other in other == color }
-        }
-        let menuView = HighlightContextMenu(colors: clrs, colorSelectedHandler: { color in
-            self.updateHighlight(event.decoration.id, withColor: color)
-            self.highlightContextMenu?.dismiss(animated: true, completion: nil)
-        },  deleteSelectedHandler: {
-            self.deleteHighlight(event.decoration.id)
-            self.highlightContextMenu?.dismiss(animated: true, completion: nil)
-        })
-        
-        highlightContextMenu = UIHostingController(rootView: menuView)
-        highlightContextMenu!.preferredContentSize = CGSize(width: 34*5 + 15, height: 34)
-        highlightContextMenu!.modalPresentationStyle = .popover
-        
-        if let popoverController = highlightContextMenu!.popoverPresentationController {
-            popoverController.permittedArrowDirections = .down
-            popoverController.sourceRect = event.rect ?? .zero
-            popoverController.sourceView = self.view
-            popoverController.backgroundColor = .cyan
-            popoverController.delegate = self
-            self.present(highlightContextMenu!, animated: true, completion: nil)
-        }
-    }
+    private let highlightDecorationGroup = "highlights"
     
     init(navigator: UIViewController & Navigator, publication: Publication, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) {
         self.navigator = navigator
@@ -88,22 +59,8 @@ class ReaderViewController: UIViewController, Loggable {
         
         super.init(nibName: nil, bundle: nil)
         
-        let highlightDecorationGroup = "highlights"
-        if let decorator = self.navigator as? DecorableNavigator {
-            decorator.observeDecorationInteractions(inGroup: highlightDecorationGroup) { event in
-                self.activateDecoration(event)
-            }
-        }
-        highlights.all(for: bookId)
-            .assertNoFailure()
-            .sink { highlights in
-                if let decorator = self.navigator as? DecorableNavigator {
-                    self.decorationColors = Dictionary(uniqueKeysWithValues: highlights.map{($0.id, $0.color)})
-                    let decorations = highlights.map { Decoration(id: $0.id, locator: $0.locator, style: .highlight(tint: self.color(for: $0.color), isActive: false)) }
-                    decorator.apply(decorations: decorations, in: highlightDecorationGroup)
-                }
-            }
-            .store(in: &subscriptions)
+        addHighlightDecorationsObserverOnce()
+        updateDecorationForAnyNewHighlight()
     
         NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: UIAccessibility.voiceOverStatusDidChangeNotification, object: nil)
     }
@@ -266,6 +223,76 @@ class ReaderViewController: UIViewController, Loggable {
         vc.modalPresentationStyle = .pageSheet
         present(vc, animated: true, completion: nil)
         searchViewController = vc
+    }
+    
+    // MARK: - Highlights
+    
+    private func addHighlightDecorationsObserverOnce() {
+        if let decorator = self.navigator as? DecorableNavigator {
+            decorator.observeDecorationInteractions(inGroup: highlightDecorationGroup) { event in
+                self.activateDecoration(event)
+            }
+        }
+    }
+    
+    private func updateDecorationForAnyNewHighlight() {
+        highlights.all(for: bookId)
+            .assertNoFailure()
+            .sink { highlights in
+                if let decorator = self.navigator as? DecorableNavigator {
+                    self.decorationColors = Dictionary(uniqueKeysWithValues: highlights.map{($0.id, $0.color)})
+                    let decorations = highlights.map { Decoration(id: $0.id, locator: $0.locator, style: .highlight(tint: self.color(for: $0.color), isActive: false)) }
+                    decorator.apply(decorations: decorations, in: self.highlightDecorationGroup)
+                }
+            }
+            .store(in: &subscriptions)
+    }
+    
+    private func activateDecoration(_ event: OnDecorationActivatedEvent) {
+        if highlightContextMenu != nil {
+            self.highlightContextMenu?.removeFromParent()
+        }
+        
+        var clrs: [HighlightColor] = [.red, .green, .blue, .yellow]
+        if let color = self.decorationColors[event.decoration.id] {
+            clrs.removeAll { other in other == color }
+        }
+        
+        let menuFontSize: CGFloat = 20
+        let menuView = HighlightContextMenu(
+            colors: clrs,
+            systemFontSize: menuFontSize,
+            colorSelectedHandler: { color in
+                self.updateHighlight(event.decoration.id, withColor: color)
+                self.highlightContextMenu?.dismiss(animated: true, completion: nil)
+            },
+            deleteSelectedHandler: {
+                self.deleteHighlight(event.decoration.id)
+                self.highlightContextMenu?.dismiss(animated: true, completion: nil)
+            }
+        )
+        
+        highlightContextMenu = UIHostingController(rootView: menuView)
+        
+        let contextMenuSide: (CGFloat) -> CGFloat = { systemFontSize in
+            let font = UIFont.systemFont(ofSize: systemFontSize)
+            let fontAttributes = [NSAttributedString.Key.font: font]
+            let sizeShmize = ("🔴" as NSString).size(withAttributes: fontAttributes)
+            return max(sizeShmize.width, sizeShmize.height) * 1.6
+        }
+        
+        let menuSide = contextMenuSide(menuFontSize)
+        highlightContextMenu!.preferredContentSize = CGSize(width: menuSide*4, height: menuSide)
+        highlightContextMenu!.modalPresentationStyle = .popover
+        
+        if let popoverController = highlightContextMenu!.popoverPresentationController {
+            popoverController.permittedArrowDirections = .down
+            popoverController.sourceRect = event.rect ?? .zero
+            popoverController.sourceView = self.view
+            popoverController.backgroundColor = .cyan
+            popoverController.delegate = self
+            self.present(highlightContextMenu!, animated: true, completion: nil)
+        }
     }
     
     // MARK: - DRM

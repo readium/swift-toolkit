@@ -1,5 +1,5 @@
 //
-//  BookmarkCell.swift
+//  HighlightCell.swift
 //  r2-testapp-swift
 //
 //  Copyright 2021 European Digital Reading Lab. All rights reserved.

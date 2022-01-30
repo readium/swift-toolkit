@@ -17,13 +17,7 @@ import R2Navigator
 class EPUBViewController: ReaderViewController {
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingNavigationController: UserSettingsNavigationController
-    @objc func highlightSelection() {
-        if let navigator = navigator as? SelectableNavigator, let selection = navigator.currentSelection {
-            let highlight = Highlight(bookId: bookId, locator: selection.locator, color: .yellow)
-            saveHighlight(highlight)
-            navigator.clearSelection()
-        }
-    }
+    
     init(publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository, resourcesServer: ResourcesServer) {
         var navigatorEditingActions = EditingAction.defaultActions
         navigatorEditingActions.append(EditingAction(title: "Highlight", action: #selector(highlightSelection)))
@@ -119,6 +113,13 @@ class EPUBViewController: ReaderViewController {
         }
     }
 
+    @objc func highlightSelection() {
+        if let navigator = navigator as? SelectableNavigator, let selection = navigator.currentSelection {
+            let highlight = Highlight(bookId: bookId, locator: selection.locator, color: .yellow)
+            saveHighlight(highlight)
+            navigator.clearSelection()
+        }
+    }
 }
 
 extension EPUBViewController: EPUBNavigatorDelegate {
