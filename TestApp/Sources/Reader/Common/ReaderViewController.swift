@@ -46,6 +46,7 @@ class ReaderViewController: UIViewController, Loggable {
     
     private var highlightContextMenu: UIHostingController<HighlightContextMenu>?
     private let highlightDecorationGroup = "highlights"
+    private var currentHighlightCancellable: AnyCancellable?
     
     init(navigator: UIViewController & Navigator, publication: Publication, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) {
         self.navigator = navigator
@@ -244,57 +245,60 @@ class ReaderViewController: UIViewController, Loggable {
             }
             .store(in: &subscriptions)
     }
-    var testSub: AnyCancellable?
+
     private func activateDecoration(_ event: OnDecorationActivatedEvent) {
-        testSub = highlights.highlight(for: event.decoration.id).sink { completion in
+        currentHighlightCancellable = highlights.highlight(for: event.decoration.id).sink { completion in
         } receiveValue: { [weak self] highlight in
             guard let self = self else { return }
-            
-            if self.highlightContextMenu != nil {
-                self.highlightContextMenu?.removeFromParent()
-            }
-            
-            var clrs: [HighlightColor] = [.red, .green, .blue, .yellow]
-            clrs.removeAll { $0 == highlight.color }
-            
-            let menuFontSize: CGFloat = 20
-            let menuView = HighlightContextMenu(colors: clrs, systemFontSize: menuFontSize)
-            
-            menuView.selectedColorPublisher.sink { color in
-                self.testSub?.cancel()
-                self.updateHighlight(event.decoration.id, withColor: color)
-                self.highlightContextMenu?.dismiss(animated: true, completion: nil)
-            }
-            .store(in: &self.subscriptions)
-            
-            menuView.selectedDeletePublisher.sink { _ in
-                self.testSub?.cancel()
-                self.deleteHighlight(event.decoration.id)
-                self.highlightContextMenu?.dismiss(animated: true, completion: nil)
-            }
-            .store(in: &self.subscriptions)
-            
-            self.highlightContextMenu = UIHostingController(rootView: menuView)
-            
-            let contextMenuSide: (CGFloat) -> CGFloat = { systemFontSize in
-                let font = UIFont.systemFont(ofSize: systemFontSize)
-                let fontAttributes = [NSAttributedString.Key.font: font]
-                let size = ("🔴" as NSString).size(withAttributes: fontAttributes)
-                return max(size.width, size.height) * 1.6
-            }
-            
-            let menuSide = contextMenuSide(menuFontSize)
-            self.highlightContextMenu!.preferredContentSize = CGSize(width: menuSide*4, height: menuSide)
-            self.highlightContextMenu!.modalPresentationStyle = .popover
-            
-            if let popoverController = self.highlightContextMenu!.popoverPresentationController {
-                popoverController.permittedArrowDirections = .down
-                popoverController.sourceRect = event.rect ?? .zero
-                popoverController.sourceView = self.view
-                popoverController.backgroundColor = .cyan
-                popoverController.delegate = self
-                self.present(self.highlightContextMenu!, animated: true, completion: nil)
-            }
+            self.activateDecoration(for: highlight, on: event)
+        }
+    }
+    
+    private func activateDecoration(for highlight: Highlight, on event: OnDecorationActivatedEvent) {
+        if highlightContextMenu != nil {
+            highlightContextMenu?.removeFromParent()
+        }
+        
+        var menuColors: [HighlightColor] = [.red, .green, .blue, .yellow]
+        menuColors.removeAll { $0 == highlight.color }
+        
+        let menuFontSize: CGFloat = 20
+        let menuView = HighlightContextMenu(colors: menuColors, systemFontSize: menuFontSize)
+        
+        menuView.selectedColorPublisher.sink { color in
+            self.currentHighlightCancellable?.cancel()
+            self.updateHighlight(event.decoration.id, withColor: color)
+            self.highlightContextMenu?.dismiss(animated: true, completion: nil)
+        }
+        .store(in: &subscriptions)
+        
+        menuView.selectedDeletePublisher.sink { _ in
+            self.currentHighlightCancellable?.cancel()
+            self.deleteHighlight(event.decoration.id)
+            self.highlightContextMenu?.dismiss(animated: true, completion: nil)
+        }
+        .store(in: &subscriptions)
+        
+        self.highlightContextMenu = UIHostingController(rootView: menuView)
+        
+        let contextMenuSide: (CGFloat) -> CGFloat = { systemFontSize in
+            let font = UIFont.systemFont(ofSize: systemFontSize)
+            let fontAttributes = [NSAttributedString.Key.font: font]
+            let size = ("🔴" as NSString).size(withAttributes: fontAttributes)
+            return max(size.width, size.height) * 1.6
+        }
+        
+        let menuSide = contextMenuSide(menuFontSize)
+        highlightContextMenu!.preferredContentSize = CGSize(width: menuSide*4, height: menuSide)
+        highlightContextMenu!.modalPresentationStyle = .popover
+        
+        if let popoverController = highlightContextMenu!.popoverPresentationController {
+            popoverController.permittedArrowDirections = .down
+            popoverController.sourceRect = event.rect ?? .zero
+            popoverController.sourceView = self.view
+            popoverController.backgroundColor = .cyan
+            popoverController.delegate = self
+            present(highlightContextMenu!, animated: true, completion: nil)
         }
     }
     
