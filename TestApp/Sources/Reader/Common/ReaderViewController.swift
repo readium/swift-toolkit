@@ -259,26 +259,27 @@ class ReaderViewController: UIViewController, Loggable {
         }
         
         let menuFontSize: CGFloat = 20
-        let menuView = HighlightContextMenu(
-            colors: clrs,
-            systemFontSize: menuFontSize,
-            colorSelectedHandler: { color in
-                self.updateHighlight(event.decoration.id, withColor: color)
-                self.highlightContextMenu?.dismiss(animated: true, completion: nil)
-            },
-            deleteSelectedHandler: {
-                self.deleteHighlight(event.decoration.id)
-                self.highlightContextMenu?.dismiss(animated: true, completion: nil)
-            }
-        )
+        let menuView = HighlightContextMenu(colors: clrs, systemFontSize: menuFontSize)
+        
+        menuView.selectedColorPublisher.sink { color in
+            self.updateHighlight(event.decoration.id, withColor: color)
+            self.highlightContextMenu?.dismiss(animated: true, completion: nil)
+        }
+        .store(in: &subscriptions)
+        
+        menuView.selectedDeletePublisher.sink { _ in
+            self.deleteHighlight(event.decoration.id)
+            self.highlightContextMenu?.dismiss(animated: true, completion: nil)
+        }
+        .store(in: &subscriptions)
         
         highlightContextMenu = UIHostingController(rootView: menuView)
         
         let contextMenuSide: (CGFloat) -> CGFloat = { systemFontSize in
             let font = UIFont.systemFont(ofSize: systemFontSize)
             let fontAttributes = [NSAttributedString.Key.font: font]
-            let sizeShmize = ("🔴" as NSString).size(withAttributes: fontAttributes)
-            return max(sizeShmize.width, sizeShmize.height) * 1.6
+            let size = ("🔴" as NSString).size(withAttributes: fontAttributes)
+            return max(size.width, size.height) * 1.6
         }
         
         let menuSide = contextMenuSide(menuFontSize)

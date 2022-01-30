@@ -5,18 +5,27 @@
 //
 
 import SwiftUI
+import Combine
 
 struct HighlightContextMenu: View {
     let colors: [HighlightColor]
     let systemFontSize: CGFloat
-    let colorSelectedHandler: (HighlightColor) -> Void
-    let deleteSelectedHandler: () -> Void
+    
+    private let colorSubject = PassthroughSubject<HighlightColor, Never>()
+    var selectedColorPublisher: AnyPublisher<HighlightColor, Never> {
+        return colorSubject.eraseToAnyPublisher()
+    }
+    
+    private let deleteSubject = PassthroughSubject<Void, Never>()
+    var selectedDeletePublisher: AnyPublisher<Void, Never> {
+        return deleteSubject.eraseToAnyPublisher()
+    }
     
     var body: some View {
         HStack {
             ForEach(0..<colors.count) { index in
                 Button {
-                    colorSelectedHandler(colors[index])
+                    colorSubject.send(colors[index])
                 } label: {
                     Text(emoji(for: colors[index]))
                         .font(.system(size: systemFontSize))
@@ -25,7 +34,7 @@ struct HighlightContextMenu: View {
             }
                 
             Button {
-                deleteSelectedHandler()
+                deleteSubject.send()
             } label: {
                 Image(systemName: "xmark.bin")
                     .font(.system(size: systemFontSize))
