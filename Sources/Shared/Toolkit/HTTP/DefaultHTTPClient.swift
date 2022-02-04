@@ -328,7 +328,7 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
                 return
             }
 
-            var response = HTTPResponse(response: urlResponse, url: url)
+            var response = HTTPResponse(request: request, response: urlResponse, url: url)
 
             if let kind = HTTPError.Kind(statusCode: response.statusCode) {
                 state = .failure(kind: kind, cause: nil, response: response)
