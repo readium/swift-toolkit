@@ -495,7 +495,9 @@ extension ReaderViewController: OutlineTableViewControllerDelegate {
     }
 }
 
-extension ReaderViewController: HighlightManager {
+// MARK: - Highlights management
+
+extension ReaderViewController {
     func color(for highlightColor: HighlightColor) -> UIColor {
         switch highlightColor {
         case .red:
