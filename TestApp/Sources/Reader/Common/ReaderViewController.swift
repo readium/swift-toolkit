@@ -265,11 +265,8 @@ class ReaderViewController: UIViewController, Loggable {
             highlightContextMenu?.removeFromParent()
         }
         
-        var menuColors: [HighlightColor] = [.red, .green, .blue, .yellow]
-        menuColors.removeAll { $0 == highlight.color }
-        
-        let menuFontSize: CGFloat = 20
-        let menuView = HighlightContextMenu(colors: menuColors, systemFontSize: menuFontSize)
+        let menuView = HighlightContextMenu(colors: [.red, .green, .blue, .yellow],
+                                            systemFontSize: 20)
         
         menuView.selectedColorPublisher.sink { color in
             self.currentHighlightCancellable?.cancel()
@@ -287,15 +284,7 @@ class ReaderViewController: UIViewController, Loggable {
         
         self.highlightContextMenu = UIHostingController(rootView: menuView)
         
-        let contextMenuSide: (CGFloat) -> CGFloat = { systemFontSize in
-            let font = UIFont.systemFont(ofSize: systemFontSize)
-            let fontAttributes = [NSAttributedString.Key.font: font]
-            let size = ("🔴" as NSString).size(withAttributes: fontAttributes)
-            return max(size.width, size.height) * 1.6
-        }
-        
-        let menuSide = contextMenuSide(menuFontSize)
-        highlightContextMenu!.preferredContentSize = CGSize(width: menuSide*4, height: menuSide)
+        highlightContextMenu!.preferredContentSize = menuView.preferredSize
         highlightContextMenu!.modalPresentationStyle = .popover
         
         if let popoverController = highlightContextMenu!.popoverPresentationController {

@@ -42,6 +42,13 @@ struct HighlightContextMenu: View {
         }
     }
     
+    var preferredSize: CGSize {
+        let itemSide = itemSideSize
+        let itemsCount = colors.count + 1 // 1 is for "delete"
+        return CGSize(width: itemSide*CGFloat(itemsCount), height: itemSide)
+    }
+    
+// MARK: - Private
     private func emoji(for color: HighlightColor) -> String {
         switch color {
         case .red:
@@ -53,5 +60,12 @@ struct HighlightContextMenu: View {
         case .yellow:
             return "🟡"
         }
+    }
+    
+    private var itemSideSize: CGFloat {
+        let font = UIFont.systemFont(ofSize: systemFontSize)
+        let fontAttributes = [NSAttributedString.Key.font: font]
+        let size = ("🔴" as NSString).size(withAttributes: fontAttributes)
+        return max(size.width, size.height) * 1.6
     }
 }
