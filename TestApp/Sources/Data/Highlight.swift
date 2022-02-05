@@ -18,6 +18,21 @@ enum HighlightColor: UInt8, Codable, SQLExpressible {
     case yellow = 4
 }
 
+extension HighlightColor {
+    var uiColor: UIColor {
+        switch self {
+        case .red:
+            return .red
+        case .green:
+            return .green
+        case .blue:
+            return .blue
+        case .yellow:
+            return .yellow
+        }
+    }
+}
+
 struct Highlight: Codable {
     typealias Id = String
     

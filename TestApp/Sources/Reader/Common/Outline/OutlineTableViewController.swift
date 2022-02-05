@@ -20,10 +20,7 @@ protocol OutlineTableViewControllerFactory {
 }
 
 protocol OutlineTableViewControllerDelegate: AnyObject {
-    
     func outline(_ outlineTableViewController: OutlineTableViewController, goTo location: Locator)
-    func outline(_ outlineTableViewController: OutlineTableViewController, uiColorFor highlightColor: HighlightColor) -> UIColor?
-
 }
 
 final class OutlineTableViewController: UITableViewController {
@@ -168,9 +165,7 @@ final class OutlineTableViewController: UITableViewController {
             
             let highlight = highlights[indexPath.row]
             cell.textLabel?.text = highlight.locator.text.sanitized().highlight
-            if let labelColor = delegate?.outline(self, uiColorFor: highlight.color) {
-                cell.colorLabel.backgroundColor = labelColor
-            }
+            cell.colorLabel.backgroundColor = highlight.color.uiColor
             return cell
         default:
             guard let outline = outlines[section] else {

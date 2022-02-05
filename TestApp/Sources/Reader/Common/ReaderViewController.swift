@@ -243,7 +243,7 @@ class ReaderViewController: UIViewController, Loggable {
             .assertNoFailure()
             .sink { highlights in
                 if let decorator = self.navigator as? DecorableNavigator {
-                    let decorations = highlights.map { Decoration(id: $0.id, locator: $0.locator, style: .highlight(tint: self.color(for: $0.color), isActive: false)) }
+                    let decorations = highlights.map { Decoration(id: $0.id, locator: $0.locator, style: .highlight(tint: $0.color.uiColor, isActive: false)) }
                     decorator.apply(decorations: decorations, in: self.highlightDecorationGroup)
                 }
             }
@@ -486,10 +486,6 @@ extension ReaderViewController: VisualNavigatorDelegate {
 }
 
 extension ReaderViewController: OutlineTableViewControllerDelegate {
-    func outline(_ outlineTableViewController: OutlineTableViewController, uiColorFor highlightColor: HighlightColor) -> UIColor? {
-        return color(for: highlightColor)
-    }
-    
     func outline(_ outlineTableViewController: OutlineTableViewController, goTo location: Locator) {
         navigator.go(to: location)
     }
@@ -498,21 +494,6 @@ extension ReaderViewController: OutlineTableViewControllerDelegate {
 // MARK: - Highlights management
 
 extension ReaderViewController {
-    func color(for highlightColor: HighlightColor) -> UIColor {
-        switch highlightColor {
-        case .red:
-            return .red
-        case .green:
-            return .green
-        case .blue:
-            return .blue
-        case .yellow:
-            return .yellow
-        default:
-            return .black
-        }
-    }
-
     func saveHighlight(_ highlight: Highlight) {
         guard let highlights = highlights else { return }
         
