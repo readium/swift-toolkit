@@ -28,7 +28,7 @@ class ReaderViewController: UIViewController, Loggable {
     let bookId: Book.Id
     private let books: BookRepository
     private let bookmarks: BookmarkRepository
-    private let highlights: HighlightRepository
+    private let highlights: HighlightRepository?
 
     private(set) var stackView: UIStackView!
     private lazy var positionLabel = UILabel()
@@ -48,7 +48,7 @@ class ReaderViewController: UIViewController, Loggable {
     private let highlightDecorationGroup = "highlights"
     private var currentHighlightCancellable: AnyCancellable?
     
-    init(navigator: UIViewController & Navigator, publication: Publication, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) {
+    init(navigator: UIViewController & Navigator, publication: Publication, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository? = nil) {
         self.navigator = navigator
         self.publication = publication
         self.bookId = bookId
@@ -59,7 +59,7 @@ class ReaderViewController: UIViewController, Loggable {
         super.init(nibName: nil, bundle: nil)
         
         addHighlightDecorationsObserverOnce()
-        updateDecorationForAnyNewHighlight()
+        updateHighlightDecorations()
     
         NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: UIAccessibility.voiceOverStatusDidChangeNotification, object: nil)
     }
@@ -227,6 +227,8 @@ class ReaderViewController: UIViewController, Loggable {
     // MARK: - Highlights
     
     private func addHighlightDecorationsObserverOnce() {
+        if highlights == nil { return }
+        
         if let decorator = self.navigator as? DecorableNavigator {
             decorator.observeDecorationInteractions(inGroup: highlightDecorationGroup) { event in
                 self.activateDecoration(event)
@@ -234,7 +236,9 @@ class ReaderViewController: UIViewController, Loggable {
         }
     }
     
-    private func updateDecorationForAnyNewHighlight() {
+    private func updateHighlightDecorations() {
+        guard let highlights = highlights else { return }
+        
         highlights.all(for: bookId)
             .assertNoFailure()
             .sink { highlights in
@@ -247,6 +251,8 @@ class ReaderViewController: UIViewController, Loggable {
     }
 
     private func activateDecoration(_ event: OnDecorationActivatedEvent) {
+        guard let highlights = highlights else { return }
+        
         currentHighlightCancellable = highlights.highlight(for: event.decoration.id).sink { completion in
         } receiveValue: { [weak self] highlight in
             guard let self = self else { return }
@@ -506,6 +512,8 @@ extension ReaderViewController: HighlightManager {
     }
 
     func saveHighlight(_ highlight: Highlight) {
+        guard let highlights = highlights else { return }
+        
         highlights.add(highlight)
             .sink { completion in
                 switch completion {
@@ -520,6 +528,8 @@ extension ReaderViewController: HighlightManager {
     }
 
     func updateHighlight(_ highlightID: Highlight.Id, withColor color: HighlightColor) {
+        guard let highlights = highlights else { return }
+        
         highlights.update(highlightID, color: color)
             .assertNoFailure()
             .sink { completion in
@@ -529,6 +539,8 @@ extension ReaderViewController: HighlightManager {
     }
 
     func deleteHighlight(_ highlightID: Highlight.Id)  {
+        guard let highlights = highlights else { return }
+        
         highlights.remove(highlightID)
             .assertNoFailure()
             .sink {}
