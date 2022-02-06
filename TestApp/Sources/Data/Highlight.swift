@@ -45,11 +45,14 @@ struct Highlight: Codable {
     var color: HighlightColor
     /// Date of creation.
     var created: Date = Date()
+    /// Total progression in the publication.
+    var progression: Double?
     
     init(id: Id = UUID().uuidString, bookId: Book.Id, locator: Locator, color: HighlightColor, created: Date = Date()) {
         self.id = id
         self.bookId = bookId
         self.locator = locator
+        self.progression = locator.locations.totalProgression
         self.color = color
         self.created = created
     }
@@ -57,7 +60,7 @@ struct Highlight: Codable {
 
 extension Highlight: TableRecord, FetchableRecord, PersistableRecord {
     enum Columns: String, ColumnExpression {
-        case id, bookId, locator, color, created
+        case id, bookId, locator, color, created, progression
     }
 }
 
@@ -74,6 +77,7 @@ final class HighlightRepository {
         db.observe { db in
             try Highlight
                 .filter(Highlight.Columns.bookId == bookId)
+                .order(Highlight.Columns.progression)
                 .fetchAll(db)
         }
     }
