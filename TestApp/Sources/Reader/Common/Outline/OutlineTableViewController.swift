@@ -14,6 +14,9 @@ import Combine
 import R2Shared
 import R2Navigator
 import UIKit
+import SwiftUI
+
+typealias HighlightCellSwiftuiWrapper = HostingTableViewCell<HighlightCellView>
 
 protocol OutlineTableViewControllerFactory {
     func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository) -> OutlineTableViewController
@@ -37,7 +40,7 @@ final class OutlineTableViewController: UITableViewController {
     var highlightRepository: HighlightRepository!
   
     // Outlines (list of links) to display for each section.
-    private var outlines: [Section: [(level: Int, link: Link)]] = [:]
+    private var outlines: [Section: [(level: Int, link: R2Shared.Link)]] = [:]
     private var bookmarks: [Bookmark] = []
     private var highlights: [Highlight] = []
     
@@ -68,7 +71,7 @@ final class OutlineTableViewController: UITableViewController {
         tableView.dataSource = self
         tableView.tintColor = UIColor.black
 
-        func flatten(_ links: [Link], level: Int = 0) -> [(level: Int, link: Link)] {
+        func flatten(_ links: [R2Shared.Link], level: Int = 0) -> [(level: Int, link: R2Shared.Link)] {
             return links.flatMap { [(level, $0)] + flatten($0.children, level: level + 1) }
         }
         
@@ -93,6 +96,8 @@ final class OutlineTableViewController: UITableViewController {
                 self.tableView.reloadData()
             }
             .store(in: &subscriptions)
+        
+        tableView.register(HighlightCellSwiftuiWrapper.self, forCellReuseIdentifier: kHighlightCell)
     }
     
     func locator(at indexPath: IndexPath) -> Locator? {
@@ -156,16 +161,8 @@ final class OutlineTableViewController: UITableViewController {
             }()
             return cell
         case .highlights:
-            let cell: HighlightCell = {
-                if let cell = tableView.dequeueReusableCell(withIdentifier: kHighlightCell) as? HighlightCell {
-                    return cell
-                }
-                return HighlightCell(style: UITableViewCell.CellStyle.subtitle, reuseIdentifier: kHighlightCell)
-            } ()
-            
-            let highlight = highlights[indexPath.row]
-            cell.textLabel?.text = highlight.locator.text.sanitized().highlight
-            cell.colorLabel.backgroundColor = highlight.color.uiColor
+            let cell = tableView.dequeueReusableCell(withIdentifier: kHighlightCell) as! HighlightCellSwiftuiWrapper
+            cell.host(HighlightCellView(highlight: highlights[indexPath.row]), parent: self)
             return cell
         default:
             guard let outline = outlines[section] else {
