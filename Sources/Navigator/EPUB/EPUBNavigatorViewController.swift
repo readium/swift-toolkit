@@ -378,12 +378,12 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
 
         let location = self.currentLocation
         for (_, view) in self.paginationView.loadedViews {
-            (view as? EPUBSpreadView)?.applyUserSettingsStyle()
-        }
-
-        // Re-positions the navigator to the location before applying the settings
-        if let location = location {
-            self.go(to: location)
+            (view as? EPUBSpreadView)?.applyUserSettingsStyle {
+                // Re-positions the navigator to the location before applying the settings
+                if let location = location {
+                    self.go(to: location)
+                }
+            }
         }
     }
 

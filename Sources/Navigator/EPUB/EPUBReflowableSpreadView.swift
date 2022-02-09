@@ -74,7 +74,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         webView.load(URLRequest(url: url))
     }
 
-    override func applyUserSettingsStyle() {
+    override func applyUserSettingsStyle(completion: @escaping () -> Void = {}) {
         super.applyUserSettingsStyle()
         
         let properties = userSettings.userProperties.properties
@@ -91,8 +91,12 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return script + "readium.setProperty(\"\(property.name)\", \"\(value)\");\n"
         }
         evaluateScript(propertiesScript) { res in
-            if case .failure(let error) = res {
+            switch res {
+            case .success:
+                completion()
+            case .failure(let error):
                 self.log(.error, error)
+           
             }
         }
 

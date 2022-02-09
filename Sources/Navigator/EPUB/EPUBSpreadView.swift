@@ -281,7 +281,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     /// Update webview style to userSettings.
     /// To override in subclasses.
-    func applyUserSettingsStyle() {
+    func applyUserSettingsStyle(completion: @escaping () -> Void = {}) {
         assert(Thread.isMainThread, "User settings must be updated from the main thread")
     }
     
