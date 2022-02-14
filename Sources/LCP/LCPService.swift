@@ -21,7 +21,7 @@ public final class LCPService: Loggable {
     private let licenses: LicensesService
     private let passphrases: PassphrasesRepository
     
-    public init(client: LCPClient) {
+    public init(client: LCPClient, httpClient: HTTPClient = DefaultHTTPClient()) {
         // Determine whether the embedded liblcp.a is in production mode, by attempting to open a production license.
         let isProduction: Bool = {
             guard
@@ -35,15 +35,14 @@ public final class LCPService: Loggable {
         }()
 
         let db = Database.shared
-        let network = NetworkService()
         passphrases = db.transactions
         licenses = LicensesService(
             isProduction: isProduction,
             client: client,
             licenses: db.licenses,
-            crl: CRLService(network: network),
-            device: DeviceService(repository: db.licenses, network: network),
-            network: network,
+            crl: CRLService(httpClient: httpClient),
+            device: DeviceService(repository: db.licenses, httpClient: httpClient),
+            httpClient: httpClient,
             passphrases: PassphrasesService(client: client, repository: passphrases)
         )
     }

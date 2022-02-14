@@ -14,6 +14,9 @@ All notable changes to this project will be documented in this file. Take a look
 * A new `Publication.conforms(to:)` API to identify the profile of a publication.
 * Support for the [`conformsTo` RWPM metadata](https://github.com/readium/webpub-manifest/issues/65), to identify the profile of a `Publication`.
 * Support for right-to-left PDF documents by extracting the reading progression from the `ViewerPreferences/Direction` metadata.
+* HTTP client:
+    * A new `HTTPClient.download()` API to download HTTP resources to a temporary location.
+    * `HTTPRequest` and `DefaultHTTPClient` take an optional `userAgent` property to customize the user agent. 
 
 #### Navigator
 
@@ -28,11 +31,21 @@ All notable changes to this project will be documented in this file. Take a look
 * `Publication.format` is now deprecated in favor of the new `Publication.conforms(to:)` API which is more accurate.
     * For example, replace `publication.format == .epub` with `publication.conforms(to: .epub)` before opening a publication with the `EPUBNavigatorViewController`.
 
+### Changed
+
+#### LCP
+
+* The `LCPService` now uses a provided `HTTPClient` instance for all HTTP requests.
+
 ### Fixed
 
 #### Navigator
 
 * [#14](https://github.com/readium/swift-toolkit/issues/14) Backward compatibility (iOS 10+) of JavaScript files is now handled with Babel.
+
+#### LCP
+
+* Fixed the notification of acquisition progress.
 
 
 ## 2.2.0
