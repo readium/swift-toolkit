@@ -13,7 +13,7 @@
 import Foundation
 import UIKit
 import R2Shared
-
+import SwiftUI
 
 final class ReaderFactory {
     
@@ -33,6 +33,11 @@ extension ReaderFactory: OutlineTableViewControllerFactory {
         controller.bookmarkRepository = bookmarks
         controller.highlightRepository = highlights
         return controller
+    }
+    
+    func make2(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository) -> UIHostingController<OutlineTableView2> {
+        let view = UIHostingController(rootView: OutlineTableView2(publication: publication, bookId: bookId, bookmarkRepository: bookmarks, highlightRepository: highlights))
+        return view
     }
 }
 

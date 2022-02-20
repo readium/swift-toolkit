@@ -104,8 +104,15 @@ extension ReaderModule: ReaderFormatModuleDelegate {
     }
     
     func presentOutline(of publication: Publication, bookId: Book.Id, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController) {
-        let outlineTableVC: OutlineTableViewController = factory.make(publication: publication, bookId: bookId, bookmarks: bookmarks, highlights: highlights)
-        outlineTableVC.delegate = delegate
+        let outlineTableVC: UIViewController!
+        let outlineVcIsSwiftUI = true
+        if outlineVcIsSwiftUI {
+            outlineTableVC = factory.make2(publication: publication, bookId: bookId, bookmarks: bookmarks, highlights: highlights)
+        }
+        else {
+            outlineTableVC = factory.make(publication: publication, bookId: bookId, bookmarks: bookmarks, highlights: highlights)
+            (outlineTableVC as! OutlineTableViewController).delegate = delegate
+        }
         viewController.present(UINavigationController(rootViewController: outlineTableVC), animated: true)
     }
     
