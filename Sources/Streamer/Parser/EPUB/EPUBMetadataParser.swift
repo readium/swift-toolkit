@@ -482,7 +482,7 @@ final class EPUBMetadataParser: Loggable {
     /// Returns the given `dc:` tag in the `metadata` element.
     ///
     /// This looks under `metadata/dc-metadata` as well, to be compatible with old EPUB 2 files.
-    private func dcElement(tag: String) -> XMLElement? {
+    private func dcElement(tag: String) -> Fuzi.XMLElement? {
         return metadataElement?
             .firstChild(xpath:"(.|opf:dc-metadata)/dc:\(tag)")
     }
