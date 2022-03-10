@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * [#14](https://github.com/readium/swift-toolkit/issues/14) Backward compatibility (iOS 10+) of JavaScript files is now handled with Babel.
+* Throttle the reload of EPUB spreads to avoid losing the position when the reader gets back to the foreground.
 
 
 ## 2.2.0
