@@ -22,12 +22,12 @@ clean:
 	@rm -rf Pods
 	@rm -rf TestApp.xcodeproj
 	@rm -rf TestApp.xcworkspace
+	@rm -rf R2LCPClient
 
 spm: clean
 ifdef lcp
-	@echo "binary \"$(lcp)\"" > Cartfile
-	carthage update --platform ios --cache-builds
 	@cp Integrations/SPM/project+lcp.yml project.yml
+	curl --create-dirs --output R2LCPClient/Package.swift "$(lcp)"
 else
 	@cp Integrations/SPM/project.yml .
 endif
@@ -72,8 +72,7 @@ endif
 dev: clean
 ifdef lcp
 	@cp Integrations/Local/project+lcp.yml project.yml
-	@echo "binary \"$(lcp)\"" > Cartfile
-	carthage update --platform ios --cache-builds
+	curl --create-dirs --output R2LCPClient/Package.swift "$(lcp)"
 else
 	@cp Integrations/Local/project.yml .
 endif

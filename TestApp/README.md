@@ -52,8 +52,8 @@ Building with Readium LCP requires additional dependencies, including the librar
 
 1. [Contact EDRLab](mailto:contact@edrlab.org) to request your private `R2LCPClient.framework`.
 2. If you integrate Readium with Swift Package Manager or Git submodules, install [Carthage](https://github.com/Carthage/Carthage). `R2LCPClient.framework` is only available for Carthage or CocoaPods.
-3. Generate the Xcode project with `make`, providing the URL given by EDRLab as the `url` parameter (`.json` for Carthage or SPM and `.podspec` for CocoaPods).
+3. Generate the Xcode project with `make`, providing the URL given by EDRLab as the `url` parameter (`Package.swift` for SPM, `liblcp.json` for Carthage and `latest.podspec` for CocoaPods).
     ```sh
-    make spm lcp=https://...json
+    make spm lcp=https://.../Package.swift
     ```
 

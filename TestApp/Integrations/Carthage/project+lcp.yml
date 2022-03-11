@@ -19,12 +19,12 @@ targets:
     sources: 
       - path: Sources
     dependencies:
-      - carthage: R2LCPClient
       - framework: Carthage/Build/CryptoSwift.xcframework
       - framework: Carthage/Build/DifferenceKit.xcframework
       - framework: Carthage/Build/Fuzi.xcframework
       - framework: Carthage/Build/GCDWebServer.xcframework
       - framework: Carthage/Build/Minizip.xcframework
+      - framework: Carthage/Build/R2LCPClient.xcframework
       - framework: Carthage/Build/R2Navigator.xcframework
       - framework: Carthage/Build/R2Shared.xcframework
       - framework: Carthage/Build/R2Streamer.xcframework
