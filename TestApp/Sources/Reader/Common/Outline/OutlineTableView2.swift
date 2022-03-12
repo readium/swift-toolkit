@@ -15,6 +15,8 @@ struct OutlineTableView2: View {
     var bookmarkRepository: BookmarkRepository!
     var highlightRepository: HighlightRepository!
     
+    @ObservedObject var highlightsModel: HighlightsViewModel
+    
     // Outlines (list of links) to display for each section.
     private var outlines: [Section: [(level: Int, link: R2Shared.Link)]] = [:]
     private var bookmarks: [Bookmark] = []
@@ -47,13 +49,7 @@ struct OutlineTableView2: View {
             }
             .store(in: &subscriptions)
         
-        highlightRepository.all(for: bookId)
-            .assertNoFailure()
-            .sink { [self] highlights in
-                // Escaping closure captures mutating 'self' parameter
-                 self.highlights = highlights
-            }
-            .store(in: &subscriptions)
+        highlightsModel = HighlightsViewModel(bookId: bookId, highlightRepository: highlightRepository)
     }
     
     var body: some View {
@@ -67,6 +63,7 @@ struct OutlineTableView2: View {
             })
             .pickerStyle(SegmentedPickerStyle())
             
+            
             switch selectedSection {
             case .tableOfContents:
                 EmptyView()
@@ -77,10 +74,62 @@ struct OutlineTableView2: View {
             case .landmarks:
                 EmptyView()
             case .highlights:
-                List(highlights, id: \.self) { highlight in
+                List(highlightsModel.highlights, id: \.self) { highlight in
                     HighlightCellView(highlight: highlight)
                 }
+                //.overlay(StatusOverlay(model: model))
+                .onAppear { self.highlightsModel.loadIfNeeded() }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+    }
+}
+
+// Pattern used: https://stackoverflow.com/a/61858358/2567725
+class HighlightsViewModel: ObservableObject {
+    private let bookId: Book.Id
+    private let highlightRepository: HighlightRepository
+    
+    init(bookId: Book.Id, highlightRepository: HighlightRepository) {
+        self.bookId = bookId
+        self.highlightRepository = highlightRepository
+    }
+    
+    @Published var highlights = [Highlight]()
+    @Published var state = State.ready
+
+    enum State {
+        case ready
+        case loading(Combine.Cancellable)
+        case loaded
+        case error(Error)
+    }
+
+    var dataTask: AnyPublisher<[Highlight], Error> {
+        self.highlightRepository.all(for: bookId)
+    }
+
+    func load() {
+        assert(Thread.isMainThread)
+        self.state = .loading(self.dataTask.sink(
+            receiveCompletion: { completion in
+                switch completion {
+                case .finished:
+                    break
+                case let .failure(error):
+                    self.state = .error(error)
+                }
+            },
+            receiveValue: { value in
+                self.state = .loaded
+                self.highlights = value
+            }
+        ))
+    }
+
+    func loadIfNeeded() {
+        assert(Thread.isMainThread)
+        guard case .ready = self.state else { return }
+        self.load()
     }
 }
