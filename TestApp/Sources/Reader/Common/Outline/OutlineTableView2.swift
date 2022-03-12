@@ -55,18 +55,22 @@ struct OutlineTableView2: View {
             
             
             switch selectedSection {
-            case .tableOfContents:
-                EmptyView()
+            case .tableOfContents, .pageList, .landmarks:
+                if let outline = outlines[selectedSection] {
+                    List(outline.indices, id: \.self) { index in
+                        let item = outline[index]
+                        Text(String(repeating: "  ", count: item.level) + (item.link.title ?? item.link.href))
+                    }
+                } else {
+                    Text("Some error occured for outline #\(selectedSection.rawValue) ...")
+                }
+                
             case .bookmarks:
                 List(bookmarksModel.bookmarks, id: \.self) { bookmark in
                     BookmarkCellView(bookmark: bookmark)
                 }
                 //.overlay(BookmarksStatusOverlay(model: model))
                 .onAppear { self.bookmarksModel.loadIfNeeded() }
-            case .pageList:
-                EmptyView()
-            case .landmarks:
-                EmptyView()
             case .highlights:
                 List(highlightsModel.highlights, id: \.self) { highlight in
                     HighlightCellView(highlight: highlight)
