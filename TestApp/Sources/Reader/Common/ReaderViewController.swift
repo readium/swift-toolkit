@@ -176,7 +176,7 @@ class ReaderViewController: UIViewController, Loggable {
     // MARK: - Outlines
 
     @objc func presentOutline() {
-        moduleDelegate?.presentOutline(of: publication, bookId: bookId, delegate: self, from: self)
+        moduleDelegate?.presentOutline(of: publication, bookId: bookId, subscriber: CustomLocatorSubscriber(navigator: navigator, presentingVC: self), delegate: self, from: self)
     }
     
     
@@ -472,6 +472,33 @@ extension ReaderViewController: VisualNavigatorDelegate {
         }
     }
     
+}
+
+class CustomLocatorSubscriber: Subscriber {
+    typealias Input = Locator
+    typealias Failure = Never
+    
+    private let navigator: Navigator
+    private let presentingVC: UIViewController
+    
+    init(navigator: Navigator, presentingVC: UIViewController) {
+        self.navigator = navigator
+        self.presentingVC = presentingVC
+    }
+    
+    func receive(subscription: Subscription) {
+        subscription.request(.max(1))
+    }
+    func receive(_ input: Locator) -> Subscribers.Demand {
+        print("Value:", input)
+        presentingVC.dismiss(animated: true) {
+            self.navigator.go(to: input)
+        }
+        return .unlimited
+    }
+    func receive(completion: Subscribers.Completion<Never>) {
+        print("Completion: \(completion)")
+    }
 }
 
 extension ReaderViewController: OutlineTableViewControllerDelegate {

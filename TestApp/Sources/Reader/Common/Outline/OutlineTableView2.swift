@@ -60,6 +60,9 @@ struct OutlineTableView2: View {
                     List(outline.indices, id: \.self) { index in
                         let item = outline[index]
                         Text(String(repeating: "  ", count: item.level) + (item.link.title ?? item.link.href))
+                            .onTapGesture {
+                                locatorSubject.send(Locator(link: item.link))
+                            }
                     }
                 } else {
                     Text("Some error occured for outline #\(selectedSection.rawValue) ...")
@@ -68,18 +71,29 @@ struct OutlineTableView2: View {
             case .bookmarks:
                 List(bookmarksModel.bookmarks, id: \.self) { bookmark in
                     BookmarkCellView(bookmark: bookmark)
+                        .onTapGesture {
+                            locatorSubject.send(bookmark.locator)
+                        }
                 }
                 //.overlay(BookmarksStatusOverlay(model: model))
                 .onAppear { self.bookmarksModel.loadIfNeeded() }
             case .highlights:
                 List(highlightsModel.highlights, id: \.self) { highlight in
                     HighlightCellView(highlight: highlight)
+                        .onTapGesture {
+                            locatorSubject.send(highlight.locator)
+                        }
                 }
                 //.overlay(HighlightsStatusOverlay(model: model))
                 .onAppear { self.highlightsModel.loadIfNeeded() }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+    }
+    
+    private let locatorSubject = PassthroughSubject<Locator, Never>()
+    var goToLocatorPublisher: AnyPublisher<Locator, Never> {
+        return locatorSubject.eraseToAnyPublisher()
     }
 }
 
