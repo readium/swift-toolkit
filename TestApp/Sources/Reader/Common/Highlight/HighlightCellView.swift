@@ -21,11 +21,11 @@ struct HighlightCellView: View {
                 .fill(Color(highlight.color.uiColor))
                 .frame(maxWidth: 20, maxHeight: .infinity)
             
-            Spacer()
-            
             Text(highlight.locator.text.sanitized().highlight ?? "")
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
                 .padding()
+            
+            Spacer()
         }
     }
 }

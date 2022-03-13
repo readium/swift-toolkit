@@ -57,32 +57,46 @@ struct OutlineTableView2: View {
             switch selectedSection {
             case .tableOfContents, .pageList, .landmarks:
                 if let outline = outlines[selectedSection] {
-                    List(outline.indices, id: \.self) { index in
-                        let item = outline[index]
-                        Text(String(repeating: "  ", count: item.level) + (item.link.title ?? item.link.href))
-                            .onTapGesture {
-                                locatorSubject.send(Locator(link: item.link))
-                            }
+                    ScrollView {
+                        ForEach(outline.indices, id: \.self) { index in
+                            let item = outline[index]
+                            Text(String(repeating: "  ", count: item.level) + (item.link.title ?? item.link.href))
+                                .listRowInsets(EdgeInsets())
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding()
+                                .background(Color.black) // I can't make a whole row tappable without this modifier; now the question is where to get a color for it based on Night/Day mode
+                                .onTapGesture {
+                                    locatorSubject.send(Locator(link: item.link))
+                                }
+                            Divider()
+                        }
                     }
                 } else {
                     Text("Some error occured for outline #\(selectedSection.rawValue) ...")
                 }
                 
             case .bookmarks:
-                List(bookmarksModel.bookmarks, id: \.self) { bookmark in
-                    BookmarkCellView(bookmark: bookmark)
-                        .onTapGesture {
-                            locatorSubject.send(bookmark.locator)
-                        }
+                ScrollView {
+                    ForEach(bookmarksModel.bookmarks, id: \.self) { bookmark in
+                        BookmarkCellView(bookmark: bookmark)
+                            .onTapGesture {
+                                locatorSubject.send(bookmark.locator)
+                            }
+                            .listRowInsets(EdgeInsets())
+                    }
                 }
                 //.overlay(BookmarksStatusOverlay(model: model))
                 .onAppear { self.bookmarksModel.loadIfNeeded() }
             case .highlights:
-                List(highlightsModel.highlights, id: \.self) { highlight in
-                    HighlightCellView(highlight: highlight)
-                        .onTapGesture {
-                            locatorSubject.send(highlight.locator)
-                        }
+                ScrollView {
+                    ForEach(highlightsModel.highlights, id: \.self) { highlight in
+                        HighlightCellView(highlight: highlight)
+                            .listRowInsets(EdgeInsets())
+                            .onTapGesture {
+                                locatorSubject.send(highlight.locator)
+                            }
+                        Divider()
+                    }
                 }
                 //.overlay(HighlightsStatusOverlay(model: model))
                 .onAppear { self.highlightsModel.loadIfNeeded() }

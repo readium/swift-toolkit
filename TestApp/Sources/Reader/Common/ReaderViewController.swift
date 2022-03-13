@@ -490,14 +490,13 @@ class CustomLocatorSubscriber: Subscriber {
         subscription.request(.max(1))
     }
     func receive(_ input: Locator) -> Subscribers.Demand {
-        print("Value:", input)
-        presentingVC.dismiss(animated: true) {
-            self.navigator.go(to: input)
+        self.navigator.go(to: input, animated: false) {
+            self.presentingVC.dismiss(animated: true)
         }
         return .unlimited
     }
     func receive(completion: Subscribers.Completion<Never>) {
-        print("Completion: \(completion)")
+        //print("Completion: \(completion)")
     }
 }
 
