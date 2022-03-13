@@ -176,7 +176,7 @@ class ReaderViewController: UIViewController, Loggable {
     // MARK: - Outlines
 
     @objc func presentOutline() {
-        moduleDelegate?.presentOutline(of: publication, bookId: bookId, subscriber: CustomLocatorSubscriber(navigator: navigator, presentingVC: self), delegate: self, from: self)
+        moduleDelegate?.presentOutline(of: publication, bookId: bookId, subscriber: CustomLocatorSubscriber(navigator: navigator, presentingVC: self), from: self)
     }
     
     
@@ -497,12 +497,6 @@ class CustomLocatorSubscriber: Subscriber {
     }
     func receive(completion: Subscribers.Completion<Never>) {
         //print("Completion: \(completion)")
-    }
-}
-
-extension ReaderViewController: OutlineTableViewControllerDelegate {
-    func outline(_ outlineTableViewController: OutlineTableViewController, goTo location: Locator) {
-        navigator.go(to: location)
     }
 }
 

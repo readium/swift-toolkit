@@ -21,7 +21,6 @@ typealias OutlineLocatorSubsriber = CustomLocatorSubscriber
 final class ReaderFactory {
     
     final class Storyboards {
-        let outline = UIStoryboard(name: "Outline", bundle: nil)
         let drm = UIStoryboard(name: "DRM", bundle: nil)
     }
     
@@ -29,17 +28,8 @@ final class ReaderFactory {
 }
 
 extension ReaderFactory: OutlineTableViewControllerFactory {
-    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository) -> OutlineTableViewController {
-        let controller = storyboards.outline.instantiateViewController(withIdentifier: "OutlineTableViewController") as! OutlineTableViewController
-        controller.publication = publication
-        controller.bookId = bookId
-        controller.bookmarkRepository = bookmarks
-        controller.highlightRepository = highlights
-        return controller
-    }
-    
-    func make2(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository, subscriber: OutlineLocatorSubsriber) -> UIHostingController<OutlineTableView2> {
-        let view = OutlineTableView2(publication: publication, bookId: bookId, bookmarkRepository: bookmarks, highlightRepository: highlights)
+    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository, subscriber: OutlineLocatorSubsriber) -> UIHostingController<OutlineTableView> {
+        let view = OutlineTableView(publication: publication, bookId: bookId, bookmarkRepository: bookmarks, highlightRepository: highlights)
         view.goToLocatorPublisher.receive(subscriber: subscriber)
         return UIHostingController(rootView: view)
     }

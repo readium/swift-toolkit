@@ -8,7 +8,11 @@ import SwiftUI
 import Combine
 import R2Shared
 
-struct OutlineTableView2: View {
+protocol OutlineTableViewControllerFactory {
+    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository, subscriber: OutlineLocatorSubsriber) -> UIHostingController<OutlineTableView>
+}
+
+struct OutlineTableView: View {
     
     var publication: Publication!
     var bookId: Book.Id!

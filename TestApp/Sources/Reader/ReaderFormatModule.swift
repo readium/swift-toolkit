@@ -31,7 +31,7 @@ protocol ReaderFormatModule {
 protocol ReaderFormatModuleDelegate: AnyObject {
     
     /// Shows the reader's outline from the given links.
-    func presentOutline(of publication: Publication, bookId: Book.Id, subscriber: CustomLocatorSubscriber, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController)
+    func presentOutline(of publication: Publication, bookId: Book.Id, subscriber: CustomLocatorSubscriber, from viewController: UIViewController)
     
     /// Shows the DRM management screen for the given DRM.
     func presentDRM(for publication: Publication, from viewController: UIViewController)

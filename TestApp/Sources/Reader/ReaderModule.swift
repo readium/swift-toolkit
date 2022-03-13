@@ -103,16 +103,8 @@ extension ReaderModule: ReaderFormatModuleDelegate {
         viewController.navigationController?.pushViewController(drmViewController, animated: true)
     }
     
-    func presentOutline(of publication: Publication, bookId: Book.Id, subscriber: OutlineLocatorSubsriber, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController) {
-        let outlineTableVC: UIViewController!
-        let outlineVcIsSwiftUI = true
-        if outlineVcIsSwiftUI {
-            outlineTableVC = factory.make2(publication: publication, bookId: bookId, bookmarks: bookmarks, highlights: highlights, subscriber: subscriber)
-        }
-        else {
-            outlineTableVC = factory.make(publication: publication, bookId: bookId, bookmarks: bookmarks, highlights: highlights)
-            (outlineTableVC as! OutlineTableViewController).delegate = delegate
-        }
+    func presentOutline(of publication: Publication, bookId: Book.Id, subscriber: OutlineLocatorSubsriber, from viewController: UIViewController) {
+        let outlineTableVC = factory.make(publication: publication, bookId: bookId, bookmarks: bookmarks, highlights: highlights, subscriber: subscriber)
         viewController.present(UINavigationController(rootViewController: outlineTableVC), animated: true)
     }
     
