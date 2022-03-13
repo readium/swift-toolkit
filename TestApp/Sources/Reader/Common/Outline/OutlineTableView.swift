@@ -23,8 +23,6 @@ struct OutlineTableView: View {
     // Outlines (list of links) to display for each section.
     private var outlines: [Section: [(level: Int, link: R2Shared.Link)]] = [:]
     
-    private var subscriptions = Set<AnyCancellable>()
-    
     private enum Section: Int {
         case tableOfContents = 0, bookmarks, pageList, landmarks, highlights
     }
@@ -56,7 +54,6 @@ struct OutlineTableView: View {
                 Text("Highlights").tag(Section.highlights)
             })
             .pickerStyle(SegmentedPickerStyle())
-            
             
             switch selectedSection {
             case .tableOfContents, .pageList, .landmarks:
@@ -112,102 +109,5 @@ struct OutlineTableView: View {
     private let locatorSubject = PassthroughSubject<Locator, Never>()
     var goToLocatorPublisher: AnyPublisher<Locator, Never> {
         return locatorSubject.eraseToAnyPublisher()
-    }
-}
-
-// Pattern used: https://stackoverflow.com/a/61858358/2567725
-class HighlightsViewModel: ObservableObject {
-    private let bookId: Book.Id
-    private let highlightRepository: HighlightRepository
-    
-    init(bookId: Book.Id, highlightRepository: HighlightRepository) {
-        self.bookId = bookId
-        self.highlightRepository = highlightRepository
-    }
-    
-    @Published var highlights = [Highlight]()
-    @Published var state = State.ready
-
-    enum State {
-        case ready
-        case loading(Combine.Cancellable)
-        case loaded
-        case error(Error)
-    }
-
-    var dataTask: AnyPublisher<[Highlight], Error> {
-        self.highlightRepository.all(for: bookId)
-    }
-
-    func load() {
-        assert(Thread.isMainThread)
-        self.state = .loading(self.dataTask.sink(
-            receiveCompletion: { completion in
-                switch completion {
-                case .finished:
-                    break
-                case let .failure(error):
-                    self.state = .error(error)
-                }
-            },
-            receiveValue: { value in
-                self.state = .loaded
-                self.highlights = value
-            }
-        ))
-    }
-
-    func loadIfNeeded() {
-        assert(Thread.isMainThread)
-        guard case .ready = self.state else { return }
-        self.load()
-    }
-}
-
-class BookmarksViewModel: ObservableObject {
-    private let bookId: Book.Id
-    private let bookmarkRepository: BookmarkRepository
-    
-    init(bookId: Book.Id, bookmarkRepository: BookmarkRepository) {
-        self.bookId = bookId
-        self.bookmarkRepository = bookmarkRepository
-    }
-    
-    @Published var bookmarks = [Bookmark]()
-    @Published var state = State.ready
-
-    enum State {
-        case ready
-        case loading(Combine.Cancellable)
-        case loaded
-        case error(Error)
-    }
-
-    var dataTask: AnyPublisher<[Bookmark], Error> {
-        self.bookmarkRepository.all(for: bookId)
-    }
-
-    func load() {
-        assert(Thread.isMainThread)
-        self.state = .loading(self.dataTask.sink(
-            receiveCompletion: { completion in
-                switch completion {
-                case .finished:
-                    break
-                case let .failure(error):
-                    self.state = .error(error)
-                }
-            },
-            receiveValue: { value in
-                self.state = .loaded
-                self.bookmarks = value
-            }
-        ))
-    }
-
-    func loadIfNeeded() {
-        assert(Thread.isMainThread)
-        guard case .ready = self.state else { return }
-        self.load()
     }
 }
