@@ -270,7 +270,8 @@ class ReaderViewController: UIViewController, Loggable {
         }
         
         let menuView = HighlightContextMenu(colors: [.red, .green, .blue, .yellow],
-                                            systemFontSize: 20)
+                                            systemFontSize: 20,
+                                            colorScheme: colorScheme)
         
         menuView.selectedColorPublisher.sink { color in
             self.currentHighlightCancellable?.cancel()
@@ -290,6 +291,7 @@ class ReaderViewController: UIViewController, Loggable {
         
         highlightContextMenu!.preferredContentSize = menuView.preferredSize
         highlightContextMenu!.modalPresentationStyle = .popover
+        highlightContextMenu!.view.backgroundColor = UIColor(colorScheme.mainColor)
         
         if let popoverController = highlightContextMenu!.popoverPresentationController {
             popoverController.permittedArrowDirections = .down
@@ -549,16 +551,5 @@ extension ReaderViewController: UIPopoverPresentationControllerDelegate {
     func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
     {
         return .none
-    }
-}
-
-// This color scheme is passed to SwiftUI. In the future, EnvironementObsect can be injected and updated from UserDefaults in some reactive way.
-class ColorScheme {
-    private(set) var mainColor: Color = Color.white
-    private(set) var textColor: Color = Color.black
-    
-    func update(with appearance: UserProperty) {
-        mainColor = Color(AssociatedColors.getColors(for: appearance).mainColor)
-        textColor = Color(AssociatedColors.getColors(for: appearance).textColor)
     }
 }

@@ -7,7 +7,6 @@
 import SwiftUI
 import Combine
 import R2Shared
-import R2Navigator
 
 protocol OutlineTableViewControllerFactory {
     func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository, subscriber: OutlineLocatorSubsriber, colorScheme: ColorScheme) -> UIHostingController<OutlineTableView>
@@ -150,19 +149,4 @@ enum OutlineTableViewConstants {
     static let tabLandmarks = NSLocalizedString("reader_outline_tab_landmarks", comment: "Outline landmarks tab name")
     static let tabHighlights = NSLocalizedString("reader_outline_tab_highlights", comment: "Outline highlights tab name")
     static let errorOutlineNotFound = NSLocalizedString("reader_outline_not_found", comment: "Outline not found")
-}
-
-struct ColorModifier: ViewModifier {
-    let colorScheme: ColorScheme
-    func body(content: Content) -> some View {
-        content
-            .foregroundColor(colorScheme.textColor)
-            .background(colorScheme.mainColor)
-    }
-}
-
-extension View {
-    func colorStyle(_ colorScheme: ColorScheme) -> some View {
-        modifier(ColorModifier(colorScheme: colorScheme))
-    }
 }
