@@ -176,9 +176,13 @@ class ReaderViewController: UIViewController, Loggable {
     // MARK: - Outlines
 
     @objc func presentOutline() {
-        moduleDelegate?.presentOutline(of: publication, bookId: bookId, subscriber: CustomLocatorSubscriber(navigator: navigator, presentingVC: self), from: self)
+        moduleDelegate?.presentOutline(of: publication, bookId: bookId, subscriber: CustomLocatorSubscriber(navigator: navigator, presentingVC: self), colorScheme: colorScheme, from: self)
     }
     
+    private var colorScheme = ColorScheme()
+    func appearanceChanged(_ appearance: UserProperty) {
+        colorScheme.update(with: appearance)
+    }
     
     // MARK: - Bookmarks
     
@@ -545,5 +549,16 @@ extension ReaderViewController: UIPopoverPresentationControllerDelegate {
     func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
     {
         return .none
+    }
+}
+
+// This color scheme is passed to SwiftUI. In the future, EnvironementObsect can be injected and updated from UserDefaults in some reactive way.
+class ColorScheme {
+    private(set) var mainColor: Color = Color.white
+    private(set) var textColor: Color = Color.black
+    
+    func update(with appearance: UserProperty) {
+        mainColor = Color(AssociatedColors.getColors(for: appearance).mainColor)
+        textColor = Color(AssociatedColors.getColors(for: appearance).textColor)
     }
 }
