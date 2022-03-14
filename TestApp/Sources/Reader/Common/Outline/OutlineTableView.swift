@@ -46,12 +46,12 @@ struct OutlineTableView: View {
     
     var body: some View {
         VStack {
-            Picker("Favorite Color", selection: $selectedSection, content: {
-                Text("Contents").tag(Section.tableOfContents)
-                Text("Bookmarks").tag(Section.bookmarks)
-                Text("Pagelist").tag(Section.pageList)
-                Text("Landmarks").tag(Section.landmarks)
-                Text("Highlights").tag(Section.highlights)
+            Picker("", selection: $selectedSection, content: {
+                Text(OutlineTableViewConstants.tabContents).tag(Section.tableOfContents)
+                Text(OutlineTableViewConstants.tabBookmarks).tag(Section.bookmarks)
+                Text(OutlineTableViewConstants.tabPagelist).tag(Section.pageList)
+                Text(OutlineTableViewConstants.tabLandmarks).tag(Section.landmarks)
+                Text(OutlineTableViewConstants.tabHighlights).tag(Section.highlights)
             })
             .pickerStyle(SegmentedPickerStyle())
             
@@ -73,7 +73,7 @@ struct OutlineTableView: View {
                         }
                     }
                 } else {
-                    Text("Some error occured for outline #\(selectedSection.rawValue) ...")
+                    Text(OutlineTableViewConstants.errorOutlineNotFound)
                 }
                 
             case .bookmarks:
@@ -109,4 +109,13 @@ struct OutlineTableView: View {
     var goToLocatorPublisher: AnyPublisher<Locator, Never> {
         return locatorSubject.eraseToAnyPublisher()
     }
+}
+
+enum OutlineTableViewConstants {
+    static let tabContents = NSLocalizedString("reader_outline_tab_contents", comment: "Outline contents tab name")
+    static let tabBookmarks = NSLocalizedString("reader_outline_tab_bookmarks", comment: "Outline bookmarks tab name")
+    static let tabPagelist = NSLocalizedString("reader_outline_tab_pagelist", comment: "Outline pagelist tab name")
+    static let tabLandmarks = NSLocalizedString("reader_outline_tab_landmarks", comment: "Outline landmarks tab name")
+    static let tabHighlights = NSLocalizedString("reader_outline_tab_highlights", comment: "Outline highlights tab name")
+    static let errorOutlineNotFound = NSLocalizedString("reader_outline_not_found", comment: "Outline not found")
 }

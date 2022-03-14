@@ -18,24 +18,18 @@ struct BookmarkCellView: View {
         HStack {
             VStack {
                 Text(bookmark.locator.title ?? "")
-                    //.background(Color.green)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .font(.headline)
-                    //.padding()
                 Text(bookmark.positionText ?? "")
-                    //.background(Color.red)
                     .font(.footnote)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-                //.background(Color.gray)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             
             Text(BookmarkCellView.dateFormatter.string(from: bookmark.created))
-                //.background(Color.yellow)
                 .font(.footnote)
                 .frame(maxHeight: .infinity, alignment: .bottomTrailing)
         }
-        //.background(Color.blue)
         .padding()
     }
 }
