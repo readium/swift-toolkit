@@ -10,7 +10,7 @@ import Combine
 // This file contains view model wrappers for fetching data from Repositories: Bookmarks and Highlights.
 // It's not acceptable to fetch that data in a Swiftui View's constructor, so we need a reactive wrapper.
 // We use a pattern described here: https://stackoverflow.com/a/61858358/2567725
-// Each view model contains a state enum which can be used for expressive UI (loading progress, error handling)
+// Each view model contains a state enum which can be used for expressive UI (loading progress, error handling etc). For this, status overlay view can be used (see the link).
 
 // MARK: - Highlights
 

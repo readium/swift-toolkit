@@ -65,7 +65,7 @@ struct OutlineTableView: View {
                                 .listRowInsets(EdgeInsets())
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding()
-                                .background(Color.black) // I can't make a whole row tappable without this modifier; now the question is where to get a color for it based on Night/Day mode
+                                .background(Color.white) // I can't make a whole row tappable without this modifier; now the question is where to get a color for it based on Night/Day mode
                                 .onTapGesture {
                                     locatorSubject.send(Locator(link: item.link))
                                 }
@@ -84,9 +84,9 @@ struct OutlineTableView: View {
                                 locatorSubject.send(bookmark.locator)
                             }
                             .listRowInsets(EdgeInsets())
+                        Divider()
                     }
                 }
-                //.overlay(BookmarksStatusOverlay(model: model))
                 .onAppear { self.bookmarksModel.loadIfNeeded() }
             case .highlights:
                 ScrollView {
@@ -99,7 +99,6 @@ struct OutlineTableView: View {
                         Divider()
                     }
                 }
-                //.overlay(HighlightsStatusOverlay(model: model))
                 .onAppear { self.highlightsModel.loadIfNeeded() }
             }
         }
