@@ -16,8 +16,6 @@ import R2Shared
 import SwiftUI
 import Combine
 
-typealias OutlineLocatorSubscriber = CustomLocatorSubscriber
-
 final class ReaderFactory {
     
     final class Storyboards {
@@ -28,10 +26,9 @@ final class ReaderFactory {
 }
 
 extension ReaderFactory: OutlineTableViewControllerFactory {
-    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository, subscriber: OutlineLocatorSubscriber, colorScheme: ColorScheme) -> UIHostingController<OutlineTableView> {
+    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository, colorScheme: ColorScheme) -> OutlineTableViewAdapter {
         let view = OutlineTableView(publication: publication, bookId: bookId, bookmarkRepository: bookmarks, highlightRepository: highlights, colorScheme: colorScheme)
-        view.goToLocatorPublisher.receive(subscriber: subscriber)
-        return UIHostingController(rootView: view)
+        return (UIHostingController(rootView: view), view.goToLocatorPublisher)
     }
 }
 

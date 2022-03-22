@@ -8,8 +8,10 @@ import SwiftUI
 import Combine
 import R2Shared
 
+typealias OutlineTableViewAdapter = (UIHostingController<OutlineTableView>, AnyPublisher<Locator, Never>)
+
 protocol OutlineTableViewControllerFactory {
-    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository, subscriber: OutlineLocatorSubscriber, colorScheme: ColorScheme) -> UIHostingController<OutlineTableView>
+    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository, colorScheme: ColorScheme) -> OutlineTableViewAdapter
 }
 
 enum OutlineSection: Int {

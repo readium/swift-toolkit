@@ -176,7 +176,17 @@ class ReaderViewController: UIViewController, Loggable {
     // MARK: - Outlines
 
     @objc func presentOutline() {
-        moduleDelegate?.presentOutline(of: publication, bookId: bookId, subscriber: CustomLocatorSubscriber(navigator: navigator, presentingVC: self), colorScheme: colorScheme, from: self)
+        guard let locatorPublisher = moduleDelegate?.presentOutline(of: publication, bookId: bookId, colorScheme: colorScheme, from: self) else {
+             return
+        }
+            
+        locatorPublisher
+            .sink(receiveValue: { locator in
+                self.navigator.go(to: locator, animated: false) {
+                    self.dismiss(animated: true)
+                }
+            })
+            .store(in: &subscriptions)
     }
     
     private var colorScheme = ColorScheme()
@@ -478,32 +488,6 @@ extension ReaderViewController: VisualNavigatorDelegate {
         }
     }
     
-}
-
-class CustomLocatorSubscriber: Subscriber {
-    typealias Input = Locator
-    typealias Failure = Never
-    
-    private let navigator: Navigator
-    private let presentingVC: UIViewController
-    
-    init(navigator: Navigator, presentingVC: UIViewController) {
-        self.navigator = navigator
-        self.presentingVC = presentingVC
-    }
-    
-    func receive(subscription: Subscription) {
-        subscription.request(.max(1))
-    }
-    func receive(_ input: Locator) -> Subscribers.Demand {
-        self.navigator.go(to: input, animated: false) {
-            self.presentingVC.dismiss(animated: true)
-        }
-        return .unlimited
-    }
-    func receive(completion: Subscribers.Completion<Never>) {
-        //print("Completion: \(completion)")
-    }
 }
 
 // MARK: - Highlights management
