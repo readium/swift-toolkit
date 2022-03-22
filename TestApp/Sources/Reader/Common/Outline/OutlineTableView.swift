@@ -9,7 +9,7 @@ import Combine
 import R2Shared
 
 protocol OutlineTableViewControllerFactory {
-    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository, subscriber: OutlineLocatorSubsriber, colorScheme: ColorScheme) -> UIHostingController<OutlineTableView>
+    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository, subscriber: OutlineLocatorSubscriber, colorScheme: ColorScheme) -> UIHostingController<OutlineTableView>
 }
 
 enum OutlineSection: Int {

@@ -16,7 +16,7 @@ import R2Shared
 import SwiftUI
 import Combine
 
-typealias OutlineLocatorSubsriber = CustomLocatorSubscriber
+typealias OutlineLocatorSubscriber = CustomLocatorSubscriber
 
 final class ReaderFactory {
     
@@ -28,7 +28,7 @@ final class ReaderFactory {
 }
 
 extension ReaderFactory: OutlineTableViewControllerFactory {
-    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository, subscriber: OutlineLocatorSubsriber, colorScheme: ColorScheme) -> UIHostingController<OutlineTableView> {
+    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository, subscriber: OutlineLocatorSubscriber, colorScheme: ColorScheme) -> UIHostingController<OutlineTableView> {
         let view = OutlineTableView(publication: publication, bookId: bookId, bookmarkRepository: bookmarks, highlightRepository: highlights, colorScheme: colorScheme)
         view.goToLocatorPublisher.receive(subscriber: subscriber)
         return UIHostingController(rootView: view)
