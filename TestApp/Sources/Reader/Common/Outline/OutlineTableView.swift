@@ -65,7 +65,7 @@ struct OutlineTableView: View {
                         }
                     }
                 } else {
-                    Text(OutlineTableViewConstants.errorOutlineNotFound)
+                    preconditionFailure("Outline \(selectedSection) can't be nil!")
                 }
                 
             case .bookmarks:
@@ -148,5 +148,4 @@ enum OutlineTableViewConstants {
     static let tabPagelist = NSLocalizedString("reader_outline_tab_pagelist", comment: "Outline pagelist tab name")
     static let tabLandmarks = NSLocalizedString("reader_outline_tab_landmarks", comment: "Outline landmarks tab name")
     static let tabHighlights = NSLocalizedString("reader_outline_tab_highlights", comment: "Outline highlights tab name")
-    static let errorOutlineNotFound = NSLocalizedString("reader_outline_not_found", comment: "Outline not found")
 }

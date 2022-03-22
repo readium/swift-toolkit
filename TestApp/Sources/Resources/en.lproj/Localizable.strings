@@ -117,8 +117,6 @@
 "reader_outline_tab_landmarks" = "Landmarks";
 /* Outline tab name for Highlights */
 "reader_outline_tab_highlights" = "Highlights";
-/* Outline error message when outline not found in a dictionary */
-"reader_outline_not_found" = "Outline not found";
 
 /* Title of the DRM management view */
 "reader_drm_management_title" = "DRM Management";
