@@ -52,48 +52,39 @@ struct OutlineTableView: View {
             switch selectedSection {
             case .tableOfContents, .pageList, .landmarks:
                 if let outline = outlines[selectedSection] {
-                    ScrollView {
-                        ForEach(outline.indices, id: \.self) { index in
-                            let item = outline[index]
-                            Text(String(repeating: "  ", count: item.level) + (item.link.title ?? item.link.href))
-                                .listRowInsets(EdgeInsets())
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding()
-                                .colorStyle(colorScheme)
-                                .onTapGesture {
-                                    locatorSubject.send(Locator(link: item.link))
-                                }
-                            Divider()
-                        }
+                    List(outline.indices, id: \.self) { index in
+                        let item = outline[index]
+                        Text(String(repeating: "  ", count: item.level) + (item.link.title ?? item.link.href))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                            .colorStyle(colorScheme)
+                            .onTapGesture {
+                                locatorSubject.send(Locator(link: item.link))
+                            }
                     }
                 } else {
                     preconditionFailure("Outline \(selectedSection) can't be nil!")
                 }
                 
             case .bookmarks:
-                ScrollView {
-                    ForEach(bookmarksModel.bookmarks, id: \.self) { bookmark in
-                        BookmarkCellView(bookmark: bookmark)
-                            .colorStyle(colorScheme)
-                            .onTapGesture {
-                                locatorSubject.send(bookmark.locator)
-                            }
-                            .listRowInsets(EdgeInsets())
-                        Divider()
-                    }
+                List(bookmarksModel.bookmarks, id: \.self) { bookmark in
+                    BookmarkCellView(bookmark: bookmark)
+                        .contentShape(Rectangle())
+                        .colorStyle(colorScheme)
+                        .onTapGesture {
+                            locatorSubject.send(bookmark.locator)
+                        }
                 }
                 .onAppear { self.bookmarksModel.loadIfNeeded() }
             case .highlights:
-                ScrollView {
-                    ForEach(highlightsModel.highlights, id: \.self) { highlight in
-                        HighlightCellView(highlight: highlight)
-                            .colorStyle(colorScheme)
-                            .listRowInsets(EdgeInsets())
-                            .onTapGesture {
-                                locatorSubject.send(highlight.locator)
-                            }
-                        Divider()
-                    }
+                List(highlightsModel.highlights, id: \.self) { highlight in
+                    HighlightCellView(highlight: highlight)
+                        .contentShape(Rectangle())
+                        .listRowInsets(EdgeInsets()) // to remove padding at the left side
+                        .colorStyle(colorScheme)
+                        .onTapGesture {
+                            locatorSubject.send(highlight.locator)
+                        }
                 }
                 .onAppear { self.highlightsModel.loadIfNeeded() }
             }
