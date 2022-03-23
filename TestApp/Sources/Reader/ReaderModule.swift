@@ -108,6 +108,7 @@ extension ReaderModule: ReaderFormatModuleDelegate {
         let outlineVC = outlineAdapter.0
         let outlineLocatorPublisher = outlineAdapter.1
         
+        outlineVC.title = publication.metadata.title
         outlineVC.view.backgroundColor = UIColor(colorScheme.mainColor)
         viewController.present(UINavigationController(rootViewController: outlineVC), animated: true)
         return outlineLocatorPublisher
