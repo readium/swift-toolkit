@@ -40,8 +40,8 @@ struct OutlineTableView: View {
             .pageList: flatten(publication.pageList)
         ]
         
-        bookmarksModel = BookmarksViewModel(bookId: bookId, bookmarkRepository: bookmarkRepository)
-        highlightsModel = HighlightsViewModel(bookId: bookId, highlightRepository: highlightRepository)
+        bookmarksModel = BookmarksViewModel(bookId: bookId, repository: bookmarkRepository)
+        highlightsModel = HighlightsViewModel(bookId: bookId, repository: highlightRepository)
         self.colorScheme = colorScheme
     }
     

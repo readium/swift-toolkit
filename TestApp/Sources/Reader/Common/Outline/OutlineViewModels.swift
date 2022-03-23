@@ -9,72 +9,90 @@ import Combine
 
 // This file contains view model wrappers for fetching data from Repositories: Bookmarks and Highlights.
 // It's not acceptable to fetch that data in a Swiftui View's constructor, so we need a reactive wrapper.
-// We use a pattern described here: https://stackoverflow.com/a/61858358/2567725
-// Each view model contains a state enum which can be used for expressive UI (loading progress, error handling etc). For this, status overlay view can be used (see the link).
 
 // MARK: - Highlights
 
-final class HighlightsViewModel: ObservableObject {
-    private let bookId: Book.Id
-    private let highlightRepository: HighlightRepository
-    
+final class HighlightsViewModel: ObservableObject, OutlineViewModelLoaderDelegate {
+    typealias T = Highlight
     @Published var highlights = [Highlight]()
-    @Published var state = State.ready
     
-    init(bookId: Book.Id, highlightRepository: HighlightRepository) {
+    private let bookId: Book.Id
+    private let repository: HighlightRepository
+        
+    lazy private var loader: OutlineViewModelLoader<Highlight, HighlightsViewModel> = {
+        OutlineViewModelLoader(delegate: self)
+    }()
+    
+    init(bookId: Book.Id, repository: HighlightRepository) {
         self.bookId = bookId
-        self.highlightRepository = highlightRepository
+        self.repository = repository
     }
-
-    enum State {
-        case ready
-        case loading(Combine.Cancellable)
-        case loaded
-        case error(Error)
-    }
-
-    var dataTask: AnyPublisher<[Highlight], Error> {
-        self.highlightRepository.all(for: bookId)
-    }
-
+    
     func load() {
-        assert(Thread.isMainThread)
-        self.state = .loading(self.dataTask.sink(
-            receiveCompletion: { completion in
-                switch completion {
-                case .finished:
-                    break
-                case let .failure(error):
-                    self.state = .error(error)
-                }
-            },
-            receiveValue: { value in
-                self.state = .loaded
-                self.highlights = value
-            }
-        ))
+        loader.load()
     }
 
     func loadIfNeeded() {
-        assert(Thread.isMainThread)
-        guard case .ready = self.state else { return }
-        self.load()
+        loader.loadIfNeeded()
+    }
+    
+    var dataTask: AnyPublisher<[Highlight], Error> {
+        self.repository.all(for: bookId)
+    }
+    
+    func setLoadedValues(_ values: [Highlight]) {
+        highlights = values
     }
 }
 
 // MARK: - Bookmarks
 
-final class BookmarksViewModel: ObservableObject {
-    private let bookId: Book.Id
-    private let bookmarkRepository: BookmarkRepository
-    
+final class BookmarksViewModel: ObservableObject, OutlineViewModelLoaderDelegate {
+    typealias T = Bookmark
     @Published var bookmarks = [Bookmark]()
-    @Published var state = State.ready
     
-    init(bookId: Book.Id, bookmarkRepository: BookmarkRepository) {
+    private let bookId: Book.Id
+    private let repository: BookmarkRepository
+    
+    lazy private var loader: OutlineViewModelLoader<Bookmark, BookmarksViewModel> = {
+        OutlineViewModelLoader(delegate: self)
+    }()
+    
+    init(bookId: Book.Id, repository: BookmarkRepository) {
         self.bookId = bookId
-        self.bookmarkRepository = bookmarkRepository
+        self.repository = repository
     }
+    
+    func load() {
+        loader.load()
+    }
+
+    func loadIfNeeded() {
+        loader.loadIfNeeded()
+    }
+    
+    var dataTask: AnyPublisher<[Bookmark], Error> {
+        self.repository.all(for: bookId)
+    }
+    
+    func setLoadedValues(_ values: [Bookmark]) {
+        bookmarks = values
+    }
+}
+
+// MARK: - Generic state management
+
+private protocol OutlineViewModelLoaderDelegate: AnyObject {
+    associatedtype T
+    
+    var dataTask: AnyPublisher<[T], Error> { get }
+    func setLoadedValues(_ values: [T])
+}
+
+// This loader contains a state enum which can be used for expressive UI (loading progress, error handling etc). For this, status overlay view can be used (see https://stackoverflow.com/a/61858358/2567725).
+private final class OutlineViewModelLoader<T, Delegate: OutlineViewModelLoaderDelegate> {
+    weak var delegate: Delegate!
+    private var state = State.ready
     
     enum State {
         case ready
@@ -82,14 +100,14 @@ final class BookmarksViewModel: ObservableObject {
         case loaded
         case error(Error)
     }
-
-    var dataTask: AnyPublisher<[Bookmark], Error> {
-        self.bookmarkRepository.all(for: bookId)
+    
+    init(delegate: Delegate) {
+        self.delegate = delegate
     }
-
+    
     func load() {
         assert(Thread.isMainThread)
-        self.state = .loading(self.dataTask.sink(
+        self.state = .loading(delegate.dataTask.sink(
             receiveCompletion: { completion in
                 switch completion {
                 case .finished:
@@ -100,7 +118,7 @@ final class BookmarksViewModel: ObservableObject {
             },
             receiveValue: { value in
                 self.state = .loaded
-                self.bookmarks = value
+                self.delegate.setLoadedValues(value)
             }
         ))
     }
