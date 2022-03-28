@@ -28,7 +28,7 @@ final class ReaderFactory {
 extension ReaderFactory: OutlineTableViewControllerFactory {
     func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository, colorScheme: ColorScheme) -> OutlineTableViewAdapter {
         let view = OutlineTableView(publication: publication, bookId: bookId, bookmarkRepository: bookmarks, highlightRepository: highlights, colorScheme: colorScheme)
-        return (UIHostingController(rootView: view), view.goToLocatorPublisher)
+        return (OutlineHostingController(rootView: view), view.goToLocatorPublisher)
     }
 }
 
@@ -39,5 +39,21 @@ extension ReaderFactory: DRMManagementTableViewControllerFactory {
         controller.moduleDelegate = delegate
         controller.viewModel = DRMViewModel.make(publication: publication, presentingViewController: controller)
         return controller
+    }
+}
+
+/// This is a wrapper for the "OutlineTableView" to encapsulate the  "Cancel" button behaviour
+class OutlineHostingController: UIHostingController<OutlineTableView> {
+    override public init(rootView: OutlineTableView) {
+        super.init(rootView: rootView)
+        self.navigationItem.setLeftBarButton(UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelButtonPressed)), animated: true)
+    }
+    
+    @MainActor @objc required dynamic init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    @objc func cancelButtonPressed(_ sender: UIBarItem) {
+        self.navigationController?.dismiss(animated: true, completion: nil)
     }
 }
