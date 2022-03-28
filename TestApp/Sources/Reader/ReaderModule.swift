@@ -103,14 +103,12 @@ extension ReaderModule: ReaderFormatModuleDelegate {
         viewController.navigationController?.pushViewController(drmViewController, animated: true)
     }
     
-    func presentOutline(of publication: Publication, bookId: Book.Id, colorScheme: ColorScheme, from viewController: UIViewController) -> AnyPublisher<Locator, Never> {
-        let outlineAdapter = factory.make(publication: publication, bookId: bookId, bookmarks: bookmarks, highlights: highlights, colorScheme: colorScheme)
-        let outlineVC = outlineAdapter.0
+    func presentOutline(of publication: Publication, bookId: Book.Id, from viewController: UIViewController) -> AnyPublisher<Locator, Never> {
+        let outlineAdapter = factory.make(publication: publication, bookId: bookId, bookmarks: bookmarks, highlights: highlights)
         let outlineLocatorPublisher = outlineAdapter.1
         
-        outlineVC.title = publication.metadata.title
-        outlineVC.view.backgroundColor = UIColor(colorScheme.mainColor)
-        viewController.present(UINavigationController(rootViewController: outlineVC), animated: true)
+        viewController.present(UINavigationController(rootViewController: outlineAdapter.0), animated: true)
+        
         return outlineLocatorPublisher
     }
     

@@ -26,9 +26,12 @@ final class ReaderFactory {
 }
 
 extension ReaderFactory: OutlineTableViewControllerFactory {
-    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository, colorScheme: ColorScheme) -> OutlineTableViewAdapter {
-        let view = OutlineTableView(publication: publication, bookId: bookId, bookmarkRepository: bookmarks, highlightRepository: highlights, colorScheme: colorScheme)
-        return (OutlineHostingController(rootView: view), view.goToLocatorPublisher)
+    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository) -> OutlineTableViewAdapter {
+        let view = OutlineTableView(publication: publication, bookId: bookId, bookmarkRepository: bookmarks, highlightRepository: highlights)
+        let hostingVC = OutlineHostingController(rootView: view)
+        hostingVC.title = publication.metadata.title
+        
+        return (hostingVC, view.goToLocatorPublisher)
     }
 }
 

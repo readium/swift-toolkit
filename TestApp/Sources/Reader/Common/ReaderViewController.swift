@@ -176,7 +176,7 @@ class ReaderViewController: UIViewController, Loggable {
     // MARK: - Outlines
 
     @objc func presentOutline() {
-        guard let locatorPublisher = moduleDelegate?.presentOutline(of: publication, bookId: bookId, colorScheme: colorScheme, from: self) else {
+        guard let locatorPublisher = moduleDelegate?.presentOutline(of: publication, bookId: bookId, from: self) else {
              return
         }
             

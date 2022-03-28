@@ -11,7 +11,7 @@ import R2Shared
 typealias OutlineTableViewAdapter = (UIHostingController<OutlineTableView>, AnyPublisher<Locator, Never>)
 
 protocol OutlineTableViewControllerFactory {
-    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository, colorScheme: ColorScheme) -> OutlineTableViewAdapter
+    func make(publication: Publication, bookId: Book.Id, bookmarks: BookmarkRepository, highlights: HighlightRepository) -> OutlineTableViewAdapter
 }
 
 enum OutlineSection: Int {
@@ -19,8 +19,6 @@ enum OutlineSection: Int {
 }
 
 struct OutlineTableView: View {
-    @State private var colorScheme: ColorScheme
-    
     @ObservedObject private var bookmarksModel: BookmarksViewModel
     @ObservedObject private var highlightsModel: HighlightsViewModel
     @State private var selectedSection: OutlineSection = .tableOfContents
@@ -28,7 +26,7 @@ struct OutlineTableView: View {
     // Outlines (list of links) to display for each section.
     private var outlines: [OutlineSection: [(level: Int, link: R2Shared.Link)]] = [:]
     
-    init(publication: Publication, bookId: Book.Id, bookmarkRepository: BookmarkRepository, highlightRepository: HighlightRepository, colorScheme: ColorScheme) {
+    init(publication: Publication, bookId: Book.Id, bookmarkRepository: BookmarkRepository, highlightRepository: HighlightRepository) {
      
         func flatten(_ links: [R2Shared.Link], level: Int = 0) -> [(level: Int, link: R2Shared.Link)] {
             return links.flatMap { [(level, $0)] + flatten($0.children, level: level + 1) }
@@ -42,12 +40,11 @@ struct OutlineTableView: View {
         
         bookmarksModel = BookmarksViewModel(bookId: bookId, repository: bookmarkRepository)
         highlightsModel = HighlightsViewModel(bookId: bookId, repository: highlightRepository)
-        self.colorScheme = colorScheme
     }
     
     var body: some View {
         VStack {
-            OutlineTablePicker(selectedSection: $selectedSection, colorScheme: $colorScheme)
+            OutlineTablePicker(selectedSection: $selectedSection)
             
             switch selectedSection {
             case .tableOfContents, .pageList, .landmarks:
@@ -57,7 +54,6 @@ struct OutlineTableView: View {
                         Text(String(repeating: "  ", count: item.level) + (item.link.title ?? item.link.href))
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .contentShape(Rectangle())
-                            .colorStyle(colorScheme)
                             .onTapGesture {
                                 locatorSubject.send(Locator(link: item.link))
                             }
@@ -70,7 +66,6 @@ struct OutlineTableView: View {
                 List(bookmarksModel.bookmarks, id: \.self) { bookmark in
                     BookmarkCellView(bookmark: bookmark)
                         .contentShape(Rectangle())
-                        .colorStyle(colorScheme)
                         .onTapGesture {
                             locatorSubject.send(bookmark.locator)
                         }
@@ -81,7 +76,6 @@ struct OutlineTableView: View {
                     HighlightCellView(highlight: highlight)
                         .contentShape(Rectangle())
                         .listRowInsets(EdgeInsets()) // to remove padding at the left side
-                        .colorStyle(colorScheme)
                         .onTapGesture {
                             locatorSubject.send(highlight.locator)
                         }
@@ -89,7 +83,6 @@ struct OutlineTableView: View {
                 .onAppear { self.highlightsModel.loadIfNeeded() }
             }
         }
-        .colorStyle(colorScheme)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
     
@@ -101,11 +94,6 @@ struct OutlineTableView: View {
 
 struct OutlineTablePicker: View {
     @Binding var selectedSection: OutlineSection
-    @Binding var colorScheme: ColorScheme
-    
-    @State private var pickerPrevSelectedSegmentTintColor: UIColor?
-    @State private var pickerPrevBackgroundColor: UIColor?
-    @State private var pickerPrevTintColor: UIColor?
     
     var body: some View {
         Picker("", selection: $selectedSection, content: {
@@ -116,22 +104,6 @@ struct OutlineTablePicker: View {
             Text(OutlineTableViewConstants.tabHighlights).tag(OutlineSection.highlights)
         })
         .pickerStyle(SegmentedPickerStyle())
-        .onAppear(perform: {
-            // "foregroundColor"/"backround" modifiers still don't work for Picker, so this is a quick fix; this quick-fix doesn't work well for the Dark mode, because text remains black
-            pickerPrevSelectedSegmentTintColor = UISegmentedControl.appearance().selectedSegmentTintColor
-            pickerPrevBackgroundColor = UISegmentedControl.appearance().backgroundColor
-            pickerPrevTintColor = UISegmentedControl.appearance().tintColor
-            
-            UISegmentedControl.appearance().selectedSegmentTintColor = UIColor.white
-            UISegmentedControl.appearance().backgroundColor = UIColor.gray
-            UISegmentedControl.appearance().tintColor = UIColor(colorScheme.textColor) // doesn't work
-        })
-        .onDisappear {
-            // we don't want to spoil other UISegmentedControl's in the app
-            UISegmentedControl.appearance().selectedSegmentTintColor = pickerPrevSelectedSegmentTintColor
-            UISegmentedControl.appearance().backgroundColor = pickerPrevBackgroundColor
-            UISegmentedControl.appearance().tintColor = pickerPrevTintColor
-        }
     }
 }
 
