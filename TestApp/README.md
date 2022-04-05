@@ -34,11 +34,13 @@ This project shows how to use Readium with several dependency managers: Swift Pa
     git clone https://github.com/readium/swift-toolkit.git
     cd swift-toolkit/TestApp
     ```
-3. Choose a type of project to generate:
-    * `spm` for Swift Package Manager (recommended)
-    * `carthage` for Carthage
-    * `cocoapods` for CocoaPods
-    * `dev` for Git submodules with Swift Package Manager
+3. Choose a type of project to generate.
+    * :warning: from the `main` branch only:
+        * `spm` (recommended) Integration with Swift Package Manager
+        * `carthage` Integration with Carthage
+        * `cocoapods` Integration with CocoaPods
+    * from the `main` or `develop` branches:
+        * `dev` Integration with local folders and SPM, for contributors
 4. Generate the Xcode project using the `Makefile` and your target of choice. This will download all the dependencies automatically.
     ```sh
     make spm
