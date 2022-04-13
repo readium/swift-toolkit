@@ -4,6 +4,8 @@ options:
 packages:
   Readium:
     path: ..
+  R2LCPClient:
+    path: R2LCPClient
   GRDB:
     url: https://github.com/groue/GRDB.swift.git
     from: 5.8.0
@@ -24,7 +26,8 @@ targets:
     sources: 
       - path: Sources
     dependencies:
-      - carthage: R2LCPClient
+      - package: R2LCPClient
+        product: R2LCPClient
       - package: Readium
         product: R2Shared
       - package: Readium
