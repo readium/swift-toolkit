@@ -34,6 +34,8 @@ public struct HTTPError: LocalizedError, Equatable, Loggable {
         case serverError
         /// The device is offline.
         case offline
+        /// IO error while accessing the disk.
+        case ioError
         /// The request was cancelled.
         case cancelled
         /// An error whose kind is not recognized.
@@ -171,6 +173,8 @@ public struct HTTPError: LocalizedError, Equatable, Loggable {
             return R2SharedLocalizedString("HTTPError.cancelled")
         case .offline:
             return R2SharedLocalizedString("HTTPError.offline")
+        case .ioError:
+            return R2SharedLocalizedString("HTTPError.ioError")
         case .other:
             return (cause as? LocalizedError)?.errorDescription
         }

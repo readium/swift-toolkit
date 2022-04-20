@@ -61,7 +61,7 @@ final class LicenseValidation: Loggable {
     fileprivate let sender: Any?
     fileprivate let crl: CRLService
     fileprivate let device: DeviceService
-    fileprivate let network: NetworkService
+    fileprivate let httpClient: HTTPClient
     fileprivate let passphrases: PassphrasesService
 
     // List of observers notified when the Documents are validated, or if an error occurred.
@@ -85,7 +85,7 @@ final class LicenseValidation: Loggable {
         client: LCPClient,
         crl: CRLService,
         device: DeviceService,
-        network: NetworkService,
+        httpClient: HTTPClient,
         passphrases: PassphrasesService,
         onLicenseValidated: @escaping (LicenseDocument) throws -> Void
     ) {
@@ -96,7 +96,7 @@ final class LicenseValidation: Loggable {
         self.client = client
         self.crl = crl
         self.device = device
-        self.network = network
+        self.httpClient = httpClient
         self.passphrases = passphrases
         self.onLicenseValidated = onLicenseValidated
     }
@@ -304,14 +304,9 @@ extension LicenseValidation {
     private func fetchStatus(of license: LicenseDocument) throws {
         let url = try license.url(for: .status, preferredType: .lcpStatusDocument)
         // Short timeout to avoid blocking the License, since the LSD is optional.
-        network.fetch(url, timeout: 5)
-            .tryMap { status, data -> Event in
-                guard 100..<400 ~= status else {
-                    throw LCPError.network(nil)
-                }
-                
-                return .retrievedStatusData(data)
-            }
+        httpClient.fetch(HTTPRequest(url: url, timeoutInterval: 5))
+            .map { .retrievedStatusData($0.body ?? Data()) }
+            .eraseToAnyError()
             .resolve(raise)
     }
     
@@ -323,13 +318,9 @@ extension LicenseValidation {
     private func fetchLicense(from status: StatusDocument) throws {
         let url = try status.url(for: .license, preferredType: .lcpLicenseDocument)
         // Short timeout to avoid blocking the License, since it can be updated next time.
-        network.fetch(url, timeout: 5)
-            .tryMap { status, data -> Event in
-                guard 100..<400 ~= status else {
-                    throw LCPError.network(nil)
-                }
-                return .retrievedLicenseData(data)
-            }
+        httpClient.fetch(HTTPRequest(url: url, timeoutInterval: 5))
+            .map { .retrievedLicenseData($0.body ?? Data()) }
+            .eraseToAnyError()
             .resolve(raise)
     }
     
