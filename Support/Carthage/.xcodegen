@@ -1,5 +1,5 @@
 # XCODEGEN VERSION
-2.24.0
+2.25.0
 
 # SPEC
 {
@@ -278,13 +278,13 @@
 ../../Sources/LCP/Services/DeviceService.swift
 ../../Sources/LCP/Services/LicensesRepository.swift
 ../../Sources/LCP/Services/LicensesService.swift
-../../Sources/LCP/Services/NetworkService.swift
 ../../Sources/LCP/Services/PassphrasesRepository.swift
 ../../Sources/LCP/Services/PassphrasesService.swift
 ../../Sources/LCP/Toolkit
 ../../Sources/LCP/Toolkit/Bundle.swift
 ../../Sources/LCP/Toolkit/DataCompression.swift
 ../../Sources/LCP/Toolkit/Deferred.swift
+../../Sources/LCP/Toolkit/HTTPClient.swift
 ../../Sources/LCP/Toolkit/R2LCPLocalizedString.swift
 ../../Sources/Navigator
 ../../Sources/Navigator/Audiobook
@@ -326,12 +326,11 @@
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/rtl/ReadiumCSS-before.css
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/rtl/ReadiumCSS-default.css
 ../../Sources/Navigator/EPUB/Assets/Static/scripts
-../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper.js
-../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper.js.map
+../../Sources/Navigator/EPUB/Assets/Static/scripts/.gitignore
+../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-one.js
+../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-two.js
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed.js
-../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed.js.map
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-reflowable.js
-../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-reflowable.js.map
 ../../Sources/Navigator/EPUB/DiffableDecoration+HTML.swift
 ../../Sources/Navigator/EPUB/EPUBFixedSpreadView.swift
 ../../Sources/Navigator/EPUB/EPUBNavigatorViewController.swift
@@ -344,6 +343,7 @@
 ../../Sources/Navigator/EPUB/Scripts/.gitignore
 ../../Sources/Navigator/EPUB/Scripts/.prettierignore
 ../../Sources/Navigator/EPUB/Scripts/.prettierrc.json
+../../Sources/Navigator/EPUB/Scripts/babel.config.json
 ../../Sources/Navigator/EPUB/Scripts/node_modules
 ../../Sources/Navigator/EPUB/Scripts/node_modules/.bin
 ../../Sources/Navigator/EPUB/Scripts/node_modules/.bin/acorn
@@ -7344,8 +7344,10 @@
 ../../Sources/Navigator/EPUB/Scripts/README.md
 ../../Sources/Navigator/EPUB/Scripts/src
 ../../Sources/Navigator/EPUB/Scripts/src/decorator.js
+../../Sources/Navigator/EPUB/Scripts/src/fixed-page.js
 ../../Sources/Navigator/EPUB/Scripts/src/gestures.js
-../../Sources/Navigator/EPUB/Scripts/src/index-fixed-wrapper.js
+../../Sources/Navigator/EPUB/Scripts/src/index-fixed-wrapper-one.js
+../../Sources/Navigator/EPUB/Scripts/src/index-fixed-wrapper-two.js
 ../../Sources/Navigator/EPUB/Scripts/src/index-fixed.js
 ../../Sources/Navigator/EPUB/Scripts/src/index-reflowable.js
 ../../Sources/Navigator/EPUB/Scripts/src/index.js

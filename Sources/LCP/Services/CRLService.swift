@@ -21,10 +21,10 @@ final class CRLService {
     private static let crlKey = "org.readium.r2-lcp-swift.CRL"
     private static let dateKey = "org.readium.r2-lcp-swift.CRLDate"
 
-    private let network: NetworkService
+    private let httpClient: HTTPClient
     
-    init(network: NetworkService) {
-        self.network = network
+    init(httpClient: HTTPClient) {
+        self.httpClient = httpClient
     }
     
     /// Retrieves the CRL either from the cache, or from EDRLab if the cache is outdated.
@@ -52,12 +52,13 @@ final class CRLService {
     private func fetch(timeout: TimeInterval? = nil) -> Deferred<String, Error> {
         let url = URL(string: "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl")!
         
-        return network.fetch(url, timeout: timeout)
-            .tryMap { status, data in
-                guard 100..<400 ~= status else {
+        return httpClient.fetch(HTTPRequest(url: url, timeoutInterval: timeout))
+            .mapError { _ in LCPError.crlFetching }
+            .tryMap {
+                guard let body = $0.body?.base64EncodedString() else {
                     throw LCPError.crlFetching
                 }
-                return "-----BEGIN X509 CRL-----\(data.base64EncodedString())-----END X509 CRL-----";
+                return "-----BEGIN X509 CRL-----\(body)-----END X509 CRL-----";
             }
         
     }

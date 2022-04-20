@@ -64,6 +64,20 @@ public struct HTTPRequest: Equatable {
         self.allowUserInteraction = allowUserInteraction
         self.userInfo = userInfo
     }
+    
+    /// User agent that will be issued with this request.
+    public var userAgent: String? {
+        get {
+            headers["User-Agent"]
+        }
+        set {
+            if let newValue = newValue {
+                headers["User-Agent"] = newValue
+            } else {
+                headers.removeValue(forKey: "User-Agent")
+            }
+        }
+    }
 
     /// Issue a byte range request. Use -1 to download until the end.
     public mutating func setRange(_ range: Range<UInt64>) {

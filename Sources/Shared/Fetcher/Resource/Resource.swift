@@ -185,7 +185,7 @@ public enum ResourceError: LocalizedError {
                 return .notFound(error)
             case .cancelled:
                 return .cancelled
-            case .malformedResponse, .clientError, .serverError, .other:
+            case .malformedResponse, .clientError, .serverError, .ioError, .other:
                 return .other(error)
             }
         default:
