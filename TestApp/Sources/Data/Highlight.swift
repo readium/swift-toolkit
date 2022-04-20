@@ -110,3 +110,6 @@ final class HighlightRepository {
         db.write { db in try Highlight.deleteOne(db, key: id) }
     }
 }
+
+// for the default SwiftUI support
+extension Highlight: Hashable {}

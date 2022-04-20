@@ -13,7 +13,7 @@
 import Foundation
 import UIKit
 import R2Shared
-
+import Combine
 
 /// A ReaderFormatModule is a sub-module of ReaderModule that handles publication of a given format (eg. EPUB, CBZ).
 protocol ReaderFormatModule {
@@ -31,7 +31,7 @@ protocol ReaderFormatModule {
 protocol ReaderFormatModuleDelegate: AnyObject {
     
     /// Shows the reader's outline from the given links.
-    func presentOutline(of publication: Publication, bookId: Book.Id, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController)
+    func presentOutline(of publication: Publication, bookId: Book.Id, from viewController: UIViewController) -> AnyPublisher<Locator, Never>
     
     /// Shows the DRM management screen for the given DRM.
     func presentDRM(for publication: Publication, from viewController: UIViewController)

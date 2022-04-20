@@ -107,6 +107,16 @@
 "reader_outline_position_label" = "position %d";
 /* Outline bookmark label when the progression is available */
 "reader_outline_progression_label" = "%.2f%% through the chapter";
+/* Outline tab name for Contents */
+"reader_outline_tab_contents" = "Contents";
+/* Outline tab name for Bookmarks */
+"reader_outline_tab_bookmarks" = "Bookmarks";
+/* Outline tab name for Pagelist */
+"reader_outline_tab_pagelist" = "Pagelist";
+/* Outline tab name for Landmarks */
+"reader_outline_tab_landmarks" = "Landmarks";
+/* Outline tab name for Highlights */
+"reader_outline_tab_highlights" = "Highlights";
 
 /* Title of the DRM management view */
 "reader_drm_management_title" = "DRM Management";

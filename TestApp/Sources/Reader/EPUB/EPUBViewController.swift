@@ -150,6 +150,7 @@ extension EPUBViewController: UserSettingsNavigationControllerDelegate {
     ///
     /// - Parameter appearance: The appearance.
     internal func setUIColor(for appearance: UserProperty) {
+        self.appearanceChanged(appearance)
         let colors = AssociatedColors.getColors(for: appearance)
         
         navigator.view.backgroundColor = colors.mainColor

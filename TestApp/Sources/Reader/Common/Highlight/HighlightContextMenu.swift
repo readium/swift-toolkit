@@ -10,6 +10,7 @@ import Combine
 struct HighlightContextMenu: View {
     let colors: [HighlightColor]
     let systemFontSize: CGFloat
+    let colorScheme: ColorScheme
     
     private let colorSubject = PassthroughSubject<HighlightColor, Never>()
     var selectedColorPublisher: AnyPublisher<HighlightColor, Never> {
@@ -40,6 +41,7 @@ struct HighlightContextMenu: View {
                     .font(.system(size: systemFontSize))
             }
         }
+        .colorStyle(colorScheme)
     }
     
     var preferredSize: CGSize {

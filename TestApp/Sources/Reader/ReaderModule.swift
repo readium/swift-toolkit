@@ -13,7 +13,7 @@
 import Foundation
 import UIKit
 import R2Shared
-
+import Combine
 
 /// The ReaderModule handles the presentation of publications to be read by the user.
 /// It contains sub-modules implementing ReaderFormatModule to handle each format of publication (eg. CBZ, EPUB).
@@ -103,10 +103,13 @@ extension ReaderModule: ReaderFormatModuleDelegate {
         viewController.navigationController?.pushViewController(drmViewController, animated: true)
     }
     
-    func presentOutline(of publication: Publication, bookId: Book.Id, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController) {
-        let outlineTableVC: OutlineTableViewController = factory.make(publication: publication, bookId: bookId, bookmarks: bookmarks, highlights: highlights)
-        outlineTableVC.delegate = delegate
-        viewController.present(UINavigationController(rootViewController: outlineTableVC), animated: true)
+    func presentOutline(of publication: Publication, bookId: Book.Id, from viewController: UIViewController) -> AnyPublisher<Locator, Never> {
+        let outlineAdapter = factory.make(publication: publication, bookId: bookId, bookmarks: bookmarks, highlights: highlights)
+        let outlineLocatorPublisher = outlineAdapter.1
+        
+        viewController.present(UINavigationController(rootViewController: outlineAdapter.0), animated: true)
+        
+        return outlineLocatorPublisher
     }
     
     func presentAlert(_ title: String, message: String, from viewController: UIViewController) {

@@ -176,9 +176,23 @@ class ReaderViewController: UIViewController, Loggable {
     // MARK: - Outlines
 
     @objc func presentOutline() {
-        moduleDelegate?.presentOutline(of: publication, bookId: bookId, delegate: self, from: self)
+        guard let locatorPublisher = moduleDelegate?.presentOutline(of: publication, bookId: bookId, from: self) else {
+             return
+        }
+            
+        locatorPublisher
+            .sink(receiveValue: { locator in
+                self.navigator.go(to: locator, animated: false) {
+                    self.dismiss(animated: true)
+                }
+            })
+            .store(in: &subscriptions)
     }
     
+    private var colorScheme = ColorScheme()
+    func appearanceChanged(_ appearance: UserProperty) {
+        colorScheme.update(with: appearance)
+    }
     
     // MARK: - Bookmarks
     
@@ -266,7 +280,8 @@ class ReaderViewController: UIViewController, Loggable {
         }
         
         let menuView = HighlightContextMenu(colors: [.red, .green, .blue, .yellow],
-                                            systemFontSize: 20)
+                                            systemFontSize: 20,
+                                            colorScheme: colorScheme)
         
         menuView.selectedColorPublisher.sink { color in
             self.currentHighlightCancellable?.cancel()
@@ -286,6 +301,7 @@ class ReaderViewController: UIViewController, Loggable {
         
         highlightContextMenu!.preferredContentSize = menuView.preferredSize
         highlightContextMenu!.modalPresentationStyle = .popover
+        highlightContextMenu!.view.backgroundColor = UIColor(colorScheme.mainColor)
         
         if let popoverController = highlightContextMenu!.popoverPresentationController {
             popoverController.permittedArrowDirections = .down
@@ -472,12 +488,6 @@ extension ReaderViewController: VisualNavigatorDelegate {
         }
     }
     
-}
-
-extension ReaderViewController: OutlineTableViewControllerDelegate {
-    func outline(_ outlineTableViewController: OutlineTableViewController, goTo location: Locator) {
-        navigator.go(to: location)
-    }
 }
 
 // MARK: - Highlights management
