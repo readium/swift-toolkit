@@ -26,16 +26,16 @@ final class LicensesService: Loggable {
     private let licenses: LicensesRepository
     private let crl: CRLService
     private let device: DeviceService
-    private let network: NetworkService
+    private let httpClient: HTTPClient
     private let passphrases: PassphrasesService
 
-    init(isProduction: Bool, client: LCPClient, licenses: LicensesRepository, crl: CRLService, device: DeviceService, network: NetworkService, passphrases: PassphrasesService) {
+    init(isProduction: Bool, client: LCPClient, licenses: LicensesRepository, crl: CRLService, device: DeviceService, httpClient: HTTPClient, passphrases: PassphrasesService) {
         self.isProduction = isProduction
         self.client = client
         self.licenses = licenses
         self.crl = crl
         self.device = device
-        self.network = network
+        self.httpClient = httpClient
         self.passphrases = passphrases
     }
 
@@ -85,7 +85,7 @@ final class LicensesService: Loggable {
                 client: self.client,
                 crl: self.crl,
                 device: self.device,
-                network: self.network,
+                httpClient: self.httpClient,
                 passphrases: self.passphrases,
                 onLicenseValidated: onLicenseValidated
             )
@@ -97,7 +97,7 @@ final class LicensesService: Loggable {
                     // Note2: The License already gets in this state when we perform a `return` successfully. We can't decrypt anymore but we still have access to the License Documents and LSD interactions.
                     _ = try documents.getContext()
 
-                    return License(documents: documents, client: self.client, validation: validation, licenses: self.licenses, device: self.device, network: self.network)
+                    return License(documents: documents, client: self.client, validation: validation, licenses: self.licenses, device: self.device, httpClient: self.httpClient)
                 }
         }
     }
@@ -139,52 +139,39 @@ final class LicensesService: Loggable {
     }
 
     private func acquirePublication(from license: LicenseDocument, using acquisition: LCPAcquisition) {
-        guard !acquisition.isCancelled else {
+        guard !acquisition.cancellable.isCancelled else {
             return
         }
 
         do {
-            let link = license.link(for: .publication)
             let url = try license.url(for: .publication)
-
-            let (task, progress) = network.download(url, title: link?.title) { result in
-                guard !acquisition.isCancelled else {
-                    return
-                }
-
-                switch result {
-                case .success(let (downloadedFile, task)):
-                    self.injectLicense(license, in: downloadedFile, downloadTask: task)
-                        .resolve { result in
-                            switch result {
-                            case .success(let file):
-                                acquisition.didComplete(with: .success(.init(
-                                    localURL: file,
-                                    suggestedFilename: self.suggestedFilename(for: file, license: license),
-                                    downloadTask: acquisition.downloadTask
-                                )))
-                            case .failure(let error):
-                                acquisition.didComplete(with: .failure(LCPError.wrap(error)))
-                            case .cancelled:
-                                acquisition.cancel()
+            let cancellable = httpClient.download(
+                url,
+                onProgress: { acquisition.onProgress(.percent(Float($0))) },
+                completion: { result in
+                    switch result {
+                    case .success(let download):
+                        self.injectLicense(license, in: download)
+                            .resolve { result in
+                                switch result {
+                                case .success(let file):
+                                    acquisition.didComplete(with: .success(LCPAcquisition.Publication(
+                                        localURL: file,
+                                        suggestedFilename: self.suggestedFilename(for: file, license: license)
+                                    )))
+                                case .failure(let error):
+                                    acquisition.didComplete(with: .failure(LCPError.wrap(error)))
+                                case .cancelled:
+                                    acquisition.cancel()
+                                }
                             }
-                        }
 
-                case .failure(let error):
-                    acquisition.didComplete(with: .failure(LCPError.wrap(error)))
+                    case .failure(let error):
+                        acquisition.didComplete(with: .failure(LCPError.wrap(error)))
+                    }
                 }
-            }
-
-            acquisition.downloadTask = task
-
-            progress.observe { progress in
-                switch progress {
-                case .infinite:
-                    acquisition.progress.value = .indefinite
-                case .finite(let value):
-                    acquisition.progress.value = .percent(value)
-                }
-            }
+            )
+            acquisition.cancellable.mediate(cancellable)
 
         } catch {
             acquisition.didComplete(with: .failure(.wrap(error)))
@@ -192,23 +179,22 @@ final class LicensesService: Loggable {
     }
     
     /// Injects the given License Document into the `file` acquired using `downloadTask`.
-    private func injectLicense(_ license: LicenseDocument, in file: URL, downloadTask: URLSessionDownloadTask?) -> Deferred<URL, LCPError> {
-        var mimetypes: [String] = []
-        if let responseMimetype = downloadTask?.response?.mimeType {
-            mimetypes.append(responseMimetype)
-        }
+    private func injectLicense(_ license: LicenseDocument, in download: HTTPDownload) -> Deferred<URL, LCPError> {
+        var mimetypes: [String] = [
+            download.mediaType.string
+        ]
         if let linkType = license.link(for: .publication)?.type {
             mimetypes.append(linkType)
         }
 
-        return makeLicenseContainer(for: file, mimetypes: mimetypes)
+        return makeLicenseContainer(for: download.location, mimetypes: mimetypes)
             .tryMap(on: .global(qos: .background)) { container -> URL in
                 guard let container = container else {
                     throw LCPError.licenseContainer(.openFailed)
                 }
 
                 try container.write(license)
-                return file
+                return download.location
             }
             .mapError(LCPError.wrap)
     }

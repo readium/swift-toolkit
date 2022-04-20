@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import UIKit
 
 /// Delegate protocol for `DefaultHTTPClient`.
 public protocol DefaultHTTPClientDelegate: AnyObject {
@@ -62,10 +63,38 @@ public extension DefaultHTTPClientDelegate {
 
 /// An implementation of `HTTPClient` using native APIs.
 public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSessionDataDelegate {
+    
+    /// Returns the default user agent used when issuing requests.
+    ///
+    /// For example, TestApp/1.3 x86_64 iOS/15.0 CFNetwork/1312 Darwin/20.6.0
+    public static var defaultUserAgent: String = {
+        var sysinfo = utsname()
+        uname(&sysinfo)
 
+        let darwinVersion = String(bytes: Data(bytes: &sysinfo.release, count: Int(_SYS_NAMELEN)), encoding: .ascii)?
+            .trimmingCharacters(in: .controlCharacters)
+            ?? "0"
+
+        let deviceName = String(bytes: Data(bytes: &sysinfo.machine, count: Int(_SYS_NAMELEN)), encoding: .ascii)?
+            .trimmingCharacters(in: .controlCharacters)
+            ?? "0"
+
+        let cfNetworkVersion = Bundle(identifier: "com.apple.CFNetwork")?
+            .infoDictionary?["CFBundleShortVersionString"] as? String
+            ?? "0"
+
+        let appInfo = Bundle.main.infoDictionary
+        let appName = appInfo?["CFBundleName"] as? String ?? "Unknown App"
+        let appVersion = appInfo?["CFBundleShortVersionString"] as? String ?? "0"
+        let device = UIDevice.current
+
+        return "\(appName)/\(appVersion) \(deviceName) \(device.systemName)/\(device.systemVersion) CFNetwork/\(cfNetworkVersion) Darwin/\(darwinVersion)"
+    }()
+    
     /// Creates a `DefaultHTTPClient` with common configuration settings.
     ///
     /// - Parameters:
+    ///   - userAgent: Default user agent issued with requests.
     ///   - cachePolicy: Determines the request caching policy used by HTTP tasks.
     ///   - ephemeral: When true, uses no persistent storage for caches, cookies, or credentials.
     ///   - additionalHeaders: A dictionary of additional headers to send with requests. For example, `User-Agent`.
@@ -73,6 +102,7 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
     ///   - resourceTimeout: The maximum amount of time that a resource request should be allowed to take.
     ///   - configure: Callback used to configure further the `URLSessionConfiguration` object.
     public convenience init(
+        userAgent: String? = nil,
         cachePolicy: URLRequest.CachePolicy? = nil,
         ephemeral: Bool = false,
         additionalHeaders: [String: String]? = nil,
@@ -96,19 +126,28 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
             configure(config)
         }
 
-        self.init(configuration: config, delegate: delegate)
+        self.init(configuration: config, userAgent: userAgent, delegate: delegate)
     }
 
     /// Creates a `DefaultHTTPClient` with a custom configuration.
-    public init(configuration: URLSessionConfiguration, delegate: DefaultHTTPClientDelegate? = nil) {
+    ///
+    /// - Parameters:
+    ///   - userAgent: Default user agent issued with requests.
+    public init(
+        configuration: URLSessionConfiguration,
+        userAgent: String? = nil,
+        delegate: DefaultHTTPClientDelegate? = nil
+    ) {
+        self.userAgent = userAgent ?? DefaultHTTPClient.defaultUserAgent
+        self.delegate = delegate
         super.init()
         self.session = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
-        self.delegate = delegate
     }
 
     public weak var delegate: DefaultHTTPClientDelegate? = nil
 
     private var session: URLSession!
+    private let userAgent: String
 
     deinit {
         session.invalidateAndCancel()
@@ -147,6 +186,11 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
         /// Creates and starts a new task for the `request`, whose cancellable will be exposed through `mediator`.
         func startTask(for request: HTTPRequest) -> HTTPDeferred<HTTPResponse> {
             deferred { completion in
+                var request = request
+                if request.userAgent == nil {
+                    request.userAgent = self.userAgent
+                }
+                
                 let cancellable = self.start(Task(
                     request: request,
                     task: self.session.dataTask(with: request.urlRequest),

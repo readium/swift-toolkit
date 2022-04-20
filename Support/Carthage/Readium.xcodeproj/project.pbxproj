@@ -37,7 +37,6 @@
 		17CA2D61768F693B8173DBC4 /* PDFParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13272E03B63E96D4246F79D /* PDFParser.swift */; };
 		18217BC157557A5DDA4BA119 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADDB8B9906FC78C038203BDD /* User.swift */; };
 		185301970A639F99F1C35056 /* Parser+Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = A42F188134C13EB2ECFFB621 /* Parser+Deprecated.swift */; };
-		1A3058D25C200D8E29578652 /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC810E0CFC5FEBDD2B19A1D3 /* NetworkService.swift */; };
 		1BF9469B4574D30E5C9BB75E /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCF859D4933121BDC376CC8A /* Event.swift */; };
 		1CEBFEA40D42C941A49F1A4D /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5507BD4012032A7567175B69 /* Localizable.strings */; };
 		1E4805B8E562211F264FB16B /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD03AFC9C69E785886FB9620 /* Logger.swift */; };
@@ -264,6 +263,7 @@
 		E0291D347EB7F8F3C5D41970 /* MediaType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6599A2A3F66206997E700303 /* MediaType.swift */; };
 		E234B4BF37B3F80BCC5C92AF /* Metadata+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC59A963F316359DF8B119AC /* Metadata+Presentation.swift */; };
 		E303E21BA9C131E9A4E6424A /* MediaType+Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49C8CE772EF8EF683D0DEE57 /* MediaType+Deprecated.swift */; };
+		E356D67B77C65D294F60D58A /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD8FA524D4C8D19FBDDE23F5 /* HTTPClient.swift */; };
 		E3848BCC92B4B7E03A4FEE76 /* EPUBReflowableSpreadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C45688D0A9C1F81F463FF92 /* EPUBReflowableSpreadView.swift */; };
 		E55B69F79BB4E2EAC4BE34D0 /* Publication+OPDS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BB5D42EEF0083D833E2A572 /* Publication+OPDS.swift */; };
 		E69BA16E04FBEAA061759895 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4937644CB65AE6801CE3295 /* UserSettings.swift */; };
@@ -536,7 +536,6 @@
 		C5E7CEDF6EA681FE8119791B /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
 		C7931CB2A5658CAAECD150B0 /* NSRegularExpression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSRegularExpression.swift; sourceTree = "<group>"; };
 		CAD79372361D085CA0500CF4 /* Properties+OPDS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Properties+OPDS.swift"; sourceTree = "<group>"; };
-		CC810E0CFC5FEBDD2B19A1D3 /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
 		CC925E451D875E5F74748EDC /* Optional.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Optional.swift; sourceTree = "<group>"; };
 		CDA8111A330AB4D7187DD743 /* LocatorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocatorService.swift; sourceTree = "<group>"; };
 		CE641F78FD99A426A80B3495 /* Zip.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Zip.h; sourceTree = "<group>"; };
@@ -557,6 +556,7 @@
 		D9FFEB1FF4B5CD74EB35CD63 /* AudioParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioParser.swift; sourceTree = "<group>"; };
 		DBCE9786DD346E6BDB2E50FF /* Assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Assets; path = ../../Sources/Streamer/Assets; sourceTree = SOURCE_ROOT; };
 		DCE34D74E282834684E1C999 /* AudioNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioNavigator.swift; sourceTree = "<group>"; };
+		DD8FA524D4C8D19FBDDE23F5 /* HTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPClient.swift; sourceTree = "<group>"; };
 		DF89316F77F23DACA2E04696 /* PDFDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDocument.swift; sourceTree = "<group>"; };
 		DF92954C8C8C3EC50C835CBA /* Link.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
 		E0136BC8AC2E0F3171763FEB /* R2NavigatorLocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2NavigatorLocalizedString.swift; sourceTree = "<group>"; };
@@ -724,7 +724,6 @@
 				616C70674FBF020FE4607617 /* DeviceService.swift */,
 				F1CBEFCBEB8C144A4429C2E9 /* LicensesRepository.swift */,
 				56286133DD0AE093F2C5E9FD /* LicensesService.swift */,
-				CC810E0CFC5FEBDD2B19A1D3 /* NetworkService.swift */,
 				2C8CDB4833C705FC1D986679 /* PassphrasesRepository.swift */,
 				606416A552192BF66FBDF3C2 /* PassphrasesService.swift */,
 			);
@@ -1222,6 +1221,7 @@
 				F64FBE3CA5C1B0C73A22E86D /* Bundle.swift */,
 				1EBC685D4A0E07997088DD2D /* DataCompression.swift */,
 				10CFCE63856A801FB14A0633 /* Deferred.swift */,
+				DD8FA524D4C8D19FBDDE23F5 /* HTTPClient.swift */,
 				FF3109EE9449194A65A752BD /* R2LCPLocalizedString.swift */,
 			);
 			path = Toolkit;
@@ -1983,6 +1983,7 @@
 				DC0487666F03A3FAFE49D0B9 /* EPUBLicenseContainer.swift in Sources */,
 				E8293787CB5E5CECE38A63B2 /* Encryption.swift in Sources */,
 				1BF9469B4574D30E5C9BB75E /* Event.swift in Sources */,
+				E356D67B77C65D294F60D58A /* HTTPClient.swift in Sources */,
 				6719F981514309A65D206A85 /* LCPAcquisition.swift in Sources */,
 				837C0BC3151E302508B4BC44 /* LCPAuthenticating.swift in Sources */,
 				A13490DA4406382752B8EA2B /* LCPClient.swift in Sources */,
@@ -2006,7 +2007,6 @@
 				90CFD62B993F6759716C0AF0 /* LicensesService.swift in Sources */,
 				44152DBECE34F063AD0E93BC /* Link.swift in Sources */,
 				92570B878B678E9E9138C94F /* Links.swift in Sources */,
-				1A3058D25C200D8E29578652 /* NetworkService.swift in Sources */,
 				22BB9F4F0A3D2B9CA3D9BD0D /* PassphrasesRepository.swift in Sources */,
 				2207C27B96F098AAF8B31F2C /* PassphrasesService.swift in Sources */,
 				BAC8616BD37C22BC5541959A /* PotentialRights.swift in Sources */,

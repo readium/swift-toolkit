@@ -24,15 +24,15 @@ final class License: Loggable {
     private let validation: LicenseValidation
     private let licenses: LicensesRepository
     private let device: DeviceService
-    private let network: NetworkService
+    private let httpClient: HTTPClient
 
-    init(documents: ValidatedDocuments, client: LCPClient, validation: LicenseValidation, licenses: LicensesRepository, device: DeviceService, network: NetworkService) {
+    init(documents: ValidatedDocuments, client: LCPClient, validation: LicenseValidation, licenses: LicensesRepository, device: DeviceService, httpClient: HTTPClient) {
         self.documents = documents
         self.client = client
         self.validation = validation
         self.licenses = licenses
         self.device = device
-        self.network = network
+        self.httpClient = httpClient
 
         validation.observe { [weak self] result in
             if case .success(let documents) = result {
@@ -212,13 +212,9 @@ extension License: LCPLicense {
                 .flatMap {
                     // We fetch the Status Document again after the HTML interaction is done, in case it changed the
                     // License.
-                    self.network.fetch(statusURL)
-                        .tryMap { status, data in
-                            guard 100..<400 ~= status else {
-                                throw LCPError.network(nil)
-                            }
-                            return data
-                        }
+                    self.httpClient.fetch(statusURL)
+                        .map { $0.body ?? Data() }
+                        .eraseToAnyError()
                 }
         }
 
@@ -246,19 +242,20 @@ extension License: LCPLicense {
 
             return preferredEndDate()
                 .tryMap(makeRenewURL(from:))
-                .flatMap { self.network.fetch($0, method: .put) }
-                .tryMap { status, data -> Data in
-                    switch status {
-                    case 100..<400:
-                        break
-                    case 400:
-                        throw RenewError.renewFailed
-                    case 403:
-                        throw RenewError.invalidRenewalPeriod(maxRenewDate: self.maxRenewDate)
-                    default:
-                        throw RenewError.unexpectedServerError
-                    }
-                    return data
+                .flatMap {
+                    self.httpClient.fetch(HTTPRequest(url: $0, method: .put))
+                        .map { $0.body ?? Data() }
+                        .mapError { error -> RenewError in
+                            switch error.kind {
+                            case .badRequest:
+                                return .renewFailed
+                            case .forbidden:
+                                return .invalidRenewalPeriod(maxRenewDate: self.maxRenewDate)
+                            default:
+                                return .unexpectedServerError
+                            }
+                        }
+                        .eraseToAnyError()
                 }
         }
 
@@ -285,20 +282,18 @@ extension License: LCPLicense {
             return
         }
         
-        network.fetch(url, method: .put)
-            .tryMap { status, data in
-                switch status {
-                case 100..<400:
-                    break
-                case 400:
-                    throw ReturnError.returnFailed
-                case 403:
-                    throw ReturnError.alreadyReturnedOrExpired
+        httpClient.fetch(HTTPRequest(url: url, method: .put))
+            .mapError { error -> ReturnError in
+                switch error.kind {
+                case .badRequest:
+                    return .returnFailed
+                case .forbidden:
+                    return .alreadyReturnedOrExpired
                 default:
-                    throw ReturnError.unexpectedServerError
+                    return .unexpectedServerError
                 }
-                return data
             }
+            .map { $0.body ?? Data() }
             .flatMap(validateStatusDocument)
             .mapError(LCPError.wrap)
             .resolveWithError(completion)
