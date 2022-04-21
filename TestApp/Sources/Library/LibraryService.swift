@@ -143,8 +143,8 @@ final class LibraryService: Loggable {
             .flatMap { self.fulfillIfNeeded($0) }
             .flatMap { url in
                 self.openPublication(at: url, allowUserInteraction: false, sender: sender).flatMap { pub, mediaType in
-                    self.moveToDocuments(from: url, title: pub.metadata.title, mediaType: mediaType).flatMap { url in
-                        self.importCover(of: pub).flatMap { coverPath in
+                    self.importCover(of: pub).flatMap { coverPath in
+                        self.moveToDocuments(from: url, title: pub.metadata.title, mediaType: mediaType).flatMap { url in
                             self.insertBook(at: url, publication: pub, mediaType: mediaType, coverPath: coverPath)
                         }
                     }

@@ -6,6 +6,9 @@
 .swiftpm/
 Package.resolved
 
+# Carthage
+Carthage/
+Cartfile.resolved
 
 # Xcode
 
