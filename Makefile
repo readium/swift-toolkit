@@ -16,3 +16,8 @@ scripts:
 	yarn --cwd "$(SCRIPTS_PATH)" run format
 	yarn --cwd "$(SCRIPTS_PATH)" run lint
 	yarn --cwd "$(SCRIPTS_PATH)" run bundle
+
+.PHONY: test
+test:
+	xcodebuild test -scheme "Readium-Package" -destination "platform=iOS Simulator,name=iPhone 12"
+

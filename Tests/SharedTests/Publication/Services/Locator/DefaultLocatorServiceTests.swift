@@ -114,9 +114,13 @@ class DefaultLocatorServiceTests: XCTestCase {
     }
 
     func makeService(readingOrder: [Link] = [], positions: [[Locator]] = []) -> DefaultLocatorService {
-        DefaultLocatorService(readingOrder: readingOrder, positionsByReadingOrder: { positions })
+        DefaultLocatorService(publication: _Strong(Publication(
+            manifest: Manifest(metadata: Metadata(title: ""), readingOrder: readingOrder),
+            servicesBuilder: PublicationServicesBuilder(
+                positions: InMemoryPositionsService.makeFactory(positionsByReadingOrder: positions)
+            )
+        )))
     }
-
 }
 
 private let positionsFixture: [[Locator]] = [

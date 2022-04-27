@@ -16,13 +16,21 @@ public typealias LocatorServiceFactory = (PublicationServiceContext) -> LocatorS
 ///   - Converting a `Locator` which was created from an alternate manifest with a different reading
 ///     order. For example, when downloading a streamed manifest or offloading a package.
 public protocol LocatorService: PublicationService {
-    
+
     /// Locates the target of the given `locator`.
     func locate(_ locator: Locator) -> Locator?
-    
+
+    /// Locates the target of the given `link`.
+    func locate(_ link: Link) -> Locator?
+
     /// Locates the target at the given `progression` relative to the whole publication.
     func locate(progression: Double) -> Locator?
-    
+}
+
+public extension LocatorService {
+    func locate(_ locator: Locator) -> Locator? { nil }
+    func locate(_ link: Link) -> Locator? { nil }
+    func locate(progression: Double) -> Locator? { nil }
 }
 
 
@@ -31,19 +39,19 @@ public protocol LocatorService: PublicationService {
 public extension Publication {
     
     /// Locates the target of the given `locator`.
-    ///
-    /// If `locator.href` can be found in the reading order, `locator` will be returned directly.
-    /// Otherwise, will attempt to find the closest match using `totalProgression`, `position`,
-    /// `fragments`, etc.
     func locate(_ locator: Locator) -> Locator? {
         findService(LocatorService.self)?.locate(locator)
     }
-    
+
     /// Locates the target at the given `progression` relative to the whole publication.
     func locate(progression: Double) -> Locator? {
         findService(LocatorService.self)?.locate(progression: progression)
     }
 
+    /// Locates the target of the given `link`.
+    func locate(_ link: Link) -> Locator? {
+        findService(LocatorService.self)?.locate(link)
+    }
 }
 
 

@@ -21,7 +21,7 @@ public struct PublicationServicesBuilder {
     public init(
         contentProtection: ContentProtectionServiceFactory? = nil,
         cover: CoverServiceFactory? = nil,
-        locator: LocatorServiceFactory? = { DefaultLocatorService(readingOrder: $0.manifest.readingOrder, publication: $0.publication) },
+        locator: LocatorServiceFactory? = { DefaultLocatorService(publication: $0.publication) },
         positions: PositionsServiceFactory? = nil,
         search: SearchServiceFactory? = nil,
         setup: (inout PublicationServicesBuilder) -> Void = { _ in }
