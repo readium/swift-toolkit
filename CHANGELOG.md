@@ -4,7 +4,15 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!--## [Unreleased]-->
+## [Unreleased]
+
+### Shared
+
+#### Deprecated
+
+* `Locator(link: Link)` is deprecated as it may create an incorrect `Locator` if the link `type` is missing.
+    * Use `publication.locate(Link)` instead.
+
 
 ## [2.3.0]
 
