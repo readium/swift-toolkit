@@ -57,7 +57,7 @@ open class DefaultLocatorService: LocatorService, Loggable {
             title: resourceLink.title ?? link.title,
             locations: Locator.Locations(
                 fragments: Array(ofNotNil: fragment),
-                progression: (fragment != nil) ? 0.0 : nil
+                progression: (fragment == nil) ? 0.0 : nil
             )
         )
     }

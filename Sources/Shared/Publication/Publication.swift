@@ -84,7 +84,7 @@ public class Publication: Loggable {
     
     /// Returns whether this publication conforms to the given Readium Web Publication Profile.
     public func conforms(to profile: Profile) -> Bool {
-        return manifest.conforms(to: profile)
+        manifest.conforms(to: profile)
     }
     
     /// The URL where this publication is served, computed from the `Link` with `self` relation.
@@ -97,41 +97,17 @@ public class Publication: Loggable {
     
     /// Finds the first Link having the given `href` in the publication's links.
     public func link(withHREF href: String) -> Link? {
-        func deepFind(in linkLists: [Link]...) -> Link? {
-            for links in linkLists {
-                for link in links {
-                    if link.href == href {
-                        return link
-                    } else if let child = deepFind(in: link.alternates, link.children) {
-                        return child
-                    }
-                }
-            }
-            
-            return nil
-        }
-        
-        var link = deepFind(in: readingOrder, resources, links)
-        if
-            link == nil,
-            let shortHREF = href.components(separatedBy: .init(charactersIn: "#?")).first,
-            shortHREF != href
-        {
-            // Tries again, but without the anchor and query parameters.
-            link = self.link(withHREF: shortHREF)
-        }
-        
-        return link
+        manifest.link(withHREF: href)
     }
     
     /// Finds the first link with the given relation in the publication's links.
     public func link(withRel rel: LinkRelation) -> Link? {
-        return manifest.link(withRel: rel)
+        manifest.link(withRel: rel)
     }
     
     /// Finds all the links with the given relation in the publication's links.
     public func links(withRel rel: LinkRelation) -> [Link] {
-        return manifest.links(withRel: rel)
+        manifest.links(withRel: rel)
     }
 
     /// Returns the resource targeted by the given `link`.
@@ -161,12 +137,12 @@ public class Publication: Loggable {
     ///
     /// e.g. `findService(PositionsService.self)`
     public func findService<T>(_ serviceType: T.Type) -> T? {
-        return services.first { $0 is T } as? T
+        services.first { $0 is T } as? T
     }
     
     /// Finds all the services implementing the given service type.
     public func findServices<T>(_ serviceType: T.Type) -> [T] {
-        return services.filter { $0 is T } as! [T]
+        services.filter { $0 is T } as! [T]
     }
 
     /// Sets the URL where this `Publication`'s RWPM manifest is served.
