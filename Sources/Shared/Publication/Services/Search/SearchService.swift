@@ -26,7 +26,7 @@ public protocol _SearchService: PublicationService {
 }
 
 /// Iterates through search results.
-public protocol SearchIterator {
+public protocol SearchIterator: AnyObject {
 
     /// Number of matches for this search, if known.
     ///
