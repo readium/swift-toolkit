@@ -12,13 +12,13 @@ import Foundation
 public typealias ResourceContentIteratorFactory =
     (_ resource: Resource, _ locator: Locator) -> ContentIterator?
 
-public class PublicationContentIterator: ContentIterator {
+public class PublicationContentIterator: ContentIterator, Loggable {
 
     private let publication: Publication
     private var startLocator: Locator?
     private let resourceContentIteratorFactories: [ResourceContentIteratorFactory]
-    private let startIndex: Int
-    private var currentIndex: Int
+    private var startIndex: Int?
+    private var currentIndex: Int = 0
     private var currentIterator: ContentIterator?
 
     public init(publication: Publication, start: Locator?, resourceContentIteratorFactories: [ResourceContentIteratorFactory]) {
@@ -30,13 +30,11 @@ public class PublicationContentIterator: ContentIterator {
             guard
                 let start = start,
                 let index = publication.readingOrder.firstIndex(withHREF: start.href)
-                else {
+            else {
                 return 0
             }
             return index
         }()
-
-        currentIndex = startIndex
     }
 
     public func close() {
@@ -53,6 +51,7 @@ public class PublicationContentIterator: ContentIterator {
             return nil
         }
         guard let content = try iterator.next() else {
+            currentIterator = nil
             return try next()
         }
         return content
@@ -62,6 +61,15 @@ public class PublicationContentIterator: ContentIterator {
         if let iter = currentIterator {
             return iter
         }
+        
+        // For the first requested iterator, we don't want to move by the given delta.
+        var delta = delta
+        if let start = startIndex {
+            startIndex = nil
+            currentIndex = start
+            delta = 0
+        }
+        
         guard let (newIndex, newIterator) = loadIterator(from: currentIndex, by: delta) else {
             return nil
         }

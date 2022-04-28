@@ -26,7 +26,7 @@ public struct Content: Equatable {
     public enum Data: Equatable {
         case audio(target: Link)
         case image(target: Link, description: String?)
-        case text(spans: TextSpan, style: TextStyle)
+        case text(spans: [TextSpan], style: TextStyle)
     }
 
     public enum TextStyle: Equatable {
@@ -47,9 +47,7 @@ public struct Content: Equatable {
 }
 
 public protocol ContentIterator: AnyObject {
-
     func close()
     func previous() throws -> Content?
     func next() throws -> Content?
 }
-
