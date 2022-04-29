@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Navigator
 
-* Fixed memory leak in the `PDFNavigatorViewController`.
+* Fixed memory leaks in the EPUB and PDF navigators.
 
 
 ## [2.3.0]
