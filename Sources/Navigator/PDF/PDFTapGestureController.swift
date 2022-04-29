@@ -22,7 +22,7 @@ final class PDFTapGestureController: NSObject {
     private let tapAction: TargetAction
     private var tapRecognizer: UITapGestureRecognizer!
     
-    init(pdfView: PDFView, target: Any, action: Selector) {
+    init(pdfView: PDFView, target: AnyObject, action: Selector) {
         assert(pdfView.superview != nil, "The PDFView must be in the view hierarchy")
         
         self.pdfView = pdfView

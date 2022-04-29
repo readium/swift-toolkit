@@ -26,10 +26,6 @@ final class PDFViewController: ReaderViewController {
         navigator.delegate = self
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-    }
-    
     override var currentBookmark: Bookmark? {
         guard let locator = navigator.currentLocation else {
             return nil
