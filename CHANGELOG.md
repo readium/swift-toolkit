@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Fixed memory leaks in the EPUB and PDF navigators.
 
+#### Streamer
+
+* Fixed memory leak in the `PublicationServer`.
+
 
 ## [2.3.0]
 
