@@ -15,16 +15,18 @@ import UIKit
 /// Represents a couple (`target`, `action`) which can be invoked from a `sender`.
 final class TargetAction {
     
-    private let target: Any
+    private weak var target: AnyObject?
     private let action: Selector
     
-    init(target: Any, action: Selector) {
+    init(target: AnyObject, action: Selector) {
         self.target = target
         self.action = action
     }
     
     func invoke(from sender: Any?) {
-        UIApplication.shared.sendAction(action, to: target, from: sender, for: nil)
+        if let target = target {
+            UIApplication.shared.sendAction(action, to: target, from: sender, for: nil)
+        }
     }
     
 }
