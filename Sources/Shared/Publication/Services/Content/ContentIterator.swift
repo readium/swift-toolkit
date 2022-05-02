@@ -40,9 +40,9 @@ public struct Content: Equatable {
     }
 
     public struct TextSpan: Equatable {
-        let locator: Locator
-        let language: String?
-        let text: String
+        public let locator: Locator
+        public let language: String?
+        public let text: String
     }
 }
 
