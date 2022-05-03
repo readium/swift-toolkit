@@ -526,8 +526,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         }
     }
 
-    /// Returns a `Locator` targeting the first visible HTML element on the current resource.
-    public func findFirstVisibleElementLocator(completion: @escaping (Locator?) -> Void) {
+    public func findLocationOfFirstVisibleContent(completion: @escaping (Locator?) -> ()) {
         guard let spreadView = paginationView.currentView as? EPUBSpreadView else {
             DispatchQueue.main.async { completion(nil) }
             return

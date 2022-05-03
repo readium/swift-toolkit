@@ -13,9 +13,16 @@ public protocol ContentIterationService: PublicationService {
 }
 
 public extension Publication {
+    var isContentIterable: Bool {
+        contentIterationService != nil
+    }
+
     func contentIterator(from start: Locator?) -> ContentIterator? {
-        findService(ContentIterationService.self)?
-            .iterator(from: start)
+        contentIterationService?.iterator(from: start)
+    }
+
+    private var contentIterationService: ContentIterationService? {
+        findService(ContentIterationService.self)
     }
 }
 

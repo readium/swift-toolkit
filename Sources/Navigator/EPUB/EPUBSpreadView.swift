@@ -320,7 +320,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             DispatchQueue.main.async {
                 do {
                     let resource = self.spread.leading
-                    let locator = try Locator(json: result.get)?
+                    let locator = try Locator(json: result.get())?
                         .copy(href: resource.href, type: resource.type ?? MediaType.xhtml.string)
                     completion(locator)
                 } catch {

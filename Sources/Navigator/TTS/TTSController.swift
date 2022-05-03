@@ -11,39 +11,59 @@ import R2Shared
 public protocol TTSControllerDelegate: AnyObject {
     func ttsController(_ ttsController: TTSController, stateDidChange state: TTSController.State)
 
-    func ttsController(_ ttsController: TTSController, didStartSpeaking text: String, locale: String, at locator: Locator)
-    func ttsController(_ ttsController: TTSController, didStartSpeakingRangeAt locator: Locator)
+    func ttsController(_ ttsController: TTSController, didStartSpeaking utterance: TTSController.Utterance)
+    func ttsController(_ ttsController: TTSController, didStartSpeaking utterance: TTSController.Utterance, rangeAt locator: Locator)
 }
 
 public extension TTSControllerDelegate {
     func ttsController(_ ttsController: TTSController, stateDidChange state: TTSController.State) {}
-    func ttsController(_ ttsController: TTSController, didStartSpeaking text: String, locale: String, at locator: Locator) {}
-    func ttsController(_ ttsController: TTSController, didStartSpeakingRangeAt locator: Locator) {}
+    func ttsController(_ ttsController: TTSController, didStartSpeaking utterance: TTSController.Utterance) {}
+    func ttsController(_ ttsController: TTSController, didStartSpeaking utterance: TTSController.Utterance, rangeAt locator: Locator) {}
 }
 
 public class TTSController {
 
+    public class func canSpeak(_ publication: Publication) -> Bool {
+        publication.isContentIterable
+    }
+
     public struct Configuration {
         public var defaultLanguage: String?
         public var rate: Double
+        public var pitch: Double
 
-        public init(defaultLanguage: String? = nil, rate: Double = defaultRate) {
+        public init(
+            defaultLanguage: String? = nil,
+            rate: Double = defaultRate,
+            pitch: Double = defaultPitch
+        ) {
             self.defaultLanguage = defaultLanguage
             self.rate = rate
+            self.pitch = pitch
         }
 
+        public static let defaultPitch: Double = 1.0
         public static let defaultRate: Double = Double(AVSpeechUtteranceDefaultSpeechRate)
         public static let minimumRate: Double = Double(AVSpeechUtteranceMinimumSpeechRate)
         public static let maximumRate: Double = Double(AVSpeechUtteranceMaximumSpeechRate)
+    }
+
+    public struct Utterance {
+        public let text: String
+        public let locator: Locator
+        public let language: String?
+        public let postDelay: TimeInterval
     }
 
     private let publication: Publication
     public var config: Configuration
     public weak var delegate: TTSControllerDelegate?
 
-    private let queue = DispatchQueue.global(qos: .userInitiated)
+    private let queue: DispatchQueue = .global(qos: .userInitiated)
 
     public init(publication: Publication, config: Configuration = Configuration(), delegate: TTSControllerDelegate? = nil) {
+        precondition(publication.isContentIterable, "The Publication must be iterable to be used with TTSController")
+
         self.publication = publication
         self.config = config
         self.delegate = delegate
@@ -61,10 +81,6 @@ public class TTSController {
         } else {
             return adapter.state
         }
-    }
-
-    private func notifyStateUpdate() {
-        delegate?.ttsController(self, stateDidChange: state)
     }
 
     private var error: Error? {
@@ -109,6 +125,10 @@ public class TTSController {
         adapter.pause()
     }
 
+    public func stop() {
+        adapter.stop()
+    }
+
     public func next() {
         queue.async { [self] in
             error = nil
@@ -116,24 +136,32 @@ public class TTSController {
                 guard let utterance = try nextUtterance(direction: .forward) else {
                     return
                 }
+                if !utterance.text.contains(where: { $0.isLetter || $0.isNumber }) {
+                    next()
+                    return
+                }
                 adapter.speak(utterance)
+                DispatchQueue.main.async {
+                    delegate?.ttsController(self, didStartSpeaking: utterance)
+                }
             } catch {
                 self.error = error
             }
         }
     }
 
+    private func notifyStateUpdate() {
+        delegate?.ttsController(self, stateDidChange: state)
+    }
+
+    private func notifySpeakingRange(_ range: Range<Int>) {
+
+    }
+
     // MARK: - Utterances
 
     private var contentIterator: ContentIterator? {
         willSet { contentIterator?.close() }
-    }
-
-    private struct Utterance {
-        let text: String
-        let locator: Locator
-        var language: String? = nil
-        var postDelay: TimeInterval? = nil
     }
 
     private enum Direction {
@@ -202,15 +230,20 @@ public class TTSController {
             guard let description = description, !description.isEmpty else {
                 return []
             }
-            return [Utterance(text: description, locator: content.locator)]
+            return [Utterance(
+                text: description,
+                locator: content.locator,
+                language: nil,
+                postDelay: 0
+            )]
 
-        case .text(spans: let spans, style: let style):
+        case .text(spans: let spans, style: _):
             return spans.enumerated().map { offset, span in
                 Utterance(
                     text: span.text,
                     locator: span.locator,
                     language: span.language,
-                    postDelay: (offset == spans.count - 1) ? 0.4 : nil
+                    postDelay: (offset == spans.count - 1) ? 0.4 : 0
                 )
             }
         }
@@ -249,6 +282,10 @@ public class TTSController {
             synthesizer.pauseSpeaking(at: .word)
         }
 
+        func stop() {
+            synthesizer.stopSpeaking(at: .word)
+        }
+
         func `continue`() -> Bool {
             synthesizer.continueSpeaking()
         }
@@ -259,7 +296,8 @@ public class TTSController {
             }
             let avUtterance = AVSpeechUtterance(string: utterance.text)
             avUtterance.rate = Float(controller.config.rate)
-            avUtterance.postUtteranceDelay = utterance.postDelay ?? 0
+            avUtterance.pitchMultiplier = Float(controller.config.pitch)
+            avUtterance.postUtteranceDelay = utterance.postDelay
             avUtterance.voice = AVSpeechSynthesisVoice(language: utterance.language ?? controller.defaultLanguage)
             synthesizer.speak(avUtterance)
         }
@@ -282,6 +320,13 @@ public class TTSController {
 
         func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
             controller?.next()
+        }
+
+        func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance: AVSpeechUtterance) {
+            guard let range = Range(characterRange) else {
+                return
+            }
+            controller?.notifySpeakingRange(range)
         }
     }
 }

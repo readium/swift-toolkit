@@ -1,13 +1,7 @@
 //
-//  ReaderViewController.swift
-//  r2-testapp-swift
-//
-//  Created by Mickaël Menu on 07.03.19.
-//
-//  Copyright 2019 European Digital Reading Lab. All rights reserved.
-//  Licensed to the Readium Foundation under one or more contributor license agreements.
-//  Use of this source code is governed by a BSD-style license which is detailed in the
-//  LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Combine
@@ -33,10 +27,13 @@ class ReaderViewController: UIViewController, Loggable {
     private(set) var stackView: UIStackView!
     private lazy var positionLabel = UILabel()
     private var subscriptions = Set<AnyCancellable>()
-    
+
     private var searchViewModel: SearchViewModel?
     private var searchViewController: UIHostingController<SearchView>?
-    
+
+    private let ttsViewModel: TTSViewModel?
+    private var ttsBarViewController: UIHostingController<SearchView>?
+
     /// This regex matches any string with at least 2 consecutive letters (not limited to ASCII).
     /// It's used when evaluating whether to display the body of a noteref referrer as the note's title.
     /// I.e. a `*` or `1` would not be used as a title, but `on` or `好書` would.
@@ -55,6 +52,7 @@ class ReaderViewController: UIViewController, Loggable {
         self.books = books
         self.bookmarks = bookmarks
         self.highlights = highlights
+        self.ttsViewModel = TTSViewModel(navigator: navigator, publication: publication)
         
         super.init(nibName: nil, bundle: nil)
         
@@ -137,10 +135,13 @@ class ReaderViewController: UIViewController, Loggable {
         }
         // Bookmarks
         buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(bookmarkCurrentPosition)))
-        
         // Search
         if publication._isSearchable {
             buttons.append(UIBarButtonItem(image: UIImage(systemName: "magnifyingglass"), style: .plain, target: self, action: #selector(showSearchUI)))
+        }
+        // Text to speech
+        if let ttsViewModel = ttsViewModel {
+            buttons.append(UIBarButtonItem(image: UIImage(systemName: "speaker.wave.2.fill"), style: .plain, target: ttsViewModel, action: #selector(TTSViewModel.start)))
         }
         
         return buttons
@@ -215,6 +216,7 @@ class ReaderViewController: UIViewController, Loggable {
     }
     
     // MARK: - Search
+
     @objc func showSearchUI() {
         if searchViewModel == nil {
             searchViewModel = SearchViewModel(publication: publication)
@@ -237,7 +239,7 @@ class ReaderViewController: UIViewController, Loggable {
         present(vc, animated: true, completion: nil)
         searchViewController = vc
     }
-    
+
     // MARK: - Highlights
     
     private func addHighlightDecorationsObserverOnce() {
