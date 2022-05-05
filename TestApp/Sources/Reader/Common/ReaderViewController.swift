@@ -32,7 +32,7 @@ class ReaderViewController: UIViewController, Loggable {
     private var searchViewController: UIHostingController<SearchView>?
 
     private let ttsViewModel: TTSViewModel?
-    private var ttsBarViewController: UIHostingController<SearchView>?
+    private let ttsControlsViewController: UIHostingController<TTSControls>?
 
     /// This regex matches any string with at least 2 consecutive letters (not limited to ASCII).
     /// It's used when evaluating whether to display the body of a noteref referrer as the note's title.
@@ -52,8 +52,15 @@ class ReaderViewController: UIViewController, Loggable {
         self.books = books
         self.bookmarks = bookmarks
         self.highlights = highlights
-        self.ttsViewModel = TTSViewModel(navigator: navigator, publication: publication)
-        
+
+        if let model = TTSViewModel(navigator: navigator, publication: publication) {
+            ttsViewModel = model
+            ttsControlsViewController = UIHostingController(rootView: TTSControls(viewModel: model))
+        } else {
+            ttsViewModel = nil
+            ttsControlsViewController = nil
+        }
+
         super.init(nibName: nil, bundle: nil)
         
         addHighlightDecorationsObserverOnce()
@@ -97,9 +104,9 @@ class ReaderViewController: UIViewController, Loggable {
         addChild(navigator)
         stackView.addArrangedSubview(navigator.view)
         navigator.didMove(toParent: self)
-        
+
         stackView.addArrangedSubview(accessibilityToolbar)
-        
+
         positionLabel.translatesAutoresizingMaskIntoConstraints = false
         positionLabel.font = .systemFont(ofSize: 12)
         positionLabel.textColor = .darkGray
@@ -108,6 +115,25 @@ class ReaderViewController: UIViewController, Loggable {
             positionLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             positionLabel.bottomAnchor.constraint(equalTo: navigator.view.bottomAnchor, constant: -20)
         ])
+
+        if let state = ttsViewModel?.$state, let controls = ttsControlsViewController {
+            controls.view.backgroundColor = .clear
+
+            addChild(controls)
+            controls.view.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(controls.view)
+            NSLayoutConstraint.activate([
+                controls.view.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                controls.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            ])
+            controls.didMove(toParent: self)
+
+            state
+                .sink { [unowned self] state in
+                    controls.view.isHidden = (state == .stopped)
+                }
+                .store(in: &subscriptions)
+        }
     }
     
     override func willMove(toParent parent: UIViewController?) {
@@ -141,7 +167,7 @@ class ReaderViewController: UIViewController, Loggable {
         }
         // Text to speech
         if let ttsViewModel = ttsViewModel {
-            buttons.append(UIBarButtonItem(image: UIImage(systemName: "speaker.wave.2.fill"), style: .plain, target: ttsViewModel, action: #selector(TTSViewModel.start)))
+            buttons.append(UIBarButtonItem(image: UIImage(systemName: "speaker.wave.2.fill"), style: .plain, target: ttsViewModel, action: #selector(TTSViewModel.play)))
         }
         
         return buttons

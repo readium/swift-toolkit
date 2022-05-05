@@ -19,9 +19,26 @@ public extension TTSControllerDelegate {
     func ttsController(_ ttsController: TTSController, stateDidChange state: TTSController.State) {}
     func ttsController(_ ttsController: TTSController, didStartSpeaking utterance: TTSController.Utterance) {}
     func ttsController(_ ttsController: TTSController, didStartSpeaking utterance: TTSController.Utterance, rangeAt locator: Locator) {}
+    func ttsController(_ ttsController: TTSController, didReceiveError error: Error) {}
 }
 
-public class TTSController {
+/// Range of valid values for an AVUtterance pitch.
+///
+/// > Before enqueing the utterance, set this property to a value within the range of 0.5 for lower pitch to 2.0 for
+/// > higher pitch. The default value is 1.0.
+/// > https://developer.apple.com/documentation/avfaudio/avspeechutterance/1619683-pitchmultiplier
+private let avPitchRange = 0.5...2.0
+
+/// Range of valid values for an AVUtterance rate.
+///
+/// > The speech rate is a decimal representation within the range of `AVSpeechUtteranceMinimumSpeechRate` and
+/// > `AVSpeechUtteranceMaximumSpeechRate`. Lower values correspond to slower speech, and higher values correspond to
+/// > faster speech. The default value is `AVSpeechUtteranceDefaultSpeechRate`.
+/// > https://developer.apple.com/documentation/avfaudio/avspeechutterance/1619708-rate
+private let avRateRange =
+    Double(AVSpeechUtteranceMinimumSpeechRate)...Double(AVSpeechUtteranceMaximumSpeechRate)
+
+public class TTSController: Loggable {
 
     public class func canSpeak(_ publication: Publication) -> Bool {
         publication.isContentIterable
@@ -42,10 +59,8 @@ public class TTSController {
             self.pitch = pitch
         }
 
-        public static let defaultPitch: Double = 1.0
-        public static let defaultRate: Double = Double(AVSpeechUtteranceDefaultSpeechRate)
-        public static let minimumRate: Double = Double(AVSpeechUtteranceMinimumSpeechRate)
-        public static let maximumRate: Double = Double(AVSpeechUtteranceMaximumSpeechRate)
+        public static let defaultRate: Double = avRateRange.percentageForValue(Double(AVSpeechUtteranceDefaultSpeechRate))
+        public static let defaultPitch: Double = avPitchRange.percentageForValue(1.0)
     }
 
     public struct Utterance {
@@ -71,28 +86,14 @@ public class TTSController {
         adapter.controller = self
     }
 
-    public enum State {
-        case stopped, speaking, paused, failure(Error)
+    public enum State: Equatable {
+        case stopped, speaking, paused
     }
 
-    public var state: State {
-        if let error = error {
-            return .failure(error)
-        } else {
-            return adapter.state
-        }
-    }
-
-    private var error: Error? {
-        didSet {
-            if oldValue != nil || error != nil {
-                notifyStateUpdate()
-            }
-        }
-    }
+    public var state: State { adapter.state }
 
     public func playPause(from start: Locator? = nil) {
-        if case .speaking = state {
+        if state == .speaking {
             pause()
         } else {
             play(from: start)
@@ -110,14 +111,13 @@ public class TTSController {
                 }
             case .speaking:
                 return
-            case .failure:
-                break
             }
         }
 
         speakingUtteranceIndex = nil
         utterances = []
         contentIterator = publication.contentIterator(from: start)
+
         next()
     }
 
@@ -126,14 +126,18 @@ public class TTSController {
     }
 
     public func stop() {
+        speakingUtteranceIndex = nil
+        utterances = []
+        contentIterator = nil
+
         adapter.stop()
     }
 
     public func next() {
         queue.async { [self] in
-            error = nil
             do {
                 guard let utterance = try nextUtterance(direction: .forward) else {
+                    notifyStateUpdate()
                     return
                 }
                 if !utterance.text.contains(where: { $0.isLetter || $0.isNumber }) {
@@ -145,13 +149,18 @@ public class TTSController {
                     delegate?.ttsController(self, didStartSpeaking: utterance)
                 }
             } catch {
-                self.error = error
+                DispatchQueue.main.async {
+                    notifyStateUpdate()
+                    delegate?.ttsController(self, didReceiveError: error)
+                }
             }
         }
     }
 
     private func notifyStateUpdate() {
-        delegate?.ttsController(self, stateDidChange: state)
+        DispatchQueue.main.async { [self] in
+            delegate?.ttsController(self, stateDidChange: state)
+        }
     }
 
     private func notifySpeakingRange(_ range: Range<Int>) {
@@ -279,11 +288,13 @@ public class TTSController {
         }
 
         func pause() {
-            synthesizer.pauseSpeaking(at: .word)
+            synthesizer.pauseSpeaking(at: .immediate)
+            controller?.notifyStateUpdate()
         }
 
         func stop() {
-            synthesizer.stopSpeaking(at: .word)
+            synthesizer.stopSpeaking(at: .immediate)
+            controller?.notifyStateUpdate()
         }
 
         func `continue`() -> Bool {
@@ -295,8 +306,8 @@ public class TTSController {
                 return
             }
             let avUtterance = AVSpeechUtterance(string: utterance.text)
-            avUtterance.rate = Float(controller.config.rate)
-            avUtterance.pitchMultiplier = Float(controller.config.pitch)
+            avUtterance.rate = Float(avRateRange.valueForPercentage(controller.config.rate))
+            avUtterance.pitchMultiplier = Float(avPitchRange.valueForPercentage(controller.config.pitch))
             avUtterance.postUtteranceDelay = utterance.postDelay
             avUtterance.voice = AVSpeechSynthesisVoice(language: utterance.language ?? controller.defaultLanguage)
             synthesizer.speak(avUtterance)
