@@ -24,7 +24,7 @@ final class TTSViewModel: ObservableObject, Loggable {
     private var subscriptions: Set<AnyCancellable> = []
 
     init?(navigator: Navigator, publication: Publication) {
-        guard TTSController.canSpeak(publication) else {
+        guard TTSController.canPlay(publication) else {
             return nil
         }
         self.tts = TTSController(publication: publication)
