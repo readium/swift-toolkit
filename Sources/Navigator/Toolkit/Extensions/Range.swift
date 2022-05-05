@@ -6,15 +6,21 @@
 
 import Foundation
 
+extension ClosedRange {
+    func clamp(_ value: Bound) -> Bound {
+        Swift.min(Swift.max(lowerBound, value), upperBound)
+    }
+}
+
 extension ClosedRange where Bound == Double {
 
     /// Returns the equivalent percentage from 0.0 to 1.0 for the given `value` in the range.
     func percentageForValue(_ value: Bound) -> Double {
-        (value - lowerBound) / (upperBound - lowerBound)
+        return (clamp(value) - lowerBound) / (upperBound - lowerBound)
     }
 
     /// Returns the actual value in the range for the given `percentage` from 0.0 to 1.0.
     func valueForPercentage(_ percentage: Double) -> Bound {
-        ((upperBound - lowerBound) * percentage) + lowerBound
+        ((upperBound - lowerBound) * (0.0...1.0).clamp(percentage)) + lowerBound
     }
 }

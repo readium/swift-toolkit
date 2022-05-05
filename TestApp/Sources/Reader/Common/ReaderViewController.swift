@@ -53,16 +53,11 @@ class ReaderViewController: UIViewController, Loggable {
         self.bookmarks = bookmarks
         self.highlights = highlights
 
-        if let model = TTSViewModel(navigator: navigator, publication: publication) {
-            ttsViewModel = model
-            ttsControlsViewController = UIHostingController(rootView: TTSControls(viewModel: model))
-        } else {
-            ttsViewModel = nil
-            ttsControlsViewController = nil
-        }
+        ttsViewModel = TTSViewModel(navigator: navigator, publication: publication)
+        ttsControlsViewController = ttsViewModel.map { UIHostingController(rootView: TTSControls(viewModel: $0)) }
 
         super.init(nibName: nil, bundle: nil)
-        
+
         addHighlightDecorationsObserverOnce()
         updateHighlightDecorations()
     

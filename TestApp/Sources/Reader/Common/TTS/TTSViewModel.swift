@@ -11,49 +11,60 @@ import R2Shared
 
 final class TTSViewModel: ObservableObject, Loggable {
 
-    @Published private(set) var state: TTSController.State = .stopped
+    enum State {
+        case stopped, paused, playing
+    }
 
-    @Published var config: TTSController.Configuration = TTSController.Configuration()
+    @Published private(set) var state: State = .stopped
+    @Published var config: TTSController.Configuration
 
+    private let tts: TTSController
     private let navigator: Navigator
     private let publication: Publication
-    private var ttsController: TTSController!
     private var subscriptions: Set<AnyCancellable> = []
 
     init?(navigator: Navigator, publication: Publication) {
         guard TTSController.canSpeak(publication) else {
             return nil
         }
+        self.tts = TTSController(publication: publication)
+        self.config = tts.config
         self.navigator = navigator
         self.publication = publication
-        self.ttsController = TTSController(publication: publication, config: config, delegate: self)
+
+        tts.delegate = self
 
         $config
             .sink { [unowned self] in
-                ttsController.config = $0
+                tts.config = $0
             }
             .store(in: &subscriptions)
     }
 
-    @objc func play() {
-        guard state == .stopped else {
-            return
-        }
+    var defaultRate: Double { tts.defaultRate }
+    var defaultPitch: Double { tts.defaultPitch }
 
+    @objc func play() {
         navigator.findLocationOfFirstVisibleContent { [self] locator in
-            ttsController.play(from: locator ?? navigator.currentLocation)
+            tts.play(from: locator ?? navigator.currentLocation)
         }
     }
 
     @objc func playPause() {
-        ttsController.playPause()
+        tts.playPause()
     }
 
     @objc func stop() {
-        ttsController.stop()
+        state = .stopped
+        highlight(nil)
+        tts.pause()
     }
 
-    private func highlight(_ utterance: TTSController.Utterance?) {
+    @objc func next() {
+        tts.next()
+    }
+
+    private func highlight(_ utterance: TTSUtterance?) {
         guard let navigator = navigator as? DecorableNavigator else {
             return
         }
@@ -72,16 +83,19 @@ final class TTSViewModel: ObservableObject, Loggable {
 }
 
 extension TTSViewModel: TTSControllerDelegate {
-
-    func ttsController(_ ttsController: TTSController, stateDidChange state: TTSController.State) {
-        self.state = state
-
-        if state == .stopped {
-            highlight(nil)
+    public func ttsController(_ ttsController: TTSController, playingDidChange isPlaying: Bool) {
+        if isPlaying {
+            state = .playing
+        } else if state != .stopped {
+            state = .paused
         }
     }
 
-    func ttsController(_ ttsController: TTSController, didStartSpeaking utterance: TTSController.Utterance) {
+    public func ttsController(_ ttsController: TTSController, didReceiveError error: Error) {
+        log(.error, error)
+    }
+
+    public func ttsController(_ ttsController: TTSController, willStartSpeaking utterance: TTSUtterance) {
         navigator.go(to: utterance.locator)
         highlight(utterance)
     }

@@ -9,40 +9,30 @@ import Foundation
 import R2Shared
 
 public protocol TTSControllerDelegate: AnyObject {
-    func ttsController(_ ttsController: TTSController, stateDidChange state: TTSController.State)
+    func ttsController(_ ttsController: TTSController, playingDidChange isPlaying: Bool)
 
-    func ttsController(_ ttsController: TTSController, didStartSpeaking utterance: TTSController.Utterance)
-    func ttsController(_ ttsController: TTSController, didStartSpeaking utterance: TTSController.Utterance, rangeAt locator: Locator)
+    func ttsController(_ ttsController: TTSController, willStartSpeaking utterance: TTSUtterance)
+    func ttsController(_ ttsController: TTSController, willSpeakRangeAt locator: Locator, of utterance: TTSUtterance)
+
+    func ttsController(_ ttsController: TTSController, didReceiveError error: Error)
 }
 
 public extension TTSControllerDelegate {
-    func ttsController(_ ttsController: TTSController, stateDidChange state: TTSController.State) {}
-    func ttsController(_ ttsController: TTSController, didStartSpeaking utterance: TTSController.Utterance) {}
-    func ttsController(_ ttsController: TTSController, didStartSpeaking utterance: TTSController.Utterance, rangeAt locator: Locator) {}
-    func ttsController(_ ttsController: TTSController, didReceiveError error: Error) {}
+    func ttsController(_ ttsController: TTSController, playingDidChange isPlaying: Bool) {}
+    func ttsController(_ ttsController: TTSController, willStartSpeaking utterance: TTSUtterance) {}
+    func ttsController(_ ttsController: TTSController, willSpeakRangeAt locator: Locator, of utterance: TTSUtterance) {}
 }
 
-/// Range of valid values for an AVUtterance pitch.
-///
-/// > Before enqueing the utterance, set this property to a value within the range of 0.5 for lower pitch to 2.0 for
-/// > higher pitch. The default value is 1.0.
-/// > https://developer.apple.com/documentation/avfaudio/avspeechutterance/1619683-pitchmultiplier
-private let avPitchRange = 0.5...2.0
+public struct TTSUtterance: Equatable {
+    public let text: String
+    public let locator: Locator
+    public let language: String?
+    public let pitch: Double?
+    public let rate: Double?
+    public let postDelay: TimeInterval
+}
 
-/// Range of valid values for an AVUtterance rate.
-///
-/// > The speech rate is a decimal representation within the range of `AVSpeechUtteranceMinimumSpeechRate` and
-/// > `AVSpeechUtteranceMaximumSpeechRate`. Lower values correspond to slower speech, and higher values correspond to
-/// > faster speech. The default value is `AVSpeechUtteranceDefaultSpeechRate`.
-/// > https://developer.apple.com/documentation/avfaudio/avspeechutterance/1619708-rate
-private let avRateRange =
-    Double(AVSpeechUtteranceMinimumSpeechRate)...Double(AVSpeechUtteranceMaximumSpeechRate)
-
-public class TTSController: Loggable {
-
-    public class func canSpeak(_ publication: Publication) -> Bool {
-        publication.isContentIterable
-    }
+public class TTSController: Loggable, TTSEngineDelegate {
 
     public struct Configuration {
         public var defaultLanguage: String?
@@ -50,50 +40,59 @@ public class TTSController: Loggable {
         public var pitch: Double
 
         public init(
-            defaultLanguage: String? = nil,
-            rate: Double = defaultRate,
-            pitch: Double = defaultPitch
+            defaultLanguage: String?,
+            rate: Double,
+            pitch: Double
         ) {
             self.defaultLanguage = defaultLanguage
             self.rate = rate
             self.pitch = pitch
         }
-
-        public static let defaultRate: Double = avRateRange.percentageForValue(Double(AVSpeechUtteranceDefaultSpeechRate))
-        public static let defaultPitch: Double = avPitchRange.percentageForValue(1.0)
     }
 
-    public struct Utterance {
-        public let text: String
-        public let locator: Locator
-        public let language: String?
-        public let postDelay: TimeInterval
+    public class func canSpeak(_ publication: Publication) -> Bool {
+        publication.isContentIterable
     }
 
-    private let publication: Publication
+    public let defaultRate: Double
+    public let defaultPitch: Double
     public var config: Configuration
     public weak var delegate: TTSControllerDelegate?
 
+    private let publication: Publication
+    private let engine: TTSEngine
     private let queue: DispatchQueue = .global(qos: .userInitiated)
 
-    public init(publication: Publication, config: Configuration = Configuration(), delegate: TTSControllerDelegate? = nil) {
+    public init(publication: Publication, engine: TTSEngine = AVTTSEngine(), delegate: TTSControllerDelegate? = nil) {
         precondition(publication.isContentIterable, "The Publication must be iterable to be used with TTSController")
 
-        self.publication = publication
-        self.config = config
+        self.defaultRate = engine.defaultRate ?? 0.5
+        self.defaultPitch = engine.defaultPitch ?? 0.5
+        self.config = Configuration(defaultLanguage: nil, rate: defaultRate, pitch: defaultPitch)
         self.delegate = delegate
+        self.publication = publication
+        self.engine = engine
 
-        adapter.controller = self
+        engine.delegate = self
     }
 
-    public enum State: Equatable {
-        case stopped, speaking, paused
+    deinit {
+        engine.stop()
+        contentIterator?.close()
     }
 
-    public var state: State { adapter.state }
+    public var isPlaying: Bool = false {
+        didSet {
+            if oldValue != isPlaying {
+                DispatchQueue.main.async { [self] in
+                    delegate?.ttsController(self, playingDidChange: isPlaying)
+                }
+            }
+        }
+    }
 
     public func playPause(from start: Locator? = nil) {
-        if state == .speaking {
+        if isPlaying {
             pause()
         } else {
             play(from: start)
@@ -101,70 +100,55 @@ public class TTSController: Loggable {
     }
 
     public func play(from start: Locator? = nil) {
-        if start == nil {
-            switch state {
-            case .stopped:
-                break
-            case .paused:
-                if adapter.continue() {
-                    return
-                }
-            case .speaking:
-                return
-            }
+        if start != nil {
+            speakingUtteranceIndex = nil
+            utterances = []
+            contentIterator = publication.contentIterator(from: start)
         }
 
-        speakingUtteranceIndex = nil
-        utterances = []
-        contentIterator = publication.contentIterator(from: start)
+        if contentIterator == nil {
+            contentIterator = publication.contentIterator(from: nil)
+        }
 
-        next()
+        if let utterance = currentUtterance {
+            play(utterance)
+        } else {
+            next()
+        }
+    }
+
+    private func play(_ utterance: TTSUtterance) {
+        DispatchQueue.main.async { [self] in
+            delegate?.ttsController(self, willStartSpeaking: utterance)
+            isPlaying = true
+            engine.speak(utterance)
+        }
     }
 
     public func pause() {
-        adapter.pause()
-    }
-
-    public func stop() {
-        speakingUtteranceIndex = nil
-        utterances = []
-        contentIterator = nil
-
-        adapter.stop()
+        isPlaying = false
+        engine.stop()
     }
 
     public func next() {
         queue.async { [self] in
             do {
                 guard let utterance = try nextUtterance(direction: .forward) else {
-                    notifyStateUpdate()
+                    isPlaying = false
                     return
                 }
                 if !utterance.text.contains(where: { $0.isLetter || $0.isNumber }) {
                     next()
                     return
                 }
-                adapter.speak(utterance)
-                DispatchQueue.main.async {
-                    delegate?.ttsController(self, didStartSpeaking: utterance)
-                }
+                play(utterance)
+
             } catch {
                 DispatchQueue.main.async {
-                    notifyStateUpdate()
                     delegate?.ttsController(self, didReceiveError: error)
                 }
             }
         }
-    }
-
-    private func notifyStateUpdate() {
-        DispatchQueue.main.async { [self] in
-            delegate?.ttsController(self, stateDidChange: state)
-        }
-    }
-
-    private func notifySpeakingRange(_ range: Range<Int>) {
-
     }
 
     // MARK: - Utterances
@@ -178,9 +162,13 @@ public class TTSController: Loggable {
     }
 
     private var speakingUtteranceIndex: Int?
-    private var utterances: [Utterance] = []
+    private var utterances: [TTSUtterance] = []
 
-    private func nextUtterance(direction: Direction) throws -> Utterance? {
+    private var currentUtterance: TTSUtterance? {
+        speakingUtteranceIndex.map { utterances[$0] }
+    }
+
+    private func nextUtterance(direction: Direction) throws -> TTSUtterance? {
         guard let nextIndex = nextUtteranceIndex(direction: direction) else {
             if try loadNextUtterances(direction: direction) {
                 return try nextUtterance(direction: direction)
@@ -230,7 +218,7 @@ public class TTSController: Loggable {
         return true
     }
 
-    private func utterances(from content: Content) -> [Utterance] {
+    private func utterances(from content: Content) -> [TTSUtterance] {
         switch content.data {
         case .audio(target: _):
             return []
@@ -239,16 +227,11 @@ public class TTSController: Loggable {
             guard let description = description, !description.isEmpty else {
                 return []
             }
-            return [Utterance(
-                text: description,
-                locator: content.locator,
-                language: nil,
-                postDelay: 0
-            )]
+            return [utterance(text: description, locator: content.locator)]
 
         case .text(spans: let spans, style: _):
             return spans.enumerated().map { offset, span in
-                Utterance(
+                utterance(
                     text: span.text,
                     locator: span.locator,
                     language: span.language,
@@ -258,9 +241,16 @@ public class TTSController: Loggable {
         }
     }
 
-    // MARK: – Speech Synthesizer
-
-    private let adapter = SpeechSynthesizerAdapter()
+    private func utterance(text: String, locator: Locator, language: String? = nil, postDelay: TimeInterval = 0) -> TTSUtterance {
+        TTSUtterance(
+            text: text,
+            locator: locator,
+            language: language ?? defaultLanguage,
+            pitch: config.pitch,
+            rate: config.rate,
+            postDelay: postDelay
+        )
+    }
 
     private var defaultLanguage: String {
         config.defaultLanguage
@@ -268,76 +258,117 @@ public class TTSController: Loggable {
             ?? AVSpeechSynthesisVoice.currentLanguageCode()
     }
 
-    private class SpeechSynthesizerAdapter: NSObject, AVSpeechSynthesizerDelegate {
-        let synthesizer = AVSpeechSynthesizer()
-        weak var controller: TTSController?
+    // MARK: - TTSEngineDelegate
 
-        override init() {
-            super.init()
-            synthesizer.delegate = self
+    public func ttsEngine(_ engine: TTSEngine, didFinish utterance: TTSUtterance) {
+        if isPlaying && currentUtterance == utterance {
+            next()
+        }
+    }
+
+    public func ttsEngine(_ engine: TTSEngine, willSpeakRangeAt locator: Locator, of utterance: TTSUtterance) {
+        DispatchQueue.main.async { [self] in
+            delegate?.ttsController(self, willSpeakRangeAt: locator, of: utterance)
+        }
+    }
+}
+
+public protocol TTSEngineDelegate: AnyObject {
+    func ttsEngine(_ engine: TTSEngine, willSpeakRangeAt locator: Locator, of utterance: TTSUtterance)
+    func ttsEngine(_ engine: TTSEngine, didFinish utterance: TTSUtterance)
+}
+
+public protocol TTSEngine: AnyObject {
+    var defaultRate: Double? { get }
+    var defaultPitch: Double? { get }
+    var delegate: TTSEngineDelegate? { get set }
+
+    func speak(_ utterance: TTSUtterance)
+    func stop()
+}
+
+public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Loggable {
+
+    public lazy var defaultRate: Double? =
+        avRateRange.percentageForValue(Double(AVSpeechUtteranceDefaultSpeechRate))
+
+    /// Range of valid values for an AVUtterance rate.
+    ///
+    /// > The speech rate is a decimal representation within the range of `AVSpeechUtteranceMinimumSpeechRate` and
+    /// > `AVSpeechUtteranceMaximumSpeechRate`. Lower values correspond to slower speech, and higher values correspond to
+    /// > faster speech. The default value is `AVSpeechUtteranceDefaultSpeechRate`.
+    /// > https://developer.apple.com/documentation/avfaudio/avspeechutterance/1619708-rate
+    private let avRateRange =
+        Double(AVSpeechUtteranceMinimumSpeechRate)...Double(AVSpeechUtteranceMaximumSpeechRate)
+
+    public lazy var defaultPitch: Double? =
+        avPitchRange.percentageForValue(1.0)
+
+    /// Range of valid values for an AVUtterance pitch.
+    ///
+    /// > Before enqueing the utterance, set this property to a value within the range of 0.5 for lower pitch to 2.0 for
+    /// > higher pitch. The default value is 1.0.
+    /// > https://developer.apple.com/documentation/avfaudio/avspeechutterance/1619683-pitchmultiplier
+    private let avPitchRange = 0.5...2.0
+
+    public weak var delegate: TTSEngineDelegate?
+
+    private let synthesizer = AVSpeechSynthesizer()
+
+    public override init() {
+        super.init()
+        synthesizer.delegate = self
+    }
+
+    public func speak(_ utterance: TTSUtterance) {
+        synthesizer.stopSpeaking(at: .immediate)
+        synthesizer.speak(avUtterance(from: utterance))
+    }
+
+    public func stop() {
+        synthesizer.stopSpeaking(at: .immediate)
+    }
+
+    private func avUtterance(from utterance: TTSUtterance) -> AVSpeechUtterance {
+        let avUtterance = AVUtterance(utterance: utterance)
+        if let rate = utterance.rate ?? defaultRate {
+            avUtterance.rate = Float(avRateRange.valueForPercentage(rate))
+        }
+        if let pitch = utterance.pitch ?? defaultPitch {
+            avUtterance.pitchMultiplier = Float(avPitchRange.valueForPercentage(pitch))
+        }
+        avUtterance.postUtteranceDelay = utterance.postDelay
+        avUtterance.voice = AVSpeechSynthesisVoice(language: utterance.language)
+        return avUtterance
+    }
+
+    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        guard let utterance = utterance as? AVUtterance else {
+            return
+        }
+        delegate?.ttsEngine(self, didFinish: utterance.utterance)
+    }
+
+    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance avUtterance: AVSpeechUtterance) {
+        guard
+            let delegate = delegate,
+            let range = Range(characterRange)
+        else {
+            return
+        }
+//        controller?.notifySpeakingRange(range)
+    }
+
+    private class AVUtterance: AVSpeechUtterance {
+        let utterance: TTSUtterance
+
+        init(utterance: TTSUtterance) {
+            self.utterance = utterance
+            super.init(string: utterance.text)
         }
 
-        var state: State {
-            if synthesizer.isPaused {
-                return .paused
-            } else if synthesizer.isSpeaking {
-                return .speaking
-            } else {
-                return .stopped
-            }
-        }
-
-        func pause() {
-            synthesizer.pauseSpeaking(at: .immediate)
-            controller?.notifyStateUpdate()
-        }
-
-        func stop() {
-            synthesizer.stopSpeaking(at: .immediate)
-            controller?.notifyStateUpdate()
-        }
-
-        func `continue`() -> Bool {
-            synthesizer.continueSpeaking()
-        }
-
-        func speak(_ utterance: Utterance) {
-            guard let controller = controller else {
-                return
-            }
-            let avUtterance = AVSpeechUtterance(string: utterance.text)
-            avUtterance.rate = Float(avRateRange.valueForPercentage(controller.config.rate))
-            avUtterance.pitchMultiplier = Float(avPitchRange.valueForPercentage(controller.config.pitch))
-            avUtterance.postUtteranceDelay = utterance.postDelay
-            avUtterance.voice = AVSpeechSynthesisVoice(language: utterance.language ?? controller.defaultLanguage)
-            synthesizer.speak(avUtterance)
-        }
-
-        func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
-            controller?.notifyStateUpdate()
-        }
-
-        func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didPause utterance: AVSpeechUtterance) {
-            controller?.notifyStateUpdate()
-        }
-
-        func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didContinue utterance: AVSpeechUtterance) {
-            controller?.notifyStateUpdate()
-        }
-
-        func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
-            controller?.notifyStateUpdate()
-        }
-
-        func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-            controller?.next()
-        }
-
-        func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance: AVSpeechUtterance) {
-            guard let range = Range(characterRange) else {
-                return
-            }
-            controller?.notifySpeakingRange(range)
+        required init?(coder: NSCoder) {
+            fatalError("Not supported")
         }
     }
 }

@@ -25,7 +25,7 @@ struct TTSControls: View {
             )
 
             IconButton(
-                systemName: (viewModel.state == .speaking) ? "pause.fill" : "play.fill",
+                systemName: (viewModel.state == .playing) ? "pause.fill" : "play.fill",
                 action: { viewModel.playPause() }
             )
 
@@ -37,7 +37,7 @@ struct TTSControls: View {
             IconButton(
                 systemName: "forward.fill",
                 size: .small,
-                action: { showSettings.toggle() }
+                action: { viewModel.next() }
             )
 
             Spacer(minLength: 0)
@@ -72,15 +72,15 @@ struct TTSSettings: View {
         List {
             Section(header: Text("Speech settings")) {
                 ConfigStepper(
+                    caption: "Rate",
                     for: \.rate,
-                    step: TTSController.Configuration.defaultRate / 10,
-                    caption: "Rate"
+                    step: viewModel.defaultRate / 10
                 )
 
                 ConfigStepper(
+                    caption: "Pitch",
                     for: \.pitch,
-                    step: TTSController.Configuration.defaultPitch / 4,
-                    caption: "Pitch"
+                    step: viewModel.defaultPitch / 4
                 )
             }
         }
@@ -88,9 +88,9 @@ struct TTSSettings: View {
     }
 
     @ViewBuilder func ConfigStepper(
+        caption: String,
         for keyPath: WritableKeyPath<TTSController.Configuration, Double>,
-        step: Double,
-        caption: String
+        step: Double
     ) -> some View {
         Stepper(
             value: Binding(
