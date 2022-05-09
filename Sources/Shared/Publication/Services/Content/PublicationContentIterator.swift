@@ -43,7 +43,14 @@ public class PublicationContentIterator: ContentIterator, Loggable {
     }
 
     public func previous() throws -> Content? {
-        nil
+        guard let iterator = iterator(by: -1) else {
+            return nil
+        }
+        guard let content = try iterator.previous() else {
+            currentIterator = nil
+            return try previous()
+        }
+        return content
     }
 
     public func next() throws -> Content? {

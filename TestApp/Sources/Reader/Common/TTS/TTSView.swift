@@ -21,7 +21,7 @@ struct TTSControls: View {
             IconButton(
                 systemName: "backward.fill",
                 size: .small,
-                action: { showSettings.toggle() }
+                action: { viewModel.previous() }
             )
 
             IconButton(

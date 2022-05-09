@@ -60,6 +60,10 @@ final class TTSViewModel: ObservableObject, Loggable {
         tts.pause()
     }
 
+    @objc func previous() {
+        tts.previous()
+    }
+
     @objc func next() {
         tts.next()
     }
