@@ -32,6 +32,7 @@ public struct TTSUtterance: Equatable {
 }
 
 public class TTSController: Loggable, TTSEngineDelegate {
+    public typealias TokenizerFactory = (_ language: String?) -> ContentTokenizer
 
     public struct Configuration {
         public var defaultLanguage: String?
@@ -60,13 +61,13 @@ public class TTSController: Loggable, TTSEngineDelegate {
 
     private let publication: Publication
     private let engine: TTSEngine
-    private let tokenizer: TextTokenizer
+    private let makeTokenizer: TokenizerFactory
     private let queue: DispatchQueue = .global(qos: .userInitiated)
 
     public init(
         publication: Publication,
         engine: TTSEngine = AVTTSEngine(),
-        tokenizer: @escaping TextTokenizer = makeDefaultTextTokenizer(unit: .sentence),
+        tokenizerFactory: TokenizerFactory? = nil,
         delegate: TTSControllerDelegate? = nil
     ) {
         precondition(publication.isContentIterable, "The Publication must be iterable to be used with TTSController")
@@ -77,7 +78,12 @@ public class TTSController: Loggable, TTSEngineDelegate {
         self.delegate = delegate
         self.publication = publication
         self.engine = engine
-        self.tokenizer = tokenizer
+        self.makeTokenizer = { language in
+            makeTextContentTokenizer(
+                unit: .sentence,
+                language: language
+            )
+        }
 
         engine.delegate = self
     }
@@ -220,7 +226,9 @@ public class TTSController: Loggable, TTSEngineDelegate {
             return false
         }
 
-        utterances = utterances(from: content)
+        utterances = tokenize(content, with: makeTokenizer(defaultLanguage))
+            .flatMap { utterances(from: $0) }
+
         guard !utterances.isEmpty else {
             return try loadNextUtterances(direction: direction)
         }
@@ -241,7 +249,6 @@ public class TTSController: Loggable, TTSEngineDelegate {
 
         case .text(spans: let spans, style: _):
             return spans
-                .flatMap { tokenize($0) }
                 .enumerated()
                 .compactMap { offset, span in
                     utterance(
@@ -274,30 +281,13 @@ public class TTSController: Loggable, TTSEngineDelegate {
             ?? engine.defaultLanguage
     }
 
-    private func tokenize(_ span: Content.TextSpan) -> [Content.TextSpan] {
+    private func tokenize(_ content: Content, with tokenizer: ContentTokenizer) -> [Content] {
         do {
-            return try tokenizer(span.text)
-                .map { range in
-                    Content.TextSpan(
-                        locator: span.locator.copy(text: { $0 = self.extractTextContext(in: span.text, for: range) }),
-                        language: span.language,
-                        text: String(span.text[range])
-                    )
-                }
+            return try tokenizer(content)
         } catch {
             log(.error, error)
-            return [span]
+            return [content]
         }
-    }
-
-    private func extractTextContext(in string: String, for range: Range<String.Index>) -> Locator.Text {
-        let after = String(string[range.upperBound..<string.clampedIndex(range.upperBound, offsetBy: 50)])
-        let before = String(string[string.clampedIndex(range.lowerBound, offsetBy: -50)..<range.lowerBound])
-        return Locator.Text(
-            after: Optional(after).takeIf { !$0.isEmpty },
-            before: Optional(before).takeIf { !$0.isEmpty },
-            highlight: String(string[range])
-        )
     }
 
     // MARK: - TTSEngineDelegate
