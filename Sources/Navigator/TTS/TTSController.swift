@@ -60,13 +60,13 @@ public class TTSController: Loggable, TTSEngineDelegate {
 
     private let publication: Publication
     private let engine: TTSEngine
-    private let tokenizer: Tokenizer
+    private let tokenizer: TextTokenizer
     private let queue: DispatchQueue = .global(qos: .userInitiated)
 
     public init(
         publication: Publication,
         engine: TTSEngine = AVTTSEngine(),
-        tokenizer: Tokenizer = DefaultTokenizer(unit: .sentence),
+        tokenizer: @escaping TextTokenizer = makeDefaultTextTokenizer(unit: .sentence),
         delegate: TTSControllerDelegate? = nil
     ) {
         precondition(publication.isContentIterable, "The Publication must be iterable to be used with TTSController")
@@ -276,8 +276,7 @@ public class TTSController: Loggable, TTSEngineDelegate {
 
     private func tokenize(_ span: Content.TextSpan) -> [Content.TextSpan] {
         do {
-            return try tokenizer
-                .tokenize(text: span.text)
+            return try tokenizer(span.text)
                 .map { range in
                     Content.TextSpan(
                         locator: span.locator.copy(text: { $0 = self.extractTextContext(in: span.text, for: range) }),
