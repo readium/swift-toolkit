@@ -60,9 +60,15 @@ public class TTSController: Loggable, TTSEngineDelegate {
 
     private let publication: Publication
     private let engine: TTSEngine
+    private let tokenizer: Tokenizer
     private let queue: DispatchQueue = .global(qos: .userInitiated)
 
-    public init(publication: Publication, engine: TTSEngine = AVTTSEngine(), delegate: TTSControllerDelegate? = nil) {
+    public init(
+        publication: Publication,
+        engine: TTSEngine = AVTTSEngine(),
+        tokenizer: Tokenizer = DefaultTokenizer(unit: .sentence),
+        delegate: TTSControllerDelegate? = nil
+    ) {
         precondition(publication.isContentIterable, "The Publication must be iterable to be used with TTSController")
 
         self.defaultRate = engine.defaultRate ?? 0.5
@@ -71,6 +77,7 @@ public class TTSController: Loggable, TTSEngineDelegate {
         self.delegate = delegate
         self.publication = publication
         self.engine = engine
+        self.tokenizer = tokenizer
 
         engine.delegate = self
     }
@@ -233,14 +240,17 @@ public class TTSController: Loggable, TTSEngineDelegate {
             return Array(ofNotNil: utterance(text: description, locator: content.locator))
 
         case .text(spans: let spans, style: _):
-            return spans.enumerated().compactMap { offset, span in
-                utterance(
-                    text: span.text,
-                    locator: span.locator,
-                    language: span.language,
-                    postDelay: (offset == spans.count - 1) ? 0.4 : 0
-                )
-            }
+            return spans
+                .flatMap { tokenize($0) }
+                .enumerated()
+                .compactMap { offset, span in
+                    utterance(
+                        text: span.text,
+                        locator: span.locator,
+                        language: span.language,
+                        postDelay: (offset == spans.count - 1) ? 0.4 : 0
+                    )
+                }
         }
     }
 
@@ -262,6 +272,33 @@ public class TTSController: Loggable, TTSEngineDelegate {
         config.defaultLanguage
             ?? publication.metadata.languages.first
             ?? engine.defaultLanguage
+    }
+
+    private func tokenize(_ span: Content.TextSpan) -> [Content.TextSpan] {
+        do {
+            return try tokenizer
+                .tokenize(text: span.text)
+                .map { range in
+                    Content.TextSpan(
+                        locator: span.locator.copy(text: { $0 = self.extractTextContext(in: span.text, for: range) }),
+                        language: span.language,
+                        text: String(span.text[range])
+                    )
+                }
+        } catch {
+            log(.error, error)
+            return [span]
+        }
+    }
+
+    private func extractTextContext(in string: String, for range: Range<String.Index>) -> Locator.Text {
+        let after = String(string[range.upperBound..<string.clampedIndex(range.upperBound, offsetBy: 50)])
+        let before = String(string[string.clampedIndex(range.lowerBound, offsetBy: -50)..<range.lowerBound])
+        return Locator.Text(
+            after: Optional(after).takeIf { !$0.isEmpty },
+            before: Optional(before).takeIf { !$0.isEmpty },
+            highlight: String(string[range])
+        )
     }
 
     // MARK: - TTSEngineDelegate

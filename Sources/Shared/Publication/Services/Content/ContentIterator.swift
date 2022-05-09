@@ -43,6 +43,12 @@ public struct Content: Equatable {
         public let locator: Locator
         public let language: String?
         public let text: String
+
+        public init(locator: Locator, language: String?, text: String) {
+            self.locator = locator
+            self.language = language
+            self.text = text
+        }
     }
 }
 
