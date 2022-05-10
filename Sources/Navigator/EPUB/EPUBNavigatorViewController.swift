@@ -520,7 +520,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
                 locations: { $0.progression = progression }
             )
         } else {
-            return Locator(link: link).copy(
+            return publication.locate(link)?.copy(
                 locations: { $0.progression = progression }
             )
         }
@@ -564,7 +564,10 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
     }
     
     public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        return go(to: Locator(link: link), animated: animated, completion: completion)
+        guard let locator = publication.locate(link) else {
+            return false
+        }
+        return go(to: locator, animated: animated, completion: completion)
     }
     
     public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
