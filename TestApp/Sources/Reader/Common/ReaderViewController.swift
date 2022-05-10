@@ -101,7 +101,7 @@ class ReaderViewController: UIViewController, Loggable {
         navigator.didMove(toParent: self)
         
         stackView.addArrangedSubview(accessibilityToolbar)
-        
+
         positionLabel.translatesAutoresizingMaskIntoConstraints = false
         positionLabel.font = .systemFont(ofSize: 12)
         positionLabel.textColor = .darkGray
@@ -181,9 +181,9 @@ class ReaderViewController: UIViewController, Loggable {
         }
             
         locatorPublisher
-            .sink(receiveValue: { locator in
-                self.navigator.go(to: locator, animated: false) {
-                    self.dismiss(animated: true)
+            .sink(receiveValue: { [weak self] locator in
+                self?.navigator.go(to: locator, animated: false) {
+                    self?.dismiss(animated: true)
                 }
             })
             .store(in: &subscriptions)
@@ -218,9 +218,9 @@ class ReaderViewController: UIViewController, Loggable {
     @objc func showSearchUI() {
         if searchViewModel == nil {
             searchViewModel = SearchViewModel(publication: publication)
-            searchViewModel?.$selectedLocator.sink(receiveValue: { locator in
-                self.searchViewController?.dismiss(animated: true, completion: nil)
-                if let locator = locator {
+            searchViewModel?.$selectedLocator.sink(receiveValue: { [weak self] locator in
+                self?.searchViewController?.dismiss(animated: true, completion: nil)
+                if let self = self, let locator = locator {
                     self.navigator.go(to: locator, animated: true) {
                         if let decorator = self.navigator as? DecorableNavigator {
                             let decoration = Decoration(id: "selectedSearchResult", locator: locator, style: Decoration.Style.highlight(tint: .yellow, isActive: false))
@@ -244,8 +244,8 @@ class ReaderViewController: UIViewController, Loggable {
         if highlights == nil { return }
         
         if let decorator = self.navigator as? DecorableNavigator {
-            decorator.observeDecorationInteractions(inGroup: highlightDecorationGroup) { event in
-                self.activateDecoration(event)
+            decorator.observeDecorationInteractions(inGroup: highlightDecorationGroup) { [weak self] event in
+                self?.activateDecoration(event)
             }
         }
     }
@@ -255,8 +255,8 @@ class ReaderViewController: UIViewController, Loggable {
         
         highlights.all(for: bookId)
             .assertNoFailure()
-            .sink { highlights in
-                if let decorator = self.navigator as? DecorableNavigator {
+            .sink { [weak self] highlights in
+                if let self = self, let decorator = self.navigator as? DecorableNavigator {
                     let decorations = highlights.map { Decoration(id: $0.id, locator: $0.locator, style: .highlight(tint: $0.color.uiColor, isActive: false)) }
                     decorator.apply(decorations: decorations, in: self.highlightDecorationGroup)
                 }
@@ -283,17 +283,17 @@ class ReaderViewController: UIViewController, Loggable {
                                             systemFontSize: 20,
                                             colorScheme: colorScheme)
         
-        menuView.selectedColorPublisher.sink { color in
-            self.currentHighlightCancellable?.cancel()
-            self.updateHighlight(event.decoration.id, withColor: color)
-            self.highlightContextMenu?.dismiss(animated: true, completion: nil)
+        menuView.selectedColorPublisher.sink { [weak self] color in
+            self?.currentHighlightCancellable?.cancel()
+            self?.updateHighlight(event.decoration.id, withColor: color)
+            self?.highlightContextMenu?.dismiss(animated: true, completion: nil)
         }
         .store(in: &subscriptions)
         
-        menuView.selectedDeletePublisher.sink { _ in
-            self.currentHighlightCancellable?.cancel()
-            self.deleteHighlight(event.decoration.id)
-            self.highlightContextMenu?.dismiss(animated: true, completion: nil)
+        menuView.selectedDeletePublisher.sink { [weak self] _ in
+            self?.currentHighlightCancellable?.cancel()
+            self?.deleteHighlight(event.decoration.id)
+            self?.highlightContextMenu?.dismiss(animated: true, completion: nil)
         }
         .store(in: &subscriptions)
         
@@ -385,8 +385,8 @@ extension ReaderViewController: NavigatorDelegate {
 
     func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
         books.saveProgress(for: bookId, locator: locator)
-            .sink { completion in
-                if case .failure(let error) = completion {
+            .sink { [weak self] completion in
+                if let self = self, case .failure(let error) = completion {
                     self.moduleDelegate?.presentError(error, from: self)
                 }
             } receiveValue: { _ in }

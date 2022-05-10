@@ -6,12 +6,22 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
-### Shared
+### Deprecated
 
-#### Deprecated
+#### Shared
 
 * `Locator(link: Link)` is deprecated as it may create an incorrect `Locator` if the link `type` is missing.
     * Use `publication.locate(Link)` instead.
+
+### Fixed
+
+#### Navigator
+
+* Fixed memory leaks in the EPUB and PDF navigators.
+
+#### Streamer
+
+* Fixed memory leak in the `PublicationServer`.
 
 
 ## [2.3.0]
