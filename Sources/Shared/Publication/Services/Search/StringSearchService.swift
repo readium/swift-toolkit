@@ -154,16 +154,22 @@ public class _StringSearchService: _SearchService {
         }
 
         private func findLocators(in link: Link, resourceIndex: Int, text: String, cancellable: CancellableObject) -> [Locator] {
-            guard !text.isEmpty else {
+            guard
+                !text.isEmpty,
+                var resourceLocator = publication.locate(link)
+            else {
                 return []
             }
 
-            let currentLocale = options.language.map { Locale(identifier: $0) } ?? locale
-            let title = publication.tableOfContents.titleMatchingHREF(link.href) ?? link.title
-            let resourceLocator = Locator(link: link).copy(title: title)
+            let title = publication.tableOfContents.titleMatchingHREF(link.href)
+            resourceLocator = resourceLocator.copy(
+                title: Optional(title ?? link.title)
+            )
 
             var locators: [Locator] = []
 
+            let currentLocale = options.language.map { Locale(identifier: $0) } ?? locale
+            
             for range in searchAlgorithm.findRanges(of: query, options: options, in: text, locale: currentLocale, cancellable: cancellable) {
                 guard !cancellable.isCancelled else {
                     return locators

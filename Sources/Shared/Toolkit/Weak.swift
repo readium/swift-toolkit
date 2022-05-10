@@ -11,7 +11,7 @@ import Foundation
 /// Get the reference by calling `weakVar()`.
 /// Conveniently, the reference can be reset by setting the `ref` property.
 @dynamicCallable
-public final class Weak<T: AnyObject> {
+public class Weak<T: AnyObject> {
 
     // Weakly held reference.
     public weak var ref: T?
@@ -22,5 +22,25 @@ public final class Weak<T: AnyObject> {
 
     public func dynamicallyCall(withArguments args: [Any]) -> T? {
         ref
+    }
+}
+
+/// Smart pointer passing as a Weak reference but preventing the reference from being lost.
+/// Mainly useful for the unit test suite.
+public class _Strong<T: AnyObject>: Weak<T> {
+
+    private var strongRef: T?
+
+    public override var ref: T? {
+        get { super.ref }
+        set {
+            super.ref = newValue
+            strongRef = newValue
+        }
+    }
+
+    public override init(_ ref: T? = nil) {
+        self.strongRef = ref
+        super.init(ref)
     }
 }

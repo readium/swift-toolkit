@@ -1,12 +1,7 @@
 //
-//  PerResourcePositionsService.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 01/06/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -46,6 +41,5 @@ public final class PerResourcePositionsService: PositionsService {
             PerResourcePositionsService(readingOrder: context.manifest.readingOrder, fallbackMediaType: fallbackMediaType)
         }
     }
-    
 }
 

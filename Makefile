@@ -16,3 +16,9 @@ scripts:
 	yarn --cwd "$(SCRIPTS_PATH)" run format
 	yarn --cwd "$(SCRIPTS_PATH)" run lint
 	yarn --cwd "$(SCRIPTS_PATH)" run bundle
+
+.PHONY: test
+test:
+	# To limit to a particular test suite: -only-testing:R2SharedTests
+	xcodebuild test -scheme "Readium-Package" -destination "platform=iOS Simulator,name=iPhone 12" | xcbeautify -q
+

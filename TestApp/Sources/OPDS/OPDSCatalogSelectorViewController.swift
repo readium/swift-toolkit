@@ -104,23 +104,30 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         navigationController?.pushViewController(viewController, animated: true)
     }
     
-    override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
-        
+    override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         // action one
-        let editAction = UITableViewRowAction(style: .default, title: NSLocalizedString("edit_button", comment: "Edit a OPDS feed button"), handler: { (action, indexPath) in
+        let editAction = UIContextualAction(
+            style: .normal,
+            title: NSLocalizedString("edit_button", comment: "Edit a OPDS feed button")
+        ) { _, _, completion in
             self.showEditPopup(feedIndex: indexPath.row)
-        })
+            completion(true)
+        }
         editAction.backgroundColor = UIColor.gray
         
         // action two
-        let deleteAction = UITableViewRowAction(style: .default, title: NSLocalizedString("remove_button", comment: "Remove an OPDS feed button"), handler: { (action, indexPath) in
+        let deleteAction = UIContextualAction(
+            style: .destructive,
+            title: NSLocalizedString("remove_button", comment: "Remove an OPDS feed button")
+        ) { _, _, completion in
             self.catalogData?.remove(at: indexPath.row)
             UserDefaults.standard.set(self.catalogData, forKey: self.userDefaultsID)
             self.tableView.reloadData()
-        })
+            completion(true)
+        }
         deleteAction.backgroundColor = UIColor.gray
         
-        return [editAction, deleteAction]
+        return UISwipeActionsConfiguration(actions: [editAction, deleteAction])
     }
     
     @objc func showAddFeedPopup() {

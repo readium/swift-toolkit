@@ -113,10 +113,88 @@ class DefaultLocatorServiceTests: XCTestCase {
         XCTAssertNil(service.locate(progression: 0.5))
     }
 
-    func makeService(readingOrder: [Link] = [], positions: [[Locator]] = []) -> DefaultLocatorService {
-        DefaultLocatorService(readingOrder: readingOrder, positionsByReadingOrder: { positions })
+    func testFromMinimalLink() {
+        let service = makeService(readingOrder: [
+            Link(href: "/href", type: "text/html", title: "Resource")
+        ])
+
+        XCTAssertEqual(
+            service.locate(Link(href: "/href")),
+            Locator(href: "/href", type: "text/html", title: "Resource", locations: Locator.Locations(progression: 0.0))
+        )
     }
 
+    func testFromLinkInReadingOrderResourcesOrLinks() {
+        let service = makeService(
+            links: [Link(href: "/href3", type: "text/html")],
+            readingOrder: [Link(href: "/href1", type: "text/html")],
+            resources: [Link(href: "/href2", type: "text/html")]
+        )
+
+        XCTAssertEqual(
+            service.locate(Link(href: "/href1")),
+            Locator(href: "/href1", type: "text/html", locations: Locator.Locations(progression: 0.0))
+        )
+
+        XCTAssertEqual(
+            service.locate(Link(href: "/href2")),
+            Locator(href: "/href2", type: "text/html", locations: Locator.Locations(progression: 0.0))
+        )
+
+        XCTAssertEqual(
+            service.locate(Link(href: "/href3")),
+            Locator(href: "/href3", type: "text/html", locations: Locator.Locations(progression: 0.0))
+        )
+    }
+
+    func testFromLinkWithFragment() {
+        let service = makeService(readingOrder: [
+            Link(href: "/href", type: "text/html", title: "Resource")
+        ])
+
+        XCTAssertEqual(
+            service.locate(Link(href: "/href#page=42", type: "text/xml", title: "My link")),
+            Locator(href: "/href", type: "text/html", title: "Resource", locations: Locator.Locations(fragments: ["page=42"]))
+        )
+    }
+
+    func testTitleFallbackFromLink() {
+        let service = makeService(readingOrder: [
+            Link(href: "/href", type: "text/html")
+        ])
+
+        XCTAssertEqual(
+            service.locate(Link(href: "/href", title: "My link")),
+            Locator(href: "/href", type: "text/html", title: "My link", locations: Locator.Locations(progression: 0.0))
+        )
+    }
+
+    func testFromLinkNotFound() {
+        let service = makeService(readingOrder: [
+            Link(href: "/href", type: "text/html")
+        ])
+
+        XCTAssertNil(service.locate(Link(href: "notfound")))
+    }
+
+    func makeService(
+        links: [Link] = [],
+        readingOrder: [Link] = [],
+        resources: [Link] = [],
+        positions: [[Locator]] = []
+    ) -> DefaultLocatorService {
+        DefaultLocatorService(publication: _Strong(Publication(
+            manifest: Manifest(
+                metadata: Metadata(title: ""),
+                links: links,
+                readingOrder: readingOrder,
+                resources: resources
+            ),
+            servicesBuilder: PublicationServicesBuilder(
+                positions: InMemoryPositionsService.makeFactory(positionsByReadingOrder: positions)
+            )
+        )))
+    }
 }
 
 private let positionsFixture: [[Locator]] = [

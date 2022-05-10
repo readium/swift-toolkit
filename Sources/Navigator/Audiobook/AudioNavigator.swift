@@ -27,7 +27,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
     public init(publication: Publication, initialLocation: Locator? = nil) {
         self.publication = publication
         self.initialLocation = initialLocation
-            ?? publication.readingOrder.first.map { Locator(link: $0) }
+            ?? publication.readingOrder.first.flatMap { publication.locate($0) }
         
         let durations = publication.readingOrder.map { $0.duration ?? 0 }
         self.durations = durations
@@ -255,7 +255,10 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
 
     @discardableResult
     public func go(to link: Link, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        return go(to: Locator(link: link), animated: animated, completion: completion)
+        guard let locator = publication.locate(link) else {
+            return false
+        }
+        return go(to: locator, animated: animated, completion: completion)
     }
     
     @discardableResult

@@ -274,6 +274,7 @@
 		E8CB4E5729E7000FC55FC937 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 342D5C0FEE79A2ABEE24A43E /* CoreServices.framework */; };
 		E9AADF25494C968A44979B66 /* UInt64.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57338C29681D4872D425AB81 /* UInt64.swift */; };
 		E9EE047B89D0084523F7C888 /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E7CEDF6EA681FE8119791B /* Feed.swift */; };
+		EA8C7F894E3BE8D6D954DC47 /* InMemoryPositionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505BF8A630F7C7B96754E333 /* InMemoryPositionsService.swift */; };
 		EB4D11D2D1A0C64FF0E982C3 /* Optional.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC925E451D875E5F74748EDC /* Optional.swift */; };
 		EDCA3449EA5683B37D82FEBE /* PDFKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABAF1D0444B94E2CDD80087D /* PDFKit.swift */; };
 		EE951A131E38E316BF7A1129 /* LCPDialogViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = ED5C6546C24E5E619E4CC9D1 /* LCPDialogViewController.xib */; };
@@ -412,6 +413,7 @@
 		4BB5D42EEF0083D833E2A572 /* Publication+OPDS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publication+OPDS.swift"; sourceTree = "<group>"; };
 		4E564AE6D5137499C81FEBE2 /* TargetAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetAction.swift; sourceTree = "<group>"; };
 		500E55D9CA753D6D6AA76D10 /* EPUBLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBLicenseContainer.swift; sourceTree = "<group>"; };
+		505BF8A630F7C7B96754E333 /* InMemoryPositionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryPositionsService.swift; sourceTree = "<group>"; };
 		508E0CD4F9F02CC851E6D1E1 /* Publication+EPUB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publication+EPUB.swift"; sourceTree = "<group>"; };
 		54699BC0E00F327E67908F6A /* Encryption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Encryption.swift; sourceTree = "<group>"; };
 		55BC4119B8937D17ED80B1AB /* ControlFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlFlow.swift; sourceTree = "<group>"; };
@@ -982,6 +984,7 @@
 		5BC52D8F4F854FDA56D10A8E /* Positions */ = {
 			isa = PBXGroup;
 			children = (
+				505BF8A630F7C7B96754E333 /* InMemoryPositionsService.swift */,
 				01CCE64AE9824DCF6D6413BC /* PerResourcePositionsService.swift */,
 				BC45956B8991A9488F957B06 /* PositionsService.swift */,
 			);
@@ -1882,6 +1885,7 @@
 				39FC65D3797EF5069A04F34B /* HTTPFetcher.swift in Sources */,
 				2B57BE89EFAE517F79A17667 /* HTTPProblemDetails.swift in Sources */,
 				FD13DEAC62A3ED6714841B7A /* HTTPRequest.swift in Sources */,
+				EA8C7F894E3BE8D6D954DC47 /* InMemoryPositionsService.swift in Sources */,
 				9C6B7AFB6FB0635EF5B7B71C /* JSON.swift in Sources */,
 				69150D0B00F5665C3DA0000B /* LazyResource.swift in Sources */,
 				5C9617AE1B5678A95ABFF1AA /* Link.swift in Sources */,
