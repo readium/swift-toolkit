@@ -8,35 +8,70 @@ import Foundation
 
 /// A default implementation of the `LocatorService` using the `PositionsService` to locate its inputs.
 open class DefaultLocatorService: LocatorService, Loggable {
-    
-    let readingOrder: [Link]
-    let positionsByReadingOrder: () -> [[Locator]]
-    
-    public init(readingOrder: [Link], positionsByReadingOrder: @escaping () -> [[Locator]]) {
-        self.readingOrder = readingOrder
-        self.positionsByReadingOrder = positionsByReadingOrder
+
+    public let publication: Weak<Publication>
+
+    public init(publication: Weak<Publication>) {
+        self.publication = publication
     }
 
-    public convenience init(readingOrder: [Link], publication: Weak<Publication>) {
-        self.init(readingOrder: readingOrder, positionsByReadingOrder: { publication()?.positionsByReadingOrder ?? [] })
-    }
-
+    /// Locates the target of the given `locator`.
+    ///
+    /// If `locator.href` can be found in the links, `locator` will be returned directly.
+    /// Otherwise, will attempt to find the closest match using `totalProgression`, `position`,
+    /// `fragments`, etc.
     open func locate(_ locator: Locator) -> Locator? {
-        guard readingOrder.firstIndex(withHREF: locator.href) != nil else {
+        guard let publication = publication() else {
             return nil
         }
-        
-        return locator
+
+        if publication.link(withHREF: locator.href) != nil {
+            return locator
+        }
+
+        if let totalProgression = locator.locations.totalProgression, let target = locate(progression: totalProgression) {
+            return target.copy(
+                title: locator.title,
+                text: { $0 = locator.text }
+            )
+        }
+
+        return nil
     }
-    
+
+    open func locate(_ link: Link) -> Locator? {
+        let components = link.href.split(separator: "#", maxSplits: 1).map(String.init)
+        let href = components.first ?? link.href
+        let fragment = components.getOrNil(1)
+
+        guard
+            let resourceLink = publication()?.link(withHREF: href),
+            let type = resourceLink.type
+        else {
+            return nil
+        }
+
+        return Locator(
+            href: href,
+            type: type,
+            title: resourceLink.title ?? link.title,
+            locations: Locator.Locations(
+                fragments: Array(ofNotNil: fragment),
+                progression: (fragment == nil) ? 0.0 : nil
+            )
+        )
+    }
+
     open func locate(progression totalProgression: Double) -> Locator? {
         guard 0.0...1.0 ~= totalProgression else {
             log(.error, "Progression must be between 0.0 and 1.0, received \(totalProgression)")
             return nil
         }
 
-        let positions = positionsByReadingOrder()
-        guard let (readingOrderIndex, position) = findClosest(to: totalProgression, in: positions) else {
+        guard
+            let positions = publication()?.positionsByReadingOrder,
+            let (readingOrderIndex, position) = findClosest(to: totalProgression, in: positions)
+        else {
             return nil
         }
 

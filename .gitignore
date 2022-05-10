@@ -7,7 +7,7 @@
 Package.resolved
 
 # Carthage
-Carthage/
+./Carthage/
 Cartfile.resolved
 
 # Xcode

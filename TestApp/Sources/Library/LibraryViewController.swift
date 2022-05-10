@@ -19,7 +19,7 @@ import R2Streamer
 import R2Navigator
 import Kingfisher
 import ReadiumOPDS
-
+import UniformTypeIdentifiers
 
 protocol LibraryViewControllerFactory {
     func make() -> LibraryViewController
@@ -50,11 +50,6 @@ class LibraryViewController: UIViewController, Loggable {
     
     @IBOutlet weak var collectionView: UICollectionView! {
         didSet {
-            // The contentInset of collectionVIew might be changed by iOS 9/10.
-            // This property has been set as false on storyboard.
-            // In case it's changed by mistake somewhere, set it again here.
-            self.automaticallyAdjustsScrollViewInsets = false
-            
             collectionView.backgroundColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
             collectionView.contentInset = UIEdgeInsets(top: 15, left: 20,
                                                        bottom: 20, right: 20)
@@ -155,9 +150,12 @@ class LibraryViewController: UIViewController, Loggable {
     }
     
     private func addBookFromDevice() {
-        var utis = DocumentTypes.main.supportedUTIs
-        utis.append(String(kUTTypeText))
-        let documentPicker = UIDocumentPickerViewController(documentTypes: utis, in: .import)
+        var types = DocumentTypes.main.supportedUTTypes
+        if let type = UTType(String(kUTTypeText)) {
+            types.append(type)
+        }
+        
+        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: types)
         documentPicker.delegate = self
         present(documentPicker, animated: true, completion: nil)
     }
@@ -236,9 +234,6 @@ extension LibraryViewController {
 extension LibraryViewController: UIDocumentPickerDelegate {
 
     public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-        guard controller.documentPickerMode == .import else {
-            return
-        }
         importFiles(at: urls)
     }
     
