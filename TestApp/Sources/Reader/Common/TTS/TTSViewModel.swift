@@ -21,6 +21,8 @@ final class TTSViewModel: ObservableObject, Loggable {
     private let tts: TTSController
     private let navigator: Navigator
     private let publication: Publication
+
+    private let playingRangeLocatorSubject = PassthroughSubject<Locator, Never>()
     private var subscriptions: Set<AnyCancellable> = []
 
     init?(navigator: Navigator, publication: Publication) {
@@ -37,6 +39,19 @@ final class TTSViewModel: ObservableObject, Loggable {
         $config
             .sink { [unowned self] in
                 tts.config = $0
+            }
+            .store(in: &subscriptions)
+
+        var isMoving = false
+        playingRangeLocatorSubject
+            .throttle(for: 1, scheduler: RunLoop.main, latest: true)
+            .sink { [unowned self] locator in
+                guard !isMoving else {
+                    return
+                }
+                isMoving = navigator.go(to: locator) {
+                    isMoving = false
+                }
             }
             .store(in: &subscriptions)
     }
@@ -100,7 +115,10 @@ extension TTSViewModel: TTSControllerDelegate {
     }
 
     public func ttsController(_ ttsController: TTSController, willStartSpeaking utterance: TTSUtterance) {
-        navigator.go(to: utterance.locator)
         highlight(utterance)
+    }
+
+    public func ttsController(_ ttsController: TTSController, willSpeakRangeAt locator: Locator, of utterance: TTSUtterance) {
+        playingRangeLocatorSubject.send(locator)
     }
 }

@@ -83,20 +83,26 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     }
 
     public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        guard let utterance = utterance as? AVUtterance else {
+        guard let utterance = (utterance as? AVUtterance)?.utterance else {
             return
         }
-        delegate?.ttsEngine(self, didFinish: utterance.utterance)
+        delegate?.ttsEngine(self, didFinish: utterance)
     }
 
     public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance avUtterance: AVSpeechUtterance) {
         guard
             let delegate = delegate,
-            let range = Range(characterRange)
-            else {
+            let utterance = (avUtterance as? AVUtterance)?.utterance,
+            let highlight = utterance.locator.text.highlight,
+            let range = Range(characterRange, in: highlight)
+        else {
             return
         }
-//        controller?.notifySpeakingRange(range)
+
+        let rangeLocator = utterance.locator.copy(
+            text: { text in text = text[range] }
+        )
+        delegate.ttsEngine(self, willSpeakRangeAt: rangeLocator, of: utterance)
     }
 
     private class AVUtterance: AVSpeechUtterance {
