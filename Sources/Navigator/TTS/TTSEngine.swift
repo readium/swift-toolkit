@@ -24,7 +24,10 @@ public protocol TTSEngineDelegate: AnyObject {
 
 public struct TTSConfiguration {
     public var defaultLanguage: Language {
-        didSet { voice = nil }
+        didSet {
+            defaultLanguage = defaultLanguage.removingRegion()
+            voice = nil
+        }
     }
     public var rate: Double
     public var pitch: Double
@@ -38,7 +41,7 @@ public struct TTSConfiguration {
         voice: TTSVoice? = nil,
         delay: TimeInterval = 0
     ) {
-        self.defaultLanguage = defaultLanguage
+        self.defaultLanguage = defaultLanguage.removingRegion()
         self.rate = rate
         self.pitch = pitch
         self.voice = voice

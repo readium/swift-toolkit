@@ -87,14 +87,14 @@ struct TTSSettings: View {
                     caption: "Language",
                     for: \.defaultLanguage,
                     choices: viewModel.availableLanguages,
-                    choiceLabel: { $0.localizedName }
+                    choiceLabel: { $0.localizedDescription() }
                 )
 
                 ConfigPicker(
                     caption: "Voice",
                     for: \.voice,
-                    choices: viewModel.availableVoices(for: viewModel.config.defaultLanguage),
-                    choiceLabel: { $0?.name ?? "Default" }
+                    choices: viewModel.availableVoices,
+                    choiceLabel: { $0.localizedDescription() }
                 )
             }
         }
@@ -141,5 +141,18 @@ struct TTSSettings: View {
             }
             .pickerStyle(.menu)
         }
+    }
+}
+
+private extension Optional where Wrapped == TTSVoice {
+    func localizedDescription() -> String {
+        guard case let .some(voice) = self else {
+            return "Default"
+        }
+        var desc = voice.name
+        if let region = voice.language.localizedRegion() {
+            desc += " (\(region))"
+        }
+        return desc
     }
 }

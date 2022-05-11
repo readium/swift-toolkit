@@ -58,15 +58,16 @@ final class TTSViewModel: ObservableObject, Loggable {
 
     var defaultConfig: TTSConfiguration { tts.defaultConfig }
 
-    func availableVoices(for language: Language) -> [TTSVoice?] {
-        [nil] + tts.availableVoices.filter { $0.language == language }
+    var availableVoices: [TTSVoice?] {
+        [nil] + tts.availableVoices
+            .filter { $0.language.removingRegion() == config.defaultLanguage }
     }
 
     lazy var availableLanguages: [Language] =
         tts.availableVoices
-            .map { $0.language }
+            .map { $0.language.removingRegion() }
             .removingDuplicates()
-            .sorted { $0.localizedName < $1.localizedName }
+            .sorted { $0.localizedDescription() < $1.localizedDescription() }
 
     @objc func play() {
         navigator.findLocationOfFirstVisibleContent { [self] locator in

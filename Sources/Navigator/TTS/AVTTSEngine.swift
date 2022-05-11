@@ -79,7 +79,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
 
     private func voice(for utterance: TTSUtterance) -> AVSpeechSynthesisVoice? {
         let language = utterance.language ?? config.defaultLanguage
-        if let voice = config.voice, voice.language == language {
+        if let voice = config.voice, voice.language.removingRegion() == language.removingRegion() {
             return AVSpeechSynthesisVoice(identifier: voice.identifier)
         } else {
             return AVSpeechSynthesisVoice(language: language)
