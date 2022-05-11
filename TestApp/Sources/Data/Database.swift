@@ -40,6 +40,19 @@ final class Database {
                 t.column("progression", .double).notNull()
                 t.column("created", .datetime).notNull()
             }
+            
+            try db.create(table: "highlight", ifNotExists: true) { t in
+                t.column("id", .text).primaryKey()
+                t.column("bookId", .integer).references("book", onDelete: .cascade).notNull()
+                t.column("locator", .text)
+                t.column("progression", .double).notNull()
+                t.column("color", .integer).notNull()
+                t.column("created", .datetime).notNull()
+            }
+            
+            // create an index to make sorting by progression faster
+            try db.create(index: "index_highlight_progression", on: "highlight", columns: ["bookId", "progression"], ifNotExists: true)
+            try db.create(index: "index_bookmark_progression", on: "bookmark", columns: ["bookId", "progression"], ifNotExists: true)
         }
     }
     

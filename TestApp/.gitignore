@@ -1,6 +1,8 @@
 TestApp.xcodeproj
 TestApp.xcworkspace
 project.yml
+# IntelliJ AppCode
+.idea
 
 Carthage/
 Cartfile
@@ -9,3 +11,5 @@ Cartfile.resolved
 Pods/
 Podfile
 Podfile.lock
+
+R2LCPClient/

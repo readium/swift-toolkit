@@ -211,9 +211,11 @@ final class PaginationView: UIView, Loggable {
             }
         }
 
-        loadNextPage {
-            self.delegate?.paginationViewDidUpdateViews(self)
-            completion()
+        loadNextPage { [weak self] in
+            if let self = self {
+                self.delegate?.paginationViewDidUpdateViews(self)
+                completion()
+            }
         }
     }
 

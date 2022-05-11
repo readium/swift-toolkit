@@ -11,7 +11,9 @@ target 'TestApp' do
   pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumLCP.podspec'
   pod 'R2LCPClient', podspec: 'LCP_URL'
 
+  # Required for R2Streamer.
   pod 'GCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/3.6.3/GCDWebServer.podspec'
+
   pod 'GRDB.swift'
   pod 'Kingfisher'
   pod 'MBProgressHUD'

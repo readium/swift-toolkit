@@ -37,6 +37,9 @@ public class UserSettings {
     private var pageMargins: Float
     private var lineHeight: Float
     private var paragraphMargins: Float?
+
+    private var textColor: String?
+    private var backgroundColor: String?
     
     public let userProperties = UserProperties()
     
@@ -93,7 +96,9 @@ public class UserSettings {
         letterSpacing: Float = 0,
         pageMargins: Float = 1,
         lineHeight: Float = 1.5,
-        paragraphMargins: Float? = nil
+        paragraphMargins: Float? = nil,
+        textColor: String? = nil,
+        backgroundColor: String? = nil
     ) {
 
         /// Check if a given key is set in the UserDefaults.
@@ -206,6 +211,20 @@ public class UserSettings {
             self.paragraphMargins = userDefaults.float(forKey: ReadiumCSSName.paragraphMargins.rawValue)
         } else {
             self.paragraphMargins = paragraphMargins
+        }
+
+        // Text Color
+        if isKeyPresentInUserDefaults(key: ReadiumCSSName.textColor) {
+            self.textColor = userDefaults.string(forKey: ReadiumCSSName.textColor.rawValue)
+        } else {
+            self.textColor = textColor
+        }
+
+        // Background Color
+        if isKeyPresentInUserDefaults(key: ReadiumCSSName.backgroundColor) {
+            self.backgroundColor = userDefaults.string(forKey: ReadiumCSSName.backgroundColor.rawValue)
+        } else {
+            self.backgroundColor = backgroundColor
         }
 
         buildCssProperties()
@@ -322,6 +341,24 @@ public class UserSettings {
                                             reference: ReadiumCSSReference.paragraphMargins.rawValue,
                                             name: ReadiumCSSName.paragraphMargins.rawValue)
         }
+
+        // Text Color
+        if let textColor = textColor {
+            userProperties.addString(
+                value: textColor,
+                reference: ReadiumCSSReference.textColor.rawValue,
+                name: ReadiumCSSName.textColor.rawValue
+            )
+        }
+
+        // Background Color
+        if let backgroundColor = backgroundColor {
+            userProperties.addString(
+                value: backgroundColor,
+                reference: ReadiumCSSReference.backgroundColor.rawValue,
+                name: ReadiumCSSName.backgroundColor.rawValue
+            )
+        }
     }
     
     // Save settings to UserDefaults
@@ -380,7 +417,18 @@ public class UserSettings {
         if let currentParagraphMargins = userProperties.getProperty(reference: ReadiumCSSReference.paragraphMargins.rawValue) as? Incrementable {
             userDefaults.set(currentParagraphMargins.value, forKey: ReadiumCSSName.paragraphMargins.rawValue)
         }
-        
+
+        if let textColor = userProperties.getProperty(reference: ReadiumCSSReference.textColor.rawValue) as? StringProperty, let value = textColor.value {
+            userDefaults.set(value, forKey: ReadiumCSSName.textColor.rawValue)
+        } else {
+            userDefaults.removeObject(forKey: ReadiumCSSName.textColor.rawValue)
+        }
+
+        if let backgroundColor = userProperties.getProperty(reference: ReadiumCSSReference.backgroundColor.rawValue) as? StringProperty, let value = backgroundColor.value {
+            userDefaults.set(value, forKey: ReadiumCSSName.backgroundColor.rawValue)
+        } else {
+            userDefaults.removeObject(forKey: ReadiumCSSName.backgroundColor.rawValue)
+        }
     }
 
 }

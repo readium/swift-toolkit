@@ -70,7 +70,8 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
         
         try self.init(json: json, warnings: warnings)
     }
-    
+
+    @available(*, deprecated, message: "This may create an incorrect `Locator` if the link `type` is missing. Use `publication.locate(Link)` instead.")
     public init(link: Link) {
         let components = link.href.split(separator: "#", maxSplits: 1).map(String.init)
         let fragments = (components.count > 1) ? [String(components[1])] : []
@@ -258,6 +259,15 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
         }
         
         public var jsonString: String? { serializeJSONString(json) }
+            
+        /// Returns a copy of this text after sanitizing its content for user display.
+        public func sanitized() -> Locator.Text {
+            Locator.Text(
+                after: after?.coalescingWhitespaces().removingSuffix(" "),
+                before: before?.coalescingWhitespaces().removingPrefix(" "),
+                highlight: highlight?.coalescingWhitespaces()
+            )
+        }
         
         @available(*, unavailable, renamed: "init(jsonString:)")
         public init(fromString: String) {

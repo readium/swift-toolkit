@@ -45,9 +45,10 @@ final class AppModule {
         let db = try Database(file: Paths.library.appendingPathComponent("database.db"))
         let books = BookRepository(db: db)
         let bookmarks = BookmarkRepository(db: db)
+        let highlights = HighlightRepository(db: db)
         
         library = LibraryModule(delegate: self, books: books, server: server, httpClient: httpClient)
-        reader = ReaderModule(delegate: self, books: books, bookmarks: bookmarks, resourcesServer: server)
+        reader = ReaderModule(delegate: self, books: books, bookmarks: bookmarks, highlights: highlights, resourcesServer: server)
         opds = OPDSModule(delegate: self)
         
         // Set Readium 2's logging minimum level.

@@ -6,10 +6,14 @@ endif
 help:
 	@echo "Usage: make <target> [lcp=<url>]\n\n\
 Choose one of the following targets to generate:\n\
-  spm\t\t(recommended) Integration with Swift Package Manager\n\
-  carthage\tIntegration with Carthage\n\
-  cocoapods\tIntegration with CocoaPods\n\
-  dev\t\tIntegration with local folders (e.g. Git submodules) and SPM, for contributors\n\n\
+\n\
+  from the \033[1;33mmain\033[0m branch only:\n\
+    \033[1mspm\033[0m\t\t\t(recommended) Integration with Swift Package Manager\n\
+    \033[1mcarthage\033[0m\tIntegration with Carthage\n\
+    \033[1mcocoapods\033[0m\tIntegration with CocoaPods\n\
+\n\
+  from the \033[1;33mmain\033[0m or \033[1;33mdevelop\033[0m branches:\n\
+    \033[1mdev\033[0m\t\tIntegration with local folders and SPM, for contributors\n\n\
 To enable Readium LCP, provide the liblcp URL EDRLab gave you, e.g.\n\
   $$ make spm lcp=https://...\n\
 "
@@ -22,12 +26,12 @@ clean:
 	@rm -rf Pods
 	@rm -rf TestApp.xcodeproj
 	@rm -rf TestApp.xcworkspace
+	@rm -rf R2LCPClient
 
 spm: clean
 ifdef lcp
-	@echo "binary \"$(lcp)\"" > Cartfile
-	carthage update --platform ios --cache-builds
 	@cp Integrations/SPM/project+lcp.yml project.yml
+	curl --create-dirs --output R2LCPClient/Package.swift "$(lcp)"
 else
 	@cp Integrations/SPM/project.yml .
 endif
@@ -72,8 +76,7 @@ endif
 dev: clean
 ifdef lcp
 	@cp Integrations/Local/project+lcp.yml project.yml
-	@echo "binary \"$(lcp)\"" > Cartfile
-	carthage update --platform ios --cache-builds
+	curl --create-dirs --output R2LCPClient/Package.swift "$(lcp)"
 else
 	@cp Integrations/Local/project.yml .
 endif

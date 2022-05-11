@@ -23,6 +23,7 @@ class OPFParserTests: XCTestCase {
         
         XCTAssertEqual(sut.manifest, Manifest(
             metadata: Metadata(
+                conformsTo: [.epub],
                 title: "Alice's Adventures in Wonderland",
                 otherMetadata: [
                     "presentation": [

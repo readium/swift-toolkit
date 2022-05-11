@@ -24,6 +24,7 @@ class EPUBMetadataParserTests: XCTestCase {
 
         XCTAssertEqual(sut, Metadata(
             identifier: "urn:uuid:7408D53A-5383-40AA-8078-5256C872AE41",
+            conformsTo: [.epub],
             title: "Alice's Adventures in Wonderland",
             subtitle: "Alice returns to the magical world from her childhood adventure",
             modified: "2012-04-02T12:47:00Z".dateFromISO8601,
@@ -71,6 +72,7 @@ class EPUBMetadataParserTests: XCTestCase {
         let sut = try parseMetadata("minimal")
         
         XCTAssertEqual(sut, Metadata(
+            conformsTo: [.epub],
             title: "Alice's Adventures in Wonderland",
             otherMetadata: [
                 "presentation": [
@@ -88,6 +90,7 @@ class EPUBMetadataParserTests: XCTestCase {
         let sut = try parseMetadata("with-namespaces-prefix")
         
         XCTAssertEqual(sut, Metadata(
+            conformsTo: [.epub],
             title: "Alice's Adventures in Wonderland",
             otherMetadata: [
                 "presentation": [
@@ -165,6 +168,7 @@ class EPUBMetadataParserTests: XCTestCase {
         let sut = try parseMetadata("contributors")
         
         XCTAssertEqual(sut, Metadata(
+            conformsTo: [.epub],
             title: "Alice's Adventures in Wonderland",
             authors: [
                 Contributor(name: "Author 1"),

@@ -75,47 +75,6 @@ class LocatorTests: XCTestCase {
         XCTAssertEqual([Locator](json: nil), [])
     }
     
-    func testMakeFromFullLink() {
-        XCTAssertEqual(
-            Locator(link: Link(
-                href: "http://locator",
-                type: "text/html",
-                title: "Link title"
-            )),
-            Locator(
-                href: "http://locator",
-                type: "text/html",
-                title: "Link title"
-            )
-        )
-    }
-    
-    func testMakeFromMinimalLink() {
-        XCTAssertEqual(
-            Locator(link: Link(
-                href: "http://locator"
-            )),
-            Locator(
-                href: "http://locator",
-                type: "",
-                title: nil
-            )
-        )
-    }
-    
-    func testMakeFromLinkWithFragment() {
-        XCTAssertEqual(
-            Locator(link: Link(
-                href: "http://locator#page=42"
-            )),
-            Locator(
-                href: "http://locator",
-                type: "",
-                locations: .init(fragments: ["page=42"])
-            )
-        )
-    }
-
     func testGetMinimalJSON() {
         AssertJSONEqual(
             Locator(
@@ -576,6 +535,45 @@ class LocatorCollectionTests: XCTestCase {
                     ]
                 ]
             ]
+        )
+    }
+
+    func testGetSanitizedText() {
+        XCTAssertEqual(
+            Locator.Text(
+                after: "\t\n\n  after \n\t  selection  \n\t",
+                before: "\t\n\n  before \n\t  selection  \n\t",
+                highlight: "\t\n\n  current \n\t  selection  \n\t"
+            ).sanitized(),
+            Locator.Text(
+                after: " after selection",
+                before: "before selection ",
+                highlight: " current selection "
+            )
+        )
+        XCTAssertEqual(
+            Locator.Text(
+                after: "after selection",
+                before: "before selection",
+                highlight: " current selection "
+            ).sanitized(),
+            Locator.Text(
+                after: "after selection",
+                before: "before selection",
+                highlight: " current selection "
+            )
+        )
+        XCTAssertEqual(
+            Locator.Text(
+                after: " after selection",
+                before: "before selection ",
+                highlight: "current selection"
+            ).sanitized(),
+            Locator.Text(
+                after: " after selection",
+                before: "before selection ",
+                highlight: "current selection"
+            )
         )
     }
 }

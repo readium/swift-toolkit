@@ -20,6 +20,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
 
     public let identifier: String?  // URI
     public let type: String?  // URI (@type)
+    public let conformsTo: [Publication.Profile]
     
     public let localizedTitle: LocalizedString
     public var title: String { localizedTitle.string }
@@ -64,6 +65,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
     public init(
         identifier: String? = nil,
         type: String? = nil,
+        conformsTo: [Publication.Profile] = [],
         title: LocalizedStringConvertible,
         subtitle: LocalizedStringConvertible? = nil,
         modified: Date? = nil,
@@ -95,6 +97,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
     ) {
         self.identifier = identifier
         self.type = type
+        self.conformsTo = conformsTo
         self.localizedTitle = title.localizedString
         self.localizedSubtitle = subtitle?.localizedString
         self.modified = modified
@@ -141,6 +144,8 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         
         self.identifier = json.pop("identifier") as? String
         self.type = json.pop("@type") as? String ?? json.pop("type") as? String
+        self.conformsTo = parseArray(json.pop("conformsTo"), allowingSingle: true)
+            .map { Publication.Profile($0) }
         self.localizedTitle = title
         self.localizedSubtitle = try? LocalizedString(json: json.pop("subtitle"), warnings: warnings)
         self.modified = parseDate(json.pop("modified"))
@@ -175,6 +180,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         return makeJSON([
             "identifier": encodeIfNotNil(identifier),
             "@type": encodeIfNotNil(type),
+            "conformsTo": encodeIfNotEmpty(conformsTo.map { $0.uri }),
             "title": localizedTitle.json,
             "subtitle": encodeIfNotNil(localizedSubtitle?.json),
             "modified": encodeIfNotNil(modified?.iso8601),
@@ -242,6 +248,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
     public func copy(
         identifier: String?? = nil,
         type: String?? = nil,
+        conformsTo: [Publication.Profile]? = nil,
         title: LocalizedStringConvertible? = nil,
         subtitle: LocalizedStringConvertible?? = nil,
         modified: Date?? = nil,
@@ -274,6 +281,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         return Metadata(
             identifier: identifier ?? self.identifier,
             type: type ?? self.type,
+            conformsTo: conformsTo ?? self.conformsTo,
             title: title ?? self.localizedTitle,
             subtitle: subtitle ?? self.localizedSubtitle,
             modified: modified ?? self.modified,

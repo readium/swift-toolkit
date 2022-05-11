@@ -26,12 +26,12 @@ final class PDFModule: ReaderFormatModule {
         self.delegate = delegate
     }
     
-    var publicationFormats: [Publication.Format] {
-        return [.pdf]
+    func supports(_ publication: Publication) -> Bool {
+        return publication.conforms(to: .pdf)
     }
     
-    func makeReaderViewController(for publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, resourcesServer: ResourcesServer) throws -> UIViewController {
-        let viewController = PDFViewController(publication: publication, locator: locator, bookId: bookId, books: books, bookmarks: bookmarks)
+    func makeReaderViewController(for publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository, resourcesServer: ResourcesServer) throws -> UIViewController {
+        let viewController = PDFViewController(publication: publication, locator: locator, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights)
         viewController.moduleDelegate = delegate
         return viewController
     }

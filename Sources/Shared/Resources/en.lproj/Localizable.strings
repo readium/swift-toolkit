@@ -37,6 +37,7 @@
 "R2Shared.HTTPError.clientError" = "A client error occurred";
 "R2Shared.HTTPError.serverError" = "A server error occurred, please try again later";
 "R2Shared.HTTPError.offline" = "Your Internet connection appears to be offline";
+"R2Shared.HTTPError.ioError" = "Failed to access the disk storage";
 "R2Shared.HTTPError.cancelled" = "The request was cancelled";
 
 /* SearchError */

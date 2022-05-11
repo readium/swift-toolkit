@@ -67,7 +67,7 @@ jobs:
       - name: Install dependencies
         run: brew install xcodegen
       - name: Generate project
-        run: make dev lcp=${{ secrets.LCP_URL_CARTHAGE }}
+        run: make dev lcp=${{ secrets.LCP_URL_SPM }}
       - name: Build
         run: |
           xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device"
@@ -90,7 +90,7 @@ jobs:
       - name: Install dependencies
         run: brew install xcodegen
       - name: Generate project
-        run: make spm lcp=${{ secrets.LCP_URL_CARTHAGE }} commit=$commit_sha
+        run: make spm lcp=${{ secrets.LCP_URL_SPM }} commit=$commit_sha
       - name: Build
         run: |
           xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device"

@@ -34,11 +34,13 @@ This project shows how to use Readium with several dependency managers: Swift Pa
     git clone https://github.com/readium/swift-toolkit.git
     cd swift-toolkit/TestApp
     ```
-3. Choose a type of project to generate:
-    * `spm` for Swift Package Manager (recommended)
-    * `carthage` for Carthage
-    * `cocoapods` for CocoaPods
-    * `dev` for Git submodules with Swift Package Manager
+3. Choose a type of project to generate.
+    * :warning: from the `main` branch only:
+        * `spm` (recommended) Integration with Swift Package Manager
+        * `carthage` Integration with Carthage
+        * `cocoapods` Integration with CocoaPods
+    * from the `main` or `develop` branches:
+        * `dev` Integration with local folders and SPM, for contributors
 4. Generate the Xcode project using the `Makefile` and your target of choice. This will download all the dependencies automatically.
     ```sh
     make spm
@@ -52,8 +54,8 @@ Building with Readium LCP requires additional dependencies, including the librar
 
 1. [Contact EDRLab](mailto:contact@edrlab.org) to request your private `R2LCPClient.framework`.
 2. If you integrate Readium with Swift Package Manager or Git submodules, install [Carthage](https://github.com/Carthage/Carthage). `R2LCPClient.framework` is only available for Carthage or CocoaPods.
-3. Generate the Xcode project with `make`, providing the URL given by EDRLab as the `url` parameter (`.json` for Carthage or SPM and `.podspec` for CocoaPods).
+3. Generate the Xcode project with `make`, providing the URL given by EDRLab as the `url` parameter (`Package.swift` for SPM, `liblcp.json` for Carthage and `latest.podspec` for CocoaPods).
     ```sh
-    make spm lcp=https://...json
+    make spm lcp=https://.../Package.swift
     ```
 

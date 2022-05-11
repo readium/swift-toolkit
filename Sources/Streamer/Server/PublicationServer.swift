@@ -211,52 +211,50 @@ public class PublicationServer: ResourcesServer {
     }
     
     fileprivate func addResourcesHandler(for publication: Publication, at endpoint: String) throws {
-        /// Webserver HTTP GET ressources request handler.
-        func resourcesHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            guard let request = request else {
-                log(.error, "The request received is nil.")
-                return GCDWebServerErrorResponse(statusCode: 500)
-            }
-            
-            // Remove the prefix from the URI.
-            var href = request.url.absoluteString
-            if let range = href.range(of: endpoint) {
-                href = String(href[range.upperBound...])
-                href = href.removingPercentEncoding ?? href
-            }
-
-            let resource = publication.get(href.removingPercentEncoding ?? href)
-            let range = request.hasByteRange() ? request.byteRange : nil
-            return WebServerResourceResponse(
-                resource: resource,
-                range: range,
-                contentType: resource.link.type ?? MediaType.binary.string
-            )
-        }
-        
         webServer.addHandler(
             forMethod: "GET",
             pathRegex: "/\(endpoint)/.*",
             request: GCDWebServerRequest.self,
-            processBlock: resourcesHandler
+            processBlock: { [weak self, weak publication] request in
+                guard let publication = publication else {
+                    self?.log(.error, "The publication was deallocated.")
+                    return GCDWebServerErrorResponse(statusCode: 500)
+                }
+                
+                // Remove the prefix from the URI.
+                var href = request.url.absoluteString
+                if let range = href.range(of: endpoint) {
+                    href = String(href[range.upperBound...])
+                    href = href.removingPercentEncoding ?? href
+                }
+
+                let resource = publication.get(href.removingPercentEncoding ?? href)
+                let range = request.hasByteRange() ? request.byteRange : nil
+                return WebServerResourceResponse(
+                    resource: resource,
+                    range: range,
+                    contentType: resource.link.type ?? MediaType.binary.string
+                )
+            }
         )
     }
     
     fileprivate func addManifestHandler(for publication: Publication, at endpoint: String) {
-        /// The webserver handler to process the HTTP GET
-        func manifestHandler(request: GCDWebServerRequest?) -> GCDWebServerResponse? {
-            guard let manifestData = publication.jsonManifest?.data(using: .utf8) else {
-                return GCDWebServerResponse(statusCode: 404)
-            }
-            let type = "\(MediaType.readiumWebPubManifest.string); charset=utf-8"
-            return GCDWebServerDataResponse(data: manifestData, contentType: type)
-        }
-        
         webServer.addHandler(
             forMethod: "GET",
             pathRegex: "/\(endpoint)/manifest.json",
             request: GCDWebServerRequest.self,
-            processBlock: manifestHandler
+            processBlock: { [weak self, weak publication] request in
+                guard let publication = publication else {
+                    self?.log(.error, "The publication was deallocated.")
+                    return GCDWebServerErrorResponse(statusCode: 500)
+                }
+                guard let manifestData = publication.jsonManifest?.data(using: .utf8) else {
+                    return GCDWebServerResponse(statusCode: 404)
+                }
+                let type = "\(MediaType.readiumWebPubManifest.string); charset=utf-8"
+                return GCDWebServerDataResponse(data: manifestData, contentType: type)
+            }
         )
     }
     

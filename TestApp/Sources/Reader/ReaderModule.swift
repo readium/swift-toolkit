@@ -13,7 +13,7 @@
 import Foundation
 import UIKit
 import R2Shared
-
+import Combine
 
 /// The ReaderModule handles the presentation of publications to be read by the user.
 /// It contains sub-modules implementing ReaderFormatModule to handle each format of publication (eg. CBZ, EPUB).
@@ -36,6 +36,7 @@ final class ReaderModule: ReaderModuleAPI {
     weak var delegate: ReaderModuleDelegate?
     private let books: BookRepository
     private let bookmarks: BookmarkRepository
+    private let highlights: HighlightRepository
     private let resourcesServer: ResourcesServer
     
     /// Sub-modules to handle different publication formats (eg. EPUB, CBZ)
@@ -43,10 +44,11 @@ final class ReaderModule: ReaderModuleAPI {
     
     private let factory = ReaderFactory()
     
-    init(delegate: ReaderModuleDelegate?, books: BookRepository, bookmarks: BookmarkRepository, resourcesServer: ResourcesServer) {
+    init(delegate: ReaderModuleDelegate?, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository, resourcesServer: ResourcesServer) {
         self.delegate = delegate
         self.books = books
         self.bookmarks = bookmarks
+        self.highlights = highlights
         self.resourcesServer = resourcesServer
         
         formatModules = [
@@ -72,14 +74,14 @@ final class ReaderModule: ReaderModuleAPI {
             navigationController.pushViewController(viewController, animated: true)
         }
         
-        guard let module = self.formatModules.first(where:{ $0.publicationFormats.contains(publication.format) }) else {
+        guard let module = self.formatModules.first(where:{ $0.supports(publication) }) else {
             delegate.presentError(ReaderError.formatNotSupported, from: navigationController)
             completion()
             return
         }
 
         do {
-            let readerViewController = try module.makeReaderViewController(for: publication, locator: book.locator, bookId: bookId, books: books, bookmarks: bookmarks, resourcesServer: resourcesServer)
+            let readerViewController = try module.makeReaderViewController(for: publication, locator: book.locator, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights, resourcesServer: resourcesServer)
             present(readerViewController)
         } catch {
             delegate.presentError(error, from: navigationController)
@@ -101,10 +103,13 @@ extension ReaderModule: ReaderFormatModuleDelegate {
         viewController.navigationController?.pushViewController(drmViewController, animated: true)
     }
     
-    func presentOutline(of publication: Publication, bookId: Book.Id, delegate: OutlineTableViewControllerDelegate?, from viewController: UIViewController) {
-        let outlineTableVC: OutlineTableViewController = factory.make(publication: publication, bookId: bookId, bookmarks: bookmarks)
-        outlineTableVC.delegate = delegate
-        viewController.present(UINavigationController(rootViewController: outlineTableVC), animated: true)
+    func presentOutline(of publication: Publication, bookId: Book.Id, from viewController: UIViewController) -> AnyPublisher<Locator, Never> {
+        let outlineAdapter = factory.make(publication: publication, bookId: bookId, bookmarks: bookmarks, highlights: highlights)
+        let outlineLocatorPublisher = outlineAdapter.1
+        
+        viewController.present(UINavigationController(rootViewController: outlineAdapter.0), animated: true)
+        
+        return outlineLocatorPublisher
     }
     
     func presentAlert(_ title: String, message: String, from viewController: UIViewController) {

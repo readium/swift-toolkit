@@ -117,10 +117,74 @@ public extension HTTPClient {
         )
     }
 
+    /// Downloads the resource at a temporary location.
+    ///
+    /// You are responsible for moving or deleting the downloaded file in the `completion` block.
+    func download(
+        _ request: HTTPRequestConvertible,
+        onProgress: @escaping (Double) -> Void,
+        completion: @escaping (HTTPResult<HTTPDownload>) -> Void
+    ) -> Cancellable {
+        let location = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+            .appendingUniquePathComponent()
+        let fileHandle: FileHandle
+        do {
+            try "".write(to: location, atomically: true, encoding: .utf8)
+            fileHandle = try FileHandle(forWritingTo: location)
+        } catch {
+            completion(.failure(HTTPError(kind: .ioError, cause: error)))
+            return CancellableObject()
+        }
+        var suggestedFilename: String?
+
+        return stream(
+            request,
+            receiveResponse: { response in
+                suggestedFilename = response.filename
+            },
+            consume: { data, progression in
+                fileHandle.seekToEndOfFile()
+                fileHandle.write(data)
+                
+                if let progression = progression {
+                    onProgress(progression)
+                }
+            },
+            completion: { result in
+                if #available(iOS 13.0, *) {
+                    do {
+                        try fileHandle.close()
+                    } catch {
+                        log(.warning, error)
+                    }
+                }
+
+                switch result {
+                case let .success(response):
+                    completion(.success(HTTPDownload(
+                        location: location,
+                        suggestedFilename: suggestedFilename ?? response.filename,
+                        mediaType: response.mediaType
+                    )))
+                    
+                case let .failure(error):
+                    completion(.failure(error))
+                    do {
+                        try FileManager.default.removeItem(at: location)
+                    } catch {
+                        log(.warning, error)
+                    }
+                }
+            }
+        )
+    }
 }
 
 /// Represents a successful HTTP response received from a server.
 public struct HTTPResponse: Equatable {
+
+    /// Request associated with the response.
+    public let request: HTTPRequest
 
     /// URL for the response, after any redirect.
     public let url: URL
@@ -138,7 +202,8 @@ public struct HTTPResponse: Equatable {
     /// Response body content, when available.
     public var body: Data?
 
-    public init(url: URL, statusCode: Int, headers: [String: String], mediaType: MediaType, body: Data?) {
+    public init(request: HTTPRequest, url: URL, statusCode: Int, headers: [String: String], mediaType: MediaType, body: Data?) {
+        self.request = request
         self.url = url
         self.statusCode = statusCode
         self.headers = headers
@@ -146,7 +211,7 @@ public struct HTTPResponse: Equatable {
         self.body = body
     }
 
-    public init(response: HTTPURLResponse, url: URL, body: Data? = nil) {
+    public init(request: HTTPRequest, response: HTTPURLResponse, url: URL, body: Data? = nil) {
         var headers: [String: String] = [:]
         for (k, v) in response.allHeaderFields {
             if let ks = k as? String, let vs = v as? String {
@@ -155,6 +220,7 @@ public struct HTTPResponse: Equatable {
         }
 
         self.init(
+            request: request,
             url: url,
             statusCode: response.statusCode,
             headers: headers,
@@ -192,4 +258,43 @@ public struct HTTPResponse: Equatable {
             .takeIf { $0 >= 0 }
     }
 
+    /// The resource filename as provided by the server in the `Content-Disposition` header.
+    public var filename: String? {
+        if let disposition = headers["Content-Disposition"] {
+            let array = disposition.split(separator: ";")
+            var filenameString: String?
+            switch array.count {
+            case 1:
+                filenameString = String(array[0]).trimmingCharacters(in: .whitespaces)
+            case 2:
+                filenameString = String(array[1]).trimmingCharacters(in: .whitespaces)
+            default:
+                break
+            }
+
+            if let filenameString = filenameString, filenameString.starts(with: "filename=") {
+                return filenameString.replacingOccurrences(of: "filename=", with: "")
+            }
+        }
+        return nil
+    }
+}
+
+/// Holds the information about a successful download.
+public struct HTTPDownload {
+    /// The location of a temporary file where the server's response is stored.
+    /// You are responsible for moving or deleting the downloaded file..
+    public let location: URL
+
+    /// A suggested filename for the response data, taken from the `Content-Disposition` header.
+    public let suggestedFilename: String?
+
+    /// Media type sniffed from the `Content-Type` header and response body.
+    public let mediaType: MediaType
+
+    public init(location: URL, suggestedFilename: String? = nil, mediaType: MediaType) {
+        self.location = location
+        self.suggestedFilename = suggestedFilename
+        self.mediaType = mediaType
+    }
 }

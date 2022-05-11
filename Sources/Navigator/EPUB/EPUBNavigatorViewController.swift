@@ -286,9 +286,9 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
     open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         
-        coordinator.animate(alongsideTransition: { [weak self] context in
+        coordinator.animate(alongsideTransition: nil) { [weak self] context in
             self?.reloadSpreads()
-        })
+        }
     }
 
     @discardableResult
@@ -429,31 +429,57 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         return publication.readingOrder.firstIndex(withHREF: spreads[currentSpreadIndex].left.href)
     }
 
-    private func reloadSpreads(at locator: Locator? = nil) {
-        let isLandscape = (view.bounds.width > view.bounds.height)
-        let pageCountPerSpread = EPUBSpread.pageCountPerSpread(for: publication, userSettings: userSettings, isLandscape: isLandscape)
+    private let reloadSpreadsCompletions = CompletionList()
+    private var needsReloadSpreads = false
+    
+    private func reloadSpreads(at locator: Locator? = nil, completion: (() -> Void)? = nil) {
+        assert(Thread.isMainThread, "reloadSpreads() must be called from the main thread")
+
+        guard !needsReloadSpreads else {
+            if let completion = completion {
+                reloadSpreadsCompletions.add(completion)
+            }
+            return
+        }
+        
+        needsReloadSpreads = true
+        
+        DispatchQueue.main.async {
+            self.needsReloadSpreads = false
+            
+            self._reloadSpreads(at: locator) {
+                self.reloadSpreadsCompletions.complete()
+            }
+        }
+    }
+    
+    private func _reloadSpreads(at locator: Locator? = nil, completion: @escaping () -> Void) {
+        let isLandscape = (self.view.bounds.width > self.view.bounds.height)
+        let pageCountPerSpread = EPUBSpread.pageCountPerSpread(for: self.publication, userSettings: self.userSettings, isLandscape: isLandscape)
         
         guard
             // Already loaded with the expected amount of spreads.
-            spreads.first?.pageCount != pageCountPerSpread,
-            on(.load)
+            self.spreads.first?.pageCount != pageCountPerSpread,
+            self.on(.load)
         else {
+            completion()
             return
         }
 
-        let locator = locator ?? currentLocation
-        spreads = EPUBSpread.makeSpreads(for: publication, readingProgression: readingProgression, pageCountPerSpread: pageCountPerSpread)
+        let locator = locator ?? self.currentLocation
+        self.spreads = EPUBSpread.makeSpreads(for: self.publication, readingProgression: self.readingProgression, pageCountPerSpread: pageCountPerSpread)
         
         let initialIndex: Int = {
-            if let href = locator?.href, let foundIndex = spreads.firstIndex(withHref: href) {
+            if let href = locator?.href, let foundIndex = self.spreads.firstIndex(withHref: href) {
                 return foundIndex
             } else {
                 return 0
             }
         }()
         
-        paginationView.reloadAtIndex(initialIndex, location: PageLocation(locator), pageCount: spreads.count, readingProgression: readingProgression) {
+        self.paginationView.reloadAtIndex(initialIndex, location: PageLocation(locator), pageCount: self.spreads.count, readingProgression: self.readingProgression) {
             self.on(.loaded)
+            completion()
         }
     }
 
@@ -494,7 +520,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
                 locations: { $0.progression = progression }
             )
         } else {
-            return Locator(link: link).copy(
+            return publication.locate(link)?.copy(
                 locations: { $0.progression = progression }
             )
         }
@@ -532,12 +558,16 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         
         return paginationView.goToIndex(spreadIndex, location: .locator(locator), animated: animated) {
             self.on(.jumped)
+            self.delegate?.navigator(self, didJumpTo: locator)
             completion()
         }
     }
     
     public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        return go(to: Locator(link: link), animated: animated, completion: completion)
+        guard let locator = publication.locate(link) else {
+            return false
+        }
+        return go(to: locator, animated: animated, completion: completion)
     }
     
     public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
@@ -829,11 +859,11 @@ extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
     }
 
     func editingActions(_ editingActions: EditingActionsController, shouldShowMenuForSelection selection: Selection) -> Bool {
-        true
+        return delegate?.navigator(self, shouldShowMenuForSelection: selection) ?? true
     }
 
     func editingActions(_ editingActions: EditingActionsController, canPerformAction action: EditingAction, for selection: Selection) -> Bool {
-        true
+        return delegate?.navigator(self, canPerformAction: action, for: selection) ?? true
     }
 }
 

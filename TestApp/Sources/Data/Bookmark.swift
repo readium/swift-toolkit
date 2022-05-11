@@ -64,3 +64,6 @@ final class BookmarkRepository {
         db.write { db in try Bookmark.deleteOne(db, key: id) }
     }
 }
+
+// for the default SwiftUI support
+extension Bookmark: Hashable {}

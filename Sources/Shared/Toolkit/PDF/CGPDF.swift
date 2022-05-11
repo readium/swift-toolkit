@@ -38,6 +38,25 @@ extension CGPDFDocument: PDFDocument {
     public var pageCount: Int {
         numberOfPages
     }
+    
+    /// The reading progression can be derived from the `Direction` Name object under the
+    /// `/Catalog/ViewerPreferences` dictionary.
+    public var readingProgression: ReadingProgression? {
+        guard
+            let viewerPreferences = dict(forKey: "ViewerPreferences", in: catalog),
+            let direction = object(forKey: "Direction", in: viewerPreferences)
+                .flatMap({ name(for: $0) })?
+                .uppercased()
+        else {
+            return nil
+        }
+        
+        switch direction {
+        case "L2R", "LTR": return .ltr
+        case "R2L", "RTL": return .rtl
+        default: return nil
+        }
+    }
 
     public var title: String? {
         string(forKey: "Title", in: info)
@@ -145,32 +164,69 @@ extension CGPDFDocument: PDFDocument {
     }
     
     private func string(forKey key: String, in dictionary: CGPDFDictionaryRef?) -> String? {
-        guard let dictionary = dictionary else {
+        var stringRef: CGPDFStringRef?
+        guard
+            let dictionary = dictionary,
+            CGPDFDictionaryGetString(dictionary, key, &stringRef)
+        else {
             return nil
         }
-        var stringRef: CGPDFStringRef?
-        CGPDFDictionaryGetString(dictionary, key, &stringRef)
         return string(from: stringRef)
     }
     
     private func string(from stringRef: CGPDFStringRef?) -> String? {
-        guard let data = data(from: stringRef),
-            let string = String(data: data, encoding: .utf8) else
-        {
+        guard
+            let data = data(from: stringRef),
+            let string = String(data: data, encoding: .utf8)
+        else {
             return nil
         }
         return string.isEmpty ? nil : string
     }
     
     private func data(from stringRef: CGPDFStringRef?) -> Data? {
-        guard let stringRef = stringRef,
-            let bytes = CGPDFStringGetBytePtr(stringRef) else
-        {
+        guard
+            let stringRef = stringRef,
+            let bytes = CGPDFStringGetBytePtr(stringRef)
+        else {
             return nil
         }
         return Data(bytes: bytes, count: CGPDFStringGetLength(stringRef))
     }
+
+    private func dict(forKey key: String, in dictionary: CGPDFDictionaryRef?) -> CGPDFDictionaryRef? {
+        var dictRef: CGPDFDictionaryRef?
+        guard
+            let dictionary = dictionary,
+            CGPDFDictionaryGetDictionary(dictionary, key, &dictRef)
+        else {
+            return nil
+        }
+        return dictRef
+    }
+
+    private func object(forKey key: String, in dictionary: CGPDFDictionaryRef?) -> CGPDFObjectRef? {
+        var objectRef: CGPDFObjectRef?
+        guard
+            let dictionary = dictionary,
+            CGPDFDictionaryGetObject(dictionary, key, &objectRef)
+        else {
+            return nil
+        }
+        return objectRef
+    }
     
+    private func name(for object: CGPDFObjectRef?) -> String? {
+        var buffer: UnsafePointer<Int8>?
+        guard
+            let object = object,
+            CGPDFObjectGetValue(object, .name, &buffer),
+            let buffer = buffer
+        else {
+            return nil
+        }
+        return String(cString: buffer)
+    }
 }
 
 /// Creates a `PDFDocument` using Core Graphics.

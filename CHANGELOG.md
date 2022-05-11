@@ -6,11 +6,67 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
+### Deprecated
+
+#### Shared
+
+* `Locator(link: Link)` is deprecated as it may create an incorrect `Locator` if the link `type` is missing.
+    * Use `publication.locate(Link)` instead.
+
+### Fixed
+
+#### Navigator
+
+* Fixed memory leaks in the EPUB and PDF navigators.
+
+#### Streamer
+
+* Fixed memory leak in the `PublicationServer`.
+
+
+## [2.3.0]
+
+### Added
+
+#### Shared
+
+* Get the sanitized `Locator` text ready for user display with `locator.text.sanitized()`.
+* A new `Publication.conforms(to:)` API to identify the profile of a publication.
+* Support for the [`conformsTo` RWPM metadata](https://github.com/readium/webpub-manifest/issues/65), to identify the profile of a `Publication`.
+* Support for right-to-left PDF documents by extracting the reading progression from the `ViewerPreferences/Direction` metadata.
+* HTTP client:
+    * A new `HTTPClient.download()` API to download HTTP resources to a temporary location.
+    * `HTTPRequest` and `DefaultHTTPClient` take an optional `userAgent` property to customize the user agent. 
+
+#### Navigator
+
+* The new `NavigatorDelegate.navigator(_:didJumpTo:)` API is called every time the navigator jumps to an explicit location, which might break the linear reading progression.
+    * For example, it is called when clicking on internal links or programmatically calling `Navigator.go(to:)`, but not when turning pages.
+    * You can use this callback to implement a navigation history by differentiating between continuous and discontinuous moves.
+
+### Deprecated
+
+#### Shared
+
+* `Publication.format` is now deprecated in favor of the new `Publication.conforms(to:)` API which is more accurate.
+    * For example, replace `publication.format == .epub` with `publication.conforms(to: .epub)` before opening a publication with the `EPUBNavigatorViewController`.
+
+### Changed
+
+#### LCP
+
+* The `LCPService` now uses a provided `HTTPClient` instance for all HTTP requests.
+
 ### Fixed
 
 #### Navigator
 
 * [#14](https://github.com/readium/swift-toolkit/issues/14) Backward compatibility (iOS 10+) of JavaScript files is now handled with Babel.
+* Throttle the reload of EPUB spreads to avoid losing the position when the reader gets back to the foreground.
+
+#### LCP
+
+* Fixed the notification of acquisition progress.
 
 
 ## 2.2.0
@@ -385,4 +441,4 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 
 
 [unreleased]: https://github.com/readium/swift-toolkit/compare/main...HEAD
-[2.2.1]: https://github.com/readium/swift-kotlin/compare/2.2.0...2.2.1
+[2.3.0]: https://github.com/readium/swift-toolkit/compare/2.2.0...2.3.0

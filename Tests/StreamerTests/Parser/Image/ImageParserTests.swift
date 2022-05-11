@@ -47,6 +47,12 @@ class ImageParserTests: XCTestCase {
     func testAcceptsJPG() {
         XCTAssertNotNil(try parser.parse(asset: jpgAsset, fetcher: jpgFetcher, warnings: nil))
     }
+    
+    func testConformsToDivina() throws {
+        let publication = try XCTUnwrap(parser.parse(asset: cbzAsset, fetcher: cbzFetcher, warnings: nil)?.build())
+        
+        XCTAssertEqual(publication.metadata.conformsTo, [.divina])
+    }
 
     /// The reading order is sorted alphabetically, ignores Thumbs.db, hidden files and non-bitmap
     /// files.

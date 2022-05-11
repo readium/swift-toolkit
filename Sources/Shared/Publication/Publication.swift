@@ -14,10 +14,12 @@ import Foundation
 
 /// Shared model for a Readium Publication.
 public class Publication: Loggable {
-
+    
     /// Format of the publication, if specified.
+    @available(*, deprecated, message: "Use publication.conforms(to:) to check the profile of a Publication")
     public var format: Format = .unknown
     /// Version of the publication's format, eg. 3 for EPUB 3
+    @available(*, deprecated, message: "This API will be removed in a future version. If you still need it, please explain your use case at https://github.com/readium/swift-toolkit/issues/new")
     public var formatVersion: String?
     
     private var manifest: Manifest
@@ -48,9 +50,7 @@ public class Publication: Loggable {
     public init(
         manifest: Manifest,
         fetcher: Fetcher = EmptyFetcher(),
-        servicesBuilder: PublicationServicesBuilder = .init(),
-        format: Format = .unknown,
-        formatVersion: String? = nil
+        servicesBuilder: PublicationServicesBuilder = .init()
     ) {
         let weakPublication = Weak<Publication>()
 
@@ -67,8 +67,6 @@ public class Publication: Loggable {
         self.manifest = manifest
         self.fetcher = fetcher
         self.services = services
-        self.format = format
-        self.formatVersion = formatVersion
 
         weakPublication.ref = self
     }
@@ -84,6 +82,11 @@ public class Publication: Loggable {
         serializeJSONString(manifest.json)
     }
     
+    /// Returns whether this publication conforms to the given Readium Web Publication Profile.
+    public func conforms(to profile: Profile) -> Bool {
+        manifest.conforms(to: profile)
+    }
+    
     /// The URL where this publication is served, computed from the `Link` with `self` relation.
     ///
     /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
@@ -94,41 +97,17 @@ public class Publication: Loggable {
     
     /// Finds the first Link having the given `href` in the publication's links.
     public func link(withHREF href: String) -> Link? {
-        func deepFind(in linkLists: [Link]...) -> Link? {
-            for links in linkLists {
-                for link in links {
-                    if link.href == href {
-                        return link
-                    } else if let child = deepFind(in: link.alternates, link.children) {
-                        return child
-                    }
-                }
-            }
-            
-            return nil
-        }
-        
-        var link = deepFind(in: readingOrder, resources, links)
-        if
-            link == nil,
-            let shortHREF = href.components(separatedBy: .init(charactersIn: "#?")).first,
-            shortHREF != href
-        {
-            // Tries again, but without the anchor and query parameters.
-            link = self.link(withHREF: shortHREF)
-        }
-        
-        return link
+        manifest.link(withHREF: href)
     }
     
     /// Finds the first link with the given relation in the publication's links.
     public func link(withRel rel: LinkRelation) -> Link? {
-        return manifest.link(withRel: rel)
+        manifest.link(withRel: rel)
     }
     
     /// Finds all the links with the given relation in the publication's links.
     public func links(withRel rel: LinkRelation) -> [Link] {
-        return manifest.links(withRel: rel)
+        manifest.links(withRel: rel)
     }
 
     /// Returns the resource targeted by the given `link`.
@@ -158,12 +137,12 @@ public class Publication: Loggable {
     ///
     /// e.g. `findService(PositionsService.self)`
     public func findService<T>(_ serviceType: T.Type) -> T? {
-        return services.first { $0 is T } as? T
+        services.first { $0 is T } as? T
     }
     
     /// Finds all the services implementing the given service type.
     public func findServices<T>(_ serviceType: T.Type) -> [T] {
-        return services.filter { $0 is T } as! [T]
+        services.filter { $0 is T } as! [T]
     }
 
     /// Sets the URL where this `Publication`'s RWPM manifest is served.
@@ -177,7 +156,28 @@ public class Publication: Loggable {
             ), at: 0)
         }
     }
-
+    
+    /// Represents a Readium Web Publication Profile a `Publication` can conform to.
+    ///
+    /// For a list of supported profiles, see the registry:
+    /// https://readium.org/webpub-manifest/profiles/
+    public struct Profile: Hashable {
+        public let uri: String
+        
+        public init(_ uri: String) {
+            self.uri = uri
+        }
+        
+        /// Profile for EPUB publications.
+        public static let epub = Profile("https://readium.org/webpub-manifest/profiles/epub")
+        /// Profile for audiobooks.
+        public static let audiobook = Profile("https://readium.org/webpub-manifest/profiles/audiobook")
+        /// Profile for visual narratives (comics, manga and bandes dessinées).
+        public static let divina = Profile("https://readium.org/webpub-manifest/profiles/divina")
+        /// Profile for PDF documents.
+        public static let pdf = Profile("https://readium.org/webpub-manifest/profiles/pdf")
+    }
+    
     public enum Format: Equatable, Hashable {
         /// Formats natively supported by Readium.
         case cbz, epub, pdf, webpub
@@ -319,9 +319,9 @@ public class Publication: Loggable {
             let publication = Publication(
                 manifest: manifest,
                 fetcher: fetcher,
-                servicesBuilder: servicesBuilder
+                servicesBuilder: servicesBuilder,
+                format: format
             )
-            publication.format = format
             setupPublication?(publication)
             return publication
         }
