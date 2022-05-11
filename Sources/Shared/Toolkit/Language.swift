@@ -40,3 +40,9 @@ public struct Language: Hashable {
         self.init(code: .bcp47(locale.identifier))
     }
 }
+
+extension Language: CustomStringConvertible {
+    public var description: String {
+        code.bcp47
+    }
+}

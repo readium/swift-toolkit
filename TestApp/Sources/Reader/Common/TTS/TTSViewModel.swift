@@ -58,6 +58,10 @@ final class TTSViewModel: ObservableObject, Loggable {
 
     var defaultConfig: TTSConfiguration { tts.defaultConfig }
 
+    func availableVoices(for language: Language) -> [TTSVoice?] {
+        [nil] + tts.availableVoices.filter { $0.language == language }
+    }
+
     lazy var availableLanguages: [Language] =
         tts.availableVoices
             .map { $0.language }

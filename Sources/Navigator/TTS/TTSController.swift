@@ -74,8 +74,8 @@ public class TTSController: Loggable, TTSEngineDelegate {
             )
         }
 
-        if let language = publication.metadata.languages.first {
-            engine.config.defaultLanguage = Language(code: .bcp47(language))
+        if let language = publication.metadata.language {
+            engine.config.defaultLanguage = language
         }
         engine.delegate = self
     }
@@ -260,7 +260,7 @@ public class TTSController: Loggable, TTSEngineDelegate {
         return TTSUtterance(
             text: text,
             locator: locator,
-            language: language,
+            language: language.takeIf { $0 != publication.metadata.language },
             delay: delay
         )
     }

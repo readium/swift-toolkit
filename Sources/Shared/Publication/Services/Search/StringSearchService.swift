@@ -25,7 +25,7 @@ public class _StringSearchService: _SearchService {
         return { context in
             _StringSearchService(
                 publication: context.publication,
-                language: context.manifest.metadata.languages.first.map { Language(code: .bcp47($0)) },
+                language: context.manifest.metadata.language,
                 snippetLength: snippetLength,
                 searchAlgorithm: searchAlgorithm,
                 extractorFactory: extractorFactory

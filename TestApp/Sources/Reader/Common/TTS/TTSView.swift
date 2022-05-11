@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2022 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -88,6 +88,13 @@ struct TTSSettings: View {
                     for: \.defaultLanguage,
                     choices: viewModel.availableLanguages,
                     choiceLabel: { $0.localizedName }
+                )
+
+                ConfigPicker(
+                    caption: "Voice",
+                    for: \.voice,
+                    choices: viewModel.availableVoices(for: viewModel.config.defaultLanguage),
+                    choiceLabel: { $0?.name ?? "Default" }
                 )
             }
         }
