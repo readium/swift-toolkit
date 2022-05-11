@@ -20,7 +20,7 @@ public enum TextTokenizerError: Error {
 }
 
 /// A default cluster `Tokenizer` taking advantage of the best capabilities of each iOS version.
-public func makeDefaultTextTokenizer(unit: TextUnit, language: String? = nil) -> TextTokenizer {
+public func makeDefaultTextTokenizer(unit: TextUnit, language: Language? = nil) -> TextTokenizer {
     if #available(iOS 12.0, *) {
         return makeNLTextTokenizer(unit: unit, language: language)
     } else if #available(iOS 11.0, *) {
@@ -35,9 +35,9 @@ public func makeDefaultTextTokenizer(unit: TextUnit, language: String? = nil) ->
 
 /// A text `Tokenizer` using iOS 12+'s NaturalLanguage framework.
 @available(iOS 12.0, *)
-public func makeNLTextTokenizer(unit: TextUnit, language: String? = nil) -> TextTokenizer {
+public func makeNLTextTokenizer(unit: TextUnit, language: Language? = nil) -> TextTokenizer {
     let unit = unit.nlUnit
-    let language = language.map { NLLanguage($0) }
+    let language = language.map { NLLanguage($0.code.bcp47) }
 
     func tokenize(_ text: String) throws -> [Range<String.Index>] {
         let tokenizer = NLTokenizer(unit: unit)

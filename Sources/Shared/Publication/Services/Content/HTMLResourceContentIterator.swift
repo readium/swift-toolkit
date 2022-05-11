@@ -83,7 +83,7 @@ public class HTMLResourceContentIterator : ContentIterator {
         private var wholeRawTextAcc: String = ""
         private var elementRawTextAcc: String = ""
         private var rawTextAcc: String = ""
-        private var currentLanguage: String?
+        private var currentLanguage: Language?
         private var currentCSSSelector: String?
         private var ignoredNode: Node?
 
@@ -145,7 +145,7 @@ public class HTMLResourceContentIterator : ContentIterator {
             }
 
             if let node = node as? TextNode {
-                let language = try node.language()
+                let language = try node.language().map { Language(code: .bcp47($0)) }
                 if (currentLanguage != language) {
                     flushSpan()
                     currentLanguage = language

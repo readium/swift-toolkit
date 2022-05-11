@@ -16,7 +16,7 @@ final class TTSViewModel: ObservableObject, Loggable {
     }
 
     @Published private(set) var state: State = .stopped
-    @Published var config: TTSController.Configuration
+    @Published var config: TTSConfiguration
 
     private let tts: TTSController
     private let navigator: Navigator
@@ -56,8 +56,13 @@ final class TTSViewModel: ObservableObject, Loggable {
             .store(in: &subscriptions)
     }
 
-    var defaultRate: Double { tts.defaultRate }
-    var defaultPitch: Double { tts.defaultPitch }
+    var defaultConfig: TTSConfiguration { tts.defaultConfig }
+
+    lazy var availableLanguages: [Language] =
+        tts.availableVoices
+            .map { $0.language }
+            .removingDuplicates()
+            .sorted { $0.localizedName < $1.localizedName }
 
     @objc func play() {
         navigator.findLocationOfFirstVisibleContent { [self] locator in

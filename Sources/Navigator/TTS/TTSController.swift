@@ -25,38 +25,30 @@ public extension TTSControllerDelegate {
 public struct TTSUtterance: Equatable {
     public let text: String
     public let locator: Locator
-    public let language: String?
-    public let pitch: Double?
-    public let rate: Double?
-    public let postDelay: TimeInterval
+    public let language: Language?
+    public let delay: TimeInterval
 }
 
 public class TTSController: Loggable, TTSEngineDelegate {
-    public typealias TokenizerFactory = (_ language: String?) -> ContentTokenizer
-
-    public struct Configuration {
-        public var defaultLanguage: String?
-        public var rate: Double
-        public var pitch: Double
-
-        public init(
-            defaultLanguage: String?,
-            rate: Double,
-            pitch: Double
-        ) {
-            self.defaultLanguage = defaultLanguage
-            self.rate = rate
-            self.pitch = pitch
-        }
-    }
+    public typealias TokenizerFactory = (_ language: Language?) -> ContentTokenizer
 
     public static func canPlay(_ publication: Publication) -> Bool {
         publication.isContentIterable
     }
 
-    public let defaultRate: Double
-    public let defaultPitch: Double
-    public var config: Configuration
+    public var defaultConfig: TTSConfiguration {
+        engine.defaultConfig
+    }
+
+    public var config: TTSConfiguration {
+        get { engine.config }
+        set { engine.config = newValue }
+    }
+
+    public var availableVoices: [TTSVoice] {
+        engine.availableVoices
+    }
+
     public weak var delegate: TTSControllerDelegate?
 
     private let publication: Publication
@@ -67,14 +59,11 @@ public class TTSController: Loggable, TTSEngineDelegate {
     public init(
         publication: Publication,
         engine: TTSEngine = AVTTSEngine(),
-        tokenizerFactory: TokenizerFactory? = nil,
+        makeTokenizer: TokenizerFactory? = nil,
         delegate: TTSControllerDelegate? = nil
     ) {
         precondition(publication.isContentIterable, "The Publication must be iterable to be used with TTSController")
 
-        self.defaultRate = engine.defaultRate ?? 0.5
-        self.defaultPitch = engine.defaultPitch ?? 0.5
-        self.config = Configuration(defaultLanguage: nil, rate: defaultRate, pitch: defaultPitch)
         self.delegate = delegate
         self.publication = publication
         self.engine = engine
@@ -85,6 +74,9 @@ public class TTSController: Loggable, TTSEngineDelegate {
             )
         }
 
+        if let language = publication.metadata.languages.first {
+            engine.config.defaultLanguage = Language(code: .bcp47(language))
+        }
         engine.delegate = self
     }
 
@@ -226,7 +218,7 @@ public class TTSController: Loggable, TTSEngineDelegate {
             return false
         }
 
-        utterances = tokenize(content, with: makeTokenizer(defaultLanguage))
+        utterances = tokenize(content, with: makeTokenizer(nil))
             .flatMap { utterances(from: $0) }
 
         guard !utterances.isEmpty else {
@@ -255,30 +247,22 @@ public class TTSController: Loggable, TTSEngineDelegate {
                         text: span.text,
                         locator: span.locator,
                         language: span.language,
-                        postDelay: (offset == spans.count - 1) ? 0.4 : 0
+                        delay: (offset == 0) ? 0.4 : 0
                     )
                 }
         }
     }
 
-    private func utterance(text: String, locator: Locator, language: String? = nil, postDelay: TimeInterval = 0) -> TTSUtterance? {
+    private func utterance(text: String, locator: Locator, language: Language? = nil, delay: TimeInterval = 0) -> TTSUtterance? {
         guard text.contains(where: { $0.isLetter || $0.isNumber }) else {
             return nil
         }
         return TTSUtterance(
             text: text,
             locator: locator,
-            language: language ?? defaultLanguage,
-            pitch: config.pitch,
-            rate: config.rate,
-            postDelay: postDelay
+            language: language,
+            delay: delay
         )
-    }
-
-    private var defaultLanguage: String? {
-        config.defaultLanguage
-            ?? publication.metadata.languages.first
-            ?? engine.defaultLanguage
     }
 
     private func tokenize(_ content: Content, with tokenizer: ContentTokenizer) -> [Content] {

@@ -30,6 +30,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
 
     public let modified: Date?
     public let published: Date?
+    // FIXME: Use `Language` instead of raw String
     public let languages: [String]  // BCP 47 tag
     public let sortAs: String?
     public let subjects: [Subject]

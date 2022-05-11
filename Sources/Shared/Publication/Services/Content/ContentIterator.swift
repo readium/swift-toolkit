@@ -41,10 +41,10 @@ public struct Content: Equatable {
 
     public struct TextSpan: Equatable {
         public let locator: Locator
-        public let language: String?
+        public let language: Language?
         public let text: String
 
-        public init(locator: Locator, language: String?, text: String) {
+        public init(locator: Locator, language: Language?, text: String) {
             self.locator = locator
             self.language = language
             self.text = text

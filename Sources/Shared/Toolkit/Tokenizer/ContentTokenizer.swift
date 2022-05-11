@@ -10,7 +10,7 @@ import Foundation
 public typealias ContentTokenizer = Tokenizer<Content, Content>
 
 /// A `ContentTokenizer` using the default `TextTokenizer` to split the text of the `Content` by `unit`.
-public func makeTextContentTokenizer(unit: TextUnit, language: String?) -> ContentTokenizer {
+public func makeTextContentTokenizer(unit: TextUnit, language: Language?) -> ContentTokenizer {
     makeTextContentTokenizer(with: makeDefaultTextTokenizer(unit: unit, language: language))
 }
 

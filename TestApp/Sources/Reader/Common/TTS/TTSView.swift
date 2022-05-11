@@ -74,13 +74,20 @@ struct TTSSettings: View {
                 ConfigStepper(
                     caption: "Rate",
                     for: \.rate,
-                    step: viewModel.defaultRate / 10
+                    step: viewModel.defaultConfig.rate / 10
                 )
 
                 ConfigStepper(
                     caption: "Pitch",
                     for: \.pitch,
-                    step: viewModel.defaultPitch / 4
+                    step: viewModel.defaultConfig.pitch / 4
+                )
+
+                ConfigPicker(
+                    caption: "Language",
+                    for: \.defaultLanguage,
+                    choices: viewModel.availableLanguages,
+                    choiceLabel: { $0.localizedName }
                 )
             }
         }
@@ -89,7 +96,7 @@ struct TTSSettings: View {
 
     @ViewBuilder func ConfigStepper(
         caption: String,
-        for keyPath: WritableKeyPath<TTSController.Configuration, Double>,
+        for keyPath: WritableKeyPath<TTSConfiguration, Double>,
         step: Double
     ) -> some View {
         Stepper(
@@ -102,6 +109,30 @@ struct TTSSettings: View {
         ) {
             Text(caption)
             Text(String.localizedPercentage(viewModel.config[keyPath: keyPath])).font(.footnote)
+        }
+    }
+
+    @ViewBuilder func ConfigPicker<T: Hashable>(
+        caption: String,
+        for keyPath: WritableKeyPath<TTSConfiguration, T>,
+        choices: [T],
+        choiceLabel: @escaping (T) -> String
+    ) -> some View {
+        HStack {
+            Text(caption)
+            Spacer()
+
+            Picker(caption,
+                selection: Binding(
+                    get: { viewModel.config[keyPath: keyPath] },
+                    set: { viewModel.config[keyPath: keyPath] = $0 }
+                )
+            ) {
+                ForEach(choices, id: \.self) {
+                    Text(choiceLabel($0))
+                }
+            }
+            .pickerStyle(.menu)
         }
     }
 }
