@@ -13,7 +13,14 @@
 "ReadiumLCP.dialog.reason.passphraseNotFound" = "Passphrase Required";
 /* Reason to ask for the passphrase when the one entered was incorrect */
 "ReadiumLCP.dialog.reason.invalidPassphrase" = "Incorrect Passphrase";
-
+/* Forgot passphrase button */
+"ReadiumLCP.dialog.prompt.forgotPassphrase" = "Forgot your passphrase?";
+/* Support button */
+"ReadiumLCP.dialog.prompt.support" = "Need more help?";
+/* Continue button */
+"ReadiumLCP.dialog.prompt.continue" = "Continue";
+/* Passphrase placeholder */
+"ReadiumLCP.dialog.prompt.passphrase" = "Passphrase";
 /* Cancel button */
 "ReadiumLCP.dialog.cancel" = "Cancel";
 
