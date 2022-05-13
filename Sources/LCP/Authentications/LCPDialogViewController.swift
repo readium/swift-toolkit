@@ -79,8 +79,8 @@ final class LCPDialogViewController: UIViewController {
         if #available(iOS 13.0, *) {
             label.textColor = .label
             navigationController?.navigationBar.backgroundColor = .systemBackground
-        } else {
         }
+        
         let leftItem = UIBarButtonItem(customView: label)
         self.navigationItem.leftBarButtonItem = leftItem
 
@@ -92,14 +92,11 @@ final class LCPDialogViewController: UIViewController {
         passphraseField.placeholder = R2LCPLocalizedString("dialog.prompt.passphrase")
         hintLabel.text = license.hint
       
-        let cancelButton = UIButton(type: .custom)
-        cancelButton.setTitle(R2LCPLocalizedString("dialog.cancel"), for: .normal)
-        if #available(iOS 13.0, *) {
-            cancelButton.setTitleColor(.label, for: .normal)
-        }
-        cancelButton.addTarget(self, action: #selector(LCPDialogViewController.cancel(_:)), for: .touchUpInside)
-        let cancelItem = UIBarButtonItem(customView: cancelButton)
-        navigationItem.rightBarButtonItem = cancelItem
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            barButtonSystemItem: .cancel,
+            target: self,
+            action: #selector(LCPDialogViewController.cancel(_:))
+        )
     }
 
     @IBAction func authenticate(_ sender: Any) {
