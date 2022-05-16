@@ -15,7 +15,9 @@ final class LCPDialogViewController: UIViewController {
     @IBOutlet weak var messageLabel: UILabel!
     @IBOutlet weak var passphraseField: UITextField!
     @IBOutlet weak var supportButton: UIButton!
-    
+    @IBOutlet weak var forgotPassphraseButton: UIButton!
+    @IBOutlet weak var continueButton: UIButton!
+ 
     private let license: LCPAuthenticatedLicense
     private let reason: LCPAuthenticationReason
     private let completion: (String?) -> Void
@@ -74,16 +76,27 @@ final class LCPDialogViewController: UIViewController {
         }
       
         label.sizeToFit()
+        if #available(iOS 13.0, *) {
+            label.textColor = .label
+            navigationController?.navigationBar.backgroundColor = .systemBackground
+        }
+        
         let leftItem = UIBarButtonItem(customView: label)
         self.navigationItem.leftBarButtonItem = leftItem
 
         promptLabel.text = R2LCPLocalizedString("dialog.prompt.message1")
         messageLabel.text = String(format: R2LCPLocalizedString("dialog.prompt.message2"), provider)
+        forgotPassphraseButton.setTitle(R2LCPLocalizedString("dialog.prompt.forgotPassphrase"), for: .normal)
+        supportButton.setTitle(R2LCPLocalizedString("dialog.prompt.support"), for: .normal)
+        continueButton.setTitle(R2LCPLocalizedString("dialog.prompt.continue"), for: .normal)
+        passphraseField.placeholder = R2LCPLocalizedString("dialog.prompt.passphrase")
         hintLabel.text = license.hint
       
-        let cancelItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.cancel, target: self, action: #selector(LCPDialogViewController.cancel(_:)));
-        navigationItem.rightBarButtonItem = cancelItem;
-      
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            barButtonSystemItem: .cancel,
+            target: self,
+            action: #selector(LCPDialogViewController.cancel(_:))
+        )
     }
 
     @IBAction func authenticate(_ sender: Any) {

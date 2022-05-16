@@ -23,6 +23,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Fixed memory leak in the `PublicationServer`.
 
+#### LCP
+
+* The LCP authentication dialog is now fully localized and supports Dark Mode (contributed by [@openm1nd](https://github.com/readium/swift-toolkit/pull/50)).
+
 
 ## [2.3.0]
 
