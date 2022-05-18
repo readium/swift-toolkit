@@ -48,15 +48,13 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     }
 
     public lazy var availableVoices: [TTSVoice] =
-        AVSpeechSynthesisVoice.speechVoices().map { v in
-            TTSVoice(
-                identifier: v.identifier,
-                language: Language(code: .bcp47(v.language)),
-                name: v.name,
-                gender: .init(voice: v),
-                quality: .init(voice: v)
-            )
-        }
+        AVSpeechSynthesisVoice.speechVoices()
+            .map { TTSVoice(voice: $0) }
+
+    public func voiceWithIdentifier(_ id: String) -> TTSVoice? {
+        AVSpeechSynthesisVoice(identifier: id)
+            .map { TTSVoice(voice: $0) }
+    }
 
     public func speak(_ utterance: TTSUtterance) {
         synthesizer.stopSpeaking(at: .immediate)
@@ -120,6 +118,18 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         required init?(coder: NSCoder) {
             fatalError("Not supported")
         }
+    }
+}
+
+private extension TTSVoice {
+    init(voice: AVSpeechSynthesisVoice) {
+        self.init(
+            identifier: voice.identifier,
+            language: Language(code: .bcp47(voice.language)),
+            name: voice.name,
+            gender: Gender(voice: voice),
+            quality: Quality(voice: voice)
+        )
     }
 }
 

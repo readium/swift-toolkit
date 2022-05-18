@@ -49,6 +49,10 @@ public class TTSController: Loggable, TTSEngineDelegate {
         engine.availableVoices
     }
 
+    public func voiceWithIdentifier(_ id: String) -> TTSVoice? {
+        engine.voiceWithIdentifier(id)
+    }
+
     public weak var delegate: TTSControllerDelegate?
 
     private let publication: Publication

@@ -12,6 +12,7 @@ public protocol TTSEngine: AnyObject {
     var config: TTSConfiguration { get set }
     var delegate: TTSEngineDelegate? { get set }
     var availableVoices: [TTSVoice] { get }
+    func voiceWithIdentifier(_ id: String) -> TTSVoice?
 
     func speak(_ utterance: TTSUtterance)
     func stop()
