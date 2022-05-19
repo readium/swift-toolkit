@@ -51,7 +51,7 @@ struct TTSControls: View {
                 TTSSettings(viewModel: viewModel)
                     .frame(
                         minWidth: 320, idealWidth: 400, maxWidth: nil,
-                        minHeight: 150, idealHeight: 150, maxHeight: nil,
+                        minHeight: 300, idealHeight: 300, maxHeight: nil,
                         alignment: .top
                     )
             }
@@ -69,48 +69,47 @@ struct TTSSettings: View {
     @ObservedObject var viewModel: TTSViewModel
 
     var body: some View {
-        List {
-            Section(header: Text("Speech settings")) {
-                ConfigStepper(
+        NavigationView {
+            Form {
+                stepper(
                     caption: "Rate",
                     for: \.rate,
                     step: viewModel.defaultConfig.rate / 10
                 )
 
-                ConfigStepper(
+                stepper(
                     caption: "Pitch",
                     for: \.pitch,
                     step: viewModel.defaultConfig.pitch / 4
                 )
 
-                ConfigPicker(
+                picker(
                     caption: "Language",
                     for: \.defaultLanguage,
                     choices: viewModel.availableLanguages,
                     choiceLabel: { $0.localizedDescription() }
                 )
 
-                ConfigPicker(
+                picker(
                     caption: "Voice",
                     for: \.voice,
                     choices: viewModel.availableVoices,
                     choiceLabel: { $0.localizedDescription() }
                 )
             }
+            .navigationTitle("Speech settings")
+            .navigationBarTitleDisplayMode(.inline)
         }
-        .listStyle(.insetGrouped)
+        .navigationViewStyle(.stack)
     }
 
-    @ViewBuilder func ConfigStepper(
+    @ViewBuilder func stepper(
         caption: String,
         for keyPath: WritableKeyPath<TTSConfiguration, Double>,
         step: Double
     ) -> some View {
         Stepper(
-            value: Binding(
-                get: { viewModel.config[keyPath: keyPath] },
-                set: { viewModel.config[keyPath: keyPath] = $0 }
-            ),
+            value: configBinding(for: keyPath),
             in: 0.0...1.0,
             step: step
         ) {
@@ -119,28 +118,24 @@ struct TTSSettings: View {
         }
     }
 
-    @ViewBuilder func ConfigPicker<T: Hashable>(
+    @ViewBuilder func picker<T: Hashable>(
         caption: String,
         for keyPath: WritableKeyPath<TTSConfiguration, T>,
         choices: [T],
         choiceLabel: @escaping (T) -> String
     ) -> some View {
-        HStack {
-            Text(caption)
-            Spacer()
-
-            Picker(caption,
-                selection: Binding(
-                    get: { viewModel.config[keyPath: keyPath] },
-                    set: { viewModel.config[keyPath: keyPath] = $0 }
-                )
-            ) {
-                ForEach(choices, id: \.self) {
-                    Text(choiceLabel($0))
-                }
+        Picker(caption, selection: configBinding(for: keyPath)) {
+            ForEach(choices, id: \.self) {
+                Text(choiceLabel($0))
             }
-            .pickerStyle(.menu)
         }
+    }
+    
+    private func configBinding<T>(for keyPath: WritableKeyPath<TTSConfiguration, T>) -> Binding<T> {
+        Binding(
+            get: { viewModel.config[keyPath: keyPath] },
+            set: { viewModel.config[keyPath: keyPath] = $0 }
+        )
     }
 }
 
