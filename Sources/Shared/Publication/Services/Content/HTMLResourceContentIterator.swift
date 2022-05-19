@@ -25,22 +25,12 @@ public class HTMLResourceContentIterator : ContentIterator {
             .readAsString()
             .eraseToAnyError()
             .tryMap { try SwiftSoup.parse($0) }
-            .tryMap { document -> ContentParser in
-                let parser = ContentParser(
-                    baseLocator: locator,
-                    startElement: try locator.locations.cssSelector
-                        .flatMap {
-                            // The JS third-party library used to generate the CSS Selector sometimes adds
-                            // :root >, which doesn't work with JSoup.
-                            try document.select($0.removingPrefix(":root > ")).first()
-                        }
-                )
-                try document.traverse(parser)
-                return parser
+            .tryMap { document -> (content: [Content], startingIndex: Int) in
+                try ContentParser.parse(document: document, locator: locator)
             }
 
         content = result.map { $0.content }
-        startingIndex = result.map { $0.startIndex }.get(or: 0)
+        startingIndex = result.map { $0.startingIndex }.get(or: 0)
     }
 
     public func close() {}
@@ -72,6 +62,31 @@ public class HTMLResourceContentIterator : ContentIterator {
     }
 
     private class ContentParser: NodeVisitor {
+        
+        static func parse(document: Document, locator: Locator) throws -> (content: [Content], startingIndex: Int) {
+            let parser = ContentParser(
+                baseLocator: locator,
+                startElement: try locator.locations.cssSelector
+                    .flatMap {
+                        // The JS third-party library used to generate the CSS Selector sometimes adds
+                        // :root >, which doesn't work with JSoup.
+                        try document.select($0.removingPrefix(":root > ")).first()
+                    }
+            )
+            try document.traverse(parser)
+            
+            var result = (
+                content: parser.content,
+                startingIndex: parser.startIndex
+            )
+            
+            if locator.locations.progression == 1.0 {
+                result.startingIndex = result.content.count - 1
+            }
+            
+            return result
+        }
+
         private let baseLocator: Locator
         private let startElement: Element?
 
@@ -87,7 +102,7 @@ public class HTMLResourceContentIterator : ContentIterator {
         private var currentCSSSelector: String?
         private var ignoredNode: Node?
 
-        init(baseLocator: Locator, startElement: Element?) {
+        private init(baseLocator: Locator, startElement: Element?) {
             self.baseLocator = baseLocator
             self.startElement = startElement
         }

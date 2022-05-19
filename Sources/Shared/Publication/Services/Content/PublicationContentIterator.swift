@@ -87,28 +87,31 @@ public class PublicationContentIterator: ContentIterator, Loggable {
 
     private func loadIterator(from index: Int, by delta: Int) -> (index: Int, ContentIterator)? {
         let i = index + delta
-        guard publication.readingOrder.indices.contains(i)  else {
+        guard
+            let link = publication.readingOrder.getOrNil(i),
+            var locator = publication.locate(link)
+        else {
             return nil
         }
-        guard let iterator = loadIterator(at: i) else {
-            return loadIterator(from: i, by: delta)
-        }
-        return (i, iterator)
-    }
-
-    private func loadIterator(at index: Int) -> ContentIterator? {
-        let link = publication.readingOrder[index]
-        guard var locator = publication.locate(link) else {
-            return nil
-        }
-
+        
         if let start = startLocator.pop() {
             locator = locator.copy(
                 locations: { $0 = start.locations },
                 text: { $0 = start.text }
             )
+        } else if delta < 0 {
+            locator = locator.copy(
+                locations: { $0.progression = 1.0 }
+            )
         }
 
+        guard let iterator = loadIterator(at: link, locator: locator) else {
+            return loadIterator(from: i, by: delta)
+        }
+        return (i, iterator)
+    }
+
+    private func loadIterator(at link: Link, locator: Locator) -> ContentIterator? {
         let resource = publication.get(link)
         for factory in resourceContentIteratorFactories {
             if let iterator = factory(resource, locator) {
