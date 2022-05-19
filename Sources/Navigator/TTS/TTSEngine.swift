@@ -20,7 +20,7 @@ public protocol TTSEngine: AnyObject {
 
 public protocol TTSEngineDelegate: AnyObject {
     func ttsEngine(_ engine: TTSEngine, willSpeakRangeAt locator: Locator, of utterance: TTSUtterance)
-    func ttsEngine(_ engine: TTSEngine, didFinish utterance: TTSUtterance)
+    func ttsEngine(_ engine: TTSEngine, didStopAfterLastUtterance utterance: TTSUtterance)
 }
 
 public struct TTSConfiguration {

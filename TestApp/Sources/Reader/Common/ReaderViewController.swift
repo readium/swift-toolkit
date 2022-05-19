@@ -124,7 +124,7 @@ class ReaderViewController: UIViewController, Loggable {
             controls.didMove(toParent: self)
 
             state
-                .sink { [unowned self] state in
+                .sink { state in
                     controls.view.isHidden = (state == .stopped)
                 }
                 .store(in: &subscriptions)

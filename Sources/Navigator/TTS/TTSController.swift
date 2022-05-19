@@ -280,8 +280,8 @@ public class TTSController: Loggable, TTSEngineDelegate {
 
     // MARK: - TTSEngineDelegate
 
-    public func ttsEngine(_ engine: TTSEngine, didFinish utterance: TTSUtterance) {
-        if isPlaying && currentUtterance == utterance {
+    public func ttsEngine(_ engine: TTSEngine, didStopAfterLastUtterance utterance: TTSUtterance) {
+        if isPlaying {
             next()
         }
     }

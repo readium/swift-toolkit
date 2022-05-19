@@ -45,7 +45,7 @@ final class TTSViewModel: ObservableObject, Loggable {
         var isMoving = false
         playingRangeLocatorSubject
             .throttle(for: 1, scheduler: RunLoop.main, latest: true)
-            .sink { [unowned self] locator in
+            .sink { locator in
                 guard !isMoving else {
                     return
                 }
