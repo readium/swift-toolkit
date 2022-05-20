@@ -15,6 +15,14 @@ import SwiftUI
 struct BookshelfTab: View {
     
     var body: some View {
-        Text("Bookshelf Tab")
+        
+        var columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: 20) {
+                ForEach(books, id: \.self) { item in
+                    BookCover(item)
+                }
+            }
+        }
     }
 }
