@@ -255,10 +255,13 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
     private var tasks: [Task] = []
     
     /// Protects `tasks` against data races.
-    private let tasksQueue = DispatchQueue(label: "org.readium.DefaultHTTPClient.tasksQueue")
+    private let tasksQueue = DispatchQueue(label: "org.readium.DefaultHTTPClient.tasksQueue", attributes: .concurrent)
 
     private func start(_ task: Task) -> Cancellable {
-        tasksQueue.sync {
+        // The `barrier` flag here guarantees that we will never have a
+        // concurrent read on `tasks` while we are modifying it. This prevents
+        // a data race.
+        tasksQueue.sync(flags: .barrier) {
             tasks.append(task)
             task.start()
             return task
