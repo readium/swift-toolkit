@@ -11,18 +11,26 @@
 //
 
 import SwiftUI
+import GRDBQuery
 
 struct BookshelfTab: View {
     
+    @Query(BookListRequest())
+    var books: [Book]
+    
     var body: some View {
-        
-        var columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
-        ScrollView {
-            LazyVGrid(columns: columns, spacing: 20) {
-                ForEach(books, id: \.self) { item in
-                    BookCover(item)
+        NavigationView {
+            // TODO figure out what the best column layout is for phones and tablets
+            let columns: [GridItem] = Array(repeating: .init(.adaptive(minimum: 170)), count: 2)
+            let bookList = books
+            ScrollView {
+                LazyVGrid(columns: columns, spacing: 20) {
+                    ForEach(bookList, id: \.self) { item in
+                        BookCover(book: item)
+                    }
                 }
             }
+            .navigationTitle("Bookshelf")
         }
     }
 }

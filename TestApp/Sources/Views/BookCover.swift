@@ -15,11 +15,21 @@ import SwiftUI
 struct BookCover: View {
     var book: Book
     var body: some View {
-        VStack(alignment: .leading) {
-            Image(book.cover?.relativePath ?? "defaultCover")
+        VStack(alignment: .leading, spacing: 5) {
+            
+            if let coverURL = book.cover,
+               let data = try? Data(contentsOf: coverURL),
+               let image = UIImage(data: data) {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 150, height: 220)
+            } else {
+                Image("defaultCover")
+            }
             Text(book.title)
             Text(book.authors ?? "")
-        }.frame(maxWidth: 150.0)
+        }
     }
 }
 

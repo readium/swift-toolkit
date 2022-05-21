@@ -11,12 +11,31 @@
 //
 
 import SwiftUI
+import GRDB
+import GRDBQuery
 
 //@main
 struct testApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView().environment(\.dbQueue, try! DatabaseQueue(path: Paths.library.appendingPathComponent("database.db").path))
         }
+    }
+}
+
+private struct DatabaseQueueKey: EnvironmentKey {
+    static var defaultValue: DatabaseQueue { DatabaseQueue() }
+}
+
+extension EnvironmentValues {
+    var dbQueue: DatabaseQueue {
+        get { self[DatabaseQueueKey.self] }
+        set { self[DatabaseQueueKey.self] = newValue }
+    }
+}
+
+extension Query where Request.DatabaseContext == DatabaseQueue {
+    init(_ request: Request) {
+        self.init(request, in: \.dbQueue)
     }
 }

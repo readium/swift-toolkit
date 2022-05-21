@@ -14,7 +14,10 @@ import SwiftUI
 
 struct CatalogsTab: View {
     var body: some View {
-        Text("Catalogs Tab")
+        NavigationView {
+            Text("Catalogs tab")
+            .navigationTitle("Catalogs")
+        }
     }
 }
 

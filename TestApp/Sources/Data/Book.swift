@@ -7,9 +7,10 @@
 import Combine
 import Foundation
 import GRDB
+import GRDBQuery
 import R2Shared
 
-struct Book: Codable {
+struct Book: Codable, Hashable {
     struct Id: EntityId { let rawValue: Int64 }
     
     let id: Id?
@@ -57,6 +58,16 @@ struct Book: Codable {
 extension Book: TableRecord, FetchableRecord, PersistableRecord {
     enum Columns: String, ColumnExpression {
         case id, identifier, title, type, path, coverPath, locator, progression, created
+    }
+}
+
+struct BookListRequest: Queryable {
+    static var defaultValue: [Book] { [] }
+    
+    func publisher(in dbQueue: DatabaseQueue) -> DatabasePublishers.Value<[Book]> {
+        ValueObservation
+            .tracking { db in try Book.order(Book.Columns.created).fetchAll(db) }
+            .publisher(in: dbQueue, scheduling: .immediate)
     }
 }
 
