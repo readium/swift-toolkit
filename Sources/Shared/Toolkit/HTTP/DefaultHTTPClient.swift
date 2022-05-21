@@ -252,30 +252,20 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
     // MARK: - Task Management
 
     /// On-going tasks.
-    private var tasks: [Task] = []
+    @Atomic private var tasks: [Task] = []
     
-    /// Protects `tasks` against data races.
-    private let tasksQueue = DispatchQueue(label: "org.readium.DefaultHTTPClient.tasksQueue", attributes: .concurrent)
-
     private func start(_ task: Task) -> Cancellable {
-        // The `barrier` flag here guarantees that we will never have a
-        // concurrent read on `tasks` while we are modifying it. This prevents
-        // a data race.
-        tasksQueue.sync(flags: .barrier) {
-            tasks.append(task)
-            task.start()
-            return task
-        }
+        $tasks.write { $0.append(task) }
+        task.start()
+        return task
     }
 
     private func findTask(for urlTask: URLSessionTask) -> Task? {
-        tasksQueue.sync {
-            let task = tasks.first { $0.task == urlTask}
-            if task == nil {
-                log(.error, "Cannot find on-going HTTP task for \(urlTask)")
-            }
-            return task
+        let task = tasks.first { $0.task == urlTask}
+        if task == nil {
+            log(.error, "Cannot find on-going HTTP task for \(urlTask)")
         }
+        return task
     }
 
 
