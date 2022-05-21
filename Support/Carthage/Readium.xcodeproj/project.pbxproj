@@ -1690,7 +1690,7 @@
 				};
 			};
 			buildConfigurationList = 5A872BCD95ECE5673BC89051 /* Build configuration list for PBXProject "Readium" */;
-			compatibilityVersion = "Xcode 10.0";
+			compatibilityVersion = "Xcode 11.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
