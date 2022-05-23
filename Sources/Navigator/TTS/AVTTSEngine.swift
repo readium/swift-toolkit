@@ -38,8 +38,17 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     /// Creates a new `AVTTSEngine` instance.
     ///
     /// - Parameters:
+    ///   - audioSessionConfig: AudioSession configuration used while playing utterances. If `nil`, utterances won't
+    ///     play when the app is in the background.
     ///   - debug: Print the state machine transitions.
-    public init(debug: Bool = false) {
+    public init(
+        audioSessionConfig: _AudioSession.Configuration? = .init(
+            category: .playback,
+            mode: .spokenAudio,
+            options: .mixWithOthers
+        ),
+        debug: Bool = false
+    ) {
         let config = TTSConfiguration(
             defaultLanguage: Language(code: .bcp47(AVSpeechSynthesisVoice.currentLanguageCode())),
             rate: avRateRange.percentageForValue(Double(AVSpeechUtteranceDefaultSpeechRate)),
@@ -49,6 +58,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         self.defaultConfig = config
         self.config = config
         self.debug = debug
+        self.audioSessionUser = audioSessionConfig.map { AudioSessionUser(config: $0) }
 
         super.init()
         synthesizer.delegate = self
@@ -283,7 +293,11 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
             
         case let .play(utterance):
             synthesizer.speak(avUtterance(from: utterance))
-            
+
+            if let user = audioSessionUser {
+                _AudioSession.shared.start(with: user)
+            }
+
         case .stop:
             synthesizer.stopSpeaking(at: .immediate)
             
@@ -312,6 +326,24 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         } else {
             return AVSpeechSynthesisVoice(language: language)
         }
+    }
+
+    // MARK: - Audio session
+
+    private let audioSessionUser: AudioSessionUser?
+
+    private final class AudioSessionUser: R2Shared._AudioSessionUser {
+        let audioConfiguration: _AudioSession.Configuration
+
+        init(config: _AudioSession.Configuration) {
+            self.audioConfiguration = config
+        }
+
+        deinit {
+            _AudioSession.shared.end(for: self)
+        }
+
+        func play() {}
     }
 }
 

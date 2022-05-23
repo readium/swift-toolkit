@@ -23,11 +23,28 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
     
     private let publication: Publication
     private let initialLocation: Locator?
+    public let audioConfiguration: _AudioSession.Configuration
 
-    public init(publication: Publication, initialLocation: Locator? = nil) {
+    public init(
+        publication: Publication,
+        initialLocation: Locator? = nil,
+        audioConfig: _AudioSession.Configuration = .init(
+            category: .playback,
+            mode: .default,
+            routeSharingPolicy: {
+                if #available(iOS 11.0, *) {
+                    return .longForm
+                } else {
+                    return .default
+                }
+            }(),
+            options: []
+        )
+    ) {
         self.publication = publication
         self.initialLocation = initialLocation
             ?? publication.readingOrder.first.flatMap { publication.locate($0) }
+        self.audioConfiguration = audioConfig
         
         let durations = publication.readingOrder.map { $0.duration ?? 0 }
         self.durations = durations
