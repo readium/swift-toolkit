@@ -504,7 +504,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         
         let link = spreadView.focusedResource ?? spreadView.spread.leading
         let href = link.href
-        let progression = spreadView.progression(in: href)
+        let progression = min(max(spreadView.progression(in: href), 0.0), 1.0)
         
         // The positions are not always available, for example a Readium WebPub doesn't have any
         // unless a Publication Positions Web Service is provided.
