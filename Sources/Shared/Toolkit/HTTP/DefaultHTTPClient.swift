@@ -252,19 +252,19 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
     // MARK: - Task Management
 
     /// On-going tasks.
-    private var tasks: [Task] = []
-
-    private func findTaskIndex(_ task: URLSessionTask) -> Int? {
-        let i = tasks.firstIndex(where: { $0.task == task})
-        if i == nil {
-            log(.error, "Cannot find on-going HTTP task for \(task)")
-        }
-        return i
+    @Atomic private var tasks: [Task] = []
+    
+    private func start(_ task: Task) -> Cancellable {
+        $tasks.write { $0.append(task) }
+        task.start()
+        return task
     }
 
-    private func start(_ task: Task) -> Cancellable {
-        tasks.append(task)
-        task.start()
+    private func findTask(for urlTask: URLSessionTask) -> Task? {
+        let task = tasks.first { $0.task == urlTask}
+        if task == nil {
+            log(.error, "Cannot find on-going HTTP task for \(urlTask)")
+        }
         return task
     }
 
@@ -272,25 +272,19 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
     // MARK: - URLSessionDataDelegate
 
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> ()) {
-        guard let i = findTaskIndex(dataTask) else {
+        guard let task = findTask(for: dataTask) else {
             completionHandler(.cancel)
             return
         }
-        tasks[i].urlSession(session, didReceive: response, completionHandler: completionHandler)
+        task.urlSession(session, didReceive: response, completionHandler: completionHandler)
     }
 
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        guard let i = findTaskIndex(dataTask) else {
-            return
-        }
-        tasks[i].urlSession(session, didReceive: data)
+        findTask(for: dataTask)?.urlSession(session, didReceive: data)
     }
 
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        guard let i = findTaskIndex(task) else {
-            return
-        }
-        tasks[i].urlSession(session, didCompleteWithError: error)
+        findTask(for: task)?.urlSession(session, didCompleteWithError: error)
     }
 
 
