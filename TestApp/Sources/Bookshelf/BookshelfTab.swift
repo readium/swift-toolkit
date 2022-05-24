@@ -31,6 +31,24 @@ struct BookshelfTab: View {
                 }
             }
             .navigationTitle("Bookshelf")
+            .toolbar(content: toolbarContent)
         }
+    }
+}
+
+extension BookshelfTab {
+    @ToolbarContentBuilder
+    private func toolbarContent() -> some ToolbarContent {
+        ToolbarItem(placement: .navigationBarTrailing) {
+            AddButton {
+                
+            }
+        }
+    }
+}
+
+struct BookshelfTab_Previews: PreviewProvider {
+    static var previews: some View {
+        BookshelfTab()
     }
 }
