@@ -24,7 +24,11 @@ struct testApp: App {
 }
 
 private struct DatabaseQueueKey: EnvironmentKey {
-    static var defaultValue: DatabaseQueue { DatabaseQueue() }
+    static var defaultValue: DatabaseQueue {
+        // FIXME this is bad
+        try! Database(file: Paths.library.appendingPathComponent("database.db"))
+        return DatabaseQueue()
+    }
 }
 
 extension EnvironmentValues {

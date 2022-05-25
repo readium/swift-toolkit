@@ -53,6 +53,13 @@ final class Database {
             // create an index to make sorting by progression faster
             try db.create(index: "index_highlight_progression", on: "highlight", columns: ["bookId", "progression"], ifNotExists: true)
             try db.create(index: "index_bookmark_progression", on: "bookmark", columns: ["bookId", "progression"], ifNotExists: true)
+            
+            try db.create(table: "catalog", ifNotExists: true) { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("title", .text)
+                t.column("url", .text).notNull()
+                t.column("created", .datetime).notNull()
+            }
         }
     }
     

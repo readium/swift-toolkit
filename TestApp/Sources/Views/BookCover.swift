@@ -17,6 +17,9 @@ struct BookCover: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             image
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 150, height: 220)
             Text(book.title)
             Text(book.authors ?? "")
         }
