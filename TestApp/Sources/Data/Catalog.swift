@@ -8,7 +8,6 @@
 import Combine
 import Foundation
 import GRDB
-import GRDBQuery
 
 struct Catalog: Codable, Hashable {
     struct Id: EntityId { let rawValue: Int64 }
@@ -29,15 +28,5 @@ struct Catalog: Codable, Hashable {
 extension Catalog: TableRecord, FetchableRecord, PersistableRecord {
     enum Columns: String, ColumnExpression {
         case id, title, url, created
-    }
-}
-
-struct CatalogFeedListRequest: Queryable {
-    static var defaultValue: [Catalog] { [] }
-    
-    func publisher(in dbQueue: DatabaseQueue) -> DatabasePublishers.Value<[Catalog]> {
-        ValueObservation
-            .tracking { db in try Catalog.order(Catalog.Columns.created).fetchAll(db) }
-            .publisher(in: dbQueue, scheduling: .immediate)
     }
 }

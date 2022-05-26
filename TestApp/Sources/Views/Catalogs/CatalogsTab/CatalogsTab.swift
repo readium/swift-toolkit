@@ -1,5 +1,5 @@
 //
-//  BookshelfTab.swift
+//  CatalogsTab.swift
 //  TestApp
 //
 //  Created by Steven Zeck on 5/15/22.
@@ -10,40 +10,41 @@
 //  LICENSE file present in the project repository where this source code is maintained.
 //
 
-import SwiftUI
 import GRDBQuery
+import SwiftUI
 
-struct BookshelfTab: View {
+struct CatalogsTab: View {
     
-    @EnvironmentStateObject private var viewModel: BookshelfTabViewModel
+    @EnvironmentStateObject private var viewModel: CatalogsTabViewModel
     
     init() {
         _viewModel = EnvironmentStateObject {
-            BookshelfTabViewModel(
+            CatalogsTabViewModel(
                 db: $0.db)
         }
     }
     
     var body: some View {
+        
         NavigationView {
-            // TODO figure out what the best column layout is for phones and tablets
-            if let books = viewModel.books {
-                let columns: [GridItem] = Array(repeating: .init(.adaptive(minimum: 170)), count: 2)
-                ScrollView {
-                    LazyVGrid(columns: columns, spacing: 20) {
-                        ForEach(books, id: \.self) { item in
-                            BookCover(book: item)
+            if let catalogs = viewModel.catalogs {
+                List() {
+                    ForEach(catalogs, id: \.id) { catalog in
+                        NavigationLink(destination: CatalogDetail(catalog: catalog)) {
+                            CatalogFeedRow(title: catalog.title)
                         }
                     }
                 }
-                .navigationTitle("Bookshelf")
+                
+                .listStyle(SidebarListStyle())
+                .navigationTitle(title)
                 .toolbar(content: toolbarContent)
             }
         }
     }
 }
 
-extension BookshelfTab {
+extension CatalogsTab {
     @ToolbarContentBuilder
     private func toolbarContent() -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
@@ -52,10 +53,14 @@ extension BookshelfTab {
             }
         }
     }
+    
+    var title: String {
+        return "Catalogs"
+    }
 }
 
-struct BookshelfTab_Previews: PreviewProvider {
+struct CatalogsTab_Previews: PreviewProvider {
     static var previews: some View {
-        BookshelfTab()
+        CatalogsTab()
     }
 }

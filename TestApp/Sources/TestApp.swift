@@ -18,28 +18,24 @@ import GRDBQuery
 struct testApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView().environment(\.dbQueue, try! DatabaseQueue(path: Paths.library.appendingPathComponent("database.db").path))
+            ContentView().environment(\.db, try! Database(file: Paths.library.appendingPathComponent("database.db")))
         }
     }
 }
 
-private struct DatabaseQueueKey: EnvironmentKey {
-    static var defaultValue: DatabaseQueue {
-        // FIXME this is bad
-        try! Database(file: Paths.library.appendingPathComponent("database.db"))
-        return DatabaseQueue()
-    }
+private struct DatabaseKey: EnvironmentKey {
+    static let defaultValue = Database.empty()
 }
 
 extension EnvironmentValues {
-    var dbQueue: DatabaseQueue {
-        get { self[DatabaseQueueKey.self] }
-        set { self[DatabaseQueueKey.self] = newValue }
+    var db: Database {
+        get { self[DatabaseKey.self] }
+        set { self[DatabaseKey.self] = newValue }
     }
 }
 
-extension Query where Request.DatabaseContext == DatabaseQueue {
+extension Query where Request.DatabaseContext == Database {
     init(_ request: Request) {
-        self.init(request, in: \.dbQueue)
+        self.init(request, in: \.db)
     }
 }

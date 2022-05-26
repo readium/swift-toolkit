@@ -61,16 +61,6 @@ extension Book: TableRecord, FetchableRecord, PersistableRecord {
     }
 }
 
-struct BookListRequest: Queryable {
-    static var defaultValue: [Book] { [] }
-    
-    func publisher(in dbQueue: DatabaseQueue) -> DatabasePublishers.Value<[Book]> {
-        ValueObservation
-            .tracking { db in try Book.order(Book.Columns.created).fetchAll(db) }
-            .publisher(in: dbQueue, scheduling: .immediate)
-    }
-}
-
 final class BookRepository {
     private let db: Database
     

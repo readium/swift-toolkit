@@ -80,6 +80,55 @@ final class Database {
     }
 }
 
+extension Database {
+    func insert(_ book: Book) throws {
+        try writer.write { db in
+            _ = try book.inserted(db)
+        }
+    }
+    
+    func update(_ book: Book) throws {
+        try writer.write { db in
+            try book.update(db)
+        }
+    }
+    
+    func delete(_ book: Book) throws {
+        try writer.write { db in
+            _ = try book.delete(db)
+        }
+    }
+    
+    func insert(_ catalog: Catalog) throws {
+        try writer.write { db in
+            _ = try catalog.inserted(db)
+        }
+    }
+    
+    func update(_ catalog: Catalog) throws {
+        try writer.write { db in
+            try catalog.update(db)
+        }
+    }
+    
+    func delete(_ catalog: Catalog) throws {
+        try writer.write { db in
+            _ = try catalog.delete(db)
+        }
+    }
+}
+
+extension Database {
+    /// Provides a read-only access to the database
+    var databaseReader: DatabaseReader {
+        writer
+    }
+    
+    static func empty() -> Database {
+        try! Database()
+    }
+}
+
 /// Protocol for a database entity id.
 ///
 /// Using this instead of regular integers makes the code safer, because we can only give ids of the
