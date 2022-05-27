@@ -30,8 +30,9 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
             ?? publication.readingOrder.first.flatMap { publication.locate($0) }
         
         let durations = publication.readingOrder.map { $0.duration ?? 0 }
+        let totalDuration = durations.reduce(0, +)
+        
         self.durations = durations
-        let totalDuration = publication.metadata.duration ?? durations.reduce(0, +)
         self.totalDuration = (totalDuration > 0) ? totalDuration : nil
     }
     
