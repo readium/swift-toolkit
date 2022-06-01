@@ -14,10 +14,10 @@ import Foundation
 import ReadiumOPDS
 import SwiftUI
 
-final class CatalogDetailViewModel : ObservableObject {
+@MainActor final class CatalogDetailViewModel : ObservableObject {
     
     @Published var catalog: Catalog
-    @ObservedObject var parseData: ParseData?
+    @Published var parseData: ParseData?
     
     init(catalog: Catalog) {
         self.catalog = catalog
@@ -27,9 +27,7 @@ final class CatalogDetailViewModel : ObservableObject {
         if let url = URL(string: catalog.url) {
             OPDSParser.parseURL(url: url) { data, _ in
                 DispatchQueue.main.async {
-                    if let data = data {
-                        self.parseData = data
-                    }
+                    self.parseData = data
                 }
             }
         }

@@ -7,6 +7,7 @@
 import Combine
 import Foundation
 import GRDB
+import SwiftUI
 
 final class Database {
     
@@ -81,39 +82,27 @@ final class Database {
 }
 
 extension Database {
-    func insert(_ book: Book) throws {
-        try writer.write { db in
-            _ = try book.inserted(db)
+    func saveBook(_ book: inout Book) async throws {
+        book = try await writer.write { [book] db in
+            try book.saved(db)
         }
     }
     
-    func update(_ book: Book) throws {
-        try writer.write { db in
-            try book.update(db)
+    func deleteBooks(ids: [Book.Id]) async throws {
+        try await writer.write { db in
+            _ = try Book.deleteAll(db, ids: ids)
         }
     }
     
-    func delete(_ book: Book) throws {
-        try writer.write { db in
-            _ = try book.delete(db)
+    func saveCatalog(_ catalog: inout Catalog) async throws {
+        catalog = try await writer.write { [catalog] db in
+            try catalog.saved(db)
         }
     }
     
-    func insert(_ catalog: Catalog) throws {
-        try writer.write { db in
-            _ = try catalog.inserted(db)
-        }
-    }
-    
-    func update(_ catalog: Catalog) throws {
-        try writer.write { db in
-            try catalog.update(db)
-        }
-    }
-    
-    func delete(_ catalog: Catalog) throws {
-        try writer.write { db in
-            _ = try catalog.delete(db)
+    func deleteCatalogs(ids: [Catalog.Id]) async throws {
+        try await writer.write { db in
+            _ = try Catalog.deleteAll(db, ids: ids)
         }
     }
 }

@@ -10,7 +10,7 @@ import GRDB
 import GRDBQuery
 import R2Shared
 
-struct Book: Codable, Hashable {
+struct Book: Codable, Hashable, Identifiable {
     struct Id: EntityId { let rawValue: Int64 }
     
     let id: Id?

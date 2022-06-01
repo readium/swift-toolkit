@@ -31,7 +31,7 @@ struct CatalogsTab: View {
                 List() {
                     ForEach(catalogs, id: \.id) { catalog in
                         NavigationLink(destination: CatalogDetail(catalog: catalog)) {
-                            CatalogFeedRow(title: catalog.title)
+                            ListRowItem(title: catalog.title)
                         }
                     }
                 }

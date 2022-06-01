@@ -9,7 +9,7 @@ import Combine
 import Foundation
 import GRDB
 
-struct Catalog: Codable, Hashable {
+struct Catalog: Codable, Hashable, Identifiable {
     struct Id: EntityId { let rawValue: Int64 }
     
     var id: Id?

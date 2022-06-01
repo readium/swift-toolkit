@@ -12,7 +12,7 @@
 
 import SwiftUI
 
-struct CatalogFeedRow: View {
+struct ListRowItem: View {
     var action: () -> Void = {}
     var title: String
     
@@ -25,6 +25,6 @@ struct CatalogFeedRow: View {
 
 struct CatalogFeedRow_Previews: PreviewProvider {
     static var previews: some View {
-        CatalogFeedRow(title: "Test")
+        ListRowItem(title: "Test")
     }
 }

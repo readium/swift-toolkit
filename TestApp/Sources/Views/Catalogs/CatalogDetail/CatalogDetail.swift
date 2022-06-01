@@ -18,20 +18,30 @@ struct CatalogDetail: View {
     @EnvironmentStateObject private var viewModel: CatalogDetailViewModel
     
     init(catalog: Catalog) {
-        _viewModel = EnvironmentStateObject {_ in 
+        _viewModel = EnvironmentStateObject {_ in
             CatalogDetailViewModel(
                 catalog: catalog)
         }
     }
     
     var body: some View {
+        
         NavigationView {
-            ScrollView {
+//            VStack {
                 if let parseData = viewModel.parseData {
-                    
+                    List(parseData.feed!.navigation, id: \.self) { link in
+//                        NavigationLink(destination: CatalogDetail()) {
+                            ListRowItem(title: link.title!)
+//                        }
+                    }
+                    .listStyle(SidebarListStyle())
                 }
-            }
-            .navigationTitle(title)
+//            }
+        }
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            viewModel.parseFeed()
         }
     }
 }
