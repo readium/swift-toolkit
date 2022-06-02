@@ -27,21 +27,21 @@ struct CatalogDetail: View {
     var body: some View {
         
         NavigationView {
-//            VStack {
-                if let parseData = viewModel.parseData {
-                    List(parseData.feed!.navigation, id: \.self) { link in
-//                        NavigationLink(destination: CatalogDetail()) {
-                            ListRowItem(title: link.title!)
-//                        }
-                    }
-                    .listStyle(SidebarListStyle())
+            if let parseData = viewModel.parseData {
+                List(parseData.feed!.navigation, id: \.self) { link in
+                    //                        NavigationLink(destination: CatalogDetail()) {
+                    ListRowItem(title: link.title!)
+                    //                        }
                 }
-//            }
+                .listStyle(SidebarListStyle())
+            }
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            viewModel.parseFeed()
+            Task {
+                await viewModel.parseFeed()
+            }
         }
     }
 }

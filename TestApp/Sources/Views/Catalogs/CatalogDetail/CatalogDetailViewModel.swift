@@ -23,11 +23,15 @@ import SwiftUI
         self.catalog = catalog
     }
     
-    func parseFeed() {
+    func parseFeed() async {
         if let url = URL(string: catalog.url) {
-            OPDSParser.parseURL(url: url) { data, _ in
-                DispatchQueue.main.async {
-                    self.parseData = data
+            if #available(iOS 15.0.0, *) {
+                self.parseData = try? await OPDSParser.parseURL(url: url)
+            } else {
+                OPDSParser.parseURL(url: url) { data, _ in
+                    DispatchQueue.main.async {
+                        self.parseData = data
+                    }
                 }
             }
         }

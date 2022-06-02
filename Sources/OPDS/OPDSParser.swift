@@ -46,4 +46,29 @@ public class OPDSParser {
         }.resume()
     }
     
+    /// Asynchronously Parse an OPDS feed or publication.
+    /// Feed can be v1 (XML) or v2 (JSON).
+    /// - parameter url: The feed URL
+    @available(iOS 15.0.0, *)
+    public static func parseURL(url: URL) async throws -> ParseData {
+        feedURL = url
+        
+        let session = URLSession.shared
+                guard let (data, response) = try? await session.data(from: url),
+                      let httpResponse = response as? HTTPURLResponse,
+                      httpResponse.statusCode == 200
+                else {
+                    throw OPDSParserError.documentNotFound
+                }
+        // We try to parse as an OPDS v1 feed,
+        // then, if it fails, we try as an OPDS v2 feed.
+        if let parseData = try? OPDS1Parser.parse(xmlData: data, url: url, response: response) {
+            return parseData
+        } else if let parseData = try? OPDS2Parser.parse(jsonData: data, url: url, response: response) {
+            return parseData
+        } else {
+            throw OPDSParserError.documentNotValid
+        }
+    }
+    
 }
