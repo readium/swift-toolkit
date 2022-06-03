@@ -1,5 +1,5 @@
 //
-//  BookshelfTab.swift
+//  Bookshelf.swift
 //  TestApp
 //
 //  Created by Steven Zeck on 5/15/22.
@@ -11,22 +11,13 @@
 //
 
 import SwiftUI
-import GRDBQuery
 
-struct BookshelfTab: View {
+struct Bookshelf: View {
     
-    @EnvironmentStateObject private var viewModel: BookshelfTabViewModel
+    @ObservedObject var viewModel: BookshelfViewModel
     @State private var showingSheet = false
     
-    init() {
-        _viewModel = EnvironmentStateObject {
-            BookshelfTabViewModel(
-                db: $0.db)
-        }
-    }
-    
     var body: some View {
-        VStack {
             NavigationView {
                 // TODO figure out what the best column layout is for phones and tablets
                 if let books = viewModel.books {
@@ -42,16 +33,16 @@ struct BookshelfTab: View {
                     .toolbar(content: toolbarContent)
                 }
             }
+            .navigationViewStyle(.stack)
             .sheet(isPresented: $showingSheet) {
                 AddBookSheet(showingSheet: $showingSheet) { url in
                     // TODO validate the URL and import the book
                 }
             }
-        }
     }
 }
 
-extension BookshelfTab {
+extension Bookshelf {
     @ToolbarContentBuilder
     private func toolbarContent() -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
@@ -62,8 +53,3 @@ extension BookshelfTab {
     }
 }
 
-struct BookshelfTab_Previews: PreviewProvider {
-    static var previews: some View {
-        BookshelfTab()
-    }
-}

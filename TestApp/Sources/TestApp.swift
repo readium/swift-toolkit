@@ -12,30 +12,27 @@
 
 import SwiftUI
 import GRDB
-import GRDBQuery
 
-//@main
-struct testApp: App {
+@main
+struct TestApp: App {
+    let container = try! Container()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView().environment(\.db, try! Database(file: Paths.library.appendingPathComponent("database.db")))
+            TabView {
+                container.bookshelf()
+                    .tabItem {
+                        Label("Bookshelf", systemImage: "books.vertical.fill")
+                    }
+                container.catalogs()
+                    .tabItem {
+                        Label("Catalogs", systemImage: "magazine.fill")
+                    }
+                container.about()
+                    .tabItem {
+                        Label("About", systemImage: "info.circle.fill")
+                    }
+            }
         }
-    }
-}
-
-private struct DatabaseKey: EnvironmentKey {
-    static let defaultValue = Database.empty()
-}
-
-extension EnvironmentValues {
-    var db: Database {
-        get { self[DatabaseKey.self] }
-        set { self[DatabaseKey.self] = newValue }
-    }
-}
-
-extension Query where Request.DatabaseContext == Database {
-    init(_ request: Request) {
-        self.init(request, in: \.db)
     }
 }

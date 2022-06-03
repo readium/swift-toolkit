@@ -7,7 +7,6 @@
 import Combine
 import Foundation
 import GRDB
-import GRDBQuery
 import R2Shared
 
 struct Book: Codable, Hashable, Identifiable {

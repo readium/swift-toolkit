@@ -1,5 +1,5 @@
 //
-//  AboutTab.swift
+//  About.swift
 //  TestApp
 //
 //  Created by Steven Zeck on 5/15/22.
@@ -12,7 +12,7 @@
 
 import SwiftUI
 
-struct AboutTab: View {
+struct About: View {
     var body: some View {
         NavigationView {
             VStack(alignment: .leading, spacing: 20) {
@@ -40,8 +40,8 @@ struct AboutTab: View {
     }
 }
 
-struct AboutTab_Previews: PreviewProvider {
+struct About_Previews: PreviewProvider {
     static var previews: some View {
-        AboutTab()
+        About()
     }
 }

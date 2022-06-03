@@ -14,7 +14,7 @@ import Foundation
 import ReadiumOPDS
 import SwiftUI
 
-@MainActor final class CatalogDetailViewModel : ObservableObject {
+final class CatalogDetailViewModel : ObservableObject {
     
     @Published var catalog: Catalog
     @Published var parseData: ParseData?
@@ -23,17 +23,9 @@ import SwiftUI
         self.catalog = catalog
     }
     
-    func parseFeed() async {
+    @MainActor func parseFeed() async {
         if let url = URL(string: catalog.url) {
-            if #available(iOS 15.0.0, *) {
-                self.parseData = try? await OPDSParser.parseURL(url: url)
-            } else {
-                OPDSParser.parseURL(url: url) { data, _ in
-                    DispatchQueue.main.async {
-                        self.parseData = data
-                    }
-                }
-            }
+            self.parseData = try? await OPDSParser.parseURL(url: url)
         }
     }
 }

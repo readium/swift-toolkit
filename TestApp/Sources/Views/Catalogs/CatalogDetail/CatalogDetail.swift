@@ -10,23 +10,15 @@
 //  LICENSE file present in the project repository where this source code is maintained.
 //
 
-import GRDBQuery
 import SwiftUI
 
 struct CatalogDetail: View {
     
-    @EnvironmentStateObject private var viewModel: CatalogDetailViewModel
-    
-    init(catalog: Catalog) {
-        _viewModel = EnvironmentStateObject {_ in
-            CatalogDetailViewModel(
-                catalog: catalog)
-        }
-    }
+    @ObservedObject var viewModel: CatalogDetailViewModel
     
     var body: some View {
         
-        NavigationView {
+        VStack {
             if let parseData = viewModel.parseData {
                 List(parseData.feed!.navigation, id: \.self) { link in
                     //                        NavigationLink(destination: CatalogDetail()) {
@@ -36,7 +28,7 @@ struct CatalogDetail: View {
                 .listStyle(SidebarListStyle())
             }
         }
-        .navigationTitle(title)
+        .navigationTitle(viewModel.catalog.title)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             Task {
@@ -46,15 +38,9 @@ struct CatalogDetail: View {
     }
 }
 
-extension CatalogDetail {
-    var title: String {
-        return viewModel.catalog.title
-    }
-}
-
 struct CatalogDetail_Previews: PreviewProvider {
     static var previews: some View {
         let catalog = Catalog(title: "Test", url: "https://www.test.com")
-        CatalogDetail(catalog: catalog)
+        CatalogDetail(viewModel: CatalogDetailViewModel(catalog: catalog))
     }
 }

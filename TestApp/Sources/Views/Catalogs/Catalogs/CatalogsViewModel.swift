@@ -1,5 +1,5 @@
 //
-//  CatalogsTabViewModel.swift
+//  CatalogsViewModel.swift
 //  TestApp
 //
 //  Created by Steven Zeck on 5/25/22.
@@ -14,7 +14,7 @@ import GRDB
 import Combine
 import Foundation
 
-final class CatalogsTabViewModel: ObservableObject {
+final class CatalogsViewModel: ObservableObject {
     
     @Published var catalogs: [Catalog]?
     private var cancellable: AnyCancellable?

@@ -1,5 +1,5 @@
 //
-//  BookshelfTabViewModel.swift
+//  BookshelfViewModel.swift
 //  TestApp
 //
 //  Created by Steven Zeck on 5/25/22.
@@ -14,7 +14,7 @@ import GRDB
 import Combine
 import Foundation
 
-final class BookshelfTabViewModel: ObservableObject {
+final class BookshelfViewModel: ObservableObject {
     
     @Published var books: [Book]?
     private var cancellable: AnyCancellable?
