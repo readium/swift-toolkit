@@ -1,5 +1,5 @@
 //
-//  AddBookSheet.swift
+//  AddFeedSheet.swift
 //  TestApp
 //
 //  Created by Steven Zeck on 6/2/22.
@@ -12,35 +12,37 @@
 
 import SwiftUI
 
-struct AddBookSheet: View {
+struct AddFeedSheet: View {
     
     // For iOS 15, we can use @Environment(\.dismiss)
     @Binding var showingSheet: Bool
-    var action: (String) -> Void
+    var action: (String, String) -> Void
     
+    @State var title: String = ""
     @State var url: String = ""
     
     var body: some View {
         NavigationView {
             Form {
+                TextField("Feed Title", text: $title)
                 TextField("URL", text: $url)
                     .keyboardType(.URL)
                     .autocapitalization(.none)
                 // FIXME better looking buttons here, or move to toolbar within sheet
                 Button("Add") {
-                    action(url)
+                    action(title, url)
                 }
                 Button("Cancel") {
                     showingSheet = false
                 }
             }
-            .navigationBarTitle("Add a Book")
+            .navigationBarTitle("Add an OPDS Feed")
         }
     }
 }
 
-//struct AddBookSheet_Previews: PreviewProvider {
+//struct AddFeedSheet_Previews: PreviewProvider {
 //    static var previews: some View {
-//        AddBookSheet(showingSheet: true)
+//        AddFeedSheet()
 //    }
 //}

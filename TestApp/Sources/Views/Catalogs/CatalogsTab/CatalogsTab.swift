@@ -16,6 +16,7 @@ import SwiftUI
 struct CatalogsTab: View {
     
     @EnvironmentStateObject private var viewModel: CatalogsTabViewModel
+    @State private var showingSheet = false
     
     init() {
         _viewModel = EnvironmentStateObject {
@@ -41,6 +42,11 @@ struct CatalogsTab: View {
                 .toolbar(content: toolbarContent)
             }
         }
+        .sheet(isPresented: $showingSheet) {
+            AddFeedSheet(showingSheet: $showingSheet) { title, url in
+                // TODO validate the URL and import the feed
+            }
+        }
     }
 }
 
@@ -49,7 +55,7 @@ extension CatalogsTab {
     private func toolbarContent() -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
             AddButton {
-                
+                showingSheet = true
             }
         }
     }
