@@ -18,7 +18,8 @@ struct Bookshelf: View {
     @State private var showingSheet = false
     
     var body: some View {
-            NavigationView {
+        NavigationView {
+            VStack {
                 // TODO figure out what the best column layout is for phones and tablets
                 if let books = viewModel.books {
                     let columns: [GridItem] = Array(repeating: .init(.adaptive(minimum: 170)), count: 2)
@@ -29,16 +30,17 @@ struct Bookshelf: View {
                             }
                         }
                     }
-                    .navigationTitle("Bookshelf")
-                    .toolbar(content: toolbarContent)
                 }
             }
-            .navigationViewStyle(.stack)
-            .sheet(isPresented: $showingSheet) {
-                AddBookSheet(showingSheet: $showingSheet) { url in
-                    // TODO validate the URL and import the book
-                }
+            .navigationTitle("Bookshelf")
+            .toolbar(content: toolbarContent)
+        }
+        .navigationViewStyle(.stack)
+        .sheet(isPresented: $showingSheet) {
+            AddBookSheet(showingSheet: $showingSheet) { url in
+                // TODO validate the URL and import the book
             }
+        }
     }
 }
 

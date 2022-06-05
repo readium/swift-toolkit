@@ -21,18 +21,20 @@ struct Catalogs: View {
     
     var body: some View {
         NavigationView {
-            if let catalogs = viewModel.catalogs {
-                List() {
-                    ForEach(catalogs, id: \.id) { catalog in
-                        NavigationLink(destination: catalogDetail(catalog)) {
-                            ListRowItem(title: catalog.title)
+            VStack {
+                if let catalogs = viewModel.catalogs {
+                    List() {
+                        ForEach(catalogs, id: \.id) { catalog in
+                            NavigationLink(destination: catalogDetail(catalog)) {
+                                ListRowItem(title: catalog.title)
+                            }
                         }
                     }
+                    .listStyle(DefaultListStyle())
                 }
-                .listStyle(SidebarListStyle())
-                .navigationTitle("Catalogs")
-                .toolbar(content: toolbarContent)
             }
+            .navigationTitle("Catalogs")
+            .toolbar(content: toolbarContent)
         }
         .navigationViewStyle(.stack)
         .sheet(isPresented: $showingSheet) {

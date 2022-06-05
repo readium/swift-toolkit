@@ -25,7 +25,7 @@ struct CatalogDetail: View {
                     ListRowItem(title: link.title!)
                     //                        }
                 }
-                .listStyle(SidebarListStyle())
+                .listStyle(DefaultListStyle())
             }
         }
         .navigationTitle(viewModel.catalog.title)

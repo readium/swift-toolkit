@@ -21,33 +21,10 @@ final class CatalogsViewModel: ObservableObject {
     
     init(catalogRepository: CatalogRepository) {
         self.catalogRepository = catalogRepository
-//        ValueObservation
-//            .tracking(Catalog.order(Catalog.Columns.created).fetchAll)
-//            .publisher(in: db.databaseReader, scheduling: .immediate)
-//            .assertNoFailure()
-//            .assign(to: &catalogs)
+        catalogRepository.all()
+            .assign(to: &$catalogs)
         Task {
-            await preloadTestFeeds()
-        }
-    }
-    
-    func preloadTestFeeds() async {
-        let version = 2
-        let VERSION_KEY = "OPDS_CATALOG_VERSION"
-        var OPDS2Catalog = Catalog(title: "OPDS 2.0 Test Catalog", url: "https://test.opds.io/2.0/home.json")
-        var OTBCatalog = Catalog(title: "Open Textbooks Catalog", url: "http://open.minitex.org/textbooks")
-        var SEBCatalog = Catalog(title: "Standard eBooks Catalog", url: "https://standardebooks.org/opds/all")
-        
-        let oldversion = UserDefaults.standard.integer(forKey: VERSION_KEY)
-        if (oldversion < version) {
-            UserDefaults.standard.set(version, forKey: VERSION_KEY)
-            do {
-                try await catalogRepository.saveCatalog(&OPDS2Catalog)
-                try await catalogRepository.saveCatalog(&OTBCatalog)
-                try await catalogRepository.saveCatalog(&SEBCatalog)
-            } catch {
-                
-            }
+            await catalogRepository.preloadTestFeeds()
         }
     }
 }

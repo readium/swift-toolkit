@@ -21,11 +21,5 @@ final class BookshelfViewModel: ObservableObject {
     
     init(bookRepository: BookRepository) {
         self.bookRepository =  bookRepository
-//        self.db = db
-//        ValueObservation
-//            .tracking(Book.order(Book.Columns.created).fetchAll)
-//            .publisher(in: db.databaseReader, scheduling: .immediate)
-//            .assertNoFailure()
-//            .assign(to: &$books)
     }
 }

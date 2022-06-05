@@ -16,24 +16,20 @@ struct BookCover: View {
     var book: Book
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
-            image
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 150, height: 220)
+            if let url = book.cover {
+                AsyncImage(
+                    url: url,
+                    content: { $0
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                    },
+                    placeholder: { ProgressView() }
+                )
+            } else {
+                Image(systemName: "book.closed")
+            }
             Text(book.title)
             Text(book.authors ?? "")
-        }
-    }
-}
-
-extension BookCover {
-    var image: Image {
-        if let coverURL = book.cover,
-           let data = try? Data(contentsOf: coverURL),
-           let image = UIImage(data: data) {
-            return Image(uiImage: image)
-        } else {
-            return Image(systemName: "book.closed")
         }
     }
 }
