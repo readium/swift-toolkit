@@ -17,19 +17,15 @@ import Foundation
 final class CatalogsViewModel: ObservableObject {
     
     @Published var catalogs: [Catalog]?
-    private var cancellable: AnyCancellable?
-    private var db: Database
+    var catalogRepository: CatalogRepository
     
-    init(db: Database) {
-        self.db = db
-        cancellable = ValueObservation
-            .tracking(Catalog.order(Catalog.Columns.created).fetchAll)
-            .publisher(in: db.databaseReader, scheduling: .immediate)
-            .sink(
-                receiveCompletion: { _ in },
-                receiveValue: { [weak self] (catalogs: [Catalog]) in
-                    self?.catalogs = catalogs
-                })
+    init(catalogRepository: CatalogRepository) {
+        self.catalogRepository = catalogRepository
+//        ValueObservation
+//            .tracking(Catalog.order(Catalog.Columns.created).fetchAll)
+//            .publisher(in: db.databaseReader, scheduling: .immediate)
+//            .assertNoFailure()
+//            .assign(to: &catalogs)
         Task {
             await preloadTestFeeds()
         }
@@ -46,9 +42,9 @@ final class CatalogsViewModel: ObservableObject {
         if (oldversion < version) {
             UserDefaults.standard.set(version, forKey: VERSION_KEY)
             do {
-                try await db.saveCatalog(&OPDS2Catalog)
-                try await db.saveCatalog(&OTBCatalog)
-                try await db.saveCatalog(&SEBCatalog)
+                try await catalogRepository.saveCatalog(&OPDS2Catalog)
+                try await catalogRepository.saveCatalog(&OTBCatalog)
+                try await catalogRepository.saveCatalog(&SEBCatalog)
             } catch {
                 
             }

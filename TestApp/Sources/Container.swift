@@ -16,17 +16,19 @@ class Container {
     
     // Bookshelf
     
-    private lazy var books = BookRepository(db: db)
+    private lazy var bookRepository = BookRepository(db: db)
     
     func bookshelf() -> Bookshelf {
-        Bookshelf(viewModel: BookshelfViewModel(db: db))
+        Bookshelf(viewModel: BookshelfViewModel(bookRepository: bookRepository))
     }
     
     // Catalogs
     
+    private lazy var catalogRepository = CatalogRepository(db: db)
+    
     func catalogs() -> Catalogs {
         Catalogs(
-            viewModel: CatalogsViewModel(db: db),
+            viewModel: CatalogsViewModel(catalogRepository: catalogRepository),
             catalogDetail: catalogDetail(with:)
         )
     }

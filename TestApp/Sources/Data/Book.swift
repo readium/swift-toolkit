@@ -67,6 +67,19 @@ final class BookRepository {
         self.db = db
     }
     
+    // TODO The idea is to use GRDB's async DatabaseWriter.write
+    func saveBook(_ book: inout Book) async throws {
+        book = try await db.writer.write { [book] db in
+            try book.saved(db)
+        }
+    }
+    
+    func deleteBooks(ids: [Book.Id]) async throws {
+        try await db.writer.write { db in
+            _ = try Book.deleteAll(db, ids: ids)
+        }
+    }
+    
     func all() -> AnyPublisher<[Book], Error> {
         db.observe { db in
             try Book.order(Book.Columns.created).fetchAll(db)

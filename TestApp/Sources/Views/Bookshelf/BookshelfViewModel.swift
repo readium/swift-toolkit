@@ -17,18 +17,15 @@ import Foundation
 final class BookshelfViewModel: ObservableObject {
     
     @Published var books: [Book]?
-    private var cancellable: AnyCancellable?
-    private var db: Database
+    private var bookRepository: BookRepository
     
-    init(db: Database) {
-        self.db = db
-        cancellable = ValueObservation
-            .tracking(Book.order(Book.Columns.created).fetchAll)
-            .publisher(in: db.databaseReader, scheduling: .immediate)
-            .sink(
-                receiveCompletion: { _ in },
-                receiveValue: { [weak self] (books: [Book]) in
-                    self?.books = books
-                })
+    init(bookRepository: BookRepository) {
+        self.bookRepository =  bookRepository
+//        self.db = db
+//        ValueObservation
+//            .tracking(Book.order(Book.Columns.created).fetchAll)
+//            .publisher(in: db.databaseReader, scheduling: .immediate)
+//            .assertNoFailure()
+//            .assign(to: &$books)
     }
 }

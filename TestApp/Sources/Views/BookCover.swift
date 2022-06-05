@@ -33,7 +33,7 @@ extension BookCover {
            let image = UIImage(data: data) {
             return Image(uiImage: image)
         } else {
-            return Image("defaultCover")
+            return Image(systemName: "book.closed")
         }
     }
 }

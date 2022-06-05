@@ -15,7 +15,8 @@ final class Database {
         try self.init(writer: try DatabaseQueue(path: file.path))
     }
     
-    private let writer: DatabaseWriter
+    // FIXME make this private again
+    let writer: DatabaseWriter
     
     private init(writer: DatabaseWriter = DatabaseQueue()) throws {
         self.writer = writer
@@ -78,32 +79,6 @@ final class Database {
         ValueObservation.tracking(query)
             .publisher(in: writer)
             .eraseToAnyPublisher()
-    }
-}
-
-extension Database {
-    func saveBook(_ book: inout Book) async throws {
-        book = try await writer.write { [book] db in
-            try book.saved(db)
-        }
-    }
-    
-    func deleteBooks(ids: [Book.Id]) async throws {
-        try await writer.write { db in
-            _ = try Book.deleteAll(db, ids: ids)
-        }
-    }
-    
-    func saveCatalog(_ catalog: inout Catalog) async throws {
-        catalog = try await writer.write { [catalog] db in
-            try catalog.saved(db)
-        }
-    }
-    
-    func deleteCatalogs(ids: [Catalog.Id]) async throws {
-        try await writer.write { db in
-            _ = try Catalog.deleteAll(db, ids: ids)
-        }
     }
 }
 

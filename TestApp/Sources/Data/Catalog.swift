@@ -30,3 +30,23 @@ extension Catalog: TableRecord, FetchableRecord, PersistableRecord {
         case id, title, url, created
     }
 }
+
+final class CatalogRepository {
+    private let db: Database
+    
+    init(db: Database) {
+        self.db = db
+    }
+    
+    func saveCatalog(_ catalog: inout Catalog) async throws {
+        catalog = try await db.writer.write { [catalog] db in
+            try catalog.saved(db)
+        }
+    }
+    
+    func deleteCatalogs(ids: [Catalog.Id]) async throws {
+        try await db.writer.write { db in
+            _ = try Catalog.deleteAll(db, ids: ids)
+        }
+    }
+}
