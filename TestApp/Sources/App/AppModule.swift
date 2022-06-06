@@ -42,7 +42,10 @@ final class AppModule {
         }
         
         let httpClient = DefaultHTTPClient()
-        let db = try Database(file: Paths.library.appendingPathComponent("database.db"))
+        let db = try Database(
+            file: Paths.library.appendingPathComponent("database.db"),
+            migrations: [InitialMigration()]
+        )
         let books = BookRepository(db: db)
         let bookmarks = BookmarkRepository(db: db)
         let highlights = HighlightRepository(db: db)

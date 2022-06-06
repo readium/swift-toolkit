@@ -17,14 +17,9 @@ import Foundation
 final class CatalogsViewModel: ObservableObject {
     
     @Published var catalogs: [Catalog]?
-    var catalogRepository: CatalogRepository
     
     init(catalogRepository: CatalogRepository) {
-        self.catalogRepository = catalogRepository
         catalogRepository.all()
             .assign(to: &$catalogs)
-        Task {
-            await catalogRepository.preloadTestFeeds()
-        }
     }
 }

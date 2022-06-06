@@ -9,60 +9,45 @@ import Foundation
 import GRDB
 import SwiftUI
 
+/// Database migration to be performed when updating the app.
+protocol DatabaseMigration {
+    /// Schema version for this migration.
+    var version: Int { get }
+    
+    /// Applies the migration.
+    func run(on db: GRDB.Database) throws
+}
+
 final class Database {
     
-    convenience init(file: URL) throws {
-        try self.init(writer: try DatabaseQueue(path: file.path))
+    convenience init(file: URL, migrations: [DatabaseMigration]) throws {
+        try self.init(writer: try DatabaseQueue(path: file.path), migrations: migrations)
     }
     
     // FIXME make this private again
     let writer: DatabaseWriter
     
-    private init(writer: DatabaseWriter = DatabaseQueue()) throws {
+    private init(writer: DatabaseWriter = DatabaseQueue(), migrations: [DatabaseMigration]) throws {
         self.writer = writer
         
+        try run(migrations)
+    }
+    
+    /// Runs the database migrations on `Database` initialization.
+    private func run(_ migrations: [DatabaseMigration]) throws {
         try writer.write { db in
-            try db.create(table: "book", ifNotExists: true) { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("identifier", .text)
-                t.column("title", .text).notNull()
-                t.column("authors", .text)
-                t.column("type", .text).notNull()
-                t.column("path", .text).notNull()
-                t.column("coverPath", .text)
-                t.column("locator", .text)
-                t.column("progression", .integer).notNull().defaults(to: 0)
-                t.column("created", .datetime).notNull()
-            }
+            let currentVersion = try Int64.fetchOne(db, sql: "PRAGMA user_version") ?? 0
             
-            try db.create(table: "bookmark", ifNotExists: true) { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("bookId", .integer).references("book", onDelete: .cascade).notNull()
-                t.column("locator", .text)
-                t.column("progression", .double).notNull()
-                t.column("created", .datetime).notNull()
-            }
-            
-            try db.create(table: "highlight", ifNotExists: true) { t in
-                t.column("id", .text).primaryKey()
-                t.column("bookId", .integer).references("book", onDelete: .cascade).notNull()
-                t.column("locator", .text)
-                t.column("progression", .double).notNull()
-                t.column("color", .integer).notNull()
-                t.column("created", .datetime).notNull()
-            }
-            
-            // create an index to make sorting by progression faster
-            try db.create(index: "index_highlight_progression", on: "highlight", columns: ["bookId", "progression"], ifNotExists: true)
-            try db.create(index: "index_bookmark_progression", on: "bookmark", columns: ["bookId", "progression"], ifNotExists: true)
-            
-            try db.create(table: "catalog", ifNotExists: true) { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("title", .text)
-                t.column("url", .text).notNull()
-                t.column("created", .datetime).notNull()
-            }
+            try migrations
+                .filter { $0.version > currentVersion }
+                .sorted { $0.version < $1.version }
+                .forEach { try run($0, on: db) }
         }
+    }
+    
+    private func run(_ migration: DatabaseMigration, on db: GRDB.Database) throws {
+        try migration.run(on: db)
+        try db.execute(sql: "PRAGMA user_version = \(migration.version)")
     }
     
     func read<T>(_ query: @escaping (GRDB.Database) throws -> T) -> AnyPublisher<T, Error> {
@@ -86,10 +71,6 @@ extension Database {
     /// Provides a read-only access to the database
     var databaseReader: DatabaseReader {
         writer
-    }
-    
-    static func empty() -> Database {
-        try! Database()
     }
 }
 

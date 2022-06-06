@@ -11,7 +11,10 @@ class Container {
     private let db: Database
     
     init() throws {
-        self.db = try Database(file: Paths.library.appendingPathComponent("database.db"))
+        self.db = try Database(
+            file: Paths.library.appendingPathComponent("database.db"),
+            migrations: [InitialMigration()]
+        )
     }
     
     // Bookshelf
