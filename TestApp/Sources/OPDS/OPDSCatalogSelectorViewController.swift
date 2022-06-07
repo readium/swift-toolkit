@@ -29,6 +29,8 @@ class OPDSCatalogSelectorViewController: UITableViewController {
     
     override func viewDidLoad() {
         
+        preloadTestFeeds()
+        
         self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         
         self.tableView.frame = UIScreen.main.bounds
@@ -45,6 +47,25 @@ class OPDSCatalogSelectorViewController: UITableViewController {
         navigationController?.navigationBar.tintColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
         navigationController?.navigationBar.barTintColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
         navigationController?.view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
+    }
+    
+    func preloadTestFeeds() {
+        let version = 2
+        let VERSION_KEY = "OPDS_CATALOG_VERSION"
+        let OPDS2Catalog = ["title": "OPDS 2.0 Test Catalog", "url": "https://test.opds.io/2.0/home.json"]
+        let OTBCatalog = ["title": "Open Textbooks Catalog", "url": "http://open.minitex.org/textbooks"]
+        let SEBCatalog = ["title": "Standard eBooks Catalog", "url": "https://standardebooks.org/opds/all"]
+        
+        catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
+        let oldversion = UserDefaults.standard.integer(forKey: VERSION_KEY)
+        if (catalogData == nil || oldversion < version) {
+            UserDefaults.standard.set(version, forKey: VERSION_KEY)
+            catalogData = [
+                OPDS2Catalog, OTBCatalog, SEBCatalog
+            ]
+            UserDefaults.standard.set(catalogData, forKey: userDefaultsID)
+        }
+        
     }
     
     override func viewDidAppear(_ animated: Bool) {
