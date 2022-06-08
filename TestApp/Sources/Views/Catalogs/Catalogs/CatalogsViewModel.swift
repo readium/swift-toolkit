@@ -11,9 +11,16 @@ import Foundation
 final class CatalogsViewModel: ObservableObject {
     
     @Published var catalogs: [Catalog]?
+    private var catalogRepository: CatalogRepository
     
     init(catalogRepository: CatalogRepository) {
+        self.catalogRepository = catalogRepository
         catalogRepository.all()
             .assign(to: &$catalogs)
+    }
+    
+    func addCatalog(catalog: Catalog) async throws {
+        var savedCatalog = catalog
+        try? await catalogRepository.saveCatalog(&savedCatalog)
     }
 }

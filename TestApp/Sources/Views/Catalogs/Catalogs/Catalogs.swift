@@ -5,6 +5,7 @@
 //
 
 import SwiftUI
+import ReadiumOPDS
 
 struct Catalogs: View {
     
@@ -12,6 +13,7 @@ struct Catalogs: View {
     let catalogDetail: (Catalog) -> CatalogDetail
     
     @State private var showingSheet = false
+    @State private var showingAlert = false
     
     var body: some View {
         NavigationView {
@@ -33,9 +35,21 @@ struct Catalogs: View {
         .navigationViewStyle(.stack)
         .sheet(isPresented: $showingSheet) {
             AddFeedSheet(showingSheet: $showingSheet) { title, url in
-                // TODO validate the URL and import the feed
+                Task {
+                    do {
+                        try await OPDSParser.parseURL(url: URL(string: url)!)
+                        try await viewModel.addCatalog(catalog: Catalog(title: title, url: url))
+                    } catch {
+                        showingAlert = true
+                    }
+                }
             }
         }
+        .alert("Error", isPresented: $showingAlert, actions: {
+            Button("OK", role: .cancel, action: {})
+        }, message: {
+            Text("Feed is not valid, please try again.")
+        })
     }
     
     @ToolbarContentBuilder

@@ -18,19 +18,31 @@ struct AddFeedSheet: View {
     var body: some View {
         NavigationView {
             Form {
-                TextField("Feed Title", text: $title)
-                TextField("URL", text: $url)
-                    .keyboardType(.URL)
-                    .autocapitalization(.none)
-                // FIXME better looking buttons here, or move to toolbar within sheet
-                Button("Add") {
-                    action(title, url)
-                }
-                Button("Cancel") {
-                    showingSheet = false
+                Section {
+                    TextField("Feed Title", text: $title)
+                    TextField("URL", text: $url)
+                        .keyboardType(.URL)
+                        .autocapitalization(.none)
                 }
             }
             .navigationBarTitle("Add an OPDS Feed")
+            .toolbar(content: toolbarContent)
+        }
+    }
+    
+    @ToolbarContentBuilder
+    private func toolbarContent() -> some ToolbarContent {
+        ToolbarItem(placement: .navigationBarLeading) {
+            CancelButton {
+                showingSheet = false
+            }
+        }
+        ToolbarItem(placement: .navigationBarTrailing) {
+            SaveButton {
+                action(title, url)
+                showingSheet = false
+            }
+            .disabled(title.isEmpty || url.isEmpty)
         }
     }
 }
