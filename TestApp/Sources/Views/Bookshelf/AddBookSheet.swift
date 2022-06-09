@@ -20,15 +20,25 @@ struct AddBookSheet: View {
                 TextField("URL", text: $url)
                     .keyboardType(.URL)
                     .autocapitalization(.none)
-                // FIXME better looking buttons here, or move to toolbar within sheet
-                Button("Add") {
-                    action(url)
-                }
-                Button("Cancel") {
-                    showingSheet = false
-                }
             }
             .navigationBarTitle("Add a Book")
+            .toolbar(content: toolbarContent)
+        }
+    }
+    
+    @ToolbarContentBuilder
+    private func toolbarContent() -> some ToolbarContent {
+        ToolbarItem(placement: .navigationBarLeading) {
+            CancelButton {
+                showingSheet = false
+            }
+        }
+        ToolbarItem(placement: .navigationBarTrailing) {
+            SaveButton {
+                action(url)
+                showingSheet = false
+            }
+            .disabled(url.isEmpty)
         }
     }
 }
