@@ -37,7 +37,7 @@ struct Catalogs: View {
             AddFeedSheet(showingSheet: $showingSheet) { title, url in
                 Task {
                     do {
-                        try await OPDSParser.parseURL(url: URL(string: url)!)
+                        _ = try await OPDSParser.parseURL(url: URL(string: url)!)
                         try await viewModel.addCatalog(catalog: Catalog(title: title, url: url))
                     } catch {
                         showingAlert = true
