@@ -10541,6 +10541,7 @@
 ../../Sources/Shared/Toolkit/Archive/ExplodedArchive.swift
 ../../Sources/Shared/Toolkit/Archive/Minizip.swift
 ../../Sources/Shared/Toolkit/Archive/ZIPFoundation.swift
+../../Sources/Shared/Toolkit/Atomic.swift
 ../../Sources/Shared/Toolkit/Cancellable.swift
 ../../Sources/Shared/Toolkit/CancellableResult.swift
 ../../Sources/Shared/Toolkit/ControlFlow.swift

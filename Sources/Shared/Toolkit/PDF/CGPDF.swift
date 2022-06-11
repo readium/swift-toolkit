@@ -217,11 +217,11 @@ extension CGPDFDocument: PDFDocument {
     }
     
     private func name(for object: CGPDFObjectRef?) -> String? {
-        var buffer: UnsafePointer<Int8>?
+        var optBuffer: UnsafePointer<Int8>?
         guard
             let object = object,
-            CGPDFObjectGetValue(object, .name, &buffer),
-            let buffer = buffer
+            CGPDFObjectGetValue(object, .name, &optBuffer),
+            let buffer = optBuffer
         else {
             return nil
         }

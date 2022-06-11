@@ -16,6 +16,7 @@ jobs:
     runs-on: macos-latest
     env:
       scheme: ${{ 'Readium-Package' }}
+      DEVELOPER_DIR: /Applications/Xcode_12.4.app/Contents/Developer
 
     steps:
       - name: Checkout
