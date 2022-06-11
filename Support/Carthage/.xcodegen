@@ -1,5 +1,5 @@
 # XCODEGEN VERSION
-2.25.0
+2.29.0
 
 # SPEC
 {
@@ -7504,6 +7504,7 @@
 ../../Sources/Shared/Publication/Services/Locator/DefaultLocatorService.swift
 ../../Sources/Shared/Publication/Services/Locator/LocatorService.swift
 ../../Sources/Shared/Publication/Services/Positions
+../../Sources/Shared/Publication/Services/Positions/InMemoryPositionsService.swift
 ../../Sources/Shared/Publication/Services/Positions/PerResourcePositionsService.swift
 ../../Sources/Shared/Publication/Services/Positions/PositionsService.swift
 ../../Sources/Shared/Publication/Services/PublicationService.swift
@@ -7525,6 +7526,7 @@
 ../../Sources/Shared/Toolkit/Archive/ExplodedArchive.swift
 ../../Sources/Shared/Toolkit/Archive/Minizip.swift
 ../../Sources/Shared/Toolkit/Archive/ZIPFoundation.swift
+../../Sources/Shared/Toolkit/Atomic.swift
 ../../Sources/Shared/Toolkit/Cancellable.swift
 ../../Sources/Shared/Toolkit/CancellableResult.swift
 ../../Sources/Shared/Toolkit/ControlFlow.swift
