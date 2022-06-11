@@ -9,7 +9,7 @@ import Foundation
 import GRDB
 import R2Shared
 
-struct Book: Codable {
+struct Book: Codable, Hashable, Identifiable {
     struct Id: EntityId { let rawValue: Int64 }
     
     let id: Id?
@@ -67,29 +67,35 @@ final class BookRepository {
         self.db = db
     }
     
-    func all() -> AnyPublisher<[Book], Error> {
+    func save(_ book: inout Book) async throws {
+        book = try await db.write { [book] db in
+            try book.saved(db)
+        }
+    }
+    
+    func all() -> AnyPublisher<[Book], Never> {
         db.observe { db in
             try Book.order(Book.Columns.created).fetchAll(db)
         }
     }
     
     func add(_ book: Book) -> AnyPublisher<Book.Id, Error> {
-        return db.write { db in
+        return db.writePublisher { db in
             try book.insert(db)
             return Book.Id(rawValue: db.lastInsertedRowID)
         }.eraseToAnyPublisher()
     }
     
     func remove(_ id: Book.Id) -> AnyPublisher<Void, Error> {
-        db.write { db in try Book.deleteOne(db, key: id) }
+        db.writePublisher { db in try Book.deleteOne(db, key: id) }
     }
     
-    func saveProgress(for id: Book.Id, locator: Locator) -> AnyPublisher<Void, Error> {
+    func saveProgress(for id: Book.Id, locator: Locator) async throws {
         guard let json = locator.jsonString else {
-            return .just(())
+            return
         }
         
-        return db.write { db in
+        try await db.write { db in
             try db.execute(literal: """
                 UPDATE book
                    SET locator = \(json), progression = \(locator.locations.totalProgression ?? 0)

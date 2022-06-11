@@ -384,13 +384,13 @@ class ReaderViewController: UIViewController, Loggable {
 extension ReaderViewController: NavigatorDelegate {
 
     func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
-        books.saveProgress(for: bookId, locator: locator)
-            .sink { [weak self] completion in
-                if let self = self, case .failure(let error) = completion {
-                    self.moduleDelegate?.presentError(error, from: self)
-                }
-            } receiveValue: { _ in }
-            .store(in: &subscriptions)
+        Task {
+            do {
+                try await books.saveProgress(for: bookId, locator: locator)
+            } catch {
+                moduleDelegate?.presentError(error, from: self)
+            }
+        }
 
         positionLabel.text = {
             if let position = locator.locations.position {

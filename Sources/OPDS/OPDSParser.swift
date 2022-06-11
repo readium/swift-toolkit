@@ -45,5 +45,27 @@ public class OPDSParser {
             }
         }.resume()
     }
-    
+
+#if compiler(>=5.5) && canImport(_Concurrency)
+
+    /// Asynchronously Parse an OPDS feed or publication.
+    /// Feed can be v1 (XML) or v2 (JSON).
+    /// - parameter url: The feed URL
+    @available(iOS 13.0, *)
+    public static func parseURL(url: URL) async throws -> ParseData {
+        try await withCheckedThrowingContinuation { continuation in
+            parseURL(url: url) { data, error in
+                if let error = error {
+                    continuation.resume(with: .failure(error))
+                } else if let data = data {
+                    continuation.resume(with: .success(data))
+                } else {
+                    continuation.resume(with: .failure(OPDSParserError.documentNotValid))
+                }
+            }
+        }
+    }
+
+#endif
+
 }

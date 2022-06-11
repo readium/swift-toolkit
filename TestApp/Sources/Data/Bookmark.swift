@@ -44,7 +44,7 @@ final class BookmarkRepository {
         self.db = db
     }
     
-    func all(for bookId: Book.Id) -> AnyPublisher<[Bookmark], Error> {
+    func all(for bookId: Book.Id) -> AnyPublisher<[Bookmark], Never> {
         db.observe { db in
             try Bookmark
                 .filter(Bookmark.Columns.bookId == bookId)
@@ -54,14 +54,14 @@ final class BookmarkRepository {
     }
     
     func add(_ bookmark: Bookmark) -> AnyPublisher<Bookmark.Id, Error> {
-        return db.write { db in
+        return db.writePublisher { db in
             try bookmark.insert(db)
             return Bookmark.Id(rawValue: db.lastInsertedRowID)
         }.eraseToAnyPublisher()
     }
     
     func remove(_ id: Bookmark.Id) -> AnyPublisher<Void, Error> {
-        db.write { db in try Bookmark.deleteOne(db, key: id) }
+        db.writePublisher { db in try Bookmark.deleteOne(db, key: id) }
     }
 }
 

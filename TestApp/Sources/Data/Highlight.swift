@@ -73,7 +73,7 @@ final class HighlightRepository {
         self.db = db
     }
     
-    func all(for bookId: Book.Id) -> AnyPublisher<[Highlight], Error> {
+    func all(for bookId: Book.Id) -> AnyPublisher<[Highlight], Never> {
         db.observe { db in
             try Highlight
                 .filter(Highlight.Columns.bookId == bookId)
@@ -82,7 +82,7 @@ final class HighlightRepository {
         }
     }
     
-    func highlight(for highlightId: Highlight.Id) -> AnyPublisher<Highlight, Error> {
+    func highlight(for highlightId: Highlight.Id) -> AnyPublisher<Highlight, Never> {
         db.observe { db in
             try Highlight
                 .filter(Highlight.Columns.id == highlightId)
@@ -92,14 +92,14 @@ final class HighlightRepository {
     }
     
     func add(_ highlight: Highlight) -> AnyPublisher<Highlight.Id, Error> {
-        return db.write { db in
+        return db.writePublisher { db in
             try highlight.insert(db)
             return highlight.id
         }.eraseToAnyPublisher()
     }
     
     func update(_ id: Highlight.Id, color: HighlightColor) -> AnyPublisher<Void, Error> {
-        return db.write { db in
+        return db.writePublisher { db in
             let filtered = Highlight.filter(Highlight.Columns.id == id)
             let assignment = Highlight.Columns.color.set(to: color)
             try filtered.updateAll(db, onConflict: nil, assignment)
@@ -107,7 +107,7 @@ final class HighlightRepository {
     }
         
     func remove(_ id: Highlight.Id) -> AnyPublisher<Void, Error> {
-        db.write { db in try Highlight.deleteOne(db, key: id) }
+        db.writePublisher { db in try Highlight.deleteOne(db, key: id) }
     }
 }
 
