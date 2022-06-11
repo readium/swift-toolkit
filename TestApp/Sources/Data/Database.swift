@@ -24,8 +24,7 @@ final class Database {
         try self.init(writer: try DatabaseQueue(path: file.path), migrations: migrations)
     }
     
-    // FIXME make this private again
-    let writer: DatabaseWriter
+    private let writer: DatabaseWriter
     
     private init(writer: DatabaseWriter = DatabaseQueue(), migrations: [DatabaseMigration]) throws {
         self.writer = writer
@@ -50,12 +49,28 @@ final class Database {
         try db.execute(sql: "PRAGMA user_version = \(migration.version)")
     }
     
-    func read<T>(_ query: @escaping (GRDB.Database) throws -> T) -> AnyPublisher<T, Error> {
-        writer.readPublisher(value: query)
-            .eraseToAnyPublisher()
+    func read<T>(_ value: @escaping (GRDB.Database) throws -> T) async throws -> T {
+        try await withUnsafeThrowingContinuation { continuation in
+            writer.asyncRead { result in
+                do {
+                    try continuation.resume(returning: value(result.get()))
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
     }
     
-    func write<T>(_ updates: @escaping (GRDB.Database) throws -> T) -> AnyPublisher<T, Error> {
+    @discardableResult
+    func write<T>(_ updates: @escaping (GRDB.Database) throws -> T) async throws -> T {
+        try await withUnsafeThrowingContinuation { continuation in
+            writer.asyncWrite(updates) { _, result in
+                continuation.resume(with: result)
+            }
+        }
+    }
+    
+    func writePublisher<T>(_ updates: @escaping (GRDB.Database) throws -> T) -> AnyPublisher<T, Error> {
         writer.writePublisher(updates: updates)
             .eraseToAnyPublisher()
     }

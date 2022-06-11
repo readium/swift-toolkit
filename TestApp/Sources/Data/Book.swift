@@ -67,15 +67,14 @@ final class BookRepository {
         self.db = db
     }
     
-    // TODO The idea is to use GRDB's async DatabaseWriter.write
     func saveBook(_ book: inout Book) async throws {
-        book = try await db.writer.write { [book] db in
+        book = try await db.write { [book] db in
             try book.saved(db)
         }
     }
     
     func deleteBooks(ids: [Book.Id]) async throws {
-        try await db.writer.write { db in
+        try await db.write { db in
             _ = try Book.deleteAll(db, ids: ids)
         }
     }
@@ -87,14 +86,14 @@ final class BookRepository {
     }
     
     func add(_ book: Book) -> AnyPublisher<Book.Id, Error> {
-        return db.write { db in
+        return db.writePublisher { db in
             try book.insert(db)
             return Book.Id(rawValue: db.lastInsertedRowID)
         }.eraseToAnyPublisher()
     }
     
     func remove(_ id: Book.Id) -> AnyPublisher<Void, Error> {
-        db.write { db in try Book.deleteOne(db, key: id) }
+        db.writePublisher { db in try Book.deleteOne(db, key: id) }
     }
     
     func saveProgress(for id: Book.Id, locator: Locator) -> AnyPublisher<Void, Error> {
@@ -102,7 +101,7 @@ final class BookRepository {
             return .just(())
         }
         
-        return db.write { db in
+        return db.writePublisher { db in
             try db.execute(literal: """
                 UPDATE book
                    SET locator = \(json), progression = \(locator.locations.totalProgression ?? 0)

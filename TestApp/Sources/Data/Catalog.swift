@@ -46,13 +46,13 @@ final class CatalogRepository {
     }
     
     func saveCatalog(_ catalog: inout Catalog) async throws {
-        catalog = try await db.writer.write { [catalog] db in
+        catalog = try await db.write { [catalog] db in
             try catalog.saved(db)
         }
     }
     
     func deleteCatalogs(ids: [Catalog.Id]) async throws {
-        try await db.writer.write { db in
+        try await db.write { db in
             _ = try Catalog.deleteAll(db, ids: ids)
         }
     }
