@@ -21,6 +21,6 @@ final class CatalogsViewModel: ObservableObject {
     
     func addCatalog(catalog: Catalog) async throws {
         var savedCatalog = catalog
-        try? await catalogRepository.saveCatalog(&savedCatalog)
+        try? await catalogRepository.save(&savedCatalog)
     }
 }

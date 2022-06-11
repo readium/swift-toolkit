@@ -8,6 +8,7 @@ import Combine
 import Foundation
 import GRDB
 
+/// Represents an OPDS catalog.
 struct Catalog: Codable, Hashable, Identifiable {
     struct Id: EntityId { let rawValue: Int64 }
     
@@ -45,15 +46,9 @@ final class CatalogRepository {
             .eraseToAnyPublisher()
     }
     
-    func saveCatalog(_ catalog: inout Catalog) async throws {
+    func save(_ catalog: inout Catalog) async throws {
         catalog = try await db.write { [catalog] db in
             try catalog.saved(db)
-        }
-    }
-    
-    func deleteCatalogs(ids: [Catalog.Id]) async throws {
-        try await db.write { db in
-            _ = try Catalog.deleteAll(db, ids: ids)
         }
     }
 }

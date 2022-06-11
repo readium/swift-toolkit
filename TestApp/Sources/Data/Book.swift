@@ -67,15 +67,9 @@ final class BookRepository {
         self.db = db
     }
     
-    func saveBook(_ book: inout Book) async throws {
+    func save(_ book: inout Book) async throws {
         book = try await db.write { [book] db in
             try book.saved(db)
-        }
-    }
-    
-    func deleteBooks(ids: [Book.Id]) async throws {
-        try await db.write { db in
-            _ = try Book.deleteAll(db, ids: ids)
         }
     }
     
@@ -96,12 +90,12 @@ final class BookRepository {
         db.writePublisher { db in try Book.deleteOne(db, key: id) }
     }
     
-    func saveProgress(for id: Book.Id, locator: Locator) -> AnyPublisher<Void, Error> {
+    func saveProgress(for id: Book.Id, locator: Locator) async throws {
         guard let json = locator.jsonString else {
-            return .just(())
+            return
         }
         
-        return db.writePublisher { db in
+        try await db.write { db in
             try db.execute(literal: """
                 UPDATE book
                    SET locator = \(json), progression = \(locator.locations.totalProgression ?? 0)
