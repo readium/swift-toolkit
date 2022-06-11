@@ -55,7 +55,7 @@ struct Catalogs: View {
     @ToolbarContentBuilder
     private func toolbarContent() -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
-            AddButton {
+            Button(.add) {
                 showingSheet = true
             }
         }

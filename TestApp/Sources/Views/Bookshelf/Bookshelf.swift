@@ -42,7 +42,7 @@ extension Bookshelf {
     @ToolbarContentBuilder
     private func toolbarContent() -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
-            AddButton {
+            Button(.add) {
                 showingSheet = true
             }
         }

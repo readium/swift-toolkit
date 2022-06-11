@@ -29,12 +29,12 @@ struct AddBookSheet: View {
     @ToolbarContentBuilder
     private func toolbarContent() -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {
-            CancelButton {
+            Button(.cancel) {
                 showingSheet = false
             }
         }
         ToolbarItem(placement: .navigationBarTrailing) {
-            SaveButton {
+            Button(.save) {
                 action(url)
                 showingSheet = false
             }

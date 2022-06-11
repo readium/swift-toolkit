@@ -6,17 +6,22 @@
 
 import SwiftUI
 
-struct AddButton: View {
-    var action: () -> Void = {}
-    var body: some View {
+enum ButtonKind {
+    case add
+    case cancel
+    case save
+}
+
+@ViewBuilder
+func Button(_ kind: ButtonKind, action: @escaping () -> Void) -> some View {
+    switch kind {
+    case .add:
         Button(action: action) {
             Label("Add", systemImage: "plus")
         }
-    }
-}
-
-struct AddButton_Previews: PreviewProvider {
-    static var previews: some View {
-        AddButton()
+    case .cancel:
+        Button("Cancel", action: action)
+    case .save:
+        Button("Save", action: action)
     }
 }

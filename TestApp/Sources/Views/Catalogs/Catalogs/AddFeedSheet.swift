@@ -35,12 +35,12 @@ struct AddFeedSheet: View {
     @ToolbarContentBuilder
     private func toolbarContent() -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {
-            CancelButton {
+            Button(.cancel) {
                 showingSheet = false
             }
         }
         ToolbarItem(placement: .navigationBarTrailing) {
-            SaveButton {
+            Button(.save) {
                 action((title: title, url: url))
                 showingSheet = false
             }
