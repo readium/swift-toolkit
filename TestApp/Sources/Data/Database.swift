@@ -75,17 +75,11 @@ final class Database {
             .eraseToAnyPublisher()
     }
     
-    func observe<T>(_ query: @escaping (GRDB.Database) throws -> T) -> AnyPublisher<T, Error> {
+    func observe<T>(_ query: @escaping (GRDB.Database) throws -> T) -> AnyPublisher<T, Never> {
         ValueObservation.tracking(query)
             .publisher(in: writer)
+            .assertNoFailure()
             .eraseToAnyPublisher()
-    }
-}
-
-extension Database {
-    /// Provides a read-only access to the database
-    var databaseReader: DatabaseReader {
-        writer
     }
 }
 

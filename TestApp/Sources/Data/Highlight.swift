@@ -73,7 +73,7 @@ final class HighlightRepository {
         self.db = db
     }
     
-    func all(for bookId: Book.Id) -> AnyPublisher<[Highlight], Error> {
+    func all(for bookId: Book.Id) -> AnyPublisher<[Highlight], Never> {
         db.observe { db in
             try Highlight
                 .filter(Highlight.Columns.bookId == bookId)
@@ -82,7 +82,7 @@ final class HighlightRepository {
         }
     }
     
-    func highlight(for highlightId: Highlight.Id) -> AnyPublisher<Highlight, Error> {
+    func highlight(for highlightId: Highlight.Id) -> AnyPublisher<Highlight, Never> {
         db.observe { db in
             try Highlight
                 .filter(Highlight.Columns.id == highlightId)

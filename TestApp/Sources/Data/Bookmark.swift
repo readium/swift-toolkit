@@ -44,7 +44,7 @@ final class BookmarkRepository {
         self.db = db
     }
     
-    func all(for bookId: Book.Id) -> AnyPublisher<[Bookmark], Error> {
+    func all(for bookId: Book.Id) -> AnyPublisher<[Bookmark], Never> {
         db.observe { db in
             try Bookmark
                 .filter(Bookmark.Columns.bookId == bookId)

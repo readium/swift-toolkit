@@ -39,11 +39,9 @@ final class CatalogRepository {
     }
     
     func all() -> AnyPublisher<[Catalog]?, Never> {
-        ValueObservation
-            .tracking(Catalog.order(Catalog.Columns.title).fetchAll)
-            .publisher(in: db.databaseReader, scheduling: .immediate)
-            .assertNoFailure()
-            .eraseToAnyPublisher()
+        db.observe {
+            try Catalog.order(Catalog.Columns.title).fetchAll($0)
+        }
     }
     
     func save(_ catalog: inout Catalog) async throws {

@@ -73,7 +73,7 @@ final class BookRepository {
         }
     }
     
-    func all() -> AnyPublisher<[Book], Error> {
+    func all() -> AnyPublisher<[Book], Never> {
         db.observe { db in
             try Book.order(Book.Columns.created).fetchAll(db)
         }

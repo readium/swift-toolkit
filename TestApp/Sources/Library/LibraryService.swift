@@ -50,7 +50,7 @@ final class LibraryService: Loggable {
         )
     }
     
-    func allBooks() -> AnyPublisher<[Book], Error> {
+    func allBooks() -> AnyPublisher<[Book], Never> {
         books.all()
     }
     
