@@ -23,4 +23,8 @@ final class CatalogsViewModel: ObservableObject {
         var savedCatalog = catalog
         try? await catalogRepository.save(&savedCatalog)
     }
+    
+    func deleteCatalogs(ids: [Catalog.Id]) async throws {
+        try? await catalogRepository.delete(ids: ids)
+    }
 }

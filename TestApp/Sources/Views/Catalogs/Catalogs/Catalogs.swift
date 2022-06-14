@@ -25,6 +25,12 @@ struct Catalogs: View {
                                 ListRowItem(title: catalog.title)
                             }
                         }
+                        .onDelete { offsets in
+                            let catalogIds = offsets.map { catalogs[$0].id! }
+                            Task {
+                                try await viewModel.deleteCatalogs(ids: catalogIds)
+                            }
+                        }
                     }
                     .listStyle(DefaultListStyle())
                 }
