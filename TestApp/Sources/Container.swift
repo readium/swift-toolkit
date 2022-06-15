@@ -37,7 +37,9 @@ class Container {
     }
     
     func catalogDetail(with catalog: Catalog) -> CatalogDetail {
-        CatalogDetail(viewModel: CatalogDetailViewModel(catalog: catalog))
+        CatalogDetail(viewModel: CatalogDetailViewModel(catalog: catalog),
+                      catalogDetail: catalogDetail(with:)
+        )
     }
     
     // About
