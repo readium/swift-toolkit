@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import R2Shared
 
 class Container {
     
@@ -38,8 +39,13 @@ class Container {
     
     func catalogDetail(with catalog: Catalog) -> CatalogDetail {
         CatalogDetail(viewModel: CatalogDetailViewModel(catalog: catalog),
-                      catalogDetail: catalogDetail(with:)
+                      catalogDetail: catalogDetail(with:),
+                      publicationDetail: publicationDetail(with:)
         )
+    }
+    
+    func publicationDetail(with publication: Publication) -> PublicationDetail {
+        PublicationDetail(viewModel: PublicationViewModel(publication: publication))
     }
     
     // About
