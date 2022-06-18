@@ -8,11 +8,11 @@ import SwiftUI
 import R2Shared
 
 struct PublicationDetail: View {
-
-    @ObservedObject var viewModel: PublicationViewModel
+    
+    @State var publication: Publication
     
     var body: some View {
-        
+        Text("")
     }
 }
 

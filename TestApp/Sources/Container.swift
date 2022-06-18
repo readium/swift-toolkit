@@ -23,7 +23,7 @@ class Container {
     private lazy var bookRepository = BookRepository(db: db)
     
     func bookshelf() -> Bookshelf {
-        Bookshelf(viewModel: BookshelfViewModel(bookRepository: bookRepository))
+        Bookshelf(bookRepository: bookRepository)
     }
     
     // Catalogs
@@ -32,20 +32,20 @@ class Container {
     
     func catalogs() -> Catalogs {
         Catalogs(
-            viewModel: CatalogsViewModel(catalogRepository: catalogRepository),
+            catalogRepository: catalogRepository,
             catalogDetail: catalogDetail(with:)
         )
     }
     
     func catalogDetail(with catalog: Catalog) -> CatalogDetail {
-        CatalogDetail(viewModel: CatalogDetailViewModel(catalog: catalog),
+        CatalogDetail(catalog: catalog,
                       catalogDetail: catalogDetail(with:),
                       publicationDetail: publicationDetail(with:)
         )
     }
     
     func publicationDetail(with publication: Publication) -> PublicationDetail {
-        PublicationDetail(viewModel: PublicationViewModel(publication: publication))
+        PublicationDetail(publication: publication)
     }
     
     // About

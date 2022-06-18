@@ -6,21 +6,24 @@
 
 import SwiftUI
 import R2Shared
+import ReadiumOPDS
 
 struct CatalogDetail: View {
     
-    @ObservedObject var viewModel: CatalogDetailViewModel
+    @State var catalog: Catalog
+    @State private var parseData: ParseData?
+    
     let catalogDetail: (Catalog) -> CatalogDetail
     let publicationDetail: (Publication) -> PublicationDetail
     
     var body: some View {
         
         VStack {
-            if let parseData = viewModel.parseData {
+            if let feed = parseData?.feed {
                 List() {
-                    if (!(parseData.feed?.navigation.isEmpty)!) {
+                    if !feed.navigation.isEmpty {
                         Section(header: Text("Navigation")) {
-                            ForEach(parseData.feed!.navigation, id: \.self) { link in
+                            ForEach(feed.navigation, id: \.self) { link in
                                 let navigationLink = Catalog(title: link.title ?? "Catalog", url: link.href)
                                 NavigationLink(destination: catalogDetail(navigationLink)) {
                                     ListRowItem(title: link.title!)
@@ -30,14 +33,14 @@ struct CatalogDetail: View {
                     }
                     
                     // TODO This probably needs its own file
-                    if (!(parseData.feed?.publications.isEmpty)!) {
+                    if !feed.publications.isEmpty {
                         Section(header: Text("Publications")) {
                             
                         }
                     }
                     
                     // TODO This probably needs its own file
-                    if (!(parseData.feed?.groups.isEmpty)!) {
+                    if !feed.groups.isEmpty {
                         Section(header: Text("Groups")) {
                             
                         }
@@ -46,12 +49,21 @@ struct CatalogDetail: View {
                 .listStyle(GroupedListStyle())
             }
         }
-        .navigationTitle(viewModel.catalog.title)
+        .navigationTitle(catalog.title)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             Task {
-                await viewModel.parseFeed()
+                await parseFeed()
             }
+        }
+    }
+}
+
+extension CatalogDetail {
+    
+    func parseFeed() async {
+        if let url = URL(string: catalog.url) {
+            self.parseData = try? await OPDSParser.parseURL(url: url)
         }
     }
 }
@@ -69,7 +81,7 @@ struct CatalogDetail: View {
 struct CatalogDetail_Previews: PreviewProvider {
     static var previews: some View {
         let catalog = Catalog(title: "Test", url: "https://www.test.com")
-        CatalogDetail(viewModel: CatalogDetailViewModel(catalog: catalog), catalogDetail: { _ in fatalError() },
+        CatalogDetail(catalog: catalog, catalogDetail: { _ in fatalError() },
                       publicationDetail: { _ in fatalError() }
         )
     }
