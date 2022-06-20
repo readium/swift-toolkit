@@ -34,8 +34,20 @@ struct CatalogDetail: View {
                     
                     // TODO This probably needs its own file
                     if !feed.publications.isEmpty {
+                        let columns: [GridItem] = Array(repeating: .init(.flexible()), count: 2)
                         Section(header: Text("Publications")) {
-                            
+                            LazyVGrid(columns: columns) {
+                                ForEach(feed.publications) { publication in
+                                    let authors = publication.metadata.authors
+                                        .map { $0.name }
+                                        .joined(separator: ", ")
+                                    if publication.images.count > 0 {
+                                        BookCover(title: publication.metadata.title, authors: authors, url: URL(string: publication.images[0].href))
+                                    } else {
+                                        BookCover(title: publication.metadata.title, authors: authors)
+                                    }
+                                }
+                            }
                         }
                     }
                     
