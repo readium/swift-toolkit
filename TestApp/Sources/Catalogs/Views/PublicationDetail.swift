@@ -12,7 +12,7 @@ struct PublicationDetail: View {
     @State var publication: Publication
     
     var body: some View {
-        Text("")
+        Text(publication.metadata.title)
     }
 }
 

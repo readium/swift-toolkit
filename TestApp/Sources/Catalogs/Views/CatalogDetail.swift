@@ -35,11 +35,12 @@ struct CatalogDetail: View {
                     if !feed.publications.isEmpty {
                         let columns: [GridItem] = Array(repeating: .init(.flexible(), alignment: .top), count: 2)
                         Text("Publications").font(.title3)
-                            LazyVGrid(columns: columns) {
-                                ForEach(feed.publications) { publication in
-                                    let authors = publication.metadata.authors
-                                        .map { $0.name }
-                                        .joined(separator: ", ")
+                        LazyVGrid(columns: columns) {
+                            ForEach(feed.publications) { publication in
+                                let authors = publication.metadata.authors
+                                    .map { $0.name }
+                                    .joined(separator: ", ")
+                                NavigationLink(destination: publicationDetail(publication)) {
                                     BookCover(
                                         title: publication.metadata.title,
                                         authors: authors,
@@ -47,7 +48,9 @@ struct CatalogDetail: View {
                                             .map { URL(string: $0.href)! }
                                     )
                                 }
+                                .buttonStyle(.plain)
                             }
+                        }
                     }
                     
                     // TODO This probably needs its own file
