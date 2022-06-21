@@ -18,48 +18,45 @@ struct CatalogDetail: View {
     
     var body: some View {
         
-        VStack {
-            if let feed = parseData?.feed {
-                List() {
+        ScrollView {
+            VStack(alignment: .leading) {
+                if let feed = parseData?.feed {
                     if !feed.navigation.isEmpty {
-                        Section(header: Text("Navigation")) {
-                            ForEach(feed.navigation, id: \.self) { link in
-                                let navigationLink = Catalog(title: link.title ?? "Catalog", url: link.href)
-                                NavigationLink(destination: catalogDetail(navigationLink)) {
-                                    ListRowItem(title: link.title!)
-                                }
+                        Text("Navigation").font(.title3)
+                        ForEach(feed.navigation, id: \.self) { link in
+                            let navigationLink = Catalog(title: link.title ?? "Catalog", url: link.href)
+                            NavigationLink(destination: catalogDetail(navigationLink)) {
+                                ListRowItem(title: link.title!)
                             }
                         }
                     }
                     
                     // TODO This probably needs its own file
                     if !feed.publications.isEmpty {
-                        let columns: [GridItem] = Array(repeating: .init(.flexible()), count: 2)
-                        Section(header: Text("Publications")) {
+                        let columns: [GridItem] = Array(repeating: .init(.flexible(), alignment: .top), count: 2)
+                        Text("Publications").font(.title3)
                             LazyVGrid(columns: columns) {
                                 ForEach(feed.publications) { publication in
                                     let authors = publication.metadata.authors
                                         .map { $0.name }
                                         .joined(separator: ", ")
-                                    if publication.images.count > 0 {
-                                        BookCover(title: publication.metadata.title, authors: authors, url: URL(string: publication.images[0].href))
-                                    } else {
-                                        BookCover(title: publication.metadata.title, authors: authors)
-                                    }
+                                    BookCover(
+                                        title: publication.metadata.title,
+                                        authors: authors,
+                                        url: publication.images.first
+                                            .map { URL(string: $0.href)! }
+                                    )
                                 }
                             }
-                        }
                     }
                     
                     // TODO This probably needs its own file
                     if !feed.groups.isEmpty {
-                        Section(header: Text("Groups")) {
-                            
-                        }
+                        Text("Groups").font(.title3)
                     }
                 }
-                .listStyle(GroupedListStyle())
-            }
+            }.frame(maxWidth: .infinity, alignment: .leading)
+                .padding([.trailing, .leading], 10)
         }
         .navigationTitle(catalog.title)
         .navigationBarTitleDisplayMode(.inline)
