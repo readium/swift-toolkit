@@ -13,7 +13,7 @@ import CoreServices
 import Foundation
 
 /// Shared model for a Readium Publication.
-public class Publication: Loggable {
+public class Publication: Loggable, Identifiable {
     
     /// Format of the publication, if specified.
     @available(*, deprecated, message: "Use publication.conforms(to:) to check the profile of a Publication")
