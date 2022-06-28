@@ -48,20 +48,6 @@ public final class CancellableObject: Cancellable {
     }
 }
 
-/// A `Cancellable` which will run a given closure when cancelled.
-public final class CancellableAction: Cancellable {
-    public private(set) var isCancelled = false
-    private let onCancel: () -> Void
-    
-    public init(onCancel: @escaping () -> Void) {
-        self.onCancel = onCancel
-    }
-
-    public func cancel() {
-        isCancelled = true
-    }
-}
-
 extension DispatchQueue {
     func async(unlessCancelled cancellable: CancellableObject, execute work: @escaping () -> Void) {
         async {
