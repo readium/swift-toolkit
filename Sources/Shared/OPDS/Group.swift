@@ -10,7 +10,7 @@
 //
 
 /// A substructure of a feed.
-public class Group {
+public class Group: Identifiable {
     public var metadata: OpdsMetadata
     public var links = [Link]()
     public var publications = [Publication]()

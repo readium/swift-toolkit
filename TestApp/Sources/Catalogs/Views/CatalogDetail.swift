@@ -22,7 +22,7 @@ struct CatalogDetail: View {
             VStack(alignment: .leading) {
                 if let feed = parseData?.feed {
                     if !feed.navigation.isEmpty {
-                        Text("Navigation").font(.title3)
+                        Text("Navigation").font(.title2)
                         ForEach(feed.navigation, id: \.self) { link in
                             let navigationLink = Catalog(title: link.title ?? "Catalog", url: link.href)
                             NavigationLink(destination: catalogDetail(navigationLink)) {
@@ -34,7 +34,7 @@ struct CatalogDetail: View {
                     // TODO This probably needs its own file
                     if !feed.publications.isEmpty {
                         let columns: [GridItem] = Array(repeating: .init(.flexible(), alignment: .top), count: 2)
-                        Text("Publications").font(.title3)
+                        Text("Publications").font(.title2)
                         LazyVGrid(columns: columns) {
                             ForEach(feed.publications) { publication in
                                 let authors = publication.metadata.authors
@@ -55,11 +55,33 @@ struct CatalogDetail: View {
                     
                     // TODO This probably needs its own file
                     if !feed.groups.isEmpty {
-                        Text("Groups").font(.title3)
+                        Text("Groups").font(.title2)
+                        let rows = [GridItem(.flexible(), alignment: .top)]
+                        ForEach(feed.groups) { group in
+                            Text(group.metadata.title).font(.title3)
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                LazyHGrid(rows: rows, spacing: 30) {
+                                    ForEach(group.publications) { publication in
+                                        let authors = publication.metadata.authors
+                                            .map { $0.name }
+                                            .joined(separator: ", ")
+                                        NavigationLink(destination: publicationDetail(publication)) {
+                                            // FIXME Ideally the title and author should not be truncated
+                                            BookCover(
+                                                title: publication.metadata.title,
+                                                authors: authors,
+                                                url: publication.images.first
+                                                    .map { URL(string: $0.href)! }
+                                            )
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
-            }.frame(maxWidth: .infinity, alignment: .leading)
-                .padding([.trailing, .leading], 10)
+            }
         }
         .navigationTitle(catalog.title)
         .navigationBarTitleDisplayMode(.inline)

@@ -13,26 +13,26 @@ struct BookCover: View {
     var action: () -> Void = {}
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 5) {
+        VStack(alignment: .leading, spacing: 10) {
             if (url != nil) {
                 AsyncImage(
                     url: url,
                     content: { $0
                         .resizable()
                         .aspectRatio(contentMode: .fit)
+                        .frame(width: 150, height: 220)
                     },
                     placeholder: { ProgressView() }
                 )
-                .frame(width: 150, height: 220)
             } else {
                 Image(systemName: "book.closed")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
                     .frame(width: 150, height: 220)
             }
             Text(title)
-                .frame(maxHeight: .infinity, alignment: .top)
             Text(authors ?? "")
-                .frame(maxHeight: .infinity, alignment: .top)
-        }
+        }.frame(maxWidth: 150)
     }
 }
 
