@@ -33,6 +33,7 @@ struct CatalogDetail: View {
                     
                     // TODO This probably needs its own file
                     if !feed.publications.isEmpty {
+                        // TODO can this be reused in bookshelf and here?
                         let columns: [GridItem] = Array(repeating: .init(.flexible(), alignment: .top), count: 2)
                         Text("Publications").font(.title2)
                         LazyVGrid(columns: columns) {
@@ -57,8 +58,16 @@ struct CatalogDetail: View {
                     if !feed.groups.isEmpty {
                         Text("Groups").font(.title2)
                         let rows = [GridItem(.flexible(), alignment: .top)]
-                        ForEach(feed.groups) { group in
-                            Text(group.metadata.title).font(.title3)
+                        ForEach(feed.groups as [R2Shared.Group]) { group in
+                            HStack {
+                                Text(group.metadata.title).font(.title3)
+                                if group.links.count > 0 {
+                                    let navigationLink = Catalog(title: group.links.first!.title ?? "Catalog", url: group.links.first!.href)
+                                    NavigationLink(destination: catalogDetail(navigationLink)) {
+                                        ListRowItem(title: "See All").frame(maxWidth: .infinity, alignment: .trailing)
+                                    }
+                                }
+                            }
                             ScrollView(.horizontal, showsIndicators: false) {
                                 LazyHGrid(rows: rows, spacing: 30) {
                                     ForEach(group.publications) { publication in
@@ -76,6 +85,12 @@ struct CatalogDetail: View {
                                         }
                                         .buttonStyle(.plain)
                                     }
+                                }
+                            }
+                            ForEach(group.navigation, id: \.self) { navigation in
+                                let navigationLink = Catalog(title: navigation.title ?? "Catalog", url: navigation.href)
+                                NavigationLink(destination: catalogDetail(navigationLink)) {
+                                    ListRowItem(title: navigation.title!)
                                 }
                             }
                         }
