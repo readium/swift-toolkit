@@ -29,6 +29,7 @@ struct About: View {
                 Text("R2 Reader wouldn't have been developed without the financial help of the French State.")
                 Image("rf")
             }
+            .padding()
             .navigationTitle("About")
         }
     }
