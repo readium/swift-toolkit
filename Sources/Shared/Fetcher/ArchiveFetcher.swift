@@ -1,12 +1,7 @@
 //
-//  ArchiveFetcher.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 11/05/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -31,13 +26,26 @@ public final class ArchiveFetcher: Fetcher, Loggable {
 
     public func get(_ link: Link) -> Resource {
         guard
-            let entry = archive.entry(at: link.href),
-            let reader = archive.readEntry(at: link.href)
+            let entry = findEntry(at: link.href),
+            let reader = archive.readEntry(at: entry.path)
         else {
             return FailureResource(link: link, error: .notFound(nil))
         }
 
         return ArchiveResource(link: link, entry: entry, reader: reader)
+    }
+    
+    private func findEntry(at href: String) -> ArchiveEntry? {
+        if let entry = archive.entry(at: href) {
+            return entry
+        }
+        
+        // Try after removing query parameters and anchors from the href.
+        guard let href = href.components(separatedBy: .init(charactersIn: "#?")).first else {
+            return nil
+        }
+        
+        return archive.entry(at: href)
     }
     
     public func close() {}
