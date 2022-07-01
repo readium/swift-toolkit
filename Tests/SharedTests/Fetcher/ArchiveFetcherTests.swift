@@ -1,12 +1,7 @@
 //
-//  ArchiveFetcherTests.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 11/05/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import XCTest
@@ -104,4 +99,19 @@ class ArchiveFetcherTests: XCTestCase {
         )
     }
     
+    /// When the HREF contains query parameters, the fetcher should first be able to remove them as
+    /// a fallback.
+    func testHREFWithQueryParameters() {
+        let resource = fetcher.get(Link(href: "/mimetype?query=param"))
+        let result = resource.readAsString(encoding: .ascii)
+        XCTAssertEqual(result.getOrNil(), "application/epub+zip")
+    }
+    
+    /// When the HREF contains an anchor, the fetcher should first be able to remove them as
+    /// a fallback.
+    func testHREFWithAnchor() {
+        let resource = fetcher.get(Link(href: "/mimetype#anchor"))
+        let result = resource.readAsString(encoding: .ascii)
+        XCTAssertEqual(result.getOrNil(), "application/epub+zip")
+    }
 }
