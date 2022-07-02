@@ -227,6 +227,14 @@ public class PublicationServer: ResourcesServer {
 
             let resource = publication.get(href.removingPercentEncoding ?? href)
             let range = request.hasByteRange() ? request.byteRange : nil
+            switch resource.length {
+            case .failure:
+                if let count = request.url.query?.count, count > 0, let link = publication.link(withHREF: href) {
+                    resource = publication.get(link)
+                }
+            default:
+                break
+            }
             return WebServerResourceResponse(
                 resource: resource,
                 range: range,
