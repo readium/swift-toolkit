@@ -57,47 +57,10 @@ struct CatalogDetail: View {
                     
                     Divider().frame(height: 50)
                     
-                    // TODO This probably needs its own file
                     if !feed.groups.isEmpty {
-                        let rows = [GridItem(.flexible(), alignment: .top)]
                         ForEach(feed.groups as [R2Shared.Group]) { group in
-                            HStack {
-                                Text(group.metadata.title).font(.title3)
-                                if !group.links.isEmpty {
-                                    let navigationLink = Catalog(title: group.links.first!.title ?? "Catalog", url: group.links.first!.href)
-                                    NavigationLink(destination: catalogDetail(navigationLink)) {
-                                        ListRowItem(title: "See All").frame(maxWidth: .infinity, alignment: .trailing)
-                                    }
-                                }
-                            }
-                            if !group.publications.isEmpty {
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    LazyHGrid(rows: rows, spacing: 30) {
-                                        ForEach(group.publications) { publication in
-                                            let authors = publication.metadata.authors
-                                                .map { $0.name }
-                                                .joined(separator: ", ")
-                                            NavigationLink(destination: publicationDetail(publication)) {
-                                                // FIXME Ideally the title and author should not be truncated
-                                                BookCover(
-                                                    title: publication.metadata.title,
-                                                    authors: authors,
-                                                    url: publication.images.first
-                                                        .map { URL(string: $0.href)! }
-                                                )
-                                            }
-                                            .buttonStyle(.plain)
-                                        }
-                                    }
-                                }
-                            }
-                            ForEach(group.navigation, id: \.self) { navigation in
-                                let navigationLink = Catalog(title: navigation.title ?? "Catalog", url: navigation.href)
-                                NavigationLink(destination: catalogDetail(navigationLink)) {
-                                    ListRowItem(title: navigation.title!)
-                                }
-                            }
-                            
+                            CatalogGroup(group: group, publicationDetail: publicationDetail, catalogDetail: catalogDetail)
+                                .padding([.bottom], 25)
                         }
                     }
                 }
