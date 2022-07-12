@@ -8,12 +8,12 @@ import SwiftUI
 import R2Shared
 import ReadiumOPDS
 
-struct CatalogDetail: View {
+struct CatalogFeed: View {
     
     @State var catalog: Catalog
     @State private var parseData: ParseData?
     
-    let catalogDetail: (Catalog) -> CatalogDetail
+    let catalogFeed: (Catalog) -> CatalogFeed
     let publicationDetail: (Publication) -> PublicationDetail
     
     var body: some View {
@@ -24,13 +24,12 @@ struct CatalogDetail: View {
                     if !feed.navigation.isEmpty {
                         ForEach(feed.navigation, id: \.self) { link in
                             let navigationLink = Catalog(title: link.title ?? "Catalog", url: link.href)
-                            NavigationLink(destination: catalogDetail(navigationLink)) {
+                            NavigationLink(destination: catalogFeed(navigationLink)) {
                                 ListRowItem(title: link.title!)
                             }
                         }
+                        Divider().frame(height: 50)
                     }
-                    
-                    Divider().frame(height: 50)
                     
                     // TODO This probably needs its own file
                     if !feed.publications.isEmpty {
@@ -52,14 +51,12 @@ struct CatalogDetail: View {
                                 .buttonStyle(.plain)
                             }
                         }
+                        Divider().frame(height: 50)
                     }
-                    
-                    
-                    Divider().frame(height: 50)
                     
                     if !feed.groups.isEmpty {
                         ForEach(feed.groups as [R2Shared.Group]) { group in
-                            CatalogGroup(group: group, publicationDetail: publicationDetail, catalogDetail: catalogDetail)
+                            CatalogGroup(group: group, publicationDetail: publicationDetail, catalogFeed: catalogFeed)
                                 .padding([.bottom], 25)
                         }
                     }
@@ -71,13 +68,15 @@ struct CatalogDetail: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             Task {
-                await parseFeed()
+                if parseData == nil {
+                    await parseFeed()
+                }
             }
         }
     }
 }
 
-extension CatalogDetail {
+extension CatalogFeed {
     
     func parseFeed() async {
         if let url = URL(string: catalog.url) {
@@ -99,8 +98,8 @@ extension CatalogDetail {
 struct CatalogDetail_Previews: PreviewProvider {
     static var previews: some View {
         let catalog = Catalog(title: "Test", url: "https://www.test.com")
-        CatalogDetail(catalog: catalog, catalogDetail: { _ in fatalError() },
-                      publicationDetail: { _ in fatalError() }
+        CatalogFeed(catalog: catalog, catalogFeed: { _ in fatalError() },
+                    publicationDetail: { _ in fatalError() }
         )
     }
 }

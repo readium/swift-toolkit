@@ -30,16 +30,16 @@ class Container {
     
     private lazy var catalogRepository = CatalogRepository(db: db)
     
-    func catalogs() -> Catalogs {
-        Catalogs(
+    func catalogs() -> CatalogList {
+        CatalogList(
             catalogRepository: catalogRepository,
-            catalogDetail: catalogDetail(with:)
+            catalogFeed: catalogFeed(with:)
         )
     }
     
-    func catalogDetail(with catalog: Catalog) -> CatalogDetail {
-        CatalogDetail(catalog: catalog,
-                      catalogDetail: catalogDetail(with:),
+    func catalogFeed(with catalog: Catalog) -> CatalogFeed {
+        CatalogFeed(catalog: catalog,
+                      catalogFeed: catalogFeed(with:),
                       publicationDetail: publicationDetail(with:)
         )
     }

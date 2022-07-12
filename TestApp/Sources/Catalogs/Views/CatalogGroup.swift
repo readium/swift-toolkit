@@ -11,7 +11,7 @@ struct CatalogGroup: View {
     
     var group: R2Shared.Group
     let publicationDetail: (Publication) -> PublicationDetail
-    let catalogDetail: (Catalog) -> CatalogDetail
+    let catalogFeed: (Catalog) -> CatalogFeed
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -20,7 +20,7 @@ struct CatalogGroup: View {
                 Text(group.metadata.title).font(.title3)
                 if !group.links.isEmpty {
                     let navigationLink = Catalog(title: group.links.first!.title ?? "Catalog", url: group.links.first!.href)
-                    NavigationLink(destination: catalogDetail(navigationLink)) {
+                    NavigationLink(destination: catalogFeed(navigationLink)) {
                         ListRowItem(title: "See All").frame(maxWidth: .infinity, alignment: .trailing)
                     }
                 }
@@ -48,7 +48,7 @@ struct CatalogGroup: View {
             }
             ForEach(group.navigation, id: \.self) { navigation in
                 let navigationLink = Catalog(title: navigation.title ?? "Catalog", url: navigation.href)
-                NavigationLink(destination: catalogDetail(navigationLink)) {
+                NavigationLink(destination: catalogFeed(navigationLink)) {
                     ListRowItem(title: navigation.title!)
                 }
             }

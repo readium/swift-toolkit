@@ -7,10 +7,10 @@
 import SwiftUI
 import ReadiumOPDS
 
-struct Catalogs: View {
+struct CatalogList: View {
     
     let catalogRepository: CatalogRepository
-    let catalogDetail: (Catalog) -> CatalogDetail
+    let catalogFeed: (Catalog) -> CatalogFeed
     
     @State private var showingSheet = false
     @State private var showingAlert = false
@@ -21,7 +21,7 @@ struct Catalogs: View {
             VStack {
                 List() {
                     ForEach(catalogs, id: \.id) { catalog in
-                        NavigationLink(destination: catalogDetail(catalog)) {
+                        NavigationLink(destination: catalogFeed(catalog)) {
                             ListRowItem(title: catalog.title)
                         }
                     }
@@ -71,7 +71,7 @@ struct Catalogs: View {
     }
 }
 
-extension Catalogs {
+extension CatalogList {
     
     func addCatalog(catalog: Catalog) async throws {
         var savedCatalog = catalog
