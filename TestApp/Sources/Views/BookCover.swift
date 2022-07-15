@@ -18,7 +18,7 @@ struct BookCover: View {
             cover
                 .frame(width: width, height: 220, alignment: .bottom)
             labels
-                .frame(width: width, height: 60, alignment: .topLeading)
+                .frame(width: width, alignment: .topLeading)
         }
     }
     
@@ -49,17 +49,15 @@ struct BookCover: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
                 .font(.headline)
-                .lineLimit(2)
-            // If both the title and authors are too large, makes sure that
-            // the title will take the priority to expand.
-                .layoutPriority(1)
+                .lineLimit(1)
             
-            Text(authors ?? "")
+            // Hack to reserve space for two lines of text.
+            // See https://sarunw.com/posts/how-to-force-two-lines-of-text-in-swiftui/
+            Text((authors ?? "") + "\n")
                 .font(.subheadline)
+                .foregroundStyle(.secondary)
                 .lineLimit(2)
         }
-        // Scales down the fonts.
-//        .dynamicTypeSize(.small)
     }
 }
 
