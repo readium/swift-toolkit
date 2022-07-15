@@ -13,26 +13,53 @@ struct BookCover: View {
     var action: () -> Void = {}
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if (url != nil) {
-                AsyncImage(
-                    url: url,
-                    content: { $0
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 150, height: 220)
-                    },
-                    placeholder: { ProgressView() }
-                )
-            } else {
-                Image(systemName: "book.closed")
+        VStack {
+            let width: CGFloat = 150
+            cover
+                .frame(width: width, height: 220, alignment: .bottom)
+            labels
+                .frame(width: width, height: 60, alignment: .topLeading)
+        }
+    }
+    
+    @ViewBuilder
+    private var cover: some View {
+        if (url != nil) {
+            AsyncImage(
+                url: url,
+                content: { $0
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 150, height: 220)
-            }
+                    .shadow(radius: 2)
+                },
+                placeholder: {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                }
+            )
+        } else {
+            Image(systemName: "book.closed")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+        }
+    }
+    
+    @ViewBuilder
+    private var labels: some View {
+        VStack(alignment: .leading, spacing: 4) {
             Text(title)
+                .font(.headline)
+                .lineLimit(2)
+            // If both the title and authors are too large, makes sure that
+            // the title will take the priority to expand.
+                .layoutPriority(1)
+            
             Text(authors ?? "")
-        }.frame(maxWidth: 150)
+                .font(.subheadline)
+                .lineLimit(2)
+        }
+        // Scales down the fonts.
+//        .dynamicTypeSize(.small)
     }
 }
 

@@ -17,7 +17,7 @@ struct Bookshelf: View {
         NavigationView {
             VStack {
                 // TODO figure out what the best column layout is for phones and tablets
-                let columns: [GridItem] = Array(repeating: .init(.flexible()), count: 2)
+                let columns: [GridItem] = [GridItem(.adaptive(minimum: 150 + 8))]
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 20) {
                         ForEach(books, id: \.self) { book in

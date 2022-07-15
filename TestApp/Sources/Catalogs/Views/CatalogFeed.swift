@@ -10,7 +10,7 @@ import ReadiumOPDS
 
 struct CatalogFeed: View {
     
-    @State var catalog: Catalog
+    var catalog: Catalog
     @State private var parseData: ParseData?
     
     let catalogFeed: (Catalog) -> CatalogFeed
@@ -33,7 +33,6 @@ struct CatalogFeed: View {
                     
                     // TODO This probably needs its own file
                     if !feed.publications.isEmpty {
-                        // TODO can this be reused in bookshelf and here?
                         let columns: [GridItem] = Array(repeating: .init(.flexible(), alignment: .top), count: 2)
                         LazyVGrid(columns: columns) {
                             ForEach(feed.publications) { publication in
@@ -45,7 +44,7 @@ struct CatalogFeed: View {
                                         title: publication.metadata.title,
                                         authors: authors,
                                         url: publication.images.first
-                                            .map { URL(string: $0.href)! }
+                                            .flatMap { URL(string: $0.href) }
                                     )
                                 }
                                 .buttonStyle(.plain)
@@ -66,11 +65,9 @@ struct CatalogFeed: View {
         .padding()
         .navigationTitle(catalog.title)
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            Task {
-                if parseData == nil {
-                    await parseFeed()
-                }
+        .task {
+            if parseData == nil {
+                await parseFeed()
             }
         }
     }
