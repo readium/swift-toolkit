@@ -33,7 +33,7 @@ struct CatalogFeed: View {
                     
                     // TODO This probably needs its own file
                     if !feed.publications.isEmpty {
-                        let columns: [GridItem] = Array(repeating: .init(.flexible(), alignment: .top), count: 2)
+                        let columns: [GridItem] = [GridItem(.adaptive(minimum: 150 + 8))]
                         LazyVGrid(columns: columns) {
                             ForEach(feed.publications) { publication in
                                 let authors = publication.metadata.authors
