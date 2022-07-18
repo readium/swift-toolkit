@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import R2Shared
 
 class Container {
     
@@ -22,22 +23,29 @@ class Container {
     private lazy var bookRepository = BookRepository(db: db)
     
     func bookshelf() -> Bookshelf {
-        Bookshelf(viewModel: BookshelfViewModel(bookRepository: bookRepository))
+        Bookshelf(bookRepository: bookRepository)
     }
     
     // Catalogs
     
     private lazy var catalogRepository = CatalogRepository(db: db)
     
-    func catalogs() -> Catalogs {
-        Catalogs(
-            viewModel: CatalogsViewModel(catalogRepository: catalogRepository),
-            catalogDetail: catalogDetail(with:)
+    func catalogs() -> CatalogList {
+        CatalogList(
+            catalogRepository: catalogRepository,
+            catalogFeed: catalogFeed(with:)
         )
     }
     
-    func catalogDetail(with catalog: Catalog) -> CatalogDetail {
-        CatalogDetail(viewModel: CatalogDetailViewModel(catalog: catalog))
+    func catalogFeed(with catalog: Catalog) -> CatalogFeed {
+        CatalogFeed(catalog: catalog,
+                      catalogFeed: catalogFeed(with:),
+                      publicationDetail: publicationDetail(with:)
+        )
+    }
+    
+    func publicationDetail(with publication: Publication) -> PublicationDetail {
+        PublicationDetail(publication: publication)
     }
     
     // About

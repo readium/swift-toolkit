@@ -7,27 +7,36 @@
 import SwiftUI
 import ReadiumOPDS
 
-struct Catalogs: View {
+struct CatalogList: View {
     
-    @ObservedObject var viewModel: CatalogsViewModel
-    let catalogDetail: (Catalog) -> CatalogDetail
+    let catalogRepository: CatalogRepository
+    let catalogFeed: (Catalog) -> CatalogFeed
     
     @State private var showingSheet = false
     @State private var showingAlert = false
+    @State private var catalogs: [Catalog] = []
     
     var body: some View {
         NavigationView {
             VStack {
-                if let catalogs = viewModel.catalogs {
-                    List() {
-                        ForEach(catalogs, id: \.id) { catalog in
-                            NavigationLink(destination: catalogDetail(catalog)) {
-                                ListRowItem(title: catalog.title)
-                            }
+                List() {
+                    ForEach(catalogs, id: \.id) { catalog in
+                        NavigationLink(destination: catalogFeed(catalog)) {
+                            ListRowItem(title: catalog.title)
                         }
                     }
-                    .listStyle(DefaultListStyle())
+                    .onDelete { offsets in
+                        let catalogIds = offsets.map { catalogs[$0].id! }
+                        Task {
+                            try await deleteCatalogs(ids: catalogIds)
+                        }
+                    }
                 }
+                .onReceive(catalogRepository.all()) {
+                    catalogs = $0 ?? []
+                }
+                .listStyle(DefaultListStyle())
+                
             }
             .navigationTitle("Catalogs")
             .toolbar(content: toolbarContent)
@@ -38,7 +47,7 @@ struct Catalogs: View {
                 Task {
                     do {
                         _ = try await OPDSParser.parseURL(url: URL(string: url)!)
-                        try await viewModel.addCatalog(catalog: Catalog(title: title, url: url))
+                        try await addCatalog(catalog: Catalog(title: title, url: url))
                     } catch {
                         showingAlert = true
                     }
@@ -59,5 +68,17 @@ struct Catalogs: View {
                 showingSheet = true
             }
         }
+    }
+}
+
+extension CatalogList {
+    
+    func addCatalog(catalog: Catalog) async throws {
+        var savedCatalog = catalog
+        try? await catalogRepository.save(&savedCatalog)
+    }
+    
+    func deleteCatalogs(ids: [Catalog.Id]) async throws {
+        try? await catalogRepository.delete(ids: ids)
     }
 }

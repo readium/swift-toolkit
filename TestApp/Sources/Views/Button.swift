@@ -10,6 +10,7 @@ enum ButtonKind {
     case add
     case cancel
     case save
+    case download
 }
 
 @ViewBuilder
@@ -23,5 +24,9 @@ func Button(_ kind: ButtonKind, action: @escaping () -> Void) -> some View {
         Button("Cancel", action: action)
     case .save:
         Button("Save", action: action)
+    case .download:
+        Button(action: action) {
+            Label("Download", systemImage: "icloud.and.arrow.down")
+        }
     }
 }
