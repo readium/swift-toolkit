@@ -157,7 +157,7 @@ public class TTSController: Loggable, TTSEngineDelegate {
         queue.async { [self] in
             do {
                 let utterance = try nextUtterance(direction: direction)
-                DispatchQueue.main.async {
+                DispatchQueue.main.async { [self] in
                     if let utterance = utterance {
                         play(utterance)
                     } else {
@@ -165,7 +165,7 @@ public class TTSController: Loggable, TTSEngineDelegate {
                     }
                 }
             } catch {
-                DispatchQueue.main.async {
+                DispatchQueue.main.async { [self] in
                     delegate?.ttsController(self, didReceiveError: error)
                 }
             }
