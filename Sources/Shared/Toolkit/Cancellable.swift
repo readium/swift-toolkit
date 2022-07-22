@@ -59,3 +59,15 @@ public final class MediatorCancellable: Cancellable {
         cancellable = nil
     }
 }
+
+public extension Cancellable {
+    /// Convenience to mediate a cancellable in a call chain.
+    ///
+    /// ```
+    /// apiReturningACancellable()
+    ///     .mediate(by: mediator)
+    /// ```
+    func mediated(by mediator: MediatorCancellable) {
+        mediator.mediate(self)
+    }
+}

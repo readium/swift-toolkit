@@ -26,7 +26,7 @@ public protocol _SearchService: PublicationService {
 }
 
 /// Iterates through search results.
-public protocol SearchIterator {
+public protocol SearchIterator: AnyObject {
 
     /// Number of matches for this search, if known.
     ///
@@ -96,8 +96,8 @@ public struct SearchOptions: Hashable {
     /// Matches results exactly as stated in the query terms, taking into account stop words, order and spelling.
     public var exact: Bool?
 
-    /// BCP 47 language code overriding the publication's language.
-    public var language: String?
+    /// Language overriding the publication's language.
+    public var language: Language?
 
     /// The search string is treated as a regular expression.
     /// The particular flavor of regex depends on the service.
@@ -118,7 +118,7 @@ public struct SearchOptions: Hashable {
         diacriticSensitive: Bool? = nil,
         wholeWord: Bool? = nil,
         exact: Bool? = nil,
-        language: String? = nil,
+        language: Language? = nil,
         regularExpression: Bool? = nil,
         otherOptions: [String: String] = [:]
     ) {

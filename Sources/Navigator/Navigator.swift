@@ -20,6 +20,9 @@ public protocol Navigator {
     /// Can be used to save a bookmark to the current position.
     var currentLocation: Locator? { get }
 
+    /// Returns a `Locator` targeting the first visible content element on the current resource.
+    func findLocationOfFirstVisibleContent(completion: @escaping (Locator?) -> Void)
+
     /// Moves to the position in the publication correponding to the given `Locator`.
     /// - Parameter completion: Called when the transition is completed.
     /// - Returns: Whether the navigator is able to move to the locator. The completion block is only called if true was returned.
@@ -47,29 +50,35 @@ public protocol Navigator {
 }
 
 public extension Navigator {
-    
+
+    func findLocationOfFirstVisibleContent(completion: @escaping (Locator?) -> ()) {
+        DispatchQueue.main.async {
+            completion(nil)
+        }
+    }
+
     /// Adds default values for the parameters.
     @discardableResult
     func go(to locator: Locator, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        return go(to: locator, animated: animated, completion: completion)
+        go(to: locator, animated: animated, completion: completion)
     }
     
     /// Adds default values for the parameters.
     @discardableResult
     func go(to link: Link, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        return go(to: link, animated: animated, completion: completion)
+        go(to: link, animated: animated, completion: completion)
     }
     
     /// Adds default values for the parameters.
     @discardableResult
     func goForward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        return goForward(animated: animated, completion: completion)
+        goForward(animated: animated, completion: completion)
     }
     
     /// Adds default values for the parameters.
     @discardableResult
     func goBackward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        return goBackward(animated: animated, completion: completion)
+        goBackward(animated: animated, completion: completion)
     }
 
 }

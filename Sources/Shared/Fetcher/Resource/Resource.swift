@@ -235,7 +235,7 @@ public extension Result where Failure == ResourceError {
     ///
     /// If the `transform` throws an `Error`, it is wrapped in a failure with `Resource.Error.Other`.
     func tryMap<NewSuccess>(_ transform: (Success) throws -> NewSuccess) -> ResourceResult<NewSuccess> {
-        return flatMap {
+        flatMap {
             do {
                 return .success(try transform($0))
             } catch {
@@ -245,7 +245,6 @@ public extension Result where Failure == ResourceError {
     }
     
     func tryFlatMap<NewSuccess>(_ transform: (Success) throws -> ResourceResult<NewSuccess>) -> ResourceResult<NewSuccess> {
-        return tryMap(transform).flatMap { $0 }
+        tryMap(transform).flatMap { $0 }
     }
-    
 }

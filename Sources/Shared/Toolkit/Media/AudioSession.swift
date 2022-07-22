@@ -13,7 +13,6 @@ import AVFoundation
 import Foundation
 
 /// An user of the `AudioSession`, for example a media player object.
-@available(iOS 10.0, *)
 public protocol _AudioSessionUser: AnyObject {
     
     /// Audio session configuration to use for this user.
@@ -25,28 +24,31 @@ public protocol _AudioSessionUser: AnyObject {
 
 }
 
-@available(iOS 10.0, *)
 public extension _AudioSessionUser {
-    
     var audioConfiguration: _AudioSession.Configuration { .init() }
-    
 }
 
 /// Manages an activated `AVAudioSession`.
 /// 
 /// **WARNING:** This API is experimental and may change or be removed in a future release without
 /// notice. Use with caution.
-@available(iOS 10.0, *)
 public final class _AudioSession: Loggable {
     
     public struct Configuration {
         let category: AVAudioSession.Category
         let mode: AVAudioSession.Mode
+        let routeSharingPolicy: AVAudioSession.RouteSharingPolicy
         let options: AVAudioSession.CategoryOptions
         
-        public init(category: AVAudioSession.Category = .playback, mode: AVAudioSession.Mode = .default, options: AVAudioSession.CategoryOptions = []) {
+        public init(
+            category: AVAudioSession.Category = .playback,
+            mode: AVAudioSession.Mode = .default,
+            routeSharingPolicy: AVAudioSession.RouteSharingPolicy = .default,
+            options: AVAudioSession.CategoryOptions = []
+        ) {
             self.category = category
             self.mode = mode
+            self.routeSharingPolicy = routeSharingPolicy
             self.options = options
         }
     }
@@ -74,7 +76,7 @@ public final class _AudioSession: Loggable {
         do {
             let config = user.audioConfiguration
             if #available(iOS 11.0, *) {
-                try audioSession.setCategory(config.category, mode: config.mode, policy: .longForm, options: config.options)
+                try audioSession.setCategory(config.category, mode: config.mode, policy: config.routeSharingPolicy, options: config.options)
             } else {
                 try audioSession.setCategory(config.category, mode: config.mode, options: config.options)
             }
@@ -154,5 +156,4 @@ public final class _AudioSession: Loggable {
             break
         }
     }
-    
 }

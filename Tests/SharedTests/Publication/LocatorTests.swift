@@ -1,12 +1,7 @@
 //
-//  LocatorTests.swift
-//  r2-shared-swiftTests
-//
-//  Created by Mickaël Menu on 20.03.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import XCTest
@@ -573,6 +568,92 @@ class LocatorCollectionTests: XCTestCase {
                 after: " after selection",
                 before: "before selection ",
                 highlight: "current selection"
+            )
+        )
+    }
+
+    func testGetRangeOfText() {
+        let highlight = "highlight"
+
+        XCTAssertEqual(
+            Locator.Text(
+                after: "after",
+                before: "before",
+                highlight: highlight
+            )[highlight.range(of: "ghl")!],
+            Locator.Text(
+                after: "ightafter",
+                before: "beforehi",
+                highlight: "ghl"
+            )
+        )
+
+        XCTAssertEqual(
+            Locator.Text(
+                after: "after",
+                before: "before",
+                highlight: highlight
+            )[highlight.range(of: "hig")!],
+            Locator.Text(
+                after: "hlightafter",
+                before: "before",
+                highlight: "hig"
+            )
+        )
+
+        XCTAssertEqual(
+            Locator.Text(
+                after: "after",
+                before: "before",
+                highlight: highlight
+            )[highlight.range(of: "light")!],
+            Locator.Text(
+                after: "after",
+                before: "beforehigh",
+                highlight: "light"
+            )
+        )
+    }
+
+    func testGetRangeOfTextWithNilProperties() {
+        let highlight = "highlight"
+
+        XCTAssertEqual(
+            Locator.Text(
+                after: nil,
+                before: nil,
+                highlight: highlight
+            )[highlight.range(of: "ghl")!],
+            Locator.Text(
+                after: "ight",
+                before: "hi",
+                highlight: "ghl"
+            )
+        )
+
+        XCTAssertEqual(
+            Locator.Text(
+                after: "after",
+                before: nil,
+                highlight: highlight
+            )[highlight.range(of: "hig")!],
+            Locator.Text(
+                after: "hlightafter",
+                before: nil,
+                highlight: "hig"
+            )
+        )
+
+        XCTAssertEqual(
+            Locator.Text(
+                after: nil,
+                before: "before",
+                highlight: highlight
+            )[highlight.range(of: "light")!],
+            Locator.Text(
+                after: nil,
+                before: "beforehigh",
+                highlight: "light"
             )
         )
     }

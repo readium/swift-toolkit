@@ -24,11 +24,11 @@ struct HighlightContextMenu: View {
     
     var body: some View {
         HStack {
-            ForEach(0..<colors.count) { index in
+            ForEach(colors, id: \.self) { color in
                 Button {
-                    colorSubject.send(colors[index])
+                    colorSubject.send(color)
                 } label: {
-                    Text(emoji(for: colors[index]))
+                    Text(emoji(for: color))
                         .font(.system(size: systemFontSize))
                 }
                 Divider()

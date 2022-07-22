@@ -8,6 +8,8 @@
 
 import "./index";
 
+window.readium.isReflowable = true;
+
 window.addEventListener("load", function () {
   // Notifies native code that the page is loaded after it is rendered.
   // Waiting for the next animation frame seems to do the trick to make sure the page is fully rendered.

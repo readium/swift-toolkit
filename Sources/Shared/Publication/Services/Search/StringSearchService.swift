@@ -25,7 +25,7 @@ public class _StringSearchService: _SearchService {
         return { context in
             _StringSearchService(
                 publication: context.publication,
-                language: context.manifest.metadata.languages.first,
+                language: context.manifest.metadata.language,
                 snippetLength: snippetLength,
                 searchAlgorithm: searchAlgorithm,
                 extractorFactory: extractorFactory
@@ -36,27 +36,27 @@ public class _StringSearchService: _SearchService {
     public let options: SearchOptions
 
     private let publication: Weak<Publication>
-    private let locale: Locale?
+    private let language: Language?
     private let snippetLength: Int
     private let searchAlgorithm: StringSearchAlgorithm
     private let extractorFactory: _ResourceContentExtractorFactory
 
-    public init(publication: Weak<Publication>, language: String?, snippetLength: Int, searchAlgorithm: StringSearchAlgorithm, extractorFactory: _ResourceContentExtractorFactory) {
+    public init(publication: Weak<Publication>, language: Language?, snippetLength: Int, searchAlgorithm: StringSearchAlgorithm, extractorFactory: _ResourceContentExtractorFactory) {
         self.publication = publication
-        self.locale = language.map { Locale(identifier: $0) }
+        self.language = language
         self.snippetLength = snippetLength
         self.searchAlgorithm = searchAlgorithm
         self.extractorFactory = extractorFactory
 
         var options = searchAlgorithm.options
-        options.language = locale?.languageCode ?? Locale.current.languageCode ?? "en"
+        options.language = language ?? Language.current
         self.options = options
     }
 
     public func search(query: String, options: SearchOptions?, completion: @escaping (SearchResult<SearchIterator>) -> ()) -> Cancellable {
         let cancellable = CancellableObject()
 
-        DispatchQueue.main.async(unlessCancelled: cancellable) {
+        DispatchQueue.main.async(unlessCancelled: cancellable) { [self] in
             guard let publication = self.publication() else {
                 completion(.failure(.cancelled))
                 return
@@ -64,10 +64,10 @@ public class _StringSearchService: _SearchService {
 
             completion(.success(Iterator(
                 publication: publication,
-                locale: self.locale,
-                snippetLength: self.snippetLength,
-                searchAlgorithm: self.searchAlgorithm,
-                extractorFactory: self.extractorFactory,
+                language: language,
+                snippetLength: snippetLength,
+                searchAlgorithm: searchAlgorithm,
+                extractorFactory: extractorFactory,
                 query: query,
                 options: options
             )))
@@ -81,7 +81,7 @@ public class _StringSearchService: _SearchService {
         private(set) var resultCount: Int? = 0
 
         private let publication: Publication
-        private let locale: Locale?
+        private let language: Language?
         private let snippetLength: Int
         private let searchAlgorithm: StringSearchAlgorithm
         private let extractorFactory: _ResourceContentExtractorFactory
@@ -90,7 +90,7 @@ public class _StringSearchService: _SearchService {
 
         fileprivate init(
             publication: Publication,
-            locale: Locale?,
+            language: Language?,
             snippetLength: Int,
             searchAlgorithm: StringSearchAlgorithm,
             extractorFactory: _ResourceContentExtractorFactory,
@@ -98,7 +98,7 @@ public class _StringSearchService: _SearchService {
             options: SearchOptions?
         ) {
             self.publication = publication
-            self.locale = locale
+            self.language = language
             self.snippetLength = snippetLength
             self.searchAlgorithm = searchAlgorithm
             self.extractorFactory = extractorFactory
@@ -168,9 +168,9 @@ public class _StringSearchService: _SearchService {
 
             var locators: [Locator] = []
 
-            let currentLocale = options.language.map { Locale(identifier: $0) } ?? locale
+            let currentLanguage = options.language ?? language
             
-            for range in searchAlgorithm.findRanges(of: query, options: options, in: text, locale: currentLocale, cancellable: cancellable) {
+            for range in searchAlgorithm.findRanges(of: query, options: options, in: text, language: currentLanguage, cancellable: cancellable) {
                 guard !cancellable.isCancelled else {
                     return locators
                 }
@@ -245,7 +245,7 @@ public protocol StringSearchAlgorithm {
     /// Finds all the ranges of occurrences of the given `query` in the `text`.
     ///
     /// Implementers should check `cancellable.isCancelled` frequently to abort the search if needed.
-    func findRanges(of query: String, options: SearchOptions, in text: String, locale: Locale?, cancellable: CancellableObject) -> [Range<String.Index>]
+    func findRanges(of query: String, options: SearchOptions, in text: String, language: Language?, cancellable: CancellableObject) -> [Range<String.Index>]
 }
 
 /// A basic `StringSearchAlgorithm` using the native `String.range(of:)` APIs.
@@ -260,7 +260,7 @@ public class BasicStringSearchAlgorithm: StringSearchAlgorithm {
 
     public init() {}
 
-    public func findRanges(of query: String, options: SearchOptions, in text: String, locale: Locale?, cancellable: CancellableObject) -> [Range<Swift.String.Index>] {
+    public func findRanges(of query: String, options: SearchOptions, in text: String, language: Language?, cancellable: CancellableObject) -> [Range<Swift.String.Index>] {
         var compareOptions: NSString.CompareOptions = []
         if options.regularExpression ?? false {
             compareOptions.insert(.regularExpression)
@@ -280,7 +280,7 @@ public class BasicStringSearchAlgorithm: StringSearchAlgorithm {
         while
             !cancellable.isCancelled,
             index < text.endIndex,
-            let range = text.range(of: query, options: compareOptions, range: index..<text.endIndex, locale: locale),
+            let range = text.range(of: query, options: compareOptions, range: index..<text.endIndex, locale: language?.locale),
             !range.isEmpty
         {
             ranges.append(range)

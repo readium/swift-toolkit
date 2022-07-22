@@ -11,7 +11,9 @@
     "checkformat": "prettier --check '**/*.js'",
     "format": "prettier --list-different --write '**/*.js'"
   },
-  "browserslist": [ "iOS 10" ],
+  "browserslist": [
+    "iOS 10"
+  ],
   "devDependencies": {
     "@babel/core": "^7.16.0",
     "@babel/preset-env": "^7.16.0",
@@ -24,6 +26,7 @@
   "dependencies": {
     "@juggle/resize-observer": "^3.3.1",
     "approx-string-match": "^1.1.0",
+    "css-selector-generator": "^3.6.1",
     "string.prototype.matchall": "^4.0.5"
   }
 }

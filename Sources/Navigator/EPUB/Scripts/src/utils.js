@@ -179,12 +179,11 @@ export function scrollToText(text) {
   if (!range) {
     return false;
   }
-  scrollToRange(range);
-  return true;
+  return scrollToRange(range);
 }
 
 function scrollToRange(range) {
-  scrollToRect(range.getBoundingClientRect());
+  return scrollToRect(range.getBoundingClientRect());
 }
 
 function scrollToRect(rect) {
@@ -196,6 +195,8 @@ function scrollToRect(rect) {
       rect.left + window.scrollX
     );
   }
+
+  return true;
 }
 
 // Returns false if the page is already at the left-most scroll offset.
@@ -252,7 +253,15 @@ export function rangeFromLocator(locator) {
     return null;
   }
   try {
-    let anchor = new TextQuoteAnchor(document.body, text.highlight, {
+    var root;
+    let locations = locator.locations;
+    if (locations && locations.cssSelector) {
+      root = document.querySelector(locations.cssSelector);
+    }
+    if (!root) {
+      root = document.body;
+    }
+    let anchor = new TextQuoteAnchor(root, text.highlight, {
       prefix: text.before,
       suffix: text.after,
     });
