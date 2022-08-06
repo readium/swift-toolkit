@@ -142,7 +142,7 @@ public class TTSController: Loggable, TTSEngineDelegate {
         case forward, backward
     }
 
-    private var contentIterator: ContentIterator? {
+    private var contentIterator: ContentIteratorOld? {
         willSet { contentIterator?.close() }
     }
 
@@ -211,7 +211,7 @@ public class TTSController: Loggable, TTSEngineDelegate {
         speakingUtteranceIndex = nil
         utterances = []
 
-        guard let content: Content = try {
+        guard let content: ContentOld = try {
             switch direction {
             case .forward:
                 return try contentIterator?.next()
@@ -232,7 +232,7 @@ public class TTSController: Loggable, TTSEngineDelegate {
         return true
     }
 
-    private func utterances(from content: Content) -> [TTSUtterance] {
+    private func utterances(from content: ContentOld) -> [TTSUtterance] {
         switch content.data {
         case .audio(target: _):
             return []
@@ -269,7 +269,7 @@ public class TTSController: Loggable, TTSEngineDelegate {
         )
     }
 
-    private func tokenize(_ content: Content, with tokenizer: ContentTokenizer) -> [Content] {
+    private func tokenize(_ content: ContentOld, with tokenizer: ContentTokenizer) -> [ContentOld] {
         do {
             return try tokenizer(content)
         } catch {

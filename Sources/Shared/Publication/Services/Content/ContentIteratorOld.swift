@@ -6,7 +6,7 @@
 
 import Foundation
 
-public struct Content: Equatable {
+public struct ContentOld: Equatable {
     public let locator: Locator
     public let data: Data
 
@@ -52,8 +52,8 @@ public struct Content: Equatable {
     }
 }
 
-public protocol ContentIterator: AnyObject {
+public protocol ContentIteratorOld: AnyObject {
     func close()
-    func previous() throws -> Content?
-    func next() throws -> Content?
+    func previous() throws -> ContentOld?
+    func next() throws -> ContentOld?
 }

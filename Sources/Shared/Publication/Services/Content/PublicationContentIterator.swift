@@ -10,16 +10,16 @@ import Foundation
 ///
 /// - Returns: nil if the resource format is not supported.
 public typealias ResourceContentIteratorFactory =
-    (_ resource: Resource, _ locator: Locator) -> ContentIterator?
+    (_ resource: Resource, _ locator: Locator) -> ContentIteratorOld?
 
-public class PublicationContentIterator: ContentIterator, Loggable {
+public class PublicationContentIterator: ContentIteratorOld, Loggable {
 
     private let publication: Publication
     private var startLocator: Locator?
     private let resourceContentIteratorFactories: [ResourceContentIteratorFactory]
     private var startIndex: Int?
     private var currentIndex: Int = 0
-    private var currentIterator: ContentIterator?
+    private var currentIterator: ContentIteratorOld?
 
     public init(publication: Publication, start: Locator?, resourceContentIteratorFactories: [ResourceContentIteratorFactory]) {
         self.publication = publication
@@ -42,7 +42,7 @@ public class PublicationContentIterator: ContentIterator, Loggable {
         currentIterator = nil
     }
 
-    public func previous() throws -> Content? {
+    public func previous() throws -> ContentOld? {
         guard let iterator = iterator(by: -1) else {
             return nil
         }
@@ -53,7 +53,7 @@ public class PublicationContentIterator: ContentIterator, Loggable {
         return content
     }
 
-    public func next() throws -> Content? {
+    public func next() throws -> ContentOld? {
         guard let iterator = iterator(by: +1) else {
             return nil
         }
@@ -64,7 +64,7 @@ public class PublicationContentIterator: ContentIterator, Loggable {
         return content
     }
 
-    private func iterator(by delta: Int) -> ContentIterator? {
+    private func iterator(by delta: Int) -> ContentIteratorOld? {
         if let iter = currentIterator {
             return iter
         }
@@ -85,7 +85,7 @@ public class PublicationContentIterator: ContentIterator, Loggable {
         return newIterator
     }
 
-    private func loadIterator(from index: Int, by delta: Int) -> (index: Int, ContentIterator)? {
+    private func loadIterator(from index: Int, by delta: Int) -> (index: Int, ContentIteratorOld)? {
         let i = index + delta
         guard
             let link = publication.readingOrder.getOrNil(i),
@@ -111,7 +111,7 @@ public class PublicationContentIterator: ContentIterator, Loggable {
         return (i, iterator)
     }
 
-    private func loadIterator(at link: Link, locator: Locator) -> ContentIterator? {
+    private func loadIterator(at link: Link, locator: Locator) -> ContentIteratorOld? {
         let resource = publication.get(link)
         for factory in resourceContentIteratorFactories {
             if let iterator = factory(resource, locator) {

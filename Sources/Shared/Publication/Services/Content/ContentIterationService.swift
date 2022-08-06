@@ -9,7 +9,7 @@ import Foundation
 public typealias ContentIterationServiceFactory = (PublicationServiceContext) -> ContentIterationService?
 
 public protocol ContentIterationService: PublicationService {
-    func iterator(from start: Locator?) -> ContentIterator?
+    func iterator(from start: Locator?) -> ContentIteratorOld?
 }
 
 public extension Publication {
@@ -17,7 +17,7 @@ public extension Publication {
         contentIterationService != nil
     }
 
-    func contentIterator(from start: Locator?) -> ContentIterator? {
+    func contentIterator(from start: Locator?) -> ContentIteratorOld? {
         contentIterationService?.iterator(from: start)
     }
 
@@ -58,7 +58,7 @@ public class DefaultContentIterationService: ContentIterationService {
         self.resourceContentIteratorFactories = resourceContentIteratorFactories
     }
 
-    public func iterator(from start: Locator?) -> ContentIterator? {
+    public func iterator(from start: Locator?) -> ContentIteratorOld? {
         guard let publication = publication() else {
             return nil
         }

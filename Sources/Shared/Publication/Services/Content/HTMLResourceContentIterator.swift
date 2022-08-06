@@ -7,7 +7,7 @@
 import Foundation
 import SwiftSoup
 
-public class HTMLResourceContentIterator : ContentIterator {
+public class HTMLResourceContentIterator : ContentIteratorOld {
 
     // FIXME: Custom skipped elements
     public static func makeFactory() -> ResourceContentIteratorFactory {
@@ -16,7 +16,7 @@ public class HTMLResourceContentIterator : ContentIterator {
         }
     }
 
-    private var content: Result<[Content], Error>
+    private var content: Result<[ContentOld], Error>
     private var currentIndex: Int?
     private var startingIndex: Int
 
@@ -25,7 +25,7 @@ public class HTMLResourceContentIterator : ContentIterator {
             .readAsString()
             .eraseToAnyError()
             .tryMap { try SwiftSoup.parse($0) }
-            .tryMap { document -> (content: [Content], startingIndex: Int) in
+            .tryMap { document -> (content: [ContentOld], startingIndex: Int) in
                 try ContentParser.parse(document: document, locator: locator)
             }
 
@@ -35,15 +35,15 @@ public class HTMLResourceContentIterator : ContentIterator {
 
     public func close() {}
 
-    public func previous() throws -> Content? {
+    public func previous() throws -> ContentOld? {
         try next(by: -1)
     }
 
-    public func next() throws -> Content? {
+    public func next() throws -> ContentOld? {
         try next(by: +1)
     }
 
-    private func next(by delta: Int) throws -> Content? {
+    private func next(by delta: Int) throws -> ContentOld? {
         let content = try content.get()
         let index = index(by: delta)
         guard content.indices.contains(index) else {
@@ -63,7 +63,7 @@ public class HTMLResourceContentIterator : ContentIterator {
 
     private class ContentParser: NodeVisitor {
         
-        static func parse(document: Document, locator: Locator) throws -> (content: [Content], startingIndex: Int) {
+        static func parse(document: Document, locator: Locator) throws -> (content: [ContentOld], startingIndex: Int) {
             let parser = ContentParser(
                 baseLocator: locator,
                 startElement: try locator.locations.cssSelector
@@ -90,10 +90,10 @@ public class HTMLResourceContentIterator : ContentIterator {
         private let baseLocator: Locator
         private let startElement: Element?
 
-        private(set) var content: [Content] = []
+        private(set) var content: [ContentOld] = []
         private(set) var startIndex = 0
         private var currentElement: Element?
-        private var spansAcc: [Content.TextSpan] = []
+        private var spansAcc: [ContentOld.TextSpan] = []
         private var textAcc = StringBuilder()
         private var wholeRawTextAcc: String = ""
         private var elementRawTextAcc: String = ""
@@ -130,7 +130,7 @@ public class HTMLResourceContentIterator : ContentIterator {
                     if let href = try elem.attr("src")
                         .takeUnlessEmpty()
                         .map({ HREF($0, relativeTo: baseLocator.href).string }) {
-                        content.append(Content(
+                        content.append(ContentOld(
                             locator: baseLocator.copy(
                                 locations: {
                                     $0 = Locator.Locations(
@@ -194,7 +194,7 @@ public class HTMLResourceContentIterator : ContentIterator {
             if startElement != nil && currentElement == startElement {
                 startIndex = content.count
             }
-            content.append(Content(
+            content.append(ContentOld(
                 locator: baseLocator.copy(
                     locations: { [self] in
                         $0 = Locator.Locations(
@@ -229,7 +229,7 @@ public class HTMLResourceContentIterator : ContentIterator {
                     text = trimmedText + whitespaceSuffix
                 }
 
-                spansAcc.append(Content.TextSpan(
+                spansAcc.append(ContentOld.TextSpan(
                     locator: baseLocator.copy(
                         locations: { [self] in
                             $0 = Locator.Locations(

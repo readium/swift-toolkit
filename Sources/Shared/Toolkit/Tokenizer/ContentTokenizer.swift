@@ -7,7 +7,7 @@
 import Foundation
 
 /// A tokenizer splitting a `Content` into smaller pieces.
-public typealias ContentTokenizer = Tokenizer<Content, Content>
+public typealias ContentTokenizer = Tokenizer<ContentOld, ContentOld>
 
 /// A `ContentTokenizer` using the default `TextTokenizer` to split the text of the `Content` by `unit`.
 public func makeTextContentTokenizer(unit: TextUnit, language: Language?) -> ContentTokenizer {
@@ -16,10 +16,10 @@ public func makeTextContentTokenizer(unit: TextUnit, language: Language?) -> Con
 
 /// A `ContentTokenizer` using a `TextTokenizer` to split the text of the `Content`.
 public func makeTextContentTokenizer(with tokenizer: @escaping TextTokenizer) -> ContentTokenizer {
-    func tokenize(_ span: Content.TextSpan) throws -> [Content.TextSpan] {
+    func tokenize(_ span: ContentOld.TextSpan) throws -> [ContentOld.TextSpan] {
         try tokenizer(span.text)
             .map { range in
-                Content.TextSpan(
+                ContentOld.TextSpan(
                     locator: span.locator.copy(text: { $0 = extractTextContext(in: span.text, for: range) }),
                     language: span.language,
                     text: String(span.text[range])
@@ -27,12 +27,12 @@ public func makeTextContentTokenizer(with tokenizer: @escaping TextTokenizer) ->
             }
     }
 
-    func tokenize(_ content: Content) throws -> [Content] {
+    func tokenize(_ content: ContentOld) throws -> [ContentOld] {
         switch content.data {
         case .audio, .image:
             return [content]
         case .text(spans: let spans, style: let style):
-            return [Content(
+            return [ContentOld(
                 locator: content.locator,
                 data: .text(
                     spans: try spans.flatMap { try tokenize($0) },
