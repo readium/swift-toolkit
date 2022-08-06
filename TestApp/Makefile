@@ -32,13 +32,15 @@ spm: clean
 ifdef lcp
 	@cp Integrations/SPM/project+lcp.yml project.yml
 	curl --create-dirs --output R2LCPClient/Package.swift "$(lcp)"
+	# Downgrades the SPM version to work with Xcode 12.4
+	@sed -i '' -e 's/5.5/5.3.0/g' R2LCPClient/Package.swift
 else
 	@cp Integrations/SPM/project.yml .
 endif
 ifdef commit
-	@sed -i "" -e "s>VERSION>revision: $(commit)>g" project.yml
+	@sed -i '' -e "s>VERSION>revision: $(commit)>g" project.yml
 else
-	@sed -i "" -e "s>VERSION>from: $(version)>g" project.yml
+	@sed -i '' -e "s>VERSION>from: $(version)>g" project.yml
 endif
 	xcodegen generate
 	@echo "\nopen TestApp.xcodeproj"
@@ -68,7 +70,7 @@ else
 	@cp Integrations/CocoaPods/project.yml .
 	@cp Integrations/CocoaPods/Podfile .
 endif
-	@sed -i "" -e "s>VERSION>$(version)>g" Podfile
+	@sed -i '' -e "s>VERSION>$(version)>g" Podfile
 	xcodegen generate
 	pod install
 	@echo "\nopen TestApp.xcworkspace"
@@ -77,6 +79,8 @@ dev: clean
 ifdef lcp
 	@cp Integrations/Local/project+lcp.yml project.yml
 	curl --create-dirs --output R2LCPClient/Package.swift "$(lcp)"
+	# Downgrades the SPM version to work with Xcode 12.4
+	@sed -i '' -e 's/5.5/5.3.0/g' R2LCPClient/Package.swift
 else
 	@cp Integrations/Local/project.yml .
 endif
