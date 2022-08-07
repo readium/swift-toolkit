@@ -27,21 +27,22 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     /// > https://developer.apple.com/documentation/avfaudio/avspeechutterance/1619683-pitchmultiplier
     private let avPitchRange = 0.5...2.0
 
-    public let defaultConfig: TTSConfiguration
-    public var config: TTSConfiguration
+    /// Conversion function between a rate multiplier and the `AVSpeechUtterance` rate.
+    private let rateMultiplierToAVRate: (Double) -> Float
+
     private let debug: Bool
-
-    public weak var delegate: TTSEngineDelegate?
-
     private let synthesizer = AVSpeechSynthesizer()
 
     /// Creates a new `AVTTSEngine` instance.
     ///
     /// - Parameters:
+    ///   - rateMultiplierToAVRate: Conversion function between a rate multiplier and the `AVSpeechUtterance` rate.
     ///   - audioSessionConfig: AudioSession configuration used while playing utterances. If `nil`, utterances won't
     ///     play when the app is in the background.
     ///   - debug: Print the state machine transitions.
     public init(
+        // FIXME:
+        rateMultiplierToAVRate: @escaping (Double) -> Float = { Float($0) },
         audioSessionConfig: _AudioSession.Configuration? = .init(
             category: .playback,
             mode: .spokenAudio,
@@ -49,20 +50,16 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         ),
         debug: Bool = false
     ) {
-        let config = TTSConfiguration(
-            defaultLanguage: Language(code: .bcp47(AVSpeechSynthesisVoice.currentLanguageCode())),
-            rate: avRateRange.percentageForValue(Double(AVSpeechUtteranceDefaultSpeechRate)),
-            pitch: avPitchRange.percentageForValue(1.0)
-        )
-
-        self.defaultConfig = config
-        self.config = config
-        self.debug = debug
+        self.rateMultiplierToAVRate = rateMultiplierToAVRate
         self.audioSessionUser = audioSessionConfig.map { AudioSessionUser(config: $0) }
+        self.debug = debug
 
         super.init()
         synthesizer.delegate = self
     }
+
+    // FIXME: Double check
+    public let rateMultiplierRange: ClosedRange<Double> = 0.5...2.0
 
     public lazy var availableVoices: [TTSVoice] =
         AVSpeechSynthesisVoice.speechVoices()
@@ -73,57 +70,92 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
             .map { TTSVoice(voice: $0) }
     }
 
-    public func speak(_ utterance: TTSUtterance) {
-        on(.play(utterance))
-    }
+    public func speak(
+        _ utterance: TTSUtterance,
+        onSpeakRange: @escaping (Range<String.Index>) -> (),
+        completion: @escaping (Result<Void, TTSError>) -> ()
+    ) -> Cancellable {
 
-    public func stop() {
-        on(.stop)
-    }
-    
-    
-    // MARK: AVSpeechSynthesizerDelegate
-    
-    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
-        guard let utterance = (utterance as? AVUtterance)?.utterance else {
-            return
-        }
-        on(.didStart(utterance))
-    }
-
-    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        guard let utterance = (utterance as? AVUtterance)?.utterance else {
-            return
-        }
-        on(.didFinish(utterance))
-    }
-
-    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance avUtterance: AVSpeechUtterance) {
-        guard
-            let utterance = (avUtterance as? AVUtterance)?.utterance,
-            let highlight = utterance.locator.text.highlight,
-            let range = Range(characterRange, in: highlight)
-        else {
-            return
-        }
-
-        let rangeLocator = utterance.locator.copy(
-            text: { text in text = text[range] }
+        let task = Task(
+            utterance: utterance,
+            onSpeakRange: onSpeakRange,
+            completion: completion
         )
-        on(.willSpeakRange(locator: rangeLocator, utterance: utterance))
+        let cancellable = CancellableObject { [weak self] in
+            self?.on(.stop(task))
+        }
+        task.cancellable = cancellable
+
+        on(.play(task))
+
+        return cancellable
     }
 
-    private class AVUtterance: AVSpeechUtterance {
+    private class Task: Equatable {
         let utterance: TTSUtterance
+        let onSpeakRange: (Range<String.Index>) -> ()
+        let completion: (Result<Void, TTSError>) -> ()
+        var cancellable: CancellableObject? = nil
 
-        init(utterance: TTSUtterance) {
+        init(utterance: TTSUtterance, onSpeakRange: @escaping (Range<String.Index>) -> (), completion: @escaping (Result<Void, TTSError>) -> ()) {
             self.utterance = utterance
-            super.init(string: utterance.text)
+            self.onSpeakRange = onSpeakRange
+            self.completion = completion
+        }
+
+        static func ==(lhs: Task, rhs: Task) -> Bool {
+            ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+        }
+    }
+
+    private func taskUtterance(with task: Task) -> TaskUtterance {
+        let utter = TaskUtterance(task: task)
+        utter.rate = rateMultiplierToAVRate(task.utterance.rateMultiplier)
+        // FIXME:
+//        utter.pitchMultiplier = Float(avPitchRange.valueForPercentage(config.pitch))
+        utter.preUtteranceDelay = task.utterance.delay
+        utter.voice = voice(for: task.utterance)
+        return utter
+    }
+
+    private class TaskUtterance: AVSpeechUtterance {
+        let task: Task
+
+        init(task: Task) {
+            self.task = task
+            super.init(string: task.utterance.text)
         }
 
         required init?(coder: NSCoder) {
             fatalError("Not supported")
         }
+    }
+
+    // MARK: AVSpeechSynthesizerDelegate
+    
+    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
+        guard let task = (utterance as? TaskUtterance)?.task else {
+            return
+        }
+        on(.didStart(task))
+    }
+
+    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        guard let task = (utterance as? TaskUtterance)?.task else {
+            return
+        }
+        on(.didFinish(task))
+    }
+
+    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance avUtterance: AVSpeechUtterance) {
+        guard
+            let task = (avUtterance as? TaskUtterance)?.task,
+            let range = Range(characterRange, in: task.utterance.text)
+        else {
+            return
+        }
+
+        on(.willSpeakRange(range, task: task))
     }
 
     
@@ -164,108 +196,27 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         /// The TTS engine is waiting for the next utterance to play.
         case stopped
         /// A new utterance is being processed by the TTS engine, we wait for didStart.
-        case starting(TTSUtterance)
+        case starting(Task)
         /// The utterance is currently playing and the engine is ready to process other commands.
-        case playing(TTSUtterance)
+        case playing(Task)
         /// The engine was stopped while processing the previous utterance, we wait for didStart
         /// and/or didFinish. The queued utterance will be played once the engine is successfully stopped.
-        case stopping(TTSUtterance, queued: TTSUtterance?)
-        
-        mutating func on(_ event: Event) -> Effect? {
-            switch (self, event) {
-                
-            // stopped
-                
-            case let (.stopped, .play(utterance)):
-                self = .starting(utterance)
-                return .play(utterance)
-                
-            // starting
-                
-            case let (.starting(current), .didStart(started)) where current == started:
-                self = .playing(current)
-                return nil
-                
-            case let (.starting(current), .play(next)):
-                self = .stopping(current, queued: next)
-                return nil
-                
-            case let (.starting(current), .stop):
-                self = .stopping(current, queued: nil)
-                return nil
-                
-            // playing
-                
-            case let (.playing(current), .didFinish(finished)) where current == finished:
-                self = .stopped
-                return .notifyDidStopAfterLastUtterance(current)
-                
-            case let (.playing(current), .play(next)):
-                self = .stopping(current, queued: next)
-                return .stop
-                
-            case let (.playing(current), .stop):
-                self = .stopping(current, queued: nil)
-                return .stop
-                
-            case let (.playing(current), .willSpeakRange(locator: Locator, utterance: speaking)) where current == speaking:
-                return .notifyWillSpeakRange(locator: Locator, utterance: current)
-                
-            // stopping
-                
-            case let (.stopping(current, queued: next), .didStart(started)) where current == started:
-                self = .stopping(current, queued: next)
-                return .stop
-                
-            case let (.stopping(current, queued: next), .didFinish(finished)) where current == finished:
-                if let next = next {
-                    self = .starting(next)
-                    return .play(next)
-                } else {
-                    self = .stopped
-                    return .notifyDidStopAfterLastUtterance(current)
-                }
-                
-            case let (.stopping(current, queued: _), .play(next)):
-                self = .stopping(current, queued: next)
-                return nil
-                
-            case let (.stopping(current, queued: _), .stop):
-                self = .stopping(current, queued: nil)
-                return nil
-                
-                
-            default:
-                return nil
-            }
-        }
+        case stopping(Task, queued: Task?)
     }
     
     /// State machine events triggered by the `AVSpeechSynthesizer` or the client
     /// of `AVTTSEngine`.
     private enum Event: Equatable {
         // AVTTSEngine commands
-        case play(TTSUtterance)
-        case stop
+        case play(Task)
+        case stop(Task)
         
         // AVSpeechSynthesizer delegate events
-        case didStart(TTSUtterance)
-        case willSpeakRange(locator: Locator, utterance: TTSUtterance)
-        case didFinish(TTSUtterance)
+        case didStart(Task)
+        case willSpeakRange(Range<String.Index>, task: Task)
+        case didFinish(Task)
     }
-    
-    /// State machine side effects triggered by a state transition from an event.
-    private enum Effect: Equatable {
-        // Ask `AVSpeechSynthesizer` to play the utterance.
-        case play(TTSUtterance)
-        // Ask `AVSpeechSynthesizer` to stop the playback.
-        case stop
-        
-        // Send notifications to our delegate.
-        case notifyWillSpeakRange(locator: Locator, utterance: TTSUtterance)
-        case notifyDidStopAfterLastUtterance(TTSUtterance)
-    }
-    
+
     private var state: State = .stopped {
         didSet {
             if (debug) {
@@ -281,49 +232,87 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         if (debug) {
             log(.debug, "-> on \(event)")
         }
-        
-        if let effect = state.on(event) {
-            handle(effect)
-        }
-    }
-    
-    /// Handles a state machine side effect.
-    private func handle(_ effect: Effect) {
-        switch effect {
-            
-        case let .play(utterance):
-            synthesizer.speak(avUtterance(from: utterance))
 
-            if let user = audioSessionUser {
-                _AudioSession.shared.start(with: user)
+        switch (state, event) {
+
+        // stopped
+
+        case let (.stopped, .play(task)):
+            state = .starting(task)
+            startEngine(with: task)
+
+        // starting
+
+        case let (.starting(current), .didStart(started)) where current == started:
+            state = .playing(current)
+
+        case let (.starting(current), .play(next)):
+            state = .stopping(current, queued: next)
+
+        case let (.starting(current), .stop):
+            state = .stopping(current, queued: nil)
+
+        // playing
+
+        case let (.playing(current), .didFinish(finished)) where current == finished:
+            current.completion(.success(()))
+            state = .stopped
+
+        case let (.playing(current), .play(next)):
+            stopEngine()
+            state = .stopping(current, queued: next)
+
+        case let (.playing(current), .stop):
+            stopEngine()
+            state = .stopping(current, queued: nil)
+
+        case let (.playing(current), .willSpeakRange(range, task: speaking)) where current == speaking:
+            current.onSpeakRange(range)
+
+        // stopping
+
+        case let (.stopping(current, queued: next), .didStart(started)) where current == started:
+            stopEngine()
+            state = .stopping(current, queued: next)
+
+        case let (.stopping(current, queued: next), .didFinish(finished)) where current == finished:
+            if let next = next {
+                startEngine(with: next)
+                state = .starting(next)
+            } else {
+                current.completion(.success(()))
+                state = .stopped
             }
 
-        case .stop:
-            synthesizer.stopSpeaking(at: .immediate)
-            
-        case let .notifyWillSpeakRange(locator: Locator, utterance: utterance):
-            delegate?.ttsEngine(self, willSpeakRangeAt: Locator, of: utterance)
-            
-        case let .notifyDidStopAfterLastUtterance(utterance):
-            delegate?.ttsEngine(self, didStopAfterLastUtterance: utterance)
+        case let (.stopping(current, queued: _), .play(next)):
+            state = .stopping(current, queued: next)
+
+        case let (.stopping(current, queued: _), .stop):
+            state = .stopping(current, queued: nil)
+
+
+        default:
+            break
         }
     }
-    
-    private func avUtterance(from utterance: TTSUtterance) -> AVSpeechUtterance {
-        let avUtterance = AVUtterance(utterance: utterance)
-        avUtterance.rate = Float(avRateRange.valueForPercentage(config.rate))
-        avUtterance.pitchMultiplier = Float(avPitchRange.valueForPercentage(config.pitch))
-        avUtterance.preUtteranceDelay = utterance.delay
-        avUtterance.postUtteranceDelay = config.delay
-        avUtterance.voice = voice(for: utterance)
-        return avUtterance
+
+    private func startEngine(with task: Task) {
+        synthesizer.speak(taskUtterance(with: task))
+
+        if let user = audioSessionUser {
+            _AudioSession.shared.start(with: user)
+        }
     }
-    
+
+    private func stopEngine() {
+        synthesizer.stopSpeaking(at: .immediate)
+    }
+
     private func voice(for utterance: TTSUtterance) -> AVSpeechSynthesisVoice? {
-        let language = utterance.language ?? config.defaultLanguage
-        if let voice = config.voice, voice.language.removingRegion() == language.removingRegion() {
+        switch utterance.voiceOrLanguage {
+        case .left(let voice):
             return AVSpeechSynthesisVoice(identifier: voice.identifier)
-        } else {
+        case .right(let language):
             return AVSpeechSynthesisVoice(language: language)
         }
     }

@@ -22,7 +22,7 @@ public extension TTSControllerDelegate {
     func ttsController(_ ttsController: TTSController, willSpeakRangeAt locator: Locator, of utterance: TTSUtterance) {}
 }
 
-public struct TTSUtterance: Equatable {
+public struct TTSUtterance2: Equatable {
     public let text: String
     public let locator: Locator
     public let language: Language?

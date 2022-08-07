@@ -14,10 +14,21 @@ public protocol Cancellable {
 
 /// A `Cancellable` object saving its cancelled state.
 public final class CancellableObject: Cancellable {
+
     public private(set) var isCancelled = false
+    private let onCancel: () -> Void
+
+    public init(onCancel: @escaping () -> Void = {}) {
+        self.onCancel = onCancel
+    }
 
     public func cancel() {
+        guard !isCancelled else {
+            return
+        }
+
         isCancelled = true
+        onCancel()
     }
 }
 
