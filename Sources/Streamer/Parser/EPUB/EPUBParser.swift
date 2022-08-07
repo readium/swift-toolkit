@@ -85,7 +85,7 @@ final public class EPUBParser: PublicationParser {
                 EPUBHTMLInjector(metadata: components.metadata, userProperties: userProperties).inject(resource:)
             ]),
             servicesBuilder: .init(
-                contentIteration: DefaultContentIterationService.makeFactory(
+                content: DefaultContentService.makeFactory(
                     resourceContentIteratorFactories: [
                         HTMLResourceContentIterator.makeFactory()
                     ]

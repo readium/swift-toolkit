@@ -7,63 +7,79 @@
 import Foundation
 import SwiftSoup
 
-public class HTMLResourceContentIterator : ContentIteratorOld {
+// FIXME: Custom skipped elements
 
-    // FIXME: Custom skipped elements
+/// Iterates an HTML `resource`, starting from the given `locator`.
+///
+/// If you want to start mid-resource, the `locator` must contain a `cssSelector` key in its
+/// `Locator.Locations` object.
+///
+/// If you want to start from the end of the resource, the `locator` must have a `progression` of 1.0.
+public class HTMLResourceContentIterator: ContentIterator {
+
+    /// Creates a new factory for `HTMLResourceContentIterator`.
     public static func makeFactory() -> ResourceContentIteratorFactory {
         { resource, locator in
-            HTMLResourceContentIterator(resource: resource, locator: locator)
+            guard resource.link.mediaType.isHTML else {
+                return nil
+            }
+            return HTMLResourceContentIterator(resource: resource, locator: locator)
         }
     }
 
-    private var content: Result<[ContentOld], Error>
-    private var currentIndex: Int?
-    private var startingIndex: Int
+    private let resource: Resource
+    private let locator: Locator
 
     public init(resource: Resource, locator: Locator) {
+        self.resource = resource
+        self.locator = locator
+    }
+
+    public func previous() throws -> ContentElement? {
+        try next(by: -1)
+    }
+
+    public func next() throws -> ContentElement? {
+        try next(by: +1)
+    }
+
+    private func next(by delta: Int) throws -> ContentElement? {
+        let elements = try elements.get()
+        let index = currentIndex.map { $0 + delta }
+            ?? elements.startIndex
+
+        guard elements.elements.indices.contains(index) else {
+            return nil
+        }
+
+        currentIndex = index
+        return elements.elements[index]
+    }
+
+    private var currentIndex: Int?
+
+    private lazy var elements: Result<ParsedElements, Error> = parseElements()
+
+    private func parseElements() -> Result<ParsedElements, Error> {
         let result = resource
             .readAsString()
             .eraseToAnyError()
             .tryMap { try SwiftSoup.parse($0) }
-            .tryMap { document -> (content: [ContentOld], startingIndex: Int) in
-                try ContentParser.parse(document: document, locator: locator)
-            }
-
-        content = result.map { $0.content }
-        startingIndex = result.map { $0.startingIndex }.get(or: 0)
+            .tryMap { try ContentParser.parse(document: $0, locator: locator) }
+        resource.close()
+        return result
     }
 
-    public func close() {}
 
-    public func previous() throws -> ContentOld? {
-        try next(by: -1)
-    }
-
-    public func next() throws -> ContentOld? {
-        try next(by: +1)
-    }
-
-    private func next(by delta: Int) throws -> ContentOld? {
-        let content = try content.get()
-        let index = index(by: delta)
-        guard content.indices.contains(index) else {
-            return nil
-        }
-        currentIndex = index
-        return content[index]
-    }
-
-    private func index(by delta: Int) -> Int {
-        if let i = currentIndex {
-            return i + delta
-        } else {
-            return startingIndex
-        }
-    }
+    /// Holds the result of parsing the HTML resource into a list of `ContentElement`.
+    ///
+    /// The `startIndex` will be calculated from the element matched by the base `locator`, if possible. Defaults to
+    /// 0.
+    private typealias ParsedElements = (elements: [ContentElement], startIndex: Int)
 
     private class ContentParser: NodeVisitor {
         
-        static func parse(document: Document, locator: Locator) throws -> (content: [ContentOld], startingIndex: Int) {
+        static func parse(document: Document, locator: Locator) throws -> ParsedElements {
             let parser = ContentParser(
                 baseLocator: locator,
                 startElement: try locator.locations.cssSelector
@@ -73,27 +89,25 @@ public class HTMLResourceContentIterator : ContentIteratorOld {
                         try document.select($0.removingPrefix(":root > ")).first()
                     }
             )
+
             try document.traverse(parser)
-            
-            var result = (
-                content: parser.content,
-                startingIndex: parser.startIndex
+
+            return ParsedElements(
+                elements: parser.elements,
+                startIndex: (locator.locations.progression == 1.0)
+                    ? parser.elements.count - 1
+                    : parser.startIndex
             )
-            
-            if locator.locations.progression == 1.0 {
-                result.startingIndex = result.content.count - 1
-            }
-            
-            return result
         }
 
         private let baseLocator: Locator
         private let startElement: Element?
 
-        private(set) var content: [ContentOld] = []
-        private(set) var startIndex = 0
+        private var elements: [ContentElement] = []
+        private var startIndex = 0
         private var currentElement: Element?
-        private var spansAcc: [ContentOld.TextSpan] = []
+
+        private var segmentsAcc: [TextContentElement.Segment] = []
         private var textAcc = StringBuilder()
         private var wholeRawTextAcc: String = ""
         private var elementRawTextAcc: String = ""
@@ -119,7 +133,6 @@ public class HTMLResourceContentIterator : ContentIteratorOld {
             if let elem = node as? Element {
                 currentElement = elem
 
-                let cssSelector = try elem.cssSelector()
                 let tag = elem.tagNameNormal()
 
                 if tag == "br" {
@@ -127,29 +140,35 @@ public class HTMLResourceContentIterator : ContentIteratorOld {
                 } else if tag == "img" {
                     flushText()
 
-                    if let href = try elem.attr("src")
-                        .takeUnlessEmpty()
-                        .map({ HREF($0, relativeTo: baseLocator.href).string }) {
-                        content.append(ContentOld(
+                    if
+                        let href = try elem.attr("src")
+                            .takeUnlessEmpty()
+                            .map({ HREF($0, relativeTo: baseLocator.href).string })
+                    {
+                        var attributes: [ContentAttribute] = []
+                        if let alt = try elem.attr("alt").takeUnlessEmpty() {
+                            attributes.append(ContentAttribute(key: .accessibilityLabel, value: alt))
+                        }
+
+                        elements.append(ImageContentElement(
                             locator: baseLocator.copy(
                                 locations: {
                                     $0 = Locator.Locations(
-                                        otherLocations: ["cssSelector": cssSelector]
+                                        otherLocations: ["cssSelector": try? elem.cssSelector()]
                                     )
                                 }
                             ),
-                            data: .image(
-                                target: Link(href: href),
-                                description: try elem.attr("alt").takeUnlessEmpty()
-                            )
+                            embeddedLink: Link(href: href),
+                            caption: nil, // FIXME: Get the caption from figcaption
+                            attributes: attributes
                         ))
                     }
 
                 } else if elem.isBlock() {
-                    spansAcc.removeAll()
+                    segmentsAcc.removeAll()
                     textAcc.clear()
                     rawTextAcc = ""
-                    currentCSSSelector = cssSelector
+                    currentCSSSelector = try elem.cssSelector()
                 }
             }
         }
@@ -162,7 +181,7 @@ public class HTMLResourceContentIterator : ContentIteratorOld {
             if let node = node as? TextNode {
                 let language = try node.language().map { Language(code: .bcp47($0)) }
                 if (currentLanguage != language) {
-                    flushSpan()
+                    flushSegment()
                     currentLanguage = language
                 }
 
@@ -186,15 +205,15 @@ public class HTMLResourceContentIterator : ContentIteratorOld {
         }
 
         private func flushText() {
-            flushSpan()
-            guard !spansAcc.isEmpty else {
+            flushSegment()
+            guard !segmentsAcc.isEmpty else {
                 return
             }
 
             if startElement != nil && currentElement == startElement {
-                startIndex = content.count
+                startIndex = elements.count
             }
-            content.append(ContentOld(
+            elements.append(TextContentElement(
                 locator: baseLocator.copy(
                     locations: { [self] in
                         $0 = Locator.Locations(
@@ -209,18 +228,19 @@ public class HTMLResourceContentIterator : ContentIteratorOld {
                         )
                     }
                 ),
-                data: .text(spans: spansAcc, style: .body)
+                role: .body,
+                segments: segmentsAcc
             ))
             elementRawTextAcc = ""
-            spansAcc.removeAll()
+            segmentsAcc.removeAll()
         }
 
-        private func flushSpan() {
+        private func flushSegment() {
             var text = textAcc.toString()
             let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
 
             if !text.isEmpty {
-                if spansAcc.isEmpty {
+                if segmentsAcc.isEmpty {
                     let whitespaceSuffix = text.last
                         .takeIf { $0.isWhitespace || $0.isNewline }
                         .map { String($0) }
@@ -229,7 +249,12 @@ public class HTMLResourceContentIterator : ContentIteratorOld {
                     text = trimmedText + whitespaceSuffix
                 }
 
-                spansAcc.append(ContentOld.TextSpan(
+                var attributes: [ContentAttribute] = []
+                if let lang = currentLanguage {
+                    attributes.append(ContentAttribute(key: .language, value: lang))
+                }
+
+                segmentsAcc.append(TextContentElement.Segment(
                     locator: baseLocator.copy(
                         locations: { [self] in
                             $0 = Locator.Locations(
@@ -245,8 +270,8 @@ public class HTMLResourceContentIterator : ContentIteratorOld {
                             )
                         }
                     ),
-                    language: currentLanguage,
-                    text: text
+                    text: text,
+                    attributes: attributes
                 ))
             }
 

@@ -37,16 +37,18 @@ public class DefaultContentService: ContentService {
         guard let pub = publication() else {
             return nil
         }
-        return DefaultContent(publication: pub, start: start)
+        return DefaultContent(publication: pub, start: start, resourceContentIteratorFactories: resourceContentIteratorFactories)
     }
 
     private class DefaultContent: Content {
         let publication: Publication
         let start: Locator?
+        let resourceContentIteratorFactories: [ResourceContentIteratorFactory]
 
-        init(publication: Publication, start: Locator?) {
+        init(publication: Publication, start: Locator?, resourceContentIteratorFactories: [ResourceContentIteratorFactory]) {
             self.publication = publication
             self.start = start
+            self.resourceContentIteratorFactories = resourceContentIteratorFactories
         }
 
         func makeIterator() -> ContentIterator {

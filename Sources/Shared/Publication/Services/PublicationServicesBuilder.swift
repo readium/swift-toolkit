@@ -14,7 +14,7 @@ public struct PublicationServicesBuilder {
     private var factories: [String: PublicationServiceFactory] = [:]
 
     public init(
-        contentIteration: ContentIterationServiceFactory? = nil,
+        content: ContentServiceFactory? = nil,
         contentProtection: ContentProtectionServiceFactory? = nil,
         cover: CoverServiceFactory? = nil,
         locator: LocatorServiceFactory? = { DefaultLocatorService(publication: $0.publication) },
@@ -22,7 +22,7 @@ public struct PublicationServicesBuilder {
         search: SearchServiceFactory? = nil,
         setup: (inout PublicationServicesBuilder) -> Void = { _ in }
     ) {
-        setContentIterationServiceFactory(contentIteration)
+        setContentServiceFactory(content)
         setContentProtectionServiceFactory(contentProtection)
         setCoverServiceFactory(cover)
         setLocatorServiceFactory(locator)

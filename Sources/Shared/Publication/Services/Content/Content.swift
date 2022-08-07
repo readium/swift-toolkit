@@ -37,9 +37,9 @@ public protocol EmbeddedContentElement: ContentElement {
 
 /// An audio clip.
 public struct AudioContentElement: EmbeddedContentElement, TextualContentElement {
-    public let locator: Locator
-    public let embeddedLink: Link
-    public let attributes: [ContentAttribute]
+    public var locator: Locator
+    public var embeddedLink: Link
+    public var attributes: [ContentAttribute]
 
     public init(locator: Locator, embeddedLink: Link, attributes: [ContentAttribute] = []) {
         self.locator = locator
@@ -50,9 +50,9 @@ public struct AudioContentElement: EmbeddedContentElement, TextualContentElement
 
 /// A video clip.
 public struct VideoContentElement: EmbeddedContentElement, TextualContentElement {
-    public let locator: Locator
-    public let embeddedLink: Link
-    public let attributes: [ContentAttribute]
+    public var locator: Locator
+    public var embeddedLink: Link
+    public var attributes: [ContentAttribute]
 
     public init(locator: Locator, embeddedLink: Link, attributes: [ContentAttribute] = []) {
         self.locator = locator
@@ -63,12 +63,12 @@ public struct VideoContentElement: EmbeddedContentElement, TextualContentElement
 
 /// A bitmap image.
 public struct ImageContentElement: EmbeddedContentElement, TextualContentElement {
-    public let locator: Locator
-    public let embeddedLink: Link
+    public var locator: Locator
+    public var embeddedLink: Link
 
     /// Short piece of text associated with the image.
-    public let caption: String?
-    public let attributes: [ContentAttribute]
+    public var caption: String?
+    public var attributes: [ContentAttribute]
 
     public init(locator: Locator, embeddedLink: Link, caption: String? = nil, attributes: [ContentAttribute] = []) {
         self.locator = locator
@@ -88,10 +88,10 @@ public struct ImageContentElement: EmbeddedContentElement, TextualContentElement
 /// @param role Purpose of this element in the broader context of the document.
 /// @param segments Ranged portions of text with associated attributes.
 public struct TextContentElement: TextualContentElement {
-    public let locator: Locator
-    public let role: Role
-    public let segments: [Segment]
-    public let attributes: [ContentAttribute]
+    public var locator: Locator
+    public var role: Role
+    public var segments: [Segment]
+    public var attributes: [ContentAttribute]
 
     public init(locator: Locator, role: Role, segments: [Segment], attributes: [ContentAttribute] = []) {
         self.locator = locator
@@ -125,10 +125,10 @@ public struct TextContentElement: TextualContentElement {
     /// @param locator Locator to the segment of text.
     /// @param text Text in the segment.
     /// @param attributes Attributes associated with this segment, e.g. language.
-    public struct Segment {
-        public let locator: Locator
-        public let text: String
-        public let attributes: [ContentAttribute]
+    public struct Segment: ContentAttributesHolder {
+        public var locator: Locator
+        public var text: String
+        public var attributes: [ContentAttribute]
 
         public init(locator: Locator, text: String, attributes: [ContentAttribute] = []) {
             self.locator = locator
@@ -154,6 +154,11 @@ public struct ContentAttributeKey<V> {
 public struct ContentAttribute: Hashable {
     public let key: String
     public let value: AnyHashable
+
+    public init<T: Hashable>(key: ContentAttributeKey<T>, value: T) {
+        self.key = key.key
+        self.value = value
+    }
 
     public init(key: String, value: AnyHashable) {
         self.key = key
@@ -203,14 +208,8 @@ public extension ContentAttributesHolder {
 /// Iterates through a list of `ContentElement` items.
 public protocol ContentIterator: AnyObject {
 
-    /// Returns true if the iterator has a next element, potentially blocking the caller while processing it.
-    func hasNext() -> Bool
-
     /// Retrieves the next element, or nil if we reached the end.
     func next() throws -> ContentElement?
-
-    /// Returns true if the iterator has a previous element, potentially blocking the caller while processing it.
-    func hasPrevious() -> Bool
 
     /// Advances to the previous item and returns it, or null if we reached the beginning.
     func previous() throws -> ContentElement?
