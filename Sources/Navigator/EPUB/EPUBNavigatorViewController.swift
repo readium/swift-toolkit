@@ -526,7 +526,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         }
     }
 
-    public func findLocationOfFirstVisibleContent(completion: @escaping (Locator?) -> ()) {
+    public func firstVisibleElementLocator(completion: @escaping (Locator?) -> ()) {
         guard let spreadView = paginationView.currentView as? EPUBSpreadView else {
             DispatchQueue.main.async { completion(nil) }
             return

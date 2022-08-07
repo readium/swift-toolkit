@@ -70,7 +70,7 @@ final class TTSViewModel: ObservableObject, Loggable {
             .sorted { $0.localizedDescription() < $1.localizedDescription() }
 
     @objc func play() {
-        navigator.findLocationOfFirstVisibleContent { [self] locator in
+        navigator.firstVisibleElementLocator { [self] locator in
             tts.play(from: locator ?? navigator.currentLocation)
         }
     }

@@ -20,9 +20,6 @@ public protocol Navigator {
     /// Can be used to save a bookmark to the current position.
     var currentLocation: Locator? { get }
 
-    /// Returns a `Locator` targeting the first visible content element on the current resource.
-    func findLocationOfFirstVisibleContent(completion: @escaping (Locator?) -> Void)
-
     /// Moves to the position in the publication correponding to the given `Locator`.
     /// - Parameter completion: Called when the transition is completed.
     /// - Returns: Whether the navigator is able to move to the locator. The completion block is only called if true was returned.
@@ -50,12 +47,6 @@ public protocol Navigator {
 }
 
 public extension Navigator {
-
-    func findLocationOfFirstVisibleContent(completion: @escaping (Locator?) -> ()) {
-        DispatchQueue.main.async {
-            completion(nil)
-        }
-    }
 
     /// Adds default values for the parameters.
     @discardableResult
