@@ -58,6 +58,10 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         synthesizer.delegate = self
     }
 
+    public func close() {
+        on(.close)
+    }
+
     // FIXME: Double check
     public let rateMultiplierRange: ClosedRange<Double> = 0.5...2.0
 
@@ -207,10 +211,12 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     /// State machine events triggered by the `AVSpeechSynthesizer` or the client
     /// of `AVTTSEngine`.
     private enum Event: Equatable {
+        case close
+
         // AVTTSEngine commands
         case play(Task)
         case stop(Task)
-        
+
         // AVSpeechSynthesizer delegate events
         case didStart(Task)
         case willSpeakRange(Range<String.Index>, task: Task)
@@ -236,6 +242,8 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         switch (state, event) {
 
         // stopped
+        case (_, .close):
+            stopEngine()
 
         case let (.stopped, .play(task)):
             state = .starting(task)

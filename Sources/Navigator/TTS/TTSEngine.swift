@@ -29,6 +29,9 @@ public protocol TTSEngine: AnyObject {
         onSpeakRange: @escaping (Range<String.Index>) -> Void,
         completion: @escaping (Result<Void, TTSError>) -> Void
     ) -> Cancellable
+
+    /// Terminates the TTS engine.
+    func close()
 }
 
 public extension TTSEngine {
@@ -51,13 +54,13 @@ public struct TTSUtterance {
     public let text: String
 
     /// Delay before speaking the utterance, in seconds.
-    public var delay: TimeInterval
+    public let delay: TimeInterval
 
     /// Multiplier for the speech rate.
     public let rateMultiplier: Double
 
     /// Voice pitch.
-    public var pitch: Double
+    public let pitch: Double
 
     /// Either an explicit voice or the language of the text. If a language is provided, the default voice for this
     /// language will be used.
