@@ -58,10 +58,6 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         synthesizer.delegate = self
     }
 
-    public func close() {
-        on(.close)
-    }
-
     // FIXME: Double check
     public let rateMultiplierRange: ClosedRange<Double> = 0.5...2.0
 
@@ -79,7 +75,6 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         onSpeakRange: @escaping (Range<String.Index>) -> (),
         completion: @escaping (Result<Void, TTSError>) -> ()
     ) -> Cancellable {
-
         let task = Task(
             utterance: utterance,
             onSpeakRange: onSpeakRange,
@@ -95,7 +90,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         return cancellable
     }
 
-    private class Task: Equatable {
+    private class Task: Equatable, CustomStringConvertible {
         let utterance: TTSUtterance
         let onSpeakRange: (Range<String.Index>) -> ()
         let completion: (Result<Void, TTSError>) -> ()
@@ -109,6 +104,10 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
 
         static func ==(lhs: Task, rhs: Task) -> Bool {
             ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+        }
+
+        var description: String {
+            utterance.text
         }
     }
 
@@ -211,8 +210,6 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     /// State machine events triggered by the `AVSpeechSynthesizer` or the client
     /// of `AVTTSEngine`.
     private enum Event: Equatable {
-        case close
-
         // AVTTSEngine commands
         case play(Task)
         case stop(Task)
@@ -234,7 +231,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     /// Raises a TTS event triggering a state change and handles its side effects.
     private func on(_ event: Event) {
         assert(Thread.isMainThread, "Raising AVTTSEngine events must be done from the main thread")
-             
+
         if (debug) {
             log(.debug, "-> on \(event)")
         }
@@ -242,9 +239,6 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         switch (state, event) {
 
         // stopped
-        case (_, .close):
-            stopEngine()
-
         case let (.stopped, .play(task)):
             state = .starting(task)
             startEngine(with: task)
@@ -257,22 +251,22 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         case let (.starting(current), .play(next)):
             state = .stopping(current, queued: next)
 
-        case let (.starting(current), .stop):
+        case let (.starting(current), .stop(toStop)) where current == toStop:
             state = .stopping(current, queued: nil)
 
         // playing
 
         case let (.playing(current), .didFinish(finished)) where current == finished:
-            current.completion(.success(()))
             state = .stopped
+            current.completion(.success(()))
 
         case let (.playing(current), .play(next)):
-            stopEngine()
             state = .stopping(current, queued: next)
-
-        case let (.playing(current), .stop):
             stopEngine()
+
+        case let (.playing(current), .stop(toStop)) where current == toStop:
             state = .stopping(current, queued: nil)
+            stopEngine()
 
         case let (.playing(current), .willSpeakRange(range, task: speaking)) where current == speaking:
             current.onSpeakRange(range)
@@ -280,22 +274,22 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         // stopping
 
         case let (.stopping(current, queued: next), .didStart(started)) where current == started:
-            stopEngine()
             state = .stopping(current, queued: next)
+            stopEngine()
 
         case let (.stopping(current, queued: next), .didFinish(finished)) where current == finished:
             if let next = next {
-                startEngine(with: next)
                 state = .starting(next)
+                startEngine(with: next)
             } else {
-                current.completion(.success(()))
                 state = .stopped
+                current.completion(.success(()))
             }
 
         case let (.stopping(current, queued: _), .play(next)):
             state = .stopping(current, queued: next)
 
-        case let (.stopping(current, queued: _), .stop):
+        case let (.stopping(current, queued: _), .stop(toStop)) where current == toStop:
             state = .stopping(current, queued: nil)
 
 

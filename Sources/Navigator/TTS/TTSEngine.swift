@@ -29,9 +29,6 @@ public protocol TTSEngine: AnyObject {
         onSpeakRange: @escaping (Range<String.Index>) -> Void,
         completion: @escaping (Result<Void, TTSError>) -> Void
     ) -> Cancellable
-
-    /// Terminates the TTS engine.
-    func close()
 }
 
 public extension TTSEngine {

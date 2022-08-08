@@ -135,19 +135,9 @@ public class PublicationSpeechSynthesizer: Loggable {
         )
     }
 
-    /// Interrupts the `TtsEngine` and closes this `PublicationSpeechSynthesizer`.
-    public func close() {
-        if isEngineInitialized {
-            engine.close()
-        }
-    }
+    private var currentTask: Cancellable? = nil
 
-    private var isEngineInitialized = false
-
-    private lazy var engine: TTSEngine = {
-        isEngineInitialized = true
-        return engineFactory()
-    }()
+    private lazy var engine: TTSEngine = engineFactory()
 
     /// Range for the speech rate multiplier. Normal is 1.0.
     public var rateMultiplierRange: ClosedRange<Double> {
@@ -175,6 +165,7 @@ public class PublicationSpeechSynthesizer: Loggable {
 
     /// (Re)starts the synthesizer from the given locator or the beginning of the publication.
     public func start(from startLocator: Locator? = nil) {
+        currentTask?.cancel()
         publicationIterator = publication.content(from: startLocator)?.makeIterator()
         playNextUtterance(.forward)
     }
@@ -183,6 +174,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     ///
     /// Use `start()` to restart it.
     public func stop() {
+        currentTask?.cancel()
         state = .stopped
         publicationIterator = nil
     }
@@ -191,6 +183,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     ///
     /// Use `resume()` to restart the playback from the same utterance.
     public func pause() {
+        currentTask?.cancel()
         if case let .playing(utterance, range: _) = state {
             state = .paused(utterance)
         }
@@ -198,6 +191,7 @@ public class PublicationSpeechSynthesizer: Loggable {
 
     /// Resumes an utterance interrupted with `pause()`.
     public func resume() {
+        currentTask?.cancel()
         if case let .paused(utterance) = state {
             play(utterance)
         }
@@ -214,11 +208,13 @@ public class PublicationSpeechSynthesizer: Loggable {
 
     /// Skips to the previous utterance.
     public func previous() {
+        currentTask?.cancel()
         playNextUtterance(.backward)
     }
 
     /// Skips to the next utterance.
     public func next() {
+        currentTask?.cancel()
         playNextUtterance(.forward)
     }
 
@@ -245,7 +241,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     private func play(_ utterance: Utterance) {
         state = .playing(utterance, range: nil)
 
-        engine.speak(
+        currentTask = engine.speak(
             TTSUtterance(
                 text: utterance.text,
                 delay: 0,
