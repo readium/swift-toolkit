@@ -39,17 +39,18 @@ public class PublicationSpeechSynthesizer: Loggable {
         public var defaultLanguage: Language?
         /// Identifier for the voice used to speak the utterances.
         public var voiceIdentifier: String?
-        /// Multiplier for the voice speech rate. Normal is 1.0. See `rateMultiplierRange` for the range of values
+        /// Multiplier for the voice speech rate. Normal is 1.0, see `rateMultiplierRange` for the range of values
         /// supported by the `TTSEngine`.
         public var rateMultiplier: Double
-        // FIXME:
-        public var pitch: Double
+        /// Multiplier for the baseline voice pitch. Normal is 1.0, see `pichMultiplierRange` for the range of values
+        /// supported by the `TTSEngine`.
+        public var pitchMultiplier: Double
 
-        public init(defaultLanguage: Language? = nil, voiceIdentifier: String? = nil, rateMultiplier: Double = 1.0, pitch: Double = 1.0) {
+        public init(defaultLanguage: Language? = nil, voiceIdentifier: String? = nil, rateMultiplier: Double = 1.0, pitchMultiplier: Double = 1.0) {
             self.defaultLanguage = defaultLanguage
             self.voiceIdentifier = voiceIdentifier
             self.rateMultiplier = rateMultiplier
-            self.pitch = pitch
+            self.pitchMultiplier = pitchMultiplier
         }
     }
 
@@ -142,6 +143,11 @@ public class PublicationSpeechSynthesizer: Loggable {
     /// Range for the speech rate multiplier. Normal is 1.0.
     public var rateMultiplierRange: ClosedRange<Double> {
         engine.rateMultiplierRange
+    }
+
+    /// Range for the voice pitch multiplier. Normal is 1.0.
+    public var pitchMultiplierRange: ClosedRange<Double> {
+        engine.pitchMultiplierRange
     }
 
     /// List of synthesizer voices supported by the TTS engine.
@@ -246,7 +252,7 @@ public class PublicationSpeechSynthesizer: Loggable {
                 text: utterance.text,
                 delay: 0,
                 rateMultiplier: config.rateMultiplier,
-                pitch: config.pitch,
+                pitchMultiplier: config.pitchMultiplier,
                 voiceOrLanguage: voiceOrLanguage(for: utterance)
             ),
             onSpeakRange: { [unowned self] range in

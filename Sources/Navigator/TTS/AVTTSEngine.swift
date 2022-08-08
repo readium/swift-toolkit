@@ -17,7 +17,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     /// > `AVSpeechUtteranceMaximumSpeechRate`. Lower values correspond to slower speech, and higher values correspond to
     /// > faster speech. The default value is `AVSpeechUtteranceDefaultSpeechRate`.
     /// > https://developer.apple.com/documentation/avfaudio/avspeechutterance/1619708-rate
-    private let avRateRange =
+    private static let avRateRange =
         Double(AVSpeechUtteranceMinimumSpeechRate)...Double(AVSpeechUtteranceMaximumSpeechRate)
 
     /// Range of valid values for an AVUtterance pitch.
@@ -25,7 +25,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     /// > Before enqueuing the utterance, set this property to a value within the range of 0.5 for lower pitch to 2.0 for
     /// > higher pitch. The default value is 1.0.
     /// > https://developer.apple.com/documentation/avfaudio/avspeechutterance/1619683-pitchmultiplier
-    private let avPitchRange = 0.5...2.0
+    private static let avPitchRange = 0.5...2.0
 
     /// Conversion function between a rate multiplier and the `AVSpeechUtterance` rate.
     private let rateMultiplierToAVRate: (Double) -> Float
@@ -60,6 +60,8 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
 
     // FIXME: Double check
     public let rateMultiplierRange: ClosedRange<Double> = 0.5...2.0
+
+    public let pitchMultiplierRange: ClosedRange<Double> = avPitchRange
 
     public lazy var availableVoices: [TTSVoice] =
         AVSpeechSynthesisVoice.speechVoices()
@@ -118,8 +120,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     private func taskUtterance(with task: Task) -> TaskUtterance {
         let utter = TaskUtterance(task: task)
         utter.rate = rateMultiplierToAVRate(task.utterance.rateMultiplier)
-        // FIXME:
-//        utter.pitchMultiplier = Float(avPitchRange.valueForPercentage(config.pitch))
+        utter.pitchMultiplier = Float(task.utterance.pitchMultiplier)
         utter.preUtteranceDelay = task.utterance.delay
         utter.voice = voice(for: task.utterance)
         return utter

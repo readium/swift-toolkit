@@ -27,6 +27,8 @@ final class TTSViewModel: ObservableObject, Loggable {
         let availableVoiceIds: [String]
         /// Supported range for the rate multiplier.
         let rateMultiplierRange: ClosedRange<Double>
+        /// Supported range for the voice pitch multiplier.
+        let pitchMultiplierRange: ClosedRange<Double>
 
         init(synthesizer: PublicationSpeechSynthesizer) {
             let voicesByLanguage: [Language: [TTSVoice]] =
@@ -38,6 +40,7 @@ final class TTSViewModel: ObservableObject, Loggable {
                 .flatMap { voicesByLanguage[$0]?.map { $0.identifier } }
                 ?? []
             self.rateMultiplierRange = synthesizer.rateMultiplierRange
+            self.pitchMultiplierRange = synthesizer.pitchMultiplierRange
         }
     }
 

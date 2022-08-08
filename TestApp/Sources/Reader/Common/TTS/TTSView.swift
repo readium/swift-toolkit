@@ -77,13 +77,15 @@ struct TTSSettings: View {
                 stepper(
                     caption: "Rate",
                     for: \.rateMultiplier,
-                    step: 0.2
+                    range: settings.rateMultiplierRange,
+                    step: 0.1
                 )
 
                 stepper(
                     caption: "Pitch",
-                    for: \.pitch,
-                    step: 0.2
+                    for: \.pitchMultiplier,
+                    range: settings.pitchMultiplierRange,
+                    step: 0.1
                 )
 
                 picker(
@@ -111,11 +113,12 @@ struct TTSSettings: View {
     @ViewBuilder private func stepper(
         caption: String,
         for keyPath: WritableKeyPath<Config, Double>,
+        range: ClosedRange<Double>,
         step: Double
     ) -> some View {
         Stepper(
             value: configBinding(for: keyPath),
-            in: 0.0...1.0,
+            in: range,
             step: step
         ) {
             Text(caption)
