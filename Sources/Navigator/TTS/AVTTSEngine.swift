@@ -102,12 +102,16 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
             self.completion = completion
         }
 
-        static func ==(lhs: Task, rhs: Task) -> Bool {
-            ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+        var isCancelled: Bool {
+            cancellable?.isCancelled ?? false
         }
 
         var description: String {
             utterance.text
+        }
+
+        static func ==(lhs: Task, rhs: Task) -> Bool {
+            ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
         }
     }
 
@@ -269,7 +273,9 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
             stopEngine()
 
         case let (.playing(current), .willSpeakRange(range, task: speaking)) where current == speaking:
-            current.onSpeakRange(range)
+            if !current.isCancelled {
+                current.onSpeakRange(range)
+            }
 
         // stopping
 
@@ -278,11 +284,14 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
             stopEngine()
 
         case let (.stopping(current, queued: next), .didFinish(finished)) where current == finished:
-            if let next = next {
+            if let next = next, !next.isCancelled {
                 state = .starting(next)
                 startEngine(with: next)
             } else {
                 state = .stopped
+            }
+
+            if !current.isCancelled {
                 current.completion(.success(()))
             }
 
