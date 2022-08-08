@@ -8,9 +8,6 @@ import Foundation
 import R2Shared
 
 public protocol PublicationSpeechSynthesizerDelegate: AnyObject {
-    /// Called when the synthesizer's configuration is updated.
-    func publicationSpeechSynthesizer(_ synthesizer: PublicationSpeechSynthesizer, configDidChange config: PublicationSpeechSynthesizer.Configuration)
-
     /// Called when the synthesizer's state is updated.
     func publicationSpeechSynthesizer(_ synthesizer: PublicationSpeechSynthesizer, stateDidChange state: PublicationSpeechSynthesizer.State)
 
@@ -27,7 +24,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     public typealias TokenizerFactory = (_ defaultLanguage: Language?) -> ContentTokenizer
 
     /// Returns whether the `publication` can be played with a `PublicationSpeechSynthesizer`.
-    static func canSpeak(publication: Publication) -> Bool {
+    public static func canSpeak(publication: Publication) -> Bool {
         publication.content() != nil
     }
 
@@ -90,11 +87,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     /// Current configuration of the `PublicationSpeechSynthesizer`.
     ///
     /// Changes are not immediate, they will be applied for the next utterance.
-    public var config: Configuration {
-        didSet {
-            delegate?.publicationSpeechSynthesizer(self, configDidChange: config)
-        }
-    }
+    public var config: Configuration
 
     public weak var delegate: PublicationSpeechSynthesizerDelegate?
 
@@ -169,7 +162,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     /// Returns the first voice with the given `identifier` supported by the TTS `engine`.
     ///
     /// This can be used to restore the user selected voice after storing it in the user defaults.
-    func voiceWithIdentifier(_ identifier: String) -> TTSVoice? {
+    public func voiceWithIdentifier(_ identifier: String) -> TTSVoice? {
         let voice = lastUsedVoice.takeIf { $0.identifier == identifier }
             ?? engine.voiceWithIdentifier(identifier)
 
@@ -181,8 +174,51 @@ public class PublicationSpeechSynthesizer: Loggable {
     private var lastUsedVoice: TTSVoice? = nil
 
     /// (Re)starts the synthesizer from the given locator or the beginning of the publication.
-    func start(from startLocator: Locator? = nil) {
+    public func start(from startLocator: Locator? = nil) {
         publicationIterator = publication.content(from: startLocator)?.makeIterator()
+        playNextUtterance(.forward)
+    }
+
+    /// Stops the synthesizer.
+    ///
+    /// Use `start()` to restart it.
+    public func stop() {
+        state = .stopped
+        publicationIterator = nil
+    }
+
+    /// Interrupts a played utterance.
+    ///
+    /// Use `resume()` to restart the playback from the same utterance.
+    public func pause() {
+        if case let .playing(utterance, range: _) = state {
+            state = .paused(utterance)
+        }
+    }
+
+    /// Resumes an utterance interrupted with `pause()`.
+    public func resume() {
+        if case let .paused(utterance) = state {
+            play(utterance)
+        }
+    }
+
+    /// Pauses or resumes the playback of the current utterance.
+    public func pauseOrResume() {
+        switch state {
+        case .stopped: return
+        case .playing: pause()
+        case .paused: resume()
+        }
+    }
+
+    /// Skips to the previous utterance.
+    public func previous() {
+        playNextUtterance(.backward)
+    }
+
+    /// Skips to the next utterance.
+    public func next() {
         playNextUtterance(.forward)
     }
 

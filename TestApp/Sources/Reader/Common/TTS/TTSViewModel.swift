@@ -11,44 +11,86 @@ import R2Shared
 
 final class TTSViewModel: ObservableObject, Loggable {
 
-    enum State {
-        case stopped, paused, playing
+    struct State: Equatable {
+        /// Whether the TTS was enabled by the user.
+        var showControls: Bool = false
+        /// Whether the TTS is currently speaking.
+        var isPlaying: Bool = false
     }
 
-    @Published private(set) var state: State = .stopped
-    @Published var config: TTSConfiguration
+    struct Settings: Equatable {
+        /// Currently selected user preferences.
+        let config: PublicationSpeechSynthesizer.Configuration
+        /// Languages supported by the synthesizer.
+        let availableLanguages: [Language]
+        /// Voices supported by the synthesizer, for the selected language.
+        let availableVoiceIds: [String]
+        /// Supported range for the rate multiplier.
+        let rateMultiplierRange: ClosedRange<Double>
 
-    private let tts: TTSController
-    private let navigator: Navigator
+        init(synthesizer: PublicationSpeechSynthesizer) {
+            let voicesByLanguage: [Language: [TTSVoice]] =
+                Dictionary(grouping: synthesizer.availableVoices, by: \.language)
+
+            self.config = synthesizer.config
+            self.availableLanguages = voicesByLanguage.keys.sorted { $0.localizedDescription() < $1.localizedDescription() }
+            self.availableVoiceIds = synthesizer.config.defaultLanguage
+                .flatMap { voicesByLanguage[$0]?.map { $0.identifier } }
+                ?? []
+            self.rateMultiplierRange = synthesizer.rateMultiplierRange
+        }
+    }
+
+    @Published private(set) var state: State = State()
+    @Published private(set) var settings: Settings
+
     private let publication: Publication
+    private let navigator: Navigator
+    private let synthesizer: PublicationSpeechSynthesizer
 
-    private let playingRangeLocatorSubject = PassthroughSubject<Locator, Never>()
+    @Published private var playingUtterance: Locator?
+    private let playingWordRangeSubject = PassthroughSubject<Locator, Never>()
+
     private var subscriptions: Set<AnyCancellable> = []
 
     init?(navigator: Navigator, publication: Publication) {
-        guard TTSController.canPlay(publication) else {
+        guard let synthesizer = PublicationSpeechSynthesizer(publication: publication) else {
             return nil
         }
-        self.tts = TTSController(publication: publication)
-        self.config = tts.config
+        self.synthesizer = synthesizer
+        self.settings = Settings(synthesizer: synthesizer)
         self.navigator = navigator
         self.publication = publication
 
-        tts.delegate = self
+        synthesizer.delegate = self
 
-        $config
-            .sink { [unowned self] in
-                tts.config = $0
-            }
-            .store(in: &subscriptions)
-
-        var isMoving = false
-        playingRangeLocatorSubject
-            .throttle(for: 1, scheduler: RunLoop.main, latest: true)
-            .sink { locator in
-                guard !isMoving else {
-                    return
+        // Highlight the currently spoken utterance.
+        if let navigator = navigator as? DecorableNavigator {
+            $playingUtterance
+                .removeDuplicates()
+                .sink { locator in
+                    var decorations: [Decoration] = []
+                    if let locator = locator {
+                        decorations.append(Decoration(
+                            id: "tts-utterance",
+                            locator: locator,
+                            style: .highlight(tint: .red)
+                        ))
+                    }
+                    navigator.apply(decorations: decorations, in: "tts")
                 }
+                .store(in: &subscriptions)
+        }
+
+        // Navigate to the currently spoken utterance word.
+        // This will automatically turn pages when needed.
+        var isMoving = false
+        playingWordRangeSubject
+            .removeDuplicates()
+            //  Improve performances by throttling the moves to maximum one per second.
+            .throttle(for: 1, scheduler: RunLoop.main, latest: true)
+            .drop(while: { _ in isMoving })
+            .sink { locator in
                 isMoving = navigator.go(to: locator) {
                     isMoving = false
                 }
@@ -56,79 +98,73 @@ final class TTSViewModel: ObservableObject, Loggable {
             .store(in: &subscriptions)
     }
 
-    var defaultConfig: TTSConfiguration { tts.defaultConfig }
-
-    var availableVoices: [TTSVoice?] {
-        [nil] + tts.availableVoices
-            .filter { $0.language.removingRegion() == config.defaultLanguage }
+    func setConfig(_ config: PublicationSpeechSynthesizer.Configuration) {
+        synthesizer.config = config
+        settings = Settings(synthesizer: synthesizer)
     }
 
-    lazy var availableLanguages: [Language] =
-        tts.availableVoices
-            .map { $0.language.removingRegion() }
-            .removingDuplicates()
-            .sorted { $0.localizedDescription() < $1.localizedDescription() }
+    func voiceWithIdentifier(_ id: String) -> TTSVoice? {
+        synthesizer.voiceWithIdentifier(id)
+    }
 
-    @objc func play() {
-        navigator.firstVisibleElementLocator { [self] locator in
-            tts.play(from: locator ?? navigator.currentLocation)
+    @objc func start() {
+        if let navigator = navigator as? VisualNavigator {
+            // Gets the locator of the element at the top of the page.
+            navigator.firstVisibleElementLocator { [self] locator in
+                synthesizer.start(from: locator)
+            }
+        } else {
+            synthesizer.start(from: navigator.currentLocation)
         }
-    }
-
-    @objc func playPause() {
-        tts.playPause()
     }
 
     @objc func stop() {
-        state = .stopped
-        highlight(nil)
-        tts.pause()
+        synthesizer.stop()
+    }
+
+    @objc func pauseOrResume() {
+        synthesizer.pauseOrResume()
+    }
+
+    @objc func pause() {
+        synthesizer.pause()
     }
 
     @objc func previous() {
-        tts.previous()
+        synthesizer.previous()
     }
 
     @objc func next() {
-        tts.next()
-    }
-
-    private func highlight(_ utterance: TTSUtterance?) {
-        guard let navigator = navigator as? DecorableNavigator else {
-            return
-        }
-
-        var decorations: [Decoration] = []
-        if let utterance = utterance {
-            decorations.append(Decoration(
-                id: "tts",
-                locator: utterance.locator,
-                style: .highlight(tint: .red)
-            ))
-        }
-
-        navigator.apply(decorations: decorations, in: "tts")
+        synthesizer.next()
     }
 }
 
-extension TTSViewModel: TTSControllerDelegate {
-    public func ttsController(_ ttsController: TTSController, playingDidChange isPlaying: Bool) {
-        if isPlaying {
-            state = .playing
-        } else if state != .stopped {
-            state = .paused
+extension TTSViewModel: PublicationSpeechSynthesizerDelegate {
+
+    public func publicationSpeechSynthesizer(_ synthesizer: PublicationSpeechSynthesizer, stateDidChange synthesizerState: PublicationSpeechSynthesizer.State) {
+        switch synthesizerState {
+        case .stopped:
+            state.showControls = false
+            state.isPlaying = false
+            playingUtterance = nil
+
+        case let .playing(utterance, range: wordRange):
+            state.showControls = true
+            state.isPlaying = true
+            playingUtterance = utterance.locator
+            if let wordRange = wordRange {
+                playingWordRangeSubject.send(wordRange)
+            }
+
+        case let .paused(utterance):
+            state.showControls = true
+            state.isPlaying = false
+            playingUtterance = utterance.locator
         }
     }
 
-    public func ttsController(_ ttsController: TTSController, didReceiveError error: Error) {
+    public func publicationSpeechSynthesizer(_ synthesizer: PublicationSpeechSynthesizer, utterance: PublicationSpeechSynthesizer.Utterance, didFailWithError error: PublicationSpeechSynthesizer.Error) {
+        // FIXME:
         log(.error, error)
-    }
-
-    public func ttsController(_ ttsController: TTSController, willStartSpeaking utterance: TTSUtterance) {
-        highlight(utterance)
-    }
-
-    public func ttsController(_ ttsController: TTSController, willSpeakRangeAt locator: Locator, of utterance: TTSUtterance) {
-        playingRangeLocatorSubject.send(locator)
     }
 }

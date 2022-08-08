@@ -125,7 +125,7 @@ class ReaderViewController: UIViewController, Loggable {
 
             state
                 .sink { state in
-                    controls.view.isHidden = (state == .stopped)
+                    controls.view.isHidden = !state.showControls
                 }
                 .store(in: &subscriptions)
         }
@@ -162,7 +162,7 @@ class ReaderViewController: UIViewController, Loggable {
         }
         // Text to speech
         if let ttsViewModel = ttsViewModel {
-            buttons.append(UIBarButtonItem(image: UIImage(systemName: "speaker.wave.2.fill"), style: .plain, target: ttsViewModel, action: #selector(TTSViewModel.play)))
+            buttons.append(UIBarButtonItem(image: UIImage(systemName: "speaker.wave.2.fill"), style: .plain, target: ttsViewModel, action: #selector(TTSViewModel.start)))
         }
         
         return buttons

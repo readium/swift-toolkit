@@ -79,7 +79,7 @@ public struct ImageContentElement: EmbeddedContentElement, TextualContentElement
 
     public var text: String? {
         // The caption might be a better text description than the accessibility label, when available.
-        caption.takeIf { !$0.isEmpty } ?? (self as? TextualContentElement)?.text
+        caption.takeIf { !$0.isEmpty } ?? accessibilityLabel
     }
 }
 

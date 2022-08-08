@@ -8,6 +8,8 @@ import Foundation
 import R2Navigator
 import SwiftUI
 
+private typealias Config = PublicationSpeechSynthesizer.Configuration
+
 struct TTSControls: View {
     @ObservedObject var viewModel: TTSViewModel
     @State private var showSettings = false
@@ -25,8 +27,8 @@ struct TTSControls: View {
             )
 
             IconButton(
-                systemName: (viewModel.state == .playing) ? "pause.fill" : "play.fill",
-                action: { viewModel.playPause() }
+                systemName: (viewModel.state.isPlaying) ? "pause.fill" : "play.fill",
+                action: { viewModel.pauseOrResume() }
             )
 
             IconButton(
@@ -69,32 +71,35 @@ struct TTSSettings: View {
     @ObservedObject var viewModel: TTSViewModel
 
     var body: some View {
+        let settings = viewModel.settings
         NavigationView {
             Form {
                 stepper(
                     caption: "Rate",
-                    for: \.rate,
-                    step: viewModel.defaultConfig.rate / 10
+                    for: \.rateMultiplier,
+                    step: 0.2
                 )
 
                 stepper(
                     caption: "Pitch",
                     for: \.pitch,
-                    step: viewModel.defaultConfig.pitch / 4
+                    step: 0.2
                 )
 
                 picker(
                     caption: "Language",
                     for: \.defaultLanguage,
-                    choices: viewModel.availableLanguages,
-                    choiceLabel: { $0.localizedDescription() }
+                    choices: settings.availableLanguages,
+                    choiceLabel: { $0?.localizedDescription() ?? "Default" }
                 )
 
                 picker(
                     caption: "Voice",
-                    for: \.voice,
-                    choices: viewModel.availableVoices,
-                    choiceLabel: { $0.localizedDescription() }
+                    for: \.voiceIdentifier,
+                    choices: [nil] + settings.availableVoiceIds,
+                    choiceLabel: { id in
+                        id.flatMap { viewModel.voiceWithIdentifier($0)?.name } ?? "Default"
+                    }
                 )
             }
             .navigationTitle("Speech settings")
@@ -103,9 +108,9 @@ struct TTSSettings: View {
         .navigationViewStyle(.stack)
     }
 
-    @ViewBuilder func stepper(
+    @ViewBuilder private func stepper(
         caption: String,
-        for keyPath: WritableKeyPath<TTSConfiguration, Double>,
+        for keyPath: WritableKeyPath<Config, Double>,
         step: Double
     ) -> some View {
         Stepper(
@@ -114,13 +119,13 @@ struct TTSSettings: View {
             step: step
         ) {
             Text(caption)
-            Text(String.localizedPercentage(viewModel.config[keyPath: keyPath])).font(.footnote)
+            Text(String.localizedPercentage(viewModel.settings.config[keyPath: keyPath])).font(.footnote)
         }
     }
 
-    @ViewBuilder func picker<T: Hashable>(
+    @ViewBuilder private func picker<T: Hashable>(
         caption: String,
-        for keyPath: WritableKeyPath<TTSConfiguration, T>,
+        for keyPath: WritableKeyPath<Config, T>,
         choices: [T],
         choiceLabel: @escaping (T) -> String
     ) -> some View {
@@ -131,10 +136,14 @@ struct TTSSettings: View {
         }
     }
     
-    private func configBinding<T>(for keyPath: WritableKeyPath<TTSConfiguration, T>) -> Binding<T> {
+    private func configBinding<T>(for keyPath: WritableKeyPath<Config, T>) -> Binding<T> {
         Binding(
-            get: { viewModel.config[keyPath: keyPath] },
-            set: { viewModel.config[keyPath: keyPath] = $0 }
+            get: { viewModel.settings.config[keyPath: keyPath] },
+            set: {
+                var config = viewModel.settings.config
+                config[keyPath: keyPath] = $0
+                viewModel.setConfig(config)
+            }
         )
     }
 }
@@ -144,7 +153,7 @@ private extension Optional where Wrapped == TTSVoice {
         guard case let .some(voice) = self else {
             return "Default"
         }
-        var desc = voice.name
+        var desc = voice.name ?? "Voice"
         if let region = voice.language.localizedRegion() {
             desc += " (\(region))"
         }
