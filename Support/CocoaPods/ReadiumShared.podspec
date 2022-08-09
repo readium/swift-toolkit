@@ -9,7 +9,9 @@ Pod::Spec.new do |s|
   s.source       = { :git => 'https://github.com/readium/swift-toolkit.git', :tag => "2.2.0" }
   s.exclude_files = ["Sources/Shared/Toolkit/Archive/ZIPFoundation.swift"]
   s.requires_arc = true
-  s.resources    = ['Sources/Shared/Resources/**']
+  s.resource_bundles = {
+    'Readium_R2Shared' => ['Sources/Shared/Resources/**'],
+  }
   s.source_files  = "Sources/Shared/**/*.{m,h,swift}"
   s.platform     = :ios
   s.ios.deployment_target = "10.0"
