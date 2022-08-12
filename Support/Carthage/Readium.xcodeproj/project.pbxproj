@@ -157,6 +157,7 @@
 		825642E013351C922B6510AD /* UTI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48B28C65845F0575C40877F6 /* UTI.swift */; };
 		82BAA3EB081DD29A928958AC /* ContentLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A496C959F870BAFDB447DA /* ContentLayout.swift */; };
 		837C0BC3151E302508B4BC44 /* LCPAuthenticating.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CB0BFECA8236412881393AA /* LCPAuthenticating.swift */; };
+		861C71906603180ABD01E8FA /* Atomic.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBB57FCAEE605484A7290DBB /* Atomic.swift */; };
 		862098954DE3522E87E806CC /* Minizip.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CFFEBDFE931745C07DACD4A3 /* Minizip.xcframework */; };
 		874BD412CBA1D392451B952B /* Assets in Resources */ = {isa = PBXBuildFile; fileRef = 251275D0DF87F85158A5FEA9 /* Assets */; };
 		88A171A36700ACF5A4AD6305 /* PublicationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 667B76C4766DFF58D066D40B /* PublicationService.swift */; };
@@ -274,6 +275,7 @@
 		E8CB4E5729E7000FC55FC937 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 342D5C0FEE79A2ABEE24A43E /* CoreServices.framework */; };
 		E9AADF25494C968A44979B66 /* UInt64.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57338C29681D4872D425AB81 /* UInt64.swift */; };
 		E9EE047B89D0084523F7C888 /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E7CEDF6EA681FE8119791B /* Feed.swift */; };
+		EA8C7F894E3BE8D6D954DC47 /* InMemoryPositionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505BF8A630F7C7B96754E333 /* InMemoryPositionsService.swift */; };
 		EB4D11D2D1A0C64FF0E982C3 /* Optional.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC925E451D875E5F74748EDC /* Optional.swift */; };
 		EDCA3449EA5683B37D82FEBE /* PDFKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABAF1D0444B94E2CDD80087D /* PDFKit.swift */; };
 		EE951A131E38E316BF7A1129 /* LCPDialogViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = ED5C6546C24E5E619E4CC9D1 /* LCPDialogViewController.xib */; };
@@ -412,6 +414,7 @@
 		4BB5D42EEF0083D833E2A572 /* Publication+OPDS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publication+OPDS.swift"; sourceTree = "<group>"; };
 		4E564AE6D5137499C81FEBE2 /* TargetAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetAction.swift; sourceTree = "<group>"; };
 		500E55D9CA753D6D6AA76D10 /* EPUBLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBLicenseContainer.swift; sourceTree = "<group>"; };
+		505BF8A630F7C7B96754E333 /* InMemoryPositionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryPositionsService.swift; sourceTree = "<group>"; };
 		508E0CD4F9F02CC851E6D1E1 /* Publication+EPUB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publication+EPUB.swift"; sourceTree = "<group>"; };
 		54699BC0E00F327E67908F6A /* Encryption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Encryption.swift; sourceTree = "<group>"; };
 		55BC4119B8937D17ED80B1AB /* ControlFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlFlow.swift; sourceTree = "<group>"; };
@@ -536,6 +539,7 @@
 		C5E7CEDF6EA681FE8119791B /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
 		C7931CB2A5658CAAECD150B0 /* NSRegularExpression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSRegularExpression.swift; sourceTree = "<group>"; };
 		CAD79372361D085CA0500CF4 /* Properties+OPDS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Properties+OPDS.swift"; sourceTree = "<group>"; };
+		CBB57FCAEE605484A7290DBB /* Atomic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Atomic.swift; sourceTree = "<group>"; };
 		CC925E451D875E5F74748EDC /* Optional.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Optional.swift; sourceTree = "<group>"; };
 		CDA8111A330AB4D7187DD743 /* LocatorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocatorService.swift; sourceTree = "<group>"; };
 		CE641F78FD99A426A80B3495 /* Zip.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Zip.h; sourceTree = "<group>"; };
@@ -982,6 +986,7 @@
 		5BC52D8F4F854FDA56D10A8E /* Positions */ = {
 			isa = PBXGroup;
 			children = (
+				505BF8A630F7C7B96754E333 /* InMemoryPositionsService.swift */,
 				01CCE64AE9824DCF6D6413BC /* PerResourcePositionsService.swift */,
 				BC45956B8991A9488F957B06 /* PositionsService.swift */,
 			);
@@ -1284,6 +1289,7 @@
 		C42B511253C3D9C6DA8AA5CC /* Toolkit */ = {
 			isa = PBXGroup;
 			children = (
+				CBB57FCAEE605484A7290DBB /* Atomic.swift */,
 				7BBD54FD376456C1925316BC /* Cancellable.swift */,
 				0CB0D3EE83AE0CE1F0B0B0CF /* CancellableResult.swift */,
 				55BC4119B8937D17ED80B1AB /* ControlFlow.swift */,
@@ -1684,7 +1690,7 @@
 				};
 			};
 			buildConfigurationList = 5A872BCD95ECE5673BC89051 /* Build configuration list for PBXProject "Readium" */;
-			compatibilityVersion = "Xcode 10.0";
+			compatibilityVersion = "Xcode 11.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -1839,6 +1845,7 @@
 				09B7475BC8E63C940BD5881A /* Archive.swift in Sources */,
 				A3EBB38968F8EB4ABC560678 /* ArchiveFetcher.swift in Sources */,
 				AA218336FBD1C23959542515 /* Array.swift in Sources */,
+				861C71906603180ABD01E8FA /* Atomic.swift in Sources */,
 				5C8ED4151A6C7EF6608A03F8 /* AudioSession.swift in Sources */,
 				8E4C9F5A53A6F9B8FC28B7D4 /* BufferedResource.swift in Sources */,
 				6D27F5B8C7DBFBF5FB99A4BE /* Bundle.swift in Sources */,
@@ -1882,6 +1889,7 @@
 				39FC65D3797EF5069A04F34B /* HTTPFetcher.swift in Sources */,
 				2B57BE89EFAE517F79A17667 /* HTTPProblemDetails.swift in Sources */,
 				FD13DEAC62A3ED6714841B7A /* HTTPRequest.swift in Sources */,
+				EA8C7F894E3BE8D6D954DC47 /* InMemoryPositionsService.swift in Sources */,
 				9C6B7AFB6FB0635EF5B7B71C /* JSON.swift in Sources */,
 				69150D0B00F5665C3DA0000B /* LazyResource.swift in Sources */,
 				5C9617AE1B5678A95ABFF1AA /* Link.swift in Sources */,

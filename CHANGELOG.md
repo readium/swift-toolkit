@@ -4,7 +4,30 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!--## [Unreleased]-->
+## [Unreleased]
+
+### Deprecated
+
+#### Shared
+
+* `Locator(link: Link)` is deprecated as it may create an incorrect `Locator` if the link `type` is missing.
+    * Use `publication.locate(Link)` instead.
+
+### Fixed
+
+#### Navigator
+
+* Fixed memory leaks in the EPUB and PDF navigators.
+* [#61](https://github.com/readium/swift-toolkit/issues/61) Fixed serving EPUB resources when the HREF contains an anchor or query parameters.
+
+#### Streamer
+
+* Fixed memory leak in the `PublicationServer`.
+
+#### LCP
+
+* The LCP authentication dialog is now fully localized and supports Dark Mode (contributed by [@openm1nd](https://github.com/readium/swift-toolkit/pull/50)).
+
 
 ## [2.3.0]
 

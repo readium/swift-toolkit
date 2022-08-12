@@ -126,7 +126,36 @@ public struct Manifest: JSONEquatable, Hashable {
         
         return metadata.conformsTo.contains(profile)
     }
-    
+
+    /// Finds the first Link having the given `href` in the manifest's links.
+    public func link(withHREF href: String) -> Link? {
+        func deepFind(in linkLists: [Link]...) -> Link? {
+            for links in linkLists {
+                for link in links {
+                    if link.href == href {
+                        return link
+                    } else if let child = deepFind(in: link.alternates, link.children) {
+                        return child
+                    }
+                }
+            }
+
+            return nil
+        }
+
+        var link = deepFind(in: readingOrder, resources, links)
+        if
+            link == nil,
+            let shortHREF = href.components(separatedBy: .init(charactersIn: "#?")).first,
+            shortHREF != href
+        {
+            // Tries again, but without the anchor and query parameters.
+            link = self.link(withHREF: shortHREF)
+        }
+
+        return link
+    }
+
     /// Finds the first link with the given relation in the manifest's links.
     public func link(withRel rel: LinkRelation) -> Link? {
         return readingOrder.first(withRel: rel)

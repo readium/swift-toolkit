@@ -83,8 +83,8 @@ public struct LicenseDocument {
         self.json = jsonString
         self.data = data
 
-        /// Check that links contain rel for Hint and Publication.
-        guard link(for: .hint) != nil, link(for: .publication) != nil else {
+        /// Checks that `links` contains at least one link with `publication` relation.
+        guard link(for: .publication) != nil else {
             throw ParsingError.licenseDocument
         }
     }

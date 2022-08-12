@@ -1,16 +1,16 @@
 //
-//  DocumentTypes.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 26.06.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import CoreServices
 import Foundation
+
+#if canImport(UniformTypeIdentifiers)
+import UniformTypeIdentifiers
+#endif
+
 
 /// Provides a convenient access layer to the Document Types declared in the `Info.plist`,
 /// under `CFBundleDocumentTypes`.
@@ -24,6 +24,12 @@ public struct DocumentTypes {
     
     /// Supported UTIs.
     public let supportedUTIs: [String]
+    
+    /// Supported UTTypes.
+    @available(iOS 14.0, *)
+    public var supportedUTTypes: [UTType] {
+        supportedUTIs.compactMap { UTType($0) }
+    }
     
     /// Supported document media types.
     public let supportedMediaTypes: [MediaType]

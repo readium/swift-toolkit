@@ -75,47 +75,6 @@ class LocatorTests: XCTestCase {
         XCTAssertEqual([Locator](json: nil), [])
     }
     
-    func testMakeFromFullLink() {
-        XCTAssertEqual(
-            Locator(link: Link(
-                href: "http://locator",
-                type: "text/html",
-                title: "Link title"
-            )),
-            Locator(
-                href: "http://locator",
-                type: "text/html",
-                title: "Link title"
-            )
-        )
-    }
-    
-    func testMakeFromMinimalLink() {
-        XCTAssertEqual(
-            Locator(link: Link(
-                href: "http://locator"
-            )),
-            Locator(
-                href: "http://locator",
-                type: "",
-                title: nil
-            )
-        )
-    }
-    
-    func testMakeFromLinkWithFragment() {
-        XCTAssertEqual(
-            Locator(link: Link(
-                href: "http://locator#page=42"
-            )),
-            Locator(
-                href: "http://locator",
-                type: "",
-                locations: .init(fragments: ["page=42"])
-            )
-        )
-    }
-
     func testGetMinimalJSON() {
         AssertJSONEqual(
             Locator(

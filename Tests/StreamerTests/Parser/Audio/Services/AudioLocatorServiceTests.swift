@@ -165,7 +165,9 @@ class AudioLocatorServiceTests: XCTestCase {
     
     private func makeService(readingOrder: [Link]) -> AudioLocatorService {
         AudioLocatorService(
-            readingOrder: readingOrder
+            publication: _Strong(Publication(
+                manifest: Manifest(metadata: Metadata(title: ""), readingOrder: readingOrder)
+            ))
         )
     }
     

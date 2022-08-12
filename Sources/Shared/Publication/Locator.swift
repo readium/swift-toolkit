@@ -70,7 +70,8 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
         
         try self.init(json: json, warnings: warnings)
     }
-    
+
+    @available(*, deprecated, message: "This may create an incorrect `Locator` if the link `type` is missing. Use `publication.locate(Link)` instead.")
     public init(link: Link) {
         let components = link.href.split(separator: "#", maxSplits: 1).map(String.init)
         let fragments = (components.count > 1) ? [String(components[1])] : []
