@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
   s.summary       = "Readium LCP"
   s.homepage      = "http://readium.github.io"
   s.author        = { "Readium" => "contact@readium.org" }
-  s.source        = { :git => "https://github.com/readium/swift-toolkit.git", :commit => "09e4b355419d66004f4f9f0c398073e210a0dcec" }
+  s.source        = { :git => "https://github.com/readium/swift-toolkit.git", :branch => "develop" }
   s.requires_arc  = true
   s.resource_bundles = {
     'ReadiumLCP' => [
