@@ -16,11 +16,11 @@ extension Bundle {
     static let module = Bundle.getCocoaPodsBundle()
     static func getCocoaPodsBundle() -> Bundle {
         let rootBundle = Bundle(for: EPUBNavigatorViewController.self)
-        guard let resourceBundleUrl = rootBundle.url(forResource: "Readium_R2Navigator", withExtension: "bundle") else {
-            fatalError("Unable to locate Readium_R2Navigator.bundle")
+        guard let resourceBundleUrl = rootBundle.url(forResource: "ReadiumNavigator", withExtension: "bundle") else {
+            fatalError("Unable to locate ReadiumNavigator.bundle")
         }
         guard let bundle = Bundle(url: resourceBundleUrl) else {
-            fatalError("Unable to load Readium_R2Navigator.bundle")
+            fatalError("Unable to load ReadiumNavigator.bundle")
         }
 
         return bundle

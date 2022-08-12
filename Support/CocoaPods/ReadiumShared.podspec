@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   s.exclude_files = ["Sources/Shared/Toolkit/Archive/ZIPFoundation.swift"]
   s.requires_arc = true
   s.resource_bundles = {
-    'Readium_R2Shared' => ['Sources/Shared/Resources/**'],
+    'ReadiumShared' => ['Sources/Shared/Resources/**'],
   }
   s.source_files  = "Sources/Shared/**/*.{m,h,swift}"
   s.platform     = :ios

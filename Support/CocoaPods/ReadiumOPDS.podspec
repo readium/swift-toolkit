@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.source        = { :git => "https://github.com/readium/swift-toolkit.git", :tag => "2.3.0" }
   s.requires_arc  = true
   s.resource_bundles = {
-    'Readium_R2OPDS' => ['Sources/OPDS/Resources/**'],
+    'ReadiumOPDS' => ['Sources/OPDS/Resources/**'],
   }
   s.source_files  = "Sources/OPDS/**/*.{m,h,swift}"
   s.platform      = :ios

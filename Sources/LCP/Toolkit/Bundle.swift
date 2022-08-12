@@ -16,11 +16,11 @@ extension Bundle {
     static let module = Bundle.getCocoaPodsBundle()
     static func getCocoaPodsBundle() -> Bundle {
         let rootBundle = Bundle(for: LCPService.self)
-        guard let resourceBundleUrl = rootBundle.url(forResource: "Readium_R2LCP", withExtension: "bundle") else {
-            fatalError("Unable to locate Readium_R2LCP.bundle")
+        guard let resourceBundleUrl = rootBundle.url(forResource: "ReadiumLCP", withExtension: "bundle") else {
+            fatalError("Unable to locate ReadiumLCP.bundle")
         }
         guard let bundle = Bundle(url: resourceBundleUrl) else {
-            fatalError("Unable to load Readium_R2LCP.bundle")
+            fatalError("Unable to load ReadiumLCP.bundle")
         }
 
         return bundle

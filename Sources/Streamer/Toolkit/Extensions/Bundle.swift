@@ -16,11 +16,11 @@ extension Bundle {
     static let module = Bundle.getCocoaPodsBundle()
     static func getCocoaPodsBundle() -> Bundle {
         let rootBundle = Bundle(for: Streamer.self)
-        guard let resourceBundleUrl = rootBundle.url(forResource: "Readium_R2Streamer", withExtension: "bundle") else {
-            fatalError("Unable to locate Readium_R2Streamer.bundle")
+        guard let resourceBundleUrl = rootBundle.url(forResource: "ReadiumStreamer", withExtension: "bundle") else {
+            fatalError("Unable to locate ReadiumStreamer.bundle")
         }
         guard let bundle = Bundle(url: resourceBundleUrl) else {
-            fatalError("Unable to load Readium_R2Streamer.bundle")
+            fatalError("Unable to load ReadiumStreamer.bundle")
         }
 
         return bundle

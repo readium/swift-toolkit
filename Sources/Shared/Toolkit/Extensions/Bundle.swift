@@ -16,11 +16,11 @@ extension Bundle {
     static let module = Bundle.getCocoaPodsBundle()
     static func getCocoaPodsBundle() -> Bundle {
         let rootBundle = Bundle(for: Publication.self)
-        guard let resourceBundleUrl = rootBundle.url(forResource: "Readium_R2Shared", withExtension: "bundle") else {
-            fatalError("Unable to locate Readium_R2Shared.bundle")
+        guard let resourceBundleUrl = rootBundle.url(forResource: "ReadiumShared", withExtension: "bundle") else {
+            fatalError("Unable to locate ReadiumShared.bundle")
         }
         guard let bundle = Bundle(url: resourceBundleUrl) else {
-            fatalError("Unable to load Readium_R2Shared.bundle")
+            fatalError("Unable to load ReadiumShared.bundle")
         }
 
         return bundle
