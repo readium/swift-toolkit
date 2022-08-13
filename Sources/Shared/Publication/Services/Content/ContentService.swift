@@ -51,7 +51,7 @@ public class DefaultContentService: ContentService {
             self.resourceContentIteratorFactories = resourceContentIteratorFactories
         }
 
-        func makeIterator() -> ContentIterator {
+        func iterator() -> ContentIterator {
             PublicationContentIterator(
                 publication: publication,
                 start: start,

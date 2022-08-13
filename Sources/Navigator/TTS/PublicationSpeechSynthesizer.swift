@@ -152,7 +152,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     /// (Re)starts the synthesizer from the given locator or the beginning of the publication.
     public func start(from startLocator: Locator? = nil) {
         currentTask?.cancel()
-        publicationIterator = publication.content(from: startLocator)?.makeIterator()
+        publicationIterator = publication.content(from: startLocator)?.iterator()
         playNextUtterance(.forward)
     }
 

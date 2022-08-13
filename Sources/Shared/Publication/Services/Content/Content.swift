@@ -8,7 +8,35 @@ import Foundation
 
 /// Provides an iterable list of `ContentElement`s.
 public protocol Content {
-    func makeIterator() -> ContentIterator
+    /// Creates a new fallible bidirectional iterator for this content.
+    func iterator() -> ContentIterator
+}
+
+public extension Content {
+    /// Returns a `Sequence` of all elements.
+    func sequence() -> ContentSequence {
+        ContentSequence(content: self)
+    }
+
+    /// Returns all the elements as a list.
+    func elements() -> [ContentElement] {
+        Array(sequence())
+    }
+
+    /// Extracts the full raw text, or returns null if no text content can be found.
+    ///
+    /// - Parameter separator: Separator to use between individual elements. Defaults to newline.
+    func text(separator: String = "\n") -> String? {
+        let text = elements()
+            .compactMap { ($0 as? TextualContentElement)?.text.takeIf { !$0.isEmpty } }
+            .joined(separator: separator)
+
+        guard !text.isEmpty else {
+            return nil
+        }
+
+        return text
+    }
 }
 
 /// Represents a single semantic content element part of a publication.
@@ -213,4 +241,34 @@ public protocol ContentIterator: AnyObject {
 
     /// Advances to the previous item and returns it, or null if we reached the beginning.
     func previous() throws -> ContentElement?
+}
+
+/// Helper class to treat a `Content` as a `Sequence`.
+public class ContentSequence: Sequence {
+    private let content: Content
+
+    init(content: Content) {
+        self.content = content
+    }
+
+    public func makeIterator() -> ContentSequence.Iterator {
+        Iterator(iterator: content.iterator())
+    }
+
+    public class Iterator: IteratorProtocol, Loggable {
+        private let iterator: ContentIterator
+
+        public init(iterator: ContentIterator) {
+            self.iterator = iterator
+        }
+
+        public func next() -> ContentElement? {
+            do {
+                return try iterator.next()
+            } catch {
+                log(.warning, error)
+                return next()
+            }
+        }
+    }
 }
