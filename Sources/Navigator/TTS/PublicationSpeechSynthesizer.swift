@@ -17,8 +17,6 @@ public protocol PublicationSpeechSynthesizerDelegate: AnyObject {
 
 /// `PublicationSpeechSynthesizer` orchestrates the rendition of a `Publication` by iterating through its content,
 /// splitting it into individual utterances using a `ContentTokenizer`, then using a `TTSEngine` to read them aloud.
-///
-/// Don't forget to call `close()` when you are done using the `PublicationSpeechSynthesizer`.
 public class PublicationSpeechSynthesizer: Loggable {
     public typealias EngineFactory = () -> TTSEngine
     public typealias TokenizerFactory = (_ defaultLanguage: Language?) -> ContentTokenizer

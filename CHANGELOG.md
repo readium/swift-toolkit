@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
+### Added
+
+#### Navigator
+
+* [A brand new text-to-speech implementation](Documentation/Guides/tts.md).
+
 ### Deprecated
 
 #### Shared
