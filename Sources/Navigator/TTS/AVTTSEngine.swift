@@ -27,41 +27,26 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     /// > https://developer.apple.com/documentation/avfaudio/avspeechutterance/1619683-pitchmultiplier
     private static let avPitchRange = 0.5...2.0
 
-    /// Conversion function between a rate multiplier and the `AVSpeechUtterance` rate.
-    private let rateMultiplierToAVRate: (Double) -> Float
-
-    private let debug: Bool
+    private let debug: Bool = false
     private let synthesizer = AVSpeechSynthesizer()
 
     /// Creates a new `AVTTSEngine` instance.
     ///
     /// - Parameters:
-    ///   - rateMultiplierToAVRate: Conversion function between a rate multiplier and the `AVSpeechUtterance` rate.
     ///   - audioSessionConfig: AudioSession configuration used while playing utterances. If `nil`, utterances won't
     ///     play when the app is in the background.
-    ///   - debug: Print the state machine transitions.
     public init(
-        // FIXME:
-        rateMultiplierToAVRate: @escaping (Double) -> Float = { Float($0) },
         audioSessionConfig: _AudioSession.Configuration? = .init(
             category: .playback,
             mode: .spokenAudio,
             options: .mixWithOthers
-        ),
-        debug: Bool = false
+        )
     ) {
-        self.rateMultiplierToAVRate = rateMultiplierToAVRate
         self.audioSessionUser = audioSessionConfig.map { AudioSessionUser(config: $0) }
-        self.debug = debug
 
         super.init()
         synthesizer.delegate = self
     }
-
-    // FIXME: Double check
-    public let rateMultiplierRange: ClosedRange<Double> = 0.5...2.0
-
-    public let pitchMultiplierRange: ClosedRange<Double> = avPitchRange
 
     public lazy var availableVoices: [TTSVoice] =
         AVSpeechSynthesisVoice.speechVoices()
@@ -119,8 +104,8 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
 
     private func taskUtterance(with task: Task) -> TaskUtterance {
         let utter = TaskUtterance(task: task)
-        utter.rate = rateMultiplierToAVRate(task.utterance.rateMultiplier)
-        utter.pitchMultiplier = Float(task.utterance.pitchMultiplier)
+//        utter.rate = rateMultiplierToAVRate(task.utterance.rateMultiplier)
+//        utter.pitchMultiplier = Float(task.utterance.pitchMultiplier)
         utter.preUtteranceDelay = task.utterance.delay
         utter.voice = voice(for: task.utterance)
         return utter

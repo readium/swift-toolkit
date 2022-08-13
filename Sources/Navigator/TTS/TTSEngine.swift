@@ -12,12 +12,6 @@ import R2Shared
 /// Implement this interface to support third-party engines with `PublicationSpeechSynthesizer`.
 public protocol TTSEngine: AnyObject {
 
-    /// Supported range for the speech rate multiplier.
-    var rateMultiplierRange: ClosedRange<Double> { get }
-
-    /// Supported range for the voice pitch multiplier.
-    var pitchMultiplierRange: ClosedRange<Double> { get }
-
     /// List of available synthesizer voices.
     var availableVoices: [TTSVoice] { get }
 
@@ -55,12 +49,6 @@ public struct TTSUtterance {
 
     /// Delay before speaking the utterance, in seconds.
     public let delay: TimeInterval
-
-    /// Multiplier for the speech rate.
-    public let rateMultiplier: Double
-
-    /// Multiplier for the baseline voice pitch.
-    public let pitchMultiplier: Double
 
     /// Either an explicit voice or the language of the text. If a language is provided, the default voice for this
     /// language will be used.

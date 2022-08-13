@@ -74,20 +74,6 @@ struct TTSSettings: View {
         let settings = viewModel.settings
         NavigationView {
             Form {
-                stepper(
-                    caption: "Rate",
-                    for: \.rateMultiplier,
-                    range: settings.rateMultiplierRange,
-                    step: 0.1
-                )
-
-                stepper(
-                    caption: "Pitch",
-                    for: \.pitchMultiplier,
-                    range: settings.pitchMultiplierRange,
-                    step: 0.1
-                )
-
                 picker(
                     caption: "Language",
                     for: \.defaultLanguage,
@@ -108,22 +94,6 @@ struct TTSSettings: View {
             .navigationBarTitleDisplayMode(.inline)
         }
         .navigationViewStyle(.stack)
-    }
-
-    @ViewBuilder private func stepper(
-        caption: String,
-        for keyPath: WritableKeyPath<Config, Double>,
-        range: ClosedRange<Double>,
-        step: Double
-    ) -> some View {
-        Stepper(
-            value: configBinding(for: keyPath),
-            in: range,
-            step: step
-        ) {
-            Text(caption)
-            Text(String.localizedPercentage(viewModel.settings.config[keyPath: keyPath])).font(.footnote)
-        }
     }
 
     @ViewBuilder private func picker<T: Hashable>(
