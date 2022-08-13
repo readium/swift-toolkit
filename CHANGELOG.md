@@ -8,9 +8,13 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Added
 
+#### Shared
+
+* [Extract the raw content (text, images, etc.) of a publication](Documentation/Guides/Content.md).
+
 #### Navigator
 
-* [A brand new text-to-speech implementation](Documentation/Guides/tts.md).
+* [A brand new text-to-speech implementation](Documentation/Guides/TTS.md).
 
 ### Deprecated
 
