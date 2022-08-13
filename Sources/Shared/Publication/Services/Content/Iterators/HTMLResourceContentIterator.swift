@@ -44,7 +44,7 @@ public class HTMLResourceContentIterator: ContentIterator {
     }
 
     private func next(by delta: Int) throws -> ContentElement? {
-        let elements = try elements.get()
+        let elements = try self.elements.get()
         let index = currentIndex.map { $0 + delta }
             ?? elements.startIndex
 

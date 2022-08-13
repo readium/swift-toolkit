@@ -17,7 +17,7 @@ public func makeTextContentTokenizer(
     contextSnippetLength: Int = 50,
     textTokenizerFactory: @escaping (Language?) -> TextTokenizer
 ) -> ContentTokenizer {
-    func tokenize(_ segment: TextContentElement.Segment) throws -> [TextContentElement.Segment] {
+    func tokenize(segment: TextContentElement.Segment) throws -> [TextContentElement.Segment] {
         let tokenize = textTokenizerFactory(segment.language ?? defaultLanguage)
 
         return try tokenize(segment.text)
@@ -37,7 +37,7 @@ public func makeTextContentTokenizer(
 
     func tokenize(_ content: ContentElement) throws -> [ContentElement] {
         if var content = content as? TextContentElement {
-            content.segments = try content.segments.flatMap(tokenize)
+            content.segments = try content.segments.flatMap(tokenize(segment:))
             return [content]
         } else {
             return [content]

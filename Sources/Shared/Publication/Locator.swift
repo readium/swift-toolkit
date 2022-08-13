@@ -278,8 +278,8 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
             }
 
             let range = range.relative(to: highlight)
-            var before = before ?? ""
-            var after = after ?? ""
+            var before = self.before ?? ""
+            var after = self.after ?? ""
             let newHighlight = highlight[range]
             before = before + highlight[..<range.lowerBound]
             after = highlight[range.upperBound...] + after
