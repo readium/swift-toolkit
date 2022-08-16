@@ -212,7 +212,7 @@ extension License: LCPLicense {
                 .flatMap {
                     // We fetch the Status Document again after the HTML interaction is done, in case it changed the
                     // License.
-                    self.httpClient.fetch(statusURL)
+                    self.httpClient.fetch(HTTPRequest(url: statusURL, headers: ["Accept": MediaType.lcpStatusDocument.string]))
                         .map { $0.body ?? Data() }
                         .eraseToAnyError()
                 }
