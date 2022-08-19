@@ -304,7 +304,7 @@ extension LicenseValidation {
     private func fetchStatus(of license: LicenseDocument) throws {
         let url = try license.url(for: .status, preferredType: .lcpStatusDocument)
         // Short timeout to avoid blocking the License, since the LSD is optional.
-        httpClient.fetch(HTTPRequest(url: url, timeoutInterval: 5))
+        httpClient.fetch(HTTPRequest(url: url, headers: ["Accept": MediaType.lcpStatusDocument.string], timeoutInterval: 5))
             .map { .retrievedStatusData($0.body ?? Data()) }
             .eraseToAnyError()
             .resolve(raise)
