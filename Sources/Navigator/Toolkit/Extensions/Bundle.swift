@@ -7,7 +7,24 @@ import Foundation
 
 #if !SWIFT_PACKAGE
 extension Bundle {
+
+    #if !COCOAPODS
     /// Returns R2Navigator's bundle by querying an arbitrary type.
     static let module = Bundle(for: EPUBNavigatorViewController.self)
+    #else
+    /// Returns R2Navigator's bundle by querying for the cocoapods bundle.
+    static let module = Bundle.getCocoaPodsBundle()
+    static func getCocoaPodsBundle() -> Bundle {
+        let rootBundle = Bundle(for: EPUBNavigatorViewController.self)
+        guard let resourceBundleUrl = rootBundle.url(forResource: "ReadiumNavigator", withExtension: "bundle") else {
+            fatalError("Unable to locate ReadiumNavigator.bundle")
+        }
+        guard let bundle = Bundle(url: resourceBundleUrl) else {
+            fatalError("Unable to load ReadiumNavigator.bundle")
+        }
+
+        return bundle
+    }
+    #endif
 }
 #endif

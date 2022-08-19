@@ -8,10 +8,12 @@ Pod::Spec.new do |s|
   s.author        = { "Readium" => "contact@readium.org" }
   s.source        = { :git => "https://github.com/readium/swift-toolkit.git", :branch => "develop" }
   s.requires_arc  = true
-  s.resources     = [
-    'Sources/LCP/Resources/**',
-    'Sources/LCP/**/*.xib'
-  ]
+  s.resource_bundles = {
+    'ReadiumLCP' => [
+      'Sources/LCP/Resources/**',
+      'Sources/LCP/**/*.xib',
+    ],
+  }
   s.source_files  = "Sources/LCP/**/*.{m,h,swift}"
   s.platform      = :ios
   s.ios.deployment_target = "10.0"
