@@ -85,8 +85,14 @@ public struct Accessibility: Hashable {
         /// Indicates that the resource contains information encoded such that color perception is necessary.
         public static let colorDependent = AccessMode("colorDependent")
 
+        /// Indicates that the resource contains diagrams encoded in visual form.
+        public static let diagramOnVisual = AccessMode("diagramOnVisual")
+
         /// Indicates that the resource contains mathematical notations encoded in visual form.
         public static let mathOnVisual = AccessMode("mathOnVisual")
+
+        /// Indicates that the resource contains musical notation encoded in visual form.
+        public static let musicOnVisual = AccessMode("musicOnVisual")
 
         /// Indicates that the resource contains information encoded in tactile form.
         ///
