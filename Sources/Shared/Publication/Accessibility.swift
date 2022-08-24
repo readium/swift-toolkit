@@ -15,6 +15,7 @@ public struct Accessibility: Hashable {
     /// An established standard to which the described resource conforms.
     public let conformsTo: [String]
 
+    /// Certification of accessible publications.
     public let certification: Certification?
 
     /// A human-readable summary of specific accessibility features or deficiencies, consistent with the other
@@ -48,8 +49,22 @@ public struct Accessibility: Hashable {
     public let hazards: [Hazard]
 
     public struct Certification: Hashable {
+
+        /// Identifies a party responsible for the testing and certification of the accessibility of a Publication.
+        ///
+        /// https://www.w3.org/TR/epub-a11y/#certifiedBy
         public let certifiedBy: [String]
+
+        /// Identifies a credential or badge that establishes the authority of the party identified in the associated
+        /// `certifiedBy` property to certify content accessible.
+        ///
+        /// https://www.w3.org/TR/epub-a11y/#certifierCredential
         public let credentials: [String]
+
+        /// Provides a link to an accessibility report created by the party identified in the associated certifiedBy
+        /// property.
+        ///
+        /// https://www.w3.org/TR/epub-a11y/#certifierReport
         public let reports: [String]
 
         public init(certifiedBy: [String] = [], credentials: [String] = [], reports: [String] = []) {
