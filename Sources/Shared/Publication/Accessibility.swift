@@ -14,7 +14,8 @@ public struct Accessibility: Hashable {
     
     public let conformsTo: [String]
     public let certification: Certification?
-    public let summary: String?
+    public let localizedSummary: LocalizedString?
+    public var summary: String? { localizedSummary?.string }
     public let accessModes: [AccessMode]
     public let accessModesSufficient: [AccessModeSufficient]
     public let features: [Feature]
@@ -118,7 +119,7 @@ public struct Accessibility: Hashable {
     public init(
         conformsTo: [String] = [],
         certification: Certification? = nil,
-        summary: String? = nil,
+        localizedSummary: LocalizedString? = nil,
         accessModes: [AccessMode] = [],
         accessModesSufficient: [AccessModeSufficient] = [],
         features: [Feature] = [],
@@ -126,7 +127,7 @@ public struct Accessibility: Hashable {
     ) {
         self.conformsTo = conformsTo
         self.certification = certification
-        self.summary = summary
+        self.localizedSummary = localizedSummary
         self.accessModes = accessModes
         self.accessModesSufficient = accessModesSufficient
         self.features = features
@@ -152,7 +153,7 @@ public struct Accessibility: Hashable {
                         reports: parseArray($0["report"], allowingSingle: true)
                     )
                 },
-            summary: json["summary"] as? String,
+            localizedSummary: try? LocalizedString(json: json["summary"], warnings: warnings),
             accessModes: parseArray(json["accessMode"]).map(AccessMode.init),
             accessModesSufficient: parseArray(json["accessModeSufficient"]).compactMap(AccessModeSufficient.init(rawValue:)),
             features: parseArray(json["feature"]).map(Feature.init),
@@ -170,7 +171,7 @@ public struct Accessibility: Hashable {
                     "report": encodeIfNotEmpty($0.reports),
                 ])
             }),
-            "summary": encodeIfNotNil(summary),
+            "summary": encodeIfNotNil(localizedSummary?.json),
             "accessMode": encodeIfNotEmpty(accessModes.map(\.id)),
             "accessModeSufficient": encodeIfNotEmpty(accessModesSufficient.map(\.rawValue)),
             "feature": encodeIfNotEmpty(features.map(\.id)),

@@ -29,7 +29,7 @@ class AccessibilityTests: XCTestCase {
                     "credential": "credential1",
                     "report": "report1"
                 ],
-                "summary": "en",
+                "summary": "Summary",
                 "accessMode": ["auditory"],
                 "accessModeSufficient": ["visual"],
                 "feature": ["readingOrder"],
@@ -42,7 +42,7 @@ class AccessibilityTests: XCTestCase {
                     credentials: ["credential1"],
                     reports: ["report1"]
                 ),
-                summary: "en",
+                localizedSummary: LocalizedString.nonlocalized("Summary"),
                 accessModes: [.auditory],
                 accessModesSufficient: [.visual],
                 features: [.readingOrder],
@@ -60,7 +60,7 @@ class AccessibilityTests: XCTestCase {
                     "credential": ["credential1", "credential2"],
                     "report": ["report1", "report2"]
                 ],
-                "summary": "en",
+                "summary": ["en": "Summary", "fr": "Description"],
                 "accessMode": ["auditory", "chartOnVisual"],
                 "accessModeSufficient": ["visual", "tactile"],
                 "feature": ["readingOrder", "alternativeText"],
@@ -73,7 +73,10 @@ class AccessibilityTests: XCTestCase {
                     credentials: ["credential1", "credential2"],
                     reports: ["report1", "report2"]
                 ),
-                summary: "en",
+                localizedSummary: LocalizedString.localized([
+                    "en": "Summary",
+                    "fr": "Description"
+                ]),
                 accessModes: [.auditory, .chartOnVisual],
                 accessModesSufficient: [.visual, .tactile],
                 features: [.readingOrder, .alternativeText],
@@ -98,7 +101,10 @@ class AccessibilityTests: XCTestCase {
                     credentials: ["credential1", "credential2"],
                     reports: ["report1", "report2"]
                 ),
-                summary: "en",
+                localizedSummary: LocalizedString.localized([
+                    "en": "Summary",
+                    "fr": "Description"
+                ]),
                 accessModes: [.auditory, .chartOnVisual],
                 accessModesSufficient: [.visual, .tactile],
                 features: [.readingOrder, .alternativeText],
@@ -111,7 +117,7 @@ class AccessibilityTests: XCTestCase {
                     "credential": ["credential1", "credential2"],
                     "report": ["report1", "report2"]
                 ],
-                "summary": "en",
+                "summary": ["en": "Summary", "fr": "Description"],
                 "accessMode": ["auditory", "chartOnVisual"],
                 "accessModeSufficient": ["visual", "tactile"],
                 "feature": ["readingOrder", "alternativeText"],
