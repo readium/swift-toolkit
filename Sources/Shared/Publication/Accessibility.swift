@@ -22,14 +22,7 @@ public struct Accessibility: Hashable {
     /// will be needed for non-visual users" or "short descriptions are present and no long descriptions are needed."
     ///
     /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessibilitySummary
-    public let localizedSummary: LocalizedString?
-
-    /// A human-readable summary of specific accessibility features or deficiencies, consistent with the other
-    /// accessibility metadata but expressing subtleties such as "short descriptions are present but long descriptions
-    /// will be needed for non-visual users" or "short descriptions are present and no long descriptions are needed."
-    ///
-    /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessibilitySummary
-    public var summary: String? { localizedSummary?.string }
+    public let summary: String?
 
     /// The human sensory perceptual system or cognitive faculty through which a person may process or perceive
     /// information.
@@ -321,7 +314,7 @@ public struct Accessibility: Hashable {
     public init(
         conformsTo: [String] = [],
         certification: Certification? = nil,
-        localizedSummary: LocalizedString? = nil,
+        summary: String? = nil,
         accessModes: [AccessMode] = [],
         accessModesSufficient: [AccessModeSufficient] = [],
         features: [Feature] = [],
@@ -329,7 +322,7 @@ public struct Accessibility: Hashable {
     ) {
         self.conformsTo = conformsTo
         self.certification = certification
-        self.localizedSummary = localizedSummary
+        self.summary = summary
         self.accessModes = accessModes
         self.accessModesSufficient = accessModesSufficient
         self.features = features
@@ -355,7 +348,7 @@ public struct Accessibility: Hashable {
                         reports: parseArray($0["report"], allowingSingle: true)
                     )
                 },
-            localizedSummary: try? LocalizedString(json: json["summary"], warnings: warnings),
+            summary: json["summary"] as? String,
             accessModes: parseArray(json["accessMode"]).map(AccessMode.init),
             accessModesSufficient: parseArray(json["accessModeSufficient"]).compactMap(AccessModeSufficient.init(rawValue:)),
             features: parseArray(json["feature"]).map(Feature.init),
@@ -373,7 +366,7 @@ public struct Accessibility: Hashable {
                     "report": encodeIfNotEmpty($0.reports),
                 ])
             }),
-            "summary": encodeIfNotNil(localizedSummary?.json),
+            "summary": encodeIfNotNil(summary),
             "accessMode": encodeIfNotEmpty(accessModes.map(\.id)),
             "accessModeSufficient": encodeIfNotEmpty(accessModesSufficient.map(\.rawValue)),
             "feature": encodeIfNotEmpty(features.map(\.id)),

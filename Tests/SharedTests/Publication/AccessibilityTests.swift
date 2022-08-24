@@ -42,7 +42,7 @@ class AccessibilityTests: XCTestCase {
                     credentials: ["credential1"],
                     reports: ["report1"]
                 ),
-                localizedSummary: LocalizedString.nonlocalized("Summary"),
+                summary: "Summary",
                 accessModes: [.auditory],
                 accessModesSufficient: [.visual],
                 features: [.readingOrder],
@@ -60,7 +60,7 @@ class AccessibilityTests: XCTestCase {
                     "credential": ["credential1", "credential2"],
                     "report": ["report1", "report2"]
                 ],
-                "summary": ["en": "Summary", "fr": "Description"],
+                "summary": "Summary",
                 "accessMode": ["auditory", "chartOnVisual"],
                 "accessModeSufficient": ["visual", "tactile"],
                 "feature": ["readingOrder", "alternativeText"],
@@ -73,10 +73,7 @@ class AccessibilityTests: XCTestCase {
                     credentials: ["credential1", "credential2"],
                     reports: ["report1", "report2"]
                 ),
-                localizedSummary: LocalizedString.localized([
-                    "en": "Summary",
-                    "fr": "Description"
-                ]),
+                summary: "Summary",
                 accessModes: [.auditory, .chartOnVisual],
                 accessModesSufficient: [.visual, .tactile],
                 features: [.readingOrder, .alternativeText],
@@ -101,10 +98,7 @@ class AccessibilityTests: XCTestCase {
                     credentials: ["credential1", "credential2"],
                     reports: ["report1", "report2"]
                 ),
-                localizedSummary: LocalizedString.localized([
-                    "en": "Summary",
-                    "fr": "Description"
-                ]),
+                summary: "Summary",
                 accessModes: [.auditory, .chartOnVisual],
                 accessModesSufficient: [.visual, .tactile],
                 features: [.readingOrder, .alternativeText],
@@ -117,7 +111,7 @@ class AccessibilityTests: XCTestCase {
                     "credential": ["credential1", "credential2"],
                     "report": ["report1", "report2"]
                 ],
-                "summary": ["en": "Summary", "fr": "Description"],
+                "summary": "Summary",
                 "accessMode": ["auditory", "chartOnVisual"],
                 "accessModeSufficient": ["visual", "tactile"],
                 "feature": ["readingOrder", "alternativeText"],
