@@ -348,14 +348,14 @@ public struct Accessibility: Hashable {
         guard json != nil else {
             return nil
         }
-        guard let json = json as? [String: Any] else {
+        guard let jsonObject = json as? [String: Any] else {
             warnings?.log("Invalid Accessibility object", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
 
         self.init(
-            conformsTo: parseArray(json["conformsTo"], allowingSingle: true),
-            certification: (json["certification"] as? [String: Any])
+            conformsTo: parseArray(jsonObject["conformsTo"], allowingSingle: true),
+            certification: (jsonObject["certification"] as? [String: Any])
                 .map {
                     Certification(
                         certifiedBy: parseArray($0["certifiedBy"], allowingSingle: true),
@@ -363,11 +363,11 @@ public struct Accessibility: Hashable {
                         reports: parseArray($0["report"], allowingSingle: true)
                     )
                 },
-            summary: json["summary"] as? String,
-            accessModes: parseArray(json["accessMode"]).map(AccessMode.init),
-            accessModesSufficient: parseArray(json["accessModeSufficient"]).compactMap(AccessModeSufficient.init(rawValue:)),
-            features: parseArray(json["feature"]).map(Feature.init),
-            hazards: parseArray(json["hazard"]).map(Hazard.init)
+            summary: jsonObject["summary"] as? String,
+            accessModes: parseArray(jsonObject["accessMode"]).map(AccessMode.init),
+            accessModesSufficient: parseArray(jsonObject["accessModeSufficient"]).compactMap(AccessModeSufficient.init(rawValue:)),
+            features: parseArray(jsonObject["feature"]).map(Feature.init),
+            hazards: parseArray(jsonObject["hazard"]).map(Hazard.init)
         )
     }
     
