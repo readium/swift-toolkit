@@ -1,5 +1,5 @@
 # XCODEGEN VERSION
-2.31.0
+2.32.0
 
 # SPEC
 {
@@ -10553,6 +10553,7 @@
 ../../Sources/Navigator/EPUB/Scripts/README.md
 ../../Sources/Navigator/EPUB/Scripts/src
 ../../Sources/Navigator/EPUB/Scripts/src/decorator.js
+../../Sources/Navigator/EPUB/Scripts/src/dom.js
 ../../Sources/Navigator/EPUB/Scripts/src/fixed-page.js
 ../../Sources/Navigator/EPUB/Scripts/src/gestures.js
 ../../Sources/Navigator/EPUB/Scripts/src/index-fixed-wrapper-one.js
@@ -10606,9 +10607,11 @@
 ../../Sources/Navigator/SelectableNavigator.swift
 ../../Sources/Navigator/Toolkit
 ../../Sources/Navigator/Toolkit/CompletionList.swift
+../../Sources/Navigator/Toolkit/CursorList.swift
 ../../Sources/Navigator/Toolkit/Extensions
 ../../Sources/Navigator/Toolkit/Extensions/Bundle.swift
 ../../Sources/Navigator/Toolkit/Extensions/CGRect.swift
+../../Sources/Navigator/Toolkit/Extensions/Range.swift
 ../../Sources/Navigator/Toolkit/Extensions/UIColor.swift
 ../../Sources/Navigator/Toolkit/Extensions/UIView.swift
 ../../Sources/Navigator/Toolkit/Extensions/WKWebView.swift
@@ -10616,6 +10619,10 @@
 ../../Sources/Navigator/Toolkit/R2NavigatorLocalizedString.swift
 ../../Sources/Navigator/Toolkit/TargetAction.swift
 ../../Sources/Navigator/Toolkit/WebView.swift
+../../Sources/Navigator/TTS
+../../Sources/Navigator/TTS/AVTTSEngine.swift
+../../Sources/Navigator/TTS/PublicationSpeechSynthesizer.swift
+../../Sources/Navigator/TTS/TTSEngine.swift
 ../../Sources/Navigator/VisualNavigator.swift
 ../../Sources/OPDS
 ../../Sources/OPDS/Deprecated.swift
@@ -10702,10 +10709,17 @@
 ../../Sources/Shared/Publication/PublicationCollection.swift
 ../../Sources/Shared/Publication/ReadingProgression.swift
 ../../Sources/Shared/Publication/Services
+../../Sources/Shared/Publication/Services/Content
 ../../Sources/Shared/Publication/Services/Content Protection
 ../../Sources/Shared/Publication/Services/Content Protection/ContentProtectionService.swift
 ../../Sources/Shared/Publication/Services/Content Protection/ContentProtectionService+WS.swift
 ../../Sources/Shared/Publication/Services/Content Protection/UserRights.swift
+../../Sources/Shared/Publication/Services/Content/Content.swift
+../../Sources/Shared/Publication/Services/Content/ContentService.swift
+../../Sources/Shared/Publication/Services/Content/ContentTokenizer.swift
+../../Sources/Shared/Publication/Services/Content/Iterators
+../../Sources/Shared/Publication/Services/Content/Iterators/HTMLResourceContentIterator.swift
+../../Sources/Shared/Publication/Services/Content/Iterators/PublicationContentIterator.swift
 ../../Sources/Shared/Publication/Services/Cover
 ../../Sources/Shared/Publication/Services/Cover/CoverService.swift
 ../../Sources/Shared/Publication/Services/Cover/GeneratedCoverService.swift
@@ -10730,6 +10744,7 @@
 ../../Sources/Shared/Resources/en.lproj/Localizable.strings
 ../../Sources/Shared/RootFile.swift
 ../../Sources/Shared/Toolkit
+../../Sources/Shared/Toolkit/.DS_Store
 ../../Sources/Shared/Toolkit/Archive
 ../../Sources/Shared/Toolkit/Archive/Archive.swift
 ../../Sources/Shared/Toolkit/Archive/ExplodedArchive.swift
@@ -10750,6 +10765,7 @@
 ../../Sources/Shared/Toolkit/Extensions/Collection.swift
 ../../Sources/Shared/Toolkit/Extensions/NSRegularExpression.swift
 ../../Sources/Shared/Toolkit/Extensions/Optional.swift
+../../Sources/Shared/Toolkit/Extensions/Range.swift
 ../../Sources/Shared/Toolkit/Extensions/Result.swift
 ../../Sources/Shared/Toolkit/Extensions/String.swift
 ../../Sources/Shared/Toolkit/Extensions/StringEncoding.swift
@@ -10764,6 +10780,7 @@
 ../../Sources/Shared/Toolkit/HTTP/HTTPProblemDetails.swift
 ../../Sources/Shared/Toolkit/HTTP/HTTPRequest.swift
 ../../Sources/Shared/Toolkit/JSON.swift
+../../Sources/Shared/Toolkit/Language.swift
 ../../Sources/Shared/Toolkit/Logging
 ../../Sources/Shared/Toolkit/Logging/WarningLogger.swift
 ../../Sources/Shared/Toolkit/Media
@@ -10783,6 +10800,9 @@
 ../../Sources/Shared/Toolkit/PDF/PDFOutlineNode.swift
 ../../Sources/Shared/Toolkit/R2LocalizedString.swift
 ../../Sources/Shared/Toolkit/ResourcesServer.swift
+../../Sources/Shared/Toolkit/Tokenizer
+../../Sources/Shared/Toolkit/Tokenizer/TextTokenizer.swift
+../../Sources/Shared/Toolkit/Tokenizer/Tokenizer.swift
 ../../Sources/Shared/Toolkit/URITemplate.swift
 ../../Sources/Shared/Toolkit/UTI.swift
 ../../Sources/Shared/Toolkit/Weak.swift

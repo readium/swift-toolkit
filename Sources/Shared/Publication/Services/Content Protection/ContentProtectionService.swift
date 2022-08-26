@@ -1,12 +1,7 @@
 //
-//  ContentProtectionService.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 16/07/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -40,17 +35,13 @@ public protocol ContentProtectionService: PublicationService {
     ///
     /// It could be used in a sentence such as "Protected by {name}".
     var name: LocalizedString? { get }
-    
 }
 
 public extension ContentProtectionService {
     
     var credentials: String? { nil }
-    
     var rights: UserRights { UnrestrictedUserRights() }
-    
     var name: LocalizedString? { nil }
-    
 }
 
 
@@ -108,7 +99,6 @@ public extension Publication {
     private var contentProtectionService: ContentProtectionService? {
         findService(ContentProtectionService.self)
     }
-    
 }
 
 
@@ -123,5 +113,4 @@ public extension PublicationServicesBuilder {
             remove(ContentProtectionService.self)
         }
     }
-    
 }

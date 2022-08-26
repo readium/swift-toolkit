@@ -7,3 +7,5 @@
 // Script used for fixed layouts resources.
 
 import "./index";
+
+window.readium.isFixedLayout = true;
