@@ -8,7 +8,12 @@ Pod::Spec.new do |s|
   s.author        = { "Readium" => "contact@readium.org" }
   s.source        = { :git => "https://github.com/readium/swift-toolkit.git", :branch => "develop" }
   s.requires_arc  = true
-  s.resources     = ['Sources/Navigator/Resources/**', 'Sources/Navigator/EPUB/Assets']
+  s.resource_bundles = {
+    'ReadiumNavigator' => [
+      'Sources/Navigator/Resources/**',
+      'Sources/Navigator/EPUB/Assets',
+    ],
+  }
   s.source_files  = "Sources/Navigator/**/*.{m,h,swift}"
   s.platform      = :ios
   s.ios.deployment_target = "10.0"
