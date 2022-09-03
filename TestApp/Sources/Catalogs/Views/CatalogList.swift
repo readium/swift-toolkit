@@ -17,31 +17,27 @@ struct CatalogList: View {
     @State private var catalogs: [Catalog] = []
     
     var body: some View {
-        NavigationView {
-            VStack {
-                List() {
-                    ForEach(catalogs, id: \.id) { catalog in
-                        NavigationLink(destination: catalogFeed(catalog)) {
-                            ListRowItem(title: catalog.title)
-                        }
-                    }
-                    .onDelete { offsets in
-                        let catalogIds = offsets.map { catalogs[$0].id! }
-                        Task {
-                            try await deleteCatalogs(ids: catalogIds)
-                        }
+        VStack {
+            List() {
+                ForEach(catalogs, id: \.id) { catalog in
+                    NavigationLink(destination: catalogFeed(catalog)) {
+                        ListRowItem(title: catalog.title)
                     }
                 }
-                .onReceive(catalogRepository.all()) {
-                    catalogs = $0 ?? []
+                .onDelete { offsets in
+                    let catalogIds = offsets.map { catalogs[$0].id! }
+                    Task {
+                        try await deleteCatalogs(ids: catalogIds)
+                    }
                 }
-                .listStyle(DefaultListStyle())
-                
             }
-            .navigationTitle("Catalogs")
-            .toolbar(content: toolbarContent)
+            .onReceive(catalogRepository.all()) {
+                catalogs = $0 ?? []
+            }
+            .listStyle(DefaultListStyle())
         }
-        .navigationViewStyle(.stack)
+        .navigationTitle("Catalogs")
+        .toolbar(content: toolbarContent)
         .sheet(isPresented: $showingSheet) {
             AddFeedSheet(showingSheet: $showingSheet) { title, url in
                 Task {

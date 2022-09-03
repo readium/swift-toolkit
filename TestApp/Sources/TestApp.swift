@@ -13,20 +13,23 @@ struct TestApp: App {
     
     var body: some Scene {
         WindowGroup {
-            TabView {
-                container.bookshelf()
-                    .tabItem {
-                        Label("Bookshelf", systemImage: "books.vertical.fill")
-                    }
-                container.catalogs()
-                    .tabItem {
-                        Label("Catalogs", systemImage: "magazine.fill")
-                    }
-                container.about()
-                    .tabItem {
-                        Label("About", systemImage: "info.circle.fill")
-                    }
+            NavigationView {
+                TabView {
+                    container.bookshelf()
+                        .tabItem {
+                            Label("Bookshelf", systemImage: "books.vertical.fill")
+                        }
+                    container.catalogs()
+                        .tabItem {
+                            Label("Catalogs", systemImage: "magazine.fill")
+                        }
+                    container.about()
+                        .tabItem {
+                            Label("About", systemImage: "info.circle.fill")
+                        }
+                }
             }
+            .navigationViewStyle(.stack)
         }
     }
 }

@@ -4,12 +4,49 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import Combine
 import Foundation
 import R2Shared
+import R2Streamer
+import R2Navigator
+import UIKit
+
+typealias ReaderViewControllerType = UIViewController & Navigator
+
+class ReaderDependencies {
+    let books: BookRepository
+    let bookmarks: BookmarkRepository
+    let highlights: HighlightRepository
+    let publicationServer: PublicationServer
+    let makeReaderVCFunc: (Publication, Book) -> ReaderViewControllerType
+    
+    init(books: BookRepository,
+         bookmarks: BookmarkRepository,
+         highlights: HighlightRepository,
+         publicationServer: PublicationServer,
+         makeReaderVCFunc: @escaping (Publication, Book) -> ReaderViewControllerType) {
+        self.books = books
+        self.bookmarks = bookmarks
+        self.highlights = highlights
+        self.publicationServer = publicationServer
+        self.makeReaderVCFunc = makeReaderVCFunc
+    }
+}
 
 class Container {
     
     private let db: Database
+    
+    /// Everything for Reader Module
+    private lazy var readerDependencies: ReaderDependencies = {
+        ReaderDependencies(
+            books: BookRepository(db: db),
+            bookmarks: BookmarkRepository(db: db),
+            highlights: HighlightRepository(db: db),
+            publicationServer: PublicationServer()!,
+            makeReaderVCFunc: createNavigatorVC
+        )
+    }()
     
     init() throws {
         self.db = try Database(
@@ -18,15 +55,16 @@ class Container {
         )
     }
     
-    // Bookshelf
-    
-    private lazy var bookRepository = BookRepository(db: db)
+// MARK: - Bookshelf
     
     func bookshelf() -> Bookshelf {
-        Bookshelf(bookRepository: bookRepository)
+        Bookshelf(
+            bookRepository: readerDependencies.books,
+            bookOpener: BookOpener(readerDependencies: readerDependencies)
+        )
     }
     
-    // Catalogs
+// MARK: - Catalogs
     
     private lazy var catalogRepository = CatalogRepository(db: db)
     
@@ -48,9 +86,50 @@ class Container {
         PublicationDetail(publication: publication)
     }
     
-    // About
+// MARK: - About
     
     func about() -> About {
         About()
     }
+    
+// MARK: - Reader
+    
+    func createNavigatorVC(for publication: Publication, book: Book) -> ReaderViewControllerType {
+        
+        let locator = book.locator
+        let resourcesServer = readerDependencies.publicationServer
+        
+        if publication.conforms(to: .pdf) {
+            let navigator = PDFNavigatorViewController(publication: publication, initialLocation: locator)
+            //navigator.delegate = self
+            return navigator
+        }
+        
+        if publication.conforms(to: .epub) || publication.readingOrder.allAreHTML {
+            // this will be epub
+            guard publication.metadata.identifier != nil else {
+                //throw ReaderError.epubNotValid
+                fatalError("ReaderError.epubNotValid")
+            }
+            
+            let navigator = EPUBNavigatorViewController(publication: publication, initialLocation: locator, resourcesServer: resourcesServer)
+//            self.navigator = navigator 
+            return navigator
+        }
+        
+        if publication.conforms(to: .divina) {
+            let navigator = CBZNavigatorViewController(publication: publication, initialLocation: locator)
+            //navigator.delegate = self
+            return navigator
+        }
+        
+        return StubNavigatorViewController()
+    }
+    
+    /// To avoid optional result in "createNavigatorVC"
+    private class StubNavigatorViewController: UIViewController, Navigator {
+        var currentLocation: Locator?
+    }
 }
+
+
