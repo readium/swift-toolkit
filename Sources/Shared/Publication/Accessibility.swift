@@ -98,18 +98,18 @@ public struct Accessibility: Hashable {
         /// `certifiedBy` property to certify content accessible.
         ///
         /// https://www.w3.org/TR/epub-a11y/#certifierCredential
-        public let credentials: String?
+        public let credential: String?
 
         /// Provides a link to an accessibility report created by the party identified in the associated certifiedBy
         /// property.
         ///
         /// https://www.w3.org/TR/epub-a11y/#certifierReport
-        public let reports: URL?
+        public let report: URL?
 
-        public init(certifiedBy: String? = nil, credentials: String? = nil, reports: URL? = nil) {
+        public init(certifiedBy: String? = nil, credential: String? = nil, report: URL? = nil) {
             self.certifiedBy = certifiedBy
-            self.credentials = credentials
-            self.reports = reports
+            self.credential = credential
+            self.report = report
         }
     }
 
@@ -402,13 +402,13 @@ public struct Accessibility: Hashable {
                 .map {
                     Certification(
                         certifiedBy: $0["certifiedBy"] as? String,
-                        credentials: $0["credential"] as? String,
-                        reports: ($0["report"] as? String)
+                        credential: $0["credential"] as? String,
+                        report: ($0["report"] as? String)
                             .flatMap(URL.init(string:))
                             .takeIf { $0.scheme != nil }
                     )
                 }
-                .takeIf { $0.certifiedBy != nil || $0.credentials != nil || $0.reports != nil },
+                .takeIf { $0.certifiedBy != nil || $0.credential != nil || $0.report != nil },
             summary: jsonObject["summary"] as? String,
             accessModes: parseArray(jsonObject["accessMode"]).map(AccessMode.init),
             accessModesSufficient: (jsonObject["accessModeSufficient"] as? [Any] ?? [])
@@ -433,8 +433,8 @@ public struct Accessibility: Hashable {
             "certification": encodeIfNotEmpty(certification.map {
                 makeJSON([
                     "certifiedBy": encodeIfNotNil($0.certifiedBy),
-                    "credential": encodeIfNotNil($0.credentials),
-                    "report": encodeIfNotNil($0.reports?.absoluteString),
+                    "credential": encodeIfNotNil($0.credential),
+                    "report": encodeIfNotNil($0.report?.absoluteString),
                 ])
             }),
             "summary": encodeIfNotNil(summary),

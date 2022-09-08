@@ -42,8 +42,8 @@ class AccessibilityTests: XCTestCase {
                 ],
                 certification: Accessibility.Certification(
                     certifiedBy: "company1",
-                    credentials: "credential1",
-                    reports: URL(string: "https://report1")!
+                    credential: "credential1",
+                    report: URL(string: "https://report1")!
                 ),
                 summary: "Summary",
                 accessModes: [.auditory, .chartOnVisual],
@@ -224,8 +224,8 @@ class AccessibilityTests: XCTestCase {
                 ],
                 certification: Accessibility.Certification(
                     certifiedBy: "company1",
-                    credentials: "credential1",
-                    reports: URL(string: "https://report1")!
+                    credential: "credential1",
+                    report: URL(string: "https://report1")!
                 ),
                 summary: "Summary",
                 accessModes: [.auditory, .chartOnVisual],
