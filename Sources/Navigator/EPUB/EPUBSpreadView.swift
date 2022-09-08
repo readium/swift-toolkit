@@ -315,7 +315,23 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         return false
     }
 
-    
+    func findFirstVisibleElementLocator(completion: @escaping (Locator?) -> Void) {
+        evaluateScript("readium.findFirstVisibleLocator()") { result in
+            DispatchQueue.main.async {
+                do {
+                    let resource = self.spread.leading
+                    let locator = try Locator(json: result.get())?
+                        .copy(href: resource.href, type: resource.type ?? MediaType.xhtml.string)
+                    completion(locator)
+                } catch {
+                    self.log(.error, error)
+                    completion(nil)
+                }
+            }
+        }
+    }
+
+
     // MARK: - JS Messages
     
     private var JSMessages: [String: (Any) -> Void] = [:]

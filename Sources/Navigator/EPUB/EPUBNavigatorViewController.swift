@@ -526,6 +526,14 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         }
     }
 
+    public func firstVisibleElementLocator(completion: @escaping (Locator?) -> ()) {
+        guard let spreadView = paginationView.currentView as? EPUBSpreadView else {
+            DispatchQueue.main.async { completion(nil) }
+            return
+        }
+        spreadView.findFirstVisibleElementLocator(completion: completion)
+    }
+
     /// Last current location notified to the delegate.
     /// Used to avoid sending twice the same location.
     private var notifiedCurrentLocation: Locator?
