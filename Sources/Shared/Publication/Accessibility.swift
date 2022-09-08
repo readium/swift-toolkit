@@ -35,7 +35,7 @@ public struct Accessibility: Hashable {
     /// resource.
     ///
     /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessModeSufficient
-    public let accessModesSufficient: [AccessModeSufficient]
+    public let accessModesSufficient: [[AccessModeSufficient]]
 
     /// Content features of the resource, such as accessible media, alternatives and supported enhancements for
     /// accessibility.
@@ -331,7 +331,7 @@ public struct Accessibility: Hashable {
         certification: Certification? = nil,
         summary: String? = nil,
         accessModes: [AccessMode] = [],
-        accessModesSufficient: [AccessModeSufficient] = [],
+        accessModesSufficient: [[AccessModeSufficient]] = [],
         features: [Feature] = [],
         hazards: [Hazard] = []
     ) {
@@ -368,7 +368,17 @@ public struct Accessibility: Hashable {
                 .takeIf { $0.certifiedBy != nil || $0.credentials != nil || $0.reports != nil },
             summary: jsonObject["summary"] as? String,
             accessModes: parseArray(jsonObject["accessMode"]).map(AccessMode.init),
-            accessModesSufficient: parseArray(jsonObject["accessModeSufficient"]).compactMap(AccessModeSufficient.init(rawValue:)),
+            accessModesSufficient: (jsonObject["accessModeSufficient"] as? [Any] ?? [])
+                .map { json -> [Accessibility.AccessModeSufficient] in
+                    if let str = json as? String, let value = AccessModeSufficient(rawValue: str) {
+                        return [value]
+                    } else if let strs = json as? [String] {
+                        return strs.compactMap(AccessModeSufficient.init(rawValue:))
+                    } else {
+                        return []
+                    }
+                }
+                .filter { !$0.isEmpty },
             features: parseArray(jsonObject["feature"]).map(Feature.init),
             hazards: parseArray(jsonObject["hazard"]).map(Hazard.init)
         )
@@ -386,7 +396,7 @@ public struct Accessibility: Hashable {
             }),
             "summary": encodeIfNotNil(summary),
             "accessMode": encodeIfNotEmpty(accessModes.map(\.id)),
-            "accessModeSufficient": encodeIfNotEmpty(accessModesSufficient.map(\.rawValue)),
+            "accessModeSufficient": encodeIfNotEmpty(accessModesSufficient.map { $0.map(\.rawValue) }),
             "feature": encodeIfNotEmpty(features.map(\.id)),
             "hazard": encodeIfNotEmpty(hazards.map(\.id)),
         ])

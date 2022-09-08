@@ -31,7 +31,7 @@ class AccessibilityTests: XCTestCase {
                 ],
                 "summary": "Summary",
                 "accessMode": ["auditory", "chartOnVisual"],
-                "accessModeSufficient": ["visual", "tactile"],
+                "accessModeSufficient": [["visual", "tactile"]],
                 "feature": ["readingOrder", "alternativeText"],
                 "hazard": ["flashing", "motionSimulation"]
             ]),
@@ -44,7 +44,7 @@ class AccessibilityTests: XCTestCase {
                 ),
                 summary: "Summary",
                 accessModes: [.auditory, .chartOnVisual],
-                accessModesSufficient: [.visual, .tactile],
+                accessModesSufficient: [[.visual, .tactile]],
                 features: [.readingOrder, .alternativeText],
                 hazards: [.flashing, .motionSimulation]
             )
@@ -95,7 +95,7 @@ class AccessibilityTests: XCTestCase {
                 "accessModeSufficient": ["auditory"],
             ]),
             Accessibility(
-                accessModesSufficient: [.auditory]
+                accessModesSufficient: [[.auditory]]
             )
         )
         XCTAssertEqual(
@@ -103,7 +103,23 @@ class AccessibilityTests: XCTestCase {
                 "accessModeSufficient": ["auditory", "visual"],
             ]),
             Accessibility(
-                accessModesSufficient: [.auditory, .visual]
+                accessModesSufficient: [[.auditory], [.visual]]
+            )
+        )
+        XCTAssertEqual(
+            try? Accessibility(json: [
+                "accessModeSufficient": ["auditory", ["visual"]],
+            ]),
+            Accessibility(
+                accessModesSufficient: [[.auditory], [.visual]]
+            )
+        )
+        XCTAssertEqual(
+            try? Accessibility(json: [
+                "accessModeSufficient": ["auditory", ["visual", "tactile"], [], "visual"],
+            ]),
+            Accessibility(
+                accessModesSufficient: [[.auditory], [.visual, .tactile], [.visual]]
             )
         )
     }
@@ -190,7 +206,7 @@ class AccessibilityTests: XCTestCase {
                 ),
                 summary: "Summary",
                 accessModes: [.auditory, .chartOnVisual],
-                accessModesSufficient: [.visual, .tactile],
+                accessModesSufficient: [[.auditory], [.visual, .tactile], [.visual]],
                 features: [.readingOrder, .alternativeText],
                 hazards: [.flashing, .motionSimulation]
             ).json,
@@ -203,7 +219,7 @@ class AccessibilityTests: XCTestCase {
                 ],
                 "summary": "Summary",
                 "accessMode": ["auditory", "chartOnVisual"],
-                "accessModeSufficient": ["visual", "tactile"],
+                "accessModeSufficient": [["auditory"], ["visual", "tactile"], ["visual"]],
                 "feature": ["readingOrder", "alternativeText"],
                 "hazard": ["flashing", "motionSimulation"]
             ]
