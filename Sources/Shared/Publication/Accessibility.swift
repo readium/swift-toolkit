@@ -364,7 +364,8 @@ public struct Accessibility: Hashable {
                             .flatMap(URL.init(string:))
                             .takeIf { $0.scheme != nil }
                     )
-                },
+                }
+                .takeIf { $0.certifiedBy != nil || $0.credentials != nil || $0.reports != nil },
             summary: jsonObject["summary"] as? String,
             accessModes: parseArray(jsonObject["accessMode"]).map(AccessMode.init),
             accessModesSufficient: parseArray(jsonObject["accessModeSufficient"]).compactMap(AccessModeSufficient.init(rawValue:)),
