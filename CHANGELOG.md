@@ -29,6 +29,8 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Fixed memory leaks in the EPUB and PDF navigators.
 * [#61](https://github.com/readium/swift-toolkit/issues/61) Fixed serving EPUB resources when the HREF contains an anchor or query parameters.
+* Performance issue with EPUB fixed-layout when spreads are enabled.
+* Disable scrolling in EPUB fixed-layout resources, in case the viewport is incorrectly set.
 
 #### Streamer
 

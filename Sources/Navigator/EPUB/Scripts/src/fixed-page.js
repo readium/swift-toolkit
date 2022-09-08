@@ -1,3 +1,9 @@
+//
+//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
+//
+
 // Manages a fixed layout resource embedded in an iframe.
 export function FixedPage(iframeId) {
   // Fixed dimensions for the page, extracted from the viewport meta tag.
@@ -82,8 +88,10 @@ export function FixedPage(iframeId) {
       function loaded() {
         _iframe.removeEventListener("load", loaded);
 
-        // Waiting for the next animation frame seems to do the trick to make sure the page is fully rendered.
-        _iframe.contentWindow.requestAnimationFrame(function () {
+        // Timeout to wait for the page to be laid out.
+        // Note that using `requestAnimationFrame()` instead causes performance
+        // issues in some FXL EPUBs with spreads.
+        setTimeout(function () {
           page.isLoading = false;
           _iframe.contentWindow.eval(
             `readium.link = ${JSON.stringify(resource.link)};`
@@ -91,7 +99,7 @@ export function FixedPage(iframeId) {
           if (completion) {
             completion();
           }
-        });
+        }, 100);
       }
 
       _iframe.addEventListener("load", loaded);
