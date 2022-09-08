@@ -23,11 +23,11 @@ class AccessibilityTests: XCTestCase {
     func testParseFullJSONWithStrings() {
         XCTAssertEqual(
             try? Accessibility(json: [
-                "conformsTo": "profile1",
+                "conformsTo": "https://profile1",
                 "certification": [
                     "certifiedBy": "company1",
                     "credential": "credential1",
-                    "report": "report1"
+                    "report": "https://report1"
                 ],
                 "summary": "Summary",
                 "accessMode": ["auditory"],
@@ -36,11 +36,11 @@ class AccessibilityTests: XCTestCase {
                 "hazard": ["flashing"]
             ]),
             Accessibility(
-                conformsTo: ["profile1"],
+                conformsTo: ["https://profile1"],
                 certification: Accessibility.Certification(
-                    certifiedBy: ["company1"],
-                    credentials: ["credential1"],
-                    reports: ["report1"]
+                    certifiedBy: "company1",
+                    credentials: "credential1",
+                    reports: URL(string: "https://report1")!
                 ),
                 summary: "Summary",
                 accessModes: [.auditory],
@@ -51,33 +51,37 @@ class AccessibilityTests: XCTestCase {
         )
     }
 
-    func testParseFullJSONWithStringArrays() {
+    func testParseFullJSONWithMultipleStrings() {
         XCTAssertEqual(
             try? Accessibility(json: [
-                "conformsTo": ["profile1", "profile2"],
-                "certification": [
-                    "certifiedBy": ["company1", "company2"],
-                    "credential": ["credential1", "credential2"],
-                    "report": ["report1", "report2"]
-                ],
-                "summary": "Summary",
+                "conformsTo": ["https://profile1", "https://profile2"],
                 "accessMode": ["auditory", "chartOnVisual"],
                 "accessModeSufficient": ["visual", "tactile"],
                 "feature": ["readingOrder", "alternativeText"],
                 "hazard": ["flashing", "motionSimulation"]
             ]),
             Accessibility(
-                conformsTo: ["profile1", "profile2"],
-                certification: Accessibility.Certification(
-                    certifiedBy: ["company1", "company2"],
-                    credentials: ["credential1", "credential2"],
-                    reports: ["report1", "report2"]
-                ),
-                summary: "Summary",
+                conformsTo: ["https://profile1", "https://profile2"],
                 accessModes: [.auditory, .chartOnVisual],
                 accessModesSufficient: [.visual, .tactile],
                 features: [.readingOrder, .alternativeText],
                 hazards: [.flashing, .motionSimulation]
+            )
+        )
+    }
+
+    func testParseIgnoreInvalidReport() {
+        XCTAssertEqual(
+            try? Accessibility(json: [
+                "certification": [
+                    "certifiedBy": "company1",
+                    "report": "report1"
+                ],
+            ]),
+            Accessibility(
+                certification: Accessibility.Certification(
+                    certifiedBy: "company1"
+                )
             )
         )
     }
@@ -92,11 +96,11 @@ class AccessibilityTests: XCTestCase {
     func testGetFullJSON() {
         AssertJSONEqual(
             Accessibility(
-                conformsTo: ["profile1", "profile2"],
+                conformsTo: ["https://profile1", "https://profile2"],
                 certification: Accessibility.Certification(
-                    certifiedBy: ["company1", "company2"],
-                    credentials: ["credential1", "credential2"],
-                    reports: ["report1", "report2"]
+                    certifiedBy: "company1",
+                    credentials: "credential1",
+                    reports: URL(string: "https://report1")!
                 ),
                 summary: "Summary",
                 accessModes: [.auditory, .chartOnVisual],
@@ -105,11 +109,11 @@ class AccessibilityTests: XCTestCase {
                 hazards: [.flashing, .motionSimulation]
             ).json,
             [
-                "conformsTo": ["profile1", "profile2"],
+                "conformsTo": ["https://profile1", "https://profile2"],
                 "certification": [
-                    "certifiedBy": ["company1", "company2"],
-                    "credential": ["credential1", "credential2"],
-                    "report": ["report1", "report2"]
+                    "certifiedBy": "company1",
+                    "credential": "credential1",
+                    "report": "https://report1"
                 ],
                 "summary": "Summary",
                 "accessMode": ["auditory", "chartOnVisual"],

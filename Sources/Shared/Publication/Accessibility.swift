@@ -53,21 +53,21 @@ public struct Accessibility: Hashable {
         /// Identifies a party responsible for the testing and certification of the accessibility of a Publication.
         ///
         /// https://www.w3.org/TR/epub-a11y/#certifiedBy
-        public let certifiedBy: [String]
+        public let certifiedBy: String?
 
         /// Identifies a credential or badge that establishes the authority of the party identified in the associated
         /// `certifiedBy` property to certify content accessible.
         ///
         /// https://www.w3.org/TR/epub-a11y/#certifierCredential
-        public let credentials: [String]
+        public let credentials: String?
 
         /// Provides a link to an accessibility report created by the party identified in the associated certifiedBy
         /// property.
         ///
         /// https://www.w3.org/TR/epub-a11y/#certifierReport
-        public let reports: [String]
+        public let reports: URL?
 
-        public init(certifiedBy: [String] = [], credentials: [String] = [], reports: [String] = []) {
+        public init(certifiedBy: String? = nil, credentials: String? = nil, reports: URL? = nil) {
             self.certifiedBy = certifiedBy
             self.credentials = credentials
             self.reports = reports
@@ -358,9 +358,11 @@ public struct Accessibility: Hashable {
             certification: (jsonObject["certification"] as? [String: Any])
                 .map {
                     Certification(
-                        certifiedBy: parseArray($0["certifiedBy"], allowingSingle: true),
-                        credentials: parseArray($0["credential"], allowingSingle: true),
-                        reports: parseArray($0["report"], allowingSingle: true)
+                        certifiedBy: $0["certifiedBy"] as? String,
+                        credentials: $0["credential"] as? String,
+                        reports: ($0["report"] as? String)
+                            .flatMap(URL.init(string:))
+                            .takeIf { $0.scheme != nil }
                     )
                 },
             summary: jsonObject["summary"] as? String,
@@ -376,9 +378,9 @@ public struct Accessibility: Hashable {
             "conformsTo": encodeIfNotEmpty(conformsTo),
             "certification": encodeIfNotEmpty(certification.map {
                 makeJSON([
-                    "certifiedBy": encodeIfNotEmpty($0.certifiedBy),
-                    "credential": encodeIfNotEmpty($0.credentials),
-                    "report": encodeIfNotEmpty($0.reports),
+                    "certifiedBy": encodeIfNotNil($0.certifiedBy),
+                    "credential": encodeIfNotNil($0.credentials),
+                    "report": encodeIfNotNil($0.reports?.absoluteString),
                 ])
             }),
             "summary": encodeIfNotNil(summary),
