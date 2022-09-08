@@ -36,7 +36,10 @@ class AccessibilityTests: XCTestCase {
                 "hazard": ["flashing", "motionSimulation"]
             ]),
             Accessibility(
-                conformsTo: ["https://profile1", "https://profile2"],
+                conformsTo: [
+                    Accessibility.Profile(uri: URL(string: "https://profile1")!, name: nil),
+                    Accessibility.Profile(uri: URL(string: "https://profile2")!, name: nil)
+                ],
                 certification: Accessibility.Certification(
                     certifiedBy: "company1",
                     credentials: "credential1",
@@ -54,18 +57,35 @@ class AccessibilityTests: XCTestCase {
     func testParseConformsTo() {
         XCTAssertEqual(
             try? Accessibility(json: [
-                "conformsTo": "https://profile1",
+                "conformsTo": "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a",
             ]),
             Accessibility(
-                conformsTo: ["https://profile1"]
+                conformsTo: [.wcag20A]
             )
         )
         XCTAssertEqual(
             try? Accessibility(json: [
-                "conformsTo": ["https://profile1", "https://profile2"],
+                "conformsTo": ["https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a", "https://profile2"],
             ]),
             Accessibility(
-                conformsTo: ["https://profile1", "https://profile2"]
+                conformsTo: [.wcag20A, Accessibility.Profile(uri: URL(string: "https://profile2")!, name: nil)]
+            )
+        )
+    }
+    
+    func testParseIgnoresInvalidConformsTo() {
+        XCTAssertEqual(
+            try? Accessibility(json: [
+                "conformsTo": "profile1",
+            ]),
+            Accessibility()
+        )
+        XCTAssertEqual(
+            try? Accessibility(json: [
+                "conformsTo": ["https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a", "profile2"],
+            ]),
+            Accessibility(
+                conformsTo: [.wcag20A]
             )
         )
     }
@@ -198,7 +218,10 @@ class AccessibilityTests: XCTestCase {
     func testGetFullJSON() {
         AssertJSONEqual(
             Accessibility(
-                conformsTo: ["https://profile1", "https://profile2"],
+                conformsTo: [
+                    .wcag20A,
+                    Accessibility.Profile(uri: URL(string: "https://profile2")!, name: nil)
+                ],
                 certification: Accessibility.Certification(
                     certifiedBy: "company1",
                     credentials: "credential1",
@@ -211,7 +234,7 @@ class AccessibilityTests: XCTestCase {
                 hazards: [.flashing, .motionSimulation]
             ).json,
             [
-                "conformsTo": ["https://profile1", "https://profile2"],
+                "conformsTo": ["https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a", "https://profile2"],
                 "certification": [
                     "certifiedBy": "company1",
                     "credential": "credential1",

@@ -13,7 +13,7 @@ import Foundation
 public struct Accessibility: Hashable {
 
     /// An established standard to which the described resource conforms.
-    public let conformsTo: [String]
+    public let conformsTo: [Profile]
 
     /// Certification of accessible publications.
     public let certification: Certification?
@@ -47,6 +47,45 @@ public struct Accessibility: Hashable {
     ///
     /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessibilityHazard
     public let hazards: [Hazard]
+    
+    /// Accessibility profile.
+    public struct Profile: Hashable {
+        public let uri: URL
+        public let name: String?
+
+        public init(uri: URL, name: String?) {
+            self.uri = uri
+            self.name = name
+        }
+        
+        public init(uri: URL) {
+            switch uri {
+            case Self.wcag20A.uri:
+                self = .wcag20A
+            case Self.wcag20AA.uri:
+                self = .wcag20AA
+            case Self.wcag20AAA.uri:
+                self = .wcag20AAA
+            default:
+                self.init(uri: uri, name: nil)
+            }
+        }
+        
+        public static let wcag20A = Profile(
+            uri: URL(string: "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a")!,
+            name: "EPUB Accessibility 1.0 - WCAG 2.0 Level A"
+        )
+                
+        public static let wcag20AA = Profile(
+            uri: URL(string: "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa")!,
+            name: "EPUB Accessibility 1.0 - WCAG 2.0 Level AA"
+        )
+                
+        public static let wcag20AAA = Profile(
+            uri: URL(string: "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa")!,
+            name: "EPUB Accessibility 1.0 - WCAG 2.0 Level AAA"
+        )
+    }
 
     public struct Certification: Hashable {
 
@@ -327,7 +366,7 @@ public struct Accessibility: Hashable {
     }
 
     public init(
-        conformsTo: [String] = [],
+        conformsTo: [Profile] = [],
         certification: Certification? = nil,
         summary: String? = nil,
         accessModes: [AccessMode] = [],
@@ -354,7 +393,11 @@ public struct Accessibility: Hashable {
         }
 
         self.init(
-            conformsTo: parseArray(jsonObject["conformsTo"], allowingSingle: true),
+            conformsTo: (parseArray(jsonObject["conformsTo"], allowingSingle: true) as [String])
+                .compactMap {
+                    URL(string: $0).takeIf { $0.scheme != nil }
+                        .map(Profile.init(uri:))
+                },
             certification: (jsonObject["certification"] as? [String: Any])
                 .map {
                     Certification(
@@ -386,7 +429,7 @@ public struct Accessibility: Hashable {
     
     public var json: [String: Any] {
         makeJSON([
-            "conformsTo": encodeIfNotEmpty(conformsTo),
+            "conformsTo": encodeIfNotEmpty(conformsTo.map(\.uri.absoluteString)),
             "certification": encodeIfNotEmpty(certification.map {
                 makeJSON([
                     "certifiedBy": encodeIfNotNil($0.certifiedBy),
