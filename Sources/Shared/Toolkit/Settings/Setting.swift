@@ -8,13 +8,16 @@ import Foundation
 
 /// Represents a single configurable property of a `Configurable` component and holds its current
 /// `value`.
-public class Setting<Value: Hashable & Codable>: Hashable {
+public class Setting<Value: Hashable>: Hashable {
 
     /// Unique identifier used to serialize `Preferences` to JSON.
     public let key: SettingKey
 
     /// Current value for this setting.
     public let value: Value
+
+    /// JSON serializer for the `value`.
+    let coder: SettingCoder<Value>
 
     /// Ensures the validity of a `value`.
     private let validator: SettingValidator<Value>
@@ -26,17 +29,27 @@ public class Setting<Value: Hashable & Codable>: Hashable {
     public init(
         key: SettingKey,
         value: Value,
+        coder: SettingCoder<Value> = .literal(),
         validator: @escaping SettingValidator<Value> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {
         self.key = key
         self.value = value
+        self.coder = coder
         self.validator = validator
         self.activator = activator
     }
 
     public func validate(_ value: Value) -> Value? {
         validator(value)
+    }
+
+    public func decode(_ json: Any) -> Value? {
+        coder.decode(json)
+    }
+
+    public func encode(_ value: Value) -> Any {
+        coder.encode(value)
     }
 
     public func hash(into hasher: inout Hasher) {
@@ -55,12 +68,12 @@ public class Setting<Value: Hashable & Codable>: Hashable {
     }
 }
 
-public extension Setting: SettingActivator {
-    func isActive(with preferences: Preferences) -> Bool {
+extension Setting: SettingActivator {
+    public func isActive(with preferences: Preferences) -> Bool {
         activator.isActive(with: preferences)
     }
 
-    func activate(in preferences: inout Preferences) {
+    public func activate(in preferences: inout Preferences) {
         activator.activate(in: &preferences)
     }
 }
@@ -110,7 +123,7 @@ public typealias SettingValidator<Value> = (Value) -> Value?
 public typealias ToggleSetting = Setting<Bool>
 
 /// A `Setting` whose value is constrained to a range.
-public class RangeSetting<Value: Comparable & Codable & Hashable>: Setting<Value> {
+public class RangeSetting<Value: Comparable & Hashable>: Setting<Value> {
     /// The valid range for the setting value.
     public let range: ClosedRange<Value>
 
@@ -131,25 +144,23 @@ public class RangeSetting<Value: Comparable & Codable & Hashable>: Setting<Value
         range: ClosedRange<Value>,
         suggestedSteps: [Value]? = nil,
         suggestedIncrement: Value? = nil,
-        formatValue: @escaping (Value) -> String = { value in
-            if let value = value as? NSNumber {
-                return rangeValueFormatter.string(from: value)
-            } else {
-                return String(describing: value)
-            }
-        },
+        formatValue: ((Value) -> String)? = nil,
         validator: @escaping SettingValidator<Value> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {
         self.range = range
         self.suggestedSteps = suggestedSteps
         self.suggestedIncrement = suggestedIncrement
-        self.formatValue = formatValue
+        self.formatValue = formatValue ?? { value in
+            (value as? NSNumber)
+                .flatMap { rangeValueFormatter.string(from: $0) }
+                ?? String(describing: value)
+        }
 
         super.init(
             key: key, value: value,
             validator: { value in
-                validator(value).flatMap { range.clamp($0) }
+                validator(value).flatMap { $0.clamped(to: range) }
             },
             activator: activator
         )
@@ -160,7 +171,8 @@ private let rangeValueFormatter: NumberFormatter = {
     let f = NumberFormatter()
     f.numberStyle = .decimal
     f.maximumFractionDigits = 5
-}
+    return f
+}()
 
 /// A `RangeSetting` representing a percentage from 0.0 to 1.0.
 public class PercentSetting: RangeSetting<Double> {
@@ -170,31 +182,34 @@ public class PercentSetting: RangeSetting<Double> {
         range: ClosedRange<Double> = 0.0...1.0,
         suggestedSteps: [Double]? = nil,
         suggestedIncrement: Double? = 0.1,
-        formatValue: @escaping (Double) -> String = { value in
-            percentValueFormatter.string(from: value)
-        },
+        formatValue: ((Double) -> String)? = nil,
         validator: @escaping SettingValidator<Double> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {
         super.init(
             key: key, value: value, range: range, suggestedSteps: suggestedSteps,
-            suggestedIncrement: suggestedIncrement, formatValue: formatValue, validator: validator,
+            suggestedIncrement: suggestedIncrement,
+            formatValue: formatValue ?? { value in
+                percentValueFormatter.string(from: value as NSNumber)
+                    ?? String(format: "%.0f%%", value * 100)
+            },
+            validator: validator,
             activator: activator
         )
     }
 }
 
 private let percentValueFormatter: NumberFormatter = {
-    let formatter = NumberFormatter()
-    formatter.numberStyle = .percent
-    formatter.minimumIntegerDigits = 1
-    formatter.maximumIntegerDigits = 3
-    formatter.maximumFractionDigits = 0
-    return formatter
+    let f = NumberFormatter()
+    f.numberStyle = .percent
+    f.minimumIntegerDigits = 1
+    f.maximumIntegerDigits = 3
+    f.maximumFractionDigits = 0
+    return f
 }()
 
 /// A `Setting` whose value is a member of the enum `Value`.
-public class EnumSetting<Value: Codable & Hashable>: Setting<Value> {
+public class EnumSetting<Value: Hashable>: Setting<Value> {
 
     /// List of valid values for this setting. Not all members of the enum are necessary supported.
     public let values: [Value]?
@@ -206,7 +221,7 @@ public class EnumSetting<Value: Codable & Hashable>: Setting<Value> {
         key: SettingKey,
         value: Value,
         values: [Value]?,
-        formatValue: @escaping (Value) -> String? = { nil },
+        formatValue: @escaping (Value) -> String? = { _ in nil },
         validator: @escaping SettingValidator<Value> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {

@@ -24,6 +24,8 @@ public protocol SettingActivator {
 public class NullSettingActivator: SettingActivator {
     public func isActive(with preferences: Preferences) -> Bool {true}
     public func activate(in preferences: inout Preferences) {}
+
+    public init() {}
 }
 
 /// A `SettingActivator` combining two activators.
