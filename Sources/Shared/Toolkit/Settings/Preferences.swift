@@ -24,8 +24,8 @@ import R2Shared
 ///     // Apply the preferences to the Configurable, which will automatically update its settings
 ///     // accordingly.
 ///     configurable.applyPreferences(prefs)
-public struct Preferences: Loggable {
-    var values: [String: Any]
+public struct Preferences: Hashable, Loggable {
+    var values: [String: AnyHashable]
 
     /// Creates a `Preferences` object from a JSON object.
     public init(json: [String: Any] = [:]) {
