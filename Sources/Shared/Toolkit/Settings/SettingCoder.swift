@@ -17,6 +17,13 @@ public struct SettingCoder<Value> {
             encode: { $0 }
         )
     }
+
+    public static func rawValue<V: RawRepresentable>() -> SettingCoder<V> {
+        SettingCoder<V>(
+            decode: { ($0 as? V.RawValue).flatMap(V.init(rawValue:)) },
+            encode: { $0.rawValue }
+        )
+    }
 }
 
 /*

@@ -145,6 +145,7 @@ public class RangeSetting<Value: Comparable & Hashable>: Setting<Value> {
         suggestedSteps: [Value]? = nil,
         suggestedIncrement: Value? = nil,
         formatValue: ((Value) -> String)? = nil,
+        coder: SettingCoder<Value> = .literal(),
         validator: @escaping SettingValidator<Value> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {
@@ -158,7 +159,7 @@ public class RangeSetting<Value: Comparable & Hashable>: Setting<Value> {
         }
 
         super.init(
-            key: key, value: value,
+            key: key, value: value, coder: coder,
             validator: { value in
                 validator(value).flatMap { $0.clamped(to: range) }
             },
@@ -183,6 +184,7 @@ public class PercentSetting: RangeSetting<Double> {
         suggestedSteps: [Double]? = nil,
         suggestedIncrement: Double? = 0.1,
         formatValue: ((Double) -> String)? = nil,
+        coder: SettingCoder<Double> = .literal(),
         validator: @escaping SettingValidator<Double> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {
@@ -193,6 +195,7 @@ public class PercentSetting: RangeSetting<Double> {
                 percentValueFormatter.string(from: value as NSNumber)
                     ?? String(format: "%.0f%%", value * 100)
             },
+            coder: coder,
             validator: validator,
             activator: activator
         )
@@ -222,13 +225,14 @@ public class EnumSetting<Value: Hashable>: Setting<Value> {
         value: Value,
         values: [Value]?,
         formatValue: @escaping (Value) -> String? = { _ in nil },
+        coder: SettingCoder<Value>,
         validator: @escaping SettingValidator<Value> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {
         self.values = values
         self.formatValue = formatValue
         super.init(
-            key: key, value: value,
+            key: key, value: value, coder: coder,
             validator: { value in
                 guard values?.contains(value) ?? true else {
                     return nil
@@ -236,6 +240,23 @@ public class EnumSetting<Value: Hashable>: Setting<Value> {
                 return validator(value)
             },
             activator: activator
+        )
+    }
+}
+
+extension EnumSetting where Value: RawRepresentable {
+
+    public convenience init(
+        key: SettingKey,
+        value: Value,
+        values: [Value]?,
+        formatValue: @escaping (Value) -> String? = { _ in nil },
+        validator: @escaping SettingValidator<Value> = { $0 },
+        activator: SettingActivator = NullSettingActivator()
+    ) {
+        self.init(
+            key: key, value: value, values: values, formatValue: formatValue,
+            coder: .rawValue(), validator: validator, activator: activator
         )
     }
 }

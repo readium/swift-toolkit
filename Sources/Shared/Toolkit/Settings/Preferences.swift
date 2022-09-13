@@ -26,6 +26,17 @@ import Foundation
 public struct Preferences: Hashable, Loggable {
     var values: JSONDictionary
 
+    /// Creates a `Preferences` object using a mutable builder, for convenience.
+    ///
+    ///     let prefs = Preferences {
+    ///         $0.set(settings.scroll, false)
+    ///         $0.increment(settings.fontSize)
+    ///     }
+    public init(builder: (inout Preferences) -> Void) {
+        self.init()
+        builder(&self)
+    }
+
     /// Creates a `Preferences` object from a JSON object.
     public init(json: [String: Any] = [:]) {
         self.values = JSONDictionary(json) ?? JSONDictionary()
@@ -49,21 +60,26 @@ public struct Preferences: Hashable, Loggable {
         serializeJSONString(json)
     }
 
-    /// Get the preference for the given `setting`.
+    /// Gets the preference for the given `setting`.
     public func get<Value>(_ setting: Setting<Value>) throws -> Value? {
-        guard let value = values.json[setting.key.id] else {
+        try get(setting.key, coder: setting.coder)
+    }
+
+    /// Gets the preference for the given setting `key` and `coder`.
+    public func get<Value>(_ key: SettingKey, coder: SettingCoder<Value>) throws -> Value? {
+        guard let value = values.json[key.id] else {
             return nil
         }
-        return setting.decode(value)
+        return coder.decode(value)
     }
 
     /// Sets the preference for the given `setting`.
     ///
     /// If `activate` is true, the setting will be force activated if needed.
-    public mutating func set<Value>(_ setting: Setting<Value>, preference: Value?, activate: Bool = false) {
+    public mutating func set<Value>(_ setting: Setting<Value>, to preference: Value?, activate: Bool = true) {
         let value = preference.flatMap { setting.validate($0) }
 
-        set(setting.key, preference: value, coder: setting.coder)
+        set(setting.key, to: value, coder: setting.coder)
 
         if value != nil && activate {
             self.activate(setting)
@@ -71,7 +87,7 @@ public struct Preferences: Hashable, Loggable {
     }
 
     /// Sets the preference for the given setting `key`.
-    public mutating func set<Value>(_ key: SettingKey, preference: Value?, coder: SettingCoder<Value>) {
+    public mutating func set<Value>(_ key: SettingKey, to preference: Value?, coder: SettingCoder<Value>) {
         if let preference = preference {
             values.json[key.id] = coder.encode(preference)
         } else {
@@ -85,7 +101,7 @@ public struct Preferences: Hashable, Loggable {
             try? get(setting)
         }
         mutating set(newValue) {
-            set(setting, preference: newValue)
+            set(setting, to: newValue)
         }
     }
 
@@ -110,26 +126,26 @@ public struct Preferences: Hashable, Loggable {
 
     /// Creates a copy of this `Preferences` receiver, keeping only the preferences for the given
     /// setting keys.
-    public func filter(settings: SettingKey...) -> Self {
-        filter(settings: settings)
+    public func filter(_ keys: SettingKey...) -> Self {
+        filter(keys)
     }
 
     /// Creates a copy of this `Preferences` receiver, keeping only the preferences for the given
     /// setting keys.
-    public func filter(settings: [SettingKey]) -> Self {
-        Preferences(json: values.json.filter { key, _ in settings.contains(where: { $0.id == key }) })
+    public func filter(_ keys: [SettingKey]) -> Self {
+        Preferences(json: values.json.filter { key, _ in keys.contains(where: { $0.id == key }) })
     }
 
     /// Creates a copy of this `Preferences` receiver, excluding the preferences for the given
     /// setting keys.
-    public func filterNot(settings: SettingKey...) -> Self {
-        filterNot(settings: settings)
+    public func filterNot(_ keys: SettingKey...) -> Self {
+        filterNot(keys)
     }
 
     /// Creates a copy of this `Preferences` receiver, excluding the preferences for the given
     /// setting keys.
-    public func filterNot(settings: [SettingKey]) -> Self {
-        Preferences(json: values.json.filter { key, _ in !settings.contains(where: { $0.id == key }) })
+    public func filterNot(_ keys: [SettingKey]) -> Self {
+        Preferences(json: values.json.filter { key, _ in !keys.contains(where: { $0.id == key }) })
     }
 
     /// Returns whether the given `setting` is active in these preferences.
@@ -152,14 +168,14 @@ public struct Preferences: Hashable, Loggable {
     ///
     /// If `activate` is true, the setting will be force activated if needed.
     public mutating func update<Value>(_ setting: Setting<Value>, activate: Bool = true, transform: (Value) -> Value) {
-        set(setting, preference: transform(prefOrValue(of: setting)), activate: activate)
+        set(setting, to: transform(prefOrValue(of: setting)), activate: activate)
     }
 
     /// Toggles the preference for the given `setting`.
     ///
     /// If `activate` is true, the setting will be force activated if needed.
     public mutating func toggle(_ setting: ToggleSetting, activate: Bool = true) {
-        set(setting, preference: !prefOrValue(of: setting), activate: activate)
+        set(setting, to: !prefOrValue(of: setting), activate: activate)
     }
 
     /// Toggles the preference for the enum `setting` to the given `preference`.
@@ -169,7 +185,7 @@ public struct Preferences: Hashable, Loggable {
     public mutating func toggle<Value: Equatable>(_ setting: Setting<Value>, preference: Value, activate: Bool = true) {
         let current = try? get(setting)
         if current == nil || current! != preference {
-            set(setting, preference: preference, activate: activate)
+            set(setting, to: preference, activate: activate)
         } else {
             remove(setting)
         }
@@ -189,7 +205,7 @@ public struct Preferences: Hashable, Loggable {
             else {
                 return
             }
-            set(setting, preference: nextValue, activate: activate)
+            set(setting, to: nextValue, activate: activate)
 
         } else {
             update(setting, activate: activate, transform: next)
@@ -205,12 +221,12 @@ public struct Preferences: Hashable, Loggable {
     public mutating func decrement<Value>(_ setting: RangeSetting<Value>, activate: Bool = true, previous: (Value) -> Value) {
         if let steps = setting.suggestedSteps {
             guard
-                let index = steps.lastIndex(where: { $0 >= prefOrValue(of: setting) }),
+                let index = steps.firstIndex(where: { $0 >= prefOrValue(of: setting) }),
                 let nextValue = steps.getOrNil(index - 1)
             else {
                 return
             }
-            set(setting, preference: nextValue, activate: activate)
+            set(setting, to: nextValue, activate: activate)
 
         } else {
             update(setting, activate: activate, transform: previous)
@@ -236,7 +252,7 @@ public struct Preferences: Hashable, Loggable {
     /// If `activate` is true, the setting will be force activated if needed.
     public mutating func decrement<Value: SignedInteger>(_ setting: RangeSetting<Value>, amount: Value? = nil, activate: Bool = true) {
         let amount = amount ?? setting.suggestedIncrement ?? 1
-        increment(setting, activate: activate, next: { $0 - amount })
+        decrement(setting, activate: activate, previous: { $0 - amount })
     }
 
     /// Increments the preference for the given `setting` to the next step.
@@ -258,7 +274,7 @@ public struct Preferences: Hashable, Loggable {
     /// If `activate` is true, the setting will be force activated if needed.
     public mutating func decrement(_ setting: RangeSetting<Double>, amount: Double? = nil, activate: Bool = true) {
         let amount = amount ?? setting.suggestedIncrement ?? 0.1
-        increment(setting, activate: activate, next: { $0 - amount })
+        decrement(setting, activate: activate, previous: { $0 - amount })
     }
 
     /// Adjusts the preference for the given `setting` by adding `amount`.
