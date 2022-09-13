@@ -11,6 +11,7 @@ public struct SettingCoder<Value> {
     public let decode: (Any) -> Value?
     public let encode: (Value) -> Any
 
+    /// Creates a `SettingCoder` which will use the value itself as the encoded value.
     public static func literal<V>() -> SettingCoder<V> {
         SettingCoder<V>(
             decode: { $0 as? V },
@@ -18,6 +19,7 @@ public struct SettingCoder<Value> {
         )
     }
 
+    /// Creates a `SettingCoder` for a value implementing `RawRepresentable` to encode it.
     public static func rawValue<V: RawRepresentable>() -> SettingCoder<V> {
         SettingCoder<V>(
             decode: { ($0 as? V.RawValue).flatMap(V.init(rawValue:)) },
@@ -25,29 +27,3 @@ public struct SettingCoder<Value> {
         )
     }
 }
-
-/*
-extension SettingCoder {
-    public func eraseToAnySettingCoder() -> AnySettingCoder<Value> {
-        AnySettingCoder(self)
-    }
-}
-
-public class AnySettingCoder<Value>: SettingCoder {
-
-    private let decoder: (Any) -> Value?
-    private let encoder: (Value) -> Any
-
-    init<Coder: SettingCoder>(_ coder: Coder) where Coder.Value == Value {
-        self.decoder = coder.decode
-        self.encoder = coder.encode
-    }
-    public func decode(_ json: Any) -> Value? {
-        decoder(json)
-    }
-
-    public func encode(_ value: Value) -> Any {
-       encoder(value)
-    }
-}
- */

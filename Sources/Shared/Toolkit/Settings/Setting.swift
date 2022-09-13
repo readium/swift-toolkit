@@ -29,7 +29,7 @@ public class Setting<Value: Hashable>: Hashable {
     public init(
         key: SettingKey,
         value: Value,
-        coder: SettingCoder<Value> = .literal(),
+        coder: SettingCoder<Value>,
         validator: @escaping SettingValidator<Value> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {
@@ -65,6 +65,18 @@ public class Setting<Value: Hashable>: Hashable {
         return type(of: lhs) == type(of: rhs)
             && lhs.key == rhs.key
             && lhs.value == rhs.value
+    }
+}
+
+extension Setting where Value == Bool {
+
+    public convenience init(
+        key: SettingKey,
+        value: Bool,
+        validator: @escaping SettingValidator<Value> = { $0 },
+        activator: SettingActivator = NullSettingActivator()
+    ) {
+        self.init(key: key, value: value, coder: .literal(), validator: validator, activator: activator)
     }
 }
 
@@ -145,7 +157,7 @@ public class RangeSetting<Value: Comparable & Hashable>: Setting<Value> {
         suggestedSteps: [Value]? = nil,
         suggestedIncrement: Value? = nil,
         formatValue: ((Value) -> String)? = nil,
-        coder: SettingCoder<Value> = .literal(),
+        coder: SettingCoder<Value>,
         validator: @escaping SettingValidator<Value> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {
@@ -168,6 +180,25 @@ public class RangeSetting<Value: Comparable & Hashable>: Setting<Value> {
     }
 }
 
+extension RangeSetting where Value: Numeric {
+    public convenience init(
+        key: SettingKey,
+        value: Value,
+        range: ClosedRange<Value>,
+        suggestedSteps: [Value]? = nil,
+        suggestedIncrement: Value? = nil,
+        formatValue: ((Value) -> String)? = nil,
+        validator: @escaping SettingValidator<Value> = { $0 },
+        activator: SettingActivator = NullSettingActivator()
+    ) {
+        self.init(
+            key: key, value: value, range: range, suggestedSteps: suggestedSteps,
+            suggestedIncrement: suggestedIncrement, formatValue: formatValue, coder: .literal(),
+            validator: validator, activator: activator
+        )
+    }
+}
+
 private let rangeValueFormatter: NumberFormatter = {
     let f = NumberFormatter()
     f.numberStyle = .decimal
@@ -177,14 +208,13 @@ private let rangeValueFormatter: NumberFormatter = {
 
 /// A `RangeSetting` representing a percentage from 0.0 to 1.0.
 public class PercentSetting: RangeSetting<Double> {
-    public override init(
+    public init(
         key: SettingKey,
         value: Double,
         range: ClosedRange<Double> = 0.0...1.0,
         suggestedSteps: [Double]? = nil,
         suggestedIncrement: Double? = 0.1,
         formatValue: ((Double) -> String)? = nil,
-        coder: SettingCoder<Double> = .literal(),
         validator: @escaping SettingValidator<Double> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {
@@ -195,7 +225,7 @@ public class PercentSetting: RangeSetting<Double> {
                 percentValueFormatter.string(from: value as NSNumber)
                     ?? String(format: "%.0f%%", value * 100)
             },
-            coder: coder,
+            coder: .literal(),
             validator: validator,
             activator: activator
         )
