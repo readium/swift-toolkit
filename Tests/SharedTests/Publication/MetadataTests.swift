@@ -83,7 +83,7 @@ class MetadataTests: XCTestCase {
                 ],
                 "title": ["en": "Title", "fr": "Titre"],
                 "subtitle": ["en": "Subtitle", "fr": "Sous-titre"],
-                "accessibility": ["conformsTo": "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a"],
+                "accessibility": ["conformsTo": "http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a"],
                 "modified": "2001-01-01T12:36:27+0000",
                 "published": "2001-01-01",
                 "language": ["en", "fr"],
@@ -189,7 +189,7 @@ class MetadataTests: XCTestCase {
                 "title": ["en": "Title", "fr": "Titre"],
                 "subtitle": ["en": "Subtitle", "fr": "Sous-titre"],
                 "accessibility": [
-                    "conformsTo": ["https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a"]
+                    "conformsTo": ["http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a"]
                 ],
                 "modified": "2001-01-01T12:36:27+0000",
                 "published": "2001-01-01T00:00:00+0000",
@@ -316,7 +316,7 @@ class MetadataTests: XCTestCase {
                 ],
                 "title": "copy-title",
                 "subtitle": "copy-subtitle",
-                "accessibility": ["conformsTo": ["https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa"]],
+                "accessibility": ["conformsTo": ["http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa"]],
                 "modified": "1970-01-01T00:00:42+0000",
                 "published": "1970-01-01T00:01:24+0000",
                 "language": ["copy-language"],

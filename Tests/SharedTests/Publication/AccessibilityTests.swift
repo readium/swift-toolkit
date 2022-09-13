@@ -37,8 +37,8 @@ class AccessibilityTests: XCTestCase {
             ]),
             Accessibility(
                 conformsTo: [
-                    Accessibility.Profile(uri: URL(string: "https://profile1")!, name: nil),
-                    Accessibility.Profile(uri: URL(string: "https://profile2")!, name: nil)
+                    Accessibility.Profile("https://profile1"),
+                    Accessibility.Profile("https://profile2")
                 ],
                 certification: Accessibility.Certification(
                     certifiedBy: "company1",
@@ -57,7 +57,7 @@ class AccessibilityTests: XCTestCase {
     func testParseConformsTo() {
         XCTAssertEqual(
             try? Accessibility(json: [
-                "conformsTo": "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a",
+                "conformsTo": "http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a",
             ]),
             Accessibility(
                 conformsTo: [.wcag20A]
@@ -65,27 +65,10 @@ class AccessibilityTests: XCTestCase {
         )
         XCTAssertEqual(
             try? Accessibility(json: [
-                "conformsTo": ["https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a", "https://profile2"],
+                "conformsTo": ["http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a", "https://profile2"],
             ]),
             Accessibility(
-                conformsTo: [.wcag20A, Accessibility.Profile(uri: URL(string: "https://profile2")!, name: nil)]
-            )
-        )
-    }
-    
-    func testParseIgnoresInvalidConformsTo() {
-        XCTAssertEqual(
-            try? Accessibility(json: [
-                "conformsTo": "profile1",
-            ]),
-            Accessibility()
-        )
-        XCTAssertEqual(
-            try? Accessibility(json: [
-                "conformsTo": ["https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a", "profile2"],
-            ]),
-            Accessibility(
-                conformsTo: [.wcag20A]
+                conformsTo: [.wcag20A, Accessibility.Profile("https://profile2")]
             )
         )
     }
@@ -220,7 +203,7 @@ class AccessibilityTests: XCTestCase {
             Accessibility(
                 conformsTo: [
                     .wcag20A,
-                    Accessibility.Profile(uri: URL(string: "https://profile2")!, name: nil)
+                    Accessibility.Profile("https://profile2")
                 ],
                 certification: Accessibility.Certification(
                     certifiedBy: "company1",
@@ -234,7 +217,7 @@ class AccessibilityTests: XCTestCase {
                 hazards: [.flashing, .motionSimulation]
             ).json,
             [
-                "conformsTo": ["https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a", "https://profile2"],
+                "conformsTo": ["http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a", "https://profile2"],
                 "certification": [
                     "certifiedBy": "company1",
                     "credential": "credential1",

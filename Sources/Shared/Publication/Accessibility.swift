@@ -50,41 +50,18 @@ public struct Accessibility: Hashable {
     
     /// Accessibility profile.
     public struct Profile: Hashable {
-        public let uri: URL
-        public let name: String?
+        public let uri: String
 
-        public init(uri: URL, name: String?) {
+        public init(_ uri: String) {
             self.uri = uri
-            self.name = name
         }
         
-        public init(uri: URL) {
-            switch uri {
-            case Self.wcag20A.uri:
-                self = .wcag20A
-            case Self.wcag20AA.uri:
-                self = .wcag20AA
-            case Self.wcag20AAA.uri:
-                self = .wcag20AAA
-            default:
-                self.init(uri: uri, name: nil)
-            }
-        }
-        
-        public static let wcag20A = Profile(
-            uri: URL(string: "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a")!,
-            name: "EPUB Accessibility 1.0 - WCAG 2.0 Level A"
-        )
-                
-        public static let wcag20AA = Profile(
-            uri: URL(string: "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa")!,
-            name: "EPUB Accessibility 1.0 - WCAG 2.0 Level AA"
-        )
-                
-        public static let wcag20AAA = Profile(
-            uri: URL(string: "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa")!,
-            name: "EPUB Accessibility 1.0 - WCAG 2.0 Level AAA"
-        )
+        /// EPUB Accessibility 1.0 - WCAG 2.0 Level A
+        public static let wcag20A = Profile("http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a")
+        /// EPUB Accessibility 1.0 - WCAG 2.0 Level AA
+        public static let wcag20AA = Profile("http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa")
+        /// EPUB Accessibility 1.0 - WCAG 2.0 Level AAA
+        public static let wcag20AAA = Profile("http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa")
     }
 
     public struct Certification: Hashable {
@@ -394,10 +371,7 @@ public struct Accessibility: Hashable {
 
         self.init(
             conformsTo: (parseArray(jsonObject["conformsTo"], allowingSingle: true) as [String])
-                .compactMap {
-                    URL(string: $0).takeIf { $0.scheme != nil }
-                        .map(Profile.init(uri:))
-                },
+                .map(Profile.init),
             certification: (jsonObject["certification"] as? [String: Any])
                 .map {
                     Certification(
@@ -429,7 +403,7 @@ public struct Accessibility: Hashable {
     
     public var json: [String: Any] {
         makeJSON([
-            "conformsTo": encodeIfNotEmpty(conformsTo.map(\.uri.absoluteString)),
+            "conformsTo": encodeIfNotEmpty(conformsTo.map(\.uri)),
             "certification": encodeIfNotEmpty(certification.map {
                 makeJSON([
                     "certifiedBy": encodeIfNotNil($0.certifiedBy),
