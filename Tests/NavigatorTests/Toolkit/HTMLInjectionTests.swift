@@ -192,4 +192,131 @@ class HTMLInjectionTests: XCTestCase {
             injects
         }
     }
+
+    func testInjectionsOfHTMLAttribute() {
+        XCTAssertEqual(
+            HTMLAttribute(target: .body, name: "test", value: "value to \"escape\"").injections(),
+            [
+                HTMLInjection(
+                    content: #" test="value to &quot;escape&quot;""#,
+                    target: .body,
+                    location: .attributes
+                )
+            ]
+        )
+    }
+
+    func testInjectionsOfDirHTMLAttribute() {
+        XCTAssertEqual(
+            HTMLAttribute.dir(rtl: false, on: .body).injections(),
+            [
+                HTMLInjection(
+                    content: #" dir="ltr""#,
+                    target: .body,
+                    location: .attributes
+                )
+            ]
+        )
+        XCTAssertEqual(
+            HTMLAttribute.dir(rtl: true, on: .body).injections(),
+            [
+                HTMLInjection(
+                    content: #" dir="rtl""#,
+                    target: .body,
+                    location: .attributes
+                )
+            ]
+        )
+    }
+
+    func testInjectionsOfLangHTMLAttribute() {
+        XCTAssertEqual(
+            HTMLAttribute.lang(Language(code: .bcp47("en")), on: .body).injections(),
+            [
+                HTMLInjection(
+                    content: #" xml:lang="en""#,
+                    target: .body,
+                    location: .attributes
+                )
+            ]
+        )
+    }
+
+    func testInjectionsOfStyleHTMLAttribute() {
+        XCTAssertEqual(
+            HTMLAttribute.style("background: \"red\";", on: .body).injections(),
+            [
+                HTMLInjection(
+                    content: #" style="background: &quot;red&quot;;""#,
+                    target: .body,
+                    location: .attributes
+                )
+            ]
+        )
+    }
+
+    func testInjectionsOfStylesheetLinkTagBefore() {
+        XCTAssertEqual(
+            HTMLLinkTag.stylesheet(href: "path/to/style.css", before: true).injections(),
+            [
+                HTMLInjection(
+                    content: #"<link rel="stylesheet" type="text/css" href="path/to/style.css"/>"#,
+                    target: .head,
+                    location: .start
+                )
+            ]
+        )
+    }
+
+    func testInjectionsOfStylesheetLinkTagAfter() {
+        XCTAssertEqual(
+            HTMLLinkTag.stylesheet(href: "path/to/style.css", before: false).injections(),
+            [
+                HTMLInjection(
+                    content: #"<link rel="stylesheet" type="text/css" href="path/to/style.css"/>"#,
+                    target: .head,
+                    location: .end
+                )
+            ]
+        )
+    }
+
+    func testInjectionsOfHTMLMetaTag() {
+        XCTAssertEqual(
+            HTMLMetaTag(name: "test", content: "value to \"escape\"").injections(),
+            [
+                HTMLInjection(
+                    content: #"<meta name="test" content="value to &quot;escape&quot;"/>"#,
+                    target: .head,
+                    location: .end
+                )
+            ]
+        )
+    }
+
+    func testInjectionsOfHTMLStyleTagBefore() {
+        XCTAssertEqual(
+            HTMLStyleTag(stylesheet: "background: red;", before: true).injections(),
+            [
+                HTMLInjection(
+                    content: #"<style type="text/css">background: red;</style>"#,
+                    target: .head,
+                    location: .start
+                )
+            ]
+        )
+    }
+
+    func testInjectionsOfHTMLStyleTagAfter() {
+        XCTAssertEqual(
+            HTMLStyleTag(stylesheet: "background: red;", before: false).injections(),
+            [
+                HTMLInjection(
+                    content: #"<style type="text/css">background: red;</style>"#,
+                    target: .head,
+                    location: .end
+                )
+            ]
+        )
+    }
 }
