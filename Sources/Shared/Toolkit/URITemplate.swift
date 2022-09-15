@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// A lightweight implementation of URI Template (RFC 6570).
 ///
@@ -27,7 +28,7 @@ public struct URITemplate: CustomStringConvertible {
     public var parameters: Set<String> {
         Set(
             NSRegularExpression(#"\{\??([^}]+)\}"#)
-                .matches(in: uri)
+                .matchesGroups(in: uri)
                 .flatMap { groups -> [String] in
                     guard groups.count == 2 else {
                         return []

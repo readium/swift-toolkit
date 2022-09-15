@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Represents a raw injection in an HTML document.
 struct HTMLInjection {
@@ -34,25 +35,24 @@ class HTMLElement {
     }
 
     private lazy var startRegex =
-        try! NSRegularExpression(pattern: "<\(tag).*?>", options: [/*.caseInsensitive, .dotMatchesLineSeparators*/])
+        NSRegularExpression("<\(tag)[^>]*>", options: [.caseInsensitive, .dotMatchesLineSeparators])
 
-    /// Locates the given `location` of this element in the given `html` document.
+    private lazy var endRegex =
+        NSRegularExpression("</\(tag)\\s*>", options: [.caseInsensitive, .dotMatchesLineSeparators])
+
+    /// Locates the `location` of this element in the given `html` document.
     func locate(_ location: Location, in html: String) -> String.Index? {
         switch location {
         case .start:
-            let range = NSRange(text.startIndex..., in: text)
-            startRegex.matches(in: html, options: <#T##MatchingOptions##Foundation.NSRegularExpression.MatchingOptions#>, range: <#T##NSRange##Foundation.NSRange#>)
-            guard
-                let range = html.range(of: startRegex, options: .regularExpression),
-                !range.isEmpty
-            else {
-                return nil
-            }
-            return range.upperBound
+            return startRegex.matches(in: html).first?
+                .range(in: html)?.upperBound
         case .end:
-            return nil
+            return endRegex.matches(in: html).first?
+                .range(in: html)?.lowerBound
         case .attributes:
-            return nil
+            return startRegex.matches(in: html).first
+                .flatMap { $0.range(in: html) }
+                .map { html.index($0.upperBound, offsetBy: -1) }
         }
     }
 

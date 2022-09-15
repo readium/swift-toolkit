@@ -43,6 +43,38 @@ class HTMLElementTests: XCTestCase {
         XCTAssertEqual(body.locate(.start, in: html), target)
     }
 
+    func testLocateStartIsCaseInsensitive() {
+        let html =
+            """
+            <html>
+               <head><title>Test</title></head>
+               <BODY>📍
+                   <p>Body</p>
+               </BODY>
+            </html>
+            """
+        let target = html.firstIndex(of: "📍")!
+
+        XCTAssertEqual(body.locate(.start, in: html), target)
+    }
+
+    func testLocateStartIgnoresAttributesAndNewlines() {
+        let html =
+            """
+            <html>
+               <head><title>Test</title></head>
+               <body  
+                  xml:lang="en"  dir="ltr"
+                >📍
+                   <p>Body</p>
+               </body>
+            </html>
+            """
+        let target = html.firstIndex(of: "📍")!
+
+        XCTAssertEqual(body.locate(.start, in: html), target)
+    }
+
     func testLocateEnd() {
         let html =
             """
@@ -53,7 +85,41 @@ class HTMLElementTests: XCTestCase {
                📍</body>
             </html>
             """
-        let target = html.firstIndex(of: "📍")!
+        let target = html.firstIndex(of: "📍")
+            .map { html.index($0, offsetBy: 1) }!
+
+        XCTAssertEqual(body.locate(.end, in: html), target)
+    }
+
+    func testLocateEndIsCaseInsensitive() {
+        let html =
+            """
+            <html>
+               <head><title>Test</title></head>
+               <BODY>
+                   <p>Body</p>
+               📍</BODY>
+            </html>
+            """
+        let target = html.firstIndex(of: "📍")
+            .map { html.index($0, offsetBy: 1) }!
+
+        XCTAssertEqual(body.locate(.end, in: html), target)
+    }
+
+    func testLocateEndIgnoresWhitespaces() {
+        let html =
+            """
+            <html>
+               <head><title>Test</title></head>
+               <body>
+                   <p>Body</p>
+               📍</body   
+                >
+            </html>
+            """
+        let target = html.firstIndex(of: "📍")
+            .map { html.index($0, offsetBy: 1) }!
 
         XCTAssertEqual(body.locate(.end, in: html), target)
     }
@@ -68,8 +134,42 @@ class HTMLElementTests: XCTestCase {
                </body>
             </html>
             """
-        let target = html.firstIndex(of: "📍")!
+        let target = html.firstIndex(of: "📍")
+            .map { html.index($0, offsetBy: 1) }!
 
-        XCTAssertEqual(body.locate(.end, in: html), target)
+        XCTAssertEqual(body.locate(.attributes, in: html), target)
+    }
+
+    func testLocateAttributesIsCaseInsensitive() {
+        let html =
+            """
+            <html>
+               <head><title>Test</title></head>
+               <BODY📍>
+                   <p>Body</p>
+               </BODY>
+            </html>
+            """
+        let target = html.firstIndex(of: "📍")
+            .map { html.index($0, offsetBy: 1) }!
+
+        XCTAssertEqual(body.locate(.attributes, in: html), target)
+    }
+
+    func testLocateAttributesWithExistingAttributesAndNewlines() {
+        let html =
+            """
+            <html>
+               <head><title>Test</title></head>
+               <body dir="ltr"
+                    xml:lang="en"📍>
+                   <p>Body</p>
+               </body>
+            </html>
+            """
+        let target = html.firstIndex(of: "📍")
+            .map { html.index($0, offsetBy: 1) }!
+
+        XCTAssertEqual(body.locate(.attributes, in: html), target)
     }
 }
