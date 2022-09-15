@@ -20,7 +20,12 @@ struct HTMLInjection {
 
     /// Injects the receiver in the given `html` document.
     func inject(in html: String) -> String {
-        html
+        guard let index = target.locate(location, in: html) else {
+            return html
+        }
+        var res = html
+        res.insert(contentsOf: content, at: index)
+        return res
     }
 }
 
