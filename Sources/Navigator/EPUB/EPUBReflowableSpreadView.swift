@@ -35,7 +35,13 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     override func setupWebView() {
         super.setupWebView()
+        
         scrollView.bounces = false
+        // Since iOS 16, the default value of alwaysBounceX seems to be true
+        // for web views.
+        scrollView.alwaysBounceVertical = false
+        scrollView.alwaysBounceHorizontal = false
+
         scrollView.isPagingEnabled = !isScrollEnabled
         
         webView.translatesAutoresizingMaskIntoConstraints = false
