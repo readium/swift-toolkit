@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="pub-id" version="2.0" xml:lang="en">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:title>Alice's Adventures in Wonderland</dc:title>
+
+    <dc:conformsTo>any profile</dc:conformsTo>
+    <dc:conformsTo>http://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a</dc:conformsTo>
+    <meta name="schema:accessibilitySummary" content="The publication contains structural and page navigation."/>
+
+    <meta name="schema:accessMode" content="textual"/>
+    <meta name="schema:accessMode" content="visual"/>
+    <meta name="schema:accessModeSufficient" content="textual"/>
+    <meta name="schema:accessModeSufficient" content="textual,visual"/>
+
+    <meta name="schema:accessibilityFeature" content="structuralNavigation"/>
+    <meta name="schema:accessibilityFeature" content="alternativeText"/>
+    <meta name="schema:accessibilityHazard" content="motionSimulation"/>
+    <meta name="schema:accessibilityHazard" content="noSoundHazard"/>
+
+    <meta name="a11y:certifiedBy" content="Accessibility Testers Group"/>
+    <meta name="a11y:certifierCredential" content="DAISY OK"/>
+    <meta name="a11y:certifierReport" content="https://example.com/a11y-report/"/>
+  </metadata>
+  <manifest>
+    <item id="titlepage" href="titlepage.xhtml"/>
+  </manifest>
+  <spine>
+    <itemref idref="titlepage"/>
+  </spine>
+</package>

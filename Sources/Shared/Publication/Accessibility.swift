@@ -13,7 +13,7 @@ import Foundation
 public struct Accessibility: Hashable {
 
     /// An established standard to which the described resource conforms.
-    public let conformsTo: [Profile]
+    public let conformsTo: Set<Profile>
 
     /// Certification of accessible publications.
     public let certification: Certification?
@@ -29,24 +29,24 @@ public struct Accessibility: Hashable {
     /// information.
     ///
     /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessMode
-    public let accessModes: [AccessMode]
+    public let accessModes: Set<AccessMode>
 
     /// A list of single or combined accessModes that are sufficient to understand all the intellectual content of a
     /// resource.
     ///
     /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessModeSufficient
-    public let accessModesSufficient: [[AccessModeSufficient]]
+    public let accessModesSufficient: Set<Set<PrimaryAccessMode>>
 
     /// Content features of the resource, such as accessible media, alternatives and supported enhancements for
     /// accessibility.
     ///
     /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessibilityFeature
-    public let features: [Feature]
+    public let features: Set<Feature>
 
     /// A characteristic of the described resource that is physiologically dangerous to some users.
     ///
     /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessibilityHazard
-    public let hazards: [Hazard]
+    public let hazards: Set<Hazard>
     
     /// Accessibility profile.
     public struct Profile: Hashable {
@@ -57,11 +57,11 @@ public struct Accessibility: Hashable {
         }
         
         /// EPUB Accessibility 1.0 - WCAG 2.0 Level A
-        public static let wcag20A = Profile("http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a")
+        public static let epubA11y10WCAG20A = Profile("http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a")
         /// EPUB Accessibility 1.0 - WCAG 2.0 Level AA
-        public static let wcag20AA = Profile("http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa")
+        public static let epubA11y10WCAG20AA = Profile("http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa")
         /// EPUB Accessibility 1.0 - WCAG 2.0 Level AAA
-        public static let wcag20AAA = Profile("http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa")
+        public static let epubA11y10WCAG20AAA = Profile("http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa")
     }
 
     public struct Certification: Hashable {
@@ -81,9 +81,9 @@ public struct Accessibility: Hashable {
         /// property.
         ///
         /// https://www.w3.org/TR/epub-a11y/#certifierReport
-        public let report: URL?
+        public let report: String?
 
-        public init(certifiedBy: String? = nil, credential: String? = nil, report: URL? = nil) {
+        public init(certifiedBy: String? = nil, credential: String? = nil, report: String? = nil) {
             self.certifiedBy = certifiedBy
             self.credential = credential
             self.report = report
@@ -135,7 +135,7 @@ public struct Accessibility: Hashable {
         public static let visual = AccessMode("visual")
     }
 
-    public enum AccessModeSufficient: String, Hashable {
+    public enum PrimaryAccessMode: String, Hashable {
         /// Indicates that auditory perception is necessary to consume the information.
         case auditory = "auditory"
 
@@ -343,13 +343,13 @@ public struct Accessibility: Hashable {
     }
 
     public init(
-        conformsTo: [Profile] = [],
+        conformsTo: Set<Profile> = [],
         certification: Certification? = nil,
         summary: String? = nil,
-        accessModes: [AccessMode] = [],
-        accessModesSufficient: [[AccessModeSufficient]] = [],
-        features: [Feature] = [],
-        hazards: [Hazard] = []
+        accessModes: Set<AccessMode> = [],
+        accessModesSufficient: Set<Set<PrimaryAccessMode>> = [],
+        features: Set<Feature> = [],
+        hazards: Set<Hazard> = []
     ) {
         self.conformsTo = conformsTo
         self.certification = certification
@@ -370,34 +370,36 @@ public struct Accessibility: Hashable {
         }
 
         self.init(
-            conformsTo: (parseArray(jsonObject["conformsTo"], allowingSingle: true) as [String])
-                .map(Profile.init),
+            conformsTo: Set(
+                (parseArray(jsonObject["conformsTo"], allowingSingle: true) as [String])
+                    .map(Profile.init)
+            ),
             certification: (jsonObject["certification"] as? [String: Any])
                 .map {
                     Certification(
                         certifiedBy: $0["certifiedBy"] as? String,
                         credential: $0["credential"] as? String,
-                        report: ($0["report"] as? String)
-                            .flatMap(URL.init(string:))
-                            .takeIf { $0.scheme != nil }
+                        report: $0["report"] as? String
                     )
                 }
                 .takeIf { $0.certifiedBy != nil || $0.credential != nil || $0.report != nil },
             summary: jsonObject["summary"] as? String,
-            accessModes: parseArray(jsonObject["accessMode"]).map(AccessMode.init),
-            accessModesSufficient: (jsonObject["accessModeSufficient"] as? [Any] ?? [])
-                .map { json -> [Accessibility.AccessModeSufficient] in
-                    if let str = json as? String, let value = AccessModeSufficient(rawValue: str) {
-                        return [value]
-                    } else if let strs = json as? [String] {
-                        return strs.compactMap(AccessModeSufficient.init(rawValue:))
-                    } else {
-                        return []
+            accessModes: Set(parseArray(jsonObject["accessMode"]).map(AccessMode.init)),
+            accessModesSufficient: Set(
+                (jsonObject["accessModeSufficient"] as? [Any] ?? [])
+                    .map { json -> Set<Accessibility.PrimaryAccessMode> in
+                        if let str = json as? String, let value = PrimaryAccessMode(rawValue: str) {
+                            return Set([value])
+                        } else if let strs = json as? [String] {
+                            return Set(strs.compactMap(PrimaryAccessMode.init(rawValue:)))
+                        } else {
+                            return Set()
+                        }
                     }
-                }
-                .filter { !$0.isEmpty },
-            features: parseArray(jsonObject["feature"]).map(Feature.init),
-            hazards: parseArray(jsonObject["hazard"]).map(Hazard.init)
+                    .filter { !$0.isEmpty }
+            ),
+            features: Set(parseArray(jsonObject["feature"]).map(Feature.init)),
+            hazards: Set(parseArray(jsonObject["hazard"]).map(Hazard.init))
         )
     }
     
@@ -408,7 +410,7 @@ public struct Accessibility: Hashable {
                 makeJSON([
                     "certifiedBy": encodeIfNotNil($0.certifiedBy),
                     "credential": encodeIfNotNil($0.credential),
-                    "report": encodeIfNotNil($0.report?.absoluteString),
+                    "report": encodeIfNotNil($0.report),
                 ])
             }),
             "summary": encodeIfNotNil(summary),

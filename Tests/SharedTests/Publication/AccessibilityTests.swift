@@ -60,7 +60,7 @@ class AccessibilityTests: XCTestCase {
                 "conformsTo": "http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a",
             ]),
             Accessibility(
-                conformsTo: [.wcag20A]
+                conformsTo: [.epubA11y10WCAG20A]
             )
         )
         XCTAssertEqual(
@@ -68,7 +68,7 @@ class AccessibilityTests: XCTestCase {
                 "conformsTo": ["http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a", "https://profile2"],
             ]),
             Accessibility(
-                conformsTo: [.wcag20A, Accessibility.Profile("https://profile2")]
+                conformsTo: [.epubA11y10WCAG20A, Accessibility.Profile("https://profile2")]
             )
         )
     }
@@ -202,7 +202,7 @@ class AccessibilityTests: XCTestCase {
         AssertJSONEqual(
             Accessibility(
                 conformsTo: [
-                    .wcag20A,
+                    .epubA11y10WCAG20A,
                     Accessibility.Profile("https://profile2")
                 ],
                 certification: Accessibility.Certification(
