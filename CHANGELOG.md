@@ -17,6 +17,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 * [A brand new text-to-speech implementation](Documentation/Guides/TTS.md).
 
+#### Streamer
+
+* Parse EPUB accessibility metadata ([see documentation](https://readium.org/architecture/streamer/parser/a11y-metadata-parsing)).
+
 ### Deprecated
 
 #### Shared

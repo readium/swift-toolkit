@@ -28,7 +28,7 @@ class EPUBMetadataParserTests: XCTestCase {
             title: "Alice's Adventures in Wonderland",
             subtitle: "Alice returns to the magical world from her childhood adventure",
             accessibility: Accessibility(
-                certification: Certification(
+                certification: Accessibility.Certification(
                     certifiedBy: "EDRLab"
                 )
             ),
@@ -45,7 +45,6 @@ class EPUBMetadataParserTests: XCTestCase {
             description: "The book description.",
             numberOfPages: 42,
             otherMetadata: [
-                "http://www.idpf.org/epub/vocab/package/a11y/#certifiedBy": "EDRLab",
                 "http://purl.org/dc/terms/source": [
                     "Feedbooks",
                     [
@@ -337,6 +336,7 @@ class EPUBMetadataParserTests: XCTestCase {
                 hazards: [.motionSimulation, .noSoundHazard]
             )
         )
+        XCTAssertEqual(Array(sut.otherMetadata.keys), ["presentation"])
     }
     
     func testParseEPUB3Accessibility() throws {
@@ -357,6 +357,7 @@ class EPUBMetadataParserTests: XCTestCase {
                 hazards: [.motionSimulation, .noSoundHazard]
             )
         )
+        XCTAssertEqual(Array(sut.otherMetadata.keys), ["presentation"])
     }
 
     

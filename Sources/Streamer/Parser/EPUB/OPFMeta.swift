@@ -304,14 +304,19 @@ struct OPFMetaList {
     /// List of properties that should not be added to `otherMetadata` because they are already
     /// consumed by the RWPM model.
     private let rwpmProperties: [OPFVocabulary: [String]] = [
+        .a11y: ["certifiedBy", "certifierCredential", "certifierReport"],
         .defaultMetadata: ["cover"],
         .dcterms: [
-            "contributor", "creator", "date", "description", "identifier", "language", "modified",
-            "publisher", "subject", "title"
+            "contributor", "creator", "date", "description", "identifier",
+            "language", "modified", "publisher", "subject", "title",
+            "conformsTo"
         ],
         .media: ["duration"],
         .rendition: ["flow", "layout", "orientation", "spread"],
-        .schema: ["numberOfPages"]
+        .schema: [
+            "numberOfPages", "accessMode", "accessModeSufficient",
+            "accessibilitySummary", "accessibilityFeature", "accessibilityHazard"
+        ]
     ]
     
     /// Returns whether the given meta is a known RWPM property, and should therefore be ignored in
