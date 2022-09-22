@@ -330,9 +330,9 @@ class EPUBMetadataParserTests: XCTestCase {
                     report: "https://example.com/a11y-report/"
                 ),
                 summary: "The publication contains structural and page navigation.",
-                accessModes: [.visual, .textual],
-                accessModesSufficient: [[.textual], [.visual, .textual]],
-                features: [.alternativeText, .structuralNavigation],
+                accessModes: [.textual, .visual],
+                accessModesSufficient: [[.textual], [.textual, .visual]],
+                features: [.structuralNavigation, .alternativeText],
                 hazards: [.motionSimulation, .noSoundHazard]
             )
         )
@@ -351,9 +351,9 @@ class EPUBMetadataParserTests: XCTestCase {
                     report: "https://example.com/a11y-report/"
                 ),
                 summary: "The publication contains structural and page navigation.",
-                accessModes: [.visual, .textual],
-                accessModesSufficient: [[.textual], [.visual, .textual]],
-                features: [.alternativeText, .structuralNavigation],
+                accessModes: [.textual, .visual],
+                accessModesSufficient: [[.textual], [.textual, .visual]],
+                features: [.structuralNavigation, .alternativeText],
                 hazards: [.motionSimulation, .noSoundHazard]
             )
         )

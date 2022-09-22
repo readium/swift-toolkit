@@ -206,11 +206,9 @@ final class EPUBMetadataParser: Loggable {
         return accessibility.takeIf { $0 != Accessibility() }
     }
     
-    private func accessibilityProfiles() -> Set<Accessibility.Profile> {
-        Set(
-            metas["conformsTo", in: .dcterms]
-                .compactMap { accessibilityProfile(from: $0.content) }
-        )
+    private func accessibilityProfiles() -> [Accessibility.Profile] {
+        metas["conformsTo", in: .dcterms]
+            .compactMap { accessibilityProfile(from: $0.content) }
     }
     
     private func accessibilityProfile(from value: String) -> Accessibility.Profile? {
@@ -263,39 +261,29 @@ final class EPUBMetadataParser: Loggable {
         )
     }
     
-    private func accessibilityAccessModes() -> Set<Accessibility.AccessMode> {
-        Set(
-            metas["accessMode", in: .schema]
-                .map { Accessibility.AccessMode($0.content) }
-        )
+    private func accessibilityAccessModes() -> [Accessibility.AccessMode] {
+        metas["accessMode", in: .schema]
+            .map { Accessibility.AccessMode($0.content) }
     }
     
-    private func accessibilityAccessModesSufficient() -> Set<Set<Accessibility.PrimaryAccessMode>> {
-        Set(
-            metas["accessModeSufficient", in: .schema]
-                .map {
-                    Set(
-                        $0.content.split(separator: ",")
-                            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                            .filter { !$0.isEmpty }
-                            .compactMap(Accessibility.PrimaryAccessMode.init(rawValue:))
-                    )
-                }
-        )
+    private func accessibilityAccessModesSufficient() -> [[Accessibility.PrimaryAccessMode]] {
+        metas["accessModeSufficient", in: .schema]
+            .map {
+                $0.content.split(separator: ",")
+                    .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                    .filter { !$0.isEmpty }
+                    .compactMap(Accessibility.PrimaryAccessMode.init(rawValue:))
+            }
     }
     
-    private func accessibilityFeatures() -> Set<Accessibility.Feature> {
-        Set(
-            metas["accessibilityFeature", in: .schema]
-                .map { Accessibility.Feature($0.content) }
-        )
+    private func accessibilityFeatures() -> [Accessibility.Feature] {
+        metas["accessibilityFeature", in: .schema]
+            .map { Accessibility.Feature($0.content) }
     }
     
-    private func accessibilityHazards() -> Set<Accessibility.Hazard> {
-        Set(
-            metas["accessibilityHazard", in: .schema]
-                .map { Accessibility.Hazard($0.content) }
-        )
+    private func accessibilityHazards() -> [Accessibility.Hazard] {
+        metas["accessibilityHazard", in: .schema]
+            .map { Accessibility.Hazard($0.content) }
     }
 
     /// Parse and return the Epub unique identifier.

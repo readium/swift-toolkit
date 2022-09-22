@@ -13,7 +13,7 @@ import Foundation
 public struct Accessibility: Hashable {
 
     /// An established standard to which the described resource conforms.
-    public let conformsTo: Set<Profile>
+    public let conformsTo: [Profile]
 
     /// Certification of accessible publications.
     public let certification: Certification?
@@ -29,24 +29,24 @@ public struct Accessibility: Hashable {
     /// information.
     ///
     /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessMode
-    public let accessModes: Set<AccessMode>
+    public let accessModes: [AccessMode]
 
     /// A list of single or combined accessModes that are sufficient to understand all the intellectual content of a
     /// resource.
     ///
     /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessModeSufficient
-    public let accessModesSufficient: Set<Set<PrimaryAccessMode>>
+    public let accessModesSufficient: [[PrimaryAccessMode]]
 
     /// Content features of the resource, such as accessible media, alternatives and supported enhancements for
     /// accessibility.
     ///
     /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessibilityFeature
-    public let features: Set<Feature>
+    public let features: [Feature]
 
     /// A characteristic of the described resource that is physiologically dangerous to some users.
     ///
     /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessibilityHazard
-    public let hazards: Set<Hazard>
+    public let hazards: [Hazard]
     
     /// Accessibility profile.
     public struct Profile: Hashable {
@@ -343,13 +343,13 @@ public struct Accessibility: Hashable {
     }
 
     public init(
-        conformsTo: Set<Profile> = [],
+        conformsTo: [Profile] = [],
         certification: Certification? = nil,
         summary: String? = nil,
-        accessModes: Set<AccessMode> = [],
-        accessModesSufficient: Set<Set<PrimaryAccessMode>> = [],
-        features: Set<Feature> = [],
-        hazards: Set<Hazard> = []
+        accessModes: [AccessMode] = [],
+        accessModesSufficient: [[PrimaryAccessMode]] = [],
+        features: [Feature] = [],
+        hazards: [Hazard] = []
     ) {
         self.conformsTo = conformsTo
         self.certification = certification
@@ -370,10 +370,8 @@ public struct Accessibility: Hashable {
         }
 
         self.init(
-            conformsTo: Set(
-                (parseArray(jsonObject["conformsTo"], allowingSingle: true) as [String])
-                    .map(Profile.init)
-            ),
+            conformsTo: (parseArray(jsonObject["conformsTo"], allowingSingle: true) as [String])
+                .map(Profile.init),
             certification: (jsonObject["certification"] as? [String: Any])
                 .map {
                     Certification(
@@ -384,22 +382,20 @@ public struct Accessibility: Hashable {
                 }
                 .takeIf { $0.certifiedBy != nil || $0.credential != nil || $0.report != nil },
             summary: jsonObject["summary"] as? String,
-            accessModes: Set(parseArray(jsonObject["accessMode"]).map(AccessMode.init)),
-            accessModesSufficient: Set(
-                (jsonObject["accessModeSufficient"] as? [Any] ?? [])
-                    .map { json -> Set<Accessibility.PrimaryAccessMode> in
-                        if let str = json as? String, let value = PrimaryAccessMode(rawValue: str) {
-                            return Set([value])
-                        } else if let strs = json as? [String] {
-                            return Set(strs.compactMap(PrimaryAccessMode.init(rawValue:)))
-                        } else {
-                            return Set()
-                        }
+            accessModes: parseArray(jsonObject["accessMode"]).map(AccessMode.init),
+            accessModesSufficient: (jsonObject["accessModeSufficient"] as? [Any] ?? [])
+                .map { json -> [Accessibility.PrimaryAccessMode] in
+                    if let str = json as? String, let value = PrimaryAccessMode(rawValue: str) {
+                        return [value]
+                    } else if let strs = json as? [String] {
+                        return strs.compactMap(PrimaryAccessMode.init(rawValue:))
+                    } else {
+                        return []
                     }
-                    .filter { !$0.isEmpty }
-            ),
-            features: Set(parseArray(jsonObject["feature"]).map(Feature.init)),
-            hazards: Set(parseArray(jsonObject["hazard"]).map(Hazard.init))
+                }
+                .filter { !$0.isEmpty },
+            features: parseArray(jsonObject["feature"]).map(Feature.init),
+            hazards: parseArray(jsonObject["hazard"]).map(Hazard.init)
         )
     }
     

@@ -43,7 +43,7 @@ class AccessibilityTests: XCTestCase {
                 certification: Accessibility.Certification(
                     certifiedBy: "company1",
                     credential: "credential1",
-                    report: URL(string: "https://report1")!
+                    report: "https://report1"
                 ),
                 summary: "Summary",
                 accessModes: [.auditory, .chartOnVisual],
@@ -165,32 +165,6 @@ class AccessibilityTests: XCTestCase {
         )
     }
 
-    func testParseIgnoreInvalidReport() {
-        XCTAssertEqual(
-            try? Accessibility(json: [
-                "certification": [
-                    "certifiedBy": "company1",
-                    "report": "report1"
-                ],
-            ]),
-            Accessibility(
-                certification: Accessibility.Certification(
-                    certifiedBy: "company1"
-                )
-            )
-        )
-        XCTAssertEqual(
-            try? Accessibility(json: [
-                "certification": [
-                    "report": "report1"
-                ],
-            ]),
-            Accessibility(
-                certification: nil
-            )
-        )
-    }
-
     func testGetMinimalJSON() {
         AssertJSONEqual(
             Accessibility().json,
@@ -199,23 +173,24 @@ class AccessibilityTests: XCTestCase {
     }
 
     func testGetFullJSON() {
+        let expected = Accessibility(
+            conformsTo: [
+                .epubA11y10WCAG20A,
+                Accessibility.Profile("https://profile2")
+            ],
+            certification: Accessibility.Certification(
+                certifiedBy: "company1",
+                credential: "credential1",
+                report: "https://report1"
+            ),
+            summary: "Summary",
+            accessModes: [.auditory, .chartOnVisual],
+            accessModesSufficient: [[.auditory], [.visual, .tactile], [.visual]],
+            features: [.readingOrder, .alternativeText],
+            hazards: [.flashing, .motionSimulation]
+        ).json
         AssertJSONEqual(
-            Accessibility(
-                conformsTo: [
-                    .epubA11y10WCAG20A,
-                    Accessibility.Profile("https://profile2")
-                ],
-                certification: Accessibility.Certification(
-                    certifiedBy: "company1",
-                    credential: "credential1",
-                    report: URL(string: "https://report1")!
-                ),
-                summary: "Summary",
-                accessModes: [.auditory, .chartOnVisual],
-                accessModesSufficient: [[.auditory], [.visual, .tactile], [.visual]],
-                features: [.readingOrder, .alternativeText],
-                hazards: [.flashing, .motionSimulation]
-            ).json,
+            expected,
             [
                 "conformsTo": ["http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a", "https://profile2"],
                 "certification": [
