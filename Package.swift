@@ -20,7 +20,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/cezheng/Fuzi.git", from: "3.1.3"),
-        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.3.8"),
+        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.5.1"),
         .package(url: "https://github.com/marmelroy/Zip.git", from: "2.1.2"),
         .package(url: "https://github.com/ra1028/DifferenceKit.git", from: "1.3.0"),
         .package(url: "https://github.com/readium/GCDWebServer.git", from: "3.7.3"),

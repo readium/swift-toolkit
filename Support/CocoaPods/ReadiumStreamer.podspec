@@ -21,7 +21,7 @@ Pod::Spec.new do |s|
   s.xcconfig      = { 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2' }
 
   s.dependency 'R2Shared'
-  s.dependency 'CryptoSwift', '~> 1.3.8'
+  s.dependency 'CryptoSwift', '~> 1.5.0'
   s.dependency 'Fuzi', '~> 3.0'
   s.dependency 'GCDWebServer', '~> 3.0'
   s.dependency 'Minizip', '~> 1.0'
