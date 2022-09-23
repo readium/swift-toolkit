@@ -2,7 +2,7 @@ name: Checks
 
 on:
   push:
-    branches: [ main, develop, fix/xcode14 ]
+    branches: [ main, develop ]
   pull_request:
 
 env:
@@ -79,7 +79,6 @@ jobs:
 
   int-spm:
     name: Integration (Swift Package Manager)
-    if: github.event_name == 'push'
     runs-on: macos-latest
     defaults:
       run:
@@ -88,6 +87,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Set commit SHA
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "commit_sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
       - name: Install dependencies
         run: brew install xcodegen
       - name: Generate project
@@ -98,7 +101,6 @@ jobs:
 
   int-carthage:
     name: Integration (Carthage)
-    if: github.event_name == 'push'
     runs-on: macos-latest
     defaults:
       run:
@@ -107,6 +109,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Set commit SHA
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "commit_sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
       - name: Install dependencies
         run: brew install xcodegen
       - name: Generate project
@@ -119,7 +125,6 @@ jobs:
   # but will check that the latest branch/tag set in the Podspecs are valid.
   int-cocoapods:
     name: Integration (CocoaPods)
-    if: github.event_name == 'push'
     runs-on: macos-latest
     defaults:
       run:
@@ -128,6 +133,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Set commit SHA
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "commit_sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
       - name: Install dependencies
         run: brew install xcodegen
       - name: Generate project
