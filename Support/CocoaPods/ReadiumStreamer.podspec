@@ -21,7 +21,7 @@ Pod::Spec.new do |s|
   s.xcconfig      = { 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2' }
 
   s.dependency 'R2Shared'
-  s.dependency 'CryptoSwift', '~> 1.5.0'
+  s.dependency 'CryptoSwift', '<= 1.5.1' # From 1.6.0, the build fails in GitHub actions
   s.dependency 'Fuzi', '~> 3.0'
   s.dependency 'GCDWebServer', '~> 3.0'
   s.dependency 'Minizip', '~> 1.0'
