@@ -369,7 +369,7 @@ private extension TTSVoice.Quality {
         switch voice.quality {
         case .default:
             self = .medium
-        case .enhanced, .premium:
+        case .enhanced:
             self = .high
         @unknown default:
             return nil
