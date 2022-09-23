@@ -25,6 +25,8 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Fixed
 
+* [#244](https://github.com/readium/swift-toolkit/issues/244) Fixed build with Xcode 14 and Carthage/CocoaPods.
+
 #### Navigator
 
 * Fixed memory leaks in the EPUB and PDF navigators.
