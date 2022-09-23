@@ -2,7 +2,7 @@ name: Checks
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, fix/xcode14 ]
   pull_request:
 
 env:
@@ -16,7 +16,7 @@ jobs:
     runs-on: macos-latest
     env:
       scheme: ${{ 'Readium-Package' }}
-      DEVELOPER_DIR: /Applications/Xcode_13.2.1.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_12.4.app/Contents/Developer
 
     steps:
       - name: Checkout
