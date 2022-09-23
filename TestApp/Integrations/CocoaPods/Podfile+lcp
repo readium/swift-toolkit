@@ -12,7 +12,7 @@ target 'TestApp' do
   pod 'R2LCPClient', podspec: 'LCP_URL'
 
   # Required for R2Streamer.
-  pod 'GCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/3.6.3/GCDWebServer.podspec'
+  pod 'GCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/master/GCDWebServer.podspec'
 
   pod 'GRDB.swift'
   pod 'Kingfisher'
