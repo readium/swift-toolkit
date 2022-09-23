@@ -58,7 +58,7 @@ ifdef lcp
 else
 	@cp Integrations/Carthage/project.yml .
 endif
-	carthage update --verbose --platform ios --use-xcframeworks --cache-builds
+	carthage update --verbose --platform ios --use-xcframeworks --cache-builds --no-use-binaries
 	xcodegen generate
 	@echo "\nopen TestApp.xcodeproj"
 
