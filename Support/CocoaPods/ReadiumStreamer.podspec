@@ -1,12 +1,12 @@
 Pod::Spec.new do |s|
 
   s.name          = "R2Streamer"
-  s.version       = "2.3.0"
+  s.version       = "2.4.0"
   s.license       = "BSD 3-Clause License"
   s.summary       = "R2 Streamer"
   s.homepage      = "http://readium.github.io"
   s.author        = { "Readium" => "contact@readium.org" }
-  s.source        = { :git => "https://github.com/readium/swift-toolkit.git", :branch => "develop" }
+  s.source        = { :git => "https://github.com/readium/swift-toolkit.git", :tag => "2.4.0" }
   s.requires_arc  = true
   s.resource_bundles = {
     'ReadiumStreamer' => [
