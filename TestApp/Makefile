@@ -85,6 +85,6 @@ else
 	@cp Integrations/Local/project.yml .
 endif
 	xcodegen generate
-	@ln -s Integrations/Local/TestApp.xcworkspace TestApp.xcworkspace
+	@cp -r Integrations/Local/TestApp.xcworkspace .
 	@echo "\nopen TestApp.xcworkspace"
 
