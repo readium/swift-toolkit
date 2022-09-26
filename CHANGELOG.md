@@ -10,11 +10,16 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Shared
 
+* Support for the accessibility metadata in RWPM per [Schema.org Accessibility Properties for Discoverability Vocabulary](https://www.w3.org/2021/a11y-discov-vocab/latest/).
 * [Extract the raw content (text, images, etc.) of a publication](Documentation/Guides/Content.md).
 
 #### Navigator
 
 * [A brand new text-to-speech implementation](Documentation/Guides/TTS.md).
+
+#### Streamer
+
+* Parse EPUB accessibility metadata ([see documentation](https://readium.org/architecture/streamer/parser/a11y-metadata-parsing)).
 
 ### Deprecated
 

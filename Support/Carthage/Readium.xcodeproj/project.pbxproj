@@ -208,6 +208,7 @@
 		A18842C5051EF84E2DA02300 /* DownloadSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = E76DFDE600369E9D3EF452E1 /* DownloadSession.swift */; };
 		A2CDF2E8DC527C19EA348AB8 /* Properties+Archive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 294E01A2E6FF25539EBC1082 /* Properties+Archive.swift */; };
 		A3EBB38968F8EB4ABC560678 /* ArchiveFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3604722B0DFFFBFB66B7F1BF /* ArchiveFetcher.swift */; };
+		A46DC4FD105295950D990BEE /* Accessibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85570570689D5791F24E6651 /* Accessibility.swift */; };
 		A6658BA380A889B8310A558F /* Facet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 387B19B66C4D91A295B5EFA6 /* Facet.swift */; };
 		A8E6E488592BDBB97C4B7B87 /* XML.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CDB1B325928A873012E6149 /* XML.swift */; };
 		A90A46957B8B68EE82C4DBAD /* OPDSAvailability.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2E780027410F4B6CC872B3D /* OPDSAvailability.swift */; };
@@ -489,6 +490,7 @@
 		8240F845F35439807CE8AF65 /* ContentProtectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentProtectionService.swift; sourceTree = "<group>"; };
 		8456BF3665A9B9C0AE4CC158 /* Locator+HTML.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Locator+HTML.swift"; sourceTree = "<group>"; };
 		8456F28921B65C2FC15D28AE /* FileInputStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileInputStream.swift; sourceTree = "<group>"; };
+		85570570689D5791F24E6651 /* Accessibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Accessibility.swift; sourceTree = "<group>"; };
 		87629BF68F1EDBF06FC0AD54 /* ImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewController.swift; sourceTree = "<group>"; };
 		87727AC33D368A88A60A12B9 /* Encryption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Encryption.swift; sourceTree = "<group>"; };
 		893C5F4086D99997DAF9BEDC /* EPUBEncryptionParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBEncryptionParser.swift; sourceTree = "<group>"; };
@@ -1545,6 +1547,7 @@
 		F0C92101E0A9644DB8CFD31C /* Publication */ = {
 			isa = PBXGroup;
 			children = (
+				85570570689D5791F24E6651 /* Accessibility.swift */,
 				E4A496C959F870BAFDB447DA /* ContentLayout.swift */,
 				59DEE0391E49891939DFDF38 /* ContentProtection.swift */,
 				456192DBCB3A29ADA9C3CCB9 /* Contributor.swift */,
@@ -1921,6 +1924,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A46DC4FD105295950D990BEE /* Accessibility.swift in Sources */,
 				09B7475BC8E63C940BD5881A /* Archive.swift in Sources */,
 				A3EBB38968F8EB4ABC560678 /* ArchiveFetcher.swift in Sources */,
 				AA218336FBD1C23959542515 /* Array.swift in Sources */,
