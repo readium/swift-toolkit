@@ -154,7 +154,7 @@ public class HTMLResourceContentIterator: ContentIterator {
                             locator: baseLocator.copy(
                                 locations: {
                                     $0 = Locator.Locations(
-                                        otherLocations: ["cssSelector": try? elem.cssSelector()]
+                                        otherLocations: ["cssSelector": (try? elem.cssSelector()) as Any]
                                     )
                                 }
                             ),

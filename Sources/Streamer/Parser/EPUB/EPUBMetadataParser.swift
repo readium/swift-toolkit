@@ -52,6 +52,7 @@ final class EPUBMetadataParser: Loggable {
             conformsTo: [.epub],
             title: mainTitle ?? fallbackTitle,
             subtitle: subtitle,
+            accessibility: accessibility(),
             modified: modifiedDate,
             published: publishedDate,
             languages: languages,
@@ -189,6 +190,101 @@ final class EPUBMetadataParser: Loggable {
     private lazy var mainTitle: LocalizedString? = localizedString(for: mainTitleElement)
 
     private lazy var subtitle: LocalizedString? = localizedString(for: titleElements(ofType: .subtitle).first)
+    
+    /// https://readium.org/architecture/streamer/parser/a11y-metadata-parsing
+    private func accessibility() -> Accessibility? {
+        let accessibility: Accessibility? = Accessibility(
+            conformsTo: accessibilityProfiles(),
+            certification: accessibilityCertification(),
+            summary: metas["accessibilitySummary", in: .schema].first?.content,
+            accessModes: accessibilityAccessModes(),
+            accessModesSufficient: accessibilityAccessModesSufficient(),
+            features: accessibilityFeatures(),
+            hazards: accessibilityHazards()
+        )
+        
+        return accessibility.takeIf { $0 != Accessibility() }
+    }
+    
+    private func accessibilityProfiles() -> [Accessibility.Profile] {
+        metas["conformsTo", in: .dcterms]
+            .compactMap { accessibilityProfile(from: $0.content) }
+    }
+    
+    private func accessibilityProfile(from value: String) -> Accessibility.Profile? {
+        switch value {
+        case "EPUB Accessibility 1.1 - WCAG 2.0 Level A",
+            "http://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a",
+            "http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a",
+            "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a",
+            "https://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a":
+            return .epubA11y10WCAG20A
+            
+        case "EPUB Accessibility 1.1 - WCAG 2.0 Level AA",
+            "http://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa",
+            "http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa",
+            "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa",
+            "https://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa":
+            return .epubA11y10WCAG20AA
+            
+        case "EPUB Accessibility 1.1 - WCAG 2.0 Level AAA",
+            "http://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa",
+            "http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa",
+            "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa",
+            "https://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa":
+            return .epubA11y10WCAG20AAA
+        default:
+            return nil
+        }
+    }
+    
+    private func accessibilityCertification() -> Accessibility.Certification? {
+        let certifier = metas["certifiedBy", in: .a11y].first
+        let credential: String?
+        let report: String?
+        if let id = certifier?.id {
+            credential = metas["certifierCredential", in: .a11y, refining: id].first?.content
+            report = metas.links(withRel: "certifierReport", in: .a11y, refining: id).first?.href
+        } else {
+            credential = metas["certifierCredential", in: .a11y].first?.content
+            report = metas["certifierReport", in: .a11y].first?.content
+                ?? metas.links(withRel: "certifierReport", in: .a11y).first?.href
+        }
+        guard certifier != nil || credential != nil || report != nil else {
+            return nil
+        }
+        
+        return Accessibility.Certification(
+            certifiedBy: certifier?.content,
+            credential: credential,
+            report: report
+        )
+    }
+    
+    private func accessibilityAccessModes() -> [Accessibility.AccessMode] {
+        metas["accessMode", in: .schema]
+            .map { Accessibility.AccessMode($0.content) }
+    }
+    
+    private func accessibilityAccessModesSufficient() -> [[Accessibility.PrimaryAccessMode]] {
+        metas["accessModeSufficient", in: .schema]
+            .map {
+                $0.content.split(separator: ",")
+                    .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                    .filter { !$0.isEmpty }
+                    .compactMap(Accessibility.PrimaryAccessMode.init(rawValue:))
+            }
+    }
+    
+    private func accessibilityFeatures() -> [Accessibility.Feature] {
+        metas["accessibilityFeature", in: .schema]
+            .map { Accessibility.Feature($0.content) }
+    }
+    
+    private func accessibilityHazards() -> [Accessibility.Hazard] {
+        metas["accessibilityHazard", in: .schema]
+            .map { Accessibility.Hazard($0.content) }
+    }
 
     /// Parse and return the Epub unique identifier.
     /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#identifier

@@ -128,7 +128,6 @@ enum OPFVocabulary: String {
 
 }
 
-
 /// Represents a `meta` tag in an OPF document.
 struct OPFMeta {
     let property: String
@@ -141,11 +140,22 @@ struct OPFMeta {
     let element: Fuzi.XMLElement
 }
 
+/// Represents a `link` tag in an OPF document.
+struct OPFLink {
+    let rel: String
+    /// URI of the rel's vocabulary.
+    let vocabularyURI: String
+    let href: String
+    /// ID of the metadata that is refined by this one, if any.
+    let refines: String?
+    let element: Fuzi.XMLElement
+}
 
 struct OPFMetaList {
     
     private let document: Fuzi.XMLDocument
     private let metas: [OPFMeta]
+    private let links: [OPFLink]
     
     init(document: Fuzi.XMLDocument) {
         self.document = document
@@ -155,7 +165,8 @@ struct OPFMetaList {
 
         // Parses `<meta>` and `<dc:x>` tags in order of appearance.
         let root = "/opf:package/opf:metadata"
-        self.metas = document.xpath("\(root)/opf:meta|\(root)/dc:*|\(root)/opf:dc-metadata/dc:*|\(root)/opf:x-metadata/opf:meta")
+        self.metas = document
+            .xpath("\(root)/opf:meta|\(root)/dc:*|\(root)/opf:dc-metadata/dc:*|\(root)/opf:x-metadata/opf:meta")
             .compactMap { meta in
                 if meta.tag == "meta" {
                     // EPUB 3
@@ -195,6 +206,29 @@ struct OPFMetaList {
                     )
                 }
             }
+        
+        self.links = document
+            .xpath("\(root)/opf:link")
+            .compactMap { link in
+                guard
+                    let originalRel = link.attr("rel"),
+                    let href = link.attr("href")
+                else {
+                    return nil
+                }
+                
+                let (rel, vocabularyURI) = OPFVocabulary.parse(property: originalRel, prefixes: prefixes)
+                        
+                var refinedID = link.attr("refines")
+                refinedID?.removeFirst()  // Get rid of the # before the ID.
+                return OPFLink(
+                    rel: rel,
+                    vocabularyURI: vocabularyURI,
+                    href: href,
+                    refines: refinedID,
+                    element: link
+                )
+            }
     }
     
     subscript(_ property: String) -> [OPFMeta] {
@@ -211,6 +245,14 @@ struct OPFMetaList {
     
     subscript(_ property: String, in vocabulary: OPFVocabulary, refining id: String) -> [OPFMeta] {
         return metas.filter { $0.property == property && $0.vocabularyURI == vocabulary.uri && $0.refines == id }
+    }
+    
+    func links(withRel rel: String, in vocabulary: OPFVocabulary) -> [OPFLink] {
+        links.filter { $0.rel == rel && $0.vocabularyURI == vocabulary.uri }
+    }
+    
+    func links(withRel rel: String, in vocabulary: OPFVocabulary, refining id: String) -> [OPFLink] {
+        links.filter { $0.rel == rel && $0.vocabularyURI == vocabulary.uri && $0.refines == id }
     }
     
     /// Returns the JSON representation of the unknown metadata
@@ -262,14 +304,19 @@ struct OPFMetaList {
     /// List of properties that should not be added to `otherMetadata` because they are already
     /// consumed by the RWPM model.
     private let rwpmProperties: [OPFVocabulary: [String]] = [
+        .a11y: ["certifiedBy", "certifierCredential", "certifierReport"],
         .defaultMetadata: ["cover"],
         .dcterms: [
-            "contributor", "creator", "date", "description", "identifier", "language", "modified",
-            "publisher", "subject", "title"
+            "contributor", "creator", "date", "description", "identifier",
+            "language", "modified", "publisher", "subject", "title",
+            "conformsTo"
         ],
         .media: ["duration"],
         .rendition: ["flow", "layout", "orientation", "spread"],
-        .schema: ["numberOfPages"]
+        .schema: [
+            "numberOfPages", "accessMode", "accessModeSufficient",
+            "accessibilitySummary", "accessibilityFeature", "accessibilityHazard"
+        ]
     ]
     
     /// Returns whether the given meta is a known RWPM property, and should therefore be ignored in

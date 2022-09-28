@@ -61,7 +61,7 @@ extension String {
     }
 
     /// Same as `index(_,offsetBy:)` but without crashing when reaching the end of the string.
-    func clampedIndex(_ i: String.Index, offsetBy n: String.IndexDistance) -> String.Index {
+    func clampedIndex(_ i: String.Index, offsetBy n: Int) -> String.Index {
         precondition(n != 0)
         let limit = (n > 0) ? endIndex : startIndex
         guard let index = index(i, offsetBy: n, limitedBy: limit) else {

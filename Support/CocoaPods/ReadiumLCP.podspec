@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name          = "ReadiumLCP"
-  s.version       = "2.3.0"
+  s.version       = "2.4.0"
   s.license       = "BSD 3-Clause License"
   s.summary       = "Readium LCP"
   s.homepage      = "http://readium.github.io"
@@ -22,6 +22,6 @@ Pod::Spec.new do |s|
   s.dependency 'R2Shared' 
 
   s.dependency 'ZIPFoundation', '<= 0.9.11' # 0.9.12 requires iOS 12+
-  s.dependency 'SQLite.swift', '~> 0.12.2'
-  s.dependency 'CryptoSwift', '~> 1.3.8'
+  s.dependency 'SQLite.swift', '~> 0.13'
+  s.dependency 'CryptoSwift', '<= 1.5.1' # From 1.6.0, the build fails in GitHub actions with Carthage
 end

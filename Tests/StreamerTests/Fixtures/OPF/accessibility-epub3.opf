@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="pub-id" version="3.0" xml:lang="en">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/">
+    <dc:title>Alice's Adventures in Wonderland</dc:title>
+
+    <dc:conformsTo>any profile</dc:conformsTo>
+    <dc:conformsTo>http://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a</dc:conformsTo>
+    <meta property="schema:accessibilitySummary">The publication contains structural and page navigation.</meta>
+
+    <meta property="schema:accessMode">textual</meta>
+    <meta property="schema:accessMode">visual</meta>
+    <meta property="schema:accessModeSufficient">textual</meta>
+    <meta property="schema:accessModeSufficient">textual,visual</meta>
+
+    <meta property="schema:accessibilityFeature">structuralNavigation</meta>
+    <meta property="schema:accessibilityFeature">alternativeText</meta>
+    <meta property="schema:accessibilityHazard">motionSimulation</meta>
+    <meta property="schema:accessibilityHazard">noSoundHazard</meta>
+
+    <meta property="a11y:certifiedBy" id="certifier">Accessibility Testers Group</meta>
+    <meta property="a11y:certifiedBy" id="certifier2">fake certifier</meta>
+    <meta property="a11y:certifierCredential" refines="#certifier2">fake credential</meta>
+    <meta property="a11y:certifierCredential" refines="#certifier">DAISY OK</meta>
+    <link rel="a11y:certifierReport" refines="#certifier2" href="https://example.com/fakereport"/>
+    <link rel="a11y:certifierReport" refines="#certifier" href="https://example.com/a11y-report/"/>
+
+  </metadata>
+  <manifest>
+    <item id="titlepage" href="titlepage.xhtml"/>
+  </manifest>
+  <spine>
+    <itemref idref="titlepage"/>
+  </spine>
+</package>

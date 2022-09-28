@@ -28,6 +28,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
     public let localizedSubtitle: LocalizedString?
     public var subtitle: String? { localizedSubtitle?.string }
 
+    public let accessibility: Accessibility?
     public let modified: Date?
     public let published: Date?
     public let languages: [String]  // BCP 47 tag
@@ -70,6 +71,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         conformsTo: [Publication.Profile] = [],
         title: LocalizedStringConvertible,
         subtitle: LocalizedStringConvertible? = nil,
+        accessibility: Accessibility? = nil,
         modified: Date? = nil,
         published: Date? = nil,
         languages: [String] = [],
@@ -102,6 +104,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         self.conformsTo = conformsTo
         self.localizedTitle = title.localizedString
         self.localizedSubtitle = subtitle?.localizedString
+        self.accessibility = accessibility
         self.modified = modified
         self.published = published
         self.languages = languages
@@ -151,6 +154,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
             .map { Publication.Profile($0) }
         self.localizedTitle = title
         self.localizedSubtitle = try? LocalizedString(json: json.pop("subtitle"), warnings: warnings)
+        self.accessibility = try? Accessibility(json: json.pop("accessibility"), warnings: warnings)
         self.modified = parseDate(json.pop("modified"))
         self.published = parseDate(json.pop("published"))
         self.languages = parseArray(json.pop("language"), allowingSingle: true)
@@ -187,6 +191,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
             "conformsTo": encodeIfNotEmpty(conformsTo.map { $0.uri }),
             "title": localizedTitle.json,
             "subtitle": encodeIfNotNil(localizedSubtitle?.json),
+            "accessibility": encodeIfNotEmpty(accessibility?.json),
             "modified": encodeIfNotNil(modified?.iso8601),
             "published": encodeIfNotNil(published?.iso8601),
             "language": encodeIfNotEmpty(languages),
@@ -255,6 +260,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         conformsTo: [Publication.Profile]? = nil,
         title: LocalizedStringConvertible? = nil,
         subtitle: LocalizedStringConvertible?? = nil,
+        accessibility: Accessibility?? = nil,
         modified: Date?? = nil,
         published: Date?? = nil,
         languages: [String]? = nil,
@@ -288,6 +294,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
             conformsTo: conformsTo ?? self.conformsTo,
             title: title ?? self.localizedTitle,
             subtitle: subtitle ?? self.localizedSubtitle,
+            accessibility: accessibility ?? self.accessibility,
             modified: modified ?? self.modified,
             published: published ?? self.published,
             languages: languages ?? self.languages,

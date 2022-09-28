@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name          = "R2Navigator"
-  s.version       = "2.3.0"
+  s.version       = "2.4.0"
   s.license       = "BSD 3-Clause License"
   s.summary       = "R2 Navigator"
   s.homepage      = "http://readium.github.io"
@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
   s.platform      = :ios
   s.ios.deployment_target = "10.0"
   s.dependency 'R2Shared'
-  s.dependency 'DifferenceKit'
-  s.dependency 'SwiftSoup', '~> 2.3'
+  s.dependency 'DifferenceKit', '~> 1.0'
+  s.dependency 'SwiftSoup', '~> 2.0'
 
 end

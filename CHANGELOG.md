@@ -4,17 +4,24 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-## [Unreleased]
+<!--## [Unreleased]-->
+
+## [2.4.0]
 
 ### Added
 
 #### Shared
 
+* Support for the accessibility metadata in RWPM per [Schema.org Accessibility Properties for Discoverability Vocabulary](https://www.w3.org/2021/a11y-discov-vocab/latest/).
 * [Extract the raw content (text, images, etc.) of a publication](Documentation/Guides/Content.md).
 
 #### Navigator
 
 * [A brand new text-to-speech implementation](Documentation/Guides/TTS.md).
+
+#### Streamer
+
+* Parse EPUB accessibility metadata ([see documentation](https://readium.org/architecture/streamer/parser/a11y-metadata-parsing)).
 
 ### Deprecated
 
@@ -25,12 +32,15 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Fixed
 
+* [#244](https://github.com/readium/swift-toolkit/issues/244) Fixed build with Xcode 14 and Carthage/CocoaPods.
+
 #### Navigator
 
 * Fixed memory leaks in the EPUB and PDF navigators.
 * [#61](https://github.com/readium/swift-toolkit/issues/61) Fixed serving EPUB resources when the HREF contains an anchor or query parameters.
 * Performance issue with EPUB fixed-layout when spreads are enabled.
 * Disable scrolling in EPUB fixed-layout resources, in case the viewport is incorrectly set.
+* Fix vertically bouncing EPUB resources in iOS 16.
 
 #### Streamer
 
@@ -459,3 +469,4 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 
 [unreleased]: https://github.com/readium/swift-toolkit/compare/main...HEAD
 [2.3.0]: https://github.com/readium/swift-toolkit/compare/2.2.0...2.3.0
+[2.4.0]: https://github.com/readium/swift-toolkit/compare/2.3.0...2.4.0
