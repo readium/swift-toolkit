@@ -38,7 +38,7 @@ struct CSSLayout: Equatable {
             }
         }
 
-        var htmlDir: HtmlDir {
+        var htmlDir: HTMLDir {
             switch self {
             case .default: return .ltr
             case .rtl: return .rtl
@@ -48,10 +48,21 @@ struct CSSLayout: Equatable {
         }
     }
 
-    enum HtmlDir: String {
+    enum HTMLDir: String {
         case unspecified = ""
         case ltr
         case rtl
+        
+        var isRTL: Bool? {
+            switch self {
+            case .unspecified:
+                return nil
+            case .ltr:
+                return false
+            case .rtl:
+                return true
+            }
+        }
     }
 
     init(

@@ -1,12 +1,7 @@
 //
-//  String.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 30/04/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -39,7 +34,7 @@ extension String {
     }
     
     /// Returns a copy of the string after removing the given `suffix`, when present.
-    func removingSuffix(_ suffix: String) -> String {
+    public func removingSuffix(_ suffix: String) -> String {
         guard hasSuffix(suffix) else {
             return self
         }
@@ -48,7 +43,7 @@ extension String {
 
     /// Returns a substring before the last occurrence of `delimiter`.
     /// If the string does not contain the delimiter, returns the original string itself.
-    func substringBeforeLast(_ delimiter: String) -> String? {
+    public func substringBeforeLast(_ delimiter: String) -> String? {
         guard let range = range(of: delimiter, options: [.backwards, .literal]) else {
             return self
         }
@@ -56,12 +51,12 @@ extension String {
     }
     
     /// Replaces multiple whitespaces by a single space.
-    func coalescingWhitespaces() -> String {
+    public func coalescingWhitespaces() -> String {
         replacingOccurrences(of: "[\\s\n]+", with: " ", options: .regularExpression, range: nil)
     }
 
     /// Same as `index(_,offsetBy:)` but without crashing when reaching the end of the string.
-    func clampedIndex(_ i: String.Index, offsetBy n: Int) -> String.Index {
+    public func clampedIndex(_ i: String.Index, offsetBy n: Int) -> String.Index {
         precondition(n != 0)
         let limit = (n > 0) ? endIndex : startIndex
         guard let index = index(i, offsetBy: n, limitedBy: limit) else {

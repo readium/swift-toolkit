@@ -20,7 +20,7 @@ struct HTMLInjection: Hashable {
     let location: HTMLElement.Location
 
     /// Injects the receiver in the given `html` document.
-    func inject(in html: String) -> String {
+    func inject(in html: String) throws -> String {
         guard let index = target.locate(location, in: html) else {
             return html
         }
@@ -31,6 +31,7 @@ struct HTMLInjection: Hashable {
 }
 
 struct HTMLElement: Hashable {
+    static let html = HTMLElement(tag: "html")
     static let head = HTMLElement(tag: "head")
     static let body = HTMLElement(tag: "body")
 
@@ -57,12 +58,12 @@ struct HTMLElement: Hashable {
         case .attributes:
             return startRegex.matches(in: html).first
                 .flatMap { $0.range(in: html) }
-                .map { html.index($0.upperBound, offsetBy: -1) }
+                .map { html.index($0.lowerBound, offsetBy: tag.count + 1) }
         }
     }
 
     /// Injection location in an HTML element.
-    enum Location: Hashable {
+    enum Location: String, Hashable {
         /// Injects at the beginning of the element's content.
         case start
         /// Injects at the end of the element's content.
@@ -72,111 +73,86 @@ struct HTMLElement: Hashable {
     }
 }
 
+extension HTMLElement: CustomStringConvertible {
+    var description: String {
+        "<\(tag)>"
+    }
+}
+
+extension HTMLElement.Location: CustomStringConvertible {
+    var description: String {
+        rawValue
+    }
+}
+
 /// An object that can be injected into an HTML document.
 protocol HTMLInjectable {
-    func injections() -> [HTMLInjection]
+    func injections(for html: String) throws -> [HTMLInjection]
 }
 
 extension HTMLInjectable {
 
     /// Injects the receiver in the given `html` document.
-    func inject(in html: String) -> String {
+    func inject(in html: String) throws -> String {
         var result = html
-        for injection in injections() {
-            result = injection.inject(in: result)
+        for injection in try injections(for: html) {
+            result = try injection.inject(in: result)
         }
         return result
     }
 }
 
-struct HTMLAttribute: HTMLInjectable {
-    let target: HTMLElement
-    let name: String
-    let value: String
-
-    func injections() -> [HTMLInjection] {
-        [
-            HTMLInjection(
-                content: " \(name)=\"\(escapeAttribute(value))\"",
-                target: target,
-                location: .attributes
-            )
-        ]
+extension HTMLInjection {
+    /// Injects an HTML attribute with the given `name` on the element `target`.
+    static func attribute(_ name: String, on target: HTMLElement, value: String) -> HTMLInjection {
+        HTMLInjection(
+            content: " \(name)=\"\(escapeAttribute(value))\"",
+            target: target,
+            location: .attributes
+        )
     }
-
-    static func dir(rtl: Bool, on target: HTMLElement) -> HTMLAttribute {
-        HTMLAttribute(target: target, name: "dir", value: rtl ? "rtl" : "ltr")
+    
+    static func dirAttribute(on target: HTMLElement, rtl: Bool) -> HTMLInjection {
+        .attribute("dir", on: target, value: rtl ? "rtl" : "ltr")
     }
-
-    static func lang(_ language: Language, on target: HTMLElement) -> HTMLAttribute {
-        HTMLAttribute(target: target, name: "xml:lang", value: language.code.bcp47)
+    
+    static func langAttribute(on target: HTMLElement, language: Language) -> HTMLInjection {
+        .attribute("xml:lang", on: target, value: language.code.bcp47)
     }
-
-    static func style(_ stylesheet: String, on target: HTMLElement) -> HTMLAttribute {
-        HTMLAttribute(target: .body, name: "style", value: stylesheet)
+    
+    static func styleAttribute(on target: HTMLElement, css: String) -> HTMLInjection {
+        .attribute("style", on: target, value: css)
     }
-}
-
-struct HTMLLinkTag: HTMLInjectable {
-    let href: String
-    let rel: String
-    let type: MediaType
-    let before: Bool
-
-    init(href: String, rel: String, type: MediaType, before: Bool = false) {
-        self.href = href
-        self.rel = rel
-        self.type = type
-        self.before = before
+    
+    /// Injects a `link` tag in the `head` element.
+    static func link(href: String, rel: String, type: MediaType, prepend: Bool = false) -> HTMLInjection {
+        HTMLInjection(
+            content: "<link rel=\"\(rel)\" type=\"\(type.string)\" href=\"\(escapeAttribute(href))\"/>",
+            target: .head,
+            location: prepend ? .start : .end
+        )
     }
-
-    func injections() -> [HTMLInjection] {
-        [
-            HTMLInjection(
-                content: "<link rel=\"\(rel)\" type=\"\(type.string)\" href=\"\(escapeAttribute(href))\"/>",
-                target: .head,
-                location: before ? .start : .end
-            )
-        ]
+    
+    static func stylesheetLink(href: String, prepend: Bool = false) -> HTMLInjection {
+        .link(href: href, rel: "stylesheet", type: .css, prepend: prepend)
     }
-
-    static func stylesheet(href: String, before: Bool = false) -> HTMLLinkTag {
-        HTMLLinkTag(href: href, rel: "stylesheet", type: .css, before: before)
+    
+    /// Injects a `meta` tag in the `head` element.
+    static func meta(name: String, content: String) -> HTMLInjection {
+        HTMLInjection(
+            content: "<meta name=\"\(escapeAttribute(name))\" content=\"\(escapeAttribute(content))\"/>",
+            target: .head,
+            location: .end
+        )
     }
-}
-
-struct HTMLMetaTag: HTMLInjectable {
-    let name: String
-    let content: String
-
-    func injections() -> [HTMLInjection] {
-        [
-            HTMLInjection(
-                content: "<meta name=\"\(escapeAttribute(name))\" content=\"\(escapeAttribute(content))\"/>",
-                target: .head,
-                location: .end
-            )
-        ]
-    }
-}
-
-struct HTMLStyleTag: HTMLInjectable {
-    let stylesheet: String
-    let before: Bool
-
-    init(stylesheet: String, before: Bool = false) {
-        self.stylesheet = stylesheet
-        self.before = before
-    }
-
-    func injections() -> [HTMLInjection] {
-        [
-            HTMLInjection(
-                content: "<style type=\"text/css\">\(stylesheet)</style>",
-                target: .head,
-                location: before ? .start : .end
-            )
-        ]
+    
+    /// Injects a `style` tag in the `head` element.
+    static func style(_ css: String, prepend: Bool = false) -> HTMLInjection {
+        HTMLInjection(
+            content: "<style type=\"text/css\">\(css)</style>",
+            target: .head,
+            location: prepend ? .start : .end
+        )
     }
 }
 

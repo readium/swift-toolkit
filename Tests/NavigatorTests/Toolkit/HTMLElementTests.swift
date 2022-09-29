@@ -135,7 +135,6 @@ class HTMLElementTests: XCTestCase {
             </html>
             """
         let target = html.firstIndex(of: "📍")
-            .map { html.index($0, offsetBy: 1) }!
 
         XCTAssertEqual(body.locate(.attributes, in: html), target)
     }
@@ -151,7 +150,6 @@ class HTMLElementTests: XCTestCase {
             </html>
             """
         let target = html.firstIndex(of: "📍")
-            .map { html.index($0, offsetBy: 1) }!
 
         XCTAssertEqual(body.locate(.attributes, in: html), target)
     }
@@ -161,14 +159,13 @@ class HTMLElementTests: XCTestCase {
             """
             <html>
                <head><title>Test</title></head>
-               <body dir="ltr"
-                    xml:lang="en"📍>
+               <body📍 dir="ltr"
+                    xml:lang="en">
                    <p>Body</p>
                </body>
             </html>
             """
         let target = html.firstIndex(of: "📍")
-            .map { html.index($0, offsetBy: 1) }!
 
         XCTAssertEqual(body.locate(.attributes, in: html), target)
     }
