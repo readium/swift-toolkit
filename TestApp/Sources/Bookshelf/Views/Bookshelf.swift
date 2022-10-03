@@ -9,11 +9,14 @@ import R2Shared
 import SwiftUI
 
 struct Bookshelf: View {
-    
-    let bookRepository: BookRepository
+    let readerDependencies: ReaderDependencies
     @ObservedObject var bookOpener: BookOpener
     @State private var showingSheet = false
     @State private var books: [Book] = []
+    
+    @State private var curOpeningBookId: Book.Id = 0
+    @State private var lastOpenedBookTag: Book.Id?
+    @State private var viewModelToOpen: NewReaderViewModel?
     
     var body: some View {
         VStack {
@@ -25,7 +28,7 @@ struct Bookshelf: View {
                         NavigationLink(
                             destination: readerView(),
                             tag: book.id!,
-                            selection: self.$bookOpener.openedBookTag
+                            selection: self.$lastOpenedBookTag
                         ) {
                             BookCover(
                                 title: book.title,
@@ -36,16 +39,29 @@ struct Bookshelf: View {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle())
                                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                                    .opacity(bookOpener.curOpeningBookId == book.id ? 1 : 0)
+                                    .opacity(curOpeningBookId == book.id ? 1 : 0)
                             })
                             .onTapGesture {
-                                _ = bookOpener.openBookTask(book)
+                                Task {
+                                    let result = await bookOpener.openBook(book)
+                                    switch result {
+                                    case .success(let publication):
+                                        viewModelToOpen = NewReaderViewModel(
+                                            book: book,
+                                            publication: publication,
+                                            readerDependencies: readerDependencies
+                                        )
+                                        lastOpenedBookTag = book.id
+                                    case .failure(let error):
+                                        print("BookOpener error \(error)")
+                                    }
+                                }
                             }
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
                 }
-                .onReceive(bookRepository.all()) {
+                .onReceive(readerDependencies.books.all()) {
                     books = $0
                 }
             }
@@ -61,9 +77,9 @@ struct Bookshelf: View {
     }
     
     @ViewBuilder func readerView() -> some View {
-        if bookOpener.openedBook != nil {
+        if viewModelToOpen != nil {
             NewReaderView(
-                viewModel: bookOpener.newReaderViewModel
+                viewModel: viewModelToOpen!
             )
         } else {
             Text("no book")

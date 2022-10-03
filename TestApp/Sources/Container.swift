@@ -59,7 +59,7 @@ class Container {
     
     func bookshelf() -> Bookshelf {
         Bookshelf(
-            bookRepository: readerDependencies.books,
+            readerDependencies: readerDependencies,
             bookOpener: BookOpener(readerDependencies: readerDependencies)
         )
     }

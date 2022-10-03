@@ -10,12 +10,11 @@ import R2Shared
 import R2Streamer
 import SwiftUI
 
+enum BookOpenerError: Error {
+    case unknown
+}
+
 class BookOpener: ObservableObject, Loggable {
-    @Published var openedBookPublication: Publication?
-    @Published var openedBook: Book?
-    @Published var openedBookTag: Book.Id?
-    @Published var curOpeningBookId: Book.Id?
-    
     init(readerDependencies: ReaderDependencies) {
         self.readerDependencies = readerDependencies
         
@@ -28,28 +27,8 @@ class BookOpener: ObservableObject, Loggable {
         )
     }
     
-    func openBookTask(_ book: Book) -> Task<Void, Never> {
-        curOpenBookTask?.cancel()
-        
-        curOpeningBookId = book.id
-        curOpenBookTask = Task {
-            await openBook(book)
-            
-        }
-        return curOpenBookTask!
-    }
-    
-    var newReaderViewModel: NewReaderViewModel {
-        NewReaderViewModel(
-            book: openedBook!,
-            publication: openedBookPublication!,
-            readerDependencies: readerDependencies
-        )
-    }
-    
 // MARK: - Private Members
     private let readerDependencies: ReaderDependencies
-    private var curOpenBookTask: Task<Void, Never>?
     private var subscriptions = Set<AnyCancellable>()
     private var drmLibraryServices = [DRMLibraryService]()
     private let streamer: Streamer
@@ -58,26 +37,28 @@ class BookOpener: ObservableObject, Loggable {
     /// Opens the Readium 2 Publication for the given `book`.
     ///
     /// If the `Publication` is intended to be presented in a navigator, set `forPresentation`.
-    private func openBook(_ book: Book) async {
-        book.url()
-            .flatMap {
-                self.openPublication(at: $0, allowUserInteraction: true)
-            }
-            .flatMap {
-                (pub, _) in self.checkIsReadable(publication: pub)
-            }
-            .handleEvents(receiveOutput: {
-                self.preparePresentation(of: $0, book: book)
-            })
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                
-            } receiveValue: { publication in
-                self.curOpeningBookId = nil
-                self.openedBookPublication = publication
-                self.openedBook = book
-                self.openedBookTag = book.id
-            }.store(in: &subscriptions)
+    func openBook(_ book: Book) async -> Result<Publication, BookOpenerError> {
+        await withCheckedContinuation { continuation in
+            book.url()
+                .flatMap {
+                    self.openPublication(at: $0, allowUserInteraction: true)
+                }
+                .flatMap {
+                    (pub, _) in self.checkIsReadable(publication: pub)
+                }
+                .handleEvents(receiveOutput: {
+                    self.preparePresentation(of: $0, book: book)
+                })
+                .receive(on: DispatchQueue.main)
+                .sink { completion in
+                    if case .failure(let error) = completion {
+                        // TODO: map "error" into "BookOpenerError"
+                        continuation.resume(returning: .failure(BookOpenerError.unknown))
+                    }
+                } receiveValue: { publication in
+                    continuation.resume(returning: .success(publication))
+                }.store(in: &subscriptions)
+        }
     }
     
     /// Opens the Readium 2 Publication at the given `url`.
