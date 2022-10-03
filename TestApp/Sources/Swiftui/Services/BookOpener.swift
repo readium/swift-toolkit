@@ -14,7 +14,7 @@ enum BookOpenerError: Error {
     case unknown
 }
 
-class BookOpener: ObservableObject, Loggable {
+actor BookOpener: ObservableObject, Loggable {
     init(readerDependencies: ReaderDependencies) {
         self.readerDependencies = readerDependencies
         
