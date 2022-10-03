@@ -68,17 +68,10 @@ struct NewReaderView: View {
     }
     
     @ViewBuilder
-    private func toolbarItems() -> some View {
-        Text(viewModel.positionLabelText)
-            .font(.system(size: 12))
-            .foregroundColor(Color.gray) // WAS: darkGray
-    }
-    
-    @ViewBuilder
     private func positionLabel() -> some View {
         Text(viewModel.positionLabelText)
             .font(.system(size: 12))
-            .foregroundColor(Color.gray) // WAS: darkGray
+            .foregroundStyle(.secondary)
     }
 }
 
