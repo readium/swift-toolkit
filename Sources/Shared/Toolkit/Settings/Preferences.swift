@@ -62,15 +62,15 @@ public struct Preferences: Hashable, Loggable {
 
     /// Gets the preference for the given `setting`.
     public func get<Value>(_ setting: Setting<Value>) throws -> Value? {
-        try get(setting.key, coder: setting.coder)
+        try get(setting.key)
     }
 
     /// Gets the preference for the given setting `key` and `coder`.
-    public func get<Value>(_ key: SettingKey, coder: SettingCoder<Value>) throws -> Value? {
+    public func get<Value>(_ key: SettingKey<Value>) throws -> Value? {
         guard let value = values.json[key.id] else {
             return nil
         }
-        return coder.decode(value)
+        return key.coder.decode(value)
     }
 
     /// Sets the preference for the given `setting`.
@@ -79,7 +79,7 @@ public struct Preferences: Hashable, Loggable {
     public mutating func set<Value>(_ setting: Setting<Value>, to preference: Value?, activate: Bool = true) {
         let value = preference.flatMap { setting.validate($0) }
 
-        set(setting.key, to: value, coder: setting.coder)
+        set(setting.key, to: value)
 
         if value != nil && activate {
             self.activate(setting)
@@ -87,9 +87,9 @@ public struct Preferences: Hashable, Loggable {
     }
 
     /// Sets the preference for the given setting `key`.
-    public mutating func set<Value>(_ key: SettingKey, to preference: Value?, coder: SettingCoder<Value>) {
+    public mutating func set<Value>(_ key: SettingKey<Value>, to preference: Value?) {
         if let preference = preference {
-            values.json[key.id] = coder.encode(preference)
+            values.json[key.id] = key.coder.encode(preference)
         } else {
             values.json.removeValue(forKey: key.id)
         }
@@ -122,30 +122,6 @@ public struct Preferences: Hashable, Loggable {
     /// conflict.
     public mutating func merge(_ other: Preferences) {
         values.json.merge(other.values.json, uniquingKeysWith: { _, n in n })
-    }
-
-    /// Creates a copy of this `Preferences` receiver, keeping only the preferences for the given
-    /// setting keys.
-    public func filter(_ keys: SettingKey...) -> Self {
-        filter(keys)
-    }
-
-    /// Creates a copy of this `Preferences` receiver, keeping only the preferences for the given
-    /// setting keys.
-    public func filter(_ keys: [SettingKey]) -> Self {
-        Preferences(json: values.json.filter { key, _ in keys.contains(where: { $0.id == key }) })
-    }
-
-    /// Creates a copy of this `Preferences` receiver, excluding the preferences for the given
-    /// setting keys.
-    public func filterNot(_ keys: SettingKey...) -> Self {
-        filterNot(keys)
-    }
-
-    /// Creates a copy of this `Preferences` receiver, excluding the preferences for the given
-    /// setting keys.
-    public func filterNot(_ keys: [SettingKey]) -> Self {
-        Preferences(json: values.json.filter { key, _ in !keys.contains(where: { $0.id == key }) })
     }
 
     /// Returns whether the given `setting` is active in these preferences.

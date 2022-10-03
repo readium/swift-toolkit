@@ -8,16 +8,13 @@ import Foundation
 
 /// Represents a single configurable property of a `Configurable` component and holds its current
 /// `value`.
-public class Setting<Value: Hashable>: Hashable {
+public class Setting<Value: Hashable> {
 
     /// Unique identifier used to serialize `Preferences` to JSON.
-    public let key: SettingKey
+    public let key: SettingKey<Value>
 
     /// Current value for this setting.
     public let value: Value
-
-    /// JSON serializer for the `value`.
-    let coder: SettingCoder<Value>
 
     /// Ensures the validity of a `value`.
     private let validator: SettingValidator<Value>
@@ -27,56 +24,19 @@ public class Setting<Value: Hashable>: Hashable {
     private let activator: SettingActivator
 
     public init(
-        key: SettingKey,
+        key: SettingKey<Value>,
         value: Value,
-        coder: SettingCoder<Value>,
         validator: @escaping SettingValidator<Value> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {
         self.key = key
         self.value = value
-        self.coder = coder
         self.validator = validator
         self.activator = activator
     }
 
     public func validate(_ value: Value) -> Value? {
         validator(value)
-    }
-
-    public func decode(_ json: Any) -> Value? {
-        coder.decode(json)
-    }
-
-    public func encode(_ value: Value) -> Any {
-        coder.encode(value)
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(key)
-        hasher.combine(value)
-    }
-
-    public static func ==(lhs: Setting, rhs: Setting) -> Bool {
-        if lhs === rhs {
-            return true
-        }
-
-        return type(of: lhs) == type(of: rhs)
-            && lhs.key == rhs.key
-            && lhs.value == rhs.value
-    }
-}
-
-extension Setting where Value == Bool {
-
-    public convenience init(
-        key: SettingKey,
-        value: Bool,
-        validator: @escaping SettingValidator<Value> = { $0 },
-        activator: SettingActivator = NullSettingActivator()
-    ) {
-        self.init(key: key, value: value, coder: .literal(), validator: validator, activator: activator)
     }
 }
 
@@ -91,40 +51,49 @@ extension Setting: SettingActivator {
 }
 
 /// Unique identifier used to serialize `Preferences` to JSON.
-public struct SettingKey: Hashable {
+public struct SettingKey<Value: Hashable> {
+    /// Unique identifier for this setting key.
     public let id: String
 
-    public init(_ id: String) {
-        self.id = id
-    }
+    /// JSON serializer for the value of this key.
+    public let coder: SettingCoder<Value>
 
-    public static let backgroundColor = SettingKey("backgroundColor")
-    public static let columnCount = SettingKey("columnCount")
-    public static let fit = SettingKey("fit")
-    public static let fontFamily = SettingKey("fontFamily")
-    public static let fontSize = SettingKey("fontSize")
-    public static let hyphens = SettingKey("hyphens")
-    public static let imageFilter = SettingKey("imageFilter")
-    public static let language = SettingKey("language")
-    public static let letterSpacing = SettingKey("letterSpacing")
-    public static let ligatures = SettingKey("ligatures")
-    public static let lineHeight = SettingKey("lineHeight")
-    public static let orientation = SettingKey("orientation")
-    public static let pageMargins = SettingKey("pageMargins")
-    public static let paragraphIndent = SettingKey("paragraphIndent")
-    public static let paragraphSpacing = SettingKey("paragraphSpacing")
-    public static let publisherStyles = SettingKey("publisherStyles")
-    public static let readingProgression = SettingKey("readingProgression")
-    public static let scroll = SettingKey("scroll")
-    public static let spread = SettingKey("spread")
-    public static let textAlign = SettingKey("textAlign")
-    public static let textColor = SettingKey("textColor")
-    public static let textNormalization = SettingKey("textNormalization")
-    public static let theme = SettingKey("theme")
-    public static let typeScale = SettingKey("typeScale")
-    public static let verticalText = SettingKey("verticalText")
-    public static let wordSpacing = SettingKey("wordSpacing")
+    public init(id: String, coder: SettingCoder<Value>) {
+        self.id = id
+        self.coder = coder
+    }
 }
+
+extension SettingKey where Value: RawRepresentable {
+    public init(_ id: String) {
+        self.init(id: id, coder: .rawValue())
+    }
+}
+
+extension SettingKey where Value == Bool {
+    public init(_ id: String) {
+        self.init(id: id, coder: .literal())
+    }
+}
+
+extension SettingKey where Value == Int {
+    public init(_ id: String) {
+        self.init(id: id, coder: .literal())
+    }
+}
+
+extension SettingKey where Value == Double {
+    public init(_ id: String) {
+        self.init(id: id, coder: .literal())
+    }
+}
+
+extension SettingKey where Value == String {
+    public init(_ id: String) {
+        self.init(id: id, coder: .literal())
+    }
+}
+
 
 /// Returns a valid value for the given `value`, if possible.
 ///
@@ -151,13 +120,12 @@ public class RangeSetting<Value: Comparable & Hashable>: Setting<Value> {
     public let formatValue: (Value) -> String
 
     public init(
-        key: SettingKey,
+        key: SettingKey<Value>,
         value: Value,
         range: ClosedRange<Value>,
         suggestedSteps: [Value]? = nil,
         suggestedIncrement: Value? = nil,
         formatValue: ((Value) -> String)? = nil,
-        coder: SettingCoder<Value>,
         validator: @escaping SettingValidator<Value> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {
@@ -171,30 +139,11 @@ public class RangeSetting<Value: Comparable & Hashable>: Setting<Value> {
         }
 
         super.init(
-            key: key, value: value, coder: coder,
+            key: key, value: value,
             validator: { value in
                 validator(value).flatMap { $0.clamped(to: range) }
             },
             activator: activator
-        )
-    }
-}
-
-extension RangeSetting where Value: Numeric {
-    public convenience init(
-        key: SettingKey,
-        value: Value,
-        range: ClosedRange<Value>,
-        suggestedSteps: [Value]? = nil,
-        suggestedIncrement: Value? = nil,
-        formatValue: ((Value) -> String)? = nil,
-        validator: @escaping SettingValidator<Value> = { $0 },
-        activator: SettingActivator = NullSettingActivator()
-    ) {
-        self.init(
-            key: key, value: value, range: range, suggestedSteps: suggestedSteps,
-            suggestedIncrement: suggestedIncrement, formatValue: formatValue, coder: .literal(),
-            validator: validator, activator: activator
         )
     }
 }
@@ -208,8 +157,8 @@ private let rangeValueFormatter: NumberFormatter = {
 
 /// A `RangeSetting` representing a percentage from 0.0 to 1.0.
 public class PercentSetting: RangeSetting<Double> {
-    public init(
-        key: SettingKey,
+    public override init(
+        key: SettingKey<Double>,
         value: Double,
         range: ClosedRange<Double> = 0.0...1.0,
         suggestedSteps: [Double]? = nil,
@@ -225,7 +174,6 @@ public class PercentSetting: RangeSetting<Double> {
                 percentValueFormatter.string(from: value as NSNumber)
                     ?? String(format: "%.0f%%", value * 100)
             },
-            coder: .literal(),
             validator: validator,
             activator: activator
         )
@@ -251,18 +199,17 @@ public class EnumSetting<Value: Hashable>: Setting<Value> {
     public let formatValue: (Value) -> String?
 
     public init(
-        key: SettingKey,
+        key: SettingKey<Value>,
         value: Value,
         values: [Value]?,
         formatValue: @escaping (Value) -> String? = { _ in nil },
-        coder: SettingCoder<Value>,
         validator: @escaping SettingValidator<Value> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {
         self.values = values
         self.formatValue = formatValue
         super.init(
-            key: key, value: value, coder: coder,
+            key: key, value: value,
             validator: { value in
                 guard values?.contains(value) ?? true else {
                     return nil
@@ -270,23 +217,6 @@ public class EnumSetting<Value: Hashable>: Setting<Value> {
                 return validator(value)
             },
             activator: activator
-        )
-    }
-}
-
-extension EnumSetting where Value: RawRepresentable {
-
-    public convenience init(
-        key: SettingKey,
-        value: Value,
-        values: [Value]?,
-        formatValue: @escaping (Value) -> String? = { _ in nil },
-        validator: @escaping SettingValidator<Value> = { $0 },
-        activator: SettingActivator = NullSettingActivator()
-    ) {
-        self.init(
-            key: key, value: value, values: values, formatValue: formatValue,
-            coder: .rawValue(), validator: validator, activator: activator
         )
     }
 }

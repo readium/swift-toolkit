@@ -345,85 +345,60 @@ class PreferencesTests: XCTestCase {
         XCTAssertEqual(prefs[columnCount], 1)
     }
 
-    func testFilterInSettingKeys() {
-        XCTAssertEqual(
-            Preferences(json: [
-                "publisherStyles": false,
-                "fontSize": 1.2,
-                "readingProgression": "ltr"
-            ]).filter(.publisherStyles, .readingProgression),
-            Preferences(json: [
-                "publisherStyles": false,
-                "readingProgression": "ltr"
-            ])
-        )
-    }
-
-    func testFilterOutSettingKeys() {
-        XCTAssertEqual(
-            Preferences(json: [
-                "publisherStyles": false,
-                "fontSize": 1.2,
-                "readingProgression": "ltr"
-            ]).filterNot(.publisherStyles, .readingProgression),
-            Preferences(json: [
-                "fontSize": 1.2
-            ])
-        )
-    }
-
     // Fixtures
-
+    
     let readingProgression: EnumSetting<ReadingProgression> = EnumSetting(
-        key: .readingProgression,
+        key: SettingKey("readingProgression"),
         value: .ltr,
         values: [.ltr, .rtl]
     )
 
     let fontSize: PercentSetting = PercentSetting(
-        key: .fontSize,
+        key: SettingKey("fontSize"),
         value: 1.0,
         range: 0.4...5.0,
         suggestedSteps: [0.5, 0.8, 1.0, 2.0, 3.0, 5.0]
     )
 
     let pageMargins: RangeSetting<Double> = RangeSetting(
-        key: .pageMargins,
+        key: SettingKey("pageMargins"),
         value: 1.0,
         range: 1.0...2.0,
         suggestedIncrement: 0.5
     )
 
     let columnCount: RangeSetting<Int> = RangeSetting(
-        key: .columnCount,
+        key: SettingKey("columnCount"),
         value: 1,
         range: 1...5
     )
 
     let fit: EnumSetting<Presentation.Fit> = EnumSetting(
-        key: .fit,
+        key: SettingKey("fit"),
         value: .contain,
         values: [.contain, .cover, .width, .height]
     )
 
     let publisherStyles: ToggleSetting = ToggleSetting(
-        key: .publisherStyles,
+        key: SettingKey("publisherStyles"),
         value: true
     )
 
     let wordSpacing: PercentSetting = PercentSetting(
-        key: .wordSpacing,
+        key: SettingKey("wordSpacing"),
         value: 0.0,
         activator: MockPublisherStylesSettingActivator()
     )
 
     class MockPublisherStylesSettingActivator: SettingActivator {
+        let key = SettingKey<Bool>("publisherStyles")
+        
         func isActive(with preferences: Preferences) -> Bool {
-            (try? preferences.get(.publisherStyles, coder: .literal() as SettingCoder<Bool>) ?? true) == false
+            (try? preferences.get(key) ?? true) == false
         }
 
         func activate(in preferences: inout Preferences) {
-            preferences.set(.publisherStyles, to: false, coder: .literal())
+            preferences.set(key, to: false)
         }
     }
 
