@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 
 /// Core Collection Model

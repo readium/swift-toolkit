@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 
 /// https://readium.org/webpub-manifest/schema/contributor-object.schema.json

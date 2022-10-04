@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 
 /// Link Properties

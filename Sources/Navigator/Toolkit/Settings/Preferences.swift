@@ -5,6 +5,8 @@
 //
 
 import Foundation
+import R2Shared
+import ReadiumInternal
 
 /// Set of preferences used to update a `Configurable`'s settings.
 ///

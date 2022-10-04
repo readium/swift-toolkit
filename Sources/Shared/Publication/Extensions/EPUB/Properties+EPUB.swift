@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 private let containsKey = "contains"
 private let layoutKey = "layout"

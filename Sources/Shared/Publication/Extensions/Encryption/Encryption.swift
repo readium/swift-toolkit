@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Indicates that a resource is encrypted/obfuscated and provides relevant information for
 /// decryption.

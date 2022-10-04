@@ -5,7 +5,8 @@
 //
 
 import XCTest
-@testable import R2Shared
+import R2Shared
+@testable import R2Navigator
 
 class PreferencesTests: XCTestCase {
 

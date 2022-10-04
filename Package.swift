@@ -152,7 +152,6 @@ let package = Package(
             dependencies: ["ReadiumInternal"],
             path: "Tests/InternalTests"
         ),
-
     ]
 )
 

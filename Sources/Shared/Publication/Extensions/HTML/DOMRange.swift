@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// This construct enables a serializable representation of a DOM Range.
 ///

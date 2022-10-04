@@ -5,7 +5,7 @@
 //
 
 import XCTest
-@testable import R2Shared
+@testable import ReadiumInternal
 
 class DateISO8601Tests: XCTestCase {
 
