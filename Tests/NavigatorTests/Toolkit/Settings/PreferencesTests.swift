@@ -91,27 +91,6 @@ class PreferencesTests: XCTestCase {
         )
     }
 
-    func testInvalidEnumValuesAreNulledOut() {
-        var prefs = Preferences(json: [
-            "readingProgression": "rtl"
-        ])
-        prefs.set(readingProgression, to: .ttb)
-
-        XCTAssertEqual(prefs, Preferences())
-    }
-
-    func testOutOfRangeValuesAreCoercedIntoRange() {
-        var prefs = Preferences(json: [
-            "fontSize": 0.5
-        ])
-
-        prefs.set(fontSize, to: 0.2)
-        XCTAssertEqual(prefs[fontSize], 0.4)
-
-        prefs.set(fontSize, to: 6.0)
-        XCTAssertEqual(prefs[fontSize], 5.0)
-    }
-
     func testRemovePreference() {
         var prefs = Preferences(json: [
             "fontSize": 1.2,

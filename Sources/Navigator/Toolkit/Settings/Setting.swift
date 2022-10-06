@@ -16,9 +16,6 @@ public class Setting<Value: Hashable> {
     /// Current value for this setting.
     public let value: Value
 
-    /// Ensures the validity of a `value`.
-    private let validator: SettingValidator<Value>
-
     /// Ensures that the condition required for this setting to be active are met in the given
     /// `Preferences` – e.g. another setting having a certain preference.
     private let activator: SettingActivator
@@ -26,17 +23,11 @@ public class Setting<Value: Hashable> {
     public init(
         key: SettingKey<Value>,
         value: Value,
-        validator: @escaping SettingValidator<Value> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {
         self.key = key
         self.value = value
-        self.validator = validator
         self.activator = activator
-    }
-
-    public func validate(_ value: Value) -> Value? {
-        validator(value)
     }
 }
 
@@ -94,12 +85,6 @@ extension SettingKey where Value == String {
     }
 }
 
-
-/// Returns a valid value for the given `value`, if possible.
-///
-/// For example, a range setting will coerce the value to be in the range.
-public typealias SettingValidator<Value> = (Value) -> Value?
-
 /// A `Setting` whose value is constrained to a range.
 public class RangeSetting<Value: Comparable & Hashable>: Setting<Value> {
     /// The valid range for the setting value.
@@ -120,6 +105,8 @@ public class RangeSetting<Value: Comparable & Hashable>: Setting<Value> {
         formatValue: ((Value) -> String)? = nil,
         activator: SettingActivator = NullSettingActivator()
     ) {
+        precondition(range.contains(value))
+
         self.range = range
         self.suggestedProgression = suggestedProgression
         self.formatValue = formatValue ?? { value in
@@ -128,13 +115,7 @@ public class RangeSetting<Value: Comparable & Hashable>: Setting<Value> {
                 ?? String(describing: value)
         }
 
-        super.init(
-            key: key, value: value,
-            validator: { value in
-                value.clamped(to: range)
-            },
-            activator: activator
-        )
+        super.init(key: key, value: value, activator: activator)
     }
 }
 
@@ -192,17 +173,10 @@ public class EnumSetting<Value: Hashable>: Setting<Value> {
         formatValue: @escaping (Value) -> String? = { _ in nil },
         activator: SettingActivator = NullSettingActivator()
     ) {
+        precondition(values?.contains(value) ?? true)
+
         self.values = values
         self.formatValue = formatValue
-        super.init(
-            key: key, value: value,
-            validator: { value in
-                guard values?.contains(value) ?? true else {
-                    return nil
-                }
-                return value
-            },
-            activator: activator
-        )
+        super.init(key: key, value: value, activator: activator)
     }
 }

@@ -79,11 +79,9 @@ public struct Preferences: Hashable, Loggable {
     ///
     /// If `activate` is true, the setting will be force activated if needed.
     public mutating func set<Value>(_ setting: Setting<Value>, to preference: Value?, activate: Bool = true) {
-        let value = preference.flatMap { setting.validate($0) }
+        set(setting.key, to: preference)
 
-        set(setting.key, to: value)
-
-        if value != nil && activate {
+        if preference != nil && activate {
             self.activate(setting)
         }
     }
@@ -177,7 +175,8 @@ public struct Preferences: Hashable, Loggable {
     /// If `activate` is true, the setting will be force activated if needed.
     public mutating func increment<Value>(_ setting: RangeSetting<Value>, activate: Bool = true, next: (Value) -> Value) {
         update(setting, activate: activate) { value in
-            setting.suggestedProgression?.increment(value) ?? next(value)
+            (setting.suggestedProgression?.increment(value) ?? next(value))
+                .clamped(to: setting.range)
         }
     }
 
@@ -189,7 +188,8 @@ public struct Preferences: Hashable, Loggable {
     /// If `activate` is true, the setting will be force activated if needed.
     public mutating func decrement<Value>(_ setting: RangeSetting<Value>, activate: Bool = true, previous: (Value) -> Value) {
         update(setting, activate: activate) { value in
-            setting.suggestedProgression?.decrement(value) ?? previous(value)
+            (setting.suggestedProgression?.decrement(value) ?? previous(value))
+                .clamped(to: setting.range)
         }
     }
 
@@ -235,25 +235,33 @@ public struct Preferences: Hashable, Loggable {
 
     private mutating func increment<Value: Numeric>(_ setting: RangeSetting<Value>, amount: Value?, fallback: Value, activate: Bool) {
         update(setting, activate: activate) { value in
-            if let amount = amount {
-                return value + amount
-            } else if let progression = setting.suggestedProgression {
-                return progression.increment(value)
-            } else {
-                return value + fallback
-            }
+            let newValue: Value = {
+                if let amount = amount {
+                    return value + amount
+                } else if let progression = setting.suggestedProgression {
+                    return progression.increment(value)
+                } else {
+                    return value + fallback
+                }
+            }()
+
+            return newValue.clamped(to: setting.range)
         }
     }
 
     private mutating func decrement<Value: Numeric>(_ setting: RangeSetting<Value>, amount: Value?, fallback: Value, activate: Bool) {
         update(setting, activate: activate) { value in
-            if let amount = amount {
-                return value - amount
-            } else if let progression = setting.suggestedProgression {
-                return progression.decrement(value)
-            } else {
-                return value - fallback
-            }
+            let newValue: Value = {
+                if let amount = amount {
+                    return value - amount
+                } else if let progression = setting.suggestedProgression {
+                    return progression.decrement(value)
+                } else {
+                    return value - fallback
+                }
+            }()
+
+            return newValue.clamped(to: setting.range)
         }
     }
 
@@ -261,7 +269,9 @@ public struct Preferences: Hashable, Loggable {
     ///
     /// If `activate` is true, the setting will be force activated if needed.
     public mutating func adjustBy<Value: Numeric>(_ setting: RangeSetting<Value>, amount: Value, activate: Bool = true) {
-        update(setting, activate: activate) { $0 + amount }
+        update(setting, activate: activate) {
+            ($0 + amount).clamped(to: setting.range)
+        }
     }
 
     /// Returns the preference for the given `Setting`, or its current value when missing.
