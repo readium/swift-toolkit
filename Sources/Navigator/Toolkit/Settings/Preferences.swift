@@ -63,12 +63,12 @@ public struct Preferences: Hashable, Loggable {
     }
 
     /// Gets the preference for the given `setting`.
-    public func get<Value>(_ setting: Setting<Value>) throws -> Value? {
-        try get(setting.key)
+    public func get<Value>(_ setting: Setting<Value>) -> Value? {
+        get(key: setting.key)
     }
 
     /// Gets the preference for the given setting `key` and `coder`.
-    public func get<Value>(_ key: SettingKey<Value>) throws -> Value? {
+    public func get<Value>(key: SettingKey<Value>) -> Value? {
         guard let value = values.json[key.id] else {
             return nil
         }
@@ -96,12 +96,22 @@ public struct Preferences: Hashable, Loggable {
     }
 
     /// Access the preference for the given `setting`.
-    public subscript<Value>(_ setting: Setting<Value>) -> Value? {
+    public subscript<Value>(setting: Setting<Value>) -> Value? {
         get {
             try? get(setting)
         }
         mutating set(newValue) {
             set(setting, to: newValue)
+        }
+    }
+
+    /// Access the preference for the given setting `key`.
+    public subscript<Value>(key: SettingKey<Value>) -> Value? {
+        get {
+            get(key: key)
+        }
+        mutating set(newValue) {
+            set(key, to: newValue)
         }
     }
 

@@ -375,7 +375,7 @@ class PreferencesTests: XCTestCase {
         let key = SettingKey<Bool>("publisherStyles")
         
         func isActive(with preferences: Preferences) -> Bool {
-            (try? preferences.get(key) ?? true) == false
+            (try? preferences.get(key: key) ?? true) == false
         }
 
         func activate(in preferences: inout Preferences) {
