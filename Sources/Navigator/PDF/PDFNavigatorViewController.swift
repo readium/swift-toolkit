@@ -15,7 +15,31 @@ public protocol PDFNavigatorDelegate: VisualNavigatorDelegate, SelectableNavigat
 
 /// A view controller used to render a PDF `Publication`.
 @available(iOS 11.0, *)
-open class PDFNavigatorViewController: UIViewController, VisualNavigator, SelectableNavigator, Loggable {
+open class PDFNavigatorViewController: UIViewController, VisualNavigator, SelectableNavigator, Configurable, Loggable {
+    
+    public struct Configuration {
+
+        /// Initial set of setting preferences.
+        public var preferences: Preferences
+
+        /// Provides default fallback values and ranges for the user settings.
+        public var settingsDefaults: PDFSettingsDefaults
+
+        /// Editing actions which will be displayed in the default text selection menu.
+        ///
+        /// The default set of editing actions is `EditingAction.defaultActions`.
+        public var editingActions: [EditingAction]
+
+        public init(
+            preferences: Preferences = Preferences(),
+            settingsDefaults: PDFSettingsDefaults = PDFSettingsDefaults(),
+            editingActions: [EditingAction] = EditingAction.defaultActions
+        ) {
+            self.preferences = preferences
+            self.settingsDefaults = settingsDefaults
+            self.editingActions = editingActions
+        }
+    }
     
     enum Error: Swift.Error {
         case openPDFFailed
@@ -25,10 +49,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     public var scalesDocumentToFit = true
     
     public weak var delegate: PDFNavigatorDelegate?
-    public private(set) var pdfView: PDFDocumentView!
+    public private(set) var pdfView: PDFDocumentView?
 
     private let publication: Publication
     private let initialLocation: Locator?
+    private let config: Configuration
+    private let settingsFactory: PDFSettingsFactory
     private let editingActions: EditingActionsController
     /// Reading order index of the current resource.
     private var currentResourceIndex: Int?
@@ -39,13 +65,22 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     /// Holds a reference to make sure it is not garbage-collected.
     private var tapGestureController: PDFTapGestureController?
 
-    public init(publication: Publication, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
+    public convenience init(publication: Publication, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
+        self.init(publication: publication, initialLocation: initialLocation, config: Configuration(editingActions: editingActions))
+    }
+
+    public init(publication: Publication, initialLocation: Locator? = nil, config: Configuration) {
         assert(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
         
         self.publication = publication
         self.initialLocation = initialLocation
-        self.editingActions = EditingActionsController(actions: editingActions, rights: publication.rights)
-        
+        self.config = config
+        self.editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
+
+        let settingsFactory = PDFSettingsFactory(defaults: config.settingsDefaults)
+        self.settingsFactory = settingsFactory
+        self.settings = settingsFactory.createSettings(metadata: publication.metadata, preferences: config.preferences)
+
         super.init(nibName: nil, bundle: nil)
         
         self.editingActions.delegate = self
@@ -70,37 +105,19 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
     open override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         view.backgroundColor = .black
-        
-        pdfView = PDFDocumentView(frame: view.bounds, editingActions: editingActions)
-        pdfView.delegate = self
-        pdfView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(pdfView)
-        
-        tapGestureController = PDFTapGestureController(pdfView: pdfView, target: self, action: #selector(didTap))
 
-        setupPDFView()
-
-        NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: .PDFViewPageChanged, object: pdfView)
-        NotificationCenter.default.addObserver(self, selector: #selector(selectionDidChange), name: .PDFViewSelectionChanged, object: pdfView)
+        resetPDFView(at: initialLocation)
 
         editingActions.updateSharedMenuController()
-
-        if let locator = initialLocation {
-            go(to: locator, isJump: false)
-        } else if let link = publication.readingOrder.first {
-            go(to: link, pageNumber: 0, isJump: false)
-        } else {
-            log(.error, "No initial location and empty reading order")
-        }
     }
-    
+
     open override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         // Hack to layout properly the first page when opening the PDF.
-        if scalesDocumentToFit {
+        if let pdfView = pdfView, scalesDocumentToFit {
             pdfView.scaleFactor = pdfView.minScaleFactor
             if let page = pdfView.currentPage {
                 pdfView.go(to: page.bounds(for: pdfView.displayBox), on: page)
@@ -111,22 +128,112 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         
-        if scalesDocumentToFit {
+        if let pdfView = pdfView, scalesDocumentToFit {
+            // Reset the PDF view to update the spread if needed.
+            if settings.spread.value == .auto {
+                // FIXME: Threshold
+                resetPDFView(at: currentLocation)
+            }
+
             // Makes sure that the PDF is always properly scaled down when rotating the screen, if the user didn't zoom in.
             let isAtMinScaleFactor = (pdfView.scaleFactor == pdfView.minScaleFactor)
             coordinator.animate(alongsideTransition: { _ in
                 self.updateScaleFactors()
                 if isAtMinScaleFactor {
-                    self.pdfView.scaleFactor = self.pdfView.minScaleFactor
+                    pdfView.scaleFactor = pdfView.minScaleFactor
                 }
             })
         }
     }
 
+    private func resetPDFView(at locator: Locator?) {
+        if let pdfView = pdfView {
+            pdfView.removeFromSuperview()
+            NotificationCenter.default.removeObserver(self)
+        }
+
+        currentResourceIndex = nil
+        let pdfView = PDFDocumentView(frame: view.bounds, editingActions: editingActions)
+        self.pdfView = pdfView
+        pdfView.delegate = self
+        pdfView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(pdfView)
+
+        tapGestureController = PDFTapGestureController(pdfView: pdfView, target: self, action: #selector(didTap))
+
+        apply(settings: settings, to: pdfView)
+        setupPDFView()
+
+        NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: .PDFViewPageChanged, object: pdfView)
+        NotificationCenter.default.addObserver(self, selector: #selector(selectionDidChange), name: .PDFViewSelectionChanged, object: pdfView)
+
+        if let locator = locator {
+            go(to: locator, isJump: false)
+        } else if let link = publication.readingOrder.first {
+            go(to: link, pageNumber: 0, isJump: false)
+        } else {
+            log(.error, "No initial location and empty reading order")
+        }
+    }
+
+    private func apply(settings: PDFSettings, to pdfView: PDFView) {
+        let isRTL = (settings.readingProgression.value == .rtl)
+
+        let spread: Bool = {
+            switch settings.spread.value {
+            case .auto:
+                return view.bounds.width > view.bounds.height
+            case .never:
+                return false
+            case .always:
+                return true
+            }
+        }()
+
+        if settings.scroll.value {
+            pdfView.displayDirection = settings.scrollAxis.value.displayDirection
+            if spread && pdfView.displayDirection == .vertical {
+                pdfView.displayMode = .twoUpContinuous
+            } else {
+                pdfView.displayMode = .singlePageContinuous
+            }
+
+        } else { // paginated
+            if spread {
+                pdfView.displayMode = .twoUp
+            } else {
+                pdfView.usePageViewController(true)
+            }
+
+            pdfView.displayDirection = .horizontal
+        }
+
+        var margins: UIEdgeInsets = .zero
+        let pageSpacing = settings.pageSpacing.value
+        if pdfView.displayDirection == .horizontal {
+            if isRTL {
+                margins.left = pageSpacing
+            } else {
+                margins.right = pageSpacing
+            }
+        } else {
+            margins.bottom = pageSpacing
+        }
+        pdfView.pageBreakMargins = margins
+
+        pdfView.displaysRTL = isRTL
+        pdfView.displaysPageBreaks = true
+        pdfView.autoScales = !scalesDocumentToFit
+
+        if let scrollView = pdfView.firstScrollView {
+            let showScrollbar = settings.visibleScrollbar.value
+            scrollView.showsVerticalScrollIndicator = showScrollbar
+            scrollView.showsHorizontalScrollIndicator = showScrollbar
+        }
+    }
+
     /// Override to customize the PDFDocumentView.
     open func setupPDFView() {
-        pdfView.displaysAsBook = true
-        pdfView.autoScales = !scalesDocumentToFit
     }
     
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
@@ -143,7 +250,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
     @discardableResult
     private func go(to locator: Locator, isJump: Bool, completion: @escaping () -> Void = {}) -> Bool {
-        guard let index = publication.readingOrder.firstIndex(withHREF: locator.href) else {
+        guard let pdfView = pdfView, let index = publication.readingOrder.firstIndex(withHREF: locator.href) else {
             return false
         }
 
@@ -157,7 +264,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
     @discardableResult
     private func go(to link: Link, pageNumber: Int?, isJump: Bool, completion: @escaping () -> Void = {}) -> Bool {
-        guard let index = publication.readingOrder.firstIndex(of: link) else {
+        guard let pdfView = pdfView, let index = publication.readingOrder.firstIndex(of: link) else {
             return false
         }
         
@@ -194,7 +301,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     }
     
     private func updateScaleFactors() {
-        guard scalesDocumentToFit else {
+        guard let pdfView = pdfView, scalesDocumentToFit else {
             return
         }
         pdfView.minScaleFactor = pdfView.scaleFactorForSizeToFit
@@ -230,10 +337,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     
     /// Returns the position locator of the current page.
     private var currentPosition: Locator? {
-        guard let currentResourceIndex = self.currentResourceIndex,
+        guard
+            let pdfView = pdfView,
+            let currentResourceIndex = self.currentResourceIndex,
             let pageNumber = pdfView.currentPage?.pageRef?.pageNumber,
-            publication.readingOrder.indices.contains(currentResourceIndex) else
-        {
+            publication.readingOrder.indices.contains(currentResourceIndex)
+        else {
             return nil
         }
         let positions = publication.positionsByReadingOrder[currentResourceIndex]
@@ -243,13 +352,25 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         
         return positions[pageNumber - 1]
     }
-    
-    // MARK: – SelectableNavigator
+
+
+    // MARK: - Configurable
+
+    @Observed public private(set) var settings: PDFSettings
+
+    public func submitPreferences(_ preferences: Preferences) {
+        settings = settingsFactory.createSettings(metadata: publication.metadata, preferences: preferences)
+        if isViewLoaded {
+            resetPDFView(at: currentLocation)
+        }
+    }
+
+    // MARK: - SelectableNavigator
 
     public var currentSelection: Selection? { editingActions.selection }
 
     public func clearSelection() {
-        pdfView.clearSelection()
+        pdfView?.clearSelection()
     }
 
 
@@ -257,6 +378,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
     @objc func selectionDidChange(_ note: Notification) {
         guard
+            let pdfView = pdfView,
             let locator = currentLocation,
             let selection = pdfView.currentSelection,
             let text = selection.string,
@@ -275,7 +397,10 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     }
 
     @objc private func shareSelection(_ sender: Any?) {
-        guard let shareViewController = editingActions.makeShareViewController(from: pdfView) else {
+        guard
+            let pdfView = pdfView,
+            let shareViewController = editingActions.makeShareViewController(from: pdfView)
+        else {
             return
         }
         present(shareViewController, animated: true)
@@ -291,7 +416,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     public var currentLocation: Locator? {
         currentPosition?.copy(text: { [weak self] in
             /// Adds some context for bookmarking
-            if let page = self?.pdfView.currentPage {
+            if let page = self?.pdfView?.currentPage {
                 $0 = .init(highlight: String(page.string?.prefix(280) ?? ""))
             }
         })
@@ -306,7 +431,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     }
     
     public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        if pdfView.canGoToNextPage {
+        if let pdfView = pdfView, pdfView.canGoToNextPage {
             pdfView.goToNextPage(nil)
             DispatchQueue.main.async(execute: completion)
             return true
@@ -322,7 +447,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     }
     
     public func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        if pdfView.canGoToPreviousPage {
+        if let pdfView = pdfView, pdfView.canGoToPreviousPage {
             pdfView.goToPreviousPage(nil)
             DispatchQueue.main.async(execute: completion)
             return true
@@ -379,6 +504,14 @@ extension PDFNavigatorViewController: UIGestureRecognizerDelegate {
     
 }
 
+private extension Axis {
+    var displayDirection: PDFDisplayDirection {
+        switch self {
+        case .vertical: return .vertical
+        case .horizontal: return .horizontal
+        }
+    }
+}
 
 // MARK: - Deprecated
 

@@ -36,29 +36,49 @@ public struct PDFSettings: ConfigurableSettings {
 public struct PDFSettingsDefaults {
 
     /// Indicates the default spacing between pages, in points.
-    public var pageSpacing: Double = 10
+    public var pageSpacing: Double
 
     /// Available range for the page spacing, in points.
-    public var pageSpacingRange: ClosedRange<Double> = 0...50
+    public var pageSpacingRange: ClosedRange<Double>
 
     /// Strategy used to increment or decrement the page spacing.
-    public var pageSpacingProgressionStrategy: AnyProgressionStrategy<Double> =
-        IncrementProgressionStrategy(increment: 5).eraseToAnyProgressionStrategy()
+    public var pageSpacingProgressionStrategy: AnyProgressionStrategy<Double>
 
     /// Indicates the default reading progression.
-    public var readingProgression: ReadingProgression = .ltr
+    public var readingProgression: ReadingProgression
 
     /// Indicates whether scrolling is enabled by default.
-    public var scroll: Bool = false
+    public var scroll: Bool
 
     /// Indicates the default axis when scrolling.
-    public var scrollAxis: Axis = .vertical
+    public var scrollAxis: Axis
 
     /// Indicates whether the publication is displayed in a synthetic spread by default.
-    public var spread: Spread = .auto
+    public var spread: Spread
 
     /// Indicates whether the scrollbar is visible by default.
-    public var visibleScrollbar: Bool = true
+    public var visibleScrollbar: Bool
+
+    public init(
+        pageSpacing: Double = 10,
+        pageSpacingRange: ClosedRange<Double> = 0...50,
+        pageSpacingProgressionStrategy: AnyProgressionStrategy<Double> =
+            IncrementProgressionStrategy(increment: 5).eraseToAnyProgressionStrategy(),
+        readingProgression: ReadingProgression = .ltr,
+        scroll: Bool = false,
+        scrollAxis: Axis = .vertical,
+        spread: Spread = .auto,
+        visibleScrollbar: Bool = true
+    ) {
+        self.pageSpacing = pageSpacing
+        self.pageSpacingRange = pageSpacingRange
+        self.pageSpacingProgressionStrategy = pageSpacingProgressionStrategy
+        self.readingProgression = readingProgression
+        self.scroll = scroll
+        self.scrollAxis = scrollAxis
+        self.spread = spread
+        self.visibleScrollbar = visibleScrollbar
+    }
 }
 
 class PDFSettingsFactory {
@@ -81,7 +101,7 @@ class PDFSettingsFactory {
         )
     }
 
-    func settings(metadata: Metadata, preferences: Preferences) -> PDFSettings {
+    func createSettings(metadata: Metadata, preferences: Preferences) -> PDFSettings {
         PDFSettings(
             pageSpacing: RangeSetting(
                 key: .pageSpacing,

@@ -12,7 +12,7 @@ public protocol Configurable {
     associatedtype Settings: ConfigurableSettings
 
     /// Current `Settings` values.
-    var settings: Observable<Settings> { get }
+    var settings: Settings { get }
 
     /// Submits a new set of `Preferences` to update the current `Settings`.
     ///
@@ -27,7 +27,7 @@ public protocol ConfigurableSettings {}
 
 public class AnyConfigurable<Settings: ConfigurableSettings>: Configurable {
 
-    private let getSettings: () -> Observable<Settings>
+    private let getSettings: () -> Settings
     private let submit: (Preferences) -> Void
 
     init<C: Configurable>(_ configurable: C) where C.Settings == Settings {
@@ -35,7 +35,7 @@ public class AnyConfigurable<Settings: ConfigurableSettings>: Configurable {
         self.submit = configurable.submitPreferences
     }
 
-    public var settings: Observable<Settings> { getSettings() }
+    public var settings: Settings { getSettings() }
 
     public func submitPreferences(_ preferences: Preferences) {
         submit(preferences)

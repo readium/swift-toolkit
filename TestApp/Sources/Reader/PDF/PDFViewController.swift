@@ -19,10 +19,10 @@ import R2Shared
 final class PDFViewController: ReaderViewController {
     
     init(publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) {
-        let navigator = PDFNavigatorViewController(publication: publication, initialLocation: locator)
+        let navigator = PDFNavigatorViewController(publication: publication, initialLocation: locator, config: PDFNavigatorViewController.Configuration())
         
         super.init(navigator: navigator, publication: publication, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights)
-        
+
         navigator.delegate = self
     }
     

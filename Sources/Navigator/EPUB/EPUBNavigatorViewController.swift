@@ -602,7 +602,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         return go(to: direction, animated: animated, completion: completion)
     }
 
-    // MARK: – SelectableNavigator
+    // MARK: - SelectableNavigator
 
     public var currentSelection: Selection? { editingActions.selection }
 
@@ -612,7 +612,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         }
     }
 
-    // MARK: – DecorableNavigator
+    // MARK: - DecorableNavigator
 
     private var decorations: [String: [DiffableDecoration]] = [:]
 
@@ -662,7 +662,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         }
     }
 
-    // MARK: – EPUB-specific extensions
+    // MARK: - EPUB-specific extensions
 
     /// Evaluates the given JavaScript on the currently visible HTML resource.
     public func evaluateJavaScript(_ script: String, completion: ((Result<Any, Error>) -> Void)? = nil) {

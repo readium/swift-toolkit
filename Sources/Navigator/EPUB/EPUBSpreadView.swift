@@ -383,7 +383,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
 
-    // MARK: – Decorator
+    // MARK: - Decorator
 
     /// Called by the JavaScript layer when the user activates a decoration.
     private func decorationDidActivate(_ body: Any) {
