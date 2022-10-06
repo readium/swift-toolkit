@@ -108,12 +108,8 @@ public class RangeSetting<Value: Comparable & Hashable>: Setting<Value> {
     /// The valid range for the setting value.
     public let range: ClosedRange<Value>
 
-    /// Value steps which can be used to decrement or increment the setting. It MUST be sorted in
-    /// increasing order.
-    public let suggestedSteps: [Value]?
-
-    /// Suggested value increment which can be used to decrement or increment the setting.
-    public let suggestedIncrement: Value?
+    /// Suggested strategy to increment or decrement a value.
+    public let suggestedProgression: AnyProgressionStrategy<Value>?
 
     /// Returns a user-facing description for the given value. This can be used to format the value
     /// unit.
@@ -123,15 +119,13 @@ public class RangeSetting<Value: Comparable & Hashable>: Setting<Value> {
         key: SettingKey<Value>,
         value: Value,
         range: ClosedRange<Value>,
-        suggestedSteps: [Value]? = nil,
-        suggestedIncrement: Value? = nil,
+        suggestedProgression: AnyProgressionStrategy<Value>? = nil,
         formatValue: ((Value) -> String)? = nil,
         validator: @escaping SettingValidator<Value> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {
         self.range = range
-        self.suggestedSteps = suggestedSteps
-        self.suggestedIncrement = suggestedIncrement
+        self.suggestedProgression = suggestedProgression
         self.formatValue = formatValue ?? { value in
             (value as? NSNumber)
                 .flatMap { rangeValueFormatter.string(from: $0) }
@@ -157,19 +151,18 @@ private let rangeValueFormatter: NumberFormatter = {
 
 /// A `RangeSetting` representing a percentage from 0.0 to 1.0.
 public class PercentSetting: RangeSetting<Double> {
-    public override init(
+    public init(
         key: SettingKey<Double>,
         value: Double,
         range: ClosedRange<Double> = 0.0...1.0,
-        suggestedSteps: [Double]? = nil,
-        suggestedIncrement: Double? = 0.1,
+        suggestedProgression: AnyProgressionStrategy<Double> = IncrementProgressionStrategy(increment: 0.1).eraseToAnyProgressionStrategy(),
         formatValue: ((Double) -> String)? = nil,
         validator: @escaping SettingValidator<Double> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {
         super.init(
-            key: key, value: value, range: range, suggestedSteps: suggestedSteps,
-            suggestedIncrement: suggestedIncrement,
+            key: key, value: value, range: range,
+            suggestedProgression: suggestedProgression,
             formatValue: formatValue ?? { value in
                 percentValueFormatter.string(from: value as NSNumber)
                     ?? String(format: "%.0f%%", value * 100)

@@ -171,88 +171,90 @@ public struct Preferences: Hashable, Loggable {
 
     /// Increments the preference for the given `setting` to the next step.
     ///
-    /// If the `setting` doesn't have any suggested steps, the `next` function will be used instead
-    /// to determine the next step.
+    /// If the `setting` doesn't have any suggested progression, the `next` function will be used
+    /// instead to determine the next step.
     ///
     /// If `activate` is true, the setting will be force activated if needed.
     public mutating func increment<Value>(_ setting: RangeSetting<Value>, activate: Bool = true, next: (Value) -> Value) {
-        if let steps = setting.suggestedSteps {
-            guard
-                let index = steps.lastIndex(where: { $0 <= prefOrValue(of: setting) }),
-                let nextValue = steps.getOrNil(index + 1)
-            else {
-                return
-            }
-            set(setting, to: nextValue, activate: activate)
-
-        } else {
-            update(setting, activate: activate, transform: next)
+        update(setting, activate: activate) { value in
+            setting.suggestedProgression?.increment(value) ?? next(value)
         }
     }
 
     /// Decrements the preference for the given `setting` to the previous step.
     ///
-    /// If the `setting` doesn't have any suggested steps, the `previous` function will be used
-    /// instead to determine the previous step.
+    /// If the `setting` doesn't have any suggested progression, the `previous` function will be
+    /// used instead to determine the previous step.
     ///
     /// If `activate` is true, the setting will be force activated if needed.
     public mutating func decrement<Value>(_ setting: RangeSetting<Value>, activate: Bool = true, previous: (Value) -> Value) {
-        if let steps = setting.suggestedSteps {
-            guard
-                let index = steps.firstIndex(where: { $0 >= prefOrValue(of: setting) }),
-                let nextValue = steps.getOrNil(index - 1)
-            else {
-                return
-            }
-            set(setting, to: nextValue, activate: activate)
-
-        } else {
-            update(setting, activate: activate, transform: previous)
+        update(setting, activate: activate) { value in
+            setting.suggestedProgression?.decrement(value) ?? previous(value)
         }
     }
 
     /// Increments the preference for the given `setting` to the next step.
     ///
-    /// The setting is incremented by the given `amount`, if it doesn't have any suggested steps or
-    /// increment.
+    /// The setting is incremented by the given `amount`, or falls back on the suggested progression
+    /// or an increment of 1.
     ///
     /// If `activate` is true, the setting will be force activated if needed.
-    public mutating func increment<Value: SignedInteger>(_ setting: RangeSetting<Value>, amount: Value? = nil, activate: Bool = true) {
-        let amount = amount ?? setting.suggestedIncrement ?? 1
-        increment(setting, activate: activate, next: { $0 + amount })
+    public mutating func increment(_ setting: RangeSetting<Int>, amount: Int? = nil, activate: Bool = true) {
+        increment(setting, amount: amount, fallback: 1, activate: activate)
     }
 
     /// Decrements the preference for the given `setting` to the previous step.
     ///
-    /// The setting is decremented by the given `amount`, if it doesn't have any suggested steps or
-    /// increment.
+    /// The setting is decremented by the given `amount`, or falls back on the suggested progression
+    /// or an increment of 1.
     ///
     /// If `activate` is true, the setting will be force activated if needed.
-    public mutating func decrement<Value: SignedInteger>(_ setting: RangeSetting<Value>, amount: Value? = nil, activate: Bool = true) {
-        let amount = amount ?? setting.suggestedIncrement ?? 1
-        decrement(setting, activate: activate, previous: { $0 - amount })
+    public mutating func decrement(_ setting: RangeSetting<Int>, amount: Int? = nil, activate: Bool = true) {
+        decrement(setting, amount: amount, fallback: 1, activate: activate)
     }
 
     /// Increments the preference for the given `setting` to the next step.
     ///
-    /// The setting is decremented by the given `amount`, if it doesn't have any suggested steps or
-    /// increment.
+    /// The setting is incremented by the given `amount`, or falls back on the suggested progression
+    /// or an increment of 0.1.
     ///
     /// If `activate` is true, the setting will be force activated if needed.
     public mutating func increment(_ setting: RangeSetting<Double>, amount: Double? = nil, activate: Bool = true) {
-        let amount = amount ?? setting.suggestedIncrement ?? 0.1
-        increment(setting, activate: activate, next: { $0 + amount })
+        increment(setting, amount: amount, fallback: 0.1, activate: activate)
     }
 
     /// Decrements the preference for the given `setting` to the previous step.
     ///
-    /// The setting is decremented by the given `amount`, if it doesn't have any suggested steps or
-    /// increment.
+    /// The setting is decremented by the given `amount`, or falls back on the suggested progression
+    /// or an increment of 0.1.
     ///
     /// If `activate` is true, the setting will be force activated if needed.
     public mutating func decrement(_ setting: RangeSetting<Double>, amount: Double? = nil, activate: Bool = true) {
-        let amount = amount ?? setting.suggestedIncrement ?? 0.1
-        decrement(setting, activate: activate, previous: { $0 - amount })
+        decrement(setting, amount: amount, fallback: 0.1, activate: activate)
+    }
+
+    private mutating func increment<Value: Numeric>(_ setting: RangeSetting<Value>, amount: Value?, fallback: Value, activate: Bool) {
+        update(setting, activate: activate) { value in
+            if let amount = amount {
+                return value + amount
+            } else if let progression = setting.suggestedProgression {
+                return progression.increment(value)
+            } else {
+                return value + fallback
+            }
+        }
+    }
+
+    private mutating func decrement<Value: Numeric>(_ setting: RangeSetting<Value>, amount: Value?, fallback: Value, activate: Bool) {
+        update(setting, activate: activate) { value in
+            if let amount = amount {
+                return value - amount
+            } else if let progression = setting.suggestedProgression {
+                return progression.decrement(value)
+            } else {
+                return value - fallback
+            }
+        }
     }
 
     /// Adjusts the preference for the given `setting` by adding `amount`.

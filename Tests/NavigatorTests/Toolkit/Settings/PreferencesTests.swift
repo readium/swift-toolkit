@@ -358,15 +358,16 @@ class PreferencesTests: XCTestCase {
         key: SettingKey("fontSize"),
         value: 1.0,
         range: 0.4...5.0,
-        suggestedSteps: [0.5, 0.8, 1.0, 2.0, 3.0, 5.0]
+        suggestedProgression: StepsProgressionStrategy(steps: [0.5, 0.8, 1.0, 2.0, 3.0, 5.0])
+            .eraseToAnyProgressionStrategy()
     )
 
     let pageMargins: RangeSetting<Double> = RangeSetting(
         key: SettingKey("pageMargins"),
         value: 1.0,
         range: 1.0...2.0,
-        suggestedIncrement: 0.5
-    )
+        suggestedProgression: IncrementProgressionStrategy(increment: 0.5).eraseToAnyProgressionStrategy()
+)
 
     let columnCount: RangeSetting<Int> = RangeSetting(
         key: SettingKey("columnCount"),

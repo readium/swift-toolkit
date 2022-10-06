@@ -30,7 +30,7 @@ public class NullSettingActivator: SettingActivator {
 
 /// `SettingActivator` which checks that the setting with given `key` is `value` and sets it up
 /// in `Preferences` when asked to.
-class ForcePreferenceSettingActivator<Value: Equatable>: SettingActivator {
+class ForcePreferenceSettingActivator<Value: Hashable>: SettingActivator {
     private let key: SettingKey<Value>
     private let value: Value
     private let valueFromPreferences: (Preferences) -> Value
@@ -46,7 +46,7 @@ class ForcePreferenceSettingActivator<Value: Equatable>: SettingActivator {
     }
 
     func activate(in preferences: inout Preferences) {
-        preferences[key] = value
+        preferences.set(key, to: value)
     }
 }
 
@@ -56,7 +56,6 @@ class RequirePreferenceSettingActivator<Value: Equatable>: SettingActivator {
     private let valueFromPreferences: (Preferences) -> Value
 
     init(value: Value, valueFromPreferences: @escaping (Preferences) -> Value) {
-        self.key = key
         self.value = value
         self.valueFromPreferences = valueFromPreferences
     }
