@@ -225,7 +225,7 @@ class PreferencesTests: XCTestCase {
         ]))
     }
 
-    func testInvertAToggleSetting() {
+    func testInvertABooleanSetting() {
         var prefs = Preferences(json: [
             "publisherStyles": false
         ])
@@ -381,7 +381,7 @@ class PreferencesTests: XCTestCase {
         values: [.contain, .cover, .width, .height]
     )
 
-    let publisherStyles: ToggleSetting = ToggleSetting(
+    let publisherStyles: Setting<Bool> = Setting(
         key: SettingKey("publisherStyles"),
         value: true
     )

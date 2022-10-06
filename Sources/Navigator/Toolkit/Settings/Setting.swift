@@ -100,9 +100,6 @@ extension SettingKey where Value == String {
 /// For example, a range setting will coerce the value to be in the range.
 public typealias SettingValidator<Value> = (Value) -> Value?
 
-/// A boolean `Setting`.
-public typealias ToggleSetting = Setting<Bool>
-
 /// A `Setting` whose value is constrained to a range.
 public class RangeSetting<Value: Comparable & Hashable>: Setting<Value> {
     /// The valid range for the setting value.
@@ -121,7 +118,6 @@ public class RangeSetting<Value: Comparable & Hashable>: Setting<Value> {
         range: ClosedRange<Value>,
         suggestedProgression: AnyProgressionStrategy<Value>? = nil,
         formatValue: ((Value) -> String)? = nil,
-        validator: @escaping SettingValidator<Value> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {
         self.range = range
@@ -135,7 +131,7 @@ public class RangeSetting<Value: Comparable & Hashable>: Setting<Value> {
         super.init(
             key: key, value: value,
             validator: { value in
-                validator(value).flatMap { $0.clamped(to: range) }
+                value.clamped(to: range)
             },
             activator: activator
         )
@@ -157,7 +153,6 @@ public class PercentSetting: RangeSetting<Double> {
         range: ClosedRange<Double> = 0.0...1.0,
         suggestedProgression: AnyProgressionStrategy<Double> = IncrementProgressionStrategy(increment: 0.1).eraseToAnyProgressionStrategy(),
         formatValue: ((Double) -> String)? = nil,
-        validator: @escaping SettingValidator<Double> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {
         super.init(
@@ -167,7 +162,6 @@ public class PercentSetting: RangeSetting<Double> {
                 percentValueFormatter.string(from: value as NSNumber)
                     ?? String(format: "%.0f%%", value * 100)
             },
-            validator: validator,
             activator: activator
         )
     }
@@ -196,7 +190,6 @@ public class EnumSetting<Value: Hashable>: Setting<Value> {
         value: Value,
         values: [Value]?,
         formatValue: @escaping (Value) -> String? = { _ in nil },
-        validator: @escaping SettingValidator<Value> = { $0 },
         activator: SettingActivator = NullSettingActivator()
     ) {
         self.values = values
@@ -207,7 +200,7 @@ public class EnumSetting<Value: Hashable>: Setting<Value> {
                 guard values?.contains(value) ?? true else {
                     return nil
                 }
-                return validator(value)
+                return value
             },
             activator: activator
         )

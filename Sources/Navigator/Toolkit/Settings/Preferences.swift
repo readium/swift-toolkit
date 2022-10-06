@@ -152,7 +152,7 @@ public struct Preferences: Hashable, Loggable {
     /// Toggles the preference for the given `setting`.
     ///
     /// If `activate` is true, the setting will be force activated if needed.
-    public mutating func toggle(_ setting: ToggleSetting, activate: Bool = true) {
+    public mutating func toggle(_ setting: Setting<Bool>, activate: Bool = true) {
         set(setting, to: !prefOrValue(of: setting), activate: activate)
     }
 
