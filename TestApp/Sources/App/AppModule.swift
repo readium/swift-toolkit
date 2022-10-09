@@ -109,7 +109,7 @@ extension AppModule: OPDSModuleDelegate {
             return .fail(.cancelled)
         }
         
-        return library.importPublication(from: url, sender: sender)
+        return .fail(.cancelled)
     }
 
 }

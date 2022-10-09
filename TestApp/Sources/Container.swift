@@ -19,17 +19,27 @@ class ReaderDependencies {
     let highlights: HighlightRepository
     let publicationServer: PublicationServer
     let makeReaderVCFunc: (Publication, Book) -> ReaderViewControllerType
+    let drmLibraryServices: [DRMLibraryService]
+    let streamer: Streamer
+    let httpClient: HTTPClient
     
     init(books: BookRepository,
          bookmarks: BookmarkRepository,
          highlights: HighlightRepository,
          publicationServer: PublicationServer,
-         makeReaderVCFunc: @escaping (Publication, Book) -> ReaderViewControllerType) {
+         makeReaderVCFunc: @escaping (Publication, Book) -> ReaderViewControllerType,
+         drmLibraryServices: [DRMLibraryService],
+         streamer: Streamer,
+         httpClient: HTTPClient
+    ) {
         self.books = books
         self.bookmarks = bookmarks
         self.highlights = highlights
         self.publicationServer = publicationServer
         self.makeReaderVCFunc = makeReaderVCFunc
+        self.drmLibraryServices = drmLibraryServices
+        self.streamer = streamer
+        self.httpClient = httpClient
     }
 }
 
@@ -38,13 +48,23 @@ class Container {
     private let db: Database
     
     /// Everything for Reader Module
-    private lazy var readerDependencies: ReaderDependencies = {
-        ReaderDependencies(
+    lazy var readerDependencies: ReaderDependencies = {
+        var drmLibraryServices = [DRMLibraryService]()
+        #if LCP
+        drmLibraryServices.append(LCPLibraryService())
+        #endif
+
+        return ReaderDependencies(
             books: BookRepository(db: db),
             bookmarks: BookmarkRepository(db: db),
             highlights: HighlightRepository(db: db),
             publicationServer: PublicationServer()!,
-            makeReaderVCFunc: createNavigatorVC
+            makeReaderVCFunc: createNavigatorVC,
+            drmLibraryServices: drmLibraryServices,
+            streamer: Streamer(
+                contentProtections: drmLibraryServices.compactMap { $0.contentProtection }
+            ),
+            httpClient: DefaultHTTPClient()
         )
     }()
     

@@ -18,11 +18,6 @@ import R2Shared
 final class LibraryFactory {
     
     fileprivate let storyboard = UIStoryboard(name: "Library", bundle: nil)
-    fileprivate let libraryService: LibraryService
-
-    init(libraryService: LibraryService) {
-        self.libraryService = libraryService
-    }
     
 }
 
@@ -30,7 +25,7 @@ extension LibraryFactory: LibraryViewControllerFactory {
     func make() -> LibraryViewController {
         let library = storyboard.instantiateViewController(withIdentifier: "LibraryViewController") as! LibraryViewController
         library.factory = self
-        library.library = libraryService
+        
         return library
     }
 }

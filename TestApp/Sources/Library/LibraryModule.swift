@@ -25,11 +25,6 @@ protocol LibraryModuleAPI {
     /// Root navigation controller containing the Library.
     /// Can be used to present the library to the user.
     var rootViewController: UINavigationController { get }
-    
-    /// Imports a new publication to the library, either from:
-    /// - a local file URL
-    /// - a remote URL which will be downloaded
-    func importPublication(from url: URL, sender: UIViewController) -> AnyPublisher<Book, LibraryError>
 
 }
 
@@ -45,13 +40,11 @@ final class LibraryModule: LibraryModuleAPI {
 
     weak var delegate: LibraryModuleDelegate?
     
-    private let library: LibraryService
-    private let factory: LibraryFactory
+    private var factory: LibraryFactory!
     private var subscriptions = Set<AnyCancellable>()
 
     init(delegate: LibraryModuleDelegate?, books: BookRepository, server: PublicationServer, httpClient: HTTPClient) {
-        self.library = LibraryService(books: books, publicationServer: server, httpClient: httpClient)
-        self.factory = LibraryFactory(libraryService: library)
+        
         self.delegate = delegate
     }
     
@@ -64,8 +57,4 @@ final class LibraryModule: LibraryModuleAPI {
         library.libraryDelegate = delegate
         return library
     }()
-    
-    func importPublication(from url: URL, sender: UIViewController) -> AnyPublisher<Book, LibraryError> {
-        library.importPublication(from: url, sender: sender)
-    }
 }

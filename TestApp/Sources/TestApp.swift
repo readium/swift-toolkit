@@ -29,6 +29,12 @@ struct TestApp: App {
                         }
                 }
             }
+            .onOpenURL { (url) in
+                let bookImporter = BookImporter(readerDependencies: container.readerDependencies)
+                Task {
+                    await bookImporter.importPublication(from: url)
+                }
+            }
             .navigationViewStyle(.stack)
         }
     }

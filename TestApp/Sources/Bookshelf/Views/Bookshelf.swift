@@ -20,6 +20,14 @@ struct Bookshelf: View {
     
     var body: some View {
         VStack {
+            Button(action: {
+                showingSheet = true
+            }, label: {
+                Image(systemName: "plus")
+            })
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .padding()
+            
             // TODO figure out what the best column layout is for phones and tablets
             let columns: [GridItem] = [GridItem(.adaptive(minimum: 150 + 8))]
             ScrollView {
@@ -35,6 +43,18 @@ struct Bookshelf: View {
                                 authors: book.authors,
                                 url: book.cover
                             )
+                            .contextMenu {
+                                Button(
+                                    role: .destructive,
+                                    action: {
+                                        let bookRemover = BookRemover(readerDependencies: readerDependencies)
+                                        Task {
+                                            await bookRemover.remove(book)
+                                        }
+                                    }) {
+                                    Label("Delete", systemImage: "trash.fill")
+                                }
+                            }
                             .overlay(content: {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle())
@@ -70,8 +90,17 @@ struct Bookshelf: View {
         .navigationTitle("Bookshelf")
         .toolbar(content: toolbarContent)
         .sheet(isPresented: $showingSheet) {
-            AddBookSheet(showingSheet: $showingSheet) { url in
-                // TODO validate the URL and import the book with "bookOpener"
+            AddBookSheet(showingSheet: $showingSheet) { result in
+                switch result {
+                case .success(let url):
+                    let bookImporter = BookImporter(readerDependencies: readerDependencies)
+                    Task {
+                        await bookImporter.importPublication(from: url)
+                    }
+                case .failure(let error):
+                    // TODO: show error UI
+                    break
+                }
             }
         }
     }
