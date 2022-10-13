@@ -20,16 +20,8 @@ struct Bookshelf: View {
     
     var body: some View {
         VStack {
-            Button(action: {
-                showingSheet = true
-            }, label: {
-                Image(systemName: "plus")
-            })
-            .frame(maxWidth: .infinity, alignment: .trailing)
-            .padding()
-            
             // TODO figure out what the best column layout is for phones and tablets
-            let columns: [GridItem] = [GridItem(.adaptive(minimum: 150 + 8))]
+            let columns: [GridItem] = [GridItem(.adaptive(minimum: Constant.bookCoverWidth + Constant.adaptiveGridDelta))]
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 20) {
                     ForEach(books, id: \.self) { book in
@@ -39,6 +31,8 @@ struct Bookshelf: View {
                             selection: self.$lastOpenedBookTag
                         ) {
                             BookCover(
+                                width: Constant.bookCoverWidth,
+                                height: Constant.bookCoverHeight,
                                 title: book.title,
                                 authors: book.authors,
                                 url: book.cover
@@ -89,20 +83,6 @@ struct Bookshelf: View {
         }
         .navigationTitle("Bookshelf")
         .toolbar(content: toolbarContent)
-        .sheet(isPresented: $showingSheet) {
-            AddBookSheet(showingSheet: $showingSheet) { result in
-                switch result {
-                case .success(let url):
-                    let bookImporter = BookImporter(readerDependencies: readerDependencies)
-                    Task {
-                        await bookImporter.importPublication(from: url)
-                    }
-                case .failure(let error):
-                    // TODO: show error UI
-                    break
-                }
-            }
-        }
     }
     
     @ViewBuilder func readerView() -> some View {
@@ -125,4 +105,10 @@ extension Bookshelf {
             }
         }
     }
+}
+
+enum Constant {
+    static let bookCoverWidth: Double = 130
+    static let bookCoverHeight: Double = 200
+    static let adaptiveGridDelta: Double = 8 // TODO: what is it?
 }
