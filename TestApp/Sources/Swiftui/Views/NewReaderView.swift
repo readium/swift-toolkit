@@ -10,7 +10,16 @@ import R2Shared
 import R2Navigator
 import SwiftUI
 
-struct NewReaderView: View {
+struct NewReaderView: View, Hashable, Equatable {
+    let bookId: Book.Id
+    
+    static func == (lhs: NewReaderView, rhs: NewReaderView) -> Bool {
+        return lhs.bookId == rhs.bookId
+    }
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(bookId)
+    }
+    
     @ObservedObject var viewModel: NewReaderViewModel
     
     var body: some View {

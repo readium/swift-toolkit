@@ -8,28 +8,51 @@ import Combine
 import R2Shared
 import SwiftUI
 
+class BookNavigatorHashableDestination: Hashable {
+    static func == (lhs: BookNavigatorHashableDestination, rhs: BookNavigatorHashableDestination) -> Bool {
+        return lhs.book.id == rhs.book.id
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(book.id)
+    }
+    
+    let book: Book
+    let publication: Publication
+    
+    init(book: Book, publication: Publication) {
+        self.book = book
+        self.publication = publication
+    }
+}
+
+class BookshelfCoordinator: ObservableObject {
+    @Published var path = NavigationPath()
+    
+    func onBookOpened(book: Book, publication: Publication) {
+        path.append(BookNavigatorHashableDestination(book: book, publication: publication))
+    }
+}
+
+
 struct Bookshelf: View {
+    @ObservedObject var coordinator = BookshelfCoordinator()
+    
     let readerDependencies: ReaderDependencies
     @ObservedObject var bookOpener: BookOpener
     @State private var showingSheet = false
     @State private var books: [Book] = []
     
     @State private var curOpeningBookId: Book.Id = 0
-    @State private var lastOpenedBookTag: Book.Id?
-    @State private var viewModelToOpen: NewReaderViewModel?
     
     var body: some View {
-        VStack {
-            // TODO figure out what the best column layout is for phones and tablets
-            let columns: [GridItem] = [GridItem(.adaptive(minimum: Constant.bookCoverWidth + Constant.adaptiveGridDelta))]
-            ScrollView {
-                LazyVGrid(columns: columns, spacing: 20) {
-                    ForEach(books, id: \.self) { book in
-                        NavigationLink(
-                            destination: readerView(),
-                            tag: book.id!,
-                            selection: self.$lastOpenedBookTag
-                        ) {
+        NavigationStack(path: $coordinator.path) {
+            VStack {
+                // TODO figure out what the best column layout is for phones and tablets
+                let columns: [GridItem] = [GridItem(.adaptive(minimum: Constant.bookCoverWidth + Constant.adaptiveGridDelta))]
+                ScrollView {
+                    LazyVGrid(columns: columns, spacing: 20) {
+                        ForEach(books, id: \.self) { book in
                             BookCover(
                                 width: Constant.bookCoverWidth,
                                 height: Constant.bookCoverHeight,
@@ -37,62 +60,68 @@ struct Bookshelf: View {
                                 authors: book.authors,
                                 url: book.cover
                             )
+                            .navigationDestination(for: BookNavigatorHashableDestination.self, destination: { destination in
+                                readerView(model: destination)
+                            })
                             .contextMenu {
-                                Button(
-                                    role: .destructive,
-                                    action: {
-                                        let bookRemover = BookRemover(readerDependencies: readerDependencies)
-                                        Task {
-                                            await bookRemover.remove(book)
-                                        }
-                                    }) {
-                                    Label("Delete", systemImage: "trash.fill")
-                                }
+                                bookCoverContextMenu(for: book)
                             }
                             .overlay(content: {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle())
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                                    .opacity(curOpeningBookId == book.id ? 1 : 0)
+                                bookCoverProgressOverlay(for: book)
                             })
                             .onTapGesture {
-                                Task {
-                                    let result = await bookOpener.openBook(book)
-                                    switch result {
-                                    case .success(let publication):
-                                        viewModelToOpen = NewReaderViewModel(
-                                            book: book,
-                                            publication: publication,
-                                            readerDependencies: readerDependencies
-                                        )
-                                        lastOpenedBookTag = book.id
-                                    case .failure(let error):
-                                        print("BookOpener error \(error)")
-                                    }
-                                }
+                                bookCoverTapHandler(for: book)
                             }
                         }
-                        .buttonStyle(PlainButtonStyle())
+                    }
+                    .onReceive(readerDependencies.books.all()) {
+                        books = $0
                     }
                 }
-                .onReceive(readerDependencies.books.all()) {
-                    books = $0
-                }
             }
-            
+            .navigationTitle("Bookshelf")
+            .toolbar(content: toolbarContent)
         }
-        .navigationTitle("Bookshelf")
-        .toolbar(content: toolbarContent)
     }
     
-    @ViewBuilder func readerView() -> some View {
-        if viewModelToOpen != nil {
-            NewReaderView(
-                viewModel: viewModelToOpen!
-            )
-        } else {
-            Text("no book")
+    func bookCoverTapHandler(for book: Book) {
+        Task {
+            let result = await bookOpener.openBook(book)
+            switch result {
+            case .success(let publication):
+                coordinator.onBookOpened(book: book, publication: publication)
+            case .failure(let error):
+                print("BookOpener error \(error)")
+            }
         }
+    }
+        
+    @ViewBuilder func bookCoverProgressOverlay(for book: Book) -> some View {
+        ProgressView()
+            .progressViewStyle(CircularProgressViewStyle())
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            .opacity(curOpeningBookId == book.id ? 1 : 0)
+    }
+    
+    @ViewBuilder func bookCoverContextMenu(for book: Book) -> some View {
+        Button(
+            role: .destructive,
+            action: {
+                let bookRemover = BookRemover(readerDependencies: readerDependencies)
+                Task {
+                    await bookRemover.remove(book)
+                }
+            }) {
+            Label("Delete", systemImage: "trash.fill")
+        }
+    }
+    
+    @ViewBuilder func readerView(model: BookNavigatorHashableDestination) -> some View {
+        let viewModel = NewReaderViewModel(book: model.book, publication: model.publication, readerDependencies: readerDependencies)
+        NewReaderView(
+            bookId: viewModel.book.id!,
+            viewModel: viewModel
+        )
     }
 }
 
