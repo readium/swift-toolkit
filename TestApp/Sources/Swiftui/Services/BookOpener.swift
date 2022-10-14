@@ -39,6 +39,12 @@ actor BookOpener: ObservableObject, Loggable {
     ///
     /// If the `Publication` is intended to be presented in a navigator, set `forPresentation`.
     func openBook(_ book: Book) async -> Result<Publication, BookOpenerError> {
+        do {
+            try await Task.sleep(nanoseconds: 3_000_000_000)
+        } catch {
+            
+        }
+        
         let bookURLResult = await book.url()
         switch bookURLResult {
         case .success(let url):

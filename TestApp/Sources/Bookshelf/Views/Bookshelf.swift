@@ -26,24 +26,70 @@ class BookNavigatorHashableDestination: Hashable {
     }
 }
 
+/// Aims to work in a background async context, unless "@MainActor" specified
+/// Tried to change "class -> actor", but got "Actor-isolated property can not be mutated from the main actor"
 class BookshelfCoordinator: ObservableObject {
     @Published var path = NavigationPath()
+    @Published var curOpeningBookId: Book.Id?
+    let bookOpener: BookOpener
+    private var openBookTask: Task<Void, Never>?
     
-    func onBookOpened(book: Book, publication: Publication) {
+    init(bookOpener: BookOpener) {
+        self.bookOpener = bookOpener
+    }
+    
+    /// this is for the navigation
+    @MainActor private func onBookOpened(book: Book, publication: Publication) {
         path.append(BookNavigatorHashableDestination(book: book, publication: publication))
+    }
+    
+    func bookCoverTapHandler(for book: Book) {
+        cancelOpeningTasks()
+        openBookTask = Task {
+            await setOpeningBookId(book.id)
+            
+            let result = await bookOpener.openBook(book)
+            
+            do {
+                try Task.checkCancellation()
+            } catch {
+                await setOpeningBookId(nil)
+                // stop silently
+                return
+            }
+            
+            switch result {
+            case .success(let publication):
+                await onBookOpened(book: book, publication: publication)
+            case .failure(let error):
+                print("BookOpener error \(error)")
+            }
+            
+            await setOpeningBookId(nil)
+        }
+    }
+    
+    /// this is for showing a progress view
+    @MainActor private func setOpeningBookId(_ id: Book.Id?) {
+        curOpeningBookId = id
+    }
+    
+    func cancelOpeningTasks() {
+        openBookTask?.cancel()
     }
 }
 
 
 struct Bookshelf: View {
-    @ObservedObject var coordinator = BookshelfCoordinator()
-    
+    @ObservedObject var coordinator: BookshelfCoordinator
     let readerDependencies: ReaderDependencies
-    @ObservedObject var bookOpener: BookOpener
     @State private var showingSheet = false
     @State private var books: [Book] = []
     
-    @State private var curOpeningBookId: Book.Id = 0
+    init(readerDependencies: ReaderDependencies, bookOpener: BookOpener) {
+        self.readerDependencies = readerDependencies
+        self.coordinator = BookshelfCoordinator(bookOpener: bookOpener)
+    }
     
     var body: some View {
         NavigationStack(path: $coordinator.path) {
@@ -70,7 +116,7 @@ struct Bookshelf: View {
                                 bookCoverProgressOverlay(for: book)
                             })
                             .onTapGesture {
-                                bookCoverTapHandler(for: book)
+                                coordinator.bookCoverTapHandler(for: book)
                             }
                         }
                     }
@@ -78,29 +124,27 @@ struct Bookshelf: View {
                         books = $0
                     }
                 }
+                .onDisappear {
+                    coordinator.cancelOpeningTasks()
+                }
             }
             .navigationTitle("Bookshelf")
             .toolbar(content: toolbarContent)
         }
     }
     
-    func bookCoverTapHandler(for book: Book) {
-        Task {
-            let result = await bookOpener.openBook(book)
-            switch result {
-            case .success(let publication):
-                coordinator.onBookOpened(book: book, publication: publication)
-            case .failure(let error):
-                print("BookOpener error \(error)")
-            }
-        }
-    }
-        
     @ViewBuilder func bookCoverProgressOverlay(for book: Book) -> some View {
-        ProgressView()
-            .progressViewStyle(CircularProgressViewStyle())
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            .opacity(curOpeningBookId == book.id ? 1 : 0)
+        if coordinator.curOpeningBookId == book.id {
+            ZStack {
+                Color(white: 0, opacity: 0.75)
+                ProgressView()
+                    .tint(.white)
+                    .scaleEffect(2)
+            }
+                
+        } else {
+            EmptyView()
+        }
     }
     
     @ViewBuilder func bookCoverContextMenu(for book: Book) -> some View {
