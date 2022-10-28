@@ -8,6 +8,12 @@ import AVFoundation
 import Foundation
 import R2Shared
 
+public protocol AVTTSEngineDelegate: AnyObject {
+    /// Called when the engine created a new utterance to be played.
+    /// You can customize additional properties of the utterance.
+    func avTTSEngine(_ engine: AVTTSEngine, didCreateUtterance utterance: AVSpeechUtterance)
+}
+
 /// Implementation of a `TTSEngine` using Apple AVFoundation's `AVSpeechSynthesizer`.
 public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Loggable {
 
@@ -26,10 +32,12 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     /// > higher pitch. The default value is 1.0.
     /// > https://developer.apple.com/documentation/avfaudio/avspeechutterance/1619683-pitchmultiplier
     private static let avPitchRange = 0.5...2.0
+    
+    public weak var delegate: AVTTSEngineDelegate?
 
     private let debug: Bool = false
     private let synthesizer = AVSpeechSynthesizer()
-
+    
     /// Creates a new `AVTTSEngine` instance.
     ///
     /// - Parameters:
@@ -40,9 +48,11 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
             category: .playback,
             mode: .spokenAudio,
             options: .mixWithOthers
-        )
+        ),
+        delegate: AVTTSEngineDelegate? = nil
     ) {
         self.audioSessionUser = audioSessionConfig.map { AudioSessionUser(config: $0) }
+        self.delegate = delegate
 
         super.init()
         synthesizer.delegate = self
@@ -108,6 +118,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
 //        utter.pitchMultiplier = Float(task.utterance.pitchMultiplier)
         utter.preUtteranceDelay = task.utterance.delay
         utter.voice = voice(for: task.utterance)
+        delegate?.avTTSEngine(self, didCreateUtterance: utter)
         return utter
     }
 
@@ -133,6 +144,13 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         on(.didStart(task))
     }
 
+    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        guard let task = (utterance as? TaskUtterance)?.task else {
+            return
+        }
+        on(.didFinish(task))
+    }
+    
     public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
         guard let task = (utterance as? TaskUtterance)?.task else {
             return
