@@ -12,6 +12,14 @@ This toolkit is a modular project, which follows the [Readium Architecture](http
 
 A [Test App](TestApp) demonstrates how to integrate the Readium Swift toolkit in your own reading app
 
+## Minimum Requirements
+
+<!-- https://swiftversion.net/ -->
+
+| Readium | iOS  | Swift compiler | Xcode |
+|---------|------|----------------|-------|
+| latest  | 10.0 | 5.3.2          | 12.4  |
+
 ## Using Readium
 
 <!--:question: **Find documentation and API reference at [readium.org/kotlin-toolkit](https://readium.org/swift-toolkit)**.-->
