@@ -22,6 +22,6 @@ Pod::Spec.new do |s|
   s.dependency 'R2Shared' 
 
   s.dependency 'ZIPFoundation', '<= 0.9.11' # 0.9.12 requires iOS 12+
-  s.dependency 'SQLite.swift', '~> 0.13'
+  s.dependency 'SQLite.swift', '<= 0.13.3' # 0.14 introduces breaking changes
   s.dependency 'CryptoSwift', '<= 1.5.1' # From 1.6.0, the build fails in GitHub actions with Carthage
 end
