@@ -17,14 +17,21 @@ public struct EditingAction: Hashable {
 
     /// Default editing actions enabled in the navigator.
     public static var defaultActions: [EditingAction] {
-        [copy, share, lookup, translate]
+        [copy, share, define, lookup, translate]
     }
 
     /// Copy the text selection.
     public static let copy = EditingAction(kind: .native("copy:"))
 
-    /// Look up the text selection in the dictionary.
+    /// Look up the text selection in the dictionary and other sources.
+    ///
+    /// Not available on iOS 16+
     public static let lookup = EditingAction(kind: .native("_lookup:"))
+
+    /// Look up the text selection in the dictionary (and other sources on iOS 16+).
+    ///
+    /// On iOS 16+, enabling this action will show two items: Look Up and Search Web.
+    public static let define = EditingAction(kind: .native("_define:"))
 
     /// Translate the text selection.
     public static let translate = EditingAction(kind: .native("_translate:"))
@@ -120,6 +127,15 @@ final class EditingActionsController {
 
     func canPerformAction(_ action: EditingAction) -> Bool {
         canPerformAction(action.action)
+    }
+    
+    @available(iOS 13.0, *)
+    func buildMenu(with builder: UIMenuBuilder) {
+        // On iOS 16, there's a new "Search Web" menu item which is required
+        // to enable the define action.
+        if #available(iOS 16.0, *), !actions.contains(.define) {
+            builder.remove(menu: .lookup)
+        }
     }
 
     func updateSharedMenuController() {

@@ -266,6 +266,12 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         reloadSpreads(at: initialLocation)
     }
     
+    @available(iOS 13.0, *)
+    open override func buildMenu(with builder: UIMenuBuilder) {
+        editingActions.buildMenu(with: builder)
+        super.buildMenu(with: builder)
+    }
+    
     /// Intercepts tap gesture when the web views are not loaded.
     @objc private func didTapBackground(_ gesture: UITapGestureRecognizer) {
         guard state == .loading else { return }
