@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * Fixed a race condition issue with the `AVTTSEngine`, when pausing utterances.
+* Fixed crash with `PublicationSpeechSynthesizer`, when the currently played word cannot be resolved.
 
 
 ## [2.4.0]

@@ -237,7 +237,15 @@ public class PublicationSpeechSynthesizer: Loggable {
                 state = .playing(
                     utterance,
                     range: utterance.locator.copy(
-                        text: { $0 = utterance.locator.text[range] }
+                        text: { text in
+                            guard
+                                let highlight = text.highlight,
+                                highlight.startIndex <= range.lowerBound && highlight.endIndex >= range.upperBound
+                            else {
+                                return
+                            }
+                            text = text[range]
+                        }
                     )
                 )
             },
