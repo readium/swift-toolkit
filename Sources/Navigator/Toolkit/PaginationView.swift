@@ -219,7 +219,7 @@ final class PaginationView: UIView, Loggable {
         }
     }
 
-    private func loadNextPage(completion: @escaping () -> Void = {}) {
+    private func loadNextPage(completion: @escaping () -> Void) {
         guard let (index, location) = loadingIndexQueue.popFirst() else {
             completion()
             return
@@ -240,8 +240,7 @@ final class PaginationView: UIView, Loggable {
         }
 
         view.go(to: location) {
-            completion()
-            self.loadNextPage()
+            self.loadNextPage(completion: completion)
         }
     }
 
