@@ -226,7 +226,6 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         self.config = config
         self.userSettings = config.userSettings
         publication.userProperties.properties = userSettings.userProperties.properties
-        self.paginationView = PaginationView(frame: .zero, preloadPreviousPositionCount: config.preloadPreviousPositionCount, preloadNextPositionCount: config.preloadNextPositionCount)
 
         self.resourcesURL = {
             do {
@@ -243,7 +242,6 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         super.init(nibName: nil, bundle: nil)
         
         self.editingActions.delegate = self
-        self.paginationView.delegate = self
     }
 
     @available(*, unavailable)
@@ -254,7 +252,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
     open override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .clear
-        paginationView.backgroundColor = .clear
+        
         paginationView.frame = view.bounds
         paginationView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         view.addSubview(paginationView)
@@ -418,7 +416,18 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
     
     // MARK: - Pagination and spreads
     
-    private let paginationView: PaginationView
+    private lazy var paginationView: PaginationView = {
+        let hasPositions = !publication.positions.isEmpty
+        let view = PaginationView(
+            frame: .zero,
+            preloadPreviousPositionCount: hasPositions ? config.preloadPreviousPositionCount : 0,
+            preloadNextPositionCount: hasPositions ? config.preloadNextPositionCount : 0
+        )
+        view.delegate = self
+        view.backgroundColor = .clear
+        return view
+    }()
+    
     private var spreads: [EPUBSpread] = []
 
     /// Index of the currently visible spread.
