@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * The `define` editing action replaces `lookup` on iOS 16+. When enabled, it will show both the "Look Up" and "Search Web" menu items.
+* Prevent navigation in the EPUB while it is being loaded.
 
 ### Fixed
 
