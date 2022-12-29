@@ -4,7 +4,28 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!--## [Unreleased]-->
+## [Unreleased]
+
+### Added
+
+#### Streamer
+
+* Positions computation, TTS and search is now enabled for Readium Web Publications conforming to the [EPUB profile](https://readium.org/webpub-manifest/profiles/epub.html).
+
+### Changed
+
+#### Navigator
+
+* The `define` editing action replaces `lookup` on iOS 16+. When enabled, it will show both the "Look Up" and "Search Web" menu items.
+* Prevent navigation in the EPUB while it is being loaded.
+
+### Fixed
+
+#### Navigator
+
+* Fixed a race condition issue with the `AVTTSEngine`, when pausing utterances.
+* Fixed crash with `PublicationSpeechSynthesizer`, when the currently played word cannot be resolved.
+
 
 ## [2.4.0]
 

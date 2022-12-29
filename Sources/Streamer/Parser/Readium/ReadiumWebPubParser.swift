@@ -27,10 +27,14 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
     
     private let pdfFactory: PDFDocumentFactory
     private let httpClient: HTTPClient
-    
-    public init(pdfFactory: PDFDocumentFactory, httpClient: HTTPClient) {
+    private let epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy
+
+    /// - Parameter epubReflowablePositionsStrategy: Strategy used to calculate the
+    ///   number of positions in a reflowable resource of a web publication conforming to the EPUB profile.
+    public init(pdfFactory: PDFDocumentFactory, httpClient: HTTPClient, epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy = .recommended) {
         self.pdfFactory = pdfFactory
         self.httpClient = httpClient
+        self.epubReflowablePositionsStrategy = epubReflowablePositionsStrategy
     }
     
     public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
@@ -84,17 +88,26 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             manifest: manifest,
             fetcher: fetcher,
             servicesBuilder: PublicationServicesBuilder(setup: {
-                switch mediaType {
-                case .lcpProtectedPDF:
-                    $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory(pdfFactory: self.pdfFactory))
-                case .divina, .divinaManifest:
+                if manifest.conforms(to: .epub) {
+                    $0.setPositionsServiceFactory(EPUBPositionsService.makeFactory(reflowableStrategy: epubReflowablePositionsStrategy))
+                    
+                } else if manifest.conforms(to: .divina) {
                     $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: "image/*"))
-                case .readiumAudiobook, .readiumAudiobookManifest, .lcpProtectedAudiobook:
+                    
+                } else if manifest.conforms(to: .audiobook) {
                     $0.setLocatorServiceFactory(AudioLocatorService.makeFactory())
-                case .readiumWebPub:
+                    
+                } else if manifest.conforms(to: .pdf) && mediaType.matches(.lcpProtectedPDF) {
+                    $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory(pdfFactory: self.pdfFactory))
+                }
+                
+                if manifest.readingOrder.allAreHTML {
                     $0.setSearchServiceFactory(_StringSearchService.makeFactory())
-                default:
-                    break
+                    $0.setContentServiceFactory(DefaultContentService.makeFactory(
+                        resourceContentIteratorFactories: [
+                            HTMLResourceContentIterator.makeFactory()
+                        ]
+                    ))
                 }
             }),
             setupPublication: { publication in
