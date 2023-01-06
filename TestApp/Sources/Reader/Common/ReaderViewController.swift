@@ -511,6 +511,16 @@ extension ReaderViewController: VisualNavigatorDelegate {
         }
     }
     
+    func navigator(_ navigator: VisualNavigator, didPressKey event: KeyEvent) {
+        if event.modifiers.isEmpty {
+            if event.key == .arrowRight || event.key == .arrowDown || event.key == .space {
+                navigator.goForward(animated: true) {}
+            } else if event.key == .arrowLeft || event.key == .arrowUp {
+                navigator.goBackward(animated: true) {}
+            }
+        }
+    }
+
 }
 
 // MARK: - Highlights management

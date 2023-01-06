@@ -32,6 +32,12 @@ protocol EPUBSpreadViewDelegate: AnyObject {
     
     /// Called when the spread view needs to present a view controller.
     func spreadView(_ spreadView: EPUBSpreadView, present viewController: UIViewController)
+    
+    /// Called when the user press a key down, and it didn't trigger any internal action.
+    func spreadView(_ spreadView: EPUBSpreadView, didPressKey event: KeyEvent)
+    
+    /// Called when the user release a key up, and it didn't trigger any internal action.
+    func spreadView(_ spreadView: EPUBSpreadView, didReleaseKey event: KeyEvent)
 }
 
 class EPUBSpreadView: UIView, Loggable, PageView {
@@ -358,6 +364,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         registerJSMessage(named: "spreadLoaded") { [weak self] in self?.spreadDidLoad($0) }
         registerJSMessage(named: "selectionChanged") { [weak self] in self?.selectionDidChange($0) }
         registerJSMessage(named: "decorationActivated") { [weak self] in self?.decorationDidActivate($0) }
+        registerJSMessage(named: "pressKey") { [weak self] in self?.keyEventHandler($0) }
     }
     
     /// Add the message handlers for incoming javascript events.
@@ -382,6 +389,21 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
+    private func keyEventHandler(_ event: Any) {
+        guard let dict = event as? [String: Any],
+              let type = dict["type"] as? String,
+              dict["key"] != nil, dict["code"] != nil,
+              let keyEvent = KeyEvent(dict: dict)
+        else {
+            return
+        }
+        
+        if type == "keydown" {
+            delegate?.spreadView(self, didPressKey: keyEvent)
+        } else if type == "keyup" {
+            delegate?.spreadView(self, didReleaseKey: keyEvent)
+        }
+    }
 
     // MARK: – Decorator
 

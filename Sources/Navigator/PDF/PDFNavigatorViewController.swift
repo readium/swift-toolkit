@@ -123,6 +123,44 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         }
     }
     
+    override open func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        var didHandleEvent = false
+        for press in presses {
+            if let pressKey = press.pressKey {
+                if pressKey.isModifier {
+                    var modifiers = press.modifiers
+                    if let modifier = pressKey.toModifier {
+                        modifiers.remove(modifier)
+                    }
+                    
+                    delegate?.navigator(self, didPressKey: .init(key: pressKey, modifiers: modifiers))
+                } else {
+                    delegate?.navigator(self, didPressKey: .init(key: pressKey, modifiers: press.modifiers))
+                }
+                
+                didHandleEvent = true
+            }
+        }
+        
+        if !didHandleEvent {
+            super.pressesBegan(presses, with: event)
+        }
+    }
+    
+    override open func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        var didHandleEvent = false
+        for press in presses {
+            if let pressKey = press.pressKey {
+                delegate?.navigator(self, didReleaseKey: .init(key: pressKey, modifiers: []))
+                didHandleEvent = true
+            }
+        }
+        
+        if !didHandleEvent {
+            super.pressesEnded(presses, with: event)
+        }
+    }
+    
     @available(iOS 13.0, *)
     open override func buildMenu(with builder: UIMenuBuilder) {
         editingActions.buildMenu(with: builder)

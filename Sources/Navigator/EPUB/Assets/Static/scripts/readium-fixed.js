@@ -1823,9 +1823,11 @@ function nearestInteractiveElement(element) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _gestures__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./gestures */ "./src/gestures.js");
-/* harmony import */ var _dom__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./dom */ "./src/dom.js");
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils */ "./src/utils.js");
-/* harmony import */ var _decorator__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./decorator */ "./src/decorator.js");
+/* harmony import */ var _keyboard__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./keyboard */ "./src/keyboard.js");
+/* harmony import */ var _keyboard__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_keyboard__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _dom__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./dom */ "./src/dom.js");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./utils */ "./src/utils.js");
+/* harmony import */ var _decorator__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./decorator */ "./src/decorator.js");
 //
 //  Copyright 2021 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
@@ -1835,23 +1837,64 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
  // Public API used by the navigator.
 
 __webpack_require__.g.readium = {
   // utils
-  scrollToId: _utils__WEBPACK_IMPORTED_MODULE_2__.scrollToId,
-  scrollToPosition: _utils__WEBPACK_IMPORTED_MODULE_2__.scrollToPosition,
-  scrollToText: _utils__WEBPACK_IMPORTED_MODULE_2__.scrollToText,
-  scrollLeft: _utils__WEBPACK_IMPORTED_MODULE_2__.scrollLeft,
-  scrollRight: _utils__WEBPACK_IMPORTED_MODULE_2__.scrollRight,
-  setProperty: _utils__WEBPACK_IMPORTED_MODULE_2__.setProperty,
-  removeProperty: _utils__WEBPACK_IMPORTED_MODULE_2__.removeProperty,
+  scrollToId: _utils__WEBPACK_IMPORTED_MODULE_3__.scrollToId,
+  scrollToPosition: _utils__WEBPACK_IMPORTED_MODULE_3__.scrollToPosition,
+  scrollToText: _utils__WEBPACK_IMPORTED_MODULE_3__.scrollToText,
+  scrollLeft: _utils__WEBPACK_IMPORTED_MODULE_3__.scrollLeft,
+  scrollRight: _utils__WEBPACK_IMPORTED_MODULE_3__.scrollRight,
+  setProperty: _utils__WEBPACK_IMPORTED_MODULE_3__.setProperty,
+  removeProperty: _utils__WEBPACK_IMPORTED_MODULE_3__.removeProperty,
   // decoration
-  registerDecorationTemplates: _decorator__WEBPACK_IMPORTED_MODULE_3__.registerTemplates,
-  getDecorations: _decorator__WEBPACK_IMPORTED_MODULE_3__.getDecorations,
+  registerDecorationTemplates: _decorator__WEBPACK_IMPORTED_MODULE_4__.registerTemplates,
+  getDecorations: _decorator__WEBPACK_IMPORTED_MODULE_4__.getDecorations,
   // DOM
-  findFirstVisibleLocator: _dom__WEBPACK_IMPORTED_MODULE_1__.findFirstVisibleLocator
+  findFirstVisibleLocator: _dom__WEBPACK_IMPORTED_MODULE_2__.findFirstVisibleLocator
 };
+
+/***/ }),
+
+/***/ "./src/keyboard.js":
+/*!*************************!*\
+  !*** ./src/keyboard.js ***!
+  \*************************/
+/***/ (() => {
+
+//
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
+//
+window.addEventListener("keydown", event => {
+  if (event.repeat) {
+    return;
+  }
+
+  webkit.messageHandlers.pressKey.postMessage({
+    type: "keydown",
+    code: event.code,
+    key: event.key,
+    option: event.altKey,
+    control: event.ctrlKey,
+    shift: event.shiftKey,
+    command: event.metaKey
+  });
+});
+window.addEventListener("keyup", event => {
+  webkit.messageHandlers.pressKey.postMessage({
+    type: "keyup",
+    code: event.code,
+    key: event.key,
+    option: event.altKey,
+    control: event.ctrlKey,
+    shift: event.shiftKey,
+    command: event.metaKey
+  });
+});
 
 /***/ }),
 
