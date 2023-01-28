@@ -364,7 +364,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         registerJSMessage(named: "spreadLoaded") { [weak self] in self?.spreadDidLoad($0) }
         registerJSMessage(named: "selectionChanged") { [weak self] in self?.selectionDidChange($0) }
         registerJSMessage(named: "decorationActivated") { [weak self] in self?.decorationDidActivate($0) }
-        registerJSMessage(named: "pressKey") { [weak self] in self?.keyEventHandler($0) }
+        registerJSMessage(named: "pressKey") { [weak self] in self?.didPressKey($0) }
     }
     
     /// Add the message handlers for incoming javascript events.
@@ -389,7 +389,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
-    private func keyEventHandler(_ event: Any) {
+    private func didPressKey(_ event: Any) {
         guard let dict = event as? [String: Any],
               let type = dict["type"] as? String,
               dict["key"] != nil, dict["code"] != nil,

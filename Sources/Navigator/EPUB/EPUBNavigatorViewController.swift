@@ -295,24 +295,32 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         }
     }
     
-    /*
-    /// It seems we also can use this way for key events
+    open override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        becomeFirstResponder()
+    }
+    
+    open override var canBecomeFirstResponder: Bool { true }
+    
     override open func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         var didHandleEvent = false
-        for press in presses {
-            if let pressKey = press.pressKey {
-                if pressKey.isModifier {
-                    var modifiers = press.modifiers
-                    if let modifier = pressKey.toModifier {
-                        modifiers.remove(modifier)
+        if (isFirstResponder) {
+            for press in presses {
+                if let pressKey = press.pressKey {
+                    if pressKey.isModifier {
+                        var modifiers = press.modifiers
+                        if let modifier = pressKey.toModifier {
+                            modifiers.remove(modifier)
+                        }
+                        
+                        delegate?.navigator(self, didPressKey: .init(key: pressKey, modifiers: modifiers))
+                    } else {
+                        delegate?.navigator(self, didPressKey: .init(key: pressKey, modifiers: press.modifiers))
                     }
                     
-                    delegate?.navigator(self, didPressKey: .init(key: pressKey, modifiers: modifiers))
-                } else {
-                    delegate?.navigator(self, didPressKey: .init(key: pressKey, modifiers: press.modifiers))
+                    didHandleEvent = true
                 }
-                
-                didHandleEvent = true
             }
         }
         
@@ -323,10 +331,12 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
     
     override open func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         var didHandleEvent = false
-        for press in presses {
-            if let pressKey = press.pressKey {
-                delegate?.navigator(self, didReleaseKey: .init(key: pressKey, modifiers: []))
-                didHandleEvent = true
+        if (isFirstResponder) {
+            for press in presses {
+                if let pressKey = press.pressKey {
+                    delegate?.navigator(self, didReleaseKey: .init(key: pressKey, modifiers: []))
+                    didHandleEvent = true
+                }
             }
         }
         
@@ -334,7 +344,6 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
             super.pressesEnded(presses, with: event)
         }
     }
-     */
     
     @discardableResult
     private func on(_ event: Event) -> Bool {
@@ -774,6 +783,8 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     func spreadView(_ spreadView: EPUBSpreadView, didTapAt point: CGPoint) {
         // We allow taps in any state, because we should always be able to toggle the navigation bar,
         // even while a locator is pending.
+        
+        resignFirstResponder()
         
         let point = view.convert(point, from: spreadView)
         delegate?.navigator(self, didTapAt: point)

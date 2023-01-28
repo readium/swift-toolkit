@@ -9,10 +9,12 @@ import UIKit
 
 public struct KeyEvent: Equatable, CustomStringConvertible {
     public let key: Key
+    public let isRepeat: Bool
     public let modifiers: KeyModifiers
     
-    public init(key: Key, modifiers: KeyModifiers = []) {
+    public init(key: Key, modifiers: KeyModifiers = [], isRepeat: Bool = false) {
         self.key = key
+        self.isRepeat = isRepeat
         self.modifiers = modifiers
     }
     
@@ -21,6 +23,12 @@ public struct KeyEvent: Equatable, CustomStringConvertible {
               let code = dict["code"] as? String
         else {
             return nil
+        }
+        
+        if let isRepeat = dict["repeat"] as? Int, isRepeat == 1 {
+            self.isRepeat = true
+        } else {
+            self.isRepeat = false
         }
         
         switch code {
