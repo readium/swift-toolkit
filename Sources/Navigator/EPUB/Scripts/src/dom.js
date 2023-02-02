@@ -7,6 +7,51 @@
 import { isScrollModeEnabled } from "./utils";
 import { getCssSelector } from "css-selector-generator";
 
+// Returns `element` or its first parent that is considered "user interactive".
+// For example a link, a video clip or a text field.
+//
+// See. https://github.com/JayPanoz/architecture/tree/touch-handling/misc/touch-handling
+export function findNearestInteractiveElement(element) {
+  if (element == null) {
+    return null;
+  }
+
+  var interactiveTags = [
+    "a",
+    "audio",
+    "button",
+    "canvas",
+    "details",
+    "input",
+    "label",
+    "option",
+    "select",
+    "submit",
+    "textarea",
+    "video",
+  ];
+  if (interactiveTags.indexOf(element.nodeName.toLowerCase()) !== -1) {
+    return element.outerHTML;
+  }
+
+  // Checks whether the element is editable by the user.
+  if (
+    element.hasAttribute("contenteditable") &&
+    element.getAttribute("contenteditable").toLowerCase() != "false"
+  ) {
+    return element.outerHTML;
+  }
+
+  // Checks parents recursively because the touch might be for example on an <em> inside a <a>.
+  if (element.parentElement) {
+    return findNearestInteractiveElement(element.parentElement);
+  }
+
+  return null;
+}
+
+/// Returns the `Locator` object to the first block element that is visible on
+/// the screen.
 export function findFirstVisibleLocator() {
   const element = findElement(document.body);
   if (!element) {
