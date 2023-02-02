@@ -307,18 +307,8 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         var didHandleEvent = false
         if (isFirstResponder) {
             for press in presses {
-                if let pressKey = press.pressKey {
-                    if pressKey.isModifier {
-                        var modifiers = press.modifiers
-                        if let modifier = pressKey.toModifier {
-                            modifiers.remove(modifier)
-                        }
-                        
-                        delegate?.navigator(self, didPressKey: .init(key: pressKey, modifiers: modifiers))
-                    } else {
-                        delegate?.navigator(self, didPressKey: .init(key: pressKey, modifiers: press.modifiers))
-                    }
-                    
+                if let event = KeyEvent(uiPress: press) {
+                    delegate?.navigator(self, didPressKey: event)
                     didHandleEvent = true
                 }
             }
@@ -333,8 +323,8 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         var didHandleEvent = false
         if (isFirstResponder) {
             for press in presses {
-                if let pressKey = press.pressKey {
-                    delegate?.navigator(self, didReleaseKey: .init(key: pressKey, modifiers: []))
+                if let event = KeyEvent(uiPress: press) {
+                    delegate?.navigator(self, didReleaseKey: event)
                     didHandleEvent = true
                 }
             }
@@ -783,8 +773,6 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     func spreadView(_ spreadView: EPUBSpreadView, didTapAt point: CGPoint) {
         // We allow taps in any state, because we should always be able to toggle the navigation bar,
         // even while a locator is pending.
-        
-        resignFirstResponder()
         
         let point = view.convert(point, from: spreadView)
         delegate?.navigator(self, didTapAt: point)

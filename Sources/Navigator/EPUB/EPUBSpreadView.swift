@@ -33,10 +33,10 @@ protocol EPUBSpreadViewDelegate: AnyObject {
     /// Called when the spread view needs to present a view controller.
     func spreadView(_ spreadView: EPUBSpreadView, present viewController: UIViewController)
     
-    /// Called when the user press a key down, and it didn't trigger any internal action.
+    /// Called when the user pressed a key down and it was not handled by the resource.
     func spreadView(_ spreadView: EPUBSpreadView, didPressKey event: KeyEvent)
     
-    /// Called when the user release a key up, and it didn't trigger any internal action.
+    /// Called when the user released a key and it was not handled by the resource.
     func spreadView(_ spreadView: EPUBSpreadView, didReleaseKey event: KeyEvent)
 }
 
@@ -392,7 +392,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     private func didPressKey(_ event: Any) {
         guard let dict = event as? [String: Any],
               let type = dict["type"] as? String,
-              dict["key"] != nil, dict["code"] != nil,
               let keyEvent = KeyEvent(dict: dict)
         else {
             return
@@ -402,6 +401,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             delegate?.spreadView(self, didPressKey: keyEvent)
         } else if type == "keyup" {
             delegate?.spreadView(self, didReleaseKey: keyEvent)
+        } else {
+            fatalError("Unexpected key event type: \(type)")
         }
     }
 
@@ -566,5 +567,84 @@ struct ClickEvent {
             return nil
         }
         self.init(dict: dict)
+    }
+}
+
+private extension KeyEvent {
+        
+    /// Parses the dictionary created in keyboard.js
+    init?(dict: [String: Any]) {
+        guard let code = dict["code"] as? String else {
+            return nil
+        }
+        
+        switch code {
+            case "Enter":
+                self.key = .enter
+            case "Tab":
+                self.key = .tab
+            case "Space":
+                self.key = .space
+                
+            case "ArrowDown":
+                self.key = .arrowDown
+            case "ArrowLeft":
+                self.key = .arrowLeft
+            case "ArrowRight":
+                self.key = .arrowRight
+            case "ArrowUp":
+                self.key = .arrowUp
+                
+            case "End":
+                self.key = .end
+            case "Home":
+                self.key = .home
+            case "PageDown":
+                self.key = .pageDown
+            case "PageUp":
+                self.key = .pageUp
+                
+            case "MetaLeft", "MetaRight":
+                self.key = .command
+            case "ControlLeft", "ControlRight":
+                self.key = .control
+            case "AltLeft", "AltRight":
+                self.key = .option
+            case "ShiftLeft", "ShiftRight":
+                self.key = .shift
+                
+            case "Backspace":
+                self.key = .backspace
+                
+            default:
+                // The "key" event property can change depending on which
+                // modifier is pressed, so we need to use the code instead to
+                // map alphanumerical keys.
+                if code.hasPrefix("Key"), code.count == 4, let letter = code.last {
+                    self.key = .character(letter.lowercased())
+                } else if code.hasPrefix("Digit"), code.count == 5, let number = code.last {
+                    self.key = .character(String(number))
+                } else {
+                    return nil
+                }
+        }
+        
+        var modifiers: KeyModifiers = []
+        if let holdCommand = dict["command"] as? Bool, holdCommand {
+            modifiers.insert(.command)
+        }
+        if let holdControl = dict["control"] as? Bool, holdControl {
+            modifiers.insert(.control)
+        }
+        if let holdOption = dict["option"] as? Bool, holdOption {
+            modifiers.insert(.option)
+        }
+        if let holdShift = dict["shift"] as? Bool, holdShift {
+            modifiers.insert(.shift)
+        }
+        if let modifier = KeyModifiers(key: key) {
+            modifiers.remove(modifier)
+        }
+        self.modifiers = modifiers
     }
 }

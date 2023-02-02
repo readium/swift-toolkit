@@ -7,103 +7,20 @@
 import Foundation
 import UIKit
 
+/// Represents a keyboard event emitted by a Navigator.
 public struct KeyEvent: Equatable, CustomStringConvertible {
+    
+    /// Key the user pressed or released.
     public let key: Key
-    public let isRepeat: Bool
+    
+    /// Additional key modifiers for keyboard shortcuts.
     public let modifiers: KeyModifiers
     
-    public init(key: Key, modifiers: KeyModifiers = [], isRepeat: Bool = false) {
+    public init(key: Key, modifiers: KeyModifiers = []) {
         self.key = key
-        self.isRepeat = isRepeat
         self.modifiers = modifiers
     }
-    
-    public init?(dict: [String: Any]) {
-        guard let type = dict["type"] as? String,
-              let code = dict["code"] as? String
-        else {
-            return nil
-        }
-        
-        if let isRepeat = dict["repeat"] as? Int, isRepeat == 1 {
-            self.isRepeat = true
-        } else {
-            self.isRepeat = false
-        }
-        
-        switch code {
-            case "Enter":
-                self.key = .enter
-            case "Tab":
-                self.key = .tab
-            case "Space":
-                self.key = .space
-                
-            case "ArrowDown":
-                self.key = .arrowDown
-            case "ArrowLeft":
-                self.key = .arrowLeft
-            case "ArrowRight":
-                self.key = .arrowRight
-            case "ArrowUp":
-                self.key = .arrowUp
-                
-            case "End":
-                self.key = .end
-            case "Home":
-                self.key = .home
-            case "PageDown":
-                self.key = .pageDown
-            case "PageUp":
-                self.key = .pageUp
-                
-            case "MetaLeft", "MetaRight":
-                self.key = .command
-            case "ControlLeft", "ControlRight":
-                self.key = .control
-            case "AltLeft", "AltRight":
-                self.key = .option
-            case "ShiftLeft", "ShiftRight":
-                self.key = .shift
-                
-            case "Backspace":
-                self.key = .backspace
-                
-            case _ where code.hasPrefix("Key") && code.count == 4:
-                self.key = .character(code[code.index(before: code.endIndex)])
-            default:
-                return nil
-        }
-        
-        switch type {
-            case "keydown":
-                var modifiers: KeyModifiers = []
-                if let holdCommand = dict["command"] as? Int, holdCommand == 1 {
-                    modifiers.rawValue = modifiers.rawValue | KeyModifiers.command.rawValue
-                }
-                if let holdControl = dict["control"] as? Int, holdControl == 1 {
-                    modifiers.rawValue = modifiers.rawValue | KeyModifiers.control.rawValue
-                }
-                if let holdOption = dict["option"] as? Int, holdOption == 1 {
-                    modifiers.rawValue = modifiers.rawValue | KeyModifiers.option.rawValue
-                }
-                if let holdShift = dict["shift"] as? Int, holdShift == 1 {
-                    modifiers.rawValue = modifiers.rawValue | KeyModifiers.shift.rawValue
-                }
-                
-                if self.key.isModifier, let modifier = self.key.toModifier {
-                    modifiers.remove(modifier)
-                }
-                
-                self.modifiers = modifiers
-            case "keyup":
-                self.modifiers = []
-                
-            default:
-                return nil
-        }
-    }
-    
+
     public var description: String {
         self.modifiers.description + " " + self.key.description
     }
@@ -111,7 +28,7 @@ public struct KeyEvent: Equatable, CustomStringConvertible {
 
 public enum Key: Equatable, CustomStringConvertible {
     // Printable character.
-    case character(Character)
+    case character(String)
     
     // Whitespace keys.
     case enter
@@ -136,11 +53,16 @@ public enum Key: Equatable, CustomStringConvertible {
     
     // Others
     case backspace
-    
+      
+    /// Indicates whether this key is a modifier key.
+    public var isModifier: Bool {
+        KeyModifiers(key: self) != nil
+    }
+  
     public var description: String {
         switch self {
             case .character(let character):
-                return String(character)
+                return character
             case .enter:
                 return "Enter"
             case .tab:
@@ -175,42 +97,38 @@ public enum Key: Equatable, CustomStringConvertible {
                 return "Backspace"
         }
     }
-    
-    var isModifier: Bool {
-        switch self {
-            case .command, .control, .option, .shift:
-                return true
-                
-            default:
-                return false
-        }
-    }
-    
-    var toModifier: KeyModifiers? {
-        switch self {
-            case .command:
-                return .command
-            case .control:
-                return .control
-            case .option:
-                return .option
-            case .shift:
-                return .shift
-                
-            default:
-                return nil
-        }
-    }
 }
 
-public struct KeyModifiers: OptionSet {
+/// Represents a set of modifier keys held together.
+public struct KeyModifiers: OptionSet, CustomStringConvertible {
+        
+    public static let command = KeyModifiers(rawValue: 1 << 0)
+    public static let control = KeyModifiers(rawValue: 1 << 1)
+    public static let option = KeyModifiers(rawValue: 1 << 2)
+    public static let shift = KeyModifiers(rawValue: 1 << 3)
+
     public var rawValue: Int
     
     public init(rawValue: Int) {
         self.rawValue = rawValue
     }
     
-    var description: String {
+    public init?(key: Key) {
+        switch key {
+        case .command:
+            self = .command
+        case .control:
+            self = .control
+        case .option:
+            self = .option
+        case .shift:
+            self = .shift
+        default:
+            return nil
+        }
+    }
+    
+    public var description: String {
         var modifiers: [String] = []
         if self.contains(.command) {
             modifiers.append("Command")
@@ -231,89 +149,98 @@ public struct KeyModifiers: OptionSet {
         
         return "[" + modifiers.joined(separator: ",") + "]"
     }
-    
-    public static let command = KeyModifiers(rawValue: 1 << 0)
-    public static let control = KeyModifiers(rawValue: 1 << 1)
-    public static let option = KeyModifiers(rawValue: 1 << 2)
-    public static let shift = KeyModifiers(rawValue: 1 << 3)
 }
 
-public extension UIPress {
-    var modifiers: KeyModifiers {
-        var modifiers: KeyModifiers = []
-        
-        if let flags = self.key?.modifierFlags, flags.rawValue != 0 {
-            if flags.contains(.shift) {
-                modifiers.rawValue = KeyModifiers.shift.rawValue | modifiers.rawValue
-            }
-            if flags.contains(.command) {
-                modifiers.rawValue = KeyModifiers.command.rawValue | modifiers.rawValue
-            }
-            if flags.contains(.control) {
-                modifiers.rawValue = KeyModifiers.control.rawValue | modifiers.rawValue
-            }
-            if flags.contains(.alternate) {
-                modifiers.rawValue = KeyModifiers.option.rawValue | modifiers.rawValue
-            }
+// MARK: - UIKit extensions
+
+public extension KeyEvent {
+    
+    init?(uiPress: UIPress) {
+        guard
+            let key = Key(uiPress: uiPress),
+            var modifiers = KeyModifiers(uiPress: uiPress)
+        else {
+            return nil
         }
         
-        return modifiers
+        if let modKey = KeyModifiers(key: key) {
+            modifiers.remove(modKey)
+        }
+        
+        self.init(key: key, modifiers: modifiers)
     }
+}
+
+public extension Key {
     
-    var pressKey: Key? {
-        guard let key = self.key else {
+    init?(uiPress: UIPress) {
+        guard let key = uiPress.key else {
             return nil
         }
         
         switch key.keyCode {
-            case .keyboardReturnOrEnter, .keypadEnter:
-                return .enter
-            case .keyboardTab:
-                return .tab
-            case .keyboardSpacebar:
-                return .space
-            case .keyboardDownArrow:
-                return .arrowDown
-            case .keyboardUpArrow:
-                return .arrowUp
-            case .keyboardLeftArrow:
-                return .arrowLeft
-            case .keyboardRightArrow:
-                return .arrowRight
-            case .keyboardEnd:
-                return .end
-            case .keyboardHome:
-                return .home
-            case .keyboardPageDown:
-                return .pageDown
-            case .keyboardPageUp:
-                return .pageUp
-            case .keyboardComma, .keypadComma:
-                return .command
-            case .keyboardLeftControl, .keyboardRightControl:
-                return .control
-            case .keyboardLeftAlt, .keyboardRightAlt:
-                return .option
-            case .keyboardLeftShift, .keyboardRightShift:
-                return .shift
-                
-            default:
-                let character = key.charactersIgnoringModifiers
-                if character != "" {
-                    return .character(character[character.startIndex])
-                } else {
-                    if key.modifierFlags.contains(.command) {
-                        return .command
-                    } else if key.modifierFlags.contains(.shift) {
-                        return .shift
-                    } else if key.modifierFlags.contains(.control) {
-                        return .control
-                    } else if key.modifierFlags.contains(.alternate) {
-                        return .option
-                    }
-                }
+        case .keyboardReturnOrEnter, .keypadEnter:
+            self = .enter
+        case .keyboardTab:
+            self = .tab
+        case .keyboardSpacebar:
+            self = .space
+        case .keyboardDownArrow:
+            self = .arrowDown
+        case .keyboardUpArrow:
+            self = .arrowUp
+        case .keyboardLeftArrow:
+            self = .arrowLeft
+        case .keyboardRightArrow:
+            self = .arrowRight
+        case .keyboardEnd:
+            self = .end
+        case .keyboardHome:
+            self = .home
+        case .keyboardPageDown:
+            self = .pageDown
+        case .keyboardPageUp:
+            self = .pageUp
+        case .keyboardComma, .keypadComma:
+            self = .command
+        case .keyboardLeftControl, .keyboardRightControl:
+            self = .control
+        case .keyboardLeftAlt, .keyboardRightAlt:
+            self = .option
+        case .keyboardLeftShift, .keyboardRightShift:
+            self = .shift
+            
+        default:
+            let character = key.charactersIgnoringModifiers
+            guard character != "" else {
+                return nil
+            }
+            self = .character(character)
+        }
+    }
+}
+
+public extension KeyModifiers {
+    
+    init?(uiPress: UIPress) {
+        guard let flags = uiPress.key?.modifierFlags else {
+            return nil
         }
         
-        return nil
+        self = []
+        
+        if flags.contains(.shift) {
+            insert(.shift)
+        }
+        if flags.contains(.command) {
+            insert(.command)
+        }
+        if flags.contains(.control) {
+            insert(.control)
+        }
+        if flags.contains(.alternate) {
+            insert(.option)
+        }
     }
+    
 }

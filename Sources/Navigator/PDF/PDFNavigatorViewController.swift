@@ -125,20 +125,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     
     override open func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         var didHandleEvent = false
-        for press in presses {
-            if let pressKey = press.pressKey {
-                if pressKey.isModifier {
-                    var modifiers = press.modifiers
-                    if let modifier = pressKey.toModifier {
-                        modifiers.remove(modifier)
-                    }
-                    
-                    delegate?.navigator(self, didPressKey: .init(key: pressKey, modifiers: modifiers))
-                } else {
-                    delegate?.navigator(self, didPressKey: .init(key: pressKey, modifiers: press.modifiers))
+        if (isFirstResponder) {
+            for press in presses {
+                if let event = KeyEvent(uiPress: press) {
+                    delegate?.navigator(self, didPressKey: event)
+                    didHandleEvent = true
                 }
-                
-                didHandleEvent = true
             }
         }
         
@@ -149,10 +141,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     
     override open func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         var didHandleEvent = false
-        for press in presses {
-            if let pressKey = press.pressKey {
-                delegate?.navigator(self, didReleaseKey: .init(key: pressKey, modifiers: []))
-                didHandleEvent = true
+        if (isFirstResponder) {
+            for press in presses {
+                if let event = KeyEvent(uiPress: press) {
+                    delegate?.navigator(self, didReleaseKey: event)
+                    didHandleEvent = true
+                }
             }
         }
         
