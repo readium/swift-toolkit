@@ -512,12 +512,18 @@ extension ReaderViewController: VisualNavigatorDelegate {
     }
     
     func navigator(_ navigator: VisualNavigator, didPressKey event: KeyEvent) {
-        if event.modifiers.isEmpty {
-            if event.key == .arrowRight || event.key == .arrowDown || event.key == .space {
-                navigator.goForward(animated: true) {}
-            } else if event.key == .arrowLeft || event.key == .arrowUp {
-                navigator.goBackward(animated: true) {}
-            }
+        guard event.modifiers.isEmpty else {
+            return
+        }
+        
+        // FIXME: Take into account the reading progression and scroll mode with the Settings API.
+        switch event.key {
+        case .arrowRight, .arrowDown, .space:
+            navigator.goForward(animated: true)
+        case .arrowLeft, .arrowUp:
+            navigator.goBackward(animated: true)
+        default:
+            return
         }
     }
 

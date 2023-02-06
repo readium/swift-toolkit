@@ -107,6 +107,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
             }
         }
     }
+    
+    open override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        becomeFirstResponder()
+    }
 
     open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
@@ -122,6 +128,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
             })
         }
     }
+    
+    open override var canBecomeFirstResponder: Bool { true }
     
     override open func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         var didHandleEvent = false
