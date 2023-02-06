@@ -12,6 +12,11 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Positions computation, TTS and search is now enabled for Readium Web Publications conforming to the [EPUB profile](https://readium.org/webpub-manifest/profiles/epub.html).
 
+#### Navigator
+
+* New `VisualNavigatorDelegate` APIs to handle keyboard events (contributed by [@lukeslu](https://github.com/readium/swift-toolkit/pull/267)).
+    * This can be used to turn pages with the arrow keys, for example.
+
 ### Changed
 
 #### Navigator

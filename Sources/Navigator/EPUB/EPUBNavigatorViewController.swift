@@ -294,7 +294,47 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
             self?.reloadSpreads()
         }
     }
-
+    
+    open override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        becomeFirstResponder()
+    }
+    
+    open override var canBecomeFirstResponder: Bool { true }
+    
+    override open func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        var didHandleEvent = false
+        if (isFirstResponder) {
+            for press in presses {
+                if let event = KeyEvent(uiPress: press) {
+                    delegate?.navigator(self, didPressKey: event)
+                    didHandleEvent = true
+                }
+            }
+        }
+        
+        if !didHandleEvent {
+            super.pressesBegan(presses, with: event)
+        }
+    }
+    
+    override open func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        var didHandleEvent = false
+        if (isFirstResponder) {
+            for press in presses {
+                if let event = KeyEvent(uiPress: press) {
+                    delegate?.navigator(self, didReleaseKey: event)
+                    didHandleEvent = true
+                }
+            }
+        }
+        
+        if !didHandleEvent {
+            super.pressesEnded(presses, with: event)
+        }
+    }
+    
     @discardableResult
     private func on(_ event: Event) -> Bool {
         assert(Thread.isMainThread, "Raising navigation events must be done from the main thread")
@@ -751,6 +791,14 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
 //        }) { _ in
 //            tapView.removeFromSuperview()
 //        }
+    }
+    
+    func spreadView(_ spreadView: EPUBSpreadView, didPressKey event: KeyEvent) {
+        delegate?.navigator(self, didPressKey: event)
+    }
+    
+    func spreadView(_ spreadView: EPUBSpreadView, didReleaseKey event: KeyEvent) {
+        delegate?.navigator(self, didReleaseKey: event)
     }
     
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnExternalURL url: URL) {

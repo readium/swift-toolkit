@@ -13,7 +13,7 @@ env:
 jobs:
   build:
     name: Build
-    runs-on: macos-latest
+    runs-on: macos-11
     env:
       scheme: ${{ 'Readium-Package' }}
       DEVELOPER_DIR: /Applications/Xcode_12.4.app/Contents/Developer
@@ -37,7 +37,7 @@ jobs:
 
   lint:
     name: Lint
-    runs-on: macos-latest
+    runs-on: macos-11
     env:
       scripts: ${{ 'Sources/Navigator/EPUB/Scripts' }}
 
@@ -57,7 +57,7 @@ jobs:
 
   int-dev:
     name: Integration (Local)
-    runs-on: macos-latest
+    runs-on: macos-11
     defaults:
       run:
         working-directory: TestApp
@@ -75,7 +75,7 @@ jobs:
 
   int-spm:
     name: Integration (Swift Package Manager)
-    runs-on: macos-latest
+    runs-on: macos-11
     defaults:
       run:
         working-directory: TestApp
@@ -99,7 +99,7 @@ jobs:
 
   int-carthage:
     name: Integration (Carthage)
-    runs-on: macos-latest
+    runs-on: macos-11
     defaults:
       run:
         working-directory: TestApp
@@ -126,7 +126,7 @@ jobs:
   int-cocoapods:
     name: Integration (CocoaPods)
     if: github.event_name == 'push'
-    runs-on: macos-latest
+    runs-on: macos-11
     defaults:
       run:
         working-directory: TestApp

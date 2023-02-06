@@ -1621,6 +1621,7 @@ window.addEventListener("load", function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "findNearestInteractiveElement": () => (/* binding */ findNearestInteractiveElement),
 /* harmony export */   "findFirstVisibleLocator": () => (/* binding */ findFirstVisibleLocator)
 /* harmony export */ });
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils.js");
@@ -1632,6 +1633,35 @@ __webpack_require__.r(__webpack_exports__);
 //  available in the top-level LICENSE file of the project.
 //
 
+ // Returns `element` or its first parent that is considered "user interactive".
+// For example a link, a video clip or a text field.
+//
+// See. https://github.com/JayPanoz/architecture/tree/touch-handling/misc/touch-handling
+
+function findNearestInteractiveElement(element) {
+  if (element == null) {
+    return null;
+  }
+
+  var interactiveTags = ["a", "audio", "button", "canvas", "details", "input", "label", "option", "select", "submit", "textarea", "video"];
+
+  if (interactiveTags.indexOf(element.nodeName.toLowerCase()) !== -1) {
+    return element.outerHTML;
+  } // Checks whether the element is editable by the user.
+
+
+  if (element.hasAttribute("contenteditable") && element.getAttribute("contenteditable").toLowerCase() != "false") {
+    return element.outerHTML;
+  } // Checks parents recursively because the touch might be for example on an <em> inside a <a>.
+
+
+  if (element.parentElement) {
+    return findNearestInteractiveElement(element.parentElement);
+  }
+
+  return null;
+} /// Returns the `Locator` object to the first block element that is visible on
+/// the screen.
 
 function findFirstVisibleLocator() {
   var element = findElement(document.body);
@@ -1748,11 +1778,13 @@ function shouldIgnoreElement(element) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _decorator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./decorator */ "./src/decorator.js");
 /* harmony import */ var _rect__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./rect */ "./src/rect.js");
+/* harmony import */ var _dom__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./dom */ "./src/dom.js");
 //
 //  Copyright 2021 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
+
 
 
 window.addEventListener("DOMContentLoaded", function () {
@@ -1776,7 +1808,7 @@ function onClick(event) {
     x: point.x,
     y: point.y,
     targetElement: event.target.outerHTML,
-    interactiveElement: nearestInteractiveElement(event.target)
+    interactiveElement: (0,_dom__WEBPACK_IMPORTED_MODULE_2__.findNearestInteractiveElement)(event.target)
   };
 
   if ((0,_decorator__WEBPACK_IMPORTED_MODULE_0__.handleDecorationClickEvent)(event, clickEvent)) {
@@ -1789,27 +1821,6 @@ function onClick(event) {
   webkit.messageHandlers.tap.postMessage(clickEvent); // We don't want to disable the default WebView behavior as it breaks some features without bringing any value.
   // event.stopPropagation();
   // event.preventDefault();
-} // See. https://github.com/JayPanoz/architecture/tree/touch-handling/misc/touch-handling
-
-
-function nearestInteractiveElement(element) {
-  var interactiveTags = ["a", "audio", "button", "canvas", "details", "input", "label", "option", "select", "submit", "textarea", "video"];
-
-  if (interactiveTags.indexOf(element.nodeName.toLowerCase()) !== -1) {
-    return element.outerHTML;
-  } // Checks whether the element is editable by the user.
-
-
-  if (element.hasAttribute("contenteditable") && element.getAttribute("contenteditable").toLowerCase() != "false") {
-    return element.outerHTML;
-  } // Checks parents recursively because the touch might be for example on an <em> inside a <a>.
-
-
-  if (element.parentElement) {
-    return nearestInteractiveElement(element.parentElement);
-  }
-
-  return null;
 }
 
 /***/ }),
@@ -1823,9 +1834,10 @@ function nearestInteractiveElement(element) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _gestures__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./gestures */ "./src/gestures.js");
-/* harmony import */ var _dom__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./dom */ "./src/dom.js");
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils */ "./src/utils.js");
-/* harmony import */ var _decorator__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./decorator */ "./src/decorator.js");
+/* harmony import */ var _keyboard__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./keyboard */ "./src/keyboard.js");
+/* harmony import */ var _dom__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./dom */ "./src/dom.js");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./utils */ "./src/utils.js");
+/* harmony import */ var _decorator__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./decorator */ "./src/decorator.js");
 //
 //  Copyright 2021 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
@@ -1835,23 +1847,85 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
  // Public API used by the navigator.
 
 __webpack_require__.g.readium = {
   // utils
-  scrollToId: _utils__WEBPACK_IMPORTED_MODULE_2__.scrollToId,
-  scrollToPosition: _utils__WEBPACK_IMPORTED_MODULE_2__.scrollToPosition,
-  scrollToText: _utils__WEBPACK_IMPORTED_MODULE_2__.scrollToText,
-  scrollLeft: _utils__WEBPACK_IMPORTED_MODULE_2__.scrollLeft,
-  scrollRight: _utils__WEBPACK_IMPORTED_MODULE_2__.scrollRight,
-  setProperty: _utils__WEBPACK_IMPORTED_MODULE_2__.setProperty,
-  removeProperty: _utils__WEBPACK_IMPORTED_MODULE_2__.removeProperty,
+  scrollToId: _utils__WEBPACK_IMPORTED_MODULE_3__.scrollToId,
+  scrollToPosition: _utils__WEBPACK_IMPORTED_MODULE_3__.scrollToPosition,
+  scrollToText: _utils__WEBPACK_IMPORTED_MODULE_3__.scrollToText,
+  scrollLeft: _utils__WEBPACK_IMPORTED_MODULE_3__.scrollLeft,
+  scrollRight: _utils__WEBPACK_IMPORTED_MODULE_3__.scrollRight,
+  setProperty: _utils__WEBPACK_IMPORTED_MODULE_3__.setProperty,
+  removeProperty: _utils__WEBPACK_IMPORTED_MODULE_3__.removeProperty,
   // decoration
-  registerDecorationTemplates: _decorator__WEBPACK_IMPORTED_MODULE_3__.registerTemplates,
-  getDecorations: _decorator__WEBPACK_IMPORTED_MODULE_3__.getDecorations,
+  registerDecorationTemplates: _decorator__WEBPACK_IMPORTED_MODULE_4__.registerTemplates,
+  getDecorations: _decorator__WEBPACK_IMPORTED_MODULE_4__.getDecorations,
   // DOM
-  findFirstVisibleLocator: _dom__WEBPACK_IMPORTED_MODULE_1__.findFirstVisibleLocator
+  findFirstVisibleLocator: _dom__WEBPACK_IMPORTED_MODULE_2__.findFirstVisibleLocator
 };
+
+/***/ }),
+
+/***/ "./src/keyboard.js":
+/*!*************************!*\
+  !*** ./src/keyboard.js ***!
+  \*************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _dom__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./dom */ "./src/dom.js");
+//
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
+//
+
+window.addEventListener("keydown", event => {
+  if (shouldIgnoreEvent(event)) {
+    return;
+  }
+
+  preventDefault(event);
+  sendPressKeyMessage(event, "keydown");
+});
+window.addEventListener("keyup", event => {
+  if (shouldIgnoreEvent(event)) {
+    return;
+  }
+
+  preventDefault(event);
+  sendPressKeyMessage(event, "keyup");
+});
+
+function shouldIgnoreEvent(event) {
+  return event.defaultPrevented || (0,_dom__WEBPACK_IMPORTED_MODULE_0__.findNearestInteractiveElement)(document.activeElement) != null;
+} // We prevent the default behavior for keyboard events, otherwise the web view
+// might scroll.
+
+
+function preventDefault(event) {
+  event.stopPropagation();
+  event.preventDefault();
+}
+
+function sendPressKeyMessage(event, keyType) {
+  if (event.repeat) return;
+  webkit.messageHandlers.pressKey.postMessage({
+    type: keyType,
+    code: event.code,
+    // We use a deprecated `keyCode` property, because the value of `event.key`
+    // changes depending on which modifier is pressed, while `event.code` shows
+    // the key code of the physical keyboard key, ignoring the virtual layout.
+    key: String.fromCharCode(event.keyCode),
+    option: event.altKey,
+    control: event.ctrlKey,
+    shift: event.shiftKey,
+    command: event.metaKey
+  });
+}
 
 /***/ }),
 

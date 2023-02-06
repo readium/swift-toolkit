@@ -119,6 +119,7 @@
 		5A40B83CF103A9102DF233E2 /* LoggerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72922E22040CEFB3B7BBCDAF /* LoggerStub.swift */; };
 		5B166084DFB7FF0DFD1D111B /* OPDSPrice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C22408FE1FA81400DE8D5F7 /* OPDSPrice.swift */; };
 		5B38F9D78BD04D7385E4B3E4 /* UserRights.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567C115FF0939F69AD83AE82 /* UserRights.swift */; };
+		5B4F174B7B13B8FC0699AFC3 /* KeyEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 422C1DA91ED351C9ABA139DF /* KeyEvent.swift */; };
 		5BF07D73985075F71E70F5D3 /* Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1225F795A69CCB10692A56B5 /* Deprecated.swift */; };
 		5C051B93B795D76666F4344B /* Metadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B24895126F2A744A8E9E61 /* Metadata.swift */; };
 		5C8ED4151A6C7EF6608A03F8 /* AudioSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ECD1D0BE2C4BB5B58E32BFD /* AudioSession.swift */; };
@@ -417,6 +418,7 @@
 		419064D714A90CE07D575629 /* PublicationAsset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationAsset.swift; sourceTree = "<group>"; };
 		41A0528117E270B68AC75C56 /* R2Shared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = R2Shared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		41B61198128D628CFB3FD22A /* DiffableDecoration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffableDecoration.swift; sourceTree = "<group>"; };
+		422C1DA91ED351C9ABA139DF /* KeyEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEvent.swift; sourceTree = "<group>"; };
 		429DC5F399C506D2256F54A7 /* Array.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
 		42EFF9139B59D763CE254F92 /* Presentation+EPUB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Presentation+EPUB.swift"; sourceTree = "<group>"; };
 		4363E8A92B1EA9AF2561DCE9 /* NCXParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCXParser.swift; sourceTree = "<group>"; };
@@ -1452,6 +1454,7 @@
 			isa = PBXGroup;
 			children = (
 				F5C6D0C5860E802EDA23068C /* EditingAction.swift */,
+				422C1DA91ED351C9ABA139DF /* KeyEvent.swift */,
 				25FD89B99234B85BD2A8FC3E /* MediaNavigator.swift */,
 				2BD6F93E379D0DC6FA1DCDEE /* Navigator.swift */,
 				4567A7ABB678715C37661DE3 /* SelectableNavigator.swift */,
@@ -1897,6 +1900,7 @@
 				2718A1F5E4B9D745A270F7B7 /* EditingAction.swift in Sources */,
 				50ED47D5333272EC72732E42 /* HTMLDecorationTemplate.swift in Sources */,
 				0DD0D8BF86E9562C13EE28FA /* ImageViewController.swift in Sources */,
+				5B4F174B7B13B8FC0699AFC3 /* KeyEvent.swift in Sources */,
 				06461C21ECD22CC2360AD0C6 /* MediaNavigator.swift in Sources */,
 				027BC2DD033510C6A2653D37 /* Navigator.swift in Sources */,
 				4542CC5374B86D81C4AD0F88 /* PDFDocumentHolder.swift in Sources */,
