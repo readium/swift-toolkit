@@ -1916,7 +1916,10 @@ function sendPressKeyMessage(event, keyType) {
   webkit.messageHandlers.pressKey.postMessage({
     type: keyType,
     code: event.code,
-    key: event.key,
+    // We use a deprecated `keyCode` property, because the value of `event.key`
+    // changes depending on which modifier is pressed, while `event.code` shows
+    // the key code of the physical keyboard key, ignoring the virtual layout.
+    key: String.fromCharCode(event.keyCode),
     option: event.altKey,
     control: event.ctrlKey,
     shift: event.shiftKey,

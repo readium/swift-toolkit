@@ -617,16 +617,10 @@ private extension KeyEvent {
                 self.key = .backspace
                 
             default:
-                // The "key" event property can change depending on which
-                // modifier is pressed, so we need to use the code instead to
-                // map alphanumerical keys.
-                if code.hasPrefix("Key"), code.count == 4, let letter = code.last {
-                    self.key = .character(letter.lowercased())
-                } else if code.hasPrefix("Digit"), code.count == 5, let number = code.last {
-                    self.key = .character(String(number))
-                } else {
+                guard let char = dict["key"] as? String else {
                     return nil
                 }
+                self.key = .character(char.lowercased())
         }
         
         var modifiers: KeyModifiers = []
