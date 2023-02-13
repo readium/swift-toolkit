@@ -25,6 +25,14 @@ public protocol Configurable {
 /// Marker interface for the `Setting` properties holder.
 public protocol ConfigurableSettings {}
 
+extension Configurable {
+    /// Wraps this `Configurable` with a type eraser.
+    public func eraseToAnyConfigurable() -> AnyConfigurable<Settings> {
+        AnyConfigurable(self)
+    }
+}
+
+/// A type-erasing `Configurable` object.
 public class AnyConfigurable<Settings: ConfigurableSettings>: Configurable {
 
     private let getSettings: () -> Settings
@@ -39,11 +47,5 @@ public class AnyConfigurable<Settings: ConfigurableSettings>: Configurable {
 
     public func submitPreferences(_ preferences: Preferences) {
         submit(preferences)
-    }
-}
-
-extension Configurable {
-    public func eraseToAnyConfigurable() -> AnyConfigurable<Settings> {
-        AnyConfigurable(self)
     }
 }
