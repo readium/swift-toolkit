@@ -68,11 +68,25 @@ public protocol VisualNavigatorDelegate: NavigatorDelegate {
     /// Called when the user tapped the publication, and it didn't trigger any internal action.
     /// The point is relative to the navigator's view.
     func navigator(_ navigator: VisualNavigator, didTapAt point: CGPoint)
+    
+    /// Called when the user pressed a key down and it was not handled by the resource.
+    func navigator(_ navigator: VisualNavigator, didPressKey event: KeyEvent)
+    
+    /// Called when the user released a key and it was not handled by the resource.
+    func navigator(_ navigator: VisualNavigator, didReleaseKey event: KeyEvent)
 }
 
 public extension VisualNavigatorDelegate {
     
     func navigator(_ navigator: VisualNavigator, didTapAt point: CGPoint) {
+        // Optional
+    }
+    
+    func navigator(_ navigator: VisualNavigator, didPressKey event: KeyEvent) {
+        // Optional
+    }
+    
+    func navigator(_ navigator: VisualNavigator, didReleaseKey event: KeyEvent) {
         // Optional
     }
 }

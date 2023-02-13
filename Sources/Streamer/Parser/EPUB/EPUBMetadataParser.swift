@@ -207,8 +207,9 @@ final class EPUBMetadataParser: Loggable {
     }
     
     private func accessibilityProfiles() -> [Accessibility.Profile] {
-        metas["conformsTo", in: .dcterms]
-            .compactMap { accessibilityProfile(from: $0.content) }
+        let hrefs = metas["conformsTo", in: .dcterms].map { $0.content }
+            + metas.links(withRel: "conformsTo", in: .dcterms).map { $0.href }
+        return hrefs.compactMap { accessibilityProfile(from: $0) }
     }
     
     private func accessibilityProfile(from value: String) -> Accessibility.Profile? {

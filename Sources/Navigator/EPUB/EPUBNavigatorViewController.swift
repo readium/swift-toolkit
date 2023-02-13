@@ -226,7 +226,6 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         self.config = config
         self.userSettings = config.userSettings
         publication.userProperties.properties = userSettings.userProperties.properties
-        self.paginationView = PaginationView(frame: .zero, preloadPreviousPositionCount: config.preloadPreviousPositionCount, preloadNextPositionCount: config.preloadNextPositionCount)
 
         self.resourcesURL = {
             do {
@@ -243,7 +242,6 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         super.init(nibName: nil, bundle: nil)
         
         self.editingActions.delegate = self
-        self.paginationView.delegate = self
     }
 
     @available(*, unavailable)
@@ -254,7 +252,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
     open override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .clear
-        paginationView.backgroundColor = .clear
+        
         paginationView.frame = view.bounds
         paginationView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         view.addSubview(paginationView)
@@ -264,6 +262,12 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         editingActions.updateSharedMenuController()
 
         reloadSpreads(at: initialLocation)
+    }
+    
+    @available(iOS 13.0, *)
+    open override func buildMenu(with builder: UIMenuBuilder) {
+        editingActions.buildMenu(with: builder)
+        super.buildMenu(with: builder)
     }
     
     /// Intercepts tap gesture when the web views are not loaded.
@@ -290,7 +294,47 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
             self?.reloadSpreads()
         }
     }
-
+    
+    open override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        becomeFirstResponder()
+    }
+    
+    open override var canBecomeFirstResponder: Bool { true }
+    
+    override open func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        var didHandleEvent = false
+        if (isFirstResponder) {
+            for press in presses {
+                if let event = KeyEvent(uiPress: press) {
+                    delegate?.navigator(self, didPressKey: event)
+                    didHandleEvent = true
+                }
+            }
+        }
+        
+        if !didHandleEvent {
+            super.pressesBegan(presses, with: event)
+        }
+    }
+    
+    override open func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        var didHandleEvent = false
+        if (isFirstResponder) {
+            for press in presses {
+                if let event = KeyEvent(uiPress: press) {
+                    delegate?.navigator(self, didReleaseKey: event)
+                    didHandleEvent = true
+                }
+            }
+        }
+        
+        if !didHandleEvent {
+            super.pressesEnded(presses, with: event)
+        }
+    }
+    
     @discardableResult
     private func on(_ event: Event) -> Bool {
         assert(Thread.isMainThread, "Raising navigation events must be done from the main thread")
@@ -412,7 +456,18 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
     
     // MARK: - Pagination and spreads
     
-    private let paginationView: PaginationView
+    private lazy var paginationView: PaginationView = {
+        let hasPositions = !publication.positions.isEmpty
+        let view = PaginationView(
+            frame: .zero,
+            preloadPreviousPositionCount: hasPositions ? config.preloadPreviousPositionCount : 0,
+            preloadNextPositionCount: hasPositions ? config.preloadNextPositionCount : 0
+        )
+        view.delegate = self
+        view.backgroundColor = .clear
+        return view
+    }()
+    
     private var spreads: [EPUBSpread] = []
 
     /// Index of the currently visible spread.
@@ -736,6 +791,14 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
 //        }) { _ in
 //            tapView.removeFromSuperview()
 //        }
+    }
+    
+    func spreadView(_ spreadView: EPUBSpreadView, didPressKey event: KeyEvent) {
+        delegate?.navigator(self, didPressKey: event)
+    }
+    
+    func spreadView(_ spreadView: EPUBSpreadView, didReleaseKey event: KeyEvent) {
+        delegate?.navigator(self, didReleaseKey: event)
     }
     
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnExternalURL url: URL) {
