@@ -14,6 +14,7 @@ jobs:
   build:
     name: Build
     runs-on: macos-11
+    if: ${{ !github.event.pull_request.draft }}
     env:
       scheme: ${{ 'Readium-Package' }}
       DEVELOPER_DIR: /Applications/Xcode_12.4.app/Contents/Developer
@@ -38,6 +39,7 @@ jobs:
   lint:
     name: Lint
     runs-on: macos-11
+    if: ${{ !github.event.pull_request.draft }}
     env:
       scripts: ${{ 'Sources/Navigator/EPUB/Scripts' }}
 
@@ -58,6 +60,7 @@ jobs:
   int-dev:
     name: Integration (Local)
     runs-on: macos-11
+    if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
         working-directory: TestApp
@@ -76,6 +79,7 @@ jobs:
   int-spm:
     name: Integration (Swift Package Manager)
     runs-on: macos-11
+    if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
         working-directory: TestApp
@@ -100,6 +104,7 @@ jobs:
   int-carthage:
     name: Integration (Carthage)
     runs-on: macos-11
+    if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
         working-directory: TestApp
