@@ -10,6 +10,7 @@ import R2Shared
 /// A `Configurable` is a component with a set of `ConfigurableSettings`.
 public protocol Configurable {
     associatedtype Settings: ConfigurableSettings
+    associatedtype Preferences: ConfigurablePreferences
 
     /// Current `Settings` values.
     var settings: Settings { get }
@@ -25,20 +26,23 @@ public protocol Configurable {
 /// Marker interface for the `Setting` properties holder.
 public protocol ConfigurableSettings {}
 
+/// Marker interface for the `Preferences` properties holder.
+public protocol ConfigurablePreferences {}
+
 extension Configurable {
     /// Wraps this `Configurable` with a type eraser.
-    public func eraseToAnyConfigurable() -> AnyConfigurable<Settings> {
+    public func eraseToAnyConfigurable() -> AnyConfigurable<Settings, Preferences> {
         AnyConfigurable(self)
     }
 }
 
 /// A type-erasing `Configurable` object.
-public class AnyConfigurable<Settings: ConfigurableSettings>: Configurable {
+public class AnyConfigurable<Settings: ConfigurableSettings, Preferences: ConfigurablePreferences>: Configurable {
 
     private let getSettings: () -> Settings
     private let submit: (Preferences) -> Void
 
-    init<C: Configurable>(_ configurable: C) where C.Settings == Settings {
+    init<C: Configurable>(_ configurable: C) where C.Settings == Settings, C.Preferences == Preferences {
         self.getSettings = { configurable.settings }
         self.submit = configurable.submitPreferences
     }
