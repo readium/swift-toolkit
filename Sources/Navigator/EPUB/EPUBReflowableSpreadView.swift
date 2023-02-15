@@ -402,9 +402,9 @@ private enum ReadiumCSSLayout: String {
         }()
         
         switch readingProgression {
-        case .rtl, .btt:
+        case .rtl:
             self = isCJK ? .cjkVertical : .rtl
-        case .ltr, .ttb, .auto:
+        case .ltr:
             self = isCJK ? .cjkHorizontal : .ltr
         }
     }

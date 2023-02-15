@@ -23,7 +23,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         public var preferences: PDFPreferences
 
         /// Provides default fallback values and ranges for the user settings.
-        public var settingsDefaults: PDFSettingsDefaults
+        public var defaults: PDFDefaults
 
         /// Editing actions which will be displayed in the default text selection menu.
         ///
@@ -32,11 +32,11 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
         public init(
             preferences: PDFPreferences = PDFPreferences(),
-            settingsDefaults: PDFSettingsDefaults = PDFSettingsDefaults(),
+            defaults: PDFDefaults = PDFDefaults(),
             editingActions: [EditingAction] = EditingAction.defaultActions
         ) {
             self.preferences = preferences
-            self.settingsDefaults = settingsDefaults
+            self.defaults = defaults
             self.editingActions = editingActions
         }
     }
@@ -54,7 +54,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     private let publication: Publication
     private let initialLocation: Locator?
     private let config: Configuration
-    private let settingsFactory: PDFSettingsFactory
     private let editingActions: EditingActionsController
     /// Reading order index of the current resource.
     private var currentResourceIndex: Int?
@@ -77,9 +76,11 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         self.config = config
         self.editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
 
-        let settingsFactory = PDFSettingsFactory(defaults: config.settingsDefaults)
-        self.settingsFactory = settingsFactory
-        self.settings = settingsFactory.createSettings(metadata: publication.metadata, preferences: config.preferences)
+        self.settings = PDFSettings(
+            preferences: config.preferences,
+            defaults: config.defaults,
+            metadata: publication.metadata
+        )
 
         super.init(nibName: nil, bundle: nil)
         
@@ -136,7 +137,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         
         if let pdfView = pdfView, scalesDocumentToFit {
             // Reset the PDF view to update the spread if needed.
-            if settings.spread.value == .auto {
+            if settings.spread == .auto {
                 // FIXME: Threshold
                 resetPDFView(at: currentLocation)
             }
@@ -223,10 +224,10 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     }
 
     private func apply(settings: PDFSettings, to pdfView: PDFView) {
-        let isRTL = (settings.readingProgression.value == .rtl)
+        let isRTL = (settings.readingProgression == .rtl)
 
         let spread: Bool = {
-            switch settings.spread.value {
+            switch settings.spread {
             case .auto:
                 return view.bounds.width > view.bounds.height
             case .never:
@@ -236,8 +237,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
             }
         }()
 
-        if settings.scroll.value {
-            pdfView.displayDirection = settings.scrollAxis.value.displayDirection
+        if settings.scroll {
+            pdfView.displayDirection = settings.scrollAxis.displayDirection
             if spread && pdfView.displayDirection == .vertical {
                 pdfView.displayMode = .twoUpContinuous
             } else {
@@ -255,7 +256,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         }
 
         var margins: UIEdgeInsets = .zero
-        let pageSpacing = settings.pageSpacing.value
+        let pageSpacing = settings.pageSpacing
         if pdfView.displayDirection == .horizontal {
             if isRTL {
                 margins.left = pageSpacing
@@ -272,7 +273,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         pdfView.autoScales = !scalesDocumentToFit
 
         if let scrollView = pdfView.firstScrollView {
-            let showScrollbar = settings.visibleScrollbar.value
+            let showScrollbar = settings.visibleScrollbar
             scrollView.showsVerticalScrollIndicator = showScrollbar
             scrollView.showsHorizontalScrollIndicator = showScrollbar
         }
@@ -405,7 +406,11 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     @Observed public private(set) var settings: PDFSettings
 
     public func submitPreferences(_ preferences: PDFPreferences) {
-        settings = settingsFactory.createSettings(metadata: publication.metadata, preferences: preferences)
+        settings = PDFSettings(
+            preferences: preferences,
+            defaults: config.defaults,
+            metadata: publication.metadata
+        )
         if isViewLoaded {
             resetPDFView(at: currentLocation)
         }
@@ -455,7 +460,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     
     // MARK: - Navigator
 
-    public var readingProgression: ReadingProgression {
+    public var readingProgression: R2Shared.ReadingProgression {
         publication.metadata.effectiveReadingProgression
     }
     

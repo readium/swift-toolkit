@@ -6,6 +6,7 @@
 
 import Foundation
 
+/*
 /// Represents a single configurable property of a `Configurable` component and holds its current
 /// `value`.
 public class Setting<Value: Hashable> {
@@ -180,3 +181,5 @@ public class EnumSetting<Value: Hashable>: Setting<Value> {
         super.init(key: key, value: value, activator: activator)
     }
 }
+
+*/

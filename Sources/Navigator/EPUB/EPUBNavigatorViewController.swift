@@ -110,7 +110,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
     }
     public var userSettings: UserSettings
 
-    public var readingProgression: ReadingProgression {
+    public var readingProgression: R2Shared.ReadingProgression {
         didSet { updateUserSettingStyle() }
     }
     
@@ -522,7 +522,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         }
 
         let locator = locator ?? self.currentLocation
-        self.spreads = EPUBSpread.makeSpreads(for: self.publication, readingProgression: self.readingProgression, pageCountPerSpread: pageCountPerSpread)
+        self.spreads = EPUBSpread.makeSpreads(for: self.publication, readingProgression: ReadingProgression(self.readingProgression) ?? .ltr, pageCountPerSpread: pageCountPerSpread)
         
         let initialIndex: Int = {
             if let href = locator?.href, let foundIndex = self.spreads.firstIndex(withHref: href) {
@@ -532,7 +532,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
             }
         }()
         
-        self.paginationView.reloadAtIndex(initialIndex, location: PageLocation(locator), pageCount: self.spreads.count, readingProgression: self.readingProgression) {
+        self.paginationView.reloadAtIndex(initialIndex, location: PageLocation(locator), pageCount: self.spreads.count, readingProgression: ReadingProgression(self.readingProgression) ?? .ltr) {
             self.on(.loaded)
             completion()
         }
@@ -947,7 +947,7 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
             publication: publication,
             spread: spread,
             resourcesURL: resourcesURL,
-            readingProgression: readingProgression,
+            readingProgression: ReadingProgression(readingProgression) ?? .ltr,
             userSettings: userSettings,
             scripts: [],
             animatedLoad: false,  // FIXME: custom animated

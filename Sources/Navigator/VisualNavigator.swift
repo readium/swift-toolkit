@@ -15,7 +15,7 @@ public protocol VisualNavigator: Navigator {
     var view: UIView! { get }
     
     /// Current reading progression direction.
-    var readingProgression: ReadingProgression { get }
+    var readingProgression: R2Shared.ReadingProgression { get }
     
     /// Moves to the left content portion (eg. page) relative to the reading progression direction.
     /// - Parameter completion: Called when the transition is completed.

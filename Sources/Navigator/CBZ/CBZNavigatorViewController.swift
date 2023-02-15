@@ -126,7 +126,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
     // MARK: - Navigator
     
-    public var readingProgression: ReadingProgression {
+    public var readingProgression: R2Shared.ReadingProgression {
         publication.metadata.effectiveReadingProgression
     }
 

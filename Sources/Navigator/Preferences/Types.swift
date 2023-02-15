@@ -36,6 +36,16 @@ public enum ReadingProgression: String, Hashable {
             default: return nil
         }
     }
+    
+    /// Returns the leading Page for the reading progression.
+    var leadingPage: Presentation.Page {
+        switch self {
+        case .ltr:
+            return .left
+        case .rtl:
+            return .right
+        }
+    }
 }
 
 /// Method for constraining a resource inside the viewport.

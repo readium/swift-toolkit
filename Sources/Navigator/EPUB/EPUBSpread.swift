@@ -46,9 +46,9 @@ struct EPUBSpread: Loggable {
     /// Links for the resources in the spread, from left to right.
     var linksLTR: [Link] {
         switch readingProgression {
-        case .ltr, .ttb, .auto:
+        case .ltr:
             return links
-        case .rtl, .btt:
+        case .rtl:
             return links.reversed()
         }
     }

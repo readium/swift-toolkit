@@ -8,7 +8,7 @@ import Foundation
 import R2Shared
 
 /// Preferences for the `PDFNavigatorViewController`.
-public struct PDFPreferences: ConfigurableSettings {
+public struct PDFPreferences: ConfigurablePreferences {
 
     /// Spacing between pages in points.
     public var pageSpacing: Double? {
