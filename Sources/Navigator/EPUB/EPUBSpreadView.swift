@@ -337,6 +337,24 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
+    
+    func findElementLocator(at point: CGPoint, completion: @escaping (Locator?) -> Void) {
+        let x = Int(point.x - webView.frame.minX)
+        let y = Int(point.y - webView.frame.minY)
+        evaluateScript("readium.findLocatorAtPoint(\(x), \(y))") { result in
+            DispatchQueue.main.async {
+                do {
+                    let resource = self.spread.leading
+                    let locator = try Locator(json: result.get())?
+                        .copy(href: resource.href, type: resource.type ?? MediaType.xhtml.string)
+                    completion(locator)
+                } catch {
+                    self.log(.error, error)
+                    completion(nil)
+                }
+            }
+        }
+    }
 
     // MARK: - JS Messages
     

@@ -70,6 +70,24 @@ export function findFirstVisibleLocator() {
   };
 }
 
+export function findLocatorAtPoint(x, y) {
+  const element = document.elementFromPoint(x, y);
+  if (!element) {
+    return undefined;
+  }
+
+  return {
+    href: "#",
+    type: "application/xhtml+xml",
+    locations: {
+      cssSelector: getCssSelector(element),
+    },
+    text: {
+      highlight: element.textContent,
+    },
+  };
+}
+
 function findElement(rootElement) {
   var foundElement = undefined;
   for (var i = rootElement.children.length - 1; i >= 0; i--) {
