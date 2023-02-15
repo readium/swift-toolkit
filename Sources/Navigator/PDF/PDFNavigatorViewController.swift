@@ -20,7 +20,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     public struct Configuration {
 
         /// Initial set of setting preferences.
-        public var preferences: Preferences
+        public var preferences: PDFPreferences
 
         /// Provides default fallback values and ranges for the user settings.
         public var settingsDefaults: PDFSettingsDefaults
@@ -31,7 +31,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         public var editingActions: [EditingAction]
 
         public init(
-            preferences: Preferences = Preferences(),
+            preferences: PDFPreferences = PDFPreferences(),
             settingsDefaults: PDFSettingsDefaults = PDFSettingsDefaults(),
             editingActions: [EditingAction] = EditingAction.defaultActions
         ) {
@@ -404,7 +404,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
     @Observed public private(set) var settings: PDFSettings
 
-    public func submitPreferences(_ preferences: Preferences) {
+    public func submitPreferences(_ preferences: PDFPreferences) {
         settings = settingsFactory.createSettings(metadata: publication.metadata, preferences: preferences)
         if isViewLoaded {
             resetPDFView(at: currentLocation)
