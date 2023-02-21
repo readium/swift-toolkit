@@ -8,6 +8,18 @@ import Foundation
 
 extension String {
     
+    /// Returns this string after removing any character forbidden in a single path component.
+    public var sanitizedPathComponent: String {
+        // See https://superuser.com/a/358861
+        let invalidCharacters = CharacterSet(charactersIn: "\\/:*?\"<>|")
+            .union(.newlines)
+            .union(.illegalCharacters)
+            .union(.controlCharacters)
+
+        return components(separatedBy: invalidCharacters)
+            .joined(separator: " ")
+    }
+    
     /// Returns a copy of the string after adding the given `prefix` if it's not already there.
     public func addingPrefix(_ prefix: String) -> String {
         if hasPrefix(prefix) {

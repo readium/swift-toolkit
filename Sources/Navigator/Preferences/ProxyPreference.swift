@@ -70,18 +70,18 @@ public class ProxyRangePreference<Value: Comparable>: ProxyPreference<Value>, Ra
     private let valueFormatter: (Value) -> String
     private let progressionStrategy: AnyProgressionStrategy<Value>
 
-    init<P: ProgressionStrategy>(
+    init(
         value: @escaping () -> Value?,
         effectiveValue: @escaping () -> Value,
         isEffective: @escaping () -> Bool,
         set: @escaping (Value?) -> Void,
         format: @escaping (Value) -> String,
         supportedRange: ClosedRange<Value>,
-        progressionStrategy: P
-    ) where P.Value == Value {
+        progressionStrategy: AnyProgressionStrategy<Value>
+    ) {
         self.supportedRange = supportedRange
         self.valueFormatter = format
-        self.progressionStrategy = progressionStrategy.eraseToAnyProgressionStrategy()
+        self.progressionStrategy = progressionStrategy
         super.init(value: value, effectiveValue: effectiveValue, isEffective: isEffective, set: set)
     }
 

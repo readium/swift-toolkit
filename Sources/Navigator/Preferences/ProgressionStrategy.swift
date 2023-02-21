@@ -72,8 +72,22 @@ public class AnyProgressionStrategy<Value>: ProgressionStrategy {
     }
 }
 
-extension ProgressionStrategy {
-    public func eraseToAnyProgressionStrategy() -> AnyProgressionStrategy<Value> {
+public extension ProgressionStrategy {
+    func eraseToAnyProgressionStrategy() -> AnyProgressionStrategy<Value> {
         AnyProgressionStrategy(self)
+    }
+}
+
+public extension AnyProgressionStrategy where Value: Numeric {
+
+    static func increment(_ increment: Value) -> AnyProgressionStrategy<Value> {
+        IncrementProgressionStrategy(increment: increment).eraseToAnyProgressionStrategy()
+    }
+}
+
+public extension AnyProgressionStrategy where Value: Comparable {
+
+    static func steps(_ steps: [Value]) -> AnyProgressionStrategy<Value> {
+        StepsProgressionStrategy(steps: steps).eraseToAnyProgressionStrategy()
     }
 }
