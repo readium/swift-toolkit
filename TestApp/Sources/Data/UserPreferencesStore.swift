@@ -77,7 +77,6 @@ final class DatabaseUserPreferencesStore<Preferences: ConfigurablePreferences>: 
 
     func savePreferences(_ preferences: Preferences, of bookId: Book.Id) async throws {
         try await books.savePreferences(preferences, of: bookId)
-            .async()
     }
 
     func preferences(for bookId: Book.Id) async throws -> Preferences {

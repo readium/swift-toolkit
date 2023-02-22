@@ -26,12 +26,12 @@ class LCPLibraryService: DRMLibraryService {
     lazy var contentProtection: ContentProtection? = lcpService.contentProtection()
     
     func canFulfill(_ file: URL) -> Bool {
-        return file.pathExtension.lowercased() == "lcpl"
+        file.pathExtension.lowercased() == "lcpl"
     }
     
-    func fulfill(_ file: URL) -> AnyPublisher<DRMFulfilledPublication?, Error> {
-        Future { promise in
-            self.lcpService.acquirePublication(from: file) { result in
+    func fulfill(_ file: URL) async throws -> DRMFulfilledPublication? {
+        try await withCheckedThrowingContinuation { cont in
+            lcpService.acquirePublication(from: file) { result in
                 // Removes the license file, but only if it's in the App directory (e.g. Inbox/).
                 // Otherwise we might delete something from a shared location (e.g. iCloud).
                 if Paths.isAppFile(at: file) {
@@ -40,17 +40,17 @@ class LCPLibraryService: DRMLibraryService {
                 
                 switch result {
                 case .success(let pub):
-                    promise(.success(DRMFulfilledPublication(
+                    cont.resume(returning: DRMFulfilledPublication(
                         localURL: pub.localURL,
                         suggestedFilename: pub.suggestedFilename
-                    )))
+                    ))
                 case .failure(let error):
-                    promise(.failure(error))
+                    cont.resume(throwing: error)
                 case .cancelled:
-                    promise(.success(nil))
+                    cont.resume(returning: nil)
                 }
             }
-        }.eraseToAnyPublisher()
+        }
     }
 }
 

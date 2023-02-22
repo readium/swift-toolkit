@@ -112,23 +112,24 @@ final class BookRepository {
         }
     }
     
-    func add(_ book: Book) -> AnyPublisher<Book.Id, Error> {
-        return db.write { db in
+    @discardableResult
+    func add(_ book: Book) async throws -> Book.Id {
+        try await db.write { db in
             try book.insert(db)
             return Book.Id(rawValue: db.lastInsertedRowID)
-        }.eraseToAnyPublisher()
+        }
     }
     
-    func remove(_ id: Book.Id) -> AnyPublisher<Void, Error> {
-        db.write { db in try Book.deleteOne(db, key: id) }
+    func remove(_ id: Book.Id) async throws {
+        try await db.write { db in try Book.deleteOne(db, key: id) }
     }
     
-    func saveProgress(for id: Book.Id, locator: Locator) -> AnyPublisher<Void, Error> {
+    func saveProgress(for id: Book.Id, locator: Locator) async throws {
         guard let json = locator.jsonString else {
-            return .just(())
+            return
         }
         
-        return db.write { db in
+        try await db.write { db in
             try db.execute(literal: """
                 UPDATE book
                    SET locator = \(json), progression = \(locator.locations.totalProgression ?? 0)
@@ -137,8 +138,8 @@ final class BookRepository {
         }
     }
     
-    func savePreferences<Preferences: Encodable>(_ preferences: Preferences, of id: Book.Id) -> AnyPublisher<Void, Error> {
-        return db.write { db in
+    func savePreferences<Preferences: Encodable>(_ preferences: Preferences, of id: Book.Id) async throws {
+        try await db.write { db in
             guard var book = try Book.fetchOne(db, key: id) else {
                 return
             }

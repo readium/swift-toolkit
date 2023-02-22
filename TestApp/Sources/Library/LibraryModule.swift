@@ -29,15 +29,13 @@ protocol LibraryModuleAPI {
     /// Imports a new publication to the library, either from:
     /// - a local file URL
     /// - a remote URL which will be downloaded
-    func importPublication(from url: URL, sender: UIViewController) -> AnyPublisher<Book, LibraryError>
-
+    func importPublication(from url: URL, sender: UIViewController) async throws -> Book
 }
 
 protocol LibraryModuleDelegate: ModuleDelegate {
     
     /// Called when the user tap on a publication in the library.
-    func libraryDidSelectPublication(_ publication: Publication, book: Book, completion: @escaping () -> Void)
-
+    func libraryDidSelectPublication(_ publication: Publication, book: Book)
 }
 
 
@@ -65,7 +63,7 @@ final class LibraryModule: LibraryModuleAPI {
         return library
     }()
     
-    func importPublication(from url: URL, sender: UIViewController) -> AnyPublisher<Book, LibraryError> {
-        library.importPublication(from: url, sender: sender)
+    func importPublication(from url: URL, sender: UIViewController) async throws -> Book {
+        try await library.importPublication(from: url, sender: sender)
     }
 }

@@ -23,7 +23,7 @@ protocol ReaderModuleAPI {
     
     /// Presents the given publication to the user, inside the given navigation controller.
     /// - Parameter completion: Called once the publication is presented, or if an error occured.
-    func presentPublication(publication: Publication, book: Book, in navigationController: UINavigationController, completion: @escaping () -> Void)
+    func presentPublication(publication: Publication, book: Book, in navigationController: UINavigationController)
     
 }
 
@@ -61,7 +61,7 @@ final class ReaderModule: ReaderModuleAPI {
         }
     }
     
-    func presentPublication(publication: Publication, book: Book, in navigationController: UINavigationController, completion: @escaping () -> Void) {
+    func presentPublication(publication: Publication, book: Book, in navigationController: UINavigationController) {
         guard let delegate = delegate, let bookId = book.id else {
             fatalError("Reader delegate not set")
         }
@@ -76,7 +76,6 @@ final class ReaderModule: ReaderModuleAPI {
         
         guard let module = self.formatModules.first(where:{ $0.supports(publication) }) else {
             delegate.presentError(ReaderError.formatNotSupported, from: navigationController)
-            completion()
             return
         }
 
@@ -86,8 +85,6 @@ final class ReaderModule: ReaderModuleAPI {
         } catch {
             delegate.presentError(error, from: navigationController)
         }
-
-        completion()
     }
     
 }

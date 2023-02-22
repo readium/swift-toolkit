@@ -70,9 +70,16 @@ final class Database {
         }
     }
     
-    func write<T>(_ updates: @escaping (GRDB.Database) throws -> T) -> AnyPublisher<T, Error> {
-        writer.writePublisher(updates: updates)
-            .eraseToAnyPublisher()
+    @discardableResult
+    func write<T>(_ updates: @escaping (GRDB.Database) throws -> T) async throws -> T {
+        try await withCheckedThrowingContinuation { cont in
+            writer.asyncWrite(
+                { try updates($0) },
+                completion: { _, result in
+                    cont.resume(with: result)
+                }
+            )
+        }
     }
     
     func observe<T>(_ query: @escaping (GRDB.Database) throws -> T) -> AnyPublisher<T, Error> {

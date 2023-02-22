@@ -29,6 +29,5 @@ protocol DRMLibraryService {
     func canFulfill(_ file: URL) -> Bool
     
     /// Fulfills the given file to the fully protected publication.
-    func fulfill(_ file: URL) -> AnyPublisher<DRMFulfilledPublication?, Error>
-    
+    func fulfill(_ file: URL) async throws -> DRMFulfilledPublication?
 }

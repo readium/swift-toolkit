@@ -24,48 +24,50 @@ extension HTTPClient {
         .eraseToAnyPublisher()
     }
     
-    func download(_ request: HTTPRequestConvertible, progress: @escaping (Double) -> Void) -> AnyPublisher<HTTPDownload, HTTPError> {
-        openTemporaryFileForWriting()
-            .flatMap { (destination, handle) -> AnyPublisher<HTTPDownload, HTTPError> in
+    func download(_ request: HTTPRequestConvertible, progress: @escaping (Double) -> Void) async throws -> HTTPDownload {
+        try await withCheckedThrowingContinuation { cont in
+            do {
+                let (destination, handle) = try openTemporaryFileForWriting()
                 var cancellable: R2Shared.Cancellable? = nil
                 
-                return Future { promise in
-                    cancellable = self.stream(request,
-                        consume: { data, progression in
-                            if let progression = progression {
-                                progress(progression)
-                            }
-                            handle.write(data)
-                        },
-                        completion: { result in
-                            do {
-                                try handle.close()
-                                promise(.success(HTTPDownload(file: destination, response: try result.get())))
-                            } catch {
-                                try? FileManager.default.removeItem(at: destination)
-                                promise(.failure(HTTPError(error: error)))
-                            }
-                        })
-                }
-                .handleEvents(receiveCancel: {
-                    cancellable?.cancel()
-                    try? handle.close()
-                    try? FileManager.default.removeItem(at: destination)
-                })
-                .eraseToAnyPublisher()
+                cancellable = stream(request,
+                    consume: { data, progression in
+                        if Task.isCancelled {
+                            cancellable?.cancel()
+                            try? handle.close()
+                            try? FileManager.default.removeItem(at: destination)
+                            return
+                        }
+                        if let progression = progression {
+                            progress(progression)
+                        }
+                        handle.write(data)
+                    },
+                    completion: { result in
+                        do {
+                            try handle.close()
+                            cont.resume(returning: HTTPDownload(file: destination, response: try result.get()))
+                        } catch {
+                            try? FileManager.default.removeItem(at: destination)
+                            cont.resume(throwing: HTTPError(error: error))
+                        }
+                    }
+                )
+            } catch {
+                cont.resume(throwing: HTTPError(error: error))
             }
-            .eraseToAnyPublisher()
+        }
     }
     
-    private func openTemporaryFileForWriting() -> AnyPublisher<(URL, FileHandle), HTTPError> {
-        Paths.makeTemporaryURL()
-            .tryMap { destination in
-                // Makes sure the file exists.
-                try "".write(to: destination, atomically: true, encoding: .utf8)
-                let handle = try FileHandle(forWritingTo: destination)
-                return (destination, handle)
-            }
-            .mapError { HTTPError(kind: .other, cause: $0) }
-            .eraseToAnyPublisher()
+    private func openTemporaryFileForWriting() throws -> (URL, FileHandle) {
+        let destination = Paths.makeTemporaryURL()
+        // Makes sure the file exists.
+        try "".write(to: destination, atomically: true, encoding: .utf8)
+        do {
+            let handle = try FileHandle(forWritingTo: destination)
+            return (destination, handle)
+        } catch {
+            throw HTTPError(kind: .other, cause: error)
+        }
     }
 }

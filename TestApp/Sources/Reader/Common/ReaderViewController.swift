@@ -223,17 +223,15 @@ class ReaderViewController: UIViewController, Loggable {
             return
         }
         
-        bookmarks.add(bookmark)
-            .sink { completion in
-                switch completion {
-                case .finished:
-                    toast(NSLocalizedString("reader_bookmark_success_message", comment: "Success message when adding a bookmark"), on: self.view, duration: 1)
-                case .failure(let error):
-                    print(error)
-                    toast(NSLocalizedString("reader_bookmark_failure_message", comment: "Error message when adding a new bookmark failed"), on: self.view, duration: 2)
-                }
-            } receiveValue: { _ in }
-            .store(in: &subscriptions)
+        Task {
+            do {
+                try await bookmarks.add(bookmark)
+                toast(NSLocalizedString("reader_bookmark_success_message", comment: "Success message when adding a bookmark"), on: self.view, duration: 1)
+            } catch {
+                print(error)
+                toast(NSLocalizedString("reader_bookmark_failure_message", comment: "Error message when adding a new bookmark failed"), on: self.view, duration: 2)
+            }
+        }
     }
     
     // MARK: - Search
@@ -407,13 +405,13 @@ class ReaderViewController: UIViewController, Loggable {
 extension ReaderViewController: NavigatorDelegate {
 
     func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
-        books.saveProgress(for: bookId, locator: locator)
-            .sink { [weak self] completion in
-                if let self = self, case .failure(let error) = completion {
-                    self.moduleDelegate?.presentError(error, from: self)
-                }
-            } receiveValue: { _ in }
-            .store(in: &subscriptions)
+        Task {
+            do {
+                try await books.saveProgress(for: bookId, locator: locator)
+            } catch {
+                moduleDelegate?.presentError(error, from: self)
+            }
+        }
 
         positionLabel.text = {
             if let position = locator.locations.position {
@@ -535,37 +533,31 @@ extension ReaderViewController {
     func saveHighlight(_ highlight: Highlight) {
         guard let highlights = highlights else { return }
         
-        highlights.add(highlight)
-            .sink { completion in
-                switch completion {
-                case .finished:
-                    toast(NSLocalizedString("reader_highlight_success_message", comment: "Success message when adding a bookmark"), on: self.view, duration: 1)
-                case .failure(let error):
-                    print(error)
-                    toast(NSLocalizedString("reader_highlight_failure_message", comment: "Error message when adding a new bookmark failed"), on: self.view, duration: 2)
-                }
-            } receiveValue: { _ in }
-            .store(in: &subscriptions)
+        Task {
+            do {
+                try await highlights.add(highlight)
+                toast(NSLocalizedString("reader_highlight_success_message", comment: "Success message when adding a bookmark"), on: view, duration: 1)
+            } catch {
+                print(error)
+                toast(NSLocalizedString("reader_highlight_failure_message", comment: "Error message when adding a new bookmark failed"), on: view, duration: 2)
+            }
+        }
     }
 
     func updateHighlight(_ highlightID: Highlight.Id, withColor color: HighlightColor) {
         guard let highlights = highlights else { return }
         
-        highlights.update(highlightID, color: color)
-            .assertNoFailure()
-            .sink { completion in
-                
-            }
-            .store(in: &subscriptions)
+        Task {
+            try! await highlights.update(highlightID, color: color)
+        }
     }
 
     func deleteHighlight(_ highlightID: Highlight.Id)  {
         guard let highlights = highlights else { return }
         
-        highlights.remove(highlightID)
-            .assertNoFailure()
-            .sink {}
-            .store(in: &subscriptions)
+        Task {
+            try! await highlights.remove(highlightID)
+        }
     }
 }
 

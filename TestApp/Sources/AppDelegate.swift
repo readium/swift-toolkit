@@ -61,11 +61,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-        app.library.importPublication(from: url, sender: window!.rootViewController!)
-            .assertNoFailure()
-            .sink { _ in }
-            .store(in: &subscriptions)
+        Task {
+            try! await app.library.importPublication(from: url, sender: window!.rootViewController!)
+        }
         return true
     }
-
 }
