@@ -8,13 +8,13 @@ import Foundation
 import R2Shared
 
 /// Layout axis.
-public enum Axis: String, Hashable {
+public enum Axis: String, Codable, Hashable {
     case horizontal
     case vertical
 }
 
 /// Synthetic spread policy.
-public enum Spread: String, Hashable {
+public enum Spread: String, Codable, Hashable {
     /// The publication should be displayed in a spread if the screen is large
     /// enough.
     case auto
@@ -25,7 +25,7 @@ public enum Spread: String, Hashable {
 }
 
 /// Direction of the reading progression across resources.
-public enum ReadingProgression: String, Hashable {
+public enum ReadingProgression: String, Codable, Hashable {
     case ltr
     case rtl
 
@@ -49,7 +49,7 @@ public enum ReadingProgression: String, Hashable {
 }
 
 /// Method for constraining a resource inside the viewport.
-public enum Fit: String, Hashable {
+public enum Fit: String, Codable, Hashable {
     case cover
     case contain
     case width

@@ -23,11 +23,17 @@ public protocol Configurable {
     func submitPreferences(_ preferences: Preferences)
 }
 
-/// Marker interface for the `Setting` properties holder.
+/// Marker interface for the setting properties holder.
 public protocol ConfigurableSettings {}
 
 /// Marker interface for the `Preferences` properties holder.
-public protocol ConfigurablePreferences {}
+public protocol ConfigurablePreferences: Codable, Equatable {
+
+    /// Creates a new instance of `Self` after merging the values of `other`.
+    ///
+    /// In case of conflict, `other` takes precedence.
+    func merging(_ other: Self) -> Self
+}
 
 extension Configurable {
     /// Wraps this `Configurable` with a type eraser.

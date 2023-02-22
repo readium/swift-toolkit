@@ -48,4 +48,33 @@ public struct PDFPreferences: ConfigurablePreferences {
         self.spread = spread
         self.visibleScrollbar = visibleScrollbar
     }
+
+    public func merging(_ other: PDFPreferences) -> PDFPreferences {
+        PDFPreferences(
+            pageSpacing: other.pageSpacing ?? pageSpacing,
+            readingProgression: other.readingProgression ?? readingProgression,
+            scroll: other.scroll ?? scroll,
+            scrollAxis: other.scrollAxis ?? scrollAxis,
+            spread: other.spread ?? spread,
+            visibleScrollbar: other.visibleScrollbar ?? visibleScrollbar
+        )
+    }
+
+    /// Returns a new `PDFPreferences` with the publication-specific preferences
+    /// removed.
+    public static func filterSharedPreferences(_ preferences: PDFPreferences) -> PDFPreferences {
+        var prefs = preferences
+        prefs.readingProgression = nil
+        prefs.spread = nil
+        return prefs
+    }
+
+    /// Returns a new `PDFPreferences` keeping only the publication-specific
+    /// preferences.
+    public static func filterPublicationPreferences(_ preferences: PDFPreferences) -> PDFPreferences {
+        PDFPreferences(
+            readingProgression: preferences.readingProgression,
+            spread: preferences.spread
+        )
+    }
 }
