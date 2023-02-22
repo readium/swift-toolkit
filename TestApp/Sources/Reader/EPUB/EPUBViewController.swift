@@ -149,11 +149,6 @@ extension EPUBViewController: UserSettingsNavigationControllerDelegate {
         
         navigator.view.backgroundColor = colors.mainColor
         view.backgroundColor = colors.mainColor
-        //
-        navigationController?.navigationBar.barTintColor = colors.mainColor
-        navigationController?.navigationBar.tintColor = colors.textColor
-        
-        navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: colors.textColor]
     }
     
 }

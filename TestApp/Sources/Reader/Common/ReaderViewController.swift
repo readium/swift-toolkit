@@ -131,12 +131,6 @@ class ReaderViewController: UIViewController, Loggable {
         }
     }
     
-    override func willMove(toParent parent: UIViewController?) {
-        // Restore library's default UI colors
-        navigationController?.navigationBar.tintColor = .black
-        navigationController?.navigationBar.barTintColor = .white
-    }
-    
     
     // MARK: - Navigation bar
     
@@ -374,7 +368,6 @@ class ReaderViewController: UIViewController, Loggable {
             makeItem(.flexibleSpace),
         ]
         toolbar.isHidden = !UIAccessibility.isVoiceOverRunning
-        toolbar.tintColor = UIColor.black
         return toolbar
     }()
     
