@@ -19,31 +19,6 @@ public protocol PreferencesEditor: AnyObject {
     func clear()
 }
 
-public extension PreferencesEditor {
-    /// A type-erasing wrapper for this `PreferencesEditor`.
-    func eraseToAnyPreferencesEditor() -> AnyPreferencesEditor<Preferences> {
-        AnyPreferencesEditor(self)
-    }
-}
-
-/// A type-erasing `PreferencesEditor`.
-public final class AnyPreferencesEditor<Preferences: ConfigurablePreferences>: PreferencesEditor {
-
-    private let _preferences: () -> Preferences
-    private let _clear: () -> Void
-
-    init<E: PreferencesEditor>(_ editor: E) where E.Preferences == Preferences {
-        self._preferences = { editor.preferences }
-        self._clear = editor.clear
-    }
-
-    public var preferences: Preferences { _preferences() }
-
-    public func clear() {
-        _clear()
-    }
-}
-
 /// This base class can be used to build a mutable `PreferencesEditor` with
 /// a more declarative API.
 public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Settings: ConfigurableSettings> : PreferencesEditor {

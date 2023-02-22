@@ -416,12 +416,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         }
     }
 
-    public func editor(of preferences: PDFPreferences) -> AnyPreferencesEditor<PDFPreferences> {
+    public func editor(of preferences: PDFPreferences) -> PDFPreferencesEditor {
         PDFPreferencesEditor(
             initialPreferences: preferences,
             metadata: publication.metadata,
             defaults: config.defaults
-        ).eraseToAnyPreferencesEditor()
+        )
     }
 
     // MARK: - SelectableNavigator

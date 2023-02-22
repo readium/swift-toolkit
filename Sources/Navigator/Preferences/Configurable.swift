@@ -11,6 +11,7 @@ import R2Shared
 public protocol Configurable {
     associatedtype Settings: ConfigurableSettings
     associatedtype Preferences: ConfigurablePreferences
+    associatedtype Editor: PreferencesEditor where Editor.Preferences == Preferences
 
     /// Current `Settings` values.
     var settings: Settings { get }
@@ -24,7 +25,7 @@ public protocol Configurable {
 
     /// Creates a `PreferencesEditor` helping build a user interface and modifying the given
     /// `preferences`.
-    func editor(of preferences: Preferences) -> AnyPreferencesEditor<Preferences>
+    func editor(of preferences: Preferences) -> Editor
 }
 
 /// Marker interface for the setting properties holder.
@@ -41,19 +42,24 @@ public protocol ConfigurablePreferences: Codable, Equatable {
 
 extension Configurable {
     /// Wraps this `Configurable` with a type eraser.
-    public func eraseToAnyConfigurable() -> AnyConfigurable<Settings, Preferences> {
+    public func eraseToAnyConfigurable() -> AnyConfigurable<Settings, Preferences, Editor> {
         AnyConfigurable(self)
     }
 }
 
 /// A type-erasing `Configurable` object.
-public class AnyConfigurable<Settings: ConfigurableSettings, Preferences: ConfigurablePreferences>: Configurable {
+public class AnyConfigurable<
+    Settings: ConfigurableSettings,
+    Preferences: ConfigurablePreferences,
+    Editor: PreferencesEditor
+>: Configurable where Editor.Preferences == Preferences {
 
     private let _settings: () -> Settings
     private let _submitPreferences: (Preferences) -> Void
-    private let _editor: (Preferences) -> AnyPreferencesEditor<Preferences>
+    private let _editor: (Preferences) -> Editor
 
-    init<C: Configurable>(_ configurable: C) where C.Settings == Settings, C.Preferences == Preferences {
+    init<C: Configurable>(_ configurable: C)
+    where C.Settings == Settings, C.Preferences == Preferences, C.Editor == Editor {
         _settings = { configurable.settings }
         _submitPreferences = configurable.submitPreferences
         _editor = configurable.editor(of:)
@@ -65,7 +71,7 @@ public class AnyConfigurable<Settings: ConfigurableSettings, Preferences: Config
         _submitPreferences(preferences)
     }
 
-    public func editor(of preferences: Preferences) -> AnyPreferencesEditor<Preferences> {
+    public func editor(of preferences: Preferences) -> Editor {
         _editor(preferences)
     }
 }
