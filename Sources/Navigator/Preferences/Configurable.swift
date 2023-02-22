@@ -21,6 +21,10 @@ public protocol Configurable {
     /// ignore some of the provided preferences. They are only used as hints to compute the new
     /// settings.
     func submitPreferences(_ preferences: Preferences)
+
+    /// Creates a `PreferencesEditor` helping build a user interface and modifying the given
+    /// `preferences`.
+    func editor(of preferences: Preferences) -> AnyPreferencesEditor<Preferences>
 }
 
 /// Marker interface for the setting properties holder.
@@ -45,17 +49,23 @@ extension Configurable {
 /// A type-erasing `Configurable` object.
 public class AnyConfigurable<Settings: ConfigurableSettings, Preferences: ConfigurablePreferences>: Configurable {
 
-    private let getSettings: () -> Settings
-    private let submit: (Preferences) -> Void
+    private let _settings: () -> Settings
+    private let _submitPreferences: (Preferences) -> Void
+    private let _editor: (Preferences) -> AnyPreferencesEditor<Preferences>
 
     init<C: Configurable>(_ configurable: C) where C.Settings == Settings, C.Preferences == Preferences {
-        self.getSettings = { configurable.settings }
-        self.submit = configurable.submitPreferences
+        _settings = { configurable.settings }
+        _submitPreferences = configurable.submitPreferences
+        _editor = configurable.editor(of:)
     }
 
-    public var settings: Settings { getSettings() }
+    public var settings: Settings { _settings() }
 
     public func submitPreferences(_ preferences: Preferences) {
-        submit(preferences)
+        _submitPreferences(preferences)
+    }
+
+    public func editor(of preferences: Preferences) -> AnyPreferencesEditor<Preferences> {
+        _editor(preferences)
     }
 }

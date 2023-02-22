@@ -396,7 +396,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         guard positions.count > 0, 1...positions.count ~= pageNumber else {
             return nil
         }
-        
+
         return positions[pageNumber - 1]
     }
 
@@ -414,6 +414,14 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         if isViewLoaded {
             resetPDFView(at: currentLocation)
         }
+    }
+
+    public func editor(of preferences: PDFPreferences) -> AnyPreferencesEditor<PDFPreferences> {
+        PDFPreferencesEditor(
+            initialPreferences: preferences,
+            metadata: publication.metadata,
+            defaults: config.defaults
+        ).eraseToAnyPreferencesEditor()
     }
 
     // MARK: - SelectableNavigator

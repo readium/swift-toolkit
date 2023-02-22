@@ -14,7 +14,7 @@ import R2Shared
 /// adjusting preferences, such as the supported values or ranges.
 public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreferences, PDFSettings> {
 
-    init(initialPreferences: PDFPreferences, metadata: Metadata, defaults: PDFDefaults) {
+    public init(initialPreferences: PDFPreferences, metadata: Metadata, defaults: PDFDefaults) {
         super.init(
             initialPreferences: initialPreferences,
             emptyPreferences: PDFPreferences(),
