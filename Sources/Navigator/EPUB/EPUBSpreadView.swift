@@ -615,6 +615,8 @@ private extension KeyEvent {
                 
             case "Backspace":
                 self.key = .backspace
+            case "Escape":
+                self.key = .escape
                 
             default:
                 guard let char = dict["key"] as? String else {
