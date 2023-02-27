@@ -53,6 +53,7 @@ public enum Key: Equatable, CustomStringConvertible {
     
     // Others
     case backspace
+    case escape
       
     /// Indicates whether this key is a modifier key.
     public var isModifier: Bool {
@@ -95,6 +96,8 @@ public enum Key: Equatable, CustomStringConvertible {
                 return "Shift"
             case .backspace:
                 return "Backspace"
+            case .escape:
+                return "Escape"
         }
     }
 }
@@ -209,6 +212,8 @@ public extension Key {
             self = .option
         case .keyboardLeftShift, .keyboardRightShift:
             self = .shift
+        case .keyboardEscape:
+            self = .escape
             
         default:
             let character = key.charactersIgnoringModifiers
