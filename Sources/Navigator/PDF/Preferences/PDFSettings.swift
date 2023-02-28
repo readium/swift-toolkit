@@ -12,6 +12,7 @@ import ReadiumInternal
 ///
 /// See `PDFPreferences`
 public struct PDFSettings: ConfigurableSettings {
+    public let offsetFirstPage: Bool
     public let pageSpacing: Double
     public let readingProgression: ReadingProgression
     public let scroll: Bool
@@ -20,6 +21,10 @@ public struct PDFSettings: ConfigurableSettings {
     public let visibleScrollbar: Bool
 
     init(preferences: PDFPreferences, defaults: PDFDefaults, metadata: Metadata) {
+        self.offsetFirstPage = preferences.offsetFirstPage
+            ?? defaults.offsetFirstPage
+            ?? false
+
         self.pageSpacing = preferences.pageSpacing
             ?? defaults.pageSpacing
             ?? 16
@@ -54,6 +59,7 @@ public struct PDFSettings: ConfigurableSettings {
 ///
 /// See `PDFPreferences`.
 public struct PDFDefaults {
+    public var offsetFirstPage: Bool?
     public var pageSpacing: Double?
     public var readingProgression: ReadingProgression?
     public var scroll: Bool?
@@ -62,6 +68,7 @@ public struct PDFDefaults {
     public var visibleScrollbar: Bool?
 
     public init(
+        offsetFirstPage: Bool? = nil,
         pageSpacing: Double? = nil,
         readingProgression: ReadingProgression? = nil,
         scroll: Bool? = nil,
@@ -69,6 +76,7 @@ public struct PDFDefaults {
         spread: Spread? = nil,
         visibleScrollbar: Bool? = nil
     ) {
+        self.offsetFirstPage = offsetFirstPage
         self.pageSpacing = pageSpacing
         self.readingProgression = readingProgression
         self.scroll = scroll

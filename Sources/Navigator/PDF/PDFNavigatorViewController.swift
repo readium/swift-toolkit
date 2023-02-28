@@ -226,6 +226,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     private func apply(settings: PDFSettings, to pdfView: PDFView) {
         let isRTL = (settings.readingProgression == .rtl)
 
+        pdfView.displaysAsBook = settings.offsetFirstPage
+
         let spread: Bool = {
             switch settings.spread {
             case .auto:
@@ -297,7 +299,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
     @discardableResult
     private func go(to locator: Locator, isJump: Bool, completion: @escaping () -> Void = {}) -> Bool {
-        guard let pdfView = pdfView, let index = publication.readingOrder.firstIndex(withHREF: locator.href) else {
+        guard let index = publication.readingOrder.firstIndex(withHREF: locator.href) else {
             return false
         }
 

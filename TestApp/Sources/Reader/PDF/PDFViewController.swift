@@ -13,13 +13,33 @@ import Foundation
 import UIKit
 import R2Navigator
 import R2Shared
+import SwiftUI
 
 
 @available(iOS 11.0, *)
-final class PDFViewController: ReaderViewController {
-    
-    init(publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) {
-        let navigator = PDFNavigatorViewController(publication: publication, initialLocation: locator, config: PDFNavigatorViewController.Configuration())
+final class PDFViewController: ReaderViewController<PDFNavigatorViewController> {
+
+    private let preferencesStore: AnyUserPreferencesStore<PDFPreferences>
+
+    init(
+        publication: Publication,
+        locator: Locator?,
+        bookId: Book.Id,
+        books: BookRepository,
+        bookmarks: BookmarkRepository,
+        highlights: HighlightRepository,
+        initialPreferences: PDFPreferences,
+        preferencesStore: AnyUserPreferencesStore<PDFPreferences>
+    ) {
+        self.preferencesStore = preferencesStore
+
+        let navigator = PDFNavigatorViewController(
+            publication: publication,
+            initialLocation: locator,
+            config: PDFNavigatorViewController.Configuration(
+                preferences: initialPreferences
+            )
+        )
         
         super.init(navigator: navigator, publication: publication, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights)
 
@@ -34,6 +54,20 @@ final class PDFViewController: ReaderViewController {
         return Bookmark(bookId: bookId, locator: locator)
     }
 
+    override func presentUserPreferences() {
+        Task {
+            let userPrefs = UserPreferences(
+                model: UserPreferencesViewModel(
+                    bookId: bookId,
+                    configurable: navigator,
+                    store: preferencesStore
+                )
+            )
+            let vc = UIHostingController(rootView: userPrefs)
+            vc.modalPresentationStyle = .formSheet
+            present(vc, animated: true, completion: nil)
+        }
+    }
 }
 
 @available(iOS 11.0, *)

@@ -34,6 +34,9 @@ public protocol ConfigurableSettings {}
 /// Marker interface for the `Preferences` properties holder.
 public protocol ConfigurablePreferences: Codable, Equatable {
 
+    /// Empty set of preferences.
+    static var empty: Self { get }
+
     /// Creates a new instance of `Self` after merging the values of `other`.
     ///
     /// In case of conflict, `other` takes precedence.

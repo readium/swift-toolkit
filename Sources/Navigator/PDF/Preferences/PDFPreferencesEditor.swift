@@ -24,6 +24,18 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
         )
     }
 
+    /// Indicates if the first page should be displayed in its own spread.
+    ///
+    /// Only effective when `spread` is not off.
+    public lazy var offsetFirstPage: AnyPreference<Bool> =
+        preference(
+            preference: \.offsetFirstPage,
+            setting: \.offsetFirstPage,
+            isEffective: { settings in
+                settings.spread != .never
+            }
+        )
+
     /// Spacing between pages in points.
     public lazy var pageSpacing: AnyRangePreference<Double> =
         rangePreference(
@@ -33,8 +45,8 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
                 !settings.scroll && settings.spread != .never
             },
             format: { $0.format(maximumFractionDigits: 1) + " pt" },
-            supportedRange: 0...50,
-            progressionStrategy: .increment(5.0)
+            supportedRange: 0...200,
+            progressionStrategy: .increment(4.0)
         )
 
     /// Direction of the horizontal progression across pages.
@@ -68,13 +80,11 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
 
     /// Indicates if the publication should be rendered with a synthetic spread
     /// (dual-page).
-    ///
-    /// Only effective when `scroll` is off.
     public lazy var spread: AnyEnumPreference<Spread> =
         enumPreference(
             preference: \.spread,
             setting: \.spread,
-            isEffective: { settings in !settings.scroll },
+            isEffective: { _ in true },
             supportedValues: [.auto, .never, .always]
         )
 

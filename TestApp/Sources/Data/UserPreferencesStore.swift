@@ -67,11 +67,9 @@ final class CompositeUserPreferencesStore<Preferences: ConfigurablePreferences>:
 /// A `UserPreferencesStore` that stores the preferences in the `books`
 /// database table.
 final class DatabaseUserPreferencesStore<Preferences: ConfigurablePreferences>: UserPreferencesStore {
-    private let emptyPreferences: Preferences
     private let books: BookRepository
 
-    init(emptyPreferences: Preferences, books: BookRepository) {
-        self.emptyPreferences = emptyPreferences
+    init(books: BookRepository) {
         self.books = books
     }
 
@@ -81,14 +79,15 @@ final class DatabaseUserPreferencesStore<Preferences: ConfigurablePreferences>: 
 
     func preferences(for bookId: Book.Id) async throws -> Preferences {
         try await books.get(bookId)?.preferences()
-            ?? emptyPreferences
+            ?? .empty
     }
 
     func preferencesPublisher(for bookId: Book.Id) -> AnyPublisher<Preferences, Never> {
         books.observe(bookId)
             .tryMap { book in
-                (try book?.preferences() as Preferences?) ?? self.emptyPreferences
+                (try book?.preferences() as Preferences?) ?? .empty
             }
+            .removeDuplicates()
             .assertNoFailure()
             .eraseToAnyPublisher()
     }
@@ -97,22 +96,22 @@ final class DatabaseUserPreferencesStore<Preferences: ConfigurablePreferences>: 
 /// A `UserPreferencesStore` that stores the preferences in the standard
 /// UserDefaults.
 final class UserDefaultsUserPreferencesStore<Preferences: ConfigurablePreferences>: UserPreferencesStore {
-    private let emptyPreferences: Preferences
     private let userDefaults: UserDefaults
     private let key: String = String(reflecting: Preferences.self)
 
-    init(emptyPreferences: Preferences, userDefaults: UserDefaults = .standard) {
-        self.emptyPreferences = emptyPreferences
+    init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults
     }
 
+    @MainActor
     func preferences(for bookId: Book.Id) async throws -> Preferences {
         guard let data = userDefaults.userPreferences[key] else {
-            return emptyPreferences
+            return .empty
         }
         return try JSONDecoder().decode(Preferences.self, from: data)
     }
 
+    @MainActor
     func savePreferences(_ preferences: Preferences, of bookId: Book.Id) async throws {
         let data = try JSONEncoder().encode(preferences)
         var userPrefs = userDefaults.userPreferences

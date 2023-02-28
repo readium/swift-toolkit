@@ -10,6 +10,11 @@ import R2Shared
 /// Preferences for the `PDFNavigatorViewController`.
 public struct PDFPreferences: ConfigurablePreferences {
 
+    public static let empty: PDFPreferences = PDFPreferences()
+    
+    /// Indicates if the first page should be displayed in its own spread.
+    public var offsetFirstPage: Bool?
+
     /// Spacing between pages in points.
     public var pageSpacing: Double? {
         willSet { precondition(newValue == nil || newValue! >= 0) }
@@ -33,6 +38,7 @@ public struct PDFPreferences: ConfigurablePreferences {
     public var visibleScrollbar: Bool?
 
     public init(
+        offsetFirstPage: Bool? = nil,
         pageSpacing: Double? = nil,
         readingProgression: ReadingProgression? = nil,
         scroll: Bool? = nil,
@@ -41,6 +47,7 @@ public struct PDFPreferences: ConfigurablePreferences {
         visibleScrollbar: Bool? = nil
     ) {
         precondition(pageSpacing == nil || pageSpacing! >= 0)
+        self.offsetFirstPage = offsetFirstPage
         self.pageSpacing = pageSpacing
         self.readingProgression = readingProgression
         self.scroll = scroll
@@ -51,6 +58,7 @@ public struct PDFPreferences: ConfigurablePreferences {
 
     public func merging(_ other: PDFPreferences) -> PDFPreferences {
         PDFPreferences(
+            offsetFirstPage: other.offsetFirstPage ?? offsetFirstPage,
             pageSpacing: other.pageSpacing ?? pageSpacing,
             readingProgression: other.readingProgression ?? readingProgression,
             scroll: other.scroll ?? scroll,
@@ -64,6 +72,7 @@ public struct PDFPreferences: ConfigurablePreferences {
     /// removed.
     public static func filterSharedPreferences(_ preferences: PDFPreferences) -> PDFPreferences {
         var prefs = preferences
+        prefs.offsetFirstPage = nil
         prefs.readingProgression = nil
         prefs.spread = nil
         return prefs
@@ -73,6 +82,7 @@ public struct PDFPreferences: ConfigurablePreferences {
     /// preferences.
     public static func filterPublicationPreferences(_ preferences: PDFPreferences) -> PDFPreferences {
         PDFPreferences(
+            offsetFirstPage: preferences.offsetFirstPage,
             readingProgression: preferences.readingProgression,
             spread: preferences.spread
         )

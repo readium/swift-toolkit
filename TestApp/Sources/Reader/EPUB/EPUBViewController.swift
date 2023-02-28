@@ -8,7 +8,7 @@ import UIKit
 import R2Shared
 import R2Navigator
 
-class EPUBViewController: ReaderViewController {
+class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingNavigationController: UserSettingsNavigationController
     
@@ -32,10 +32,6 @@ class EPUBViewController: ReaderViewController {
         navigator.delegate = self
     }
     
-    var epubNavigator: EPUBNavigatorViewController {
-        return navigator as! EPUBNavigatorViewController
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
   
@@ -44,7 +40,7 @@ class EPUBViewController: ReaderViewController {
             setUIColor(for: appearance)
         }
         
-        let userSettings = epubNavigator.userSettings
+        let userSettings = navigator.userSettings
         userSettingNavigationController.userSettings = userSettings
         userSettingNavigationController.modalPresentationStyle = .popover
         userSettingNavigationController.usdelegate = self
@@ -71,7 +67,7 @@ class EPUBViewController: ReaderViewController {
     override open func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
-        epubNavigator.userSettings.save()
+        navigator.userSettings.save()
     }
 
     override func makeNavigationBarButtons() -> [UIBarButtonItem] {
@@ -108,7 +104,7 @@ class EPUBViewController: ReaderViewController {
     }
 
     @objc func highlightSelection() {
-        if let navigator = navigator as? SelectableNavigator, let selection = navigator.currentSelection {
+        if let selection = navigator.currentSelection {
             let highlight = Highlight(bookId: bookId, locator: selection.locator, color: .yellow)
             saveHighlight(highlight)
             navigator.clearSelection()
@@ -131,12 +127,12 @@ extension EPUBViewController: UIGestureRecognizerDelegate {
 extension EPUBViewController: UserSettingsNavigationControllerDelegate {
 
     internal func getUserSettings() -> UserSettings {
-        return epubNavigator.userSettings
+        return navigator.userSettings
     }
     
     internal func updateUserSettingsStyle() {
         DispatchQueue.main.async {
-            self.epubNavigator.updateUserSettingStyle()
+            self.navigator.updateUserSettingStyle()
         }
     }
     

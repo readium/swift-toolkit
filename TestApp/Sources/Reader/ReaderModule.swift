@@ -62,28 +62,30 @@ final class ReaderModule: ReaderModuleAPI {
     }
     
     func presentPublication(publication: Publication, book: Book, in navigationController: UINavigationController) {
-        guard let delegate = delegate, let bookId = book.id else {
-            fatalError("Reader delegate not set")
-        }
-        
-        func present(_ viewController: UIViewController) {
-            let backItem = UIBarButtonItem()
-            backItem.title = ""
-            viewController.navigationItem.backBarButtonItem = backItem
-            viewController.hidesBottomBarWhenPushed = true
-            navigationController.pushViewController(viewController, animated: true)
-        }
-        
-        guard let module = self.formatModules.first(where:{ $0.supports(publication) }) else {
-            delegate.presentError(ReaderError.formatNotSupported, from: navigationController)
-            return
-        }
+        Task {
+            guard let delegate = delegate, let bookId = book.id else {
+                fatalError("Reader delegate not set")
+            }
+            
+            @MainActor func present(_ viewController: UIViewController) {
+                let backItem = UIBarButtonItem()
+                backItem.title = ""
+                viewController.navigationItem.backBarButtonItem = backItem
+                viewController.hidesBottomBarWhenPushed = true
+                navigationController.pushViewController(viewController, animated: true)
+            }
+            
+            guard let module = self.formatModules.first(where:{ $0.supports(publication) }) else {
+                delegate.presentError(ReaderError.formatNotSupported, from: navigationController)
+                return
+            }
 
-        do {
-            let readerViewController = try module.makeReaderViewController(for: publication, locator: book.locator, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights, resourcesServer: resourcesServer)
-            present(readerViewController)
-        } catch {
-            delegate.presentError(error, from: navigationController)
+            do {
+                let readerViewController = try await module.makeReaderViewController(for: publication, locator: book.locator, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights, resourcesServer: resourcesServer)
+                await present(readerViewController)
+            } catch {
+                delegate.presentError(error, from: navigationController)
+            }
         }
     }
     
