@@ -27,7 +27,7 @@ public struct PDFSettings: ConfigurableSettings {
 
         self.pageSpacing = preferences.pageSpacing
             ?? defaults.pageSpacing
-            ?? 16
+            ?? 0
 
         self.readingProgression = preferences.readingProgression
             ?? ReadingProgression(metadata.readingProgression)

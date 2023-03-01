@@ -61,11 +61,14 @@ final class PDFViewController: ReaderViewController<PDFNavigatorViewController> 
                     bookId: bookId,
                     configurable: navigator,
                     store: preferencesStore
-                )
+                ),
+                onClose: { [weak self] in
+                    self?.dismiss(animated: true)
+                }
             )
             let vc = UIHostingController(rootView: userPrefs)
             vc.modalPresentationStyle = .formSheet
-            present(vc, animated: true, completion: nil)
+            present(vc, animated: true)
         }
     }
 }

@@ -6,6 +6,7 @@
 
 import Foundation
 import R2Shared
+import UIKit
 
 /// Layout axis.
 public enum Axis: String, Codable, Hashable {
@@ -55,3 +56,59 @@ public enum Fit: String, Codable, Hashable {
     case width
     case height
 }
+
+/// Represents a color stored as a packed int.
+public struct Color: RawRepresentable, Codable, Hashable {
+
+    /// Packed int representation.
+    public var rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+    
+    /// Creates a color from a UIKit color.
+    public init?(uiColor: UIColor) {
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        guard uiColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha) else {
+            return nil
+        }
+        let r = Int(red * 255)
+        let g = Int(green * 255)
+        let b = Int(blue * 255)
+        let a = Int(alpha * 255)
+        self.init(rawValue: (a << 24) | (r << 16) | (g << 8) | b)
+    }
+    
+    /// Returns a UIKit color for the receiver.
+    public var uiColor: UIColor {
+        let a = CGFloat((rawValue >> 24) & 0xFF) / 255
+        let r = CGFloat((rawValue >> 16) & 0xFF) / 255
+        let g = CGFloat((rawValue >> 8) & 0xFF) / 255
+        let b = CGFloat(rawValue & 0xFF) / 255
+        return UIColor(red: r, green: g, blue: b, alpha: a)
+    }
+}
+
+#if canImport(SwiftUI)
+
+import SwiftUI
+
+@available(iOS 13.0, *)
+public extension Color {
+
+    /// Creates a color from a SwiftUI color.
+    @available(iOS 14.0, *)
+    init?(color: SwiftUI.Color) {
+        self.init(uiColor: UIColor(color))
+    }
+
+    /// Returns a SwiftUI color for the receiver.
+    var color: SwiftUI.Color {
+        SwiftUI.Color(uiColor)
+    }
+}
+#endif

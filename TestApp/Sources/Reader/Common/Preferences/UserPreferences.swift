@@ -61,6 +61,7 @@ struct UserPreferences<
 >: View where E.Preferences == P {
 
     @ObservedObject var model: UserPreferencesViewModel<S, P, E>
+    var onClose: () -> Void
 
     var body: some View {
         if let editor = model.editor {
@@ -69,14 +70,7 @@ struct UserPreferences<
     }
 
     @ViewBuilder func userPreferences<E: PreferencesEditor>(editor: E, commit: @escaping () -> Void) -> some View {
-        VStack {
-            button("Reset") {
-                editor.clear()
-                commit()
-            }
-
-            Divider()
-
+        NavigationView {
             List {
                 switch editor {
                 case let editor as PDFPreferencesEditor:
@@ -95,6 +89,21 @@ struct UserPreferences<
                     Group {}
                 }
             }
+            .listStyle(.insetGrouped)
+            .navigationTitle("User Preferences")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItemGroup(placement: .cancellationAction) {
+                    Button("Close", action: onClose)
+                }
+
+                ToolbarItemGroup(placement: .destructiveAction) {
+                    Button("Reset") {
+                        editor.clear()
+                        commit()
+                    }
+                }
+            }
         }
     }
 
@@ -109,7 +118,7 @@ struct UserPreferences<
     /// fixed-layout EPUB, PDF or comic book.
     @ViewBuilder func fixedUserPreferences(
         commit: @escaping () -> Void,
-    //    backgroundColor: AnyEnumPreference<R2Navigator.Color?>? = nil,
+        backgroundColor: AnyEnumPreference<R2Navigator.Color>? = nil,
         fit: AnyEnumPreference<R2Navigator.Fit>? = nil,
         language: AnyEnumPreference<Language?>? = nil,
         offsetFirstPage: AnyPreference<Bool>? = nil,
@@ -120,27 +129,41 @@ struct UserPreferences<
         spread: AnyEnumPreference<R2Navigator.Spread>? = nil,
         visibleScrollbar: AnyPreference<Bool>? = nil
     ) -> some View {
-    //    if let language = language {
-    //    }
-
-        if let readingProgression = readingProgression {
+        if language != nil || readingProgression != nil {
             Section {
-                pickerRow(
-                    title: "Reading progression",
-                    preference: readingProgression,
-                    commit: commit,
-                    formatValue: { v in
-                        switch v {
-                        case .ltr: return "LTR"
-                        case .rtl: return "RTL"
+                if let language = language {
+                    languageRow(
+                        title: "Language",
+                        preference: language,
+                        commit: commit
+                    )
+                }
+
+                if let readingProgression = readingProgression {
+                    pickerRow(
+                        title: "Reading progression",
+                        preference: readingProgression,
+                        commit: commit,
+                        formatValue: { v in
+                            switch v {
+                            case .ltr: return "LTR"
+                            case .rtl: return "RTL"
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
 
-    //    if let backgroundColor = backgroundColor {
-    //    }
+        if let backgroundColor = backgroundColor {
+            Section {
+                colorRow(
+                    title: "Background color",
+                    preference: backgroundColor,
+                    commit: commit
+                )
+            }
+        }
         
         if let scroll = scroll {
             Section {
@@ -325,6 +348,51 @@ struct UserPreferences<
                 Text(value)
                     .font(.caption)
             }
+        }
+    }
+
+    /// Component for a `Preference` holding a `Language` value.
+    @ViewBuilder func languageRow(
+        title: String,
+        preference: AnyPreference<Language?>,
+        commit: @escaping () -> Void
+    ) -> some View {
+    }
+
+    /// Component for a `Preference` holding a `Color` value.
+    @ViewBuilder func colorRow(
+        title: String,
+        preference: AnyPreference<R2Navigator.Color>,
+        commit: @escaping () -> Void
+    ) -> some View {
+        colorRow(
+            title: title,
+            value: Binding(
+                get: { (preference.value ?? preference.effectiveValue).color },
+                set: {
+                    preference.set(R2Navigator.Color(color: $0))
+                    commit()
+                }
+            ),
+            isActive: preference.isEffective,
+            onClear: { preference.clear(); commit() }
+        )
+    }
+
+    /// Component for a `Preference` holding a `Color` value.
+    @ViewBuilder func colorRow(
+        title: String,
+        value: Binding<SwiftUI.Color>,
+        isActive: Bool,
+        onClear: @escaping () -> Void
+    ) -> some View {
+        preferenceRow(
+            isActive: isActive,
+            onClear: onClear
+        ) {
+            ColorPicker(title,
+                selection: value
+            )
         }
     }
 

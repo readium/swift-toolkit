@@ -41,9 +41,7 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
         rangePreference(
             preference: \.pageSpacing,
             setting: \.pageSpacing,
-            isEffective: { settings in
-                !settings.scroll && settings.spread != .never
-            },
+            isEffective: { _ in true },
             format: { $0.format(maximumFractionDigits: 1) + " pt" },
             supportedRange: 0...200,
             progressionStrategy: .increment(4.0)
