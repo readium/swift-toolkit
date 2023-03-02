@@ -13,6 +13,7 @@
 import Foundation
 import UIKit
 import R2Shared
+import R2Navigator
 
 
 final class EPUBModule: ReaderFormatModule {
@@ -34,9 +35,28 @@ final class EPUBModule: ReaderFormatModule {
             throw ReaderError.epubNotValid
         }
         
-        let epubViewController = EPUBViewController(publication: publication, locator: locator, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights, resourcesServer: resourcesServer)
+        let preferencesStore = makePreferencesStore(books: books)
+        let epubViewController = EPUBViewController(
+            publication: publication,
+            locator: locator,
+            bookId: bookId,
+            books: books,
+            bookmarks: bookmarks,
+            highlights: highlights,
+            resourcesServer: resourcesServer,
+            initialPreferences: try await preferencesStore.preferences(for: bookId),
+            preferencesStore: preferencesStore
+        )
         epubViewController.moduleDelegate = delegate
         return epubViewController
     }
     
+    func makePreferencesStore(books: BookRepository) -> AnyUserPreferencesStore<EPUBPreferences> {
+        CompositeUserPreferencesStore(
+            publicationStore: DatabaseUserPreferencesStore(books: books),
+            sharedStore: UserDefaultsUserPreferencesStore(),
+            publicationFilter: EPUBPreferences.filterPublicationPreferences,
+            sharedFilter: EPUBPreferences.filterSharedPreferences
+        ).eraseToAnyPreferencesStore()
+    }
 }

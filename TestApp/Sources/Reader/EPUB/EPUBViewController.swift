@@ -7,18 +7,38 @@
 import UIKit
 import R2Shared
 import R2Navigator
+import SwiftUI
 
 class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingNavigationController: UserSettingsNavigationController
+
+    private let preferencesStore: AnyUserPreferencesStore<EPUBPreferences>
     
-    init(publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository, resourcesServer: ResourcesServer) {
-        var navigatorEditingActions = EditingAction.defaultActions
-        navigatorEditingActions.append(EditingAction(title: "Highlight", action: #selector(highlightSelection)))
-        var navigatorConfig = EPUBNavigatorViewController.Configuration()
-        navigatorConfig.editingActions = navigatorEditingActions
-        
-        let navigator = EPUBNavigatorViewController(publication: publication, initialLocation: locator, resourcesServer: resourcesServer, config: navigatorConfig)
+    init(
+        publication: Publication,
+        locator: Locator?,
+        bookId: Book.Id,
+        books: BookRepository,
+        bookmarks: BookmarkRepository,
+        highlights: HighlightRepository,
+        resourcesServer: ResourcesServer,
+        initialPreferences: EPUBPreferences,
+        preferencesStore: AnyUserPreferencesStore<EPUBPreferences>
+    ) {
+        let navigator = EPUBNavigatorViewController(
+            publication: publication,
+            initialLocation: locator,
+            resourcesServer: resourcesServer,
+            config: .init(
+                preferences: initialPreferences,
+                editingActions: EditingAction.defaultActions
+                    .appending(EditingAction(
+                        title: "Highlight",
+                        action: #selector(highlightSelection)
+                    ))
+            )
+        )
 
         let settingsStoryboard = UIStoryboard(name: "UserSettings", bundle: nil)
         userSettingNavigationController = settingsStoryboard.instantiateViewController(withIdentifier: "UserSettingsNavigationController") as! UserSettingsNavigationController
@@ -26,6 +46,8 @@ class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
             (settingsStoryboard.instantiateViewController(withIdentifier: "FontSelectionViewController") as! FontSelectionViewController)
         userSettingNavigationController.advancedSettingsViewController =
             (settingsStoryboard.instantiateViewController(withIdentifier: "AdvancedSettingsViewController") as! AdvancedSettingsViewController)
+
+        self.preferencesStore = preferencesStore
         
         super.init(navigator: navigator, publication: publication, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights)
         
@@ -79,6 +101,25 @@ class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
         popoverUserconfigurationAnchor = userSettingsButton
 
         return buttons
+    }
+
+    override func presentUserPreferences() {
+        Task {
+            let userPrefs = UserPreferences(
+                model: UserPreferencesViewModel(
+                    bookId: bookId,
+                    preferences: try! await preferencesStore.preferences(for: bookId),
+                    configurable: navigator,
+                    store: preferencesStore
+                ),
+                onClose: { [weak self] in
+                    self?.dismiss(animated: true)
+                }
+            )
+            let vc = UIHostingController(rootView: userPrefs)
+            vc.modalPresentationStyle = .formSheet
+            present(vc, animated: true)
+        }
     }
     
     override var currentBookmark: Bookmark? {

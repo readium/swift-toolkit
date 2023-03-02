@@ -46,7 +46,10 @@ public extension EPUBNavigatorDelegate {
 
 public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
 
-open class EPUBNavigatorViewController: UIViewController, VisualNavigator, SelectableNavigator, DecorableNavigator, Loggable {
+open class EPUBNavigatorViewController: UIViewController,
+    VisualNavigator, SelectableNavigator, DecorableNavigator,
+    Configurable, Loggable
+{
 
     public enum EPUBError: Error {
         /// Returned when calling evaluateJavaScript() before a resource is loaded.
@@ -56,6 +59,12 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
     public struct Configuration {
         /// Default user settings.
         public var userSettings: UserSettings
+
+        /// Initial set of setting preferences.
+        public var preferences: EPUBPreferences
+
+        /// Provides default fallback values and ranges for the user settings.
+        public var defaults: EPUBDefaults
 
         /// Editing actions which will be displayed in the default text selection menu.
         ///
@@ -85,6 +94,8 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
 
         public init(
             userSettings: UserSettings = UserSettings(),
+            preferences: EPUBPreferences = .empty,
+            defaults: EPUBDefaults = EPUBDefaults(),
             editingActions: [EditingAction] = EditingAction.defaultActions,
             contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets] = [
                 .compact: (top: 20, bottom: 20),
@@ -96,6 +107,8 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
             debugState: Bool = false
         ) {
             self.userSettings = userSettings
+            self.preferences = preferences
+            self.defaults = defaults
             self.editingActions = editingActions
             self.contentInset = contentInset
             self.preloadPreviousPositionCount = preloadPreviousPositionCount
@@ -225,6 +238,11 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         self.readingProgression = publication.metadata.effectiveReadingProgression
         self.config = config
         self.userSettings = config.userSettings
+        self.settings = EPUBSettings(
+            preferences: config.preferences,
+            defaults: config.defaults,
+            metadata: publication.metadata
+        )
         publication.userProperties.properties = userSettings.userProperties.properties
 
         self.resourcesURL = {
@@ -715,6 +733,26 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         for (_, view) in self.paginationView.loadedViews {
             (view as? EPUBSpreadView)?.evaluateScript("readium.getDecorations('\(group)').setActivable();")
         }
+    }
+
+    // MARK: - Configurable
+
+    @Observed public private(set) var settings: EPUBSettings
+
+    public func submitPreferences(_ preferences: EPUBPreferences) {
+        settings = EPUBSettings(
+            preferences: preferences,
+            defaults: config.defaults,
+            metadata: publication.metadata
+        )
+    }
+
+    public func editor(of preferences: EPUBPreferences) -> EPUBPreferencesEditor {
+        EPUBPreferencesEditor(
+            initialPreferences: preferences,
+            metadata: publication.metadata,
+            defaults: config.defaults
+        )
     }
 
     // MARK: - EPUB-specific extensions

@@ -16,7 +16,7 @@ final class UserPreferencesViewModel<
     E: PreferencesEditor
 >: ObservableObject where E.Preferences == P {
 
-    @Published private(set) var editor: E?
+    @Published private(set) var editor: E
 
     private let bookId: Book.Id
     private let configurable: AnyConfigurable<S, P, E>
@@ -24,8 +24,12 @@ final class UserPreferencesViewModel<
     private var subscriptions = Set<AnyCancellable>()
 
     init<C: Configurable, ST: UserPreferencesStore>(
-        bookId: Book.Id, configurable: C, store: ST
+        bookId: Book.Id,
+        preferences: P,
+        configurable: C,
+        store: ST
     ) where C.Settings == S, C.Preferences == P, C.Editor == E, ST.Preferences == P {
+        self.editor = configurable.editor(of: preferences)
         self.bookId = bookId
         self.configurable = configurable.eraseToAnyConfigurable()
         self.store = store.eraseToAnyPreferencesStore()
@@ -47,9 +51,7 @@ final class UserPreferencesViewModel<
 
     func commit() {
         Task {
-            if let editor = editor {
-                try! await store.savePreferences(editor.preferences, of: bookId)
-            }
+            try! await store.savePreferences(editor.preferences, of: bookId)
         }
     }
 }
@@ -64,9 +66,7 @@ struct UserPreferences<
     var onClose: () -> Void
 
     var body: some View {
-        if let editor = model.editor {
-            userPreferences(editor: editor, commit: model.commit)
-        }
+        userPreferences(editor: model.editor, commit: model.commit)
     }
 
     @ViewBuilder func userPreferences<E: PreferencesEditor>(editor: E, commit: @escaping () -> Void) -> some View {
@@ -74,7 +74,7 @@ struct UserPreferences<
             List {
                 switch editor {
                 case let editor as PDFPreferencesEditor:
-                    fixedUserPreferences(
+                    fixedLayoutUserPreferences(
                         commit: commit,
                         offsetFirstPage: editor.offsetFirstPage,
                         pageSpacing: editor.pageSpacing,
@@ -85,8 +85,37 @@ struct UserPreferences<
                         visibleScrollbar: editor.visibleScrollbar
                     )
 
+                case let editor as EPUBPreferencesEditor:
+                    reflowableUserPreferences(
+                        commit: commit,
+                        backgroundColor: editor.backgroundColor,
+                        columnCount: editor.columnCount,
+                        fontFamily: editor.fontFamily,
+                        fontSize: editor.fontSize,
+                        fontWeight: editor.fontWeight,
+                        hyphens: editor.hyphens,
+                        imageFilter: editor.imageFilter,
+                        language: editor.language,
+                        letterSpacing: editor.letterSpacing,
+                        ligatures: editor.ligatures,
+                        lineHeight: editor.lineHeight,
+                        pageMargins: editor.pageMargins,
+                        paragraphIndent: editor.paragraphIndent,
+                        paragraphSpacing: editor.paragraphSpacing,
+                        publisherStyles: editor.publisherStyles,
+                        readingProgression: editor.readingProgression,
+                        scroll: editor.scroll,
+                        textAlign: editor.textAlign,
+                        textColor: editor.textColor,
+                        textNormalization: editor.textNormalization,
+                        theme: editor.theme,
+                        typeScale: editor.typeScale,
+                        verticalText: editor.verticalText,
+                        wordSpacing: editor.wordSpacing
+                    )
+
                 default:
-                    Group {}
+                    Text("No user preferences available.")
                 }
             }
             .listStyle(.insetGrouped)
@@ -116,7 +145,7 @@ struct UserPreferences<
 
     /// User preferences screen for a publication with a fixed layout, such as
     /// fixed-layout EPUB, PDF or comic book.
-    @ViewBuilder func fixedUserPreferences(
+    @ViewBuilder func fixedLayoutUserPreferences(
         commit: @escaping () -> Void,
         backgroundColor: AnyEnumPreference<R2Navigator.Color>? = nil,
         fit: AnyEnumPreference<R2Navigator.Fit>? = nil,
@@ -243,6 +272,293 @@ struct UserPreferences<
         }
     }
 
+    /// User settings for a publication with adjustable fonts and dimensions,
+    /// such as a reflowable EPUB, HTML document or PDF with reflow mode
+    /// enabled.
+    @ViewBuilder func reflowableUserPreferences(
+        commit: @escaping () -> Void,
+        backgroundColor: AnyPreference<R2Navigator.Color>? = nil,
+        columnCount: AnyEnumPreference<ColumnCount>? = nil,
+        fontFamily: AnyPreference<FontFamily?>? = nil,
+        fontSize: AnyRangePreference<Double>? = nil,
+        fontWeight: AnyRangePreference<Double>? = nil,
+        hyphens: AnyPreference<Bool>? = nil,
+        imageFilter: AnyEnumPreference<ImageFilter?>? = nil,
+        language: AnyPreference<Language?>? = nil,
+        letterSpacing: AnyRangePreference<Double>? = nil,
+        ligatures: AnyPreference<Bool>? = nil,
+        lineHeight: AnyRangePreference<Double>? = nil,
+        pageMargins: AnyRangePreference<Double>? = nil,
+        paragraphIndent: AnyRangePreference<Double>? = nil,
+        paragraphSpacing: AnyRangePreference<Double>? = nil,
+        publisherStyles: AnyPreference<Bool>? = nil,
+        readingProgression: AnyEnumPreference<R2Navigator.ReadingProgression>? = nil,
+        scroll: AnyPreference<Bool>? = nil,
+        textAlign: AnyEnumPreference<R2Navigator.TextAlignment?>? = nil,
+        textColor: AnyPreference<R2Navigator.Color>? = nil,
+        textNormalization: AnyPreference<Bool>? = nil,
+        theme: AnyEnumPreference<Theme>? = nil,
+        typeScale: AnyRangePreference<Double>? = nil,
+        verticalText: AnyPreference<Bool>? = nil,
+        wordSpacing: AnyRangePreference<Double>? = nil
+    ) -> some View {
+        if language != nil || readingProgression != nil || verticalText != nil {
+            Section {
+                if let language = language {
+                    languageRow(
+                        title: "Language",
+                        preference: language,
+                        commit: commit
+                    )
+                }
+
+                if let readingProgression = readingProgression {
+                    pickerRow(
+                        title: "Reading progression",
+                        preference: readingProgression,
+                        commit: commit,
+                        formatValue: { v in
+                            switch v {
+                            case .ltr: return "LTR"
+                            case .rtl: return "RTL"
+                            }
+                        }
+                    )
+                }
+
+                if let verticalText = verticalText {
+                    toggleRow(
+                        title: "Vertical text",
+                        preference: verticalText,
+                        commit: commit
+                    )
+                }
+            }
+        }
+
+        if scroll != nil || columnCount != nil || pageMargins != nil {
+            Section {
+                if let scroll = scroll {
+                    toggleRow(
+                        title: "Scroll",
+                        preference: scroll,
+                        commit: commit
+                    )
+                }
+
+                if let columnCount = columnCount {
+                    pickerRow(
+                        title: "Columns",
+                        preference: columnCount,
+                        commit: commit,
+                        formatValue: { v in
+                            switch v {
+                            case .auto: return "Auto"
+                            case .one: return "1"
+                            case .two: return "2"
+                            }
+                        }
+                    )
+                }
+
+                if let pageMargins = pageMargins {
+                    stepperRow(
+                        title: "Page margins",
+                        preference: pageMargins,
+                        commit: commit
+                    )
+                }
+            }
+        }
+
+        if theme != nil || textColor != nil || backgroundColor != nil {
+            Section {
+                if let theme = theme {
+                    pickerRow(
+                        title: "Theme",
+                        preference: theme,
+                        commit: commit,
+                        formatValue: { v in
+                            switch v {
+                            case .light: return "Light"
+                            case .dark: return "Dark"
+                            case .sepia: return "Sepia"
+                            }
+                        }
+                    )
+                }
+
+                if let textColor = textColor {
+                    colorRow(
+                        title: "Text color",
+                        preference: textColor,
+                        commit: commit
+                    )
+                }
+
+                if let backgroundColor = backgroundColor {
+                    colorRow(
+                        title: "Background color",
+                        preference: backgroundColor,
+                        commit: commit
+                    )
+                }
+            }
+        }
+
+        if fontFamily != nil || fontSize != nil || fontWeight != nil || textNormalization != nil {
+            Section {
+                 if let fontFamily = fontFamily {
+                     pickerRow(
+                         title: "Typeface",
+                         preference: fontFamily
+                         .with(supportedValues: [
+                             nil,
+                             .sansSerif,
+                             .iaWriterDuospace,
+                             .accessibleDfA,
+                             .openDyslexic
+                         ])
+                         .eraseToAnyPreference(),
+                         commit: commit,
+                         formatValue: { ff in
+                             if let ff = ff {
+                                 switch ff {
+                                     case .sansSerif: return "Sans serif"
+                                     default: return ff.rawValue
+                                 }
+                             } else {
+                                 return "Original"
+                             }
+                         }
+                     )
+                 }
+
+                if let fontSize = fontSize {
+                    stepperRow(
+                        title: "Font size",
+                        preference: fontSize,
+                        commit: commit
+                    )
+                }
+
+                if let fontWeight = fontWeight {
+                    stepperRow(
+                        title: "Font weight",
+                        preference: fontWeight,
+                        commit: commit
+                    )
+                }
+
+                if let textNormalization = textNormalization {
+                    toggleRow(
+                        title: "Text normalization",
+                        preference: textNormalization,
+                        commit: commit
+                    )
+                }
+            }
+        }
+
+        if let publisherStyles = publisherStyles {
+            Section {
+                toggleRow(
+                    title: "Publisher styles",
+                    preference: publisherStyles,
+                    commit: commit
+                )
+
+                // The following settings all require the publisher styles to
+                // be disabled for EPUB. To simplify the interface, they are
+                // hidden when the publisher styles are on.
+                if !publisherStyles.effectiveValue {
+                    if let textAlign = textAlign {
+                        pickerRow(
+                            title: "Text alignment",
+                            preference: textAlign,
+                            commit: commit,
+                            formatValue: { v in
+                                switch v {
+                                case nil: return "Default"
+                                case .center: return "Center"
+                                case .left: return "Left"
+                                case .right: return "Right"
+                                case .justify: return "Justify"
+                                case .start: return "Start"
+                                case .end: return "End"
+                                }
+                            }
+                        )
+                    }
+
+                    if let typeScale = typeScale {
+                        stepperRow(
+                            title: "Type scale",
+                            preference: typeScale,
+                            commit: commit
+                        )
+                    }
+
+                    if let lineHeight = lineHeight {
+                        stepperRow(
+                            title: "Line height",
+                            preference: lineHeight,
+                            commit: commit
+                        )
+                    }
+
+                    if let paragraphIndent = paragraphIndent {
+                        stepperRow(
+                            title: "Paragraph indent",
+                            preference: paragraphIndent,
+                            commit: commit
+                        )
+                    }
+
+                    if let paragraphSpacing = paragraphSpacing {
+                        stepperRow(
+                            title: "Paragraph spacing",
+                            preference: paragraphSpacing,
+                            commit: commit
+                        )
+                    }
+
+                    if let wordSpacing = wordSpacing {
+                        stepperRow(
+                            title: "Word spacing",
+                            preference: wordSpacing,
+                            commit: commit
+                        )
+                    }
+
+                    if let letterSpacing = letterSpacing {
+                        stepperRow(
+                            title: "Letter spacing",
+                            preference: letterSpacing,
+                            commit: commit
+                        )
+                    }
+
+                    if let hyphens = hyphens {
+                        toggleRow(
+                            title: "Hyphens",
+                            preference: hyphens,
+                            commit: commit
+                        )
+                    }
+
+                    if let ligatures = ligatures {
+                        toggleRow(
+                            title: "Ligatures",
+                            preference: ligatures,
+                            commit: commit
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     /// Component for a boolean `Preference` switchable with a `Toggle` button.
     @ViewBuilder func toggleRow(
         title: String,
@@ -273,12 +589,12 @@ struct UserPreferences<
     }
 
     /// Component for an `EnumPreference` displayed in a `Picker` view.
-    @ViewBuilder func pickerRow<V: RawRepresentable & Hashable>(
+    @ViewBuilder func pickerRow<V: Hashable>(
         title: String,
         preference: AnyEnumPreference<V>,
         commit: @escaping () -> Void,
         formatValue: @escaping (V) -> String
-    ) -> some View where V.RawValue: Hashable {
+    ) -> some View {
         pickerRow(
             title: title,
             value: preference.binding(onSet: commit),
@@ -290,20 +606,37 @@ struct UserPreferences<
     }
 
     /// Component for an `EnumPreference` displayed in a `Picker` view.
-    @ViewBuilder func pickerRow<V: RawRepresentable & Hashable>(
+    @ViewBuilder func pickerRow2<V: Hashable>(
+        title: String,
+        preference: AnyEnumPreference<V?>,
+        commit: @escaping () -> Void,
+        formatValue: @escaping (V?) -> String
+    ) -> some View {
+        pickerRow(
+            title: title,
+            value: preference.binding(onSet: commit),
+            values: preference.supportedValues,
+            isActive: preference.isEffective,
+            onClear: { preference.clear(); commit() },
+            formatValue: formatValue
+        )
+    }
+
+    /// Component for an `EnumPreference` displayed in a `Picker` view.
+    @ViewBuilder func pickerRow<V: Hashable>(
         title: String,
         value: Binding<V>,
         values: [V],
         isActive: Bool,
         onClear: @escaping () -> Void,
         formatValue: @escaping (V) -> String
-    ) -> some View where V.RawValue: Hashable {
+    ) -> some View {
         preferenceRow(
             isActive: isActive,
             onClear: onClear
         ) {
             Picker(title, selection: value) {
-                ForEach(values, id: \.rawValue) {
+                ForEach(values, id: \.self) {
                     Text(formatValue($0)).tag($0)
                 }
             }
@@ -391,7 +724,8 @@ struct UserPreferences<
             onClear: onClear
         ) {
             ColorPicker(title,
-                selection: value
+                selection: value,
+                supportsOpacity: false
             )
         }
     }
@@ -404,7 +738,6 @@ struct UserPreferences<
     ) -> some View {
         HStack {
             content()
-                .disabled(!isActive)
                 .foregroundColor(isActive ? nil : .gray)
 
             Button(action: onClear) {

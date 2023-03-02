@@ -59,6 +59,7 @@ final class PDFViewController: ReaderViewController<PDFNavigatorViewController> 
             let userPrefs = UserPreferences(
                 model: UserPreferencesViewModel(
                     bookId: bookId,
+                    preferences: try! await preferencesStore.preferences(for: bookId),
                     configurable: navigator,
                     store: preferencesStore
                 ),

@@ -19,10 +19,9 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     public init(
         initialPreferences: EPUBPreferences,
         metadata: Metadata,
-        epubLayout: EPUBLayout,
         defaults: EPUBDefaults
     ) {
-        self.epubLayout = epubLayout
+        self.epubLayout = metadata.presentation.layout ?? .reflowable
 
         super.init(
             initialPreferences: initialPreferences,

@@ -146,7 +146,7 @@ class ReaderViewController<N: UIViewController & Navigator>: UIViewController, U
 
         // User preferences
         if navigator is any Configurable {
-            buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "settingsIcon"), style: .plain, target: self, action: #selector(presentUserPreferences)))
+            buttons.append(UIBarButtonItem(image: UIImage(systemName: "gearshape"), style: .plain, target: self, action: #selector(presentUserPreferences)))
         }
 
         // DRM management
