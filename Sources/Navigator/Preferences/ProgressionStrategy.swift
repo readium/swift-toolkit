@@ -87,6 +87,10 @@ public extension AnyProgressionStrategy where Value: Numeric {
 
 public extension AnyProgressionStrategy where Value: Comparable {
 
+    static func steps(_ steps: Value...) -> AnyProgressionStrategy<Value> {
+        StepsProgressionStrategy(steps: steps).eraseToAnyProgressionStrategy()
+    }
+
     static func steps(_ steps: [Value]) -> AnyProgressionStrategy<Value> {
         StepsProgressionStrategy(steps: steps).eraseToAnyProgressionStrategy()
     }

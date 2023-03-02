@@ -76,57 +76,24 @@ struct CSSLayout: Equatable {
     }
 
     init(
+        verticalText: Bool,
         language: Language?,
-        hasMultipleLanguages: Bool,
-        readingProgression: ReadingProgression,
-        verticalText: Bool?
+        readingProgression: ReadingProgression
     ) {
-        // https://github.com/readium/readium-css/blob/master/docs/CSS16-internationalization.md#missing-page-progression-direction
-        let rp: ReadingProgression = {
-            if readingProgression == .ltr || readingProgression == .rtl {
-                return readingProgression
-            } else if !hasMultipleLanguages && language?.isRTL == true {
-                return .rtl
-            } else {
-                return .ltr
-            }
-        }()
-
-        let stylesheets: Stylesheets = {
-            if verticalText == true {
-                return .cjkVertical
-            } else if language?.isCJK == true {
-                if rp == .rtl && verticalText != false {
+        self.init(
+            language: language,
+            stylesheets: {
+                if verticalText {
                     return .cjkVertical
-                } else {
+                } else if language?.isCJK == true {
                     return .cjkHorizontal
+                } else if readingProgression == .rtl {
+                    return .rtl
+                } else {
+                    return .default
                 }
-            } else if rp == .rtl {
-                return .rtl
-            } else {
-                return .default
-            }
-        }()
-
-        self.init(language: language, stylesheets: stylesheets, readingProgression: rp)
-    }
-}
-
-private extension Language {
-
-    var isRTL: Bool {
-        let c = code.bcp47.lowercased()
-        return c == "ar"
-            || c == "fa"
-            || c == "he"
-            || c == "zh-hant"
-            || c == "zh-tw"
-    }
-
-    var isCJK: Bool {
-        let c = code.bcp47.lowercased()
-        return c == "ja"
-            || c == "ko"
-            || removingRegion().code.bcp47.lowercased() == "zh"
+            }(),
+            readingProgression: readingProgression
+        )
     }
 }

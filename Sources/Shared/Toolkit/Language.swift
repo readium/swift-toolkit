@@ -62,3 +62,16 @@ extension Language: CustomStringConvertible {
         code.bcp47
     }
 }
+
+extension Language: Codable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let code = try container.decode(String.self)
+        self.init(code: .bcp47(code))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(code.bcp47)
+    }
+}

@@ -8,29 +8,32 @@ import Foundation
 
 extension Double {
 
-    /// Formats the number with the given number of `maximumFractionDigits`.
-    ///
-    /// If `percent` is true, the number is multiplied by 100 and the percent
-    /// sign is appended.
-    public func format(maximumFractionDigits: Int, percent: Bool = false) -> String {
+    public var percentageString: String {
+        formatPercentage()
+    }
+
+    /// Formats as a percentage.
+    public func formatPercentage(maximumFractionDigits: Int = 0) -> String {
         let formatter = NumberFormatter()
-        formatter.numberStyle = percent ? .percent : .decimal
+        formatter.numberStyle = .percent
+        formatter.minimumIntegerDigits = 1
+        formatter.maximumIntegerDigits = 3
         formatter.maximumFractionDigits = maximumFractionDigits
-        if percent {
-            formatter.minimumIntegerDigits = 1
-            formatter.maximumIntegerDigits = 3
-        }
 
         guard let string = formatter.string(from: NSNumber(value: self)) else {
-            var number = self
-            if percent {
-                number *= 100
-            }
-            var string = String(format: "%.\(maximumFractionDigits)f", number)
-            if percent {
-                string += "%"
-            }
-            return string
+            return String(format: "%.\(maximumFractionDigits)f%%", self * 100)
+        }
+        return string
+    }
+
+    /// Formats as a decimal number.
+    public func formatDecimal(maximumFractionDigits: Int = 0) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = maximumFractionDigits
+
+        guard let string = formatter.string(from: NSNumber(value: self)) else {
+            return String(format: "%.\(maximumFractionDigits)f", self)
         }
         return string
     }

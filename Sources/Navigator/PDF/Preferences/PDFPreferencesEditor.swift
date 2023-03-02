@@ -17,10 +17,7 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
     public init(initialPreferences: PDFPreferences, metadata: Metadata, defaults: PDFDefaults) {
         super.init(
             initialPreferences: initialPreferences,
-            emptyPreferences: PDFPreferences(),
-            makeSettings: {
-                PDFSettings(preferences: $0, defaults: defaults, metadata: metadata)
-            }
+            settings: { PDFSettings(preferences: $0, defaults: defaults, metadata: metadata) }
         )
     }
 
@@ -31,9 +28,7 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
         preference(
             preference: \.offsetFirstPage,
             setting: \.offsetFirstPage,
-            isEffective: { settings in
-                settings.spread != .never
-            }
+            isEffective: { $0.settings.spread != .never }
         )
 
     /// Spacing between pages in points.
@@ -42,9 +37,9 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
             preference: \.pageSpacing,
             setting: \.pageSpacing,
             isEffective: { _ in true },
-            format: { $0.format(maximumFractionDigits: 1) + " pt" },
             supportedRange: 0...200,
-            progressionStrategy: .increment(4.0)
+            progressionStrategy: .increment(4.0),
+            format: { String(format: "%.1f pt", $0) }
         )
 
     /// Direction of the horizontal progression across pages.
@@ -72,7 +67,7 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
         enumPreference(
             preference: \.scrollAxis,
             setting: \.scrollAxis,
-            isEffective: { settings in settings.scroll },
+            isEffective: { $0.settings.scroll },
             supportedValues: [.vertical, .horizontal]
         )
 
@@ -93,6 +88,6 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
         preference(
             preference: \.visibleScrollbar,
             setting: \.visibleScrollbar,
-            isEffective: { settings in settings.scroll }
+            isEffective: { $0.settings.scroll }
         )
 }

@@ -67,21 +67,21 @@ public class ProxyEnumPreference<Value: Hashable>: ProxyPreference<Value>, EnumP
 public class ProxyRangePreference<Value: Comparable>: ProxyPreference<Value>, RangePreference {
 
     public var supportedRange: ClosedRange<Value>
-    private let valueFormatter: (Value) -> String
     private let progressionStrategy: AnyProgressionStrategy<Value>
+    private let valueFormatter: (Value) -> String
 
     init(
         value: @escaping () -> Value?,
         effectiveValue: @escaping () -> Value,
         isEffective: @escaping () -> Bool,
         set: @escaping (Value?) -> Void,
-        format: @escaping (Value) -> String,
         supportedRange: ClosedRange<Value>,
-        progressionStrategy: AnyProgressionStrategy<Value>
+        progressionStrategy: AnyProgressionStrategy<Value>,
+        format: @escaping (Value) -> String
     ) {
         self.supportedRange = supportedRange
-        self.valueFormatter = format
         self.progressionStrategy = progressionStrategy
+        self.valueFormatter = format
         super.init(value: value, effectiveValue: effectiveValue, isEffective: isEffective, set: set)
     }
 

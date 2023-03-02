@@ -57,6 +57,69 @@ public enum Fit: String, Codable, Hashable {
     case height
 }
 
+/// Reader theme for reflowable documents.
+public enum Theme: String, Codable, Hashable {
+    case light
+    case dark
+    case sepia
+
+    var contentColor: Color {
+        switch self {
+        case .light: return Theme.dayContentColor
+        case .dark: return Theme.nightContentColor
+        case .sepia: return Theme.sepiaContentColor
+        }
+    }
+
+    var backgroundColor: Color {
+        switch self {
+        case .light: return Theme.dayBackgroundColor
+        case .dark: return Theme.nightBackgroundColor
+        case .sepia: return Theme.sepiaBackgroundColor
+        }
+    }
+
+    // https://github.com/readium/readium-css/blob/master/css/src/modules/ReadiumCSS-day_mode.css
+    private static let dayContentColor = Color(hex: "#121212")!
+    private static let dayBackgroundColor = Color(hex: "#FFFFFF")!
+    // https://github.com/readium/readium-css/blob/master/css/src/modules/ReadiumCSS-night_mode.css
+    private static let nightContentColor = Color(hex: "#FEFEFE")!
+    private static let nightBackgroundColor = Color(hex: "#000000")!
+    // https://github.com/readium/readium-css/blob/master/css/src/modules/ReadiumCSS-sepia_mode.css
+    private static let sepiaContentColor = Color(hex: "#121212")!
+    private static let sepiaBackgroundColor = Color(hex: "#faf4e8")!
+}
+
+/// Number of columns displayed in a reflowable document.
+public enum ColumnCount: String, Codable, Hashable {
+    case auto
+    case one = "1"
+    case two = "2"
+}
+
+/// Filter used to render images in a reflowable document.
+public enum ImageFilter: String, Codable, Hashable {
+    case darken
+    case invert
+}
+
+/// Text alignment in a reflowable document.
+public enum TextAlignment: String, Codable, Hashable {
+    /// Align the text in the center of the page.
+    case center
+    /// Stretch lines of text that end with a soft line break to fill the width
+    /// of the page.
+    case justify
+    /// Align the text on the leading edge of the page.
+    case start
+    /// Align the text on the trailing edge of the page.
+    case end
+    /// Align the text on the left edge of the page.
+    case left
+    /// Align the text on the right edge of the page.
+    case right
+}
+
 /// Represents a color stored as a packed int.
 public struct Color: RawRepresentable, Codable, Hashable {
 
@@ -65,6 +128,16 @@ public struct Color: RawRepresentable, Codable, Hashable {
 
     public init(rawValue: Int) {
         self.rawValue = rawValue
+    }
+
+    /// Creates a color from a hex representation.
+    public init?(hex: String) {
+        let scanner = Scanner(string: hex.removingPrefix("#"))
+        var hexNumber: UInt64 = 0
+        guard scanner.scanHexInt64(&hexNumber) else {
+            return nil
+        }
+        self.init(rawValue: Int(hexNumber))
     }
     
     /// Creates a color from a UIKit color.
@@ -112,3 +185,35 @@ public extension Color {
     }
 }
 #endif
+
+/// Typeface for a publication's text.
+///
+/// For a list of vetted font families, see
+/// https://readium.org/readium-css/docs/CSS10-libre_fonts.
+public struct FontFamily: RawRepresentable, ExpressibleByStringLiteral, Codable, Hashable {
+
+    // Generic font families
+    // See https://www.w3.org/TR/css-fonts-4/#generic-font-families
+
+    public static let serif: FontFamily = "serif"
+    public static let sansSerif: FontFamily = "sans-serif"
+    public static let cursive: FontFamily = "cursive"
+    public static let fantasy: FontFamily = "fantasy"
+    public static let monospace: FontFamily = "monospace"
+
+    // Accessibility fonts embedded with Readium
+    public static let accessibleDfA: FontFamily = "AccessibleDfA"
+    public static let iaWriterDuospace: FontFamily = "IA Writer Duospace"
+    public static let openDyslexic: FontFamily = "OpenDyslexic"
+
+    /// Name of the font family.
+    public var rawValue: String
+
+    public init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+
+    public init(stringLiteral value: StringLiteralType) {
+        self.init(rawValue: value)
+    }
+}
