@@ -12,6 +12,11 @@ public struct Language: Hashable {
         Language(locale: Locale.current)
     }
 
+    /// List of all available languages on the device.
+    public static let all: [Language] =
+        Locale.availableIdentifiers
+            .map { Language(code: .bcp47($0)) }
+
     public enum Code: Hashable {
         case bcp47(String)
 

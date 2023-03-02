@@ -65,6 +65,11 @@ struct UserPreferences<
     @ObservedObject var model: UserPreferencesViewModel<S, P, E>
     var onClose: () -> Void
 
+    private let languages: [Language?] = [nil] + Language.all
+        .map { $0.removingRegion() }
+        .removingDuplicates()
+        .sorted { l1, l2 in l1.localizedDescription() <= l2.localizedDescription() }
+
     var body: some View {
         userPreferences(editor: model.editor, commit: model.commit)
     }
@@ -690,6 +695,19 @@ struct UserPreferences<
         preference: AnyPreference<Language?>,
         commit: @escaping () -> Void
     ) -> some View {
+        pickerRow(
+            title: title,
+            value: Binding(
+                get: { preference.value ?? preference.effectiveValue },
+                set: { preference.set($0); commit() }
+            ),
+            values: languages,
+            isActive: preference.isEffective,
+            onClear: { preference.clear(); commit() },
+            formatValue: { language in
+                language?.localizedDescription() ?? "Original"
+            }
+        )
     }
 
     /// Component for a `Preference` holding a `Color` value.
