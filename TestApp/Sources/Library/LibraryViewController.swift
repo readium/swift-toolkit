@@ -101,7 +101,7 @@ class LibraryViewController: UIViewController, Loggable {
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
-        collectionView.collectionViewLayout.invalidateLayout()
+        collectionView?.collectionViewLayout.invalidateLayout()
     }
 
     static let iPadLayoutNumberPerRow:[ScreenOrientation: Int] = [.portrait: 4, .landscape: 5]
