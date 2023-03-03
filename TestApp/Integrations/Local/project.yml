@@ -36,4 +36,6 @@ targets:
       - package: Kingfisher
       - package: MBProgressHUD
       - package: SwiftSoup
+    settings:
+      DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}
 

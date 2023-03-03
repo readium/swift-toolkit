@@ -36,4 +36,6 @@ targets:
       - package: GRDB
       - package: Kingfisher
       - package: MBProgressHUD
+    settings:
+      DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}
 
