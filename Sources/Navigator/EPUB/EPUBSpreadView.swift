@@ -93,7 +93,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         addSubview(webView)
         setupWebView()
 
-        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapBackground)))
+        let gestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(didTapBackground))
+        gestureRecognizer.delegate = self
+        addGestureRecognizer(gestureRecognizer)
         
         for script in scripts {
             webView.configuration.userContentController.addUserScript(script)
@@ -511,6 +513,14 @@ extension EPUBSpreadView: WKUIDelegate {
     func webView(_ webView: WKWebView, shouldPreviewElement elementInfo: WKPreviewElementInfo) -> Bool {
         // Preview allowed only if the link is not internal
         return (elementInfo.linkURL?.host != publication.baseURL?.host)
+    }
+}
+
+extension EPUBSpreadView: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        // Prevents the tap event from being triggered by the fallback tap
+        // gesture recognizer when it is also recognized by the web view.
+        true
     }
 }
 

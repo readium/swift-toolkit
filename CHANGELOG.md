@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Fixed a race condition issue with the `AVTTSEngine`, when pausing utterances.
 * Fixed crash with `PublicationSpeechSynthesizer`, when the currently played word cannot be resolved.
+* Fixed EPUB tap event sent twice when using a mouse (e.g. on Apple Silicon or with a mouse on an iPad).
 
 
 ## [2.4.0]
