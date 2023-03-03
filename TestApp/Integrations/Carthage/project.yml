@@ -34,4 +34,5 @@ targets:
       - package: MBProgressHUD
     settings:
       LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)/Carthage
+      DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}
 

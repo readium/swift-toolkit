@@ -44,4 +44,5 @@ targets:
       - package: SwiftSoup
     settings:
       OTHER_SWIFT_FLAGS: -DLCP
+      DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}
 
