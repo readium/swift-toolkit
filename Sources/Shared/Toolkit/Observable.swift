@@ -60,22 +60,3 @@ public class MutableObservable<Value>: Observable<Value> {
         }
     }
 }
-
-@propertyWrapper
-public final class Observed<Value> {
-
-    private let observable: MutableObservable<Value>
-
-    public init(wrappedValue value: Value) {
-        self.observable = MutableObservable(value)
-    }
-
-    public var wrappedValue: Value {
-        get { observable.value }
-        set { observable.value = newValue }
-    }
-
-    public var projectedValue: Observable<Value> {
-        observable
-    }
-}

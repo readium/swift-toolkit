@@ -405,7 +405,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
     // MARK: - Configurable
 
-    @Observed public private(set) var settings: PDFSettings
+    public private(set) var settings: PDFSettings
 
     public func submitPreferences(_ preferences: PDFPreferences) {
         settings = PDFSettings(

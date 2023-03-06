@@ -737,7 +737,7 @@ open class EPUBNavigatorViewController: UIViewController,
 
     // MARK: - Configurable
 
-    @Observed public private(set) var settings: EPUBSettings
+    public private(set) var settings: EPUBSettings
 
     public func submitPreferences(_ preferences: EPUBPreferences) {
         settings = EPUBSettings(
