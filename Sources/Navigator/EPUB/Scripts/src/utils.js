@@ -131,11 +131,11 @@ export function getColumnCountPerScreen() {
 }
 
 export function isScrollModeEnabled() {
+  const style = document.documentElement.style;
   return (
-    document.documentElement.style
-      .getPropertyValue("--USER__scroll")
-      .toString()
-      .trim() === "readium-scroll-on"
+    style.getPropertyValue("--USER__view").trim() == "readium-scroll-on" ||
+    // FIXME: Will need to be removed in Readium 3.0, --USER__scroll was incorrect.
+    style.getPropertyValue("--USER__scroll").trim() == "readium-scroll-on"
   );
 }
 
@@ -274,11 +274,20 @@ export function rangeFromLocator(locator) {
 
 /// User Settings.
 
+export function setCSSProperties(properties) {
+  for (const name in properties) {
+    setProperty(name, properties[name]);
+  }
+}
+
 // For setting user setting.
 export function setProperty(key, value) {
-  var root = document.documentElement;
-
-  root.style.setProperty(key, value);
+  if (value === null) {
+    removeProperty(key);
+  } else {
+    var root = document.documentElement;
+    root.style.setProperty(key, value);
+  }
 }
 
 // For removing user setting.

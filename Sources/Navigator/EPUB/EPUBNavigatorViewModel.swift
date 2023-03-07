@@ -18,7 +18,7 @@ enum EPUBScriptScope {
     case resource(href: String)
 }
 
-final class EPUBNavigatorViewModel {
+final class EPUBNavigatorViewModel: Loggable {
 
     private let publication: Publication
     private let config: EPUBNavigatorViewController.Configuration
@@ -63,6 +63,7 @@ final class EPUBNavigatorViewModel {
             metadata: publication.metadata
         )
         settings = newSettings
+        updateCSS(with: settings)
         css.update(with: settings)
 
         let needsInvalidation: Bool = (
@@ -74,6 +75,40 @@ final class EPUBNavigatorViewModel {
 
         if needsInvalidation {
             delegate?.epubNavigatorViewModelInvalidatePaginationView(self)
+        }
+    }
+
+    private func updateCSS(with settings: EPUBSettings) {
+        let previousCSS = css
+        css.update(with: settings)
+
+        var properties: [String: String?] = [:]
+        let rsProperties = css.rsProperties.cssProperties()
+        if previousCSS.rsProperties.cssProperties() != rsProperties {
+            for (k, v) in rsProperties {
+                properties[k] = v
+            }
+        }
+        let userProperties = css.userProperties.cssProperties()
+        if previousCSS.userProperties.cssProperties() != userProperties {
+            for (k, v) in userProperties {
+                properties[k] = v
+            }
+        }
+        if !properties.isEmpty {
+            guard
+                let data = try? JSONSerialization.data(withJSONObject: properties),
+                let json = String(data: data, encoding: .utf8)
+            else {
+                log(.error, "Failed to serialize CSS properties to JSON")
+                return
+            }
+
+            delegate?.epubNavigatorViewModel(
+                self,
+                runScript: "readium.setCSSProperties(\(json));",
+                in: .loadedResources
+            )
         }
     }
 
