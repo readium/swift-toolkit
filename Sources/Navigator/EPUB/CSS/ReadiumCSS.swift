@@ -16,6 +16,66 @@ struct ReadiumCSS {
     var assetsBaseURL: URL
 }
 
+extension ReadiumCSS {
+    mutating func update(with settings: EPUBSettings) {
+        layout = settings.cssLayout
+        userProperties = CSSUserProperties(
+            view: settings.scroll ? .scroll : .paged,
+            colCount: {
+                switch settings.columnCount {
+                case .auto: return .auto
+                case .one: return .one
+                case .two: return .two
+                }
+            }(),
+            pageMargins: settings.pageMargins,
+            appearance: {
+                switch settings.theme {
+                case .light: return nil
+                case .dark: return .night
+                case .sepia: return .sepia
+                }
+            }(),
+            darkenImages: settings.imageFilter == .darken,
+            invertImages: settings.imageFilter == .invert,
+            textColor: settings.textColor.map { CSSIntColor($0.rawValue) },
+            backgroundColor: settings.backgroundColor.map { CSSIntColor($0.rawValue) },
+            fontOverride: (settings.fontFamily != nil || settings.textNormalization),
+            // FIXME:
+//            fontFamily: fontFamily?.toCss(),
+            fontSize: CSSPercentLength(settings.fontSize),
+            advancedSettings: !settings.publisherStyles,
+            typeScale: settings.typeScale,
+            textAlign: {
+                switch settings.textAlign {
+                case .justify: return .justify
+                case .left: return .left
+                case .right: return .right
+                case .start, .center, .end: return .start
+                default: return nil
+                }
+            }(),
+            lineHeight: settings.lineHeight.map { .unitless($0) },
+            paraSpacing: settings.paragraphSpacing.map { CSSRemLength($0) },
+            paraIndent: settings.paragraphIndent.map { CSSRemLength($0) },
+            wordSpacing: settings.wordSpacing.map { CSSRemLength($0) },
+            letterSpacing: settings.letterSpacing.map { CSSRemLength($0 / 2) },
+            bodyHyphens: settings.hyphens.map { $0 ? .auto : .none },
+            ligatures: settings.ligatures.map { $0 ? .common : .none },
+            a11yNormalize: settings.textNormalization,
+            overrides: [
+                :
+                // FIXME:
+//                    (fontWeight != null)
+                //                "font-weight": settings.fontWeight.map { 
+//                        (FontWeight.NORMAL.value * fontWeight).toInt().coerceIn(1, 1000).toString()
+//                    else ""
+            ]
+        )
+
+    }
+}
+
 extension ReadiumCSS: HTMLInjectable {
 
     /// https://github.com/readium/readium-css/blob/develop/docs/CSS06-stylesheets_order.md

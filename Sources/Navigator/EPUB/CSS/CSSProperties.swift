@@ -40,7 +40,7 @@ public struct CSSUserProperties: CSSProperties {
     // View mode
 
     /// User view: paged or scrolled.
-    public let view: CSSView?
+    public var view: CSSView?
 
 
     // Pagination
@@ -49,116 +49,116 @@ public struct CSSUserProperties: CSSProperties {
     /// spread).
     ///
     /// To reset, change the value to auto.
-    public let colCount: CSSColCount?
+    public var colCount: CSSColCount?
 
     /// A factor applied to horizontal margins (padding-left and padding-right) the user wants to
     /// set.
     ///
     /// Recommended values: a range from 0.5 to 2. Increments are left to implementers’ judgment.
     /// To reset, change the value to 1.
-    public let pageMargins: Double?
+    public var pageMargins: Double?
 
 
     // Appearance
 
     /// This flag applies a reading mode (sepia or night).
-    public let appearance: CSSAppearance?
+    public var appearance: CSSAppearance?
 
     /// This will only apply in night mode to darken images and impact img.
     ///
     /// Requires: appearance = Appearance.Night
-    public let darkenImages: Bool?
+    public var darkenImages: Bool?
 
     /// This will only apply in night mode to invert images and impact img.
     ///
     /// Requires: appearance = Appearance.Night
-    public let invertImages: Bool?
+    public var invertImages: Bool?
 
     /// The color for textual contents. It impacts all elements but headings and pre in the DOM.
     ///
     /// To reset, remove the CSS variable.
-    public let textColor: CSSColor?
+    public var textColor: CSSColor?
 
     /// The background-color for the whole screen. To reset, remove the CSS variable.
-    public let backgroundColor: CSSColor?
+    public var backgroundColor: CSSColor?
 
 
     // Typography
 
     /// This flag is required to change the font-family user setting.
-    public let fontOverride: Bool?
+    public var fontOverride: Bool?
 
     /// The typeface (font-family) the user wants to read with. It impacts body, p, li, div, dt, dd
     /// and phrasing elements which don’t have a lang or xml:lang attribute.
     ///
     /// To reset, remove the required flag.
     /// Requires: fontOverride
-    public let fontFamily: [String]?
+    public var fontFamily: [String]?
 
     /// Increasing and decreasing the root font-size. It will serve as a reference for the cascade.
     ///
     /// To reset, remove the required flag.
-    public let fontSize: CSSLength?
+    public var fontSize: CSSLength?
 
 
     // Advanced settings
 
     /// This flag is required to apply the font-size and/or advanced user settings.
-    public let advancedSettings: Bool?
+    public var advancedSettings: Bool?
 
     /// The type scale the user wants to use for the publication. It impacts headings, p, li, div,
     /// pre, dd, small, sub, and sup.
     ///
     /// Recommended values: a range from 75% to 250%. Increments are left to implementers’ judgment.
     /// Requires: advancedSettings
-    public let typeScale: Double?
+    public var typeScale: Double?
 
     /// The alignment (text-align) the user prefers. It impacts body, li, and p which are not
     /// children of blockquote and figcaption.
     ///
     /// Requires: advancedSettings
-    public let textAlign: CSSTextAlign?
+    public var textAlign: CSSTextAlign?
 
     /// Increasing and decreasing leading (line-height). It impacts body, p, li and div.
     ///
     /// Recommended values: a range from 1 to 2. Increments are left to implementers’ judgment.
     /// Requires: advancedSettings
-    public let lineHeight: CSSLineHeight?
+    public var lineHeight: CSSLineHeight?
 
     /// The vertical margins (margin-top and margin-bottom) for paragraphs.
     ///
     /// Recommended values: a range from 0 to 2rem. Increments are left to implementers’ judgment.
     /// Requires: advancedSettings = true
-    public let paraSpacing: CSSLength?
+    public var paraSpacing: CSSLength?
 
     /// The text-indent for paragraphs.
     ///
     /// Recommended values: a range from 0 to 3rem. Increments are left to implementers’ judgment.
     /// Requires: advancedSettings
-    public let paraIndent: CSSRemLength?
+    public var paraIndent: CSSRemLength?
 
     /// Increasing space between words (word-spacing, related to a11y).
     ///
     /// Recommended values: a range from 0 to 1rem. Increments are left to implementers’ judgment.
     /// Requires: advancedSettings
-    public let wordSpacing: CSSRemLength?
+    public var wordSpacing: CSSRemLength?
 
     /// Increasing space between letters (letter-spacing, related to a11y).
     ///
     /// Recommended values: a range from 0 to 0.5rem. Increments are left to implementers’
     /// judgment.
     /// Requires: advancedSettings
-    public let letterSpacing: CSSRemLength?
+    public var letterSpacing: CSSRemLength?
 
     /// Enabling and disabling hyphenation. It impacts body, p, li, div and dd.
     ///
     /// Requires: advancedSettings
-    public let bodyHyphens: CSSHyphens?
+    public var bodyHyphens: CSSHyphens?
 
     /// Enabling and disabling ligatures in Arabic (related to a11y).
     ///
     /// Requires: advancedSettings
-    public let ligatures: CSSLigatures?
+    public var ligatures: CSSLigatures?
 
 
     // Accessibility
@@ -166,10 +166,10 @@ public struct CSSUserProperties: CSSProperties {
     /// It impacts font style, weight and variant, text decoration, super and subscripts.
     ///
     /// Requires: fontOverride
-    public let a11yNormalize: Bool?
+    public var a11yNormalize: Bool?
 
     // Additional overrides for extensions and adjustments.
-    public let overrides: [String: String?]
+    public var overrides: [String: String?]
 
     public init(
         view: CSSView? = nil,
@@ -272,76 +272,76 @@ public struct CSSRSProperties: CSSProperties {
     // Pagination
 
     /// @param colWidth The optimal column’s width. It serves as a floor in our design.
-    public let colWidth: CSSLength?
+    public var colWidth: CSSLength?
 
     /// @param colCount The optimal number of columns (depending on the columns’ width).
-    public let colCount: CSSColCount?
+    public var colCount: CSSColCount?
 
     /// @param colGap The gap between columns. You must account for this gap when scrolling.
-    public let colGap: CSSAbsoluteLength?
+    public var colGap: CSSAbsoluteLength?
 
     /// @param pageGutter The horizontal page margins.
-    public let pageGutter: CSSAbsoluteLength?
+    public var pageGutter: CSSAbsoluteLength?
 
 
     // Vertical rhythm
 
     /// @param flowSpacing The default vertical margins for HTML5 flow content e.g. pre, figure,
     /// blockquote, etc.
-    public let flowSpacing: CSSLength?
+    public var flowSpacing: CSSLength?
 
     /// @param paraSpacing The default vertical margins for paragraphs.
-    public let paraSpacing: CSSLength?
+    public var paraSpacing: CSSLength?
 
     /// @param paraIndent The default text-indent for paragraphs.
-    public let paraIndent: CSSLength?
+    public var paraIndent: CSSLength?
 
     // Safeguards
 
     /// @param maxLineLength The optimal line-length. It must be set in rem in order to take :root’s
     /// font-size as a reference, whichever the body’s font-size might be.
-    public let maxLineLength: CSSRemLength?
+    public var maxLineLength: CSSRemLength?
 
     /// @param maxMediaWidth The max-width for media elements i.e. img, svg, audio and video.
-    public let maxMediaWidth: CSSLength?
+    public var maxMediaWidth: CSSLength?
 
     /// @param maxMediaHeight The max-height for media elements i.e. img, svg, audio and video.
-    public let maxMediaHeight: CSSLength?
+    public var maxMediaHeight: CSSLength?
 
     /// @param boxSizingMedia The box model (box-sizing) you want to use for media elements.
-    public let boxSizingMedia: CSSBoxSizing?
+    public var boxSizingMedia: CSSBoxSizing?
 
     /// @param boxSizingTable The box model (box-sizing) you want to use for tables.
-    public let boxSizingTable: CSSBoxSizing?
+    public var boxSizingTable: CSSBoxSizing?
 
 
     // Colors
 
     /// @param textColor The default color for body copy’s text.
-    public let textColor: CSSColor?
+    public var textColor: CSSColor?
 
     /// @param backgroundColor The default background-color for pages.
-    public let backgroundColor: CSSColor?
+    public var backgroundColor: CSSColor?
 
     /// @param selectionTextColor The color for selected text.
-    public let selectionTextColor: CSSColor?
+    public var selectionTextColor: CSSColor?
 
     /// @param selectionBackgroundColor The background-color for selected text.
-    public let selectionBackgroundColor: CSSColor?
+    public var selectionBackgroundColor: CSSColor?
 
     /// @param linkColor The default color for hyperlinks.
-    public let linkColor: CSSColor?
+    public var linkColor: CSSColor?
 
     /// @param visitedColor The default color for visited hyperlinks.
-    public let visitedColor: CSSColor?
+    public var visitedColor: CSSColor?
 
     /// @param primaryColor An optional primary accentuation color you could use for headings or any
     /// other element of your choice.
-    public let primaryColor: CSSColor?
+    public var primaryColor: CSSColor?
 
     /// @param secondaryColor An optional secondary accentuation color you could use for any element
     /// of your choice.
-    public let secondaryColor: CSSColor?
+    public var secondaryColor: CSSColor?
 
 
     // Typography
@@ -349,67 +349,67 @@ public struct CSSRSProperties: CSSProperties {
     /// @param typeScale The scale to be used for computing all elements’ font-size. Since those font
     /// sizes are computed dynamically, you can set a smaller type scale when the user sets one
     /// of the largest font sizes.
-    public let typeScale: Double?
+    public var typeScale: Double?
 
     /// @param baseFontFamily The default typeface for body copy in case the ebook doesn’t have one
     /// declared. Please note some languages have a specific font-stack (japanese, hindi, etc.)
-    public let baseFontFamily: [String]?
+    public var baseFontFamily: [String]?
 
     /// @param baseLineHeight The default line-height for body copy in case the ebook doesn’t have
     /// one declared.
-    public let baseLineHeight: CSSLineHeight?
+    public var baseLineHeight: CSSLineHeight?
 
 
     // Default font-stacks
 
     /// @param oldStyleTf An old style serif font-stack relying on pre-installed fonts.
-    public let oldStyleTf: [String]?
+    public var oldStyleTf: [String]?
 
     /// @param modernTf A modern serif font-stack relying on pre-installed fonts.
-    public let modernTf: [String]?
+    public var modernTf: [String]?
 
     /// @param sansTf A neutral sans-serif font-stack relying on pre-installed fonts.
-    public let sansTf: [String]?
+    public var sansTf: [String]?
 
     /// @param humanistTf A humanist sans-serif font-stack relying on pre-installed fonts.
-    public let humanistTf: [String]?
+    public var humanistTf: [String]?
 
     /// @param monospaceTf A monospace font-stack relying on pre-installed fonts.
-    public let monospaceTf: [String]?
+    public var monospaceTf: [String]?
 
 
     // Default font-stacks for Japanese publications
 
     /// @param serifJa A Mincho font-stack whose fonts with proportional latin characters are
     /// prioritized for horizontal writing.
-    public let serifJa: [String]?
+    public var serifJa: [String]?
 
     /// @param sansSerifJa A Gothic font-stack whose fonts with proportional latin characters are
     /// prioritized for horizontal writing.
-    public let sansSerifJa: [String]?
+    public var sansSerifJa: [String]?
 
     /// @param serifJaV A Mincho font-stack whose fonts with fixed-width latin characters are
     /// prioritized for vertical writing.
-    public let serifJaV: [String]?
+    public var serifJaV: [String]?
 
     /// @param sansSerifJaV A Gothic font-stack whose fonts with fixed-width latin characters are
     /// prioritized for vertical writing.
-    public let sansSerifJaV: [String]?
+    public var sansSerifJaV: [String]?
 
 
     // Default styles for unstyled publications
 
     /// @param compFontFamily The typeface for headings.
     /// The value can be another variable e.g. var(-RS__humanistTf).
-    public let compFontFamily: [String]?
+    public var compFontFamily: [String]?
 
     /// @param codeFontFamily The typeface for code snippets.
     /// The value can be another variable e.g. var(-RS__monospaceTf).
-    public let codeFontFamily: [String]?
+    public var codeFontFamily: [String]?
 
 
     // Additional overrides for extensions and adjustments.
-    public let overrides: [String: String?]
+    public var overrides: [String: String?]
 
     public init(
         colWidth: CSSLength? = nil,
@@ -568,7 +568,7 @@ public enum CSSAppearance: String, CSSConvertible {
 
 public protocol CSSColor: CSSConvertible {}
 
-public class CSSRGBColor: CSSColor {
+public struct CSSRGBColor: CSSColor {
     let red: Int
     let green: Int
     let blue: Int
@@ -587,7 +587,7 @@ public class CSSRGBColor: CSSColor {
     }
 }
 
-public class CSSHexColor: CSSColor {
+public struct CSSHexColor: CSSColor {
     let color: String
 
     public init(_ color: String) {
@@ -595,6 +595,18 @@ public class CSSHexColor: CSSColor {
     }
 
     public func css() -> String? { color }
+}
+
+public struct CSSIntColor: CSSColor {
+    let color: Int
+
+    public init(_ color: Int) {
+        self.color = color
+    }
+
+    public func css() -> String? {
+        String(format: "#%06X", 0xFFFFFF & color)
+    }
 }
 
 public protocol CSSLength: CSSConvertible {}

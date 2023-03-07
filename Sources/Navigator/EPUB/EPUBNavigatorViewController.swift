@@ -89,6 +89,12 @@ open class EPUBNavigatorViewController: UIViewController,
         /// Supported HTML decoration templates.
         public var decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate]
 
+        /// Readium CSS reading system settings.
+        ///
+        /// See https://readium.org/readium-css/docs/CSS19-api.html#reading-system-styles
+        public var readiumCSSRSProperties: CSSRSProperties
+
+
         /// Logs the state changes when true.
         public var debugState: Bool
 
@@ -104,6 +110,7 @@ open class EPUBNavigatorViewController: UIViewController,
             preloadPreviousPositionCount: Int = 2,
             preloadNextPositionCount: Int = 6,
             decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate] = HTMLDecorationTemplate.defaultTemplates(),
+            readiumCSSRSProperties: CSSRSProperties = CSSRSProperties(),
             debugState: Bool = false
         ) {
             self.userSettings = userSettings
@@ -114,6 +121,7 @@ open class EPUBNavigatorViewController: UIViewController,
             self.preloadPreviousPositionCount = preloadPreviousPositionCount
             self.preloadNextPositionCount = preloadNextPositionCount
             self.decorationTemplates = decorationTemplates
+            self.readiumCSSRSProperties = readiumCSSRSProperties
             self.debugState = debugState
         }
     }
@@ -224,6 +232,8 @@ open class EPUBNavigatorViewController: UIViewController,
     /// Used to serve Readium CSS.
     private let resourcesURL: URL
 
+    private let viewModel: EPUBNavigatorViewModel
+
     public init(
         publication: Publication,
         initialLocation: Locator? = nil,
@@ -238,14 +248,9 @@ open class EPUBNavigatorViewController: UIViewController,
         self.readingProgression = publication.metadata.effectiveReadingProgression
         self.config = config
         self.userSettings = config.userSettings
-        self.settings = EPUBSettings(
-            preferences: config.preferences,
-            defaults: config.defaults,
-            metadata: publication.metadata
-        )
         publication.userProperties.properties = userSettings.userProperties.properties
 
-        self.resourcesURL = {
+        let assetsBaseURL = {
             do {
                 return try resourcesServer.serve(
                     Bundle.module.resourceURL!.appendingPathComponent("Assets/Static"),
@@ -257,7 +262,17 @@ open class EPUBNavigatorViewController: UIViewController,
             }
         }()
 
+        self.resourcesURL = assetsBaseURL
+        self.viewModel = EPUBNavigatorViewModel(
+            publication: publication,
+            config: config,
+            assetsBaseURL: assetsBaseURL,
+            useLegacySettings: false
+        )
+
         super.init(nibName: nil, bundle: nil)
+
+        self.viewModel.delegate = self
         
         self.editingActions.delegate = self
     }
@@ -737,22 +752,14 @@ open class EPUBNavigatorViewController: UIViewController,
 
     // MARK: - Configurable
 
-    public private(set) var settings: EPUBSettings
+    public var settings: EPUBSettings { viewModel.settings }
 
     public func submitPreferences(_ preferences: EPUBPreferences) {
-        settings = EPUBSettings(
-            preferences: preferences,
-            defaults: config.defaults,
-            metadata: publication.metadata
-        )
+        viewModel.submitPreferences(preferences)
     }
 
     public func editor(of preferences: EPUBPreferences) -> EPUBPreferencesEditor {
-        EPUBPreferencesEditor(
-            initialPreferences: preferences,
-            metadata: publication.metadata,
-            defaults: config.defaults
-        )
+        viewModel.editor(of: preferences)
     }
 
     // MARK: - EPUB-specific extensions
@@ -766,6 +773,37 @@ open class EPUBNavigatorViewController: UIViewController,
             return
         }
         spreadView.evaluateScript(script, completion: completion)
+    }
+}
+
+extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
+
+    func epubNavigatorViewModelInvalidatePaginationView(_ viewModel: EPUBNavigatorViewModel) {
+        reloadSpreads()
+    }
+
+    func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel, runScript script: String, in scope: EPUBScriptScope) {
+        switch scope {
+        case .currentResource:
+            (paginationView.currentView as? EPUBSpreadView)?.evaluateScript(script)
+
+        case .loadedResources:
+            for (_, view) in self.paginationView.loadedViews {
+                (view as? EPUBSpreadView)?.evaluateScript(script)
+            }
+
+        case .resource(let href):
+            for (_, view) in self.paginationView.loadedViews {
+                guard
+                    let view = view as? EPUBSpreadView,
+                    view.spread.links.first(withHREF: href) != nil
+                else {
+                    continue
+                }
+                view.evaluateScript(script, inHREF: href)
+                return
+            }
+        }
     }
 }
 
