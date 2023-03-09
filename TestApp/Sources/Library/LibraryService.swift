@@ -32,13 +32,11 @@ final class LibraryService: Loggable {
     
     private let streamer: Streamer
     private let books: BookRepository
-    private let publicationServer: PublicationServer
     private let httpClient: HTTPClient
     private var drmLibraryServices = [DRMLibraryService]()
     
-    init(books: BookRepository, publicationServer: PublicationServer, httpClient: HTTPClient) {
+    init(books: BookRepository, httpClient: HTTPClient) {
         self.books = books
-        self.publicationServer = publicationServer
         self.httpClient = httpClient
         
         #if LCP
@@ -64,7 +62,6 @@ final class LibraryService: Loggable {
         book.url()
             .flatMap { self.openPublication(at: $0, allowUserInteraction: true, sender: sender) }
             .flatMap { (pub, _) in self.checkIsReadable(publication: pub) }
-            .handleEvents(receiveOutput: { self.preparePresentation(of: $0, book: book) })
             .eraseToAnyPublisher()
     }
     
@@ -101,22 +98,6 @@ final class LibraryService: Loggable {
         }
         return .just(publication)
     }
-
-    private func preparePresentation(of publication: Publication, book: Book) {
-        // If the book is a web pub manifest, it means it is loaded remotely from a URL, and it
-        // doesn't need to be added to the publication server.
-        guard !book.mediaType.isRWPM else {
-            return
-        }
-        
-        publicationServer.removeAll()
-        do {
-            try publicationServer.add(publication)
-        } catch {
-            log(.error, error)
-        }
-    }
-
     
     // MARK: Importation
     
@@ -276,9 +257,6 @@ final class LibraryService: Loggable {
         guard let id = book.id else {
             return .fail(.bookDeletionFailed(nil))
         }
-        
-        // FIXME: ?
-        publicationServer.remove(at: book.path)
         
         return books.remove(id)
             .mapError { LibraryError.bookDeletionFailed($0) }

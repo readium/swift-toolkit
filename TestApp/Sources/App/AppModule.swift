@@ -36,19 +36,14 @@ final class AppModule {
     var opds: OPDSModuleAPI! = nil
 
     init() throws {
-        guard let server = PublicationServer() else {
-            /// FIXME: we should recover properly if the publication server can't start, maybe this should only forbid opening a publication?
-            fatalError("Can't start publication server")
-        }
-        
         let httpClient = DefaultHTTPClient()
         let db = try Database(file: Paths.library.appendingPathComponent("database.db"))
         let books = BookRepository(db: db)
         let bookmarks = BookmarkRepository(db: db)
         let highlights = HighlightRepository(db: db)
         
-        library = LibraryModule(delegate: self, books: books, server: server, httpClient: httpClient)
-        reader = ReaderModule(delegate: self, books: books, bookmarks: bookmarks, highlights: highlights, resourcesServer: server)
+        library = LibraryModule(delegate: self, books: books, httpClient: httpClient)
+        reader = ReaderModule(delegate: self, books: books, bookmarks: bookmarks, highlights: highlights)
         opds = OPDSModule(delegate: self)
         
         // Set Readium 2's logging minimum level.

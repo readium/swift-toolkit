@@ -13,13 +13,17 @@ import Foundation
 import UIKit
 import R2Navigator
 import R2Shared
-
+import ReadiumAdapterGCDWebServer
 
 @available(iOS 11.0, *)
 final class PDFViewController: ReaderViewController {
     
-    init(publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) {
-        let navigator = PDFNavigatorViewController(publication: publication, initialLocation: locator)
+    init(publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) throws {
+        let navigator = try PDFNavigatorViewController(
+            publication: publication,
+            initialLocation: locator,
+            httpServer: GCDHTTPServer.shared
+        )
         
         super.init(navigator: navigator, publication: publication, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights)
         

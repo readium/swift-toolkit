@@ -37,19 +37,17 @@ final class ReaderModule: ReaderModuleAPI {
     private let books: BookRepository
     private let bookmarks: BookmarkRepository
     private let highlights: HighlightRepository
-    private let resourcesServer: ResourcesServer
     
     /// Sub-modules to handle different publication formats (eg. EPUB, CBZ)
     var formatModules: [ReaderFormatModule] = []
     
     private let factory = ReaderFactory()
     
-    init(delegate: ReaderModuleDelegate?, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository, resourcesServer: ResourcesServer) {
+    init(delegate: ReaderModuleDelegate?, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) {
         self.delegate = delegate
         self.books = books
         self.bookmarks = bookmarks
         self.highlights = highlights
-        self.resourcesServer = resourcesServer
         
         formatModules = [
             CBZModule(delegate: self),
@@ -81,7 +79,7 @@ final class ReaderModule: ReaderModuleAPI {
         }
 
         do {
-            let readerViewController = try module.makeReaderViewController(for: publication, locator: book.locator, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights, resourcesServer: resourcesServer)
+            let readerViewController = try module.makeReaderViewController(for: publication, locator: book.locator, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights)
             present(readerViewController)
         } catch {
             delegate.presentError(error, from: navigationController)
