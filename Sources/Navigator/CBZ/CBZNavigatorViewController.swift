@@ -13,6 +13,12 @@ public protocol CBZNavigatorDelegate: VisualNavigatorDelegate { }
 
 /// A view controller used to render a CBZ `Publication`.
 open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggable {
+
+    enum Error: Swift.Error {
+        /// The provided publication is restricted. Check that any DRM was
+        /// properly unlocked using a Content Protection.
+        case publicationRestricted
+    }
     
     public weak var delegate: CBZNavigatorDelegate?
 
@@ -21,10 +27,67 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
     private let pageViewController: UIPageViewController
 
-    public init(publication: Publication, initialLocation: Locator? = nil) {
-        assert(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
+    private let server: HTTPServer?
+    private let publicationEndpoint: HTTPServerEndpoint?
+    private let publicationBaseURL: URL
+
+    public convenience init(
+        publication: Publication,
+        initialLocation: Locator?,
+        editingActions: [EditingAction] = EditingAction.defaultActions,
+        httpServer: HTTPServer
+    ) throws {
+        guard !publication.isRestricted else {
+            throw Error.publicationRestricted
+        }
+
+        let publicationEndpoint: HTTPServerEndpoint?
+        let baseURL: URL
+        if let url = publication.baseURL {
+            publicationEndpoint = nil
+            baseURL = url
+        } else {
+            let endpoint = UUID().uuidString
+            publicationEndpoint = endpoint
+            baseURL = try httpServer.serve(at: endpoint, publication: publication)
+        }
+
+        self.init(
+            publication: publication,
+            initialLocation: initialLocation,
+            httpServer: httpServer,
+            publicationEndpoint: publicationEndpoint,
+            publicationBaseURL: baseURL
+        )
+    }
+
+    public convenience init(publication: Publication, initialLocation: Locator? = nil) {
+        precondition(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
+        guard let baseURL = publication.baseURL else {
+            preconditionFailure("No base URL provided for the publication. Add it to the HTTP server.")
+        }
         
+        self.init(
+            publication: publication,
+            initialLocation: initialLocation,
+            httpServer: nil,
+            publicationEndpoint: nil,
+            publicationBaseURL: baseURL
+        )
+    }
+
+    private init(
+        publication: Publication,
+        initialLocation: Locator?,
+        httpServer: HTTPServer?,
+        publicationEndpoint: HTTPServerEndpoint?,
+        publicationBaseURL: URL
+    ) {
         self.publication = publication
+        self.server = httpServer
+        self.publicationEndpoint = publicationEndpoint
+        self.publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
+        
         self.initialIndex = {
             guard let initialLocation = initialLocation, let initialIndex = publication.readingOrder.firstIndex(withHREF: initialLocation.href) else {
                 return 0
@@ -36,7 +99,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
             transitionStyle: .scroll,
             navigationOrientation: .horizontal
         )
-        
+
         super.init(nibName: nil, bundle: nil)
         
         automaticallyAdjustsScrollViewInsets = false
@@ -44,6 +107,12 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    deinit {
+        if let endpoint = publicationEndpoint {
+            server?.remove(at: endpoint)
+        }
     }
 
     override open func viewDidLoad() {
@@ -115,7 +184,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     
     private func imageViewController(at index: Int) -> ImageViewController? {
         guard publication.readingOrder.indices.contains(index),
-            let url = publication.readingOrder[index].url(relativeTo: publication.baseURL) else
+            let url = publication.readingOrder[index].url(relativeTo: publicationBaseURL) else
         {
             return nil
         }
