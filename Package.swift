@@ -17,6 +17,9 @@ let package = Package(
         .library(name: "R2Navigator", targets: ["R2Navigator"]),
         .library(name: "ReadiumOPDS", targets: ["ReadiumOPDS"]),
         .library(name: "ReadiumLCP", targets: ["ReadiumLCP"]),
+
+        // Adapters to third-party dependencies.
+        .library(name: "ReadiumAdapterGCDWebServer", targets: ["ReadiumAdapterGCDWebServer"]),
     ],
     dependencies: [
         .package(url: "https://github.com/cezheng/Fuzi.git", from: "3.1.3"),
@@ -142,6 +145,15 @@ let package = Package(
         //         .copy("Fixtures"),
         //     ]
         // ),
+
+        .target(
+            name: "ReadiumAdapterGCDWebServer",
+            dependencies: [
+                "GCDWebServer",
+                "R2Shared",
+            ],
+            path: "Sources/Adapters/GCDWebServer"
+        ),
     ]
 )
 

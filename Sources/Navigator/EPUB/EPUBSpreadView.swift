@@ -47,6 +47,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     let spread: EPUBSpread
     private(set) var focusedResource: Link?
     
+    let baseURL: URL
     let resourcesURL: URL
     let webView: WebView
 
@@ -72,9 +73,10 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     private(set) var spreadLoaded = false
 
-    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, scripts: [WKUserScript], animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+    required init(publication: Publication, spread: EPUBSpread, baseURL: URL, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, scripts: [WKUserScript], animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
         self.publication = publication
         self.spread = spread
+        self.baseURL = baseURL
         self.resourcesURL = resourcesURL
         self.readingProgression = readingProgression
         self.userSettings = userSettings
@@ -477,7 +479,7 @@ extension EPUBSpreadView: WKNavigationDelegate {
         if navigationAction.navigationType == .linkActivated {
             if let url = navigationAction.request.url {
                 // Check if url is internal or external
-                if let baseURL = publication.baseURL, url.host == baseURL.host {
+                if url.host == baseURL.host {
                     let href = url.absoluteString.replacingOccurrences(of: baseURL.absoluteString, with: "/")
                     delegate?.spreadView(self, didTapOnInternalLink: href, clickEvent: self.lastClick)
                 } else {
@@ -512,7 +514,7 @@ extension EPUBSpreadView: WKUIDelegate {
     
     func webView(_ webView: WKWebView, shouldPreviewElement elementInfo: WKPreviewElementInfo) -> Bool {
         // Preview allowed only if the link is not internal
-        return (elementInfo.linkURL?.host != publication.baseURL?.host)
+        return (elementInfo.linkURL?.host != baseURL.host)
     }
 }
 

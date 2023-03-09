@@ -32,6 +32,8 @@ targets:
       - package: Readium
         product: R2Navigator
       - package: Readium
+        product: ReadiumAdapterGCDWebServer
+      - package: Readium
         product: ReadiumOPDS
       - package: GRDB
       - package: Kingfisher
