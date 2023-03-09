@@ -102,7 +102,7 @@ targets:
     sources: 
       - path: ../../Sources/Adapters/GCDWebServer
     dependencies:
-      - framework: GCDWebServer.framework
+      - framework: ../../Carthage/Build/GCDWebServer.xcframework
       - target: R2Shared
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.ReadiumAdapterGCDWebServer

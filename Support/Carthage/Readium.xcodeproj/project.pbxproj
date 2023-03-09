@@ -247,6 +247,7 @@
 		C283E515CA6A8EEA1C89AD98 /* License.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2C93C33347DC0A41FE15AC6 /* License.swift */; };
 		C2A1FAC4ADA33EABA1E45EF8 /* ParseData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1085F2D690A73984E675D54 /* ParseData.swift */; };
 		C2D32286200D850101D8C4FD /* SwiftSoup.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = BE09289EB0FEA5FEC8506B1F /* SwiftSoup.xcframework */; };
+		C2D8AD7329853B2CACB97B99 /* GCDWebServer.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = D92391897F01AC5AFD509B1D /* GCDWebServer.xcframework */; };
 		C35001848411CBCAC8F03763 /* PublicationContentIterator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BF38F71FDEC1920325B62D3 /* PublicationContentIterator.swift */; };
 		C3BC5A4C44DD8CE26155C0D5 /* PDFFileParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8103346E73760F07800EB75E /* PDFFileParser.swift */; };
 		C3BEB5CC9C6DD065B2CAE1BE /* Licenses.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED568512FD1304D6B9CC79B0 /* Licenses.swift */; };
@@ -300,7 +301,6 @@
 		EDCA3449EA5683B37D82FEBE /* PDFKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABAF1D0444B94E2CDD80087D /* PDFKit.swift */; };
 		EE951A131E38E316BF7A1129 /* LCPDialogViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = ED5C6546C24E5E619E4CC9D1 /* LCPDialogViewController.xib */; };
 		EF8EE67A14F96F0D445422C4 /* EPUBParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03C234075C7F7573BA54B77D /* EPUBParser.swift */; };
-		F195B9AFBAF64FC7F50E4196 /* GCDWebServer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CAEA09BA4CC5F243E06F1BC /* GCDWebServer.framework */; };
 		F297BFBADCEFC21E140BEA30 /* Properties+Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E175BF1A1F97687B4119BB1 /* Properties+Encryption.swift */; };
 		F2B89E29EBFF1B96981490CD /* Streamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE961CB4827D937CE3862B51 /* Streamer.swift */; };
 		F2BDD94FFFBD08526B56E337 /* URLHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E19D31097B3A8050A46CDAA5 /* URLHelper.swift */; };
@@ -451,7 +451,6 @@
 		4BB5D42EEF0083D833E2A572 /* Publication+OPDS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publication+OPDS.swift"; sourceTree = "<group>"; };
 		4BCDF341872EEFB88B6674DE /* HTTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPServer.swift; sourceTree = "<group>"; };
 		4BF38F71FDEC1920325B62D3 /* PublicationContentIterator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationContentIterator.swift; sourceTree = "<group>"; };
-		4CAEA09BA4CC5F243E06F1BC /* GCDWebServer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = GCDWebServer.framework; sourceTree = "<group>"; };
 		4E564AE6D5137499C81FEBE2 /* TargetAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetAction.swift; sourceTree = "<group>"; };
 		4FEFF89765DD889EA81477EA /* FileResource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileResource.swift; sourceTree = "<group>"; };
 		500E55D9CA753D6D6AA76D10 /* EPUBLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBLicenseContainer.swift; sourceTree = "<group>"; };
@@ -718,7 +717,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F195B9AFBAF64FC7F50E4196 /* GCDWebServer.framework in Frameworks */,
+				C2D8AD7329853B2CACB97B99 /* GCDWebServer.xcframework in Frameworks */,
 				D362CE558C13C60E46E3B2EE /* R2Shared.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1354,7 +1353,6 @@
 				E37F94C388A86CB8A34812A5 /* CryptoSwift.xcframework */,
 				3F95F3F20D758BE0E7005EA3 /* DifferenceKit.xcframework */,
 				B421601FB56132514CCD9699 /* Fuzi.xcframework */,
-				4CAEA09BA4CC5F243E06F1BC /* GCDWebServer.framework */,
 				D92391897F01AC5AFD509B1D /* GCDWebServer.xcframework */,
 				CFFEBDFE931745C07DACD4A3 /* Minizip.xcframework */,
 				F07214E263C6589987A561F9 /* SQLite.xcframework */,
@@ -2372,7 +2370,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\".\"",
+					"\"../../Carthage/Build\"",
 				);
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -2713,7 +2711,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\".\"",
+					"\"../../Carthage/Build\"",
 				);
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";

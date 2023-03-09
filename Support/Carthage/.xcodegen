@@ -166,7 +166,7 @@
     "ReadiumAdapterGCDWebServer" : {
       "dependencies" : [
         {
-          "framework" : "GCDWebServer.framework"
+          "framework" : "..\/..\/Carthage\/Build\/GCDWebServer.xcframework"
         },
         {
           "target" : "R2Shared"
