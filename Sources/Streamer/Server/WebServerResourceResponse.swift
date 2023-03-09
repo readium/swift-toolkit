@@ -26,6 +26,7 @@ public enum WebServerResponseError: Error {
 
 /// The object containing the response's ressource data.
 /// If the ressource to be served is too big, multiple responses will be created.
+@available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
 open class WebServerResourceResponse: GCDWebServerFileResponse {
 
     private let bufferSize = 32 * 1024

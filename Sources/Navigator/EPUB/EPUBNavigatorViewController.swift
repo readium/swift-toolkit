@@ -264,6 +264,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         )
     }
 
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
     public convenience init(
         publication: Publication,
         initialLocation: Locator? = nil,
@@ -1056,72 +1057,4 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
     func paginationView(_ paginationView: PaginationView, positionCountAtIndex index: Int) -> Int {
         return spreads[index].positionCount(in: publication)
     }
-}
-
-
-// MARK: - Deprecated
-
-@available(*, unavailable, renamed: "EPUBNavigatorViewController")
-public typealias NavigatorViewController = EPUBNavigatorViewController
-
-@available(*, unavailable, message: "Use the `animated` parameter of `goTo` functions instead")
-public enum PageTransition {
-    case none
-    case animated
-}
-
-extension EPUBNavigatorViewController {
-    
-    /// This initializer is deprecated.
-    /// `license` is not needed anymore.
-    @available(*, unavailable, renamed: "init(publication:initialLocation:resourcesServer:config:)")
-    public convenience init(publication: Publication, license: DRMLicense?, initialLocation: Locator? = nil, resourcesServer: ResourcesServer, config: Configuration = .init()) {
-        self.init(publication: publication, initialLocation: initialLocation, resourcesServer: resourcesServer, config: config)
-    }
-        
-    /// This initializer is deprecated.
-    /// Replace `pageTransition` by the `animated` property of the `goTo` functions.
-    /// Replace `disableDragAndDrop` by `EditingAction.copy`, since drag and drop is equivalent to copy.
-    /// Replace `initialIndex` and `initialProgression` by `initialLocation`.
-    @available(*, unavailable, renamed: "init(publication:initialLocation:resourcesServer:config:)")
-    public convenience init(for publication: Publication, license: DRMLicense? = nil, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil) {
-        fatalError("This initializer is not available anymore.")
-    }
-    
-    /// This initializer is deprecated.
-    /// Use the new Configuration object.
-    @available(*, unavailable, renamed: "init(publication:license:initialLocation:resourcesServer:config:)")
-    public convenience init(publication: Publication, license: DRMLicense? = nil, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil, resourcesServer: ResourcesServer) {
-        var config = Configuration()
-        config.editingActions = editingActions
-        if let contentInset = contentInset {
-            config.contentInset = contentInset
-        }
-        self.init(publication: publication, initialLocation: initialLocation, resourcesServer: resourcesServer, config: config)
-    }
-
-    @available(*, unavailable, message: "Use the `animated` parameter of `goTo` functions instead")
-    public var pageTransition: PageTransition {
-        get { return .none }
-        set {}
-    }
-    
-    @available(*, unavailable, message: "Bookmark model is deprecated, use your own model and `currentLocation`")
-    public var currentPosition: Bookmark? { nil }
-
-    @available(*, unavailable, message: "Use `publication.readingOrder` instead")
-    public func getReadingOrder() -> [Link] { return publication.readingOrder }
-    
-    @available(*, unavailable, message: "Use `publication.tableOfContents` instead")
-    public func getTableOfContents() -> [Link] { return publication.tableOfContents }
-
-    @available(*, unavailable, renamed: "go(to:)")
-    public func displayReadingOrderItem(at index: Int) {}
-    
-    @available(*, unavailable, renamed: "go(to:)")
-    public func displayReadingOrderItem(at index: Int, progression: Double) {}
-    
-    @available(*, unavailable, renamed: "go(to:)")
-    public func displayReadingOrderItem(with href: String) -> Int? { nil }
-    
 }

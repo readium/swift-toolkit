@@ -77,6 +77,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         )
     }
 
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
     public convenience init(
         publication: Publication,
         initialLocation: Locator? = nil,
@@ -491,21 +492,6 @@ extension PDFNavigatorViewController: UIGestureRecognizerDelegate {
 
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
-    }
-    
-}
-
-
-// MARK: - Deprecated
-
-@available(iOS 11.0, *)
-extension PDFNavigatorViewController {
-    
-    /// This initializer is deprecated.
-    /// `license` is not needed anymore.
-    @available(*, unavailable, renamed: "init(publication:initialLocation:editingActions:)")
-    public convenience init(publication: Publication, license: DRMLicense?, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
-        self.init(publication: publication, initialLocation: initialLocation, editingActions: editingActions)
     }
     
 }

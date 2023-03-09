@@ -14,8 +14,6 @@ import R2Shared
 import GCDWebServer
 import UIKit
 
-extension PublicationServer: Loggable {}
-
 /// Errors thrown by the `PublicationServer`.
 ///
 /// - parser: An error thrown by the Parser.
@@ -30,7 +28,8 @@ public enum PublicationServerError: Error{
 }
 
 /// The HTTP server for the publication's manifests and assets. Serves Epubs.
-public class PublicationServer: ResourcesServer {
+@available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
+public class PublicationServer: ResourcesServer, Loggable {
     /// The HTTP server.
     var webServer: GCDWebServer
     
@@ -181,6 +180,7 @@ public class PublicationServer: ResourcesServer {
     /// - Throws: `PublicationServerError.usedEndpoint`,
     ///           `PublicationServerError.nilBaseUrl`,
     ///           `PublicationServerError.fetcher`.
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
     public func add(_ publication: Publication, at endpoint: String = UUID().uuidString) throws {
         // TODO: verif that endpoint is a simple string and not a path.
         guard publications[endpoint] == nil else {
@@ -258,6 +258,7 @@ public class PublicationServer: ResourcesServer {
         )
     }
     
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
     public func remove(_ publication: Publication) {
         guard let endpoint = publications.first(where: { $0.value === publication })?.key else {
             return
@@ -268,6 +269,7 @@ public class PublicationServer: ResourcesServer {
     /// Remove a publication from the server.
     ///
     /// - Parameter endpoint: The URI postfix of the ressource.
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
     public func remove(at endpoint: String) {
         guard let publication = publications[endpoint] else {
             log(.warning, "Nothing at endpoint \(endpoint).")
@@ -280,6 +282,7 @@ public class PublicationServer: ResourcesServer {
     }
     
     /// Remove all publication from the server.
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
     public func removeAll() {
         for (endpoint, publication) in publications {
             // Remove selfLinks from publication.

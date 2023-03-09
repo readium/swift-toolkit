@@ -61,6 +61,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         )
     }
 
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
     public convenience init(publication: Publication, initialLocation: Locator? = nil) {
         precondition(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
         guard let baseURL = publication.baseURL else {
@@ -268,45 +269,3 @@ extension CBZNavigatorViewController: UIPageViewControllerDelegate {
     }
 
 }
-
-
-// MARK: - Deprecated
-
-extension CBZNavigatorViewController {
-    
-    @available(*, unavailable, renamed: "currentLocation.locations.position")
-    public var pageNumber: Int {
-        return currentResourceIndex + 1
-    }
-    
-    @available(*, unavailable, message: "Use `publication.readingOrder.count` instead")
-    public var totalPageNumber: Int {
-        return publication.readingOrder.count
-    }
-
-    @available(*, unavailable, renamed: "goForward")
-    @objc public func loadNext() {
-        goForward(animated: true)
-    }
-    
-    @available(*, unavailable, renamed: "goBackward")
-    @objc public func loadPrevious() {
-        goBackward(animated: true)
-    }
-    
-    @available(*, unavailable, message: "Use `go(to:)` using the `readingOrder` instead")
-    public func load(at index: Int) {}
-    
-    @available(*, unavailable, message: "Use init(publication:initialLocation:) instead")
-    public convenience init(for publication: Publication, initialIndex: Int = 0) {
-        var location: Locator? = nil
-        if publication.readingOrder.indices.contains(initialIndex) {
-            location = publication.locate(publication.readingOrder[initialIndex])
-        }
-        self.init(publication: publication, initialLocation: location)
-    }
-    
-}
-
-@available(*, unavailable, renamed: "CBZNavigatorViewController")
-public typealias CbzNavigatorViewController = CBZNavigatorViewController
