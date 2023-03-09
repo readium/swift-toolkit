@@ -242,6 +242,14 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
             baseURL = try httpServer.serve(at: endpoint, publication: publication)
         }
 
+        // FIXME: Remove in Readium 3.0
+        // Serve the fonts under the /fonts endpoint as the Streamer's
+        // EPUBHTMLInjector is expecting it there.
+        try httpServer.serve(
+            at: "fonts",
+            contentsOf: Bundle.module.resourceURL!.appendingPathComponent("Assets/Static/fonts")
+        )
+
         self.init(
             publication: publication,
             initialLocation: initialLocation,

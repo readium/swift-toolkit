@@ -17,6 +17,7 @@ public protocol HTTPServer {
     /// Subsequent calls with the same `endpoint` overwrite each other.
     ///
     /// - Returns the base URL for this endpoint.
+    @discardableResult
     func serve(at endpoint: HTTPServerEndpoint, handler: @escaping (HTTPServerRequest) -> Resource) throws -> URL
 
     /// Removes a handler serving resources at `endpoint`.
@@ -32,6 +33,7 @@ public extension HTTPServer {
     /// overwrite each other.
     ///
     /// - Returns the URL to access the file(s) on the server.
+    @discardableResult
     func serve(at endpoint: HTTPServerEndpoint, contentsOf url: URL) throws -> URL {
         try serve(at: endpoint) { request in
             let file = url.appendingPathComponent(request.href ?? "")
@@ -50,6 +52,7 @@ public extension HTTPServer {
     ///
     /// - Returns the base URL to access the publication's resources on the
     /// server.
+    @discardableResult
     func serve(at endpoint: HTTPServerEndpoint, publication: Publication) throws -> URL {
         try serve(at: endpoint) { request in
             guard let href = request.href else {
