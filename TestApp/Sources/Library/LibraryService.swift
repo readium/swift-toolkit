@@ -32,13 +32,11 @@ final class LibraryService: Loggable {
     
     private let streamer: Streamer
     private let books: BookRepository
-    private let publicationServer: PublicationServer
     private let httpClient: HTTPClient
     private var drmLibraryServices = [DRMLibraryService]()
     
-    init(books: BookRepository, publicationServer: PublicationServer, httpClient: HTTPClient) {
+    init(books: BookRepository, httpClient: HTTPClient) {
         self.books = books
-        self.publicationServer = publicationServer
         self.httpClient = httpClient
         
         #if LCP
@@ -58,12 +56,9 @@ final class LibraryService: Loggable {
     // MARK: Opening
 
     /// Opens the Readium 2 Publication for the given `book`.
-    ///
-    /// If the `Publication` is intended to be presented in a navigator, set `forPresentation`.
-    func openBook(_ book: Book, forPresentation prepareForPresentation: Bool, sender: UIViewController) async throws -> Publication {
+    func openBook(_ book: Book, sender: UIViewController) async throws -> Publication {
         let (pub, _) = try await openPublication(at: book.url(), allowUserInteraction: true, sender: sender)
         try checkIsReadable(publication: pub)
-        preparePresentation(of: pub, book: book)
         return pub
     }
     
@@ -98,22 +93,6 @@ final class LibraryService: Loggable {
             }
         }
     }
-
-    private func preparePresentation(of publication: Publication, book: Book) {
-        // If the book is a web pub manifest, it means it is loaded remotely from a URL, and it
-        // doesn't need to be added to the publication server.
-        guard !book.mediaType.isRWPM else {
-            return
-        }
-        
-        publicationServer.removeAll()
-        do {
-            try publicationServer.add(publication)
-        } catch {
-            log(.error, error)
-        }
-    }
-
     
     // MARK: Importation
     
@@ -250,9 +229,6 @@ final class LibraryService: Loggable {
         guard let id = book.id else {
             throw LibraryError.bookDeletionFailed(nil)
         }
-        
-        // FIXME: ?
-        publicationServer.remove(at: book.path)
         
         do {
             try await books.remove(id)

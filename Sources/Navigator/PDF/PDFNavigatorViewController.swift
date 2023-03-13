@@ -12,7 +12,6 @@ import R2Shared
 
 public protocol PDFNavigatorDelegate: VisualNavigatorDelegate, SelectableNavigatorDelegate { }
 
-
 /// A view controller used to render a PDF `Publication`.
 @available(iOS 11.0, *)
 open class PDFNavigatorViewController: UIViewController, VisualNavigator, SelectableNavigator, Configurable, Loggable {
@@ -42,6 +41,10 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     }
     
     enum Error: Swift.Error {
+        /// The provided publication is restricted. Check that any DRM was
+        /// properly unlocked using a Content Protection.
+        case publicationRestricted
+
         case openPDFFailed
     }
     
@@ -64,24 +67,84 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     /// Holds a reference to make sure it is not garbage-collected.
     private var tapGestureController: PDFTapGestureController?
 
-    public convenience init(publication: Publication, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
-        self.init(publication: publication, initialLocation: initialLocation, config: Configuration(editingActions: editingActions))
+    private let server: HTTPServer?
+    private let publicationEndpoint: HTTPServerEndpoint?
+    private let publicationBaseURL: URL
+
+    public convenience init(
+        publication: Publication,
+        initialLocation: Locator?,
+        config: Configuration = .init(),
+        httpServer: HTTPServer
+    ) throws {
+        guard !publication.isRestricted else {
+            throw Error.publicationRestricted
+        }
+
+        let publicationEndpoint: HTTPServerEndpoint?
+        let baseURL: URL
+        if let url = publication.baseURL {
+            publicationEndpoint = nil
+            baseURL = url
+        } else {
+            let endpoint = UUID().uuidString
+            publicationEndpoint = endpoint
+            baseURL = try httpServer.serve(at: endpoint, publication: publication)
+        }
+
+        self.init(
+            publication: publication,
+            initialLocation: initialLocation,
+            httpServer: httpServer,
+            publicationEndpoint: publicationEndpoint,
+            publicationBaseURL: baseURL,
+            config: config
+        )
     }
 
-    public init(publication: Publication, initialLocation: Locator? = nil, config: Configuration) {
-        assert(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
+    public convenience init(
+        publication: Publication,
+        initialLocation: Locator? = nil,
+        editingActions: [EditingAction] = EditingAction.defaultActions
+    ) {
+        precondition(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
+        guard let baseURL = publication.baseURL else {
+            preconditionFailure("No base URL provided for the publication. Add it to the HTTP server.")
+        }
         
+        self.init(
+            publication: publication,
+            initialLocation: initialLocation,
+            httpServer: nil,
+            publicationEndpoint: nil,
+            publicationBaseURL: baseURL,
+            config: Configuration(editingActions: editingActions)
+        )
+    }
+
+    private init(
+        publication: Publication,
+        initialLocation: Locator?,
+        httpServer: HTTPServer?,
+        publicationEndpoint: HTTPServerEndpoint?,
+        publicationBaseURL: URL,
+        config: Configuration
+    ) {
         self.publication = publication
         self.initialLocation = initialLocation
+        self.server = httpServer
+        self.publicationEndpoint = publicationEndpoint
+        self.publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
         self.config = config
         self.editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
-
+        
         self.settings = PDFSettings(
             preferences: config.preferences,
             defaults: config.defaults,
             metadata: publication.metadata
         )
-
+        
         super.init(nibName: nil, bundle: nil)
         
         self.editingActions.delegate = self
@@ -102,6 +165,10 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     
     deinit {
         NotificationCenter.default.removeObserver(self)
+
+        if let endpoint = publicationEndpoint {
+            server?.remove(at: endpoint)
+        }
     }
 
     open override func viewDidLoad() {
@@ -318,7 +385,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         }
         
         if currentResourceIndex != index {
-            guard let url = link.url(relativeTo: publication.baseURL),
+            guard let url = link.url(relativeTo: publicationBaseURL),
                 let document = PDFDocument(url: url) else
             {
                 log(.error, "Can't open PDF document at \(link)")
@@ -572,18 +639,4 @@ private extension Axis {
         case .horizontal: return .horizontal
         }
     }
-}
-
-// MARK: - Deprecated
-
-@available(iOS 11.0, *)
-extension PDFNavigatorViewController {
-    
-    /// This initializer is deprecated.
-    /// `license` is not needed anymore.
-    @available(*, unavailable, renamed: "init(publication:initialLocation:editingActions:)")
-    public convenience init(publication: Publication, license: DRMLicense?, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions) {
-        self.init(publication: publication, initialLocation: initialLocation, editingActions: editingActions)
-    }
-    
 }

@@ -13,8 +13,8 @@ import Foundation
 import UIKit
 import R2Navigator
 import R2Shared
+import ReadiumAdapterGCDWebServer
 import SwiftUI
-
 
 @available(iOS 11.0, *)
 final class PDFViewController: ReaderViewController<PDFNavigatorViewController> {
@@ -30,15 +30,16 @@ final class PDFViewController: ReaderViewController<PDFNavigatorViewController> 
         highlights: HighlightRepository,
         initialPreferences: PDFPreferences,
         preferencesStore: AnyUserPreferencesStore<PDFPreferences>
-    ) {
+    ) throws {
         self.preferencesStore = preferencesStore
 
-        let navigator = PDFNavigatorViewController(
+        let navigator = try PDFNavigatorViewController(
             publication: publication,
             initialLocation: locator,
             config: PDFNavigatorViewController.Configuration(
                 preferences: initialPreferences
-            )
+            ),
+            httpServer: GCDHTTPServer.shared
         )
         
         super.init(navigator: navigator, publication: publication, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights)

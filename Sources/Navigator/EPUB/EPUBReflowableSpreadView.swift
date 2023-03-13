@@ -18,7 +18,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     
     private static let reflowableScript = loadScript(named: "readium-reflowable")
     
-    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, scripts: [WKUserScript], animatedLoad: Bool, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+    required init(publication: Publication, spread: EPUBSpread, baseURL: URL, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, scripts: [WKUserScript], animatedLoad: Bool, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
         var scripts = scripts
         
         let layout = ReadiumCSSLayout(languages: publication.metadata.languages, readingProgression: readingProgression)
@@ -30,7 +30,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         
         scripts.append(WKUserScript(source: Self.reflowableScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
         
-        super.init(publication: publication, spread: spread, resourcesURL: resourcesURL, readingProgression: readingProgression, userSettings: userSettings, scripts: scripts, animatedLoad: animatedLoad, editingActions: editingActions, contentInset: contentInset)
+        super.init(publication: publication, spread: spread, baseURL: baseURL, resourcesURL: resourcesURL, readingProgression: readingProgression, userSettings: userSettings, scripts: scripts, animatedLoad: animatedLoad, editingActions: editingActions, contentInset: contentInset)
     }
 
     override func setupWebView() {
@@ -73,7 +73,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return
         }
         let link = spread.leading
-        guard let url = link.url(relativeTo: publication.baseURL) else {
+        guard let url = link.url(relativeTo: baseURL) else {
             log(.error, "Can't get URL for link \(link.href)")
             return
         }

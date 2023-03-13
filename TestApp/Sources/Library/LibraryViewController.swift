@@ -98,7 +98,7 @@ class LibraryViewController: UIViewController, Loggable {
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
-        collectionView.collectionViewLayout.invalidateLayout()
+        collectionView?.collectionViewLayout.invalidateLayout()
     }
 
     static let iPadLayoutNumberPerRow:[ScreenOrientation: Int] = [.portrait: 4, .landscape: 5]
@@ -326,7 +326,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
             let book = books[indexPath.item]
 
             do {
-                let pub = try await library.openBook(book, forPresentation: true, sender: self)
+                let pub = try await library.openBook(book, sender: self)
                 libraryDelegate.libraryDidSelectPublication(pub, book: book)
             } catch {
                 libraryDelegate.presentError(error, from: self)
@@ -369,7 +369,7 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
         
         Task {
             do {
-                let pub = try await library.openBook(book, forPresentation: true, sender: self)
+                let pub = try await library.openBook(book, sender: self)
                 let detailsViewController = self.factory.make(publication: pub)
                 detailsViewController.modalPresentationStyle = .popover
                 self.navigationController?.pushViewController(detailsViewController, animated: true)

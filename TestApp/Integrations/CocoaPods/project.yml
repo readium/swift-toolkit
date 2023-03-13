@@ -8,3 +8,5 @@ targets:
     deploymentTarget: "14.0"
     sources: 
       - path: Sources
+    settings:
+      DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}

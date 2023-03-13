@@ -27,6 +27,7 @@ targets:
       - framework: Carthage/Build/R2Navigator.xcframework
       - framework: Carthage/Build/R2Shared.xcframework
       - framework: Carthage/Build/R2Streamer.xcframework
+      - framework: Carthage/Build/ReadiumAdapterGCDWebServer.xcframework
       - framework: Carthage/Build/ReadiumOPDS.xcframework
       - framework: Carthage/Build/SwiftSoup.xcframework
       - package: GRDB
@@ -34,4 +35,5 @@ targets:
       - package: MBProgressHUD
     settings:
       LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)/Carthage
+      DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}
 

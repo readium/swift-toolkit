@@ -28,6 +28,7 @@ targets:
       - framework: Carthage/Build/R2Navigator.xcframework
       - framework: Carthage/Build/R2Shared.xcframework
       - framework: Carthage/Build/R2Streamer.xcframework
+      - framework: Carthage/Build/ReadiumAdapterGCDWebServer.xcframework
       - framework: Carthage/Build/ReadiumLCP.xcframework
       - framework: Carthage/Build/ReadiumOPDS.xcframework
       - framework: Carthage/Build/SQLite.xcframework
@@ -39,4 +40,5 @@ targets:
     settings:
       LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)/Carthage
       OTHER_SWIFT_FLAGS: -DLCP
+      DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}
 

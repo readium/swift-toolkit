@@ -47,6 +47,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     let spread: EPUBSpread
     private(set) var focusedResource: Link?
     
+    let baseURL: URL
     let resourcesURL: URL
     let webView: WebView
 
@@ -72,9 +73,10 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     private(set) var spreadLoaded = false
 
-    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, scripts: [WKUserScript], animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+    required init(publication: Publication, spread: EPUBSpread, baseURL: URL, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, scripts: [WKUserScript], animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
         self.publication = publication
         self.spread = spread
+        self.baseURL = baseURL
         self.resourcesURL = resourcesURL
         self.readingProgression = readingProgression
         self.userSettings = userSettings
@@ -93,7 +95,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         addSubview(webView)
         setupWebView()
 
-        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapBackground)))
+        let gestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(didTapBackground))
+        gestureRecognizer.delegate = self
+        addGestureRecognizer(gestureRecognizer)
         
         for script in scripts {
             webView.configuration.userContentController.addUserScript(script)
@@ -475,7 +479,7 @@ extension EPUBSpreadView: WKNavigationDelegate {
         if navigationAction.navigationType == .linkActivated {
             if let url = navigationAction.request.url {
                 // Check if url is internal or external
-                if let baseURL = publication.baseURL, url.host == baseURL.host {
+                if url.host == baseURL.host {
                     let href = url.absoluteString.replacingOccurrences(of: baseURL.absoluteString, with: "/")
                     delegate?.spreadView(self, didTapOnInternalLink: href, clickEvent: self.lastClick)
                 } else {
@@ -510,7 +514,15 @@ extension EPUBSpreadView: WKUIDelegate {
     
     func webView(_ webView: WKWebView, shouldPreviewElement elementInfo: WKPreviewElementInfo) -> Bool {
         // Preview allowed only if the link is not internal
-        return (elementInfo.linkURL?.host != publication.baseURL?.host)
+        return (elementInfo.linkURL?.host != baseURL.host)
+    }
+}
+
+extension EPUBSpreadView: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        // Prevents the tap event from being triggered by the fallback tap
+        // gesture recognizer when it is also recognized by the web view.
+        true
     }
 }
 
@@ -615,6 +627,8 @@ private extension KeyEvent {
                 
             case "Backspace":
                 self.key = .backspace
+            case "Escape":
+                self.key = .escape
                 
             default:
                 guard let char = dict["key"] as? String else {

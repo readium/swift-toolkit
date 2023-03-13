@@ -32,6 +32,13 @@
         }
       }
     },
+    "ReadiumAdapterGCDWebServer" : {
+      "build" : {
+        "targets" : {
+          "ReadiumAdapterGCDWebServer" : "all"
+        }
+      }
+    },
     "ReadiumLCP" : {
       "build" : {
         "targets" : {
@@ -156,6 +163,28 @@
       ],
       "type" : "framework"
     },
+    "ReadiumAdapterGCDWebServer" : {
+      "dependencies" : [
+        {
+          "framework" : "..\/..\/Carthage\/Build\/GCDWebServer.xcframework"
+        },
+        {
+          "target" : "R2Shared"
+        }
+      ],
+      "deploymentTarget" : "10.0",
+      "platform" : "iOS",
+      "settings" : {
+        "INFOPLIST_FILE" : "Info.plist",
+        "PRODUCT_BUNDLE_IDENTIFIER" : "org.readium.swift-toolkit.ReadiumAdapterGCDWebServer"
+      },
+      "sources" : [
+        {
+          "path" : "..\/..\/Sources\/Adapters\/GCDWebServer"
+        }
+      ],
+      "type" : "framework"
+    },
     "ReadiumLCP" : {
       "dependencies" : [
         {
@@ -219,6 +248,9 @@
 }
 
 # FILES
+../../Sources/Adapters/GCDWebServer
+../../Sources/Adapters/GCDWebServer/GCDHTTPServer.swift
+../../Sources/Adapters/GCDWebServer/ResourceResponse.swift
 ../../Sources/LCP
 ../../Sources/LCP/Authentications
 ../../Sources/LCP/Authentications/Base.lproj
@@ -287,6 +319,7 @@
 ../../Sources/LCP/Toolkit/HTTPClient.swift
 ../../Sources/LCP/Toolkit/R2LCPLocalizedString.swift
 ../../Sources/Navigator
+../../Sources/Navigator/.DS_Store
 ../../Sources/Navigator/Audiobook
 ../../Sources/Navigator/Audiobook/AudioNavigator.swift
 ../../Sources/Navigator/Audiobook/PublicationMediaLoader.swift
@@ -298,10 +331,17 @@
 ../../Sources/Navigator/Decorator/DiffableDecoration.swift
 ../../Sources/Navigator/EditingAction.swift
 ../../Sources/Navigator/EPUB
+../../Sources/Navigator/EPUB/.DS_Store
 ../../Sources/Navigator/EPUB/Assets
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-one.html
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-two.html
 ../../Sources/Navigator/EPUB/Assets/Static
+../../Sources/Navigator/EPUB/Assets/Static/.DS_Store
+../../Sources/Navigator/EPUB/Assets/Static/fonts
+../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-Bold.otf
+../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-BoldItalic.otf
+../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-Italic.otf
+../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-Regular.otf
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/.DS_Store
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-horizontal
@@ -10648,6 +10688,7 @@
 ../../Sources/Shared/Fetcher/Resource/CachingResource.swift
 ../../Sources/Shared/Fetcher/Resource/DataResource.swift
 ../../Sources/Shared/Fetcher/Resource/FailureResource.swift
+../../Sources/Shared/Fetcher/Resource/FileResource.swift
 ../../Sources/Shared/Fetcher/Resource/LazyResource.swift
 ../../Sources/Shared/Fetcher/Resource/ProxyResource.swift
 ../../Sources/Shared/Fetcher/Resource/Resource.swift
@@ -10783,6 +10824,7 @@
 ../../Sources/Shared/Toolkit/HTTP/HTTPError.swift
 ../../Sources/Shared/Toolkit/HTTP/HTTPProblemDetails.swift
 ../../Sources/Shared/Toolkit/HTTP/HTTPRequest.swift
+../../Sources/Shared/Toolkit/HTTP/HTTPServer.swift
 ../../Sources/Shared/Toolkit/JSON.swift
 ../../Sources/Shared/Toolkit/Language.swift
 ../../Sources/Shared/Toolkit/Logging

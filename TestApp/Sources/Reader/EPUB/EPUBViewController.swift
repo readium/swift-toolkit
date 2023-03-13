@@ -7,6 +7,7 @@
 import UIKit
 import R2Shared
 import R2Navigator
+import ReadiumAdapterGCDWebServer
 import SwiftUI
 
 class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
@@ -22,14 +23,12 @@ class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
         books: BookRepository,
         bookmarks: BookmarkRepository,
         highlights: HighlightRepository,
-        resourcesServer: ResourcesServer,
         initialPreferences: EPUBPreferences,
         preferencesStore: AnyUserPreferencesStore<EPUBPreferences>
-    ) {
-        let navigator = EPUBNavigatorViewController(
+    ) throws {
+        let navigator = try EPUBNavigatorViewController(
             publication: publication,
             initialLocation: locator,
-            resourcesServer: resourcesServer,
             config: .init(
                 preferences: initialPreferences,
                 editingActions: EditingAction.defaultActions
@@ -37,7 +36,8 @@ class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
                         title: "Highlight",
                         action: #selector(highlightSelection)
                     ))
-            )
+            ),
+            httpServer: GCDHTTPServer.shared
         )
 
         let settingsStoryboard = UIStoryboard(name: "UserSettings", bundle: nil)

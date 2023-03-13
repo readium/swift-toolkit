@@ -30,20 +30,19 @@ final class EPUBModule: ReaderFormatModule {
     }
     
     @MainActor
-    func makeReaderViewController(for publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository, resourcesServer: ResourcesServer) async throws -> UIViewController {
+    func makeReaderViewController(for publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) async throws -> UIViewController {
         guard publication.metadata.identifier != nil else {
             throw ReaderError.epubNotValid
         }
         
         let preferencesStore = makePreferencesStore(books: books)
-        let epubViewController = EPUBViewController(
+        let epubViewController = try EPUBViewController(
             publication: publication,
             locator: locator,
             bookId: bookId,
             books: books,
             bookmarks: bookmarks,
             highlights: highlights,
-            resourcesServer: resourcesServer,
             initialPreferences: try await preferencesStore.preferences(for: bookId),
             preferencesStore: preferencesStore
         )
