@@ -13,7 +13,9 @@ struct ReadiumCSS {
     var layout: CSSLayout = CSSLayout()
     var rsProperties: CSSRSProperties = CSSRSProperties()
     var userProperties: CSSUserProperties = CSSUserProperties()
-    var assetsBaseURL: URL
+
+    /// Base URL of the Readium CSS assets.
+    var baseURL: URL
 }
 
 extension ReadiumCSS {
@@ -96,8 +98,7 @@ extension ReadiumCSS: HTMLInjectable {
         var inj: [HTMLInjection] = []
 
         let hasStyles = hasStyles(html)
-        let stylesheetsFolder = assetsBaseURL.appendingPathComponent(
-            ("/readium/readium-css/" + (layout.stylesheets.folder ?? "")).removingSuffix("/"),
+        let stylesheetsFolder = baseURL.appendingPathComponent((layout.stylesheets.folder ?? "").removingSuffix("/"),
             isDirectory: true
         )
 

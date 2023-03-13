@@ -66,9 +66,6 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     public struct Configuration {
-        /// Default user settings.
-        public var userSettings: UserSettings
-
         /// Initial set of setting preferences.
         public var preferences: EPUBPreferences
 
@@ -103,9 +100,12 @@ open class EPUBNavigatorViewController: UIViewController,
         /// See https://readium.org/readium-css/docs/CSS19-api.html#reading-system-styles
         public var readiumCSSRSProperties: CSSRSProperties
 
-
         /// Logs the state changes when true.
         public var debugState: Bool
+
+        /// Default user settings.
+        @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
+        public var userSettings: UserSettings
 
         public init(
             userSettings: UserSettings = UserSettings(),
@@ -232,17 +232,17 @@ open class EPUBNavigatorViewController: UIViewController,
         }
     }
 
-    let config: Configuration
-    private let publication: Publication
     private let initialLocation: Locator?
     private let editingActions: EditingActionsController
 
     private let server: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
     private let publicationBaseURL: URL
-    private let assetsURL: URL
 
     private let viewModel: EPUBNavigatorViewModel
+    private var publication: Publication { viewModel.publication }
+
+    var config: Configuration { viewModel.config }
 
     public convenience init(
         publication: Publication,
@@ -254,6 +254,16 @@ open class EPUBNavigatorViewController: UIViewController,
             throw EPUBError.publicationRestricted
         }
 
+        let viewModel = EPUBNavigatorViewModel(
+            publication: publication,
+            config: config,
+            assetsURL: try httpServer.serve(
+                at: "readium",
+                contentsOf: Bundle.module.resourceURL!.appendingPathComponent("Assets/Static")
+            ),
+            useLegacySettings: false
+        )
+
         let publicationEndpoint: HTTPServerEndpoint?
         let baseURL: URL
         if let url = publication.baseURL {
@@ -262,7 +272,11 @@ open class EPUBNavigatorViewController: UIViewController,
         } else {
             let endpoint = UUID().uuidString
             publicationEndpoint = endpoint
-            baseURL = try httpServer.serve(at: endpoint, publication: publication)
+            baseURL = try httpServer.serve(
+                at: endpoint,
+                publication: publication,
+                transform: viewModel.injectReadiumCSS(in:)
+            )
         }
 
         // FIXME: Remove in Readium 3.0
@@ -274,20 +288,15 @@ open class EPUBNavigatorViewController: UIViewController,
         )
 
         self.init(
-            publication: publication,
+            viewModel: viewModel,
             initialLocation: initialLocation,
             httpServer: httpServer,
             publicationEndpoint: publicationEndpoint,
-            publicationBaseURL: baseURL,
-            assetsURL: try httpServer.serve(
-                at: "readium",
-                contentsOf: Bundle.module.resourceURL!.appendingPathComponent("Assets/Static")
-            ),
-            config: config
+            publicationBaseURL: baseURL
         )
     }
 
-    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server and settings API")
     public convenience init(
         publication: Publication,
         initialLocation: Locator? = nil,
@@ -299,12 +308,9 @@ open class EPUBNavigatorViewController: UIViewController,
             preconditionFailure("No base URL provided for the publication. Add it to the HTTP server.")
         }
         
-        self.init(
+        let viewModel = EPUBNavigatorViewModel(
             publication: publication,
-            initialLocation: initialLocation,
-            httpServer: nil,
-            publicationEndpoint: nil,
-            publicationBaseURL: baseURL,
+            config: config,
             assetsURL: {
                 do {
                     return try resourcesServer.serve(
@@ -316,42 +322,46 @@ open class EPUBNavigatorViewController: UIViewController,
                     return URL(string: "")!
                 }
             }(),
-            config: config
+            useLegacySettings: true
+        )
+
+        self.init(
+            viewModel: viewModel,
+            initialLocation: initialLocation,
+            httpServer: nil,
+            publicationEndpoint: nil,
+            publicationBaseURL: baseURL
         )
     }
 
     private init(
-        publication: Publication,
+        viewModel: EPUBNavigatorViewModel,
         initialLocation: Locator?,
         httpServer: HTTPServer?,
         publicationEndpoint: HTTPServerEndpoint?,
-        publicationBaseURL: URL,
-        assetsURL: URL,
-        config: Configuration
+        publicationBaseURL: URL
     ) {
-        self.publication = publication
+        self.viewModel = viewModel
         self.server = httpServer
         self.publicationEndpoint = publicationEndpoint
         self.publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
-        self.assetsURL = assetsURL
         self.initialLocation = initialLocation
+        let publication = viewModel.publication
+        let config = viewModel.config
         self.editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
         self.readingProgression = publication.metadata.effectiveReadingProgression
-        self.config = config
         self.userSettings = config.userSettings
-
-        self.viewModel = EPUBNavigatorViewModel(
-            publication: publication,
-            config: config,
-            assetsBaseURL: assetsURL,
-            useLegacySettings: false
-        )
 
         super.init(nibName: nil, bundle: nil)
 
         self.viewModel.delegate = self
         
-        self.publication.userProperties.properties = userSettings.userProperties.properties
+        if viewModel.useLegacySettings {
+            publication.userProperties.properties = userSettings.userProperties.properties
+        } else {
+            publication.userProperties._useLegacySettings = false
+        }
+        
         self.editingActions.delegate = self
     }
 
@@ -1102,7 +1112,7 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
             publication: publication,
             spread: spread,
             baseURL: publicationBaseURL,
-            resourcesURL: assetsURL,
+            resourcesURL: viewModel.assetsURL,
             readingProgression: ReadingProgression(readingProgression) ?? .ltr,
             userSettings: userSettings,
             scripts: [],

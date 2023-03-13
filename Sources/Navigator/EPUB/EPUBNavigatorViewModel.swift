@@ -20,19 +20,21 @@ enum EPUBScriptScope {
 
 final class EPUBNavigatorViewModel: Loggable {
 
-    private let publication: Publication
-    private let config: EPUBNavigatorViewController.Configuration
-    private let useLegacySettings: Bool
+    let publication: Publication
+    let config: EPUBNavigatorViewController.Configuration
+    let useLegacySettings: Bool
+    let assetsURL: URL
     weak var delegate: EPUBNavigatorViewModelDelegate?
 
     init(
         publication: Publication,
         config: EPUBNavigatorViewController.Configuration,
-        assetsBaseURL: URL,
+        assetsURL: URL,
         useLegacySettings: Bool
     ) {
         self.publication = publication
         self.config = config
+        self.assetsURL = assetsURL
         self.useLegacySettings = useLegacySettings
 
         self.settings = EPUBSettings(
@@ -44,7 +46,7 @@ final class EPUBNavigatorViewModel: Loggable {
         self.css = ReadiumCSS(
             layout: CSSLayout(),
             rsProperties: config.readiumCSSRSProperties,
-            assetsBaseURL: assetsBaseURL
+            baseURL: assetsURL.appendingPathComponent("/readium-css/")
         )
 
         css.update(with: settings)
@@ -53,7 +55,6 @@ final class EPUBNavigatorViewModel: Loggable {
     // MARK: - User preferences
 
     private(set) var settings: EPUBSettings
-    private var css: ReadiumCSS
 
     func submitPreferences(_ preferences: EPUBPreferences) {
         let oldSettings = settings
@@ -75,6 +76,37 @@ final class EPUBNavigatorViewModel: Loggable {
 
         if needsInvalidation {
             delegate?.epubNavigatorViewModelInvalidatePaginationView(self)
+        }
+    }
+
+    func editor(of preferences: EPUBPreferences) -> EPUBPreferencesEditor {
+        EPUBPreferencesEditor(
+            initialPreferences: preferences,
+            metadata: publication.metadata,
+            defaults: config.defaults
+        )
+    }
+
+    /// MARK: - Readium CSS
+
+    private var css: ReadiumCSS
+
+    func injectReadiumCSS(in resource: Resource) -> Resource {
+        let link = resource.link
+        guard
+            link.mediaType.isHTML,
+            publication.metadata.presentation.layout(of:link) == .reflowable
+        else {
+            return resource
+        }
+
+        return resource.mapAsString { [self] content in
+            do {
+                return try css.inject(in: content)
+            } catch {
+                log(.error, error)
+                return content
+            }
         }
     }
 
@@ -110,13 +142,5 @@ final class EPUBNavigatorViewModel: Loggable {
                 in: .loadedResources
             )
         }
-    }
-
-    func editor(of preferences: EPUBPreferences) -> EPUBPreferencesEditor {
-        EPUBPreferencesEditor(
-            initialPreferences: preferences,
-            metadata: publication.metadata,
-            defaults: config.defaults
-        )
     }
 }

@@ -152,4 +152,6 @@ public class UserProperties {
         }
     }
 
+    /// For internal use, don't set this yourself.
+    public var _useLegacySettings = true
 }

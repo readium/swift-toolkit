@@ -13,6 +13,8 @@ import Foundation
 import R2Shared
 import Fuzi
 
+// FIXME: To remove in Readium 3.0. This was replaced by `ReadiumCSS` in the Navigator.
+
 /// Applies various CSS injections in reflowable EPUB resources.
 final class EPUBHTMLInjector {
     
@@ -25,8 +27,11 @@ final class EPUBHTMLInjector {
     }
     
     func inject(resource: Resource) -> Resource {
-        // We only transform HTML resources.
-        guard resource.link.mediaType.isHTML else {
+        guard
+            userProperties._useLegacySettings,
+            // We only transform HTML resources.
+            resource.link.mediaType.isHTML
+        else {
             return resource
         }
 

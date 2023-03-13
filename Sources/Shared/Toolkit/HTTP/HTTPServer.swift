@@ -53,7 +53,11 @@ public extension HTTPServer {
     /// - Returns the base URL to access the publication's resources on the
     /// server.
     @discardableResult
-    func serve(at endpoint: HTTPServerEndpoint, publication: Publication) throws -> URL {
+    func serve(
+        at endpoint: HTTPServerEndpoint,
+        publication: Publication,
+        transform: @escaping (Resource) -> Resource = { $0 }
+    ) throws -> URL {
         try serve(at: endpoint) { request in
             guard let href = request.href else {
                 return FailureResource(
@@ -62,7 +66,7 @@ public extension HTTPServer {
                 )
             }
 
-            return publication.get(href)
+            return transform(publication.get(href))
         }
     }
 }

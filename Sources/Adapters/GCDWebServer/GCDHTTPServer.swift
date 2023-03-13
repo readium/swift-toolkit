@@ -85,11 +85,11 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             var path = request.path.removingPrefix("/")
             path = path.removingPercentEncoding ?? path
             // Remove anchors and query params
-            path = path.components(separatedBy: .init(charactersIn: "#?")).first ?? path
+            let pathWithoutAnchor = path.components(separatedBy: .init(charactersIn: "#?")).first ?? path
 
             let resource: Resource = {
                 for (endpoint, handler) in handlers {
-                    if endpoint == path {
+                    if endpoint == pathWithoutAnchor {
                         return handler(HTTPServerRequest(url: request.url, href: nil))
                     } else if path.hasPrefix(endpoint.addingSuffix("/")) {
                         return handler(HTTPServerRequest(
