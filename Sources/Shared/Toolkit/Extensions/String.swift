@@ -37,9 +37,18 @@ extension String {
         }
         return removingPrefix(prefix).addingPrefix(replacement)
     }
+
+    /// Returns a copy of the string after adding the given `suffix` if it's not already there.
+    public func addingSuffix(_ suffix: String) -> String {
+        if hasSuffix(suffix) {
+            return self
+        } else {
+            return self + suffix
+        }
+    }
     
     /// Returns a copy of the string after removing the given `suffix`, when present.
-    func removingSuffix(_ suffix: String) -> String {
+    public func removingSuffix(_ suffix: String) -> String {
         guard hasSuffix(suffix) else {
             return self
         }

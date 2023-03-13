@@ -17,6 +17,12 @@ All notable changes to this project will be documented in this file. Take a look
 * New `VisualNavigatorDelegate` APIs to handle keyboard events (contributed by [@lukeslu](https://github.com/readium/swift-toolkit/pull/267)).
     * This can be used to turn pages with the arrow keys, for example.
 
+### Deprecated
+
+#### Streamer
+
+* `PublicationServer` is deprecated. See the [the migration guide](Documentation/Migration%20Guide.md#2.5.0) to migrate the HTTP server.
+
 ### Changed
 
 #### Navigator

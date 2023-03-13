@@ -7,18 +7,24 @@
 import UIKit
 import R2Shared
 import R2Navigator
+import ReadiumAdapterGCDWebServer
 
 class EPUBViewController: ReaderViewController {
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingNavigationController: UserSettingsNavigationController
     
-    init(publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository, resourcesServer: ResourcesServer) {
+    init(publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) throws {
         var navigatorEditingActions = EditingAction.defaultActions
         navigatorEditingActions.append(EditingAction(title: "Highlight", action: #selector(highlightSelection)))
         var navigatorConfig = EPUBNavigatorViewController.Configuration()
         navigatorConfig.editingActions = navigatorEditingActions
         
-        let navigator = EPUBNavigatorViewController(publication: publication, initialLocation: locator, resourcesServer: resourcesServer, config: navigatorConfig)
+        let navigator = try EPUBNavigatorViewController(
+            publication: publication,
+            initialLocation: locator,
+            config: navigatorConfig,
+            httpServer: GCDHTTPServer.shared
+        )
 
         let settingsStoryboard = UIStoryboard(name: "UserSettings", bundle: nil)
         userSettingNavigationController = settingsStoryboard.instantiateViewController(withIdentifier: "UserSettingsNavigationController") as! UserSettingsNavigationController

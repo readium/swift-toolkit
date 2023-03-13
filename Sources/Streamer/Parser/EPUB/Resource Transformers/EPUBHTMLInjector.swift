@@ -62,6 +62,7 @@ final class EPUBHTMLInjector {
             }
 
             if isReflowable, let headStart = content.endIndex(of: "<head>") {
+                // FIXME: Readium 3.0 OpenDyslexic should be handled in the navigator.
                 content = content.insert(string: """
                     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0;"/>
                     <style type="text/css">@font-face{font-family: "OpenDyslexic"; src:url("/fonts/OpenDyslexic-Regular.otf") format("opentype");}</style>

@@ -49,8 +49,8 @@ final class LibraryModule: LibraryModuleAPI {
     private let factory: LibraryFactory
     private var subscriptions = Set<AnyCancellable>()
 
-    init(delegate: LibraryModuleDelegate?, books: BookRepository, server: PublicationServer, httpClient: HTTPClient) {
-        self.library = LibraryService(books: books, publicationServer: server, httpClient: httpClient)
+    init(delegate: LibraryModuleDelegate?, books: BookRepository, httpClient: HTTPClient) {
+        self.library = LibraryService(books: books, httpClient: httpClient)
         self.factory = LibraryFactory(libraryService: library)
         self.delegate = delegate
     }

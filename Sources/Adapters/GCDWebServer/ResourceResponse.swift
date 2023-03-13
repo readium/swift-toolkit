@@ -13,26 +13,24 @@ import Foundation
 import R2Shared
 import GCDWebServer
 
-extension GCDWebServerResponse: Loggable {}
 
 /// Errors thrown by the `WebServerResourceResponse`
 ///
 /// - streamOpenFailed: The stream is not open, stream.open() failed.
 /// - invalidRange: The range queried is invalid.
-public enum WebServerResponseError: Error {
+enum WebServerResponseError: Error {
     case streamOpenFailed
     case invalidRange
 }
 
 /// The object containing the response's ressource data.
 /// If the ressource to be served is too big, multiple responses will be created.
-@available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
-open class WebServerResourceResponse: GCDWebServerFileResponse {
+class ResourceResponse: GCDWebServerFileResponse, Loggable {
 
     private let bufferSize = 32 * 1024
 
     private var resource: Resource
-    private var range: Range<UInt64>?
+    private var range: Range<UInt64>
     private let length: UInt64
     private var offset: UInt64 = 0
     private lazy var totalNumberOfBytesRead = UInt64(0)
@@ -44,13 +42,12 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
     ///   - resource: The publication resource to be served.
     ///   - range: The range of resource's data served previously, if any.
     ///   - contentType: The content-type of the response's ressource.
-    public init(resource: Resource, range: NSRange?, contentType: String) {
+    init(resource: Resource, length: UInt64, range: NSRange?) {
         self.resource = resource
-        self.length = (try? resource.length.get()) ?? 0
+        self.length = length
 
         // If range is non nil - means it's not the first part (?)
         if let range = range {
-            WebServerResourceResponse.log(.debug, "Request range at \(range.location) remaining: \(range.length).")
             /// Return a range of what to read next (nothing, next part, whole data).
             func getNextRange(after range: NSRange,
                               forStreamOfLength streamLength: UInt64) -> Range<UInt64> {
@@ -61,8 +58,8 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
 
                     newRange = (streamLength - len)..<streamLength
                 } else if range.location < 0 {
-                    // TODO: negative range location
-                    // The whole data for now
+                    // Negative range locations are not supported. We return
+                    // the whole data for now.
                     newRange = 0..<streamLength
                 } else {
                     let currentPosition = min(UInt64(range.location), streamLength)
@@ -83,7 +80,10 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
         } else /* nil */ {
             self.range = 0..<length
         }
+
         super.init()
+
+        self.contentType = resource.link.type ?? ""
 
         // Disable HTTP caching for publication resources, because it poses a security threat for protected
         // publications.
@@ -92,34 +92,23 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
         setValue("0", forAdditionalHeader: "Expires")
 
         // Response
-        if let range = self.range {
-            let lower = range.lowerBound
-            let upper = (range.upperBound != 0) ? range.upperBound - 1 : range.upperBound
-            let contentRange = "bytes \(lower)-\(upper)/\(length)"
-            let acceptRange = "bytes"
+        let lower = self.range.lowerBound
+        let upper = (self.range.upperBound != 0) ? self.range.upperBound - 1 : self.range.upperBound
+        let contentRange = "bytes \(lower)-\(upper)/\(length)"
+        let acceptRange = "bytes"
 
-            statusCode = 206
-            setValue(contentRange, forAdditionalHeader: "Content-Range")
-            setValue(acceptRange, forAdditionalHeader: "Accept-Ranges")
-            contentLength = UInt(range.count)
-        } else {
-            statusCode = 200
-        }
-        self.contentType = contentType
-        cacheControlMaxAge = UInt(60 * 60 * 2)
-        // TODO: lastModifiedDate = ...
-        // TODO: setValue("", forAdditionalHeader: "Cache-Control")
+        statusCode = 206
+        setValue(contentRange, forAdditionalHeader: "Content-Range")
+        setValue(acceptRange, forAdditionalHeader: "Accept-Ranges")
+        contentLength = UInt(self.range.count)
     }
 
     override open func open() throws {
-        offset = range?.lowerBound ?? 0
+        offset = range.lowerBound
     }
 
     /// Read a new chunk of data.
     override open func readData() throws -> Data {
-        guard let range = range else {
-            throw WebServerResponseError.invalidRange
-        }
         let len = min(bufferSize, range.count - Int(totalNumberOfBytesRead))
         // If nothing to read, return
         guard len > 0 && offset < length else {

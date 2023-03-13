@@ -49,8 +49,17 @@ public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
 open class EPUBNavigatorViewController: UIViewController, VisualNavigator, SelectableNavigator, DecorableNavigator, Loggable {
 
     public enum EPUBError: Error {
-        /// Returned when calling evaluateJavaScript() before a resource is loaded.
+        /// The provided publication is restricted. Check that any DRM was
+        /// properly unlocked using a Content Protection.
+        case publicationRestricted
+
+        /// Returned when calling evaluateJavaScript() before a resource is
+        /// loaded.
         case spreadNotLoaded
+
+        /// Failed to serve the publication or assets with the provided HTTP
+        /// server.
+        case serverFailure(Error)
     }
 
     public struct Configuration {
@@ -207,46 +216,122 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
     private let initialLocation: Locator?
     private let editingActions: EditingActionsController
 
-    /// Base URL on the resources server to the files in Static/
-    /// Used to serve Readium CSS.
-    private let resourcesURL: URL
+    private let server: HTTPServer?
+    private let publicationEndpoint: HTTPServerEndpoint?
+    private let publicationBaseURL: URL
+    private let assetsURL: URL
 
-    public init(
+    public convenience init(
+        publication: Publication,
+        initialLocation: Locator?,
+        config: Configuration = .init(),
+        httpServer: HTTPServer
+    ) throws {
+        guard !publication.isRestricted else {
+            throw EPUBError.publicationRestricted
+        }
+
+        let publicationEndpoint: HTTPServerEndpoint?
+        let baseURL: URL
+        if let url = publication.baseURL {
+            publicationEndpoint = nil
+            baseURL = url
+        } else {
+            let endpoint = UUID().uuidString
+            publicationEndpoint = endpoint
+            baseURL = try httpServer.serve(at: endpoint, publication: publication)
+        }
+
+        // FIXME: Remove in Readium 3.0
+        // Serve the fonts under the /fonts endpoint as the Streamer's
+        // EPUBHTMLInjector is expecting it there.
+        try httpServer.serve(
+            at: "fonts",
+            contentsOf: Bundle.module.resourceURL!.appendingPathComponent("Assets/Static/fonts")
+        )
+
+        self.init(
+            publication: publication,
+            initialLocation: initialLocation,
+            httpServer: httpServer,
+            publicationEndpoint: publicationEndpoint,
+            publicationBaseURL: baseURL,
+            assetsURL: try httpServer.serve(
+                at: "readium",
+                contentsOf: Bundle.module.resourceURL!.appendingPathComponent("Assets/Static")
+            ),
+            config: config
+        )
+    }
+
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
+    public convenience init(
         publication: Publication,
         initialLocation: Locator? = nil,
         resourcesServer: ResourcesServer,
         config: Configuration = .init()
     ) {
-        assert(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
+        precondition(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
+        guard let baseURL = publication.baseURL else {
+            preconditionFailure("No base URL provided for the publication. Add it to the HTTP server.")
+        }
         
+        self.init(
+            publication: publication,
+            initialLocation: initialLocation,
+            httpServer: nil,
+            publicationEndpoint: nil,
+            publicationBaseURL: baseURL,
+            assetsURL: {
+                do {
+                    return try resourcesServer.serve(
+                        Bundle.module.resourceURL!.appendingPathComponent("Assets/Static"),
+                        at: "/r2-navigator/epub"
+                    )
+                } catch {
+                    EPUBNavigatorViewController.log(.error, error)
+                    return URL(string: "")!
+                }
+            }(),
+            config: config
+        )
+    }
+
+    private init(
+        publication: Publication,
+        initialLocation: Locator?,
+        httpServer: HTTPServer?,
+        publicationEndpoint: HTTPServerEndpoint?,
+        publicationBaseURL: URL,
+        assetsURL: URL,
+        config: Configuration
+    ) {
         self.publication = publication
+        self.server = httpServer
+        self.publicationEndpoint = publicationEndpoint
+        self.publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
+        self.assetsURL = assetsURL
         self.initialLocation = initialLocation
         self.editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
         self.readingProgression = publication.metadata.effectiveReadingProgression
         self.config = config
         self.userSettings = config.userSettings
-        publication.userProperties.properties = userSettings.userProperties.properties
-
-        self.resourcesURL = {
-            do {
-                return try resourcesServer.serve(
-                    Bundle.module.resourceURL!.appendingPathComponent("Assets/Static"),
-                    at: "/r2-navigator/epub"
-                )
-            } catch {
-                EPUBNavigatorViewController.log(.error, error)
-                return URL(string: "")!
-            }
-        }()
 
         super.init(nibName: nil, bundle: nil)
         
+        self.publication.userProperties.properties = userSettings.userProperties.properties
         self.editingActions.delegate = self
     }
 
     @available(*, unavailable)
     public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    deinit {
+        if let endpoint = publicationEndpoint {
+            server?.remove(at: endpoint)
+        }
     }
 
     open override func viewDidLoad() {
@@ -856,12 +941,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
                 withoutFragment = String(withoutFragment.dropFirst())
             }
             
-            guard let base = publication.baseURL else {
-                log(.error, "Couldn't get publication base URL")
-                return nil
-            }
-            
-            let absolute = base.appendingPathComponent(withoutFragment)
+            let absolute = publicationBaseURL.appendingPathComponent(withoutFragment)
             
             log(.debug, "Fetching note contents from \(absolute.absoluteString)")
             let contents = try String(contentsOf: absolute)
@@ -946,7 +1026,8 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
         let spreadView = spreadViewType.init(
             publication: publication,
             spread: spread,
-            resourcesURL: resourcesURL,
+            baseURL: publicationBaseURL,
+            resourcesURL: assetsURL,
             readingProgression: readingProgression,
             userSettings: userSettings,
             scripts: [],
@@ -976,72 +1057,4 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
     func paginationView(_ paginationView: PaginationView, positionCountAtIndex index: Int) -> Int {
         return spreads[index].positionCount(in: publication)
     }
-}
-
-
-// MARK: - Deprecated
-
-@available(*, unavailable, renamed: "EPUBNavigatorViewController")
-public typealias NavigatorViewController = EPUBNavigatorViewController
-
-@available(*, unavailable, message: "Use the `animated` parameter of `goTo` functions instead")
-public enum PageTransition {
-    case none
-    case animated
-}
-
-extension EPUBNavigatorViewController {
-    
-    /// This initializer is deprecated.
-    /// `license` is not needed anymore.
-    @available(*, unavailable, renamed: "init(publication:initialLocation:resourcesServer:config:)")
-    public convenience init(publication: Publication, license: DRMLicense?, initialLocation: Locator? = nil, resourcesServer: ResourcesServer, config: Configuration = .init()) {
-        self.init(publication: publication, initialLocation: initialLocation, resourcesServer: resourcesServer, config: config)
-    }
-        
-    /// This initializer is deprecated.
-    /// Replace `pageTransition` by the `animated` property of the `goTo` functions.
-    /// Replace `disableDragAndDrop` by `EditingAction.copy`, since drag and drop is equivalent to copy.
-    /// Replace `initialIndex` and `initialProgression` by `initialLocation`.
-    @available(*, unavailable, renamed: "init(publication:initialLocation:resourcesServer:config:)")
-    public convenience init(for publication: Publication, license: DRMLicense? = nil, initialIndex: Int, initialProgression: Double?, pageTransition: PageTransition = .none, disableDragAndDrop: Bool = false, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil) {
-        fatalError("This initializer is not available anymore.")
-    }
-    
-    /// This initializer is deprecated.
-    /// Use the new Configuration object.
-    @available(*, unavailable, renamed: "init(publication:license:initialLocation:resourcesServer:config:)")
-    public convenience init(publication: Publication, license: DRMLicense? = nil, initialLocation: Locator? = nil, editingActions: [EditingAction] = EditingAction.defaultActions, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]? = nil, resourcesServer: ResourcesServer) {
-        var config = Configuration()
-        config.editingActions = editingActions
-        if let contentInset = contentInset {
-            config.contentInset = contentInset
-        }
-        self.init(publication: publication, initialLocation: initialLocation, resourcesServer: resourcesServer, config: config)
-    }
-
-    @available(*, unavailable, message: "Use the `animated` parameter of `goTo` functions instead")
-    public var pageTransition: PageTransition {
-        get { return .none }
-        set {}
-    }
-    
-    @available(*, unavailable, message: "Bookmark model is deprecated, use your own model and `currentLocation`")
-    public var currentPosition: Bookmark? { nil }
-
-    @available(*, unavailable, message: "Use `publication.readingOrder` instead")
-    public func getReadingOrder() -> [Link] { return publication.readingOrder }
-    
-    @available(*, unavailable, message: "Use `publication.tableOfContents` instead")
-    public func getTableOfContents() -> [Link] { return publication.tableOfContents }
-
-    @available(*, unavailable, renamed: "go(to:)")
-    public func displayReadingOrderItem(at index: Int) {}
-    
-    @available(*, unavailable, renamed: "go(to:)")
-    public func displayReadingOrderItem(at index: Int, progression: Double) {}
-    
-    @available(*, unavailable, renamed: "go(to:)")
-    public func displayReadingOrderItem(with href: String) -> Int? { nil }
-    
 }
