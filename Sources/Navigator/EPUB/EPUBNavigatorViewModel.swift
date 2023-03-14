@@ -102,7 +102,11 @@ final class EPUBNavigatorViewModel: Loggable {
 
         return resource.mapAsString { [self] content in
             do {
-                return try css.inject(in: content)
+                var content = try css.inject(in: content)
+                for ff in config.fontFamilyDeclarations {
+                    content = try ff.inject(in: content)
+                }
+                return content
             } catch {
                 log(.error, error)
                 return content

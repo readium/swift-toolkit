@@ -95,6 +95,9 @@ open class EPUBNavigatorViewController: UIViewController,
         /// Supported HTML decoration templates.
         public var decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate]
 
+        /// Additional font families which will be available in the preferences.
+        public var fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration]
+
         /// Readium CSS reading system settings.
         ///
         /// See https://readium.org/readium-css/docs/CSS19-api.html#reading-system-styles
@@ -119,6 +122,7 @@ open class EPUBNavigatorViewController: UIViewController,
             preloadPreviousPositionCount: Int = 2,
             preloadNextPositionCount: Int = 6,
             decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate] = HTMLDecorationTemplate.defaultTemplates(),
+            fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration] = [],
             readiumCSSRSProperties: CSSRSProperties = CSSRSProperties(),
             debugState: Bool = false
         ) {
@@ -130,6 +134,7 @@ open class EPUBNavigatorViewController: UIViewController,
             self.preloadPreviousPositionCount = preloadPreviousPositionCount
             self.preloadNextPositionCount = preloadNextPositionCount
             self.decorationTemplates = decorationTemplates
+            self.fontFamilyDeclarations = fontFamilyDeclarations
             self.readiumCSSRSProperties = readiumCSSRSProperties
             self.debugState = debugState
         }

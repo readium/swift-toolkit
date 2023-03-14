@@ -8,6 +8,23 @@ import Foundation
 import R2Shared
 import ReadiumInternal
 
+/// An object that can be injected into an HTML document.
+protocol HTMLInjectable {
+    func injections(for html: String) throws -> [HTMLInjection]
+}
+
+extension HTMLInjectable {
+
+    /// Injects the receiver in the given `html` document.
+    func inject(in html: String) throws -> String {
+        var result = html
+        for injection in try injections(for: html) {
+            result = try injection.inject(in: result)
+        }
+        return result
+    }
+}
+
 /// Represents a raw injection in an HTML document.
 struct HTMLInjection: Hashable {
     /// Raw content to inject.
@@ -85,23 +102,6 @@ extension HTMLElement.Location: CustomStringConvertible {
     }
 }
 
-/// An object that can be injected into an HTML document.
-protocol HTMLInjectable {
-    func injections(for html: String) throws -> [HTMLInjection]
-}
-
-extension HTMLInjectable {
-
-    /// Injects the receiver in the given `html` document.
-    func inject(in html: String) throws -> String {
-        var result = html
-        for injection in try injections(for: html) {
-            result = try injection.inject(in: result)
-        }
-        return result
-    }
-}
-
 extension HTMLInjection {
     /// Injects an HTML attribute with the given `name` on the element `target`.
     static func attribute(_ name: String, on target: HTMLElement, value: String) -> HTMLInjection {
@@ -125,9 +125,21 @@ extension HTMLInjection {
     }
     
     /// Injects a `link` tag in the `head` element.
-    static func link(href: String, rel: String, type: MediaType, prepend: Bool = false) -> HTMLInjection {
-        HTMLInjection(
-            content: "<link rel=\"\(rel)\" type=\"\(type.string)\" href=\"\(escapeAttribute(href))\"/>",
+    static func link(href: String, rel: String, type: MediaType? = nil, as asValue: String? = nil, crossOrigin: String? = nil, prepend: Bool = false) -> HTMLInjection {
+        var content = "<link rel=\"\(rel)\" href=\"\(escapeAttribute(href))\""
+        if let type = type {
+            content += " type=\"\(type.string)\""
+        }
+        if let asValue = asValue {
+            content += " as=\"\(asValue)\""
+        }
+        if let crossOrigin = crossOrigin {
+            content += " crossorigin=\"\(crossOrigin)\""
+        }
+        content += "/>"
+
+        return HTMLInjection(
+            content: content,
             target: .head,
             location: prepend ? .start : .end
         )
