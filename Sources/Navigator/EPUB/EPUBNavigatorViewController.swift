@@ -262,6 +262,7 @@ open class EPUBNavigatorViewController: UIViewController,
         let viewModel = EPUBNavigatorViewModel(
             publication: publication,
             config: config,
+            httpServer: httpServer,
             assetsURL: try httpServer.serve(
                 at: "readium",
                 contentsOf: Bundle.module.resourceURL!.appendingPathComponent("Assets/Static")
@@ -316,6 +317,7 @@ open class EPUBNavigatorViewController: UIViewController,
         let viewModel = EPUBNavigatorViewModel(
             publication: publication,
             config: config,
+            httpServer: nil,
             assetsURL: {
                 do {
                     return try resourcesServer.serve(

@@ -16,6 +16,8 @@ struct ReadiumCSS {
 
     /// Base URL of the Readium CSS assets.
     var baseURL: URL
+
+    var fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration] = []
 }
 
 extension ReadiumCSS {
@@ -43,8 +45,7 @@ extension ReadiumCSS {
             textColor: settings.textColor.map { CSSIntColor($0.rawValue) },
             backgroundColor: settings.backgroundColor.map { CSSIntColor($0.rawValue) },
             fontOverride: (settings.fontFamily != nil || settings.textNormalization),
-            // FIXME:
-//            fontFamily: fontFamily?.toCss(),
+            fontFamily: settings.fontFamily.map(resolveFontStack),
             fontSize: CSSPercentLength(settings.fontSize),
             advancedSettings: !settings.publisherStyles,
             typeScale: settings.typeScale,
@@ -74,7 +75,18 @@ extension ReadiumCSS {
 //                    else ""
             ]
         )
+    }
+    
+    func resolveFontStack(of fontFamily: FontFamily) -> [String] {
+        var fonts: [String] = [fontFamily.rawValue]
 
+        let alternates = fontFamilyDeclarations
+            .first { $0.fontFamily == fontFamily }?
+            .alternates ?? []
+
+        fonts.append(contentsOf: alternates.flatMap(resolveFontStack))
+
+        return fonts
     }
 }
 

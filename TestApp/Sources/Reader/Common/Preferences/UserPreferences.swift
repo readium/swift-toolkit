@@ -422,7 +422,8 @@ struct UserPreferences<
                              .sansSerif,
                              .iaWriterDuospace,
                              .accessibleDfA,
-                             .openDyslexic
+                             .openDyslexic,
+                             .literata
                          ])
                          .eraseToAnyPreference(),
                          commit: commit,

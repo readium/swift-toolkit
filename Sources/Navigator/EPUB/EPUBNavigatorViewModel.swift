@@ -20,20 +20,31 @@ enum EPUBScriptScope {
 
 final class EPUBNavigatorViewModel: Loggable {
 
+    enum Error: Swift.Error {
+        case noHTTPServer
+    }
+
     let publication: Publication
     let config: EPUBNavigatorViewController.Configuration
     let useLegacySettings: Bool
+    let httpServer: HTTPServer?
     let assetsURL: URL
     weak var delegate: EPUBNavigatorViewModelDelegate?
+
+    /// Local file URL associated to the HTTP URL used to serve the file on the
+    /// `httpServer`. This is used to serve custom font files, for example.
+    private var servedFiles: [URL: URL] = [:]
 
     init(
         publication: Publication,
         config: EPUBNavigatorViewController.Configuration,
+        httpServer: HTTPServer?,
         assetsURL: URL,
         useLegacySettings: Bool
     ) {
         self.publication = publication
         self.config = config
+        self.httpServer = httpServer
         self.assetsURL = assetsURL
         self.useLegacySettings = useLegacySettings
 
@@ -46,10 +57,25 @@ final class EPUBNavigatorViewModel: Loggable {
         self.css = ReadiumCSS(
             layout: CSSLayout(),
             rsProperties: config.readiumCSSRSProperties,
-            baseURL: assetsURL.appendingPathComponent("/readium-css/")
+            baseURL: assetsURL.appendingPathComponent("/readium-css/"),
+            fontFamilyDeclarations: config.fontFamilyDeclarations
         )
 
         css.update(with: settings)
+    }
+
+    private func serveFile(at file: URL, baseEndpoint: HTTPServerEndpoint) throws -> URL {
+        if let url = servedFiles[file] {
+            return url
+        }
+
+        guard let httpServer = httpServer else {
+            throw Error.noHTTPServer
+        }
+        let endpoint = baseEndpoint.addingSuffix("/") + file.lastPathComponent
+        let url = try httpServer.serve(at: endpoint, contentsOf: file)
+        servedFiles[file] = url
+        return url
     }
 
     // MARK: - User preferences
@@ -91,6 +117,10 @@ final class EPUBNavigatorViewModel: Loggable {
 
     private var css: ReadiumCSS
 
+    private func serveFont(at file: URL) throws -> URL {
+        try serveFile(at: file, baseEndpoint: "custom-fonts/\(UUID().uuidString)")
+    }
+
     func injectReadiumCSS(in resource: Resource) -> Resource {
         let link = resource.link
         guard
@@ -104,7 +134,7 @@ final class EPUBNavigatorViewModel: Loggable {
             do {
                 var content = try css.inject(in: content)
                 for ff in config.fontFamilyDeclarations {
-                    content = try ff.inject(in: content)
+                    content = try ff.inject(in: content, servingFile: serveFont)
                 }
                 return content
             } catch {

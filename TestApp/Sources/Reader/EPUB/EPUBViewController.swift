@@ -10,6 +10,11 @@ import R2Navigator
 import ReadiumAdapterGCDWebServer
 import SwiftUI
 
+extension FontFamily {
+    // Example of adding a custom font embedded in the application.
+    public static let literata: FontFamily = "Literata"
+}
+
 class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
     var popoverUserconfigurationAnchor: UIBarButtonItem?
     var userSettingNavigationController: UserSettingsNavigationController
@@ -26,6 +31,7 @@ class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
         initialPreferences: EPUBPreferences,
         preferencesStore: AnyUserPreferencesStore<EPUBPreferences>
     ) throws {
+        let resources = Bundle.main.resourceURL!
         let navigator = try EPUBNavigatorViewController(
             publication: publication,
             initialLocation: locator,
@@ -35,7 +41,23 @@ class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
                     .appending(EditingAction(
                         title: "Highlight",
                         action: #selector(highlightSelection)
-                    ))
+                    )),
+                fontFamilyDeclarations: [
+                    CSSFontFamilyDeclaration(
+                        fontFamily: .literata,
+                        fontFaces: [
+                            // Literata is a variable font family, so we can provide a font weight range.
+                            CSSFontFace(
+                                file: resources.appendingPathComponent("Fonts/Literata-VariableFont_opsz,wght.ttf"),
+                                style: .normal, weight: .variable(200...900)
+                            ),
+                            CSSFontFace(
+                                file: resources.appendingPathComponent("Fonts/Literata-Italic-VariableFont_opsz,wght.ttf"),
+                                style: .italic, weight: .variable(200...900)
+                            )
+                        ]
+                    ).eraseToAnyHTMLFontFamilyDeclaration()
+                ]
             ),
             httpServer: GCDHTTPServer.shared
         )

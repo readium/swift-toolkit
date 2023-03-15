@@ -8,5 +8,9 @@ targets:
     deploymentTarget: "14.0"
     sources: 
       - path: Sources
+        excludes:
+          - Resources/Fonts
+      - path: Sources/Resources/Fonts
+        type: folder
     settings:
       DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}

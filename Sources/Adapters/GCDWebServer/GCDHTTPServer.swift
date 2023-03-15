@@ -102,20 +102,22 @@ public class GCDHTTPServer: HTTPServer, Loggable {
                 return FailureResource(link: Link(href: request.url.absoluteString), error: .notFound(nil))
             }()
 
-            let response: GCDWebServerResponse
-            switch resource.length {
-            case .success(let length):
-                response = ResourceResponse(
-                    resource: resource,
-                    length: length,
-                    range: request.hasByteRange() ? request.byteRange : nil
-                )
-            case .failure(let error):
-                log(.error, error)
-                response = GCDWebServerErrorResponse(statusCode: error.httpStatusCode)
-            }
+            DispatchQueue.global().async {
+                let response: GCDWebServerResponse
+                switch resource.length {
+                case .success(let length):
+                    response = ResourceResponse(
+                        resource: resource,
+                        length: length,
+                        range: request.hasByteRange() ? request.byteRange : nil
+                    )
+                case .failure(let error):
+                    self.log(.error, error)
+                    response = GCDWebServerErrorResponse(statusCode: error.httpStatusCode)
+                }
 
-            completion(response)
+                completion(response)
+            }
         }
     }
 
