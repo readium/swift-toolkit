@@ -20,7 +20,12 @@ public protocol HTTPServer {
     @discardableResult
     func serve(at endpoint: HTTPServerEndpoint, handler: @escaping (HTTPServerRequest) -> Resource) throws -> URL
 
-    /// Removes a handler serving resources at `endpoint`.
+    /// Registers a `Resource` transformer that will be run on all responses
+    /// matching the given `endpoint`.
+    func transformResources(at endpoint: HTTPServerEndpoint, with transformer: @escaping ResourceTransformer)
+
+    /// Removes a handler serving resources at `endpoint`, as well as the
+    /// resource transformers.
     func remove(at endpoint: HTTPServerEndpoint)
 }
 
@@ -55,8 +60,7 @@ public extension HTTPServer {
     @discardableResult
     func serve(
         at endpoint: HTTPServerEndpoint,
-        publication: Publication,
-        transform: @escaping (Resource) -> Resource = { $0 }
+        publication: Publication
     ) throws -> URL {
         try serve(at: endpoint) { request in
             guard let href = request.href else {
@@ -66,7 +70,7 @@ public extension HTTPServer {
                 )
             }
 
-            return transform(publication.get(href))
+            return publication.get(href)
         }
     }
 }

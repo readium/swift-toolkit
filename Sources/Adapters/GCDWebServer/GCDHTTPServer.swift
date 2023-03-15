@@ -27,6 +27,9 @@ public class GCDHTTPServer: HTTPServer, Loggable {
     /// Mapping between endpoints and their handlers.
     private var handlers: [HTTPServerEndpoint: (HTTPServerRequest) -> Resource] = [:]
 
+    /// Mapping between endpoints and resource transformers.
+    private var transformers: [HTTPServerEndpoint: [ResourceTransformer]] = [:]
+
     private enum State {
         case stopped
         case started(port: UInt, baseURL: URL)
@@ -34,7 +37,8 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
     private var state: State = .stopped
 
-    /// Dispatch queue to protect accesses to the handlers and state.
+    /// Dispatch queue to protect accesses to the handlers, transformers and
+    /// state.
     private let queue = DispatchQueue(
         label: "org.readium.swift-toolkit.ReadiumAdapterGCDWebServer",
         attributes: .concurrent
@@ -81,43 +85,67 @@ public class GCDHTTPServer: HTTPServer, Loggable {
     }
 
     private func handle(request: GCDWebServerRequest, completion: @escaping GCDWebServerCompletionBlock) {
+        responseResource(for: request) { resource in
+            let response: GCDWebServerResponse
+            switch resource.length {
+            case .success(let length):
+                response = ResourceResponse(
+                    resource: resource,
+                    length: length,
+                    range: request.hasByteRange() ? request.byteRange : nil
+                )
+            case .failure(let error):
+                self.log(.error, error)
+                response = GCDWebServerErrorResponse(statusCode: error.httpStatusCode)
+            }
+
+            completion(response)
+        }
+    }
+
+    private func responseResource(for request: GCDWebServerRequest, completion: @escaping (Resource) -> Void) {
+        let completion = { resource in
+            // Escape the queue to avoid deadlocks if something is using the
+            // server in the handler.
+            DispatchQueue.global().async {
+                completion(resource)
+            }
+        }
+
         queue.async { [self] in
             var path = request.path.removingPrefix("/")
             path = path.removingPercentEncoding ?? path
             // Remove anchors and query params
             let pathWithoutAnchor = path.components(separatedBy: .init(charactersIn: "#?")).first ?? path
 
-            let resource: Resource = {
-                for (endpoint, handler) in handlers {
-                    if endpoint == pathWithoutAnchor {
-                        return handler(HTTPServerRequest(url: request.url, href: nil))
-                    } else if path.hasPrefix(endpoint.addingSuffix("/")) {
-                        return handler(HTTPServerRequest(
-                            url: request.url,
-                            href: path.removingPrefix(endpoint.removingSuffix("/"))
-                        ))
-                    }
+            func transform(resource: Resource, at endpoint: HTTPServerEndpoint) -> Resource {
+                guard let transformers = transformers[endpoint], !transformers.isEmpty else {
+                    return resource
                 }
-
-                return FailureResource(link: Link(href: request.url.absoluteString), error: .notFound(nil))
-            }()
-
-            DispatchQueue.global().async {
-                let response: GCDWebServerResponse
-                switch resource.length {
-                case .success(let length):
-                    response = ResourceResponse(
-                        resource: resource,
-                        length: length,
-                        range: request.hasByteRange() ? request.byteRange : nil
-                    )
-                case .failure(let error):
-                    self.log(.error, error)
-                    response = GCDWebServerErrorResponse(statusCode: error.httpStatusCode)
+                var resource = resource
+                for transformer in transformers {
+                    resource = transformer(resource)
                 }
-
-                completion(response)
+                return resource
             }
+
+            for (endpoint, handler) in handlers {
+                if endpoint == pathWithoutAnchor {
+                    let resource = handler(HTTPServerRequest(url: request.url, href: nil))
+                    completion(transform(resource: resource, at: endpoint))
+                    return
+
+                } else if path.hasPrefix(endpoint.addingSuffix("/")) {
+                    let resource = handler(HTTPServerRequest(
+                        url: request.url,
+                        href: path.removingPrefix(endpoint.removingSuffix("/"))
+                    ))
+                    completion(transform(resource: resource, at: endpoint))
+                    return
+                }
+            }
+
+            completion(FailureResource(link: Link(href: request.url.absoluteString), error: .notFound(nil)))
         }
     }
 
@@ -138,13 +166,18 @@ public class GCDHTTPServer: HTTPServer, Loggable {
         }
     }
 
+    public func transformResources(at endpoint: HTTPServerEndpoint, with transformer: @escaping ResourceTransformer) {
+        queue.sync(flags: .barrier) {
+            var trs = transformers[endpoint] ?? []
+            trs.append(transformer)
+            transformers[endpoint] = trs
+        }
+    }
+
     public func remove(at endpoint: HTTPServerEndpoint) {
         queue.sync(flags: .barrier) {
             handlers.removeValue(forKey: endpoint)
-
-            if handlers.isEmpty {
-                stop()
-            }
+            transformers.removeValue(forKey: endpoint)
         }
     }
     

@@ -240,10 +240,6 @@ open class EPUBNavigatorViewController: UIViewController,
     private let initialLocation: Locator?
     private let editingActions: EditingActionsController
 
-    private let server: HTTPServer?
-    private let publicationEndpoint: HTTPServerEndpoint?
-    private let publicationBaseURL: URL
-
     private let viewModel: EPUBNavigatorViewModel
     private var publication: Publication { viewModel.publication }
 
@@ -259,47 +255,13 @@ open class EPUBNavigatorViewController: UIViewController,
             throw EPUBError.publicationRestricted
         }
 
-        let viewModel = EPUBNavigatorViewModel(
+        let viewModel = try EPUBNavigatorViewModel(
             publication: publication,
             config: config,
-            httpServer: httpServer,
-            assetsURL: try httpServer.serve(
-                at: "readium",
-                contentsOf: Bundle.module.resourceURL!.appendingPathComponent("Assets/Static")
-            ),
-            useLegacySettings: false
+            httpServer: httpServer
         )
 
-        let publicationEndpoint: HTTPServerEndpoint?
-        let baseURL: URL
-        if let url = publication.baseURL {
-            publicationEndpoint = nil
-            baseURL = url
-        } else {
-            let endpoint = UUID().uuidString
-            publicationEndpoint = endpoint
-            baseURL = try httpServer.serve(
-                at: endpoint,
-                publication: publication,
-                transform: viewModel.injectReadiumCSS(in:)
-            )
-        }
-
-        // FIXME: Remove in Readium 3.0
-        // Serve the fonts under the /fonts endpoint as the Streamer's
-        // EPUBHTMLInjector is expecting it there.
-        try httpServer.serve(
-            at: "fonts",
-            contentsOf: Bundle.module.resourceURL!.appendingPathComponent("Assets/Static/fonts")
-        )
-
-        self.init(
-            viewModel: viewModel,
-            initialLocation: initialLocation,
-            httpServer: httpServer,
-            publicationEndpoint: publicationEndpoint,
-            publicationBaseURL: baseURL
-        )
+        self.init(viewModel: viewModel, initialLocation: initialLocation)
     }
 
     @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server and settings API")
@@ -310,48 +272,19 @@ open class EPUBNavigatorViewController: UIViewController,
         config: Configuration = .init()
     ) {
         precondition(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
-        guard let baseURL = publication.baseURL else {
-            preconditionFailure("No base URL provided for the publication. Add it to the HTTP server.")
-        }
         
-        let viewModel = EPUBNavigatorViewModel(
-            publication: publication,
-            config: config,
-            httpServer: nil,
-            assetsURL: {
-                do {
-                    return try resourcesServer.serve(
-                        Bundle.module.resourceURL!.appendingPathComponent("Assets/Static"),
-                        at: "/r2-navigator/epub"
-                    )
-                } catch {
-                    EPUBNavigatorViewController.log(.error, error)
-                    return URL(string: "")!
-                }
-            }(),
-            useLegacySettings: true
-        )
-
         self.init(
-            viewModel: viewModel,
-            initialLocation: initialLocation,
-            httpServer: nil,
-            publicationEndpoint: nil,
-            publicationBaseURL: baseURL
+            viewModel: EPUBNavigatorViewModel(
+                publication: publication,
+                config: config,
+                resourcesServer: resourcesServer
+            ),
+            initialLocation: initialLocation
         )
     }
 
-    private init(
-        viewModel: EPUBNavigatorViewModel,
-        initialLocation: Locator?,
-        httpServer: HTTPServer?,
-        publicationEndpoint: HTTPServerEndpoint?,
-        publicationBaseURL: URL
-    ) {
+    private init(viewModel: EPUBNavigatorViewModel, initialLocation: Locator?) {
         self.viewModel = viewModel
-        self.server = httpServer
-        self.publicationEndpoint = publicationEndpoint
-        self.publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
         self.initialLocation = initialLocation
         let publication = viewModel.publication
         let config = viewModel.config
@@ -375,12 +308,6 @@ open class EPUBNavigatorViewController: UIViewController,
     @available(*, unavailable)
     public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    deinit {
-        if let endpoint = publicationEndpoint {
-            server?.remove(at: endpoint)
-        }
     }
 
     open override func viewDidLoad() {
@@ -1033,7 +960,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
                 withoutFragment = String(withoutFragment.dropFirst())
             }
             
-            let absolute = publicationBaseURL.appendingPathComponent(withoutFragment)
+            let absolute = viewModel.publicationBaseURL.appendingPathComponent(withoutFragment)
             
             log(.debug, "Fetching note contents from \(absolute.absoluteString)")
             let contents = try String(contentsOf: absolute)
@@ -1118,7 +1045,7 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
         let spreadView = spreadViewType.init(
             publication: publication,
             spread: spread,
-            baseURL: publicationBaseURL,
+            baseURL: viewModel.publicationBaseURL,
             resourcesURL: viewModel.assetsURL,
             readingProgression: ReadingProgression(readingProgression) ?? .ltr,
             userSettings: userSettings,
