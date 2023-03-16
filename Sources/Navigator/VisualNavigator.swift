@@ -31,11 +31,20 @@ public protocol VisualNavigator: Navigator {
 
     /// Returns the `Locator` to the first content element that begins on the current screen.
     func firstVisibleElementLocator(completion: @escaping (Locator?) -> Void)
+  
+    /// Returns the `Locator` to the first content element located at the given point
+    func elementLocator(at point: CGPoint, completion: @escaping (Locator?) -> Void)
 }
 
 public extension VisualNavigator {
 
     func firstVisibleElementLocator(completion: @escaping (Locator?) -> ()) {
+        DispatchQueue.main.async {
+            completion(currentLocation)
+        }
+    }
+  
+    func elementLocator(at point: CGPoint, completion: @escaping (Locator?) -> Void) {
         DispatchQueue.main.async {
             completion(currentLocation)
         }

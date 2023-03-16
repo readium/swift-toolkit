@@ -8,7 +8,11 @@
 
 import "./gestures";
 import "./keyboard";
-import { findFirstVisibleLocator } from "./dom";
+import { 
+  findFirstVisibleLocator, 
+  findLocatorAtPoint,
+} from "./dom";
+
 import {
   removeProperty,
   scrollLeft,
@@ -37,4 +41,5 @@ global.readium = {
 
   // DOM
   findFirstVisibleLocator: findFirstVisibleLocator,
+  findLocatorAtPoint: findLocatorAtPoint,
 };

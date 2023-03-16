@@ -1622,7 +1622,8 @@ window.addEventListener("load", function () {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "findNearestInteractiveElement": () => (/* binding */ findNearestInteractiveElement),
-/* harmony export */   "findFirstVisibleLocator": () => (/* binding */ findFirstVisibleLocator)
+/* harmony export */   "findFirstVisibleLocator": () => (/* binding */ findFirstVisibleLocator),
+/* harmony export */   "findLocatorAtPoint": () => (/* binding */ findLocatorAtPoint)
 /* harmony export */ });
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils.js");
 /* harmony import */ var css_selector_generator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! css-selector-generator */ "./node_modules/css-selector-generator/build/index.js");
@@ -1665,6 +1666,24 @@ function findNearestInteractiveElement(element) {
 
 function findFirstVisibleLocator() {
   var element = findElement(document.body);
+
+  if (!element) {
+    return undefined;
+  }
+
+  return {
+    href: "#",
+    type: "application/xhtml+xml",
+    locations: {
+      cssSelector: (0,css_selector_generator__WEBPACK_IMPORTED_MODULE_1__.getCssSelector)(element)
+    },
+    text: {
+      highlight: element.textContent
+    }
+  };
+}
+function findLocatorAtPoint(x, y) {
+  var element = document.elementFromPoint(x, y);
 
   if (!element) {
     return undefined;
@@ -1863,7 +1882,8 @@ __webpack_require__.g.readium = {
   registerDecorationTemplates: _decorator__WEBPACK_IMPORTED_MODULE_4__.registerTemplates,
   getDecorations: _decorator__WEBPACK_IMPORTED_MODULE_4__.getDecorations,
   // DOM
-  findFirstVisibleLocator: _dom__WEBPACK_IMPORTED_MODULE_2__.findFirstVisibleLocator
+  findFirstVisibleLocator: _dom__WEBPACK_IMPORTED_MODULE_2__.findFirstVisibleLocator,
+  findLocatorAtPoint: _dom__WEBPACK_IMPORTED_MODULE_2__.findLocatorAtPoint
 };
 
 /***/ }),
