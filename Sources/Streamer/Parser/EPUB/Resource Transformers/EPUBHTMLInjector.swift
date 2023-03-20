@@ -28,7 +28,8 @@ final class EPUBHTMLInjector {
     
     func inject(resource: Resource) -> Resource {
         guard
-            userProperties._useLegacySettings,
+            // Will be empty when the new Settings API is in use.
+            !userProperties.properties.isEmpty,
             // We only transform HTML resources.
             resource.link.mediaType.isHTML
         else {

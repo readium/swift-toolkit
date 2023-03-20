@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import UIKit
 import R2Shared
 
 protocol EPUBNavigatorViewModelDelegate: AnyObject {
@@ -26,6 +27,7 @@ final class EPUBNavigatorViewModel: Loggable {
 
     let publication: Publication
     let config: EPUBNavigatorViewController.Configuration
+    let editingActions: EditingActionsController
     private let httpServer: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
     let publicationBaseURL: URL
@@ -38,7 +40,7 @@ final class EPUBNavigatorViewModel: Loggable {
     /// `httpServer`. This is used to serve custom font files, for example.
     private var servedFiles: [URL: URL] = [:]
     
-    public convenience init(
+    convenience init(
         publication: Publication,
         config: EPUBNavigatorViewController.Configuration,
         httpServer: HTTPServer
@@ -82,7 +84,8 @@ final class EPUBNavigatorViewModel: Loggable {
         }
     }
 
-    public convenience init(
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
+    convenience init(
         publication: Publication,
         config: EPUBNavigatorViewController.Configuration,
         resourcesServer: ResourcesServer
@@ -91,6 +94,8 @@ final class EPUBNavigatorViewModel: Loggable {
             preconditionFailure("No base URL provided for the publication. Add it to the HTTP server.")
         }
         
+        publication.userProperties.properties = config.userSettings.userProperties.properties
+
         self.init(
             publication: publication,
             config: config,
@@ -151,11 +156,16 @@ final class EPUBNavigatorViewModel: Loggable {
 
         self.publication = publication
         self.config = config
+        self.editingActions = EditingActionsController(
+            actions: config.editingActions,
+            rights: publication.rights
+        )
         self.httpServer = httpServer
         self.publicationEndpoint = publicationEndpoint
         self.publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
         self.assetsURL = assetsURL
         self.useLegacySettings = useLegacySettings
+        self.legacyReadingProgression = publication.metadata.effectiveReadingProgression
 
         self.settings = EPUBSettings(
             preferences: config.preferences,
@@ -177,6 +187,10 @@ final class EPUBNavigatorViewModel: Loggable {
         if let endpoint = publicationEndpoint {
             httpServer?.remove(at: endpoint)
         }
+    }
+
+    func url(to link: Link) -> URL? {
+        link.url(relativeTo: publicationBaseURL)
     }
 
     private func serveFile(at file: URL, baseEndpoint: HTTPServerEndpoint) throws -> URL {
@@ -227,6 +241,67 @@ final class EPUBNavigatorViewModel: Loggable {
             defaults: config.defaults
         )
     }
+
+    var theme: Theme {
+        useLegacySettings ? legacyTheme : settings.theme
+    }
+
+    private var legacyTheme: Theme {
+        guard
+            let appearance = config.userSettings.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) as? Enumerable,
+            appearance.values.count > appearance.index else
+        {
+            return .light
+        }
+        let value = appearance.values[appearance.index]
+        switch value {
+        case "readium-night-on":
+            return .dark
+        case "readium-sepia-on":
+            return .sepia
+        default:
+            return .light
+        }
+    }
+
+    var scroll: Bool {
+        // Force-enables scroll when VoiceOver is running, because pagination
+        // breaks the screen reader.
+        guard !UIAccessibility.isVoiceOverRunning else {
+            return true
+        }
+        return useLegacySettings ? legacyScroll : settings.scroll
+    }
+
+    private var legacyScroll: Bool {
+        (config.userSettings.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable)?.on ?? false
+    }
+
+    var spread: Spread {
+        useLegacySettings ? legacySpread : settings.spread
+    }
+
+    private var legacySpread: Spread {
+        guard let columnCount = config.userSettings.userProperties.getProperty(reference: ReadiumCSSReference.columnCount.rawValue) as? Enumerable else {
+            return .auto
+        }
+        switch columnCount.index {
+        case 1:
+            return .never
+        case 2:
+            return .always
+        default:
+            return .auto
+        }
+    }
+
+    var readingProgression: ReadingProgression {
+        useLegacySettings 
+            ? (ReadingProgression(legacyReadingProgression) ?? .ltr)
+            : settings.readingProgression
+    }
+
+    var legacyReadingProgression: R2Shared.ReadingProgression
 
     /// MARK: - Readium CSS
 

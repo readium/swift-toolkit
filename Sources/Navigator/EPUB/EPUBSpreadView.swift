@@ -43,47 +43,31 @@ protocol EPUBSpreadViewDelegate: AnyObject {
 class EPUBSpreadView: UIView, Loggable, PageView {
 
     weak var delegate: EPUBSpreadViewDelegate?
-    let publication: Publication
+    let viewModel: EPUBNavigatorViewModel
     let spread: EPUBSpread
     private(set) var focusedResource: Link?
     
-    let baseURL: URL
-    let resourcesURL: URL
     let webView: WebView
-
-    let readingProgression: ReadingProgression
-    let userSettings: UserSettings
-    let editingActions: EditingActionsController
 
     private var lastClick: ClickEvent? = nil
 
     /// If YES, the content will be faded in once loaded.
     let animatedLoad: Bool
-    
-    let contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
 
     weak var activityIndicatorView: UIActivityIndicatorView?
 
-    /// Whether the continuous scrolling mode is enabled.
-    var isScrollEnabled: Bool {
-        let userEnabled = (userSettings.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable)?.on ?? false
-        // Force-enables scroll when VoiceOver is running.
-        return userEnabled || UIAccessibility.isVoiceOverRunning
-    }
-
     private(set) var spreadLoaded = false
 
-    required init(publication: Publication, spread: EPUBSpread, baseURL: URL, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, scripts: [WKUserScript], animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
-        self.publication = publication
+    required init(
+        viewModel: EPUBNavigatorViewModel,
+        spread: EPUBSpread,
+        scripts: [WKUserScript],
+        animatedLoad: Bool
+    ) {
+        self.viewModel = viewModel
         self.spread = spread
-        self.baseURL = baseURL
-        self.resourcesURL = resourcesURL
-        self.readingProgression = readingProgression
-        self.userSettings = userSettings
-        self.editingActions = editingActions
         self.animatedLoad = animatedLoad
-        self.webView = WebView(editingActions: editingActions)
-        self.contentInset = contentInset
+        self.webView = WebView(editingActions: viewModel.editingActions)
 
         super.init(frame: .zero)
         
@@ -239,7 +223,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     /// The JS message `spreadLoaded` needs to be emitted by a subclass script, EPUBSpreadView's scripts don't.
     private func spreadDidLoad(_ body: Any) {
         spreadLoaded = true
-        applyUserSettingsStyle()
+        applySettings()
         spreadDidLoad()
         delegate?.spreadViewDidLoad(self)
     }
@@ -283,7 +267,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     
     /// Called when the user hit the Share item in the selection context menu.
     @objc func shareSelection(_ sender: Any?) {
-        guard let shareViewController = editingActions.makeShareViewController(from: webView) else {
+        guard let shareViewController = viewModel.editingActions.makeShareViewController(from: webView) else {
             return
         }
         delegate?.spreadView(self, present: shareViewController)
@@ -291,7 +275,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     /// Update webview style to userSettings.
     /// To override in subclasses.
-    func applyUserSettingsStyle() {
+    func applySettings() {
         assert(Thread.isMainThread, "User settings must be updated from the main thread")
     }
     
@@ -442,7 +426,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
         isVoiceOverRunning = UIAccessibility.isVoiceOverRunning
         // Scroll mode will be activated if VoiceOver is on
-        applyUserSettingsStyle()
+        applySettings()
     }
 
     
@@ -478,6 +462,7 @@ extension EPUBSpreadView: WKNavigationDelegate {
 
         if navigationAction.navigationType == .linkActivated {
             if let url = navigationAction.request.url {
+                let baseURL = viewModel.publicationBaseURL
                 // Check if url is internal or external
                 if url.host == baseURL.host {
                     let href = url.absoluteString.replacingOccurrences(of: baseURL.absoluteString, with: "/")
@@ -514,7 +499,7 @@ extension EPUBSpreadView: WKUIDelegate {
     
     func webView(_ webView: WKWebView, shouldPreviewElement elementInfo: WKPreviewElementInfo) -> Bool {
         // Preview allowed only if the link is not internal
-        return (elementInfo.linkURL?.host != baseURL.host)
+        return (elementInfo.linkURL?.host != viewModel.publicationBaseURL.host)
     }
 }
 
@@ -529,14 +514,8 @@ extension EPUBSpreadView: UIGestureRecognizerDelegate {
 private extension EPUBSpreadView {
 
     func updateActivityIndicator() {
-        guard let appearance = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) as? Enumerable,
-            appearance.values.count > appearance.index else
-        {
-            return
-        }
-        let value = appearance.values[appearance.index]
-        switch value {
-        case "readium-night-on":
+        switch viewModel.theme {
+        case .dark:
             createActivityIndicator(style: .white)
         default:
             createActivityIndicator(style: .gray)

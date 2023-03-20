@@ -151,7 +151,4 @@ public class UserProperties {
             $0.reference == ref.rawValue
         }
     }
-
-    /// For internal use, don't set this yourself.
-    public var _useLegacySettings = true
 }

@@ -107,7 +107,6 @@ open class EPUBNavigatorViewController: UIViewController,
         public var debugState: Bool
 
         /// Default user settings.
-        @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
         public var userSettings: UserSettings
 
         public init(
@@ -143,10 +142,17 @@ open class EPUBNavigatorViewController: UIViewController,
     public weak var delegate: EPUBNavigatorDelegate? {
         didSet { notifyCurrentLocation() }
     }
-    public var userSettings: UserSettings
 
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
+    public var userSettings: UserSettings = UserSettings()
+
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
     public var readingProgression: R2Shared.ReadingProgression {
-        didSet { updateUserSettingStyle() }
+        get { viewModel.legacyReadingProgression }
+        set {
+            viewModel.legacyReadingProgression = newValue
+            updateUserSettingStyle()
+        }
     }
     
     /// Navigation state.
@@ -238,7 +244,6 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     private let initialLocation: Locator?
-    private let editingActions: EditingActionsController
 
     private let viewModel: EPUBNavigatorViewModel
     private var publication: Publication { viewModel.publication }
@@ -281,6 +286,8 @@ open class EPUBNavigatorViewController: UIViewController,
             ),
             initialLocation: initialLocation
         )
+
+        self.userSettings = config.userSettings
     }
 
     private init(viewModel: EPUBNavigatorViewModel, initialLocation: Locator?) {
@@ -288,21 +295,11 @@ open class EPUBNavigatorViewController: UIViewController,
         self.initialLocation = initialLocation
         let publication = viewModel.publication
         let config = viewModel.config
-        self.editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
-        self.readingProgression = publication.metadata.effectiveReadingProgression
-        self.userSettings = config.userSettings
 
         super.init(nibName: nil, bundle: nil)
 
-        self.viewModel.delegate = self
-        
-        if viewModel.useLegacySettings {
-            publication.userProperties.properties = userSettings.userProperties.properties
-        } else {
-            publication.userProperties._useLegacySettings = false
-        }
-        
-        self.editingActions.delegate = self
+        viewModel.delegate = self
+        viewModel.editingActions.delegate = self
     }
 
     @available(*, unavailable)
@@ -320,14 +317,14 @@ open class EPUBNavigatorViewController: UIViewController,
         
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapBackground)))
 
-        editingActions.updateSharedMenuController()
+        viewModel.editingActions.updateSharedMenuController()
 
         reloadSpreads(at: initialLocation)
     }
     
     @available(iOS 13.0, *)
     open override func buildMenu(with builder: UIMenuBuilder) {
-        editingActions.buildMenu(with: builder)
+        viewModel.editingActions.buildMenu(with: builder)
         super.buildMenu(with: builder)
     }
     
@@ -445,7 +442,7 @@ open class EPUBNavigatorViewController: UIViewController,
             return true
         }
         
-        let isRTL = (readingProgression == .rtl)
+        let isRTL = (viewModel.readingProgression == .rtl)
         let delta = isRTL ? -1 : 1
         let moved: Bool = {
             switch direction {
@@ -466,10 +463,12 @@ open class EPUBNavigatorViewController: UIViewController,
     }
     
     
-    // MARK: - User settings
+    // MARK: - Legacy user settings
     
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
     public func updateUserSettingStyle() {
-        assert(Thread.isMainThread, "User settings must be updated from the main thread")
+        precondition(viewModel.useLegacySettings, "updateUserSettingsStyle() is not available when using the new Settings API. See the 2.5.0 migration guide.")
+        precondition(Thread.isMainThread, "User settings must be updated from the main thread")
         _updateUserSettingsStyle()
     }
     
@@ -483,7 +482,7 @@ open class EPUBNavigatorViewController: UIViewController,
 
         let location = self.currentLocation
         for (_, view) in self.paginationView.loadedViews {
-            (view as? EPUBSpreadView)?.applyUserSettingsStyle()
+            (view as? EPUBSpreadView)?.applySettings()
         }
 
         // Re-positions the navigator to the location before applying the settings
@@ -571,7 +570,11 @@ open class EPUBNavigatorViewController: UIViewController,
     
     private func _reloadSpreads(at locator: Locator? = nil, completion: @escaping () -> Void) {
         let isLandscape = (self.view.bounds.width > self.view.bounds.height)
-        let pageCountPerSpread = EPUBSpread.pageCountPerSpread(for: self.publication, userSettings: self.userSettings, isLandscape: isLandscape)
+        let pageCountPerSpread = EPUBSpread.pageCountPerSpread(
+            for: publication,
+            spread: viewModel.spread,
+            isLandscape: isLandscape
+        )
         
         guard
             // Already loaded with the expected amount of spreads.
@@ -583,7 +586,7 @@ open class EPUBNavigatorViewController: UIViewController,
         }
 
         let locator = locator ?? self.currentLocation
-        self.spreads = EPUBSpread.makeSpreads(for: self.publication, readingProgression: ReadingProgression(self.readingProgression) ?? .ltr, pageCountPerSpread: pageCountPerSpread)
+        self.spreads = EPUBSpread.makeSpreads(for: self.publication, readingProgression: viewModel.readingProgression, pageCountPerSpread: pageCountPerSpread)
         
         let initialIndex: Int = {
             if let href = locator?.href, let foundIndex = self.spreads.firstIndex(withHref: href) {
@@ -593,7 +596,12 @@ open class EPUBNavigatorViewController: UIViewController,
             }
         }()
         
-        self.paginationView.reloadAtIndex(initialIndex, location: PageLocation(locator), pageCount: self.spreads.count, readingProgression: ReadingProgression(self.readingProgression) ?? .ltr) {
+        self.paginationView.reloadAtIndex(
+            initialIndex,
+            location: PageLocation(locator),
+            pageCount: spreads.count,
+            readingProgression: viewModel.readingProgression
+        ) {
             self.on(.loaded)
             completion()
         }
@@ -696,10 +704,10 @@ open class EPUBNavigatorViewController: UIViewController,
     
     public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
         let direction: EPUBSpreadView.Direction = {
-            switch readingProgression {
-            case .ltr, .ttb, .auto:
+            switch viewModel.readingProgression {
+            case .ltr:
                 return .right
-            case .rtl, .btt:
+            case .rtl:
                 return .left
             }
         }()
@@ -708,10 +716,10 @@ open class EPUBNavigatorViewController: UIViewController,
     
     public func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool {
         let direction: EPUBSpreadView.Direction = {
-            switch readingProgression {
-            case .ltr, .ttb, .auto:
+            switch viewModel.readingProgression {
+            case .ltr:
                 return .left
-            case .rtl, .btt:
+            case .rtl:
                 return .right
             }
         }()
@@ -720,7 +728,9 @@ open class EPUBNavigatorViewController: UIViewController,
 
     // MARK: - SelectableNavigator
 
-    public var currentSelection: Selection? { editingActions.selection }
+    public var currentSelection: Selection? { 
+        viewModel.editingActions.selection
+    }
 
     public func clearSelection() {
         for (_, pageView) in paginationView.loadedViews {
@@ -999,10 +1009,10 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             let locator = currentLocation,
             let text = text
         else {
-            editingActions.selection = nil
+            viewModel.editingActions.selection = nil
             return
         }
-        editingActions.selection = Selection(
+        viewModel.editingActions.selection = Selection(
             locator: locator.copy(text: { $0 = text }),
             frame: frame
         )
@@ -1043,16 +1053,10 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
         let spread = spreads[index]
         let spreadViewType = (spread.layout == .fixed) ? EPUBFixedSpreadView.self : EPUBReflowableSpreadView.self
         let spreadView = spreadViewType.init(
-            publication: publication,
+            viewModel: viewModel,
             spread: spread,
-            baseURL: viewModel.publicationBaseURL,
-            resourcesURL: viewModel.assetsURL,
-            readingProgression: ReadingProgression(readingProgression) ?? .ltr,
-            userSettings: userSettings,
             scripts: [],
-            animatedLoad: false,  // FIXME: custom animated
-            editingActions: editingActions,
-            contentInset: config.contentInset
+            animatedLoad: false
         )
         spreadView.delegate = self
 
