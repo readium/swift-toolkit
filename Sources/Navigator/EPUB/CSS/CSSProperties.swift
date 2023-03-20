@@ -822,7 +822,11 @@ private extension Double {
 
 private extension String {
     func css() -> String? {
-        "\"" + replacingOccurrences(of: "\"", with: "\\\"") + "\""
+        if contains("\"") || contains(" ") {
+            return "\"" + replacingOccurrences(of: "\"", with: "\\\"") + "\""
+        } else {
+            return self
+        }
     }
 }
 
