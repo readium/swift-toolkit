@@ -121,6 +121,34 @@ final class EPUBNavigatorViewModel: Loggable {
         assetsURL: URL,
         useLegacySettings: Bool
     ) {
+        var config = config
+
+        if let fontsDir = Bundle.module.resourceURL?.appendingPathComponent("Assets/Static/fonts") {
+            config.fontFamilyDeclarations.append(
+                CSSFontFamilyDeclaration(
+                    fontFamily: .openDyslexic,
+                    fontFaces: [
+                        CSSFontFace(
+                            file: fontsDir.appendingPathComponent("OpenDyslexic-Regular.otf"),
+                            style: .normal, weight: .standard(.normal)
+                        ),
+                        CSSFontFace(
+                            file: fontsDir.appendingPathComponent("OpenDyslexic-Italic.otf"),
+                            style: .italic, weight: .standard(.normal)
+                        ),
+                        CSSFontFace(
+                            file: fontsDir.appendingPathComponent("OpenDyslexic-Bold.otf"),
+                            style: .normal, weight: .standard(.bold)
+                        ),
+                        CSSFontFace(
+                            file: fontsDir.appendingPathComponent("OpenDyslexic-BoldItalic.otf"),
+                            style: .italic, weight: .standard(.bold)
+                        ),
+                    ]
+                ).eraseToAnyHTMLFontFamilyDeclaration()
+            )
+        }
+
         self.publication = publication
         self.config = config
         self.httpServer = httpServer

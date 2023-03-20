@@ -164,16 +164,14 @@ public enum CSSFontStyle: String, Codable {
 }
 
 /// Weight (or boldness) of a font.
-
-/// See https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-weight#common_weight_name_mapping
 public enum CSSFontWeight: Codable {
     case standard(CSSStandardFontWeight)
     case variable(ClosedRange<Int>)
 }
 
 /// Standard weights (or boldness) of a font.
-
-/// See https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-weight#common_weight_name_mapping
+///
+/// See https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight#common_weight_name_mapping
 public enum CSSStandardFontWeight: Int, Codable {
     case thin = 100
     case extraLight = 200

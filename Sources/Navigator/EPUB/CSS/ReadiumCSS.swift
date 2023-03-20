@@ -97,7 +97,7 @@ extension ReadiumCSS: HTMLInjectable {
         let document = try parse(html)
         
         var inj: [HTMLInjection] = []
-        inj.append(.meta(name: "viewport", content: "width=device-width, height=device-height, initial-scale=1.0;"))
+        inj.append(.meta(name: "viewport", content: "width=device-width, height=device-height, initial-scale=1.0"))
         inj.append(contentsOf: styleInjections(for: html))
         inj.append(cssPropertiesInjection())
         inj.append(contentsOf: dirInjection())
