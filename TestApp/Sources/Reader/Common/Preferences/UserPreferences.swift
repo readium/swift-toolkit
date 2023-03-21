@@ -91,33 +91,44 @@ struct UserPreferences<
                     )
 
                 case let editor as EPUBPreferencesEditor:
-                    reflowableUserPreferences(
-                        commit: commit,
-                        backgroundColor: editor.backgroundColor,
-                        columnCount: editor.columnCount,
-                        fontFamily: editor.fontFamily,
-                        fontSize: editor.fontSize,
-                        fontWeight: editor.fontWeight,
-                        hyphens: editor.hyphens,
-                        imageFilter: editor.imageFilter,
-                        language: editor.language,
-                        letterSpacing: editor.letterSpacing,
-                        ligatures: editor.ligatures,
-                        lineHeight: editor.lineHeight,
-                        pageMargins: editor.pageMargins,
-                        paragraphIndent: editor.paragraphIndent,
-                        paragraphSpacing: editor.paragraphSpacing,
-                        publisherStyles: editor.publisherStyles,
-                        readingProgression: editor.readingProgression,
-                        scroll: editor.scroll,
-                        textAlign: editor.textAlign,
-                        textColor: editor.textColor,
-                        textNormalization: editor.textNormalization,
-                        theme: editor.theme,
-                        typeScale: editor.typeScale,
-                        verticalText: editor.verticalText,
-                        wordSpacing: editor.wordSpacing
-                    )
+                    switch editor.layout {
+                    case .reflowable:
+                        reflowableUserPreferences(
+                            commit: commit,
+                            backgroundColor: editor.backgroundColor,
+                            columnCount: editor.columnCount,
+                            fontFamily: editor.fontFamily,
+                            fontSize: editor.fontSize,
+                            fontWeight: editor.fontWeight,
+                            hyphens: editor.hyphens,
+                            imageFilter: editor.imageFilter,
+                            language: editor.language,
+                            letterSpacing: editor.letterSpacing,
+                            ligatures: editor.ligatures,
+                            lineHeight: editor.lineHeight,
+                            pageMargins: editor.pageMargins,
+                            paragraphIndent: editor.paragraphIndent,
+                            paragraphSpacing: editor.paragraphSpacing,
+                            publisherStyles: editor.publisherStyles,
+                            readingProgression: editor.readingProgression,
+                            scroll: editor.scroll,
+                            textAlign: editor.textAlign,
+                            textColor: editor.textColor,
+                            textNormalization: editor.textNormalization,
+                            theme: editor.theme,
+                            typeScale: editor.typeScale,
+                            verticalText: editor.verticalText,
+                            wordSpacing: editor.wordSpacing
+                        )
+                    case .fixed:
+                        fixedLayoutUserPreferences(
+                            commit: commit,
+                            backgroundColor: editor.backgroundColor,
+                            language: editor.language,
+                            readingProgression: editor.readingProgression,
+                            spread: editor.spread
+                        )
+                    }
 
                 default:
                     Text("No user preferences available.")
@@ -152,9 +163,9 @@ struct UserPreferences<
     /// fixed-layout EPUB, PDF or comic book.
     @ViewBuilder func fixedLayoutUserPreferences(
         commit: @escaping () -> Void,
-        backgroundColor: AnyEnumPreference<R2Navigator.Color>? = nil,
+        backgroundColor: AnyPreference<R2Navigator.Color>? = nil,
         fit: AnyEnumPreference<R2Navigator.Fit>? = nil,
-        language: AnyEnumPreference<Language?>? = nil,
+        language: AnyPreference<Language?>? = nil,
         offsetFirstPage: AnyPreference<Bool>? = nil,
         pageSpacing: AnyRangePreference<Double>? = nil,
         readingProgression: AnyEnumPreference<R2Navigator.ReadingProgression>? = nil,
