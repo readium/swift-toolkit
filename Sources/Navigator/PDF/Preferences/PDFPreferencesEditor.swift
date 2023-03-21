@@ -28,7 +28,10 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
         preference(
             preference: \.offsetFirstPage,
             setting: \.offsetFirstPage,
-            isEffective: { $0.settings.spread != .never }
+            isEffective: {
+                return (!$0.settings.scroll || $0.settings.scrollAxis == .vertical)
+                    && $0.settings.spread != .never
+            }
         )
 
     /// Spacing between pages in points.
@@ -77,7 +80,9 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
         enumPreference(
             preference: \.spread,
             setting: \.spread,
-            isEffective: { _ in true },
+            isEffective: {
+                !$0.settings.scroll || $0.settings.scrollAxis == .vertical
+            },
             supportedValues: [.auto, .never, .always]
         )
 

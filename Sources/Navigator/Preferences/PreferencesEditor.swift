@@ -124,7 +124,7 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
         preference prefKP: WritableKeyPath<Preferences, Value?>,
         setting settingKP: KeyPath<Settings, Value?>,
         isEffective: @escaping (State) -> Bool,
-        supportedValues: [Value]
+        supportedValues: [Value?]
     ) -> AnyEnumPreference<Value?> {
         ProxyEnumPreference(
             value: { [unowned self] in preferences[keyPath: prefKP] },

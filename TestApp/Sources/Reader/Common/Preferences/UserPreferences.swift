@@ -387,7 +387,7 @@ struct UserPreferences<
             }
         }
 
-        if theme != nil || textColor != nil || backgroundColor != nil {
+        if theme != nil || imageFilter != nil || textColor != nil || backgroundColor != nil {
             Section {
                 if let theme = theme {
                     pickerRow(
@@ -399,6 +399,21 @@ struct UserPreferences<
                             case .light: return "Light"
                             case .dark: return "Dark"
                             case .sepia: return "Sepia"
+                            }
+                        }
+                    )
+                }
+                
+                if let imageFilter = imageFilter {
+                    pickerRow(
+                        title: "Image filter",
+                        preference: imageFilter,
+                        commit: commit,
+                        formatValue: { v in
+                            switch v {
+                            case nil: return "None"
+                            case .darken: return "Darken colors"
+                            case .invert: return "Invert colors"
                             }
                         }
                     )
@@ -611,23 +626,6 @@ struct UserPreferences<
         preference: AnyEnumPreference<V>,
         commit: @escaping () -> Void,
         formatValue: @escaping (V) -> String
-    ) -> some View {
-        pickerRow(
-            title: title,
-            value: preference.binding(onSet: commit),
-            values: preference.supportedValues,
-            isActive: preference.isEffective,
-            onClear: { preference.clear(); commit() },
-            formatValue: formatValue
-        )
-    }
-
-    /// Component for an `EnumPreference` displayed in a `Picker` view.
-    @ViewBuilder func pickerRow2<V: Hashable>(
-        title: String,
-        preference: AnyEnumPreference<V?>,
-        commit: @escaping () -> Void,
-        formatValue: @escaping (V?) -> String
     ) -> some View {
         pickerRow(
             title: title,

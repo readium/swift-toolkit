@@ -114,7 +114,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     public lazy var hyphens: AnyPreference<Bool> =
         preference(
             preference: \.hyphens,
-            effectiveValue: { $0.settings.hyphens ?? false },
+            effectiveValue: { $0.settings.hyphens ?? ($0.settings.textAlign == .justify) },
             isEffective: { [unowned self] in
                 return layout == .reflowable
                     && $0.settings.cssLayout.stylesheets == .default
@@ -133,7 +133,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.imageFilter,
             setting: \.imageFilter,
             isEffective: { $0.settings.theme == .dark },
-            supportedValues: [.darken, .invert]
+            supportedValues: [nil, .darken, .invert]
         )
 
     /// Language of the publication content.
@@ -318,7 +318,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
                     && !$0.settings.publisherStyles
                     && $0.preferences.textAlign != nil
             },
-            supportedValues: [.start, .left, .right, .justify]
+            supportedValues: [nil, .start, .left, .right, .justify]
         )
 
     /// Default page text color.
