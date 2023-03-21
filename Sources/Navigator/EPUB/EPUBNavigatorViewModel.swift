@@ -226,7 +226,8 @@ final class EPUBNavigatorViewModel: Loggable {
             oldSettings.readingProgression != newSettings.readingProgression ||
             oldSettings.language != newSettings.language ||
             oldSettings.verticalText != newSettings.verticalText ||
-            oldSettings.spread != newSettings.spread
+            oldSettings.spread != newSettings.spread ||
+            oldSettings.scroll != newSettings.scroll
         )
 
         if needsInvalidation {

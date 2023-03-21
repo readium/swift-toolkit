@@ -319,7 +319,7 @@ open class EPUBNavigatorViewController: UIViewController,
 
         viewModel.editingActions.updateSharedMenuController()
 
-        reloadSpreads(at: initialLocation)
+        reloadSpreads(at: initialLocation, force: false)
     }
     
     @available(iOS 13.0, *)
@@ -349,7 +349,7 @@ open class EPUBNavigatorViewController: UIViewController,
         super.viewWillTransition(to: size, with: coordinator)
         
         coordinator.animate(alongsideTransition: nil) { [weak self] context in
-            self?.reloadSpreads()
+            self?.reloadSpreads(force: false)
         }
     }
     
@@ -478,7 +478,7 @@ open class EPUBNavigatorViewController: UIViewController,
     ) { [weak self] in
         guard let self = self else { return }
 
-        self.reloadSpreads()
+        self.reloadSpreads(force: false)
 
         let location = self.currentLocation
         for (_, view) in self.paginationView.loadedViews {
@@ -547,7 +547,7 @@ open class EPUBNavigatorViewController: UIViewController,
     private let reloadSpreadsCompletions = CompletionList()
     private var needsReloadSpreads = false
     
-    private func reloadSpreads(at locator: Locator? = nil, completion: (() -> Void)? = nil) {
+    private func reloadSpreads(at locator: Locator? = nil, force: Bool, completion: (() -> Void)? = nil) {
         assert(Thread.isMainThread, "reloadSpreads() must be called from the main thread")
 
         guard !needsReloadSpreads else {
@@ -562,13 +562,13 @@ open class EPUBNavigatorViewController: UIViewController,
         DispatchQueue.main.async {
             self.needsReloadSpreads = false
             
-            self._reloadSpreads(at: locator) {
+            self._reloadSpreads(at: locator, force: force) {
                 self.reloadSpreadsCompletions.complete()
             }
         }
     }
     
-    private func _reloadSpreads(at locator: Locator? = nil, completion: @escaping () -> Void) {
+    private func _reloadSpreads(at locator: Locator? = nil, force: Bool, completion: @escaping () -> Void) {
         let isLandscape = (self.view.bounds.width > self.view.bounds.height)
         let pageCountPerSpread = EPUBSpread.pageCountPerSpread(
             for: publication,
@@ -577,8 +577,8 @@ open class EPUBNavigatorViewController: UIViewController,
         )
         
         guard
-            // Already loaded with the expected amount of spreads.
-            self.spreads.first?.pageCount != pageCountPerSpread,
+            // Already loaded with the expected amount of spreads?
+            force || self.spreads.first?.pageCount != pageCountPerSpread,
             self.on(.load)
         else {
             completion()
@@ -817,7 +817,7 @@ open class EPUBNavigatorViewController: UIViewController,
 extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
 
     func epubNavigatorViewModelInvalidatePaginationView(_ viewModel: EPUBNavigatorViewModel) {
-        reloadSpreads()
+        reloadSpreads(force: true)
     }
 
     func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel, runScript script: String, in scope: EPUBScriptScope) {
