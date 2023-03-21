@@ -67,12 +67,9 @@ extension ReadiumCSS {
             ligatures: settings.ligatures.map { $0 ? .common : .none },
             a11yNormalize: settings.textNormalization,
             overrides: [
-                :
-                // FIXME:
-//                    (fontWeight != null)
-                //                "font-weight": settings.fontWeight.map { 
-//                        (FontWeight.NORMAL.value * fontWeight).toInt().coerceIn(1, 1000).toString()
-//                    else ""
+                "font-weight": settings.fontWeight
+                    .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1...1000)) }
+                    ?? ""
             ]
         )
     }

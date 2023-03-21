@@ -27,8 +27,8 @@ public extension CSSProperties {
 
         return props
             .sorted(by: { p1, p2 in p1.key < p2.key })
-            .map { key, value in "\(key): \(value)"}
-            .joined(separator: ";\n") + ";\n"
+            .map { key, value in "\(key): \(value) !important;"}
+            .joined(separator: "\n") + "\n"
     }
 }
 

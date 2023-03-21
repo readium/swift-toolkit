@@ -2640,7 +2640,9 @@ function setProperty(key, value) {
     removeProperty(key);
   } else {
     var root = document.documentElement;
-    root.style.setProperty(key, value);
+    // The `!important` annotation is added with `setProperty()` because if
+    // it's part of the `value`, it will be ignored by the Web View.
+    root.style.setProperty(key, value, "important");
   }
 }
 
