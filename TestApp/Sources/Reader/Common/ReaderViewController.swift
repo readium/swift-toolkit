@@ -210,11 +210,6 @@ class ReaderViewController<N: UIViewController & Navigator>: UIViewController, U
             .store(in: &subscriptions)
     }
     
-    private var colorScheme = ColorScheme()
-    func appearanceChanged(_ appearance: UserProperty) {
-        colorScheme.update(with: appearance)
-    }
-
     // MARK: - User Preferences
 
     @objc func presentUserPreferences() {
@@ -305,8 +300,7 @@ class ReaderViewController<N: UIViewController & Navigator>: UIViewController, U
         }
         
         let menuView = HighlightContextMenu(colors: [.red, .green, .blue, .yellow],
-                                            systemFontSize: 20,
-                                            colorScheme: colorScheme)
+                                            systemFontSize: 20)
         
         menuView.selectedColorPublisher.sink { [weak self] color in
             self?.currentHighlightCancellable?.cancel()
@@ -326,7 +320,6 @@ class ReaderViewController<N: UIViewController & Navigator>: UIViewController, U
         
         highlightContextMenu!.preferredContentSize = menuView.preferredSize
         highlightContextMenu!.modalPresentationStyle = .popover
-        highlightContextMenu!.view.backgroundColor = UIColor(colorScheme.mainColor)
         
         if let popoverController = highlightContextMenu!.popoverPresentationController {
             popoverController.permittedArrowDirections = .down

@@ -293,8 +293,6 @@ open class EPUBNavigatorViewController: UIViewController,
     private init(viewModel: EPUBNavigatorViewModel, initialLocation: Locator?) {
         self.viewModel = viewModel
         self.initialLocation = initialLocation
-        let publication = viewModel.publication
-        let config = viewModel.config
 
         super.init(nibName: nil, bundle: nil)
 

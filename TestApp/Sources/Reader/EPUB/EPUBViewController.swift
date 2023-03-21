@@ -16,8 +16,6 @@ extension FontFamily {
 }
 
 class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
-    var popoverUserconfigurationAnchor: UIBarButtonItem?
-    var userSettingNavigationController: UserSettingsNavigationController
 
     private let preferencesStore: AnyUserPreferencesStore<EPUBPreferences>
     
@@ -62,67 +60,11 @@ class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
             httpServer: GCDHTTPServer.shared
         )
 
-        let settingsStoryboard = UIStoryboard(name: "UserSettings", bundle: nil)
-        userSettingNavigationController = settingsStoryboard.instantiateViewController(withIdentifier: "UserSettingsNavigationController") as! UserSettingsNavigationController
-        userSettingNavigationController.fontSelectionViewController =
-            (settingsStoryboard.instantiateViewController(withIdentifier: "FontSelectionViewController") as! FontSelectionViewController)
-        userSettingNavigationController.advancedSettingsViewController =
-            (settingsStoryboard.instantiateViewController(withIdentifier: "AdvancedSettingsViewController") as! AdvancedSettingsViewController)
-
         self.preferencesStore = preferencesStore
         
         super.init(navigator: navigator, publication: publication, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights)
         
         navigator.delegate = self
-    }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-  
-        /// Set initial UI appearance.
-        if let appearance = publication.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) {
-            setUIColor(for: appearance)
-        }
-        
-        let userSettings = navigator.userSettings
-        userSettingNavigationController.userSettings = userSettings
-        userSettingNavigationController.modalPresentationStyle = .popover
-        userSettingNavigationController.usdelegate = self
-        userSettingNavigationController.userSettingsTableViewController.publication = publication
-        
-
-        publication.userSettingsUIPresetUpdated = { [weak self] preset in
-            guard let `self` = self, let presetScrollValue:Bool = preset?[.scroll] else {
-                return
-            }
-            
-            if let scroll = self.userSettingNavigationController.userSettings.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable {
-                if scroll.on != presetScrollValue {
-                    self.userSettingNavigationController.scrollModeDidChange()
-                }
-            }
-        }
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-    }
-
-    override open func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-        navigator.userSettings.save()
-    }
-
-    override func makeNavigationBarButtons() -> [UIBarButtonItem] {
-        var buttons = super.makeNavigationBarButtons()
-
-        // User configuration button
-        let userSettingsButton = UIBarButtonItem(image: #imageLiteral(resourceName: "settingsIcon"), style: .plain, target: self, action: #selector(presentUserSettings))
-        buttons.insert(userSettingsButton, at: 1)
-        popoverUserconfigurationAnchor = userSettingsButton
-
-        return buttons
     }
 
     override func presentUserPreferences() {
@@ -151,20 +93,6 @@ class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
         
         return Bookmark(bookId: bookId, locator: locator)
     }
-    
-    @objc func presentUserSettings() {
-        let popoverPresentationController = userSettingNavigationController.popoverPresentationController!
-        
-        popoverPresentationController.delegate = self
-        popoverPresentationController.barButtonItem = popoverUserconfigurationAnchor
-
-        userSettingNavigationController.publication = publication
-        present(userSettingNavigationController, animated: true) {
-            // Makes sure that the popover is dismissed also when tapping on one of the other UIBarButtonItems.
-            // ie. http://karmeye.com/2014/11/20/ios8-popovers-and-passthroughviews/
-            popoverPresentationController.passthroughViews = nil
-        }
-    }
 
     @objc func highlightSelection() {
         if let selection = navigator.currentSelection {
@@ -183,31 +111,6 @@ extension EPUBViewController: UIGestureRecognizerDelegate {
     
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
-    }
-    
-}
-
-extension EPUBViewController: UserSettingsNavigationControllerDelegate {
-
-    internal func getUserSettings() -> UserSettings {
-        return navigator.userSettings
-    }
-    
-    internal func updateUserSettingsStyle() {
-        DispatchQueue.main.async {
-            self.navigator.updateUserSettingStyle()
-        }
-    }
-    
-    /// Synchronyze the UI appearance to the UserSettings.Appearance.
-    ///
-    /// - Parameter appearance: The appearance.
-    internal func setUIColor(for appearance: UserProperty) {
-        self.appearanceChanged(appearance)
-        let colors = AssociatedColors.getColors(for: appearance)
-        
-        navigator.view.backgroundColor = colors.mainColor
-        view.backgroundColor = colors.mainColor
     }
     
 }

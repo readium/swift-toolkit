@@ -34,7 +34,6 @@ class DRMManagementTableViewController: UITableViewController {
     @IBOutlet weak var returnButton: UIButton!
     
     public var viewModel: DRMViewModel!
-    public var appearance: UserProperty?
     
     weak var moduleDelegate: ReaderModuleDelegate?
     
