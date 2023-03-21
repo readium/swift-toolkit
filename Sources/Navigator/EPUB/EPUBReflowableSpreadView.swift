@@ -26,13 +26,15 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     ) {
         var scripts = scripts
         
-        let layout = ReadiumCSSLayout(languages: viewModel.publication.metadata.languages, readingProgression: viewModel.readingProgression)
-        scripts.append(WKUserScript(
-            source: "window.readiumCSSBaseURL = '\(viewModel.assetsURL.appendingPathComponent(layout.readiumCSSBasePath))'",
-            injectionTime: .atDocumentStart,
-            forMainFrameOnly: false
-        ))
-        
+        if viewModel.useLegacySettings {
+            let layout = ReadiumCSSLayout(languages: viewModel.publication.metadata.languages, readingProgression: viewModel.readingProgression)
+            scripts.append(WKUserScript(
+                source: "window.readiumCSSBaseURL = '\(viewModel.assetsURL.appendingPathComponent(layout.readiumCSSBasePath))'",
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: false
+            ))
+        }
+
         scripts.append(WKUserScript(source: Self.reflowableScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
         
         super.init(viewModel: viewModel, spread: spread, scripts: scripts, animatedLoad: animatedLoad)

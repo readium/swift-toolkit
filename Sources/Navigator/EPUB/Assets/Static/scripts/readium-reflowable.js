@@ -9561,8 +9561,9 @@ window.addEventListener("load", function () {
   document.head.appendChild(meta);
 });
 
-// Injects Readium CSS stylesheets.
+// Injects Readium CSS stylesheets (legacy Settings API).
 document.addEventListener("DOMContentLoaded", function () {
+  if (!window.readiumCSSBaseURL) return;
   function createLink(name) {
     var link = document.createElement("link");
     link.setAttribute("rel", "stylesheet");
