@@ -320,6 +320,8 @@ open class EPUBNavigatorViewController: UIViewController,
         viewModel.editingActions.updateSharedMenuController()
 
         reloadSpreads(at: initialLocation, force: false)
+
+        applySettings()
     }
     
     @available(iOS 13.0, *)
@@ -794,10 +796,21 @@ open class EPUBNavigatorViewController: UIViewController,
 
     public func submitPreferences(_ preferences: EPUBPreferences) {
         viewModel.submitPreferences(preferences)
+        applySettings()
     }
 
     public func editor(of preferences: EPUBPreferences) -> EPUBPreferencesEditor {
         viewModel.editor(of: preferences)
+    }
+    
+    /// Applies user settings that require native configuration instead of
+    /// CSS properties.
+    private func applySettings() {
+        guard !viewModel.useLegacySettings else {
+            return
+        }
+
+        paginationView.backgroundColor = settings.effectiveBackgroundColor.uiColor
     }
 
     // MARK: - EPUB-specific extensions

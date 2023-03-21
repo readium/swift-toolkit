@@ -141,6 +141,8 @@ public struct Color: RawRepresentable, Codable, Hashable {
     }
     
     /// Creates a color from a UIKit color.
+    ///
+    /// Any alpha component is ignored.
     public init?(uiColor: UIColor) {
         var red: CGFloat = 0
         var green: CGFloat = 0
@@ -152,17 +154,15 @@ public struct Color: RawRepresentable, Codable, Hashable {
         let r = Int(red * 255)
         let g = Int(green * 255)
         let b = Int(blue * 255)
-        let a = Int(alpha * 255)
-        self.init(rawValue: (a << 24) | (r << 16) | (g << 8) | b)
+        self.init(rawValue: (r << 16) | (g << 8) | b)
     }
     
     /// Returns a UIKit color for the receiver.
     public var uiColor: UIColor {
-        let a = CGFloat((rawValue >> 24) & 0xFF) / 255
         let r = CGFloat((rawValue >> 16) & 0xFF) / 255
         let g = CGFloat((rawValue >> 8) & 0xFF) / 255
         let b = CGFloat(rawValue & 0xFF) / 255
-        return UIColor(red: r, green: g, blue: b, alpha: a)
+        return UIColor(red: r, green: g, blue: b, alpha: 1.0)
     }
 }
 

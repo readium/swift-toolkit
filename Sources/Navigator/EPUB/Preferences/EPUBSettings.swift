@@ -36,6 +36,10 @@ public struct EPUBSettings: ConfigurableSettings {
     public let typeScale: Double?
     public let verticalText: Bool
     public let wordSpacing: Double?
+    
+    public var effectiveBackgroundColor: Color {
+        backgroundColor ?? theme.backgroundColor
+    }
 
     let cssLayout: CSSLayout
 
