@@ -145,15 +145,6 @@ open class EPUBNavigatorViewController: UIViewController,
 
     @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
     public var userSettings: UserSettings = UserSettings()
-
-    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
-    public var readingProgression: R2Shared.ReadingProgression {
-        get { viewModel.legacyReadingProgression }
-        set {
-            viewModel.legacyReadingProgression = newValue
-            updateUserSettingStyle()
-        }
-    }
     
     /// Navigation state.
     private enum State: Equatable {
@@ -615,6 +606,25 @@ open class EPUBNavigatorViewController: UIViewController,
 
     
     // MARK: - Navigator
+
+    public var presentation: VisualNavigatorPresentation {
+        VisualNavigatorPresentation(
+            readingProgression: settings.readingProgression,
+            scroll: settings.scroll,
+            axis: (settings.scroll && !settings.verticalText)
+                ? .vertical
+                : .horizontal
+        )
+    }
+    
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
+    public var readingProgression: R2Shared.ReadingProgression {
+        get { viewModel.legacyReadingProgression }
+        set {
+            viewModel.legacyReadingProgression = newValue
+            updateUserSettingStyle()
+        }
+    }
     
     public var currentLocation: Locator? {
         // Returns any pending locator to prevent returning invalid locations while loading it.
@@ -795,6 +805,8 @@ open class EPUBNavigatorViewController: UIViewController,
     public func submitPreferences(_ preferences: EPUBPreferences) {
         viewModel.submitPreferences(preferences)
         applySettings()
+
+        delegate?.navigator(self, presentationDidChange: presentation)
     }
 
     public func editor(of preferences: EPUBPreferences) -> EPUBPreferencesEditor {

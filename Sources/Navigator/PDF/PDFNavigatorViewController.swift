@@ -483,6 +483,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         if isViewLoaded {
             resetPDFView(at: currentLocation)
         }
+
+        delegate?.navigator(self, presentationDidChange: presentation)
     }
 
     public func editor(of preferences: PDFPreferences) -> PDFPreferencesEditor {
@@ -537,8 +539,16 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     
     // MARK: - Navigator
 
+    public var presentation: VisualNavigatorPresentation {
+        VisualNavigatorPresentation(
+            readingProgression: settings.readingProgression,
+            scroll: settings.scroll,
+            axis: settings.scrollAxis
+        )
+    }
+    
     public var readingProgression: R2Shared.ReadingProgression {
-        publication.metadata.effectiveReadingProgression
+        R2Shared.ReadingProgression(presentation.readingProgression)
     }
     
     public var currentLocation: Locator? {

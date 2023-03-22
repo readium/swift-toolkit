@@ -30,7 +30,7 @@ public enum ReadingProgression: String, Codable, Hashable {
     case ltr
     case rtl
 
-    public init?(_ readingProgression: R2Shared.ReadingProgression) {
+    init?(_ readingProgression: R2Shared.ReadingProgression) {
         switch readingProgression {
             case .ltr: self = .ltr
             case .rtl: self = .rtl
@@ -45,6 +45,15 @@ public enum ReadingProgression: String, Codable, Hashable {
             return .left
         case .rtl:
             return .right
+        }
+    }
+}
+
+extension R2Shared.ReadingProgression {
+    init(_ readingProgression: ReadingProgression) {
+        switch readingProgression {
+            case .ltr: self = .ltr
+            case .rtl: self = .rtl
         }
     }
 }
