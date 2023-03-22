@@ -17,10 +17,10 @@ import R2Shared
 public class UserSettings {
     
     // WARNING: String values must not contain any single or double quotes characters, otherwise it breaks the streamer's injection.
-    private let appearanceValues = ["readium-default-on", "readium-sepia-on","readium-night-on"]
-    private let fontFamilyValues = ["Original", "Helvetica Neue", "Iowan Old Style", "Athelas", "Seravek", "OpenDyslexic", "AccessibleDfA", "IA Writer Duospace"]
-    private let textAlignmentValues = ["justify", "start"]
-    private let columnCountValues = ["auto", "1", "2"]
+    static let appearanceValues = ["readium-default-on", "readium-sepia-on","readium-night-on"]
+    static let fontFamilyValues = ["Original", "Helvetica Neue", "Iowan Old Style", "Athelas", "Seravek", "OpenDyslexic", "AccessibleDfA", "IA Writer Duospace"]
+    static let textAlignmentValues = ["justify", "start"]
+    static let columnCountValues = ["auto", "1", "2"]
     
     private var fontSize: Float
     private var fontOverride: Bool
@@ -252,7 +252,7 @@ public class UserSettings {
         
         // Font family
         userProperties.addEnumerable(index: fontFamily,
-                                     values: fontFamilyValues,
+                                     values: Self.fontFamilyValues,
                                      reference: ReadiumCSSReference.fontFamily.rawValue,
                                      name: ReadiumCSSName.fontFamily.rawValue)
         
@@ -265,7 +265,7 @@ public class UserSettings {
         
         // Appearance
         userProperties.addEnumerable(index: appearance,
-                                     values: appearanceValues,
+                                     values: Self.appearanceValues,
                                      reference: ReadiumCSSReference.appearance.rawValue,
                                      name: ReadiumCSSName.appearance.rawValue)
         
@@ -285,13 +285,13 @@ public class UserSettings {
         
         // Text alignment
         userProperties.addEnumerable(index: textAlignment,
-                                     values: textAlignmentValues,
+                                     values: Self.textAlignmentValues,
                                      reference: ReadiumCSSReference.textAlignment.rawValue,
                                      name: ReadiumCSSName.textAlignment.rawValue)
         
         // Column count
         userProperties.addEnumerable(index: columnCount,
-                                     values: columnCountValues,
+                                     values: Self.columnCountValues,
                                      reference: ReadiumCSSReference.columnCount.rawValue,
                                      name: ReadiumCSSName.columnCount.rawValue)
         

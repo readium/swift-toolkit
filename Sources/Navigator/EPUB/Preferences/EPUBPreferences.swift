@@ -122,40 +122,31 @@ public struct EPUBPreferences: ConfigurablePreferences {
         verticalText: Bool? = nil, 
         wordSpacing: Double? = nil
     ) {
-        precondition(fontSize == nil || fontSize! >= 0)
-        precondition(fontWeight == nil || (0.0...2.5).contains(fontWeight!))
-        precondition(letterSpacing == nil || letterSpacing! >= 0)
-        precondition(pageMargins == nil || pageMargins! >= 0)
-        precondition(paragraphSpacing == nil || paragraphSpacing! >= 0)
-        precondition([nil, .never, .always].contains(spread))
-        precondition(typeScale == nil || typeScale! >= 0)
-        precondition(wordSpacing == nil || wordSpacing! >= 0)
-
         self.backgroundColor = backgroundColor
         self.columnCount = columnCount
         self.fontFamily = fontFamily
-        self.fontSize = fontSize
-        self.fontWeight = fontWeight
+        self.fontSize = fontSize.map { max($0, 0) }
+        self.fontWeight = fontWeight?.clamped(to: 0.0...2.5)
         self.hyphens = hyphens
         self.imageFilter = imageFilter
         self.language = language
-        self.letterSpacing = letterSpacing
+        self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
         self.lineHeight = lineHeight
-        self.pageMargins = pageMargins
+        self.pageMargins = pageMargins.map { max($0, 0) }
         self.paragraphIndent = paragraphIndent
-        self.paragraphSpacing = paragraphSpacing
+        self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }
         self.publisherStyles = publisherStyles
         self.readingProgression = readingProgression
         self.scroll = scroll
-        self.spread = spread
+        self.spread = [nil, .never, .always].contains(spread) ? spread : nil
         self.textAlign = textAlign
         self.textColor = textColor
         self.textNormalization = textNormalization
         self.theme = theme
-        self.typeScale = typeScale
+        self.typeScale = typeScale.map { max($0, 0) }
         self.verticalText = verticalText
-        self.wordSpacing = wordSpacing
+        self.wordSpacing = wordSpacing.map { max($0, 0) }
     }
 
     public func merging(_ other: EPUBPreferences) -> EPUBPreferences {
