@@ -22,7 +22,8 @@ class ColorScheme {
 
 struct ColorModifier: ViewModifier {
     let colorScheme: ColorScheme
-    func body(content: Content) -> some View {
+
+    func body(content: Self.Content) -> some View {
         content
             .foregroundColor(colorScheme.textColor)
             .background(colorScheme.mainColor)

@@ -27,6 +27,11 @@ class EPUBMetadataParserTests: XCTestCase {
             conformsTo: [.epub],
             title: "Alice's Adventures in Wonderland",
             subtitle: "Alice returns to the magical world from her childhood adventure",
+            accessibility: Accessibility(
+                certification: Accessibility.Certification(
+                    certifiedBy: "EDRLab"
+                )
+            ),
             modified: "2012-04-02T12:47:00Z".dateFromISO8601,
             published: "1865-07-04".dateFromISO8601,
             languages: ["en-GB", "en"],
@@ -40,7 +45,6 @@ class EPUBMetadataParserTests: XCTestCase {
             description: "The book description.",
             numberOfPages: 42,
             otherMetadata: [
-                "http://www.idpf.org/epub/vocab/package/a11y/#certifiedBy": "EDRLab",
                 "http://purl.org/dc/terms/source": [
                     "Feedbooks",
                     [
@@ -312,6 +316,48 @@ class EPUBMetadataParserTests: XCTestCase {
                 "layout": "fixed"
             ]
         )
+    }
+    
+    func testParseEPUB2Accessibility() throws {
+        let sut = try parseMetadata("accessibility-epub2")
+        XCTAssertEqual(
+            sut.accessibility,
+            Accessibility(
+                conformsTo: [.epubA11y10WCAG20A],
+                certification: Accessibility.Certification(
+                    certifiedBy: "Accessibility Testers Group",
+                    credential: "DAISY OK",
+                    report: "https://example.com/a11y-report/"
+                ),
+                summary: "The publication contains structural and page navigation.",
+                accessModes: [.textual, .visual],
+                accessModesSufficient: [[.textual], [.textual, .visual]],
+                features: [.structuralNavigation, .alternativeText],
+                hazards: [.motionSimulation, .noSoundHazard]
+            )
+        )
+        XCTAssertEqual(Array(sut.otherMetadata.keys), ["presentation"])
+    }
+    
+    func testParseEPUB3Accessibility() throws {
+        let sut = try parseMetadata("accessibility-epub3")
+        XCTAssertEqual(
+            sut.accessibility,
+            Accessibility(
+                conformsTo: [.epubA11y10WCAG20A],
+                certification: Accessibility.Certification(
+                    certifiedBy: "Accessibility Testers Group",
+                    credential: "DAISY OK",
+                    report: "https://example.com/a11y-report/"
+                ),
+                summary: "The publication contains structural and page navigation.",
+                accessModes: [.textual, .visual],
+                accessModesSufficient: [[.textual], [.textual, .visual]],
+                features: [.structuralNavigation, .alternativeText],
+                hazards: [.motionSimulation, .noSoundHazard]
+            )
+        )
+        XCTAssertEqual(Array(sut.otherMetadata.keys), ["presentation"])
     }
 
     

@@ -111,7 +111,7 @@ class BufferedResourceTests: XCTestCase {
     private let link = Link(href: "file")
     private let url = Fixtures(path: "Fetcher").url(for: "epub.epub")
     private lazy var data = try! Data(contentsOf: url)
-    private lazy var resource = FileFetcher.FileResource(link: link, file: url)
+    private lazy var resource = FileResource(link: link, file: url)
 
     private func sut(bufferSize: UInt64 = 1024) -> BufferedResource {
         return BufferedResource(resource: resource, bufferSize: bufferSize)

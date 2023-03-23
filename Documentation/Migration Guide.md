@@ -2,6 +2,26 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
+## 2.5.0
+
+### Migrating the HTTP server
+
+The Streamer's `PublicationServer` is now deprecated and you don't need to manage the HTTP server or register publications manually to it anymore.
+
+Instead, the EPUB, PDF and CBZ navigators expect an instance of `HTTPServer` upon creation. They will take care of registering and removing the publication automatically from the provided server.
+
+You can implement your own HTTP server using a third-party library. But the easiest way to migrate is to use the one provided in the new Readium package `ReadiumAdapterGCDWebServer`.
+
+```swift
+import R2Navigator
+import ReadiumAdapterGCDWebServer
+
+let navigator = try EPUBNavigatorViewController(
+    publication: publication,
+    httpServer: GCDHTTPServer.shared
+)
+```
+
 ## 2.2.0
 
 With this new release, we migrated all the [`r2-*-swift`](https://github.com/readium/?q=r2-swift) repositories to [a single `swift-toolkit` repository](https://github.com/readium/r2-testapp-swift/issues/404).

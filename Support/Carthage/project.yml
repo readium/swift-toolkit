@@ -95,6 +95,19 @@ targets:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.readium-lcp-swift
       INFOPLIST_FILE: Info.plist
 
+  ReadiumAdapterGCDWebServer:
+    type: framework
+    platform: iOS
+    deploymentTarget: "10.0"
+    sources: 
+      - path: ../../Sources/Adapters/GCDWebServer
+    dependencies:
+      - framework: ../../Carthage/Build/GCDWebServer.xcframework
+      - target: R2Shared
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.ReadiumAdapterGCDWebServer
+      INFOPLIST_FILE: Info.plist
+
 schemes:
   R2Shared:
     build:
@@ -116,3 +129,7 @@ schemes:
     build:
       targets:
         ReadiumLCP: all
+  ReadiumAdapterGCDWebServer:
+    build:
+      targets:
+        ReadiumAdapterGCDWebServer: all

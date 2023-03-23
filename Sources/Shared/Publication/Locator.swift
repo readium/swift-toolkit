@@ -268,7 +268,29 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
                 highlight: highlight?.coalescingWhitespaces()
             )
         }
-        
+
+        /// Returns a copy of this text after highlighting a sub-range in the `highlight` property.
+        ///
+        /// The bounds of the range must be valid indices of the `highlight` property.
+        public subscript<R>(range: R) -> Text where R : RangeExpression, R.Bound == String.Index {
+            guard let highlight = highlight else {
+                preconditionFailure("highlight is nil")
+            }
+
+            let range = range.relative(to: highlight)
+            var before = self.before ?? ""
+            var after = self.after ?? ""
+            let newHighlight = highlight[range]
+            before = before + highlight[..<range.lowerBound]
+            after = highlight[range.upperBound...] + after
+
+            return Locator.Text(
+                after: Optional(after).takeIf { !$0.isEmpty },
+                before: Optional(before).takeIf { !$0.isEmpty },
+                highlight: Optional(String(newHighlight)).takeIf { !$0.isEmpty }
+            )
+        }
+
         @available(*, unavailable, renamed: "init(jsonString:)")
         public init(fromString: String) {
             fatalError()

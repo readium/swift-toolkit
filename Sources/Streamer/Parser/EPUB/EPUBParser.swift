@@ -85,6 +85,11 @@ final public class EPUBParser: PublicationParser {
                 EPUBHTMLInjector(metadata: components.metadata, userProperties: userProperties).inject(resource:)
             ]),
             servicesBuilder: .init(
+                content: DefaultContentService.makeFactory(
+                    resourceContentIteratorFactories: [
+                        HTMLResourceContentIterator.makeFactory()
+                    ]
+                ),
                 positions: EPUBPositionsService.makeFactory(reflowableStrategy: reflowablePositionsStrategy),
                 search: _StringSearchService.makeFactory()
             ),

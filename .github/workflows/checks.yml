@@ -13,7 +13,7 @@ env:
 jobs:
   build:
     name: Build
-    runs-on: macos-latest
+    runs-on: macos-11
     env:
       scheme: ${{ 'Readium-Package' }}
       DEVELOPER_DIR: /Applications/Xcode_12.4.app/Contents/Developer
@@ -37,7 +37,7 @@ jobs:
 
   lint:
     name: Lint
-    runs-on: macos-latest
+    runs-on: macos-11
     env:
       scripts: ${{ 'Sources/Navigator/EPUB/Scripts' }}
 
@@ -57,7 +57,7 @@ jobs:
 
   int-dev:
     name: Integration (Local)
-    runs-on: macos-latest
+    runs-on: macos-11
     defaults:
       run:
         working-directory: TestApp
@@ -73,14 +73,9 @@ jobs:
         run: |
           xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device"
 
-  # The following integration jobs are run only when pushing to `develop` or `main`.
-  # As they use a specific commit hash, they can't run properly from a pull request
-  # opened from forks.
-
   int-spm:
     name: Integration (Swift Package Manager)
-    if: github.event_name == 'push'
-    runs-on: macos-latest
+    runs-on: macos-11
     defaults:
       run:
         working-directory: TestApp
@@ -88,6 +83,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      # We can't use the current github.sha with pull_request event, because they will
+      # reference the merge commit which cannot be fetched with SPM.
+      - name: Set commit SHA
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "commit_sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
       - name: Install dependencies
         run: brew install xcodegen
       - name: Generate project
@@ -98,8 +99,7 @@ jobs:
 
   int-carthage:
     name: Integration (Carthage)
-    if: github.event_name == 'push'
-    runs-on: macos-latest
+    runs-on: macos-11
     defaults:
       run:
         working-directory: TestApp
@@ -107,6 +107,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      # We can't use the current github.sha with pull_request event, because they will
+      # reference the merge commit which cannot be fetched with Carthage.
+      - name: Set commit SHA
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "commit_sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
       - name: Install dependencies
         run: brew install xcodegen
       - name: Generate project
@@ -120,7 +126,7 @@ jobs:
   int-cocoapods:
     name: Integration (CocoaPods)
     if: github.event_name == 'push'
-    runs-on: macos-latest
+    runs-on: macos-11
     defaults:
       run:
         working-directory: TestApp

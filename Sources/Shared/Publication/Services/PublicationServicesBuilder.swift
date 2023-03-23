@@ -1,12 +1,7 @@
 //
-//  PublicationServicesBuilder.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 30/05/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -19,6 +14,7 @@ public struct PublicationServicesBuilder {
     private var factories: [String: PublicationServiceFactory] = [:]
 
     public init(
+        content: ContentServiceFactory? = nil,
         contentProtection: ContentProtectionServiceFactory? = nil,
         cover: CoverServiceFactory? = nil,
         locator: LocatorServiceFactory? = { DefaultLocatorService(publication: $0.publication) },
@@ -26,6 +22,7 @@ public struct PublicationServicesBuilder {
         search: SearchServiceFactory? = nil,
         setup: (inout PublicationServicesBuilder) -> Void = { _ in }
     ) {
+        setContentServiceFactory(content)
         setContentProtectionServiceFactory(contentProtection)
         setCoverServiceFactory(cover)
         setLocatorServiceFactory(locator)

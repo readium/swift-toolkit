@@ -29,10 +29,18 @@ public protocol VisualNavigator: Navigator {
     @discardableResult
     func goRight(animated: Bool, completion: @escaping () -> Void) -> Bool
 
+    /// Returns the `Locator` to the first content element that begins on the current screen.
+    func firstVisibleElementLocator(completion: @escaping (Locator?) -> Void)
 }
 
 public extension VisualNavigator {
-    
+
+    func firstVisibleElementLocator(completion: @escaping (Locator?) -> ()) {
+        DispatchQueue.main.async {
+            completion(currentLocation)
+        }
+    }
+
     @discardableResult
     func goLeft(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
         switch readingProgression {
@@ -52,7 +60,6 @@ public extension VisualNavigator {
             return goBackward(animated: animated, completion: completion)
         }
     }
-    
 }
 
 
@@ -62,6 +69,11 @@ public protocol VisualNavigatorDelegate: NavigatorDelegate {
     /// The point is relative to the navigator's view.
     func navigator(_ navigator: VisualNavigator, didTapAt point: CGPoint)
     
+    /// Called when the user pressed a key down and it was not handled by the resource.
+    func navigator(_ navigator: VisualNavigator, didPressKey event: KeyEvent)
+    
+    /// Called when the user released a key and it was not handled by the resource.
+    func navigator(_ navigator: VisualNavigator, didReleaseKey event: KeyEvent)
 }
 
 public extension VisualNavigatorDelegate {
@@ -70,4 +82,11 @@ public extension VisualNavigatorDelegate {
         // Optional
     }
     
+    func navigator(_ navigator: VisualNavigator, didPressKey event: KeyEvent) {
+        // Optional
+    }
+    
+    func navigator(_ navigator: VisualNavigator, didReleaseKey event: KeyEvent) {
+        // Optional
+    }
 }

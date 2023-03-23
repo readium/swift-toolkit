@@ -10,3 +10,4 @@ targets:
       - path: Sources
     settings:
       OTHER_SWIFT_FLAGS: $(inherited) -DLCP
+      DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}

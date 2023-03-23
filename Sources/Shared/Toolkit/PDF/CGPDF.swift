@@ -302,7 +302,7 @@ public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
     }
     
     private func open(document: CGPDFDocument, password: String?) throws -> PDFDocument {
-        if (document.isEncrypted) {
+        if (document.isEncrypted && !document.isUnlocked) {
             guard
                 let password = password?.cString(using: .utf8),
                 document.unlockWithPassword(password) else
