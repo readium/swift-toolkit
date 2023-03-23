@@ -80,6 +80,20 @@ open class EPUBNavigatorViewController: UIViewController,
         /// Then, implement the selector in one of your classes in the responder chain. Typically, in the
         /// `UIViewController` wrapping the `EPUBNavigatorViewController`.
         public var editingActions: [EditingAction]
+        
+        /// Indicates whether the pages will be turned automatically when the
+        /// user taps the left/right viewport edges or presses the space and
+        /// arrow keys.
+        ///
+        /// Default is `true`.
+        ///
+        /// If you want to fine-tune this behavior:
+        ///   - Set this property to `false`.
+        ///   - Create your own instance of `DirectionalNavigationAdapter` with
+        ///     custom options.
+        ///   - Forward the `didTapAt` and `didPressKey` `VisualNavigatorDelegate`
+        ///     events to the adapter instance.
+        public var enablePageTurnInteractions: Bool
 
         /// Content insets used to add some vertical margins around reflowable EPUB publications.
         /// The insets can be configured for each size class to allow smaller margins on compact
@@ -114,6 +128,7 @@ open class EPUBNavigatorViewController: UIViewController,
             preferences: EPUBPreferences = .empty,
             defaults: EPUBDefaults = EPUBDefaults(),
             editingActions: [EditingAction] = EditingAction.defaultActions,
+            enablePageTurnInteractions: Bool = true,
             contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets] = [
                 .compact: (top: 20, bottom: 20),
                 .regular: (top: 44, bottom: 44)
@@ -129,6 +144,7 @@ open class EPUBNavigatorViewController: UIViewController,
             self.preferences = preferences
             self.defaults = defaults
             self.editingActions = editingActions
+            self.enablePageTurnInteractions = enablePageTurnInteractions
             self.contentInset = contentInset
             self.preloadPreviousPositionCount = preloadPreviousPositionCount
             self.preloadNextPositionCount = preloadNextPositionCount
@@ -238,6 +254,7 @@ open class EPUBNavigatorViewController: UIViewController,
 
     private let viewModel: EPUBNavigatorViewModel
     private var publication: Publication { viewModel.publication }
+    private var directionalNavigationAdapter: DirectionalNavigationAdapter?
 
     var config: Configuration { viewModel.config }
 
@@ -286,6 +303,11 @@ open class EPUBNavigatorViewController: UIViewController,
         self.initialLocation = initialLocation
 
         super.init(nibName: nil, bundle: nil)
+        
+        self.directionalNavigationAdapter =
+            viewModel.config.enablePageTurnInteractions
+                ? DirectionalNavigationAdapter(navigator: self)
+                : nil
 
         viewModel.delegate = self
         viewModel.editingActions.delegate = self
@@ -322,8 +344,7 @@ open class EPUBNavigatorViewController: UIViewController,
     /// Intercepts tap gesture when the web views are not loaded.
     @objc private func didTapBackground(_ gesture: UITapGestureRecognizer) {
         guard state == .loading else { return }
-        let point = gesture.location(in: view)
-        delegate?.navigator(self, didTapAt: point)
+        didTap(at: gesture.location(in: view))
     }
 
     open override func viewWillDisappear(_ animated: Bool) {
@@ -357,7 +378,7 @@ open class EPUBNavigatorViewController: UIViewController,
         if (isFirstResponder) {
             for press in presses {
                 if let event = KeyEvent(uiPress: press) {
-                    delegate?.navigator(self, didPressKey: event)
+                    didPressKey(event)
                     didHandleEvent = true
                 }
             }
@@ -822,6 +843,24 @@ open class EPUBNavigatorViewController: UIViewController,
 
         paginationView.backgroundColor = settings.effectiveBackgroundColor.uiColor
     }
+    
+    // MARK: - User interactions
+    
+    private func didTap(at point: CGPoint) {
+        guard directionalNavigationAdapter?.didTap(at: point) != true else {
+            return
+        }
+        
+        delegate?.navigator(self, didTapAt: point)
+    }
+    
+    private func didPressKey(_ event: KeyEvent) {
+        guard directionalNavigationAdapter?.didPressKey(event: event) != true else {
+            return
+        }
+        
+        delegate?.navigator(self, didPressKey: event)
+    }
 
     // MARK: - EPUB-specific extensions
 
@@ -911,8 +950,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         // We allow taps in any state, because we should always be able to toggle the navigation bar,
         // even while a locator is pending.
         
-        let point = view.convert(point, from: spreadView)
-        delegate?.navigator(self, didTapAt: point)
+        didTap(at: view.convert(point, from: spreadView))
         // FIXME: Deprecated, to be removed at some point.
         delegate?.middleTapHandler()
         
@@ -931,7 +969,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     }
     
     func spreadView(_ spreadView: EPUBSpreadView, didPressKey event: KeyEvent) {
-        delegate?.navigator(self, didPressKey: event)
+        didPressKey(event)
     }
     
     func spreadView(_ spreadView: EPUBSpreadView, didReleaseKey event: KeyEvent) {

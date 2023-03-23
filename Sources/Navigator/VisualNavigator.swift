@@ -50,7 +50,7 @@ public extension VisualNavigator {
 
     func firstVisibleElementLocator(completion: @escaping (Locator?) -> ()) {
         DispatchQueue.main.async {
-            completion(currentLocation)
+            completion(self.currentLocation)
         }
     }
 

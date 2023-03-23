@@ -496,37 +496,8 @@ extension ReaderViewController: VisualNavigatorDelegate {
             decorator.apply(decorations: [], in: "search")
         }
         
-        let viewport = navigator.view.bounds
-        // Skips to previous/next pages if the tap is on the content edges.
-        let thresholdRange = 0...(0.2 * viewport.width)
-        var moved = false
-        if thresholdRange ~= point.x {
-            moved = navigator.goLeft(animated: false)
-        } else if thresholdRange ~= (viewport.maxX - point.x) {
-            moved = navigator.goRight(animated: false)
-        }
-        
-        if !moved {
-            toggleNavigationBar()
-        }
+        toggleNavigationBar()
     }
-    
-    func navigator(_ navigator: VisualNavigator, didPressKey event: KeyEvent) {
-        guard event.modifiers.isEmpty else {
-            return
-        }
-        
-        // FIXME: Take into account the reading progression and scroll mode with the Settings API.
-        switch event.key {
-        case .arrowRight, .arrowDown, .space:
-            navigator.goForward(animated: true)
-        case .arrowLeft, .arrowUp:
-            navigator.goBackward(animated: true)
-        default:
-            return
-        }
-    }
-
 }
 
 // MARK: - Highlights management
