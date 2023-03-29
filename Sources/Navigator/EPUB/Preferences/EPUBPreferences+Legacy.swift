@@ -14,18 +14,26 @@ public extension EPUBPreferences {
     ///
     /// This can be used to migrate the legacy settings to the new
     /// `EPUBPreferences` format.
-    static func fromLegacyPreferences() -> EPUBPreferences {
+    ///
+    /// Provide some of the values overrides if you modified the default ones
+    /// in the Readium toolkit.
+    static func fromLegacyPreferences(
+        appearanceValues: [String]? = nil,
+        columnCountValues: [String]? = nil,
+        fontFamilyValues: [String]? = nil,
+        textAlignmentValues: [String]? = nil
+    ) -> EPUBPreferences {
         let defaults = UserDefaults.standard
 
         return EPUBPreferences(
             backgroundColor: defaults.optString(for: .backgroundColor)
                 .flatMap { Color(hex: $0) },
             columnCount: defaults.optInt(for: .columnCount)
-                .flatMap { UserSettings.columnCountValues.getOrNil($0) }
+                .flatMap { (columnCountValues ?? UserSettings.columnCountValues).getOrNil($0) }
                 .flatMap { ColumnCount(rawValue: $0) },
             fontFamily: defaults.optInt(for: .fontFamily)
                 .takeIf { $0 != 0 } // Original
-                .flatMap { UserSettings.fontFamilyValues.getOrNil($0) }
+                .flatMap { (fontFamilyValues ?? UserSettings.fontFamilyValues).getOrNil($0) }
                 .map { FontFamily(rawValue: $0) },
             fontSize: defaults.optDouble(for: .fontSize)
                 .map { $0 / 100 },
@@ -38,7 +46,7 @@ public extension EPUBPreferences {
             scroll: defaults.optBool(for: .scroll),
             // Used to be merged with column-count
             spread: defaults.optInt(for: .columnCount)
-                .flatMap { UserSettings.columnCountValues.getOrNil($0) }
+                .flatMap { (columnCountValues ?? UserSettings.columnCountValues).getOrNil($0) }
                 .flatMap {
                     switch $0 {
                     case "auto":
@@ -52,12 +60,12 @@ public extension EPUBPreferences {
                     }
                 },
             textAlign: defaults.optInt(for: .textAlignment)
-                .flatMap { UserSettings.textAlignmentValues.getOrNil($0) }
+                .flatMap { (textAlignmentValues ?? UserSettings.textAlignmentValues).getOrNil($0) }
                 .flatMap { TextAlignment(rawValue: $0) },
             textColor: defaults.optString(for: .textColor)
                 .flatMap { Color(hex: $0) },
             theme: defaults.optInt(for: .appearance)
-                .flatMap { UserSettings.appearanceValues.getOrNil($0) }
+                .flatMap { (appearanceValues ?? UserSettings.appearanceValues).getOrNil($0) }
                 .flatMap {
                     switch $0 {
                     case "readium-default-on":
