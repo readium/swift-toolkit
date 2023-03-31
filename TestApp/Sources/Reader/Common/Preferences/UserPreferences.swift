@@ -775,3 +775,16 @@ struct UserPreferences<
         }
     }
 }
+
+extension Preference {
+
+    /// Creates a SwiftUI binding to modify the preference's value.
+    ///
+    /// This is convenient when paired with a `Toggle` or `Picker`.
+    func binding(onSet: @escaping () -> Void = {}) -> Binding<Value> {
+        Binding(
+            get: { value ?? effectiveValue },
+            set: { set($0); onSet() }
+        )
+    }
+}

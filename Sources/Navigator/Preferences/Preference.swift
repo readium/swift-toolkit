@@ -163,23 +163,3 @@ public class AnyRangePreference<Value: Comparable>: AnyPreference<Value>, RangeP
         _format(value)
     }
 }
-
-#if canImport(SwiftUI)
-
-import SwiftUI
-
-@available(iOS 13.0, *)
-extension Preference {
-
-    /// Creates a SwiftUI binding to modify the preference's value.
-    ///
-    /// This is convenient when paired with a `Toggle` or `Picker`.
-    public func binding(onSet: @escaping () -> Void = {}) -> Binding<Value> {
-        Binding(
-            get: { value ?? effectiveValue },
-            set: { set($0); onSet() }
-        )
-    }
-}
-
-#endif

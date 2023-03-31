@@ -47,7 +47,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
     /// Creates a new instance of the HTTP server.
     ///
     /// - Parameter logLevel: See `GCDWebServer.setLogLevel`.
-    init(logLevel: Int = 3) {
+    public init(logLevel: Int = 3) {
         GCDWebServer.setLogLevel(Int32(logLevel))
         
         NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
