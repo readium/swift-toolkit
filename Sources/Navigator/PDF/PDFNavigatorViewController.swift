@@ -53,6 +53,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     
     public weak var delegate: PDFNavigatorDelegate?
     public private(set) var pdfView: PDFDocumentView?
+    private var pdfViewDefaultBackgroundColor: UIColor!
 
     private let publication: Publication
     private let initialLocation: Locator?
@@ -173,8 +174,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
     open override func viewDidLoad() {
         super.viewDidLoad()
-
-        view.backgroundColor = .black
 
         resetPDFView(at: initialLocation)
 
@@ -346,6 +345,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
             scrollView.showsVerticalScrollIndicator = showScrollbar
             scrollView.showsHorizontalScrollIndicator = showScrollbar
         }
+
+        if pdfViewDefaultBackgroundColor == nil {
+            pdfViewDefaultBackgroundColor = pdfView.backgroundColor
+        }
+        pdfView.backgroundColor = settings.backgroundColor?.uiColor
+            ?? pdfViewDefaultBackgroundColor
     }
 
     /// Override to customize the PDFDocumentView.

@@ -21,6 +21,14 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
         )
     }
 
+    /// Background color behind the document pages.
+    public lazy var backgroundColor: AnyPreference<Color?> =
+        preference(
+            preference: \.backgroundColor,
+            setting: \.backgroundColor,
+            isEffective: { [unowned self] _ in preferences.backgroundColor != nil }
+        )
+
     /// Indicates if the first page should be displayed in its own spread.
     ///
     /// Only effective when `spread` is not off.

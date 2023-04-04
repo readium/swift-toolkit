@@ -72,7 +72,7 @@ public enum Theme: String, Codable, Hashable {
     case dark
     case sepia
 
-    var contentColor: Color {
+    public var contentColor: Color {
         switch self {
         case .light: return Theme.dayContentColor
         case .dark: return Theme.nightContentColor
@@ -80,7 +80,7 @@ public enum Theme: String, Codable, Hashable {
         }
     }
 
-    var backgroundColor: Color {
+    public var backgroundColor: Color {
         switch self {
         case .light: return Theme.dayBackgroundColor
         case .dark: return Theme.nightBackgroundColor
