@@ -181,8 +181,8 @@ public struct EPUBPreferences: ConfigurablePreferences {
 
     /// Returns a new `EPUBPreferences` with the publication-specific preferences
     /// removed.
-    public static func filterSharedPreferences(_ preferences: EPUBPreferences) -> EPUBPreferences {
-        var prefs = preferences
+    public func filterSharedPreferences() -> EPUBPreferences {
+        var prefs = self
         prefs.language = nil
         prefs.readingProgression = nil
         prefs.spread = nil
@@ -192,12 +192,12 @@ public struct EPUBPreferences: ConfigurablePreferences {
 
     /// Returns a new `EPUBPreferences` keeping only the publication-specific
     /// preferences.
-    public static func filterPublicationPreferences(_ preferences: EPUBPreferences) -> EPUBPreferences {
+    public func filterPublicationPreferences() -> EPUBPreferences {
         EPUBPreferences(
-            language: preferences.language,
-            readingProgression: preferences.readingProgression,
-            spread: preferences.spread,
-            verticalText: preferences.verticalText
+            language: language,
+            readingProgression: readingProgression,
+            spread: spread,
+            verticalText: verticalText
         )
     }
 }

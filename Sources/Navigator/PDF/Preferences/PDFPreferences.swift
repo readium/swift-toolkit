@@ -76,21 +76,19 @@ public struct PDFPreferences: ConfigurablePreferences {
 
     /// Returns a new `PDFPreferences` with the publication-specific preferences
     /// removed.
-    public static func filterSharedPreferences(_ preferences: PDFPreferences) -> PDFPreferences {
-        var prefs = preferences
+    public func filterSharedPreferences() -> PDFPreferences {
+        var prefs = self
         prefs.offsetFirstPage = nil
         prefs.readingProgression = nil
-        prefs.spread = nil
         return prefs
     }
 
     /// Returns a new `PDFPreferences` keeping only the publication-specific
     /// preferences.
-    public static func filterPublicationPreferences(_ preferences: PDFPreferences) -> PDFPreferences {
+    public func filterPublicationPreferences() -> PDFPreferences {
         PDFPreferences(
-            offsetFirstPage: preferences.offsetFirstPage,
-            readingProgression: preferences.readingProgression,
-            spread: preferences.spread
+            offsetFirstPage: offsetFirstPage,
+            readingProgression: readingProgression
         )
     }
 }
