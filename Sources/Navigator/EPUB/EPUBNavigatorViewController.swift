@@ -561,7 +561,10 @@ open class EPUBNavigatorViewController: UIViewController,
     
     private func reloadSpreads(at locator: Locator? = nil, force: Bool, completion: (() -> Void)? = nil) {
         assert(Thread.isMainThread, "reloadSpreads() must be called from the main thread")
-
+        
+        guard isViewLoaded else {
+            return
+        }
         guard !needsReloadSpreads else {
             if let completion = completion {
                 reloadSpreadsCompletions.add(completion)
@@ -837,7 +840,7 @@ open class EPUBNavigatorViewController: UIViewController,
     /// Applies user settings that require native configuration instead of
     /// CSS properties.
     private func applySettings() {
-        guard !viewModel.useLegacySettings else {
+        guard isViewLoaded, !viewModel.useLegacySettings else {
             return
         }
 
