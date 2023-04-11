@@ -788,7 +788,7 @@ public enum CSSLineHeight: CSSConvertible {
         case .length(let length):
             return length.css()
         case .unitless(let value):
-            return doubleCSSFormatter.string(from: value as NSNumber)
+            return String(format: "%.5f", value)
         }
     }
 }
@@ -816,7 +816,7 @@ public enum CSSBoxSizing: String, CSSConvertible {
 
 private extension Double {
     func css(unit: String) -> String {
-        (doubleCSSFormatter.string(from: self as NSNumber) ?? "0") + unit
+        String(format: "%.5f", self) + unit
     }
 }
 
@@ -853,7 +853,7 @@ private extension Dictionary where Key == String, Value == String? {
     }
 
     mutating func putCSS(name: String, value: Double?) {
-        let css = value.flatMap { doubleCSSFormatter.string(from: $0 as NSNumber) }
+        let css = value.map { String(format: "%.5f", $0) }
         self[name] = css
     }
 
@@ -862,10 +862,3 @@ private extension Dictionary where Key == String, Value == String? {
         self[name] = css
     }
 }
-
-private let doubleCSSFormatter: NumberFormatter = {
-    let f = NumberFormatter()
-    f.numberStyle = .decimal
-    f.maximumFractionDigits = 5
-    return f
-}()
