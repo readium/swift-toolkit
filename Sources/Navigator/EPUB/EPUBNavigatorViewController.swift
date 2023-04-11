@@ -320,7 +320,6 @@ open class EPUBNavigatorViewController: UIViewController,
 
     open override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .clear
         
         paginationView.frame = view.bounds
         paginationView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
@@ -844,7 +843,7 @@ open class EPUBNavigatorViewController: UIViewController,
             return
         }
 
-        paginationView.backgroundColor = settings.effectiveBackgroundColor.uiColor
+        view.backgroundColor = settings.effectiveBackgroundColor.uiColor
     }
     
     // MARK: - User interactions
