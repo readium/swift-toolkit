@@ -51,8 +51,8 @@ final class PDFModule: ReaderFormatModule {
         CompositeUserPreferencesStore(
             publicationStore: DatabaseUserPreferencesStore(books: books),
             sharedStore: UserDefaultsUserPreferencesStore(),
-            publicationFilter: PDFPreferences.filterPublicationPreferences,
-            sharedFilter: PDFPreferences.filterSharedPreferences
+            publicationFilter: { $0.filterPublicationPreferences() },
+            sharedFilter: { $0.filterSharedPreferences() }
         ).eraseToAnyPreferencesStore()
     }
 }

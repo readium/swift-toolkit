@@ -54,8 +54,8 @@ final class EPUBModule: ReaderFormatModule {
         CompositeUserPreferencesStore(
             publicationStore: DatabaseUserPreferencesStore(books: books),
             sharedStore: UserDefaultsUserPreferencesStore(),
-            publicationFilter: EPUBPreferences.filterPublicationPreferences,
-            sharedFilter: EPUBPreferences.filterSharedPreferences
+            publicationFilter: { $0.filterPublicationPreferences() },
+            sharedFilter: { $0.filterSharedPreferences() }
         ).eraseToAnyPreferencesStore()
     }
 }

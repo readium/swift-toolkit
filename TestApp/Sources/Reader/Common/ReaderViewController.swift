@@ -491,12 +491,19 @@ extension ReaderViewController: NavigatorDelegate {
 extension ReaderViewController: VisualNavigatorDelegate {
     
     func navigator(_ navigator: VisualNavigator, didTapAt point: CGPoint) {
+        guard !DirectionalNavigationAdapter(navigator: navigator).didTap(at: point) else {
+            return
+        }
         // clear a current search highlight
         if let decorator = self.navigator as? DecorableNavigator {
             decorator.apply(decorations: [], in: "search")
         }
         
         toggleNavigationBar()
+    }
+    
+    func navigator(_ navigator: VisualNavigator, didPressKey event: KeyEvent) {
+        DirectionalNavigationAdapter(navigator: navigator).didPressKey(event: event)
     }
 }
 

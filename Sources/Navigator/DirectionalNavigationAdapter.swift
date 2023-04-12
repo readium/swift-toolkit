@@ -84,6 +84,7 @@ public final class DirectionalNavigationAdapter {
     ///
     /// - Parameter point: Tap point in the navigator bounds.
     /// - Returns: Whether the tap triggered a page turn.
+    @discardableResult
     public func didTap(at point: CGPoint) -> Bool {
         guard
             let navigator = navigator,
@@ -130,6 +131,7 @@ public final class DirectionalNavigationAdapter {
     /// To be called from `VisualNavigatorDelegate.navigator(_:didPressKey:)`
     ///
     /// - Returns: Whether the key press triggered a page turn.
+    @discardableResult
     public func didPressKey(event: KeyEvent) -> Bool {
         guard
             let navigator = navigator,
