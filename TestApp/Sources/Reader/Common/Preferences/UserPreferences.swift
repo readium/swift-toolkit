@@ -443,15 +443,15 @@ struct UserPreferences<
                      pickerRow(
                          title: "Typeface",
                          preference: fontFamily
-                         .with(supportedValues: [
-                             nil,
-                             .sansSerif,
-                             .iaWriterDuospace,
-                             .accessibleDfA,
-                             .openDyslexic,
-                             .literata
-                         ])
-                         .eraseToAnyPreference(),
+                            .with(supportedValues: [
+                                nil,
+                                .sansSerif,
+                                .iaWriterDuospace,
+                                .accessibleDfA,
+                                .openDyslexic,
+                                .literata
+                            ])
+                            .eraseToAnyPreference(),
                          commit: commit,
                          formatValue: { ff in
                              if let ff = ff {

@@ -214,6 +214,21 @@ public struct FontFamily: RawRepresentable, ExpressibleByStringLiteral, Codable,
     public static let accessibleDfA: FontFamily = "AccessibleDfA"
     public static let iaWriterDuospace: FontFamily = "IA Writer Duospace"
     public static let openDyslexic: FontFamily = "OpenDyslexic"
+    
+    // Recommended font families available on iOS
+    // See https://readium.org/readium-css/docs/CSS09-default_fonts
+    
+    // Old Style (serif)
+    public static let iowanOldStyle: FontFamily = "Iowan Old Style"
+    public static let palatino: FontFamily = "Palatino"
+    // Modern (serif)
+    public static let athelas: FontFamily = "Athelas"
+    public static let georgia: FontFamily = "Georgia"
+    // Neutral (sans)
+    public static let helveticaNeue: FontFamily = "Helvetica Neue"
+    // Humanist (sans)
+    public static let seravek: FontFamily = "Seravek"
+    public static let arial: FontFamily = "Arial"
 
     /// Name of the font family.
     public var rawValue: String
