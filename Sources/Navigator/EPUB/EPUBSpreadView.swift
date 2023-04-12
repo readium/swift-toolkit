@@ -88,7 +88,14 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
         registerJSMessages()
 
-        NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibilityVoiceOverStatusChanged), object: nil)
+        let voiceOverNotification: Notification.Name
+        if #available(iOS 11.0, *) {
+            voiceOverNotification = UIAccessibility.voiceOverStatusDidChangeNotification
+        } else {
+            voiceOverNotification = Notification.Name(UIAccessibilityVoiceOverStatusChanged)
+        }
+
+        NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: voiceOverNotification, object: nil)
 
         updateActivityIndicator()
         loadSpread()

@@ -120,7 +120,7 @@ private final class CopyRightsRouteHandler: RouteHandler {
             : service.rights.copy(text: text)
         
         return allowed
-            ? .success([:])
+            ? .success([:] as [String : Any])
             : .failure(.forbidden(nil))
     }
     
@@ -152,7 +152,7 @@ private final class PrintRightsRouteHandler: RouteHandler {
             : service.rights.print(pageCount: pageCount)
         
         return allowed
-            ? .success([:])
+            ? .success([:] as [String : Any])
             : .failure(.forbidden(nil))
     }
     
