@@ -80,20 +80,6 @@ open class EPUBNavigatorViewController: UIViewController,
         /// Then, implement the selector in one of your classes in the responder chain. Typically, in the
         /// `UIViewController` wrapping the `EPUBNavigatorViewController`.
         public var editingActions: [EditingAction]
-        
-        /// Indicates whether the pages will be turned automatically when the
-        /// user taps the left/right viewport edges or presses the space and
-        /// arrow keys.
-        ///
-        /// Default is `true`.
-        ///
-        /// If you want to fine-tune this behavior:
-        ///   - Set this property to `false`.
-        ///   - Create your own instance of `DirectionalNavigationAdapter` with
-        ///     custom options.
-        ///   - Forward the `didTapAt` and `didPressKey` `VisualNavigatorDelegate`
-        ///     events to the adapter instance.
-        public var enablePageTurnInteractions: Bool
 
         /// Content insets used to add some vertical margins around reflowable EPUB publications.
         /// The insets can be configured for each size class to allow smaller margins on compact
@@ -128,7 +114,6 @@ open class EPUBNavigatorViewController: UIViewController,
             preferences: EPUBPreferences = .empty,
             defaults: EPUBDefaults = EPUBDefaults(),
             editingActions: [EditingAction] = EditingAction.defaultActions,
-            enablePageTurnInteractions: Bool = true,
             contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets] = [
                 .compact: (top: 20, bottom: 20),
                 .regular: (top: 44, bottom: 44)
@@ -144,7 +129,6 @@ open class EPUBNavigatorViewController: UIViewController,
             self.preferences = preferences
             self.defaults = defaults
             self.editingActions = editingActions
-            self.enablePageTurnInteractions = enablePageTurnInteractions
             self.contentInset = contentInset
             self.preloadPreviousPositionCount = preloadPreviousPositionCount
             self.preloadNextPositionCount = preloadNextPositionCount
@@ -254,7 +238,6 @@ open class EPUBNavigatorViewController: UIViewController,
 
     private let viewModel: EPUBNavigatorViewModel
     private var publication: Publication { viewModel.publication }
-    private var directionalNavigationAdapter: DirectionalNavigationAdapter?
 
     var config: Configuration { viewModel.config }
 
@@ -303,11 +286,6 @@ open class EPUBNavigatorViewController: UIViewController,
         self.initialLocation = initialLocation
 
         super.init(nibName: nil, bundle: nil)
-        
-        self.directionalNavigationAdapter =
-            viewModel.config.enablePageTurnInteractions
-                ? DirectionalNavigationAdapter(navigator: self)
-                : nil
 
         viewModel.delegate = self
         viewModel.editingActions.delegate = self
@@ -849,18 +827,10 @@ open class EPUBNavigatorViewController: UIViewController,
     // MARK: - User interactions
     
     private func didTap(at point: CGPoint) {
-        guard directionalNavigationAdapter?.didTap(at: point) != true else {
-            return
-        }
-        
         delegate?.navigator(self, didTapAt: point)
     }
     
     private func didPressKey(_ event: KeyEvent) {
-        guard directionalNavigationAdapter?.didPressKey(event: event) != true else {
-            return
-        }
-        
         delegate?.navigator(self, didPressKey: event)
     }
 
