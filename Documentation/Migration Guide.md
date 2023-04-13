@@ -6,6 +6,8 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ### Migrating the HTTP server
 
+:warning: Migrating to the new Preferences API (see below) is required for the user settings to work with the new HTTP server.
+
 The Streamer's `PublicationServer` is now deprecated and you don't need to manage the HTTP server or register publications manually to it anymore.
 
 Instead, the EPUB, PDF and CBZ navigators expect an instance of `HTTPServer` upon creation. They will take care of registering and removing the publication automatically from the provided server.
@@ -21,6 +23,72 @@ let navigator = try EPUBNavigatorViewController(
     httpServer: GCDHTTPServer.shared
 )
 ```
+
+### Upgrading to the new Preferences API
+
+The 2.5.0 release introduces a brand new user preferences API for configuring the EPUB and PDF Navigators. This new API is easier and safer to use. To learn how to integrate it in your app, [please refer to the user guide](Guides/Navigator%20Preferences.md).
+
+If you integrated the EPUB navigator from a previous version, follow these steps to migrate:
+
+1. Get familiar with [the concepts of this new API](Guides/Navigator%20Preferences.md#overview).
+2. Migrate the local HTTP server from your app, [as explained in the previous section](#migrating-the-http-server).
+3. Adapt your user settings interface to the new API using preferences editors. The [Test App](https://github.com/readium/swift-toolkit/blob/2.5.0/TestApp/Sources/Reader/Common/Preferences/UserPreferences.swift) and the [user guide](Guides/Navigator%20Preferences.md#build-a-user-settings-interface) contain examples using SwiftUI.
+4. [Handle the persistence of the user preferences](Guides/Navigator%20Preferences.md#save-and-restore-the-user-preferences). The settings are not stored in the User Defaults by the toolkit anymore. Instead, you are responsible for persisting and restoring the user preferences as you see fit (e.g. as a JSON file).
+    * If you want to migrate the legacy EPUB settings, you can use the helper `EPUBPreferences.fromLegacyPreferences()` which will create a new `EPUBPreferences` object after translating the existing user settings.
+5. Make sure you [restore the stored user preferences](Guides/Navigator%20Preferences.md#setting-the-initial-navigator-preferences-and-app-defaults) when initializing the EPUB navigator.
+
+Please refer to the following table for the correspondence between legacy settings (from `R2Navigator.UserSettings`) and new ones.
+
+| **Legacy**          | **New**                                                |
+|---------------------|--------------------------------------------------------|
+| `appearance`        | `theme`                                                |
+| `backgroundColor`   | `backgroundColor`                                      |
+| `columnCount`       | `columnCount` (reflowable) and `spread` (fixed-layout) |
+| `fontFamily`        | `fontFamily`                                           |
+| `fontOverride`      | N/A (handled automatically)                            |
+| `fontSize`          | `fontSize`                                             |
+| `hyphens`           | `hyphens`                                              |
+| `letterSpacing`     | `letterSpacing`                                        |
+| `lineHeight`        | `lineHeight`                                           |
+| `pageMargins`       | `pageMargins`                                          |
+| `paragraphMargins`  | `paragraphSpacing`                                     |
+| `publisherDefaults` | `publisherStyles`                                      |
+| `textAlignment`     | `textAlign`                                            |
+| `textColor`         | `textColor`                                            |
+| `verticalScroll`    | `scroll`                                               |
+| `wordSpacing`       | `wordSpacing`                                          |
+| N/A                 | `fontWeight`                                           |
+| N/A                 | `imageFilter`                                          |
+| N/A                 | `language`                                             |
+| N/A                 | `ligatures`                                            |
+| N/A                 | `paragraphIndent`                                      |
+| N/A                 | `readingProgression`                                   |
+| N/A                 | `textNormalization`                                    |
+| N/A                 | `typeScale`                                            |
+| N/A                 | `verticalText`                                         |
+
+### Edge tap and keyboard navigation
+
+2.5.0 ships with a new `DirectionalNavigationAdapter` helper to turn pages with the arrows and space keyboard keys or taps on the edge of the screen. To use it, you need to implement the following `VisualNavigatorDelegate` methods.
+
+```swift
+extension ReaderViewController: VisualNavigatorDelegate {
+
+    func navigator(_ navigator: VisualNavigator, didTapAt point: CGPoint) {
+        let moved = DirectionalNavigationAdapter(navigator: navigator).didTap(at: point)
+        if !moved {
+            toggleNavigationBar()
+        }
+    }
+    
+    func navigator(_ navigator: VisualNavigator, didPressKey event: KeyEvent) {
+        DirectionalNavigationAdapter(navigator: navigator).didPressKey(event: event)
+    }
+}
+```
+
+`DirectionalNavigationAdapter` offers a lot of customization options, take a look at the type documentation.
+
 
 ## 2.2.0
 
