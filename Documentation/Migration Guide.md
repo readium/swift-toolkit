@@ -37,7 +37,7 @@ If you integrated the EPUB navigator from a previous version, follow these steps
     * If you want to migrate the legacy EPUB settings, you can use the helper `EPUBPreferences.fromLegacyPreferences()` which will create a new `EPUBPreferences` object after translating the existing user settings.
 5. Make sure you [restore the stored user preferences](Guides/Navigator%20Preferences.md#setting-the-initial-navigator-preferences-and-app-defaults) when initializing the EPUB navigator.
 
-Please refer to the following table for the correspondence between legacy settings (from `R2Navigator.UserSettings`) and new ones.
+Please refer to the following table for the correspondence between legacy settings (from `UserSettings`) and new ones (`EPUBPreferences`).
 
 | **Legacy**          | **New**                                                |
 |---------------------|--------------------------------------------------------|
