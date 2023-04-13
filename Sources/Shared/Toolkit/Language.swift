@@ -68,6 +68,12 @@ extension Language: CustomStringConvertible {
     }
 }
 
+extension Language: ExpressibleByStringLiteral {
+    public init(stringLiteral value: StringLiteralType) {
+        self.init(code: .bcp47(value))
+    }
+}
+
 extension Language: Codable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()

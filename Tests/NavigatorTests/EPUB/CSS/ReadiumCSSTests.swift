@@ -10,20 +10,20 @@ import R2Shared
 
 class ReadiumCSSTests: XCTestCase {
     
-    let assetsBaseURL = URL(string: "https://readium/assets")!
+    let baseURL = URL(string: "https://readium/assets")!
     
-    let viewportMeta = HTMLInjection.meta(name: "viewport", content: "width=device-width, height=device-height, initial-scale=1.0;")
+    let viewportMeta = HTMLInjection.meta(name: "viewport", content: "width=device-width, height=device-height, initial-scale=1.0")
     
     func cssBefore(folder: String = "") -> HTMLInjection {
-        .stylesheetLink(href: "https://readium/assets/readium/readium-css/\(folder)ReadiumCSS-before.css", prepend: true)
+        .stylesheetLink(href: "https://readium/assets/\(folder)ReadiumCSS-before.css", prepend: true)
     }
     
     func cssDefault(folder: String = "") -> HTMLInjection {
-        .stylesheetLink(href: "https://readium/assets/readium/readium-css/\(folder)ReadiumCSS-default.css")
+        .stylesheetLink(href: "https://readium/assets/\(folder)ReadiumCSS-default.css")
     }
     
     func cssAfter(folder: String = "") -> HTMLInjection {
-        .stylesheetLink(href: "https://readium/assets/readium/readium-css/\(folder)ReadiumCSS-after.css")
+        .stylesheetLink(href: "https://readium/assets/\(folder)ReadiumCSS-after.css")
     }
     
     let audioFix = HTMLInjection.style("audio[controls] { width: revert; height: revert; }")
@@ -44,7 +44,7 @@ class ReadiumCSSTests: XCTestCase {
             layout: CSSLayout(),
             rsProperties: CSSRSProperties(),
             userProperties: CSSUserProperties(),
-            assetsBaseURL: assetsBaseURL
+            baseURL: baseURL
         )
         
         XCTAssertEqual(
@@ -67,7 +67,7 @@ class ReadiumCSSTests: XCTestCase {
             layout: CSSLayout(),
             rsProperties: CSSRSProperties(),
             userProperties: CSSUserProperties(),
-            assetsBaseURL: assetsBaseURL
+            baseURL: baseURL
         )
         
         XCTAssertFalse(
@@ -122,7 +122,7 @@ class ReadiumCSSTests: XCTestCase {
                 appearance: .night,
                 wordSpacing: CSSRemLength(20.0)
             ),
-            assetsBaseURL: assetsBaseURL
+            baseURL: baseURL
         )
         
         XCTAssertEqual(
@@ -134,10 +134,10 @@ class ReadiumCSSTests: XCTestCase {
                 cssAfter(),
                 audioFix,
                 .styleAttribute(on: .html, css: """
-                    --RS__colGap: 40px;
-                    --RS__textColor: #FF0000;
-                    --USER__appearance: readium-night-on;
-                    --USER__wordSpacing: 20rem;
+                    --RS__colGap: 40.00000px !important;
+                    --RS__textColor: #FF0000 !important;
+                    --USER__appearance: readium-night-on !important;
+                    --USER__wordSpacing: 20.00000rem !important;
                     
                     """),
                 .dirAttribute(on: .html, rtl: false),
@@ -151,7 +151,7 @@ class ReadiumCSSTests: XCTestCase {
             layout: CSSLayout(stylesheets: .rtl),
             rsProperties: CSSRSProperties(),
             userProperties: CSSUserProperties(),
-            assetsBaseURL: assetsBaseURL
+            baseURL: baseURL
         )
         
         XCTAssertEqual(
@@ -174,7 +174,7 @@ class ReadiumCSSTests: XCTestCase {
             layout: CSSLayout(stylesheets: .cjkHorizontal),
             rsProperties: CSSRSProperties(),
             userProperties: CSSUserProperties(),
-            assetsBaseURL: assetsBaseURL
+            baseURL: baseURL
         )
         
         XCTAssertEqual(
@@ -197,7 +197,7 @@ class ReadiumCSSTests: XCTestCase {
             layout: CSSLayout(stylesheets: .cjkVertical),
             rsProperties: CSSRSProperties(),
             userProperties: CSSUserProperties(),
-            assetsBaseURL: assetsBaseURL
+            baseURL: baseURL
         )
         
         XCTAssertEqual(
@@ -217,7 +217,7 @@ class ReadiumCSSTests: XCTestCase {
         let language = Language(code: .bcp47("en"))
         let css = ReadiumCSS(
             layout: CSSLayout(language: language),
-            assetsBaseURL: assetsBaseURL
+            baseURL: baseURL
         )
         
         XCTAssertEqual(
@@ -248,7 +248,7 @@ class ReadiumCSSTests: XCTestCase {
     func testInjectLangAttributesWhenOneExistsOnHTMLTag() {
         let css = ReadiumCSS(
             layout: CSSLayout(language: Language(code: .bcp47("en"))),
-            assetsBaseURL: assetsBaseURL
+            baseURL: baseURL
         )
         
         XCTAssertEqual(
@@ -277,7 +277,7 @@ class ReadiumCSSTests: XCTestCase {
     func testInjectLangAttributesCopiesTheOneFromBodyTag() {
         let css = ReadiumCSS(
             layout: CSSLayout(language: Language(code: .bcp47("en"))),
-            assetsBaseURL: assetsBaseURL
+            baseURL: baseURL
         )
         
         XCTAssertEqual(

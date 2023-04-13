@@ -267,7 +267,7 @@ class HTMLInjectionTests: XCTestCase {
         XCTAssertEqual(
             HTMLInjection.stylesheetLink(href: "path/to/style.css", prepend: true),
             HTMLInjection(
-                content: #"<link rel="stylesheet" type="text/css" href="path/to/style.css"/>"#,
+                content: #"<link rel="stylesheet" href="path/to/style.css" type="text/css"/>"#,
                 target: .head,
                 location: .start
             )
@@ -278,7 +278,7 @@ class HTMLInjectionTests: XCTestCase {
         XCTAssertEqual(
             HTMLInjection.stylesheetLink(href: "path/to/style.css", prepend: false),
             HTMLInjection(
-                content: #"<link rel="stylesheet" type="text/css" href="path/to/style.css"/>"#,
+                content: #"<link rel="stylesheet" href="path/to/style.css" type="text/css"/>"#,
                 target: .head,
                 location: .end
             )

@@ -107,9 +107,10 @@ extension ReadiumCSS: HTMLInjectable {
         var inj: [HTMLInjection] = []
 
         let hasStyles = hasStyles(html)
-        let stylesheetsFolder = baseURL.appendingPathComponent((layout.stylesheets.folder ?? "").removingSuffix("/"),
-            isDirectory: true
-        )
+        var stylesheetsFolder = baseURL
+        if let folder = layout.stylesheets.folder {
+            stylesheetsFolder.appendPathComponent(folder, isDirectory: true)
+        }
 
         inj.append(.stylesheetLink(
             href: stylesheetsFolder.appendingPathComponent("ReadiumCSS-before.css").absoluteString,
