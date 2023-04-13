@@ -164,7 +164,7 @@ class LibraryViewController: UIViewController, Loggable {
             preferredStyle: .alert
         )
         
-        func retry(message: String? = nil) {
+        @Sendable @MainActor func retry(message: String? = nil)  {
             addBookFromURL(url: alert.textFields?[0].text, message: message)
         }
         

@@ -78,7 +78,7 @@ public protocol RangePreference: Preference where Value: Comparable {
 extension Preference {
     /// Wraps this `Preference` with a type eraser.
     public func eraseToAnyPreference() -> AnyPreference<Value> {
-        AnyPreference(self)
+        AnyPreference(preference: self)
     }
 }
 
@@ -94,7 +94,7 @@ public class AnyPreference<Value>: Preference {
     private let _isEffective: () -> Bool
     private let _set: (Value?) -> Void
 
-    public init<P: Preference>(_ preference: P) where P.Value == Value {
+    public init<P: Preference>(preference: P) where P.Value == Value {
         _value = { preference.value }
         _effectiveValue = { preference.effectiveValue }
         _isEffective = { preference.isEffective }
@@ -109,7 +109,7 @@ public class AnyPreference<Value>: Preference {
 extension EnumPreference {
     /// Wraps this `Preference` with a type eraser.
     public func eraseToAnyPreference() -> AnyEnumPreference<Value> {
-        AnyEnumPreference(self)
+        AnyEnumPreference(enumPreference: self)
     }
 }
 
@@ -120,16 +120,16 @@ public class AnyEnumPreference<Value: Hashable>: AnyPreference<Value>, EnumPrefe
 
     private let _supportedValues: () -> [Value]
 
-    public init<P: EnumPreference>(_ preference: P) where P.Value == Value {
-        _supportedValues = { preference.supportedValues }
-        super.init(preference)
+    public init<P: EnumPreference>(enumPreference: P) where P.Value == Value {
+        _supportedValues = { enumPreference.supportedValues }
+        super.init(preference: enumPreference)
     }
 }
 
 extension RangePreference {
     /// Wraps this `RangePreference` with a type eraser.
     public func eraseToAnyPreference() -> AnyRangePreference<Value> {
-        AnyRangePreference(self)
+        AnyRangePreference(rangePreference: self)
     }
 }
 
@@ -143,12 +143,12 @@ public class AnyRangePreference<Value: Comparable>: AnyPreference<Value>, RangeP
     private let _decrement: () -> Void
     private let _format: (Value) -> String
 
-    public init<P: RangePreference>(_ preference: P) where P.Value == Value {
-        _supportedRange = { preference.supportedRange }
-        _increment = preference.increment
-        _decrement = preference.decrement
-        _format = preference.format(value:)
-        super.init(preference)
+    public init<P: RangePreference>(rangePreference: P) where P.Value == Value {
+        _supportedRange = { rangePreference.supportedRange }
+        _increment = rangePreference.increment
+        _decrement = rangePreference.decrement
+        _format = rangePreference.format(value:)
+        super.init(preference: rangePreference)
     }
 
     public func increment() {

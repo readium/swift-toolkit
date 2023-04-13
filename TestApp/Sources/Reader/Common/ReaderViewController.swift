@@ -145,9 +145,7 @@ class ReaderViewController<N: UIViewController & Navigator>: UIViewController, U
         buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self, action: #selector(presentOutline)))
 
         // User preferences
-        if navigator is any Configurable {
-            buttons.append(UIBarButtonItem(image: UIImage(systemName: "gearshape"), style: .plain, target: self, action: #selector(presentUserPreferences)))
-        }
+        buttons.append(UIBarButtonItem(image: UIImage(systemName: "gearshape"), style: .plain, target: self, action: #selector(presentUserPreferences)))
 
         // DRM management
         if publication.isProtected {

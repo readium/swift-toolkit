@@ -647,6 +647,7 @@ extension PDFNavigatorViewController: UIGestureRecognizerDelegate {
     
 }
 
+@available(iOS 11.0, *)
 private extension Axis {
     var displayDirection: PDFDisplayDirection {
         switch self {

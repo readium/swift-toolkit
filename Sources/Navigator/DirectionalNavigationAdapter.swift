@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import CoreGraphics
 
 /// Helper handling directional UI events (e.g. edge taps or arrow keys) to turn
 /// the pages of a `VisualNavigator`.
