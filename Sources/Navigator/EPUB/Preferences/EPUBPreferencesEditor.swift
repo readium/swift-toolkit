@@ -119,7 +119,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
                 return layout == .reflowable
                     && $0.settings.cssLayout.stylesheets == .default
                     && !$0.settings.publisherStyles
-                    && $0.preferences.hyphens != nil
+                    && ($0.preferences.hyphens != nil || $0.settings.textAlign == .justify)
             }
         )
 
