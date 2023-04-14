@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// https://readium.org/webpub-manifest/schema/metadata.schema.json
 public struct Metadata: Hashable, Loggable, WarningLogger {

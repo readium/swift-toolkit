@@ -50,8 +50,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             opdsViewController,
             aboutViewController
         ]
-        tabBarController.tabBar.tintColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
-        tabBarController.tabBar.isTranslucent = false
 
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = tabBarController
@@ -61,11 +59,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-        app.library.importPublication(from: url, sender: window!.rootViewController!)
-            .assertNoFailure()
-            .sink { _ in }
-            .store(in: &subscriptions)
+        Task {
+            try! await app.library.importPublication(from: url, sender: window!.rootViewController!)
+        }
         return true
     }
-
 }

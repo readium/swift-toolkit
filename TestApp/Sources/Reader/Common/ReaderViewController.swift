@@ -14,10 +14,10 @@ import WebKit
 import SwiftUI
 
 /// This class is meant to be subclassed by each publication format view controller. It contains the shared behavior, eg. navigation bar toggling.
-class ReaderViewController: UIViewController, Loggable {
+class ReaderViewController<N: UIViewController & Navigator>: UIViewController, UIPopoverPresentationControllerDelegate, Loggable {
     weak var moduleDelegate: ReaderFormatModuleDelegate?
     
-    let navigator: UIViewController & Navigator
+    let navigator: N
     let publication: Publication
     let bookId: Book.Id
     private let books: BookRepository
@@ -37,15 +37,14 @@ class ReaderViewController: UIViewController, Loggable {
     /// This regex matches any string with at least 2 consecutive letters (not limited to ASCII).
     /// It's used when evaluating whether to display the body of a noteref referrer as the note's title.
     /// I.e. a `*` or `1` would not be used as a title, but `on` or `好書` would.
-    private static var noterefTitleRegex: NSRegularExpression = {
-        return try! NSRegularExpression(pattern: "[\\p{Ll}\\p{Lu}\\p{Lt}\\p{Lo}]{2}")
-    }()
+    private lazy var noterefTitleRegex: NSRegularExpression =
+        try! NSRegularExpression(pattern: "[\\p{Ll}\\p{Lu}\\p{Lt}\\p{Lo}]{2}")
     
     private var highlightContextMenu: UIHostingController<HighlightContextMenu>?
     private let highlightDecorationGroup = "highlights"
     private var currentHighlightCancellable: AnyCancellable?
     
-    init(navigator: UIViewController & Navigator, publication: Publication, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository? = nil) {
+    init(navigator: N, publication: Publication, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository? = nil) {
         self.navigator = navigator
         self.publication = publication
         self.bookId = bookId
@@ -131,12 +130,6 @@ class ReaderViewController: UIViewController, Loggable {
         }
     }
     
-    override func willMove(toParent parent: UIViewController?) {
-        // Restore library's default UI colors
-        navigationController?.navigationBar.tintColor = .black
-        navigationController?.navigationBar.barTintColor = .white
-    }
-    
     
     // MARK: - Navigation bar
     
@@ -150,6 +143,10 @@ class ReaderViewController: UIViewController, Loggable {
         var buttons: [UIBarButtonItem] = []
         // Table of Contents
         buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "menuIcon"), style: .plain, target: self, action: #selector(presentOutline)))
+
+        // User preferences
+        buttons.append(UIBarButtonItem(image: UIImage(systemName: "gearshape"), style: .plain, target: self, action: #selector(presentUserPreferences)))
+
         // DRM management
         if publication.isProtected {
             buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "drm"), style: .plain, target: self, action: #selector(presentDRMManagement)))
@@ -211,9 +208,9 @@ class ReaderViewController: UIViewController, Loggable {
             .store(in: &subscriptions)
     }
     
-    private var colorScheme = ColorScheme()
-    func appearanceChanged(_ appearance: UserProperty) {
-        colorScheme.update(with: appearance)
+    // MARK: - User Preferences
+
+    @objc func presentUserPreferences() {
     }
     
     // MARK: - Bookmarks
@@ -223,17 +220,15 @@ class ReaderViewController: UIViewController, Loggable {
             return
         }
         
-        bookmarks.add(bookmark)
-            .sink { completion in
-                switch completion {
-                case .finished:
-                    toast(NSLocalizedString("reader_bookmark_success_message", comment: "Success message when adding a bookmark"), on: self.view, duration: 1)
-                case .failure(let error):
-                    print(error)
-                    toast(NSLocalizedString("reader_bookmark_failure_message", comment: "Error message when adding a new bookmark failed"), on: self.view, duration: 2)
-                }
-            } receiveValue: { _ in }
-            .store(in: &subscriptions)
+        Task {
+            do {
+                try await bookmarks.add(bookmark)
+                toast(NSLocalizedString("reader_bookmark_success_message", comment: "Success message when adding a bookmark"), on: self.view, duration: 1)
+            } catch {
+                print(error)
+                toast(NSLocalizedString("reader_bookmark_failure_message", comment: "Error message when adding a new bookmark failed"), on: self.view, duration: 2)
+            }
+        }
     }
     
     // MARK: - Search
@@ -303,8 +298,7 @@ class ReaderViewController: UIViewController, Loggable {
         }
         
         let menuView = HighlightContextMenu(colors: [.red, .green, .blue, .yellow],
-                                            systemFontSize: 20,
-                                            colorScheme: colorScheme)
+                                            systemFontSize: 20)
         
         menuView.selectedColorPublisher.sink { [weak self] color in
             self?.currentHighlightCancellable?.cancel()
@@ -324,7 +318,6 @@ class ReaderViewController: UIViewController, Loggable {
         
         highlightContextMenu!.preferredContentSize = menuView.preferredSize
         highlightContextMenu!.modalPresentationStyle = .popover
-        highlightContextMenu!.view.backgroundColor = UIColor(colorScheme.mainColor)
         
         if let popoverController = highlightContextMenu!.popoverPresentationController {
             popoverController.permittedArrowDirections = .down
@@ -376,7 +369,6 @@ class ReaderViewController: UIViewController, Loggable {
             makeItem(.flexibleSpace),
         ]
         toolbar.isHidden = !UIAccessibility.isVoiceOverRunning
-        toolbar.tintColor = UIColor.black
         return toolbar
     }()
     
@@ -402,18 +394,24 @@ class ReaderViewController: UIViewController, Loggable {
         navigator.goForward()
     }
     
+    // MARK: - UIPopoverPresentationControllerDelegate
+
+    // Prevent the popOver to be presented fullscreen on iPhones.
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle {
+        .none
+    }
 }
 
 extension ReaderViewController: NavigatorDelegate {
 
     func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
-        books.saveProgress(for: bookId, locator: locator)
-            .sink { [weak self] completion in
-                if let self = self, case .failure(let error) = completion {
-                    self.moduleDelegate?.presentError(error, from: self)
-                }
-            } receiveValue: { _ in }
-            .store(in: &subscriptions)
+        Task {
+            do {
+                try await books.saveProgress(for: bookId, locator: locator)
+            } catch {
+                moduleDelegate?.presentError(error, from: self)
+            }
+        }
 
         positionLabel.text = {
             if let position = locator.locations.position {
@@ -482,7 +480,7 @@ extension ReaderViewController: NavigatorDelegate {
     func suitableTitle(_ title: String?) -> Bool {
         guard let title = title else { return false }
         let range = NSRange(location: 0, length: title.utf16.count)
-        let match = ReaderViewController.noterefTitleRegex.firstMatch(in: title, range: range)
+        let match = noterefTitleRegex.firstMatch(in: title, range: range)
         return match != nil
     }
     
@@ -491,42 +489,20 @@ extension ReaderViewController: NavigatorDelegate {
 extension ReaderViewController: VisualNavigatorDelegate {
     
     func navigator(_ navigator: VisualNavigator, didTapAt point: CGPoint) {
+        guard !DirectionalNavigationAdapter(navigator: navigator).didTap(at: point) else {
+            return
+        }
         // clear a current search highlight
         if let decorator = self.navigator as? DecorableNavigator {
             decorator.apply(decorations: [], in: "search")
         }
         
-        let viewport = navigator.view.bounds
-        // Skips to previous/next pages if the tap is on the content edges.
-        let thresholdRange = 0...(0.2 * viewport.width)
-        var moved = false
-        if thresholdRange ~= point.x {
-            moved = navigator.goLeft(animated: false)
-        } else if thresholdRange ~= (viewport.maxX - point.x) {
-            moved = navigator.goRight(animated: false)
-        }
-        
-        if !moved {
-            toggleNavigationBar()
-        }
+        toggleNavigationBar()
     }
     
     func navigator(_ navigator: VisualNavigator, didPressKey event: KeyEvent) {
-        guard event.modifiers.isEmpty else {
-            return
-        }
-        
-        // FIXME: Take into account the reading progression and scroll mode with the Settings API.
-        switch event.key {
-        case .arrowRight, .arrowDown, .space:
-            navigator.goForward(animated: true)
-        case .arrowLeft, .arrowUp:
-            navigator.goBackward(animated: true)
-        default:
-            return
-        }
+        DirectionalNavigationAdapter(navigator: navigator).didPressKey(event: event)
     }
-
 }
 
 // MARK: - Highlights management
@@ -535,44 +511,30 @@ extension ReaderViewController {
     func saveHighlight(_ highlight: Highlight) {
         guard let highlights = highlights else { return }
         
-        highlights.add(highlight)
-            .sink { completion in
-                switch completion {
-                case .finished:
-                    toast(NSLocalizedString("reader_highlight_success_message", comment: "Success message when adding a bookmark"), on: self.view, duration: 1)
-                case .failure(let error):
-                    print(error)
-                    toast(NSLocalizedString("reader_highlight_failure_message", comment: "Error message when adding a new bookmark failed"), on: self.view, duration: 2)
-                }
-            } receiveValue: { _ in }
-            .store(in: &subscriptions)
+        Task {
+            do {
+                try await highlights.add(highlight)
+                toast(NSLocalizedString("reader_highlight_success_message", comment: "Success message when adding a bookmark"), on: view, duration: 1)
+            } catch {
+                print(error)
+                toast(NSLocalizedString("reader_highlight_failure_message", comment: "Error message when adding a new bookmark failed"), on: view, duration: 2)
+            }
+        }
     }
 
     func updateHighlight(_ highlightID: Highlight.Id, withColor color: HighlightColor) {
         guard let highlights = highlights else { return }
         
-        highlights.update(highlightID, color: color)
-            .assertNoFailure()
-            .sink { completion in
-                
-            }
-            .store(in: &subscriptions)
+        Task {
+            try! await highlights.update(highlightID, color: color)
+        }
     }
 
     func deleteHighlight(_ highlightID: Highlight.Id)  {
         guard let highlights = highlights else { return }
         
-        highlights.remove(highlightID)
-            .assertNoFailure()
-            .sink {}
-            .store(in: &subscriptions)
-    }
-}
-
-extension ReaderViewController: UIPopoverPresentationControllerDelegate {
-    // Prevent the popOver to be presented fullscreen on iPhones.
-    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
-    {
-        return .none
+        Task {
+            try! await highlights.remove(highlightID)
+        }
     }
 }

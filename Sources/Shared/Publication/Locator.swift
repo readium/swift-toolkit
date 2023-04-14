@@ -11,6 +11,7 @@
 
 
 import Foundation
+import ReadiumInternal
 
 /// https://github.com/readium/architecture/tree/master/locators
 public struct Locator: Hashable, CustomStringConvertible, Loggable {

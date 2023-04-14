@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 
 /// The price of a publication in an OPDS link.

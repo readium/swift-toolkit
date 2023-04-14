@@ -53,15 +53,16 @@ final class BookmarkRepository {
         }
     }
     
-    func add(_ bookmark: Bookmark) -> AnyPublisher<Bookmark.Id, Error> {
-        return db.write { db in
+    @discardableResult
+    func add(_ bookmark: Bookmark) async throws -> Bookmark.Id {
+        try await db.write { db in
             try bookmark.insert(db)
             return Bookmark.Id(rawValue: db.lastInsertedRowID)
-        }.eraseToAnyPublisher()
+        }
     }
     
-    func remove(_ id: Bookmark.Id) -> AnyPublisher<Void, Error> {
-        db.write { db in try Bookmark.deleteOne(db, key: id) }
+    func remove(_ id: Bookmark.Id) async throws {
+        try await db.write { db in try Bookmark.deleteOne(db, key: id) }
     }
 }
 

@@ -29,24 +29,20 @@ final class Paths {
         return url
     }()
     
-    static func makeDocumentURL(for source: URL? = nil, title: String?, mediaType: MediaType) -> AnyPublisher<URL, Never> {
-        Future(on: .global()) { promise in
-            // Is the file already in Documents/?
-            if let source = source, source.standardizedFileURL.deletingLastPathComponent() == documents.standardizedFileURL {
-                promise(.success(source))
-            } else {
-                let title = title.takeIf { !$0.isEmpty } ?? UUID().uuidString
-                let ext = mediaType.fileExtension?.addingPrefix(".") ?? ""
-                let filename = "\(title)\(ext)".sanitizedPathComponent
-                promise(.success(documents.appendingUniquePathComponent(filename)))
-            }
-        }.eraseToAnyPublisher()
+    static func makeDocumentURL(for source: URL? = nil, title: String?, mediaType: MediaType) -> URL {
+        // Is the file already in Documents/?
+        if let source = source, source.standardizedFileURL.deletingLastPathComponent() == documents.standardizedFileURL {
+            return source
+        } else {
+            let title = title.takeIf { !$0.isEmpty } ?? UUID().uuidString
+            let ext = mediaType.fileExtension?.addingPrefix(".") ?? ""
+            let filename = "\(title)\(ext)".sanitizedPathComponent
+            return documents.appendingUniquePathComponent(filename)
+        }
     }
     
-    static func makeTemporaryURL() -> AnyPublisher<URL, Never> {
-        Future(on: .global()) { promise in
-            promise(.success(temporary.appendingUniquePathComponent()))
-        }.eraseToAnyPublisher()
+    static func makeTemporaryURL() -> URL {
+        temporary.appendingUniquePathComponent()
     }
     
     /// Returns whether the given `url` locates a file that is under the app's home directory.

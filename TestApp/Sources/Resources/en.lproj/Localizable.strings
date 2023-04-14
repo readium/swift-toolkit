@@ -45,10 +45,6 @@
 /* Add book alert message */
 "library_add_book_title" = "Add a book to your library";
 "library_add_book_from_device_button" = "From your device";
-"library_add_book_from_url_button" = "From a URL";
-"library_add_book_from_url_title" = "Add a book from a URL";
-"library_add_book_from_url_failure_message" = "URL is not valid, please try again";
-"library_add_book_from_url_placeholder" = "URL";
 
 /* Alert when a publication is successfully imported */
 "library_import_success_message" = "Publication added to library";
@@ -167,17 +163,3 @@
 "opds_add_button_a11y_label" = "Add OPDS Feed";
 "opds_show_detail_view_a11y_hint" = "tap to view details";
 "opds_feed_header_a11y_hint" = "Feed Group Header";
-
-
-/* MARK: User Settings */
-
-"user_settings_appearance_default_a11y_label" = "Appearance default";
-"user_settings_appearance_sepia_a11y_label" = "Appearance sepia";
-"user_settings_appearance_night_a11y_label" = "Appearance night";
-
-"user_settings_alignment_justify_a11y_label" = "Alignment justify";
-"user_settings_alignment_left_a11y_label" = "Alignment left";
-
-"user_settings_column_auto_a11y_label" = "Column auto";
-"user_settings_column_1_a11y_label" = "Column 1";
-"user_settings_column_2_a11y_label" = "Column 2";

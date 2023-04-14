@@ -151,5 +151,4 @@ public class UserProperties {
             $0.reference == ref.rawValue
         }
     }
-
 }

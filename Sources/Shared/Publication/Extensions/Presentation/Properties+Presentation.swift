@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Presentation extensions for link `Properties`.
 extension Properties {

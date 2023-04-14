@@ -37,7 +37,7 @@ let package = Package(
     targets: [
         .target(
             name: "R2Shared",
-            dependencies: ["Fuzi", "SwiftSoup", "Zip"],
+            dependencies: ["ReadiumInternal", "Fuzi", "SwiftSoup", "Zip"],
             path: "Sources/Shared",
             exclude: [
                 // Support for ZIPFoundation is not yet achieved.
@@ -86,9 +86,10 @@ let package = Package(
         .target(
             name: "R2Navigator",
             dependencies: [
+                "ReadiumInternal",
+                "R2Shared",
                 "DifferenceKit",
                 "SwiftSoup",
-                "R2Shared"
             ],
             path: "Sources/Navigator",
             exclude: [
@@ -145,7 +146,7 @@ let package = Package(
         //         .copy("Fixtures"),
         //     ]
         // ),
-
+        
         .target(
             name: "ReadiumAdapterGCDWebServer",
             dependencies: [
@@ -153,6 +154,16 @@ let package = Package(
                 "R2Shared",
             ],
             path: "Sources/Adapters/GCDWebServer"
+        ),
+
+        .target(
+            name: "ReadiumInternal",
+            path: "Sources/Internal"
+        ),
+        .testTarget(
+            name: "ReadiumInternalTests",
+            dependencies: ["ReadiumInternal"],
+            path: "Tests/InternalTests"
         ),
     ]
 )

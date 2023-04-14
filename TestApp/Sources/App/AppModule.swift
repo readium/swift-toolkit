@@ -83,8 +83,8 @@ extension AppModule: ModuleDelegate {
 
 extension AppModule: LibraryModuleDelegate {
     
-    func libraryDidSelectPublication(_ publication: Publication, book: Book, completion: @escaping () -> Void) {
-        reader.presentPublication(publication: publication, book: book, in: library.rootViewController, completion: completion)
+    func libraryDidSelectPublication(_ publication: Publication, book: Book) {
+        reader.presentPublication(publication: publication, book: book, in: library.rootViewController)
     }
 
 }
@@ -96,12 +96,12 @@ extension AppModule: ReaderModuleDelegate {
 
 extension AppModule: OPDSModuleDelegate {
     
-    func opdsDownloadPublication(_ publication: Publication?, at link: Link, sender: UIViewController) -> AnyPublisher<Book, LibraryError> {
+    func opdsDownloadPublication(_ publication: Publication?, at link: Link, sender: UIViewController) async throws -> Book {
         guard let url = link.url(relativeTo: publication?.baseURL) else {
-            return .fail(.cancelled)
+            throw LibraryError.cancelled
         }
         
-        return library.importPublication(from: url, sender: sender)
+        return try await library.importPublication(from: url, sender: sender)
     }
 
 }

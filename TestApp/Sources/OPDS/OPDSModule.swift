@@ -30,8 +30,7 @@ protocol OPDSModuleAPI {
 protocol OPDSModuleDelegate: ModuleDelegate {
     
     /// Called when an OPDS publication needs to be downloaded.
-    func opdsDownloadPublication(_ publication: Publication?, at link: Link, sender: UIViewController) -> AnyPublisher<Book, LibraryError>
-
+    func opdsDownloadPublication(_ publication: Publication?, at link: Link, sender: UIViewController) async throws -> Book
 }
 
 

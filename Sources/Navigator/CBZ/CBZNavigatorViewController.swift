@@ -103,7 +103,11 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
         super.init(nibName: nil, bundle: nil)
         
-        automaticallyAdjustsScrollViewInsets = false
+        if #available(iOS 11.0, *) {
+            // Handled in the `ImageViewController` with `contentInsetAdjustmentBehavior`
+        } else {
+            automaticallyAdjustsScrollViewInsets = false
+        }
     }
 
     required public init?(coder aDecoder: NSCoder) {
@@ -196,8 +200,16 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
     // MARK: - Navigator
     
-    public var readingProgression: ReadingProgression {
-        publication.metadata.effectiveReadingProgression
+    public var presentation: VisualNavigatorPresentation {
+        VisualNavigatorPresentation(
+            readingProgression: ReadingProgression(publication.metadata.effectiveReadingProgression) ?? .ltr,
+            scroll: false,
+            axis: .horizontal
+        )
+    }
+    
+    public var readingProgression: R2Shared.ReadingProgression {
+        R2Shared.ReadingProgression(presentation.readingProgression)
     }
 
     public var currentLocation: Locator? {

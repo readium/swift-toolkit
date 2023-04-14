@@ -18,6 +18,7 @@ Pod::Spec.new do |s|
   s.platform      = :ios
   s.ios.deployment_target = "10.0"
   s.dependency 'R2Shared'
+  s.dependency 'ReadiumInternal'
   s.dependency 'DifferenceKit', '~> 1.0'
   s.dependency 'SwiftSoup', '~> 2.0'
 

@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Indicated the availability of a given resource.
 /// https://drafts.opds.io/schema/properties.schema.json

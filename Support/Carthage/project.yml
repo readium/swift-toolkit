@@ -18,6 +18,7 @@ targets:
       - framework: ../../Carthage/Build/Fuzi.xcframework
       - framework: ../../Carthage/Build/Minizip.xcframework
       - framework: ../../Carthage/Build/SwiftSoup.xcframework
+      - target: ReadiumInternal
       - sdk: CoreServices.framework
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-shared-swift
@@ -39,6 +40,7 @@ targets:
       - framework: ../../Carthage/Build/GCDWebServer.xcframework
       - framework: ../../Carthage/Build/Minizip.xcframework
       - target: R2Shared
+      - target: ReadiumInternal
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-streamer-swift
       INFOPLIST_FILE: Info.plist
@@ -60,6 +62,7 @@ targets:
       - framework: ../../Carthage/Build/Minizip.xcframework
       - framework: ../../Carthage/Build/SwiftSoup.xcframework
       - target: R2Shared
+      - target: ReadiumInternal
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-navigator-swift
       INFOPLIST_FILE: Info.plist
@@ -74,6 +77,7 @@ targets:
       - framework: ../../Carthage/Build/Fuzi.xcframework
       - framework: ../../Carthage/Build/Minizip.xcframework
       - target: R2Shared
+      - target: ReadiumInternal
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.readium.readium-opds
       INFOPLIST_FILE: Info.plist
@@ -91,6 +95,7 @@ targets:
       - framework: ../../Carthage/Build/SQLite.xcframework
       - framework: ../../Carthage/Build/ZIPFoundation.xcframework
       - target: R2Shared
+      - target: ReadiumInternal
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.readium-lcp-swift
       INFOPLIST_FILE: Info.plist
@@ -104,8 +109,19 @@ targets:
     dependencies:
       - framework: ../../Carthage/Build/GCDWebServer.xcframework
       - target: R2Shared
+      - target: ReadiumInternal
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.ReadiumAdapterGCDWebServer
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.adapter.gcdwebserver
+      INFOPLIST_FILE: Info.plist
+
+  ReadiumInternal:
+    type: framework
+    platform: iOS
+    deploymentTarget: "10.0"
+    sources: 
+      - path: ../../Sources/Internal
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.internal
       INFOPLIST_FILE: Info.plist
 
 schemes:
@@ -133,3 +149,7 @@ schemes:
     build:
       targets:
         ReadiumAdapterGCDWebServer: all
+  ReadiumInternal:
+    build:
+      targets:
+        ReadiumInternal: all

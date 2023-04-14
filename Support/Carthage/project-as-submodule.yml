@@ -21,6 +21,7 @@ targets:
       - framework: Minizip.framework
       - framework: SwiftSoup.framework
       - sdk: CoreServices.framework
+      - target: ReadiumInternal
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-shared-swift
       INFOPLIST_FILE: Info.plist
@@ -41,6 +42,7 @@ targets:
       - framework: GCDWebServer.framework
       - framework: Minizip.framework
       - target: R2Shared
+      - target: ReadiumInternal
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-streamer-swift
       INFOPLIST_FILE: Info.plist
@@ -62,6 +64,7 @@ targets:
       - framework: Minizip.framework
       - framework: SwiftSoup.framework
       - target: R2Shared
+      - target: ReadiumInternal
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-navigator-swift
       INFOPLIST_FILE: Info.plist
@@ -76,6 +79,7 @@ targets:
       - framework: Fuzi.framework
       - framework: Minizip.framework
       - target: R2Shared
+      - target: ReadiumInternal
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.readium.readium-opds
       INFOPLIST_FILE: Info.plist
@@ -93,6 +97,7 @@ targets:
       - framework: SQLite.framework
       - framework: ZIPFoundation.framework
       - target: R2Shared
+      - target: ReadiumInternal
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.readium-lcp-swift
       INFOPLIST_FILE: Info.plist
@@ -106,8 +111,19 @@ targets:
     dependencies:
       - framework: GCDWebServer.framework
       - target: R2Shared
+      - target: ReadiumInternal
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.ReadiumAdapterGCDWebServer
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.adapter.gcdwebserver
+      INFOPLIST_FILE: Info.plist
+
+  ReadiumInternal:
+    type: framework
+    platform: iOS
+    deploymentTarget: "10.0"
+    sources: 
+      - path: ../../Sources/Internal
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.internal
       INFOPLIST_FILE: Info.plist
 
 schemes:
@@ -135,4 +151,8 @@ schemes:
     build:
       targets:
         ReadiumAdapterGCDWebServer: all
+  ReadiumInternal:
+    build:
+      targets:
+        ReadiumInternal: all
 

@@ -14,6 +14,7 @@ Pod::Spec.new do |s|
   s.xcconfig      = { 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2' }
 
   s.dependency 'R2Shared'
+  s.dependency 'ReadiumInternal'
   s.dependency 'GCDWebServer', '~> 3.0'
 
 end

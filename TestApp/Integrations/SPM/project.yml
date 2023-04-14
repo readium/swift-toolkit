@@ -24,6 +24,10 @@ targets:
     deploymentTarget: "14.0"
     sources: 
       - path: Sources
+        excludes:
+          - Resources/Fonts
+      - path: Sources/Resources/Fonts
+        type: folder
     dependencies:
       - package: Readium
         product: R2Shared

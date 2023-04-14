@@ -20,11 +20,16 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
     
     private static let fixedScript = loadScript(named: "readium-fixed")
     
-    required init(publication: Publication, spread: EPUBSpread, baseURL: URL, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, scripts: [WKUserScript], animatedLoad: Bool, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+    required init(
+        viewModel: EPUBNavigatorViewModel,
+        spread: EPUBSpread,
+        scripts: [WKUserScript],
+        animatedLoad: Bool
+    ) {
         var scripts = scripts
         scripts.append(WKUserScript(source: Self.fixedScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
         
-        super.init(publication: publication, spread: spread, baseURL: baseURL, resourcesURL: resourcesURL, readingProgression: readingProgression, userSettings: userSettings, scripts: scripts, animatedLoad: animatedLoad, editingActions: editingActions, contentInset: contentInset)
+        super.init(viewModel: viewModel, spread: spread, scripts: scripts, animatedLoad: animatedLoad)
     }
     
     override func setupWebView() {
@@ -45,9 +50,19 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         
         // Loads the wrapper page into the web view.
         let spreadFile = "fxl-spread-\(spread.pageCount.rawValue)"
-        if let wrapperPageURL = Bundle.module.url(forResource: spreadFile, withExtension: "html", subdirectory: "Assets"), let wrapperPage = try? String(contentsOf: wrapperPageURL, encoding: .utf8) {
+        if
+            let wrapperPageURL = Bundle.module.url(forResource: spreadFile, withExtension: "html", subdirectory: "Assets"),
+            var wrapperPage = try? String(contentsOf: wrapperPageURL, encoding: .utf8)
+        {
+            wrapperPage = wrapperPage.replacingOccurrences(
+                of: "{{ASSETS_URL}}",
+                with: viewModel.useLegacySettings
+                    ? "/r2-navigator/epub"
+                    : viewModel.assetsURL.absoluteString
+            )
+            
             // The publication's base URL is used to make sure we can access the resources through the iframe with JavaScript.
-            webView.loadHTMLString(wrapperPage, baseURL: baseURL)
+            webView.loadHTMLString(wrapperPage, baseURL: viewModel.publicationBaseURL)
         }
     }
     
@@ -83,7 +98,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         guard isWrapperLoaded else {
             return
         }
-        super.evaluateScript("spread.load(\(spread.jsonString(forBaseURL: baseURL)));")
+        super.evaluateScript("spread.load(\(spread.jsonString(forBaseURL: viewModel.publicationBaseURL)));")
     }
 
     override func spreadDidLoad() {

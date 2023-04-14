@@ -18,19 +18,26 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     
     private static let reflowableScript = loadScript(named: "readium-reflowable")
     
-    required init(publication: Publication, spread: EPUBSpread, baseURL: URL, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, scripts: [WKUserScript], animatedLoad: Bool, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+    required init(
+        viewModel: EPUBNavigatorViewModel,
+        spread: EPUBSpread,
+        scripts: [WKUserScript],
+        animatedLoad: Bool
+    ) {
         var scripts = scripts
         
-        let layout = ReadiumCSSLayout(languages: publication.metadata.languages, readingProgression: readingProgression)
-        scripts.append(WKUserScript(
-            source: "window.readiumCSSBaseURL = '\(resourcesURL.appendingPathComponent(layout.readiumCSSBasePath))'",
-            injectionTime: .atDocumentStart,
-            forMainFrameOnly: false
-        ))
-        
+        if viewModel.useLegacySettings {
+            let layout = ReadiumCSSLayout(languages: viewModel.publication.metadata.languages, readingProgression: viewModel.readingProgression)
+            scripts.append(WKUserScript(
+                source: "window.readiumCSSBaseURL = '\(viewModel.assetsURL.appendingPathComponent(layout.readiumCSSBasePath))'",
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: false
+            ))
+        }
+
         scripts.append(WKUserScript(source: Self.reflowableScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
         
-        super.init(publication: publication, spread: spread, baseURL: baseURL, resourcesURL: resourcesURL, readingProgression: readingProgression, userSettings: userSettings, scripts: scripts, animatedLoad: animatedLoad, editingActions: editingActions, contentInset: contentInset)
+        super.init(viewModel: viewModel, spread: spread, scripts: scripts, animatedLoad: animatedLoad)
     }
 
     override func setupWebView() {
@@ -42,7 +49,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         scrollView.alwaysBounceVertical = false
         scrollView.alwaysBounceHorizontal = false
 
-        scrollView.isPagingEnabled = !isScrollEnabled
+        scrollView.isPagingEnabled = !viewModel.scroll
         
         webView.translatesAutoresizingMaskIntoConstraints = false
         topConstraint = webView.topAnchor.constraint(equalTo: topAnchor)
@@ -73,23 +80,36 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return
         }
         let link = spread.leading
-        guard let url = link.url(relativeTo: baseURL) else {
+        guard let url = viewModel.url(to: link) else {
             log(.error, "Can't get URL for link \(link.href)")
             return
         }
         webView.load(URLRequest(url: url))
     }
 
-    override func applyUserSettingsStyle() {
-        super.applyUserSettingsStyle()
+    override func applySettings() {
+        super.applySettings()
         
-        let properties = userSettings.userProperties.properties
+        applyLegacyUserSettingsStyle()
+        
+        // Disables paginated mode if scroll is on.
+        scrollView.isPagingEnabled = !viewModel.scroll
+        
+        updateContentInset()
+    }
+    
+    private func applyLegacyUserSettingsStyle() {
+        guard viewModel.useLegacySettings else {
+            return
+        }
+
+        let properties = viewModel.config.userSettings.userProperties.properties
         let propertiesScript = properties.reduce("") { script, property in
             let value: String = {
                 // Scroll mode depends both on the user settings, and on the fact that VoiceOver is activated or not, so we need to generate the value dynamically.
                 // FIXME: This would be handled in a better way by decoupling the user settings from the actual ReadiumCSS properties sent to the WebView, which should be private details of the EPUBNavigator implementation and not shared with the host app.
                 if let switchable = property as? Switchable, property.name == ReadiumCSSName.scroll.rawValue {
-                    return switchable.values[isScrollEnabled]!
+                    return switchable.values[viewModel.scroll]!
                 } else {
                     return property.toString()
                 }
@@ -101,20 +121,16 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
                 self.log(.error, error)
             }
         }
-
-        // Disables paginated mode if scroll is on.
-        scrollView.isPagingEnabled = !isScrollEnabled
-        
-        updateContentInset()
     }
 
     private func updateContentInset() {
-        if (isScrollEnabled) {
+        if (viewModel.scroll) {
             topConstraint.constant = 0
             bottomConstraint.constant = 0
             scrollView.contentInset = UIEdgeInsets(top: notchAreaInsets.top, left: 0, bottom: notchAreaInsets.bottom, right: 0)
             
         } else {
+            let contentInset = viewModel.config.contentInset
             var insets = contentInset[traitCollection.verticalSizeClass]
                 ?? contentInset[.regular]
                 ?? contentInset[.unspecified]
@@ -132,7 +148,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     
     override func convertPointToNavigatorSpace(_ point: CGPoint) -> CGPoint {
         var point = point
-        if isScrollEnabled {
+        if viewModel.scroll {
             // Starting from iOS 12, the contentInset are not taken into account in the JS touch event.
             if #available(iOS 12.0, *) {
                 if scrollView.contentOffset.x < 0 {
@@ -189,7 +205,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
     
     override func go(to direction: EPUBSpreadView.Direction, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        guard !isScrollEnabled else {
+        guard !viewModel.scroll else {
             return super.go(to: direction, animated: animated, completion: completion)
         }
         
@@ -274,7 +290,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
         
         // Note: The JS layer does not take into account the scroll view's content inset. So it can't be used to reliably scroll to the top or the bottom of the page in scroll mode.
-        if isScrollEnabled && [0, 1].contains(progression) {
+        if viewModel.scroll && [0, 1].contains(progression) {
             var contentOffset = scrollView.contentOffset
             contentOffset.y = (progression == 0)
                 ? -scrollView.contentInset.top
@@ -282,7 +298,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             scrollView.contentOffset = contentOffset
             completion(true)
         } else {
-            let dir = readingProgression.rawValue
+            let dir = viewModel.readingProgression.rawValue
             evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')") { _ in completion(true) }
         }
     }
@@ -402,9 +418,9 @@ private enum ReadiumCSSLayout: String {
         }()
         
         switch readingProgression {
-        case .rtl, .btt:
+        case .rtl:
             self = isCJK ? .cjkVertical : .rtl
-        case .ltr, .ttb, .auto:
+        case .ltr:
             self = isCJK ? .cjkHorizontal : .ltr
         }
     }

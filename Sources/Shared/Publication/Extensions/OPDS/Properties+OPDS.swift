@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// OPDS Link Properties Extension
 /// https://drafts.opds.io/schema/properties.schema.json

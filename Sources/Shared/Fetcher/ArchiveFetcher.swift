@@ -94,7 +94,7 @@ private extension ArchiveEntry {
             "archive": [
                 "entryLength": compressedLength ?? length,
                 "isEntryCompressed": compressedLength != nil
-            ]
+            ] as [String : Any]
         ]
     }
 

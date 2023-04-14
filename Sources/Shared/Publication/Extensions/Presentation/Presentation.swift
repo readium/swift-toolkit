@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// The Presentation Hints extension defines a number of hints for User Agents about the way content
 /// should be presented to the user.

@@ -16,7 +16,7 @@ import R2Shared
 import R2Streamer
 import ReadiumAdapterGCDWebServer
 
-class CBZViewController: ReaderViewController {
+class CBZViewController: ReaderViewController<CBZNavigatorViewController> {
 
     init(publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository) throws {
         let navigator = try CBZNavigatorViewController(

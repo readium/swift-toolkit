@@ -389,6 +389,10 @@ private extension TTSVoice.Quality {
             self = .medium
         case .enhanced:
             self = .high
+#if swift(>=5.7)
+        case .premium:
+            self = .high
+#endif
         @unknown default:
             return nil
         }

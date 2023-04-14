@@ -31,6 +31,7 @@ final class Database {
                 t.column("locator", .text)
                 t.column("progression", .integer).notNull().defaults(to: 0)
                 t.column("created", .datetime).notNull()
+                t.column("preferencesJSON", .text)
             }
             
             try db.create(table: "bookmark", ifNotExists: true) { t in
@@ -56,14 +57,29 @@ final class Database {
         }
     }
     
-    func read<T>(_ query: @escaping (GRDB.Database) throws -> T) -> AnyPublisher<T, Error> {
-        writer.readPublisher(value: query)
-            .eraseToAnyPublisher()
+    func read<T>(_ query: @escaping (GRDB.Database) throws -> T) async throws -> T {
+        try await withCheckedThrowingContinuation { cont in
+            writer.asyncRead { db in
+                do {
+                    let db = try db.get()
+                    cont.resume(returning: try query(db))
+                } catch {
+                    cont.resume(throwing: error)
+                }
+            }
+        }
     }
     
-    func write<T>(_ updates: @escaping (GRDB.Database) throws -> T) -> AnyPublisher<T, Error> {
-        writer.writePublisher(updates: updates)
-            .eraseToAnyPublisher()
+    @discardableResult
+    func write<T>(_ updates: @escaping (GRDB.Database) throws -> T) async throws -> T {
+        try await withCheckedThrowingContinuation { cont in
+            writer.asyncWrite(
+                { try updates($0) },
+                completion: { _, result in
+                    cont.resume(with: result)
+                }
+            )
+        }
     }
     
     func observe<T>(_ query: @escaping (GRDB.Database) throws -> T) -> AnyPublisher<T, Error> {

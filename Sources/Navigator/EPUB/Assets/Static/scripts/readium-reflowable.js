@@ -642,10 +642,10 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "isSVG": () => (/* binding */ isSVG),
-/* harmony export */   "isHidden": () => (/* binding */ isHidden),
 /* harmony export */   "isElement": () => (/* binding */ isElement),
-/* harmony export */   "isReplacedElement": () => (/* binding */ isReplacedElement)
+/* harmony export */   "isHidden": () => (/* binding */ isHidden),
+/* harmony export */   "isReplacedElement": () => (/* binding */ isReplacedElement),
+/* harmony export */   "isSVG": () => (/* binding */ isSVG)
 /* harmony export */ });
 var isSVG = function (target) { return target instanceof SVGElement && 'getBBox' in target; };
 var isHidden = function (target) {
@@ -657,11 +657,11 @@ var isHidden = function (target) {
     return !(offsetWidth || offsetHeight || target.getClientRects().length);
 };
 var isElement = function (obj) {
-    var _a, _b;
+    var _a;
     if (obj instanceof Element) {
         return true;
     }
-    var scope = (_b = (_a = obj) === null || _a === void 0 ? void 0 : _a.ownerDocument) === null || _b === void 0 ? void 0 : _b.defaultView;
+    var scope = (_a = obj === null || obj === void 0 ? void 0 : obj.ownerDocument) === null || _a === void 0 ? void 0 : _a.defaultView;
     return !!(scope && obj instanceof scope.Element);
 };
 var isReplacedElement = function (target) {
@@ -776,7 +776,7 @@ var queueMicroTask = function (callback) {
         var el_1 = document.createTextNode('');
         var config = { characterData: true };
         new MutationObserver(function () { return notify(); }).observe(el_1, config);
-        trigger = function () { el_1.textContent = "" + (toggle_1 ? toggle_1-- : toggle_1++); };
+        trigger = function () { el_1.textContent = "".concat(toggle_1 ? toggle_1-- : toggle_1++); };
     }
     callbacks.push(callback);
     trigger();
@@ -1248,10 +1248,10 @@ exports["default"] = search;
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "registerTemplates": () => (/* binding */ registerTemplates),
+/* harmony export */   "DecorationGroup": () => (/* binding */ DecorationGroup),
 /* harmony export */   "getDecorations": () => (/* binding */ getDecorations),
 /* harmony export */   "handleDecorationClickEvent": () => (/* binding */ handleDecorationClickEvent),
-/* harmony export */   "DecorationGroup": () => (/* binding */ DecorationGroup)
+/* harmony export */   "registerTemplates": () => (/* binding */ registerTemplates)
 /* harmony export */ });
 /* harmony import */ var _rect__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rect */ "./src/rect.js");
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils */ "./src/utils.js");
@@ -1262,75 +1262,68 @@ __webpack_require__.r(__webpack_exports__);
 //  available in the top-level LICENSE file of the project.
 //
 
- // Polyfill for iOS 13.3
 
+
+
+// Polyfill for iOS 13.3
 
 var ResizeObserver = window.ResizeObserver || _juggle_resize_observer__WEBPACK_IMPORTED_MODULE_2__.ResizeObserver;
 var styles = new Map();
 var groups = new Map();
 var lastGroupId = 0;
+
 /**
  * Registers a list of additional supported Decoration Templates.
  *
  * Each template object is indexed by the style ID.
  */
-
 function registerTemplates(newStyles) {
   var stylesheet = "";
-
   for (var [id, style] of Object.entries(newStyles)) {
     styles.set(id, style);
-
     if (style.stylesheet) {
       stylesheet += style.stylesheet + "\n";
     }
   }
-
   if (stylesheet) {
     var styleElement = document.createElement("style");
     styleElement.innerHTML = stylesheet;
     document.getElementsByTagName("head")[0].appendChild(styleElement);
   }
 }
+
 /**
  * Returns an instance of DecorationGroup for the given group name.
  */
-
 function getDecorations(groupName) {
   var group = groups.get(groupName);
-
   if (!group) {
     var id = "r2-decoration-" + lastGroupId++;
     group = DecorationGroup(id, groupName);
     groups.set(groupName, group);
   }
-
   return group;
 }
+
 /**
  * Handles click events on a Decoration.
  * Returns whether a decoration matched this event.
  */
-
 function handleDecorationClickEvent(event, clickEvent) {
   if (groups.size === 0) {
     return false;
   }
-
   function findTarget() {
     for (var [group, groupContent] of groups) {
       if (!groupContent.isActivable()) {
         continue;
       }
-
       for (var item of groupContent.items.reverse()) {
         if (!item.clickableElements) {
           continue;
         }
-
         for (var element of item.clickableElements) {
           var rect = element.getBoundingClientRect().toJSON();
-
           if ((0,_rect__WEBPACK_IMPORTED_MODULE_0__.rectContainsPoint)(rect, event.clientX, event.clientY, 1)) {
             return {
               group,
@@ -1343,13 +1336,10 @@ function handleDecorationClickEvent(event, clickEvent) {
       }
     }
   }
-
   var target = findTarget();
-
   if (!target) {
     return false;
   }
-
   webkit.messageHandlers.decorationActivated.postMessage({
     id: target.item.decoration.id,
     group: target.group,
@@ -1358,37 +1348,32 @@ function handleDecorationClickEvent(event, clickEvent) {
   });
   return true;
 }
+
 /**
  * Creates a DecorationGroup object from a unique HTML ID and its name.
  */
-
 function DecorationGroup(groupId, groupName) {
   var items = [];
   var lastItemId = 0;
   var container = null;
   var activable = false;
-
   function isActivable() {
     return activable;
   }
-
   function setActivable() {
     activable = true;
   }
+
   /**
    * Adds a new decoration to the group.
    */
-
-
   function add(decoration) {
     var id = groupId + "-" + lastItemId++;
     var range = (0,_utils__WEBPACK_IMPORTED_MODULE_1__.rangeFromLocator)(decoration.locator);
-
     if (!range) {
       (0,_utils__WEBPACK_IMPORTED_MODULE_1__.log)("Can't locate DOM range for decoration", decoration);
       return;
     }
-
     var item = {
       id,
       decoration,
@@ -1397,70 +1382,60 @@ function DecorationGroup(groupId, groupName) {
     items.push(item);
     layout(item);
   }
+
   /**
    * Removes the decoration with given ID from the group.
    */
-
-
   function remove(decorationId) {
     var index = items.findIndex(i => i.decoration.id === decorationId);
-
     if (index === -1) {
       return;
     }
-
     var item = items[index];
     items.splice(index, 1);
     item.clickableElements = null;
-
     if (item.container) {
       item.container.remove();
       item.container = null;
     }
   }
+
   /**
    * Notifies that the given decoration was modified and needs to be updated.
    */
-
-
   function update(decoration) {
     remove(decoration.id);
     add(decoration);
   }
+
   /**
    * Removes all decorations from this group.
    */
-
-
   function clear() {
     clearContainer();
     items.length = 0;
   }
+
   /**
    * Recreates the decoration elements.
    *
    * To be called after reflowing the resource, for example.
    */
-
-
   function requestLayout() {
     clearContainer();
     items.forEach(item => layout(item));
   }
+
   /**
    * Layouts a single Decoration item.
    */
-
-
   function layout(item) {
     var groupContainer = requireContainer();
     var style = styles.get(item.decoration.style);
-
     if (!style) {
       (0,_utils__WEBPACK_IMPORTED_MODULE_1__.logErrorMessage)("Unknown decoration style: ".concat(item.decoration.style));
       return;
     }
-
     var itemContainer = document.createElement("div");
     itemContainer.setAttribute("id", item.id);
     itemContainer.setAttribute("data-style", item.decoration.style);
@@ -1471,10 +1446,8 @@ function DecorationGroup(groupId, groupName) {
     var scrollingElement = document.scrollingElement;
     var xOffset = scrollingElement.scrollLeft;
     var yOffset = scrollingElement.scrollTop;
-
     function positionElement(element, rect, boundingRect) {
       element.style.position = "absolute";
-
       if (style.width === "wrap") {
         element.style.width = "".concat(rect.width, "px");
         element.style.height = "".concat(rect.height, "px");
@@ -1494,17 +1467,13 @@ function DecorationGroup(groupId, groupName) {
       } else if (style.width === "page") {
         element.style.width = "".concat(pageWidth, "px");
         element.style.height = "".concat(rect.height, "px");
-
         var _left = Math.floor(rect.left / pageWidth) * pageWidth;
-
         element.style.left = "".concat(_left + xOffset, "px");
         element.style.top = "".concat(rect.top + yOffset, "px");
       }
     }
-
     var boundingRect = item.range.getBoundingClientRect();
     var elementTemplate;
-
     try {
       var template = document.createElement("template");
       template.innerHTML = item.decoration.element.trim();
@@ -1513,7 +1482,6 @@ function DecorationGroup(groupId, groupName) {
       (0,_utils__WEBPACK_IMPORTED_MODULE_1__.logErrorMessage)("Invalid decoration element \"".concat(item.decoration.element, "\": ").concat(error.message));
       return;
     }
-
     if (style.layout === "boxes") {
       var doNotMergeHorizontallyAlignedRects = true;
       var clientRects = (0,_rect__WEBPACK_IMPORTED_MODULE_0__.getClientRectsNoOverlap)(item.range, doNotMergeHorizontallyAlignedRects);
@@ -1526,7 +1494,6 @@ function DecorationGroup(groupId, groupName) {
           return 0;
         }
       });
-
       for (var clientRect of clientRects) {
         var line = elementTemplate.cloneNode(true);
         line.style.setProperty("pointer-events", "none");
@@ -1539,20 +1506,17 @@ function DecorationGroup(groupId, groupName) {
       positionElement(bounds, boundingRect, boundingRect);
       itemContainer.append(bounds);
     }
-
     groupContainer.append(itemContainer);
     item.container = itemContainer;
     item.clickableElements = Array.from(itemContainer.querySelectorAll("[data-activable='1']"));
-
     if (item.clickableElements.length === 0) {
       item.clickableElements = Array.from(itemContainer.children);
     }
   }
+
   /**
    * Returns the group container element, after making sure it exists.
    */
-
-
   function requireContainer() {
     if (!container) {
       container = document.createElement("div");
@@ -1561,21 +1525,18 @@ function DecorationGroup(groupId, groupName) {
       container.style.setProperty("pointer-events", "none");
       document.body.append(container);
     }
-
     return container;
   }
+
   /**
    * Removes the group container.
    */
-
-
   function clearContainer() {
     if (container) {
       container.remove();
       container = null;
     }
   }
-
   return {
     add,
     remove,
@@ -1598,7 +1559,6 @@ window.addEventListener("load", function () {
     if (lastSize.width === body.clientWidth && lastSize.height === body.clientHeight) {
       return;
     }
-
     lastSize = {
       width: body.clientWidth,
       height: body.clientHeight
@@ -1621,55 +1581,52 @@ window.addEventListener("load", function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "findNearestInteractiveElement": () => (/* binding */ findNearestInteractiveElement),
-/* harmony export */   "findFirstVisibleLocator": () => (/* binding */ findFirstVisibleLocator)
+/* harmony export */   "findFirstVisibleLocator": () => (/* binding */ findFirstVisibleLocator),
+/* harmony export */   "findNearestInteractiveElement": () => (/* binding */ findNearestInteractiveElement)
 /* harmony export */ });
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils.js");
-/* harmony import */ var css_selector_generator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! css-selector-generator */ "./node_modules/css-selector-generator/build/index.js");
-/* harmony import */ var css_selector_generator__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(css_selector_generator__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var css_selector_generator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! css-selector-generator */ "./node_modules/css-selector-generator/esm/index.js");
 //
 //  Copyright 2022 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
- // Returns `element` or its first parent that is considered "user interactive".
+
+
+
+// Returns `element` or its first parent that is considered "user interactive".
 // For example a link, a video clip or a text field.
 //
 // See. https://github.com/JayPanoz/architecture/tree/touch-handling/misc/touch-handling
-
 function findNearestInteractiveElement(element) {
   if (element == null) {
     return null;
   }
-
   var interactiveTags = ["a", "audio", "button", "canvas", "details", "input", "label", "option", "select", "submit", "textarea", "video"];
-
   if (interactiveTags.indexOf(element.nodeName.toLowerCase()) !== -1) {
     return element.outerHTML;
-  } // Checks whether the element is editable by the user.
+  }
 
-
+  // Checks whether the element is editable by the user.
   if (element.hasAttribute("contenteditable") && element.getAttribute("contenteditable").toLowerCase() != "false") {
     return element.outerHTML;
-  } // Checks parents recursively because the touch might be for example on an <em> inside a <a>.
+  }
 
-
+  // Checks parents recursively because the touch might be for example on an <em> inside a <a>.
   if (element.parentElement) {
     return findNearestInteractiveElement(element.parentElement);
   }
-
   return null;
-} /// Returns the `Locator` object to the first block element that is visible on
-/// the screen.
+}
 
+/// Returns the `Locator` object to the first block element that is visible on
+/// the screen.
 function findFirstVisibleLocator() {
   var element = findElement(document.body);
-
   if (!element) {
     return undefined;
   }
-
   return {
     href: "#",
     type: "application/xhtml+xml",
@@ -1681,14 +1638,11 @@ function findFirstVisibleLocator() {
     }
   };
 }
-
 function findElement(rootElement) {
   var foundElement = undefined;
-
   for (var i = rootElement.children.length - 1; i >= 0; i--) {
     var child = rootElement.children[i];
     var position = elementRelativePosition(child, undefined);
-
     if (position == 0) {
       if (!shouldIgnoreElement(child)) {
         foundElement = child;
@@ -1697,39 +1651,29 @@ function findElement(rootElement) {
       if (!foundElement) {
         foundElement = child;
       }
-
       break;
     }
   }
-
   if (foundElement) {
     return findElement(foundElement);
   }
-
   return rootElement;
-} // See computeVisibility_() in r2-navigator-js
+}
 
-
-function elementRelativePosition(element, domRect
-/* nullable */
-) {
+// See computeVisibility_() in r2-navigator-js
+function elementRelativePosition(element, domRect /* nullable */) {
   if (readium.isFixedLayout) return true;
-
   if (element === document.body || element === document.documentElement) {
     return -1;
   }
-
   if (!document || !document.documentElement || !document.body) {
     return 1;
   }
-
   var rect = domRect || element.getBoundingClientRect();
-
   if ((0,_utils__WEBPACK_IMPORTED_MODULE_0__.isScrollModeEnabled)()) {
     return rect.top >= 0 && rect.top <= document.documentElement.clientHeight;
   } else {
     var pageWidth = window.innerWidth;
-
     if (rect.left >= pageWidth) {
       return 1;
     } else if (rect.left >= 0) {
@@ -1739,30 +1683,24 @@ function elementRelativePosition(element, domRect
     }
   }
 }
-
 function shouldIgnoreElement(element) {
   var elStyle = getComputedStyle(element);
-
   if (elStyle) {
     var display = elStyle.getPropertyValue("display");
-
     if (display === "none") {
       return true;
-    } // Cannot be relied upon, because web browser engine reports invisible when out of view in
+    }
+    // Cannot be relied upon, because web browser engine reports invisible when out of view in
     // scrolled columns!
     // const visibility = elStyle.getPropertyValue("visibility");
     // if (visibility === "hidden") {
     //     return false;
     // }
-
-
     var opacity = elStyle.getPropertyValue("opacity");
-
     if (opacity === "0") {
       return true;
     }
   }
-
   return false;
 }
 
@@ -1787,18 +1725,17 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 window.addEventListener("DOMContentLoaded", function () {
   // If we don't set the CSS cursor property to pointer, then the click events are not triggered pre-iOS 13.
   document.body.style.cursor = "pointer";
   document.addEventListener("click", onClick, false);
 });
-
 function onClick(event) {
   if (!getSelection().isCollapsed) {
     // There's an on-going selection, the tap will dismiss it so we don't forward it.
     return;
   }
-
   var point = (0,_rect__WEBPACK_IMPORTED_MODULE_1__.adjustPointToViewport)({
     x: event.clientX,
     y: event.clientY
@@ -1810,15 +1747,16 @@ function onClick(event) {
     targetElement: event.target.outerHTML,
     interactiveElement: (0,_dom__WEBPACK_IMPORTED_MODULE_2__.findNearestInteractiveElement)(event.target)
   };
-
   if ((0,_decorator__WEBPACK_IMPORTED_MODULE_0__.handleDecorationClickEvent)(event, clickEvent)) {
     return;
-  } // Send the tap data over the JS bridge even if it's been handled
+  }
+
+  // Send the tap data over the JS bridge even if it's been handled
   // within the webview, so that it can be preserved and used
   // by the WKNavigationDelegate if needed.
+  webkit.messageHandlers.tap.postMessage(clickEvent);
 
-
-  webkit.messageHandlers.tap.postMessage(clickEvent); // We don't want to disable the default WebView behavior as it breaks some features without bringing any value.
+  // We don't want to disable the default WebView behavior as it breaks some features without bringing any value.
   // event.stopPropagation();
   // event.preventDefault();
 }
@@ -1843,13 +1781,16 @@ __webpack_require__.r(__webpack_exports__);
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
+
 // Base script used by both reflowable and fixed layout resources.
 
 
 
 
- // Public API used by the navigator.
 
+
+
+// Public API used by the navigator.
 __webpack_require__.g.readium = {
   // utils
   scrollToId: _utils__WEBPACK_IMPORTED_MODULE_3__.scrollToId,
@@ -1857,6 +1798,7 @@ __webpack_require__.g.readium = {
   scrollToText: _utils__WEBPACK_IMPORTED_MODULE_3__.scrollToText,
   scrollLeft: _utils__WEBPACK_IMPORTED_MODULE_3__.scrollLeft,
   scrollRight: _utils__WEBPACK_IMPORTED_MODULE_3__.scrollRight,
+  setCSSProperties: _utils__WEBPACK_IMPORTED_MODULE_3__.setCSSProperties,
   setProperty: _utils__WEBPACK_IMPORTED_MODULE_3__.setProperty,
   removeProperty: _utils__WEBPACK_IMPORTED_MODULE_3__.removeProperty,
   // decoration
@@ -1883,11 +1825,11 @@ __webpack_require__.r(__webpack_exports__);
 //  available in the top-level LICENSE file of the project.
 //
 
+
 window.addEventListener("keydown", event => {
   if (shouldIgnoreEvent(event)) {
     return;
   }
-
   preventDefault(event);
   sendPressKeyMessage(event, "keydown");
 });
@@ -1895,22 +1837,19 @@ window.addEventListener("keyup", event => {
   if (shouldIgnoreEvent(event)) {
     return;
   }
-
   preventDefault(event);
   sendPressKeyMessage(event, "keyup");
 });
-
 function shouldIgnoreEvent(event) {
   return event.defaultPrevented || (0,_dom__WEBPACK_IMPORTED_MODULE_0__.findNearestInteractiveElement)(document.activeElement) != null;
-} // We prevent the default behavior for keyboard events, otherwise the web view
+}
+
+// We prevent the default behavior for keyboard events, otherwise the web view
 // might scroll.
-
-
 function preventDefault(event) {
   event.stopPropagation();
   event.preventDefault();
 }
-
 function sendPressKeyMessage(event, keyType) {
   if (event.repeat) return;
   webkit.messageHandlers.pressKey.postMessage({
@@ -1938,10 +1877,10 @@ function sendPressKeyMessage(event, keyType) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "toNativeRect": () => (/* binding */ toNativeRect),
 /* harmony export */   "adjustPointToViewport": () => (/* binding */ adjustPointToViewport),
 /* harmony export */   "getClientRectsNoOverlap": () => (/* binding */ getClientRectsNoOverlap),
-/* harmony export */   "rectContainsPoint": () => (/* binding */ rectContainsPoint)
+/* harmony export */   "rectContainsPoint": () => (/* binding */ rectContainsPoint),
+/* harmony export */   "toNativeRect": () => (/* binding */ toNativeRect)
 /* harmony export */ });
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils.js");
 //
@@ -1950,11 +1889,12 @@ __webpack_require__.r(__webpack_exports__);
 //  available in the top-level LICENSE file of the project.
 //
 
+
 var debug = false;
+
 /**
  * Converts a DOMRect into a JSON object understandable by the native side.
  */
-
 function toNativeRect(rect) {
   var point = adjustPointToViewport({
     x: rect.left,
@@ -1975,21 +1915,18 @@ function toNativeRect(rect) {
     bottom
   };
 }
+
 /**
  * Adjusts the given coordinates to the viewport for FXL resources.
  */
-
 function adjustPointToViewport(point) {
   if (!frameElement) {
     return point;
   }
-
   var frameRect = frameElement.getBoundingClientRect();
-
   if (!frameRect) {
     return point;
   }
-
   var topScrollingElement = window.top.document.documentElement;
   return {
     x: point.x + frameRect.x + topScrollingElement.scrollLeft,
@@ -2000,7 +1937,6 @@ function getClientRectsNoOverlap(range, doNotMergeHorizontallyAlignedRects) {
   var clientRects = range.getClientRects();
   var tolerance = 1;
   var originalRects = [];
-
   for (var rangeClientRect of clientRects) {
     originalRects.push({
       bottom: rangeClientRect.bottom,
@@ -2011,16 +1947,13 @@ function getClientRectsNoOverlap(range, doNotMergeHorizontallyAlignedRects) {
       width: rangeClientRect.width
     });
   }
-
   var mergedRects = mergeTouchingRects(originalRects, tolerance, doNotMergeHorizontallyAlignedRects);
   var noContainedRects = removeContainedRects(mergedRects, tolerance);
   var newRects = replaceOverlapingRects(noContainedRects);
   var minArea = 2 * 2;
-
   for (var j = newRects.length - 1; j >= 0; j--) {
     var rect = newRects[j];
     var bigEnough = rect.width * rect.height > minArea;
-
     if (!bigEnough) {
       if (newRects.length > 1) {
         log("CLIENT RECT: remove small");
@@ -2031,28 +1964,23 @@ function getClientRectsNoOverlap(range, doNotMergeHorizontallyAlignedRects) {
       }
     }
   }
-
   log("CLIENT RECT: reduced ".concat(originalRects.length, " --> ").concat(newRects.length));
   return newRects;
 }
-
 function mergeTouchingRects(rects, tolerance, doNotMergeHorizontallyAlignedRects) {
   for (var i = 0; i < rects.length; i++) {
-    var _loop = function (j) {
+    var _loop = function () {
       var rect1 = rects[i];
       var rect2 = rects[j];
-
       if (rect1 === rect2) {
         log("mergeTouchingRects rect1 === rect2 ??!");
         return "continue";
       }
-
       var rectsLineUpVertically = almostEqual(rect1.top, rect2.top, tolerance) && almostEqual(rect1.bottom, rect2.bottom, tolerance);
       var rectsLineUpHorizontally = almostEqual(rect1.left, rect2.left, tolerance) && almostEqual(rect1.right, rect2.right, tolerance);
       var horizontalAllowed = !doNotMergeHorizontallyAlignedRects;
       var aligned = rectsLineUpHorizontally && horizontalAllowed || rectsLineUpVertically && !rectsLineUpHorizontally;
       var canMerge = aligned && rectsTouchOrOverlap(rect1, rect2, tolerance);
-
       if (canMerge) {
         log("CLIENT RECT: merging two into one, VERTICAL: ".concat(rectsLineUpVertically, " HORIZONTAL: ").concat(rectsLineUpHorizontally, " (").concat(doNotMergeHorizontallyAlignedRects, ")"));
         var newRects = rects.filter(rect => {
@@ -2065,18 +1993,14 @@ function mergeTouchingRects(rects, tolerance, doNotMergeHorizontallyAlignedRects
         };
       }
     };
-
     for (var j = i + 1; j < rects.length; j++) {
-      var _ret = _loop(j);
-
+      var _ret = _loop();
       if (_ret === "continue") continue;
       if (typeof _ret === "object") return _ret.v;
     }
   }
-
   return rects;
 }
-
 function getBoundingRect(rect1, rect2) {
   var left = Math.min(rect1.left, rect2.left);
   var right = Math.max(rect1.right, rect2.right);
@@ -2091,28 +2015,22 @@ function getBoundingRect(rect1, rect2) {
     width: right - left
   };
 }
-
 function removeContainedRects(rects, tolerance) {
   var rectsToKeep = new Set(rects);
-
   for (var rect of rects) {
     var bigEnough = rect.width > 1 && rect.height > 1;
-
     if (!bigEnough) {
       log("CLIENT RECT: remove tiny");
       rectsToKeep.delete(rect);
       continue;
     }
-
     for (var possiblyContainingRect of rects) {
       if (rect === possiblyContainingRect) {
         continue;
       }
-
       if (!rectsToKeep.has(possiblyContainingRect)) {
         continue;
       }
-
       if (rectContains(possiblyContainingRect, rect, tolerance)) {
         log("CLIENT RECT: remove contained");
         rectsToKeep.delete(rect);
@@ -2120,75 +2038,63 @@ function removeContainedRects(rects, tolerance) {
       }
     }
   }
-
   return Array.from(rectsToKeep);
 }
-
 function rectContains(rect1, rect2, tolerance) {
   return rectContainsPoint(rect1, rect2.left, rect2.top, tolerance) && rectContainsPoint(rect1, rect2.right, rect2.top, tolerance) && rectContainsPoint(rect1, rect2.left, rect2.bottom, tolerance) && rectContainsPoint(rect1, rect2.right, rect2.bottom, tolerance);
 }
-
 function rectContainsPoint(rect, x, y, tolerance) {
   return (rect.left < x || almostEqual(rect.left, x, tolerance)) && (rect.right > x || almostEqual(rect.right, x, tolerance)) && (rect.top < y || almostEqual(rect.top, y, tolerance)) && (rect.bottom > y || almostEqual(rect.bottom, y, tolerance));
 }
-
 function replaceOverlapingRects(rects) {
   for (var i = 0; i < rects.length; i++) {
-    for (var j = i + 1; j < rects.length; j++) {
+    var _loop2 = function () {
       var rect1 = rects[i];
       var rect2 = rects[j];
-
       if (rect1 === rect2) {
         log("replaceOverlapingRects rect1 === rect2 ??!");
-        continue;
+        return "continue";
       }
-
       if (rectsTouchOrOverlap(rect1, rect2, -1)) {
-        var _ret2 = function () {
-          var toAdd = [];
-          var toRemove = void 0;
-          var subtractRects1 = rectSubtract(rect1, rect2);
-
-          if (subtractRects1.length === 1) {
+        var toAdd = [];
+        var toRemove;
+        var subtractRects1 = rectSubtract(rect1, rect2);
+        if (subtractRects1.length === 1) {
+          toAdd = subtractRects1;
+          toRemove = rect1;
+        } else {
+          var subtractRects2 = rectSubtract(rect2, rect1);
+          if (subtractRects1.length < subtractRects2.length) {
             toAdd = subtractRects1;
             toRemove = rect1;
           } else {
-            var subtractRects2 = rectSubtract(rect2, rect1);
-
-            if (subtractRects1.length < subtractRects2.length) {
-              toAdd = subtractRects1;
-              toRemove = rect1;
-            } else {
-              toAdd = subtractRects2;
-              toRemove = rect2;
-            }
+            toAdd = subtractRects2;
+            toRemove = rect2;
           }
-
-          log("CLIENT RECT: overlap, cut one rect into ".concat(toAdd.length));
-          var newRects = rects.filter(rect => {
-            return rect !== toRemove;
-          });
-          Array.prototype.push.apply(newRects, toAdd);
-          return {
-            v: replaceOverlapingRects(newRects)
-          };
-        }();
-
-        if (typeof _ret2 === "object") return _ret2.v;
+        }
+        log("CLIENT RECT: overlap, cut one rect into ".concat(toAdd.length));
+        var newRects = rects.filter(rect => {
+          return rect !== toRemove;
+        });
+        Array.prototype.push.apply(newRects, toAdd);
+        return {
+          v: replaceOverlapingRects(newRects)
+        };
       }
+    };
+    for (var j = i + 1; j < rects.length; j++) {
+      var _ret2 = _loop2();
+      if (_ret2 === "continue") continue;
+      if (typeof _ret2 === "object") return _ret2.v;
     }
   }
-
   return rects;
 }
-
 function rectSubtract(rect1, rect2) {
   var rectIntersected = rectIntersect(rect2, rect1);
-
   if (rectIntersected.height === 0 || rectIntersected.width === 0) {
     return [rect1];
   }
-
   var rects = [];
   {
     var rectA = {
@@ -2201,7 +2107,6 @@ function rectSubtract(rect1, rect2) {
     };
     rectA.width = rectA.right - rectA.left;
     rectA.height = rectA.bottom - rectA.top;
-
     if (rectA.height !== 0 && rectA.width !== 0) {
       rects.push(rectA);
     }
@@ -2217,7 +2122,6 @@ function rectSubtract(rect1, rect2) {
     };
     rectB.width = rectB.right - rectB.left;
     rectB.height = rectB.bottom - rectB.top;
-
     if (rectB.height !== 0 && rectB.width !== 0) {
       rects.push(rectB);
     }
@@ -2233,7 +2137,6 @@ function rectSubtract(rect1, rect2) {
     };
     rectC.width = rectC.right - rectC.left;
     rectC.height = rectC.bottom - rectC.top;
-
     if (rectC.height !== 0 && rectC.width !== 0) {
       rects.push(rectC);
     }
@@ -2249,14 +2152,12 @@ function rectSubtract(rect1, rect2) {
     };
     rectD.width = rectD.right - rectD.left;
     rectD.height = rectD.bottom - rectD.top;
-
     if (rectD.height !== 0 && rectD.width !== 0) {
       rects.push(rectD);
     }
   }
   return rects;
 }
-
 function rectIntersect(rect1, rect2) {
   var maxLeft = Math.max(rect1.left, rect2.left);
   var minRight = Math.min(rect1.right, rect2.right);
@@ -2271,15 +2172,12 @@ function rectIntersect(rect1, rect2) {
     width: Math.max(0, minRight - maxLeft)
   };
 }
-
 function rectsTouchOrOverlap(rect1, rect2, tolerance) {
   return (rect1.left < rect2.right || tolerance >= 0 && almostEqual(rect1.left, rect2.right, tolerance)) && (rect2.left < rect1.right || tolerance >= 0 && almostEqual(rect2.left, rect1.right, tolerance)) && (rect1.top < rect2.bottom || tolerance >= 0 && almostEqual(rect1.top, rect2.bottom, tolerance)) && (rect2.top < rect1.bottom || tolerance >= 0 && almostEqual(rect2.top, rect1.bottom, tolerance));
 }
-
 function almostEqual(a, b, tolerance) {
   return Math.abs(a - b) <= tolerance;
 }
-
 function log() {
   if (debug) {
     _utils__WEBPACK_IMPORTED_MODULE_0__.log.apply(null, arguments);
@@ -2297,8 +2195,8 @@ function log() {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "getCurrentSelection": () => (/* binding */ getCurrentSelection),
 /* harmony export */   "convertRangeInfo": () => (/* binding */ convertRangeInfo),
+/* harmony export */   "getCurrentSelection": () => (/* binding */ getCurrentSelection),
 /* harmony export */   "location2RangeInfo": () => (/* binding */ location2RangeInfo)
 /* harmony export */ });
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils.js");
@@ -2313,8 +2211,10 @@ __webpack_require__.r(__webpack_exports__);
 //
 
 
- // Polyfill for iOS 12
 
+
+
+// Polyfill for iOS 12
 
 string_prototype_matchall__WEBPACK_IMPORTED_MODULE_3___default().shim();
 var debug = true;
@@ -2322,19 +2222,14 @@ function getCurrentSelection() {
   if (!readium.link) {
     return null;
   }
-
   var href = readium.link.href;
-
   if (!href) {
     return null;
   }
-
   var text = getCurrentSelectionText();
-
   if (!text) {
     return null;
   }
-
   var rect = getSelectionRect();
   return {
     href,
@@ -2342,15 +2237,12 @@ function getCurrentSelection() {
     rect
   };
 }
-
 function getSelectionRect() {
   try {
     var sel = window.getSelection();
-
     if (!sel) {
       return;
     }
-
     var range = sel.getRangeAt(0);
     return (0,_rect__WEBPACK_IMPORTED_MODULE_1__.toNativeRect)(range.getBoundingClientRect());
   } catch (e) {
@@ -2358,134 +2250,105 @@ function getSelectionRect() {
     return null;
   }
 }
-
 function getCurrentSelectionText() {
   var selection = window.getSelection();
-
   if (!selection) {
     return undefined;
   }
-
   if (selection.isCollapsed) {
     return undefined;
   }
-
   var highlight = selection.toString();
   var cleanHighlight = highlight.trim().replace(/\n/g, " ").replace(/\s\s+/g, " ");
-
   if (cleanHighlight.length === 0) {
     return undefined;
   }
-
   if (!selection.anchorNode || !selection.focusNode) {
     return undefined;
   }
-
   var range = selection.rangeCount === 1 ? selection.getRangeAt(0) : createOrderedRange(selection.anchorNode, selection.anchorOffset, selection.focusNode, selection.focusOffset);
-
   if (!range || range.collapsed) {
     log("$$$$$$$$$$$$$$$$$ CANNOT GET NON-COLLAPSED SELECTION RANGE?!");
     return undefined;
   }
-
   var text = document.body.textContent;
   var textRange = _vendor_hypothesis_anchoring_text_range__WEBPACK_IMPORTED_MODULE_2__.TextRange.fromRange(range).relativeTo(document.body);
   var start = textRange.start.offset;
   var end = textRange.end.offset;
-  var snippetLength = 200; // Compute the text before the highlight, ignoring the first "word", which might be cut.
+  var snippetLength = 200;
 
+  // Compute the text before the highlight, ignoring the first "word", which might be cut.
   var before = text.slice(Math.max(0, start - snippetLength), start);
-  var firstWordStart = before.search(/(?:[\0-@\[-`\{-\xA9\xAB-\xB4\xB6-\xB9\xBB-\xBF\xD7\xF7\u02C2-\u02C5\u02D2-\u02DF\u02E5-\u02EB\u02ED\u02EF-\u036F\u0375\u0378\u0379\u037E\u0380-\u0385\u0387\u038B\u038D\u03A2\u03F6\u0482-\u0489\u0530\u0557\u0558\u055A-\u055F\u0589-\u05CF\u05EB-\u05EE\u05F3-\u061F\u064B-\u066D\u0670\u06D4\u06D6-\u06E4\u06E7-\u06ED\u06F0-\u06F9\u06FD\u06FE\u0700-\u070F\u0711\u0730-\u074C\u07A6-\u07B0\u07B2-\u07C9\u07EB-\u07F3\u07F6-\u07F9\u07FB-\u07FF\u0816-\u0819\u081B-\u0823\u0825-\u0827\u0829-\u083F\u0859-\u085F\u086B-\u086F\u0888\u088F-\u089F\u08CA-\u0903\u093A-\u093C\u093E-\u094F\u0951-\u0957\u0962-\u0970\u0981-\u0984\u098D\u098E\u0991\u0992\u09A9\u09B1\u09B3-\u09B5\u09BA-\u09BC\u09BE-\u09CD\u09CF-\u09DB\u09DE\u09E2-\u09EF\u09F2-\u09FB\u09FD-\u0A04\u0A0B-\u0A0E\u0A11\u0A12\u0A29\u0A31\u0A34\u0A37\u0A3A-\u0A58\u0A5D\u0A5F-\u0A71\u0A75-\u0A84\u0A8E\u0A92\u0AA9\u0AB1\u0AB4\u0ABA-\u0ABC\u0ABE-\u0ACF\u0AD1-\u0ADF\u0AE2-\u0AF8\u0AFA-\u0B04\u0B0D\u0B0E\u0B11\u0B12\u0B29\u0B31\u0B34\u0B3A-\u0B3C\u0B3E-\u0B5B\u0B5E\u0B62-\u0B70\u0B72-\u0B82\u0B84\u0B8B-\u0B8D\u0B91\u0B96-\u0B98\u0B9B\u0B9D\u0BA0-\u0BA2\u0BA5-\u0BA7\u0BAB-\u0BAD\u0BBA-\u0BCF\u0BD1-\u0C04\u0C0D\u0C11\u0C29\u0C3A-\u0C3C\u0C3E-\u0C57\u0C5B\u0C5C\u0C5E\u0C5F\u0C62-\u0C7F\u0C81-\u0C84\u0C8D\u0C91\u0CA9\u0CB4\u0CBA-\u0CBC\u0CBE-\u0CDC\u0CDF\u0CE2-\u0CF0\u0CF3-\u0D03\u0D0D\u0D11\u0D3B\u0D3C\u0D3E-\u0D4D\u0D4F-\u0D53\u0D57-\u0D5E\u0D62-\u0D79\u0D80-\u0D84\u0D97-\u0D99\u0DB2\u0DBC\u0DBE\u0DBF\u0DC7-\u0E00\u0E31\u0E34-\u0E3F\u0E47-\u0E80\u0E83\u0E85\u0E8B\u0EA4\u0EA6\u0EB1\u0EB4-\u0EBC\u0EBE\u0EBF\u0EC5\u0EC7-\u0EDB\u0EE0-\u0EFF\u0F01-\u0F3F\u0F48\u0F6D-\u0F87\u0F8D-\u0FFF\u102B-\u103E\u1040-\u104F\u1056-\u1059\u105E-\u1060\u1062-\u1064\u1067-\u106D\u1071-\u1074\u1082-\u108D\u108F-\u109F\u10C6\u10C8-\u10CC\u10CE\u10CF\u10FB\u1249\u124E\u124F\u1257\u1259\u125E\u125F\u1289\u128E\u128F\u12B1\u12B6\u12B7\u12BF\u12C1\u12C6\u12C7\u12D7\u1311\u1316\u1317\u135B-\u137F\u1390-\u139F\u13F6\u13F7\u13FE-\u1400\u166D\u166E\u1680\u169B-\u169F\u16EB-\u16F0\u16F9-\u16FF\u1712-\u171E\u1732-\u173F\u1752-\u175F\u176D\u1771-\u177F\u17B4-\u17D6\u17D8-\u17DB\u17DD-\u181F\u1879-\u187F\u1885\u1886\u18A9\u18AB-\u18AF\u18F6-\u18FF\u191F-\u194F\u196E\u196F\u1975-\u197F\u19AC-\u19AF\u19CA-\u19FF\u1A17-\u1A1F\u1A55-\u1AA6\u1AA8-\u1B04\u1B34-\u1B44\u1B4D-\u1B82\u1BA1-\u1BAD\u1BB0-\u1BB9\u1BE6-\u1BFF\u1C24-\u1C4C\u1C50-\u1C59\u1C7E\u1C7F\u1C89-\u1C8F\u1CBB\u1CBC\u1CC0-\u1CE8\u1CED\u1CF4\u1CF7-\u1CF9\u1CFB-\u1CFF\u1DC0-\u1DFF\u1F16\u1F17\u1F1E\u1F1F\u1F46\u1F47\u1F4E\u1F4F\u1F58\u1F5A\u1F5C\u1F5E\u1F7E\u1F7F\u1FB5\u1FBD\u1FBF-\u1FC1\u1FC5\u1FCD-\u1FCF\u1FD4\u1FD5\u1FDC-\u1FDF\u1FED-\u1FF1\u1FF5\u1FFD-\u2070\u2072-\u207E\u2080-\u208F\u209D-\u2101\u2103-\u2106\u2108\u2109\u2114\u2116-\u2118\u211E-\u2123\u2125\u2127\u2129\u212E\u213A\u213B\u2140-\u2144\u214A-\u214D\u214F-\u2182\u2185-\u2BFF\u2CE5-\u2CEA\u2CEF-\u2CF1\u2CF4-\u2CFF\u2D26\u2D28-\u2D2C\u2D2E\u2D2F\u2D68-\u2D6E\u2D70-\u2D7F\u2D97-\u2D9F\u2DA7\u2DAF\u2DB7\u2DBF\u2DC7\u2DCF\u2DD7\u2DDF-\u2E2E\u2E30-\u3004\u3007-\u3030\u3036-\u303A\u303D-\u3040\u3097-\u309C\u30A0\u30FB\u3100-\u3104\u3130\u318F-\u319F\u31C0-\u31EF\u3200-\u33FF\u4DC0-\u4DFF\uA48D-\uA4CF\uA4FE\uA4FF\uA60D-\uA60F\uA620-\uA629\uA62C-\uA63F\uA66F-\uA67E\uA69E\uA69F\uA6E6-\uA716\uA720\uA721\uA789\uA78A\uA7CB-\uA7CF\uA7D2\uA7D4\uA7DA-\uA7F1\uA802\uA806\uA80B\uA823-\uA83F\uA874-\uA881\uA8B4-\uA8F1\uA8F8-\uA8FA\uA8FC\uA8FF-\uA909\uA926-\uA92F\uA947-\uA95F\uA97D-\uA983\uA9B3-\uA9CE\uA9D0-\uA9DF\uA9E5\uA9F0-\uA9F9\uA9FF\uAA29-\uAA3F\uAA43\uAA4C-\uAA5F\uAA77-\uAA79\uAA7B-\uAA7D\uAAB0\uAAB2-\uAAB4\uAAB7\uAAB8\uAABE\uAABF\uAAC1\uAAC3-\uAADA\uAADE\uAADF\uAAEB-\uAAF1\uAAF5-\uAB00\uAB07\uAB08\uAB0F\uAB10\uAB17-\uAB1F\uAB27\uAB2F\uAB5B\uAB6A-\uAB6F\uABE3-\uABFF\uD7A4-\uD7AF\uD7C7-\uD7CA\uD7FC-\uD7FF\uE000-\uF8FF\uFA6E\uFA6F\uFADA-\uFAFF\uFB07-\uFB12\uFB18-\uFB1C\uFB1E\uFB29\uFB37\uFB3D\uFB3F\uFB42\uFB45\uFBB2-\uFBD2\uFD3E-\uFD4F\uFD90\uFD91\uFDC8-\uFDEF\uFDFC-\uFE6F\uFE75\uFEFD-\uFF20\uFF3B-\uFF40\uFF5B-\uFF65\uFFBF-\uFFC1\uFFC8\uFFC9\uFFD0\uFFD1\uFFD8\uFFD9\uFFDD-\uFFFF]|\uD800[\uDC0C\uDC27\uDC3B\uDC3E\uDC4E\uDC4F\uDC5E-\uDC7F\uDCFB-\uDE7F\uDE9D-\uDE9F\uDED1-\uDEFF\uDF20-\uDF2C\uDF41\uDF4A-\uDF4F\uDF76-\uDF7F\uDF9E\uDF9F\uDFC4-\uDFC7\uDFD0-\uDFFF]|\uD801[\uDC9E-\uDCAF\uDCD4-\uDCD7\uDCFC-\uDCFF\uDD28-\uDD2F\uDD64-\uDD6F\uDD7B\uDD8B\uDD93\uDD96\uDDA2\uDDB2\uDDBA\uDDBD-\uDDFF\uDF37-\uDF3F\uDF56-\uDF5F\uDF68-\uDF7F\uDF86\uDFB1\uDFBB-\uDFFF]|\uD802[\uDC06\uDC07\uDC09\uDC36\uDC39-\uDC3B\uDC3D\uDC3E\uDC56-\uDC5F\uDC77-\uDC7F\uDC9F-\uDCDF\uDCF3\uDCF6-\uDCFF\uDD16-\uDD1F\uDD3A-\uDD7F\uDDB8-\uDDBD\uDDC0-\uDDFF\uDE01-\uDE0F\uDE14\uDE18\uDE36-\uDE5F\uDE7D-\uDE7F\uDE9D-\uDEBF\uDEC8\uDEE5-\uDEFF\uDF36-\uDF3F\uDF56-\uDF5F\uDF73-\uDF7F\uDF92-\uDFFF]|\uD803[\uDC49-\uDC7F\uDCB3-\uDCBF\uDCF3-\uDCFF\uDD24-\uDE7F\uDEAA-\uDEAF\uDEB2-\uDEFF\uDF1D-\uDF26\uDF28-\uDF2F\uDF46-\uDF6F\uDF82-\uDFAF\uDFC5-\uDFDF\uDFF7-\uDFFF]|\uD804[\uDC00-\uDC02\uDC38-\uDC70\uDC73\uDC74\uDC76-\uDC82\uDCB0-\uDCCF\uDCE9-\uDD02\uDD27-\uDD43\uDD45\uDD46\uDD48-\uDD4F\uDD73-\uDD75\uDD77-\uDD82\uDDB3-\uDDC0\uDDC5-\uDDD9\uDDDB\uDDDD-\uDDFF\uDE12\uDE2C-\uDE7F\uDE87\uDE89\uDE8E\uDE9E\uDEA9-\uDEAF\uDEDF-\uDF04\uDF0D\uDF0E\uDF11\uDF12\uDF29\uDF31\uDF34\uDF3A-\uDF3C\uDF3E-\uDF4F\uDF51-\uDF5C\uDF62-\uDFFF]|\uD805[\uDC35-\uDC46\uDC4B-\uDC5E\uDC62-\uDC7F\uDCB0-\uDCC3\uDCC6\uDCC8-\uDD7F\uDDAF-\uDDD7\uDDDC-\uDDFF\uDE30-\uDE43\uDE45-\uDE7F\uDEAB-\uDEB7\uDEB9-\uDEFF\uDF1B-\uDF3F\uDF47-\uDFFF]|\uD806[\uDC2C-\uDC9F\uDCE0-\uDCFE\uDD07\uDD08\uDD0A\uDD0B\uDD14\uDD17\uDD30-\uDD3E\uDD40\uDD42-\uDD9F\uDDA8\uDDA9\uDDD1-\uDDE0\uDDE2\uDDE4-\uDDFF\uDE01-\uDE0A\uDE33-\uDE39\uDE3B-\uDE4F\uDE51-\uDE5B\uDE8A-\uDE9C\uDE9E-\uDEAF\uDEF9-\uDFFF]|\uD807[\uDC09\uDC2F-\uDC3F\uDC41-\uDC71\uDC90-\uDCFF\uDD07\uDD0A\uDD31-\uDD45\uDD47-\uDD5F\uDD66\uDD69\uDD8A-\uDD97\uDD99-\uDEDF\uDEF3-\uDFAF\uDFB1-\uDFFF]|\uD808[\uDF9A-\uDFFF]|\uD809[\uDC00-\uDC7F\uDD44-\uDFFF]|[\uD80A\uD80E-\uD810\uD812-\uD819\uD824-\uD82A\uD82D\uD82E\uD830-\uD834\uD836\uD83C-\uD83F\uD87B-\uD87D\uD87F\uD885-\uDBFF][\uDC00-\uDFFF]|\uD80B[\uDC00-\uDF8F\uDFF1-\uDFFF]|\uD80D[\uDC2F-\uDFFF]|\uD811[\uDE47-\uDFFF]|\uD81A[\uDE39-\uDE3F\uDE5F-\uDE6F\uDEBF-\uDECF\uDEEE-\uDEFF\uDF30-\uDF3F\uDF44-\uDF62\uDF78-\uDF7C\uDF90-\uDFFF]|\uD81B[\uDC00-\uDE3F\uDE80-\uDEFF\uDF4B-\uDF4F\uDF51-\uDF92\uDFA0-\uDFDF\uDFE2\uDFE4-\uDFFF]|\uD821[\uDFF8-\uDFFF]|\uD823[\uDCD6-\uDCFF\uDD09-\uDFFF]|\uD82B[\uDC00-\uDFEF\uDFF4\uDFFC\uDFFF]|\uD82C[\uDD23-\uDD4F\uDD53-\uDD63\uDD68-\uDD6F\uDEFC-\uDFFF]|\uD82F[\uDC6B-\uDC6F\uDC7D-\uDC7F\uDC89-\uDC8F\uDC9A-\uDFFF]|\uD835[\uDC55\uDC9D\uDCA0\uDCA1\uDCA3\uDCA4\uDCA7\uDCA8\uDCAD\uDCBA\uDCBC\uDCC4\uDD06\uDD0B\uDD0C\uDD15\uDD1D\uDD3A\uDD3F\uDD45\uDD47-\uDD49\uDD51\uDEA6\uDEA7\uDEC1\uDEDB\uDEFB\uDF15\uDF35\uDF4F\uDF6F\uDF89\uDFA9\uDFC3\uDFCC-\uDFFF]|\uD837[\uDC00-\uDEFF\uDF1F-\uDFFF]|\uD838[\uDC00-\uDCFF\uDD2D-\uDD36\uDD3E-\uDD4D\uDD4F-\uDE8F\uDEAE-\uDEBF\uDEEC-\uDFFF]|\uD839[\uDC00-\uDFDF\uDFE7\uDFEC\uDFEF\uDFFF]|\uD83A[\uDCC5-\uDCFF\uDD44-\uDD4A\uDD4C-\uDFFF]|\uD83B[\uDC00-\uDDFF\uDE04\uDE20\uDE23\uDE25\uDE26\uDE28\uDE33\uDE38\uDE3A\uDE3C-\uDE41\uDE43-\uDE46\uDE48\uDE4A\uDE4C\uDE50\uDE53\uDE55\uDE56\uDE58\uDE5A\uDE5C\uDE5E\uDE60\uDE63\uDE65\uDE66\uDE6B\uDE73\uDE78\uDE7D\uDE7F\uDE8A\uDE9C-\uDEA0\uDEA4\uDEAA\uDEBC-\uDFFF]|\uD869[\uDEE0-\uDEFF]|\uD86D[\uDF39-\uDF3F]|\uD86E[\uDC1E\uDC1F]|\uD873[\uDEA2-\uDEAF]|\uD87A[\uDFE1-\uDFFF]|\uD87E[\uDE1E-\uDFFF]|\uD884[\uDF4B-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])(?:[A-Za-z\xAA\xB5\xBA\xC0-\xD6\xD8-\xF6\xF8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0370-\u0374\u0376\u0377\u037A-\u037D\u037F\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u052F\u0531-\u0556\u0559\u0560-\u0588\u05D0-\u05EA\u05EF-\u05F2\u0620-\u064A\u066E\u066F\u0671-\u06D3\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0815\u081A\u0824\u0828\u0840-\u0858\u0860-\u086A\u0870-\u0887\u0889-\u088E\u08A0-\u08C9\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC\u09DD\u09DF-\u09E1\u09F0\u09F1\u09FC\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0\u0AE1\u0AF9\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D\u0B5C\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C39\u0C3D\u0C58-\u0C5A\u0C5D\u0C60\u0C61\u0C80\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDD\u0CDE\u0CE0\u0CE1\u0CF1\u0CF2\u0D04-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D\u0D4E\u0D54-\u0D56\u0D5F-\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0E01-\u0E30\u0E32\u0E33\u0E40-\u0E46\u0E81\u0E82\u0E84\u0E86-\u0E8A\u0E8C-\u0EA3\u0EA5\u0EA7-\u0EB0\u0EB2\u0EB3\u0EBD\u0EC0-\u0EC4\u0EC6\u0EDC-\u0EDF\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C\u1000-\u102A\u103F\u1050-\u1055\u105A-\u105D\u1061\u1065\u1066\u106E-\u1070\u1075-\u1081\u108E\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F5\u13F8-\u13FD\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16F1-\u16F8\u1700-\u1711\u171F-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1780-\u17B3\u17D7\u17DC\u1820-\u1878\u1880-\u1884\u1887-\u18A8\u18AA\u18B0-\u18F5\u1900-\u191E\u1950-\u196D\u1970-\u1974\u1980-\u19AB\u19B0-\u19C9\u1A00-\u1A16\u1A20-\u1A54\u1AA7\u1B05-\u1B33\u1B45-\u1B4C\u1B83-\u1BA0\u1BAE\u1BAF\u1BBA-\u1BE5\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1C80-\u1C88\u1C90-\u1CBA\u1CBD-\u1CBF\u1CE9-\u1CEC\u1CEE-\u1CF3\u1CF5\u1CF6\u1CFA\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2183\u2184\u2C00-\u2CE4\u2CEB-\u2CEE\u2CF2\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2E2F\u3005\u3006\u3031-\u3035\u303B\u303C\u3041-\u3096\u309D-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312F\u3131-\u318E\u31A0-\u31BF\u31F0-\u31FF\u3400-\u4DBF\u4E00-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA67F-\uA69D\uA6A0-\uA6E5\uA717-\uA71F\uA722-\uA788\uA78B-\uA7CA\uA7D0\uA7D1\uA7D3\uA7D5-\uA7D9\uA7F2-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA8F2-\uA8F7\uA8FB\uA8FD\uA8FE\uA90A-\uA925\uA930-\uA946\uA960-\uA97C\uA984-\uA9B2\uA9CF\uA9E0-\uA9E4\uA9E6-\uA9EF\uA9FA-\uA9FE\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAA60-\uAA76\uAA7A\uAA7E-\uAAAF\uAAB1\uAAB5\uAAB6\uAAB9-\uAABD\uAAC0\uAAC2\uAADB-\uAADD\uAAE0-\uAAEA\uAAF2-\uAAF4\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uAB30-\uAB5A\uAB5C-\uAB69\uAB70-\uABE2\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]|\uD800[\uDC00-\uDC0B\uDC0D-\uDC26\uDC28-\uDC3A\uDC3C\uDC3D\uDC3F-\uDC4D\uDC50-\uDC5D\uDC80-\uDCFA\uDE80-\uDE9C\uDEA0-\uDED0\uDF00-\uDF1F\uDF2D-\uDF40\uDF42-\uDF49\uDF50-\uDF75\uDF80-\uDF9D\uDFA0-\uDFC3\uDFC8-\uDFCF]|\uD801[\uDC00-\uDC9D\uDCB0-\uDCD3\uDCD8-\uDCFB\uDD00-\uDD27\uDD30-\uDD63\uDD70-\uDD7A\uDD7C-\uDD8A\uDD8C-\uDD92\uDD94\uDD95\uDD97-\uDDA1\uDDA3-\uDDB1\uDDB3-\uDDB9\uDDBB\uDDBC\uDE00-\uDF36\uDF40-\uDF55\uDF60-\uDF67\uDF80-\uDF85\uDF87-\uDFB0\uDFB2-\uDFBA]|\uD802[\uDC00-\uDC05\uDC08\uDC0A-\uDC35\uDC37\uDC38\uDC3C\uDC3F-\uDC55\uDC60-\uDC76\uDC80-\uDC9E\uDCE0-\uDCF2\uDCF4\uDCF5\uDD00-\uDD15\uDD20-\uDD39\uDD80-\uDDB7\uDDBE\uDDBF\uDE00\uDE10-\uDE13\uDE15-\uDE17\uDE19-\uDE35\uDE60-\uDE7C\uDE80-\uDE9C\uDEC0-\uDEC7\uDEC9-\uDEE4\uDF00-\uDF35\uDF40-\uDF55\uDF60-\uDF72\uDF80-\uDF91]|\uD803[\uDC00-\uDC48\uDC80-\uDCB2\uDCC0-\uDCF2\uDD00-\uDD23\uDE80-\uDEA9\uDEB0\uDEB1\uDF00-\uDF1C\uDF27\uDF30-\uDF45\uDF70-\uDF81\uDFB0-\uDFC4\uDFE0-\uDFF6]|\uD804[\uDC03-\uDC37\uDC71\uDC72\uDC75\uDC83-\uDCAF\uDCD0-\uDCE8\uDD03-\uDD26\uDD44\uDD47\uDD50-\uDD72\uDD76\uDD83-\uDDB2\uDDC1-\uDDC4\uDDDA\uDDDC\uDE00-\uDE11\uDE13-\uDE2B\uDE80-\uDE86\uDE88\uDE8A-\uDE8D\uDE8F-\uDE9D\uDE9F-\uDEA8\uDEB0-\uDEDE\uDF05-\uDF0C\uDF0F\uDF10\uDF13-\uDF28\uDF2A-\uDF30\uDF32\uDF33\uDF35-\uDF39\uDF3D\uDF50\uDF5D-\uDF61]|\uD805[\uDC00-\uDC34\uDC47-\uDC4A\uDC5F-\uDC61\uDC80-\uDCAF\uDCC4\uDCC5\uDCC7\uDD80-\uDDAE\uDDD8-\uDDDB\uDE00-\uDE2F\uDE44\uDE80-\uDEAA\uDEB8\uDF00-\uDF1A\uDF40-\uDF46]|\uD806[\uDC00-\uDC2B\uDCA0-\uDCDF\uDCFF-\uDD06\uDD09\uDD0C-\uDD13\uDD15\uDD16\uDD18-\uDD2F\uDD3F\uDD41\uDDA0-\uDDA7\uDDAA-\uDDD0\uDDE1\uDDE3\uDE00\uDE0B-\uDE32\uDE3A\uDE50\uDE5C-\uDE89\uDE9D\uDEB0-\uDEF8]|\uD807[\uDC00-\uDC08\uDC0A-\uDC2E\uDC40\uDC72-\uDC8F\uDD00-\uDD06\uDD08\uDD09\uDD0B-\uDD30\uDD46\uDD60-\uDD65\uDD67\uDD68\uDD6A-\uDD89\uDD98\uDEE0-\uDEF2\uDFB0]|\uD808[\uDC00-\uDF99]|\uD809[\uDC80-\uDD43]|\uD80B[\uDF90-\uDFF0]|[\uD80C\uD81C-\uD820\uD822\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872\uD874-\uD879\uD880-\uD883][\uDC00-\uDFFF]|\uD80D[\uDC00-\uDC2E]|\uD811[\uDC00-\uDE46]|\uD81A[\uDC00-\uDE38\uDE40-\uDE5E\uDE70-\uDEBE\uDED0-\uDEED\uDF00-\uDF2F\uDF40-\uDF43\uDF63-\uDF77\uDF7D-\uDF8F]|\uD81B[\uDE40-\uDE7F\uDF00-\uDF4A\uDF50\uDF93-\uDF9F\uDFE0\uDFE1\uDFE3]|\uD821[\uDC00-\uDFF7]|\uD823[\uDC00-\uDCD5\uDD00-\uDD08]|\uD82B[\uDFF0-\uDFF3\uDFF5-\uDFFB\uDFFD\uDFFE]|\uD82C[\uDC00-\uDD22\uDD50-\uDD52\uDD64-\uDD67\uDD70-\uDEFB]|\uD82F[\uDC00-\uDC6A\uDC70-\uDC7C\uDC80-\uDC88\uDC90-\uDC99]|\uD835[\uDC00-\uDC54\uDC56-\uDC9C\uDC9E\uDC9F\uDCA2\uDCA5\uDCA6\uDCA9-\uDCAC\uDCAE-\uDCB9\uDCBB\uDCBD-\uDCC3\uDCC5-\uDD05\uDD07-\uDD0A\uDD0D-\uDD14\uDD16-\uDD1C\uDD1E-\uDD39\uDD3B-\uDD3E\uDD40-\uDD44\uDD46\uDD4A-\uDD50\uDD52-\uDEA5\uDEA8-\uDEC0\uDEC2-\uDEDA\uDEDC-\uDEFA\uDEFC-\uDF14\uDF16-\uDF34\uDF36-\uDF4E\uDF50-\uDF6E\uDF70-\uDF88\uDF8A-\uDFA8\uDFAA-\uDFC2\uDFC4-\uDFCB]|\uD837[\uDF00-\uDF1E]|\uD838[\uDD00-\uDD2C\uDD37-\uDD3D\uDD4E\uDE90-\uDEAD\uDEC0-\uDEEB]|\uD839[\uDFE0-\uDFE6\uDFE8-\uDFEB\uDFED\uDFEE\uDFF0-\uDFFE]|\uD83A[\uDC00-\uDCC4\uDD00-\uDD43\uDD4B]|\uD83B[\uDE00-\uDE03\uDE05-\uDE1F\uDE21\uDE22\uDE24\uDE27\uDE29-\uDE32\uDE34-\uDE37\uDE39\uDE3B\uDE42\uDE47\uDE49\uDE4B\uDE4D-\uDE4F\uDE51\uDE52\uDE54\uDE57\uDE59\uDE5B\uDE5D\uDE5F\uDE61\uDE62\uDE64\uDE67-\uDE6A\uDE6C-\uDE72\uDE74-\uDE77\uDE79-\uDE7C\uDE7E\uDE80-\uDE89\uDE8B-\uDE9B\uDEA1-\uDEA3\uDEA5-\uDEA9\uDEAB-\uDEBB]|\uD869[\uDC00-\uDEDF\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF38\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1\uDEB0-\uDFFF]|\uD87A[\uDC00-\uDFE0]|\uD87E[\uDC00-\uDE1D]|\uD884[\uDC00-\uDF4A])/g);
-
+  var firstWordStart = before.search(/(?:[\0-@\[-`\{-\xA9\xAB-\xB4\xB6-\xB9\xBB-\xBF\xD7\xF7\u02C2-\u02C5\u02D2-\u02DF\u02E5-\u02EB\u02ED\u02EF-\u036F\u0375\u0378\u0379\u037E\u0380-\u0385\u0387\u038B\u038D\u03A2\u03F6\u0482-\u0489\u0530\u0557\u0558\u055A-\u055F\u0589-\u05CF\u05EB-\u05EE\u05F3-\u061F\u064B-\u066D\u0670\u06D4\u06D6-\u06E4\u06E7-\u06ED\u06F0-\u06F9\u06FD\u06FE\u0700-\u070F\u0711\u0730-\u074C\u07A6-\u07B0\u07B2-\u07C9\u07EB-\u07F3\u07F6-\u07F9\u07FB-\u07FF\u0816-\u0819\u081B-\u0823\u0825-\u0827\u0829-\u083F\u0859-\u085F\u086B-\u086F\u0888\u088F-\u089F\u08CA-\u0903\u093A-\u093C\u093E-\u094F\u0951-\u0957\u0962-\u0970\u0981-\u0984\u098D\u098E\u0991\u0992\u09A9\u09B1\u09B3-\u09B5\u09BA-\u09BC\u09BE-\u09CD\u09CF-\u09DB\u09DE\u09E2-\u09EF\u09F2-\u09FB\u09FD-\u0A04\u0A0B-\u0A0E\u0A11\u0A12\u0A29\u0A31\u0A34\u0A37\u0A3A-\u0A58\u0A5D\u0A5F-\u0A71\u0A75-\u0A84\u0A8E\u0A92\u0AA9\u0AB1\u0AB4\u0ABA-\u0ABC\u0ABE-\u0ACF\u0AD1-\u0ADF\u0AE2-\u0AF8\u0AFA-\u0B04\u0B0D\u0B0E\u0B11\u0B12\u0B29\u0B31\u0B34\u0B3A-\u0B3C\u0B3E-\u0B5B\u0B5E\u0B62-\u0B70\u0B72-\u0B82\u0B84\u0B8B-\u0B8D\u0B91\u0B96-\u0B98\u0B9B\u0B9D\u0BA0-\u0BA2\u0BA5-\u0BA7\u0BAB-\u0BAD\u0BBA-\u0BCF\u0BD1-\u0C04\u0C0D\u0C11\u0C29\u0C3A-\u0C3C\u0C3E-\u0C57\u0C5B\u0C5C\u0C5E\u0C5F\u0C62-\u0C7F\u0C81-\u0C84\u0C8D\u0C91\u0CA9\u0CB4\u0CBA-\u0CBC\u0CBE-\u0CDC\u0CDF\u0CE2-\u0CF0\u0CF3-\u0D03\u0D0D\u0D11\u0D3B\u0D3C\u0D3E-\u0D4D\u0D4F-\u0D53\u0D57-\u0D5E\u0D62-\u0D79\u0D80-\u0D84\u0D97-\u0D99\u0DB2\u0DBC\u0DBE\u0DBF\u0DC7-\u0E00\u0E31\u0E34-\u0E3F\u0E47-\u0E80\u0E83\u0E85\u0E8B\u0EA4\u0EA6\u0EB1\u0EB4-\u0EBC\u0EBE\u0EBF\u0EC5\u0EC7-\u0EDB\u0EE0-\u0EFF\u0F01-\u0F3F\u0F48\u0F6D-\u0F87\u0F8D-\u0FFF\u102B-\u103E\u1040-\u104F\u1056-\u1059\u105E-\u1060\u1062-\u1064\u1067-\u106D\u1071-\u1074\u1082-\u108D\u108F-\u109F\u10C6\u10C8-\u10CC\u10CE\u10CF\u10FB\u1249\u124E\u124F\u1257\u1259\u125E\u125F\u1289\u128E\u128F\u12B1\u12B6\u12B7\u12BF\u12C1\u12C6\u12C7\u12D7\u1311\u1316\u1317\u135B-\u137F\u1390-\u139F\u13F6\u13F7\u13FE-\u1400\u166D\u166E\u1680\u169B-\u169F\u16EB-\u16F0\u16F9-\u16FF\u1712-\u171E\u1732-\u173F\u1752-\u175F\u176D\u1771-\u177F\u17B4-\u17D6\u17D8-\u17DB\u17DD-\u181F\u1879-\u187F\u1885\u1886\u18A9\u18AB-\u18AF\u18F6-\u18FF\u191F-\u194F\u196E\u196F\u1975-\u197F\u19AC-\u19AF\u19CA-\u19FF\u1A17-\u1A1F\u1A55-\u1AA6\u1AA8-\u1B04\u1B34-\u1B44\u1B4D-\u1B82\u1BA1-\u1BAD\u1BB0-\u1BB9\u1BE6-\u1BFF\u1C24-\u1C4C\u1C50-\u1C59\u1C7E\u1C7F\u1C89-\u1C8F\u1CBB\u1CBC\u1CC0-\u1CE8\u1CED\u1CF4\u1CF7-\u1CF9\u1CFB-\u1CFF\u1DC0-\u1DFF\u1F16\u1F17\u1F1E\u1F1F\u1F46\u1F47\u1F4E\u1F4F\u1F58\u1F5A\u1F5C\u1F5E\u1F7E\u1F7F\u1FB5\u1FBD\u1FBF-\u1FC1\u1FC5\u1FCD-\u1FCF\u1FD4\u1FD5\u1FDC-\u1FDF\u1FED-\u1FF1\u1FF5\u1FFD-\u2070\u2072-\u207E\u2080-\u208F\u209D-\u2101\u2103-\u2106\u2108\u2109\u2114\u2116-\u2118\u211E-\u2123\u2125\u2127\u2129\u212E\u213A\u213B\u2140-\u2144\u214A-\u214D\u214F-\u2182\u2185-\u2BFF\u2CE5-\u2CEA\u2CEF-\u2CF1\u2CF4-\u2CFF\u2D26\u2D28-\u2D2C\u2D2E\u2D2F\u2D68-\u2D6E\u2D70-\u2D7F\u2D97-\u2D9F\u2DA7\u2DAF\u2DB7\u2DBF\u2DC7\u2DCF\u2DD7\u2DDF-\u2E2E\u2E30-\u3004\u3007-\u3030\u3036-\u303A\u303D-\u3040\u3097-\u309C\u30A0\u30FB\u3100-\u3104\u3130\u318F-\u319F\u31C0-\u31EF\u3200-\u33FF\u4DC0-\u4DFF\uA48D-\uA4CF\uA4FE\uA4FF\uA60D-\uA60F\uA620-\uA629\uA62C-\uA63F\uA66F-\uA67E\uA69E\uA69F\uA6E6-\uA716\uA720\uA721\uA789\uA78A\uA7CB-\uA7CF\uA7D2\uA7D4\uA7DA-\uA7F1\uA802\uA806\uA80B\uA823-\uA83F\uA874-\uA881\uA8B4-\uA8F1\uA8F8-\uA8FA\uA8FC\uA8FF-\uA909\uA926-\uA92F\uA947-\uA95F\uA97D-\uA983\uA9B3-\uA9CE\uA9D0-\uA9DF\uA9E5\uA9F0-\uA9F9\uA9FF\uAA29-\uAA3F\uAA43\uAA4C-\uAA5F\uAA77-\uAA79\uAA7B-\uAA7D\uAAB0\uAAB2-\uAAB4\uAAB7\uAAB8\uAABE\uAABF\uAAC1\uAAC3-\uAADA\uAADE\uAADF\uAAEB-\uAAF1\uAAF5-\uAB00\uAB07\uAB08\uAB0F\uAB10\uAB17-\uAB1F\uAB27\uAB2F\uAB5B\uAB6A-\uAB6F\uABE3-\uABFF\uD7A4-\uD7AF\uD7C7-\uD7CA\uD7FC-\uD7FF\uE000-\uF8FF\uFA6E\uFA6F\uFADA-\uFAFF\uFB07-\uFB12\uFB18-\uFB1C\uFB1E\uFB29\uFB37\uFB3D\uFB3F\uFB42\uFB45\uFBB2-\uFBD2\uFD3E-\uFD4F\uFD90\uFD91\uFDC8-\uFDEF\uFDFC-\uFE6F\uFE75\uFEFD-\uFF20\uFF3B-\uFF40\uFF5B-\uFF65\uFFBF-\uFFC1\uFFC8\uFFC9\uFFD0\uFFD1\uFFD8\uFFD9\uFFDD-\uFFFF]|\uD800[\uDC0C\uDC27\uDC3B\uDC3E\uDC4E\uDC4F\uDC5E-\uDC7F\uDCFB-\uDE7F\uDE9D-\uDE9F\uDED1-\uDEFF\uDF20-\uDF2C\uDF41\uDF4A-\uDF4F\uDF76-\uDF7F\uDF9E\uDF9F\uDFC4-\uDFC7\uDFD0-\uDFFF]|\uD801[\uDC9E-\uDCAF\uDCD4-\uDCD7\uDCFC-\uDCFF\uDD28-\uDD2F\uDD64-\uDD6F\uDD7B\uDD8B\uDD93\uDD96\uDDA2\uDDB2\uDDBA\uDDBD-\uDDFF\uDF37-\uDF3F\uDF56-\uDF5F\uDF68-\uDF7F\uDF86\uDFB1\uDFBB-\uDFFF]|\uD802[\uDC06\uDC07\uDC09\uDC36\uDC39-\uDC3B\uDC3D\uDC3E\uDC56-\uDC5F\uDC77-\uDC7F\uDC9F-\uDCDF\uDCF3\uDCF6-\uDCFF\uDD16-\uDD1F\uDD3A-\uDD7F\uDDB8-\uDDBD\uDDC0-\uDDFF\uDE01-\uDE0F\uDE14\uDE18\uDE36-\uDE5F\uDE7D-\uDE7F\uDE9D-\uDEBF\uDEC8\uDEE5-\uDEFF\uDF36-\uDF3F\uDF56-\uDF5F\uDF73-\uDF7F\uDF92-\uDFFF]|\uD803[\uDC49-\uDC7F\uDCB3-\uDCBF\uDCF3-\uDCFF\uDD24-\uDE7F\uDEAA-\uDEAF\uDEB2-\uDEFF\uDF1D-\uDF26\uDF28-\uDF2F\uDF46-\uDF6F\uDF82-\uDFAF\uDFC5-\uDFDF\uDFF7-\uDFFF]|\uD804[\uDC00-\uDC02\uDC38-\uDC70\uDC73\uDC74\uDC76-\uDC82\uDCB0-\uDCCF\uDCE9-\uDD02\uDD27-\uDD43\uDD45\uDD46\uDD48-\uDD4F\uDD73-\uDD75\uDD77-\uDD82\uDDB3-\uDDC0\uDDC5-\uDDD9\uDDDB\uDDDD-\uDDFF\uDE12\uDE2C-\uDE3E\uDE41-\uDE7F\uDE87\uDE89\uDE8E\uDE9E\uDEA9-\uDEAF\uDEDF-\uDF04\uDF0D\uDF0E\uDF11\uDF12\uDF29\uDF31\uDF34\uDF3A-\uDF3C\uDF3E-\uDF4F\uDF51-\uDF5C\uDF62-\uDFFF]|\uD805[\uDC35-\uDC46\uDC4B-\uDC5E\uDC62-\uDC7F\uDCB0-\uDCC3\uDCC6\uDCC8-\uDD7F\uDDAF-\uDDD7\uDDDC-\uDDFF\uDE30-\uDE43\uDE45-\uDE7F\uDEAB-\uDEB7\uDEB9-\uDEFF\uDF1B-\uDF3F\uDF47-\uDFFF]|\uD806[\uDC2C-\uDC9F\uDCE0-\uDCFE\uDD07\uDD08\uDD0A\uDD0B\uDD14\uDD17\uDD30-\uDD3E\uDD40\uDD42-\uDD9F\uDDA8\uDDA9\uDDD1-\uDDE0\uDDE2\uDDE4-\uDDFF\uDE01-\uDE0A\uDE33-\uDE39\uDE3B-\uDE4F\uDE51-\uDE5B\uDE8A-\uDE9C\uDE9E-\uDEAF\uDEF9-\uDFFF]|\uD807[\uDC09\uDC2F-\uDC3F\uDC41-\uDC71\uDC90-\uDCFF\uDD07\uDD0A\uDD31-\uDD45\uDD47-\uDD5F\uDD66\uDD69\uDD8A-\uDD97\uDD99-\uDEDF\uDEF3-\uDF01\uDF03\uDF11\uDF34-\uDFAF\uDFB1-\uDFFF]|\uD808[\uDF9A-\uDFFF]|\uD809[\uDC00-\uDC7F\uDD44-\uDFFF]|[\uD80A\uD80E-\uD810\uD812-\uD819\uD824-\uD82A\uD82D\uD82E\uD830-\uD834\uD836\uD83C-\uD83F\uD87B-\uD87D\uD87F\uD889-\uDBFF][\uDC00-\uDFFF]|\uD80B[\uDC00-\uDF8F\uDFF1-\uDFFF]|\uD80D[\uDC30-\uDC40\uDC47-\uDFFF]|\uD811[\uDE47-\uDFFF]|\uD81A[\uDE39-\uDE3F\uDE5F-\uDE6F\uDEBF-\uDECF\uDEEE-\uDEFF\uDF30-\uDF3F\uDF44-\uDF62\uDF78-\uDF7C\uDF90-\uDFFF]|\uD81B[\uDC00-\uDE3F\uDE80-\uDEFF\uDF4B-\uDF4F\uDF51-\uDF92\uDFA0-\uDFDF\uDFE2\uDFE4-\uDFFF]|\uD821[\uDFF8-\uDFFF]|\uD823[\uDCD6-\uDCFF\uDD09-\uDFFF]|\uD82B[\uDC00-\uDFEF\uDFF4\uDFFC\uDFFF]|\uD82C[\uDD23-\uDD31\uDD33-\uDD4F\uDD53\uDD54\uDD56-\uDD63\uDD68-\uDD6F\uDEFC-\uDFFF]|\uD82F[\uDC6B-\uDC6F\uDC7D-\uDC7F\uDC89-\uDC8F\uDC9A-\uDFFF]|\uD835[\uDC55\uDC9D\uDCA0\uDCA1\uDCA3\uDCA4\uDCA7\uDCA8\uDCAD\uDCBA\uDCBC\uDCC4\uDD06\uDD0B\uDD0C\uDD15\uDD1D\uDD3A\uDD3F\uDD45\uDD47-\uDD49\uDD51\uDEA6\uDEA7\uDEC1\uDEDB\uDEFB\uDF15\uDF35\uDF4F\uDF6F\uDF89\uDFA9\uDFC3\uDFCC-\uDFFF]|\uD837[\uDC00-\uDEFF\uDF1F-\uDF24\uDF2B-\uDFFF]|\uD838[\uDC00-\uDC2F\uDC6E-\uDCFF\uDD2D-\uDD36\uDD3E-\uDD4D\uDD4F-\uDE8F\uDEAE-\uDEBF\uDEEC-\uDFFF]|\uD839[\uDC00-\uDCCF\uDCEC-\uDFDF\uDFE7\uDFEC\uDFEF\uDFFF]|\uD83A[\uDCC5-\uDCFF\uDD44-\uDD4A\uDD4C-\uDFFF]|\uD83B[\uDC00-\uDDFF\uDE04\uDE20\uDE23\uDE25\uDE26\uDE28\uDE33\uDE38\uDE3A\uDE3C-\uDE41\uDE43-\uDE46\uDE48\uDE4A\uDE4C\uDE50\uDE53\uDE55\uDE56\uDE58\uDE5A\uDE5C\uDE5E\uDE60\uDE63\uDE65\uDE66\uDE6B\uDE73\uDE78\uDE7D\uDE7F\uDE8A\uDE9C-\uDEA0\uDEA4\uDEAA\uDEBC-\uDFFF]|\uD869[\uDEE0-\uDEFF]|\uD86D[\uDF3A-\uDF3F]|\uD86E[\uDC1E\uDC1F]|\uD873[\uDEA2-\uDEAF]|\uD87A[\uDFE1-\uDFFF]|\uD87E[\uDE1E-\uDFFF]|\uD884[\uDF4B-\uDF4F]|\uD888[\uDFB0-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])(?:[A-Za-z\xAA\xB5\xBA\xC0-\xD6\xD8-\xF6\xF8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0370-\u0374\u0376\u0377\u037A-\u037D\u037F\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u052F\u0531-\u0556\u0559\u0560-\u0588\u05D0-\u05EA\u05EF-\u05F2\u0620-\u064A\u066E\u066F\u0671-\u06D3\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0815\u081A\u0824\u0828\u0840-\u0858\u0860-\u086A\u0870-\u0887\u0889-\u088E\u08A0-\u08C9\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC\u09DD\u09DF-\u09E1\u09F0\u09F1\u09FC\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0\u0AE1\u0AF9\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D\u0B5C\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C39\u0C3D\u0C58-\u0C5A\u0C5D\u0C60\u0C61\u0C80\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDD\u0CDE\u0CE0\u0CE1\u0CF1\u0CF2\u0D04-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D\u0D4E\u0D54-\u0D56\u0D5F-\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0E01-\u0E30\u0E32\u0E33\u0E40-\u0E46\u0E81\u0E82\u0E84\u0E86-\u0E8A\u0E8C-\u0EA3\u0EA5\u0EA7-\u0EB0\u0EB2\u0EB3\u0EBD\u0EC0-\u0EC4\u0EC6\u0EDC-\u0EDF\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C\u1000-\u102A\u103F\u1050-\u1055\u105A-\u105D\u1061\u1065\u1066\u106E-\u1070\u1075-\u1081\u108E\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F5\u13F8-\u13FD\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16F1-\u16F8\u1700-\u1711\u171F-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1780-\u17B3\u17D7\u17DC\u1820-\u1878\u1880-\u1884\u1887-\u18A8\u18AA\u18B0-\u18F5\u1900-\u191E\u1950-\u196D\u1970-\u1974\u1980-\u19AB\u19B0-\u19C9\u1A00-\u1A16\u1A20-\u1A54\u1AA7\u1B05-\u1B33\u1B45-\u1B4C\u1B83-\u1BA0\u1BAE\u1BAF\u1BBA-\u1BE5\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1C80-\u1C88\u1C90-\u1CBA\u1CBD-\u1CBF\u1CE9-\u1CEC\u1CEE-\u1CF3\u1CF5\u1CF6\u1CFA\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2183\u2184\u2C00-\u2CE4\u2CEB-\u2CEE\u2CF2\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2E2F\u3005\u3006\u3031-\u3035\u303B\u303C\u3041-\u3096\u309D-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312F\u3131-\u318E\u31A0-\u31BF\u31F0-\u31FF\u3400-\u4DBF\u4E00-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA67F-\uA69D\uA6A0-\uA6E5\uA717-\uA71F\uA722-\uA788\uA78B-\uA7CA\uA7D0\uA7D1\uA7D3\uA7D5-\uA7D9\uA7F2-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA8F2-\uA8F7\uA8FB\uA8FD\uA8FE\uA90A-\uA925\uA930-\uA946\uA960-\uA97C\uA984-\uA9B2\uA9CF\uA9E0-\uA9E4\uA9E6-\uA9EF\uA9FA-\uA9FE\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAA60-\uAA76\uAA7A\uAA7E-\uAAAF\uAAB1\uAAB5\uAAB6\uAAB9-\uAABD\uAAC0\uAAC2\uAADB-\uAADD\uAAE0-\uAAEA\uAAF2-\uAAF4\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uAB30-\uAB5A\uAB5C-\uAB69\uAB70-\uABE2\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]|\uD800[\uDC00-\uDC0B\uDC0D-\uDC26\uDC28-\uDC3A\uDC3C\uDC3D\uDC3F-\uDC4D\uDC50-\uDC5D\uDC80-\uDCFA\uDE80-\uDE9C\uDEA0-\uDED0\uDF00-\uDF1F\uDF2D-\uDF40\uDF42-\uDF49\uDF50-\uDF75\uDF80-\uDF9D\uDFA0-\uDFC3\uDFC8-\uDFCF]|\uD801[\uDC00-\uDC9D\uDCB0-\uDCD3\uDCD8-\uDCFB\uDD00-\uDD27\uDD30-\uDD63\uDD70-\uDD7A\uDD7C-\uDD8A\uDD8C-\uDD92\uDD94\uDD95\uDD97-\uDDA1\uDDA3-\uDDB1\uDDB3-\uDDB9\uDDBB\uDDBC\uDE00-\uDF36\uDF40-\uDF55\uDF60-\uDF67\uDF80-\uDF85\uDF87-\uDFB0\uDFB2-\uDFBA]|\uD802[\uDC00-\uDC05\uDC08\uDC0A-\uDC35\uDC37\uDC38\uDC3C\uDC3F-\uDC55\uDC60-\uDC76\uDC80-\uDC9E\uDCE0-\uDCF2\uDCF4\uDCF5\uDD00-\uDD15\uDD20-\uDD39\uDD80-\uDDB7\uDDBE\uDDBF\uDE00\uDE10-\uDE13\uDE15-\uDE17\uDE19-\uDE35\uDE60-\uDE7C\uDE80-\uDE9C\uDEC0-\uDEC7\uDEC9-\uDEE4\uDF00-\uDF35\uDF40-\uDF55\uDF60-\uDF72\uDF80-\uDF91]|\uD803[\uDC00-\uDC48\uDC80-\uDCB2\uDCC0-\uDCF2\uDD00-\uDD23\uDE80-\uDEA9\uDEB0\uDEB1\uDF00-\uDF1C\uDF27\uDF30-\uDF45\uDF70-\uDF81\uDFB0-\uDFC4\uDFE0-\uDFF6]|\uD804[\uDC03-\uDC37\uDC71\uDC72\uDC75\uDC83-\uDCAF\uDCD0-\uDCE8\uDD03-\uDD26\uDD44\uDD47\uDD50-\uDD72\uDD76\uDD83-\uDDB2\uDDC1-\uDDC4\uDDDA\uDDDC\uDE00-\uDE11\uDE13-\uDE2B\uDE3F\uDE40\uDE80-\uDE86\uDE88\uDE8A-\uDE8D\uDE8F-\uDE9D\uDE9F-\uDEA8\uDEB0-\uDEDE\uDF05-\uDF0C\uDF0F\uDF10\uDF13-\uDF28\uDF2A-\uDF30\uDF32\uDF33\uDF35-\uDF39\uDF3D\uDF50\uDF5D-\uDF61]|\uD805[\uDC00-\uDC34\uDC47-\uDC4A\uDC5F-\uDC61\uDC80-\uDCAF\uDCC4\uDCC5\uDCC7\uDD80-\uDDAE\uDDD8-\uDDDB\uDE00-\uDE2F\uDE44\uDE80-\uDEAA\uDEB8\uDF00-\uDF1A\uDF40-\uDF46]|\uD806[\uDC00-\uDC2B\uDCA0-\uDCDF\uDCFF-\uDD06\uDD09\uDD0C-\uDD13\uDD15\uDD16\uDD18-\uDD2F\uDD3F\uDD41\uDDA0-\uDDA7\uDDAA-\uDDD0\uDDE1\uDDE3\uDE00\uDE0B-\uDE32\uDE3A\uDE50\uDE5C-\uDE89\uDE9D\uDEB0-\uDEF8]|\uD807[\uDC00-\uDC08\uDC0A-\uDC2E\uDC40\uDC72-\uDC8F\uDD00-\uDD06\uDD08\uDD09\uDD0B-\uDD30\uDD46\uDD60-\uDD65\uDD67\uDD68\uDD6A-\uDD89\uDD98\uDEE0-\uDEF2\uDF02\uDF04-\uDF10\uDF12-\uDF33\uDFB0]|\uD808[\uDC00-\uDF99]|\uD809[\uDC80-\uDD43]|\uD80B[\uDF90-\uDFF0]|[\uD80C\uD81C-\uD820\uD822\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872\uD874-\uD879\uD880-\uD883\uD885-\uD887][\uDC00-\uDFFF]|\uD80D[\uDC00-\uDC2F\uDC41-\uDC46]|\uD811[\uDC00-\uDE46]|\uD81A[\uDC00-\uDE38\uDE40-\uDE5E\uDE70-\uDEBE\uDED0-\uDEED\uDF00-\uDF2F\uDF40-\uDF43\uDF63-\uDF77\uDF7D-\uDF8F]|\uD81B[\uDE40-\uDE7F\uDF00-\uDF4A\uDF50\uDF93-\uDF9F\uDFE0\uDFE1\uDFE3]|\uD821[\uDC00-\uDFF7]|\uD823[\uDC00-\uDCD5\uDD00-\uDD08]|\uD82B[\uDFF0-\uDFF3\uDFF5-\uDFFB\uDFFD\uDFFE]|\uD82C[\uDC00-\uDD22\uDD32\uDD50-\uDD52\uDD55\uDD64-\uDD67\uDD70-\uDEFB]|\uD82F[\uDC00-\uDC6A\uDC70-\uDC7C\uDC80-\uDC88\uDC90-\uDC99]|\uD835[\uDC00-\uDC54\uDC56-\uDC9C\uDC9E\uDC9F\uDCA2\uDCA5\uDCA6\uDCA9-\uDCAC\uDCAE-\uDCB9\uDCBB\uDCBD-\uDCC3\uDCC5-\uDD05\uDD07-\uDD0A\uDD0D-\uDD14\uDD16-\uDD1C\uDD1E-\uDD39\uDD3B-\uDD3E\uDD40-\uDD44\uDD46\uDD4A-\uDD50\uDD52-\uDEA5\uDEA8-\uDEC0\uDEC2-\uDEDA\uDEDC-\uDEFA\uDEFC-\uDF14\uDF16-\uDF34\uDF36-\uDF4E\uDF50-\uDF6E\uDF70-\uDF88\uDF8A-\uDFA8\uDFAA-\uDFC2\uDFC4-\uDFCB]|\uD837[\uDF00-\uDF1E\uDF25-\uDF2A]|\uD838[\uDC30-\uDC6D\uDD00-\uDD2C\uDD37-\uDD3D\uDD4E\uDE90-\uDEAD\uDEC0-\uDEEB]|\uD839[\uDCD0-\uDCEB\uDFE0-\uDFE6\uDFE8-\uDFEB\uDFED\uDFEE\uDFF0-\uDFFE]|\uD83A[\uDC00-\uDCC4\uDD00-\uDD43\uDD4B]|\uD83B[\uDE00-\uDE03\uDE05-\uDE1F\uDE21\uDE22\uDE24\uDE27\uDE29-\uDE32\uDE34-\uDE37\uDE39\uDE3B\uDE42\uDE47\uDE49\uDE4B\uDE4D-\uDE4F\uDE51\uDE52\uDE54\uDE57\uDE59\uDE5B\uDE5D\uDE5F\uDE61\uDE62\uDE64\uDE67-\uDE6A\uDE6C-\uDE72\uDE74-\uDE77\uDE79-\uDE7C\uDE7E\uDE80-\uDE89\uDE8B-\uDE9B\uDEA1-\uDEA3\uDEA5-\uDEA9\uDEAB-\uDEBB]|\uD869[\uDC00-\uDEDF\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF39\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1\uDEB0-\uDFFF]|\uD87A[\uDC00-\uDFE0]|\uD87E[\uDC00-\uDE1D]|\uD884[\uDC00-\uDF4A\uDF50-\uDFFF]|\uD888[\uDC00-\uDFAF])/g);
   if (firstWordStart !== -1) {
     before = before.slice(firstWordStart + 1);
-  } // Compute the text after the highlight, ignoring the last "word", which might be cut.
+  }
 
-
+  // Compute the text after the highlight, ignoring the last "word", which might be cut.
   var after = text.slice(end, Math.min(text.length, end + snippetLength));
-  var lastWordEnd = Array.from(after.matchAll(/(?:[A-Za-z\xAA\xB5\xBA\xC0-\xD6\xD8-\xF6\xF8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0370-\u0374\u0376\u0377\u037A-\u037D\u037F\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u052F\u0531-\u0556\u0559\u0560-\u0588\u05D0-\u05EA\u05EF-\u05F2\u0620-\u064A\u066E\u066F\u0671-\u06D3\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0815\u081A\u0824\u0828\u0840-\u0858\u0860-\u086A\u0870-\u0887\u0889-\u088E\u08A0-\u08C9\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC\u09DD\u09DF-\u09E1\u09F0\u09F1\u09FC\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0\u0AE1\u0AF9\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D\u0B5C\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C39\u0C3D\u0C58-\u0C5A\u0C5D\u0C60\u0C61\u0C80\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDD\u0CDE\u0CE0\u0CE1\u0CF1\u0CF2\u0D04-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D\u0D4E\u0D54-\u0D56\u0D5F-\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0E01-\u0E30\u0E32\u0E33\u0E40-\u0E46\u0E81\u0E82\u0E84\u0E86-\u0E8A\u0E8C-\u0EA3\u0EA5\u0EA7-\u0EB0\u0EB2\u0EB3\u0EBD\u0EC0-\u0EC4\u0EC6\u0EDC-\u0EDF\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C\u1000-\u102A\u103F\u1050-\u1055\u105A-\u105D\u1061\u1065\u1066\u106E-\u1070\u1075-\u1081\u108E\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F5\u13F8-\u13FD\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16F1-\u16F8\u1700-\u1711\u171F-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1780-\u17B3\u17D7\u17DC\u1820-\u1878\u1880-\u1884\u1887-\u18A8\u18AA\u18B0-\u18F5\u1900-\u191E\u1950-\u196D\u1970-\u1974\u1980-\u19AB\u19B0-\u19C9\u1A00-\u1A16\u1A20-\u1A54\u1AA7\u1B05-\u1B33\u1B45-\u1B4C\u1B83-\u1BA0\u1BAE\u1BAF\u1BBA-\u1BE5\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1C80-\u1C88\u1C90-\u1CBA\u1CBD-\u1CBF\u1CE9-\u1CEC\u1CEE-\u1CF3\u1CF5\u1CF6\u1CFA\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2183\u2184\u2C00-\u2CE4\u2CEB-\u2CEE\u2CF2\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2E2F\u3005\u3006\u3031-\u3035\u303B\u303C\u3041-\u3096\u309D-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312F\u3131-\u318E\u31A0-\u31BF\u31F0-\u31FF\u3400-\u4DBF\u4E00-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA67F-\uA69D\uA6A0-\uA6E5\uA717-\uA71F\uA722-\uA788\uA78B-\uA7CA\uA7D0\uA7D1\uA7D3\uA7D5-\uA7D9\uA7F2-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA8F2-\uA8F7\uA8FB\uA8FD\uA8FE\uA90A-\uA925\uA930-\uA946\uA960-\uA97C\uA984-\uA9B2\uA9CF\uA9E0-\uA9E4\uA9E6-\uA9EF\uA9FA-\uA9FE\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAA60-\uAA76\uAA7A\uAA7E-\uAAAF\uAAB1\uAAB5\uAAB6\uAAB9-\uAABD\uAAC0\uAAC2\uAADB-\uAADD\uAAE0-\uAAEA\uAAF2-\uAAF4\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uAB30-\uAB5A\uAB5C-\uAB69\uAB70-\uABE2\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]|\uD800[\uDC00-\uDC0B\uDC0D-\uDC26\uDC28-\uDC3A\uDC3C\uDC3D\uDC3F-\uDC4D\uDC50-\uDC5D\uDC80-\uDCFA\uDE80-\uDE9C\uDEA0-\uDED0\uDF00-\uDF1F\uDF2D-\uDF40\uDF42-\uDF49\uDF50-\uDF75\uDF80-\uDF9D\uDFA0-\uDFC3\uDFC8-\uDFCF]|\uD801[\uDC00-\uDC9D\uDCB0-\uDCD3\uDCD8-\uDCFB\uDD00-\uDD27\uDD30-\uDD63\uDD70-\uDD7A\uDD7C-\uDD8A\uDD8C-\uDD92\uDD94\uDD95\uDD97-\uDDA1\uDDA3-\uDDB1\uDDB3-\uDDB9\uDDBB\uDDBC\uDE00-\uDF36\uDF40-\uDF55\uDF60-\uDF67\uDF80-\uDF85\uDF87-\uDFB0\uDFB2-\uDFBA]|\uD802[\uDC00-\uDC05\uDC08\uDC0A-\uDC35\uDC37\uDC38\uDC3C\uDC3F-\uDC55\uDC60-\uDC76\uDC80-\uDC9E\uDCE0-\uDCF2\uDCF4\uDCF5\uDD00-\uDD15\uDD20-\uDD39\uDD80-\uDDB7\uDDBE\uDDBF\uDE00\uDE10-\uDE13\uDE15-\uDE17\uDE19-\uDE35\uDE60-\uDE7C\uDE80-\uDE9C\uDEC0-\uDEC7\uDEC9-\uDEE4\uDF00-\uDF35\uDF40-\uDF55\uDF60-\uDF72\uDF80-\uDF91]|\uD803[\uDC00-\uDC48\uDC80-\uDCB2\uDCC0-\uDCF2\uDD00-\uDD23\uDE80-\uDEA9\uDEB0\uDEB1\uDF00-\uDF1C\uDF27\uDF30-\uDF45\uDF70-\uDF81\uDFB0-\uDFC4\uDFE0-\uDFF6]|\uD804[\uDC03-\uDC37\uDC71\uDC72\uDC75\uDC83-\uDCAF\uDCD0-\uDCE8\uDD03-\uDD26\uDD44\uDD47\uDD50-\uDD72\uDD76\uDD83-\uDDB2\uDDC1-\uDDC4\uDDDA\uDDDC\uDE00-\uDE11\uDE13-\uDE2B\uDE80-\uDE86\uDE88\uDE8A-\uDE8D\uDE8F-\uDE9D\uDE9F-\uDEA8\uDEB0-\uDEDE\uDF05-\uDF0C\uDF0F\uDF10\uDF13-\uDF28\uDF2A-\uDF30\uDF32\uDF33\uDF35-\uDF39\uDF3D\uDF50\uDF5D-\uDF61]|\uD805[\uDC00-\uDC34\uDC47-\uDC4A\uDC5F-\uDC61\uDC80-\uDCAF\uDCC4\uDCC5\uDCC7\uDD80-\uDDAE\uDDD8-\uDDDB\uDE00-\uDE2F\uDE44\uDE80-\uDEAA\uDEB8\uDF00-\uDF1A\uDF40-\uDF46]|\uD806[\uDC00-\uDC2B\uDCA0-\uDCDF\uDCFF-\uDD06\uDD09\uDD0C-\uDD13\uDD15\uDD16\uDD18-\uDD2F\uDD3F\uDD41\uDDA0-\uDDA7\uDDAA-\uDDD0\uDDE1\uDDE3\uDE00\uDE0B-\uDE32\uDE3A\uDE50\uDE5C-\uDE89\uDE9D\uDEB0-\uDEF8]|\uD807[\uDC00-\uDC08\uDC0A-\uDC2E\uDC40\uDC72-\uDC8F\uDD00-\uDD06\uDD08\uDD09\uDD0B-\uDD30\uDD46\uDD60-\uDD65\uDD67\uDD68\uDD6A-\uDD89\uDD98\uDEE0-\uDEF2\uDFB0]|\uD808[\uDC00-\uDF99]|\uD809[\uDC80-\uDD43]|\uD80B[\uDF90-\uDFF0]|[\uD80C\uD81C-\uD820\uD822\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872\uD874-\uD879\uD880-\uD883][\uDC00-\uDFFF]|\uD80D[\uDC00-\uDC2E]|\uD811[\uDC00-\uDE46]|\uD81A[\uDC00-\uDE38\uDE40-\uDE5E\uDE70-\uDEBE\uDED0-\uDEED\uDF00-\uDF2F\uDF40-\uDF43\uDF63-\uDF77\uDF7D-\uDF8F]|\uD81B[\uDE40-\uDE7F\uDF00-\uDF4A\uDF50\uDF93-\uDF9F\uDFE0\uDFE1\uDFE3]|\uD821[\uDC00-\uDFF7]|\uD823[\uDC00-\uDCD5\uDD00-\uDD08]|\uD82B[\uDFF0-\uDFF3\uDFF5-\uDFFB\uDFFD\uDFFE]|\uD82C[\uDC00-\uDD22\uDD50-\uDD52\uDD64-\uDD67\uDD70-\uDEFB]|\uD82F[\uDC00-\uDC6A\uDC70-\uDC7C\uDC80-\uDC88\uDC90-\uDC99]|\uD835[\uDC00-\uDC54\uDC56-\uDC9C\uDC9E\uDC9F\uDCA2\uDCA5\uDCA6\uDCA9-\uDCAC\uDCAE-\uDCB9\uDCBB\uDCBD-\uDCC3\uDCC5-\uDD05\uDD07-\uDD0A\uDD0D-\uDD14\uDD16-\uDD1C\uDD1E-\uDD39\uDD3B-\uDD3E\uDD40-\uDD44\uDD46\uDD4A-\uDD50\uDD52-\uDEA5\uDEA8-\uDEC0\uDEC2-\uDEDA\uDEDC-\uDEFA\uDEFC-\uDF14\uDF16-\uDF34\uDF36-\uDF4E\uDF50-\uDF6E\uDF70-\uDF88\uDF8A-\uDFA8\uDFAA-\uDFC2\uDFC4-\uDFCB]|\uD837[\uDF00-\uDF1E]|\uD838[\uDD00-\uDD2C\uDD37-\uDD3D\uDD4E\uDE90-\uDEAD\uDEC0-\uDEEB]|\uD839[\uDFE0-\uDFE6\uDFE8-\uDFEB\uDFED\uDFEE\uDFF0-\uDFFE]|\uD83A[\uDC00-\uDCC4\uDD00-\uDD43\uDD4B]|\uD83B[\uDE00-\uDE03\uDE05-\uDE1F\uDE21\uDE22\uDE24\uDE27\uDE29-\uDE32\uDE34-\uDE37\uDE39\uDE3B\uDE42\uDE47\uDE49\uDE4B\uDE4D-\uDE4F\uDE51\uDE52\uDE54\uDE57\uDE59\uDE5B\uDE5D\uDE5F\uDE61\uDE62\uDE64\uDE67-\uDE6A\uDE6C-\uDE72\uDE74-\uDE77\uDE79-\uDE7C\uDE7E\uDE80-\uDE89\uDE8B-\uDE9B\uDEA1-\uDEA3\uDEA5-\uDEA9\uDEAB-\uDEBB]|\uD869[\uDC00-\uDEDF\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF38\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1\uDEB0-\uDFFF]|\uD87A[\uDC00-\uDFE0]|\uD87E[\uDC00-\uDE1D]|\uD884[\uDC00-\uDF4A])(?:[\0-@\[-`\{-\xA9\xAB-\xB4\xB6-\xB9\xBB-\xBF\xD7\xF7\u02C2-\u02C5\u02D2-\u02DF\u02E5-\u02EB\u02ED\u02EF-\u036F\u0375\u0378\u0379\u037E\u0380-\u0385\u0387\u038B\u038D\u03A2\u03F6\u0482-\u0489\u0530\u0557\u0558\u055A-\u055F\u0589-\u05CF\u05EB-\u05EE\u05F3-\u061F\u064B-\u066D\u0670\u06D4\u06D6-\u06E4\u06E7-\u06ED\u06F0-\u06F9\u06FD\u06FE\u0700-\u070F\u0711\u0730-\u074C\u07A6-\u07B0\u07B2-\u07C9\u07EB-\u07F3\u07F6-\u07F9\u07FB-\u07FF\u0816-\u0819\u081B-\u0823\u0825-\u0827\u0829-\u083F\u0859-\u085F\u086B-\u086F\u0888\u088F-\u089F\u08CA-\u0903\u093A-\u093C\u093E-\u094F\u0951-\u0957\u0962-\u0970\u0981-\u0984\u098D\u098E\u0991\u0992\u09A9\u09B1\u09B3-\u09B5\u09BA-\u09BC\u09BE-\u09CD\u09CF-\u09DB\u09DE\u09E2-\u09EF\u09F2-\u09FB\u09FD-\u0A04\u0A0B-\u0A0E\u0A11\u0A12\u0A29\u0A31\u0A34\u0A37\u0A3A-\u0A58\u0A5D\u0A5F-\u0A71\u0A75-\u0A84\u0A8E\u0A92\u0AA9\u0AB1\u0AB4\u0ABA-\u0ABC\u0ABE-\u0ACF\u0AD1-\u0ADF\u0AE2-\u0AF8\u0AFA-\u0B04\u0B0D\u0B0E\u0B11\u0B12\u0B29\u0B31\u0B34\u0B3A-\u0B3C\u0B3E-\u0B5B\u0B5E\u0B62-\u0B70\u0B72-\u0B82\u0B84\u0B8B-\u0B8D\u0B91\u0B96-\u0B98\u0B9B\u0B9D\u0BA0-\u0BA2\u0BA5-\u0BA7\u0BAB-\u0BAD\u0BBA-\u0BCF\u0BD1-\u0C04\u0C0D\u0C11\u0C29\u0C3A-\u0C3C\u0C3E-\u0C57\u0C5B\u0C5C\u0C5E\u0C5F\u0C62-\u0C7F\u0C81-\u0C84\u0C8D\u0C91\u0CA9\u0CB4\u0CBA-\u0CBC\u0CBE-\u0CDC\u0CDF\u0CE2-\u0CF0\u0CF3-\u0D03\u0D0D\u0D11\u0D3B\u0D3C\u0D3E-\u0D4D\u0D4F-\u0D53\u0D57-\u0D5E\u0D62-\u0D79\u0D80-\u0D84\u0D97-\u0D99\u0DB2\u0DBC\u0DBE\u0DBF\u0DC7-\u0E00\u0E31\u0E34-\u0E3F\u0E47-\u0E80\u0E83\u0E85\u0E8B\u0EA4\u0EA6\u0EB1\u0EB4-\u0EBC\u0EBE\u0EBF\u0EC5\u0EC7-\u0EDB\u0EE0-\u0EFF\u0F01-\u0F3F\u0F48\u0F6D-\u0F87\u0F8D-\u0FFF\u102B-\u103E\u1040-\u104F\u1056-\u1059\u105E-\u1060\u1062-\u1064\u1067-\u106D\u1071-\u1074\u1082-\u108D\u108F-\u109F\u10C6\u10C8-\u10CC\u10CE\u10CF\u10FB\u1249\u124E\u124F\u1257\u1259\u125E\u125F\u1289\u128E\u128F\u12B1\u12B6\u12B7\u12BF\u12C1\u12C6\u12C7\u12D7\u1311\u1316\u1317\u135B-\u137F\u1390-\u139F\u13F6\u13F7\u13FE-\u1400\u166D\u166E\u1680\u169B-\u169F\u16EB-\u16F0\u16F9-\u16FF\u1712-\u171E\u1732-\u173F\u1752-\u175F\u176D\u1771-\u177F\u17B4-\u17D6\u17D8-\u17DB\u17DD-\u181F\u1879-\u187F\u1885\u1886\u18A9\u18AB-\u18AF\u18F6-\u18FF\u191F-\u194F\u196E\u196F\u1975-\u197F\u19AC-\u19AF\u19CA-\u19FF\u1A17-\u1A1F\u1A55-\u1AA6\u1AA8-\u1B04\u1B34-\u1B44\u1B4D-\u1B82\u1BA1-\u1BAD\u1BB0-\u1BB9\u1BE6-\u1BFF\u1C24-\u1C4C\u1C50-\u1C59\u1C7E\u1C7F\u1C89-\u1C8F\u1CBB\u1CBC\u1CC0-\u1CE8\u1CED\u1CF4\u1CF7-\u1CF9\u1CFB-\u1CFF\u1DC0-\u1DFF\u1F16\u1F17\u1F1E\u1F1F\u1F46\u1F47\u1F4E\u1F4F\u1F58\u1F5A\u1F5C\u1F5E\u1F7E\u1F7F\u1FB5\u1FBD\u1FBF-\u1FC1\u1FC5\u1FCD-\u1FCF\u1FD4\u1FD5\u1FDC-\u1FDF\u1FED-\u1FF1\u1FF5\u1FFD-\u2070\u2072-\u207E\u2080-\u208F\u209D-\u2101\u2103-\u2106\u2108\u2109\u2114\u2116-\u2118\u211E-\u2123\u2125\u2127\u2129\u212E\u213A\u213B\u2140-\u2144\u214A-\u214D\u214F-\u2182\u2185-\u2BFF\u2CE5-\u2CEA\u2CEF-\u2CF1\u2CF4-\u2CFF\u2D26\u2D28-\u2D2C\u2D2E\u2D2F\u2D68-\u2D6E\u2D70-\u2D7F\u2D97-\u2D9F\u2DA7\u2DAF\u2DB7\u2DBF\u2DC7\u2DCF\u2DD7\u2DDF-\u2E2E\u2E30-\u3004\u3007-\u3030\u3036-\u303A\u303D-\u3040\u3097-\u309C\u30A0\u30FB\u3100-\u3104\u3130\u318F-\u319F\u31C0-\u31EF\u3200-\u33FF\u4DC0-\u4DFF\uA48D-\uA4CF\uA4FE\uA4FF\uA60D-\uA60F\uA620-\uA629\uA62C-\uA63F\uA66F-\uA67E\uA69E\uA69F\uA6E6-\uA716\uA720\uA721\uA789\uA78A\uA7CB-\uA7CF\uA7D2\uA7D4\uA7DA-\uA7F1\uA802\uA806\uA80B\uA823-\uA83F\uA874-\uA881\uA8B4-\uA8F1\uA8F8-\uA8FA\uA8FC\uA8FF-\uA909\uA926-\uA92F\uA947-\uA95F\uA97D-\uA983\uA9B3-\uA9CE\uA9D0-\uA9DF\uA9E5\uA9F0-\uA9F9\uA9FF\uAA29-\uAA3F\uAA43\uAA4C-\uAA5F\uAA77-\uAA79\uAA7B-\uAA7D\uAAB0\uAAB2-\uAAB4\uAAB7\uAAB8\uAABE\uAABF\uAAC1\uAAC3-\uAADA\uAADE\uAADF\uAAEB-\uAAF1\uAAF5-\uAB00\uAB07\uAB08\uAB0F\uAB10\uAB17-\uAB1F\uAB27\uAB2F\uAB5B\uAB6A-\uAB6F\uABE3-\uABFF\uD7A4-\uD7AF\uD7C7-\uD7CA\uD7FC-\uD7FF\uE000-\uF8FF\uFA6E\uFA6F\uFADA-\uFAFF\uFB07-\uFB12\uFB18-\uFB1C\uFB1E\uFB29\uFB37\uFB3D\uFB3F\uFB42\uFB45\uFBB2-\uFBD2\uFD3E-\uFD4F\uFD90\uFD91\uFDC8-\uFDEF\uFDFC-\uFE6F\uFE75\uFEFD-\uFF20\uFF3B-\uFF40\uFF5B-\uFF65\uFFBF-\uFFC1\uFFC8\uFFC9\uFFD0\uFFD1\uFFD8\uFFD9\uFFDD-\uFFFF]|\uD800[\uDC0C\uDC27\uDC3B\uDC3E\uDC4E\uDC4F\uDC5E-\uDC7F\uDCFB-\uDE7F\uDE9D-\uDE9F\uDED1-\uDEFF\uDF20-\uDF2C\uDF41\uDF4A-\uDF4F\uDF76-\uDF7F\uDF9E\uDF9F\uDFC4-\uDFC7\uDFD0-\uDFFF]|\uD801[\uDC9E-\uDCAF\uDCD4-\uDCD7\uDCFC-\uDCFF\uDD28-\uDD2F\uDD64-\uDD6F\uDD7B\uDD8B\uDD93\uDD96\uDDA2\uDDB2\uDDBA\uDDBD-\uDDFF\uDF37-\uDF3F\uDF56-\uDF5F\uDF68-\uDF7F\uDF86\uDFB1\uDFBB-\uDFFF]|\uD802[\uDC06\uDC07\uDC09\uDC36\uDC39-\uDC3B\uDC3D\uDC3E\uDC56-\uDC5F\uDC77-\uDC7F\uDC9F-\uDCDF\uDCF3\uDCF6-\uDCFF\uDD16-\uDD1F\uDD3A-\uDD7F\uDDB8-\uDDBD\uDDC0-\uDDFF\uDE01-\uDE0F\uDE14\uDE18\uDE36-\uDE5F\uDE7D-\uDE7F\uDE9D-\uDEBF\uDEC8\uDEE5-\uDEFF\uDF36-\uDF3F\uDF56-\uDF5F\uDF73-\uDF7F\uDF92-\uDFFF]|\uD803[\uDC49-\uDC7F\uDCB3-\uDCBF\uDCF3-\uDCFF\uDD24-\uDE7F\uDEAA-\uDEAF\uDEB2-\uDEFF\uDF1D-\uDF26\uDF28-\uDF2F\uDF46-\uDF6F\uDF82-\uDFAF\uDFC5-\uDFDF\uDFF7-\uDFFF]|\uD804[\uDC00-\uDC02\uDC38-\uDC70\uDC73\uDC74\uDC76-\uDC82\uDCB0-\uDCCF\uDCE9-\uDD02\uDD27-\uDD43\uDD45\uDD46\uDD48-\uDD4F\uDD73-\uDD75\uDD77-\uDD82\uDDB3-\uDDC0\uDDC5-\uDDD9\uDDDB\uDDDD-\uDDFF\uDE12\uDE2C-\uDE7F\uDE87\uDE89\uDE8E\uDE9E\uDEA9-\uDEAF\uDEDF-\uDF04\uDF0D\uDF0E\uDF11\uDF12\uDF29\uDF31\uDF34\uDF3A-\uDF3C\uDF3E-\uDF4F\uDF51-\uDF5C\uDF62-\uDFFF]|\uD805[\uDC35-\uDC46\uDC4B-\uDC5E\uDC62-\uDC7F\uDCB0-\uDCC3\uDCC6\uDCC8-\uDD7F\uDDAF-\uDDD7\uDDDC-\uDDFF\uDE30-\uDE43\uDE45-\uDE7F\uDEAB-\uDEB7\uDEB9-\uDEFF\uDF1B-\uDF3F\uDF47-\uDFFF]|\uD806[\uDC2C-\uDC9F\uDCE0-\uDCFE\uDD07\uDD08\uDD0A\uDD0B\uDD14\uDD17\uDD30-\uDD3E\uDD40\uDD42-\uDD9F\uDDA8\uDDA9\uDDD1-\uDDE0\uDDE2\uDDE4-\uDDFF\uDE01-\uDE0A\uDE33-\uDE39\uDE3B-\uDE4F\uDE51-\uDE5B\uDE8A-\uDE9C\uDE9E-\uDEAF\uDEF9-\uDFFF]|\uD807[\uDC09\uDC2F-\uDC3F\uDC41-\uDC71\uDC90-\uDCFF\uDD07\uDD0A\uDD31-\uDD45\uDD47-\uDD5F\uDD66\uDD69\uDD8A-\uDD97\uDD99-\uDEDF\uDEF3-\uDFAF\uDFB1-\uDFFF]|\uD808[\uDF9A-\uDFFF]|\uD809[\uDC00-\uDC7F\uDD44-\uDFFF]|[\uD80A\uD80E-\uD810\uD812-\uD819\uD824-\uD82A\uD82D\uD82E\uD830-\uD834\uD836\uD83C-\uD83F\uD87B-\uD87D\uD87F\uD885-\uDBFF][\uDC00-\uDFFF]|\uD80B[\uDC00-\uDF8F\uDFF1-\uDFFF]|\uD80D[\uDC2F-\uDFFF]|\uD811[\uDE47-\uDFFF]|\uD81A[\uDE39-\uDE3F\uDE5F-\uDE6F\uDEBF-\uDECF\uDEEE-\uDEFF\uDF30-\uDF3F\uDF44-\uDF62\uDF78-\uDF7C\uDF90-\uDFFF]|\uD81B[\uDC00-\uDE3F\uDE80-\uDEFF\uDF4B-\uDF4F\uDF51-\uDF92\uDFA0-\uDFDF\uDFE2\uDFE4-\uDFFF]|\uD821[\uDFF8-\uDFFF]|\uD823[\uDCD6-\uDCFF\uDD09-\uDFFF]|\uD82B[\uDC00-\uDFEF\uDFF4\uDFFC\uDFFF]|\uD82C[\uDD23-\uDD4F\uDD53-\uDD63\uDD68-\uDD6F\uDEFC-\uDFFF]|\uD82F[\uDC6B-\uDC6F\uDC7D-\uDC7F\uDC89-\uDC8F\uDC9A-\uDFFF]|\uD835[\uDC55\uDC9D\uDCA0\uDCA1\uDCA3\uDCA4\uDCA7\uDCA8\uDCAD\uDCBA\uDCBC\uDCC4\uDD06\uDD0B\uDD0C\uDD15\uDD1D\uDD3A\uDD3F\uDD45\uDD47-\uDD49\uDD51\uDEA6\uDEA7\uDEC1\uDEDB\uDEFB\uDF15\uDF35\uDF4F\uDF6F\uDF89\uDFA9\uDFC3\uDFCC-\uDFFF]|\uD837[\uDC00-\uDEFF\uDF1F-\uDFFF]|\uD838[\uDC00-\uDCFF\uDD2D-\uDD36\uDD3E-\uDD4D\uDD4F-\uDE8F\uDEAE-\uDEBF\uDEEC-\uDFFF]|\uD839[\uDC00-\uDFDF\uDFE7\uDFEC\uDFEF\uDFFF]|\uD83A[\uDCC5-\uDCFF\uDD44-\uDD4A\uDD4C-\uDFFF]|\uD83B[\uDC00-\uDDFF\uDE04\uDE20\uDE23\uDE25\uDE26\uDE28\uDE33\uDE38\uDE3A\uDE3C-\uDE41\uDE43-\uDE46\uDE48\uDE4A\uDE4C\uDE50\uDE53\uDE55\uDE56\uDE58\uDE5A\uDE5C\uDE5E\uDE60\uDE63\uDE65\uDE66\uDE6B\uDE73\uDE78\uDE7D\uDE7F\uDE8A\uDE9C-\uDEA0\uDEA4\uDEAA\uDEBC-\uDFFF]|\uD869[\uDEE0-\uDEFF]|\uD86D[\uDF39-\uDF3F]|\uD86E[\uDC1E\uDC1F]|\uD873[\uDEA2-\uDEAF]|\uD87A[\uDFE1-\uDFFF]|\uD87E[\uDE1E-\uDFFF]|\uD884[\uDF4B-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])/g)).pop();
-
+  var lastWordEnd = Array.from(after.matchAll(/(?:[A-Za-z\xAA\xB5\xBA\xC0-\xD6\xD8-\xF6\xF8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0370-\u0374\u0376\u0377\u037A-\u037D\u037F\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u052F\u0531-\u0556\u0559\u0560-\u0588\u05D0-\u05EA\u05EF-\u05F2\u0620-\u064A\u066E\u066F\u0671-\u06D3\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0815\u081A\u0824\u0828\u0840-\u0858\u0860-\u086A\u0870-\u0887\u0889-\u088E\u08A0-\u08C9\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC\u09DD\u09DF-\u09E1\u09F0\u09F1\u09FC\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0\u0AE1\u0AF9\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D\u0B5C\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C39\u0C3D\u0C58-\u0C5A\u0C5D\u0C60\u0C61\u0C80\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDD\u0CDE\u0CE0\u0CE1\u0CF1\u0CF2\u0D04-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D\u0D4E\u0D54-\u0D56\u0D5F-\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0E01-\u0E30\u0E32\u0E33\u0E40-\u0E46\u0E81\u0E82\u0E84\u0E86-\u0E8A\u0E8C-\u0EA3\u0EA5\u0EA7-\u0EB0\u0EB2\u0EB3\u0EBD\u0EC0-\u0EC4\u0EC6\u0EDC-\u0EDF\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C\u1000-\u102A\u103F\u1050-\u1055\u105A-\u105D\u1061\u1065\u1066\u106E-\u1070\u1075-\u1081\u108E\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F5\u13F8-\u13FD\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16F1-\u16F8\u1700-\u1711\u171F-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1780-\u17B3\u17D7\u17DC\u1820-\u1878\u1880-\u1884\u1887-\u18A8\u18AA\u18B0-\u18F5\u1900-\u191E\u1950-\u196D\u1970-\u1974\u1980-\u19AB\u19B0-\u19C9\u1A00-\u1A16\u1A20-\u1A54\u1AA7\u1B05-\u1B33\u1B45-\u1B4C\u1B83-\u1BA0\u1BAE\u1BAF\u1BBA-\u1BE5\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1C80-\u1C88\u1C90-\u1CBA\u1CBD-\u1CBF\u1CE9-\u1CEC\u1CEE-\u1CF3\u1CF5\u1CF6\u1CFA\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2183\u2184\u2C00-\u2CE4\u2CEB-\u2CEE\u2CF2\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2E2F\u3005\u3006\u3031-\u3035\u303B\u303C\u3041-\u3096\u309D-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312F\u3131-\u318E\u31A0-\u31BF\u31F0-\u31FF\u3400-\u4DBF\u4E00-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA67F-\uA69D\uA6A0-\uA6E5\uA717-\uA71F\uA722-\uA788\uA78B-\uA7CA\uA7D0\uA7D1\uA7D3\uA7D5-\uA7D9\uA7F2-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA8F2-\uA8F7\uA8FB\uA8FD\uA8FE\uA90A-\uA925\uA930-\uA946\uA960-\uA97C\uA984-\uA9B2\uA9CF\uA9E0-\uA9E4\uA9E6-\uA9EF\uA9FA-\uA9FE\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAA60-\uAA76\uAA7A\uAA7E-\uAAAF\uAAB1\uAAB5\uAAB6\uAAB9-\uAABD\uAAC0\uAAC2\uAADB-\uAADD\uAAE0-\uAAEA\uAAF2-\uAAF4\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uAB30-\uAB5A\uAB5C-\uAB69\uAB70-\uABE2\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]|\uD800[\uDC00-\uDC0B\uDC0D-\uDC26\uDC28-\uDC3A\uDC3C\uDC3D\uDC3F-\uDC4D\uDC50-\uDC5D\uDC80-\uDCFA\uDE80-\uDE9C\uDEA0-\uDED0\uDF00-\uDF1F\uDF2D-\uDF40\uDF42-\uDF49\uDF50-\uDF75\uDF80-\uDF9D\uDFA0-\uDFC3\uDFC8-\uDFCF]|\uD801[\uDC00-\uDC9D\uDCB0-\uDCD3\uDCD8-\uDCFB\uDD00-\uDD27\uDD30-\uDD63\uDD70-\uDD7A\uDD7C-\uDD8A\uDD8C-\uDD92\uDD94\uDD95\uDD97-\uDDA1\uDDA3-\uDDB1\uDDB3-\uDDB9\uDDBB\uDDBC\uDE00-\uDF36\uDF40-\uDF55\uDF60-\uDF67\uDF80-\uDF85\uDF87-\uDFB0\uDFB2-\uDFBA]|\uD802[\uDC00-\uDC05\uDC08\uDC0A-\uDC35\uDC37\uDC38\uDC3C\uDC3F-\uDC55\uDC60-\uDC76\uDC80-\uDC9E\uDCE0-\uDCF2\uDCF4\uDCF5\uDD00-\uDD15\uDD20-\uDD39\uDD80-\uDDB7\uDDBE\uDDBF\uDE00\uDE10-\uDE13\uDE15-\uDE17\uDE19-\uDE35\uDE60-\uDE7C\uDE80-\uDE9C\uDEC0-\uDEC7\uDEC9-\uDEE4\uDF00-\uDF35\uDF40-\uDF55\uDF60-\uDF72\uDF80-\uDF91]|\uD803[\uDC00-\uDC48\uDC80-\uDCB2\uDCC0-\uDCF2\uDD00-\uDD23\uDE80-\uDEA9\uDEB0\uDEB1\uDF00-\uDF1C\uDF27\uDF30-\uDF45\uDF70-\uDF81\uDFB0-\uDFC4\uDFE0-\uDFF6]|\uD804[\uDC03-\uDC37\uDC71\uDC72\uDC75\uDC83-\uDCAF\uDCD0-\uDCE8\uDD03-\uDD26\uDD44\uDD47\uDD50-\uDD72\uDD76\uDD83-\uDDB2\uDDC1-\uDDC4\uDDDA\uDDDC\uDE00-\uDE11\uDE13-\uDE2B\uDE3F\uDE40\uDE80-\uDE86\uDE88\uDE8A-\uDE8D\uDE8F-\uDE9D\uDE9F-\uDEA8\uDEB0-\uDEDE\uDF05-\uDF0C\uDF0F\uDF10\uDF13-\uDF28\uDF2A-\uDF30\uDF32\uDF33\uDF35-\uDF39\uDF3D\uDF50\uDF5D-\uDF61]|\uD805[\uDC00-\uDC34\uDC47-\uDC4A\uDC5F-\uDC61\uDC80-\uDCAF\uDCC4\uDCC5\uDCC7\uDD80-\uDDAE\uDDD8-\uDDDB\uDE00-\uDE2F\uDE44\uDE80-\uDEAA\uDEB8\uDF00-\uDF1A\uDF40-\uDF46]|\uD806[\uDC00-\uDC2B\uDCA0-\uDCDF\uDCFF-\uDD06\uDD09\uDD0C-\uDD13\uDD15\uDD16\uDD18-\uDD2F\uDD3F\uDD41\uDDA0-\uDDA7\uDDAA-\uDDD0\uDDE1\uDDE3\uDE00\uDE0B-\uDE32\uDE3A\uDE50\uDE5C-\uDE89\uDE9D\uDEB0-\uDEF8]|\uD807[\uDC00-\uDC08\uDC0A-\uDC2E\uDC40\uDC72-\uDC8F\uDD00-\uDD06\uDD08\uDD09\uDD0B-\uDD30\uDD46\uDD60-\uDD65\uDD67\uDD68\uDD6A-\uDD89\uDD98\uDEE0-\uDEF2\uDF02\uDF04-\uDF10\uDF12-\uDF33\uDFB0]|\uD808[\uDC00-\uDF99]|\uD809[\uDC80-\uDD43]|\uD80B[\uDF90-\uDFF0]|[\uD80C\uD81C-\uD820\uD822\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872\uD874-\uD879\uD880-\uD883\uD885-\uD887][\uDC00-\uDFFF]|\uD80D[\uDC00-\uDC2F\uDC41-\uDC46]|\uD811[\uDC00-\uDE46]|\uD81A[\uDC00-\uDE38\uDE40-\uDE5E\uDE70-\uDEBE\uDED0-\uDEED\uDF00-\uDF2F\uDF40-\uDF43\uDF63-\uDF77\uDF7D-\uDF8F]|\uD81B[\uDE40-\uDE7F\uDF00-\uDF4A\uDF50\uDF93-\uDF9F\uDFE0\uDFE1\uDFE3]|\uD821[\uDC00-\uDFF7]|\uD823[\uDC00-\uDCD5\uDD00-\uDD08]|\uD82B[\uDFF0-\uDFF3\uDFF5-\uDFFB\uDFFD\uDFFE]|\uD82C[\uDC00-\uDD22\uDD32\uDD50-\uDD52\uDD55\uDD64-\uDD67\uDD70-\uDEFB]|\uD82F[\uDC00-\uDC6A\uDC70-\uDC7C\uDC80-\uDC88\uDC90-\uDC99]|\uD835[\uDC00-\uDC54\uDC56-\uDC9C\uDC9E\uDC9F\uDCA2\uDCA5\uDCA6\uDCA9-\uDCAC\uDCAE-\uDCB9\uDCBB\uDCBD-\uDCC3\uDCC5-\uDD05\uDD07-\uDD0A\uDD0D-\uDD14\uDD16-\uDD1C\uDD1E-\uDD39\uDD3B-\uDD3E\uDD40-\uDD44\uDD46\uDD4A-\uDD50\uDD52-\uDEA5\uDEA8-\uDEC0\uDEC2-\uDEDA\uDEDC-\uDEFA\uDEFC-\uDF14\uDF16-\uDF34\uDF36-\uDF4E\uDF50-\uDF6E\uDF70-\uDF88\uDF8A-\uDFA8\uDFAA-\uDFC2\uDFC4-\uDFCB]|\uD837[\uDF00-\uDF1E\uDF25-\uDF2A]|\uD838[\uDC30-\uDC6D\uDD00-\uDD2C\uDD37-\uDD3D\uDD4E\uDE90-\uDEAD\uDEC0-\uDEEB]|\uD839[\uDCD0-\uDCEB\uDFE0-\uDFE6\uDFE8-\uDFEB\uDFED\uDFEE\uDFF0-\uDFFE]|\uD83A[\uDC00-\uDCC4\uDD00-\uDD43\uDD4B]|\uD83B[\uDE00-\uDE03\uDE05-\uDE1F\uDE21\uDE22\uDE24\uDE27\uDE29-\uDE32\uDE34-\uDE37\uDE39\uDE3B\uDE42\uDE47\uDE49\uDE4B\uDE4D-\uDE4F\uDE51\uDE52\uDE54\uDE57\uDE59\uDE5B\uDE5D\uDE5F\uDE61\uDE62\uDE64\uDE67-\uDE6A\uDE6C-\uDE72\uDE74-\uDE77\uDE79-\uDE7C\uDE7E\uDE80-\uDE89\uDE8B-\uDE9B\uDEA1-\uDEA3\uDEA5-\uDEA9\uDEAB-\uDEBB]|\uD869[\uDC00-\uDEDF\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF39\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1\uDEB0-\uDFFF]|\uD87A[\uDC00-\uDFE0]|\uD87E[\uDC00-\uDE1D]|\uD884[\uDC00-\uDF4A\uDF50-\uDFFF]|\uD888[\uDC00-\uDFAF])(?:[\0-@\[-`\{-\xA9\xAB-\xB4\xB6-\xB9\xBB-\xBF\xD7\xF7\u02C2-\u02C5\u02D2-\u02DF\u02E5-\u02EB\u02ED\u02EF-\u036F\u0375\u0378\u0379\u037E\u0380-\u0385\u0387\u038B\u038D\u03A2\u03F6\u0482-\u0489\u0530\u0557\u0558\u055A-\u055F\u0589-\u05CF\u05EB-\u05EE\u05F3-\u061F\u064B-\u066D\u0670\u06D4\u06D6-\u06E4\u06E7-\u06ED\u06F0-\u06F9\u06FD\u06FE\u0700-\u070F\u0711\u0730-\u074C\u07A6-\u07B0\u07B2-\u07C9\u07EB-\u07F3\u07F6-\u07F9\u07FB-\u07FF\u0816-\u0819\u081B-\u0823\u0825-\u0827\u0829-\u083F\u0859-\u085F\u086B-\u086F\u0888\u088F-\u089F\u08CA-\u0903\u093A-\u093C\u093E-\u094F\u0951-\u0957\u0962-\u0970\u0981-\u0984\u098D\u098E\u0991\u0992\u09A9\u09B1\u09B3-\u09B5\u09BA-\u09BC\u09BE-\u09CD\u09CF-\u09DB\u09DE\u09E2-\u09EF\u09F2-\u09FB\u09FD-\u0A04\u0A0B-\u0A0E\u0A11\u0A12\u0A29\u0A31\u0A34\u0A37\u0A3A-\u0A58\u0A5D\u0A5F-\u0A71\u0A75-\u0A84\u0A8E\u0A92\u0AA9\u0AB1\u0AB4\u0ABA-\u0ABC\u0ABE-\u0ACF\u0AD1-\u0ADF\u0AE2-\u0AF8\u0AFA-\u0B04\u0B0D\u0B0E\u0B11\u0B12\u0B29\u0B31\u0B34\u0B3A-\u0B3C\u0B3E-\u0B5B\u0B5E\u0B62-\u0B70\u0B72-\u0B82\u0B84\u0B8B-\u0B8D\u0B91\u0B96-\u0B98\u0B9B\u0B9D\u0BA0-\u0BA2\u0BA5-\u0BA7\u0BAB-\u0BAD\u0BBA-\u0BCF\u0BD1-\u0C04\u0C0D\u0C11\u0C29\u0C3A-\u0C3C\u0C3E-\u0C57\u0C5B\u0C5C\u0C5E\u0C5F\u0C62-\u0C7F\u0C81-\u0C84\u0C8D\u0C91\u0CA9\u0CB4\u0CBA-\u0CBC\u0CBE-\u0CDC\u0CDF\u0CE2-\u0CF0\u0CF3-\u0D03\u0D0D\u0D11\u0D3B\u0D3C\u0D3E-\u0D4D\u0D4F-\u0D53\u0D57-\u0D5E\u0D62-\u0D79\u0D80-\u0D84\u0D97-\u0D99\u0DB2\u0DBC\u0DBE\u0DBF\u0DC7-\u0E00\u0E31\u0E34-\u0E3F\u0E47-\u0E80\u0E83\u0E85\u0E8B\u0EA4\u0EA6\u0EB1\u0EB4-\u0EBC\u0EBE\u0EBF\u0EC5\u0EC7-\u0EDB\u0EE0-\u0EFF\u0F01-\u0F3F\u0F48\u0F6D-\u0F87\u0F8D-\u0FFF\u102B-\u103E\u1040-\u104F\u1056-\u1059\u105E-\u1060\u1062-\u1064\u1067-\u106D\u1071-\u1074\u1082-\u108D\u108F-\u109F\u10C6\u10C8-\u10CC\u10CE\u10CF\u10FB\u1249\u124E\u124F\u1257\u1259\u125E\u125F\u1289\u128E\u128F\u12B1\u12B6\u12B7\u12BF\u12C1\u12C6\u12C7\u12D7\u1311\u1316\u1317\u135B-\u137F\u1390-\u139F\u13F6\u13F7\u13FE-\u1400\u166D\u166E\u1680\u169B-\u169F\u16EB-\u16F0\u16F9-\u16FF\u1712-\u171E\u1732-\u173F\u1752-\u175F\u176D\u1771-\u177F\u17B4-\u17D6\u17D8-\u17DB\u17DD-\u181F\u1879-\u187F\u1885\u1886\u18A9\u18AB-\u18AF\u18F6-\u18FF\u191F-\u194F\u196E\u196F\u1975-\u197F\u19AC-\u19AF\u19CA-\u19FF\u1A17-\u1A1F\u1A55-\u1AA6\u1AA8-\u1B04\u1B34-\u1B44\u1B4D-\u1B82\u1BA1-\u1BAD\u1BB0-\u1BB9\u1BE6-\u1BFF\u1C24-\u1C4C\u1C50-\u1C59\u1C7E\u1C7F\u1C89-\u1C8F\u1CBB\u1CBC\u1CC0-\u1CE8\u1CED\u1CF4\u1CF7-\u1CF9\u1CFB-\u1CFF\u1DC0-\u1DFF\u1F16\u1F17\u1F1E\u1F1F\u1F46\u1F47\u1F4E\u1F4F\u1F58\u1F5A\u1F5C\u1F5E\u1F7E\u1F7F\u1FB5\u1FBD\u1FBF-\u1FC1\u1FC5\u1FCD-\u1FCF\u1FD4\u1FD5\u1FDC-\u1FDF\u1FED-\u1FF1\u1FF5\u1FFD-\u2070\u2072-\u207E\u2080-\u208F\u209D-\u2101\u2103-\u2106\u2108\u2109\u2114\u2116-\u2118\u211E-\u2123\u2125\u2127\u2129\u212E\u213A\u213B\u2140-\u2144\u214A-\u214D\u214F-\u2182\u2185-\u2BFF\u2CE5-\u2CEA\u2CEF-\u2CF1\u2CF4-\u2CFF\u2D26\u2D28-\u2D2C\u2D2E\u2D2F\u2D68-\u2D6E\u2D70-\u2D7F\u2D97-\u2D9F\u2DA7\u2DAF\u2DB7\u2DBF\u2DC7\u2DCF\u2DD7\u2DDF-\u2E2E\u2E30-\u3004\u3007-\u3030\u3036-\u303A\u303D-\u3040\u3097-\u309C\u30A0\u30FB\u3100-\u3104\u3130\u318F-\u319F\u31C0-\u31EF\u3200-\u33FF\u4DC0-\u4DFF\uA48D-\uA4CF\uA4FE\uA4FF\uA60D-\uA60F\uA620-\uA629\uA62C-\uA63F\uA66F-\uA67E\uA69E\uA69F\uA6E6-\uA716\uA720\uA721\uA789\uA78A\uA7CB-\uA7CF\uA7D2\uA7D4\uA7DA-\uA7F1\uA802\uA806\uA80B\uA823-\uA83F\uA874-\uA881\uA8B4-\uA8F1\uA8F8-\uA8FA\uA8FC\uA8FF-\uA909\uA926-\uA92F\uA947-\uA95F\uA97D-\uA983\uA9B3-\uA9CE\uA9D0-\uA9DF\uA9E5\uA9F0-\uA9F9\uA9FF\uAA29-\uAA3F\uAA43\uAA4C-\uAA5F\uAA77-\uAA79\uAA7B-\uAA7D\uAAB0\uAAB2-\uAAB4\uAAB7\uAAB8\uAABE\uAABF\uAAC1\uAAC3-\uAADA\uAADE\uAADF\uAAEB-\uAAF1\uAAF5-\uAB00\uAB07\uAB08\uAB0F\uAB10\uAB17-\uAB1F\uAB27\uAB2F\uAB5B\uAB6A-\uAB6F\uABE3-\uABFF\uD7A4-\uD7AF\uD7C7-\uD7CA\uD7FC-\uD7FF\uE000-\uF8FF\uFA6E\uFA6F\uFADA-\uFAFF\uFB07-\uFB12\uFB18-\uFB1C\uFB1E\uFB29\uFB37\uFB3D\uFB3F\uFB42\uFB45\uFBB2-\uFBD2\uFD3E-\uFD4F\uFD90\uFD91\uFDC8-\uFDEF\uFDFC-\uFE6F\uFE75\uFEFD-\uFF20\uFF3B-\uFF40\uFF5B-\uFF65\uFFBF-\uFFC1\uFFC8\uFFC9\uFFD0\uFFD1\uFFD8\uFFD9\uFFDD-\uFFFF]|\uD800[\uDC0C\uDC27\uDC3B\uDC3E\uDC4E\uDC4F\uDC5E-\uDC7F\uDCFB-\uDE7F\uDE9D-\uDE9F\uDED1-\uDEFF\uDF20-\uDF2C\uDF41\uDF4A-\uDF4F\uDF76-\uDF7F\uDF9E\uDF9F\uDFC4-\uDFC7\uDFD0-\uDFFF]|\uD801[\uDC9E-\uDCAF\uDCD4-\uDCD7\uDCFC-\uDCFF\uDD28-\uDD2F\uDD64-\uDD6F\uDD7B\uDD8B\uDD93\uDD96\uDDA2\uDDB2\uDDBA\uDDBD-\uDDFF\uDF37-\uDF3F\uDF56-\uDF5F\uDF68-\uDF7F\uDF86\uDFB1\uDFBB-\uDFFF]|\uD802[\uDC06\uDC07\uDC09\uDC36\uDC39-\uDC3B\uDC3D\uDC3E\uDC56-\uDC5F\uDC77-\uDC7F\uDC9F-\uDCDF\uDCF3\uDCF6-\uDCFF\uDD16-\uDD1F\uDD3A-\uDD7F\uDDB8-\uDDBD\uDDC0-\uDDFF\uDE01-\uDE0F\uDE14\uDE18\uDE36-\uDE5F\uDE7D-\uDE7F\uDE9D-\uDEBF\uDEC8\uDEE5-\uDEFF\uDF36-\uDF3F\uDF56-\uDF5F\uDF73-\uDF7F\uDF92-\uDFFF]|\uD803[\uDC49-\uDC7F\uDCB3-\uDCBF\uDCF3-\uDCFF\uDD24-\uDE7F\uDEAA-\uDEAF\uDEB2-\uDEFF\uDF1D-\uDF26\uDF28-\uDF2F\uDF46-\uDF6F\uDF82-\uDFAF\uDFC5-\uDFDF\uDFF7-\uDFFF]|\uD804[\uDC00-\uDC02\uDC38-\uDC70\uDC73\uDC74\uDC76-\uDC82\uDCB0-\uDCCF\uDCE9-\uDD02\uDD27-\uDD43\uDD45\uDD46\uDD48-\uDD4F\uDD73-\uDD75\uDD77-\uDD82\uDDB3-\uDDC0\uDDC5-\uDDD9\uDDDB\uDDDD-\uDDFF\uDE12\uDE2C-\uDE3E\uDE41-\uDE7F\uDE87\uDE89\uDE8E\uDE9E\uDEA9-\uDEAF\uDEDF-\uDF04\uDF0D\uDF0E\uDF11\uDF12\uDF29\uDF31\uDF34\uDF3A-\uDF3C\uDF3E-\uDF4F\uDF51-\uDF5C\uDF62-\uDFFF]|\uD805[\uDC35-\uDC46\uDC4B-\uDC5E\uDC62-\uDC7F\uDCB0-\uDCC3\uDCC6\uDCC8-\uDD7F\uDDAF-\uDDD7\uDDDC-\uDDFF\uDE30-\uDE43\uDE45-\uDE7F\uDEAB-\uDEB7\uDEB9-\uDEFF\uDF1B-\uDF3F\uDF47-\uDFFF]|\uD806[\uDC2C-\uDC9F\uDCE0-\uDCFE\uDD07\uDD08\uDD0A\uDD0B\uDD14\uDD17\uDD30-\uDD3E\uDD40\uDD42-\uDD9F\uDDA8\uDDA9\uDDD1-\uDDE0\uDDE2\uDDE4-\uDDFF\uDE01-\uDE0A\uDE33-\uDE39\uDE3B-\uDE4F\uDE51-\uDE5B\uDE8A-\uDE9C\uDE9E-\uDEAF\uDEF9-\uDFFF]|\uD807[\uDC09\uDC2F-\uDC3F\uDC41-\uDC71\uDC90-\uDCFF\uDD07\uDD0A\uDD31-\uDD45\uDD47-\uDD5F\uDD66\uDD69\uDD8A-\uDD97\uDD99-\uDEDF\uDEF3-\uDF01\uDF03\uDF11\uDF34-\uDFAF\uDFB1-\uDFFF]|\uD808[\uDF9A-\uDFFF]|\uD809[\uDC00-\uDC7F\uDD44-\uDFFF]|[\uD80A\uD80E-\uD810\uD812-\uD819\uD824-\uD82A\uD82D\uD82E\uD830-\uD834\uD836\uD83C-\uD83F\uD87B-\uD87D\uD87F\uD889-\uDBFF][\uDC00-\uDFFF]|\uD80B[\uDC00-\uDF8F\uDFF1-\uDFFF]|\uD80D[\uDC30-\uDC40\uDC47-\uDFFF]|\uD811[\uDE47-\uDFFF]|\uD81A[\uDE39-\uDE3F\uDE5F-\uDE6F\uDEBF-\uDECF\uDEEE-\uDEFF\uDF30-\uDF3F\uDF44-\uDF62\uDF78-\uDF7C\uDF90-\uDFFF]|\uD81B[\uDC00-\uDE3F\uDE80-\uDEFF\uDF4B-\uDF4F\uDF51-\uDF92\uDFA0-\uDFDF\uDFE2\uDFE4-\uDFFF]|\uD821[\uDFF8-\uDFFF]|\uD823[\uDCD6-\uDCFF\uDD09-\uDFFF]|\uD82B[\uDC00-\uDFEF\uDFF4\uDFFC\uDFFF]|\uD82C[\uDD23-\uDD31\uDD33-\uDD4F\uDD53\uDD54\uDD56-\uDD63\uDD68-\uDD6F\uDEFC-\uDFFF]|\uD82F[\uDC6B-\uDC6F\uDC7D-\uDC7F\uDC89-\uDC8F\uDC9A-\uDFFF]|\uD835[\uDC55\uDC9D\uDCA0\uDCA1\uDCA3\uDCA4\uDCA7\uDCA8\uDCAD\uDCBA\uDCBC\uDCC4\uDD06\uDD0B\uDD0C\uDD15\uDD1D\uDD3A\uDD3F\uDD45\uDD47-\uDD49\uDD51\uDEA6\uDEA7\uDEC1\uDEDB\uDEFB\uDF15\uDF35\uDF4F\uDF6F\uDF89\uDFA9\uDFC3\uDFCC-\uDFFF]|\uD837[\uDC00-\uDEFF\uDF1F-\uDF24\uDF2B-\uDFFF]|\uD838[\uDC00-\uDC2F\uDC6E-\uDCFF\uDD2D-\uDD36\uDD3E-\uDD4D\uDD4F-\uDE8F\uDEAE-\uDEBF\uDEEC-\uDFFF]|\uD839[\uDC00-\uDCCF\uDCEC-\uDFDF\uDFE7\uDFEC\uDFEF\uDFFF]|\uD83A[\uDCC5-\uDCFF\uDD44-\uDD4A\uDD4C-\uDFFF]|\uD83B[\uDC00-\uDDFF\uDE04\uDE20\uDE23\uDE25\uDE26\uDE28\uDE33\uDE38\uDE3A\uDE3C-\uDE41\uDE43-\uDE46\uDE48\uDE4A\uDE4C\uDE50\uDE53\uDE55\uDE56\uDE58\uDE5A\uDE5C\uDE5E\uDE60\uDE63\uDE65\uDE66\uDE6B\uDE73\uDE78\uDE7D\uDE7F\uDE8A\uDE9C-\uDEA0\uDEA4\uDEAA\uDEBC-\uDFFF]|\uD869[\uDEE0-\uDEFF]|\uD86D[\uDF3A-\uDF3F]|\uD86E[\uDC1E\uDC1F]|\uD873[\uDEA2-\uDEAF]|\uD87A[\uDFE1-\uDFFF]|\uD87E[\uDE1E-\uDFFF]|\uD884[\uDF4B-\uDF4F]|\uD888[\uDFB0-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])/g)).pop();
   if (lastWordEnd !== undefined && lastWordEnd.index > 1) {
     after = after.slice(0, lastWordEnd.index + 1);
   }
-
   return {
     highlight,
     before,
     after
   };
 }
-
 function createOrderedRange(startNode, startOffset, endNode, endOffset) {
   var range = new Range();
   range.setStart(startNode, startOffset);
   range.setEnd(endNode, endOffset);
-
   if (!range.collapsed) {
     return range;
   }
-
   log(">>> createOrderedRange COLLAPSED ... RANGE REVERSE?");
   var rangeReverse = new Range();
   rangeReverse.setStart(endNode, endOffset);
   rangeReverse.setEnd(startNode, startOffset);
-
   if (!rangeReverse.collapsed) {
     log(">>> createOrderedRange RANGE REVERSE OK.");
     return range;
   }
-
   log(">>> createOrderedRange RANGE REVERSE ALSO COLLAPSED?!");
   return undefined;
 }
-
 function convertRangeInfo(document, rangeInfo) {
   var startElement = document.querySelector(rangeInfo.startContainerElementCssSelector);
-
   if (!startElement) {
     log("^^^ convertRangeInfo NO START ELEMENT CSS SELECTOR?!");
     return undefined;
   }
-
   var startContainer = startElement;
-
   if (rangeInfo.startContainerChildTextNodeIndex >= 0) {
     if (rangeInfo.startContainerChildTextNodeIndex >= startElement.childNodes.length) {
       log("^^^ convertRangeInfo rangeInfo.startContainerChildTextNodeIndex >= startElement.childNodes.length?!");
       return undefined;
     }
-
     startContainer = startElement.childNodes[rangeInfo.startContainerChildTextNodeIndex];
-
     if (startContainer.nodeType !== Node.TEXT_NODE) {
       log("^^^ convertRangeInfo startContainer.nodeType !== Node.TEXT_NODE?!");
       return undefined;
     }
   }
-
   var endElement = document.querySelector(rangeInfo.endContainerElementCssSelector);
-
   if (!endElement) {
     log("^^^ convertRangeInfo NO END ELEMENT CSS SELECTOR?!");
     return undefined;
   }
-
   var endContainer = endElement;
-
   if (rangeInfo.endContainerChildTextNodeIndex >= 0) {
     if (rangeInfo.endContainerChildTextNodeIndex >= endElement.childNodes.length) {
       log("^^^ convertRangeInfo rangeInfo.endContainerChildTextNodeIndex >= endElement.childNodes.length?!");
       return undefined;
     }
-
     endContainer = endElement.childNodes[rangeInfo.endContainerChildTextNodeIndex];
-
     if (endContainer.nodeType !== Node.TEXT_NODE) {
       log("^^^ convertRangeInfo endContainer.nodeType !== Node.TEXT_NODE?!");
       return undefined;
     }
   }
-
   return createOrderedRange(startContainer, rangeInfo.startOffset, endContainer, rangeInfo.endOffset);
 }
 function location2RangeInfo(location) {
@@ -2502,7 +2365,6 @@ function location2RangeInfo(location) {
     startOffset: start.offset
   };
 }
-
 function log() {
   if (debug) {
     _utils__WEBPACK_IMPORTED_MODULE_0__.log.apply(null, arguments);
@@ -2522,17 +2384,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "getColumnCountPerScreen": () => (/* binding */ getColumnCountPerScreen),
 /* harmony export */   "isScrollModeEnabled": () => (/* binding */ isScrollModeEnabled),
+/* harmony export */   "log": () => (/* binding */ log),
+/* harmony export */   "logError": () => (/* binding */ logError),
+/* harmony export */   "logErrorMessage": () => (/* binding */ logErrorMessage),
+/* harmony export */   "rangeFromLocator": () => (/* binding */ rangeFromLocator),
+/* harmony export */   "removeProperty": () => (/* binding */ removeProperty),
+/* harmony export */   "scrollLeft": () => (/* binding */ scrollLeft),
+/* harmony export */   "scrollRight": () => (/* binding */ scrollRight),
 /* harmony export */   "scrollToId": () => (/* binding */ scrollToId),
 /* harmony export */   "scrollToPosition": () => (/* binding */ scrollToPosition),
 /* harmony export */   "scrollToText": () => (/* binding */ scrollToText),
-/* harmony export */   "scrollLeft": () => (/* binding */ scrollLeft),
-/* harmony export */   "scrollRight": () => (/* binding */ scrollRight),
-/* harmony export */   "rangeFromLocator": () => (/* binding */ rangeFromLocator),
-/* harmony export */   "setProperty": () => (/* binding */ setProperty),
-/* harmony export */   "removeProperty": () => (/* binding */ removeProperty),
-/* harmony export */   "log": () => (/* binding */ log),
-/* harmony export */   "logErrorMessage": () => (/* binding */ logErrorMessage),
-/* harmony export */   "logError": () => (/* binding */ logError)
+/* harmony export */   "setCSSProperties": () => (/* binding */ setCSSProperties),
+/* harmony export */   "setProperty": () => (/* binding */ setProperty)
 /* harmony export */ });
 /* harmony import */ var _vendor_hypothesis_anchoring_types__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./vendor/hypothesis/anchoring/types */ "./src/vendor/hypothesis/anchoring/types.js");
 /* harmony import */ var _selection__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./selection */ "./src/selection.js");
@@ -2541,7 +2404,9 @@ __webpack_require__.r(__webpack_exports__);
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
+
 // Catch JS errors to log them in the app.
+
 
 
 window.addEventListener("error", function (event) {
@@ -2550,39 +2415,38 @@ window.addEventListener("error", function (event) {
     filename: event.filename,
     line: event.lineno
   });
-}, false); // Notify native code that the page has loaded.
+}, false);
 
+// Notify native code that the page has loaded.
 window.addEventListener("load", function () {
   var observer = new ResizeObserver(() => {
     appendVirtualColumnIfNeeded();
   });
-  observer.observe(document.body); // on page load
+  observer.observe(document.body);
 
+  // on page load
   window.addEventListener("orientationchange", function () {
     orientationChanged();
     snapCurrentPosition();
   });
   orientationChanged();
 }, false);
+
 /**
  * Having an odd number of columns when displaying two columns per screen causes snapping and page
  * turning issues. To fix this, we insert a blank virtual column at the end of the resource.
  */
-
 function appendVirtualColumnIfNeeded() {
   var id = "readium-virtual-page";
   var virtualCol = document.getElementById(id);
-
   if (isScrollModeEnabled() || getColumnCountPerScreen() != 2) {
     var _virtualCol;
-
     (_virtualCol = virtualCol) === null || _virtualCol === void 0 ? void 0 : _virtualCol.remove();
   } else {
     var documentWidth = document.scrollingElement.scrollWidth;
     var pageWidth = window.innerWidth;
     var colCount = documentWidth / pageWidth;
     var hasOddColCount = Math.round(colCount * 2) / 2 % 1 > 0.1;
-
     if (hasOddColCount) {
       if (virtualCol) {
         virtualCol.remove();
@@ -2591,118 +2455,109 @@ function appendVirtualColumnIfNeeded() {
         virtualCol.setAttribute("id", id);
         virtualCol.style.breakBefore = "column";
         virtualCol.innerHTML = "&#8203;"; // zero-width space
-
         document.body.appendChild(virtualCol);
       }
     }
   }
 }
-
 var last_known_scrollX_position = 0;
 var last_known_scrollY_position = 0;
 var ticking = false;
-var maxScreenX = 0; // Position in range [0 - 1].
+var maxScreenX = 0;
 
+// Position in range [0 - 1].
 function update(position) {
   var positionString = position.toString();
   webkit.messageHandlers.progressionChanged.postMessage(positionString);
 }
-
 window.addEventListener("scroll", function () {
-  last_known_scrollY_position = window.scrollY / document.scrollingElement.scrollHeight; // Using Math.abs because for RTL books, the value will be negative.
+  last_known_scrollY_position = window.scrollY / document.scrollingElement.scrollHeight;
+  // Using Math.abs because for RTL books, the value will be negative.
+  last_known_scrollX_position = Math.abs(window.scrollX / document.scrollingElement.scrollWidth);
 
-  last_known_scrollX_position = Math.abs(window.scrollX / document.scrollingElement.scrollWidth); // Window is hidden
-
+  // Window is hidden
   if (document.scrollingElement.scrollWidth === 0 || document.scrollingElement.scrollHeight === 0) {
     return;
   }
-
   if (!ticking) {
     window.requestAnimationFrame(function () {
       update(isScrollModeEnabled() ? last_known_scrollY_position : last_known_scrollX_position);
       ticking = false;
     });
   }
-
   ticking = true;
 });
 document.addEventListener("selectionchange", debounce(50, function () {
   webkit.messageHandlers.selectionChanged.postMessage((0,_selection__WEBPACK_IMPORTED_MODULE_1__.getCurrentSelection)());
 }));
-
 function orientationChanged() {
   maxScreenX = window.orientation === 0 || window.orientation == 180 ? screen.width : screen.height;
 }
-
 function getColumnCountPerScreen() {
   return parseInt(window.getComputedStyle(document.documentElement).getPropertyValue("column-count"));
 }
 function isScrollModeEnabled() {
-  return document.documentElement.style.getPropertyValue("--USER__scroll").toString().trim() === "readium-scroll-on";
-} // Scroll to the given TagId in document and snap.
+  var style = document.documentElement.style;
+  return style.getPropertyValue("--USER__view").trim() == "readium-scroll-on" ||
+  // FIXME: Will need to be removed in Readium 3.0, --USER__scroll was incorrect.
+  style.getPropertyValue("--USER__scroll").trim() == "readium-scroll-on";
+}
 
+// Scroll to the given TagId in document and snap.
 function scrollToId(id) {
   var element = document.getElementById(id);
-
   if (!element) {
     return false;
   }
-
   scrollToRect(element.getBoundingClientRect());
   return true;
-} // Position must be in the range [0 - 1], 0-100%.
+}
 
+// Position must be in the range [0 - 1], 0-100%.
 function scrollToPosition(position, dir) {
   console.log("ScrollToPosition");
-
   if (position < 0 || position > 1) {
     console.log("InvalidPosition");
     return;
   }
-
   if (isScrollModeEnabled()) {
     var offset = document.scrollingElement.scrollHeight * position;
-    document.scrollingElement.scrollTop = offset; // window.scrollTo(0, offset);
+    document.scrollingElement.scrollTop = offset;
+    // window.scrollTo(0, offset);
   } else {
     var documentWidth = document.scrollingElement.scrollWidth;
     var factor = dir == "rtl" ? -1 : 1;
-
     var _offset = documentWidth * position * factor;
-
     document.scrollingElement.scrollLeft = snapOffset(_offset);
   }
-} // Scrolls to the first occurrence of the given text snippet.
+}
+
+// Scrolls to the first occurrence of the given text snippet.
 //
 // The expected text argument is a Locator Text object, as defined here:
 // https://readium.org/architecture/models/locators/
-
 function scrollToText(text) {
   var range = rangeFromLocator({
     text
   });
-
   if (!range) {
     return false;
   }
-
   return scrollToRange(range);
 }
-
 function scrollToRange(range) {
   return scrollToRect(range.getBoundingClientRect());
 }
-
 function scrollToRect(rect) {
   if (isScrollModeEnabled()) {
     document.scrollingElement.scrollTop = rect.top + window.scrollY - window.innerHeight / 2;
   } else {
     document.scrollingElement.scrollLeft = snapOffset(rect.left + window.scrollX);
   }
-
   return true;
-} // Returns false if the page is already at the left-most scroll offset.
+}
 
-
+// Returns false if the page is already at the left-most scroll offset.
 function scrollLeft(dir) {
   var isRTL = dir == "rtl";
   var documentWidth = document.scrollingElement.scrollWidth;
@@ -2710,8 +2565,9 @@ function scrollLeft(dir) {
   var offset = window.scrollX - pageWidth;
   var minOffset = isRTL ? -(documentWidth - pageWidth) : 0;
   return scrollToOffset(Math.max(offset, minOffset));
-} // Returns false if the page is already at the right-most scroll offset.
+}
 
+// Returns false if the page is already at the right-most scroll offset.
 function scrollRight(dir) {
   var isRTL = dir == "rtl";
   var documentWidth = document.scrollingElement.scrollWidth;
@@ -2719,53 +2575,46 @@ function scrollRight(dir) {
   var offset = window.scrollX + pageWidth;
   var maxOffset = isRTL ? 0 : documentWidth - pageWidth;
   return scrollToOffset(Math.min(offset, maxOffset));
-} // Scrolls to the given left offset.
-// Returns false if the page scroll position is already close enough to the given offset.
+}
 
+// Scrolls to the given left offset.
+// Returns false if the page scroll position is already close enough to the given offset.
 function scrollToOffset(offset) {
   var currentOffset = window.scrollX;
   var pageWidth = window.innerWidth;
-  document.scrollingElement.scrollLeft = offset; // In some case the scrollX cannot reach the position respecting to innerWidth
-
+  document.scrollingElement.scrollLeft = offset;
+  // In some case the scrollX cannot reach the position respecting to innerWidth
   var diff = Math.abs(currentOffset - offset) / pageWidth;
   return diff > 0.01;
-} // Snap the offset to the screen width (page width).
+}
 
-
+// Snap the offset to the screen width (page width).
 function snapOffset(offset) {
   var value = offset + 1;
   return value - value % maxScreenX;
 }
-
 function snapCurrentPosition() {
   if (isScrollModeEnabled()) {
     return;
   }
-
   var currentOffset = window.scrollX;
   var currentOffsetSnapped = snapOffset(currentOffset + 1);
   document.scrollingElement.scrollLeft = currentOffsetSnapped;
 }
-
 function rangeFromLocator(locator) {
   var text = locator.text;
-
   if (!text || !text.highlight) {
     return null;
   }
-
   try {
     var root;
     var locations = locator.locations;
-
     if (locations && locations.cssSelector) {
       root = document.querySelector(locations.cssSelector);
     }
-
     if (!root) {
       root = document.body;
     }
-
     var anchor = new _vendor_hypothesis_anchoring_types__WEBPACK_IMPORTED_MODULE_0__.TextQuoteAnchor(root, text.highlight, {
       prefix: text.before,
       suffix: text.after
@@ -2775,35 +2624,49 @@ function rangeFromLocator(locator) {
     logError(e);
     return null;
   }
-} /// User Settings.
+}
+
+/// User Settings.
+
+function setCSSProperties(properties) {
+  for (var name in properties) {
+    setProperty(name, properties[name]);
+  }
+}
+
 // For setting user setting.
-
 function setProperty(key, value) {
-  var root = document.documentElement;
-  root.style.setProperty(key, value);
-} // For removing user setting.
+  if (value === null) {
+    removeProperty(key);
+  } else {
+    var root = document.documentElement;
+    // The `!important` annotation is added with `setProperty()` because if
+    // it's part of the `value`, it will be ignored by the Web View.
+    root.style.setProperty(key, value, "important");
+  }
+}
 
+// For removing user setting.
 function removeProperty(key) {
   var root = document.documentElement;
   root.style.removeProperty(key);
-} /// Toolkit
+}
+
+/// Toolkit
 
 function debounce(delay, func) {
   var timeout;
   return function () {
     var self = this;
     var args = arguments;
-
     function callback() {
       func.apply(self, args);
       timeout = null;
     }
-
     clearTimeout(timeout);
     timeout = setTimeout(callback, delay);
   };
 }
-
 function log() {
   var message = Array.prototype.slice.call(arguments).join(" ");
   webkit.messageHandlers.log.postMessage(message);
@@ -2832,6 +2695,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var approx_string_match__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! approx-string-match */ "./node_modules/approx-string-match/dist/index.js");
 
+
 /**
  * @typedef {import('approx-string-match').Match} StringMatch
  */
@@ -2853,16 +2717,13 @@ __webpack_require__.r(__webpack_exports__);
  * @param {number} maxErrors
  * @return {StringMatch[]}
  */
-
 function search(text, str, maxErrors) {
   // Do a fast search for exact matches. The `approx-string-match` library
   // doesn't currently incorporate this optimization itself.
   var matchPos = 0;
   var exactMatches = [];
-
   while (matchPos !== -1) {
     matchPos = text.indexOf(str, matchPos);
-
     if (matchPos !== -1) {
       exactMatches.push({
         start: matchPos,
@@ -2872,33 +2733,32 @@ function search(text, str, maxErrors) {
       matchPos += 1;
     }
   }
-
   if (exactMatches.length > 0) {
     return exactMatches;
-  } // If there are no exact matches, do a more expensive search for matches
+  }
+
+  // If there are no exact matches, do a more expensive search for matches
   // with errors.
-
-
   return (0,approx_string_match__WEBPACK_IMPORTED_MODULE_0__["default"])(text, str, maxErrors);
 }
+
 /**
  * Compute a score between 0 and 1.0 for the similarity between `text` and `str`.
  *
  * @param {string} text
  * @param {string} str
  */
-
-
 function textMatchScore(text, str) {
   /* istanbul ignore next - `scoreMatch` will never pass an empty string */
   if (str.length === 0 || text.length === 0) {
     return 0.0;
   }
+  var matches = search(text, str, str.length);
 
-  var matches = search(text, str, str.length); // prettier-ignore
-
+  // prettier-ignore
   return 1 - matches[0].errors / str.length;
 }
+
 /**
  * Find the best approximate match for `quote` in `text`.
  *
@@ -2914,14 +2774,13 @@ function textMatchScore(text, str) {
  *   @param {number} [context.hint] - Expected offset of match within text
  * @return {Match|null}
  */
-
-
 function matchQuote(text, quote) {
   var context = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
   if (quote.length === 0) {
     return null;
-  } // Choose the maximum number of errors to allow for the initial search.
+  }
+
+  // Choose the maximum number of errors to allow for the initial search.
   // This choice involves a tradeoff between:
   //
   //  - Recall (proportion of "good" matches found)
@@ -2930,55 +2789,48 @@ function matchQuote(text, quote) {
   //
   // [1] Specifically, the expected-time complexity of the initial search is
   //     `O((maxErrors / 32) * text.length)`. See `approx-string-match` docs.
+  var maxErrors = Math.min(256, quote.length / 2);
 
-
-  var maxErrors = Math.min(256, quote.length / 2); // Find closest matches for `quote` in `text` based on edit distance.
-
+  // Find closest matches for `quote` in `text` based on edit distance.
   var matches = search(text, quote, maxErrors);
-
   if (matches.length === 0) {
     return null;
   }
+
   /**
    * Compute a score between 0 and 1.0 for a match candidate.
    *
    * @param {StringMatch} match
    */
-
-
   var scoreMatch = match => {
     var quoteWeight = 50; // Similarity of matched text to quote.
-
     var prefixWeight = 20; // Similarity of text before matched text to `context.prefix`.
-
     var suffixWeight = 20; // Similarity of text after matched text to `context.suffix`.
-
     var posWeight = 2; // Proximity to expected location. Used as a tie-breaker.
 
     var quoteScore = 1 - match.errors / quote.length;
     var prefixScore = context.prefix ? textMatchScore(text.slice(Math.max(0, match.start - context.prefix.length), match.start), context.prefix) : 1.0;
     var suffixScore = context.suffix ? textMatchScore(text.slice(match.end, match.end + context.suffix.length), context.suffix) : 1.0;
     var posScore = 1.0;
-
     if (typeof context.hint === 'number') {
       var offset = Math.abs(match.start - context.hint);
       posScore = 1.0 - offset / text.length;
     }
-
     var rawScore = quoteWeight * quoteScore + prefixWeight * prefixScore + suffixWeight * suffixScore + posWeight * posScore;
     var maxScore = quoteWeight + prefixWeight + suffixWeight + posWeight;
     var normalizedScore = rawScore / maxScore;
     return normalizedScore;
-  }; // Rank matches based on similarity of actual and expected surrounding text
+  };
+
+  // Rank matches based on similarity of actual and expected surrounding text
   // and actual/expected offset in the document text.
-
-
   var scoredMatches = matches.map(m => ({
     start: m.start,
     end: m.end,
     score: scoreMatch(m)
-  })); // Choose match with highest score.
+  }));
 
+  // Choose match with highest score.
   scoredMatches.sort((a, b) => b.score - a.score);
   return scoredMatches[0];
 }
@@ -2994,8 +2846,8 @@ function matchQuote(text, quote) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "RESOLVE_FORWARDS": () => (/* binding */ RESOLVE_FORWARDS),
 /* harmony export */   "RESOLVE_BACKWARDS": () => (/* binding */ RESOLVE_BACKWARDS),
+/* harmony export */   "RESOLVE_FORWARDS": () => (/* binding */ RESOLVE_FORWARDS),
 /* harmony export */   "TextPosition": () => (/* binding */ TextPosition),
 /* harmony export */   "TextRange": () => (/* binding */ TextRange)
 /* harmony export */ });
@@ -3010,33 +2862,29 @@ function nodeTextLength(node) {
     case Node.TEXT_NODE:
       // nb. `textContent` excludes text in comments and processing instructions
       // when called on a parent element, so we don't need to subtract that here.
-      return (
-        /** @type {string} */
-        node.textContent.length
-      );
 
+      return (/** @type {string} */node.textContent.length
+      );
     default:
       return 0;
   }
 }
+
 /**
  * Return the total length of the text of all previous siblings of `node`.
  *
  * @param {Node} node
  */
-
-
 function previousSiblingsTextLength(node) {
   var sibling = node.previousSibling;
   var length = 0;
-
   while (sibling) {
     length += nodeTextLength(sibling);
     sibling = sibling.previousSibling;
   }
-
   return length;
 }
+
 /**
  * Resolve one or more character offsets within an element to (text node, position)
  * pairs.
@@ -3045,28 +2893,21 @@ function previousSiblingsTextLength(node) {
  * @param {number[]} offsets - Offsets, which must be sorted in ascending order
  * @return {{ node: Text, offset: number }[]}
  */
-
-
 function resolveOffsets(element) {
   for (var _len = arguments.length, offsets = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
     offsets[_key - 1] = arguments[_key];
   }
-
   var nextOffset = offsets.shift();
-  var nodeIter =
-  /** @type {Document} */
-  element.ownerDocument.createNodeIterator(element, NodeFilter.SHOW_TEXT);
+  var nodeIter = /** @type {Document} */element.ownerDocument.createNodeIterator(element, NodeFilter.SHOW_TEXT);
   var results = [];
   var currentNode = nodeIter.nextNode();
   var textNode;
-  var length = 0; // Find the text node containing the `nextOffset`th character from the start
+  var length = 0;
+
+  // Find the text node containing the `nextOffset`th character from the start
   // of `element`.
-
   while (nextOffset !== undefined && currentNode) {
-    textNode =
-    /** @type {Text} */
-    currentNode;
-
+    textNode = /** @type {Text} */currentNode;
     if (length + textNode.data.length > nextOffset) {
       results.push({
         node: textNode,
@@ -3077,9 +2918,9 @@ function resolveOffsets(element) {
       currentNode = nodeIter.nextNode();
       length += textNode.data.length;
     }
-  } // Boundary case.
+  }
 
-
+  // Boundary case.
   while (nextOffset !== undefined && textNode && length === nextOffset) {
     results.push({
       node: textNode,
@@ -3087,23 +2928,20 @@ function resolveOffsets(element) {
     });
     nextOffset = offsets.shift();
   }
-
   if (nextOffset !== undefined) {
     throw new RangeError('Offset exceeds text length');
   }
-
   return results;
 }
-
 var RESOLVE_FORWARDS = 1;
 var RESOLVE_BACKWARDS = 2;
+
 /**
  * Represents an offset within the text content of an element.
  *
  * This position can be resolved to a specific descendant node in the current
  * DOM subtree of the element using the `resolve` method.
  */
-
 class TextPosition {
   /**
    * Construct a `TextPosition` that refers to the text position `offset` within
@@ -3116,14 +2954,14 @@ class TextPosition {
     if (offset < 0) {
       throw new Error('Offset is invalid');
     }
+
     /** Element that `offset` is relative to. */
-
-
     this.element = element;
-    /** Character offset from the start of the element's `textContent`. */
 
+    /** Character offset from the start of the element's `textContent`. */
     this.offset = offset;
   }
+
   /**
    * Return a copy of this position with offset relative to a given ancestor
    * element.
@@ -3131,25 +2969,19 @@ class TextPosition {
    * @param {Element} parent - Ancestor of `this.element`
    * @return {TextPosition}
    */
-
-
   relativeTo(parent) {
     if (!parent.contains(this.element)) {
       throw new Error('Parent is not an ancestor of current element');
     }
-
     var el = this.element;
     var offset = this.offset;
-
     while (el !== parent) {
       offset += previousSiblingsTextLength(el);
-      el =
-      /** @type {Element} */
-      el.parentElement;
+      el = /** @type {Element} */el.parentElement;
     }
-
     return new TextPosition(el, offset);
   }
+
   /**
    * Resolve the position to a specific text node and offset within that node.
    *
@@ -3168,11 +3000,8 @@ class TextPosition {
    * @return {{ node: Text, offset: number }}
    * @throws {RangeError}
    */
-
-
   resolve() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
     try {
       return resolveOffsets(this.element, this.offset)[0];
     } catch (err) {
@@ -3180,14 +3009,11 @@ class TextPosition {
         var tw = document.createTreeWalker(this.element.getRootNode(), NodeFilter.SHOW_TEXT);
         tw.currentNode = this.element;
         var forwards = options.direction === RESOLVE_FORWARDS;
-        var text =
-        /** @type {Text|null} */
+        var text = /** @type {Text|null} */
         forwards ? tw.nextNode() : tw.previousNode();
-
         if (!text) {
           throw err;
         }
-
         return {
           node: text,
           offset: forwards ? 0 : text.data.length
@@ -3197,6 +3023,7 @@ class TextPosition {
       }
     }
   }
+
   /**
    * Construct a `TextPosition` that refers to the `offset`th character within
    * `node`.
@@ -3205,22 +3032,17 @@ class TextPosition {
    * @param {number} offset
    * @return {TextPosition}
    */
-
-
   static fromCharOffset(node, offset) {
     switch (node.nodeType) {
       case Node.TEXT_NODE:
         return TextPosition.fromPoint(node, offset);
-
       case Node.ELEMENT_NODE:
-        return new TextPosition(
-        /** @type {Element} */
-        node, offset);
-
+        return new TextPosition( /** @type {Element} */node, offset);
       default:
         throw new Error('Node is not an element or text node');
     }
   }
+
   /**
    * Construct a `TextPosition` representing the range start or end point (node, offset).
    *
@@ -3228,51 +3050,40 @@ class TextPosition {
    * @param {number} offset - Offset within the node.
    * @return {TextPosition}
    */
-
-
   static fromPoint(node, offset) {
     switch (node.nodeType) {
       case Node.TEXT_NODE:
         {
-          if (offset < 0 || offset >
-          /** @type {Text} */
-          node.data.length) {
+          if (offset < 0 || offset > /** @type {Text} */node.data.length) {
             throw new Error('Text node offset is out of range');
           }
-
           if (!node.parentElement) {
             throw new Error('Text node has no parent');
-          } // Get the offset from the start of the parent element.
+          }
 
-
+          // Get the offset from the start of the parent element.
           var textOffset = previousSiblingsTextLength(node) + offset;
           return new TextPosition(node.parentElement, textOffset);
         }
-
       case Node.ELEMENT_NODE:
         {
           if (offset < 0 || offset > node.childNodes.length) {
             throw new Error('Child node offset is out of range');
-          } // Get the text length before the `offset`th child of element.
+          }
 
-
+          // Get the text length before the `offset`th child of element.
           var _textOffset = 0;
-
           for (var i = 0; i < offset; i++) {
             _textOffset += nodeTextLength(node.childNodes[i]);
           }
-
-          return new TextPosition(
-          /** @type {Element} */
-          node, _textOffset);
+          return new TextPosition( /** @type {Element} */node, _textOffset);
         }
-
       default:
         throw new Error('Point is not in an element or text node');
     }
   }
-
 }
+
 /**
  * Represents a region of a document as a (start, end) pair of `TextPosition` points.
  *
@@ -3280,7 +3091,6 @@ class TextPosition {
  * range which don't affect its text content, without affecting the text content
  * of the range itself.
  */
-
 class TextRange {
   /**
    * Construct an immutable `TextRange` from a `start` and `end` point.
@@ -3292,17 +3102,17 @@ class TextRange {
     this.start = start;
     this.end = end;
   }
+
   /**
    * Return a copy of this range with start and end positions relative to a
    * given ancestor. See `TextPosition.relativeTo`.
    *
    * @param {Element} element
    */
-
-
   relativeTo(element) {
     return new TextRange(this.start.relativeTo(element), this.end.relativeTo(element));
   }
+
   /**
    * Resolve the `TextRange` to a DOM range.
    *
@@ -3314,12 +3124,9 @@ class TextRange {
    *
    * @return {Range}
    */
-
-
   toRange() {
     var start;
     var end;
-
     if (this.start.element === this.end.element && this.start.offset <= this.end.offset) {
       // Fast path for start and end points in same element.
       [start, end] = resolveOffsets(this.start.element, this.start.offset, this.end.offset);
@@ -3331,25 +3138,24 @@ class TextRange {
         direction: RESOLVE_BACKWARDS
       });
     }
-
     var range = new Range();
     range.setStart(start.node, start.offset);
     range.setEnd(end.node, end.offset);
     return range;
   }
+
   /**
    * Convert an existing DOM `Range` to a `TextRange`
    *
    * @param {Range} range
    * @return {TextRange}
    */
-
-
   static fromRange(range) {
     var start = TextPosition.fromPoint(range.startContainer, range.startOffset);
     var end = TextPosition.fromPoint(range.endContainer, range.endOffset);
     return new TextRange(start, end);
   }
+
   /**
    * Return a `TextRange` from the `start`th to `end`th characters in `root`.
    *
@@ -3357,12 +3163,9 @@ class TextRange {
    * @param {number} start
    * @param {number} end
    */
-
-
   static fromOffsets(root, start, end) {
     return new TextRange(new TextPosition(root, start), new TextPosition(root, end));
   }
-
 }
 
 /***/ }),
@@ -3383,12 +3186,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _match_quote__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./match-quote */ "./src/vendor/hypothesis/anchoring/match-quote.js");
 /* harmony import */ var _text_range__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./text-range */ "./src/vendor/hypothesis/anchoring/text-range.js");
 /* harmony import */ var _xpath__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./xpath */ "./src/vendor/hypothesis/anchoring/xpath.js");
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return typeof key === "symbol" ? key : String(key); }
+function _toPrimitive(input, hint) { if (typeof input !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (typeof res !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 /**
  * This module exports a set of classes for converting between DOM `Range`
  * objects and different types of selectors. It is mostly a thin wrapper around a
@@ -3401,6 +3203,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 
+
+
 /**
  * @typedef {import('../../types/api').RangeSelector} RangeSelector
  * @typedef {import('../../types/api').TextPositionSelector} TextPositionSelector
@@ -3410,7 +3214,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 /**
  * Converts between `RangeSelector` selectors and `Range` objects.
  */
-
 class RangeAnchor {
   /**
    * @param {Node} root - A root element from which to anchor.
@@ -3420,50 +3223,42 @@ class RangeAnchor {
     this.root = root;
     this.range = range;
   }
+
   /**
    * @param {Node} root -  A root element from which to anchor.
    * @param {Range} range -  A range describing the anchor.
    */
-
-
   static fromRange(root, range) {
     return new RangeAnchor(root, range);
   }
+
   /**
    * Create an anchor from a serialized `RangeSelector` selector.
    *
    * @param {Element} root -  A root element from which to anchor.
    * @param {RangeSelector} selector
    */
-
-
   static fromSelector(root, selector) {
     var startContainer = (0,_xpath__WEBPACK_IMPORTED_MODULE_2__.nodeFromXPath)(selector.startContainer, root);
-
     if (!startContainer) {
       throw new Error('Failed to resolve startContainer XPath');
     }
-
     var endContainer = (0,_xpath__WEBPACK_IMPORTED_MODULE_2__.nodeFromXPath)(selector.endContainer, root);
-
     if (!endContainer) {
       throw new Error('Failed to resolve endContainer XPath');
     }
-
     var startPos = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextPosition.fromCharOffset(startContainer, selector.startOffset);
     var endPos = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextPosition.fromCharOffset(endContainer, selector.endOffset);
     var range = new _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange(startPos, endPos).toRange();
     return new RangeAnchor(root, range);
   }
-
   toRange() {
     return this.range;
   }
+
   /**
    * @return {RangeSelector}
    */
-
-
   toSelector() {
     // "Shrink" the range so that it tightly wraps its text. This ensures more
     // predictable output for a given text selection.
@@ -3479,12 +3274,11 @@ class RangeAnchor {
       endOffset: textRange.end.offset
     };
   }
-
 }
+
 /**
  * Converts between `TextPositionSelector` selectors and `Range` objects.
  */
-
 class TextPositionAnchor {
   /**
    * @param {Element} root
@@ -3496,12 +3290,11 @@ class TextPositionAnchor {
     this.start = start;
     this.end = end;
   }
+
   /**
    * @param {Element} root
    * @param {Range} range
    */
-
-
   static fromRange(root, range) {
     var textRange = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange.fromRange(range).relativeTo(root);
     return new TextPositionAnchor(root, textRange.start.offset, textRange.end.offset);
@@ -3510,16 +3303,13 @@ class TextPositionAnchor {
    * @param {Element} root
    * @param {TextPositionSelector} selector
    */
-
-
   static fromSelector(root, selector) {
     return new TextPositionAnchor(root, selector.start, selector.end);
   }
+
   /**
    * @return {TextPositionSelector}
    */
-
-
   toSelector() {
     return {
       type: 'TextPositionSelector',
@@ -3527,12 +3317,11 @@ class TextPositionAnchor {
       end: this.end
     };
   }
-
   toRange() {
     return _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange.fromOffsets(this.root, this.start, this.end).toRange();
   }
-
 }
+
 /**
  * @typedef QuoteMatchOptions
  * @prop {number} [hint] - Expected position of match in text. See `matchQuote`.
@@ -3541,7 +3330,6 @@ class TextPositionAnchor {
 /**
  * Converts between `TextQuoteSelector` selectors and `Range` objects.
  */
-
 class TextQuoteAnchor {
   /**
    * @param {Element} root - A root element from which to anchor.
@@ -3556,6 +3344,7 @@ class TextQuoteAnchor {
     this.exact = exact;
     this.context = context;
   }
+
   /**
    * Create a `TextQuoteAnchor` from a range.
    *
@@ -3564,15 +3353,13 @@ class TextQuoteAnchor {
    * @param {Element} root
    * @param {Range} range
    */
-
-
   static fromRange(root, range) {
-    var text =
-    /** @type {string} */
-    root.textContent;
+    var text = /** @type {string} */root.textContent;
     var textRange = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange.fromRange(range).relativeTo(root);
     var start = textRange.start.offset;
-    var end = textRange.end.offset; // Number of characters around the quote to capture as context. We currently
+    var end = textRange.end.offset;
+
+    // Number of characters around the quote to capture as context. We currently
     // always use a fixed amount, but it would be better if this code was aware
     // of logical boundaries in the document (paragraph, article etc.) to avoid
     // capturing text unrelated to the quote.
@@ -3581,19 +3368,17 @@ class TextQuoteAnchor {
     // This is a natural unit of meaning which enables displaying quotes in
     // context even when the document is not available. We could use `Intl.Segmenter`
     // for this when available.
-
     var contextLen = 32;
     return new TextQuoteAnchor(root, text.slice(start, end), {
       prefix: text.slice(Math.max(0, start - contextLen), start),
       suffix: text.slice(end, Math.min(text.length, end + contextLen))
     });
   }
+
   /**
    * @param {Element} root
    * @param {TextQuoteSelector} selector
    */
-
-
   static fromSelector(root, selector) {
     var {
       prefix,
@@ -3604,11 +3389,10 @@ class TextQuoteAnchor {
       suffix
     });
   }
+
   /**
    * @return {TextQuoteSelector}
    */
-
-
   toSelector() {
     return {
       type: 'TextQuoteSelector',
@@ -3617,36 +3401,29 @@ class TextQuoteAnchor {
       suffix: this.context.suffix
     };
   }
+
   /**
    * @param {QuoteMatchOptions} [options]
    */
-
-
   toRange() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     return this.toPositionAnchor(options).toRange();
   }
+
   /**
    * @param {QuoteMatchOptions} [options]
    */
-
-
   toPositionAnchor() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    var text =
-    /** @type {string} */
-    this.root.textContent;
+    var text = /** @type {string} */this.root.textContent;
     var match = (0,_match_quote__WEBPACK_IMPORTED_MODULE_0__.matchQuote)(text, this.exact, _objectSpread(_objectSpread({}, this.context), {}, {
       hint: options.hint
     }));
-
     if (!match) {
       throw new Error('Quote not found');
     }
-
     return new TextPositionAnchor(this.root, match.start, match.end);
   }
-
 }
 
 /***/ }),
@@ -3660,8 +3437,8 @@ class TextQuoteAnchor {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "xpathFromNode": () => (/* binding */ xpathFromNode),
-/* harmony export */   "nodeFromXPath": () => (/* binding */ nodeFromXPath)
+/* harmony export */   "nodeFromXPath": () => (/* binding */ nodeFromXPath),
+/* harmony export */   "xpathFromNode": () => (/* binding */ xpathFromNode)
 /* harmony export */ });
 /**
  * Get the node name for use in generating an xpath expression.
@@ -3671,42 +3448,35 @@ __webpack_require__.r(__webpack_exports__);
 function getNodeName(node) {
   var nodeName = node.nodeName.toLowerCase();
   var result = nodeName;
-
   if (nodeName === '#text') {
     result = 'text()';
   }
-
   return result;
 }
+
 /**
  * Get the index of the node as it appears in its parent's child list
  *
  * @param {Node} node
  */
-
-
 function getNodePosition(node) {
   var pos = 0;
   /** @type {Node|null} */
-
   var tmp = node;
-
   while (tmp) {
     if (tmp.nodeName === node.nodeName) {
       pos += 1;
     }
-
     tmp = tmp.previousSibling;
   }
-
   return pos;
 }
-
 function getPathSegment(node) {
   var name = getNodeName(node);
   var pos = getNodePosition(node);
   return "".concat(name, "[").concat(pos, "]");
 }
+
 /**
  * A simple XPath generator which can generate XPaths of the form
  * /tag[index]/tag[index].
@@ -3714,28 +3484,24 @@ function getPathSegment(node) {
  * @param {Node} node - The node to generate a path to
  * @param {Node} root - Root node to which the returned path is relative
  */
-
-
 function xpathFromNode(node, root) {
   var xpath = '';
+
   /** @type {Node|null} */
-
   var elem = node;
-
   while (elem !== root) {
     if (!elem) {
       throw new Error('Node is not a descendant of root');
     }
-
     xpath = getPathSegment(elem) + '/' + xpath;
     elem = elem.parentNode;
   }
-
   xpath = '/' + xpath;
   xpath = xpath.replace(/\/$/, ''); // Remove trailing slash
 
   return xpath;
 }
+
 /**
  * Return the `index`'th immediate child of `element` whose tag name is
  * `nodeName` (case insensitive).
@@ -3744,25 +3510,21 @@ function xpathFromNode(node, root) {
  * @param {string} nodeName
  * @param {number} index
  */
-
 function nthChildOfType(element, nodeName, index) {
   nodeName = nodeName.toUpperCase();
   var matchIndex = -1;
-
   for (var i = 0; i < element.children.length; i++) {
     var child = element.children[i];
-
     if (child.nodeName.toUpperCase() === nodeName) {
       ++matchIndex;
-
       if (matchIndex === index) {
         return child;
       }
     }
   }
-
   return null;
 }
+
 /**
  * Evaluate a _simple XPath_ relative to a `root` element and return the
  * matching element.
@@ -3784,31 +3546,25 @@ function nthChildOfType(element, nodeName, index) {
  * @param {Element} root
  * @return {Element|null}
  */
-
-
 function evaluateSimpleXPath(xpath, root) {
   var isSimpleXPath = xpath.match(/^(\/[A-Za-z0-9-]+(\[[0-9]+\])?)+$/) !== null;
-
   if (!isSimpleXPath) {
     throw new Error('Expression is not a simple XPath');
   }
-
   var segments = xpath.split('/');
-  var element = root; // Remove leading empty segment. The regex above validates that the XPath
+  var element = root;
+
+  // Remove leading empty segment. The regex above validates that the XPath
   // has at least two segments, with the first being empty and the others non-empty.
-
   segments.shift();
-
   for (var segment of segments) {
     var elementName = void 0;
     var elementIndex = void 0;
     var separatorPos = segment.indexOf('[');
-
     if (separatorPos !== -1) {
       elementName = segment.slice(0, separatorPos);
       var indexStr = segment.slice(separatorPos + 1, segment.indexOf(']'));
       elementIndex = parseInt(indexStr) - 1;
-
       if (elementIndex < 0) {
         return null;
       }
@@ -3816,18 +3572,15 @@ function evaluateSimpleXPath(xpath, root) {
       elementName = segment;
       elementIndex = 0;
     }
-
     var child = nthChildOfType(element, elementName, elementIndex);
-
     if (!child) {
       return null;
     }
-
     element = child;
   }
-
   return element;
 }
+
 /**
  * Finds an element node using an XPath relative to `root`
  *
@@ -3838,21 +3591,15 @@ function evaluateSimpleXPath(xpath, root) {
  * @param {Element} [root]
  * @return {Node|null}
  */
-
-
 function nodeFromXPath(xpath) {
   var root = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : document.body;
-
   try {
     return evaluateSimpleXPath(xpath, root);
   } catch (err) {
-    return document.evaluate('.' + xpath, root, // nb. The `namespaceResolver` and `result` arguments are optional in the spec
+    return document.evaluate('.' + xpath, root,
+    // nb. The `namespaceResolver` and `result` arguments are optional in the spec
     // but required in Edge Legacy.
-    null
-    /* namespaceResolver */
-    , XPathResult.FIRST_ORDERED_NODE_TYPE, null
-    /* result */
-    ).singleNodeValue;
+    null /* namespaceResolver */, XPathResult.FIRST_ORDERED_NODE_TYPE, null /* result */).singleNodeValue;
   }
 }
 
@@ -3962,24 +3709,19 @@ var isFunction = function (fn) {
 	return typeof fn === 'function' && toStr.call(fn) === '[object Function]';
 };
 
-var arePropertyDescriptorsSupported = function () {
-	var obj = {};
-	try {
-		origDefineProperty(obj, 'x', { enumerable: false, value: obj });
-		// eslint-disable-next-line no-unused-vars, no-restricted-syntax
-		for (var _ in obj) { // jscs:ignore disallowUnusedVariables
-			return false;
-		}
-		return obj.x === obj;
-	} catch (e) { /* this is IE 8. */
-		return false;
-	}
-};
-var supportsDescriptors = origDefineProperty && arePropertyDescriptorsSupported();
+var hasPropertyDescriptors = __webpack_require__(/*! has-property-descriptors */ "./node_modules/has-property-descriptors/index.js")();
+
+var supportsDescriptors = origDefineProperty && hasPropertyDescriptors;
 
 var defineProperty = function (object, name, value, predicate) {
-	if (name in object && (!isFunction(predicate) || !predicate())) {
-		return;
+	if (name in object) {
+		if (predicate === true) {
+			if (object[name] === value) {
+				return;
+			}
+		} else if (!isFunction(predicate) || !predicate()) {
+			return;
+		}
 	}
 	if (supportsDescriptors) {
 		origDefineProperty(object, name, {
@@ -3989,7 +3731,7 @@ var defineProperty = function (object, name, value, predicate) {
 			writable: true
 		});
 	} else {
-		object[name] = value;
+		object[name] = value; // eslint-disable-line no-param-reassign
 	}
 };
 
@@ -4007,6 +3749,43 @@ var defineProperties = function (object, map) {
 defineProperties.supportsDescriptors = !!supportsDescriptors;
 
 module.exports = defineProperties;
+
+
+/***/ }),
+
+/***/ "./node_modules/es-set-tostringtag/index.js":
+/*!**************************************************!*\
+  !*** ./node_modules/es-set-tostringtag/index.js ***!
+  \**************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $defineProperty = GetIntrinsic('%Object.defineProperty%', true);
+
+var hasToStringTag = __webpack_require__(/*! has-tostringtag/shams */ "./node_modules/has-tostringtag/shams.js")();
+var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+
+var toStringTag = hasToStringTag ? Symbol.toStringTag : null;
+
+module.exports = function setToStringTag(object, value) {
+	var overrideIfSet = arguments.length > 2 && arguments[2] && arguments[2].force;
+	if (toStringTag && (overrideIfSet || !has(object, toStringTag))) {
+		if ($defineProperty) {
+			$defineProperty(object, toStringTag, {
+				configurable: true,
+				enumerable: false,
+				value: value,
+				writable: false
+			});
+		} else {
+			object[toStringTag] = value; // eslint-disable-line no-param-reassign
+		}
+	}
+};
 
 
 /***/ }),
@@ -4092,62 +3871,6 @@ module.exports = function ToPrimitive(input) {
 		hint = 'string';
 	}
 	return ordinaryToPrimitive(input, hint === 'default' ? 'number' : hint);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-to-primitive/es5.js":
-/*!*********************************************!*\
-  !*** ./node_modules/es-to-primitive/es5.js ***!
-  \*********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var toStr = Object.prototype.toString;
-
-var isPrimitive = __webpack_require__(/*! ./helpers/isPrimitive */ "./node_modules/es-to-primitive/helpers/isPrimitive.js");
-
-var isCallable = __webpack_require__(/*! is-callable */ "./node_modules/is-callable/index.js");
-
-// http://ecma-international.org/ecma-262/5.1/#sec-8.12.8
-var ES5internalSlots = {
-	'[[DefaultValue]]': function (O) {
-		var actualHint;
-		if (arguments.length > 1) {
-			actualHint = arguments[1];
-		} else {
-			actualHint = toStr.call(O) === '[object Date]' ? String : Number;
-		}
-
-		if (actualHint === String || actualHint === Number) {
-			var methods = actualHint === String ? ['toString', 'valueOf'] : ['valueOf', 'toString'];
-			var value, i;
-			for (i = 0; i < methods.length; ++i) {
-				if (isCallable(O[methods[i]])) {
-					value = O[methods[i]]();
-					if (isPrimitive(value)) {
-						return value;
-					}
-				}
-			}
-			throw new TypeError('No default value');
-		}
-		throw new TypeError('invalid [[DefaultValue]] hint supplied');
-	}
-};
-
-// http://ecma-international.org/ecma-262/5.1/#sec-9.1
-module.exports = function ToPrimitive(input) {
-	if (isPrimitive(input)) {
-		return input;
-	}
-	if (arguments.length > 1) {
-		return ES5internalSlots['[[DefaultValue]]'](input, arguments[1]);
-	}
-	return ES5internalSlots['[[DefaultValue]]'](input);
 };
 
 
@@ -4248,6 +3971,48 @@ module.exports = Function.prototype.bind || implementation;
 
 /***/ }),
 
+/***/ "./node_modules/functions-have-names/index.js":
+/*!****************************************************!*\
+  !*** ./node_modules/functions-have-names/index.js ***!
+  \****************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+var functionsHaveNames = function functionsHaveNames() {
+	return typeof function f() {}.name === 'string';
+};
+
+var gOPD = Object.getOwnPropertyDescriptor;
+if (gOPD) {
+	try {
+		gOPD([], 'length');
+	} catch (e) {
+		// IE 8 has a broken gOPD
+		gOPD = null;
+	}
+}
+
+functionsHaveNames.functionsHaveConfigurableNames = function functionsHaveConfigurableNames() {
+	if (!functionsHaveNames() || !gOPD) {
+		return false;
+	}
+	var desc = gOPD(function () {}, 'name');
+	return !!desc && !!desc.configurable;
+};
+
+var $bind = Function.prototype.bind;
+
+functionsHaveNames.boundFunctionsHaveNames = function boundFunctionsHaveNames() {
+	return functionsHaveNames() && typeof $bind === 'function' && function f() {}.bind().name !== '';
+};
+
+module.exports = functionsHaveNames;
+
+
+/***/ }),
+
 /***/ "./node_modules/get-intrinsic/index.js":
 /*!*********************************************!*\
   !*** ./node_modules/get-intrinsic/index.js ***!
@@ -4319,6 +4084,8 @@ var INTRINSICS = {
 	'%AsyncIteratorPrototype%': needsEval,
 	'%Atomics%': typeof Atomics === 'undefined' ? undefined : Atomics,
 	'%BigInt%': typeof BigInt === 'undefined' ? undefined : BigInt,
+	'%BigInt64Array%': typeof BigInt64Array === 'undefined' ? undefined : BigInt64Array,
+	'%BigUint64Array%': typeof BigUint64Array === 'undefined' ? undefined : BigUint64Array,
 	'%Boolean%': Boolean,
 	'%DataView%': typeof DataView === 'undefined' ? undefined : DataView,
 	'%Date%': Date,
@@ -4373,6 +4140,14 @@ var INTRINSICS = {
 	'%WeakRef%': typeof WeakRef === 'undefined' ? undefined : WeakRef,
 	'%WeakSet%': typeof WeakSet === 'undefined' ? undefined : WeakSet
 };
+
+try {
+	null.error; // eslint-disable-line no-unused-expressions
+} catch (e) {
+	// https://github.com/tc39/proposal-shadowrealm/pull/384#issuecomment-1364264229
+	var errorProto = getProto(getProto(e));
+	INTRINSICS['%Error.prototype%'] = errorProto;
+}
 
 var doEval = function doEval(name) {
 	var value;
@@ -4459,6 +4234,7 @@ var $concat = bind.call(Function.call, Array.prototype.concat);
 var $spliceApply = bind.call(Function.apply, Array.prototype.splice);
 var $replace = bind.call(Function.call, String.prototype.replace);
 var $strSlice = bind.call(Function.call, String.prototype.slice);
+var $exec = bind.call(Function.call, RegExp.prototype.exec);
 
 /* adapted from https://github.com/lodash/lodash/blob/4.17.15/dist/lodash.js#L6735-L6744 */
 var rePropName = /[^%.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|%$))/g;
@@ -4514,6 +4290,9 @@ module.exports = function GetIntrinsic(name, allowMissing) {
 		throw new $TypeError('"allowMissing" argument must be a boolean');
 	}
 
+	if ($exec(/^%?[^%]*%?$/, name) === null) {
+		throw new $SyntaxError('`%` may not be present anywhere but at the beginning and end of the intrinsic name');
+	}
 	var parts = stringToPath(name);
 	var intrinsicBaseName = parts.length > 0 ? parts[0] : '';
 
@@ -4584,6 +4363,72 @@ module.exports = function GetIntrinsic(name, allowMissing) {
 		}
 	}
 	return value;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/has-property-descriptors/index.js":
+/*!********************************************************!*\
+  !*** ./node_modules/has-property-descriptors/index.js ***!
+  \********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $defineProperty = GetIntrinsic('%Object.defineProperty%', true);
+
+var hasPropertyDescriptors = function hasPropertyDescriptors() {
+	if ($defineProperty) {
+		try {
+			$defineProperty({}, 'a', { value: 1 });
+			return true;
+		} catch (e) {
+			// IE 8 has a broken defineProperty
+			return false;
+		}
+	}
+	return false;
+};
+
+hasPropertyDescriptors.hasArrayLengthDefineBug = function hasArrayLengthDefineBug() {
+	// node v0.6 has a bug where array lengths can be Set but not Defined
+	if (!hasPropertyDescriptors()) {
+		return null;
+	}
+	try {
+		return $defineProperty([], 'length', { value: 1 }).length !== 1;
+	} catch (e) {
+		// In Firefox 4-22, defining length on an array throws an exception.
+		return true;
+	}
+};
+
+module.exports = hasPropertyDescriptors;
+
+
+/***/ }),
+
+/***/ "./node_modules/has-proto/index.js":
+/*!*****************************************!*\
+  !*** ./node_modules/has-proto/index.js ***!
+  \*****************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+var test = {
+	foo: {}
+};
+
+var $Object = Object;
+
+module.exports = function hasProto() {
+	return { __proto__: test }.foo === test.foo && !({ __proto__: null } instanceof $Object);
 };
 
 
@@ -4724,6 +4569,9 @@ var SLOT = {
 			throw new $TypeError('`slot` must be a string');
 		}
 		channel.assert(O);
+		if (!SLOT.has(O, slot)) {
+			throw new $TypeError('`' + slot + '` is not present on `O`');
+		}
 	},
 	get: function (O, slot) {
 		if (!O || (typeof O !== 'object' && typeof O !== 'function')) {
@@ -4822,34 +4670,61 @@ var tryFunctionObject = function tryFunctionToStr(value) {
 	}
 };
 var toStr = Object.prototype.toString;
+var objectClass = '[object Object]';
 var fnClass = '[object Function]';
 var genClass = '[object GeneratorFunction]';
+var ddaClass = '[object HTMLAllCollection]'; // IE 11
+var ddaClass2 = '[object HTML document.all class]';
+var ddaClass3 = '[object HTMLCollection]'; // IE 9-10
 var hasToStringTag = typeof Symbol === 'function' && !!Symbol.toStringTag; // better: use `has-tostringtag`
-/* globals document: false */
-var documentDotAll = typeof document === 'object' && typeof document.all === 'undefined' && document.all !== undefined ? document.all : {};
+
+var isIE68 = !(0 in [,]); // eslint-disable-line no-sparse-arrays, comma-spacing
+
+var isDDA = function isDocumentDotAll() { return false; };
+if (typeof document === 'object') {
+	// Firefox 3 canonicalizes DDA to undefined when it's not accessed directly
+	var all = document.all;
+	if (toStr.call(all) === toStr.call(document.all)) {
+		isDDA = function isDocumentDotAll(value) {
+			/* globals document: false */
+			// in IE 6-8, typeof document.all is "object" and it's truthy
+			if ((isIE68 || !value) && (typeof value === 'undefined' || typeof value === 'object')) {
+				try {
+					var str = toStr.call(value);
+					return (
+						str === ddaClass
+						|| str === ddaClass2
+						|| str === ddaClass3 // opera 12.16
+						|| str === objectClass // IE 6-8
+					) && value('') == null; // eslint-disable-line eqeqeq
+				} catch (e) { /**/ }
+			}
+			return false;
+		};
+	}
+}
 
 module.exports = reflectApply
 	? function isCallable(value) {
-		if (value === documentDotAll) { return true; }
+		if (isDDA(value)) { return true; }
 		if (!value) { return false; }
 		if (typeof value !== 'function' && typeof value !== 'object') { return false; }
-		if (typeof value === 'function' && !value.prototype) { return true; }
 		try {
 			reflectApply(value, null, badArrayLike);
 		} catch (e) {
 			if (e !== isCallableMarker) { return false; }
 		}
-		return !isES6ClassFn(value);
+		return !isES6ClassFn(value) && tryFunctionObject(value);
 	}
 	: function isCallable(value) {
-		if (value === documentDotAll) { return true; }
+		if (isDDA(value)) { return true; }
 		if (!value) { return false; }
 		if (typeof value !== 'function' && typeof value !== 'object') { return false; }
-		if (typeof value === 'function' && !value.prototype) { return true; }
 		if (hasToStringTag) { return tryFunctionObject(value); }
 		if (isES6ClassFn(value)) { return false; }
 		var strClass = toStr.call(value);
-		return strClass === fnClass || strClass === genClass;
+		if (strClass !== fnClass && strClass !== genClass && !(/^\[object HTML/).test(strClass)) { return false; }
+		return tryFunctionObject(value);
 	};
 
 
@@ -5026,11 +4901,24 @@ var weakRefDeref = hasWeakRef ? WeakRef.prototype.deref : null;
 var booleanValueOf = Boolean.prototype.valueOf;
 var objectToString = Object.prototype.toString;
 var functionToString = Function.prototype.toString;
-var match = String.prototype.match;
+var $match = String.prototype.match;
+var $slice = String.prototype.slice;
+var $replace = String.prototype.replace;
+var $toUpperCase = String.prototype.toUpperCase;
+var $toLowerCase = String.prototype.toLowerCase;
+var $test = RegExp.prototype.test;
+var $concat = Array.prototype.concat;
+var $join = Array.prototype.join;
+var $arrSlice = Array.prototype.slice;
+var $floor = Math.floor;
 var bigIntValueOf = typeof BigInt === 'function' ? BigInt.prototype.valueOf : null;
 var gOPS = Object.getOwnPropertySymbols;
 var symToString = typeof Symbol === 'function' && typeof Symbol.iterator === 'symbol' ? Symbol.prototype.toString : null;
 var hasShammedSymbols = typeof Symbol === 'function' && typeof Symbol.iterator === 'object';
+// ie, `has-tostringtag/shams
+var toStringTag = typeof Symbol === 'function' && Symbol.toStringTag && (typeof Symbol.toStringTag === hasShammedSymbols ? 'object' : 'symbol')
+    ? Symbol.toStringTag
+    : null;
 var isEnumerable = Object.prototype.propertyIsEnumerable;
 
 var gPO = (typeof Reflect === 'function' ? Reflect.getPrototypeOf : Object.getPrototypeOf) || (
@@ -5041,9 +4929,31 @@ var gPO = (typeof Reflect === 'function' ? Reflect.getPrototypeOf : Object.getPr
         : null
 );
 
-var inspectCustom = __webpack_require__(/*! ./util.inspect */ "?4f7e").custom;
-var inspectSymbol = inspectCustom && isSymbol(inspectCustom) ? inspectCustom : null;
-var toStringTag = typeof Symbol === 'function' && typeof Symbol.toStringTag !== 'undefined' ? Symbol.toStringTag : null;
+function addNumericSeparator(num, str) {
+    if (
+        num === Infinity
+        || num === -Infinity
+        || num !== num
+        || (num && num > -1000 && num < 1000)
+        || $test.call(/e/, str)
+    ) {
+        return str;
+    }
+    var sepRegex = /[0-9](?=(?:[0-9]{3})+(?![0-9]))/g;
+    if (typeof num === 'number') {
+        var int = num < 0 ? -$floor(-num) : $floor(num); // trunc(num)
+        if (int !== num) {
+            var intStr = String(int);
+            var dec = $slice.call(str, intStr.length + 1);
+            return $replace.call(intStr, sepRegex, '$&_') + '.' + $replace.call($replace.call(dec, /([0-9]{3})/g, '$&_'), /_$/, '');
+        }
+    }
+    return $replace.call(str, sepRegex, '$&_');
+}
+
+var utilInspect = __webpack_require__(/*! ./util.inspect */ "?4f7e");
+var inspectCustom = utilInspect.custom;
+var inspectSymbol = isSymbol(inspectCustom) ? inspectCustom : null;
 
 module.exports = function inspect_(obj, options, depth, seen) {
     var opts = options || {};
@@ -5070,8 +4980,12 @@ module.exports = function inspect_(obj, options, depth, seen) {
         && opts.indent !== '\t'
         && !(parseInt(opts.indent, 10) === opts.indent && opts.indent > 0)
     ) {
-        throw new TypeError('options "indent" must be "\\t", an integer > 0, or `null`');
+        throw new TypeError('option "indent" must be "\\t", an integer > 0, or `null`');
     }
+    if (has(opts, 'numericSeparator') && typeof opts.numericSeparator !== 'boolean') {
+        throw new TypeError('option "numericSeparator", if provided, must be `true` or `false`');
+    }
+    var numericSeparator = opts.numericSeparator;
 
     if (typeof obj === 'undefined') {
         return 'undefined';
@@ -5090,10 +5004,12 @@ module.exports = function inspect_(obj, options, depth, seen) {
         if (obj === 0) {
             return Infinity / obj > 0 ? '0' : '-0';
         }
-        return String(obj);
+        var str = String(obj);
+        return numericSeparator ? addNumericSeparator(obj, str) : str;
     }
     if (typeof obj === 'bigint') {
-        return String(obj) + 'n';
+        var bigIntStr = String(obj) + 'n';
+        return numericSeparator ? addNumericSeparator(obj, bigIntStr) : bigIntStr;
     }
 
     var maxDepth = typeof opts.depth === 'undefined' ? 5 : opts.depth;
@@ -5112,7 +5028,7 @@ module.exports = function inspect_(obj, options, depth, seen) {
 
     function inspect(value, from, noIndent) {
         if (from) {
-            seen = seen.slice();
+            seen = $arrSlice.call(seen);
             seen.push(from);
         }
         if (noIndent) {
@@ -5127,24 +5043,24 @@ module.exports = function inspect_(obj, options, depth, seen) {
         return inspect_(value, opts, depth + 1, seen);
     }
 
-    if (typeof obj === 'function') {
+    if (typeof obj === 'function' && !isRegExp(obj)) { // in older engines, regexes are callable
         var name = nameOf(obj);
         var keys = arrObjKeys(obj, inspect);
-        return '[Function' + (name ? ': ' + name : ' (anonymous)') + ']' + (keys.length > 0 ? ' { ' + keys.join(', ') + ' }' : '');
+        return '[Function' + (name ? ': ' + name : ' (anonymous)') + ']' + (keys.length > 0 ? ' { ' + $join.call(keys, ', ') + ' }' : '');
     }
     if (isSymbol(obj)) {
-        var symString = hasShammedSymbols ? String(obj).replace(/^(Symbol\(.*\))_[^)]*$/, '$1') : symToString.call(obj);
+        var symString = hasShammedSymbols ? $replace.call(String(obj), /^(Symbol\(.*\))_[^)]*$/, '$1') : symToString.call(obj);
         return typeof obj === 'object' && !hasShammedSymbols ? markBoxed(symString) : symString;
     }
     if (isElement(obj)) {
-        var s = '<' + String(obj.nodeName).toLowerCase();
+        var s = '<' + $toLowerCase.call(String(obj.nodeName));
         var attrs = obj.attributes || [];
         for (var i = 0; i < attrs.length; i++) {
             s += ' ' + attrs[i].name + '=' + wrapQuotes(quote(attrs[i].value), 'double', opts);
         }
         s += '>';
         if (obj.childNodes && obj.childNodes.length) { s += '...'; }
-        s += '</' + String(obj.nodeName).toLowerCase() + '>';
+        s += '</' + $toLowerCase.call(String(obj.nodeName)) + '>';
         return s;
     }
     if (isArray(obj)) {
@@ -5153,32 +5069,39 @@ module.exports = function inspect_(obj, options, depth, seen) {
         if (indent && !singleLineValues(xs)) {
             return '[' + indentedJoin(xs, indent) + ']';
         }
-        return '[ ' + xs.join(', ') + ' ]';
+        return '[ ' + $join.call(xs, ', ') + ' ]';
     }
     if (isError(obj)) {
         var parts = arrObjKeys(obj, inspect);
+        if (!('cause' in Error.prototype) && 'cause' in obj && !isEnumerable.call(obj, 'cause')) {
+            return '{ [' + String(obj) + '] ' + $join.call($concat.call('[cause]: ' + inspect(obj.cause), parts), ', ') + ' }';
+        }
         if (parts.length === 0) { return '[' + String(obj) + ']'; }
-        return '{ [' + String(obj) + '] ' + parts.join(', ') + ' }';
+        return '{ [' + String(obj) + '] ' + $join.call(parts, ', ') + ' }';
     }
     if (typeof obj === 'object' && customInspect) {
-        if (inspectSymbol && typeof obj[inspectSymbol] === 'function') {
-            return obj[inspectSymbol]();
+        if (inspectSymbol && typeof obj[inspectSymbol] === 'function' && utilInspect) {
+            return utilInspect(obj, { depth: maxDepth - depth });
         } else if (customInspect !== 'symbol' && typeof obj.inspect === 'function') {
             return obj.inspect();
         }
     }
     if (isMap(obj)) {
         var mapParts = [];
-        mapForEach.call(obj, function (value, key) {
-            mapParts.push(inspect(key, obj, true) + ' => ' + inspect(value, obj));
-        });
+        if (mapForEach) {
+            mapForEach.call(obj, function (value, key) {
+                mapParts.push(inspect(key, obj, true) + ' => ' + inspect(value, obj));
+            });
+        }
         return collectionOf('Map', mapSize.call(obj), mapParts, indent);
     }
     if (isSet(obj)) {
         var setParts = [];
-        setForEach.call(obj, function (value) {
-            setParts.push(inspect(value, obj));
-        });
+        if (setForEach) {
+            setForEach.call(obj, function (value) {
+                setParts.push(inspect(value, obj));
+            });
+        }
         return collectionOf('Set', setSize.call(obj), setParts, indent);
     }
     if (isWeakMap(obj)) {
@@ -5206,14 +5129,14 @@ module.exports = function inspect_(obj, options, depth, seen) {
         var ys = arrObjKeys(obj, inspect);
         var isPlainObject = gPO ? gPO(obj) === Object.prototype : obj instanceof Object || obj.constructor === Object;
         var protoTag = obj instanceof Object ? '' : 'null prototype';
-        var stringTag = !isPlainObject && toStringTag && Object(obj) === obj && toStringTag in obj ? toStr(obj).slice(8, -1) : protoTag ? 'Object' : '';
+        var stringTag = !isPlainObject && toStringTag && Object(obj) === obj && toStringTag in obj ? $slice.call(toStr(obj), 8, -1) : protoTag ? 'Object' : '';
         var constructorTag = isPlainObject || typeof obj.constructor !== 'function' ? '' : obj.constructor.name ? obj.constructor.name + ' ' : '';
-        var tag = constructorTag + (stringTag || protoTag ? '[' + [].concat(stringTag || [], protoTag || []).join(': ') + '] ' : '');
+        var tag = constructorTag + (stringTag || protoTag ? '[' + $join.call($concat.call([], stringTag || [], protoTag || []), ': ') + '] ' : '');
         if (ys.length === 0) { return tag + '{}'; }
         if (indent) {
             return tag + '{' + indentedJoin(ys, indent) + '}';
         }
-        return tag + '{ ' + ys.join(', ') + ' }';
+        return tag + '{ ' + $join.call(ys, ', ') + ' }';
     }
     return String(obj);
 };
@@ -5224,7 +5147,7 @@ function wrapQuotes(s, defaultStyle, opts) {
 }
 
 function quote(s) {
-    return String(s).replace(/"/g, '&quot;');
+    return $replace.call(String(s), /"/g, '&quot;');
 }
 
 function isArray(obj) { return toStr(obj) === '[object Array]' && (!toStringTag || !(typeof obj === 'object' && toStringTag in obj)); }
@@ -5275,7 +5198,7 @@ function toStr(obj) {
 
 function nameOf(f) {
     if (f.name) { return f.name; }
-    var m = match.call(functionToString.call(f), /^function\s*([\w$]+)/);
+    var m = $match.call(functionToString.call(f), /^function\s*([\w$]+)/);
     if (m) { return m[1]; }
     return null;
 }
@@ -5375,10 +5298,10 @@ function inspectString(str, opts) {
     if (str.length > opts.maxStringLength) {
         var remaining = str.length - opts.maxStringLength;
         var trailer = '... ' + remaining + ' more character' + (remaining > 1 ? 's' : '');
-        return inspectString(str.slice(0, opts.maxStringLength), opts) + trailer;
+        return inspectString($slice.call(str, 0, opts.maxStringLength), opts) + trailer;
     }
     // eslint-disable-next-line no-control-regex
-    var s = str.replace(/(['\\])/g, '\\$1').replace(/[\x00-\x1f]/g, lowbyte);
+    var s = $replace.call($replace.call(str, /(['\\])/g, '\\$1'), /[\x00-\x1f]/g, lowbyte);
     return wrapQuotes(s, 'single', opts);
 }
 
@@ -5392,7 +5315,7 @@ function lowbyte(c) {
         13: 'r'
     }[n];
     if (x) { return '\\' + x; }
-    return '\\x' + (n < 0x10 ? '0' : '') + n.toString(16).toUpperCase();
+    return '\\x' + (n < 0x10 ? '0' : '') + $toUpperCase.call(n.toString(16));
 }
 
 function markBoxed(str) {
@@ -5404,7 +5327,7 @@ function weakCollectionOf(type) {
 }
 
 function collectionOf(type, size, entries, indent) {
-    var joinedEntries = indent ? indentedJoin(entries, indent) : entries.join(', ');
+    var joinedEntries = indent ? indentedJoin(entries, indent) : $join.call(entries, ', ');
     return type + ' (' + size + ') {' + joinedEntries + '}';
 }
 
@@ -5422,20 +5345,20 @@ function getIndent(opts, depth) {
     if (opts.indent === '\t') {
         baseIndent = '\t';
     } else if (typeof opts.indent === 'number' && opts.indent > 0) {
-        baseIndent = Array(opts.indent + 1).join(' ');
+        baseIndent = $join.call(Array(opts.indent + 1), ' ');
     } else {
         return null;
     }
     return {
         base: baseIndent,
-        prev: Array(depth + 1).join(baseIndent)
+        prev: $join.call(Array(depth + 1), baseIndent)
     };
 }
 
 function indentedJoin(xs, indent) {
     if (xs.length === 0) { return ''; }
     var lineJoiner = '\n' + indent.prev + indent.base;
-    return lineJoiner + xs.join(',' + lineJoiner) + '\n' + indent.prev;
+    return lineJoiner + $join.call(xs, ',' + lineJoiner) + '\n' + indent.prev;
 }
 
 function arrObjKeys(obj, inspect) {
@@ -5462,7 +5385,7 @@ function arrObjKeys(obj, inspect) {
         if (hasShammedSymbols && symMap['$' + key] instanceof Symbol) {
             // this is to prevent shammed Symbols, which are stored as strings, from being included in the string key section
             continue; // eslint-disable-line no-restricted-syntax, no-continue
-        } else if ((/[^\w$]/).test(key)) {
+        } else if ($test.call(/[^\w$]/, key)) {
             xs.push(inspect(key, obj) + ': ' + inspect(obj[key], obj));
         } else {
             xs.push(key + ': ' + inspect(obj[key], obj));
@@ -5689,10 +5612,12 @@ module.exports = function isArguments(value) {
 /*!***************************************************************!*\
   !*** ./node_modules/regexp.prototype.flags/implementation.js ***!
   \***************************************************************/
-/***/ ((module) => {
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
+
+var functionsHaveConfigurableNames = (__webpack_require__(/*! functions-have-names */ "./node_modules/functions-have-names/index.js").functionsHaveConfigurableNames)();
 
 var $Object = Object;
 var $TypeError = TypeError;
@@ -5702,6 +5627,9 @@ module.exports = function flags() {
 		throw new $TypeError('RegExp.prototype.flags getter called on non-object');
 	}
 	var result = '';
+	if (this.hasIndices) {
+		result += 'd';
+	}
 	if (this.global) {
 		result += 'g';
 	}
@@ -5723,6 +5651,10 @@ module.exports = function flags() {
 	return result;
 };
 
+if (functionsHaveConfigurableNames && Object.defineProperty) {
+	Object.defineProperty(module.exports, "name", ({ value: 'get flags' }));
+}
+
 
 /***/ }),
 
@@ -5742,7 +5674,7 @@ var implementation = __webpack_require__(/*! ./implementation */ "./node_modules
 var getPolyfill = __webpack_require__(/*! ./polyfill */ "./node_modules/regexp.prototype.flags/polyfill.js");
 var shim = __webpack_require__(/*! ./shim */ "./node_modules/regexp.prototype.flags/shim.js");
 
-var flagsBound = callBind(implementation);
+var flagsBound = callBind(getPolyfill());
 
 define(flagsBound, {
 	getPolyfill: getPolyfill,
@@ -5766,18 +5698,34 @@ module.exports = flagsBound;
 
 var implementation = __webpack_require__(/*! ./implementation */ "./node_modules/regexp.prototype.flags/implementation.js");
 
-var supportsDescriptors = __webpack_require__(/*! define-properties */ "./node_modules/define-properties/index.js").supportsDescriptors;
+var supportsDescriptors = (__webpack_require__(/*! define-properties */ "./node_modules/define-properties/index.js").supportsDescriptors);
 var $gOPD = Object.getOwnPropertyDescriptor;
-var $TypeError = TypeError;
 
 module.exports = function getPolyfill() {
-	if (!supportsDescriptors) {
-		throw new $TypeError('RegExp.prototype.flags requires a true ES5 environment that supports property descriptors');
-	}
-	if ((/a/mig).flags === 'gim') {
+	if (supportsDescriptors && (/a/mig).flags === 'gim') {
 		var descriptor = $gOPD(RegExp.prototype, 'flags');
-		if (descriptor && typeof descriptor.get === 'function' && typeof (/a/).dotAll === 'boolean') {
-			return descriptor.get;
+		if (
+			descriptor
+			&& typeof descriptor.get === 'function'
+			&& typeof RegExp.prototype.dotAll === 'boolean'
+			&& typeof RegExp.prototype.hasIndices === 'boolean'
+		) {
+			/* eslint getter-return: 0 */
+			var calls = '';
+			var o = {};
+			Object.defineProperty(o, 'hasIndices', {
+				get: function () {
+					calls += 'd';
+				}
+			});
+			Object.defineProperty(o, 'sticky', {
+				get: function () {
+					calls += 'y';
+				}
+			});
+			if (calls === 'dy') {
+				return descriptor.get;
+			}
 		}
 	}
 	return implementation;
@@ -5795,7 +5743,7 @@ module.exports = function getPolyfill() {
 "use strict";
 
 
-var supportsDescriptors = __webpack_require__(/*! define-properties */ "./node_modules/define-properties/index.js").supportsDescriptors;
+var supportsDescriptors = (__webpack_require__(/*! define-properties */ "./node_modules/define-properties/index.js").supportsDescriptors);
 var getPolyfill = __webpack_require__(/*! ./polyfill */ "./node_modules/regexp.prototype.flags/polyfill.js");
 var gOPD = Object.getOwnPropertyDescriptor;
 var defineProperty = Object.defineProperty;
@@ -5818,6 +5766,34 @@ module.exports = function shimFlags() {
 		});
 	}
 	return polyfill;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/safe-regex-test/index.js":
+/*!***********************************************!*\
+  !*** ./node_modules/safe-regex-test/index.js ***!
+  \***********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+var isRegex = __webpack_require__(/*! is-regex */ "./node_modules/is-regex/index.js");
+
+var $exec = callBound('RegExp.prototype.exec');
+var $TypeError = GetIntrinsic('%TypeError%');
+
+module.exports = function regexTester(regex) {
+	if (!isRegex(regex)) {
+		throw new $TypeError('`regex` must be a RegExp');
+	}
+	return function test(s) {
+		return $exec(regex, s) !== null;
+	};
 };
 
 
@@ -5967,12 +5943,12 @@ module.exports = function getSideChannel() {
 "use strict";
 
 
-var Call = __webpack_require__(/*! es-abstract/2021/Call */ "./node_modules/es-abstract/2021/Call.js");
-var Get = __webpack_require__(/*! es-abstract/2021/Get */ "./node_modules/es-abstract/2021/Get.js");
-var GetMethod = __webpack_require__(/*! es-abstract/2021/GetMethod */ "./node_modules/es-abstract/2021/GetMethod.js");
-var IsRegExp = __webpack_require__(/*! es-abstract/2021/IsRegExp */ "./node_modules/es-abstract/2021/IsRegExp.js");
-var ToString = __webpack_require__(/*! es-abstract/2021/ToString */ "./node_modules/es-abstract/2021/ToString.js");
-var RequireObjectCoercible = __webpack_require__(/*! es-abstract/2021/RequireObjectCoercible */ "./node_modules/es-abstract/2021/RequireObjectCoercible.js");
+var Call = __webpack_require__(/*! es-abstract/2022/Call */ "./node_modules/es-abstract/2022/Call.js");
+var Get = __webpack_require__(/*! es-abstract/2022/Get */ "./node_modules/es-abstract/2022/Get.js");
+var GetMethod = __webpack_require__(/*! es-abstract/2022/GetMethod */ "./node_modules/es-abstract/2022/GetMethod.js");
+var IsRegExp = __webpack_require__(/*! es-abstract/2022/IsRegExp */ "./node_modules/es-abstract/2022/IsRegExp.js");
+var ToString = __webpack_require__(/*! es-abstract/2022/ToString */ "./node_modules/es-abstract/2022/ToString.js");
+var RequireObjectCoercible = __webpack_require__(/*! es-abstract/2022/RequireObjectCoercible */ "./node_modules/es-abstract/2022/RequireObjectCoercible.js");
 var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
 var hasSymbols = __webpack_require__(/*! has-symbols */ "./node_modules/has-symbols/index.js")();
 var flagsGetter = __webpack_require__(/*! regexp.prototype.flags */ "./node_modules/regexp.prototype.flags/index.js");
@@ -6110,15 +6086,18 @@ module.exports = function getPolyfill() {
 "use strict";
 
 
-// var Construct = require('es-abstract/2021/Construct');
-var CreateRegExpStringIterator = __webpack_require__(/*! es-abstract/2021/CreateRegExpStringIterator */ "./node_modules/es-abstract/2021/CreateRegExpStringIterator.js");
-var Get = __webpack_require__(/*! es-abstract/2021/Get */ "./node_modules/es-abstract/2021/Get.js");
-var Set = __webpack_require__(/*! es-abstract/2021/Set */ "./node_modules/es-abstract/2021/Set.js");
-var SpeciesConstructor = __webpack_require__(/*! es-abstract/2021/SpeciesConstructor */ "./node_modules/es-abstract/2021/SpeciesConstructor.js");
-var ToLength = __webpack_require__(/*! es-abstract/2021/ToLength */ "./node_modules/es-abstract/2021/ToLength.js");
-var ToString = __webpack_require__(/*! es-abstract/2021/ToString */ "./node_modules/es-abstract/2021/ToString.js");
-var Type = __webpack_require__(/*! es-abstract/2021/Type */ "./node_modules/es-abstract/2021/Type.js");
+// var Construct = require('es-abstract/2022/Construct');
+var CreateRegExpStringIterator = __webpack_require__(/*! es-abstract/2022/CreateRegExpStringIterator */ "./node_modules/es-abstract/2022/CreateRegExpStringIterator.js");
+var Get = __webpack_require__(/*! es-abstract/2022/Get */ "./node_modules/es-abstract/2022/Get.js");
+var Set = __webpack_require__(/*! es-abstract/2022/Set */ "./node_modules/es-abstract/2022/Set.js");
+var SpeciesConstructor = __webpack_require__(/*! es-abstract/2022/SpeciesConstructor */ "./node_modules/es-abstract/2022/SpeciesConstructor.js");
+var ToLength = __webpack_require__(/*! es-abstract/2022/ToLength */ "./node_modules/es-abstract/2022/ToLength.js");
+var ToString = __webpack_require__(/*! es-abstract/2022/ToString */ "./node_modules/es-abstract/2022/ToString.js");
+var Type = __webpack_require__(/*! es-abstract/2022/Type */ "./node_modules/es-abstract/2022/Type.js");
 var flagsGetter = __webpack_require__(/*! regexp.prototype.flags */ "./node_modules/regexp.prototype.flags/index.js");
+var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
+
+var $indexOf = callBound('String.prototype.indexOf');
 
 var OrigRegExp = RegExp;
 
@@ -6155,8 +6134,8 @@ var regexMatchAll = function SymbolMatchAll(string) {
 
 	var lastIndex = ToLength(Get(R, 'lastIndex'));
 	Set(matcher, 'lastIndex', lastIndex, true);
-	var global = flags.indexOf('g') > -1;
-	var fullUnicode = flags.indexOf('u') > -1;
+	var global = $indexOf(flags, 'g') > -1;
+	var fullUnicode = $indexOf(flags, 'u') > -1;
 	return CreateRegExpStringIterator(matcher, S, global, fullUnicode);
 };
 
@@ -6245,44 +6224,9 @@ module.exports = function shimMatchAll() {
 
 /***/ }),
 
-/***/ "./node_modules/css-selector-generator/build/index.js":
-/*!************************************************************!*\
-  !*** ./node_modules/css-selector-generator/build/index.js ***!
-  \************************************************************/
-/***/ ((module) => {
-
-!function(t,e){ true?module.exports=e():0}(self,(()=>(()=>{var t={426:(t,e,n)=>{var r=n(529);function o(t,e,n){Array.isArray(t)?t.push(e):t[n]=e}t.exports=function(t){var e,n,i,u=[];if(Array.isArray(t))n=[],e=t.length-1;else{if("object"!=typeof t||null===t)throw new TypeError("Expecting an Array or an Object, but `"+(null===t?"null":typeof t)+"` provided.");n={},i=Object.keys(t),e=i.length-1}return function n(c,a){var l,s,f,d;for(s=i?i[a]:a,Array.isArray(t[s])||(void 0===t[s]?t[s]=[]:t[s]=[t[s]]),l=0;l<t[s].length;l++)o((d=c,f=Array.isArray(d)?[].concat(d):r(d)),t[s][l],s),a>=e?u.push(f):n(f,a+1)}(n,0),u}},529:t=>{t.exports=function(){for(var t={},n=0;n<arguments.length;n++){var r=arguments[n];for(var o in r)e.call(r,o)&&(t[o]=r[o])}return t};var e=Object.prototype.hasOwnProperty}},e={};function n(r){var o=e[r];if(void 0!==o)return o.exports;var i=e[r]={exports:{}};return t[r](i,i.exports,n),i.exports}n.n=t=>{var e=t&&t.__esModule?()=>t.default:()=>t;return n.d(e,{a:e}),e},n.d=(t,e)=>{for(var r in e)n.o(e,r)&&!n.o(t,r)&&Object.defineProperty(t,r,{enumerable:!0,get:e[r]})},n.o=(t,e)=>Object.prototype.hasOwnProperty.call(t,e),n.r=t=>{"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(t,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(t,"__esModule",{value:!0})};var r={};return(()=>{"use strict";n.r(r),n.d(r,{default:()=>Q,getCssSelector:()=>K});var t,e,o="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol?"symbol":typeof t};function i(t){return null!=t&&"object"===(void 0===t?"undefined":o(t))&&1===t.nodeType&&"object"===o(t.style)&&"object"===o(t.ownerDocument)}function u(t="unknown problem",...e){console.warn(`CssSelectorGenerator: ${t}`,...e)}!function(t){t.NONE="none",t.DESCENDANT="descendant",t.CHILD="child"}(t||(t={})),function(t){t.id="id",t.class="class",t.tag="tag",t.attribute="attribute",t.nthchild="nthchild",t.nthoftype="nthoftype"}(e||(e={}));const c={selectors:[e.id,e.class,e.tag,e.attribute],includeTag:!1,whitelist:[],blacklist:[],combineWithinSelector:!0,combineBetweenSelectors:!0,root:null,maxCombinations:Number.POSITIVE_INFINITY,maxCandidates:Number.POSITIVE_INFINITY};function a(t){return t instanceof RegExp}function l(t){return["string","function"].includes(typeof t)||a(t)}function s(t){return Array.isArray(t)?t.filter(l):[]}function f(t){const e=[Node.DOCUMENT_NODE,Node.DOCUMENT_FRAGMENT_NODE,Node.ELEMENT_NODE];return function(t){return t instanceof Node}(t)&&e.includes(t.nodeType)}function d(t,e){if(f(t))return t.contains(e)||u("element root mismatch","Provided root does not contain the element. This will most likely result in producing a fallback selector using element's real root node. If you plan to use the selector using provided root (e.g. `root.querySelector`), it will nto work as intended."),t;const n=e.getRootNode({composed:!1});return f(n)?(n!==document&&u("shadow root inferred","You did not provide a root and the element is a child of Shadow DOM. This will produce a selector using ShadowRoot as a root. If you plan to use the selector using document as a root (e.g. `document.querySelector`), it will not work as intended."),n):e.ownerDocument.querySelector(":root")}function p(t){return"number"==typeof t?t:Number.POSITIVE_INFINITY}function m(t=[]){const[e=[],...n]=t;return 0===n.length?e:n.reduce(((t,e)=>t.filter((t=>e.includes(t)))),e)}function h(t){return[].concat(...t)}function y(t){const e=t.map((t=>{if(a(t))return e=>t.test(e);if("function"==typeof t)return e=>{const n=t(e);return"boolean"!=typeof n?(u("pattern matcher function invalid","Provided pattern matching function does not return boolean. It's result will be ignored.",t),!1):n};if("string"==typeof t){const e=new RegExp("^"+t.replace(/[|\\{}()[\]^$+?.]/g,"\\$&").replace(/\*/g,".+")+"$");return t=>e.test(t)}return u("pattern matcher invalid","Pattern matching only accepts strings, regular expressions and/or functions. This item is invalid and will be ignored.",t),()=>!1}));return t=>e.some((e=>e(t)))}function g(t,e,n){const r=Array.from(d(n,t[0]).querySelectorAll(e));return r.length===t.length&&t.every((t=>r.includes(t)))}function b(t,e){e=null!=e?e:function(t){return t.ownerDocument.querySelector(":root")}(t);const n=[];let r=t;for(;i(r)&&r!==e;)n.push(r),r=r.parentElement;return n}function v(t,e){return m(t.map((t=>b(t,e))))}const N={[t.NONE]:{type:t.NONE,value:""},[t.DESCENDANT]:{type:t.DESCENDANT,value:" > "},[t.CHILD]:{type:t.CHILD,value:" "}},S=new RegExp(["^$","\\s","^\\d"].join("|")),E=new RegExp(["^$","^\\d"].join("|")),w=[e.nthoftype,e.tag,e.id,e.class,e.attribute,e.nthchild];var x=n(426),A=n.n(x);const C=y(["class","id","ng-*"]);function O({nodeName:t}){return`[${t}]`}function T({nodeName:t,nodeValue:e}){return`[${t}='${V(e)}']`}function I(t){const e=Array.from(t.attributes).filter((e=>function({nodeName:t},e){const n=e.tagName.toLowerCase();return!(["input","option"].includes(n)&&"value"===t||C(t))}(e,t)));return[...e.map(O),...e.map(T)]}function j(t){return(t.getAttribute("class")||"").trim().split(/\s+/).filter((t=>!E.test(t))).map((t=>`.${V(t)}`))}function D(t){const e=t.getAttribute("id")||"",n=`#${V(e)}`,r=t.getRootNode({composed:!1});return!S.test(e)&&g([t],n,r)?[n]:[]}function $(t){const e=t.parentNode;if(e){const n=Array.from(e.childNodes).filter(i).indexOf(t);if(n>-1)return[`:nth-child(${n+1})`]}return[]}function P(t){return[V(t.tagName.toLowerCase())]}function R(t){const e=[...new Set(h(t.map(P)))];return 0===e.length||e.length>1?[]:[e[0]]}function _(t){const e=R([t])[0],n=t.parentElement;if(n){const r=Array.from(n.children).filter((t=>t.tagName.toLowerCase()===e)).indexOf(t);if(r>-1)return[`${e}:nth-of-type(${r+1})`]}return[]}function k(t=[],{maxResults:e=Number.POSITIVE_INFINITY}={}){const n=[];let r=0,o=L(1);for(;o.length<=t.length&&r<e;)r+=1,n.push(o.map((e=>t[e]))),o=M(o,t.length-1);return n}function M(t=[],e=0){const n=t.length;if(0===n)return[];const r=[...t];r[n-1]+=1;for(let t=n-1;t>=0;t--)if(r[t]>e){if(0===t)return L(n+1);r[t-1]++,r[t]=r[t-1]+1}return r[n-1]>e?L(n+1):r}function L(t=1){return Array.from(Array(t).keys())}const q=":".charCodeAt(0).toString(16).toUpperCase(),F=/[ !"#$%&'()\[\]{|}<>*+,./;=?@^`~\\]/;function V(t=""){var e,n;return null!==(n=null===(e=null===CSS||void 0===CSS?void 0:CSS.escape)||void 0===e?void 0:e.call(CSS,t))&&void 0!==n?n:function(t=""){return t.split("").map((t=>":"===t?`\\${q} `:F.test(t)?`\\${t}`:escape(t).replace(/%/g,"\\"))).join("")}(t)}const Y={tag:R,id:function(t){return 0===t.length||t.length>1?[]:D(t[0])},class:function(t){return m(t.map(j))},attribute:function(t){return m(t.map(I))},nthchild:function(t){return m(t.map($))},nthoftype:function(t){return m(t.map(_))}},B={tag:P,id:D,class:j,attribute:I,nthchild:$,nthoftype:_};function G(t){return t.includes(e.tag)||t.includes(e.nthoftype)?[...t]:[...t,e.tag]}function W(t={}){const n=[...w];return t[e.tag]&&t[e.nthoftype]&&n.splice(n.indexOf(e.tag),1),n.map((e=>{return(r=t)[n=e]?r[n].join(""):"";var n,r})).join("")}function H(t,e,n="",r){const o=function(t,e){return""===e?t:function(t,e){return[...t.map((t=>e+" "+t)),...t.map((t=>e+" > "+t))]}(t,e)}(function(t,e,n){const r=h(function(t,e){return function(t){const{selectors:e,combineBetweenSelectors:n,includeTag:r,maxCandidates:o}=t,i=n?k(e,{maxResults:o}):e.map((t=>[t]));return r?i.map(G):i}(e).map((e=>function(t,e){const n={};return t.forEach((t=>{const r=e[t];r.length>0&&(n[t]=r)})),A()(n).map(W)}(e,t))).filter((t=>t.length>0))}(function(t,e){const{blacklist:n,whitelist:r,combineWithinSelector:o,maxCombinations:i}=e,u=y(n),c=y(r);return function(t){const{selectors:e,includeTag:n}=t,r=[].concat(e);return n&&!r.includes("tag")&&r.push("tag"),r}(e).reduce(((e,n)=>{const r=function(t=[],e){return t.sort(((t,n)=>{const r=e(t),o=e(n);return r&&!o?-1:!r&&o?1:0}))}(function(t=[],e,n){return t.filter((t=>n(t)||!e(t)))}(function(t,e){var n;return(null!==(n=Y[e])&&void 0!==n?n:()=>[])(t)}(t,n),u,c),c);return e[n]=o?k(r,{maxResults:i}):r.map((t=>[t])),e}),{})}(t,n),n));return[...new Set(r)]}(t,r.root,r),n);for(const e of o)if(g(t,e,r.root))return e;return null}function U(t){return{value:t,include:!1}}function z({selectors:t,operator:n}){let r=[...w];t[e.tag]&&t[e.nthoftype]&&(r=r.filter((t=>t!==e.tag)));let o="";return r.forEach((e=>{(t[e]||[]).forEach((({value:t,include:e})=>{e&&(o+=t)}))})),n.value+o}function J(n){return[":root",...b(n).reverse().map((n=>{const r=function(e,n,r=t.NONE){const o={};return n.forEach((t=>{Reflect.set(o,t,function(t,e){return B[e](t)}(e,t).map(U))})),{element:e,operator:N[r],selectors:o}}(n,[e.nthchild],t.DESCENDANT);return r.selectors.nthchild.forEach((t=>{t.include=!0})),r})).map(z)].join("")}function K(t,n={}){const r=function(t){const e=(Array.isArray(t)?t:[t]).filter(i);return[...new Set(e)]}(t),o=function(t,n={}){const r=Object.assign(Object.assign({},c),n);return{selectors:(o=r.selectors,Array.isArray(o)?o.filter((t=>{return n=e,r=t,Object.values(n).includes(r);var n,r})):[]),whitelist:s(r.whitelist),blacklist:s(r.blacklist),root:d(r.root,t),combineWithinSelector:!!r.combineWithinSelector,combineBetweenSelectors:!!r.combineBetweenSelectors,includeTag:!!r.includeTag,maxCombinations:p(r.maxCombinations),maxCandidates:p(r.maxCandidates)};var o}(r[0],n);let u="",a=o.root;function l(){return function(t,e,n="",r){if(0===t.length)return null;const o=[t.length>1?t:[],...v(t,e).map((t=>[t]))];for(const t of o){const e=H(t,0,n,r);if(e)return{foundElements:t,selector:e}}return null}(r,a,u,o)}let f=l();for(;f;){const{foundElements:t,selector:e}=f;if(g(r,e,o.root))return e;a=t[0],u=e,f=l()}return r.length>1?r.map((t=>K(t,o))).join(", "):function(t){return t.map(J).join(", ")}(r)}const Q=K})(),r})()));
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2020/IsArray.js":
-/*!**************************************************!*\
-  !*** ./node_modules/es-abstract/2020/IsArray.js ***!
-  \**************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $Array = GetIntrinsic('%Array%');
-
-// eslint-disable-next-line global-require
-var toStr = !$Array.isArray && __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js")('Object.prototype.toString');
-
-// https://ecma-international.org/ecma-262/6.0/#sec-isarray
-
-module.exports = $Array.isArray || function IsArray(argument) {
-	return toStr(argument) === '[object Array]';
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/AdvanceStringIndex.js":
+/***/ "./node_modules/es-abstract/2022/AdvanceStringIndex.js":
 /*!*************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/AdvanceStringIndex.js ***!
+  !*** ./node_modules/es-abstract/2022/AdvanceStringIndex.js ***!
   \*************************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -6291,9 +6235,9 @@ module.exports = $Array.isArray || function IsArray(argument) {
 
 var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
 
-var CodePointAt = __webpack_require__(/*! ./CodePointAt */ "./node_modules/es-abstract/2021/CodePointAt.js");
-var IsIntegralNumber = __webpack_require__(/*! ./IsIntegralNumber */ "./node_modules/es-abstract/2021/IsIntegralNumber.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+var CodePointAt = __webpack_require__(/*! ./CodePointAt */ "./node_modules/es-abstract/2022/CodePointAt.js");
+var IsIntegralNumber = __webpack_require__(/*! ./IsIntegralNumber */ "./node_modules/es-abstract/2022/IsIntegralNumber.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
 var MAX_SAFE_INTEGER = __webpack_require__(/*! ../helpers/maxSafeInteger */ "./node_modules/es-abstract/helpers/maxSafeInteger.js");
 
@@ -6325,9 +6269,9 @@ module.exports = function AdvanceStringIndex(S, index, unicode) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/Call.js":
+/***/ "./node_modules/es-abstract/2022/Call.js":
 /*!***********************************************!*\
-  !*** ./node_modules/es-abstract/2021/Call.js ***!
+  !*** ./node_modules/es-abstract/2022/Call.js ***!
   \***********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -6339,7 +6283,7 @@ var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/c
 
 var $TypeError = GetIntrinsic('%TypeError%');
 
-var IsArray = __webpack_require__(/*! ./IsArray */ "./node_modules/es-abstract/2021/IsArray.js");
+var IsArray = __webpack_require__(/*! ./IsArray */ "./node_modules/es-abstract/2022/IsArray.js");
 
 var $apply = GetIntrinsic('%Reflect.apply%', true) || callBound('%Function.prototype.apply%');
 
@@ -6356,9 +6300,9 @@ module.exports = function Call(F, V) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/CodePointAt.js":
+/***/ "./node_modules/es-abstract/2022/CodePointAt.js":
 /*!******************************************************!*\
-  !*** ./node_modules/es-abstract/2021/CodePointAt.js ***!
+  !*** ./node_modules/es-abstract/2022/CodePointAt.js ***!
   \******************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -6372,8 +6316,8 @@ var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/c
 var isLeadingSurrogate = __webpack_require__(/*! ../helpers/isLeadingSurrogate */ "./node_modules/es-abstract/helpers/isLeadingSurrogate.js");
 var isTrailingSurrogate = __webpack_require__(/*! ../helpers/isTrailingSurrogate */ "./node_modules/es-abstract/helpers/isTrailingSurrogate.js");
 
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
-var UTF16SurrogatePairToCodePoint = __webpack_require__(/*! ./UTF16SurrogatePairToCodePoint */ "./node_modules/es-abstract/2021/UTF16SurrogatePairToCodePoint.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
+var UTF16SurrogatePairToCodePoint = __webpack_require__(/*! ./UTF16SurrogatePairToCodePoint */ "./node_modules/es-abstract/2022/UTF16SurrogatePairToCodePoint.js");
 
 var $charAt = callBound('String.prototype.charAt');
 var $charCodeAt = callBound('String.prototype.charCodeAt');
@@ -6425,9 +6369,9 @@ module.exports = function CodePointAt(string, position) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/CreateIterResultObject.js":
+/***/ "./node_modules/es-abstract/2022/CreateIterResultObject.js":
 /*!*****************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/CreateIterResultObject.js ***!
+  !*** ./node_modules/es-abstract/2022/CreateIterResultObject.js ***!
   \*****************************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -6438,7 +6382,7 @@ var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-
 
 var $TypeError = GetIntrinsic('%TypeError%');
 
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
 // https://ecma-international.org/ecma-262/6.0/#sec-createiterresultobject
 
@@ -6455,9 +6399,9 @@ module.exports = function CreateIterResultObject(value, done) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/CreateMethodProperty.js":
+/***/ "./node_modules/es-abstract/2022/CreateMethodProperty.js":
 /*!***************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/CreateMethodProperty.js ***!
+  !*** ./node_modules/es-abstract/2022/CreateMethodProperty.js ***!
   \***************************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -6470,11 +6414,11 @@ var $TypeError = GetIntrinsic('%TypeError%');
 
 var DefineOwnProperty = __webpack_require__(/*! ../helpers/DefineOwnProperty */ "./node_modules/es-abstract/helpers/DefineOwnProperty.js");
 
-var FromPropertyDescriptor = __webpack_require__(/*! ./FromPropertyDescriptor */ "./node_modules/es-abstract/2021/FromPropertyDescriptor.js");
-var IsDataDescriptor = __webpack_require__(/*! ./IsDataDescriptor */ "./node_modules/es-abstract/2021/IsDataDescriptor.js");
-var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
-var SameValue = __webpack_require__(/*! ./SameValue */ "./node_modules/es-abstract/2021/SameValue.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+var FromPropertyDescriptor = __webpack_require__(/*! ./FromPropertyDescriptor */ "./node_modules/es-abstract/2022/FromPropertyDescriptor.js");
+var IsDataDescriptor = __webpack_require__(/*! ./IsDataDescriptor */ "./node_modules/es-abstract/2022/IsDataDescriptor.js");
+var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2022/IsPropertyKey.js");
+var SameValue = __webpack_require__(/*! ./SameValue */ "./node_modules/es-abstract/2022/SameValue.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
 // https://ecma-international.org/ecma-262/6.0/#sec-createmethodproperty
 
@@ -6506,9 +6450,9 @@ module.exports = function CreateMethodProperty(O, P, V) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/CreateRegExpStringIterator.js":
+/***/ "./node_modules/es-abstract/2022/CreateRegExpStringIterator.js":
 /*!*********************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/CreateRegExpStringIterator.js ***!
+  !*** ./node_modules/es-abstract/2022/CreateRegExpStringIterator.js ***!
   \*********************************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -6520,20 +6464,20 @@ var hasSymbols = __webpack_require__(/*! has-symbols */ "./node_modules/has-symb
 
 var $TypeError = GetIntrinsic('%TypeError%');
 var IteratorPrototype = GetIntrinsic('%IteratorPrototype%', true);
-var $defineProperty = GetIntrinsic('%Object.defineProperty%', true);
 
-var AdvanceStringIndex = __webpack_require__(/*! ./AdvanceStringIndex */ "./node_modules/es-abstract/2021/AdvanceStringIndex.js");
-var CreateIterResultObject = __webpack_require__(/*! ./CreateIterResultObject */ "./node_modules/es-abstract/2021/CreateIterResultObject.js");
-var CreateMethodProperty = __webpack_require__(/*! ./CreateMethodProperty */ "./node_modules/es-abstract/2021/CreateMethodProperty.js");
-var Get = __webpack_require__(/*! ./Get */ "./node_modules/es-abstract/2021/Get.js");
-var OrdinaryObjectCreate = __webpack_require__(/*! ./OrdinaryObjectCreate */ "./node_modules/es-abstract/2021/OrdinaryObjectCreate.js");
-var RegExpExec = __webpack_require__(/*! ./RegExpExec */ "./node_modules/es-abstract/2021/RegExpExec.js");
-var Set = __webpack_require__(/*! ./Set */ "./node_modules/es-abstract/2021/Set.js");
-var ToLength = __webpack_require__(/*! ./ToLength */ "./node_modules/es-abstract/2021/ToLength.js");
-var ToString = __webpack_require__(/*! ./ToString */ "./node_modules/es-abstract/2021/ToString.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+var AdvanceStringIndex = __webpack_require__(/*! ./AdvanceStringIndex */ "./node_modules/es-abstract/2022/AdvanceStringIndex.js");
+var CreateIterResultObject = __webpack_require__(/*! ./CreateIterResultObject */ "./node_modules/es-abstract/2022/CreateIterResultObject.js");
+var CreateMethodProperty = __webpack_require__(/*! ./CreateMethodProperty */ "./node_modules/es-abstract/2022/CreateMethodProperty.js");
+var Get = __webpack_require__(/*! ./Get */ "./node_modules/es-abstract/2022/Get.js");
+var OrdinaryObjectCreate = __webpack_require__(/*! ./OrdinaryObjectCreate */ "./node_modules/es-abstract/2022/OrdinaryObjectCreate.js");
+var RegExpExec = __webpack_require__(/*! ./RegExpExec */ "./node_modules/es-abstract/2022/RegExpExec.js");
+var Set = __webpack_require__(/*! ./Set */ "./node_modules/es-abstract/2022/Set.js");
+var ToLength = __webpack_require__(/*! ./ToLength */ "./node_modules/es-abstract/2022/ToLength.js");
+var ToString = __webpack_require__(/*! ./ToString */ "./node_modules/es-abstract/2022/ToString.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
 var SLOT = __webpack_require__(/*! internal-slot */ "./node_modules/internal-slot/index.js");
+var setToStringTag = __webpack_require__(/*! es-set-tostringtag */ "./node_modules/es-set-tostringtag/index.js");
 
 var RegExpStringIterator = function RegExpStringIterator(R, S, global, fullUnicode) {
 	if (Type(S) !== 'String') {
@@ -6563,11 +6507,11 @@ var RegExpStringIteratorNext = function next() {
 	}
 	if (
 		!(O instanceof RegExpStringIterator)
-        || !SLOT.has(O, '[[IteratingRegExp]]')
-        || !SLOT.has(O, '[[IteratedString]]')
-        || !SLOT.has(O, '[[Global]]')
-        || !SLOT.has(O, '[[Unicode]]')
-        || !SLOT.has(O, '[[Done]]')
+		|| !SLOT.has(O, '[[IteratingRegExp]]')
+		|| !SLOT.has(O, '[[IteratedString]]')
+		|| !SLOT.has(O, '[[Global]]')
+		|| !SLOT.has(O, '[[Unicode]]')
+		|| !SLOT.has(O, '[[Done]]')
 	) {
 		throw new $TypeError('"this" value must be a RegExpStringIterator instance');
 	}
@@ -6598,18 +6542,7 @@ var RegExpStringIteratorNext = function next() {
 CreateMethodProperty(RegExpStringIterator.prototype, 'next', RegExpStringIteratorNext);
 
 if (hasSymbols) {
-	if (Symbol.toStringTag) {
-		if ($defineProperty) {
-			$defineProperty(RegExpStringIterator.prototype, Symbol.toStringTag, {
-				configurable: true,
-				enumerable: false,
-				value: 'RegExp String Iterator',
-				writable: false
-			});
-		} else {
-			RegExpStringIterator.prototype[Symbol.toStringTag] = 'RegExp String Iterator';
-		}
-	}
+	setToStringTag(RegExpStringIterator.prototype, 'RegExp String Iterator');
 
 	if (Symbol.iterator && typeof RegExpStringIterator.prototype[Symbol.iterator] !== 'function') {
 		var iteratorFn = function SymbolIterator() {
@@ -6628,9 +6561,9 @@ module.exports = function CreateRegExpStringIterator(R, S, global, fullUnicode) 
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/DefinePropertyOrThrow.js":
+/***/ "./node_modules/es-abstract/2022/DefinePropertyOrThrow.js":
 /*!****************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/DefinePropertyOrThrow.js ***!
+  !*** ./node_modules/es-abstract/2022/DefinePropertyOrThrow.js ***!
   \****************************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -6644,13 +6577,13 @@ var $TypeError = GetIntrinsic('%TypeError%');
 var isPropertyDescriptor = __webpack_require__(/*! ../helpers/isPropertyDescriptor */ "./node_modules/es-abstract/helpers/isPropertyDescriptor.js");
 var DefineOwnProperty = __webpack_require__(/*! ../helpers/DefineOwnProperty */ "./node_modules/es-abstract/helpers/DefineOwnProperty.js");
 
-var FromPropertyDescriptor = __webpack_require__(/*! ./FromPropertyDescriptor */ "./node_modules/es-abstract/2021/FromPropertyDescriptor.js");
-var IsAccessorDescriptor = __webpack_require__(/*! ./IsAccessorDescriptor */ "./node_modules/es-abstract/2021/IsAccessorDescriptor.js");
-var IsDataDescriptor = __webpack_require__(/*! ./IsDataDescriptor */ "./node_modules/es-abstract/2021/IsDataDescriptor.js");
-var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
-var SameValue = __webpack_require__(/*! ./SameValue */ "./node_modules/es-abstract/2021/SameValue.js");
-var ToPropertyDescriptor = __webpack_require__(/*! ./ToPropertyDescriptor */ "./node_modules/es-abstract/2021/ToPropertyDescriptor.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+var FromPropertyDescriptor = __webpack_require__(/*! ./FromPropertyDescriptor */ "./node_modules/es-abstract/2022/FromPropertyDescriptor.js");
+var IsAccessorDescriptor = __webpack_require__(/*! ./IsAccessorDescriptor */ "./node_modules/es-abstract/2022/IsAccessorDescriptor.js");
+var IsDataDescriptor = __webpack_require__(/*! ./IsDataDescriptor */ "./node_modules/es-abstract/2022/IsDataDescriptor.js");
+var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2022/IsPropertyKey.js");
+var SameValue = __webpack_require__(/*! ./SameValue */ "./node_modules/es-abstract/2022/SameValue.js");
+var ToPropertyDescriptor = __webpack_require__(/*! ./ToPropertyDescriptor */ "./node_modules/es-abstract/2022/ToPropertyDescriptor.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
 // https://ecma-international.org/ecma-262/6.0/#sec-definepropertyorthrow
 
@@ -6689,9 +6622,9 @@ module.exports = function DefinePropertyOrThrow(O, P, desc) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/FromPropertyDescriptor.js":
+/***/ "./node_modules/es-abstract/2022/FromPropertyDescriptor.js":
 /*!*****************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/FromPropertyDescriptor.js ***!
+  !*** ./node_modules/es-abstract/2022/FromPropertyDescriptor.js ***!
   \*****************************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -6699,46 +6632,26 @@ module.exports = function DefinePropertyOrThrow(O, P, desc) {
 
 
 var assertRecord = __webpack_require__(/*! ../helpers/assertRecord */ "./node_modules/es-abstract/helpers/assertRecord.js");
+var fromPropertyDescriptor = __webpack_require__(/*! ../helpers/fromPropertyDescriptor */ "./node_modules/es-abstract/helpers/fromPropertyDescriptor.js");
 
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
 // https://ecma-international.org/ecma-262/6.0/#sec-frompropertydescriptor
 
 module.exports = function FromPropertyDescriptor(Desc) {
-	if (typeof Desc === 'undefined') {
-		return Desc;
+	if (typeof Desc !== 'undefined') {
+		assertRecord(Type, 'Property Descriptor', 'Desc', Desc);
 	}
 
-	assertRecord(Type, 'Property Descriptor', 'Desc', Desc);
-
-	var obj = {};
-	if ('[[Value]]' in Desc) {
-		obj.value = Desc['[[Value]]'];
-	}
-	if ('[[Writable]]' in Desc) {
-		obj.writable = Desc['[[Writable]]'];
-	}
-	if ('[[Get]]' in Desc) {
-		obj.get = Desc['[[Get]]'];
-	}
-	if ('[[Set]]' in Desc) {
-		obj.set = Desc['[[Set]]'];
-	}
-	if ('[[Enumerable]]' in Desc) {
-		obj.enumerable = Desc['[[Enumerable]]'];
-	}
-	if ('[[Configurable]]' in Desc) {
-		obj.configurable = Desc['[[Configurable]]'];
-	}
-	return obj;
+	return fromPropertyDescriptor(Desc);
 };
 
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/Get.js":
+/***/ "./node_modules/es-abstract/2022/Get.js":
 /*!**********************************************!*\
-  !*** ./node_modules/es-abstract/2021/Get.js ***!
+  !*** ./node_modules/es-abstract/2022/Get.js ***!
   \**********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -6751,15 +6664,10 @@ var $TypeError = GetIntrinsic('%TypeError%');
 
 var inspect = __webpack_require__(/*! object-inspect */ "./node_modules/object-inspect/index.js");
 
-var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2022/IsPropertyKey.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
-/**
- * 7.3.1 Get (O, P) - https://ecma-international.org/ecma-262/6.0/#sec-get-o-p
- * 1. Assert: Type(O) is Object.
- * 2. Assert: IsPropertyKey(P) is true.
- * 3. Return O.[[Get]](P, O).
- */
+// https://ecma-international.org/ecma-262/6.0/#sec-get-o-p
 
 module.exports = function Get(O, P) {
 	// 7.3.1.1
@@ -6777,9 +6685,9 @@ module.exports = function Get(O, P) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/GetMethod.js":
+/***/ "./node_modules/es-abstract/2022/GetMethod.js":
 /*!****************************************************!*\
-  !*** ./node_modules/es-abstract/2021/GetMethod.js ***!
+  !*** ./node_modules/es-abstract/2022/GetMethod.js ***!
   \****************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -6790,19 +6698,13 @@ var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-
 
 var $TypeError = GetIntrinsic('%TypeError%');
 
-var GetV = __webpack_require__(/*! ./GetV */ "./node_modules/es-abstract/2021/GetV.js");
-var IsCallable = __webpack_require__(/*! ./IsCallable */ "./node_modules/es-abstract/2021/IsCallable.js");
-var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
+var GetV = __webpack_require__(/*! ./GetV */ "./node_modules/es-abstract/2022/GetV.js");
+var IsCallable = __webpack_require__(/*! ./IsCallable */ "./node_modules/es-abstract/2022/IsCallable.js");
+var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2022/IsPropertyKey.js");
 
-/**
- * 7.3.9 - https://ecma-international.org/ecma-262/6.0/#sec-getmethod
- * 1. Assert: IsPropertyKey(P) is true.
- * 2. Let func be GetV(O, P).
- * 3. ReturnIfAbrupt(func).
- * 4. If func is either undefined or null, return undefined.
- * 5. If IsCallable(func) is false, throw a TypeError exception.
- * 6. Return func.
- */
+var debug = __webpack_require__(/*! object-inspect */ "./node_modules/object-inspect/index.js");
+
+// https://ecma-international.org/ecma-262/6.0/#sec-getmethod
 
 module.exports = function GetMethod(O, P) {
 	// 7.3.9.1
@@ -6820,7 +6722,7 @@ module.exports = function GetMethod(O, P) {
 
 	// 7.3.9.5
 	if (!IsCallable(func)) {
-		throw new $TypeError(P + 'is not a function');
+		throw new $TypeError(P + ' is not a function: ' + debug(func));
 	}
 
 	// 7.3.9.6
@@ -6830,9 +6732,9 @@ module.exports = function GetMethod(O, P) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/GetV.js":
+/***/ "./node_modules/es-abstract/2022/GetV.js":
 /*!***********************************************!*\
-  !*** ./node_modules/es-abstract/2021/GetV.js ***!
+  !*** ./node_modules/es-abstract/2022/GetV.js ***!
   \***********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -6843,16 +6745,10 @@ var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-
 
 var $TypeError = GetIntrinsic('%TypeError%');
 
-var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
-var ToObject = __webpack_require__(/*! ./ToObject */ "./node_modules/es-abstract/2021/ToObject.js");
+var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2022/IsPropertyKey.js");
+var ToObject = __webpack_require__(/*! ./ToObject */ "./node_modules/es-abstract/2022/ToObject.js");
 
-/**
- * 7.3.2 GetV (V, P)
- * 1. Assert: IsPropertyKey(P) is true.
- * 2. Let O be ToObject(V).
- * 3. ReturnIfAbrupt(O).
- * 4. Return O.[[Get]](P, V).
- */
+// https://ecma-international.org/ecma-262/6.0/#sec-getv
 
 module.exports = function GetV(V, P) {
 	// 7.3.2.1
@@ -6870,9 +6766,9 @@ module.exports = function GetV(V, P) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/IsAccessorDescriptor.js":
+/***/ "./node_modules/es-abstract/2022/IsAccessorDescriptor.js":
 /*!***************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/IsAccessorDescriptor.js ***!
+  !*** ./node_modules/es-abstract/2022/IsAccessorDescriptor.js ***!
   \***************************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -6883,7 +6779,7 @@ var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
 
 var assertRecord = __webpack_require__(/*! ../helpers/assertRecord */ "./node_modules/es-abstract/helpers/assertRecord.js");
 
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
 // https://ecma-international.org/ecma-262/6.0/#sec-isaccessordescriptor
 
@@ -6904,34 +6800,24 @@ module.exports = function IsAccessorDescriptor(Desc) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/IsArray.js":
+/***/ "./node_modules/es-abstract/2022/IsArray.js":
 /*!**************************************************!*\
-  !*** ./node_modules/es-abstract/2021/IsArray.js ***!
+  !*** ./node_modules/es-abstract/2022/IsArray.js ***!
   \**************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $Array = GetIntrinsic('%Array%');
-
-// eslint-disable-next-line global-require
-var toStr = !$Array.isArray && __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js")('Object.prototype.toString');
-
 // https://ecma-international.org/ecma-262/6.0/#sec-isarray
-
-module.exports = $Array.isArray || function IsArray(argument) {
-	return toStr(argument) === '[object Array]';
-};
+module.exports = __webpack_require__(/*! ../helpers/IsArray */ "./node_modules/es-abstract/helpers/IsArray.js");
 
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/IsCallable.js":
+/***/ "./node_modules/es-abstract/2022/IsCallable.js":
 /*!*****************************************************!*\
-  !*** ./node_modules/es-abstract/2021/IsCallable.js ***!
+  !*** ./node_modules/es-abstract/2022/IsCallable.js ***!
   \*****************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -6945,9 +6831,9 @@ module.exports = __webpack_require__(/*! is-callable */ "./node_modules/is-calla
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/IsConstructor.js":
+/***/ "./node_modules/es-abstract/2022/IsConstructor.js":
 /*!********************************************************!*\
-  !*** ./node_modules/es-abstract/2021/IsConstructor.js ***!
+  !*** ./node_modules/es-abstract/2022/IsConstructor.js ***!
   \********************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -6958,7 +6844,7 @@ var GetIntrinsic = __webpack_require__(/*! ../GetIntrinsic.js */ "./node_modules
 
 var $construct = GetIntrinsic('%Reflect.construct%', true);
 
-var DefinePropertyOrThrow = __webpack_require__(/*! ./DefinePropertyOrThrow */ "./node_modules/es-abstract/2021/DefinePropertyOrThrow.js");
+var DefinePropertyOrThrow = __webpack_require__(/*! ./DefinePropertyOrThrow */ "./node_modules/es-abstract/2022/DefinePropertyOrThrow.js");
 try {
 	DefinePropertyOrThrow({}, '', { '[[Get]]': function () {} });
 } catch (e) {
@@ -6996,9 +6882,9 @@ if (DefinePropertyOrThrow && $construct) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/IsDataDescriptor.js":
+/***/ "./node_modules/es-abstract/2022/IsDataDescriptor.js":
 /*!***********************************************************!*\
-  !*** ./node_modules/es-abstract/2021/IsDataDescriptor.js ***!
+  !*** ./node_modules/es-abstract/2022/IsDataDescriptor.js ***!
   \***********************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -7009,7 +6895,7 @@ var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
 
 var assertRecord = __webpack_require__(/*! ../helpers/assertRecord */ "./node_modules/es-abstract/helpers/assertRecord.js");
 
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
 // https://ecma-international.org/ecma-262/6.0/#sec-isdatadescriptor
 
@@ -7030,18 +6916,18 @@ module.exports = function IsDataDescriptor(Desc) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/IsIntegralNumber.js":
+/***/ "./node_modules/es-abstract/2022/IsIntegralNumber.js":
 /*!***********************************************************!*\
-  !*** ./node_modules/es-abstract/2021/IsIntegralNumber.js ***!
+  !*** ./node_modules/es-abstract/2022/IsIntegralNumber.js ***!
   \***********************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var abs = __webpack_require__(/*! ./abs */ "./node_modules/es-abstract/2021/abs.js");
-var floor = __webpack_require__(/*! ./floor */ "./node_modules/es-abstract/2021/floor.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+var abs = __webpack_require__(/*! ./abs */ "./node_modules/es-abstract/2022/abs.js");
+var floor = __webpack_require__(/*! ./floor */ "./node_modules/es-abstract/2022/floor.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
 var $isNaN = __webpack_require__(/*! ../helpers/isNaN */ "./node_modules/es-abstract/helpers/isNaN.js");
 var $isFinite = __webpack_require__(/*! ../helpers/isFinite */ "./node_modules/es-abstract/helpers/isFinite.js");
@@ -7059,9 +6945,9 @@ module.exports = function IsIntegralNumber(argument) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/IsPropertyKey.js":
+/***/ "./node_modules/es-abstract/2022/IsPropertyKey.js":
 /*!********************************************************!*\
-  !*** ./node_modules/es-abstract/2021/IsPropertyKey.js ***!
+  !*** ./node_modules/es-abstract/2022/IsPropertyKey.js ***!
   \********************************************************/
 /***/ ((module) => {
 
@@ -7077,9 +6963,9 @@ module.exports = function IsPropertyKey(argument) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/IsRegExp.js":
+/***/ "./node_modules/es-abstract/2022/IsRegExp.js":
 /*!***************************************************!*\
-  !*** ./node_modules/es-abstract/2021/IsRegExp.js ***!
+  !*** ./node_modules/es-abstract/2022/IsRegExp.js ***!
   \***************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -7092,7 +6978,7 @@ var $match = GetIntrinsic('%Symbol.match%', true);
 
 var hasRegExpMatcher = __webpack_require__(/*! is-regex */ "./node_modules/is-regex/index.js");
 
-var ToBoolean = __webpack_require__(/*! ./ToBoolean */ "./node_modules/es-abstract/2021/ToBoolean.js");
+var ToBoolean = __webpack_require__(/*! ./ToBoolean */ "./node_modules/es-abstract/2022/ToBoolean.js");
 
 // https://ecma-international.org/ecma-262/6.0/#sec-isregexp
 
@@ -7112,9 +6998,9 @@ module.exports = function IsRegExp(argument) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/OrdinaryObjectCreate.js":
+/***/ "./node_modules/es-abstract/2022/OrdinaryObjectCreate.js":
 /*!***************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/OrdinaryObjectCreate.js ***!
+  !*** ./node_modules/es-abstract/2022/OrdinaryObjectCreate.js ***!
   \***************************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -7127,12 +7013,16 @@ var $ObjectCreate = GetIntrinsic('%Object.create%', true);
 var $TypeError = GetIntrinsic('%TypeError%');
 var $SyntaxError = GetIntrinsic('%SyntaxError%');
 
-var IsArray = __webpack_require__(/*! ./IsArray */ "./node_modules/es-abstract/2021/IsArray.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+var IsArray = __webpack_require__(/*! ./IsArray */ "./node_modules/es-abstract/2022/IsArray.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
-var hasProto = !({ __proto__: null } instanceof Object);
+var forEach = __webpack_require__(/*! ../helpers/forEach */ "./node_modules/es-abstract/helpers/forEach.js");
 
-// https://262.ecma-international.org/6.0/#sec-objectcreate
+var SLOT = __webpack_require__(/*! internal-slot */ "./node_modules/internal-slot/index.js");
+
+var hasProto = __webpack_require__(/*! has-proto */ "./node_modules/has-proto/index.js")();
+
+// https://262.ecma-international.org/11.0/#sec-objectcreate
 
 module.exports = function OrdinaryObjectCreate(proto) {
 	if (proto !== null && Type(proto) !== 'Object') {
@@ -7142,36 +7032,42 @@ module.exports = function OrdinaryObjectCreate(proto) {
 	if (!IsArray(additionalInternalSlotsList)) {
 		throw new $TypeError('Assertion failed: `additionalInternalSlotsList` must be an Array');
 	}
-	// var internalSlotsList = ['[[Prototype]]', '[[Extensible]]'];
-	if (additionalInternalSlotsList.length > 0) {
-		throw new $SyntaxError('es-abstract does not yet support internal slots');
-		// internalSlotsList.push(...additionalInternalSlotsList);
-	}
-	// var O = MakeBasicObject(internalSlotsList);
-	// setProto(O, proto);
-	// return O;
 
+	// var internalSlotsList = ['[[Prototype]]', '[[Extensible]]']; // step 1
+	// internalSlotsList.push(...additionalInternalSlotsList); // step 2
+	// var O = MakeBasicObject(internalSlotsList); // step 3
+	// setProto(O, proto); // step 4
+	// return O; // step 5
+
+	var O;
 	if ($ObjectCreate) {
-		return $ObjectCreate(proto);
-	}
-	if (hasProto) {
-		return { __proto__: proto };
+		O = $ObjectCreate(proto);
+	} else if (hasProto) {
+		O = { __proto__: proto };
+	} else {
+		if (proto === null) {
+			throw new $SyntaxError('native Object.create support is required to create null objects');
+		}
+		var T = function T() {};
+		T.prototype = proto;
+		O = new T();
 	}
 
-	if (proto === null) {
-		throw new $SyntaxError('native Object.create support is required to create null objects');
+	if (additionalInternalSlotsList.length > 0) {
+		forEach(additionalInternalSlotsList, function (slot) {
+			SLOT.set(O, slot, void undefined);
+		});
 	}
-	var T = function T() {};
-	T.prototype = proto;
-	return new T();
+
+	return O;
 };
 
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/RegExpExec.js":
+/***/ "./node_modules/es-abstract/2022/RegExpExec.js":
 /*!*****************************************************!*\
-  !*** ./node_modules/es-abstract/2021/RegExpExec.js ***!
+  !*** ./node_modules/es-abstract/2022/RegExpExec.js ***!
   \*****************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -7184,10 +7080,10 @@ var $TypeError = GetIntrinsic('%TypeError%');
 
 var regexExec = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js")('RegExp.prototype.exec');
 
-var Call = __webpack_require__(/*! ./Call */ "./node_modules/es-abstract/2021/Call.js");
-var Get = __webpack_require__(/*! ./Get */ "./node_modules/es-abstract/2021/Get.js");
-var IsCallable = __webpack_require__(/*! ./IsCallable */ "./node_modules/es-abstract/2021/IsCallable.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+var Call = __webpack_require__(/*! ./Call */ "./node_modules/es-abstract/2022/Call.js");
+var Get = __webpack_require__(/*! ./Get */ "./node_modules/es-abstract/2022/Get.js");
+var IsCallable = __webpack_require__(/*! ./IsCallable */ "./node_modules/es-abstract/2022/IsCallable.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
 // https://ecma-international.org/ecma-262/6.0/#sec-regexpexec
 
@@ -7212,9 +7108,9 @@ module.exports = function RegExpExec(R, S) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/RequireObjectCoercible.js":
+/***/ "./node_modules/es-abstract/2022/RequireObjectCoercible.js":
 /*!*****************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/RequireObjectCoercible.js ***!
+  !*** ./node_modules/es-abstract/2022/RequireObjectCoercible.js ***!
   \*****************************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -7226,9 +7122,9 @@ module.exports = __webpack_require__(/*! ../5/CheckObjectCoercible */ "./node_mo
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/SameValue.js":
+/***/ "./node_modules/es-abstract/2022/SameValue.js":
 /*!****************************************************!*\
-  !*** ./node_modules/es-abstract/2021/SameValue.js ***!
+  !*** ./node_modules/es-abstract/2022/SameValue.js ***!
   \****************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -7250,9 +7146,9 @@ module.exports = function SameValue(x, y) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/Set.js":
+/***/ "./node_modules/es-abstract/2022/Set.js":
 /*!**********************************************!*\
-  !*** ./node_modules/es-abstract/2021/Set.js ***!
+  !*** ./node_modules/es-abstract/2022/Set.js ***!
   \**********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -7263,9 +7159,9 @@ var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-
 
 var $TypeError = GetIntrinsic('%TypeError%');
 
-var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2021/IsPropertyKey.js");
-var SameValue = __webpack_require__(/*! ./SameValue */ "./node_modules/es-abstract/2021/SameValue.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2022/IsPropertyKey.js");
+var SameValue = __webpack_require__(/*! ./SameValue */ "./node_modules/es-abstract/2022/SameValue.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
 // IE 9 does not throw in strict mode when writability/configurability/extensibility is violated
 var noThrowOnStrictViolation = (function () {
@@ -7308,9 +7204,9 @@ module.exports = function Set(O, P, V, Throw) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/SpeciesConstructor.js":
+/***/ "./node_modules/es-abstract/2022/SpeciesConstructor.js":
 /*!*************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/SpeciesConstructor.js ***!
+  !*** ./node_modules/es-abstract/2022/SpeciesConstructor.js ***!
   \*************************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -7322,8 +7218,8 @@ var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-
 var $species = GetIntrinsic('%Symbol.species%', true);
 var $TypeError = GetIntrinsic('%TypeError%');
 
-var IsConstructor = __webpack_require__(/*! ./IsConstructor */ "./node_modules/es-abstract/2021/IsConstructor.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
+var IsConstructor = __webpack_require__(/*! ./IsConstructor */ "./node_modules/es-abstract/2022/IsConstructor.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
 // https://ecma-international.org/ecma-262/6.0/#sec-speciesconstructor
 
@@ -7351,75 +7247,10 @@ module.exports = function SpeciesConstructor(O, defaultConstructor) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/ToBoolean.js":
-/*!****************************************************!*\
-  !*** ./node_modules/es-abstract/2021/ToBoolean.js ***!
-  \****************************************************/
-/***/ ((module) => {
-
-"use strict";
-
-
-// http://262.ecma-international.org/5.1/#sec-9.2
-
-module.exports = function ToBoolean(value) { return !!value; };
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/ToIntegerOrInfinity.js":
-/*!**************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/ToIntegerOrInfinity.js ***!
-  \**************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var ES5ToInteger = __webpack_require__(/*! ../5/ToInteger */ "./node_modules/es-abstract/5/ToInteger.js");
-
-var ToNumber = __webpack_require__(/*! ./ToNumber */ "./node_modules/es-abstract/2021/ToNumber.js");
-
-// https://www.ecma-international.org/ecma-262/11.0/#sec-tointeger
-
-module.exports = function ToInteger(value) {
-	var number = ToNumber(value);
-	if (number !== 0) {
-		number = ES5ToInteger(number);
-	}
-	return number === 0 ? 0 : number;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/ToLength.js":
-/*!***************************************************!*\
-  !*** ./node_modules/es-abstract/2021/ToLength.js ***!
-  \***************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var MAX_SAFE_INTEGER = __webpack_require__(/*! ../helpers/maxSafeInteger */ "./node_modules/es-abstract/helpers/maxSafeInteger.js");
-
-var ToIntegerOrInfinity = __webpack_require__(/*! ./ToIntegerOrInfinity */ "./node_modules/es-abstract/2021/ToIntegerOrInfinity.js");
-
-module.exports = function ToLength(argument) {
-	var len = ToIntegerOrInfinity(argument);
-	if (len <= 0) { return 0; } // includes converting -0 to +0
-	if (len > MAX_SAFE_INTEGER) { return MAX_SAFE_INTEGER; }
-	return len;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2021/ToNumber.js":
-/*!***************************************************!*\
-  !*** ./node_modules/es-abstract/2021/ToNumber.js ***!
-  \***************************************************/
+/***/ "./node_modules/es-abstract/2022/StringToNumber.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/es-abstract/2022/StringToNumber.js ***!
+  \*********************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -7427,14 +7258,13 @@ module.exports = function ToLength(argument) {
 
 var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
 
-var $TypeError = GetIntrinsic('%TypeError%');
 var $Number = GetIntrinsic('%Number%');
 var $RegExp = GetIntrinsic('%RegExp%');
+var $TypeError = GetIntrinsic('%TypeError%');
 var $parseInteger = GetIntrinsic('%parseInt%');
 
 var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
-var regexTester = __webpack_require__(/*! ../helpers/regexTester */ "./node_modules/es-abstract/helpers/regexTester.js");
-var isPrimitive = __webpack_require__(/*! ../helpers/isPrimitive */ "./node_modules/es-abstract/helpers/isPrimitive.js");
+var regexTester = __webpack_require__(/*! safe-regex-test */ "./node_modules/safe-regex-test/index.js");
 
 var $strSlice = callBound('String.prototype.slice');
 var isBinary = regexTester(/^0b[01]+$/i);
@@ -7457,9 +7287,122 @@ var $trim = function (value) {
 	return $replace(value, trimRegex, '');
 };
 
-var ToPrimitive = __webpack_require__(/*! ./ToPrimitive */ "./node_modules/es-abstract/2021/ToPrimitive.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
-// https://ecma-international.org/ecma-262/6.0/#sec-tonumber
+// https://ecma-international.org/ecma-262/13.0/#sec-stringtonumber
+
+module.exports = function StringToNumber(argument) {
+	if (Type(argument) !== 'String') {
+		throw new $TypeError('Assertion failed: `argument` is not a String');
+	}
+	if (isBinary(argument)) {
+		return $Number($parseInteger($strSlice(argument, 2), 2));
+	}
+	if (isOctal(argument)) {
+		return $Number($parseInteger($strSlice(argument, 2), 8));
+	}
+	if (hasNonWS(argument) || isInvalidHexLiteral(argument)) {
+		return NaN;
+	}
+	var trimmed = $trim(argument);
+	if (trimmed !== argument) {
+		return StringToNumber(trimmed);
+	}
+	return $Number(argument);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2022/ToBoolean.js":
+/*!****************************************************!*\
+  !*** ./node_modules/es-abstract/2022/ToBoolean.js ***!
+  \****************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+// http://262.ecma-international.org/5.1/#sec-9.2
+
+module.exports = function ToBoolean(value) { return !!value; };
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2022/ToIntegerOrInfinity.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/es-abstract/2022/ToIntegerOrInfinity.js ***!
+  \**************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var abs = __webpack_require__(/*! ./abs */ "./node_modules/es-abstract/2022/abs.js");
+var floor = __webpack_require__(/*! ./floor */ "./node_modules/es-abstract/2022/floor.js");
+var ToNumber = __webpack_require__(/*! ./ToNumber */ "./node_modules/es-abstract/2022/ToNumber.js");
+
+var $isNaN = __webpack_require__(/*! ../helpers/isNaN */ "./node_modules/es-abstract/helpers/isNaN.js");
+var $isFinite = __webpack_require__(/*! ../helpers/isFinite */ "./node_modules/es-abstract/helpers/isFinite.js");
+var $sign = __webpack_require__(/*! ../helpers/sign */ "./node_modules/es-abstract/helpers/sign.js");
+
+// https://262.ecma-international.org/12.0/#sec-tointegerorinfinity
+
+module.exports = function ToIntegerOrInfinity(value) {
+	var number = ToNumber(value);
+	if ($isNaN(number) || number === 0) { return 0; }
+	if (!$isFinite(number)) { return number; }
+	var integer = floor(abs(number));
+	if (integer === 0) { return 0; }
+	return $sign(number) * integer;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2022/ToLength.js":
+/*!***************************************************!*\
+  !*** ./node_modules/es-abstract/2022/ToLength.js ***!
+  \***************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var MAX_SAFE_INTEGER = __webpack_require__(/*! ../helpers/maxSafeInteger */ "./node_modules/es-abstract/helpers/maxSafeInteger.js");
+
+var ToIntegerOrInfinity = __webpack_require__(/*! ./ToIntegerOrInfinity */ "./node_modules/es-abstract/2022/ToIntegerOrInfinity.js");
+
+module.exports = function ToLength(argument) {
+	var len = ToIntegerOrInfinity(argument);
+	if (len <= 0) { return 0; } // includes converting -0 to +0
+	if (len > MAX_SAFE_INTEGER) { return MAX_SAFE_INTEGER; }
+	return len;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/2022/ToNumber.js":
+/*!***************************************************!*\
+  !*** ./node_modules/es-abstract/2022/ToNumber.js ***!
+  \***************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+var $Number = GetIntrinsic('%Number%');
+var isPrimitive = __webpack_require__(/*! ../helpers/isPrimitive */ "./node_modules/es-abstract/helpers/isPrimitive.js");
+
+var ToPrimitive = __webpack_require__(/*! ./ToPrimitive */ "./node_modules/es-abstract/2022/ToPrimitive.js");
+var StringToNumber = __webpack_require__(/*! ./StringToNumber */ "./node_modules/es-abstract/2022/StringToNumber.js");
+
+// https://ecma-international.org/ecma-262/13.0/#sec-tonumber
 
 module.exports = function ToNumber(argument) {
 	var value = isPrimitive(argument) ? argument : ToPrimitive(argument, $Number);
@@ -7470,18 +7413,7 @@ module.exports = function ToNumber(argument) {
 		throw new $TypeError('Conversion from \'BigInt\' to \'number\' is not allowed.');
 	}
 	if (typeof value === 'string') {
-		if (isBinary(value)) {
-			return ToNumber($parseInteger($strSlice(value, 2), 2));
-		} else if (isOctal(value)) {
-			return ToNumber($parseInteger($strSlice(value, 2), 8));
-		} else if (hasNonWS(value) || isInvalidHexLiteral(value)) {
-			return NaN;
-		}
-		var trimmed = $trim(value);
-		if (trimmed !== value) {
-			return ToNumber(trimmed);
-		}
-
+		return StringToNumber(value);
 	}
 	return $Number(value);
 };
@@ -7489,9 +7421,9 @@ module.exports = function ToNumber(argument) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/ToObject.js":
+/***/ "./node_modules/es-abstract/2022/ToObject.js":
 /*!***************************************************!*\
-  !*** ./node_modules/es-abstract/2021/ToObject.js ***!
+  !*** ./node_modules/es-abstract/2022/ToObject.js ***!
   \***************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -7502,7 +7434,7 @@ var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-
 
 var $Object = GetIntrinsic('%Object%');
 
-var RequireObjectCoercible = __webpack_require__(/*! ./RequireObjectCoercible */ "./node_modules/es-abstract/2021/RequireObjectCoercible.js");
+var RequireObjectCoercible = __webpack_require__(/*! ./RequireObjectCoercible */ "./node_modules/es-abstract/2022/RequireObjectCoercible.js");
 
 // https://ecma-international.org/ecma-262/6.0/#sec-toobject
 
@@ -7514,9 +7446,9 @@ module.exports = function ToObject(value) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/ToPrimitive.js":
+/***/ "./node_modules/es-abstract/2022/ToPrimitive.js":
 /*!******************************************************!*\
-  !*** ./node_modules/es-abstract/2021/ToPrimitive.js ***!
+  !*** ./node_modules/es-abstract/2022/ToPrimitive.js ***!
   \******************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -7537,9 +7469,9 @@ module.exports = function ToPrimitive(input) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/ToPropertyDescriptor.js":
+/***/ "./node_modules/es-abstract/2022/ToPropertyDescriptor.js":
 /*!***************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/ToPropertyDescriptor.js ***!
+  !*** ./node_modules/es-abstract/2022/ToPropertyDescriptor.js ***!
   \***************************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -7552,9 +7484,9 @@ var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-
 
 var $TypeError = GetIntrinsic('%TypeError%');
 
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2021/Type.js");
-var ToBoolean = __webpack_require__(/*! ./ToBoolean */ "./node_modules/es-abstract/2021/ToBoolean.js");
-var IsCallable = __webpack_require__(/*! ./IsCallable */ "./node_modules/es-abstract/2021/IsCallable.js");
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
+var ToBoolean = __webpack_require__(/*! ./ToBoolean */ "./node_modules/es-abstract/2022/ToBoolean.js");
+var IsCallable = __webpack_require__(/*! ./IsCallable */ "./node_modules/es-abstract/2022/IsCallable.js");
 
 // https://262.ecma-international.org/5.1/#sec-8.10.5
 
@@ -7600,9 +7532,9 @@ module.exports = function ToPropertyDescriptor(Obj) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/ToString.js":
+/***/ "./node_modules/es-abstract/2022/ToString.js":
 /*!***************************************************!*\
-  !*** ./node_modules/es-abstract/2021/ToString.js ***!
+  !*** ./node_modules/es-abstract/2022/ToString.js ***!
   \***************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -7626,9 +7558,9 @@ module.exports = function ToString(argument) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/Type.js":
+/***/ "./node_modules/es-abstract/2022/Type.js":
 /*!***********************************************!*\
-  !*** ./node_modules/es-abstract/2021/Type.js ***!
+  !*** ./node_modules/es-abstract/2022/Type.js ***!
   \***********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -7652,9 +7584,9 @@ module.exports = function Type(x) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/UTF16SurrogatePairToCodePoint.js":
+/***/ "./node_modules/es-abstract/2022/UTF16SurrogatePairToCodePoint.js":
 /*!************************************************************************!*\
-  !*** ./node_modules/es-abstract/2021/UTF16SurrogatePairToCodePoint.js ***!
+  !*** ./node_modules/es-abstract/2022/UTF16SurrogatePairToCodePoint.js ***!
   \************************************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -7671,7 +7603,7 @@ var isTrailingSurrogate = __webpack_require__(/*! ../helpers/isTrailingSurrogate
 
 // https://tc39.es/ecma262/2020/#sec-utf16decodesurrogatepair
 
-module.exports = function UTF16DecodeSurrogatePair(lead, trail) {
+module.exports = function UTF16SurrogatePairToCodePoint(lead, trail) {
 	if (!isLeadingSurrogate(lead) || !isTrailingSurrogate(trail)) {
 		throw new $TypeError('Assertion failed: `lead` must be a leading surrogate char code, and `trail` must be a trailing surrogate char code');
 	}
@@ -7682,9 +7614,9 @@ module.exports = function UTF16DecodeSurrogatePair(lead, trail) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/abs.js":
+/***/ "./node_modules/es-abstract/2022/abs.js":
 /*!**********************************************!*\
-  !*** ./node_modules/es-abstract/2021/abs.js ***!
+  !*** ./node_modules/es-abstract/2022/abs.js ***!
   \**********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -7704,22 +7636,27 @@ module.exports = function abs(x) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2021/floor.js":
+/***/ "./node_modules/es-abstract/2022/floor.js":
 /*!************************************************!*\
-  !*** ./node_modules/es-abstract/2021/floor.js ***!
+  !*** ./node_modules/es-abstract/2022/floor.js ***!
   \************************************************/
-/***/ ((module) => {
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
+var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
+
 // var modulo = require('./modulo');
 var $floor = Math.floor;
 
-// http://262.ecma-international.org/5.1/#sec-5.2
+// http://262.ecma-international.org/11.0/#eqn-floor
 
 module.exports = function floor(x) {
 	// return x - modulo(x, 1);
+	if (Type(x) === 'BigInt') {
+		return x;
+	}
 	return $floor(x);
 };
 
@@ -7747,82 +7684,6 @@ module.exports = function CheckObjectCoercible(value, optMessage) {
 	}
 	return value;
 };
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/5/ToInteger.js":
-/*!*************************************************!*\
-  !*** ./node_modules/es-abstract/5/ToInteger.js ***!
-  \*************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var abs = __webpack_require__(/*! ./abs */ "./node_modules/es-abstract/5/abs.js");
-var floor = __webpack_require__(/*! ./floor */ "./node_modules/es-abstract/5/floor.js");
-var ToNumber = __webpack_require__(/*! ./ToNumber */ "./node_modules/es-abstract/5/ToNumber.js");
-
-var $isNaN = __webpack_require__(/*! ../helpers/isNaN */ "./node_modules/es-abstract/helpers/isNaN.js");
-var $isFinite = __webpack_require__(/*! ../helpers/isFinite */ "./node_modules/es-abstract/helpers/isFinite.js");
-var $sign = __webpack_require__(/*! ../helpers/sign */ "./node_modules/es-abstract/helpers/sign.js");
-
-// http://262.ecma-international.org/5.1/#sec-9.4
-
-module.exports = function ToInteger(value) {
-	var number = ToNumber(value);
-	if ($isNaN(number)) { return 0; }
-	if (number === 0 || !$isFinite(number)) { return number; }
-	return $sign(number) * floor(abs(number));
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/5/ToNumber.js":
-/*!************************************************!*\
-  !*** ./node_modules/es-abstract/5/ToNumber.js ***!
-  \************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var ToPrimitive = __webpack_require__(/*! ./ToPrimitive */ "./node_modules/es-abstract/5/ToPrimitive.js");
-
-// http://262.ecma-international.org/5.1/#sec-9.3
-
-module.exports = function ToNumber(value) {
-	var prim = ToPrimitive(value, Number);
-	if (typeof prim !== 'string') {
-		return +prim; // eslint-disable-line no-implicit-coercion
-	}
-
-	// eslint-disable-next-line no-control-regex
-	var trimmed = prim.replace(/^[ \t\x0b\f\xa0\ufeff\n\r\u2028\u2029\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u0085]+|[ \t\x0b\f\xa0\ufeff\n\r\u2028\u2029\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u0085]+$/g, '');
-	if ((/^0[ob]|^[+-]0x/).test(trimmed)) {
-		return NaN;
-	}
-
-	return +trimmed; // eslint-disable-line no-implicit-coercion
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/5/ToPrimitive.js":
-/*!***************************************************!*\
-  !*** ./node_modules/es-abstract/5/ToPrimitive.js ***!
-  \***************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-// http://262.ecma-international.org/5.1/#sec-9.1
-
-module.exports = __webpack_require__(/*! es-to-primitive/es5 */ "./node_modules/es-to-primitive/es5.js");
 
 
 /***/ }),
@@ -7862,50 +7723,6 @@ module.exports = function Type(x) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/5/abs.js":
-/*!*******************************************!*\
-  !*** ./node_modules/es-abstract/5/abs.js ***!
-  \*******************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $abs = GetIntrinsic('%Math.abs%');
-
-// http://262.ecma-international.org/5.1/#sec-5.2
-
-module.exports = function abs(x) {
-	return $abs(x);
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/5/floor.js":
-/*!*********************************************!*\
-  !*** ./node_modules/es-abstract/5/floor.js ***!
-  \*********************************************/
-/***/ ((module) => {
-
-"use strict";
-
-
-// var modulo = require('./modulo');
-var $floor = Math.floor;
-
-// http://262.ecma-international.org/5.1/#sec-5.2
-
-module.exports = function floor(x) {
-	// return x - modulo(x, 1);
-	return $floor(x);
-};
-
-
-/***/ }),
-
 /***/ "./node_modules/es-abstract/GetIntrinsic.js":
 /*!**************************************************!*\
   !*** ./node_modules/es-abstract/GetIntrinsic.js ***!
@@ -7931,24 +7748,16 @@ module.exports = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-in
 "use strict";
 
 
+var hasPropertyDescriptors = __webpack_require__(/*! has-property-descriptors */ "./node_modules/has-property-descriptors/index.js");
+
 var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
 
-var $defineProperty = GetIntrinsic('%Object.defineProperty%', true);
+var $defineProperty = hasPropertyDescriptors() && GetIntrinsic('%Object.defineProperty%', true);
 
-if ($defineProperty) {
-	try {
-		$defineProperty({}, 'a', { value: 1 });
-	} catch (e) {
-		// IE 8 has a broken defineProperty
-		$defineProperty = null;
-	}
-}
-
-// node v0.6 has a bug where array lengths can be Set but not Defined
-var hasArrayLengthDefineBug = Object.defineProperty && Object.defineProperty([], 'length', { value: 1 }).length === 0;
+var hasArrayLengthDefineBug = hasPropertyDescriptors.hasArrayLengthDefineBug();
 
 // eslint-disable-next-line global-require
-var isArray = hasArrayLengthDefineBug && __webpack_require__(/*! ../2020/IsArray */ "./node_modules/es-abstract/2020/IsArray.js"); // this does not depend on any other AOs.
+var isArray = hasArrayLengthDefineBug && __webpack_require__(/*! ../helpers/IsArray */ "./node_modules/es-abstract/helpers/IsArray.js");
 
 var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
 
@@ -7996,6 +7805,29 @@ module.exports = function DefineOwnProperty(IsDataDescriptor, SameValue, FromPro
 
 /***/ }),
 
+/***/ "./node_modules/es-abstract/helpers/IsArray.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/IsArray.js ***!
+  \*****************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $Array = GetIntrinsic('%Array%');
+
+// eslint-disable-next-line global-require
+var toStr = !$Array.isArray && __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js")('Object.prototype.toString');
+
+module.exports = $Array.isArray || function IsArray(argument) {
+	return toStr(argument) === '[object Array]';
+};
+
+
+/***/ }),
+
 /***/ "./node_modules/es-abstract/helpers/assertRecord.js":
 /*!**********************************************************!*\
   !*** ./node_modules/es-abstract/helpers/assertRecord.js ***!
@@ -8012,12 +7844,11 @@ var $SyntaxError = GetIntrinsic('%SyntaxError%');
 
 var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
 
+var isMatchRecord = __webpack_require__(/*! ./isMatchRecord */ "./node_modules/es-abstract/helpers/isMatchRecord.js");
+
 var predicates = {
 	// https://262.ecma-international.org/6.0/#sec-property-descriptor-specification-type
-	'Property Descriptor': function isPropertyDescriptor(Type, Desc) {
-		if (Type(Desc) !== 'Object') {
-			return false;
-		}
+	'Property Descriptor': function isPropertyDescriptor(Desc) {
 		var allowed = {
 			'[[Configurable]]': true,
 			'[[Enumerable]]': true,
@@ -8039,6 +7870,27 @@ var predicates = {
 			throw new $TypeError('Property Descriptors may not be both accessor and data descriptors');
 		}
 		return true;
+	},
+	// https://262.ecma-international.org/13.0/#sec-match-records
+	'Match Record': isMatchRecord,
+	'Iterator Record': function isIteratorRecord(value) {
+		return has(value, '[[Iterator]]') && has(value, '[[NextMethod]]') && has(value, '[[Done]]');
+	},
+	'PromiseCapability Record': function isPromiseCapabilityRecord(value) {
+		return value
+			&& has(value, '[[Resolve]]')
+			&& typeof value['[[Resolve]]'] === 'function'
+			&& has(value, '[[Reject]]')
+			&& typeof value['[[Reject]]'] === 'function'
+			&& has(value, '[[Promise]]')
+			&& value['[[Promise]]']
+			&& typeof value['[[Promise]]'].then === 'function';
+	},
+	'AsyncGeneratorRequest Record': function isAsyncGeneratorRequestRecord(value) {
+		return value
+			&& has(value, '[[Completion]]') // TODO: confirm is a completion record
+			&& has(value, '[[Capability]]')
+			&& predicates['PromiseCapability Record'](value['[[Capability]]']);
 	}
 };
 
@@ -8047,9 +7899,65 @@ module.exports = function assertRecord(Type, recordType, argumentName, value) {
 	if (typeof predicate !== 'function') {
 		throw new $SyntaxError('unknown record type: ' + recordType);
 	}
-	if (!predicate(Type, value)) {
+	if (Type(value) !== 'Object' || !predicate(value)) {
 		throw new $TypeError(argumentName + ' must be a ' + recordType);
 	}
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/forEach.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/forEach.js ***!
+  \*****************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = function forEach(array, callback) {
+	for (var i = 0; i < array.length; i += 1) {
+		callback(array[i], i, array); // eslint-disable-line callback-return
+	}
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/fromPropertyDescriptor.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/fromPropertyDescriptor.js ***!
+  \********************************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = function fromPropertyDescriptor(Desc) {
+	if (typeof Desc === 'undefined') {
+		return Desc;
+	}
+	var obj = {};
+	if ('[[Value]]' in Desc) {
+		obj.value = Desc['[[Value]]'];
+	}
+	if ('[[Writable]]' in Desc) {
+		obj.writable = !!Desc['[[Writable]]'];
+	}
+	if ('[[Get]]' in Desc) {
+		obj.get = Desc['[[Get]]'];
+	}
+	if ('[[Set]]' in Desc) {
+		obj.set = Desc['[[Set]]'];
+	}
+	if ('[[Enumerable]]' in Desc) {
+		obj.enumerable = !!Desc['[[Enumerable]]'];
+	}
+	if ('[[Configurable]]' in Desc) {
+		obj.configurable = !!Desc['[[Configurable]]'];
+	}
+	return obj;
 };
 
 
@@ -8059,14 +7967,14 @@ module.exports = function assertRecord(Type, recordType, argumentName, value) {
 /*!******************************************************!*\
   !*** ./node_modules/es-abstract/helpers/isFinite.js ***!
   \******************************************************/
-/***/ ((module) => {
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var $isNaN = Number.isNaN || function (a) { return a !== a; };
+var $isNaN = __webpack_require__(/*! ./isNaN */ "./node_modules/es-abstract/helpers/isNaN.js");
 
-module.exports = Number.isFinite || function (x) { return typeof x === 'number' && !$isNaN(x) && x !== Infinity && x !== -Infinity; };
+module.exports = function (x) { return (typeof x === 'number' || typeof x === 'bigint') && !$isNaN(x) && x !== Infinity && x !== -Infinity; };
 
 
 /***/ }),
@@ -8082,6 +7990,33 @@ module.exports = Number.isFinite || function (x) { return typeof x === 'number' 
 
 module.exports = function isLeadingSurrogate(charCode) {
 	return typeof charCode === 'number' && charCode >= 0xD800 && charCode <= 0xDBFF;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/isMatchRecord.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/isMatchRecord.js ***!
+  \***********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+
+// https://262.ecma-international.org/13.0/#sec-match-records
+
+module.exports = function isMatchRecord(record) {
+	return (
+		has(record, '[[StartIndex]]')
+        && has(record, '[[EndIndex]]')
+        && record['[[StartIndex]]'] >= 0
+        && record['[[EndIndex]]'] >= record['[[StartIndex]]']
+        && String(parseInt(record['[[StartIndex]]'], 10)) === String(record['[[StartIndex]]'])
+        && String(parseInt(record['[[EndIndex]]'], 10)) === String(record['[[EndIndex]]'])
+	);
 };
 
 
@@ -8196,28 +8131,6 @@ module.exports = $Number.MAX_SAFE_INTEGER || $Math.pow(2, 53) - 1;
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/helpers/regexTester.js":
-/*!*********************************************************!*\
-  !*** ./node_modules/es-abstract/helpers/regexTester.js ***!
-  \*********************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $test = GetIntrinsic('RegExp.prototype.test');
-
-var callBind = __webpack_require__(/*! call-bind */ "./node_modules/call-bind/index.js");
-
-module.exports = function regexTester(regex) {
-	return callBind($test, regex);
-};
-
-
-/***/ }),
-
 /***/ "./node_modules/es-abstract/helpers/sign.js":
 /*!**************************************************!*\
   !*** ./node_modules/es-abstract/helpers/sign.js ***!
@@ -8231,6 +8144,1307 @@ module.exports = function sign(number) {
 	return number >= 0 ? 1 : -1;
 };
 
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/constants.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/constants.js ***!
+  \**************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "CHILD_OPERATOR": () => (/* binding */ CHILD_OPERATOR),
+/* harmony export */   "DESCENDANT_OPERATOR": () => (/* binding */ DESCENDANT_OPERATOR),
+/* harmony export */   "INVALID_CLASS_RE": () => (/* binding */ INVALID_CLASS_RE),
+/* harmony export */   "INVALID_ID_RE": () => (/* binding */ INVALID_ID_RE),
+/* harmony export */   "NONE_OPERATOR": () => (/* binding */ NONE_OPERATOR),
+/* harmony export */   "OPERATOR_DATA": () => (/* binding */ OPERATOR_DATA),
+/* harmony export */   "SELECTOR_PATTERN": () => (/* binding */ SELECTOR_PATTERN),
+/* harmony export */   "SELECTOR_SEPARATOR": () => (/* binding */ SELECTOR_SEPARATOR)
+/* harmony export */ });
+/* harmony import */ var _types_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./types.js */ "./node_modules/css-selector-generator/esm/types.js");
+
+const NONE_OPERATOR = '';
+const DESCENDANT_OPERATOR = ' > ';
+const CHILD_OPERATOR = ' ';
+const OPERATOR_DATA = {
+    [_types_js__WEBPACK_IMPORTED_MODULE_0__.OPERATOR.NONE]: {
+        type: _types_js__WEBPACK_IMPORTED_MODULE_0__.OPERATOR.NONE,
+        value: NONE_OPERATOR
+    },
+    [_types_js__WEBPACK_IMPORTED_MODULE_0__.OPERATOR.DESCENDANT]: {
+        type: _types_js__WEBPACK_IMPORTED_MODULE_0__.OPERATOR.DESCENDANT,
+        value: DESCENDANT_OPERATOR
+    },
+    [_types_js__WEBPACK_IMPORTED_MODULE_0__.OPERATOR.CHILD]: {
+        type: _types_js__WEBPACK_IMPORTED_MODULE_0__.OPERATOR.CHILD,
+        value: CHILD_OPERATOR
+    }
+};
+const SELECTOR_SEPARATOR = ', ';
+// RegExp that will match invalid patterns that can be used in ID attribute.
+const INVALID_ID_RE = new RegExp([
+    '^$',
+    '\\s', // contains whitespace
+].join('|'));
+// RegExp that will match invalid patterns that can be used in class attribute.
+const INVALID_CLASS_RE = new RegExp([
+    '^$', // empty or not set
+].join('|'));
+// Order in which a combined selector is constructed.
+const SELECTOR_PATTERN = [
+    _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.nthoftype,
+    _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.tag,
+    _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.id,
+    _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType["class"],
+    _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.attribute,
+    _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.nthchild
+];
+//# sourceMappingURL=constants.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/index.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/index.js ***!
+  \**********************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "getCssSelector": () => (/* binding */ getCssSelector)
+/* harmony export */ });
+/* harmony import */ var _selector_fallback_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./selector-fallback.js */ "./node_modules/css-selector-generator/esm/selector-fallback.js");
+/* harmony import */ var _utilities_options_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities-options.js */ "./node_modules/css-selector-generator/esm/utilities-options.js");
+/* harmony import */ var _utilities_selectors_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utilities-selectors.js */ "./node_modules/css-selector-generator/esm/utilities-selectors.js");
+/* harmony import */ var _utilities_dom_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./utilities-dom.js */ "./node_modules/css-selector-generator/esm/utilities-dom.js");
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants.js */ "./node_modules/css-selector-generator/esm/constants.js");
+
+
+
+
+
+/**
+ * Generates unique CSS selector for an element.
+ */
+function getCssSelector(needle, custom_options = {}) {
+    const elements = (0,_utilities_selectors_js__WEBPACK_IMPORTED_MODULE_2__.sanitizeSelectorNeedle)(needle);
+    const options = (0,_utilities_options_js__WEBPACK_IMPORTED_MODULE_1__.sanitizeOptions)(elements[0], custom_options);
+    let partialSelector = '';
+    let currentRoot = options.root;
+    /**
+     * Utility function to make subsequent calls shorter.
+     */
+    function updateIdentifiableParent() {
+        return (0,_utilities_selectors_js__WEBPACK_IMPORTED_MODULE_2__.getClosestIdentifiableParent)(elements, currentRoot, partialSelector, options);
+    }
+    let closestIdentifiableParent = updateIdentifiableParent();
+    while (closestIdentifiableParent) {
+        const { foundElements, selector, } = closestIdentifiableParent;
+        if ((0,_utilities_dom_js__WEBPACK_IMPORTED_MODULE_3__.testSelector)(elements, selector, options.root)) {
+            return selector;
+        }
+        currentRoot = foundElements[0];
+        partialSelector = selector;
+        closestIdentifiableParent = updateIdentifiableParent();
+    }
+    // if failed to find single selector matching all elements, try to find
+    // selector for each standalone element and join them together
+    if (elements.length > 1) {
+        return elements
+            .map((element) => getCssSelector(element, options))
+            .join(_constants_js__WEBPACK_IMPORTED_MODULE_4__.SELECTOR_SEPARATOR);
+    }
+    return (0,_selector_fallback_js__WEBPACK_IMPORTED_MODULE_0__.getFallbackSelector)(elements);
+}
+/* harmony default export */ __webpack_exports__["default"] = (getCssSelector);
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/selector-attribute.js":
+/*!***********************************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/selector-attribute.js ***!
+  \***********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "attributeBlacklistMatch": () => (/* binding */ attributeBlacklistMatch),
+/* harmony export */   "attributeNodeToSelector": () => (/* binding */ attributeNodeToSelector),
+/* harmony export */   "attributeNodeToSimplifiedSelector": () => (/* binding */ attributeNodeToSimplifiedSelector),
+/* harmony export */   "getAttributeSelectors": () => (/* binding */ getAttributeSelectors),
+/* harmony export */   "getElementAttributeSelectors": () => (/* binding */ getElementAttributeSelectors),
+/* harmony export */   "isValidAttributeNode": () => (/* binding */ isValidAttributeNode)
+/* harmony export */ });
+/* harmony import */ var _utilities_selectors_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities-selectors.js */ "./node_modules/css-selector-generator/esm/utilities-selectors.js");
+/* harmony import */ var _utilities_data_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities-data.js */ "./node_modules/css-selector-generator/esm/utilities-data.js");
+
+
+// List of attributes to be ignored. These are handled by different selector types.
+const attributeBlacklistMatch = (0,_utilities_data_js__WEBPACK_IMPORTED_MODULE_1__.createPatternMatcher)([
+    'class',
+    'id',
+    // Angular attributes
+    'ng-*',
+]);
+/**
+ * Get simplified attribute selector for an element.
+ */
+function attributeNodeToSimplifiedSelector({ nodeName, }) {
+    return `[${nodeName}]`;
+}
+/**
+ * Get attribute selector for an element.
+ */
+function attributeNodeToSelector({ nodeName, nodeValue, }) {
+    const selector = `[${nodeName}='${(0,_utilities_selectors_js__WEBPACK_IMPORTED_MODULE_0__.sanitizeSelectorItem)(nodeValue)}']`;
+    return selector;
+}
+/**
+ * Checks whether attribute should be used as a selector.
+ */
+function isValidAttributeNode({ nodeName }, element) {
+    // form input value should not be used as a selector
+    const tagName = element.tagName.toLowerCase();
+    if (['input', 'option'].includes(tagName) && nodeName === 'value') {
+        return false;
+    }
+    return !attributeBlacklistMatch(nodeName);
+}
+/**
+ * Get attribute selectors for an element.
+ */
+function getElementAttributeSelectors(element) {
+    const validAttributes = Array.from(element.attributes)
+        .filter((attributeNode) => isValidAttributeNode(attributeNode, element));
+    return [
+        ...validAttributes.map(attributeNodeToSimplifiedSelector),
+        ...validAttributes.map(attributeNodeToSelector),
+    ];
+}
+/**
+ * Get attribute selectors matching all elements.
+ */
+function getAttributeSelectors(elements) {
+    const elementSelectors = elements.map(getElementAttributeSelectors);
+    return (0,_utilities_data_js__WEBPACK_IMPORTED_MODULE_1__.getIntersection)(elementSelectors);
+}
+//# sourceMappingURL=selector-attribute.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/selector-class.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/selector-class.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "getClassSelectors": () => (/* binding */ getClassSelectors),
+/* harmony export */   "getElementClassSelectors": () => (/* binding */ getElementClassSelectors)
+/* harmony export */ });
+/* harmony import */ var _utilities_selectors_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities-selectors.js */ "./node_modules/css-selector-generator/esm/utilities-selectors.js");
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants.js */ "./node_modules/css-selector-generator/esm/constants.js");
+/* harmony import */ var _utilities_data_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utilities-data.js */ "./node_modules/css-selector-generator/esm/utilities-data.js");
+
+
+
+/**
+ * Get class selectors for an element.
+ */
+function getElementClassSelectors(element) {
+    return (element.getAttribute('class') || '')
+        .trim()
+        .split(/\s+/)
+        .filter((item) => !_constants_js__WEBPACK_IMPORTED_MODULE_1__.INVALID_CLASS_RE.test(item))
+        .map((item) => `.${(0,_utilities_selectors_js__WEBPACK_IMPORTED_MODULE_0__.sanitizeSelectorItem)(item)}`);
+}
+/**
+ * Get class selectors matching all elements.
+ */
+function getClassSelectors(elements) {
+    const elementSelectors = elements.map(getElementClassSelectors);
+    return (0,_utilities_data_js__WEBPACK_IMPORTED_MODULE_2__.getIntersection)(elementSelectors);
+}
+//# sourceMappingURL=selector-class.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/selector-fallback.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/selector-fallback.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "getElementFallbackSelector": () => (/* binding */ getElementFallbackSelector),
+/* harmony export */   "getFallbackSelector": () => (/* binding */ getFallbackSelector)
+/* harmony export */ });
+/* harmony import */ var _utilities_dom_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities-dom.js */ "./node_modules/css-selector-generator/esm/utilities-dom.js");
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants.js */ "./node_modules/css-selector-generator/esm/constants.js");
+/* harmony import */ var _types_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./types.js */ "./node_modules/css-selector-generator/esm/types.js");
+/* harmony import */ var _utilities_element_data_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./utilities-element-data.js */ "./node_modules/css-selector-generator/esm/utilities-element-data.js");
+
+
+
+
+/**
+ * Creates fallback selector for single element.
+ */
+function getElementFallbackSelector(element) {
+    const parentElements = (0,_utilities_dom_js__WEBPACK_IMPORTED_MODULE_0__.getElementParents)(element).reverse();
+    const elementsData = parentElements.map((element) => {
+        const elementData = (0,_utilities_element_data_js__WEBPACK_IMPORTED_MODULE_3__.createElementData)(element, [_types_js__WEBPACK_IMPORTED_MODULE_2__.CssSelectorType.nthchild], _types_js__WEBPACK_IMPORTED_MODULE_2__.OPERATOR.DESCENDANT);
+        elementData.selectors.nthchild.forEach((selectorData) => {
+            selectorData.include = true;
+        });
+        return elementData;
+    });
+    return [':root', ...elementsData.map(_utilities_element_data_js__WEBPACK_IMPORTED_MODULE_3__.constructElementSelector)].join('');
+}
+/**
+ * Creates chain of :nth-child selectors from root to the elements.
+ */
+function getFallbackSelector(elements) {
+    return elements.map(getElementFallbackSelector).join(_constants_js__WEBPACK_IMPORTED_MODULE_1__.SELECTOR_SEPARATOR);
+}
+//# sourceMappingURL=selector-fallback.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/selector-id.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/selector-id.js ***!
+  \****************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "getElementIdSelectors": () => (/* binding */ getElementIdSelectors),
+/* harmony export */   "getIdSelector": () => (/* binding */ getIdSelector)
+/* harmony export */ });
+/* harmony import */ var _utilities_selectors_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities-selectors.js */ "./node_modules/css-selector-generator/esm/utilities-selectors.js");
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants.js */ "./node_modules/css-selector-generator/esm/constants.js");
+/* harmony import */ var _utilities_dom_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utilities-dom.js */ "./node_modules/css-selector-generator/esm/utilities-dom.js");
+
+
+
+/**
+ * Get ID selector for an element.
+ * */
+function getElementIdSelectors(element) {
+    const id = element.getAttribute('id') || '';
+    const selector = `#${(0,_utilities_selectors_js__WEBPACK_IMPORTED_MODULE_0__.sanitizeSelectorItem)(id)}`;
+    const rootNode = element.getRootNode({ composed: false });
+    return (!_constants_js__WEBPACK_IMPORTED_MODULE_1__.INVALID_ID_RE.test(id)
+        && (0,_utilities_dom_js__WEBPACK_IMPORTED_MODULE_2__.testSelector)([element], selector, rootNode))
+        ? [selector]
+        : [];
+}
+/**
+ * Get ID selector for an element.
+ */
+function getIdSelector(elements) {
+    return (elements.length === 0 || elements.length > 1)
+        ? []
+        : getElementIdSelectors(elements[0]);
+}
+//# sourceMappingURL=selector-id.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/selector-nth-child.js":
+/*!***********************************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/selector-nth-child.js ***!
+  \***********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "getElementNthChildSelector": () => (/* binding */ getElementNthChildSelector),
+/* harmony export */   "getNthChildSelector": () => (/* binding */ getNthChildSelector)
+/* harmony export */ });
+/* harmony import */ var _utilities_iselement_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities-iselement.js */ "./node_modules/css-selector-generator/esm/utilities-iselement.js");
+/* harmony import */ var _utilities_data_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities-data.js */ "./node_modules/css-selector-generator/esm/utilities-data.js");
+
+
+/**
+ * Get nth-child selector for an element.
+ */
+function getElementNthChildSelector(element) {
+    const parent = element.parentNode;
+    if (parent) {
+        const siblings = Array.from(parent.childNodes).filter(_utilities_iselement_js__WEBPACK_IMPORTED_MODULE_0__.isElement);
+        const elementIndex = siblings.indexOf(element);
+        if (elementIndex > -1) {
+            return [`:nth-child(${elementIndex + 1})`];
+        }
+    }
+    return [];
+}
+/**
+ * Get nth-child selector matching all elements.
+ */
+function getNthChildSelector(elements) {
+    return (0,_utilities_data_js__WEBPACK_IMPORTED_MODULE_1__.getIntersection)(elements.map(getElementNthChildSelector));
+}
+//# sourceMappingURL=selector-nth-child.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/selector-nth-of-type.js":
+/*!*************************************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/selector-nth-of-type.js ***!
+  \*************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "getElementNthOfTypeSelector": () => (/* binding */ getElementNthOfTypeSelector),
+/* harmony export */   "getNthOfTypeSelector": () => (/* binding */ getNthOfTypeSelector)
+/* harmony export */ });
+/* harmony import */ var _selector_tag_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./selector-tag.js */ "./node_modules/css-selector-generator/esm/selector-tag.js");
+/* harmony import */ var _utilities_data_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities-data.js */ "./node_modules/css-selector-generator/esm/utilities-data.js");
+
+
+/**
+ * Get nth-of-type selector for an element.
+ */
+function getElementNthOfTypeSelector(element) {
+    const tag = (0,_selector_tag_js__WEBPACK_IMPORTED_MODULE_0__.getTagSelector)([element])[0];
+    const parentElement = element.parentElement;
+    if (parentElement) {
+        const siblings = Array
+            .from(parentElement.children)
+            .filter((element) => element.tagName.toLowerCase() === tag);
+        const elementIndex = siblings.indexOf(element);
+        if (elementIndex > -1) {
+            return [`${tag}:nth-of-type(${elementIndex + 1})`];
+        }
+    }
+    return [];
+}
+/**
+ * Get Nth-of-type selector matching all elements.
+ */
+function getNthOfTypeSelector(elements) {
+    return (0,_utilities_data_js__WEBPACK_IMPORTED_MODULE_1__.getIntersection)(elements.map(getElementNthOfTypeSelector));
+}
+//# sourceMappingURL=selector-nth-of-type.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/selector-tag.js":
+/*!*****************************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/selector-tag.js ***!
+  \*****************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "getElementTagSelectors": () => (/* binding */ getElementTagSelectors),
+/* harmony export */   "getTagSelector": () => (/* binding */ getTagSelector)
+/* harmony export */ });
+/* harmony import */ var _utilities_selectors_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities-selectors.js */ "./node_modules/css-selector-generator/esm/utilities-selectors.js");
+/* harmony import */ var _utilities_data_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities-data.js */ "./node_modules/css-selector-generator/esm/utilities-data.js");
+
+
+/**
+ * Get tag selector for an element.
+ */
+function getElementTagSelectors(element) {
+    return [
+        (0,_utilities_selectors_js__WEBPACK_IMPORTED_MODULE_0__.sanitizeSelectorItem)(element.tagName.toLowerCase()),
+    ];
+}
+/**
+ * Get tag selector for list of elements.
+ */
+function getTagSelector(elements) {
+    const selectors = [
+        ...new Set((0,_utilities_data_js__WEBPACK_IMPORTED_MODULE_1__.flattenArray)(elements.map(getElementTagSelectors))),
+    ];
+    return (selectors.length === 0 || selectors.length > 1) ? [] : [selectors[0]];
+}
+//# sourceMappingURL=selector-tag.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/types.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/types.js ***!
+  \**********************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "CssSelectorType": () => (/* binding */ CssSelectorType),
+/* harmony export */   "OPERATOR": () => (/* binding */ OPERATOR)
+/* harmony export */ });
+var OPERATOR;
+(function (OPERATOR) {
+    OPERATOR["NONE"] = "none";
+    OPERATOR["DESCENDANT"] = "descendant";
+    OPERATOR["CHILD"] = "child";
+})(OPERATOR || (OPERATOR = {}));
+var CssSelectorType;
+(function (CssSelectorType) {
+    CssSelectorType["id"] = "id";
+    CssSelectorType["class"] = "class";
+    CssSelectorType["tag"] = "tag";
+    CssSelectorType["attribute"] = "attribute";
+    CssSelectorType["nthchild"] = "nthchild";
+    CssSelectorType["nthoftype"] = "nthoftype";
+})(CssSelectorType || (CssSelectorType = {}));
+//# sourceMappingURL=types.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/utilities-cartesian.js":
+/*!************************************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/utilities-cartesian.js ***!
+  \************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "getCartesianProduct": () => (/* binding */ getCartesianProduct)
+/* harmony export */ });
+/**
+ * Generates cartesian product out of input object.
+ */
+function getCartesianProduct(input = {}) {
+    let result = [];
+    Object.entries(input)
+        .forEach(([key, values]) => {
+        result = values.flatMap(value => {
+            if (result.length === 0) {
+                return [{ [key]: value }];
+            }
+            else {
+                return result.map(memo => (Object.assign(Object.assign({}, memo), { [key]: value })));
+            }
+        });
+    });
+    return result;
+}
+//# sourceMappingURL=utilities-cartesian.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/utilities-data.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/utilities-data.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "createPatternMatcher": () => (/* binding */ createPatternMatcher),
+/* harmony export */   "flattenArray": () => (/* binding */ flattenArray),
+/* harmony export */   "getIntersection": () => (/* binding */ getIntersection),
+/* harmony export */   "wildcardToRegExp": () => (/* binding */ wildcardToRegExp)
+/* harmony export */ });
+/* harmony import */ var _utilities_options_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities-options.js */ "./node_modules/css-selector-generator/esm/utilities-options.js");
+/* harmony import */ var _utilities_messages_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities-messages.js */ "./node_modules/css-selector-generator/esm/utilities-messages.js");
+
+
+/**
+ * Creates array containing only items included in all input arrays.
+ */
+function getIntersection(items = []) {
+    const [firstItem = [], ...otherItems] = items;
+    if (otherItems.length === 0) {
+        return firstItem;
+    }
+    return (otherItems).reduce((accumulator, currentValue) => {
+        return accumulator.filter((item) => currentValue.includes(item));
+    }, firstItem);
+}
+/**
+ * Converts array of arrays into a flat array.
+ */
+function flattenArray(input) {
+    return [].concat(...input);
+}
+/**
+ * Convert string that can contain wildcards (asterisks) to RegExp source.
+ */
+function wildcardToRegExp(input) {
+    return input
+        // convert all special characters used by RegExp, except an asterisk
+        .replace(/[|\\{}()[\]^$+?.]/g, '\\$&')
+        // convert asterisk to pattern that matches anything
+        .replace(/\*/g, '.+');
+}
+/**
+ * Creates function that will test list of provided matchers against input.
+ * Used for white/blacklist functionality.
+ */
+function createPatternMatcher(list) {
+    const matchFunctions = list.map((item) => {
+        if ((0,_utilities_options_js__WEBPACK_IMPORTED_MODULE_0__.isRegExp)(item)) {
+            return (input) => item.test(input);
+        }
+        if (typeof item === 'function') {
+            return (input) => {
+                const result = item(input);
+                if (typeof result !== 'boolean') {
+                    // eslint-disable-next-line max-len
+                    (0,_utilities_messages_js__WEBPACK_IMPORTED_MODULE_1__.showWarning)('pattern matcher function invalid', 'Provided pattern matching function does not return boolean. It\'s result will be ignored.', item);
+                    return false;
+                }
+                return result;
+            };
+        }
+        if (typeof item === 'string') {
+            const re = new RegExp('^' + wildcardToRegExp(item) + '$');
+            return (input) => re.test(input);
+        }
+        // eslint-disable-next-line max-len
+        (0,_utilities_messages_js__WEBPACK_IMPORTED_MODULE_1__.showWarning)('pattern matcher invalid', 'Pattern matching only accepts strings, regular expressions and/or functions. This item is invalid and will be ignored.', item);
+        return () => false;
+    });
+    return (input) => matchFunctions.some((matchFunction) => matchFunction(input));
+}
+//# sourceMappingURL=utilities-data.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/utilities-dom.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/utilities-dom.js ***!
+  \******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "getElementParents": () => (/* binding */ getElementParents),
+/* harmony export */   "getParents": () => (/* binding */ getParents),
+/* harmony export */   "getRootNode": () => (/* binding */ getRootNode),
+/* harmony export */   "testMultiSelector": () => (/* binding */ testMultiSelector),
+/* harmony export */   "testSelector": () => (/* binding */ testSelector)
+/* harmony export */ });
+/* harmony import */ var _utilities_iselement_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities-iselement.js */ "./node_modules/css-selector-generator/esm/utilities-iselement.js");
+/* harmony import */ var _utilities_data_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities-data.js */ "./node_modules/css-selector-generator/esm/utilities-data.js");
+/* harmony import */ var _utilities_options_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utilities-options.js */ "./node_modules/css-selector-generator/esm/utilities-options.js");
+
+
+
+/**
+ * Check whether element is matched uniquely by selector.
+ */
+function testSelector(elements, selector, root) {
+    const result = Array.from((0,_utilities_options_js__WEBPACK_IMPORTED_MODULE_2__.sanitizeRoot)(root, elements[0])
+        .querySelectorAll(selector));
+    return (result.length === elements.length
+        && elements.every((element) => result.includes(element)));
+}
+/**
+ * Test whether selector targets element. It does not have to be a unique match.
+ */
+function testMultiSelector(element, selector, root) {
+    const result = Array.from((0,_utilities_options_js__WEBPACK_IMPORTED_MODULE_2__.sanitizeRoot)(root, element)
+        .querySelectorAll(selector));
+    return result.includes(element);
+}
+/**
+ * Find all parents of a single element.
+ */
+function getElementParents(element, root) {
+    root = root !== null && root !== void 0 ? root : getRootNode(element);
+    const result = [];
+    let parent = element;
+    while ((0,_utilities_iselement_js__WEBPACK_IMPORTED_MODULE_0__.isElement)(parent) && parent !== root) {
+        result.push(parent);
+        parent = parent.parentElement;
+    }
+    return result;
+}
+/**
+ * Find all common parents of elements.
+ */
+function getParents(elements, root) {
+    return (0,_utilities_data_js__WEBPACK_IMPORTED_MODULE_1__.getIntersection)(elements.map((element) => getElementParents(element, root)));
+}
+/**
+ * Returns root node for given element. This needs to be used because of document-less environments, e.g. jsdom.
+ */
+function getRootNode(element) {
+    return element.ownerDocument.querySelector(':root');
+}
+//# sourceMappingURL=utilities-dom.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/utilities-element-data.js":
+/*!***************************************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/utilities-element-data.js ***!
+  \***************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "constructElementSelector": () => (/* binding */ constructElementSelector),
+/* harmony export */   "createElementData": () => (/* binding */ createElementData),
+/* harmony export */   "createElementSelectorData": () => (/* binding */ createElementSelectorData)
+/* harmony export */ });
+/* harmony import */ var _types_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./types.js */ "./node_modules/css-selector-generator/esm/types.js");
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants.js */ "./node_modules/css-selector-generator/esm/constants.js");
+/* harmony import */ var _utilities_selectors_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utilities-selectors.js */ "./node_modules/css-selector-generator/esm/utilities-selectors.js");
+
+
+
+/**
+ * Creates data describing a specific selector.
+ */
+function createElementSelectorData(selector) {
+    return {
+        value: selector,
+        include: false,
+    };
+}
+/**
+ * Creates data describing an element within CssSelector chain.
+ */
+function createElementData(element, selectorTypes, operator = _types_js__WEBPACK_IMPORTED_MODULE_0__.OPERATOR.NONE) {
+    const selectors = {};
+    selectorTypes.forEach((selectorType) => {
+        Reflect.set(selectors, selectorType, (0,_utilities_selectors_js__WEBPACK_IMPORTED_MODULE_2__.getElementSelectorsByType)(element, selectorType)
+            .map(createElementSelectorData));
+    });
+    return {
+        element,
+        operator: _constants_js__WEBPACK_IMPORTED_MODULE_1__.OPERATOR_DATA[operator],
+        selectors,
+    };
+}
+/**
+ * Constructs selector from element data.
+ */
+function constructElementSelector({ selectors, operator }) {
+    let pattern = [..._constants_js__WEBPACK_IMPORTED_MODULE_1__.SELECTOR_PATTERN];
+    // `nthoftype` already contains tag
+    if (selectors[_types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.tag] && selectors[_types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.nthoftype]) {
+        pattern = pattern.filter((item) => item !== _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.tag);
+    }
+    let selector = '';
+    pattern.forEach((selectorType) => {
+        const selectorsOfType = selectors[selectorType] || [];
+        selectorsOfType.forEach(({ value, include }) => {
+            if (include) {
+                selector += value;
+            }
+        });
+    });
+    return (operator.value + selector);
+}
+//# sourceMappingURL=utilities-element-data.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/utilities-iselement.js":
+/*!************************************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/utilities-iselement.js ***!
+  \************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "isElement": () => (/* binding */ isElement)
+/* harmony export */ });
+/**
+ * Guard function that checks if provided `input` is an Element.
+ */
+function isElement(input) {
+    return input && input instanceof Element;
+}
+//# sourceMappingURL=utilities-iselement.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/utilities-messages.js":
+/*!***********************************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/utilities-messages.js ***!
+  \***********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "showWarning": () => (/* binding */ showWarning)
+/* harmony export */ });
+const libraryName = 'CssSelectorGenerator';
+/**
+ * Convenient wrapper for `console.warn` using consistent formatting.
+ */
+function showWarning(id = 'unknown problem', ...args) {
+    // eslint-disable-next-line no-console
+    console.warn(`${libraryName}: ${id}`, ...args);
+}
+//# sourceMappingURL=utilities-messages.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/utilities-options.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/utilities-options.js ***!
+  \**********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "DEFAULT_OPTIONS": () => (/* binding */ DEFAULT_OPTIONS),
+/* harmony export */   "isCssSelectorMatch": () => (/* binding */ isCssSelectorMatch),
+/* harmony export */   "isNode": () => (/* binding */ isNode),
+/* harmony export */   "isParentNode": () => (/* binding */ isParentNode),
+/* harmony export */   "isRegExp": () => (/* binding */ isRegExp),
+/* harmony export */   "sanitizeCssSelectorMatchList": () => (/* binding */ sanitizeCssSelectorMatchList),
+/* harmony export */   "sanitizeMaxNumber": () => (/* binding */ sanitizeMaxNumber),
+/* harmony export */   "sanitizeOptions": () => (/* binding */ sanitizeOptions),
+/* harmony export */   "sanitizeRoot": () => (/* binding */ sanitizeRoot),
+/* harmony export */   "sanitizeSelectorTypes": () => (/* binding */ sanitizeSelectorTypes)
+/* harmony export */ });
+/* harmony import */ var _types_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./types.js */ "./node_modules/css-selector-generator/esm/types.js");
+/* harmony import */ var _utilities_typescript_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities-typescript.js */ "./node_modules/css-selector-generator/esm/utilities-typescript.js");
+/* harmony import */ var _utilities_messages_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utilities-messages.js */ "./node_modules/css-selector-generator/esm/utilities-messages.js");
+
+
+
+const DEFAULT_OPTIONS = {
+    selectors: [
+        _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.id,
+        _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType["class"],
+        _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.tag,
+        _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.attribute,
+    ],
+    // if set to true, always include tag name
+    includeTag: false,
+    whitelist: [],
+    blacklist: [],
+    combineWithinSelector: true,
+    combineBetweenSelectors: true,
+    root: null,
+    maxCombinations: Number.POSITIVE_INFINITY,
+    maxCandidates: Number.POSITIVE_INFINITY,
+};
+/**
+ * Makes sure returned value is a list containing only valid selector types.
+ * @param input
+ */
+function sanitizeSelectorTypes(input) {
+    if (!Array.isArray(input)) {
+        return [];
+    }
+    return input.filter((item) => (0,_utilities_typescript_js__WEBPACK_IMPORTED_MODULE_1__.isEnumValue)(_types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType, item));
+}
+/**
+ * Checks whether provided value is of type RegExp.
+ */
+function isRegExp(input) {
+    return input instanceof RegExp;
+}
+/**
+ * Checks whether provided value is usable in whitelist or blacklist.
+ * @param input
+ */
+function isCssSelectorMatch(input) {
+    return ['string', 'function'].includes(typeof input) || isRegExp(input);
+}
+/**
+ * Converts input to a list of valid values for whitelist or blacklist.
+ */
+function sanitizeCssSelectorMatchList(input) {
+    if (!Array.isArray(input)) {
+        return [];
+    }
+    return input.filter(isCssSelectorMatch);
+}
+/**
+ * Checks whether provided value is valid Node.
+ */
+function isNode(input) {
+    return input instanceof Node;
+}
+/**
+ * Checks whether provided value is valid ParentNode.
+ */
+function isParentNode(input) {
+    const validNodeTypes = [
+        Node.DOCUMENT_NODE,
+        Node.DOCUMENT_FRAGMENT_NODE,
+        Node.ELEMENT_NODE,
+    ];
+    return isNode(input) && validNodeTypes.includes(input.nodeType);
+}
+/**
+ * Makes sure that the root node in options is valid.
+ */
+function sanitizeRoot(input, element) {
+    if (isParentNode(input)) {
+        if (!input.contains(element)) {
+            // eslint-disable-next-line max-len
+            (0,_utilities_messages_js__WEBPACK_IMPORTED_MODULE_2__.showWarning)('element root mismatch', 'Provided root does not contain the element. This will most likely result in producing a fallback selector using element\'s real root node. If you plan to use the selector using provided root (e.g. `root.querySelector`), it will nto work as intended.');
+        }
+        return input;
+    }
+    const rootNode = element.getRootNode({ composed: false });
+    if (isParentNode(rootNode)) {
+        if (rootNode !== document) {
+            // eslint-disable-next-line max-len
+            (0,_utilities_messages_js__WEBPACK_IMPORTED_MODULE_2__.showWarning)('shadow root inferred', 'You did not provide a root and the element is a child of Shadow DOM. This will produce a selector using ShadowRoot as a root. If you plan to use the selector using document as a root (e.g. `document.querySelector`), it will not work as intended.');
+        }
+        return rootNode;
+    }
+    return element.ownerDocument.querySelector(':root');
+}
+/**
+ * Makes sure that the output is a number, usable as `maxResults` option in
+ * powerset generator.
+ */
+function sanitizeMaxNumber(input) {
+    return typeof input === 'number' ? input : Number.POSITIVE_INFINITY;
+}
+/**
+ * Makes sure the options object contains all required keys.
+ */
+function sanitizeOptions(element, custom_options = {}) {
+    const options = Object.assign(Object.assign({}, DEFAULT_OPTIONS), custom_options);
+    return {
+        selectors: sanitizeSelectorTypes(options.selectors),
+        whitelist: sanitizeCssSelectorMatchList(options.whitelist),
+        blacklist: sanitizeCssSelectorMatchList(options.blacklist),
+        root: sanitizeRoot(options.root, element),
+        combineWithinSelector: !!options.combineWithinSelector,
+        combineBetweenSelectors: !!options.combineBetweenSelectors,
+        includeTag: !!options.includeTag,
+        maxCombinations: sanitizeMaxNumber(options.maxCombinations),
+        maxCandidates: sanitizeMaxNumber(options.maxCandidates),
+    };
+}
+//# sourceMappingURL=utilities-options.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/utilities-powerset.js":
+/*!***********************************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/utilities-powerset.js ***!
+  \***********************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "getPowerSet": () => (/* binding */ getPowerSet)
+/* harmony export */ });
+/**
+ * Generates power set of input items.
+ */
+function getPowerSet(input = [], { maxResults = Number.POSITIVE_INFINITY } = {}) {
+    const result = [];
+    let resultCounter = 0;
+    let offsets = generateOffsets(1);
+    while ((offsets.length <= input.length) && (resultCounter < maxResults)) {
+        resultCounter += 1;
+        result.push(offsets.map((offset) => input[offset]));
+        offsets = bumpOffsets(offsets, input.length - 1);
+    }
+    return result;
+}
+/**
+ * Helper function used by `getPowerSet`. Updates internal pointers.
+ */
+function bumpOffsets(offsets = [], maxValue = 0) {
+    const size = offsets.length;
+    if (size === 0) {
+        return [];
+    }
+    const result = [...offsets];
+    result[size - 1] += 1;
+    for (let index = size - 1; index >= 0; index--) {
+        if (result[index] > maxValue) {
+            if (index === 0) {
+                return generateOffsets(size + 1);
+            }
+            else {
+                result[index - 1]++;
+                result[index] = result[index - 1] + 1;
+            }
+        }
+    }
+    if (result[size - 1] > maxValue) {
+        return generateOffsets(size + 1);
+    }
+    return result;
+}
+/**
+ * Generates array of size N, filled with numbers sequence starting from 0.
+ */
+function generateOffsets(size = 1) {
+    return Array.from(Array(size).keys());
+}
+//# sourceMappingURL=utilities-powerset.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/utilities-selectors.js":
+/*!************************************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/utilities-selectors.js ***!
+  \************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "ELEMENT_SELECTOR_TYPE_GETTERS": () => (/* binding */ ELEMENT_SELECTOR_TYPE_GETTERS),
+/* harmony export */   "ESCAPED_COLON": () => (/* binding */ ESCAPED_COLON),
+/* harmony export */   "SELECTOR_TYPE_GETTERS": () => (/* binding */ SELECTOR_TYPE_GETTERS),
+/* harmony export */   "SPECIAL_CHARACTERS_RE": () => (/* binding */ SPECIAL_CHARACTERS_RE),
+/* harmony export */   "combineSelectorTypes": () => (/* binding */ combineSelectorTypes),
+/* harmony export */   "constructSelector": () => (/* binding */ constructSelector),
+/* harmony export */   "constructSelectorType": () => (/* binding */ constructSelectorType),
+/* harmony export */   "constructSelectors": () => (/* binding */ constructSelectors),
+/* harmony export */   "filterSelectors": () => (/* binding */ filterSelectors),
+/* harmony export */   "getAllSelectors": () => (/* binding */ getAllSelectors),
+/* harmony export */   "getClosestIdentifiableParent": () => (/* binding */ getClosestIdentifiableParent),
+/* harmony export */   "getElementSelectorsByType": () => (/* binding */ getElementSelectorsByType),
+/* harmony export */   "getSelectorWithinRoot": () => (/* binding */ getSelectorWithinRoot),
+/* harmony export */   "getSelectorsByType": () => (/* binding */ getSelectorsByType),
+/* harmony export */   "getSelectorsList": () => (/* binding */ getSelectorsList),
+/* harmony export */   "getSelectorsToGet": () => (/* binding */ getSelectorsToGet),
+/* harmony export */   "getTypeCombinations": () => (/* binding */ getTypeCombinations),
+/* harmony export */   "legacySanitizeSelectorItem": () => (/* binding */ legacySanitizeSelectorItem),
+/* harmony export */   "orderSelectors": () => (/* binding */ orderSelectors),
+/* harmony export */   "sanitizeSelectorItem": () => (/* binding */ sanitizeSelectorItem),
+/* harmony export */   "sanitizeSelectorNeedle": () => (/* binding */ sanitizeSelectorNeedle)
+/* harmony export */ });
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants.js */ "./node_modules/css-selector-generator/esm/constants.js");
+/* harmony import */ var _selector_attribute_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./selector-attribute.js */ "./node_modules/css-selector-generator/esm/selector-attribute.js");
+/* harmony import */ var _selector_class_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./selector-class.js */ "./node_modules/css-selector-generator/esm/selector-class.js");
+/* harmony import */ var _selector_id_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./selector-id.js */ "./node_modules/css-selector-generator/esm/selector-id.js");
+/* harmony import */ var _selector_nth_child_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./selector-nth-child.js */ "./node_modules/css-selector-generator/esm/selector-nth-child.js");
+/* harmony import */ var _selector_nth_of_type_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./selector-nth-of-type.js */ "./node_modules/css-selector-generator/esm/selector-nth-of-type.js");
+/* harmony import */ var _selector_tag_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./selector-tag.js */ "./node_modules/css-selector-generator/esm/selector-tag.js");
+/* harmony import */ var _utilities_data_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./utilities-data.js */ "./node_modules/css-selector-generator/esm/utilities-data.js");
+/* harmony import */ var _utilities_dom_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./utilities-dom.js */ "./node_modules/css-selector-generator/esm/utilities-dom.js");
+/* harmony import */ var _types_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./types.js */ "./node_modules/css-selector-generator/esm/types.js");
+/* harmony import */ var _utilities_iselement_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./utilities-iselement.js */ "./node_modules/css-selector-generator/esm/utilities-iselement.js");
+/* harmony import */ var _utilities_powerset_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./utilities-powerset.js */ "./node_modules/css-selector-generator/esm/utilities-powerset.js");
+/* harmony import */ var _utilities_cartesian_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./utilities-cartesian.js */ "./node_modules/css-selector-generator/esm/utilities-cartesian.js");
+
+
+
+
+
+
+
+
+
+
+
+
+
+const ESCAPED_COLON = ':'
+    .charCodeAt(0)
+    .toString(16)
+    .toUpperCase();
+// Square brackets need to be escaped, but eslint has a problem with that.
+/* eslint-disable-next-line no-useless-escape */
+const SPECIAL_CHARACTERS_RE = /[ !"#$%&'()\[\]{|}<>*+,./;=?@^`~\\]/;
+/**
+ * Escapes special characters used by CSS selector items.
+ */
+function sanitizeSelectorItem(input = '') {
+    var _a, _b;
+    return (_b = (_a = CSS === null || CSS === void 0 ? void 0 : CSS.escape) === null || _a === void 0 ? void 0 : _a.call(CSS, input)) !== null && _b !== void 0 ? _b : legacySanitizeSelectorItem(input);
+}
+/**
+ * Legacy version of escaping utility, originally used for IE11-. Should
+ * probably be replaced by a polyfill:
+ * https://github.com/mathiasbynens/CSS.escape
+ */
+function legacySanitizeSelectorItem(input = '') {
+    return input.split('')
+        .map((character) => {
+        if (character === ':') {
+            return `\\${ESCAPED_COLON} `;
+        }
+        if (SPECIAL_CHARACTERS_RE.test(character)) {
+            return `\\${character}`;
+        }
+        return escape(character)
+            .replace(/%/g, '\\');
+    })
+        .join('');
+}
+const SELECTOR_TYPE_GETTERS = {
+    tag: _selector_tag_js__WEBPACK_IMPORTED_MODULE_6__.getTagSelector,
+    id: _selector_id_js__WEBPACK_IMPORTED_MODULE_3__.getIdSelector,
+    class: _selector_class_js__WEBPACK_IMPORTED_MODULE_2__.getClassSelectors,
+    attribute: _selector_attribute_js__WEBPACK_IMPORTED_MODULE_1__.getAttributeSelectors,
+    nthchild: _selector_nth_child_js__WEBPACK_IMPORTED_MODULE_4__.getNthChildSelector,
+    nthoftype: _selector_nth_of_type_js__WEBPACK_IMPORTED_MODULE_5__.getNthOfTypeSelector,
+};
+const ELEMENT_SELECTOR_TYPE_GETTERS = {
+    tag: _selector_tag_js__WEBPACK_IMPORTED_MODULE_6__.getElementTagSelectors,
+    id: _selector_id_js__WEBPACK_IMPORTED_MODULE_3__.getElementIdSelectors,
+    class: _selector_class_js__WEBPACK_IMPORTED_MODULE_2__.getElementClassSelectors,
+    attribute: _selector_attribute_js__WEBPACK_IMPORTED_MODULE_1__.getElementAttributeSelectors,
+    nthchild: _selector_nth_child_js__WEBPACK_IMPORTED_MODULE_4__.getElementNthChildSelector,
+    nthoftype: _selector_nth_of_type_js__WEBPACK_IMPORTED_MODULE_5__.getElementNthOfTypeSelector,
+};
+/**
+ * Creates selector of given type for single element.
+ */
+function getElementSelectorsByType(element, selectorType) {
+    return ELEMENT_SELECTOR_TYPE_GETTERS[selectorType](element);
+}
+/**
+ * Returns list of selectors of given type for the element.
+ */
+function getSelectorsByType(elements, selector_type) {
+    var _a;
+    const getter = ((_a = SELECTOR_TYPE_GETTERS[selector_type]) !== null && _a !== void 0 ? _a : (() => []));
+    return getter(elements);
+}
+/**
+ * Remove blacklisted selectors from list.
+ */
+function filterSelectors(list = [], matchBlacklist, matchWhitelist) {
+    return list.filter((item) => (matchWhitelist(item)
+        || !matchBlacklist(item)));
+}
+/**
+ * Prioritise whitelisted selectors in list.
+ */
+function orderSelectors(list = [], matchWhitelist) {
+    return list.sort((a, b) => {
+        const a_is_whitelisted = matchWhitelist(a);
+        const b_is_whitelisted = matchWhitelist(b);
+        if (a_is_whitelisted && !b_is_whitelisted) {
+            return -1;
+        }
+        if (!a_is_whitelisted && b_is_whitelisted) {
+            return 1;
+        }
+        return 0;
+    });
+}
+/**
+ * Returns list of unique selectors applicable to given element.
+ */
+function getAllSelectors(elements, root, options) {
+    const selectors_list = getSelectorsList(elements, options);
+    const type_combinations = getTypeCombinations(selectors_list, options);
+    const all_selectors = (0,_utilities_data_js__WEBPACK_IMPORTED_MODULE_7__.flattenArray)(type_combinations);
+    return [...new Set(all_selectors)];
+}
+/**
+ * Creates object containing all selector types and their potential values.
+ */
+function getSelectorsList(elements, options) {
+    const { blacklist, whitelist, combineWithinSelector, maxCombinations, } = options;
+    const matchBlacklist = (0,_utilities_data_js__WEBPACK_IMPORTED_MODULE_7__.createPatternMatcher)(blacklist);
+    const matchWhitelist = (0,_utilities_data_js__WEBPACK_IMPORTED_MODULE_7__.createPatternMatcher)(whitelist);
+    const reducer = (data, selector_type) => {
+        const selectors_by_type = getSelectorsByType(elements, selector_type);
+        const filtered_selectors = filterSelectors(selectors_by_type, matchBlacklist, matchWhitelist);
+        const found_selectors = orderSelectors(filtered_selectors, matchWhitelist);
+        data[selector_type] = combineWithinSelector
+            ? (0,_utilities_powerset_js__WEBPACK_IMPORTED_MODULE_11__.getPowerSet)(found_selectors, { maxResults: maxCombinations })
+            : found_selectors.map((item) => [item]);
+        return data;
+    };
+    return getSelectorsToGet(options)
+        .reduce(reducer, {});
+}
+/**
+ * Creates list of selector types that we will need to generate the selector.
+ */
+function getSelectorsToGet(options) {
+    const { selectors, includeTag, } = options;
+    const selectors_to_get = [].concat(selectors);
+    if (includeTag && !selectors_to_get.includes('tag')) {
+        selectors_to_get.push('tag');
+    }
+    return selectors_to_get;
+}
+/**
+ * Adds "tag" to a list, if it does not contain it. Used to modify selectors
+ * list when includeTag option is enabled to make sure all results contain the
+ * TAG part.
+ */
+function addTagTypeIfNeeded(list) {
+    return (list.includes(_types_js__WEBPACK_IMPORTED_MODULE_9__.CssSelectorType.tag)
+        || list.includes(_types_js__WEBPACK_IMPORTED_MODULE_9__.CssSelectorType.nthoftype))
+        ? [...list]
+        : [...list, _types_js__WEBPACK_IMPORTED_MODULE_9__.CssSelectorType.tag];
+}
+/**
+ * Generates list of possible selector type combinations.
+ */
+function combineSelectorTypes(options) {
+    const { selectors, combineBetweenSelectors, includeTag, maxCandidates, } = options;
+    const combinations = combineBetweenSelectors
+        ? (0,_utilities_powerset_js__WEBPACK_IMPORTED_MODULE_11__.getPowerSet)(selectors, { maxResults: maxCandidates })
+        : selectors.map(item => [item]);
+    return includeTag
+        ? combinations.map(addTagTypeIfNeeded)
+        : combinations;
+}
+/**
+ * Generates list of combined CSS selectors.
+ */
+function getTypeCombinations(selectors_list, options) {
+    return combineSelectorTypes(options)
+        .map((item) => {
+        return constructSelectors(item, selectors_list);
+    })
+        .filter((item) => item.length > 0);
+}
+/**
+ * Generates all variations of possible selectors from provided data.
+ */
+function constructSelectors(selector_types, selectors_by_type) {
+    const data = {};
+    selector_types.forEach((selector_type) => {
+        const selector_variants = selectors_by_type[selector_type];
+        if (selector_variants.length > 0) {
+            data[selector_type] = selector_variants;
+        }
+    });
+    const combinations = (0,_utilities_cartesian_js__WEBPACK_IMPORTED_MODULE_12__.getCartesianProduct)(data);
+    return combinations.map(constructSelector);
+}
+/**
+ * Creates selector for given selector type. Combines several parts if needed.
+ */
+function constructSelectorType(selector_type, selectors_data) {
+    return (selectors_data[selector_type])
+        ? selectors_data[selector_type].join('')
+        : '';
+}
+/**
+ * Converts selector data object to a selector.
+ */
+function constructSelector(selectorData = {}) {
+    const pattern = [..._constants_js__WEBPACK_IMPORTED_MODULE_0__.SELECTOR_PATTERN];
+    // selector "nthoftype" already contains "tag"
+    if (selectorData[_types_js__WEBPACK_IMPORTED_MODULE_9__.CssSelectorType.tag]
+        && selectorData[_types_js__WEBPACK_IMPORTED_MODULE_9__.CssSelectorType.nthoftype]) {
+        pattern.splice(pattern.indexOf(_types_js__WEBPACK_IMPORTED_MODULE_9__.CssSelectorType.tag), 1);
+    }
+    return pattern
+        .map((type) => constructSelectorType(type, selectorData))
+        .join('');
+}
+/**
+ * Generates combinations of child and descendant selectors within root
+ * selector.
+ */
+function generateCandidateCombinations(selectors, rootSelector) {
+    return [
+        ...selectors.map((selector) => rootSelector + _constants_js__WEBPACK_IMPORTED_MODULE_0__.CHILD_OPERATOR + selector),
+        ...selectors.map((selector) => rootSelector + _constants_js__WEBPACK_IMPORTED_MODULE_0__.DESCENDANT_OPERATOR + selector),
+    ];
+}
+/**
+ * Generates a list of selector candidates that can potentially match target
+ * element.
+ */
+function generateCandidates(selectors, rootSelector) {
+    return rootSelector === ''
+        ? selectors
+        : generateCandidateCombinations(selectors, rootSelector);
+}
+/**
+ * Tries to find an unique CSS selector for element within given parent.
+ */
+function getSelectorWithinRoot(elements, root, rootSelector = '', options) {
+    const elementSelectors = getAllSelectors(elements, options.root, options);
+    const selectorCandidates = generateCandidates(elementSelectors, rootSelector);
+    for (const candidateSelector of selectorCandidates) {
+        if ((0,_utilities_dom_js__WEBPACK_IMPORTED_MODULE_8__.testSelector)(elements, candidateSelector, options.root)) {
+            return candidateSelector;
+        }
+    }
+    return null;
+}
+/**
+ * Climbs through parents of the element and tries to find the one that is
+ * identifiable by unique CSS selector.
+ */
+function getClosestIdentifiableParent(elements, root, rootSelector = '', options) {
+    if (elements.length === 0) {
+        return null;
+    }
+    const candidatesList = [
+        (elements.length > 1) ? elements : [],
+        ...(0,_utilities_dom_js__WEBPACK_IMPORTED_MODULE_8__.getParents)(elements, root)
+            .map((element) => [element]),
+    ];
+    for (const currentElements of candidatesList) {
+        const result = getSelectorWithinRoot(currentElements, root, rootSelector, options);
+        if (result) {
+            return {
+                foundElements: currentElements,
+                selector: result,
+            };
+        }
+    }
+    return null;
+}
+/**
+ * Converts input into list of elements, removing duplicates and non-elements.
+ */
+function sanitizeSelectorNeedle(needle) {
+    const elements = (Array.isArray(needle) ? needle : [needle]).filter(_utilities_iselement_js__WEBPACK_IMPORTED_MODULE_10__.isElement);
+    return [...new Set(elements)];
+}
+//# sourceMappingURL=utilities-selectors.js.map
+
+/***/ }),
+
+/***/ "./node_modules/css-selector-generator/esm/utilities-typescript.js":
+/*!*************************************************************************!*\
+  !*** ./node_modules/css-selector-generator/esm/utilities-typescript.js ***!
+  \*************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "isEnumValue": () => (/* binding */ isEnumValue)
+/* harmony export */ });
+/**
+ * Checks whether value is one of the enum's values.
+ */
+function isEnumValue(haystack, needle) {
+    return Object.values(haystack)
+        .includes(needle);
+}
+//# sourceMappingURL=utilities-typescript.js.map
 
 /***/ })
 
@@ -8328,7 +9542,9 @@ __webpack_require__.r(__webpack_exports__);
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
+
 // Script used for reflowable resources.
+
 
 window.readium.isReflowable = true;
 window.addEventListener("load", function () {
@@ -8336,15 +9552,18 @@ window.addEventListener("load", function () {
   // Waiting for the next animation frame seems to do the trick to make sure the page is fully rendered.
   window.requestAnimationFrame(function () {
     webkit.messageHandlers.spreadLoaded.postMessage({});
-  }); // Setups the `viewport` meta tag to disable zooming.
+  });
 
+  // Setups the `viewport` meta tag to disable zooming.
   var meta = document.createElement("meta");
   meta.setAttribute("name", "viewport");
   meta.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no");
   document.head.appendChild(meta);
-}); // Injects Readium CSS stylesheets.
+});
 
+// Injects Readium CSS stylesheets (legacy Settings API).
 document.addEventListener("DOMContentLoaded", function () {
+  if (!window.readiumCSSBaseURL) return;
   function createLink(name) {
     var link = document.createElement("link");
     link.setAttribute("rel", "stylesheet");
@@ -8352,7 +9571,6 @@ document.addEventListener("DOMContentLoaded", function () {
     link.setAttribute("href", window.readiumCSSBaseURL + name + ".css");
     return link;
   }
-
   var head = document.getElementsByTagName("head")[0];
   head.appendChild(createLink("ReadiumCSS-after"));
   head.insertBefore(createLink("ReadiumCSS-before"), head.children[0]);

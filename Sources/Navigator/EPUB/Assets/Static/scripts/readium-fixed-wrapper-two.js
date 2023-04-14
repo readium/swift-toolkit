@@ -17,41 +17,37 @@ __webpack_require__.r(__webpack_exports__);
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
+
 // Manages a fixed layout resource embedded in an iframe.
 function FixedPage(iframeId) {
   // Fixed dimensions for the page, extracted from the viewport meta tag.
-  var _pageSize = null; // Available viewport size to fill with the resource.
+  var _pageSize = null;
+  // Available viewport size to fill with the resource.
+  var _viewportSize = null;
+  // Margins that should not overlap the content.
+  var _safeAreaInsets = null;
 
-  var _viewportSize = null; // Margins that should not overlap the content.
-
-  var _safeAreaInsets = null; // iFrame containing the page.
-
+  // iFrame containing the page.
   var _iframe = document.getElementById(iframeId);
+  _iframe.addEventListener("load", loadPageSize);
 
-  _iframe.addEventListener("load", loadPageSize); // Viewport element containing the iFrame.
+  // Viewport element containing the iFrame.
+  var _viewport = _iframe.closest(".viewport");
 
-
-  var _viewport = _iframe.closest(".viewport"); // Parses the page size from the viewport meta tag of the loaded resource.
-
-
+  // Parses the page size from the viewport meta tag of the loaded resource.
   function loadPageSize() {
     var viewport = _iframe.contentWindow.document.querySelector("meta[name=viewport]");
-
     if (!viewport) {
       return;
     }
-
     var regex = /(\w+) *= *([^\s,]+)/g;
     var properties = {};
     var match;
-
     while (match = regex.exec(viewport.content)) {
       properties[match[1]] = match[2];
     }
-
     var width = Number.parseFloat(properties.width);
     var height = Number.parseFloat(properties.height);
-
     if (width && height) {
       _pageSize = {
         width: width,
@@ -59,27 +55,27 @@ function FixedPage(iframeId) {
       };
       layoutPage();
     }
-  } // Layouts the page iframe to center its content and scale it to fill the available viewport.
+  }
 
-
+  // Layouts the page iframe to center its content and scale it to fill the available viewport.
   function layoutPage() {
     if (!_pageSize || !_viewportSize || !_safeAreaInsets) {
       return;
     }
-
     _iframe.style.width = _pageSize.width + "px";
     _iframe.style.height = _pageSize.height + "px";
     _iframe.style.marginTop = _safeAreaInsets.top - _safeAreaInsets.bottom + "px";
-    _iframe.style.marginLeft = _safeAreaInsets.left - _safeAreaInsets.right + "px"; // Calculates the zoom scale required to fit the content to the viewport.
+    _iframe.style.marginLeft = _safeAreaInsets.left - _safeAreaInsets.right + "px";
 
+    // Calculates the zoom scale required to fit the content to the viewport.
     var widthRatio = _viewportSize.width / _pageSize.width;
     var heightRatio = _viewportSize.height / _pageSize.height;
-    var scale = Math.min(widthRatio, heightRatio); // Sets the viewport of the wrapper page (this page) to scale the iframe.
+    var scale = Math.min(widthRatio, heightRatio);
 
+    // Sets the viewport of the wrapper page (this page) to scale the iframe.
     var viewport = document.querySelector("meta[name=viewport]");
     viewport.content = "initial-scale=" + scale + ", minimum-scale=" + scale;
   }
-
   return {
     // Returns whether the page is currently loading its contents.
     isLoading: false,
@@ -91,33 +87,26 @@ function FixedPage(iframeId) {
         if (completion) {
           completion();
         }
-
         return;
       }
-
       var page = this;
       page.link = resource.link;
       page.isLoading = true;
-
       function loaded() {
-        _iframe.removeEventListener("load", loaded); // Timeout to wait for the page to be laid out.
+        _iframe.removeEventListener("load", loaded);
+
+        // Timeout to wait for the page to be laid out.
         // Note that using `requestAnimationFrame()` instead causes performance
         // issues in some FXL EPUBs with spreads.
-
-
         setTimeout(function () {
           page.isLoading = false;
-
           _iframe.contentWindow.eval("readium.link = ".concat(JSON.stringify(resource.link), ";"));
-
           if (completion) {
             completion();
           }
         }, 100);
       }
-
       _iframe.addEventListener("load", loaded);
-
       _iframe.src = resource.url;
     },
     // Resets the page and empty its contents.
@@ -125,7 +114,6 @@ function FixedPage(iframeId) {
       if (!this.link) {
         return;
       }
-
       this.link = null;
       _pageSize = null;
       _iframe.src = "about:blank";
@@ -135,7 +123,6 @@ function FixedPage(iframeId) {
       if (!this.link || this.isLoading) {
         return;
       }
-
       return _iframe.contentWindow.eval(script);
     },
     // Updates the available viewport to display the resource.
@@ -238,35 +225,32 @@ __webpack_require__.r(__webpack_exports__);
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
+
 // Script used for the single spread wrapper HTML page for fixed layout resources.
+
 
 var pages = {
   left: (0,_fixed_page__WEBPACK_IMPORTED_MODULE_0__.FixedPage)("page-left"),
   right: (0,_fixed_page__WEBPACK_IMPORTED_MODULE_0__.FixedPage)("page-right"),
   center: (0,_fixed_page__WEBPACK_IMPORTED_MODULE_0__.FixedPage)("page-center")
 };
-
 function forEachPage(callback) {
   for (var position in pages) {
     callback(pages[position]);
   }
 }
-
 function getPageWithHref(href) {
   for (var position in pages) {
     var _page$link;
-
     var page = pages[position];
-
     if (((_page$link = page.link) === null || _page$link === void 0 ? void 0 : _page$link.href) === href) {
       return page;
     }
   }
-
   return null;
-} // Public API called from Swift.
+}
 
-
+// Public API called from Swift.
 __webpack_require__.g.spread = {
   // Loads resources in the spread.
   load: function (resources) {
@@ -274,19 +258,15 @@ __webpack_require__.g.spread = {
       page.reset();
       page.hide();
     });
-
     function loaded() {
       if (pages.left.isLoading || pages.right.isLoading || pages.center.isLoading) {
         return;
       }
-
       webkit.messageHandlers.spreadLoaded.postMessage({});
     }
-
     for (var i in resources) {
       var resource = resources[i];
       var page = pages[resource.page];
-
       if (page) {
         page.show();
         page.load(resource, loaded);
@@ -302,7 +282,6 @@ __webpack_require__.g.spread = {
       });
     } else {
       var page = getPageWithHref(href);
-
       if (page) {
         return page.eval(script);
       }

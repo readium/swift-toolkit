@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 
 /// OPDS Acquisition Object

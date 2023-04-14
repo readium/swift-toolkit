@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Library-specific features when a specific book is unavailable but provides a hold list.
 /// https://drafts.opds.io/schema/properties.schema.json

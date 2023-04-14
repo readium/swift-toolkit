@@ -46,7 +46,7 @@ class LibraryViewController: UIViewController, Loggable {
     private var subscriptions = Set<AnyCancellable>()
     
     lazy var loadingIndicator = PublicationIndicator()
-    private lazy var addBookButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addBook))
+    private lazy var addBookButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addBookFromDevice))
     
     @IBOutlet weak var collectionView: UICollectionView! {
         didSet {
@@ -84,9 +84,6 @@ class LibraryViewController: UIViewController, Loggable {
         collectionView.accessibilityLabel = NSLocalizedString("library_a11y_label", comment: "Accessibility label for the library collection view")
         
         self.navigationItem.rightBarButtonItem = addBookButton
-        
-        navigationController?.navigationBar.tintColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
-        navigationController?.navigationBar.barTintColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -140,16 +137,7 @@ class LibraryViewController: UIViewController, Loggable {
         flowLayout.itemSize = CGSize(width: width, height: height)
     }
     
-    @objc func addBook() {
-        let alert = UIAlertController(title: NSLocalizedString("library_add_book_title", comment: "Title for the Add book alert"), message: nil, preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: NSLocalizedString("library_add_book_from_device_button", comment: "`Add a book from your device` button"), style: .default, handler: { _ in self.addBookFromDevice() }))
-        alert.addAction(UIAlertAction(title: NSLocalizedString("library_add_book_from_url_button", comment: "`Add a book from a URL` button"), style: .default, handler: { _ in self.addBookFromURL() }))
-        alert.addAction(UIAlertAction(title: NSLocalizedString("cancel_button", comment: "Cancel adding a book from a URL"), style: .cancel))
-        alert.popoverPresentationController?.barButtonItem = addBookButton
-        present(alert, animated: true)
-    }
-    
-    private func addBookFromDevice() {
+    @objc func addBookFromDevice() {
         var types = DocumentTypes.main.supportedUTTypes
         if let type = UTType(String(kUTTypeText)) {
             types.append(type)
@@ -159,61 +147,6 @@ class LibraryViewController: UIViewController, Loggable {
         documentPicker.delegate = self
         present(documentPicker, animated: true, completion: nil)
     }
-    
-    private func addBookFromURL(url: String? = nil, message: String? = nil) {
-        let alert = UIAlertController(
-            title: NSLocalizedString("library_add_book_from_url_title", comment: "Title for the `Add book from URL` alert"),
-            message: message,
-            preferredStyle: .alert
-        )
-        
-        func retry(message: String? = nil) {
-            addBookFromURL(url: alert.textFields?[0].text, message: message)
-        }
-        
-        func add(_ action: UIAlertAction) {
-            let optionalURLString = alert.textFields?[0].text
-            guard let urlString = optionalURLString,
-                let url = URL(string: urlString) else
-            {
-                retry(message: NSLocalizedString("library_add_book_from_url_failure_message", comment: "Error message when trying to add a book from a URL"))
-                return
-            }
-            
-            func tryAdd(from url: URL) {
-                library.importPublication(from: url, sender: self)
-                    .receive(on: DispatchQueue.main)
-                    .sink { completion in
-                        if case .failure(let error) = completion {
-                            retry(message: error.localizedDescription)
-                        }
-                    } receiveValue: { _ in }
-                    .store(in: &subscriptions)
-            }
-
-            let hideActivity = toastActivity(on: view)
-            OPDSParser.parseURL(url: url) { data, _ in
-                DispatchQueue.main.async {
-                    hideActivity()
-
-                    if let downloadLink = data?.publication?.downloadLinks.first, let downloadURL = URL(string: downloadLink.href) {
-                        tryAdd(from: downloadURL)
-                    } else {
-                        tryAdd(from: url)
-                    }
-                }
-            }
-        }
-        
-        alert.addTextField { textField in
-            textField.placeholder = NSLocalizedString("library_add_book_from_url_placeholder", comment: "Placeholder for the URL field in the `Add book from URL` alert")
-            textField.text = url
-        }
-        alert.addAction(UIAlertAction(title: NSLocalizedString("add_button", comment: "Add a book from a URL button"), style: .default, handler: add))
-        alert.addAction(UIAlertAction(title: NSLocalizedString("cancel_button", comment: "Cancel adding a boom from a URL button"), style: .cancel))
-        present(alert, animated: true, completion: nil)
-    }
-    
 }
 
 extension LibraryViewController {
@@ -242,14 +175,13 @@ extension LibraryViewController: UIDocumentPickerDelegate {
     }
     
     private func importFiles(at urls: [URL]) {
-        library.importPublications(from: urls, sender: self)
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                if case .failure(let error) = completion {
-                    self.libraryDelegate?.presentError(error, from: self)
-                }
-            } receiveValue: { _ in }
-            .store(in: &subscriptions)
+        Task {
+            do {
+                try await library.importPublications(from: urls, sender: self)
+            } catch {
+                libraryDelegate?.presentError(error, from: self)
+            }
+        }
     }
     
 }
@@ -318,30 +250,28 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard let libraryDelegate = libraryDelegate else {
-            return
-        }
-        guard let cell = collectionView.cellForItem(at: indexPath) else {return}
-        cell.contentView.addSubview(self.loadingIndicator)
-        collectionView.isUserInteractionEnabled = false
-        
-        func done() {
-            self.loadingIndicator.removeFromSuperview()
+        Task {
+            guard
+                let libraryDelegate = libraryDelegate,
+                let cell = collectionView.cellForItem(at: indexPath)
+            else {
+                return
+            }
+            cell.contentView.addSubview(self.loadingIndicator)
+            collectionView.isUserInteractionEnabled = false
+            
+            let book = books[indexPath.item]
+
+            do {
+                let pub = try await library.openBook(book, sender: self)
+                libraryDelegate.libraryDidSelectPublication(pub, book: book)
+            } catch {
+                libraryDelegate.presentError(error, from: self)
+            }
+
+            loadingIndicator.removeFromSuperview()
             collectionView.isUserInteractionEnabled = true
         }
-        
-        let book = books[indexPath.item]
-        library.openBook(book, forPresentation: true, sender: self)
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                if case .failure(let error) = completion {
-                    self.libraryDelegate?.presentError(error, from: self)
-                }
-                done()
-            } receiveValue: { pub in
-                libraryDelegate.libraryDidSelectPublication(pub, book: book, completion: done)
-            }
-            .store(in: &subscriptions)
     }
 }
 
@@ -356,13 +286,13 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
             preferredStyle: .alert
         )
         let removeAction = UIAlertAction(title: NSLocalizedString("remove_button", comment: "Button to confirm the deletion of a publication"), style: .destructive, handler: { alert in
-            self.library.remove(book)
-                .sink { completion in
-                    if case .failure(let error) = completion {
-                        self.libraryDelegate?.presentError(error, from: self)
-                    }
-                } receiveValue: {}
-                .store(in: &self.subscriptions)
+            Task {
+                do {
+                    try await self.library.remove(book)
+                } catch {
+                    self.libraryDelegate?.presentError(error, from: self)
+                }
+            }
         })
         let cancelAction = UIAlertAction(title: NSLocalizedString("cancel_button", comment: "Button to cancel the deletion of a publication"), style: .cancel)
         
@@ -374,18 +304,16 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
     func displayInformation(forCellAt indexPath: IndexPath) {
         let book = books[indexPath.row]
         
-        library.openBook(book, forPresentation: true, sender: self)
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                if case .failure(let error) = completion {
-                    self.libraryDelegate?.presentError(error, from: self)
-                }
-            } receiveValue: { pub in
+        Task {
+            do {
+                let pub = try await library.openBook(book, sender: self)
                 let detailsViewController = self.factory.make(publication: pub)
                 detailsViewController.modalPresentationStyle = .popover
                 self.navigationController?.pushViewController(detailsViewController, animated: true)
+            } catch {
+                libraryDelegate?.presentError(error, from: self)
             }
-            .store(in: &subscriptions)
+        }
     }
     
     // Used to reset ui of the last flipped cell, we must not have two cells
@@ -398,14 +326,14 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
 
 extension LibraryViewController: LibraryServiceDelegate {
     
-    func confirmImportingDuplicatePublication(withTitle title: String) -> AnyPublisher<Bool, Never> {
-        Future(on: .main) { promise in
+    func confirmImportingDuplicatePublication(withTitle title: String) async -> Bool {
+        await withCheckedContinuation { cont in
             let confirmAction = UIAlertAction(title: NSLocalizedString("add_button", comment: "Confirmation button to import a duplicated publication"), style: .default) { _ in
-                promise(.success(true))
+                cont.resume(returning: true)
             }
             
             let cancelAction = UIAlertAction(title: NSLocalizedString("cancel_button", comment: "Cancel the confirmation alert"), style: .cancel) { _ in
-                promise(.success(false))
+                cont.resume(returning: false)
             }
     
             let alert = UIAlertController(
@@ -417,7 +345,7 @@ extension LibraryViewController: LibraryServiceDelegate {
             alert.addAction(cancelAction)
             
             self.present(alert, animated: true)
-        }.eraseToAnyPublisher()
+        }
     }
     
 }

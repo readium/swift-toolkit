@@ -34,33 +34,14 @@ class DRMManagementTableViewController: UITableViewController {
     @IBOutlet weak var returnButton: UIButton!
     
     public var viewModel: DRMViewModel!
-    public var appearance: UserProperty?
     
     weak var moduleDelegate: ReaderModuleDelegate?
     
     override func viewWillAppear(_ animated: Bool) {
         title = NSLocalizedString("reader_drm_management_title", comment: "Title of the DRM management view")
         reload()
-        self.navigationController?.navigationBar.barTintColor = UIColor.white
-        self.navigationController?.navigationBar.tintColor = UIColor.black
-        self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.black]
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
-        if let appearance = appearance{
-            setUIColor(for: appearance)
-        }
-        super.viewWillDisappear(animated)
-    }
-    
-    internal func setUIColor(for appearance: UserProperty) {
-        let colors = AssociatedColors.getColors(for: appearance)
-        
-        navigationController?.navigationBar.barTintColor = colors.mainColor
-        navigationController?.navigationBar.tintColor = colors.textColor
-        navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: colors.textColor]
-    }
-      
     @IBAction func renewTapped() {
         let alert = UIAlertController(
             title: NSLocalizedString("reader_drm_renew_title", comment: "Title of the renew confirmation alert"),

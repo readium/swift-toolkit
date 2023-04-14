@@ -46,9 +46,9 @@ struct EPUBSpread: Loggable {
     /// Links for the resources in the spread, from left to right.
     var linksLTR: [Link] {
         switch readingProgression {
-        case .ltr, .ttb, .auto:
+        case .ltr:
             return links
-        case .rtl, .btt:
+        case .rtl:
             return links.reversed()
         }
     }
@@ -127,22 +127,23 @@ struct EPUBSpread: Loggable {
     ///
     /// - Parameters:
     ///   - publication: The publication to paginate.
-    ///   - userSettings: The host app user settings, to determine the user preference regarding spreads.
     ///   - isLandscape: Whether the navigator viewport is in landscape or portrait.
-    static func pageCountPerSpread(for publication: Publication, userSettings: UserSettings, isLandscape: Bool) -> PageCount {
-        var setting = spreadSetting(in: userSettings)
-        if setting == .auto, let publicationSetting = publication.metadata.presentation.spread {
-            setting = publicationSetting
-        }
-        
-        switch setting {
-        case .none:
+    static func pageCountPerSpread(for publication: Publication, spread: Spread, isLandscape: Bool) -> PageCount {
+        switch spread {
+        case .never:
             return .one
-        case .both:
+        case .always:
             return .two
-        // FIXME: We consider that .auto means a 2p spread in landscape, and 1p in portrait. But this default should probably be customizable by the host app.
-        case .auto, .landscape:
-            return isLandscape ? .two : .one
+        case .auto:
+            switch publication.metadata.presentation.spread ?? .auto {
+            case .both:
+                return .two
+            case .none:
+                return .one
+            // FIXME: We consider that .auto means a 2p spread in landscape, and 1p in portrait. But this default should probably be customizable by the host app.
+            case .auto, .landscape:
+                return isLandscape ? .two : .one
+            }
         }
     }
     
