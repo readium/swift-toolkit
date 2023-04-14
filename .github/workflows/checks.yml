@@ -56,6 +56,8 @@ jobs:
         run: |
             make scripts
             git diff --exit-code --name-only Sources/Navigator/EPUB/Assets/Static/scripts/*.js
+      - name: Lint Swift formatting
+        run: make lint-format
 
   int-dev:
     name: Integration (Local)
