@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -16,7 +16,6 @@ import Foundation
 /// consecutively – e.g. when downloading the resource by chunks. The buffer is ignored when reading backward or far
 /// ahead.
 public final class BufferedResource: ProxyResource {
-
     public init(resource: Resource, bufferSize: UInt64 = 8192) {
         assert(bufferSize > 0)
         self.bufferSize = bufferSize
@@ -31,7 +30,7 @@ public final class BufferedResource: ProxyResource {
 
     private lazy var cachedLength: ResourceResult<UInt64> = resource.length
 
-    public override func read(range: Range<UInt64>?) -> ResourceResult<Data> {
+    override public func read(range: Range<UInt64>?) -> ResourceResult<Data> {
         // Reading the whole resource bypasses buffering to keep things simple.
         guard
             var requestedRange = range,
@@ -40,14 +39,14 @@ public final class BufferedResource: ProxyResource {
             return super.read(range: range)
         }
 
-        requestedRange = requestedRange.clamped(to: 0..<length)
+        requestedRange = requestedRange.clamped(to: 0 ..< length)
         guard !requestedRange.isEmpty else {
             return .success(Data())
         }
 
         // Round up the range to be read to the next `bufferSize`, because we will buffer the excess.
         let readUpperBound = min(requestedRange.upperBound.ceilMultiple(of: bufferSize), length)
-        var readRange: Range<UInt64> = requestedRange.lowerBound..<readUpperBound
+        var readRange: Range<UInt64> = requestedRange.lowerBound ..< readUpperBound
 
         // Attempt to serve parts or all of the request using the buffer.
         if let buffer = buffer {
@@ -56,11 +55,11 @@ public final class BufferedResource: ProxyResource {
                 let data = extractRange(requestedRange, in: buffer.data, startingAt: buffer.range.lowerBound)
                 return .success(data)
 
-            // Beginning of requested data is buffered?
+                // Beginning of requested data is buffered?
             } else if buffer.range.contains(requestedRange.lowerBound) {
                 var data = buffer.data
                 let bufferStart = buffer.range.lowerBound
-                readRange = buffer.range.upperBound..<readRange.upperBound
+                readRange = buffer.range.upperBound ..< readRange.upperBound
 
                 return super.read(range: readRange).map { readData in
                     data += readData
@@ -75,7 +74,7 @@ public final class BufferedResource: ProxyResource {
         // Fallback on reading the requested range from the original resource.
         return super.read(range: readRange).map { data in
             saveBuffer(from: data, range: readRange)
-            return data[0..<requestedRange.count]
+            return data[0 ..< requestedRange.count]
         }
     }
 
@@ -88,7 +87,7 @@ public final class BufferedResource: ProxyResource {
         let lastChunk = Data(data.suffix(Int(bufferSize)))
         buffer = (
             data: lastChunk,
-            range: (range.upperBound - UInt64(lastChunk.count))..<range.upperBound
+            range: (range.upperBound - UInt64(lastChunk.count)) ..< range.upperBound
         )
     }
 
@@ -99,16 +98,13 @@ public final class BufferedResource: ProxyResource {
         let upper = lower + (requestedRange.upperBound - requestedRange.lowerBound)
         assert(lower >= 0)
         assert(upper <= data.count)
-        return data[lower..<upper]
+        return data[lower ..< upper]
     }
-
 }
 
-extension Resource {
-
+public extension Resource {
     /// Wraps this resource in a `BufferedResource` to improve reading performances.
-    public func buffered(size: UInt64 = 8192) -> BufferedResource {
-        return BufferedResource(resource: self, bufferSize: size)
+    func buffered(size: UInt64 = 8192) -> BufferedResource {
+        BufferedResource(resource: self, bufferSize: size)
     }
-
 }

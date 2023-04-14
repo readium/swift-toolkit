@@ -1,14 +1,13 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 class AccessibilityTests: XCTestCase {
-
     func testParseMinimalJSON() {
         XCTAssertEqual(
             try? Accessibility(json: [:]),
@@ -27,18 +26,18 @@ class AccessibilityTests: XCTestCase {
                 "certification": [
                     "certifiedBy": "company1",
                     "credential": "credential1",
-                    "report": "https://report1"
+                    "report": "https://report1",
                 ],
                 "summary": "Summary",
                 "accessMode": ["auditory", "chartOnVisual"],
                 "accessModeSufficient": [["visual", "tactile"]],
                 "feature": ["readingOrder", "alternativeText"],
-                "hazard": ["flashing", "motionSimulation"]
+                "hazard": ["flashing", "motionSimulation"],
             ]),
             Accessibility(
                 conformsTo: [
                     Accessibility.Profile("https://profile1"),
-                    Accessibility.Profile("https://profile2")
+                    Accessibility.Profile("https://profile2"),
                 ],
                 certification: Accessibility.Certification(
                     certifiedBy: "company1",
@@ -176,7 +175,7 @@ class AccessibilityTests: XCTestCase {
         let expected = Accessibility(
             conformsTo: [
                 .epubA11y10WCAG20A,
-                Accessibility.Profile("https://profile2")
+                Accessibility.Profile("https://profile2"),
             ],
             certification: Accessibility.Certification(
                 certifiedBy: "company1",
@@ -196,13 +195,13 @@ class AccessibilityTests: XCTestCase {
                 "certification": [
                     "certifiedBy": "company1",
                     "credential": "credential1",
-                    "report": "https://report1"
+                    "report": "https://report1",
                 ],
                 "summary": "Summary",
                 "accessMode": ["auditory", "chartOnVisual"],
                 "accessModeSufficient": [["auditory"], ["visual", "tactile"], ["visual"]],
                 "feature": ["readingOrder", "alternativeText"],
-                "hazard": ["flashing", "motionSimulation"]
+                "hazard": ["flashing", "motionSimulation"],
             ]
         )
     }

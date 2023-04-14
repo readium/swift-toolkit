@@ -1,12 +1,7 @@
 //
-//  Signature.swift
-//  readium-lcp-swift
-//
-//  Created by Alexandre Camilleri on 9/11/17.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -22,15 +17,14 @@ public struct Signature {
 
     init(json: [String: Any]) throws {
         guard let algorithm = json["algorithm"] as? String,
-            let certificate = json["certificate"] as? String,
-            let value = json["value"] as? String else
-        {
+              let certificate = json["certificate"] as? String,
+              let value = json["value"] as? String
+        else {
             throw ParsingError.signature
         }
-        
+
         self.algorithm = algorithm
         self.certificate = certificate
         self.value = value
     }
-    
 }

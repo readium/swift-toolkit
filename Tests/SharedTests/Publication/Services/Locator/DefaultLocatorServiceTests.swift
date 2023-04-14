@@ -1,14 +1,13 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 class DefaultLocatorServiceTests: XCTestCase {
-
     // locate(Locator) checks that the href exists.
     func testFromLocator() {
         let service = makeService(readingOrder: [
@@ -53,13 +52,13 @@ class DefaultLocatorServiceTests: XCTestCase {
             title: "Chapter 3",
             locations: Locator.Locations(
                 progression: 0.0,
-                totalProgression: 2.0/8.0,
+                totalProgression: 2.0 / 8.0,
                 position: 3
             )
         ))
 
-        let chap5FirstTotalProg = 5.0/8.0
-        let chap4FirstTotalProg = 3.0/8.0
+        let chap5FirstTotalProg = 5.0 / 8.0
+        let chap4FirstTotalProg = 3.0 / 8.0
 
         XCTAssertEqual(service.locate(progression: 0.4), Locator(
             href: "chap4",
@@ -115,7 +114,7 @@ class DefaultLocatorServiceTests: XCTestCase {
 
     func testFromMinimalLink() {
         let service = makeService(readingOrder: [
-            Link(href: "/href", type: "text/html", title: "Resource")
+            Link(href: "/href", type: "text/html", title: "Resource"),
         ])
 
         XCTAssertEqual(
@@ -149,7 +148,7 @@ class DefaultLocatorServiceTests: XCTestCase {
 
     func testFromLinkWithFragment() {
         let service = makeService(readingOrder: [
-            Link(href: "/href", type: "text/html", title: "Resource")
+            Link(href: "/href", type: "text/html", title: "Resource"),
         ])
 
         XCTAssertEqual(
@@ -160,7 +159,7 @@ class DefaultLocatorServiceTests: XCTestCase {
 
     func testTitleFallbackFromLink() {
         let service = makeService(readingOrder: [
-            Link(href: "/href", type: "text/html")
+            Link(href: "/href", type: "text/html"),
         ])
 
         XCTAssertEqual(
@@ -171,7 +170,7 @@ class DefaultLocatorServiceTests: XCTestCase {
 
     func testFromLinkNotFound() {
         let service = makeService(readingOrder: [
-            Link(href: "/href", type: "text/html")
+            Link(href: "/href", type: "text/html"),
         ])
 
         XCTAssertNil(service.locate(Link(href: "notfound")))
@@ -207,7 +206,7 @@ private let positionsFixture: [[Locator]] = [
                 totalProgression: 0.0,
                 position: 1
             )
-        )
+        ),
     ],
     [
         Locator(
@@ -215,10 +214,10 @@ private let positionsFixture: [[Locator]] = [
             type: "application/xml",
             locations: Locator.Locations(
                 progression: 0.0,
-                totalProgression: 1.0/8.0,
+                totalProgression: 1.0 / 8.0,
                 position: 2
             )
-        )
+        ),
     ],
     [
         Locator(
@@ -227,10 +226,10 @@ private let positionsFixture: [[Locator]] = [
             title: "Chapter 3",
             locations: Locator.Locations(
                 progression: 0.0,
-                totalProgression: 2.0/8.0,
+                totalProgression: 2.0 / 8.0,
                 position: 3
             )
-        )
+        ),
     ],
     [
         Locator(
@@ -238,7 +237,7 @@ private let positionsFixture: [[Locator]] = [
             type: "text/html",
             locations: Locator.Locations(
                 progression: 0.0,
-                totalProgression: 3.0/8.0,
+                totalProgression: 3.0 / 8.0,
                 position: 4
             )
         ),
@@ -247,10 +246,10 @@ private let positionsFixture: [[Locator]] = [
             type: "text/html",
             locations: Locator.Locations(
                 progression: 0.5,
-                totalProgression: 4.0/8.0,
+                totalProgression: 4.0 / 8.0,
                 position: 5
             )
-        )
+        ),
     ],
     [
         Locator(
@@ -258,7 +257,7 @@ private let positionsFixture: [[Locator]] = [
             type: "text/html",
             locations: Locator.Locations(
                 progression: 0.0,
-                totalProgression: 5.0/8.0,
+                totalProgression: 5.0 / 8.0,
                 position: 6
             )
         ),
@@ -266,8 +265,8 @@ private let positionsFixture: [[Locator]] = [
             href: "chap5",
             type: "text/html",
             locations: Locator.Locations(
-                progression: 1.0/3.0,
-                totalProgression: 6.0/8.0,
+                progression: 1.0 / 3.0,
+                totalProgression: 6.0 / 8.0,
                 position: 7
             )
         ),
@@ -275,10 +274,10 @@ private let positionsFixture: [[Locator]] = [
             href: "chap5",
             type: "text/html",
             locations: Locator.Locations(
-                progression: 2.0/3.0,
-                totalProgression: 7.0/8.0,
+                progression: 2.0 / 3.0,
+                totalProgression: 7.0 / 8.0,
                 position: 8
             )
-        )
-    ]
+        ),
+    ],
 ]

@@ -1,12 +1,12 @@
 //
-//  Copyright 2019 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import UIKit
 import R2Shared
+import UIKit
 
 /// An `EditingAction` is an item in the text selection menu.
 ///
@@ -14,7 +14,6 @@ import R2Shared
 /// with `EditingAction(title: "Highlight", action: #selector(highlight:))`. Then, implement the selector in one of your
 /// classes in the responder chain. Typically, in the `UIViewController` wrapping the navigator view controller.
 public struct EditingAction: Hashable {
-
     /// Default editing actions enabled in the navigator.
     public static var defaultActions: [EditingAction] {
         [copy, share, define, lookup, translate]
@@ -63,9 +62,9 @@ public struct EditingAction: Hashable {
 
     var action: Selector {
         switch kind {
-        case .native(let action):
+        case let .native(action):
             return Selector(action)
-        case .custom(let item):
+        case let .custom(item):
             return item.action
         }
     }
@@ -74,7 +73,7 @@ public struct EditingAction: Hashable {
         switch kind {
         case .native:
             return nil
-        case .custom(let item):
+        case let .custom(item):
             return item
         }
     }
@@ -86,10 +85,8 @@ protocol EditingActionsControllerDelegate: AnyObject {
     func editingActions(_ editingActions: EditingActionsController, canPerformAction action: EditingAction, for selection: Selection) -> Bool
 }
 
-
 /// Handles the authorization and check of editing actions.
 final class EditingActionsController {
-
     weak var delegate: EditingActionsControllerDelegate?
 
     private let actions: [EditingAction]
@@ -128,7 +125,7 @@ final class EditingActionsController {
     func canPerformAction(_ action: EditingAction) -> Bool {
         canPerformAction(action.action)
     }
-    
+
     @available(iOS 13.0, *)
     func buildMenu(with builder: UIMenuBuilder) {
         // On iOS 16, there's a new "Search Web" menu item which is required
@@ -143,13 +140,12 @@ final class EditingActionsController {
         if isEnabled, let selection = selection {
             items = actions
                 .filter { delegate?.editingActions(self, canPerformAction: $0, for: selection) ?? true }
-                .compactMap { $0.menuItem }
+                .compactMap(\.menuItem)
         }
         UIMenuController.shared.menuItems = items
         UIMenuController.shared.update()
     }
 
-    
     // MARK: - Copy
 
     /// Returns whether the copy interaction is at all allowed. It doesn't guarantee that the next copy action will be valid, if the license cancels it.
@@ -166,13 +162,12 @@ final class EditingActionsController {
             delegate?.editingActionsDidPreventCopy(self)
             return
         }
-        
+
         UIPasteboard.general.string = text
     }
-    
-    
+
     // MARK: - Share
-    
+
     /// Builds a UIActivityViewController to share the authorized contents of the user selection.
     func makeShareViewController(from contentsView: UIView) -> UIActivityViewController? {
         // Peeks into the available selection contents authorized for copy.
@@ -189,7 +184,7 @@ final class EditingActionsController {
 
         let viewController = UIActivityViewController(activityItems: [text], applicationActivities: nil)
         viewController.completionWithItemsHandler = { _, completed, _, _ in
-            if (completed) {
+            if completed {
                 self.copy()
             }
         }
@@ -197,5 +192,4 @@ final class EditingActionsController {
         viewController.popoverPresentationController?.sourceRect = selection.frame ?? .zero
         return viewController
     }
-    
 }

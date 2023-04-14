@@ -1,33 +1,33 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import Foundation
-import SwiftUI
 import Combine
-import R2Shared
+import Foundation
 import R2Navigator
+import R2Shared
+import SwiftUI
 
 struct SearchBar: UIViewRepresentable {
     @Binding var text: String
-    
+
     class Coordinator: NSObject, UISearchBarDelegate {
         @Binding var text: String
         init(text: Binding<String>) {
             _text = text
         }
-        
+
         func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
             text = searchText
         }
     }
-    
+
     func makeCoordinator() -> SearchBar.Coordinator {
-        return Coordinator(text: $text)
+        Coordinator(text: $text)
     }
-    
+
     func makeUIView(context: UIViewRepresentableContext<SearchBar>) -> UISearchBar {
         let searchBar = UISearchBar(frame: .zero)
         searchBar.placeholder = "Search"
@@ -35,7 +35,7 @@ struct SearchBar: UIViewRepresentable {
         searchBar.searchBarStyle = .minimal
         return searchBar
     }
-    
+
     func updateUIView(_ uiView: UISearchBar, context: UIViewRepresentableContext<SearchBar>) {
         uiView.text = text
     }
@@ -44,9 +44,9 @@ struct SearchBar: UIViewRepresentable {
 struct SearchView: View {
     @ObservedObject var viewModel: SearchViewModel
     @State var viewVisible: Bool = false
-    
+
     var body: some View {
-        return VStack {
+        VStack {
             SearchBar(text: Binding(get: { viewModel.query }, set: { viewModel.search(with: $0) }))
             ScrollViewReader { proxy in
                 List(viewModel.results.indices, id: \.self) { index in
@@ -54,11 +54,11 @@ struct SearchView: View {
                     let text = locator.text.sanitized()
                     (
                         Text(text.before ?? "") +
-                        Text(text.highlight ?? "").foregroundColor(Color.orange) +
-                        Text(text.after ?? "")
+                            Text(text.highlight ?? "").foregroundColor(Color.orange) +
+                            Text(text.after ?? "")
                     )
                     .onAppear(perform: {
-                        if index == viewModel.results.count-1 {
+                        if index == viewModel.results.count - 1 {
                             viewModel.loadNextPage()
                         }
                     })
@@ -76,7 +76,7 @@ struct SearchView: View {
         .onAppear {
             viewVisible = true
         }
-        .onDisappear{
+        .onDisappear {
             viewVisible = false
         }
     }

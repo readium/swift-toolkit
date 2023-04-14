@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -16,7 +16,7 @@ struct CursorList<Element> {
         self.startIndex = startIndex
     }
 
-    private var index: Int? = nil
+    private var index: Int?
 
     /// Returns the current element.
     mutating func current() -> Element? {

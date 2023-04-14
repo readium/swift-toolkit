@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -7,10 +7,9 @@
 import Foundation
 
 /// Archive Link Properties Extension
-extension Properties {
-
+public extension Properties {
     /// Holds information about how the resource is stored in the publication archive.
-    public struct Archive: Equatable {
+    struct Archive: Equatable {
         /// The length of the entry stored in the archive. It might be a compressed length if the entry is deflated.
         public let entryLength: UInt64
         /// Indicates whether the entry was compressed before being stored in the archive.
@@ -30,8 +29,7 @@ extension Properties {
                 let length: UInt64 = (jsonObject["entryLength"] as? NSNumber)?.uint64Value,
                 length >= 0,
                 let isCompressed = jsonObject["isEntryCompressed"] as? Bool
-            else
-            {
+            else {
                 warnings?.log("`entryLength` and `isEntryCompressed` are required", model: Self.self, source: json)
                 throw JSONError.parsing(Self.self)
             }
@@ -43,15 +41,15 @@ extension Properties {
         }
 
         public var json: [String: Any] {
-            return [
+            [
                 "entryLength": entryLength as NSNumber,
-                "isEntryCompressed": isEntryCompressed
+                "isEntryCompressed": isEntryCompressed,
             ]
         }
     }
 
     /// Provides information about how the resource is stored in the publication archive.
-    public var archive: Archive? {
+    var archive: Archive? {
         try? Archive(json: otherProperties["archive"], warnings: self)
     }
 }

@@ -1,28 +1,23 @@
 //
-//  DataInputStream.swift
-//  r2-streamer-swift
-//
-//  Created by Alexandre Camilleri on 4/14/17.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 
 internal class DataInputStream: SeekableInputStream {
-
     let data: Data
 
-    // Mark - `Seekable` overrides.
+    // MARK: - `Seekable` overrides.
+
     override internal var length: UInt64 {
-        return UInt64(data.count)
+        UInt64(data.count)
     }
 
     private var _offset: UInt64
     override internal var offset: UInt64 {
-        return _offset
+        _offset
     }
 
     override internal func seek(offset: Int64, whence: SeekWhence) throws {
@@ -43,28 +38,22 @@ internal class DataInputStream: SeekableInputStream {
         super.init(data: data)
     }
 
-    // Mark - `InputStream` overrides
+    // MARK: - `InputStream` overrides
 
     /// The status of the fileHandle
     private var _streamStatus: Stream.Status = .notOpen
     override internal var streamStatus: Stream.Status {
-        get {
-            return _streamStatus
-        }
+        _streamStatus
     }
 
     /// to remove, useless.
     private var _streamError: Error?
     override internal var streamError: Error? {
-        get {
-            return _streamError
-        }
+        _streamError
     }
 
     override internal var hasBytesAvailable: Bool {
-        get {
-            return offset < length
-        }
+        offset < length
     }
 
     override internal func open() {
@@ -79,7 +68,7 @@ internal class DataInputStream: SeekableInputStream {
     override internal func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
                                      length len: UnsafeMutablePointer<Int>) -> Bool
     {
-        return false
+        false
     }
 
     override internal func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
@@ -97,5 +86,4 @@ internal class DataInputStream: SeekableInputStream {
         }
         return readSize
     }
-    
 }

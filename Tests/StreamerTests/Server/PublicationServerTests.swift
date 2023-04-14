@@ -1,28 +1,27 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 import R2Shared
 @testable import R2Streamer
+import XCTest
 
 class PublicationServerTests: XCTestCase, Loggable {
-    
     let fixtures = Fixtures()
     let streamer = Streamer()
     let publicationServer = PublicationServer()!
 
     private func testPublication(at url: URL) {
         let expect = expectation(description: "Publication tested")
-        
+
         streamer.open(asset: FileAsset(url: url), allowUserInteraction: false) { result in
-            guard case .success(let publication) = result else {
+            guard case let .success(publication) = result else {
                 XCTFail("Failed to parse \(url)")
                 return
             }
-    
+
             do {
                 let endpoint = UUID().uuidString
                 try self.publicationServer.add(publication, at: endpoint)
@@ -31,7 +30,7 @@ class PublicationServerTests: XCTestCase, Loggable {
                 XCTFail("Failed to verify \(url)")
             }
         }
-    
+
         waitForExpectations(timeout: 10, handler: nil)
     }
 
@@ -42,9 +41,9 @@ class PublicationServerTests: XCTestCase, Loggable {
         }
         publicationUrl = publicationUrl.appendingPathComponent(endPoint)
         publicationUrl = publicationUrl.appendingPathComponent("manifest.json")
-        
+
         // Define the request.
-        let task = URLSession.shared.dataTask(with: publicationUrl, completionHandler: { (data, response, error) in
+        let task = URLSession.shared.dataTask(with: publicationUrl, completionHandler: { data, _, error in
             guard error == nil else {
                 self.log(.error, error)
                 XCTFail()
@@ -62,5 +61,4 @@ class PublicationServerTests: XCTestCase, Loggable {
         // Fire the HTTP request...
         task.resume()
     }
-    
 }

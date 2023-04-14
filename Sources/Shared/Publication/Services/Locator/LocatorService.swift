@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -16,7 +16,6 @@ public typealias LocatorServiceFactory = (PublicationServiceContext) -> LocatorS
 ///   - Converting a `Locator` which was created from an alternate manifest with a different reading
 ///     order. For example, when downloading a streamed manifest or offloading a package.
 public protocol LocatorService: PublicationService {
-
     /// Locates the target of the given `locator`.
     func locate(_ locator: Locator) -> Locator?
 
@@ -33,11 +32,9 @@ public extension LocatorService {
     func locate(progression: Double) -> Locator? { nil }
 }
 
-
 // MARK: Publication Helpers
 
 public extension Publication {
-    
     /// Locates the target of the given `locator`.
     func locate(_ locator: Locator) -> Locator? {
         findService(LocatorService.self)?.locate(locator)
@@ -54,11 +51,9 @@ public extension Publication {
     }
 }
 
-
 // MARK: PublicationServicesBuilder Helpers
 
 public extension PublicationServicesBuilder {
-    
     mutating func setLocatorServiceFactory(_ factory: LocatorServiceFactory?) {
         if let factory = factory {
             set(LocatorService.self, factory)
@@ -66,5 +61,4 @@ public extension PublicationServicesBuilder {
             remove(LocatorService.self)
         }
     }
-
 }

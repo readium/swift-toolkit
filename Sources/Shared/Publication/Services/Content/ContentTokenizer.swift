@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -48,8 +48,8 @@ public func makeTextContentTokenizer(
 }
 
 private func extractTextContext(in string: String, for range: Range<String.Index>, contextSnippetLength: Int) -> Locator.Text {
-    let after = String(string[range.upperBound..<string.clampedIndex(range.upperBound, offsetBy: contextSnippetLength)])
-    let before = String(string[string.clampedIndex(range.lowerBound, offsetBy: -contextSnippetLength)..<range.lowerBound])
+    let after = String(string[range.upperBound ..< string.clampedIndex(range.upperBound, offsetBy: contextSnippetLength)])
+    let before = String(string[string.clampedIndex(range.lowerBound, offsetBy: -contextSnippetLength) ..< range.lowerBound])
     return Locator.Text(
         after: Optional(after).takeIf { !$0.isEmpty },
         before: Optional(before).takeIf { !$0.isEmpty },

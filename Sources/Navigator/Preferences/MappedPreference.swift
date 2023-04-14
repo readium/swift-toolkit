@@ -7,7 +7,6 @@
 import Foundation
 
 public extension Preference {
-
     /// Creates a new `Preference` object wrapping the receiver and converting
     /// its value `from` and `to` the target type `V`.
     func map<NewValue>(
@@ -19,7 +18,6 @@ public extension Preference {
 }
 
 public extension Preference where Value: Hashable {
-
     /// Creates a new `EnumPreference` object wrapping the receiver with the
     /// provided `supportedValues`.
     func with(supportedValues: Value...) -> PreferenceWithSupportedValues<Value> {
@@ -34,7 +32,6 @@ public extension Preference where Value: Hashable {
 }
 
 public extension EnumPreference {
-
     /// Creates a new `EnumPreference` object wrapping the receiver and
     /// converting its value and `supportedValues`, `from` and `to` the target
     /// type `V`.
@@ -71,7 +68,6 @@ public extension EnumPreference {
 }
 
 public extension RangePreference {
-
     /// Creates a new `RangePreference` object wrapping the receiver and
     /// converting its value and `supportedRange`, `from` and `to` the target
     /// type `Value`.
@@ -91,13 +87,13 @@ public extension RangePreference {
             from: from,
             to: to,
             transformSupportedRange: supportedRange
-                ?? { from($0.lowerBound)...from($0.upperBound) },
+                ?? { from($0.lowerBound) ... from($0.upperBound) },
             valueFormatter: formatValue,
             incrementer: increment,
             decrementer: decrement
         )
     }
-    
+
     /// Creates a new `RangePreference` object wrapping the receiver and
     /// transforming its `supportedRange`, or overwriting its `formatValue` or
     /// `increment` and `decrement` strategy.
@@ -171,8 +167,8 @@ public class PreferenceWithSupportedValues<Value: Hashable>: MappedPreference<Va
     }
 }
 
-public class MappedEnumPreference<OldValue: Hashable, NewValue: Hashable>
-    : MappedPreference<OldValue, NewValue>, EnumPreference
+public class MappedEnumPreference<OldValue: Hashable, NewValue: Hashable>:
+    MappedPreference<OldValue, NewValue>, EnumPreference
 {
     let originalEnum: AnyEnumPreference<OldValue>
     private let transformSupportedValues: ([OldValue]) -> [NewValue]
@@ -183,7 +179,7 @@ public class MappedEnumPreference<OldValue: Hashable, NewValue: Hashable>
         to: @escaping (NewValue) -> OldValue,
         transformSupportedValues: @escaping ([OldValue]) -> [NewValue]
     ) {
-        self.originalEnum = original
+        originalEnum = original
         self.transformSupportedValues = transformSupportedValues
 
         super.init(original: original, from: from, to: to)
@@ -193,14 +189,14 @@ public class MappedEnumPreference<OldValue: Hashable, NewValue: Hashable>
         transformSupportedValues(originalEnum.supportedValues)
     }
 
-    public override func set(_ value: NewValue?) {
+    override public func set(_ value: NewValue?) {
         precondition(value == nil || supportedValues.contains(value!))
         super.set(value)
     }
 }
 
-public class MappedRangePreference<OldValue: Comparable, NewValue: Comparable>
-    : MappedPreference<OldValue, NewValue>, RangePreference
+public class MappedRangePreference<OldValue: Comparable, NewValue: Comparable>:
+    MappedPreference<OldValue, NewValue>, RangePreference
 {
     let originalRange: AnyRangePreference<OldValue>
     private let transformSupportedRange: (ClosedRange<OldValue>) -> ClosedRange<Value>
@@ -217,7 +213,7 @@ public class MappedRangePreference<OldValue: Comparable, NewValue: Comparable>
         incrementer: ((AnyRangePreference<NewValue>) -> Void)?,
         decrementer: ((AnyRangePreference<NewValue>) -> Void)?
     ) {
-        self.originalRange = original
+        originalRange = original
         self.transformSupportedRange = transformSupportedRange
         self.valueFormatter = valueFormatter
         self.incrementer = incrementer
@@ -229,7 +225,7 @@ public class MappedRangePreference<OldValue: Comparable, NewValue: Comparable>
         transformSupportedRange(originalRange.supportedRange)
     }
 
-    public override func set(_ value: NewValue?) {
+    override public func set(_ value: NewValue?) {
         super.set(value?.clamped(to: supportedRange))
     }
 

@@ -9,9 +9,8 @@ import R2Shared
 
 /// Preferences for the `PDFNavigatorViewController`.
 public struct PDFPreferences: ConfigurablePreferences {
+    public static let empty: PDFPreferences = .init()
 
-    public static let empty: PDFPreferences = PDFPreferences()
-    
     /// Background color behind the document pages.
     public var backgroundColor: Color?
 

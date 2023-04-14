@@ -1,30 +1,24 @@
 //
-//  URITemplateTests.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 05/06/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 class URITemplateTests: XCTestCase {
-
     func testParameters() {
         XCTAssertEqual(
             URITemplate("/url{?x,hello,y}name{z,y,w}").parameters,
             ["x", "hello", "y", "z", "w"]
         )
     }
-    
+
     func testParametersWithNoVariables() {
         XCTAssertEqual(URITemplate("/url").parameters, [])
     }
-    
+
     func testExpandSimpleStringTemplates() {
         XCTAssertEqual(
             URITemplate("/url{x,hello,y}name{z,y,w}").expand(with: [
@@ -32,33 +26,33 @@ class URITemplateTests: XCTestCase {
                 "hello": "Hello, world",
                 "y": "b",
                 "z": "45",
-                "w": "w"
+                "w": "w",
             ]),
             "/urlaaa,Hello,%20world,bname45,b,w"
         )
     }
-    
+
     func testExpandFormStyleAmpersandSeparatedTemplates() {
         XCTAssertEqual(
             URITemplate("/url{?x,hello,y}name").expand(with: [
                 "x": "aaa",
                 "hello": "Hello, world",
-                "y": "b"
+                "y": "b",
             ]),
             "/url?x=aaa&hello=Hello,%20world&y=bname"
         )
     }
-    
+
     func testExpandIgnoresExtraParameters() {
         XCTAssertEqual(
             URITemplate("/path{?search}").expand(with: [
                 "search": "banana",
-                "code": "14"
+                "code": "14",
             ]),
             "/path?search=banana"
         )
     }
-    
+
     func testExpandWithNoVariables() {
         XCTAssertEqual(
             URITemplate("/path").expand(with: [
@@ -67,5 +61,4 @@ class URITemplateTests: XCTestCase {
             "/path"
         )
     }
-
 }

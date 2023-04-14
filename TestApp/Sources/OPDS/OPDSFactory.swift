@@ -1,29 +1,20 @@
 //
-//  OPDSFactory.swift
-//  r2-testapp-swift
-//
-//  Created by Mickaël Menu on 22.02.19.
-//
-//  Copyright 2019 European Digital Reading Lab. All rights reserved.
-//  Licensed to the Readium Foundation under one or more contributor license agreements.
-//  Use of this source code is governed by a BSD-style license which is detailed in the
-//  LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import UIKit
 import R2Shared
+import UIKit
 
 final class OPDSFactory {
-    
     /// To simplify the refactoring of dependencies, the factory is a singleton for now.
     static let shared = OPDSFactory()
-    
-    weak var delegate: OPDSModuleDelegate?
-    fileprivate let storyboard = UIStoryboard(name: "OPDS", bundle: nil)
-    
-}
 
+    weak var delegate: OPDSModuleDelegate?
+    private let storyboard = UIStoryboard(name: "OPDS", bundle: nil)
+}
 
 extension OPDSFactory: OPDSCatalogSelectorViewControllerFactory {
     func make() -> OPDSCatalogSelectorViewController {
@@ -31,7 +22,6 @@ extension OPDSFactory: OPDSCatalogSelectorViewControllerFactory {
         return controller
     }
 }
-
 
 extension OPDSFactory: OPDSRootTableViewControllerFactory {
     func make(feedURL: URL, indexPath: IndexPath?) -> OPDSRootTableViewController {
@@ -43,7 +33,6 @@ extension OPDSFactory: OPDSRootTableViewControllerFactory {
     }
 }
 
-
 extension OPDSFactory: OPDSPublicationInfoViewControllerFactory {
     func make(publication: Publication) -> OPDSPublicationInfoViewController {
         let controller = storyboard.instantiateViewController(withIdentifier: "OPDSPublicationInfoViewController") as! OPDSPublicationInfoViewController
@@ -52,7 +41,6 @@ extension OPDSFactory: OPDSPublicationInfoViewControllerFactory {
         return controller
     }
 }
-
 
 extension OPDSFactory: OPDSFacetViewControllerFactory {
     func make(feed: Feed) -> OPDSFacetViewController {

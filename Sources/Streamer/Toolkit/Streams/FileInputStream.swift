@@ -1,12 +1,7 @@
 //
-//  SeekableFileInputStream.swift
-//  r2-streamer-swift
-//
-//  Created by Olivier Körner on 15/01/2017.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -26,7 +21,6 @@ public enum FileInputStreamError: Error {
 extension FileInputStream: Loggable {}
 
 internal class FileInputStream: SeekableInputStream {
-
     /// The path to the file opened by the stream
     private var filePath: String
 
@@ -36,39 +30,29 @@ internal class FileInputStream: SeekableInputStream {
     ///
     private var _streamError: Error?
     override internal var streamError: Error? {
-        get {
-            return _streamError
-        }
+        _streamError
     }
 
     /// The status of the fileHandle
     private var _streamStatus: Stream.Status = .notOpen
     override internal var streamStatus: Stream.Status {
-        get {
-            return _streamStatus
-        }
+        _streamStatus
     }
 
     /// The size attribute of the file at `filePath`
     private var _length: UInt64
     override internal var length: UInt64 {
-        get {
-            return _length
-        }
+        _length
     }
 
     /// Current position in the stream.
     override internal var offset: UInt64 {
-        get {
-            return fileHandle?.offsetInFile ?? 0
-        }
+        fileHandle?.offsetInFile ?? 0
     }
 
     /// True when the current offset is not arrived the the end of the stream.
     override internal var hasBytesAvailable: Bool {
-        get {
-            return offset < _length
-        }
+        offset < _length
     }
 
     // MARK: - Public methods.
@@ -83,7 +67,7 @@ internal class FileInputStream: SeekableInputStream {
         }
         filePath = fileAtPath
         // Try to retrieve attributes of `fileAtPath`
-        let attributes: [FileAttributeKey : Any]
+        let attributes: [FileAttributeKey: Any]
         do {
             attributes = try FileManager.default.attributesOfItem(atPath: filePath)
         } catch {
@@ -118,10 +102,10 @@ internal class FileInputStream: SeekableInputStream {
 
     // TODO: to implement or delete ?
     override internal func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
-                                     length len: UnsafeMutablePointer<Int>) -> Bool {
-        return false
+                                     length len: UnsafeMutablePointer<Int>) -> Bool
+    {
+        false
     }
-
 
     // FIXME: Shouldn't we have smaller read in a loop?
     /// Read up to `maxLength` bytes from `fileHandle` and write them into `buffer`.

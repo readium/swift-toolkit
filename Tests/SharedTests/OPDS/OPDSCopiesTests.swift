@@ -1,55 +1,49 @@
 //
-//  OPDSCopiesTests.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 24/02/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 class OPDSCopiesTests: XCTestCase {
-
     func testParseMinimalJSON() {
         XCTAssertEqual(
             try? OPDSCopies(json: [:]),
             OPDSCopies(total: nil, available: nil)
         )
     }
-    
+
     func testParseFullJSON() {
         XCTAssertEqual(
             try? OPDSCopies(json: [
                 "total": 5,
-                "available": 6
+                "available": 6,
             ]),
             OPDSCopies(total: 5, available: 6)
         )
     }
-    
+
     func testParseInvalidJSON() {
         XCTAssertThrowsError(try OPDSCopies(json: ""))
     }
-    
+
     func testParseRequiresPositiveTotal() {
         XCTAssertEqual(
             try? OPDSCopies(json: [
                 "total": -5,
-                "available": 6
+                "available": 6,
             ]),
             OPDSCopies(total: nil, available: 6)
         )
     }
-    
+
     func testParseRequiresPositivePosition() {
         XCTAssertEqual(
             try? OPDSCopies(json: [
                 "total": 5,
-                "available": -6
+                "available": -6,
             ]),
             OPDSCopies(total: 5, available: nil)
         )
@@ -61,15 +55,14 @@ class OPDSCopiesTests: XCTestCase {
             [:]
         )
     }
-    
+
     func testGetFullJSON() {
         AssertJSONEqual(
             OPDSCopies(total: 5, available: 6).json,
             [
                 "total": 5,
-                "available": 6
+                "available": 6,
             ]
         )
     }
-
 }

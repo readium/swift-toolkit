@@ -1,37 +1,31 @@
 //
-//  DOMRangeTests.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël on 25/02/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 class DOMRangeTests: XCTestCase {
-
     func testParseMinimalDOMRangeJSON() {
         XCTAssertEqual(
             try? DOMRange(json: ["start": ["cssSelector": "p", "textNodeIndex": 4]]),
             DOMRange(start: .init(cssSelector: "p", textNodeIndex: 4))
         )
     }
-    
+
     func testParseFullDOMRangeJSON() {
         XCTAssertEqual(
             try? DOMRange(json: [
                 "start": [
                     "cssSelector": "p",
-                    "textNodeIndex": 4
+                    "textNodeIndex": 4,
                 ],
                 "end": [
                     "cssSelector": "a",
-                    "textNodeIndex": 2
-                ]
+                    "textNodeIndex": 2,
+                ],
             ]),
             DOMRange(
                 start: .init(cssSelector: "p", textNodeIndex: 4),
@@ -43,7 +37,7 @@ class DOMRangeTests: XCTestCase {
     func testParseDOMRangeJSONRequiresStart() {
         XCTAssertThrowsError(try DOMRange(json: ["end": ["cssSelector": "p", "textNodeIndex": 4]]))
     }
-    
+
     func testParseDOMRangeAllowsNil() {
         XCTAssertNil(try DOMRange(json: nil))
     }
@@ -54,7 +48,7 @@ class DOMRangeTests: XCTestCase {
             ["start": ["cssSelector": "p", "textNodeIndex": 4]]
         )
     }
-    
+
     func testGetFullDOMRangeJSON() {
         AssertJSONEqual(
             DOMRange(
@@ -64,12 +58,12 @@ class DOMRangeTests: XCTestCase {
             [
                 "start": [
                     "cssSelector": "p",
-                    "textNodeIndex": 4
+                    "textNodeIndex": 4,
                 ],
                 "end": [
                     "cssSelector": "a",
-                    "textNodeIndex": 2
-                ]
+                    "textNodeIndex": 2,
+                ],
             ]
         )
     }
@@ -78,18 +72,18 @@ class DOMRangeTests: XCTestCase {
         XCTAssertEqual(
             try? DOMRange.Point(json: [
                 "cssSelector": "p",
-                "textNodeIndex": 4
+                "textNodeIndex": 4,
             ]),
             DOMRange.Point(cssSelector: "p", textNodeIndex: 4)
         )
     }
-    
+
     func testParseFullPointJSON() {
         XCTAssertEqual(
             try? DOMRange.Point(json: [
                 "cssSelector": "p",
                 "textNodeIndex": 4,
-                "charOffset": 32
+                "charOffset": 32,
             ]),
             DOMRange.Point(cssSelector: "p", textNodeIndex: 4, charOffset: 32)
         )
@@ -100,7 +94,7 @@ class DOMRangeTests: XCTestCase {
             try? DOMRange.Point(json: [
                 "cssSelector": "p",
                 "textNodeIndex": 4,
-                "offset": 32
+                "offset": 32,
             ]),
             DOMRange.Point(cssSelector: "p", textNodeIndex: 4, charOffset: 32)
         )
@@ -109,46 +103,46 @@ class DOMRangeTests: XCTestCase {
     func testParseInvalidPointJSON() {
         XCTAssertThrowsError(try DOMRange.Point(json: ""))
     }
-    
+
     func testParsePointJSONRequiresCSSSelector() {
         XCTAssertThrowsError(try DOMRange.Point(json: [
-            "textNodeIndex": 4
+            "textNodeIndex": 4,
         ]))
     }
-    
+
     func testParsePointJSONRequiresTextNodeIndex() {
         XCTAssertThrowsError(try DOMRange.Point(json: [
-            "cssSelector": "p"
+            "cssSelector": "p",
         ]))
     }
-    
+
     func testParsePointJSONRequiresPositiveTextNodeIndex() {
         XCTAssertEqual(
             try? DOMRange.Point(json: [
                 "cssSelector": "p",
-                "textNodeIndex": 1
+                "textNodeIndex": 1,
             ]),
             DOMRange.Point(cssSelector: "p", textNodeIndex: 1)
         )
         XCTAssertEqual(
             try? DOMRange.Point(json: [
                 "cssSelector": "p",
-                "textNodeIndex": 0
+                "textNodeIndex": 0,
             ]),
             DOMRange.Point(cssSelector: "p", textNodeIndex: 0)
         )
         XCTAssertNil(try? DOMRange.Point(json: [
             "cssSelector": "p",
-            "textNodeIndex": -1
+            "textNodeIndex": -1,
         ]))
     }
-    
+
     func testParsePointJSONRequiresPositiveCharOffset() {
         XCTAssertEqual(
             try? DOMRange.Point(json: [
                 "cssSelector": "p",
                 "textNodeIndex": 1,
-                "charOffset": 1
+                "charOffset": 1,
             ]),
             DOMRange.Point(cssSelector: "p", textNodeIndex: 1, charOffset: 1)
         )
@@ -156,7 +150,7 @@ class DOMRangeTests: XCTestCase {
             try? DOMRange.Point(json: [
                 "cssSelector": "p",
                 "textNodeIndex": 1,
-                "charOffset": 0
+                "charOffset": 0,
             ]),
             DOMRange.Point(cssSelector: "p", textNodeIndex: 1, charOffset: 0)
         )
@@ -164,12 +158,12 @@ class DOMRangeTests: XCTestCase {
             try? DOMRange.Point(json: [
                 "cssSelector": "p",
                 "textNodeIndex": 1,
-                "charOffset": -1
+                "charOffset": -1,
             ]),
             DOMRange.Point(cssSelector: "p", textNodeIndex: 1, charOffset: nil)
         )
     }
-    
+
     func testParsePointAllowsNil() {
         XCTAssertNil(try DOMRange.Point(json: nil))
     }
@@ -179,20 +173,19 @@ class DOMRangeTests: XCTestCase {
             DOMRange.Point(cssSelector: "p", textNodeIndex: 4).json,
             [
                 "cssSelector": "p",
-                "textNodeIndex": 4
+                "textNodeIndex": 4,
             ]
         )
     }
-    
+
     func testGetFullPointJSON() {
         AssertJSONEqual(
             DOMRange.Point(cssSelector: "p", textNodeIndex: 4, charOffset: 32).json,
             [
                 "cssSelector": "p",
                 "textNodeIndex": 4,
-                "charOffset": 32
+                "charOffset": 32,
             ]
         )
     }
-    
 }

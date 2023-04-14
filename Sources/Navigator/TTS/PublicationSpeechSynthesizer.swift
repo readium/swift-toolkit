@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -240,7 +240,7 @@ public class PublicationSpeechSynthesizer: Loggable {
                         text: { text in
                             guard
                                 let highlight = text.highlight,
-                                highlight.startIndex <= range.lowerBound && highlight.endIndex >= range.upperBound
+                                highlight.startIndex <= range.lowerBound, highlight.endIndex >= range.upperBound
                             else {
                                 return
                             }
@@ -253,7 +253,7 @@ public class PublicationSpeechSynthesizer: Loggable {
                 switch result {
                 case .success:
                     playNextUtterance(.forward)
-                case .failure(let error):
+                case let .failure(error):
                     state = .paused(utterance)
                     delegate?.publicationSpeechSynthesizer(self, utterance: utterance, didFailWithError: .engine(error))
                 }

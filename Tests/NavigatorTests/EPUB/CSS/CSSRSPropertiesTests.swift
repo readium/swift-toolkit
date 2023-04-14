@@ -1,15 +1,14 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
-import R2Shared
 @testable import R2Navigator
+import R2Shared
+import XCTest
 
 class CSSRSPropertiesTests: XCTestCase {
-
     func convertEmptyPropertiesToCSSProperties() {
         XCTAssertEqual(
             CSSRSProperties().cssProperties(),
@@ -47,7 +46,7 @@ class CSSRSPropertiesTests: XCTestCase {
                 "--RS__serif-ja-v": nil,
                 "--RS__sans-serif-ja-v": nil,
                 "--RS__compFontFamily": nil,
-                "--RS__codeFontFamily": nil
+                "--RS__codeFontFamily": nil,
             ]
         )
     }
@@ -57,7 +56,7 @@ class CSSRSPropertiesTests: XCTestCase {
             colCount: .one,
             overrides: [
                 "--RS__colCount": "2",
-                "--RS__custom": "value"
+                "--RS__custom": "value",
             ]
         ).cssProperties()
 
@@ -137,7 +136,7 @@ class CSSRSPropertiesTests: XCTestCase {
                 "--RS__serif-ja-v": #"Serif, JaV"#,
                 "--RS__sans-serif-ja-v": #""Sans serif", JaV"#,
                 "--RS__compFontFamily": #"Arial"#,
-                "--RS__codeFontFamily": #"Monaco, "Console Sans""#
+                "--RS__codeFontFamily": #"Monaco, "Console Sans""#,
             ]
         )
     }

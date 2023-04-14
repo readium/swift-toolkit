@@ -8,7 +8,6 @@ import Foundation
 import R2Shared
 
 extension Language {
-
     var isRTL: Bool {
         let c = code.bcp47.lowercased()
         return c == "ar"

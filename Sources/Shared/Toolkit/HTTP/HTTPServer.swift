@@ -11,7 +11,6 @@ import Foundation
 /// This is required by some Navigators to access a local publication's
 /// resources.
 public protocol HTTPServer {
-
     /// Serves resources at the given `endpoint`.
     ///
     /// Subsequent calls with the same `endpoint` overwrite each other.
@@ -30,7 +29,6 @@ public protocol HTTPServer {
 }
 
 public extension HTTPServer {
-
     /// Serves the local file `url` at the given `endpoint`.
     ///
     /// If the provided `url` is a directory, then all the files in the
@@ -80,7 +78,6 @@ public typealias HTTPServerEndpoint = String
 
 /// Request made to an `HTTPServer`.
 public struct HTTPServerRequest {
-
     /// Absolute URL on the server.
     public let url: URL
 

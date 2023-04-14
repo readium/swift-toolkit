@@ -1,18 +1,12 @@
 //
-//  OPFParser.swift
-//  r2-streamer-swift
-//
-//  Created by Alexandre Camilleri on 2/21/17.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
+import Foundation
 import Fuzi
 import R2Shared
-import Foundation
-
 
 // http://www.idpf.org/epub/30/spec/epub30-publications.html#title-type
 // the six basic values of the "title-type" property specified by EPUB 3:
@@ -35,13 +29,12 @@ public enum OPFParserError: Error {
 /// EpubParser support class, able to parse the OPF package document.
 /// OPF: Open Packaging Format.
 final class OPFParser: Loggable {
-    
     /// Relative path to the OPF in the EPUB container
     private let basePath: String
-    
+
     /// DOM representation of the OPF file.
     private let document: Fuzi.XMLDocument
-    
+
     /// EPUB title which will be used as a fallback if we can't parse one. Title is mandatory in
     /// RWPM.
     private let fallbackTitle: String
@@ -52,24 +45,24 @@ final class OPFParser: Loggable {
 
     /// List of metadata declared in the package.
     private let metas: OPFMetaList
-    
+
     /// Encryption information, indexed by resource HREF.
     private let encryptions: [String: Encryption]
 
     init(basePath: String, data: Data, fallbackTitle: String, displayOptionsData: Data? = nil, encryptions: [String: Encryption]) throws {
         self.basePath = basePath
         self.fallbackTitle = fallbackTitle
-        self.document = try Fuzi.XMLDocument(data: data)
-        self.document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
-        self.displayOptions = (displayOptionsData.map { try? Fuzi.XMLDocument(data: $0) }) ?? nil
-        self.metas = OPFMetaList(document: self.document)
+        document = try Fuzi.XMLDocument(data: data)
+        document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
+        displayOptions = (displayOptionsData.map { try? Fuzi.XMLDocument(data: $0) }) ?? nil
+        metas = OPFMetaList(document: document)
         self.encryptions = encryptions
     }
-    
+
     convenience init(fetcher: Fetcher, opfHREF: String, fallbackTitle: String, encryptions: [String: Encryption] = [:]) throws {
         try self.init(
             basePath: opfHREF,
-            data: try fetcher.readData(at: opfHREF),
+            data: fetcher.readData(at: opfHREF),
             fallbackTitle: fallbackTitle,
             displayOptionsData: {
                 let iBooksPath = "/META-INF/com.apple.ibooks.display-options.xml"
@@ -81,7 +74,7 @@ final class OPFParser: Loggable {
             encryptions: encryptions
         )
     }
-    
+
     /// Parse the OPF file of the EPUB container and return a `Publication`.
     /// It also complete the informations stored in the container.
     func parsePublication() throws -> (version: String, metadata: Metadata, readingOrder: [Link], resources: [Link]) {
@@ -89,9 +82,9 @@ final class OPFParser: Loggable {
         let (resources, readingOrder) = splitResourcesAndReadingOrderLinks(links)
         let metadata = EPUBMetadataParser(document: document, fallbackTitle: fallbackTitle, displayOptions: displayOptions, metas: metas)
 
-        return (
+        return try (
             version: parseEPUBVersion(),
-            metadata: try metadata.parse(),
+            metadata: metadata.parse(),
             readingOrder: readingOrder,
             resources: resources
         )
@@ -103,14 +96,14 @@ final class OPFParser: Loggable {
         let defaultVersion = "1.2"
         return document.firstChild(xpath: "/opf:package")?.attr("version") ?? defaultVersion
     }
-    
+
     /// Parses XML elements of the <Manifest> in the package.opf file as a list of `Link`.
     private func parseLinks() -> [Link] {
         // Read meta to see if any Link is referenced as the Cover.
         let coverId = metas["cover"].first?.content
 
         let manifestItems = document.xpath("/opf:package/opf:manifest/opf:item")
-        
+
         // Spine items indexed by IDRef
         let spineItemsKVs = document.xpath("/opf:package/opf:spine/opf:itemref")
             .compactMap { item in
@@ -119,21 +112,21 @@ final class OPFParser: Loggable {
         let spineItems = Dictionary(spineItemsKVs, uniquingKeysWith: { first, _ in first })
 
         return manifestItems.compactMap { manifestItem in
-                // Must have an ID.
-                guard let id = manifestItem.attr("id") else {
-                    log(.warning, "Manifest item MUST have an id, item ignored.")
-                    return nil
-                }
-            
-                let isCover = (id == coverId)
-
-                guard let link = makeLink(manifestItem: manifestItem, spineItem: spineItems[id], isCover: isCover) else {
-                    log(.warning, "Can't parse link with ID \(id)")
-                    return nil
-                }
-
-                return link
+            // Must have an ID.
+            guard let id = manifestItem.attr("id") else {
+                log(.warning, "Manifest item MUST have an id, item ignored.")
+                return nil
             }
+
+            let isCover = (id == coverId)
+
+            guard let link = makeLink(manifestItem: manifestItem, spineItem: spineItems[id], isCover: isCover) else {
+                log(.warning, "Can't parse link with ID \(id)")
+                return nil
+            }
+
+            return link
+        }
     }
 
     /// Parses XML elements of the <spine> in the package.opf file.
@@ -144,23 +137,23 @@ final class OPFParser: Loggable {
     private func splitResourcesAndReadingOrderLinks(_ manifestLinks: [Link]) -> (resources: [Link], readingOrder: [Link]) {
         var resources = manifestLinks
         var readingOrder: [Link] = []
-        
+
         let spineItems = document.xpath("/opf:package/opf:spine/opf:itemref")
         for item in spineItems {
             // Find the `Link` that `idref` is referencing to from the `manifestLinks`.
             guard let idref = item.attr("idref"),
-                let index = resources.firstIndex(where: { $0.properties["id"] as? String == idref }),
-                // Only linear items are added to the readingOrder.
-                item.attr("linear")?.lowercased() != "no" else
-            {
+                  let index = resources.firstIndex(where: { $0.properties["id"] as? String == idref }),
+                  // Only linear items are added to the readingOrder.
+                  item.attr("linear")?.lowercased() != "no"
+            else {
                 continue
             }
-            
+
             readingOrder.append(resources[index])
             // `resources` should only contain the links that are not already in `readingOrder`.
             resources.remove(at: index)
         }
-        
+
         return (resources, readingOrder)
     }
 
@@ -168,7 +161,7 @@ final class OPFParser: Loggable {
         guard var href = manifestItem.attr("href")?.removingPercentEncoding else {
             return nil
         }
-        
+
         href = HREF(href, relativeTo: basePath).string
 
         // Merges the string properties found in the manifest and spine items.
@@ -185,17 +178,17 @@ final class OPFParser: Loggable {
         }
 
         var properties = parseStringProperties(stringProperties)
-        
+
         if let encryption = encryptions[href]?.json, !encryption.isEmpty {
             properties["encrypted"] = encryption
         }
 
         let type = manifestItem.attr("media-type")
         var duration: Double?
-        
+
         if let id = manifestItem.attr("id") {
             properties["id"] = id
-            
+
             // If the link references a SMIL resource, retrieves and fills its duration.
             if MediaType.smil.matches(type), let durationMeta = metas["duration", in: .media, refining: id].first {
                 duration = Double(SMILParser.smilTimeToSeconds(durationMeta.content))
@@ -277,7 +270,7 @@ final class OPFParser: Loggable {
                 continue
             }
         }
-        
+
         var otherProperties: [String: Any] = [:]
         if !contains.isEmpty {
             otherProperties["contains"] = contains
@@ -297,9 +290,7 @@ final class OPFParser: Loggable {
         if let spread = spread {
             otherProperties["spread"] = spread.rawValue
         }
-        
+
         return otherProperties
     }
-
 }
-

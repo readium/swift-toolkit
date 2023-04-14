@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -27,7 +27,7 @@ public extension CSSProperties {
 
         return props
             .sorted(by: { p1, p2 in p1.key < p2.key })
-            .map { key, value in "\(key): \(value) !important;"}
+            .map { key, value in "\(key): \(value) !important;" }
             .joined(separator: "\n") + "\n"
     }
 }
@@ -36,12 +36,10 @@ public extension CSSProperties {
 ///
 /// See https://readium.org/readium-css/docs/CSS19-api.html#user-settings
 public struct CSSUserProperties: CSSProperties {
-
     // View mode
 
     /// User view: paged or scrolled.
     public var view: CSSView?
-
 
     // Pagination
 
@@ -57,7 +55,6 @@ public struct CSSUserProperties: CSSProperties {
     /// Recommended values: a range from 0.5 to 2. Increments are left to implementers’ judgment.
     /// To reset, change the value to 1.
     public var pageMargins: Double?
-
 
     // Appearance
 
@@ -82,7 +79,6 @@ public struct CSSUserProperties: CSSProperties {
     /// The background-color for the whole screen. To reset, remove the CSS variable.
     public var backgroundColor: CSSColor?
 
-
     // Typography
 
     /// This flag is required to change the font-family user setting.
@@ -99,7 +95,6 @@ public struct CSSUserProperties: CSSProperties {
     ///
     /// To reset, remove the required flag.
     public var fontSize: CSSLength?
-
 
     // Advanced settings
 
@@ -159,7 +154,6 @@ public struct CSSUserProperties: CSSProperties {
     ///
     /// Requires: advancedSettings
     public var ligatures: CSSLigatures?
-
 
     // Accessibility
 
@@ -268,7 +262,6 @@ public struct CSSUserProperties: CSSProperties {
 ///
 /// See https://readium.org/readium-css/docs/CSS19-api.html#reading-system-styles
 public struct CSSRSProperties: CSSProperties {
-
     // Pagination
 
     /// @param colWidth The optimal column’s width. It serves as a floor in our design.
@@ -282,7 +275,6 @@ public struct CSSRSProperties: CSSProperties {
 
     /// @param pageGutter The horizontal page margins.
     public var pageGutter: CSSAbsoluteLength?
-
 
     // Vertical rhythm
 
@@ -314,7 +306,6 @@ public struct CSSRSProperties: CSSProperties {
     /// @param boxSizingTable The box model (box-sizing) you want to use for tables.
     public var boxSizingTable: CSSBoxSizing?
 
-
     // Colors
 
     /// @param textColor The default color for body copy’s text.
@@ -343,7 +334,6 @@ public struct CSSRSProperties: CSSProperties {
     /// of your choice.
     public var secondaryColor: CSSColor?
 
-
     // Typography
 
     /// @param typeScale The scale to be used for computing all elements’ font-size. Since those font
@@ -358,7 +348,6 @@ public struct CSSRSProperties: CSSProperties {
     /// @param baseLineHeight The default line-height for body copy in case the ebook doesn’t have
     /// one declared.
     public var baseLineHeight: CSSLineHeight?
-
 
     // Default font-stacks
 
@@ -376,7 +365,6 @@ public struct CSSRSProperties: CSSProperties {
 
     /// @param monospaceTf A monospace font-stack relying on pre-installed fonts.
     public var monospaceTf: [String]?
-
 
     // Default font-stacks for Japanese publications
 
@@ -396,7 +384,6 @@ public struct CSSRSProperties: CSSProperties {
     /// prioritized for vertical writing.
     public var sansSerifJaV: [String]?
 
-
     // Default styles for unstyled publications
 
     /// @param compFontFamily The typeface for headings.
@@ -406,7 +393,6 @@ public struct CSSRSProperties: CSSProperties {
     /// @param codeFontFamily The typeface for code snippets.
     /// The value can be another variable e.g. var(-RS__monospaceTf).
     public var codeFontFamily: [String]?
-
 
     // Additional overrides for extensions and adjustments.
     public var overrides: [String: String?]
@@ -552,7 +538,7 @@ public enum CSSView: String, CSSConvertible {
 }
 
 public enum CSSColCount: String, CSSConvertible {
-    case auto = "auto"
+    case auto
     case one = "1"
     case two = "2"
 
@@ -574,9 +560,9 @@ public struct CSSRGBColor: CSSColor {
     let blue: Int
 
     public init(red: Int, green: Int, blue: Int) {
-        precondition((0...255).contains(red))
-        precondition((0...255).contains(green))
-        precondition((0...255).contains(blue))
+        precondition((0 ... 255).contains(red))
+        precondition((0 ... 255).contains(green))
+        precondition((0 ... 255).contains(blue))
         self.red = red
         self.green = green
         self.blue = blue
@@ -785,9 +771,9 @@ public enum CSSLineHeight: CSSConvertible {
 
     public func css() -> String? {
         switch self {
-        case .length(let length):
+        case let .length(length):
             return length.css()
-        case .unitless(let value):
+        case let .unitless(value):
             return String(format: "%.5f", value)
         }
     }

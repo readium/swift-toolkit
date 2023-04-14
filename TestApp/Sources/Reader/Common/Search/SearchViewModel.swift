@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -24,84 +24,83 @@ final class SearchViewModel: ObservableObject {
         // An error occurred, we need to show it to the user
         case failure(LocalizedError)
     }
-    
+
     @Published private(set) var state: State = .empty
     @Published private(set) var results: [Locator] = []
     @Published private(set) var query: String = ""
     @Published var selectedLocator: Locator?
     var selectedIndex: Int?
-    
+
     func selectSearchResultCell(locator: Locator?, index: Int) {
         selectedIndex = index
         selectedLocator = locator
     }
-    
+
     private var publication: Publication
-    
+
     init(publication: Publication) {
         self.publication = publication
     }
-    
+
     /// Starts a new search with the given query.
     func search(with query: String) {
         self.query = query
         cancelSearch()
-        
+
         let cancellable = publication._search(query: query) { result in
             switch result {
-            case .success(let iterator):
+            case let .success(iterator):
                 self.state = .idle(iterator)
                 self.loadNextPage()
-                
-            case .failure(let error):
+
+            case let .failure(error):
                 self.state = .failure(error)
             }
         }
-        
+
         state = .starting(cancellable)
     }
-    
+
     /// Loads the next page of search results.
     /// Typically, this would be called when the user scrolls towards the end of the results table view.
     func loadNextPage() {
-        guard case .idle(let iterator) = state else {
+        guard case let .idle(iterator) = state else {
             return
         }
-        
+
         let cancellable = iterator.next { result in
             switch result {
-            case .success(let collection):
+            case let .success(collection):
                 if let collection = collection {
                     self.results.append(contentsOf: collection.locators)
                     self.state = .idle(iterator)
                 } else {
                     self.state = .end
                 }
-                
-            case .failure(let error):
+
+            case let .failure(error):
                 self.state = .failure(error)
             }
         }
-        
+
         state = .loadingNext(iterator, cancellable)
     }
-    
+
     /// Cancels any on-going search and clears the results.
     func cancelSearch() {
         switch state {
-        case .idle(let iterator):
+        case let .idle(iterator):
             iterator.close()
-            
-        case .loadingNext(let iterator, let cancellable):
+
+        case let .loadingNext(iterator, cancellable):
             iterator.close()
             cancellable.cancel()
-            
+
         default:
             break
         }
-        
+
         results.removeAll()
         state = .empty
     }
 }
-

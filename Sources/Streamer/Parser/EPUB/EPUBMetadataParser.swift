@@ -1,22 +1,15 @@
 //
-//  EPUBMetadataParser.swift
-//  r2-streamer-swift
-//
-//  Created by Alexandre Camilleri, Mickaël Menu on 3/17/17.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
-import Fuzi
 import Foundation
-
+import Fuzi
+import R2Shared
 
 /// Reference: https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md
 final class EPUBMetadataParser: Loggable {
-    
     private let document: Fuzi.XMLDocument
     private let fallbackTitle: String
     private let displayOptions: Fuzi.XMLDocument?
@@ -27,16 +20,14 @@ final class EPUBMetadataParser: Loggable {
         self.fallbackTitle = fallbackTitle
         self.displayOptions = displayOptions
         self.metas = metas
-        
+
         document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
         document.definePrefix("dc", forNamespace: "http://purl.org/dc/elements/1.1/")
         document.definePrefix("dcterms", forNamespace: "http://purl.org/dc/terms/")
         document.definePrefix("rendition", forNamespace: "http://www.idpf.org/2013/rendition")
     }
-    
-    private lazy var metadataElement: Fuzi.XMLElement? = {
-        return document.firstChild(xpath: "/opf:package/opf:metadata")
-    }()
+
+    private lazy var metadataElement: Fuzi.XMLElement? = document.firstChild(xpath: "/opf:package/opf:metadata")
 
     /// Parses the Metadata in the XML <metadata> element.
     func parse() throws -> Metadata {
@@ -44,9 +35,9 @@ final class EPUBMetadataParser: Loggable {
         if !presentation.json.isEmpty {
             otherMetadata["presentation"] = presentation.json
         }
-        
+
         let contributors = parseContributors()
-        
+
         return Metadata(
             identifier: uniqueIdentifier,
             conformsTo: [.epub],
@@ -75,8 +66,8 @@ final class EPUBMetadataParser: Loggable {
             otherMetadata: otherMetadata
         )
     }
-    
-    private lazy var languages: [String] = metas["language", in: .dcterms].map { $0.content }
+
+    private lazy var languages: [String] = metas["language", in: .dcterms].map(\.content)
 
     private lazy var packageLanguage: String? = document.firstChild(xpath: "/opf:package")?.attr("lang")
 
@@ -85,31 +76,31 @@ final class EPUBMetadataParser: Loggable {
     ///   2. the package's xml:lang attribute
     ///   3. the primary language for the publication
     private func language(for element: Fuzi.XMLElement) -> String? {
-        return element.attr("lang") ?? packageLanguage ?? languages.first
+        element.attr("lang") ?? packageLanguage ?? languages.first
     }
-    
+
     /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#title
     private lazy var sortAs: String? = {
         // EPUB 3
         if let id = mainTitleElement?.attr("id"), let sortAsElement = metas["file-as", refining: id].first {
             return sortAsElement.content
-        // EPUB 2
+            // EPUB 2
         } else {
             return metas["title_sort", in: .calibre].first?.content
         }
     }()
-    
+
     private lazy var description: String? = metas["description", in: .dcterms]
         .first?.content
 
     private lazy var numberOfPages: Int? = metas["numberOfPages", in: .schema]
         .first.flatMap { Int($0.content) }
-    
+
     /// Extracts the Presentation properties from the XML element metadata and fill
     /// them into the Metadata object instance.
     private lazy var presentation: Presentation = {
         func renditionMetadata(_ property: String) -> String {
-            return metas[property, in: .rendition].last?.content ?? ""
+            metas[property, in: .rendition].last?.content ?? ""
         }
 
         func displayOption(_ name: String) -> String? {
@@ -117,15 +108,15 @@ final class EPUBMetadataParser: Loggable {
             guard let platform = displayOptions?.firstChild(xpath: "platform[@name='*']")
                 ?? displayOptions?.firstChild(xpath: "platform[@name='ipad']")
                 ?? displayOptions?.firstChild(xpath: "platform[@name='iphone']")
-                ?? displayOptions?.firstChild(xpath: "platform") else
-            {
+                ?? displayOptions?.firstChild(xpath: "platform")
+            else {
                 return nil
             }
             return platform.firstChild(xpath: "option[@name='\(name)']")?.stringValue
         }
 
         return Presentation(
-            continuous: (renditionMetadata("flow") == "scrolled-continuous"),
+            continuous: renditionMetadata("flow") == "scrolled-continuous",
             orientation: .init(
                 epub: renditionMetadata("orientation"),
                 fallback: {
@@ -156,7 +147,7 @@ final class EPUBMetadataParser: Loggable {
     private func titleElements(ofType titleType: EPUBTitleType) -> [Fuzi.XMLElement] {
         // Finds the XML element corresponding to the specific title type
         // `<meta refines="#.." property="title-type" id="title-type">titleType</meta>`
-        return metas["title-type"]
+        metas["title-type"]
             .compactMap { meta in
                 guard meta.content == titleType.rawValue, let id = meta.refines else {
                     return nil
@@ -170,11 +161,11 @@ final class EPUBMetadataParser: Loggable {
                 return order1 < order2
             }
     }
-    
+
     /// Maps between an element ID and its `display-seq` refine, if there's any.
     /// eg. <meta refines="#creator01" property="display-seq">1</meta>
     private lazy var displaySeqs: [String: String] = {
-        return metas["display-seq"]
+        metas["display-seq"]
             .reduce([:]) { displaySeqs, meta in
                 var displaySeqs = displaySeqs
                 if let id = meta.refines {
@@ -183,14 +174,14 @@ final class EPUBMetadataParser: Loggable {
                 return displaySeqs
             }
     }()
-    
+
     private lazy var mainTitleElement: Fuzi.XMLElement? = titleElements(ofType: .main).first
         ?? metas["title", in: .dcterms].first?.element
-    
+
     private lazy var mainTitle: LocalizedString? = localizedString(for: mainTitleElement)
 
     private lazy var subtitle: LocalizedString? = localizedString(for: titleElements(ofType: .subtitle).first)
-    
+
     /// https://readium.org/architecture/streamer/parser/a11y-metadata-parsing
     private func accessibility() -> Accessibility? {
         let accessibility: Accessibility? = Accessibility(
@@ -202,43 +193,43 @@ final class EPUBMetadataParser: Loggable {
             features: accessibilityFeatures(),
             hazards: accessibilityHazards()
         )
-        
+
         return accessibility.takeIf { $0 != Accessibility() }
     }
-    
+
     private func accessibilityProfiles() -> [Accessibility.Profile] {
-        let hrefs = metas["conformsTo", in: .dcterms].map { $0.content }
-            + metas.links(withRel: "conformsTo", in: .dcterms).map { $0.href }
+        let hrefs = metas["conformsTo", in: .dcterms].map(\.content)
+            + metas.links(withRel: "conformsTo", in: .dcterms).map(\.href)
         return hrefs.compactMap { accessibilityProfile(from: $0) }
     }
-    
+
     private func accessibilityProfile(from value: String) -> Accessibility.Profile? {
         switch value {
         case "EPUB Accessibility 1.1 - WCAG 2.0 Level A",
-            "http://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a",
-            "http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a",
-            "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a",
-            "https://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a":
+             "http://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a",
+             "http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a",
+             "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a",
+             "https://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a":
             return .epubA11y10WCAG20A
-            
+
         case "EPUB Accessibility 1.1 - WCAG 2.0 Level AA",
-            "http://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa",
-            "http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa",
-            "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa",
-            "https://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa":
+             "http://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa",
+             "http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa",
+             "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa",
+             "https://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa":
             return .epubA11y10WCAG20AA
-            
+
         case "EPUB Accessibility 1.1 - WCAG 2.0 Level AAA",
-            "http://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa",
-            "http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa",
-            "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa",
-            "https://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa":
+             "http://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa",
+             "http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa",
+             "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa",
+             "https://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa":
             return .epubA11y10WCAG20AAA
         default:
             return nil
         }
     }
-    
+
     private func accessibilityCertification() -> Accessibility.Certification? {
         let certifier = metas["certifiedBy", in: .a11y].first
         let credential: String?
@@ -254,19 +245,19 @@ final class EPUBMetadataParser: Loggable {
         guard certifier != nil || credential != nil || report != nil else {
             return nil
         }
-        
+
         return Accessibility.Certification(
             certifiedBy: certifier?.content,
             credential: credential,
             report: report
         )
     }
-    
+
     private func accessibilityAccessModes() -> [Accessibility.AccessMode] {
         metas["accessMode", in: .schema]
             .map { Accessibility.AccessMode($0.content) }
     }
-    
+
     private func accessibilityAccessModesSufficient() -> [[Accessibility.PrimaryAccessMode]] {
         metas["accessModeSufficient", in: .schema]
             .map {
@@ -276,12 +267,12 @@ final class EPUBMetadataParser: Loggable {
                     .compactMap(Accessibility.PrimaryAccessMode.init(rawValue:))
             }
     }
-    
+
     private func accessibilityFeatures() -> [Accessibility.Feature] {
         metas["accessibilityFeature", in: .schema]
             .map { Accessibility.Feature($0.content) }
     }
-    
+
     private func accessibilityHazards() -> [Accessibility.Hazard] {
         metas["accessibilityHazard", in: .schema]
             .map { Accessibility.Hazard($0.content) }
@@ -303,7 +294,7 @@ final class EPUBMetadataParser: Loggable {
     private lazy var modifiedDate: Date? = {
         let epub3Date = {
             self.metas["modified", in: .dcterms]
-                .compactMap { $0.content.dateFromISO8601 }
+                .compactMap(\.content.dateFromISO8601)
                 .first
         }
         let epub2Date = {
@@ -319,7 +310,7 @@ final class EPUBMetadataParser: Loggable {
         guard let metadataElement = metadataElement else {
             return []
         }
-        
+
         let subjects = metas["subject", in: .dcterms]
         if subjects.count == 1 {
             let subject = subjects[0]
@@ -339,7 +330,7 @@ final class EPUBMetadataParser: Loggable {
                 }
             }
         }
-            
+
         return subjects.compactMap {
             guard let name = localizedString(for: $0.element) else {
                 return nil
@@ -377,13 +368,13 @@ final class EPUBMetadataParser: Loggable {
         var narrators: [Contributor] = []
         var contributors: [Contributor] = []
         var publishers: [Contributor] = []
-        
+
         for element in findContributorElements() {
             // Look up for possible meta refines for contributor's role.
             let roles = element.attr("id")
-                .map { id in metas["role", refining: id].map { $0.content } }
+                .map { id in metas["role", refining: id].map(\.content) }
                 ?? []
-            
+
             guard let contributor = createContributor(from: element, roles: roles) else {
                 continue
             }
@@ -423,7 +414,7 @@ final class EPUBMetadataParser: Loggable {
                 }
             }
         }
-        
+
         return (
             authors: authors,
             translators: translators,
@@ -447,7 +438,7 @@ final class EPUBMetadataParser: Loggable {
         let contributors = metas["creator", in: .dcterms]
             + metas["publisher", in: .dcterms]
             + metas["contributor", in: .dcterms]
-        return contributors.map { $0.element }
+        return contributors.map(\.element)
     }
 
     /// Builds a `Contributor` instance from a `<dc:creator>`, `<dc:contributor>`
@@ -461,12 +452,12 @@ final class EPUBMetadataParser: Loggable {
         guard let name = localizedString(for: element) else {
             return nil
         }
-        
+
         var roles = roles
         if let role = element.attr("role") {
             roles.insert(role, at: 0)
         }
-        
+
         return Contributor(
             name: name,
             sortAs: element.attr("file-as"),
@@ -485,10 +476,10 @@ final class EPUBMetadataParser: Loggable {
             return .auto
         }
     }()
-    
+
     /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#collections-and-series
     private lazy var belongsToCollections: [Metadata.Collection] = {
-        return metas["belongs-to-collection"]
+        metas["belongs-to-collection"]
             // `collection-type` should not be "series"
             .filter { meta in
                 if let id = meta.id {
@@ -510,7 +501,7 @@ final class EPUBMetadataParser: Loggable {
                 return metas["collection-type", refining: id].first?.content == "series"
             }
             .compactMap(collection(from:))
-        
+
         let epub2Position = metas["series_index", in: .calibre].first
             .flatMap { Double($0.content) }
         let epub2Series = metas["series", in: .calibre]
@@ -523,7 +514,7 @@ final class EPUBMetadataParser: Loggable {
 
         return epub3Series + epub2Series
     }()
-    
+
     private func collection(from meta: OPFMeta) -> Metadata.Collection? {
         guard let name = localizedString(for: meta.element) else {
             return nil
@@ -546,9 +537,9 @@ final class EPUBMetadataParser: Loggable {
         guard let element = element else {
             return nil
         }
-        
+
         var strings: [String: String] = [:]
-        
+
         // Default string
         let defaultString = element.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let defaultLanguage = language(for: element) else {
@@ -568,20 +559,19 @@ final class EPUBMetadataParser: Loggable {
                 strings[lang] = value
             }
         }
-        
+
         if strings.count > 1 {
             return strings.localizedString
         } else {
             return strings.first?.value.localizedString
         }
     }
-    
+
     /// Returns the given `dc:` tag in the `metadata` element.
     ///
     /// This looks under `metadata/dc-metadata` as well, to be compatible with old EPUB 2 files.
     private func dcElement(tag: String) -> Fuzi.XMLElement? {
-        return metadataElement?
-            .firstChild(xpath:"(.|opf:dc-metadata)/dc:\(tag)")
+        metadataElement?
+            .firstChild(xpath: "(.|opf:dc-metadata)/dc:\(tag)")
     }
-    
 }

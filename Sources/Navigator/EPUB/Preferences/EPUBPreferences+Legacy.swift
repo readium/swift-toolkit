@@ -8,7 +8,6 @@ import Foundation
 import R2Shared
 
 public extension EPUBPreferences {
-    
     /// Loads the preferences from the legacy EPUB settings stored in the
     /// standard `UserDefaults`.
     ///
@@ -94,21 +93,21 @@ private extension UserDefaults {
         }
         return bool(forKey: key.rawValue)
     }
-    
+
     func optDouble(for key: ReadiumCSSName) -> Double? {
         guard contains(key) else {
             return nil
         }
         return double(forKey: key.rawValue)
     }
-    
+
     func optInt(for key: ReadiumCSSName) -> Int? {
         guard contains(key) else {
             return nil
         }
         return integer(forKey: key.rawValue)
     }
-    
+
     func optString(for key: ReadiumCSSName) -> String? {
         guard contains(key) else {
             return nil

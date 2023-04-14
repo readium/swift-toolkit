@@ -1,17 +1,12 @@
 //
-//  RDGCDServerResourceResponse.swift
-//  r2-streamer-swift
-//
-//  Created by Olivier Körner on 13/01/2017.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import R2Shared
 import GCDWebServer
+import R2Shared
 
 extension GCDWebServerResponse: Loggable {}
 
@@ -28,7 +23,6 @@ public enum WebServerResponseError: Error {
 /// If the ressource to be served is too big, multiple responses will be created.
 @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
 open class WebServerResourceResponse: GCDWebServerFileResponse {
-
     private let bufferSize = 32 * 1024
 
     private var resource: Resource
@@ -46,24 +40,25 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
     ///   - contentType: The content-type of the response's ressource.
     public init(resource: Resource, range: NSRange?, contentType: String) {
         self.resource = resource
-        self.length = (try? resource.length.get()) ?? 0
+        length = (try? resource.length.get()) ?? 0
 
         // If range is non nil - means it's not the first part (?)
         if let range = range {
             WebServerResourceResponse.log(.debug, "Request range at \(range.location) remaining: \(range.length).")
             /// Return a range of what to read next (nothing, next part, whole data).
             func getNextRange(after range: NSRange,
-                              forStreamOfLength streamLength: UInt64) -> Range<UInt64> {
+                              forStreamOfLength streamLength: UInt64) -> Range<UInt64>
+            {
                 let newRange: Range<UInt64>
 
                 if range.location == Int.max {
                     let len = min(UInt64(range.length), streamLength)
 
-                    newRange = (streamLength - len)..<streamLength
+                    newRange = (streamLength - len) ..< streamLength
                 } else if range.location < 0 {
                     // TODO: negative range location
                     // The whole data for now
-                    newRange = 0..<streamLength
+                    newRange = 0 ..< streamLength
                 } else {
                     let currentPosition = min(UInt64(range.location), streamLength)
                     let remainingLength = streamLength - currentPosition
@@ -74,14 +69,14 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
                     } else {
                         length = min(UInt64(range.length), remainingLength)
                     }
-                    newRange = currentPosition..<(currentPosition + length)
+                    newRange = currentPosition ..< (currentPosition + length)
                 }
                 return newRange
             }
             self.range = getNextRange(after: range,
-                forStreamOfLength: length)
+                                      forStreamOfLength: length)
         } else /* nil */ {
-            self.range = 0..<length
+            self.range = 0 ..< length
         }
         super.init()
 
@@ -122,11 +117,11 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
         }
         let len = min(bufferSize, range.count - Int(totalNumberOfBytesRead))
         // If nothing to read, return
-        guard len > 0 && offset < length else {
+        guard len > 0, offset < length else {
             return Data()
         }
         // Read
-        let data = try resource.read(range: offset..<(offset + UInt64(len))).get()
+        let data = try resource.read(range: offset ..< (offset + UInt64(len))).get()
         totalNumberOfBytesRead += UInt64(data.count)
         offset += UInt64(data.count)
         return data
@@ -136,5 +131,3 @@ open class WebServerResourceResponse: GCDWebServerFileResponse {
         resource.close()
     }
 }
-
-

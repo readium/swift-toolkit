@@ -1,12 +1,7 @@
 //
-//  OPDSParser.swift
-//  readium-opds
-//
-//  Created by Geoffrey Bugniot on 22/05/2018.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -17,16 +12,15 @@ public enum OPDSParserError: Error {
     case documentNotValid
 }
 
-public class OPDSParser {
-    
+public enum OPDSParser {
     static var feedURL: URL?
-    
+
     /// Parse an OPDS feed or publication.
     /// Feed can be v1 (XML) or v2 (JSON).
     /// - parameter url: The feed URL
     public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
         feedURL = url
-        
+
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, let response = response else {
                 completion(nil, error ?? OPDSParserError.documentNotFound)
@@ -45,5 +39,4 @@ public class OPDSParser {
             }
         }.resume()
     }
-    
 }

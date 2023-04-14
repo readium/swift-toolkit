@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -132,7 +132,6 @@ public struct TextContentElement: TextualContentElement {
         segments.map(\.text).joined()
     }
 
-
     /// Represents a purpose of an element in the broader context of the document.
     public enum Role {
         /// Title of a section with its level (1 being the highest).
@@ -201,7 +200,6 @@ public protocol ContentAttributesHolder {
 }
 
 public extension ContentAttributesHolder {
-
     var language: Language? { self[.language] }
     var accessibilityLabel: String? { self[.accessibilityLabel] }
 
@@ -235,7 +233,6 @@ public extension ContentAttributesHolder {
 
 /// Iterates through a list of `ContentElement` items.
 public protocol ContentIterator: AnyObject {
-
     /// Retrieves the next element, or nil if we reached the end.
     func next() throws -> ContentElement?
 

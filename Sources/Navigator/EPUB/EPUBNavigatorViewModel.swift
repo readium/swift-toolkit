@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import UIKit
 import R2Shared
+import UIKit
 
 protocol EPUBNavigatorViewModelDelegate: AnyObject {
     func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel, runScript script: String, in scope: EPUBScriptScope)
@@ -20,7 +20,6 @@ enum EPUBScriptScope {
 }
 
 final class EPUBNavigatorViewModel: Loggable {
-
     enum Error: Swift.Error {
         case noHTTPServer
     }
@@ -39,7 +38,7 @@ final class EPUBNavigatorViewModel: Loggable {
     /// Local file URL associated to the HTTP URL used to serve the file on the
     /// `httpServer`. This is used to serve custom font files, for example.
     private var servedFiles: [URL: URL] = [:]
-    
+
     convenience init(
         publication: Publication,
         config: EPUBNavigatorViewController.Configuration,
@@ -66,13 +65,13 @@ final class EPUBNavigatorViewModel: Loggable {
             try httpServer.serve(at: "fonts", contentsOf: fontsURL)
         }
 
-        self.init(
+        try self.init(
             publication: publication,
             config: config,
             httpServer: httpServer,
             publicationEndpoint: publicationEndpoint,
             publicationBaseURL: baseURL,
-            assetsURL: try httpServer.serve(
+            assetsURL: httpServer.serve(
                 at: "readium",
                 contentsOf: Bundle.module.resourceURL!.appendingPathComponent("Assets/Static")
             ),
@@ -93,7 +92,7 @@ final class EPUBNavigatorViewModel: Loggable {
         guard let baseURL = publication.baseURL else {
             preconditionFailure("No base URL provided for the publication. Add it to the HTTP server.")
         }
-        
+
         publication.userProperties.properties = config.userSettings.userProperties.properties
 
         self.init(
@@ -156,7 +155,7 @@ final class EPUBNavigatorViewModel: Loggable {
 
         self.publication = publication
         self.config = config
-        self.editingActions = EditingActionsController(
+        editingActions = EditingActionsController(
             actions: config.editingActions,
             rights: publication.rights
         )
@@ -165,15 +164,15 @@ final class EPUBNavigatorViewModel: Loggable {
         self.publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
         self.assetsURL = assetsURL
         self.useLegacySettings = useLegacySettings
-        self.legacyReadingProgression = publication.metadata.effectiveReadingProgression
+        legacyReadingProgression = publication.metadata.effectiveReadingProgression
 
-        self.settings = EPUBSettings(
+        settings = EPUBSettings(
             preferences: config.preferences,
             defaults: config.defaults,
             metadata: publication.metadata
         )
 
-        self.css = ReadiumCSS(
+        css = ReadiumCSS(
             layout: CSSLayout(),
             rsProperties: config.readiumCSSRSProperties,
             baseURL: assetsURL.appendingPathComponent("/readium-css/"),
@@ -224,10 +223,10 @@ final class EPUBNavigatorViewModel: Loggable {
 
         let needsInvalidation: Bool = (
             oldSettings.readingProgression != newSettings.readingProgression ||
-            oldSettings.language != newSettings.language ||
-            oldSettings.verticalText != newSettings.verticalText ||
-            oldSettings.spread != newSettings.spread ||
-            oldSettings.scroll != newSettings.scroll
+                oldSettings.language != newSettings.language ||
+                oldSettings.verticalText != newSettings.verticalText ||
+                oldSettings.spread != newSettings.spread ||
+                oldSettings.scroll != newSettings.scroll
         )
 
         if needsInvalidation {
@@ -250,8 +249,8 @@ final class EPUBNavigatorViewModel: Loggable {
     private var legacyTheme: Theme {
         guard
             let appearance = config.userSettings.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) as? Enumerable,
-            appearance.values.count > appearance.index else
-        {
+            appearance.values.count > appearance.index
+        else {
             return .light
         }
         let value = appearance.values[appearance.index]
@@ -297,14 +296,14 @@ final class EPUBNavigatorViewModel: Loggable {
     }
 
     var readingProgression: ReadingProgression {
-        useLegacySettings 
+        useLegacySettings
             ? (ReadingProgression(legacyReadingProgression) ?? .ltr)
             : settings.readingProgression
     }
 
     var legacyReadingProgression: R2Shared.ReadingProgression
 
-    /// MARK: - Readium CSS
+    // MARK: - Readium CSS
 
     private var css: ReadiumCSS
 
@@ -316,7 +315,7 @@ final class EPUBNavigatorViewModel: Loggable {
         let link = resource.link
         guard
             link.mediaType.isHTML,
-            publication.metadata.presentation.layout(of:link) == .reflowable
+            publication.metadata.presentation.layout(of: link) == .reflowable
         else {
             return resource
         }

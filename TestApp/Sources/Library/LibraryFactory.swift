@@ -1,29 +1,20 @@
 //
-//  LibraryFactory.swift
-//  r2-testapp-swift
-//
-//  Created by Mickaël Menu on 22.02.19.
-//
-//  Copyright 2019 European Digital Reading Lab. All rights reserved.
-//  Licensed to the Readium Foundation under one or more contributor license agreements.
-//  Use of this source code is governed by a BSD-style license which is detailed in the
-//  LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import UIKit
 import R2Shared
-
+import UIKit
 
 final class LibraryFactory {
-    
-    fileprivate let storyboard = UIStoryboard(name: "Library", bundle: nil)
-    fileprivate let libraryService: LibraryService
+    private let storyboard = UIStoryboard(name: "Library", bundle: nil)
+    private let libraryService: LibraryService
 
     init(libraryService: LibraryService) {
         self.libraryService = libraryService
     }
-    
 }
 
 extension LibraryFactory: LibraryViewControllerFactory {
@@ -42,4 +33,3 @@ extension LibraryFactory: DetailsTableViewControllerFactory {
         return controller
     }
 }
-

@@ -1,27 +1,21 @@
 //
-//  LCPContentProtection.swift
-//  r2-lcp-swift
-//
-//  Created by Mickaël Menu on 16/07/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 import R2Shared
 
 final class LCPContentProtection: ContentProtection, Loggable {
-    
     private let service: LCPService
     private let authentication: LCPAuthenticating
-    
+
     init(service: LCPService, authentication: LCPAuthenticating) {
         self.service = service
         self.authentication = authentication
     }
-    
+
     func open(
         asset: PublicationAsset,
         fetcher: Fetcher,
@@ -35,22 +29,22 @@ final class LCPContentProtection: ContentProtection, Loggable {
             completion(.success(nil))
             return
         }
-        
+
         let authentication = credentials.map { LCPPassphraseAuthentication($0, fallback: self.authentication) }
             ?? self.authentication
-        
+
         service.retrieveLicense(
             from: file.url,
             authentication: authentication,
             allowUserInteraction: allowUserInteraction,
             sender: sender
         ) { result in
-            if case .success(let license) = result, license == nil {
+            if case let .success(license) = result, license == nil {
                 // Not protected with LCP.
                 completion(.success(nil))
                 return
             }
-            
+
             let license = try? result.get()
             let protectedAsset = ProtectedAsset(
                 asset: asset,
@@ -64,15 +58,13 @@ final class LCPContentProtection: ContentProtection, Loggable {
                     }
                 }
             )
-            
+
             completion(.success(protectedAsset))
         }
     }
-
 }
 
 private extension Publication.OpeningError {
-    
     static func wrap(_ error: LCPError) -> Publication.OpeningError {
         switch error {
         case .licenseIsBusy, .network, .licenseContainer:
@@ -83,11 +75,9 @@ private extension Publication.OpeningError {
             return .parsingFailed(error)
         }
     }
-    
 }
 
 private final class LCPContentProtectionService: ContentProtectionService {
-    
     let license: LCPLicense?
     let error: Error?
 
@@ -95,37 +85,34 @@ private final class LCPContentProtectionService: ContentProtectionService {
         self.license = license
         self.error = error
     }
-    
+
     convenience init(result: CancellableResult<LCPLicense?, LCPError>) {
         switch result {
-        case .success(let license):
+        case let .success(license):
             self.init(license: license)
-        case .failure(let error):
+        case let .failure(error):
             self.init(error: error)
         case .cancelled:
             self.init()
         }
     }
-    
+
     var isRestricted: Bool {
         license == nil
     }
-    
+
     var rights: UserRights {
         license ?? AllRestrictedUserRights()
     }
-    
+
     var name: LocalizedString? {
         LocalizedString.nonlocalized("Readium LCP")
     }
-
 }
 
 public extension Publication {
-    
     /// Returns the `LCPLicense` if the `Protection` is protected by LCP and the license is opened.
     var lcpLicense: LCPLicense? {
         findService(LCPContentProtectionService.self)?.license
     }
-    
 }

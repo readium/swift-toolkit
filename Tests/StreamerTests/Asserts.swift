@@ -1,12 +1,7 @@
 //
-//  Asserts.swift
-//  r2-streamer-swift
-//
-//  Created by Mickaël on 26/02/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import XCTest
@@ -18,11 +13,11 @@ func AssertJSONEqual(_ json1: Any?, _ json2: Any?, file: StaticString = #file, l
         }
         return
     }
-    
+
     do {
         // Wrap the objects in an array to allow JSON fragments comparisons
-        let d1 = String(data: try JSONSerialization.data(withJSONObject: [j1], options: .sortedKeys), encoding: .utf8)
-        let d2 = String(data: try JSONSerialization.data(withJSONObject: [j2], options: .sortedKeys), encoding: .utf8)
+        let d1 = try String(data: JSONSerialization.data(withJSONObject: [j1], options: .sortedKeys), encoding: .utf8)
+        let d2 = try String(data: JSONSerialization.data(withJSONObject: [j2], options: .sortedKeys), encoding: .utf8)
         XCTAssertEqual(d1, d2, file: file, line: line)
     } catch {
         XCTFail(error.localizedDescription)

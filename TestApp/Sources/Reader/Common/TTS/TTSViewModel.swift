@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -10,7 +10,6 @@ import R2Navigator
 import R2Shared
 
 final class TTSViewModel: ObservableObject, Loggable {
-
     struct State: Equatable {
         /// Whether the TTS was enabled by the user.
         var showControls: Bool = false
@@ -30,15 +29,15 @@ final class TTSViewModel: ObservableObject, Loggable {
             let voicesByLanguage: [Language: [TTSVoice]] =
                 Dictionary(grouping: synthesizer.availableVoices, by: \.language)
 
-            self.config = synthesizer.config
-            self.availableLanguages = voicesByLanguage.keys.sorted { $0.localizedDescription() < $1.localizedDescription() }
-            self.availableVoiceIds = synthesizer.config.defaultLanguage
-                .flatMap { voicesByLanguage[$0]?.map { $0.identifier } }
+            config = synthesizer.config
+            availableLanguages = voicesByLanguage.keys.sorted { $0.localizedDescription() < $1.localizedDescription() }
+            availableVoiceIds = synthesizer.config.defaultLanguage
+                .flatMap { voicesByLanguage[$0]?.map(\.identifier) }
                 ?? []
         }
     }
 
-    @Published private(set) var state: State = State()
+    @Published private(set) var state: State = .init()
     @Published private(set) var settings: Settings
 
     private let publication: Publication
@@ -55,7 +54,7 @@ final class TTSViewModel: ObservableObject, Loggable {
             return nil
         }
         self.synthesizer = synthesizer
-        self.settings = Settings(synthesizer: synthesizer)
+        settings = Settings(synthesizer: synthesizer)
         self.navigator = navigator
         self.publication = publication
 
@@ -137,7 +136,6 @@ final class TTSViewModel: ObservableObject, Loggable {
 }
 
 extension TTSViewModel: PublicationSpeechSynthesizerDelegate {
-
     public func publicationSpeechSynthesizer(_ synthesizer: PublicationSpeechSynthesizer, stateDidChange synthesizerState: PublicationSpeechSynthesizer.State) {
         switch synthesizerState {
         case .stopped:

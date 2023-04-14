@@ -1,15 +1,14 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 @available(iOS 12.0, *)
 class TextTokenizerTests: XCTestCase {
-
     // MARK: - NL
 
     func testNLTokenizeEmptyText() {
@@ -38,7 +37,7 @@ class TextTokenizerTests: XCTestCase {
             [
                 "Mr. Bougee said, looking above: \"and what is the use of a book?\".",
                 "So she was considering (as well as she could), whether making a daisy-chain would be worth the trouble",
-                "In the end, she went ahead."
+                "In the end, she went ahead.",
             ]
         )
     }
@@ -48,7 +47,7 @@ class TextTokenizerTests: XCTestCase {
         let text =
             """
                 Oh dear, what nonsense I'm talking! Really?
-                
+
                 Just then her head struck against the roof of the hall: in fact she was now more than nine feet high, and she at once took up the little golden key and hurried off to the garden door.
                 Poor Alice! It was as much as she could do, lying down on one side, to look through into the garden with one eye; but to get through was more hopeless than ever: she sat down and began to cry again.
             """
@@ -57,7 +56,7 @@ class TextTokenizerTests: XCTestCase {
             [
                 "Oh dear, what nonsense I'm talking! Really?",
                 "Just then her head struck against the roof of the hall: in fact she was now more than nine feet high, and she at once took up the little golden key and hurried off to the garden door.",
-                "Poor Alice! It was as much as she could do, lying down on one side, to look through into the garden with one eye; but to get through was more hopeless than ever: she sat down and began to cry again."
+                "Poor Alice! It was as much as she could do, lying down on one side, to look through into the garden with one eye; but to get through was more hopeless than ever: she sat down and began to cry again.",
             ]
         )
     }
@@ -90,7 +89,7 @@ class TextTokenizerTests: XCTestCase {
             [
                 "Mr. Bougee said, looking above: \"and what is the use of a book?\".",
                 "So she was considering (as well as she could), whether making a daisy-chain would be worth the trouble",
-                "In the end, she went ahead."
+                "In the end, she went ahead.",
             ]
         )
     }
@@ -109,7 +108,7 @@ class TextTokenizerTests: XCTestCase {
             [
                 "Oh dear, what nonsense I'm talking! Really?",
                 "Just then her head struck against the roof of the hall: in fact she was now more than nine feet high, and she at once took up the little golden key and hurried off to the garden door.",
-                "Poor Alice! It was as much as she could do, lying down on one side, to look through into the garden with one eye; but to get through was more hopeless than ever: she sat down and began to cry again."
+                "Poor Alice! It was as much as she could do, lying down on one side, to look through into the garden with one eye; but to get through was more hopeless than ever: she sat down and began to cry again.",
             ]
         )
     }
@@ -143,7 +142,7 @@ class TextTokenizerTests: XCTestCase {
                 "Mr.",
                 "Bougee said, looking above: \"and what is the use of a book?\".",
                 "So she was considering (as well as she could), whether making a daisy-chain would be worth the trouble",
-                "In the end, she went ahead."
+                "In the end, she went ahead.",
             ]
         )
     }
@@ -153,7 +152,7 @@ class TextTokenizerTests: XCTestCase {
         let text =
             """
                 Oh dear, what nonsense I'm talking! Really?
-                
+
                 Just then her head struck against the roof of the hall: in fact she was now more than nine feet high, and she at once took up the little golden key and hurried off to the garden door.
                 Poor Alice! It was as much as she could do, lying down on one side, to look through into the garden with one eye; but to get through was more hopeless than ever: she sat down and began to cry again.
             """
@@ -162,7 +161,7 @@ class TextTokenizerTests: XCTestCase {
             [
                 "Oh dear, what nonsense I'm talking! Really?",
                 "Just then her head struck against the roof of the hall: in fact she was now more than nine feet high, and she at once took up the little golden key and hurried off to the garden door.",
-                "Poor Alice! It was as much as she could do, lying down on one side, to look through into the garden with one eye; but to get through was more hopeless than ever: she sat down and began to cry again."
+                "Poor Alice! It was as much as she could do, lying down on one side, to look through into the garden with one eye; but to get through was more hopeless than ever: she sat down and began to cry again.",
             ]
         )
     }

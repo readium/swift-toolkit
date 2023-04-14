@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -19,9 +19,8 @@ import Foundation
 /// }
 /// ```
 final class CompletionList {
-    
     private var blocks: [() -> Void] = []
-    
+
     /// Adds the given `completion` block the list.
     ///
     /// - Returns: A new block that will call all the registered completion blocks.
@@ -30,7 +29,7 @@ final class CompletionList {
         if let completion = completion {
             blocks.append(completion)
         }
-        
+
         return {
             self.complete()
         }
@@ -45,5 +44,4 @@ final class CompletionList {
             self.blocks.removeAll()
         }
     }
-
 }

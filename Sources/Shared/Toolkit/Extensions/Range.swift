@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -7,7 +7,6 @@
 import Foundation
 
 extension Range where Bound == String.Index {
-
     /// Trims leading and trailing whitespaces and newlines from this range in the given `string`.
     func trimmingWhitespaces(in string: String) -> Self {
         var onlyWhitespaces = true
@@ -19,7 +18,7 @@ extension Range where Bound == String.Index {
                 continue
             }
             onlyWhitespaces = false
-            range = range.lowerBound..<string.index(after: i)
+            range = range.lowerBound ..< string.index(after: i)
             break
         }
 
@@ -29,12 +28,12 @@ extension Range where Bound == String.Index {
                 continue
             }
             onlyWhitespaces = false
-            range = i..<range.upperBound
+            range = i ..< range.upperBound
             break
         }
 
         guard !onlyWhitespaces else {
-            return lowerBound..<lowerBound
+            return lowerBound ..< lowerBound
         }
 
         return range

@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -12,8 +12,7 @@ public typealias Format = MediaType
 public typealias FormatSnifferContext = MediaTypeSnifferContext
 
 public extension MediaType {
-
-    @available(*, unavailable,  message: "Format and MediaType got merged together")
+    @available(*, unavailable, message: "Format and MediaType got merged together")
     var mediaType: MediaType { self }
 
     @available(*, unavailable, renamed: "readiumAudiobook")
@@ -30,17 +29,14 @@ public extension MediaType {
     static var opds1Feed: MediaType { opds1 }
     @available(*, unavailable, renamed: "opds2")
     static var opds2Feed: MediaType { opds2 }
-
 }
 
 public extension URLResponse {
-    
     @available(*, unavailable, renamed: "mediaType")
     var format: MediaType? { mediaType }
-    
+
     @available(*, unavailable, renamed: "sniffMediaType")
     func sniffFormat(data: (() -> Data)? = nil, mediaTypes: [String] = [], fileExtensions: [String] = [], sniffers: [MediaType.Sniffer] = MediaType.sniffers) -> MediaType? {
-        return sniffMediaType(data: data, mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
+        sniffMediaType(data: data, mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
     }
-
 }
