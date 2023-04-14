@@ -1267,9 +1267,9 @@ __webpack_require__.r(__webpack_exports__);
 
 // Polyfill for iOS 13.3
 
-var ResizeObserver = window.ResizeObserver || _juggle_resize_observer__WEBPACK_IMPORTED_MODULE_2__.ResizeObserver;
-var styles = new Map();
-var groups = new Map();
+const ResizeObserver = window.ResizeObserver || _juggle_resize_observer__WEBPACK_IMPORTED_MODULE_2__.ResizeObserver;
+let styles = new Map();
+let groups = new Map();
 var lastGroupId = 0;
 
 /**
@@ -1279,14 +1279,14 @@ var lastGroupId = 0;
  */
 function registerTemplates(newStyles) {
   var stylesheet = "";
-  for (var [id, style] of Object.entries(newStyles)) {
+  for (const [id, style] of Object.entries(newStyles)) {
     styles.set(id, style);
     if (style.stylesheet) {
       stylesheet += style.stylesheet + "\n";
     }
   }
   if (stylesheet) {
-    var styleElement = document.createElement("style");
+    let styleElement = document.createElement("style");
     styleElement.innerHTML = stylesheet;
     document.getElementsByTagName("head")[0].appendChild(styleElement);
   }
@@ -1298,7 +1298,7 @@ function registerTemplates(newStyles) {
 function getDecorations(groupName) {
   var group = groups.get(groupName);
   if (!group) {
-    var id = "r2-decoration-" + lastGroupId++;
+    let id = "r2-decoration-" + lastGroupId++;
     group = DecorationGroup(id, groupName);
     groups.set(groupName, group);
   }
@@ -1314,16 +1314,16 @@ function handleDecorationClickEvent(event, clickEvent) {
     return false;
   }
   function findTarget() {
-    for (var [group, groupContent] of groups) {
+    for (const [group, groupContent] of groups) {
       if (!groupContent.isActivable()) {
         continue;
       }
-      for (var item of groupContent.items.reverse()) {
+      for (const item of groupContent.items.reverse()) {
         if (!item.clickableElements) {
           continue;
         }
-        for (var element of item.clickableElements) {
-          var rect = element.getBoundingClientRect().toJSON();
+        for (const element of item.clickableElements) {
+          let rect = element.getBoundingClientRect().toJSON();
           if ((0,_rect__WEBPACK_IMPORTED_MODULE_0__.rectContainsPoint)(rect, event.clientX, event.clientY, 1)) {
             return {
               group,
@@ -1336,7 +1336,7 @@ function handleDecorationClickEvent(event, clickEvent) {
       }
     }
   }
-  var target = findTarget();
+  let target = findTarget();
   if (!target) {
     return false;
   }
@@ -1368,13 +1368,13 @@ function DecorationGroup(groupId, groupName) {
    * Adds a new decoration to the group.
    */
   function add(decoration) {
-    var id = groupId + "-" + lastItemId++;
-    var range = (0,_utils__WEBPACK_IMPORTED_MODULE_1__.rangeFromLocator)(decoration.locator);
+    let id = groupId + "-" + lastItemId++;
+    let range = (0,_utils__WEBPACK_IMPORTED_MODULE_1__.rangeFromLocator)(decoration.locator);
     if (!range) {
       (0,_utils__WEBPACK_IMPORTED_MODULE_1__.log)("Can't locate DOM range for decoration", decoration);
       return;
     }
-    var item = {
+    let item = {
       id,
       decoration,
       range
@@ -1387,11 +1387,11 @@ function DecorationGroup(groupId, groupName) {
    * Removes the decoration with given ID from the group.
    */
   function remove(decorationId) {
-    var index = items.findIndex(i => i.decoration.id === decorationId);
+    let index = items.findIndex(i => i.decoration.id === decorationId);
     if (index === -1) {
       return;
     }
-    var item = items[index];
+    let item = items[index];
     items.splice(index, 1);
     item.clickableElements = null;
     if (item.container) {
@@ -1430,22 +1430,22 @@ function DecorationGroup(groupId, groupName) {
    * Layouts a single Decoration item.
    */
   function layout(item) {
-    var groupContainer = requireContainer();
-    var style = styles.get(item.decoration.style);
+    let groupContainer = requireContainer();
+    let style = styles.get(item.decoration.style);
     if (!style) {
       (0,_utils__WEBPACK_IMPORTED_MODULE_1__.logErrorMessage)("Unknown decoration style: ".concat(item.decoration.style));
       return;
     }
-    var itemContainer = document.createElement("div");
+    let itemContainer = document.createElement("div");
     itemContainer.setAttribute("id", item.id);
     itemContainer.setAttribute("data-style", item.decoration.style);
     itemContainer.style.setProperty("pointer-events", "none");
-    var viewportWidth = window.innerWidth;
-    var columnCount = parseInt(getComputedStyle(document.documentElement).getPropertyValue("column-count"));
-    var pageWidth = viewportWidth / (columnCount || 1);
-    var scrollingElement = document.scrollingElement;
-    var xOffset = scrollingElement.scrollLeft;
-    var yOffset = scrollingElement.scrollTop;
+    let viewportWidth = window.innerWidth;
+    let columnCount = parseInt(getComputedStyle(document.documentElement).getPropertyValue("column-count"));
+    let pageWidth = viewportWidth / (columnCount || 1);
+    let scrollingElement = document.scrollingElement;
+    let xOffset = scrollingElement.scrollLeft;
+    let yOffset = scrollingElement.scrollTop;
     function positionElement(element, rect, boundingRect) {
       element.style.position = "absolute";
       if (style.width === "wrap") {
@@ -1456,7 +1456,7 @@ function DecorationGroup(groupId, groupName) {
       } else if (style.width === "viewport") {
         element.style.width = "".concat(viewportWidth, "px");
         element.style.height = "".concat(rect.height, "px");
-        var left = Math.floor(rect.left / viewportWidth) * viewportWidth;
+        let left = Math.floor(rect.left / viewportWidth) * viewportWidth;
         element.style.left = "".concat(left + xOffset, "px");
         element.style.top = "".concat(rect.top + yOffset, "px");
       } else if (style.width === "bounds") {
@@ -1467,15 +1467,15 @@ function DecorationGroup(groupId, groupName) {
       } else if (style.width === "page") {
         element.style.width = "".concat(pageWidth, "px");
         element.style.height = "".concat(rect.height, "px");
-        var _left = Math.floor(rect.left / pageWidth) * pageWidth;
-        element.style.left = "".concat(_left + xOffset, "px");
+        let left = Math.floor(rect.left / pageWidth) * pageWidth;
+        element.style.left = "".concat(left + xOffset, "px");
         element.style.top = "".concat(rect.top + yOffset, "px");
       }
     }
-    var boundingRect = item.range.getBoundingClientRect();
-    var elementTemplate;
+    let boundingRect = item.range.getBoundingClientRect();
+    let elementTemplate;
     try {
-      var template = document.createElement("template");
+      let template = document.createElement("template");
       template.innerHTML = item.decoration.element.trim();
       elementTemplate = template.content.firstElementChild;
     } catch (error) {
@@ -1483,8 +1483,8 @@ function DecorationGroup(groupId, groupName) {
       return;
     }
     if (style.layout === "boxes") {
-      var doNotMergeHorizontallyAlignedRects = true;
-      var clientRects = (0,_rect__WEBPACK_IMPORTED_MODULE_0__.getClientRectsNoOverlap)(item.range, doNotMergeHorizontallyAlignedRects);
+      let doNotMergeHorizontallyAlignedRects = true;
+      let clientRects = (0,_rect__WEBPACK_IMPORTED_MODULE_0__.getClientRectsNoOverlap)(item.range, doNotMergeHorizontallyAlignedRects);
       clientRects = clientRects.sort((r1, r2) => {
         if (r1.top < r2.top) {
           return -1;
@@ -1494,14 +1494,14 @@ function DecorationGroup(groupId, groupName) {
           return 0;
         }
       });
-      for (var clientRect of clientRects) {
-        var line = elementTemplate.cloneNode(true);
+      for (let clientRect of clientRects) {
+        const line = elementTemplate.cloneNode(true);
         line.style.setProperty("pointer-events", "none");
         positionElement(line, clientRect, boundingRect);
         itemContainer.append(line);
       }
     } else if (style.layout === "bounds") {
-      var bounds = elementTemplate.cloneNode(true);
+      const bounds = elementTemplate.cloneNode(true);
       bounds.style.setProperty("pointer-events", "none");
       positionElement(bounds, boundingRect, boundingRect);
       itemContainer.append(bounds);
@@ -1550,12 +1550,12 @@ function DecorationGroup(groupId, groupName) {
 }
 window.addEventListener("load", function () {
   // Will relayout all the decorations when the document body is resized.
-  var body = document.body;
+  const body = document.body;
   var lastSize = {
     width: 0,
     height: 0
   };
-  var observer = new ResizeObserver(() => {
+  const observer = new ResizeObserver(() => {
     if (lastSize.width === body.clientWidth && lastSize.height === body.clientHeight) {
       return;
     }
@@ -1623,7 +1623,7 @@ function findNearestInteractiveElement(element) {
 /// Returns the `Locator` object to the first block element that is visible on
 /// the screen.
 function findFirstVisibleLocator() {
-  var element = findElement(document.body);
+  const element = findElement(document.body);
   if (!element) {
     return undefined;
   }
@@ -1641,8 +1641,8 @@ function findFirstVisibleLocator() {
 function findElement(rootElement) {
   var foundElement = undefined;
   for (var i = rootElement.children.length - 1; i >= 0; i--) {
-    var child = rootElement.children[i];
-    var position = elementRelativePosition(child, undefined);
+    const child = rootElement.children[i];
+    const position = elementRelativePosition(child, undefined);
     if (position == 0) {
       if (!shouldIgnoreElement(child)) {
         foundElement = child;
@@ -1669,11 +1669,11 @@ function elementRelativePosition(element, domRect /* nullable */) {
   if (!document || !document.documentElement || !document.body) {
     return 1;
   }
-  var rect = domRect || element.getBoundingClientRect();
+  const rect = domRect || element.getBoundingClientRect();
   if ((0,_utils__WEBPACK_IMPORTED_MODULE_0__.isScrollModeEnabled)()) {
     return rect.top >= 0 && rect.top <= document.documentElement.clientHeight;
   } else {
-    var pageWidth = window.innerWidth;
+    const pageWidth = window.innerWidth;
     if (rect.left >= pageWidth) {
       return 1;
     } else if (rect.left >= 0) {
@@ -1684,9 +1684,9 @@ function elementRelativePosition(element, domRect /* nullable */) {
   }
 }
 function shouldIgnoreElement(element) {
-  var elStyle = getComputedStyle(element);
+  const elStyle = getComputedStyle(element);
   if (elStyle) {
-    var display = elStyle.getPropertyValue("display");
+    const display = elStyle.getPropertyValue("display");
     if (display === "none") {
       return true;
     }
@@ -1696,7 +1696,7 @@ function shouldIgnoreElement(element) {
     // if (visibility === "hidden") {
     //     return false;
     // }
-    var opacity = elStyle.getPropertyValue("opacity");
+    const opacity = elStyle.getPropertyValue("opacity");
     if (opacity === "0") {
       return true;
     }
@@ -1736,11 +1736,11 @@ function onClick(event) {
     // There's an on-going selection, the tap will dismiss it so we don't forward it.
     return;
   }
-  var point = (0,_rect__WEBPACK_IMPORTED_MODULE_1__.adjustPointToViewport)({
+  let point = (0,_rect__WEBPACK_IMPORTED_MODULE_1__.adjustPointToViewport)({
     x: event.clientX,
     y: event.clientY
   });
-  var clickEvent = {
+  let clickEvent = {
     defaultPrevented: event.defaultPrevented,
     x: point.x,
     y: point.y,
@@ -1890,22 +1890,22 @@ __webpack_require__.r(__webpack_exports__);
 //
 
 
-var debug = false;
+const debug = false;
 
 /**
  * Converts a DOMRect into a JSON object understandable by the native side.
  */
 function toNativeRect(rect) {
-  var point = adjustPointToViewport({
+  let point = adjustPointToViewport({
     x: rect.left,
     y: rect.top
   });
-  var width = rect.width;
-  var height = rect.height;
-  var left = point.x;
-  var top = point.y;
-  var right = left + width;
-  var bottom = top + height;
+  const width = rect.width;
+  const height = rect.height;
+  const left = point.x;
+  const top = point.y;
+  const right = left + width;
+  const bottom = top + height;
   return {
     width,
     height,
@@ -1923,21 +1923,21 @@ function adjustPointToViewport(point) {
   if (!frameElement) {
     return point;
   }
-  var frameRect = frameElement.getBoundingClientRect();
+  let frameRect = frameElement.getBoundingClientRect();
   if (!frameRect) {
     return point;
   }
-  var topScrollingElement = window.top.document.documentElement;
+  let topScrollingElement = window.top.document.documentElement;
   return {
     x: point.x + frameRect.x + topScrollingElement.scrollLeft,
     y: point.y + frameRect.y + topScrollingElement.scrollTop
   };
 }
 function getClientRectsNoOverlap(range, doNotMergeHorizontallyAlignedRects) {
-  var clientRects = range.getClientRects();
-  var tolerance = 1;
-  var originalRects = [];
-  for (var rangeClientRect of clientRects) {
+  let clientRects = range.getClientRects();
+  const tolerance = 1;
+  const originalRects = [];
+  for (const rangeClientRect of clientRects) {
     originalRects.push({
       bottom: rangeClientRect.bottom,
       height: rangeClientRect.height,
@@ -1947,13 +1947,13 @@ function getClientRectsNoOverlap(range, doNotMergeHorizontallyAlignedRects) {
       width: rangeClientRect.width
     });
   }
-  var mergedRects = mergeTouchingRects(originalRects, tolerance, doNotMergeHorizontallyAlignedRects);
-  var noContainedRects = removeContainedRects(mergedRects, tolerance);
-  var newRects = replaceOverlapingRects(noContainedRects);
-  var minArea = 2 * 2;
-  for (var j = newRects.length - 1; j >= 0; j--) {
-    var rect = newRects[j];
-    var bigEnough = rect.width * rect.height > minArea;
+  const mergedRects = mergeTouchingRects(originalRects, tolerance, doNotMergeHorizontallyAlignedRects);
+  const noContainedRects = removeContainedRects(mergedRects, tolerance);
+  const newRects = replaceOverlapingRects(noContainedRects);
+  const minArea = 2 * 2;
+  for (let j = newRects.length - 1; j >= 0; j--) {
+    const rect = newRects[j];
+    const bigEnough = rect.width * rect.height > minArea;
     if (!bigEnough) {
       if (newRects.length > 1) {
         log("CLIENT RECT: remove small");
@@ -1968,44 +1968,37 @@ function getClientRectsNoOverlap(range, doNotMergeHorizontallyAlignedRects) {
   return newRects;
 }
 function mergeTouchingRects(rects, tolerance, doNotMergeHorizontallyAlignedRects) {
-  for (var i = 0; i < rects.length; i++) {
-    var _loop = function () {
-      var rect1 = rects[i];
-      var rect2 = rects[j];
+  for (let i = 0; i < rects.length; i++) {
+    for (let j = i + 1; j < rects.length; j++) {
+      const rect1 = rects[i];
+      const rect2 = rects[j];
       if (rect1 === rect2) {
         log("mergeTouchingRects rect1 === rect2 ??!");
-        return "continue";
+        continue;
       }
-      var rectsLineUpVertically = almostEqual(rect1.top, rect2.top, tolerance) && almostEqual(rect1.bottom, rect2.bottom, tolerance);
-      var rectsLineUpHorizontally = almostEqual(rect1.left, rect2.left, tolerance) && almostEqual(rect1.right, rect2.right, tolerance);
-      var horizontalAllowed = !doNotMergeHorizontallyAlignedRects;
-      var aligned = rectsLineUpHorizontally && horizontalAllowed || rectsLineUpVertically && !rectsLineUpHorizontally;
-      var canMerge = aligned && rectsTouchOrOverlap(rect1, rect2, tolerance);
+      const rectsLineUpVertically = almostEqual(rect1.top, rect2.top, tolerance) && almostEqual(rect1.bottom, rect2.bottom, tolerance);
+      const rectsLineUpHorizontally = almostEqual(rect1.left, rect2.left, tolerance) && almostEqual(rect1.right, rect2.right, tolerance);
+      const horizontalAllowed = !doNotMergeHorizontallyAlignedRects;
+      const aligned = rectsLineUpHorizontally && horizontalAllowed || rectsLineUpVertically && !rectsLineUpHorizontally;
+      const canMerge = aligned && rectsTouchOrOverlap(rect1, rect2, tolerance);
       if (canMerge) {
         log("CLIENT RECT: merging two into one, VERTICAL: ".concat(rectsLineUpVertically, " HORIZONTAL: ").concat(rectsLineUpHorizontally, " (").concat(doNotMergeHorizontallyAlignedRects, ")"));
-        var newRects = rects.filter(rect => {
+        const newRects = rects.filter(rect => {
           return rect !== rect1 && rect !== rect2;
         });
-        var replacementClientRect = getBoundingRect(rect1, rect2);
+        const replacementClientRect = getBoundingRect(rect1, rect2);
         newRects.push(replacementClientRect);
-        return {
-          v: mergeTouchingRects(newRects, tolerance, doNotMergeHorizontallyAlignedRects)
-        };
+        return mergeTouchingRects(newRects, tolerance, doNotMergeHorizontallyAlignedRects);
       }
-    };
-    for (var j = i + 1; j < rects.length; j++) {
-      var _ret = _loop();
-      if (_ret === "continue") continue;
-      if (typeof _ret === "object") return _ret.v;
     }
   }
   return rects;
 }
 function getBoundingRect(rect1, rect2) {
-  var left = Math.min(rect1.left, rect2.left);
-  var right = Math.max(rect1.right, rect2.right);
-  var top = Math.min(rect1.top, rect2.top);
-  var bottom = Math.max(rect1.bottom, rect2.bottom);
+  const left = Math.min(rect1.left, rect2.left);
+  const right = Math.max(rect1.right, rect2.right);
+  const top = Math.min(rect1.top, rect2.top);
+  const bottom = Math.max(rect1.bottom, rect2.bottom);
   return {
     bottom,
     height: bottom - top,
@@ -2016,15 +2009,15 @@ function getBoundingRect(rect1, rect2) {
   };
 }
 function removeContainedRects(rects, tolerance) {
-  var rectsToKeep = new Set(rects);
-  for (var rect of rects) {
-    var bigEnough = rect.width > 1 && rect.height > 1;
+  const rectsToKeep = new Set(rects);
+  for (const rect of rects) {
+    const bigEnough = rect.width > 1 && rect.height > 1;
     if (!bigEnough) {
       log("CLIENT RECT: remove tiny");
       rectsToKeep.delete(rect);
       continue;
     }
-    for (var possiblyContainingRect of rects) {
+    for (const possiblyContainingRect of rects) {
       if (rect === possiblyContainingRect) {
         continue;
       }
@@ -2047,23 +2040,23 @@ function rectContainsPoint(rect, x, y, tolerance) {
   return (rect.left < x || almostEqual(rect.left, x, tolerance)) && (rect.right > x || almostEqual(rect.right, x, tolerance)) && (rect.top < y || almostEqual(rect.top, y, tolerance)) && (rect.bottom > y || almostEqual(rect.bottom, y, tolerance));
 }
 function replaceOverlapingRects(rects) {
-  for (var i = 0; i < rects.length; i++) {
-    var _loop2 = function () {
-      var rect1 = rects[i];
-      var rect2 = rects[j];
+  for (let i = 0; i < rects.length; i++) {
+    for (let j = i + 1; j < rects.length; j++) {
+      const rect1 = rects[i];
+      const rect2 = rects[j];
       if (rect1 === rect2) {
         log("replaceOverlapingRects rect1 === rect2 ??!");
-        return "continue";
+        continue;
       }
       if (rectsTouchOrOverlap(rect1, rect2, -1)) {
-        var toAdd = [];
-        var toRemove;
-        var subtractRects1 = rectSubtract(rect1, rect2);
+        let toAdd = [];
+        let toRemove;
+        const subtractRects1 = rectSubtract(rect1, rect2);
         if (subtractRects1.length === 1) {
           toAdd = subtractRects1;
           toRemove = rect1;
         } else {
-          var subtractRects2 = rectSubtract(rect2, rect1);
+          const subtractRects2 = rectSubtract(rect2, rect1);
           if (subtractRects1.length < subtractRects2.length) {
             toAdd = subtractRects1;
             toRemove = rect1;
@@ -2073,31 +2066,24 @@ function replaceOverlapingRects(rects) {
           }
         }
         log("CLIENT RECT: overlap, cut one rect into ".concat(toAdd.length));
-        var newRects = rects.filter(rect => {
+        const newRects = rects.filter(rect => {
           return rect !== toRemove;
         });
         Array.prototype.push.apply(newRects, toAdd);
-        return {
-          v: replaceOverlapingRects(newRects)
-        };
+        return replaceOverlapingRects(newRects);
       }
-    };
-    for (var j = i + 1; j < rects.length; j++) {
-      var _ret2 = _loop2();
-      if (_ret2 === "continue") continue;
-      if (typeof _ret2 === "object") return _ret2.v;
     }
   }
   return rects;
 }
 function rectSubtract(rect1, rect2) {
-  var rectIntersected = rectIntersect(rect2, rect1);
+  const rectIntersected = rectIntersect(rect2, rect1);
   if (rectIntersected.height === 0 || rectIntersected.width === 0) {
     return [rect1];
   }
-  var rects = [];
+  const rects = [];
   {
-    var rectA = {
+    const rectA = {
       bottom: rect1.bottom,
       height: 0,
       left: rect1.left,
@@ -2112,7 +2098,7 @@ function rectSubtract(rect1, rect2) {
     }
   }
   {
-    var rectB = {
+    const rectB = {
       bottom: rectIntersected.top,
       height: 0,
       left: rectIntersected.left,
@@ -2127,7 +2113,7 @@ function rectSubtract(rect1, rect2) {
     }
   }
   {
-    var rectC = {
+    const rectC = {
       bottom: rect1.bottom,
       height: 0,
       left: rectIntersected.left,
@@ -2142,7 +2128,7 @@ function rectSubtract(rect1, rect2) {
     }
   }
   {
-    var rectD = {
+    const rectD = {
       bottom: rect1.bottom,
       height: 0,
       left: rectIntersected.right,
@@ -2159,10 +2145,10 @@ function rectSubtract(rect1, rect2) {
   return rects;
 }
 function rectIntersect(rect1, rect2) {
-  var maxLeft = Math.max(rect1.left, rect2.left);
-  var minRight = Math.min(rect1.right, rect2.right);
-  var maxTop = Math.max(rect1.top, rect2.top);
-  var minBottom = Math.min(rect1.bottom, rect2.bottom);
+  const maxLeft = Math.max(rect1.left, rect2.left);
+  const minRight = Math.min(rect1.right, rect2.right);
+  const maxTop = Math.max(rect1.top, rect2.top);
+  const minBottom = Math.min(rect1.bottom, rect2.bottom);
   return {
     bottom: minBottom,
     height: Math.max(0, minBottom - maxTop),
@@ -2217,20 +2203,20 @@ __webpack_require__.r(__webpack_exports__);
 // Polyfill for iOS 12
 
 string_prototype_matchall__WEBPACK_IMPORTED_MODULE_3___default().shim();
-var debug = true;
+const debug = true;
 function getCurrentSelection() {
   if (!readium.link) {
     return null;
   }
-  var href = readium.link.href;
+  const href = readium.link.href;
   if (!href) {
     return null;
   }
-  var text = getCurrentSelectionText();
+  const text = getCurrentSelectionText();
   if (!text) {
     return null;
   }
-  var rect = getSelectionRect();
+  const rect = getSelectionRect();
   return {
     href,
     text,
@@ -2239,11 +2225,11 @@ function getCurrentSelection() {
 }
 function getSelectionRect() {
   try {
-    var sel = window.getSelection();
+    let sel = window.getSelection();
     if (!sel) {
       return;
     }
-    var range = sel.getRangeAt(0);
+    let range = sel.getRangeAt(0);
     return (0,_rect__WEBPACK_IMPORTED_MODULE_1__.toNativeRect)(range.getBoundingClientRect());
   } catch (e) {
     (0,_utils__WEBPACK_IMPORTED_MODULE_0__.logError)(e);
@@ -2251,42 +2237,42 @@ function getSelectionRect() {
   }
 }
 function getCurrentSelectionText() {
-  var selection = window.getSelection();
+  const selection = window.getSelection();
   if (!selection) {
     return undefined;
   }
   if (selection.isCollapsed) {
     return undefined;
   }
-  var highlight = selection.toString();
-  var cleanHighlight = highlight.trim().replace(/\n/g, " ").replace(/\s\s+/g, " ");
+  const highlight = selection.toString();
+  const cleanHighlight = highlight.trim().replace(/\n/g, " ").replace(/\s\s+/g, " ");
   if (cleanHighlight.length === 0) {
     return undefined;
   }
   if (!selection.anchorNode || !selection.focusNode) {
     return undefined;
   }
-  var range = selection.rangeCount === 1 ? selection.getRangeAt(0) : createOrderedRange(selection.anchorNode, selection.anchorOffset, selection.focusNode, selection.focusOffset);
+  const range = selection.rangeCount === 1 ? selection.getRangeAt(0) : createOrderedRange(selection.anchorNode, selection.anchorOffset, selection.focusNode, selection.focusOffset);
   if (!range || range.collapsed) {
     log("$$$$$$$$$$$$$$$$$ CANNOT GET NON-COLLAPSED SELECTION RANGE?!");
     return undefined;
   }
-  var text = document.body.textContent;
-  var textRange = _vendor_hypothesis_anchoring_text_range__WEBPACK_IMPORTED_MODULE_2__.TextRange.fromRange(range).relativeTo(document.body);
-  var start = textRange.start.offset;
-  var end = textRange.end.offset;
-  var snippetLength = 200;
+  const text = document.body.textContent;
+  const textRange = _vendor_hypothesis_anchoring_text_range__WEBPACK_IMPORTED_MODULE_2__.TextRange.fromRange(range).relativeTo(document.body);
+  const start = textRange.start.offset;
+  const end = textRange.end.offset;
+  const snippetLength = 200;
 
   // Compute the text before the highlight, ignoring the first "word", which might be cut.
-  var before = text.slice(Math.max(0, start - snippetLength), start);
-  var firstWordStart = before.search(/(?:[\0-@\[-`\{-\xA9\xAB-\xB4\xB6-\xB9\xBB-\xBF\xD7\xF7\u02C2-\u02C5\u02D2-\u02DF\u02E5-\u02EB\u02ED\u02EF-\u036F\u0375\u0378\u0379\u037E\u0380-\u0385\u0387\u038B\u038D\u03A2\u03F6\u0482-\u0489\u0530\u0557\u0558\u055A-\u055F\u0589-\u05CF\u05EB-\u05EE\u05F3-\u061F\u064B-\u066D\u0670\u06D4\u06D6-\u06E4\u06E7-\u06ED\u06F0-\u06F9\u06FD\u06FE\u0700-\u070F\u0711\u0730-\u074C\u07A6-\u07B0\u07B2-\u07C9\u07EB-\u07F3\u07F6-\u07F9\u07FB-\u07FF\u0816-\u0819\u081B-\u0823\u0825-\u0827\u0829-\u083F\u0859-\u085F\u086B-\u086F\u0888\u088F-\u089F\u08CA-\u0903\u093A-\u093C\u093E-\u094F\u0951-\u0957\u0962-\u0970\u0981-\u0984\u098D\u098E\u0991\u0992\u09A9\u09B1\u09B3-\u09B5\u09BA-\u09BC\u09BE-\u09CD\u09CF-\u09DB\u09DE\u09E2-\u09EF\u09F2-\u09FB\u09FD-\u0A04\u0A0B-\u0A0E\u0A11\u0A12\u0A29\u0A31\u0A34\u0A37\u0A3A-\u0A58\u0A5D\u0A5F-\u0A71\u0A75-\u0A84\u0A8E\u0A92\u0AA9\u0AB1\u0AB4\u0ABA-\u0ABC\u0ABE-\u0ACF\u0AD1-\u0ADF\u0AE2-\u0AF8\u0AFA-\u0B04\u0B0D\u0B0E\u0B11\u0B12\u0B29\u0B31\u0B34\u0B3A-\u0B3C\u0B3E-\u0B5B\u0B5E\u0B62-\u0B70\u0B72-\u0B82\u0B84\u0B8B-\u0B8D\u0B91\u0B96-\u0B98\u0B9B\u0B9D\u0BA0-\u0BA2\u0BA5-\u0BA7\u0BAB-\u0BAD\u0BBA-\u0BCF\u0BD1-\u0C04\u0C0D\u0C11\u0C29\u0C3A-\u0C3C\u0C3E-\u0C57\u0C5B\u0C5C\u0C5E\u0C5F\u0C62-\u0C7F\u0C81-\u0C84\u0C8D\u0C91\u0CA9\u0CB4\u0CBA-\u0CBC\u0CBE-\u0CDC\u0CDF\u0CE2-\u0CF0\u0CF3-\u0D03\u0D0D\u0D11\u0D3B\u0D3C\u0D3E-\u0D4D\u0D4F-\u0D53\u0D57-\u0D5E\u0D62-\u0D79\u0D80-\u0D84\u0D97-\u0D99\u0DB2\u0DBC\u0DBE\u0DBF\u0DC7-\u0E00\u0E31\u0E34-\u0E3F\u0E47-\u0E80\u0E83\u0E85\u0E8B\u0EA4\u0EA6\u0EB1\u0EB4-\u0EBC\u0EBE\u0EBF\u0EC5\u0EC7-\u0EDB\u0EE0-\u0EFF\u0F01-\u0F3F\u0F48\u0F6D-\u0F87\u0F8D-\u0FFF\u102B-\u103E\u1040-\u104F\u1056-\u1059\u105E-\u1060\u1062-\u1064\u1067-\u106D\u1071-\u1074\u1082-\u108D\u108F-\u109F\u10C6\u10C8-\u10CC\u10CE\u10CF\u10FB\u1249\u124E\u124F\u1257\u1259\u125E\u125F\u1289\u128E\u128F\u12B1\u12B6\u12B7\u12BF\u12C1\u12C6\u12C7\u12D7\u1311\u1316\u1317\u135B-\u137F\u1390-\u139F\u13F6\u13F7\u13FE-\u1400\u166D\u166E\u1680\u169B-\u169F\u16EB-\u16F0\u16F9-\u16FF\u1712-\u171E\u1732-\u173F\u1752-\u175F\u176D\u1771-\u177F\u17B4-\u17D6\u17D8-\u17DB\u17DD-\u181F\u1879-\u187F\u1885\u1886\u18A9\u18AB-\u18AF\u18F6-\u18FF\u191F-\u194F\u196E\u196F\u1975-\u197F\u19AC-\u19AF\u19CA-\u19FF\u1A17-\u1A1F\u1A55-\u1AA6\u1AA8-\u1B04\u1B34-\u1B44\u1B4D-\u1B82\u1BA1-\u1BAD\u1BB0-\u1BB9\u1BE6-\u1BFF\u1C24-\u1C4C\u1C50-\u1C59\u1C7E\u1C7F\u1C89-\u1C8F\u1CBB\u1CBC\u1CC0-\u1CE8\u1CED\u1CF4\u1CF7-\u1CF9\u1CFB-\u1CFF\u1DC0-\u1DFF\u1F16\u1F17\u1F1E\u1F1F\u1F46\u1F47\u1F4E\u1F4F\u1F58\u1F5A\u1F5C\u1F5E\u1F7E\u1F7F\u1FB5\u1FBD\u1FBF-\u1FC1\u1FC5\u1FCD-\u1FCF\u1FD4\u1FD5\u1FDC-\u1FDF\u1FED-\u1FF1\u1FF5\u1FFD-\u2070\u2072-\u207E\u2080-\u208F\u209D-\u2101\u2103-\u2106\u2108\u2109\u2114\u2116-\u2118\u211E-\u2123\u2125\u2127\u2129\u212E\u213A\u213B\u2140-\u2144\u214A-\u214D\u214F-\u2182\u2185-\u2BFF\u2CE5-\u2CEA\u2CEF-\u2CF1\u2CF4-\u2CFF\u2D26\u2D28-\u2D2C\u2D2E\u2D2F\u2D68-\u2D6E\u2D70-\u2D7F\u2D97-\u2D9F\u2DA7\u2DAF\u2DB7\u2DBF\u2DC7\u2DCF\u2DD7\u2DDF-\u2E2E\u2E30-\u3004\u3007-\u3030\u3036-\u303A\u303D-\u3040\u3097-\u309C\u30A0\u30FB\u3100-\u3104\u3130\u318F-\u319F\u31C0-\u31EF\u3200-\u33FF\u4DC0-\u4DFF\uA48D-\uA4CF\uA4FE\uA4FF\uA60D-\uA60F\uA620-\uA629\uA62C-\uA63F\uA66F-\uA67E\uA69E\uA69F\uA6E6-\uA716\uA720\uA721\uA789\uA78A\uA7CB-\uA7CF\uA7D2\uA7D4\uA7DA-\uA7F1\uA802\uA806\uA80B\uA823-\uA83F\uA874-\uA881\uA8B4-\uA8F1\uA8F8-\uA8FA\uA8FC\uA8FF-\uA909\uA926-\uA92F\uA947-\uA95F\uA97D-\uA983\uA9B3-\uA9CE\uA9D0-\uA9DF\uA9E5\uA9F0-\uA9F9\uA9FF\uAA29-\uAA3F\uAA43\uAA4C-\uAA5F\uAA77-\uAA79\uAA7B-\uAA7D\uAAB0\uAAB2-\uAAB4\uAAB7\uAAB8\uAABE\uAABF\uAAC1\uAAC3-\uAADA\uAADE\uAADF\uAAEB-\uAAF1\uAAF5-\uAB00\uAB07\uAB08\uAB0F\uAB10\uAB17-\uAB1F\uAB27\uAB2F\uAB5B\uAB6A-\uAB6F\uABE3-\uABFF\uD7A4-\uD7AF\uD7C7-\uD7CA\uD7FC-\uD7FF\uE000-\uF8FF\uFA6E\uFA6F\uFADA-\uFAFF\uFB07-\uFB12\uFB18-\uFB1C\uFB1E\uFB29\uFB37\uFB3D\uFB3F\uFB42\uFB45\uFBB2-\uFBD2\uFD3E-\uFD4F\uFD90\uFD91\uFDC8-\uFDEF\uFDFC-\uFE6F\uFE75\uFEFD-\uFF20\uFF3B-\uFF40\uFF5B-\uFF65\uFFBF-\uFFC1\uFFC8\uFFC9\uFFD0\uFFD1\uFFD8\uFFD9\uFFDD-\uFFFF]|\uD800[\uDC0C\uDC27\uDC3B\uDC3E\uDC4E\uDC4F\uDC5E-\uDC7F\uDCFB-\uDE7F\uDE9D-\uDE9F\uDED1-\uDEFF\uDF20-\uDF2C\uDF41\uDF4A-\uDF4F\uDF76-\uDF7F\uDF9E\uDF9F\uDFC4-\uDFC7\uDFD0-\uDFFF]|\uD801[\uDC9E-\uDCAF\uDCD4-\uDCD7\uDCFC-\uDCFF\uDD28-\uDD2F\uDD64-\uDD6F\uDD7B\uDD8B\uDD93\uDD96\uDDA2\uDDB2\uDDBA\uDDBD-\uDDFF\uDF37-\uDF3F\uDF56-\uDF5F\uDF68-\uDF7F\uDF86\uDFB1\uDFBB-\uDFFF]|\uD802[\uDC06\uDC07\uDC09\uDC36\uDC39-\uDC3B\uDC3D\uDC3E\uDC56-\uDC5F\uDC77-\uDC7F\uDC9F-\uDCDF\uDCF3\uDCF6-\uDCFF\uDD16-\uDD1F\uDD3A-\uDD7F\uDDB8-\uDDBD\uDDC0-\uDDFF\uDE01-\uDE0F\uDE14\uDE18\uDE36-\uDE5F\uDE7D-\uDE7F\uDE9D-\uDEBF\uDEC8\uDEE5-\uDEFF\uDF36-\uDF3F\uDF56-\uDF5F\uDF73-\uDF7F\uDF92-\uDFFF]|\uD803[\uDC49-\uDC7F\uDCB3-\uDCBF\uDCF3-\uDCFF\uDD24-\uDE7F\uDEAA-\uDEAF\uDEB2-\uDEFF\uDF1D-\uDF26\uDF28-\uDF2F\uDF46-\uDF6F\uDF82-\uDFAF\uDFC5-\uDFDF\uDFF7-\uDFFF]|\uD804[\uDC00-\uDC02\uDC38-\uDC70\uDC73\uDC74\uDC76-\uDC82\uDCB0-\uDCCF\uDCE9-\uDD02\uDD27-\uDD43\uDD45\uDD46\uDD48-\uDD4F\uDD73-\uDD75\uDD77-\uDD82\uDDB3-\uDDC0\uDDC5-\uDDD9\uDDDB\uDDDD-\uDDFF\uDE12\uDE2C-\uDE3E\uDE41-\uDE7F\uDE87\uDE89\uDE8E\uDE9E\uDEA9-\uDEAF\uDEDF-\uDF04\uDF0D\uDF0E\uDF11\uDF12\uDF29\uDF31\uDF34\uDF3A-\uDF3C\uDF3E-\uDF4F\uDF51-\uDF5C\uDF62-\uDFFF]|\uD805[\uDC35-\uDC46\uDC4B-\uDC5E\uDC62-\uDC7F\uDCB0-\uDCC3\uDCC6\uDCC8-\uDD7F\uDDAF-\uDDD7\uDDDC-\uDDFF\uDE30-\uDE43\uDE45-\uDE7F\uDEAB-\uDEB7\uDEB9-\uDEFF\uDF1B-\uDF3F\uDF47-\uDFFF]|\uD806[\uDC2C-\uDC9F\uDCE0-\uDCFE\uDD07\uDD08\uDD0A\uDD0B\uDD14\uDD17\uDD30-\uDD3E\uDD40\uDD42-\uDD9F\uDDA8\uDDA9\uDDD1-\uDDE0\uDDE2\uDDE4-\uDDFF\uDE01-\uDE0A\uDE33-\uDE39\uDE3B-\uDE4F\uDE51-\uDE5B\uDE8A-\uDE9C\uDE9E-\uDEAF\uDEF9-\uDFFF]|\uD807[\uDC09\uDC2F-\uDC3F\uDC41-\uDC71\uDC90-\uDCFF\uDD07\uDD0A\uDD31-\uDD45\uDD47-\uDD5F\uDD66\uDD69\uDD8A-\uDD97\uDD99-\uDEDF\uDEF3-\uDF01\uDF03\uDF11\uDF34-\uDFAF\uDFB1-\uDFFF]|\uD808[\uDF9A-\uDFFF]|\uD809[\uDC00-\uDC7F\uDD44-\uDFFF]|[\uD80A\uD80E-\uD810\uD812-\uD819\uD824-\uD82A\uD82D\uD82E\uD830-\uD834\uD836\uD83C-\uD83F\uD87B-\uD87D\uD87F\uD889-\uDBFF][\uDC00-\uDFFF]|\uD80B[\uDC00-\uDF8F\uDFF1-\uDFFF]|\uD80D[\uDC30-\uDC40\uDC47-\uDFFF]|\uD811[\uDE47-\uDFFF]|\uD81A[\uDE39-\uDE3F\uDE5F-\uDE6F\uDEBF-\uDECF\uDEEE-\uDEFF\uDF30-\uDF3F\uDF44-\uDF62\uDF78-\uDF7C\uDF90-\uDFFF]|\uD81B[\uDC00-\uDE3F\uDE80-\uDEFF\uDF4B-\uDF4F\uDF51-\uDF92\uDFA0-\uDFDF\uDFE2\uDFE4-\uDFFF]|\uD821[\uDFF8-\uDFFF]|\uD823[\uDCD6-\uDCFF\uDD09-\uDFFF]|\uD82B[\uDC00-\uDFEF\uDFF4\uDFFC\uDFFF]|\uD82C[\uDD23-\uDD31\uDD33-\uDD4F\uDD53\uDD54\uDD56-\uDD63\uDD68-\uDD6F\uDEFC-\uDFFF]|\uD82F[\uDC6B-\uDC6F\uDC7D-\uDC7F\uDC89-\uDC8F\uDC9A-\uDFFF]|\uD835[\uDC55\uDC9D\uDCA0\uDCA1\uDCA3\uDCA4\uDCA7\uDCA8\uDCAD\uDCBA\uDCBC\uDCC4\uDD06\uDD0B\uDD0C\uDD15\uDD1D\uDD3A\uDD3F\uDD45\uDD47-\uDD49\uDD51\uDEA6\uDEA7\uDEC1\uDEDB\uDEFB\uDF15\uDF35\uDF4F\uDF6F\uDF89\uDFA9\uDFC3\uDFCC-\uDFFF]|\uD837[\uDC00-\uDEFF\uDF1F-\uDF24\uDF2B-\uDFFF]|\uD838[\uDC00-\uDC2F\uDC6E-\uDCFF\uDD2D-\uDD36\uDD3E-\uDD4D\uDD4F-\uDE8F\uDEAE-\uDEBF\uDEEC-\uDFFF]|\uD839[\uDC00-\uDCCF\uDCEC-\uDFDF\uDFE7\uDFEC\uDFEF\uDFFF]|\uD83A[\uDCC5-\uDCFF\uDD44-\uDD4A\uDD4C-\uDFFF]|\uD83B[\uDC00-\uDDFF\uDE04\uDE20\uDE23\uDE25\uDE26\uDE28\uDE33\uDE38\uDE3A\uDE3C-\uDE41\uDE43-\uDE46\uDE48\uDE4A\uDE4C\uDE50\uDE53\uDE55\uDE56\uDE58\uDE5A\uDE5C\uDE5E\uDE60\uDE63\uDE65\uDE66\uDE6B\uDE73\uDE78\uDE7D\uDE7F\uDE8A\uDE9C-\uDEA0\uDEA4\uDEAA\uDEBC-\uDFFF]|\uD869[\uDEE0-\uDEFF]|\uD86D[\uDF3A-\uDF3F]|\uD86E[\uDC1E\uDC1F]|\uD873[\uDEA2-\uDEAF]|\uD87A[\uDFE1-\uDFFF]|\uD87E[\uDE1E-\uDFFF]|\uD884[\uDF4B-\uDF4F]|\uD888[\uDFB0-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])(?:[A-Za-z\xAA\xB5\xBA\xC0-\xD6\xD8-\xF6\xF8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0370-\u0374\u0376\u0377\u037A-\u037D\u037F\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u052F\u0531-\u0556\u0559\u0560-\u0588\u05D0-\u05EA\u05EF-\u05F2\u0620-\u064A\u066E\u066F\u0671-\u06D3\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0815\u081A\u0824\u0828\u0840-\u0858\u0860-\u086A\u0870-\u0887\u0889-\u088E\u08A0-\u08C9\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC\u09DD\u09DF-\u09E1\u09F0\u09F1\u09FC\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0\u0AE1\u0AF9\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D\u0B5C\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C39\u0C3D\u0C58-\u0C5A\u0C5D\u0C60\u0C61\u0C80\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDD\u0CDE\u0CE0\u0CE1\u0CF1\u0CF2\u0D04-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D\u0D4E\u0D54-\u0D56\u0D5F-\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0E01-\u0E30\u0E32\u0E33\u0E40-\u0E46\u0E81\u0E82\u0E84\u0E86-\u0E8A\u0E8C-\u0EA3\u0EA5\u0EA7-\u0EB0\u0EB2\u0EB3\u0EBD\u0EC0-\u0EC4\u0EC6\u0EDC-\u0EDF\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C\u1000-\u102A\u103F\u1050-\u1055\u105A-\u105D\u1061\u1065\u1066\u106E-\u1070\u1075-\u1081\u108E\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F5\u13F8-\u13FD\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16F1-\u16F8\u1700-\u1711\u171F-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1780-\u17B3\u17D7\u17DC\u1820-\u1878\u1880-\u1884\u1887-\u18A8\u18AA\u18B0-\u18F5\u1900-\u191E\u1950-\u196D\u1970-\u1974\u1980-\u19AB\u19B0-\u19C9\u1A00-\u1A16\u1A20-\u1A54\u1AA7\u1B05-\u1B33\u1B45-\u1B4C\u1B83-\u1BA0\u1BAE\u1BAF\u1BBA-\u1BE5\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1C80-\u1C88\u1C90-\u1CBA\u1CBD-\u1CBF\u1CE9-\u1CEC\u1CEE-\u1CF3\u1CF5\u1CF6\u1CFA\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2183\u2184\u2C00-\u2CE4\u2CEB-\u2CEE\u2CF2\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2E2F\u3005\u3006\u3031-\u3035\u303B\u303C\u3041-\u3096\u309D-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312F\u3131-\u318E\u31A0-\u31BF\u31F0-\u31FF\u3400-\u4DBF\u4E00-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA67F-\uA69D\uA6A0-\uA6E5\uA717-\uA71F\uA722-\uA788\uA78B-\uA7CA\uA7D0\uA7D1\uA7D3\uA7D5-\uA7D9\uA7F2-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA8F2-\uA8F7\uA8FB\uA8FD\uA8FE\uA90A-\uA925\uA930-\uA946\uA960-\uA97C\uA984-\uA9B2\uA9CF\uA9E0-\uA9E4\uA9E6-\uA9EF\uA9FA-\uA9FE\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAA60-\uAA76\uAA7A\uAA7E-\uAAAF\uAAB1\uAAB5\uAAB6\uAAB9-\uAABD\uAAC0\uAAC2\uAADB-\uAADD\uAAE0-\uAAEA\uAAF2-\uAAF4\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uAB30-\uAB5A\uAB5C-\uAB69\uAB70-\uABE2\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]|\uD800[\uDC00-\uDC0B\uDC0D-\uDC26\uDC28-\uDC3A\uDC3C\uDC3D\uDC3F-\uDC4D\uDC50-\uDC5D\uDC80-\uDCFA\uDE80-\uDE9C\uDEA0-\uDED0\uDF00-\uDF1F\uDF2D-\uDF40\uDF42-\uDF49\uDF50-\uDF75\uDF80-\uDF9D\uDFA0-\uDFC3\uDFC8-\uDFCF]|\uD801[\uDC00-\uDC9D\uDCB0-\uDCD3\uDCD8-\uDCFB\uDD00-\uDD27\uDD30-\uDD63\uDD70-\uDD7A\uDD7C-\uDD8A\uDD8C-\uDD92\uDD94\uDD95\uDD97-\uDDA1\uDDA3-\uDDB1\uDDB3-\uDDB9\uDDBB\uDDBC\uDE00-\uDF36\uDF40-\uDF55\uDF60-\uDF67\uDF80-\uDF85\uDF87-\uDFB0\uDFB2-\uDFBA]|\uD802[\uDC00-\uDC05\uDC08\uDC0A-\uDC35\uDC37\uDC38\uDC3C\uDC3F-\uDC55\uDC60-\uDC76\uDC80-\uDC9E\uDCE0-\uDCF2\uDCF4\uDCF5\uDD00-\uDD15\uDD20-\uDD39\uDD80-\uDDB7\uDDBE\uDDBF\uDE00\uDE10-\uDE13\uDE15-\uDE17\uDE19-\uDE35\uDE60-\uDE7C\uDE80-\uDE9C\uDEC0-\uDEC7\uDEC9-\uDEE4\uDF00-\uDF35\uDF40-\uDF55\uDF60-\uDF72\uDF80-\uDF91]|\uD803[\uDC00-\uDC48\uDC80-\uDCB2\uDCC0-\uDCF2\uDD00-\uDD23\uDE80-\uDEA9\uDEB0\uDEB1\uDF00-\uDF1C\uDF27\uDF30-\uDF45\uDF70-\uDF81\uDFB0-\uDFC4\uDFE0-\uDFF6]|\uD804[\uDC03-\uDC37\uDC71\uDC72\uDC75\uDC83-\uDCAF\uDCD0-\uDCE8\uDD03-\uDD26\uDD44\uDD47\uDD50-\uDD72\uDD76\uDD83-\uDDB2\uDDC1-\uDDC4\uDDDA\uDDDC\uDE00-\uDE11\uDE13-\uDE2B\uDE3F\uDE40\uDE80-\uDE86\uDE88\uDE8A-\uDE8D\uDE8F-\uDE9D\uDE9F-\uDEA8\uDEB0-\uDEDE\uDF05-\uDF0C\uDF0F\uDF10\uDF13-\uDF28\uDF2A-\uDF30\uDF32\uDF33\uDF35-\uDF39\uDF3D\uDF50\uDF5D-\uDF61]|\uD805[\uDC00-\uDC34\uDC47-\uDC4A\uDC5F-\uDC61\uDC80-\uDCAF\uDCC4\uDCC5\uDCC7\uDD80-\uDDAE\uDDD8-\uDDDB\uDE00-\uDE2F\uDE44\uDE80-\uDEAA\uDEB8\uDF00-\uDF1A\uDF40-\uDF46]|\uD806[\uDC00-\uDC2B\uDCA0-\uDCDF\uDCFF-\uDD06\uDD09\uDD0C-\uDD13\uDD15\uDD16\uDD18-\uDD2F\uDD3F\uDD41\uDDA0-\uDDA7\uDDAA-\uDDD0\uDDE1\uDDE3\uDE00\uDE0B-\uDE32\uDE3A\uDE50\uDE5C-\uDE89\uDE9D\uDEB0-\uDEF8]|\uD807[\uDC00-\uDC08\uDC0A-\uDC2E\uDC40\uDC72-\uDC8F\uDD00-\uDD06\uDD08\uDD09\uDD0B-\uDD30\uDD46\uDD60-\uDD65\uDD67\uDD68\uDD6A-\uDD89\uDD98\uDEE0-\uDEF2\uDF02\uDF04-\uDF10\uDF12-\uDF33\uDFB0]|\uD808[\uDC00-\uDF99]|\uD809[\uDC80-\uDD43]|\uD80B[\uDF90-\uDFF0]|[\uD80C\uD81C-\uD820\uD822\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872\uD874-\uD879\uD880-\uD883\uD885-\uD887][\uDC00-\uDFFF]|\uD80D[\uDC00-\uDC2F\uDC41-\uDC46]|\uD811[\uDC00-\uDE46]|\uD81A[\uDC00-\uDE38\uDE40-\uDE5E\uDE70-\uDEBE\uDED0-\uDEED\uDF00-\uDF2F\uDF40-\uDF43\uDF63-\uDF77\uDF7D-\uDF8F]|\uD81B[\uDE40-\uDE7F\uDF00-\uDF4A\uDF50\uDF93-\uDF9F\uDFE0\uDFE1\uDFE3]|\uD821[\uDC00-\uDFF7]|\uD823[\uDC00-\uDCD5\uDD00-\uDD08]|\uD82B[\uDFF0-\uDFF3\uDFF5-\uDFFB\uDFFD\uDFFE]|\uD82C[\uDC00-\uDD22\uDD32\uDD50-\uDD52\uDD55\uDD64-\uDD67\uDD70-\uDEFB]|\uD82F[\uDC00-\uDC6A\uDC70-\uDC7C\uDC80-\uDC88\uDC90-\uDC99]|\uD835[\uDC00-\uDC54\uDC56-\uDC9C\uDC9E\uDC9F\uDCA2\uDCA5\uDCA6\uDCA9-\uDCAC\uDCAE-\uDCB9\uDCBB\uDCBD-\uDCC3\uDCC5-\uDD05\uDD07-\uDD0A\uDD0D-\uDD14\uDD16-\uDD1C\uDD1E-\uDD39\uDD3B-\uDD3E\uDD40-\uDD44\uDD46\uDD4A-\uDD50\uDD52-\uDEA5\uDEA8-\uDEC0\uDEC2-\uDEDA\uDEDC-\uDEFA\uDEFC-\uDF14\uDF16-\uDF34\uDF36-\uDF4E\uDF50-\uDF6E\uDF70-\uDF88\uDF8A-\uDFA8\uDFAA-\uDFC2\uDFC4-\uDFCB]|\uD837[\uDF00-\uDF1E\uDF25-\uDF2A]|\uD838[\uDC30-\uDC6D\uDD00-\uDD2C\uDD37-\uDD3D\uDD4E\uDE90-\uDEAD\uDEC0-\uDEEB]|\uD839[\uDCD0-\uDCEB\uDFE0-\uDFE6\uDFE8-\uDFEB\uDFED\uDFEE\uDFF0-\uDFFE]|\uD83A[\uDC00-\uDCC4\uDD00-\uDD43\uDD4B]|\uD83B[\uDE00-\uDE03\uDE05-\uDE1F\uDE21\uDE22\uDE24\uDE27\uDE29-\uDE32\uDE34-\uDE37\uDE39\uDE3B\uDE42\uDE47\uDE49\uDE4B\uDE4D-\uDE4F\uDE51\uDE52\uDE54\uDE57\uDE59\uDE5B\uDE5D\uDE5F\uDE61\uDE62\uDE64\uDE67-\uDE6A\uDE6C-\uDE72\uDE74-\uDE77\uDE79-\uDE7C\uDE7E\uDE80-\uDE89\uDE8B-\uDE9B\uDEA1-\uDEA3\uDEA5-\uDEA9\uDEAB-\uDEBB]|\uD869[\uDC00-\uDEDF\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF39\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1\uDEB0-\uDFFF]|\uD87A[\uDC00-\uDFE0]|\uD87E[\uDC00-\uDE1D]|\uD884[\uDC00-\uDF4A\uDF50-\uDFFF]|\uD888[\uDC00-\uDFAF])/g);
+  let before = text.slice(Math.max(0, start - snippetLength), start);
+  let firstWordStart = before.search(/(?:[\0-@\[-`\{-\xA9\xAB-\xB4\xB6-\xB9\xBB-\xBF\xD7\xF7\u02C2-\u02C5\u02D2-\u02DF\u02E5-\u02EB\u02ED\u02EF-\u036F\u0375\u0378\u0379\u037E\u0380-\u0385\u0387\u038B\u038D\u03A2\u03F6\u0482-\u0489\u0530\u0557\u0558\u055A-\u055F\u0589-\u05CF\u05EB-\u05EE\u05F3-\u061F\u064B-\u066D\u0670\u06D4\u06D6-\u06E4\u06E7-\u06ED\u06F0-\u06F9\u06FD\u06FE\u0700-\u070F\u0711\u0730-\u074C\u07A6-\u07B0\u07B2-\u07C9\u07EB-\u07F3\u07F6-\u07F9\u07FB-\u07FF\u0816-\u0819\u081B-\u0823\u0825-\u0827\u0829-\u083F\u0859-\u085F\u086B-\u086F\u0888\u088F-\u089F\u08CA-\u0903\u093A-\u093C\u093E-\u094F\u0951-\u0957\u0962-\u0970\u0981-\u0984\u098D\u098E\u0991\u0992\u09A9\u09B1\u09B3-\u09B5\u09BA-\u09BC\u09BE-\u09CD\u09CF-\u09DB\u09DE\u09E2-\u09EF\u09F2-\u09FB\u09FD-\u0A04\u0A0B-\u0A0E\u0A11\u0A12\u0A29\u0A31\u0A34\u0A37\u0A3A-\u0A58\u0A5D\u0A5F-\u0A71\u0A75-\u0A84\u0A8E\u0A92\u0AA9\u0AB1\u0AB4\u0ABA-\u0ABC\u0ABE-\u0ACF\u0AD1-\u0ADF\u0AE2-\u0AF8\u0AFA-\u0B04\u0B0D\u0B0E\u0B11\u0B12\u0B29\u0B31\u0B34\u0B3A-\u0B3C\u0B3E-\u0B5B\u0B5E\u0B62-\u0B70\u0B72-\u0B82\u0B84\u0B8B-\u0B8D\u0B91\u0B96-\u0B98\u0B9B\u0B9D\u0BA0-\u0BA2\u0BA5-\u0BA7\u0BAB-\u0BAD\u0BBA-\u0BCF\u0BD1-\u0C04\u0C0D\u0C11\u0C29\u0C3A-\u0C3C\u0C3E-\u0C57\u0C5B\u0C5C\u0C5E\u0C5F\u0C62-\u0C7F\u0C81-\u0C84\u0C8D\u0C91\u0CA9\u0CB4\u0CBA-\u0CBC\u0CBE-\u0CDC\u0CDF\u0CE2-\u0CF0\u0CF3-\u0D03\u0D0D\u0D11\u0D3B\u0D3C\u0D3E-\u0D4D\u0D4F-\u0D53\u0D57-\u0D5E\u0D62-\u0D79\u0D80-\u0D84\u0D97-\u0D99\u0DB2\u0DBC\u0DBE\u0DBF\u0DC7-\u0E00\u0E31\u0E34-\u0E3F\u0E47-\u0E80\u0E83\u0E85\u0E8B\u0EA4\u0EA6\u0EB1\u0EB4-\u0EBC\u0EBE\u0EBF\u0EC5\u0EC7-\u0EDB\u0EE0-\u0EFF\u0F01-\u0F3F\u0F48\u0F6D-\u0F87\u0F8D-\u0FFF\u102B-\u103E\u1040-\u104F\u1056-\u1059\u105E-\u1060\u1062-\u1064\u1067-\u106D\u1071-\u1074\u1082-\u108D\u108F-\u109F\u10C6\u10C8-\u10CC\u10CE\u10CF\u10FB\u1249\u124E\u124F\u1257\u1259\u125E\u125F\u1289\u128E\u128F\u12B1\u12B6\u12B7\u12BF\u12C1\u12C6\u12C7\u12D7\u1311\u1316\u1317\u135B-\u137F\u1390-\u139F\u13F6\u13F7\u13FE-\u1400\u166D\u166E\u1680\u169B-\u169F\u16EB-\u16F0\u16F9-\u16FF\u1712-\u171E\u1732-\u173F\u1752-\u175F\u176D\u1771-\u177F\u17B4-\u17D6\u17D8-\u17DB\u17DD-\u181F\u1879-\u187F\u1885\u1886\u18A9\u18AB-\u18AF\u18F6-\u18FF\u191F-\u194F\u196E\u196F\u1975-\u197F\u19AC-\u19AF\u19CA-\u19FF\u1A17-\u1A1F\u1A55-\u1AA6\u1AA8-\u1B04\u1B34-\u1B44\u1B4D-\u1B82\u1BA1-\u1BAD\u1BB0-\u1BB9\u1BE6-\u1BFF\u1C24-\u1C4C\u1C50-\u1C59\u1C7E\u1C7F\u1C89-\u1C8F\u1CBB\u1CBC\u1CC0-\u1CE8\u1CED\u1CF4\u1CF7-\u1CF9\u1CFB-\u1CFF\u1DC0-\u1DFF\u1F16\u1F17\u1F1E\u1F1F\u1F46\u1F47\u1F4E\u1F4F\u1F58\u1F5A\u1F5C\u1F5E\u1F7E\u1F7F\u1FB5\u1FBD\u1FBF-\u1FC1\u1FC5\u1FCD-\u1FCF\u1FD4\u1FD5\u1FDC-\u1FDF\u1FED-\u1FF1\u1FF5\u1FFD-\u2070\u2072-\u207E\u2080-\u208F\u209D-\u2101\u2103-\u2106\u2108\u2109\u2114\u2116-\u2118\u211E-\u2123\u2125\u2127\u2129\u212E\u213A\u213B\u2140-\u2144\u214A-\u214D\u214F-\u2182\u2185-\u2BFF\u2CE5-\u2CEA\u2CEF-\u2CF1\u2CF4-\u2CFF\u2D26\u2D28-\u2D2C\u2D2E\u2D2F\u2D68-\u2D6E\u2D70-\u2D7F\u2D97-\u2D9F\u2DA7\u2DAF\u2DB7\u2DBF\u2DC7\u2DCF\u2DD7\u2DDF-\u2E2E\u2E30-\u3004\u3007-\u3030\u3036-\u303A\u303D-\u3040\u3097-\u309C\u30A0\u30FB\u3100-\u3104\u3130\u318F-\u319F\u31C0-\u31EF\u3200-\u33FF\u4DC0-\u4DFF\uA48D-\uA4CF\uA4FE\uA4FF\uA60D-\uA60F\uA620-\uA629\uA62C-\uA63F\uA66F-\uA67E\uA69E\uA69F\uA6E6-\uA716\uA720\uA721\uA789\uA78A\uA7CB-\uA7CF\uA7D2\uA7D4\uA7DA-\uA7F1\uA802\uA806\uA80B\uA823-\uA83F\uA874-\uA881\uA8B4-\uA8F1\uA8F8-\uA8FA\uA8FC\uA8FF-\uA909\uA926-\uA92F\uA947-\uA95F\uA97D-\uA983\uA9B3-\uA9CE\uA9D0-\uA9DF\uA9E5\uA9F0-\uA9F9\uA9FF\uAA29-\uAA3F\uAA43\uAA4C-\uAA5F\uAA77-\uAA79\uAA7B-\uAA7D\uAAB0\uAAB2-\uAAB4\uAAB7\uAAB8\uAABE\uAABF\uAAC1\uAAC3-\uAADA\uAADE\uAADF\uAAEB-\uAAF1\uAAF5-\uAB00\uAB07\uAB08\uAB0F\uAB10\uAB17-\uAB1F\uAB27\uAB2F\uAB5B\uAB6A-\uAB6F\uABE3-\uABFF\uD7A4-\uD7AF\uD7C7-\uD7CA\uD7FC-\uD7FF\uE000-\uF8FF\uFA6E\uFA6F\uFADA-\uFAFF\uFB07-\uFB12\uFB18-\uFB1C\uFB1E\uFB29\uFB37\uFB3D\uFB3F\uFB42\uFB45\uFBB2-\uFBD2\uFD3E-\uFD4F\uFD90\uFD91\uFDC8-\uFDEF\uFDFC-\uFE6F\uFE75\uFEFD-\uFF20\uFF3B-\uFF40\uFF5B-\uFF65\uFFBF-\uFFC1\uFFC8\uFFC9\uFFD0\uFFD1\uFFD8\uFFD9\uFFDD-\uFFFF]|\uD800[\uDC0C\uDC27\uDC3B\uDC3E\uDC4E\uDC4F\uDC5E-\uDC7F\uDCFB-\uDE7F\uDE9D-\uDE9F\uDED1-\uDEFF\uDF20-\uDF2C\uDF41\uDF4A-\uDF4F\uDF76-\uDF7F\uDF9E\uDF9F\uDFC4-\uDFC7\uDFD0-\uDFFF]|\uD801[\uDC9E-\uDCAF\uDCD4-\uDCD7\uDCFC-\uDCFF\uDD28-\uDD2F\uDD64-\uDD6F\uDD7B\uDD8B\uDD93\uDD96\uDDA2\uDDB2\uDDBA\uDDBD-\uDDFF\uDF37-\uDF3F\uDF56-\uDF5F\uDF68-\uDF7F\uDF86\uDFB1\uDFBB-\uDFFF]|\uD802[\uDC06\uDC07\uDC09\uDC36\uDC39-\uDC3B\uDC3D\uDC3E\uDC56-\uDC5F\uDC77-\uDC7F\uDC9F-\uDCDF\uDCF3\uDCF6-\uDCFF\uDD16-\uDD1F\uDD3A-\uDD7F\uDDB8-\uDDBD\uDDC0-\uDDFF\uDE01-\uDE0F\uDE14\uDE18\uDE36-\uDE5F\uDE7D-\uDE7F\uDE9D-\uDEBF\uDEC8\uDEE5-\uDEFF\uDF36-\uDF3F\uDF56-\uDF5F\uDF73-\uDF7F\uDF92-\uDFFF]|\uD803[\uDC49-\uDC7F\uDCB3-\uDCBF\uDCF3-\uDCFF\uDD24-\uDE7F\uDEAA-\uDEAF\uDEB2-\uDEFF\uDF1D-\uDF26\uDF28-\uDF2F\uDF46-\uDF6F\uDF82-\uDFAF\uDFC5-\uDFDF\uDFF7-\uDFFF]|\uD804[\uDC00-\uDC02\uDC38-\uDC70\uDC73\uDC74\uDC76-\uDC82\uDCB0-\uDCCF\uDCE9-\uDD02\uDD27-\uDD43\uDD45\uDD46\uDD48-\uDD4F\uDD73-\uDD75\uDD77-\uDD82\uDDB3-\uDDC0\uDDC5-\uDDD9\uDDDB\uDDDD-\uDDFF\uDE12\uDE2C-\uDE3E\uDE41-\uDE7F\uDE87\uDE89\uDE8E\uDE9E\uDEA9-\uDEAF\uDEDF-\uDF04\uDF0D\uDF0E\uDF11\uDF12\uDF29\uDF31\uDF34\uDF3A-\uDF3C\uDF3E-\uDF4F\uDF51-\uDF5C\uDF62-\uDFFF]|\uD805[\uDC35-\uDC46\uDC4B-\uDC5E\uDC62-\uDC7F\uDCB0-\uDCC3\uDCC6\uDCC8-\uDD7F\uDDAF-\uDDD7\uDDDC-\uDDFF\uDE30-\uDE43\uDE45-\uDE7F\uDEAB-\uDEB7\uDEB9-\uDEFF\uDF1B-\uDF3F\uDF47-\uDFFF]|\uD806[\uDC2C-\uDC9F\uDCE0-\uDCFE\uDD07\uDD08\uDD0A\uDD0B\uDD14\uDD17\uDD30-\uDD3E\uDD40\uDD42-\uDD9F\uDDA8\uDDA9\uDDD1-\uDDE0\uDDE2\uDDE4-\uDDFF\uDE01-\uDE0A\uDE33-\uDE39\uDE3B-\uDE4F\uDE51-\uDE5B\uDE8A-\uDE9C\uDE9E-\uDEAF\uDEF9-\uDFFF]|\uD807[\uDC09\uDC2F-\uDC3F\uDC41-\uDC71\uDC90-\uDCFF\uDD07\uDD0A\uDD31-\uDD45\uDD47-\uDD5F\uDD66\uDD69\uDD8A-\uDD97\uDD99-\uDEDF\uDEF3-\uDF01\uDF03\uDF11\uDF34-\uDFAF\uDFB1-\uDFFF]|\uD808[\uDF9A-\uDFFF]|\uD809[\uDC00-\uDC7F\uDD44-\uDFFF]|[\uD80A\uD80E-\uD810\uD812-\uD819\uD824-\uD82A\uD82D\uD82E\uD830-\uD834\uD836\uD83C-\uD83F\uD87B-\uD87D\uD87F\uD889-\uDBFF][\uDC00-\uDFFF]|\uD80B[\uDC00-\uDF8F\uDFF1-\uDFFF]|\uD80D[\uDC30-\uDC40\uDC47-\uDFFF]|\uD811[\uDE47-\uDFFF]|\uD81A[\uDE39-\uDE3F\uDE5F-\uDE6F\uDEBF-\uDECF\uDEEE-\uDEFF\uDF30-\uDF3F\uDF44-\uDF62\uDF78-\uDF7C\uDF90-\uDFFF]|\uD81B[\uDC00-\uDE3F\uDE80-\uDEFF\uDF4B-\uDF4F\uDF51-\uDF92\uDFA0-\uDFDF\uDFE2\uDFE4-\uDFFF]|\uD821[\uDFF8-\uDFFF]|\uD823[\uDCD6-\uDCFF\uDD09-\uDFFF]|\uD82B[\uDC00-\uDFEF\uDFF4\uDFFC\uDFFF]|\uD82C[\uDD23-\uDD31\uDD33-\uDD4F\uDD53\uDD54\uDD56-\uDD63\uDD68-\uDD6F\uDEFC-\uDFFF]|\uD82F[\uDC6B-\uDC6F\uDC7D-\uDC7F\uDC89-\uDC8F\uDC9A-\uDFFF]|\uD835[\uDC55\uDC9D\uDCA0\uDCA1\uDCA3\uDCA4\uDCA7\uDCA8\uDCAD\uDCBA\uDCBC\uDCC4\uDD06\uDD0B\uDD0C\uDD15\uDD1D\uDD3A\uDD3F\uDD45\uDD47-\uDD49\uDD51\uDEA6\uDEA7\uDEC1\uDEDB\uDEFB\uDF15\uDF35\uDF4F\uDF6F\uDF89\uDFA9\uDFC3\uDFCC-\uDFFF]|\uD837[\uDC00-\uDEFF\uDF1F-\uDF24\uDF2B-\uDFFF]|\uD838[\uDC00-\uDC2F\uDC6E-\uDCFF\uDD2D-\uDD36\uDD3E-\uDD4D\uDD4F-\uDE8F\uDEAE-\uDEBF\uDEEC-\uDFFF]|\uD839[\uDC00-\uDCCF\uDCEC-\uDFDF\uDFE7\uDFEC\uDFEF\uDFFF]|\uD83A[\uDCC5-\uDCFF\uDD44-\uDD4A\uDD4C-\uDFFF]|\uD83B[\uDC00-\uDDFF\uDE04\uDE20\uDE23\uDE25\uDE26\uDE28\uDE33\uDE38\uDE3A\uDE3C-\uDE41\uDE43-\uDE46\uDE48\uDE4A\uDE4C\uDE50\uDE53\uDE55\uDE56\uDE58\uDE5A\uDE5C\uDE5E\uDE60\uDE63\uDE65\uDE66\uDE6B\uDE73\uDE78\uDE7D\uDE7F\uDE8A\uDE9C-\uDEA0\uDEA4\uDEAA\uDEBC-\uDFFF]|\uD869[\uDEE0-\uDEFF]|\uD86D[\uDF3A-\uDF3F]|\uD86E[\uDC1E\uDC1F]|\uD873[\uDEA2-\uDEAF]|\uD87A[\uDFE1-\uDFFF]|\uD87E[\uDE1E-\uDFFF]|\uD884[\uDF4B-\uDF4F]|\uD888[\uDFB0-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])(?:[A-Za-z\xAA\xB5\xBA\xC0-\xD6\xD8-\xF6\xF8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0370-\u0374\u0376\u0377\u037A-\u037D\u037F\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u052F\u0531-\u0556\u0559\u0560-\u0588\u05D0-\u05EA\u05EF-\u05F2\u0620-\u064A\u066E\u066F\u0671-\u06D3\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0815\u081A\u0824\u0828\u0840-\u0858\u0860-\u086A\u0870-\u0887\u0889-\u088E\u08A0-\u08C9\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC\u09DD\u09DF-\u09E1\u09F0\u09F1\u09FC\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0\u0AE1\u0AF9\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D\u0B5C\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C39\u0C3D\u0C58-\u0C5A\u0C5D\u0C60\u0C61\u0C80\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDD\u0CDE\u0CE0\u0CE1\u0CF1\u0CF2\u0D04-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D\u0D4E\u0D54-\u0D56\u0D5F-\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0E01-\u0E30\u0E32\u0E33\u0E40-\u0E46\u0E81\u0E82\u0E84\u0E86-\u0E8A\u0E8C-\u0EA3\u0EA5\u0EA7-\u0EB0\u0EB2\u0EB3\u0EBD\u0EC0-\u0EC4\u0EC6\u0EDC-\u0EDF\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C\u1000-\u102A\u103F\u1050-\u1055\u105A-\u105D\u1061\u1065\u1066\u106E-\u1070\u1075-\u1081\u108E\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F5\u13F8-\u13FD\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16F1-\u16F8\u1700-\u1711\u171F-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1780-\u17B3\u17D7\u17DC\u1820-\u1878\u1880-\u1884\u1887-\u18A8\u18AA\u18B0-\u18F5\u1900-\u191E\u1950-\u196D\u1970-\u1974\u1980-\u19AB\u19B0-\u19C9\u1A00-\u1A16\u1A20-\u1A54\u1AA7\u1B05-\u1B33\u1B45-\u1B4C\u1B83-\u1BA0\u1BAE\u1BAF\u1BBA-\u1BE5\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1C80-\u1C88\u1C90-\u1CBA\u1CBD-\u1CBF\u1CE9-\u1CEC\u1CEE-\u1CF3\u1CF5\u1CF6\u1CFA\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2183\u2184\u2C00-\u2CE4\u2CEB-\u2CEE\u2CF2\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2E2F\u3005\u3006\u3031-\u3035\u303B\u303C\u3041-\u3096\u309D-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312F\u3131-\u318E\u31A0-\u31BF\u31F0-\u31FF\u3400-\u4DBF\u4E00-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA67F-\uA69D\uA6A0-\uA6E5\uA717-\uA71F\uA722-\uA788\uA78B-\uA7CA\uA7D0\uA7D1\uA7D3\uA7D5-\uA7D9\uA7F2-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA8F2-\uA8F7\uA8FB\uA8FD\uA8FE\uA90A-\uA925\uA930-\uA946\uA960-\uA97C\uA984-\uA9B2\uA9CF\uA9E0-\uA9E4\uA9E6-\uA9EF\uA9FA-\uA9FE\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAA60-\uAA76\uAA7A\uAA7E-\uAAAF\uAAB1\uAAB5\uAAB6\uAAB9-\uAABD\uAAC0\uAAC2\uAADB-\uAADD\uAAE0-\uAAEA\uAAF2-\uAAF4\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uAB30-\uAB5A\uAB5C-\uAB69\uAB70-\uABE2\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]|\uD800[\uDC00-\uDC0B\uDC0D-\uDC26\uDC28-\uDC3A\uDC3C\uDC3D\uDC3F-\uDC4D\uDC50-\uDC5D\uDC80-\uDCFA\uDE80-\uDE9C\uDEA0-\uDED0\uDF00-\uDF1F\uDF2D-\uDF40\uDF42-\uDF49\uDF50-\uDF75\uDF80-\uDF9D\uDFA0-\uDFC3\uDFC8-\uDFCF]|\uD801[\uDC00-\uDC9D\uDCB0-\uDCD3\uDCD8-\uDCFB\uDD00-\uDD27\uDD30-\uDD63\uDD70-\uDD7A\uDD7C-\uDD8A\uDD8C-\uDD92\uDD94\uDD95\uDD97-\uDDA1\uDDA3-\uDDB1\uDDB3-\uDDB9\uDDBB\uDDBC\uDE00-\uDF36\uDF40-\uDF55\uDF60-\uDF67\uDF80-\uDF85\uDF87-\uDFB0\uDFB2-\uDFBA]|\uD802[\uDC00-\uDC05\uDC08\uDC0A-\uDC35\uDC37\uDC38\uDC3C\uDC3F-\uDC55\uDC60-\uDC76\uDC80-\uDC9E\uDCE0-\uDCF2\uDCF4\uDCF5\uDD00-\uDD15\uDD20-\uDD39\uDD80-\uDDB7\uDDBE\uDDBF\uDE00\uDE10-\uDE13\uDE15-\uDE17\uDE19-\uDE35\uDE60-\uDE7C\uDE80-\uDE9C\uDEC0-\uDEC7\uDEC9-\uDEE4\uDF00-\uDF35\uDF40-\uDF55\uDF60-\uDF72\uDF80-\uDF91]|\uD803[\uDC00-\uDC48\uDC80-\uDCB2\uDCC0-\uDCF2\uDD00-\uDD23\uDE80-\uDEA9\uDEB0\uDEB1\uDF00-\uDF1C\uDF27\uDF30-\uDF45\uDF70-\uDF81\uDFB0-\uDFC4\uDFE0-\uDFF6]|\uD804[\uDC03-\uDC37\uDC71\uDC72\uDC75\uDC83-\uDCAF\uDCD0-\uDCE8\uDD03-\uDD26\uDD44\uDD47\uDD50-\uDD72\uDD76\uDD83-\uDDB2\uDDC1-\uDDC4\uDDDA\uDDDC\uDE00-\uDE11\uDE13-\uDE2B\uDE3F\uDE40\uDE80-\uDE86\uDE88\uDE8A-\uDE8D\uDE8F-\uDE9D\uDE9F-\uDEA8\uDEB0-\uDEDE\uDF05-\uDF0C\uDF0F\uDF10\uDF13-\uDF28\uDF2A-\uDF30\uDF32\uDF33\uDF35-\uDF39\uDF3D\uDF50\uDF5D-\uDF61]|\uD805[\uDC00-\uDC34\uDC47-\uDC4A\uDC5F-\uDC61\uDC80-\uDCAF\uDCC4\uDCC5\uDCC7\uDD80-\uDDAE\uDDD8-\uDDDB\uDE00-\uDE2F\uDE44\uDE80-\uDEAA\uDEB8\uDF00-\uDF1A\uDF40-\uDF46]|\uD806[\uDC00-\uDC2B\uDCA0-\uDCDF\uDCFF-\uDD06\uDD09\uDD0C-\uDD13\uDD15\uDD16\uDD18-\uDD2F\uDD3F\uDD41\uDDA0-\uDDA7\uDDAA-\uDDD0\uDDE1\uDDE3\uDE00\uDE0B-\uDE32\uDE3A\uDE50\uDE5C-\uDE89\uDE9D\uDEB0-\uDEF8]|\uD807[\uDC00-\uDC08\uDC0A-\uDC2E\uDC40\uDC72-\uDC8F\uDD00-\uDD06\uDD08\uDD09\uDD0B-\uDD30\uDD46\uDD60-\uDD65\uDD67\uDD68\uDD6A-\uDD89\uDD98\uDEE0-\uDEF2\uDF02\uDF04-\uDF10\uDF12-\uDF33\uDFB0]|\uD808[\uDC00-\uDF99]|\uD809[\uDC80-\uDD43]|\uD80B[\uDF90-\uDFF0]|[\uD80C\uD81C-\uD820\uD822\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872\uD874-\uD879\uD880-\uD883\uD885-\uD887][\uDC00-\uDFFF]|\uD80D[\uDC00-\uDC2F\uDC41-\uDC46]|\uD811[\uDC00-\uDE46]|\uD81A[\uDC00-\uDE38\uDE40-\uDE5E\uDE70-\uDEBE\uDED0-\uDEED\uDF00-\uDF2F\uDF40-\uDF43\uDF63-\uDF77\uDF7D-\uDF8F]|\uD81B[\uDE40-\uDE7F\uDF00-\uDF4A\uDF50\uDF93-\uDF9F\uDFE0\uDFE1\uDFE3]|\uD821[\uDC00-\uDFF7]|\uD823[\uDC00-\uDCD5\uDD00-\uDD08]|\uD82B[\uDFF0-\uDFF3\uDFF5-\uDFFB\uDFFD\uDFFE]|\uD82C[\uDC00-\uDD22\uDD32\uDD50-\uDD52\uDD55\uDD64-\uDD67\uDD70-\uDEFB]|\uD82F[\uDC00-\uDC6A\uDC70-\uDC7C\uDC80-\uDC88\uDC90-\uDC99]|\uD835[\uDC00-\uDC54\uDC56-\uDC9C\uDC9E\uDC9F\uDCA2\uDCA5\uDCA6\uDCA9-\uDCAC\uDCAE-\uDCB9\uDCBB\uDCBD-\uDCC3\uDCC5-\uDD05\uDD07-\uDD0A\uDD0D-\uDD14\uDD16-\uDD1C\uDD1E-\uDD39\uDD3B-\uDD3E\uDD40-\uDD44\uDD46\uDD4A-\uDD50\uDD52-\uDEA5\uDEA8-\uDEC0\uDEC2-\uDEDA\uDEDC-\uDEFA\uDEFC-\uDF14\uDF16-\uDF34\uDF36-\uDF4E\uDF50-\uDF6E\uDF70-\uDF88\uDF8A-\uDFA8\uDFAA-\uDFC2\uDFC4-\uDFCB]|\uD837[\uDF00-\uDF1E\uDF25-\uDF2A]|\uD838[\uDC30-\uDC6D\uDD00-\uDD2C\uDD37-\uDD3D\uDD4E\uDE90-\uDEAD\uDEC0-\uDEEB]|\uD839[\uDCD0-\uDCEB\uDFE0-\uDFE6\uDFE8-\uDFEB\uDFED\uDFEE\uDFF0-\uDFFE]|\uD83A[\uDC00-\uDCC4\uDD00-\uDD43\uDD4B]|\uD83B[\uDE00-\uDE03\uDE05-\uDE1F\uDE21\uDE22\uDE24\uDE27\uDE29-\uDE32\uDE34-\uDE37\uDE39\uDE3B\uDE42\uDE47\uDE49\uDE4B\uDE4D-\uDE4F\uDE51\uDE52\uDE54\uDE57\uDE59\uDE5B\uDE5D\uDE5F\uDE61\uDE62\uDE64\uDE67-\uDE6A\uDE6C-\uDE72\uDE74-\uDE77\uDE79-\uDE7C\uDE7E\uDE80-\uDE89\uDE8B-\uDE9B\uDEA1-\uDEA3\uDEA5-\uDEA9\uDEAB-\uDEBB]|\uD869[\uDC00-\uDEDF\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF39\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1\uDEB0-\uDFFF]|\uD87A[\uDC00-\uDFE0]|\uD87E[\uDC00-\uDE1D]|\uD884[\uDC00-\uDF4A\uDF50-\uDFFF]|\uD888[\uDC00-\uDFAF])/g);
   if (firstWordStart !== -1) {
     before = before.slice(firstWordStart + 1);
   }
 
   // Compute the text after the highlight, ignoring the last "word", which might be cut.
-  var after = text.slice(end, Math.min(text.length, end + snippetLength));
-  var lastWordEnd = Array.from(after.matchAll(/(?:[A-Za-z\xAA\xB5\xBA\xC0-\xD6\xD8-\xF6\xF8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0370-\u0374\u0376\u0377\u037A-\u037D\u037F\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u052F\u0531-\u0556\u0559\u0560-\u0588\u05D0-\u05EA\u05EF-\u05F2\u0620-\u064A\u066E\u066F\u0671-\u06D3\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0815\u081A\u0824\u0828\u0840-\u0858\u0860-\u086A\u0870-\u0887\u0889-\u088E\u08A0-\u08C9\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC\u09DD\u09DF-\u09E1\u09F0\u09F1\u09FC\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0\u0AE1\u0AF9\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D\u0B5C\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C39\u0C3D\u0C58-\u0C5A\u0C5D\u0C60\u0C61\u0C80\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDD\u0CDE\u0CE0\u0CE1\u0CF1\u0CF2\u0D04-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D\u0D4E\u0D54-\u0D56\u0D5F-\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0E01-\u0E30\u0E32\u0E33\u0E40-\u0E46\u0E81\u0E82\u0E84\u0E86-\u0E8A\u0E8C-\u0EA3\u0EA5\u0EA7-\u0EB0\u0EB2\u0EB3\u0EBD\u0EC0-\u0EC4\u0EC6\u0EDC-\u0EDF\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C\u1000-\u102A\u103F\u1050-\u1055\u105A-\u105D\u1061\u1065\u1066\u106E-\u1070\u1075-\u1081\u108E\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F5\u13F8-\u13FD\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16F1-\u16F8\u1700-\u1711\u171F-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1780-\u17B3\u17D7\u17DC\u1820-\u1878\u1880-\u1884\u1887-\u18A8\u18AA\u18B0-\u18F5\u1900-\u191E\u1950-\u196D\u1970-\u1974\u1980-\u19AB\u19B0-\u19C9\u1A00-\u1A16\u1A20-\u1A54\u1AA7\u1B05-\u1B33\u1B45-\u1B4C\u1B83-\u1BA0\u1BAE\u1BAF\u1BBA-\u1BE5\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1C80-\u1C88\u1C90-\u1CBA\u1CBD-\u1CBF\u1CE9-\u1CEC\u1CEE-\u1CF3\u1CF5\u1CF6\u1CFA\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2183\u2184\u2C00-\u2CE4\u2CEB-\u2CEE\u2CF2\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2E2F\u3005\u3006\u3031-\u3035\u303B\u303C\u3041-\u3096\u309D-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312F\u3131-\u318E\u31A0-\u31BF\u31F0-\u31FF\u3400-\u4DBF\u4E00-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA67F-\uA69D\uA6A0-\uA6E5\uA717-\uA71F\uA722-\uA788\uA78B-\uA7CA\uA7D0\uA7D1\uA7D3\uA7D5-\uA7D9\uA7F2-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA8F2-\uA8F7\uA8FB\uA8FD\uA8FE\uA90A-\uA925\uA930-\uA946\uA960-\uA97C\uA984-\uA9B2\uA9CF\uA9E0-\uA9E4\uA9E6-\uA9EF\uA9FA-\uA9FE\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAA60-\uAA76\uAA7A\uAA7E-\uAAAF\uAAB1\uAAB5\uAAB6\uAAB9-\uAABD\uAAC0\uAAC2\uAADB-\uAADD\uAAE0-\uAAEA\uAAF2-\uAAF4\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uAB30-\uAB5A\uAB5C-\uAB69\uAB70-\uABE2\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]|\uD800[\uDC00-\uDC0B\uDC0D-\uDC26\uDC28-\uDC3A\uDC3C\uDC3D\uDC3F-\uDC4D\uDC50-\uDC5D\uDC80-\uDCFA\uDE80-\uDE9C\uDEA0-\uDED0\uDF00-\uDF1F\uDF2D-\uDF40\uDF42-\uDF49\uDF50-\uDF75\uDF80-\uDF9D\uDFA0-\uDFC3\uDFC8-\uDFCF]|\uD801[\uDC00-\uDC9D\uDCB0-\uDCD3\uDCD8-\uDCFB\uDD00-\uDD27\uDD30-\uDD63\uDD70-\uDD7A\uDD7C-\uDD8A\uDD8C-\uDD92\uDD94\uDD95\uDD97-\uDDA1\uDDA3-\uDDB1\uDDB3-\uDDB9\uDDBB\uDDBC\uDE00-\uDF36\uDF40-\uDF55\uDF60-\uDF67\uDF80-\uDF85\uDF87-\uDFB0\uDFB2-\uDFBA]|\uD802[\uDC00-\uDC05\uDC08\uDC0A-\uDC35\uDC37\uDC38\uDC3C\uDC3F-\uDC55\uDC60-\uDC76\uDC80-\uDC9E\uDCE0-\uDCF2\uDCF4\uDCF5\uDD00-\uDD15\uDD20-\uDD39\uDD80-\uDDB7\uDDBE\uDDBF\uDE00\uDE10-\uDE13\uDE15-\uDE17\uDE19-\uDE35\uDE60-\uDE7C\uDE80-\uDE9C\uDEC0-\uDEC7\uDEC9-\uDEE4\uDF00-\uDF35\uDF40-\uDF55\uDF60-\uDF72\uDF80-\uDF91]|\uD803[\uDC00-\uDC48\uDC80-\uDCB2\uDCC0-\uDCF2\uDD00-\uDD23\uDE80-\uDEA9\uDEB0\uDEB1\uDF00-\uDF1C\uDF27\uDF30-\uDF45\uDF70-\uDF81\uDFB0-\uDFC4\uDFE0-\uDFF6]|\uD804[\uDC03-\uDC37\uDC71\uDC72\uDC75\uDC83-\uDCAF\uDCD0-\uDCE8\uDD03-\uDD26\uDD44\uDD47\uDD50-\uDD72\uDD76\uDD83-\uDDB2\uDDC1-\uDDC4\uDDDA\uDDDC\uDE00-\uDE11\uDE13-\uDE2B\uDE3F\uDE40\uDE80-\uDE86\uDE88\uDE8A-\uDE8D\uDE8F-\uDE9D\uDE9F-\uDEA8\uDEB0-\uDEDE\uDF05-\uDF0C\uDF0F\uDF10\uDF13-\uDF28\uDF2A-\uDF30\uDF32\uDF33\uDF35-\uDF39\uDF3D\uDF50\uDF5D-\uDF61]|\uD805[\uDC00-\uDC34\uDC47-\uDC4A\uDC5F-\uDC61\uDC80-\uDCAF\uDCC4\uDCC5\uDCC7\uDD80-\uDDAE\uDDD8-\uDDDB\uDE00-\uDE2F\uDE44\uDE80-\uDEAA\uDEB8\uDF00-\uDF1A\uDF40-\uDF46]|\uD806[\uDC00-\uDC2B\uDCA0-\uDCDF\uDCFF-\uDD06\uDD09\uDD0C-\uDD13\uDD15\uDD16\uDD18-\uDD2F\uDD3F\uDD41\uDDA0-\uDDA7\uDDAA-\uDDD0\uDDE1\uDDE3\uDE00\uDE0B-\uDE32\uDE3A\uDE50\uDE5C-\uDE89\uDE9D\uDEB0-\uDEF8]|\uD807[\uDC00-\uDC08\uDC0A-\uDC2E\uDC40\uDC72-\uDC8F\uDD00-\uDD06\uDD08\uDD09\uDD0B-\uDD30\uDD46\uDD60-\uDD65\uDD67\uDD68\uDD6A-\uDD89\uDD98\uDEE0-\uDEF2\uDF02\uDF04-\uDF10\uDF12-\uDF33\uDFB0]|\uD808[\uDC00-\uDF99]|\uD809[\uDC80-\uDD43]|\uD80B[\uDF90-\uDFF0]|[\uD80C\uD81C-\uD820\uD822\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872\uD874-\uD879\uD880-\uD883\uD885-\uD887][\uDC00-\uDFFF]|\uD80D[\uDC00-\uDC2F\uDC41-\uDC46]|\uD811[\uDC00-\uDE46]|\uD81A[\uDC00-\uDE38\uDE40-\uDE5E\uDE70-\uDEBE\uDED0-\uDEED\uDF00-\uDF2F\uDF40-\uDF43\uDF63-\uDF77\uDF7D-\uDF8F]|\uD81B[\uDE40-\uDE7F\uDF00-\uDF4A\uDF50\uDF93-\uDF9F\uDFE0\uDFE1\uDFE3]|\uD821[\uDC00-\uDFF7]|\uD823[\uDC00-\uDCD5\uDD00-\uDD08]|\uD82B[\uDFF0-\uDFF3\uDFF5-\uDFFB\uDFFD\uDFFE]|\uD82C[\uDC00-\uDD22\uDD32\uDD50-\uDD52\uDD55\uDD64-\uDD67\uDD70-\uDEFB]|\uD82F[\uDC00-\uDC6A\uDC70-\uDC7C\uDC80-\uDC88\uDC90-\uDC99]|\uD835[\uDC00-\uDC54\uDC56-\uDC9C\uDC9E\uDC9F\uDCA2\uDCA5\uDCA6\uDCA9-\uDCAC\uDCAE-\uDCB9\uDCBB\uDCBD-\uDCC3\uDCC5-\uDD05\uDD07-\uDD0A\uDD0D-\uDD14\uDD16-\uDD1C\uDD1E-\uDD39\uDD3B-\uDD3E\uDD40-\uDD44\uDD46\uDD4A-\uDD50\uDD52-\uDEA5\uDEA8-\uDEC0\uDEC2-\uDEDA\uDEDC-\uDEFA\uDEFC-\uDF14\uDF16-\uDF34\uDF36-\uDF4E\uDF50-\uDF6E\uDF70-\uDF88\uDF8A-\uDFA8\uDFAA-\uDFC2\uDFC4-\uDFCB]|\uD837[\uDF00-\uDF1E\uDF25-\uDF2A]|\uD838[\uDC30-\uDC6D\uDD00-\uDD2C\uDD37-\uDD3D\uDD4E\uDE90-\uDEAD\uDEC0-\uDEEB]|\uD839[\uDCD0-\uDCEB\uDFE0-\uDFE6\uDFE8-\uDFEB\uDFED\uDFEE\uDFF0-\uDFFE]|\uD83A[\uDC00-\uDCC4\uDD00-\uDD43\uDD4B]|\uD83B[\uDE00-\uDE03\uDE05-\uDE1F\uDE21\uDE22\uDE24\uDE27\uDE29-\uDE32\uDE34-\uDE37\uDE39\uDE3B\uDE42\uDE47\uDE49\uDE4B\uDE4D-\uDE4F\uDE51\uDE52\uDE54\uDE57\uDE59\uDE5B\uDE5D\uDE5F\uDE61\uDE62\uDE64\uDE67-\uDE6A\uDE6C-\uDE72\uDE74-\uDE77\uDE79-\uDE7C\uDE7E\uDE80-\uDE89\uDE8B-\uDE9B\uDEA1-\uDEA3\uDEA5-\uDEA9\uDEAB-\uDEBB]|\uD869[\uDC00-\uDEDF\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF39\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1\uDEB0-\uDFFF]|\uD87A[\uDC00-\uDFE0]|\uD87E[\uDC00-\uDE1D]|\uD884[\uDC00-\uDF4A\uDF50-\uDFFF]|\uD888[\uDC00-\uDFAF])(?:[\0-@\[-`\{-\xA9\xAB-\xB4\xB6-\xB9\xBB-\xBF\xD7\xF7\u02C2-\u02C5\u02D2-\u02DF\u02E5-\u02EB\u02ED\u02EF-\u036F\u0375\u0378\u0379\u037E\u0380-\u0385\u0387\u038B\u038D\u03A2\u03F6\u0482-\u0489\u0530\u0557\u0558\u055A-\u055F\u0589-\u05CF\u05EB-\u05EE\u05F3-\u061F\u064B-\u066D\u0670\u06D4\u06D6-\u06E4\u06E7-\u06ED\u06F0-\u06F9\u06FD\u06FE\u0700-\u070F\u0711\u0730-\u074C\u07A6-\u07B0\u07B2-\u07C9\u07EB-\u07F3\u07F6-\u07F9\u07FB-\u07FF\u0816-\u0819\u081B-\u0823\u0825-\u0827\u0829-\u083F\u0859-\u085F\u086B-\u086F\u0888\u088F-\u089F\u08CA-\u0903\u093A-\u093C\u093E-\u094F\u0951-\u0957\u0962-\u0970\u0981-\u0984\u098D\u098E\u0991\u0992\u09A9\u09B1\u09B3-\u09B5\u09BA-\u09BC\u09BE-\u09CD\u09CF-\u09DB\u09DE\u09E2-\u09EF\u09F2-\u09FB\u09FD-\u0A04\u0A0B-\u0A0E\u0A11\u0A12\u0A29\u0A31\u0A34\u0A37\u0A3A-\u0A58\u0A5D\u0A5F-\u0A71\u0A75-\u0A84\u0A8E\u0A92\u0AA9\u0AB1\u0AB4\u0ABA-\u0ABC\u0ABE-\u0ACF\u0AD1-\u0ADF\u0AE2-\u0AF8\u0AFA-\u0B04\u0B0D\u0B0E\u0B11\u0B12\u0B29\u0B31\u0B34\u0B3A-\u0B3C\u0B3E-\u0B5B\u0B5E\u0B62-\u0B70\u0B72-\u0B82\u0B84\u0B8B-\u0B8D\u0B91\u0B96-\u0B98\u0B9B\u0B9D\u0BA0-\u0BA2\u0BA5-\u0BA7\u0BAB-\u0BAD\u0BBA-\u0BCF\u0BD1-\u0C04\u0C0D\u0C11\u0C29\u0C3A-\u0C3C\u0C3E-\u0C57\u0C5B\u0C5C\u0C5E\u0C5F\u0C62-\u0C7F\u0C81-\u0C84\u0C8D\u0C91\u0CA9\u0CB4\u0CBA-\u0CBC\u0CBE-\u0CDC\u0CDF\u0CE2-\u0CF0\u0CF3-\u0D03\u0D0D\u0D11\u0D3B\u0D3C\u0D3E-\u0D4D\u0D4F-\u0D53\u0D57-\u0D5E\u0D62-\u0D79\u0D80-\u0D84\u0D97-\u0D99\u0DB2\u0DBC\u0DBE\u0DBF\u0DC7-\u0E00\u0E31\u0E34-\u0E3F\u0E47-\u0E80\u0E83\u0E85\u0E8B\u0EA4\u0EA6\u0EB1\u0EB4-\u0EBC\u0EBE\u0EBF\u0EC5\u0EC7-\u0EDB\u0EE0-\u0EFF\u0F01-\u0F3F\u0F48\u0F6D-\u0F87\u0F8D-\u0FFF\u102B-\u103E\u1040-\u104F\u1056-\u1059\u105E-\u1060\u1062-\u1064\u1067-\u106D\u1071-\u1074\u1082-\u108D\u108F-\u109F\u10C6\u10C8-\u10CC\u10CE\u10CF\u10FB\u1249\u124E\u124F\u1257\u1259\u125E\u125F\u1289\u128E\u128F\u12B1\u12B6\u12B7\u12BF\u12C1\u12C6\u12C7\u12D7\u1311\u1316\u1317\u135B-\u137F\u1390-\u139F\u13F6\u13F7\u13FE-\u1400\u166D\u166E\u1680\u169B-\u169F\u16EB-\u16F0\u16F9-\u16FF\u1712-\u171E\u1732-\u173F\u1752-\u175F\u176D\u1771-\u177F\u17B4-\u17D6\u17D8-\u17DB\u17DD-\u181F\u1879-\u187F\u1885\u1886\u18A9\u18AB-\u18AF\u18F6-\u18FF\u191F-\u194F\u196E\u196F\u1975-\u197F\u19AC-\u19AF\u19CA-\u19FF\u1A17-\u1A1F\u1A55-\u1AA6\u1AA8-\u1B04\u1B34-\u1B44\u1B4D-\u1B82\u1BA1-\u1BAD\u1BB0-\u1BB9\u1BE6-\u1BFF\u1C24-\u1C4C\u1C50-\u1C59\u1C7E\u1C7F\u1C89-\u1C8F\u1CBB\u1CBC\u1CC0-\u1CE8\u1CED\u1CF4\u1CF7-\u1CF9\u1CFB-\u1CFF\u1DC0-\u1DFF\u1F16\u1F17\u1F1E\u1F1F\u1F46\u1F47\u1F4E\u1F4F\u1F58\u1F5A\u1F5C\u1F5E\u1F7E\u1F7F\u1FB5\u1FBD\u1FBF-\u1FC1\u1FC5\u1FCD-\u1FCF\u1FD4\u1FD5\u1FDC-\u1FDF\u1FED-\u1FF1\u1FF5\u1FFD-\u2070\u2072-\u207E\u2080-\u208F\u209D-\u2101\u2103-\u2106\u2108\u2109\u2114\u2116-\u2118\u211E-\u2123\u2125\u2127\u2129\u212E\u213A\u213B\u2140-\u2144\u214A-\u214D\u214F-\u2182\u2185-\u2BFF\u2CE5-\u2CEA\u2CEF-\u2CF1\u2CF4-\u2CFF\u2D26\u2D28-\u2D2C\u2D2E\u2D2F\u2D68-\u2D6E\u2D70-\u2D7F\u2D97-\u2D9F\u2DA7\u2DAF\u2DB7\u2DBF\u2DC7\u2DCF\u2DD7\u2DDF-\u2E2E\u2E30-\u3004\u3007-\u3030\u3036-\u303A\u303D-\u3040\u3097-\u309C\u30A0\u30FB\u3100-\u3104\u3130\u318F-\u319F\u31C0-\u31EF\u3200-\u33FF\u4DC0-\u4DFF\uA48D-\uA4CF\uA4FE\uA4FF\uA60D-\uA60F\uA620-\uA629\uA62C-\uA63F\uA66F-\uA67E\uA69E\uA69F\uA6E6-\uA716\uA720\uA721\uA789\uA78A\uA7CB-\uA7CF\uA7D2\uA7D4\uA7DA-\uA7F1\uA802\uA806\uA80B\uA823-\uA83F\uA874-\uA881\uA8B4-\uA8F1\uA8F8-\uA8FA\uA8FC\uA8FF-\uA909\uA926-\uA92F\uA947-\uA95F\uA97D-\uA983\uA9B3-\uA9CE\uA9D0-\uA9DF\uA9E5\uA9F0-\uA9F9\uA9FF\uAA29-\uAA3F\uAA43\uAA4C-\uAA5F\uAA77-\uAA79\uAA7B-\uAA7D\uAAB0\uAAB2-\uAAB4\uAAB7\uAAB8\uAABE\uAABF\uAAC1\uAAC3-\uAADA\uAADE\uAADF\uAAEB-\uAAF1\uAAF5-\uAB00\uAB07\uAB08\uAB0F\uAB10\uAB17-\uAB1F\uAB27\uAB2F\uAB5B\uAB6A-\uAB6F\uABE3-\uABFF\uD7A4-\uD7AF\uD7C7-\uD7CA\uD7FC-\uD7FF\uE000-\uF8FF\uFA6E\uFA6F\uFADA-\uFAFF\uFB07-\uFB12\uFB18-\uFB1C\uFB1E\uFB29\uFB37\uFB3D\uFB3F\uFB42\uFB45\uFBB2-\uFBD2\uFD3E-\uFD4F\uFD90\uFD91\uFDC8-\uFDEF\uFDFC-\uFE6F\uFE75\uFEFD-\uFF20\uFF3B-\uFF40\uFF5B-\uFF65\uFFBF-\uFFC1\uFFC8\uFFC9\uFFD0\uFFD1\uFFD8\uFFD9\uFFDD-\uFFFF]|\uD800[\uDC0C\uDC27\uDC3B\uDC3E\uDC4E\uDC4F\uDC5E-\uDC7F\uDCFB-\uDE7F\uDE9D-\uDE9F\uDED1-\uDEFF\uDF20-\uDF2C\uDF41\uDF4A-\uDF4F\uDF76-\uDF7F\uDF9E\uDF9F\uDFC4-\uDFC7\uDFD0-\uDFFF]|\uD801[\uDC9E-\uDCAF\uDCD4-\uDCD7\uDCFC-\uDCFF\uDD28-\uDD2F\uDD64-\uDD6F\uDD7B\uDD8B\uDD93\uDD96\uDDA2\uDDB2\uDDBA\uDDBD-\uDDFF\uDF37-\uDF3F\uDF56-\uDF5F\uDF68-\uDF7F\uDF86\uDFB1\uDFBB-\uDFFF]|\uD802[\uDC06\uDC07\uDC09\uDC36\uDC39-\uDC3B\uDC3D\uDC3E\uDC56-\uDC5F\uDC77-\uDC7F\uDC9F-\uDCDF\uDCF3\uDCF6-\uDCFF\uDD16-\uDD1F\uDD3A-\uDD7F\uDDB8-\uDDBD\uDDC0-\uDDFF\uDE01-\uDE0F\uDE14\uDE18\uDE36-\uDE5F\uDE7D-\uDE7F\uDE9D-\uDEBF\uDEC8\uDEE5-\uDEFF\uDF36-\uDF3F\uDF56-\uDF5F\uDF73-\uDF7F\uDF92-\uDFFF]|\uD803[\uDC49-\uDC7F\uDCB3-\uDCBF\uDCF3-\uDCFF\uDD24-\uDE7F\uDEAA-\uDEAF\uDEB2-\uDEFF\uDF1D-\uDF26\uDF28-\uDF2F\uDF46-\uDF6F\uDF82-\uDFAF\uDFC5-\uDFDF\uDFF7-\uDFFF]|\uD804[\uDC00-\uDC02\uDC38-\uDC70\uDC73\uDC74\uDC76-\uDC82\uDCB0-\uDCCF\uDCE9-\uDD02\uDD27-\uDD43\uDD45\uDD46\uDD48-\uDD4F\uDD73-\uDD75\uDD77-\uDD82\uDDB3-\uDDC0\uDDC5-\uDDD9\uDDDB\uDDDD-\uDDFF\uDE12\uDE2C-\uDE3E\uDE41-\uDE7F\uDE87\uDE89\uDE8E\uDE9E\uDEA9-\uDEAF\uDEDF-\uDF04\uDF0D\uDF0E\uDF11\uDF12\uDF29\uDF31\uDF34\uDF3A-\uDF3C\uDF3E-\uDF4F\uDF51-\uDF5C\uDF62-\uDFFF]|\uD805[\uDC35-\uDC46\uDC4B-\uDC5E\uDC62-\uDC7F\uDCB0-\uDCC3\uDCC6\uDCC8-\uDD7F\uDDAF-\uDDD7\uDDDC-\uDDFF\uDE30-\uDE43\uDE45-\uDE7F\uDEAB-\uDEB7\uDEB9-\uDEFF\uDF1B-\uDF3F\uDF47-\uDFFF]|\uD806[\uDC2C-\uDC9F\uDCE0-\uDCFE\uDD07\uDD08\uDD0A\uDD0B\uDD14\uDD17\uDD30-\uDD3E\uDD40\uDD42-\uDD9F\uDDA8\uDDA9\uDDD1-\uDDE0\uDDE2\uDDE4-\uDDFF\uDE01-\uDE0A\uDE33-\uDE39\uDE3B-\uDE4F\uDE51-\uDE5B\uDE8A-\uDE9C\uDE9E-\uDEAF\uDEF9-\uDFFF]|\uD807[\uDC09\uDC2F-\uDC3F\uDC41-\uDC71\uDC90-\uDCFF\uDD07\uDD0A\uDD31-\uDD45\uDD47-\uDD5F\uDD66\uDD69\uDD8A-\uDD97\uDD99-\uDEDF\uDEF3-\uDF01\uDF03\uDF11\uDF34-\uDFAF\uDFB1-\uDFFF]|\uD808[\uDF9A-\uDFFF]|\uD809[\uDC00-\uDC7F\uDD44-\uDFFF]|[\uD80A\uD80E-\uD810\uD812-\uD819\uD824-\uD82A\uD82D\uD82E\uD830-\uD834\uD836\uD83C-\uD83F\uD87B-\uD87D\uD87F\uD889-\uDBFF][\uDC00-\uDFFF]|\uD80B[\uDC00-\uDF8F\uDFF1-\uDFFF]|\uD80D[\uDC30-\uDC40\uDC47-\uDFFF]|\uD811[\uDE47-\uDFFF]|\uD81A[\uDE39-\uDE3F\uDE5F-\uDE6F\uDEBF-\uDECF\uDEEE-\uDEFF\uDF30-\uDF3F\uDF44-\uDF62\uDF78-\uDF7C\uDF90-\uDFFF]|\uD81B[\uDC00-\uDE3F\uDE80-\uDEFF\uDF4B-\uDF4F\uDF51-\uDF92\uDFA0-\uDFDF\uDFE2\uDFE4-\uDFFF]|\uD821[\uDFF8-\uDFFF]|\uD823[\uDCD6-\uDCFF\uDD09-\uDFFF]|\uD82B[\uDC00-\uDFEF\uDFF4\uDFFC\uDFFF]|\uD82C[\uDD23-\uDD31\uDD33-\uDD4F\uDD53\uDD54\uDD56-\uDD63\uDD68-\uDD6F\uDEFC-\uDFFF]|\uD82F[\uDC6B-\uDC6F\uDC7D-\uDC7F\uDC89-\uDC8F\uDC9A-\uDFFF]|\uD835[\uDC55\uDC9D\uDCA0\uDCA1\uDCA3\uDCA4\uDCA7\uDCA8\uDCAD\uDCBA\uDCBC\uDCC4\uDD06\uDD0B\uDD0C\uDD15\uDD1D\uDD3A\uDD3F\uDD45\uDD47-\uDD49\uDD51\uDEA6\uDEA7\uDEC1\uDEDB\uDEFB\uDF15\uDF35\uDF4F\uDF6F\uDF89\uDFA9\uDFC3\uDFCC-\uDFFF]|\uD837[\uDC00-\uDEFF\uDF1F-\uDF24\uDF2B-\uDFFF]|\uD838[\uDC00-\uDC2F\uDC6E-\uDCFF\uDD2D-\uDD36\uDD3E-\uDD4D\uDD4F-\uDE8F\uDEAE-\uDEBF\uDEEC-\uDFFF]|\uD839[\uDC00-\uDCCF\uDCEC-\uDFDF\uDFE7\uDFEC\uDFEF\uDFFF]|\uD83A[\uDCC5-\uDCFF\uDD44-\uDD4A\uDD4C-\uDFFF]|\uD83B[\uDC00-\uDDFF\uDE04\uDE20\uDE23\uDE25\uDE26\uDE28\uDE33\uDE38\uDE3A\uDE3C-\uDE41\uDE43-\uDE46\uDE48\uDE4A\uDE4C\uDE50\uDE53\uDE55\uDE56\uDE58\uDE5A\uDE5C\uDE5E\uDE60\uDE63\uDE65\uDE66\uDE6B\uDE73\uDE78\uDE7D\uDE7F\uDE8A\uDE9C-\uDEA0\uDEA4\uDEAA\uDEBC-\uDFFF]|\uD869[\uDEE0-\uDEFF]|\uD86D[\uDF3A-\uDF3F]|\uD86E[\uDC1E\uDC1F]|\uD873[\uDEA2-\uDEAF]|\uD87A[\uDFE1-\uDFFF]|\uD87E[\uDE1E-\uDFFF]|\uD884[\uDF4B-\uDF4F]|\uD888[\uDFB0-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])/g)).pop();
+  let after = text.slice(end, Math.min(text.length, end + snippetLength));
+  let lastWordEnd = Array.from(after.matchAll(/(?:[A-Za-z\xAA\xB5\xBA\xC0-\xD6\xD8-\xF6\xF8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0370-\u0374\u0376\u0377\u037A-\u037D\u037F\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u052F\u0531-\u0556\u0559\u0560-\u0588\u05D0-\u05EA\u05EF-\u05F2\u0620-\u064A\u066E\u066F\u0671-\u06D3\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0815\u081A\u0824\u0828\u0840-\u0858\u0860-\u086A\u0870-\u0887\u0889-\u088E\u08A0-\u08C9\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC\u09DD\u09DF-\u09E1\u09F0\u09F1\u09FC\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0\u0AE1\u0AF9\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D\u0B5C\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C39\u0C3D\u0C58-\u0C5A\u0C5D\u0C60\u0C61\u0C80\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDD\u0CDE\u0CE0\u0CE1\u0CF1\u0CF2\u0D04-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D\u0D4E\u0D54-\u0D56\u0D5F-\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0E01-\u0E30\u0E32\u0E33\u0E40-\u0E46\u0E81\u0E82\u0E84\u0E86-\u0E8A\u0E8C-\u0EA3\u0EA5\u0EA7-\u0EB0\u0EB2\u0EB3\u0EBD\u0EC0-\u0EC4\u0EC6\u0EDC-\u0EDF\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C\u1000-\u102A\u103F\u1050-\u1055\u105A-\u105D\u1061\u1065\u1066\u106E-\u1070\u1075-\u1081\u108E\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F5\u13F8-\u13FD\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16F1-\u16F8\u1700-\u1711\u171F-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1780-\u17B3\u17D7\u17DC\u1820-\u1878\u1880-\u1884\u1887-\u18A8\u18AA\u18B0-\u18F5\u1900-\u191E\u1950-\u196D\u1970-\u1974\u1980-\u19AB\u19B0-\u19C9\u1A00-\u1A16\u1A20-\u1A54\u1AA7\u1B05-\u1B33\u1B45-\u1B4C\u1B83-\u1BA0\u1BAE\u1BAF\u1BBA-\u1BE5\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1C80-\u1C88\u1C90-\u1CBA\u1CBD-\u1CBF\u1CE9-\u1CEC\u1CEE-\u1CF3\u1CF5\u1CF6\u1CFA\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2183\u2184\u2C00-\u2CE4\u2CEB-\u2CEE\u2CF2\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2E2F\u3005\u3006\u3031-\u3035\u303B\u303C\u3041-\u3096\u309D-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312F\u3131-\u318E\u31A0-\u31BF\u31F0-\u31FF\u3400-\u4DBF\u4E00-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA67F-\uA69D\uA6A0-\uA6E5\uA717-\uA71F\uA722-\uA788\uA78B-\uA7CA\uA7D0\uA7D1\uA7D3\uA7D5-\uA7D9\uA7F2-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA8F2-\uA8F7\uA8FB\uA8FD\uA8FE\uA90A-\uA925\uA930-\uA946\uA960-\uA97C\uA984-\uA9B2\uA9CF\uA9E0-\uA9E4\uA9E6-\uA9EF\uA9FA-\uA9FE\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAA60-\uAA76\uAA7A\uAA7E-\uAAAF\uAAB1\uAAB5\uAAB6\uAAB9-\uAABD\uAAC0\uAAC2\uAADB-\uAADD\uAAE0-\uAAEA\uAAF2-\uAAF4\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uAB30-\uAB5A\uAB5C-\uAB69\uAB70-\uABE2\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]|\uD800[\uDC00-\uDC0B\uDC0D-\uDC26\uDC28-\uDC3A\uDC3C\uDC3D\uDC3F-\uDC4D\uDC50-\uDC5D\uDC80-\uDCFA\uDE80-\uDE9C\uDEA0-\uDED0\uDF00-\uDF1F\uDF2D-\uDF40\uDF42-\uDF49\uDF50-\uDF75\uDF80-\uDF9D\uDFA0-\uDFC3\uDFC8-\uDFCF]|\uD801[\uDC00-\uDC9D\uDCB0-\uDCD3\uDCD8-\uDCFB\uDD00-\uDD27\uDD30-\uDD63\uDD70-\uDD7A\uDD7C-\uDD8A\uDD8C-\uDD92\uDD94\uDD95\uDD97-\uDDA1\uDDA3-\uDDB1\uDDB3-\uDDB9\uDDBB\uDDBC\uDE00-\uDF36\uDF40-\uDF55\uDF60-\uDF67\uDF80-\uDF85\uDF87-\uDFB0\uDFB2-\uDFBA]|\uD802[\uDC00-\uDC05\uDC08\uDC0A-\uDC35\uDC37\uDC38\uDC3C\uDC3F-\uDC55\uDC60-\uDC76\uDC80-\uDC9E\uDCE0-\uDCF2\uDCF4\uDCF5\uDD00-\uDD15\uDD20-\uDD39\uDD80-\uDDB7\uDDBE\uDDBF\uDE00\uDE10-\uDE13\uDE15-\uDE17\uDE19-\uDE35\uDE60-\uDE7C\uDE80-\uDE9C\uDEC0-\uDEC7\uDEC9-\uDEE4\uDF00-\uDF35\uDF40-\uDF55\uDF60-\uDF72\uDF80-\uDF91]|\uD803[\uDC00-\uDC48\uDC80-\uDCB2\uDCC0-\uDCF2\uDD00-\uDD23\uDE80-\uDEA9\uDEB0\uDEB1\uDF00-\uDF1C\uDF27\uDF30-\uDF45\uDF70-\uDF81\uDFB0-\uDFC4\uDFE0-\uDFF6]|\uD804[\uDC03-\uDC37\uDC71\uDC72\uDC75\uDC83-\uDCAF\uDCD0-\uDCE8\uDD03-\uDD26\uDD44\uDD47\uDD50-\uDD72\uDD76\uDD83-\uDDB2\uDDC1-\uDDC4\uDDDA\uDDDC\uDE00-\uDE11\uDE13-\uDE2B\uDE3F\uDE40\uDE80-\uDE86\uDE88\uDE8A-\uDE8D\uDE8F-\uDE9D\uDE9F-\uDEA8\uDEB0-\uDEDE\uDF05-\uDF0C\uDF0F\uDF10\uDF13-\uDF28\uDF2A-\uDF30\uDF32\uDF33\uDF35-\uDF39\uDF3D\uDF50\uDF5D-\uDF61]|\uD805[\uDC00-\uDC34\uDC47-\uDC4A\uDC5F-\uDC61\uDC80-\uDCAF\uDCC4\uDCC5\uDCC7\uDD80-\uDDAE\uDDD8-\uDDDB\uDE00-\uDE2F\uDE44\uDE80-\uDEAA\uDEB8\uDF00-\uDF1A\uDF40-\uDF46]|\uD806[\uDC00-\uDC2B\uDCA0-\uDCDF\uDCFF-\uDD06\uDD09\uDD0C-\uDD13\uDD15\uDD16\uDD18-\uDD2F\uDD3F\uDD41\uDDA0-\uDDA7\uDDAA-\uDDD0\uDDE1\uDDE3\uDE00\uDE0B-\uDE32\uDE3A\uDE50\uDE5C-\uDE89\uDE9D\uDEB0-\uDEF8]|\uD807[\uDC00-\uDC08\uDC0A-\uDC2E\uDC40\uDC72-\uDC8F\uDD00-\uDD06\uDD08\uDD09\uDD0B-\uDD30\uDD46\uDD60-\uDD65\uDD67\uDD68\uDD6A-\uDD89\uDD98\uDEE0-\uDEF2\uDF02\uDF04-\uDF10\uDF12-\uDF33\uDFB0]|\uD808[\uDC00-\uDF99]|\uD809[\uDC80-\uDD43]|\uD80B[\uDF90-\uDFF0]|[\uD80C\uD81C-\uD820\uD822\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872\uD874-\uD879\uD880-\uD883\uD885-\uD887][\uDC00-\uDFFF]|\uD80D[\uDC00-\uDC2F\uDC41-\uDC46]|\uD811[\uDC00-\uDE46]|\uD81A[\uDC00-\uDE38\uDE40-\uDE5E\uDE70-\uDEBE\uDED0-\uDEED\uDF00-\uDF2F\uDF40-\uDF43\uDF63-\uDF77\uDF7D-\uDF8F]|\uD81B[\uDE40-\uDE7F\uDF00-\uDF4A\uDF50\uDF93-\uDF9F\uDFE0\uDFE1\uDFE3]|\uD821[\uDC00-\uDFF7]|\uD823[\uDC00-\uDCD5\uDD00-\uDD08]|\uD82B[\uDFF0-\uDFF3\uDFF5-\uDFFB\uDFFD\uDFFE]|\uD82C[\uDC00-\uDD22\uDD32\uDD50-\uDD52\uDD55\uDD64-\uDD67\uDD70-\uDEFB]|\uD82F[\uDC00-\uDC6A\uDC70-\uDC7C\uDC80-\uDC88\uDC90-\uDC99]|\uD835[\uDC00-\uDC54\uDC56-\uDC9C\uDC9E\uDC9F\uDCA2\uDCA5\uDCA6\uDCA9-\uDCAC\uDCAE-\uDCB9\uDCBB\uDCBD-\uDCC3\uDCC5-\uDD05\uDD07-\uDD0A\uDD0D-\uDD14\uDD16-\uDD1C\uDD1E-\uDD39\uDD3B-\uDD3E\uDD40-\uDD44\uDD46\uDD4A-\uDD50\uDD52-\uDEA5\uDEA8-\uDEC0\uDEC2-\uDEDA\uDEDC-\uDEFA\uDEFC-\uDF14\uDF16-\uDF34\uDF36-\uDF4E\uDF50-\uDF6E\uDF70-\uDF88\uDF8A-\uDFA8\uDFAA-\uDFC2\uDFC4-\uDFCB]|\uD837[\uDF00-\uDF1E\uDF25-\uDF2A]|\uD838[\uDC30-\uDC6D\uDD00-\uDD2C\uDD37-\uDD3D\uDD4E\uDE90-\uDEAD\uDEC0-\uDEEB]|\uD839[\uDCD0-\uDCEB\uDFE0-\uDFE6\uDFE8-\uDFEB\uDFED\uDFEE\uDFF0-\uDFFE]|\uD83A[\uDC00-\uDCC4\uDD00-\uDD43\uDD4B]|\uD83B[\uDE00-\uDE03\uDE05-\uDE1F\uDE21\uDE22\uDE24\uDE27\uDE29-\uDE32\uDE34-\uDE37\uDE39\uDE3B\uDE42\uDE47\uDE49\uDE4B\uDE4D-\uDE4F\uDE51\uDE52\uDE54\uDE57\uDE59\uDE5B\uDE5D\uDE5F\uDE61\uDE62\uDE64\uDE67-\uDE6A\uDE6C-\uDE72\uDE74-\uDE77\uDE79-\uDE7C\uDE7E\uDE80-\uDE89\uDE8B-\uDE9B\uDEA1-\uDEA3\uDEA5-\uDEA9\uDEAB-\uDEBB]|\uD869[\uDC00-\uDEDF\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF39\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1\uDEB0-\uDFFF]|\uD87A[\uDC00-\uDFE0]|\uD87E[\uDC00-\uDE1D]|\uD884[\uDC00-\uDF4A\uDF50-\uDFFF]|\uD888[\uDC00-\uDFAF])(?:[\0-@\[-`\{-\xA9\xAB-\xB4\xB6-\xB9\xBB-\xBF\xD7\xF7\u02C2-\u02C5\u02D2-\u02DF\u02E5-\u02EB\u02ED\u02EF-\u036F\u0375\u0378\u0379\u037E\u0380-\u0385\u0387\u038B\u038D\u03A2\u03F6\u0482-\u0489\u0530\u0557\u0558\u055A-\u055F\u0589-\u05CF\u05EB-\u05EE\u05F3-\u061F\u064B-\u066D\u0670\u06D4\u06D6-\u06E4\u06E7-\u06ED\u06F0-\u06F9\u06FD\u06FE\u0700-\u070F\u0711\u0730-\u074C\u07A6-\u07B0\u07B2-\u07C9\u07EB-\u07F3\u07F6-\u07F9\u07FB-\u07FF\u0816-\u0819\u081B-\u0823\u0825-\u0827\u0829-\u083F\u0859-\u085F\u086B-\u086F\u0888\u088F-\u089F\u08CA-\u0903\u093A-\u093C\u093E-\u094F\u0951-\u0957\u0962-\u0970\u0981-\u0984\u098D\u098E\u0991\u0992\u09A9\u09B1\u09B3-\u09B5\u09BA-\u09BC\u09BE-\u09CD\u09CF-\u09DB\u09DE\u09E2-\u09EF\u09F2-\u09FB\u09FD-\u0A04\u0A0B-\u0A0E\u0A11\u0A12\u0A29\u0A31\u0A34\u0A37\u0A3A-\u0A58\u0A5D\u0A5F-\u0A71\u0A75-\u0A84\u0A8E\u0A92\u0AA9\u0AB1\u0AB4\u0ABA-\u0ABC\u0ABE-\u0ACF\u0AD1-\u0ADF\u0AE2-\u0AF8\u0AFA-\u0B04\u0B0D\u0B0E\u0B11\u0B12\u0B29\u0B31\u0B34\u0B3A-\u0B3C\u0B3E-\u0B5B\u0B5E\u0B62-\u0B70\u0B72-\u0B82\u0B84\u0B8B-\u0B8D\u0B91\u0B96-\u0B98\u0B9B\u0B9D\u0BA0-\u0BA2\u0BA5-\u0BA7\u0BAB-\u0BAD\u0BBA-\u0BCF\u0BD1-\u0C04\u0C0D\u0C11\u0C29\u0C3A-\u0C3C\u0C3E-\u0C57\u0C5B\u0C5C\u0C5E\u0C5F\u0C62-\u0C7F\u0C81-\u0C84\u0C8D\u0C91\u0CA9\u0CB4\u0CBA-\u0CBC\u0CBE-\u0CDC\u0CDF\u0CE2-\u0CF0\u0CF3-\u0D03\u0D0D\u0D11\u0D3B\u0D3C\u0D3E-\u0D4D\u0D4F-\u0D53\u0D57-\u0D5E\u0D62-\u0D79\u0D80-\u0D84\u0D97-\u0D99\u0DB2\u0DBC\u0DBE\u0DBF\u0DC7-\u0E00\u0E31\u0E34-\u0E3F\u0E47-\u0E80\u0E83\u0E85\u0E8B\u0EA4\u0EA6\u0EB1\u0EB4-\u0EBC\u0EBE\u0EBF\u0EC5\u0EC7-\u0EDB\u0EE0-\u0EFF\u0F01-\u0F3F\u0F48\u0F6D-\u0F87\u0F8D-\u0FFF\u102B-\u103E\u1040-\u104F\u1056-\u1059\u105E-\u1060\u1062-\u1064\u1067-\u106D\u1071-\u1074\u1082-\u108D\u108F-\u109F\u10C6\u10C8-\u10CC\u10CE\u10CF\u10FB\u1249\u124E\u124F\u1257\u1259\u125E\u125F\u1289\u128E\u128F\u12B1\u12B6\u12B7\u12BF\u12C1\u12C6\u12C7\u12D7\u1311\u1316\u1317\u135B-\u137F\u1390-\u139F\u13F6\u13F7\u13FE-\u1400\u166D\u166E\u1680\u169B-\u169F\u16EB-\u16F0\u16F9-\u16FF\u1712-\u171E\u1732-\u173F\u1752-\u175F\u176D\u1771-\u177F\u17B4-\u17D6\u17D8-\u17DB\u17DD-\u181F\u1879-\u187F\u1885\u1886\u18A9\u18AB-\u18AF\u18F6-\u18FF\u191F-\u194F\u196E\u196F\u1975-\u197F\u19AC-\u19AF\u19CA-\u19FF\u1A17-\u1A1F\u1A55-\u1AA6\u1AA8-\u1B04\u1B34-\u1B44\u1B4D-\u1B82\u1BA1-\u1BAD\u1BB0-\u1BB9\u1BE6-\u1BFF\u1C24-\u1C4C\u1C50-\u1C59\u1C7E\u1C7F\u1C89-\u1C8F\u1CBB\u1CBC\u1CC0-\u1CE8\u1CED\u1CF4\u1CF7-\u1CF9\u1CFB-\u1CFF\u1DC0-\u1DFF\u1F16\u1F17\u1F1E\u1F1F\u1F46\u1F47\u1F4E\u1F4F\u1F58\u1F5A\u1F5C\u1F5E\u1F7E\u1F7F\u1FB5\u1FBD\u1FBF-\u1FC1\u1FC5\u1FCD-\u1FCF\u1FD4\u1FD5\u1FDC-\u1FDF\u1FED-\u1FF1\u1FF5\u1FFD-\u2070\u2072-\u207E\u2080-\u208F\u209D-\u2101\u2103-\u2106\u2108\u2109\u2114\u2116-\u2118\u211E-\u2123\u2125\u2127\u2129\u212E\u213A\u213B\u2140-\u2144\u214A-\u214D\u214F-\u2182\u2185-\u2BFF\u2CE5-\u2CEA\u2CEF-\u2CF1\u2CF4-\u2CFF\u2D26\u2D28-\u2D2C\u2D2E\u2D2F\u2D68-\u2D6E\u2D70-\u2D7F\u2D97-\u2D9F\u2DA7\u2DAF\u2DB7\u2DBF\u2DC7\u2DCF\u2DD7\u2DDF-\u2E2E\u2E30-\u3004\u3007-\u3030\u3036-\u303A\u303D-\u3040\u3097-\u309C\u30A0\u30FB\u3100-\u3104\u3130\u318F-\u319F\u31C0-\u31EF\u3200-\u33FF\u4DC0-\u4DFF\uA48D-\uA4CF\uA4FE\uA4FF\uA60D-\uA60F\uA620-\uA629\uA62C-\uA63F\uA66F-\uA67E\uA69E\uA69F\uA6E6-\uA716\uA720\uA721\uA789\uA78A\uA7CB-\uA7CF\uA7D2\uA7D4\uA7DA-\uA7F1\uA802\uA806\uA80B\uA823-\uA83F\uA874-\uA881\uA8B4-\uA8F1\uA8F8-\uA8FA\uA8FC\uA8FF-\uA909\uA926-\uA92F\uA947-\uA95F\uA97D-\uA983\uA9B3-\uA9CE\uA9D0-\uA9DF\uA9E5\uA9F0-\uA9F9\uA9FF\uAA29-\uAA3F\uAA43\uAA4C-\uAA5F\uAA77-\uAA79\uAA7B-\uAA7D\uAAB0\uAAB2-\uAAB4\uAAB7\uAAB8\uAABE\uAABF\uAAC1\uAAC3-\uAADA\uAADE\uAADF\uAAEB-\uAAF1\uAAF5-\uAB00\uAB07\uAB08\uAB0F\uAB10\uAB17-\uAB1F\uAB27\uAB2F\uAB5B\uAB6A-\uAB6F\uABE3-\uABFF\uD7A4-\uD7AF\uD7C7-\uD7CA\uD7FC-\uD7FF\uE000-\uF8FF\uFA6E\uFA6F\uFADA-\uFAFF\uFB07-\uFB12\uFB18-\uFB1C\uFB1E\uFB29\uFB37\uFB3D\uFB3F\uFB42\uFB45\uFBB2-\uFBD2\uFD3E-\uFD4F\uFD90\uFD91\uFDC8-\uFDEF\uFDFC-\uFE6F\uFE75\uFEFD-\uFF20\uFF3B-\uFF40\uFF5B-\uFF65\uFFBF-\uFFC1\uFFC8\uFFC9\uFFD0\uFFD1\uFFD8\uFFD9\uFFDD-\uFFFF]|\uD800[\uDC0C\uDC27\uDC3B\uDC3E\uDC4E\uDC4F\uDC5E-\uDC7F\uDCFB-\uDE7F\uDE9D-\uDE9F\uDED1-\uDEFF\uDF20-\uDF2C\uDF41\uDF4A-\uDF4F\uDF76-\uDF7F\uDF9E\uDF9F\uDFC4-\uDFC7\uDFD0-\uDFFF]|\uD801[\uDC9E-\uDCAF\uDCD4-\uDCD7\uDCFC-\uDCFF\uDD28-\uDD2F\uDD64-\uDD6F\uDD7B\uDD8B\uDD93\uDD96\uDDA2\uDDB2\uDDBA\uDDBD-\uDDFF\uDF37-\uDF3F\uDF56-\uDF5F\uDF68-\uDF7F\uDF86\uDFB1\uDFBB-\uDFFF]|\uD802[\uDC06\uDC07\uDC09\uDC36\uDC39-\uDC3B\uDC3D\uDC3E\uDC56-\uDC5F\uDC77-\uDC7F\uDC9F-\uDCDF\uDCF3\uDCF6-\uDCFF\uDD16-\uDD1F\uDD3A-\uDD7F\uDDB8-\uDDBD\uDDC0-\uDDFF\uDE01-\uDE0F\uDE14\uDE18\uDE36-\uDE5F\uDE7D-\uDE7F\uDE9D-\uDEBF\uDEC8\uDEE5-\uDEFF\uDF36-\uDF3F\uDF56-\uDF5F\uDF73-\uDF7F\uDF92-\uDFFF]|\uD803[\uDC49-\uDC7F\uDCB3-\uDCBF\uDCF3-\uDCFF\uDD24-\uDE7F\uDEAA-\uDEAF\uDEB2-\uDEFF\uDF1D-\uDF26\uDF28-\uDF2F\uDF46-\uDF6F\uDF82-\uDFAF\uDFC5-\uDFDF\uDFF7-\uDFFF]|\uD804[\uDC00-\uDC02\uDC38-\uDC70\uDC73\uDC74\uDC76-\uDC82\uDCB0-\uDCCF\uDCE9-\uDD02\uDD27-\uDD43\uDD45\uDD46\uDD48-\uDD4F\uDD73-\uDD75\uDD77-\uDD82\uDDB3-\uDDC0\uDDC5-\uDDD9\uDDDB\uDDDD-\uDDFF\uDE12\uDE2C-\uDE3E\uDE41-\uDE7F\uDE87\uDE89\uDE8E\uDE9E\uDEA9-\uDEAF\uDEDF-\uDF04\uDF0D\uDF0E\uDF11\uDF12\uDF29\uDF31\uDF34\uDF3A-\uDF3C\uDF3E-\uDF4F\uDF51-\uDF5C\uDF62-\uDFFF]|\uD805[\uDC35-\uDC46\uDC4B-\uDC5E\uDC62-\uDC7F\uDCB0-\uDCC3\uDCC6\uDCC8-\uDD7F\uDDAF-\uDDD7\uDDDC-\uDDFF\uDE30-\uDE43\uDE45-\uDE7F\uDEAB-\uDEB7\uDEB9-\uDEFF\uDF1B-\uDF3F\uDF47-\uDFFF]|\uD806[\uDC2C-\uDC9F\uDCE0-\uDCFE\uDD07\uDD08\uDD0A\uDD0B\uDD14\uDD17\uDD30-\uDD3E\uDD40\uDD42-\uDD9F\uDDA8\uDDA9\uDDD1-\uDDE0\uDDE2\uDDE4-\uDDFF\uDE01-\uDE0A\uDE33-\uDE39\uDE3B-\uDE4F\uDE51-\uDE5B\uDE8A-\uDE9C\uDE9E-\uDEAF\uDEF9-\uDFFF]|\uD807[\uDC09\uDC2F-\uDC3F\uDC41-\uDC71\uDC90-\uDCFF\uDD07\uDD0A\uDD31-\uDD45\uDD47-\uDD5F\uDD66\uDD69\uDD8A-\uDD97\uDD99-\uDEDF\uDEF3-\uDF01\uDF03\uDF11\uDF34-\uDFAF\uDFB1-\uDFFF]|\uD808[\uDF9A-\uDFFF]|\uD809[\uDC00-\uDC7F\uDD44-\uDFFF]|[\uD80A\uD80E-\uD810\uD812-\uD819\uD824-\uD82A\uD82D\uD82E\uD830-\uD834\uD836\uD83C-\uD83F\uD87B-\uD87D\uD87F\uD889-\uDBFF][\uDC00-\uDFFF]|\uD80B[\uDC00-\uDF8F\uDFF1-\uDFFF]|\uD80D[\uDC30-\uDC40\uDC47-\uDFFF]|\uD811[\uDE47-\uDFFF]|\uD81A[\uDE39-\uDE3F\uDE5F-\uDE6F\uDEBF-\uDECF\uDEEE-\uDEFF\uDF30-\uDF3F\uDF44-\uDF62\uDF78-\uDF7C\uDF90-\uDFFF]|\uD81B[\uDC00-\uDE3F\uDE80-\uDEFF\uDF4B-\uDF4F\uDF51-\uDF92\uDFA0-\uDFDF\uDFE2\uDFE4-\uDFFF]|\uD821[\uDFF8-\uDFFF]|\uD823[\uDCD6-\uDCFF\uDD09-\uDFFF]|\uD82B[\uDC00-\uDFEF\uDFF4\uDFFC\uDFFF]|\uD82C[\uDD23-\uDD31\uDD33-\uDD4F\uDD53\uDD54\uDD56-\uDD63\uDD68-\uDD6F\uDEFC-\uDFFF]|\uD82F[\uDC6B-\uDC6F\uDC7D-\uDC7F\uDC89-\uDC8F\uDC9A-\uDFFF]|\uD835[\uDC55\uDC9D\uDCA0\uDCA1\uDCA3\uDCA4\uDCA7\uDCA8\uDCAD\uDCBA\uDCBC\uDCC4\uDD06\uDD0B\uDD0C\uDD15\uDD1D\uDD3A\uDD3F\uDD45\uDD47-\uDD49\uDD51\uDEA6\uDEA7\uDEC1\uDEDB\uDEFB\uDF15\uDF35\uDF4F\uDF6F\uDF89\uDFA9\uDFC3\uDFCC-\uDFFF]|\uD837[\uDC00-\uDEFF\uDF1F-\uDF24\uDF2B-\uDFFF]|\uD838[\uDC00-\uDC2F\uDC6E-\uDCFF\uDD2D-\uDD36\uDD3E-\uDD4D\uDD4F-\uDE8F\uDEAE-\uDEBF\uDEEC-\uDFFF]|\uD839[\uDC00-\uDCCF\uDCEC-\uDFDF\uDFE7\uDFEC\uDFEF\uDFFF]|\uD83A[\uDCC5-\uDCFF\uDD44-\uDD4A\uDD4C-\uDFFF]|\uD83B[\uDC00-\uDDFF\uDE04\uDE20\uDE23\uDE25\uDE26\uDE28\uDE33\uDE38\uDE3A\uDE3C-\uDE41\uDE43-\uDE46\uDE48\uDE4A\uDE4C\uDE50\uDE53\uDE55\uDE56\uDE58\uDE5A\uDE5C\uDE5E\uDE60\uDE63\uDE65\uDE66\uDE6B\uDE73\uDE78\uDE7D\uDE7F\uDE8A\uDE9C-\uDEA0\uDEA4\uDEAA\uDEBC-\uDFFF]|\uD869[\uDEE0-\uDEFF]|\uD86D[\uDF3A-\uDF3F]|\uD86E[\uDC1E\uDC1F]|\uD873[\uDEA2-\uDEAF]|\uD87A[\uDFE1-\uDFFF]|\uD87E[\uDE1E-\uDFFF]|\uD884[\uDF4B-\uDF4F]|\uD888[\uDFB0-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])/g)).pop();
   if (lastWordEnd !== undefined && lastWordEnd.index > 1) {
     after = after.slice(0, lastWordEnd.index + 1);
   }
@@ -2297,14 +2283,14 @@ function getCurrentSelectionText() {
   };
 }
 function createOrderedRange(startNode, startOffset, endNode, endOffset) {
-  var range = new Range();
+  const range = new Range();
   range.setStart(startNode, startOffset);
   range.setEnd(endNode, endOffset);
   if (!range.collapsed) {
     return range;
   }
   log(">>> createOrderedRange COLLAPSED ... RANGE REVERSE?");
-  var rangeReverse = new Range();
+  const rangeReverse = new Range();
   rangeReverse.setStart(endNode, endOffset);
   rangeReverse.setEnd(startNode, startOffset);
   if (!rangeReverse.collapsed) {
@@ -2315,12 +2301,12 @@ function createOrderedRange(startNode, startOffset, endNode, endOffset) {
   return undefined;
 }
 function convertRangeInfo(document, rangeInfo) {
-  var startElement = document.querySelector(rangeInfo.startContainerElementCssSelector);
+  const startElement = document.querySelector(rangeInfo.startContainerElementCssSelector);
   if (!startElement) {
     log("^^^ convertRangeInfo NO START ELEMENT CSS SELECTOR?!");
     return undefined;
   }
-  var startContainer = startElement;
+  let startContainer = startElement;
   if (rangeInfo.startContainerChildTextNodeIndex >= 0) {
     if (rangeInfo.startContainerChildTextNodeIndex >= startElement.childNodes.length) {
       log("^^^ convertRangeInfo rangeInfo.startContainerChildTextNodeIndex >= startElement.childNodes.length?!");
@@ -2332,12 +2318,12 @@ function convertRangeInfo(document, rangeInfo) {
       return undefined;
     }
   }
-  var endElement = document.querySelector(rangeInfo.endContainerElementCssSelector);
+  const endElement = document.querySelector(rangeInfo.endContainerElementCssSelector);
   if (!endElement) {
     log("^^^ convertRangeInfo NO END ELEMENT CSS SELECTOR?!");
     return undefined;
   }
-  var endContainer = endElement;
+  let endContainer = endElement;
   if (rangeInfo.endContainerChildTextNodeIndex >= 0) {
     if (rangeInfo.endContainerChildTextNodeIndex >= endElement.childNodes.length) {
       log("^^^ convertRangeInfo rangeInfo.endContainerChildTextNodeIndex >= endElement.childNodes.length?!");
@@ -2352,10 +2338,10 @@ function convertRangeInfo(document, rangeInfo) {
   return createOrderedRange(startContainer, rangeInfo.startOffset, endContainer, rangeInfo.endOffset);
 }
 function location2RangeInfo(location) {
-  var locations = location.locations;
-  var domRange = locations.domRange;
-  var start = domRange.start;
-  var end = domRange.end;
+  const locations = location.locations;
+  const domRange = locations.domRange;
+  const start = domRange.start;
+  const end = domRange.end;
   return {
     endContainerChildTextNodeIndex: end.textNodeIndex,
     endContainerElementCssSelector: end.cssSelector,
@@ -2419,7 +2405,7 @@ window.addEventListener("error", function (event) {
 
 // Notify native code that the page has loaded.
 window.addEventListener("load", function () {
-  var observer = new ResizeObserver(() => {
+  const observer = new ResizeObserver(() => {
     appendVirtualColumnIfNeeded();
   });
   observer.observe(document.body);
@@ -2437,7 +2423,7 @@ window.addEventListener("load", function () {
  * turning issues. To fix this, we insert a blank virtual column at the end of the resource.
  */
 function appendVirtualColumnIfNeeded() {
-  var id = "readium-virtual-page";
+  const id = "readium-virtual-page";
   var virtualCol = document.getElementById(id);
   if (isScrollModeEnabled() || getColumnCountPerScreen() != 2) {
     var _virtualCol;
@@ -2497,7 +2483,7 @@ function getColumnCountPerScreen() {
   return parseInt(window.getComputedStyle(document.documentElement).getPropertyValue("column-count"));
 }
 function isScrollModeEnabled() {
-  var style = document.documentElement.style;
+  const style = document.documentElement.style;
   return style.getPropertyValue("--USER__view").trim() == "readium-scroll-on" ||
   // FIXME: Will need to be removed in Readium 3.0, --USER__scroll was incorrect.
   style.getPropertyValue("--USER__scroll").trim() == "readium-scroll-on";
@@ -2505,7 +2491,7 @@ function isScrollModeEnabled() {
 
 // Scroll to the given TagId in document and snap.
 function scrollToId(id) {
-  var element = document.getElementById(id);
+  let element = document.getElementById(id);
   if (!element) {
     return false;
   }
@@ -2521,14 +2507,14 @@ function scrollToPosition(position, dir) {
     return;
   }
   if (isScrollModeEnabled()) {
-    var offset = document.scrollingElement.scrollHeight * position;
+    let offset = document.scrollingElement.scrollHeight * position;
     document.scrollingElement.scrollTop = offset;
     // window.scrollTo(0, offset);
   } else {
     var documentWidth = document.scrollingElement.scrollWidth;
     var factor = dir == "rtl" ? -1 : 1;
-    var _offset = documentWidth * position * factor;
-    document.scrollingElement.scrollLeft = snapOffset(_offset);
+    let offset = documentWidth * position * factor;
+    document.scrollingElement.scrollLeft = snapOffset(offset);
   }
 }
 
@@ -2537,7 +2523,7 @@ function scrollToPosition(position, dir) {
 // The expected text argument is a Locator Text object, as defined here:
 // https://readium.org/architecture/models/locators/
 function scrollToText(text) {
-  var range = rangeFromLocator({
+  let range = rangeFromLocator({
     text
   });
   if (!range) {
@@ -2602,20 +2588,20 @@ function snapCurrentPosition() {
   document.scrollingElement.scrollLeft = currentOffsetSnapped;
 }
 function rangeFromLocator(locator) {
-  var text = locator.text;
+  let text = locator.text;
   if (!text || !text.highlight) {
     return null;
   }
   try {
     var root;
-    var locations = locator.locations;
+    let locations = locator.locations;
     if (locations && locations.cssSelector) {
       root = document.querySelector(locations.cssSelector);
     }
     if (!root) {
       root = document.body;
     }
-    var anchor = new _vendor_hypothesis_anchoring_types__WEBPACK_IMPORTED_MODULE_0__.TextQuoteAnchor(root, text.highlight, {
+    let anchor = new _vendor_hypothesis_anchoring_types__WEBPACK_IMPORTED_MODULE_0__.TextQuoteAnchor(root, text.highlight, {
       prefix: text.before,
       suffix: text.after
     });
@@ -2629,7 +2615,7 @@ function rangeFromLocator(locator) {
 /// User Settings.
 
 function setCSSProperties(properties) {
-  for (var name in properties) {
+  for (const name in properties) {
     setProperty(name, properties[name]);
   }
 }
@@ -2720,8 +2706,8 @@ __webpack_require__.r(__webpack_exports__);
 function search(text, str, maxErrors) {
   // Do a fast search for exact matches. The `approx-string-match` library
   // doesn't currently incorporate this optimization itself.
-  var matchPos = 0;
-  var exactMatches = [];
+  let matchPos = 0;
+  let exactMatches = [];
   while (matchPos !== -1) {
     matchPos = text.indexOf(str, matchPos);
     if (matchPos !== -1) {
@@ -2753,7 +2739,7 @@ function textMatchScore(text, str) {
   if (str.length === 0 || text.length === 0) {
     return 0.0;
   }
-  var matches = search(text, str, str.length);
+  const matches = search(text, str, str.length);
 
   // prettier-ignore
   return 1 - matches[0].errors / str.length;
@@ -2775,7 +2761,7 @@ function textMatchScore(text, str) {
  * @return {Match|null}
  */
 function matchQuote(text, quote) {
-  var context = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  let context = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
   if (quote.length === 0) {
     return null;
   }
@@ -2789,10 +2775,10 @@ function matchQuote(text, quote) {
   //
   // [1] Specifically, the expected-time complexity of the initial search is
   //     `O((maxErrors / 32) * text.length)`. See `approx-string-match` docs.
-  var maxErrors = Math.min(256, quote.length / 2);
+  const maxErrors = Math.min(256, quote.length / 2);
 
   // Find closest matches for `quote` in `text` based on edit distance.
-  var matches = search(text, quote, maxErrors);
+  const matches = search(text, quote, maxErrors);
   if (matches.length === 0) {
     return null;
   }
@@ -2802,29 +2788,29 @@ function matchQuote(text, quote) {
    *
    * @param {StringMatch} match
    */
-  var scoreMatch = match => {
-    var quoteWeight = 50; // Similarity of matched text to quote.
-    var prefixWeight = 20; // Similarity of text before matched text to `context.prefix`.
-    var suffixWeight = 20; // Similarity of text after matched text to `context.suffix`.
-    var posWeight = 2; // Proximity to expected location. Used as a tie-breaker.
+  const scoreMatch = match => {
+    const quoteWeight = 50; // Similarity of matched text to quote.
+    const prefixWeight = 20; // Similarity of text before matched text to `context.prefix`.
+    const suffixWeight = 20; // Similarity of text after matched text to `context.suffix`.
+    const posWeight = 2; // Proximity to expected location. Used as a tie-breaker.
 
-    var quoteScore = 1 - match.errors / quote.length;
-    var prefixScore = context.prefix ? textMatchScore(text.slice(Math.max(0, match.start - context.prefix.length), match.start), context.prefix) : 1.0;
-    var suffixScore = context.suffix ? textMatchScore(text.slice(match.end, match.end + context.suffix.length), context.suffix) : 1.0;
-    var posScore = 1.0;
+    const quoteScore = 1 - match.errors / quote.length;
+    const prefixScore = context.prefix ? textMatchScore(text.slice(Math.max(0, match.start - context.prefix.length), match.start), context.prefix) : 1.0;
+    const suffixScore = context.suffix ? textMatchScore(text.slice(match.end, match.end + context.suffix.length), context.suffix) : 1.0;
+    let posScore = 1.0;
     if (typeof context.hint === 'number') {
-      var offset = Math.abs(match.start - context.hint);
+      const offset = Math.abs(match.start - context.hint);
       posScore = 1.0 - offset / text.length;
     }
-    var rawScore = quoteWeight * quoteScore + prefixWeight * prefixScore + suffixWeight * suffixScore + posWeight * posScore;
-    var maxScore = quoteWeight + prefixWeight + suffixWeight + posWeight;
-    var normalizedScore = rawScore / maxScore;
+    const rawScore = quoteWeight * quoteScore + prefixWeight * prefixScore + suffixWeight * suffixScore + posWeight * posScore;
+    const maxScore = quoteWeight + prefixWeight + suffixWeight + posWeight;
+    const normalizedScore = rawScore / maxScore;
     return normalizedScore;
   };
 
   // Rank matches based on similarity of actual and expected surrounding text
   // and actual/expected offset in the document text.
-  var scoredMatches = matches.map(m => ({
+  const scoredMatches = matches.map(m => ({
     start: m.start,
     end: m.end,
     score: scoreMatch(m)
@@ -2876,8 +2862,8 @@ function nodeTextLength(node) {
  * @param {Node} node
  */
 function previousSiblingsTextLength(node) {
-  var sibling = node.previousSibling;
-  var length = 0;
+  let sibling = node.previousSibling;
+  let length = 0;
   while (sibling) {
     length += nodeTextLength(sibling);
     sibling = sibling.previousSibling;
@@ -2897,12 +2883,12 @@ function resolveOffsets(element) {
   for (var _len = arguments.length, offsets = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
     offsets[_key - 1] = arguments[_key];
   }
-  var nextOffset = offsets.shift();
-  var nodeIter = /** @type {Document} */element.ownerDocument.createNodeIterator(element, NodeFilter.SHOW_TEXT);
-  var results = [];
-  var currentNode = nodeIter.nextNode();
-  var textNode;
-  var length = 0;
+  let nextOffset = offsets.shift();
+  const nodeIter = /** @type {Document} */element.ownerDocument.createNodeIterator(element, NodeFilter.SHOW_TEXT);
+  const results = [];
+  let currentNode = nodeIter.nextNode();
+  let textNode;
+  let length = 0;
 
   // Find the text node containing the `nextOffset`th character from the start
   // of `element`.
@@ -2933,8 +2919,8 @@ function resolveOffsets(element) {
   }
   return results;
 }
-var RESOLVE_FORWARDS = 1;
-var RESOLVE_BACKWARDS = 2;
+let RESOLVE_FORWARDS = 1;
+let RESOLVE_BACKWARDS = 2;
 
 /**
  * Represents an offset within the text content of an element.
@@ -2973,8 +2959,8 @@ class TextPosition {
     if (!parent.contains(this.element)) {
       throw new Error('Parent is not an ancestor of current element');
     }
-    var el = this.element;
-    var offset = this.offset;
+    let el = this.element;
+    let offset = this.offset;
     while (el !== parent) {
       offset += previousSiblingsTextLength(el);
       el = /** @type {Element} */el.parentElement;
@@ -3001,15 +2987,15 @@ class TextPosition {
    * @throws {RangeError}
    */
   resolve() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    let options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     try {
       return resolveOffsets(this.element, this.offset)[0];
     } catch (err) {
       if (this.offset === 0 && options.direction !== undefined) {
-        var tw = document.createTreeWalker(this.element.getRootNode(), NodeFilter.SHOW_TEXT);
+        const tw = document.createTreeWalker(this.element.getRootNode(), NodeFilter.SHOW_TEXT);
         tw.currentNode = this.element;
-        var forwards = options.direction === RESOLVE_FORWARDS;
-        var text = /** @type {Text|null} */
+        const forwards = options.direction === RESOLVE_FORWARDS;
+        const text = /** @type {Text|null} */
         forwards ? tw.nextNode() : tw.previousNode();
         if (!text) {
           throw err;
@@ -3062,7 +3048,7 @@ class TextPosition {
           }
 
           // Get the offset from the start of the parent element.
-          var textOffset = previousSiblingsTextLength(node) + offset;
+          const textOffset = previousSiblingsTextLength(node) + offset;
           return new TextPosition(node.parentElement, textOffset);
         }
       case Node.ELEMENT_NODE:
@@ -3072,11 +3058,11 @@ class TextPosition {
           }
 
           // Get the text length before the `offset`th child of element.
-          var _textOffset = 0;
-          for (var i = 0; i < offset; i++) {
-            _textOffset += nodeTextLength(node.childNodes[i]);
+          let textOffset = 0;
+          for (let i = 0; i < offset; i++) {
+            textOffset += nodeTextLength(node.childNodes[i]);
           }
-          return new TextPosition( /** @type {Element} */node, _textOffset);
+          return new TextPosition( /** @type {Element} */node, textOffset);
         }
       default:
         throw new Error('Point is not in an element or text node');
@@ -3125,8 +3111,8 @@ class TextRange {
    * @return {Range}
    */
   toRange() {
-    var start;
-    var end;
+    let start;
+    let end;
     if (this.start.element === this.end.element && this.start.offset <= this.end.offset) {
       // Fast path for start and end points in same element.
       [start, end] = resolveOffsets(this.start.element, this.start.offset, this.end.offset);
@@ -3138,7 +3124,7 @@ class TextRange {
         direction: RESOLVE_BACKWARDS
       });
     }
-    var range = new Range();
+    const range = new Range();
     range.setStart(start.node, start.offset);
     range.setEnd(end.node, end.offset);
     return range;
@@ -3151,8 +3137,8 @@ class TextRange {
    * @return {TextRange}
    */
   static fromRange(range) {
-    var start = TextPosition.fromPoint(range.startContainer, range.startOffset);
-    var end = TextPosition.fromPoint(range.endContainer, range.endOffset);
+    const start = TextPosition.fromPoint(range.startContainer, range.startOffset);
+    const end = TextPosition.fromPoint(range.endContainer, range.endOffset);
     return new TextRange(start, end);
   }
 
@@ -3239,17 +3225,17 @@ class RangeAnchor {
    * @param {RangeSelector} selector
    */
   static fromSelector(root, selector) {
-    var startContainer = (0,_xpath__WEBPACK_IMPORTED_MODULE_2__.nodeFromXPath)(selector.startContainer, root);
+    const startContainer = (0,_xpath__WEBPACK_IMPORTED_MODULE_2__.nodeFromXPath)(selector.startContainer, root);
     if (!startContainer) {
       throw new Error('Failed to resolve startContainer XPath');
     }
-    var endContainer = (0,_xpath__WEBPACK_IMPORTED_MODULE_2__.nodeFromXPath)(selector.endContainer, root);
+    const endContainer = (0,_xpath__WEBPACK_IMPORTED_MODULE_2__.nodeFromXPath)(selector.endContainer, root);
     if (!endContainer) {
       throw new Error('Failed to resolve endContainer XPath');
     }
-    var startPos = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextPosition.fromCharOffset(startContainer, selector.startOffset);
-    var endPos = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextPosition.fromCharOffset(endContainer, selector.endOffset);
-    var range = new _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange(startPos, endPos).toRange();
+    const startPos = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextPosition.fromCharOffset(startContainer, selector.startOffset);
+    const endPos = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextPosition.fromCharOffset(endContainer, selector.endOffset);
+    const range = new _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange(startPos, endPos).toRange();
     return new RangeAnchor(root, range);
   }
   toRange() {
@@ -3262,10 +3248,10 @@ class RangeAnchor {
   toSelector() {
     // "Shrink" the range so that it tightly wraps its text. This ensures more
     // predictable output for a given text selection.
-    var normalizedRange = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange.fromRange(this.range).toRange();
-    var textRange = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange.fromRange(normalizedRange);
-    var startContainer = (0,_xpath__WEBPACK_IMPORTED_MODULE_2__.xpathFromNode)(textRange.start.element, this.root);
-    var endContainer = (0,_xpath__WEBPACK_IMPORTED_MODULE_2__.xpathFromNode)(textRange.end.element, this.root);
+    const normalizedRange = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange.fromRange(this.range).toRange();
+    const textRange = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange.fromRange(normalizedRange);
+    const startContainer = (0,_xpath__WEBPACK_IMPORTED_MODULE_2__.xpathFromNode)(textRange.start.element, this.root);
+    const endContainer = (0,_xpath__WEBPACK_IMPORTED_MODULE_2__.xpathFromNode)(textRange.end.element, this.root);
     return {
       type: 'RangeSelector',
       startContainer,
@@ -3296,7 +3282,7 @@ class TextPositionAnchor {
    * @param {Range} range
    */
   static fromRange(root, range) {
-    var textRange = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange.fromRange(range).relativeTo(root);
+    const textRange = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange.fromRange(range).relativeTo(root);
     return new TextPositionAnchor(root, textRange.start.offset, textRange.end.offset);
   }
   /**
@@ -3339,7 +3325,7 @@ class TextQuoteAnchor {
    *   @param {string} [context.suffix]
    */
   constructor(root, exact) {
-    var context = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+    let context = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
     this.root = root;
     this.exact = exact;
     this.context = context;
@@ -3354,10 +3340,10 @@ class TextQuoteAnchor {
    * @param {Range} range
    */
   static fromRange(root, range) {
-    var text = /** @type {string} */root.textContent;
-    var textRange = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange.fromRange(range).relativeTo(root);
-    var start = textRange.start.offset;
-    var end = textRange.end.offset;
+    const text = /** @type {string} */root.textContent;
+    const textRange = _text_range__WEBPACK_IMPORTED_MODULE_1__.TextRange.fromRange(range).relativeTo(root);
+    const start = textRange.start.offset;
+    const end = textRange.end.offset;
 
     // Number of characters around the quote to capture as context. We currently
     // always use a fixed amount, but it would be better if this code was aware
@@ -3368,7 +3354,7 @@ class TextQuoteAnchor {
     // This is a natural unit of meaning which enables displaying quotes in
     // context even when the document is not available. We could use `Intl.Segmenter`
     // for this when available.
-    var contextLen = 32;
+    const contextLen = 32;
     return new TextQuoteAnchor(root, text.slice(start, end), {
       prefix: text.slice(Math.max(0, start - contextLen), start),
       suffix: text.slice(end, Math.min(text.length, end + contextLen))
@@ -3380,7 +3366,7 @@ class TextQuoteAnchor {
    * @param {TextQuoteSelector} selector
    */
   static fromSelector(root, selector) {
-    var {
+    const {
       prefix,
       suffix
     } = selector;
@@ -3406,7 +3392,7 @@ class TextQuoteAnchor {
    * @param {QuoteMatchOptions} [options]
    */
   toRange() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    let options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     return this.toPositionAnchor(options).toRange();
   }
 
@@ -3414,9 +3400,9 @@ class TextQuoteAnchor {
    * @param {QuoteMatchOptions} [options]
    */
   toPositionAnchor() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    var text = /** @type {string} */this.root.textContent;
-    var match = (0,_match_quote__WEBPACK_IMPORTED_MODULE_0__.matchQuote)(text, this.exact, _objectSpread(_objectSpread({}, this.context), {}, {
+    let options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    const text = /** @type {string} */this.root.textContent;
+    const match = (0,_match_quote__WEBPACK_IMPORTED_MODULE_0__.matchQuote)(text, this.exact, _objectSpread(_objectSpread({}, this.context), {}, {
       hint: options.hint
     }));
     if (!match) {
@@ -3446,8 +3432,8 @@ __webpack_require__.r(__webpack_exports__);
  * @param {Node} node
  */
 function getNodeName(node) {
-  var nodeName = node.nodeName.toLowerCase();
-  var result = nodeName;
+  const nodeName = node.nodeName.toLowerCase();
+  let result = nodeName;
   if (nodeName === '#text') {
     result = 'text()';
   }
@@ -3460,9 +3446,9 @@ function getNodeName(node) {
  * @param {Node} node
  */
 function getNodePosition(node) {
-  var pos = 0;
+  let pos = 0;
   /** @type {Node|null} */
-  var tmp = node;
+  let tmp = node;
   while (tmp) {
     if (tmp.nodeName === node.nodeName) {
       pos += 1;
@@ -3472,8 +3458,8 @@ function getNodePosition(node) {
   return pos;
 }
 function getPathSegment(node) {
-  var name = getNodeName(node);
-  var pos = getNodePosition(node);
+  const name = getNodeName(node);
+  const pos = getNodePosition(node);
   return "".concat(name, "[").concat(pos, "]");
 }
 
@@ -3485,10 +3471,10 @@ function getPathSegment(node) {
  * @param {Node} root - Root node to which the returned path is relative
  */
 function xpathFromNode(node, root) {
-  var xpath = '';
+  let xpath = '';
 
   /** @type {Node|null} */
-  var elem = node;
+  let elem = node;
   while (elem !== root) {
     if (!elem) {
       throw new Error('Node is not a descendant of root');
@@ -3512,9 +3498,9 @@ function xpathFromNode(node, root) {
  */
 function nthChildOfType(element, nodeName, index) {
   nodeName = nodeName.toUpperCase();
-  var matchIndex = -1;
-  for (var i = 0; i < element.children.length; i++) {
-    var child = element.children[i];
+  let matchIndex = -1;
+  for (let i = 0; i < element.children.length; i++) {
+    const child = element.children[i];
     if (child.nodeName.toUpperCase() === nodeName) {
       ++matchIndex;
       if (matchIndex === index) {
@@ -3547,23 +3533,23 @@ function nthChildOfType(element, nodeName, index) {
  * @return {Element|null}
  */
 function evaluateSimpleXPath(xpath, root) {
-  var isSimpleXPath = xpath.match(/^(\/[A-Za-z0-9-]+(\[[0-9]+\])?)+$/) !== null;
+  const isSimpleXPath = xpath.match(/^(\/[A-Za-z0-9-]+(\[[0-9]+\])?)+$/) !== null;
   if (!isSimpleXPath) {
     throw new Error('Expression is not a simple XPath');
   }
-  var segments = xpath.split('/');
-  var element = root;
+  const segments = xpath.split('/');
+  let element = root;
 
   // Remove leading empty segment. The regex above validates that the XPath
   // has at least two segments, with the first being empty and the others non-empty.
   segments.shift();
-  for (var segment of segments) {
-    var elementName = void 0;
-    var elementIndex = void 0;
-    var separatorPos = segment.indexOf('[');
+  for (let segment of segments) {
+    let elementName;
+    let elementIndex;
+    const separatorPos = segment.indexOf('[');
     if (separatorPos !== -1) {
       elementName = segment.slice(0, separatorPos);
-      var indexStr = segment.slice(separatorPos + 1, segment.indexOf(']'));
+      const indexStr = segment.slice(separatorPos + 1, segment.indexOf(']'));
       elementIndex = parseInt(indexStr) - 1;
       if (elementIndex < 0) {
         return null;
@@ -3572,7 +3558,7 @@ function evaluateSimpleXPath(xpath, root) {
       elementName = segment;
       elementIndex = 0;
     }
-    var child = nthChildOfType(element, elementName, elementIndex);
+    const child = nthChildOfType(element, elementName, elementIndex);
     if (!child) {
       return null;
     }
@@ -3592,7 +3578,7 @@ function evaluateSimpleXPath(xpath, root) {
  * @return {Node|null}
  */
 function nodeFromXPath(xpath) {
-  var root = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : document.body;
+  let root = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : document.body;
   try {
     return evaluateSimpleXPath(xpath, root);
   } catch (err) {
@@ -6214,6 +6200,127 @@ module.exports = function shimMatchAll() {
 
 /***/ }),
 
+/***/ "./node_modules/string.prototype.trim/implementation.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/string.prototype.trim/implementation.js ***!
+  \**************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var RequireObjectCoercible = __webpack_require__(/*! es-abstract/2022/RequireObjectCoercible */ "./node_modules/es-abstract/2022/RequireObjectCoercible.js");
+var ToString = __webpack_require__(/*! es-abstract/2022/ToString */ "./node_modules/es-abstract/2022/ToString.js");
+var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
+var $replace = callBound('String.prototype.replace');
+
+var mvsIsWS = (/^\s$/).test('\u180E');
+/* eslint-disable no-control-regex */
+var leftWhitespace = mvsIsWS
+	? /^[\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF]+/
+	: /^[\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF]+/;
+var rightWhitespace = mvsIsWS
+	? /[\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF]+$/
+	: /[\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF]+$/;
+/* eslint-enable no-control-regex */
+
+module.exports = function trim() {
+	var S = ToString(RequireObjectCoercible(this));
+	return $replace($replace(S, leftWhitespace, ''), rightWhitespace, '');
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/string.prototype.trim/index.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/string.prototype.trim/index.js ***!
+  \*****************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var callBind = __webpack_require__(/*! call-bind */ "./node_modules/call-bind/index.js");
+var define = __webpack_require__(/*! define-properties */ "./node_modules/define-properties/index.js");
+var RequireObjectCoercible = __webpack_require__(/*! es-abstract/2022/RequireObjectCoercible */ "./node_modules/es-abstract/2022/RequireObjectCoercible.js");
+
+var implementation = __webpack_require__(/*! ./implementation */ "./node_modules/string.prototype.trim/implementation.js");
+var getPolyfill = __webpack_require__(/*! ./polyfill */ "./node_modules/string.prototype.trim/polyfill.js");
+var shim = __webpack_require__(/*! ./shim */ "./node_modules/string.prototype.trim/shim.js");
+
+var bound = callBind(getPolyfill());
+var boundMethod = function trim(receiver) {
+	RequireObjectCoercible(receiver);
+	return bound(receiver);
+};
+
+define(boundMethod, {
+	getPolyfill: getPolyfill,
+	implementation: implementation,
+	shim: shim
+});
+
+module.exports = boundMethod;
+
+
+/***/ }),
+
+/***/ "./node_modules/string.prototype.trim/polyfill.js":
+/*!********************************************************!*\
+  !*** ./node_modules/string.prototype.trim/polyfill.js ***!
+  \********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var implementation = __webpack_require__(/*! ./implementation */ "./node_modules/string.prototype.trim/implementation.js");
+
+var zeroWidthSpace = '\u200b';
+var mongolianVowelSeparator = '\u180E';
+
+module.exports = function getPolyfill() {
+	if (
+		String.prototype.trim
+		&& zeroWidthSpace.trim() === zeroWidthSpace
+		&& mongolianVowelSeparator.trim() === mongolianVowelSeparator
+		&& ('_' + mongolianVowelSeparator).trim() === ('_' + mongolianVowelSeparator)
+		&& (mongolianVowelSeparator + '_').trim() === (mongolianVowelSeparator + '_')
+	) {
+		return String.prototype.trim;
+	}
+	return implementation;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/string.prototype.trim/shim.js":
+/*!****************************************************!*\
+  !*** ./node_modules/string.prototype.trim/shim.js ***!
+  \****************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var define = __webpack_require__(/*! define-properties */ "./node_modules/define-properties/index.js");
+var getPolyfill = __webpack_require__(/*! ./polyfill */ "./node_modules/string.prototype.trim/polyfill.js");
+
+module.exports = function shimStringTrim() {
+	var polyfill = getPolyfill();
+	define(String.prototype, { trim: polyfill }, {
+		trim: function testTrim() {
+			return String.prototype.trim !== polyfill;
+		}
+	});
+	return polyfill;
+};
+
+
+/***/ }),
+
 /***/ "?4f7e":
 /*!********************************!*\
   !*** ./util.inspect (ignored) ***!
@@ -6243,7 +6350,7 @@ var MAX_SAFE_INTEGER = __webpack_require__(/*! ../helpers/maxSafeInteger */ "./n
 
 var $TypeError = GetIntrinsic('%TypeError%');
 
-// https://ecma-international.org/ecma-262/12.0/#sec-advancestringindex
+// https://262.ecma-international.org/12.0/#sec-advancestringindex
 
 module.exports = function AdvanceStringIndex(S, index, unicode) {
 	if (Type(S) !== 'String') {
@@ -6285,9 +6392,9 @@ var $TypeError = GetIntrinsic('%TypeError%');
 
 var IsArray = __webpack_require__(/*! ./IsArray */ "./node_modules/es-abstract/2022/IsArray.js");
 
-var $apply = GetIntrinsic('%Reflect.apply%', true) || callBound('%Function.prototype.apply%');
+var $apply = GetIntrinsic('%Reflect.apply%', true) || callBound('Function.prototype.apply');
 
-// https://ecma-international.org/ecma-262/6.0/#sec-call
+// https://262.ecma-international.org/6.0/#sec-call
 
 module.exports = function Call(F, V) {
 	var argumentsList = arguments.length > 2 ? arguments[2] : [];
@@ -6322,7 +6429,7 @@ var UTF16SurrogatePairToCodePoint = __webpack_require__(/*! ./UTF16SurrogatePair
 var $charAt = callBound('String.prototype.charAt');
 var $charCodeAt = callBound('String.prototype.charCodeAt');
 
-// https://ecma-international.org/ecma-262/12.0/#sec-codepointat
+// https://262.ecma-international.org/12.0/#sec-codepointat
 
 module.exports = function CodePointAt(string, position) {
 	if (Type(string) !== 'String') {
@@ -6384,7 +6491,7 @@ var $TypeError = GetIntrinsic('%TypeError%');
 
 var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
-// https://ecma-international.org/ecma-262/6.0/#sec-createiterresultobject
+// https://262.ecma-international.org/6.0/#sec-createiterresultobject
 
 module.exports = function CreateIterResultObject(value, done) {
 	if (Type(done) !== 'Boolean') {
@@ -6420,7 +6527,7 @@ var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/e
 var SameValue = __webpack_require__(/*! ./SameValue */ "./node_modules/es-abstract/2022/SameValue.js");
 var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
-// https://ecma-international.org/ecma-262/6.0/#sec-createmethodproperty
+// https://262.ecma-international.org/6.0/#sec-createmethodproperty
 
 module.exports = function CreateMethodProperty(O, P, V) {
 	if (Type(O) !== 'Object') {
@@ -6585,7 +6692,7 @@ var SameValue = __webpack_require__(/*! ./SameValue */ "./node_modules/es-abstra
 var ToPropertyDescriptor = __webpack_require__(/*! ./ToPropertyDescriptor */ "./node_modules/es-abstract/2022/ToPropertyDescriptor.js");
 var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
-// https://ecma-international.org/ecma-262/6.0/#sec-definepropertyorthrow
+// https://262.ecma-international.org/6.0/#sec-definepropertyorthrow
 
 module.exports = function DefinePropertyOrThrow(O, P, desc) {
 	if (Type(O) !== 'Object') {
@@ -6636,7 +6743,7 @@ var fromPropertyDescriptor = __webpack_require__(/*! ../helpers/fromPropertyDesc
 
 var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
-// https://ecma-international.org/ecma-262/6.0/#sec-frompropertydescriptor
+// https://262.ecma-international.org/6.0/#sec-frompropertydescriptor
 
 module.exports = function FromPropertyDescriptor(Desc) {
 	if (typeof Desc !== 'undefined') {
@@ -6667,7 +6774,7 @@ var inspect = __webpack_require__(/*! object-inspect */ "./node_modules/object-i
 var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2022/IsPropertyKey.js");
 var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
-// https://ecma-international.org/ecma-262/6.0/#sec-get-o-p
+// https://262.ecma-international.org/6.0/#sec-get-o-p
 
 module.exports = function Get(O, P) {
 	// 7.3.1.1
@@ -6702,9 +6809,9 @@ var GetV = __webpack_require__(/*! ./GetV */ "./node_modules/es-abstract/2022/Ge
 var IsCallable = __webpack_require__(/*! ./IsCallable */ "./node_modules/es-abstract/2022/IsCallable.js");
 var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2022/IsPropertyKey.js");
 
-var debug = __webpack_require__(/*! object-inspect */ "./node_modules/object-inspect/index.js");
+var inspect = __webpack_require__(/*! object-inspect */ "./node_modules/object-inspect/index.js");
 
-// https://ecma-international.org/ecma-262/6.0/#sec-getmethod
+// https://262.ecma-international.org/6.0/#sec-getmethod
 
 module.exports = function GetMethod(O, P) {
 	// 7.3.9.1
@@ -6722,7 +6829,7 @@ module.exports = function GetMethod(O, P) {
 
 	// 7.3.9.5
 	if (!IsCallable(func)) {
-		throw new $TypeError(P + ' is not a function: ' + debug(func));
+		throw new $TypeError(inspect(P) + ' is not a function: ' + inspect(func));
 	}
 
 	// 7.3.9.6
@@ -6748,7 +6855,7 @@ var $TypeError = GetIntrinsic('%TypeError%');
 var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2022/IsPropertyKey.js");
 var ToObject = __webpack_require__(/*! ./ToObject */ "./node_modules/es-abstract/2022/ToObject.js");
 
-// https://ecma-international.org/ecma-262/6.0/#sec-getv
+// https://262.ecma-international.org/6.0/#sec-getv
 
 module.exports = function GetV(V, P) {
 	// 7.3.2.1
@@ -6777,11 +6884,11 @@ module.exports = function GetV(V, P) {
 
 var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
 
-var assertRecord = __webpack_require__(/*! ../helpers/assertRecord */ "./node_modules/es-abstract/helpers/assertRecord.js");
-
 var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
-// https://ecma-international.org/ecma-262/6.0/#sec-isaccessordescriptor
+var assertRecord = __webpack_require__(/*! ../helpers/assertRecord */ "./node_modules/es-abstract/helpers/assertRecord.js");
+
+// https://262.ecma-international.org/5.1/#sec-8.10.1
 
 module.exports = function IsAccessorDescriptor(Desc) {
 	if (typeof Desc === 'undefined') {
@@ -6809,7 +6916,7 @@ module.exports = function IsAccessorDescriptor(Desc) {
 "use strict";
 
 
-// https://ecma-international.org/ecma-262/6.0/#sec-isarray
+// https://262.ecma-international.org/6.0/#sec-isarray
 module.exports = __webpack_require__(/*! ../helpers/IsArray */ "./node_modules/es-abstract/helpers/IsArray.js");
 
 
@@ -6852,7 +6959,7 @@ try {
 	DefinePropertyOrThrow = null;
 }
 
-// https://ecma-international.org/ecma-262/6.0/#sec-isconstructor
+// https://262.ecma-international.org/6.0/#sec-isconstructor
 
 if (DefinePropertyOrThrow && $construct) {
 	var isConstructorMarker = {};
@@ -6893,11 +7000,11 @@ if (DefinePropertyOrThrow && $construct) {
 
 var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
 
-var assertRecord = __webpack_require__(/*! ../helpers/assertRecord */ "./node_modules/es-abstract/helpers/assertRecord.js");
-
 var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
-// https://ecma-international.org/ecma-262/6.0/#sec-isdatadescriptor
+var assertRecord = __webpack_require__(/*! ../helpers/assertRecord */ "./node_modules/es-abstract/helpers/assertRecord.js");
+
+// https://262.ecma-international.org/5.1/#sec-8.10.2
 
 module.exports = function IsDataDescriptor(Desc) {
 	if (typeof Desc === 'undefined') {
@@ -6954,7 +7061,7 @@ module.exports = function IsIntegralNumber(argument) {
 "use strict";
 
 
-// https://ecma-international.org/ecma-262/6.0/#sec-ispropertykey
+// https://262.ecma-international.org/6.0/#sec-ispropertykey
 
 module.exports = function IsPropertyKey(argument) {
 	return typeof argument === 'string' || typeof argument === 'symbol';
@@ -6980,7 +7087,7 @@ var hasRegExpMatcher = __webpack_require__(/*! is-regex */ "./node_modules/is-re
 
 var ToBoolean = __webpack_require__(/*! ./ToBoolean */ "./node_modules/es-abstract/2022/ToBoolean.js");
 
-// https://ecma-international.org/ecma-262/6.0/#sec-isregexp
+// https://262.ecma-international.org/6.0/#sec-isregexp
 
 module.exports = function IsRegExp(argument) {
 	if (!argument || typeof argument !== 'object') {
@@ -7085,7 +7192,7 @@ var Get = __webpack_require__(/*! ./Get */ "./node_modules/es-abstract/2022/Get.
 var IsCallable = __webpack_require__(/*! ./IsCallable */ "./node_modules/es-abstract/2022/IsCallable.js");
 var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
-// https://ecma-international.org/ecma-262/6.0/#sec-regexpexec
+// https://262.ecma-international.org/6.0/#sec-regexpexec
 
 module.exports = function RegExpExec(R, S) {
 	if (Type(R) !== 'Object') {
@@ -7173,7 +7280,7 @@ var noThrowOnStrictViolation = (function () {
 	}
 }());
 
-// https://ecma-international.org/ecma-262/6.0/#sec-set-o-p-v-throw
+// https://262.ecma-international.org/6.0/#sec-set-o-p-v-throw
 
 module.exports = function Set(O, P, V, Throw) {
 	if (Type(O) !== 'Object') {
@@ -7221,7 +7328,7 @@ var $TypeError = GetIntrinsic('%TypeError%');
 var IsConstructor = __webpack_require__(/*! ./IsConstructor */ "./node_modules/es-abstract/2022/IsConstructor.js");
 var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
-// https://ecma-international.org/ecma-262/6.0/#sec-speciesconstructor
+// https://262.ecma-international.org/6.0/#sec-speciesconstructor
 
 module.exports = function SpeciesConstructor(O, defaultConstructor) {
 	if (Type(O) !== 'Object') {
@@ -7274,22 +7381,11 @@ var nonWS = ['\u0085', '\u200b', '\ufffe'].join('');
 var nonWSregex = new $RegExp('[' + nonWS + ']', 'g');
 var hasNonWS = regexTester(nonWSregex);
 
-// whitespace from: https://es5.github.io/#x15.5.4.20
-// implementation from https://github.com/es-shims/es5-shim/blob/v3.4.0/es5-shim.js#L1304-L1324
-var ws = [
-	'\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003',
-	'\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028',
-	'\u2029\uFEFF'
-].join('');
-var trimRegex = new RegExp('(^[' + ws + ']+)|([' + ws + ']+$)', 'g');
-var $replace = callBound('String.prototype.replace');
-var $trim = function (value) {
-	return $replace(value, trimRegex, '');
-};
+var $trim = __webpack_require__(/*! string.prototype.trim */ "./node_modules/string.prototype.trim/index.js");
 
 var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
-// https://ecma-international.org/ecma-262/13.0/#sec-stringtonumber
+// https://262.ecma-international.org/13.0/#sec-stringtonumber
 
 module.exports = function StringToNumber(argument) {
 	if (Type(argument) !== 'String') {
@@ -7402,7 +7498,7 @@ var isPrimitive = __webpack_require__(/*! ../helpers/isPrimitive */ "./node_modu
 var ToPrimitive = __webpack_require__(/*! ./ToPrimitive */ "./node_modules/es-abstract/2022/ToPrimitive.js");
 var StringToNumber = __webpack_require__(/*! ./StringToNumber */ "./node_modules/es-abstract/2022/StringToNumber.js");
 
-// https://ecma-international.org/ecma-262/13.0/#sec-tonumber
+// https://262.ecma-international.org/13.0/#sec-tonumber
 
 module.exports = function ToNumber(argument) {
 	var value = isPrimitive(argument) ? argument : ToPrimitive(argument, $Number);
@@ -7436,7 +7532,7 @@ var $Object = GetIntrinsic('%Object%');
 
 var RequireObjectCoercible = __webpack_require__(/*! ./RequireObjectCoercible */ "./node_modules/es-abstract/2022/RequireObjectCoercible.js");
 
-// https://ecma-international.org/ecma-262/6.0/#sec-toobject
+// https://262.ecma-international.org/6.0/#sec-toobject
 
 module.exports = function ToObject(value) {
 	RequireObjectCoercible(value);
@@ -7457,7 +7553,7 @@ module.exports = function ToObject(value) {
 
 var toPrimitive = __webpack_require__(/*! es-to-primitive/es2015 */ "./node_modules/es-to-primitive/es2015.js");
 
-// https://ecma-international.org/ecma-262/6.0/#sec-toprimitive
+// https://262.ecma-international.org/6.0/#sec-toprimitive
 
 module.exports = function ToPrimitive(input) {
 	if (arguments.length > 1) {
@@ -7546,7 +7642,7 @@ var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-
 var $String = GetIntrinsic('%String%');
 var $TypeError = GetIntrinsic('%TypeError%');
 
-// https://ecma-international.org/ecma-262/6.0/#sec-tostring
+// https://262.ecma-international.org/6.0/#sec-tostring
 
 module.exports = function ToString(argument) {
 	if (typeof argument === 'symbol') {
@@ -7858,6 +7954,9 @@ var predicates = {
 			'[[Writable]]': true
 		};
 
+		if (!Desc) {
+			return false;
+		}
 		for (var key in Desc) { // eslint-disable-line
 			if (has(Desc, key) && !allowed[key]) {
 				return false;
@@ -7877,7 +7976,7 @@ var predicates = {
 		return has(value, '[[Iterator]]') && has(value, '[[NextMethod]]') && has(value, '[[Done]]');
 	},
 	'PromiseCapability Record': function isPromiseCapabilityRecord(value) {
-		return value
+		return !!value
 			&& has(value, '[[Resolve]]')
 			&& typeof value['[[Resolve]]'] === 'function'
 			&& has(value, '[[Reject]]')
@@ -7887,7 +7986,7 @@ var predicates = {
 			&& typeof value['[[Promise]]'].then === 'function';
 	},
 	'AsyncGeneratorRequest Record': function isAsyncGeneratorRequestRecord(value) {
-		return value
+		return !!value
 			&& has(value, '[[Completion]]') // TODO: confirm is a completion record
 			&& has(value, '[[Capability]]')
 			&& predicates['PromiseCapability Record'](value['[[Capability]]']);
@@ -8216,6 +8315,7 @@ const SELECTOR_PATTERN = [
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
 /* harmony export */   "getCssSelector": () => (/* binding */ getCssSelector)
 /* harmony export */ });
 /* harmony import */ var _selector_fallback_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./selector-fallback.js */ "./node_modules/css-selector-generator/esm/selector-fallback.js");
@@ -8261,7 +8361,7 @@ function getCssSelector(needle, custom_options = {}) {
     }
     return (0,_selector_fallback_js__WEBPACK_IMPORTED_MODULE_0__.getFallbackSelector)(elements);
 }
-/* harmony default export */ __webpack_exports__["default"] = (getCssSelector);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (getCssSelector);
 //# sourceMappingURL=index.js.map
 
 /***/ }),
@@ -9555,7 +9655,7 @@ window.addEventListener("load", function () {
   });
 
   // Setups the `viewport` meta tag to disable zooming.
-  var meta = document.createElement("meta");
+  let meta = document.createElement("meta");
   meta.setAttribute("name", "viewport");
   meta.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no");
   document.head.appendChild(meta);

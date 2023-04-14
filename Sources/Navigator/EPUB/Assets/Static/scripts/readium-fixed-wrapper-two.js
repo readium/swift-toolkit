@@ -235,12 +235,12 @@ var pages = {
   center: (0,_fixed_page__WEBPACK_IMPORTED_MODULE_0__.FixedPage)("page-center")
 };
 function forEachPage(callback) {
-  for (var position in pages) {
+  for (const position in pages) {
     callback(pages[position]);
   }
 }
 function getPageWithHref(href) {
-  for (var position in pages) {
+  for (const position in pages) {
     var _page$link;
     var page = pages[position];
     if (((_page$link = page.link) === null || _page$link === void 0 ? void 0 : _page$link.href) === href) {
@@ -264,9 +264,9 @@ __webpack_require__.g.spread = {
       }
       webkit.messageHandlers.spreadLoaded.postMessage({});
     }
-    for (var i in resources) {
-      var resource = resources[i];
-      var page = pages[resource.page];
+    for (const i in resources) {
+      const resource = resources[i];
+      const page = pages[resource.page];
       if (page) {
         page.show();
         page.load(resource, loaded);
