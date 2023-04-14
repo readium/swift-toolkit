@@ -39,6 +39,13 @@
         }
       }
     },
+    "ReadiumInternal" : {
+      "build" : {
+        "targets" : {
+          "ReadiumInternal" : "all"
+        }
+      }
+    },
     "ReadiumLCP" : {
       "build" : {
         "targets" : {
@@ -71,6 +78,9 @@
         },
         {
           "target" : "R2Shared"
+        },
+        {
+          "target" : "ReadiumInternal"
         }
       ],
       "deploymentTarget" : "10.0",
@@ -104,6 +114,9 @@
         },
         {
           "framework" : "..\/..\/Carthage\/Build\/SwiftSoup.xcframework"
+        },
+        {
+          "target" : "ReadiumInternal"
         },
         {
           "sdk" : "CoreServices.framework"
@@ -141,6 +154,9 @@
         },
         {
           "target" : "R2Shared"
+        },
+        {
+          "target" : "ReadiumInternal"
         }
       ],
       "deploymentTarget" : "10.0",
@@ -170,17 +186,34 @@
         },
         {
           "target" : "R2Shared"
+        },
+        {
+          "target" : "ReadiumInternal"
         }
       ],
       "deploymentTarget" : "10.0",
       "platform" : "iOS",
       "settings" : {
         "INFOPLIST_FILE" : "Info.plist",
-        "PRODUCT_BUNDLE_IDENTIFIER" : "org.readium.swift-toolkit.ReadiumAdapterGCDWebServer"
+        "PRODUCT_BUNDLE_IDENTIFIER" : "org.readium.swift-toolkit.adapter.gcdwebserver"
       },
       "sources" : [
         {
           "path" : "..\/..\/Sources\/Adapters\/GCDWebServer"
+        }
+      ],
+      "type" : "framework"
+    },
+    "ReadiumInternal" : {
+      "deploymentTarget" : "10.0",
+      "platform" : "iOS",
+      "settings" : {
+        "INFOPLIST_FILE" : "Info.plist",
+        "PRODUCT_BUNDLE_IDENTIFIER" : "org.readium.swift-toolkit.internal"
+      },
+      "sources" : [
+        {
+          "path" : "..\/..\/Sources\/Internal"
         }
       ],
       "type" : "framework"
@@ -204,6 +237,9 @@
         },
         {
           "target" : "R2Shared"
+        },
+        {
+          "target" : "ReadiumInternal"
         }
       ],
       "deploymentTarget" : "10.0",
@@ -229,6 +265,9 @@
         },
         {
           "target" : "R2Shared"
+        },
+        {
+          "target" : "ReadiumInternal"
         }
       ],
       "deploymentTarget" : "10.0",
@@ -251,6 +290,18 @@
 ../../Sources/Adapters/GCDWebServer
 ../../Sources/Adapters/GCDWebServer/GCDHTTPServer.swift
 ../../Sources/Adapters/GCDWebServer/ResourceResponse.swift
+../../Sources/Internal
+../../Sources/Internal/.DS_Store
+../../Sources/Internal/Extensions
+../../Sources/Internal/Extensions/.DS_Store
+../../Sources/Internal/Extensions/Array.swift
+../../Sources/Internal/Extensions/Collection.swift
+../../Sources/Internal/Extensions/Comparable.swift
+../../Sources/Internal/Extensions/Date+ISO8601.swift
+../../Sources/Internal/Extensions/Double.swift
+../../Sources/Internal/Extensions/NSRegularExpression.swift
+../../Sources/Internal/Extensions/String.swift
+../../Sources/Internal/JSON.swift
 ../../Sources/LCP
 ../../Sources/LCP/Authentications
 ../../Sources/LCP/Authentications/Base.lproj
@@ -332,6 +383,7 @@
 ../../Sources/Navigator/DirectionalNavigationAdapter.swift
 ../../Sources/Navigator/EditingAction.swift
 ../../Sources/Navigator/EPUB
+../../Sources/Navigator/EPUB/.DS_Store
 ../../Sources/Navigator/EPUB/Assets
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-one.html
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-two.html
@@ -393,6 +445,7 @@
 ../../Sources/Navigator/EPUB/Preferences/EPUBPreferencesEditor.swift
 ../../Sources/Navigator/EPUB/Preferences/EPUBSettings.swift
 ../../Sources/Navigator/EPUB/Scripts
+../../Sources/Navigator/EPUB/Scripts/.DS_Store
 ../../Sources/Navigator/EPUB/Scripts/.eslintrc.json
 ../../Sources/Navigator/EPUB/Scripts/.gitignore
 ../../Sources/Navigator/EPUB/Scripts/.prettierignore
@@ -421,6 +474,7 @@
 ../../Sources/Navigator/EPUB/Scripts/node_modules/.bin/terser
 ../../Sources/Navigator/EPUB/Scripts/node_modules/.bin/webpack
 ../../Sources/Navigator/EPUB/Scripts/node_modules/.bin/webpack-cli
+../../Sources/Navigator/EPUB/Scripts/node_modules/.DS_Store
 ../../Sources/Navigator/EPUB/Scripts/node_modules/.yarn-integrity
 ../../Sources/Navigator/EPUB/Scripts/node_modules/@ampproject
 ../../Sources/Navigator/EPUB/Scripts/node_modules/@ampproject/remapping

@@ -9,6 +9,7 @@ target 'TestApp' do
   pod 'R2Navigator', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumNavigator.podspec'
   pod 'ReadiumAdapterGCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumAdapterGCDWebServer.podspec'
   pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumOPDS.podspec'
+  pod 'ReadiumInternal', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumInternal.podspec'
 
   # Required for R2Streamer and ReadiumAdapterGCDWebServer.
   pod 'GCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/master/GCDWebServer.podspec'

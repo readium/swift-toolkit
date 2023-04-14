@@ -40,7 +40,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
     /// Dispatch queue to protect accesses to the handlers, transformers and
     /// state.
     private let queue = DispatchQueue(
-        label: "org.readium.swift-toolkit.ReadiumAdapterGCDWebServer",
+        label: "org.readium.swift-toolkit.adapter.gcdwebserver",
         attributes: .concurrent
     )
     

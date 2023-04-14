@@ -4,6 +4,24 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ## 2.5.0
 
+In the following migration steps, only the `ReadiumInternal` one is mandatory with 2.5.0.
+
+### New package: `ReadiumInternal`
+
+A new Readium package was added to host the private internal utilities used by the other Readium modules. You will need to update your project to include it.
+
+* Swift Package Manager: There's nothing to do.
+* Carthage:
+    * Update the Carthage dependencies and make sure the new `ReadiumInternal.xcframework` was built.
+    * Add `ReadiumInternal.xcframework` to your project like any other Carthage dependency.
+* CocoaPods:
+    * Add the following statement to your `Podfile`, then run `pod install`:
+    ```
+    pod 'ReadiumInternal', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.0/Support/CocoaPods/ReadiumInternal.podspec'
+    ```
+
+:warning: It is not recommended to use any API from `ReadiumInternal` directly in your application. No compatibility guarantee is made between two versions.
+
 ### Migrating the HTTP server
 
 :warning: Migrating to the new Preferences API (see below) is required for the user settings to work with the new HTTP server.
