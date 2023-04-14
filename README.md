@@ -42,7 +42,7 @@ If you're stuck, find more information at [developer.apple.com](https://develope
 Add the following to your `Cartfile`:
 
 ```
-github "readium/swift-toolkit" ~> 2.4.0
+github "readium/swift-toolkit" ~> 2.5.0
 ```
 
 Then, [follow the usual Carthage steps](https://github.com/Carthage/Carthage#adding-frameworks-to-an-application) to add the Readium libraries to your project.
@@ -51,28 +51,30 @@ Note that Carthage will build all Readium modules and their dependencies, but yo
 
 Refer to the following table to know which dependencies are required for each Readium library.
 
-|                 | `R2Shared`         | `R2Streamer`       | `R2Navigator`      | `ReadiumOPDS`      | `ReadiumLCP`       |
-|-----------------|:------------------:|:------------------:|:------------------:|:------------------:|:------------------:|
-| **`R2Shared`**  |                    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| `CryptoSwift`   |                    | :heavy_check_mark: |                    |                    | :heavy_check_mark: |
-| `DifferenceKit` |                    |                    | :heavy_check_mark: |                    |                    |
-| `Fuzi`          | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| `GCDWebServer`  |                    | :heavy_check_mark: |                    |                    |                    |
-| `Minizip`       | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| `SQLite.swift`  |                    |                    |                    |                    | :heavy_check_mark: |
-| `SwiftSoup`     | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| `ZIPFoundation` |                    |                    |                    |                    | :heavy_check_mark: |
+|                       |     `R2Shared`     |    `R2Streamer`    |    `R2Navigator`   |    `ReadiumOPDS`   |    `ReadiumLCP`    |
+|-----------------------|:------------------:|:------------------:|:------------------:|:------------------:|:------------------:|
+| **`R2Shared`**        |                    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| **`ReadiumInternal`** | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| `CryptoSwift`         |                    | :heavy_check_mark: |                    |                    | :heavy_check_mark: |
+| `DifferenceKit`       |                    |                    | :heavy_check_mark: |                    |                    |
+| `Fuzi`                | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| `GCDWebServer`        |                    | :heavy_check_mark: |                    |                    |                    |
+| `Minizip`             | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| `SQLite.swift`        |                    |                    |                    |                    | :heavy_check_mark: |
+| `SwiftSoup`           | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| `ZIPFoundation`       |                    |                    |                    |                    | :heavy_check_mark: |
 
 ### CocoaPods
 
 Add the following `pod` statements to your `Podfile` for the Readium libraries you want to use:
 
 ```
-pod 'R2Shared', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.4.0/Support/CocoaPods/ReadiumShared.podspec'
-pod 'R2Streamer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.4.0/Support/CocoaPods/ReadiumStreamer.podspec'
-pod 'R2Navigator', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.4.0/Support/CocoaPods/ReadiumNavigator.podspec'
-pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.4.0/Support/CocoaPods/ReadiumOPDS.podspec'
-pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.4.0/Support/CocoaPods/ReadiumLCP.podspec'
+pod 'R2Shared', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.0/Support/CocoaPods/ReadiumShared.podspec'
+pod 'R2Streamer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.0/Support/CocoaPods/ReadiumStreamer.podspec'
+pod 'R2Navigator', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.0/Support/CocoaPods/ReadiumNavigator.podspec'
+pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.0/Support/CocoaPods/ReadiumOPDS.podspec'
+pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.0/Support/CocoaPods/ReadiumLCP.podspec'
+pod 'ReadiumInternal', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.0/Support/CocoaPods/ReadiumInternal.podspec'
 
 # Required if you use R2Streamer.
 pod 'GCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/3.7.3/GCDWebServer.podspec'
