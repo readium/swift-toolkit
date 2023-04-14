@@ -54,12 +54,6 @@ extension JSONDictionary: Collection {
 extension JSONDictionary: Equatable {
     
     public static func == (lhs: JSONDictionary, rhs: JSONDictionary) -> Bool {
-        guard #available(iOS 11.0, *) else {
-            // The JSON comparison is not reliable before iOS 11, because the keys order is not
-            // deterministic.
-            return false
-        }
-        
         let l = try? JSONSerialization.data(withJSONObject: lhs.json, options: [.sortedKeys])
         let r = try? JSONSerialization.data(withJSONObject: rhs.json, options: [.sortedKeys])
         return l == r
@@ -70,13 +64,6 @@ extension JSONDictionary: Equatable {
 extension JSONDictionary: Hashable {
     
     public func hash(into hasher: inout Hasher) {
-        guard #available(iOS 11.0, *) else {
-            // The JSON comparison is not reliable before iOS 11, because the keys order is not
-            // deterministic.
-            hasher.combine(UUID().uuidString)
-            return
-        }
-        
         let jsonString = (try? JSONSerialization.data(withJSONObject: json, options: [.sortedKeys]))
             .map { String(data: $0, encoding: .utf8) }
         hasher.combine(jsonString ?? "{}")

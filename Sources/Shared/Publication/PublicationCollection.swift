@@ -65,11 +65,6 @@ public struct PublicationCollection: JSONEquatable, Hashable {
     }
     
     public static func == (lhs: PublicationCollection, rhs: PublicationCollection) -> Bool {
-        guard #available(iOS 11.0, *) else {
-            // The JSON comparison is not reliable before iOS 11, because the keys order is not deterministic. Since the equality is only tested during unit tests, it's not such a problem.
-            return false
-        }
-        
         let lMetadata = try? JSONSerialization.data(withJSONObject: lhs.metadata, options: [.sortedKeys])
         let rMetadata = try? JSONSerialization.data(withJSONObject: rhs.metadata, options: [.sortedKeys])
         return lMetadata == rMetadata

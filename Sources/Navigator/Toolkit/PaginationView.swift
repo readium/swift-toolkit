@@ -123,10 +123,8 @@ final class PaginationView: UIView, Loggable {
         // view controller, the scroll view insets won't be adjusted if the scroll view is not the
         // first child in the subviews hierarchy.
         insertSubview(UIView(frame: .zero), at: 0)
-        if #available(iOS 11.0, *) {
-            // Prevents the content from jumping down when the status bar is toggled
-            scrollView.contentInsetAdjustmentBehavior = .never
-        }
+        // Prevents the content from jumping down when the status bar is toggled
+        scrollView.contentInsetAdjustmentBehavior = .never
     }
     
     @available(*, unavailable)

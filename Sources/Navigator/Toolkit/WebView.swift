@@ -50,7 +50,7 @@ final class WebView: WKWebView {
 
     private func setupDragAndDrop() {
         if !editingActions.canCopy {
-            guard #available(iOS 11.0, *),
+            guard
                 let webScrollView = subviews.first(where: { $0 is UIScrollView }),
                 let contentView = webScrollView.subviews.first(where: { $0.interactions.count > 1 }),
                 let dragInteraction = contentView.interactions.first(where: { $0 is UIDragInteraction }) else

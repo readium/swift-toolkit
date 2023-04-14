@@ -29,11 +29,8 @@ public enum JSONError: LocalizedError {
 // MARK: - JSON Serialization
 
 public func serializeJSONString(_ object: Any) -> String? {
-    var options: JSONSerialization.WritingOptions = []
-    if #available(iOS 11.0, *) {
-        options.insert(.sortedKeys)
-    }
-    guard let data = try? JSONSerialization.data(withJSONObject: object, options: options),
+    guard
+        let data = try? JSONSerialization.data(withJSONObject: object, options: .sortedKeys),
         let string = String(data: data, encoding: .utf8) else
     {
         return nil
@@ -54,7 +51,6 @@ public func serializeJSONData(_ object: Any) -> Data? {
 // MARK: - JSON Equatable
 
 /// Protocol to automatically conforms to Equatable by comparing the JSON representation of a type.
-/// WARNING: this is only reliable on iOS 11+, because the keys order is not deterministic before. So only use JSON equality comparisons in unit tests, for example.
 public protocol JSONEquatable: Equatable, CustomDebugStringConvertible {
     associatedtype JSONType
     
@@ -67,7 +63,7 @@ extension JSONEquatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         let ljson = lhs.json
         let rjson = rhs.json
-        guard #available(iOS 11.0, *),
+        guard
             JSONSerialization.isValidJSONObject(ljson),
             JSONSerialization.isValidJSONObject(rjson) else
         {

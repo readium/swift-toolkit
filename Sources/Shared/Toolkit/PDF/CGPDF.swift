@@ -122,10 +122,7 @@ extension CGPDFDocument: PDFDocument {
     }
 
     public var tableOfContents: [PDFOutlineNode] {
-        guard
-            #available(iOS 11.0, *),
-            let outline = self.outline as? [String: Any]
-        else {
+        guard let outline = self.outline as? [String: Any] else {
             return []
         }
         

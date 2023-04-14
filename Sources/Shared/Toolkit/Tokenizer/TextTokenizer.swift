@@ -23,10 +23,8 @@ public enum TextTokenizerError: Error {
 public func makeDefaultTextTokenizer(unit: TextUnit, language: Language? = nil) -> TextTokenizer {
     if #available(iOS 12.0, *) {
         return makeNLTextTokenizer(unit: unit, language: language)
-    } else if #available(iOS 11.0, *) {
-        return makeNSTextTokenizer(unit: unit)
     } else {
-        return makeSimpleTextTokenizer(unit: unit)
+        return makeNSTextTokenizer(unit: unit)
     }
 }
 
@@ -75,7 +73,6 @@ private extension TextUnit {
 /// A text `Tokenizer` using iOS 11+'s `NSLinguisticTaggerUnit`.
 ///
 /// Prefer using NLTokenizer on iOS 12+.
-@available(iOS 11.0, *)
 public func makeNSTextTokenizer(
     unit: TextUnit,
     options: NSLinguisticTagger.Options = [.joinNames, .omitPunctuation, .omitWhitespace]
@@ -115,7 +112,6 @@ public func makeNSTextTokenizer(
 }
 
 private extension TextUnit {
-    @available(iOS 11.0, *)
     var nsUnit: NSLinguisticTaggerUnit {
         switch self {
         case .word:

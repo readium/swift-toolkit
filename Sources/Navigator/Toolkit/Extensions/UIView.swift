@@ -20,10 +20,6 @@ extension UIView {
     /// We use that instead of pinning the content directly to the safe area layout guides to avoid
     /// the view shifting when the status bar is toggled.
     var notchAreaInsets: UIEdgeInsets {
-        guard #available(iOS 11.0, *) else {
-            return .zero
-        }
-        
         var windowSafeAreaInsets = window?.safeAreaInsets ?? safeAreaInsets
         
         // Trick to ignore the status bar on devices without notches (pre iPhone X).

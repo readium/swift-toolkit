@@ -13,7 +13,6 @@ import R2Shared
 public protocol PDFNavigatorDelegate: VisualNavigatorDelegate, SelectableNavigatorDelegate { }
 
 /// A view controller used to render a PDF `Publication`.
-@available(iOS 11.0, *)
 open class PDFNavigatorViewController: UIViewController, VisualNavigator, SelectableNavigator, Configurable, Loggable {
     
     public struct Configuration {
@@ -606,7 +605,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     }
 }
 
-@available(iOS 11.0, *)
 extension PDFNavigatorViewController: PDFViewDelegate {
     
     public func pdfViewWillClick(onLink sender: PDFView, with url: URL) {
@@ -622,7 +620,6 @@ extension PDFNavigatorViewController: PDFViewDelegate {
 
 }
 
-@available(iOS 11.0, *)
 extension PDFNavigatorViewController: EditingActionsControllerDelegate {
     
     func editingActionsDidPreventCopy(_ editingActions: EditingActionsController) {
@@ -638,7 +635,6 @@ extension PDFNavigatorViewController: EditingActionsControllerDelegate {
     }
 }
 
-@available(iOS 11.0, *)
 extension PDFNavigatorViewController: UIGestureRecognizerDelegate {
 
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -647,7 +643,6 @@ extension PDFNavigatorViewController: UIGestureRecognizerDelegate {
     
 }
 
-@available(iOS 11.0, *)
 private extension Axis {
     var displayDirection: PDFDisplayDirection {
         switch self {

@@ -343,14 +343,7 @@ class ReaderViewController<N: UIViewController & Navigator>: UIViewController, U
     
     /// Constraint used to shift the content under the navigation bar, since it is always visible when VoiceOver is running.
     private lazy var accessibilityTopMargin: NSLayoutConstraint = {
-        let topAnchor: NSLayoutYAxisAnchor = {
-            if #available(iOS 11.0, *) {
-                return self.view.safeAreaLayoutGuide.topAnchor
-            } else {
-                return self.topLayoutGuide.bottomAnchor
-            }
-        }()
-        return self.stackView.topAnchor.constraint(equalTo: topAnchor)
+        return self.stackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor)
     }()
     
     private lazy var accessibilityToolbar: UIToolbar = {

@@ -21,14 +21,9 @@ extension UIImage {
         }
 
         let targetRect = AVMakeRect(aspectRatio: size, insideRect: CGRect(origin: .zero, size: maxSize))
-        if #available(iOS 10.0, *) {
-            let renderer = UIGraphicsImageRenderer(size: targetRect.size)
-            return renderer.image { _ in
-                draw(in: targetRect)
-            }
-        } else {
-            // FIXME: We're going to move to iOS 10 soon, so for now the fallback doesn't rescale the image
-            return self
+        let renderer = UIGraphicsImageRenderer(size: targetRect.size)
+        return renderer.image { _ in
+            draw(in: targetRect)
         }
     }
     

@@ -12,7 +12,6 @@
 import Foundation
 import PDFKit
 
-@available(iOS 11.0, *)
 public final class PDFDocumentView: PDFView {
     
     var editingActions: EditingActionsController

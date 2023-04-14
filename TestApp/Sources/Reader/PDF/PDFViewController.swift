@@ -16,7 +16,6 @@ import R2Shared
 import ReadiumAdapterGCDWebServer
 import SwiftUI
 
-@available(iOS 11.0, *)
 final class PDFViewController: ReaderViewController<PDFNavigatorViewController> {
 
     private let preferencesStore: AnyUserPreferencesStore<PDFPreferences>
@@ -75,6 +74,5 @@ final class PDFViewController: ReaderViewController<PDFNavigatorViewController> 
     }
 }
 
-@available(iOS 11.0, *)
 extension PDFViewController: PDFNavigatorDelegate {
 }

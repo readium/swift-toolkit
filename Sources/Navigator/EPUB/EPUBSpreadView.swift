@@ -88,14 +88,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
         registerJSMessages()
 
-        let voiceOverNotification: Notification.Name
-        if #available(iOS 11.0, *) {
-            voiceOverNotification = UIAccessibility.voiceOverStatusDidChangeNotification
-        } else {
-            voiceOverNotification = Notification.Name(UIAccessibilityVoiceOverStatusChanged)
-        }
-
-        NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: voiceOverNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: UIAccessibility.voiceOverStatusDidChangeNotification, object: nil)
 
         updateActivityIndicator()
         loadSpread()
@@ -117,10 +110,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.showsVerticalScrollIndicator = false
         
-        if #available(iOS 11.0, *) {
-            // Prevents the pages from jumping down when the status bar is toggled
-            scrollView.contentInsetAdjustmentBehavior = .never
-        }
+        // Prevents the pages from jumping down when the status bar is toggled
+        scrollView.contentInsetAdjustmentBehavior = .never
 
         webView.navigationDelegate = self
         webView.uiDelegate = self

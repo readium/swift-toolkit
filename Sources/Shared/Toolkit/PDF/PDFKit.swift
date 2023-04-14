@@ -13,7 +13,6 @@ import PDFKit
 /// If this is an issue for you, use `CPDFDocumentFactory` instead.
 ///
 /// Use `PDFKitPDFDocumentFactory` to create a `PDFDocument` from a `Resource`.
-@available(iOS 11.0, *)
 extension PDFKit.PDFDocument: PDFDocument {
     
     public var identifier: String? { documentRef?.identifier }
@@ -35,7 +34,6 @@ extension PDFKit.PDFDocument: PDFDocument {
 }
 
 /// Creates a `PDFDocument` using PDFKit.
-@available(iOS 11.0, *)
 public class PDFKitPDFDocumentFactory: PDFDocumentFactory {
     
     public func open(url: URL, password: String?) throws -> PDFDocument {

@@ -20,7 +20,6 @@ import UIKit
 ///
 /// **WARNING:** This API is experimental and may change or be removed in a future release without
 /// notice. Use with caution.
-@available(iOS 10.0, *)
 public final class _NowPlayingInfo {
     
     public static let shared = _NowPlayingInfo()
