@@ -29,11 +29,9 @@ public extension DateFormatter {
         // Otherwise it will accept bad format, for exmaple 2018-04-24XXXXXXXXX
         // Because it will only test the part you asssigned, date, time, timezone.
         // But we should also cover the optional cases. So there is not too much benefit.
-//        if #available(iOS 10.0, *) {
 //            let formatter = ISO8601DateFormatter()
 //            formatter.formatOptions = [.withFullDate]
 //            return formatter
-//        }
         
         // https://developer.apple.com/documentation/foundation/dateformatter
         // Doesn't support millisecond or uncompleted part for date, time, timezone offset.

@@ -16,10 +16,11 @@ A [Test App](TestApp) demonstrates how to integrate the Readium Swift toolkit in
 
 <!-- https://swiftversion.net/ -->
 
-| Readium | iOS  | Swift compiler | Xcode |
-|---------|------|----------------|-------|
-| 2.5.0+  | 10.0 | 5.6.1          | 13.4  |
-| 2.4.0   | 10.0 | 5.3.2          | 12.4  |
+| Readium   | iOS  | Swift compiler | Xcode |
+|-----------|------|----------------|-------|
+| `develop` | 11.0 | 5.6.1          | 13.4  |
+| 2.5.0     | 10.0 | 5.6.1          | 13.4  |
+| 2.4.0     | 10.0 | 5.3.2          | 12.4  |
 
 ## Using Readium
 

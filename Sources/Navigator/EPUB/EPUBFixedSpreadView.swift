@@ -71,7 +71,6 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         layoutSpread()
     }
     
-    @available(iOS 11.0, *)
     override func safeAreaInsetsDidChange() {
         super.safeAreaInsetsDidChange()
         layoutSpread()

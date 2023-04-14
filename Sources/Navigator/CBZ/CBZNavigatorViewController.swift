@@ -102,12 +102,6 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         )
 
         super.init(nibName: nil, bundle: nil)
-        
-        if #available(iOS 11.0, *) {
-            // Handled in the `ImageViewController` with `contentInsetAdjustmentBehavior`
-        } else {
-            automaticallyAdjustsScrollViewInsets = false
-        }
     }
 
     required public init?(coder aDecoder: NSCoder) {

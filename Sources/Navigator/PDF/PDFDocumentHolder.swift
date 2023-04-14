@@ -8,7 +8,6 @@ import Foundation
 import PDFKit
 import R2Shared
 
-@available(iOS 11.0, *)
 final class PDFDocumentHolder {
     
     private var href: String?
@@ -21,7 +20,6 @@ final class PDFDocumentHolder {
 
 }
 
-@available(iOS 11.0, *)
 extension PDFDocumentHolder: R2Shared.PDFDocumentFactory {
     
     func open(url: URL, password: String?) throws -> R2Shared.PDFDocument {

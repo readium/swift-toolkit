@@ -62,10 +62,8 @@ final class ImageViewController: UIViewController, Loggable {
         // controller, the scroll view insets won't be adjusted if the scroll view is not the first
         // child in the subviews hierarchy.
         view.insertSubview(UIView(frame: .zero), at: 0)
-        if #available(iOS 11.0, *) {
-            // Prevents the pages from jumping down when the status bar is toggled
-            scrollView.contentInsetAdjustmentBehavior = .never
-        }
+        // Prevents the pages from jumping down when the status bar is toggled
+        scrollView.contentInsetAdjustmentBehavior = .never
         
         loadURL()
     }

@@ -31,13 +31,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
         audioConfig: _AudioSession.Configuration = .init(
             category: .playback,
             mode: .default,
-            routeSharingPolicy: {
-                if #available(iOS 11.0, *) {
-                    return .longForm
-                } else {
-                    return .default
-                }
-            }(),
+            routeSharingPolicy: .longForm,
             options: []
         )
     ) {

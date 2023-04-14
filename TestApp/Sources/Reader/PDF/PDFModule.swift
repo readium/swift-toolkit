@@ -15,9 +15,6 @@ import UIKit
 import R2Navigator
 import R2Shared
 
-
-/// The PDF module is only available on iOS 11 and more, since it relies on PDFKit.
-@available(iOS 11.0, *)
 final class PDFModule: ReaderFormatModule {
 
     weak var delegate: ReaderFormatModuleDelegate?

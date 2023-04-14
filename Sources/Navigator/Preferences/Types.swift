@@ -175,9 +175,7 @@ public struct Color: RawRepresentable, Codable, Hashable {
     }
 }
 
-// FIXME: Only canImport(SwiftUI) should be enough starting from iOS 11
-// See https://stackoverflow.com/questions/61954607/swiftui-use-of-undeclared-type-xxx-on-deployment-targets-below-or-equal-to-i
-#if canImport(SwiftUI) && (arch(arm64) || arch(x86_64))
+#if canImport(SwiftUI)
 
 import SwiftUI
 

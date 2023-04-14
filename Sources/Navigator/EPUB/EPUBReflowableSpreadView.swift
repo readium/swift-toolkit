@@ -63,7 +63,6 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         ])
     }
 
-    @available(iOS 11.0, *)
     override func safeAreaInsetsDidChange() {
         super.safeAreaInsetsDidChange()
         updateContentInset()

@@ -12,7 +12,7 @@
     "format": "prettier --list-different --write '**/*.js'"
   },
   "browserslist": [
-    "iOS 10"
+    "iOS 11"
   ],
   "devDependencies": {
     "@babel/core": "^7.16.0",
