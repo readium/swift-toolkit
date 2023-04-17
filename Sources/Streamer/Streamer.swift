@@ -1,12 +1,7 @@
 //
-//  Streamer.swift
-//  r2-streamer-swift
-//
-//  Created by Mickaël Menu on 14/07/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -14,7 +9,6 @@ import R2Shared
 
 /// Opens a `Publication` using a list of parsers.
 public final class Streamer: Loggable {
-    
     /// Creates the default parsers provided by Readium.
     public static func makeDefaultParsers(
         pdfFactory: PDFDocumentFactory = DefaultPDFDocumentFactory(),
@@ -25,10 +19,10 @@ public final class Streamer: Loggable {
             PDFParser(pdfFactory: pdfFactory),
             ReadiumWebPubParser(pdfFactory: pdfFactory, httpClient: httpClient),
             ImageParser(),
-            AudioParser()
+            AudioParser(),
         ]
     }
-    
+
     /// `Streamer` is configured to use Readium's default parsers, which you can bypass using
     /// `ignoreDefaultParsers`. However, you can provide additional `parsers` which will take
     /// precedence over the default ones. This can also be used to provide an alternative
@@ -59,7 +53,7 @@ public final class Streamer: Loggable {
         self.archiveFactory = archiveFactory
         self.onCreatePublication = onCreatePublication
     }
-    
+
     private let parsers: [PublicationParser]
     private let contentProtections: [ContentProtection]
     private let archiveFactory: ArchiveFactory
@@ -114,24 +108,24 @@ public final class Streamer: Loggable {
             }
             .resolve(on: .main, completion)
     }
-    
+
     /// Creates the leaf fetcher which will be passed to the content protections and parsers.
     private func makeFetcher(for asset: PublicationAsset, allowUserInteraction: Bool, credentials: String?, sender: Any?) -> Deferred<Fetcher, Publication.OpeningError> {
         deferred { completion in
             asset.makeFetcher(using: .init(archiveFactory: self.archiveFactory), credentials: credentials, completion: completion)
         }
     }
-    
+
     /// Unlocks any protected asset with the provided Content Protections.
     private func unlockAsset(_ asset: PublicationAsset, with fetcher: Fetcher, credentials: String?, allowUserInteraction: Bool, sender: Any?) -> Deferred<OpenedAsset, Publication.OpeningError> {
         func unlock(using protections: [ContentProtection]) -> Deferred<ProtectedAsset?, Publication.OpeningError> {
-            return deferred {
+            deferred {
                 var protections = protections
                 guard let protection = protections.popFirst() else {
                     // No Content Protection applied, this asset is probably not protected.
                     return .success(nil)
                 }
-    
+
                 return protection
                     .open(asset: asset, fetcher: fetcher, credentials: credentials, allowUserInteraction: allowUserInteraction, sender: sender)
                     .flatMap {
@@ -143,16 +137,16 @@ public final class Streamer: Loggable {
                     }
             }
         }
-        
+
         return unlock(using: contentProtections)
             .map { protectedAsset in
                 protectedAsset ?? OpenedAsset(asset, fetcher, nil)
             }
     }
-    
+
     /// Parses the `Publication` from the provided asset and the `parsers`.
     private func parsePublication(from openedAsset: OpenedAsset, warnings: WarningLogger?, onCreatePublication: Publication.Builder.Transform?) -> Deferred<Publication, Publication.OpeningError> {
-        return deferred(on: .global(qos: .userInitiated)) {
+        deferred(on: .global(qos: .userInitiated)) {
             var parsers = self.parsers
             var parsedBuilder: Publication.Builder?
             while parsedBuilder == nil, let parser = parsers.popFirst() {
@@ -162,11 +156,11 @@ public final class Streamer: Loggable {
                     return .failure(.parsingFailed(error))
                 }
             }
-            
+
             guard var builder = parsedBuilder else {
                 return .failure(.unsupportedFormat)
             }
-            
+
             // Transform from the Content Protection.
             builder.apply(openedAsset.onCreatePublication)
             // Transform provided by the reading app during the construction of the `Streamer`.
@@ -179,21 +173,18 @@ public final class Streamer: Loggable {
             return .success(builder.build())
         }
     }
-    
+
     @available(*, unavailable, message: "Provide a `FileAsset` instead", renamed: "open(asset:credentials:allowUserInteraction:sender:warnings:onCreatePublication:completion:)")
     public func open(file: File, credentials: String? = nil, allowUserInteraction: Bool, sender: Any? = nil, warnings: WarningLogger? = nil, onCreatePublication: Publication.Builder.Transform? = nil, completion: @escaping (CancellableResult<Publication, Publication.OpeningError>) -> Void) {}
-
 }
 
 private typealias OpenedAsset = (asset: PublicationAsset, fetcher: Fetcher, onCreatePublication: Publication.Builder.Transform?)
 
 private extension ContentProtection {
-    
     /// Wrapper to use `Deferred` with `ContentProtection.open()`.
     func open(asset: PublicationAsset, fetcher: Fetcher, credentials: String?, allowUserInteraction: Bool, sender: Any?) -> Deferred<ProtectedAsset?, Publication.OpeningError> {
-        return deferred { completion in
+        deferred { completion in
             self.open(asset: asset, fetcher: fetcher, credentials: credentials, allowUserInteraction: allowUserInteraction, sender: sender, completion: completion)
         }
     }
-
 }

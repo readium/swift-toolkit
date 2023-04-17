@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -22,35 +22,35 @@ public struct PDFSettings: ConfigurableSettings {
     public let visibleScrollbar: Bool
 
     init(preferences: PDFPreferences, defaults: PDFDefaults, metadata: Metadata) {
-        self.backgroundColor = preferences.backgroundColor
+        backgroundColor = preferences.backgroundColor
             ?? defaults.backgroundColor
 
-        self.offsetFirstPage = preferences.offsetFirstPage
+        offsetFirstPage = preferences.offsetFirstPage
             ?? defaults.offsetFirstPage
             ?? false
 
-        self.pageSpacing = preferences.pageSpacing
+        pageSpacing = preferences.pageSpacing
             ?? defaults.pageSpacing
             ?? 0
 
-        self.readingProgression = preferences.readingProgression
+        readingProgression = preferences.readingProgression
             ?? ReadingProgression(metadata.readingProgression)
             ?? defaults.readingProgression
             ?? .ltr
 
-        self.scroll = preferences.scroll
+        scroll = preferences.scroll
             ?? defaults.scroll
             ?? false
 
-        self.scrollAxis = preferences.scrollAxis
+        scrollAxis = preferences.scrollAxis
             ?? defaults.scrollAxis
             ?? .vertical
 
-        self.spread = preferences.spread
+        spread = preferences.spread
             ?? defaults.spread
             ?? .auto
 
-        self.visibleScrollbar = preferences.visibleScrollbar
+        visibleScrollbar = preferences.visibleScrollbar
             ?? defaults.visibleScrollbar
             ?? true
     }

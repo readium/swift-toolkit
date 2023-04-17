@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -8,7 +8,6 @@ import Foundation
 import R2Shared
 
 extension Array where Element == DecorationChange {
-
     /// Generates the JavaScript used to apply the receiver list of `DecorationChange` in a web view.
     func javascript(forGroup group: String, styles: [Decoration.Style.Id: HTMLDecorationTemplate]) -> String? {
         guard !isEmpty else {
@@ -28,7 +27,6 @@ extension Array where Element == DecorationChange {
 }
 
 extension DecorationChange {
-
     /// Generates the JavaScript used to apply the receiver `DecorationChange` in a web view.
     func javascript(styles: [Decoration.Style.Id: HTMLDecorationTemplate]) -> String? {
         func serializeJSON(of decoration: Decoration) -> String? {
@@ -46,12 +44,12 @@ extension DecorationChange {
         }
 
         switch self {
-        case .add(let decoration):
+        case let .add(decoration):
             return serializeJSON(of: decoration)
                 .map { "group.add(\($0));" }
-        case .remove(let identifier):
+        case let .remove(identifier):
             return "group.remove('\(identifier)');"
-        case .update(let decoration):
+        case let .update(decoration):
             return serializeJSON(of: decoration)
                 .map { "group.update(\($0));" }
         }

@@ -1,17 +1,16 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 
-extension Optional {
-    
+public extension Optional {
     /// Unwraps the optional or throws the given `error`.
-    public func orThrow(_ error: @autoclosure () -> Error) throws -> Wrapped {
+    func orThrow(_ error: @autoclosure () -> Error) throws -> Wrapped {
         switch self {
-        case .some(let value):
+        case let .some(value):
             return value
         case .none:
             throw error()
@@ -19,9 +18,9 @@ extension Optional {
     }
 
     /// Returns `nil` if the value doesn't pass the given `condition`.
-    public func takeIf(_ condition: (Wrapped) -> Bool) -> Self {
+    func takeIf(_ condition: (Wrapped) -> Bool) -> Self {
         guard
-            case .some(let value) = self,
+            case let .some(value) = self,
             condition(value)
         else {
             return nil
@@ -30,7 +29,7 @@ extension Optional {
     }
 
     /// Returns the wrapped value and modify the variable to be nil.
-    mutating func pop() -> Wrapped? {
+    internal mutating func pop() -> Wrapped? {
         let res = self
         self = nil
         return res

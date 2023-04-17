@@ -8,7 +8,6 @@ import Foundation
 import R2Shared
 
 public protocol HTMLFontFamilyDeclaration {
-
     /// Name of the font family.
     ///
     /// This will be the value of the `fontFamily` EPUB preference.
@@ -27,7 +26,6 @@ public protocol HTMLFontFamilyDeclaration {
 
 /// A type-erasing `HTMLFontFamilyDeclaration` object
 public struct AnyHTMLFontFamilyDeclaration: HTMLFontFamilyDeclaration {
-
     private let _fontFamily: () -> FontFamily
     private let _alternates: () -> [FontFamily]
     private let _inject: (String, (URL) throws -> URL) throws -> String
@@ -46,16 +44,15 @@ public struct AnyHTMLFontFamilyDeclaration: HTMLFontFamilyDeclaration {
     }
 }
 
-extension HTMLFontFamilyDeclaration {
+public extension HTMLFontFamilyDeclaration {
     /// Returns a type-erased version of this object.
-    public func eraseToAnyHTMLFontFamilyDeclaration() -> AnyHTMLFontFamilyDeclaration {
+    func eraseToAnyHTMLFontFamilyDeclaration() -> AnyHTMLFontFamilyDeclaration {
         AnyHTMLFontFamilyDeclaration(self)
     }
 }
 
 /// A font family declaration.
 public struct CSSFontFamilyDeclaration: HTMLFontFamilyDeclaration {
-
     public let fontFamily: FontFamily
     public let alternates: [FontFamily]
 
@@ -88,7 +85,6 @@ public struct CSSFontFamilyDeclaration: HTMLFontFamilyDeclaration {
 
 /// Represents a single `@font-face` CSS rule.
 public struct CSSFontFace {
-
     /// Represents an individual font file.
     ///
     /// `preload` indicates whether this source will be declared for preloading
@@ -107,7 +103,7 @@ public struct CSSFontFace {
     ) {
         self.style = style
         self.weight = weight
-        self.sources = [(file, preload)]
+        sources = [(file, preload)]
     }
 
     /// Returns a new CSSFontFace after adding a linked source for this font
@@ -123,18 +119,18 @@ public struct CSSFontFace {
 
     func injections(for html: String, servingFile: (URL) throws -> URL) throws -> [HTMLInjection] {
         try sources
-            .filter { $0.preload }
+            .filter(\.preload)
             .map { source in
                 let file = try servingFile(source.file)
                 return .link(href: file.absoluteString, rel: "preload", as: "font", crossOrigin: "")
             }
     }
-    
+
     func css(for fontFamily: String, servingFile: (URL) throws -> URL) throws -> String {
         let urls = try sources.map { try servingFile($0.file) }
         var descriptors: [String: String] = [
             "font-family": "\"\(fontFamily)\"",
-            "src": urls.map { "url(\"\($0.absoluteString)\")" }.joined(separator: ", ")
+            "src": urls.map { "url(\"\($0.absoluteString)\")" }.joined(separator: ", "),
         ]
 
         if let style = style {
@@ -143,14 +139,14 @@ public struct CSSFontFace {
         switch weight {
         case nil:
             break
-        case .standard(let weight):
+        case let .standard(weight):
             descriptors["font-weight"] = String(weight.rawValue)
-        case .variable(let range):
+        case let .variable(range):
             descriptors["font-weight"] = "\(range.lowerBound) \(range.upperBound)"
         }
 
         let descriptorsCSS = descriptors
-            .map { (key, value) in "\(key): \(value);" }
+            .map { key, value in "\(key): \(value);" }
             .joined(separator: " ")
 
         return "@font-face { \(descriptorsCSS) }"

@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -16,41 +16,40 @@ import UIKit
 ///
 /// Use `CGPDFDocumentFactory` to create a `CGPDFDocument` from a `Resource`.
 extension CGPDFDocument: PDFDocument {
-
     public var identifier: String? {
         guard
             let identifierArray = fileIdentifier,
-            CGPDFArrayGetCount(identifierArray) > 0 else
-        {
+            CGPDFArrayGetCount(identifierArray) > 0
+        else {
             return nil
         }
-        
+
         var identifierString: CGPDFStringRef?
         CGPDFArrayGetString(identifierArray, 0, &identifierString)
         guard let identifierData = data(from: identifierString) else {
             return nil
         }
-        
+
         // Converts the raw data to a hexadecimal string
-        return identifierData.reduce("") { $0 + String(format: "%02x", $1)}
+        return identifierData.reduce("") { $0 + String(format: "%02x", $1) }
     }
-    
+
     public var pageCount: Int {
         numberOfPages
     }
-    
+
     /// The reading progression can be derived from the `Direction` Name object under the
     /// `/Catalog/ViewerPreferences` dictionary.
     public var readingProgression: ReadingProgression? {
         guard
             let viewerPreferences = dict(forKey: "ViewerPreferences", in: catalog),
             let direction = object(forKey: "Direction", in: viewerPreferences)
-                .flatMap({ name(for: $0) })?
-                .uppercased()
+            .flatMap({ name(for: $0) })?
+            .uppercased()
         else {
             return nil
         }
-        
+
         switch direction {
         case "L2R", "LTR": return .ltr
         case "R2L", "RTL": return .rtl
@@ -61,7 +60,7 @@ extension CGPDFDocument: PDFDocument {
     public var title: String? {
         string(forKey: "Title", in: info)
     }
-    
+
     public var author: String? {
         string(forKey: "Author", in: info)
     }
@@ -81,12 +80,12 @@ extension CGPDFDocument: PDFDocument {
 
         // Properly handles the page crop and rotation defined in the PDF.
         // A good test-case is the first page of Links-to-Images-N-Contents.pdf, provided by Adobe.
-        
+
         let cropRect = page.getBoxRect(.cropBox)
         let rotationAngle = CGFloat(page.rotationAngle) * .pi / 180
         let rotatedCropRect = cropRect
             .applying(CGAffineTransform(rotationAngle: rotationAngle))
-        
+
         guard let context = CGContext(
             data: nil,
             width: Int(rotatedCropRect.width),
@@ -102,7 +101,7 @@ extension CGPDFDocument: PDFDocument {
 
         context.setFillColor(UIColor.white.cgColor)
         context.fill(context.boundingBoxOfClipPath)
-        
+
         context.translateBy(
             x: rotatedCropRect.width / 2,
             y: rotatedCropRect.height / 2
@@ -112,7 +111,7 @@ extension CGPDFDocument: PDFDocument {
             x: -cropRect.minX - cropRect.width / 2,
             y: -cropRect.minY - cropRect.height / 2
         )
-        
+
         context.drawPDFPage(page)
 
         guard let cgImage = context.makeImage() else {
@@ -122,30 +121,30 @@ extension CGPDFDocument: PDFDocument {
     }
 
     public var tableOfContents: [PDFOutlineNode] {
-        guard let outline = self.outline as? [String: Any] else {
+        guard let outline = outline as? [String: Any] else {
             return []
         }
-        
+
         func node(from dictionary: [String: Any]) -> PDFOutlineNode? {
             guard let pageNumber = dictionary[kCGPDFOutlineDestination as String] as? Int else {
                 return nil
             }
-            
+
             return PDFOutlineNode(
                 title: dictionary[kCGPDFOutlineTitle as String] as? String,
                 pageNumber: pageNumber,
                 children: nodes(in: dictionary[kCGPDFOutlineChildren as String] as? [[String: Any]])
             )
         }
-        
+
         func nodes(in children: [[String: Any]]?) -> [PDFOutlineNode] {
             guard let children = children else {
                 return []
             }
-            
+
             return children.compactMap { node(from: $0) }
         }
-        
+
         return nodes(in: outline[kCGPDFOutlineChildren as String] as? [[String: Any]])
     }
 
@@ -153,13 +152,13 @@ extension CGPDFDocument: PDFDocument {
         guard let string = string(forKey: key, in: dictionary) else {
             return []
         }
-        
+
         return string
             .components(separatedBy: ",")
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
     }
-    
+
     private func string(forKey key: String, in dictionary: CGPDFDictionaryRef?) -> String? {
         var stringRef: CGPDFStringRef?
         guard
@@ -170,7 +169,7 @@ extension CGPDFDocument: PDFDocument {
         }
         return string(from: stringRef)
     }
-    
+
     private func string(from stringRef: CGPDFStringRef?) -> String? {
         guard
             let data = data(from: stringRef),
@@ -180,7 +179,7 @@ extension CGPDFDocument: PDFDocument {
         }
         return string.isEmpty ? nil : string
     }
-    
+
     private func data(from stringRef: CGPDFStringRef?) -> Data? {
         guard
             let stringRef = stringRef,
@@ -212,7 +211,7 @@ extension CGPDFDocument: PDFDocument {
         }
         return objectRef
     }
-    
+
     private func name(for object: CGPDFObjectRef?) -> String? {
         var optBuffer: UnsafePointer<Int8>?
         guard
@@ -228,20 +227,19 @@ extension CGPDFDocument: PDFDocument {
 
 /// Creates a `PDFDocument` using Core Graphics.
 public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
-    
     public func open(url: URL, password: String?) throws -> PDFDocument {
         guard let document = CGPDFDocument(url as CFURL) else {
             throw PDFDocumentError.openFailed
         }
-        
+
         return try open(document: document, password: password)
     }
-    
+
     public func open(resource: Resource, password: String?) throws -> PDFDocument {
         if let url = resource.file {
             return try open(url: url, password: password)
         }
-        
+
         var callbacks = CGDataProviderSequentialCallbacks(
             version: 0,
 
@@ -255,13 +253,13 @@ public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
                     return 0
                 }
 
-                let result = context.resource.read(range: context.offset..<end)
+                let result = context.resource.read(range: context.offset ..< end)
                 switch result {
-                case .success(let data):
+                case let .success(data):
                     data.copyBytes(to: buffer.assumingMemoryBound(to: UInt8.self), count: data.count)
                     context.offset += UInt64(data.count)
                     return data.count
-                case .failure(let error):
+                case let .failure(error):
                     CGPDFDocumentFactory.log(.error, error)
                     return 0
                 }
@@ -290,24 +288,24 @@ public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
         var context = ResourceContext(resource: resource)
         guard
             let provider = CGDataProvider(sequentialInfo: &context, callbacks: &callbacks),
-            let document = UIKit.CGPDFDocument(provider) else
-        {
+            let document = UIKit.CGPDFDocument(provider)
+        else {
             throw PDFDocumentError.openFailed
         }
 
         return try open(document: document, password: password)
     }
-    
+
     private func open(document: CGPDFDocument, password: String?) throws -> PDFDocument {
-        if (document.isEncrypted && !document.isUnlocked) {
+        if document.isEncrypted, !document.isUnlocked {
             guard
                 let password = password?.cString(using: .utf8),
-                document.unlockWithPassword(password) else
-            {
+                document.unlockWithPassword(password)
+            else {
                 throw PDFDocumentError.invalidPassword
             }
         }
-        
+
         return document
     }
 
@@ -331,5 +329,4 @@ public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
         }
         return context
     }
-    
 }

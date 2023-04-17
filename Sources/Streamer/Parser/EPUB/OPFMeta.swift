@@ -1,18 +1,12 @@
 //
-//  OPFMeta.swift
-//  r2-streamer-swift
-//
-//  Created by Mickaël Menu on 04.06.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 import Fuzi
 import R2Shared
-
 
 /// Package vocabularies used for `property`, `properties`, `scheme` and `rel`.
 /// http://www.idpf.org/epub/301/spec/epub-publications.html#sec-metadata-assoc
@@ -23,7 +17,7 @@ enum OPFVocabulary: String {
     case a11y, dcterms, epubsc, marc, media, onix, rendition, schema, xsd
     // Additional prefixes used in the streamer.
     case calibre
-    
+
     var uri: String {
         switch self {
         case .defaultMetadata:
@@ -53,22 +47,22 @@ enum OPFVocabulary: String {
             return "https://calibre-ebook.com"
         }
     }
-    
+
     /// Returns the property stripped of its prefix, and the associated vocabulary URI for the given
     /// metadata property.
     ///
     /// - Parameter prefixes: Custom prefixes declared in the package.
     static func parse(property: String, prefixes: [String: String] = [:]) -> (property: String, vocabularyURI: String) {
         let property = property.trimmingCharacters(in: .whitespacesAndNewlines)
-        
+
         let regex = try! NSRegularExpression(pattern: "^\\s*(\\S+?):\\s*(.+?)\\s*$")
         guard let match = regex.firstMatch(in: property, range: NSRange(property.startIndex..., in: property)),
-            let prefixRange = Range(match.range(at: 1), in: property),
-            let propertyRange = Range(match.range(at: 2), in: property) else
-        {
+              let prefixRange = Range(match.range(at: 1), in: property),
+              let propertyRange = Range(match.range(at: 2), in: property)
+        else {
             return (property, OPFVocabulary.defaultMetadata.uri)
         }
-        
+
         let prefix = String(property[prefixRange])
         return (
             property: String(property[propertyRange]),
@@ -79,7 +73,6 @@ enum OPFVocabulary: String {
     private static func resolveURI(ofPrefix prefix: String, prefixes: [String: String]) -> String {
         if let uri = prefixes[prefix] {
             switch uri {
-                
             // The dc URI is expanded as dcterms
             // See https://www.dublincore.org/specifications/dublin-core/dcmi-terms/
             // > While these distinctions are significant for creators of RDF applications, most
@@ -89,17 +82,16 @@ enum OPFVocabulary: String {
             // > supported indefinitely, DCMI gently encourages use of the /terms/ namespace.
             case "http://purl.org/dc/elements/1.1/":
                 return OPFVocabulary.dcterms.uri
-                
+
             default:
                 return uri
             }
         }
-        
+
         let prefix = (prefix == "dc") ? "dcterms" : prefix
         return (OPFVocabulary(rawValue: prefix) ?? .defaultMetadata).uri
     }
-    
-    
+
     /// Parses the custom vocabulary prefixes declared in the given package document.
     /// > Reserved prefixes should not be overridden in the prefix attribute, but Reading Systems
     /// > must use such local overrides when encountered.
@@ -113,9 +105,9 @@ enum OPFVocabulary: String {
             .matches(in: prefixAttribute, range: NSRange(prefixAttribute.startIndex..., in: prefixAttribute))
             .reduce([:]) { prefixes, match in
                 guard match.numberOfRanges == 3,
-                    let prefixRange = Range(match.range(at: 1), in: prefixAttribute),
-                    let uriRange = Range(match.range(at: 2), in: prefixAttribute) else
-                {
+                      let prefixRange = Range(match.range(at: 1), in: prefixAttribute),
+                      let uriRange = Range(match.range(at: 2), in: prefixAttribute)
+                else {
                     return prefixes
                 }
                 let prefix = String(prefixAttribute[prefixRange])
@@ -123,9 +115,8 @@ enum OPFVocabulary: String {
                 var prefixes = prefixes
                 prefixes[prefix] = uri
                 return prefixes
-        }
+            }
     }
-
 }
 
 /// Represents a `meta` tag in an OPF document.
@@ -152,11 +143,10 @@ struct OPFLink {
 }
 
 struct OPFMetaList {
-    
     private let document: Fuzi.XMLDocument
     private let metas: [OPFMeta]
     private let links: [OPFLink]
-    
+
     init(document: Fuzi.XMLDocument) {
         self.document = document
         let prefixes = OPFVocabulary.prefixes(in: document)
@@ -165,7 +155,7 @@ struct OPFMetaList {
 
         // Parses `<meta>` and `<dc:x>` tags in order of appearance.
         let root = "/opf:package/opf:metadata"
-        self.metas = document
+        metas = document
             .xpath("\(root)/opf:meta|\(root)/dc:*|\(root)/opf:dc-metadata/dc:*|\(root)/opf:x-metadata/opf:meta")
             .compactMap { meta in
                 if meta.tag == "meta" {
@@ -173,13 +163,13 @@ struct OPFMetaList {
                     if let property = meta.attr("property") {
                         let (property, vocabularyURI) = OPFVocabulary.parse(property: property, prefixes: prefixes)
                         var refinedID = meta.attr("refines")
-                        refinedID?.removeFirst()  // Get rid of the # before the ID.
+                        refinedID?.removeFirst() // Get rid of the # before the ID.
                         return OPFMeta(
                             property: property, vocabularyURI: vocabularyURI,
                             content: meta.stringValue.trimmingCharacters(in: .whitespacesAndNewlines),
                             id: meta.attr("id"), refines: refinedID, element: meta
                         )
-                    // EPUB 2
+                        // EPUB 2
                     } else if let property = meta.attr("name") {
                         let (property, vocabularyURI) = OPFVocabulary.parse(property: property, prefixes: prefixes)
                         return OPFMeta(
@@ -190,8 +180,8 @@ struct OPFMetaList {
                     } else {
                         return nil
                     }
-                    
-                // <dc:x>
+
+                    // <dc:x>
                 } else {
                     guard let property = meta.tag else {
                         return nil
@@ -206,8 +196,8 @@ struct OPFMetaList {
                     )
                 }
             }
-        
-        self.links = document
+
+        links = document
             .xpath("\(root)/opf:link")
             .compactMap { link in
                 guard
@@ -216,11 +206,11 @@ struct OPFMetaList {
                 else {
                     return nil
                 }
-                
+
                 let (rel, vocabularyURI) = OPFVocabulary.parse(property: originalRel, prefixes: prefixes)
-                        
+
                 var refinedID = link.attr("refines")
-                refinedID?.removeFirst()  // Get rid of the # before the ID.
+                refinedID?.removeFirst() // Get rid of the # before the ID.
                 return OPFLink(
                     rel: rel,
                     vocabularyURI: vocabularyURI,
@@ -230,31 +220,31 @@ struct OPFMetaList {
                 )
             }
     }
-    
+
     subscript(_ property: String) -> [OPFMeta] {
-        return self[property, in: .defaultMetadata]
+        self[property, in: .defaultMetadata]
     }
 
     subscript(_ property: String, refining id: String) -> [OPFMeta] {
-        return self[property, in: .defaultMetadata, refining: id]
+        self[property, in: .defaultMetadata, refining: id]
     }
-    
+
     subscript(_ property: String, in vocabulary: OPFVocabulary) -> [OPFMeta] {
-        return metas.filter { $0.property == property && $0.vocabularyURI == vocabulary.uri }
+        metas.filter { $0.property == property && $0.vocabularyURI == vocabulary.uri }
     }
-    
+
     subscript(_ property: String, in vocabulary: OPFVocabulary, refining id: String) -> [OPFMeta] {
-        return metas.filter { $0.property == property && $0.vocabularyURI == vocabulary.uri && $0.refines == id }
+        metas.filter { $0.property == property && $0.vocabularyURI == vocabulary.uri && $0.refines == id }
     }
-    
+
     func links(withRel rel: String, in vocabulary: OPFVocabulary) -> [OPFLink] {
         links.filter { $0.rel == rel && $0.vocabularyURI == vocabulary.uri }
     }
-    
+
     func links(withRel rel: String, in vocabulary: OPFVocabulary, refining id: String) -> [OPFLink] {
         links.filter { $0.rel == rel && $0.vocabularyURI == vocabulary.uri && $0.refines == id }
     }
-    
+
     /// Returns the JSON representation of the unknown metadata
     /// (for RWPM's `Metadata.otherMetadata`)
     var otherMetadata: [String: Any] {
@@ -269,7 +259,7 @@ struct OPFMetaList {
             values.add(value(for: meta))
             metadata[key] = values
         }
-        
+
         return metadata.compactMapValues { values in
             switch values.count {
             case 0:
@@ -281,7 +271,7 @@ struct OPFMetaList {
             }
         }
     }
-    
+
     /// Returns the meta's content as value, or a special JSON object is the meta is refined, eg.:
     /// {
     ///   "@value": "Main value",
@@ -300,7 +290,7 @@ struct OPFMetaList {
         }
         return meta.content
     }
-    
+
     /// List of properties that should not be added to `otherMetadata` because they are already
     /// consumed by the RWPM model.
     private let rwpmProperties: [OPFVocabulary: [String]] = [
@@ -309,21 +299,20 @@ struct OPFMetaList {
         .dcterms: [
             "contributor", "creator", "date", "description", "identifier",
             "language", "modified", "publisher", "subject", "title",
-            "conformsTo"
+            "conformsTo",
         ],
         .media: ["duration"],
         .rendition: ["flow", "layout", "orientation", "spread"],
         .schema: [
             "numberOfPages", "accessMode", "accessModeSufficient",
-            "accessibilitySummary", "accessibilityFeature", "accessibilityHazard"
-        ]
+            "accessibilitySummary", "accessibilityFeature", "accessibilityHazard",
+        ],
     ]
-    
+
     /// Returns whether the given meta is a known RWPM property, and should therefore be ignored in
     /// `otherMetadata`.
     private func isRWPMProperty(_ meta: OPFMeta) -> Bool {
         let vocabularyProperties = (rwpmProperties.first { $0.key.uri == meta.vocabularyURI })?.value ?? []
         return vocabularyProperties.contains(meta.property)
     }
-
 }

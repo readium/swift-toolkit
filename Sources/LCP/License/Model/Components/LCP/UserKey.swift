@@ -1,19 +1,13 @@
 //
-//  UserKey.swift
-//  readium-lcp-swift
-//
-//  Created by Alexandre Camilleri on 9/11/17.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 
 /// Used to encrypt the ContentKey.
 public struct UserKey {
-    
     /// A hint to be displayed to the User to help them remember the User Passphrase.
     public let textHint: String
     /// Algorithm used to generate the User Key from the User Passphrase, identified using the URIs defined in [XML-ENC]. This MUST match the User Key hash algorithm named in the Encryption Profile identified in `encryption/profile`.
@@ -23,15 +17,14 @@ public struct UserKey {
 
     init(json: [String: Any]) throws {
         guard let textHint = json["text_hint"] as? String,
-            let algorithm = json["algorithm"] as? String,
-            let keyCheck = json["key_check"] as? String else
-        {
+              let algorithm = json["algorithm"] as? String,
+              let keyCheck = json["key_check"] as? String
+        else {
             throw ParsingError.encryption
         }
-        
+
         self.textHint = textHint
         self.algorithm = algorithm
         self.keyCheck = keyCheck
     }
-
 }

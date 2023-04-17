@@ -1,17 +1,12 @@
 //
-//  RDUnzipStream.swift
-//  r2-streamer-swift
-//
-//  Created by Olivier Körner on 11/01/2017.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import UIKit
 import Minizip
 import R2Shared
+import UIKit
 
 extension ZipInputStream: Loggable {}
 
@@ -22,31 +17,25 @@ class ZipInputStream: SeekableInputStream {
 
     private var _streamError: Error?
     override var streamError: Error? {
-        get {
-            return _streamError
-        }
+        _streamError
     }
 
     private var _streamStatus: Stream.Status = .notOpen
     override var streamStatus: Stream.Status {
-        get {
-            return _streamStatus
-        }
+        _streamStatus
     }
 
     private var _length: UInt64
     override var length: UInt64 {
-        return _length
+        _length
     }
 
     override var offset: UInt64 {
-        return UInt64(zipArchive.currentFileOffset)
+        UInt64(zipArchive.currentFileOffset)
     }
 
     override var hasBytesAvailable: Bool {
-        get {
-            return offset < _length
-        }
+        offset < _length
     }
 
     init?(zipFilePath: String, path: String) {
@@ -58,8 +47,8 @@ class ZipInputStream: SeekableInputStream {
         fileInZipPath = path
         // Check if the file exists in the archive.
         guard zipArchive.locateFile(path: fileInZipPath),
-            let fileInfo = try? zipArchive.informationsOfCurrentFile() else
-        {
+              let fileInfo = try? zipArchive.informationsOfCurrentFile()
+        else {
             return nil
         }
         _length = fileInfo.length
@@ -71,8 +60,8 @@ class ZipInputStream: SeekableInputStream {
         fileInZipPath = path
         // Check if the file exists in the archive.
         guard zipArchive.locateFile(path: fileInZipPath),
-            let fileInfo = try? zipArchive.informationsOfCurrentFile() else
-        {
+              let fileInfo = try? zipArchive.informationsOfCurrentFile()
+        else {
             return nil
         }
 
@@ -92,9 +81,9 @@ class ZipInputStream: SeekableInputStream {
     }
 
     override func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
-                                     length len: UnsafeMutablePointer<Int>) -> Bool
+                            length len: UnsafeMutablePointer<Int>) -> Bool
     {
-        return false
+        false
     }
 
     override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) -> Int {
@@ -113,7 +102,7 @@ class ZipInputStream: SeekableInputStream {
     override func seek(offset: Int64, whence: SeekWhence) throws {
         assert(whence == .startOfFile, "Only seek from start of stream is supported for now.")
         assert(offset >= 0, "Since only seek from start of stream if supported, offset must be >= 0")
-        
+
         do {
             try zipArchive.seek(Int(offset))
         } catch {
@@ -121,5 +110,4 @@ class ZipInputStream: SeekableInputStream {
             _streamError = error
         }
     }
-
 }

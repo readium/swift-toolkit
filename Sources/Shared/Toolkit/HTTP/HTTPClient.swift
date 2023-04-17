@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -11,7 +11,6 @@ import UIKit
 ///
 /// You may provide a custom implementation, or use the `DefaultHTTPClient` one which relies on native APIs.
 public protocol HTTPClient: Loggable {
-
     /// Streams a resource from the given `request`.
     ///
     /// - Parameters:
@@ -28,12 +27,10 @@ public protocol HTTPClient: Loggable {
         consume: @escaping (_ chunk: Data, _ progress: Double?) -> Void,
         completion: @escaping (HTTPResult<HTTPResponse>) -> Void
     ) -> Cancellable
-
 }
 
 public extension HTTPClient {
-
-    func stream(_ request: HTTPRequestConvertible, consume: @escaping (Data, Double?) -> (), completion: @escaping (HTTPResult<HTTPResponse>) -> ()) -> Cancellable {
+    func stream(_ request: HTTPRequestConvertible, consume: @escaping (Data, Double?) -> Void, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
         stream(request, receiveResponse: nil, consume: consume, completion: completion)
     }
 
@@ -41,15 +38,14 @@ public extension HTTPClient {
     func fetch(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
         var data = Data()
         return stream(request,
-            consume: { chunk, _ in data.append(chunk) },
-            completion: { result in
-                completion(result.map {
-                    var response = $0
-                    response.body = data
-                    return response
-                })
-            }
-        )
+                      consume: { chunk, _ in data.append(chunk) },
+                      completion: { result in
+                          completion(result.map {
+                              var response = $0
+                              response.body = data
+                              return response
+                          })
+                      })
     }
 
     /// Fetches a resource synchronously.
@@ -93,28 +89,25 @@ public extension HTTPClient {
     /// Fetches the resource as a JSON object.
     func fetchJSON(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<[String: Any]>) -> Void) -> Cancellable {
         fetch(request,
-            decoder: { try JSONSerialization.jsonObject(with: $1) as? [String: Any] },
-            completion: completion
-        )
+              decoder: { try JSONSerialization.jsonObject(with: $1) as? [String: Any] },
+              completion: completion)
     }
 
     /// Fetches the resource as a `String`.
     func fetchString(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<String>) -> Void) -> Cancellable {
         fetch(request,
-            decoder: { response, body in
-                let encoding = response.mediaType.encoding ?? .utf8
-                return String(data: body, encoding: encoding)
-            },
-            completion: completion
-        )
+              decoder: { response, body in
+                  let encoding = response.mediaType.encoding ?? .utf8
+                  return String(data: body, encoding: encoding)
+              },
+              completion: completion)
     }
 
     /// Fetches the resource as an `UIImage`.
     func fetchImage(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<UIImage>) -> Void) -> Cancellable {
         fetch(request,
-            decoder: { UIImage(data: $1) },
-            completion: completion
-        )
+              decoder: { UIImage(data: $1) },
+              completion: completion)
     }
 
     /// Downloads the resource at a temporary location.
@@ -145,7 +138,7 @@ public extension HTTPClient {
             consume: { data, progression in
                 fileHandle.seekToEndOfFile()
                 fileHandle.write(data)
-                
+
                 if let progression = progression {
                     onProgress(progression)
                 }
@@ -166,7 +159,7 @@ public extension HTTPClient {
                         suggestedFilename: suggestedFilename ?? response.filename,
                         mediaType: response.mediaType
                     )))
-                    
+
                 case let .failure(error):
                     completion(.failure(error))
                     do {
@@ -182,7 +175,6 @@ public extension HTTPClient {
 
 /// Represents a successful HTTP response received from a server.
 public struct HTTPResponse: Equatable {
-
     /// Request associated with the response.
     public let request: HTTPRequest
 
@@ -244,7 +236,7 @@ public struct HTTPResponse: Equatable {
 
     /// Indicates whether this server supports byte range requests.
     public var acceptsByteRanges: Bool {
-        return valueForHeader("Accept-Ranges")?.lowercased() == "bytes"
+        valueForHeader("Accept-Ranges")?.lowercased() == "bytes"
             || valueForHeader("Content-Range")?.lowercased().hasPrefix("bytes") == true
     }
 

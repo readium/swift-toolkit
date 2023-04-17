@@ -1,19 +1,13 @@
 //
-//  UserRights.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 16/07/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 
 /// Manages consumption of user rights and permissions.
 public protocol UserRights {
-    
     /// Returns whether the user is currently allowed to copy content to the pasteboard.
     ///
     /// Navigators and reading apps can use this to know if the "Copy" action should be greyed
@@ -53,35 +47,30 @@ public protocol UserRights {
     ///
     /// Returns whether the user is allowed to print the given amount of pages.
     func print(pageCount: Int) -> Bool
-    
 }
 
 /// A `UserRights` without any restriction.
 public class UnrestrictedUserRights: UserRights {
-    
     public init() {}
-    
+
     public var canCopy: Bool { true }
     public func canCopy(text: String) -> Bool { true }
     public func copy(text: String) -> Bool { true }
-    
+
     public var canPrint: Bool { true }
     public func canPrint(pageCount: Int) -> Bool { true }
     public func print(pageCount: Int) -> Bool { true }
-    
 }
 
 /// A `UserRights` which forbids all rights.
 public class AllRestrictedUserRights: UserRights {
-    
     public init() {}
-    
+
     public var canCopy: Bool { false }
     public func canCopy(text: String) -> Bool { false }
     public func copy(text: String) -> Bool { false }
-    
+
     public var canPrint: Bool { false }
     public func canPrint(pageCount: Int) -> Bool { false }
     public func print(pageCount: Int) -> Bool { false }
-    
 }

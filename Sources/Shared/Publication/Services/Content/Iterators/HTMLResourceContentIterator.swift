@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -16,7 +16,6 @@ import SwiftSoup
 ///
 /// If you want to start from the end of the resource, the `locator` must have a `progression` of 1.0.
 public class HTMLResourceContentIterator: ContentIterator {
-
     /// Creates a new factory for `HTMLResourceContentIterator`.
     public static func makeFactory() -> ResourceContentIteratorFactory {
         { resource, locator in
@@ -44,7 +43,7 @@ public class HTMLResourceContentIterator: ContentIterator {
     }
 
     private func next(by delta: Int) throws -> ContentElement? {
-        let elements = try self.elements.get()
+        let elements = try elements.get()
         let index = currentIndex.map { $0 + delta }
             ?? elements.startIndex
 
@@ -70,7 +69,6 @@ public class HTMLResourceContentIterator: ContentIterator {
         return result
     }
 
-
     /// Holds the result of parsing the HTML resource into a list of `ContentElement`.
     ///
     /// The `startIndex` will be calculated from the element matched by the base `locator`, if possible. Defaults to
@@ -78,11 +76,10 @@ public class HTMLResourceContentIterator: ContentIterator {
     private typealias ParsedElements = (elements: [ContentElement], startIndex: Int)
 
     private class ContentParser: NodeVisitor {
-        
         static func parse(document: Document, locator: Locator) throws -> ParsedElements {
-            let parser = ContentParser(
+            let parser = try ContentParser(
                 baseLocator: locator,
-                startElement: try locator.locations.cssSelector
+                startElement: locator.locations.cssSelector
                     .flatMap {
                         // The JS third-party library used to generate the CSS Selector sometimes adds
                         // :root >, which doesn't work with JSoup.
@@ -142,8 +139,8 @@ public class HTMLResourceContentIterator: ContentIterator {
 
                     if
                         let href = try elem.attr("src")
-                            .takeUnlessEmpty()
-                            .map({ HREF($0, relativeTo: baseLocator.href).string })
+                        .takeUnlessEmpty()
+                        .map({ HREF($0, relativeTo: baseLocator.href).string })
                     {
                         var attributes: [ContentAttribute] = []
                         if let alt = try elem.attr("alt").takeUnlessEmpty() {
@@ -180,7 +177,7 @@ public class HTMLResourceContentIterator: ContentIterator {
 
             if let node = node as? TextNode {
                 let language = try node.language().map { Language(code: .bcp47($0)) }
-                if (currentLanguage != language) {
+                if currentLanguage != language {
                     flushSegment()
                     currentLanguage = language
                 }
@@ -210,7 +207,7 @@ public class HTMLResourceContentIterator: ContentIterator {
                 return
             }
 
-            if startElement != nil && currentElement == startElement {
+            if startElement != nil, currentElement == startElement {
                 startIndex = elements.count
             }
             elements.append(TextContentElement(
@@ -218,7 +215,7 @@ public class HTMLResourceContentIterator: ContentIterator {
                     locations: { [self] in
                         $0 = Locator.Locations(
                             otherLocations: [
-                                "cssSelector": currentCSSSelector as Any
+                                "cssSelector": currentCSSSelector as Any,
                             ]
                         )
                     },
@@ -259,7 +256,7 @@ public class HTMLResourceContentIterator: ContentIterator {
                         locations: { [self] in
                             $0 = Locator.Locations(
                                 otherLocations: [
-                                    "cssSelector": currentCSSSelector as Any
+                                    "cssSelector": currentCSSSelector as Any,
                                 ]
                             )
                         },

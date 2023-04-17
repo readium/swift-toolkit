@@ -1,29 +1,21 @@
 //
-//  PositionsServiceTests.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 30/05/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 struct TestPositionsService: PositionsService {
-    
     let positionsByReadingOrder: [[Locator]]
-    
-    init(_ positions: [[Locator]]) {
-        self.positionsByReadingOrder = positions
-    }
 
+    init(_ positions: [[Locator]]) {
+        positionsByReadingOrder = positions
+    }
 }
 
 class PositionsServiceTests: XCTestCase {
-    
     let positions = [
         [
             Locator(
@@ -33,7 +25,7 @@ class PositionsServiceTests: XCTestCase {
                     totalProgression: 0.0,
                     position: 1
                 )
-            )
+            ),
         ],
         [
             Locator(
@@ -43,7 +35,7 @@ class PositionsServiceTests: XCTestCase {
                     totalProgression: 1.0 / 4.0,
                     position: 2
                 )
-            )
+            ),
         ],
         [
             Locator(
@@ -63,13 +55,13 @@ class PositionsServiceTests: XCTestCase {
                     totalProgression: 3.0 / 4.0,
                     position: 4
                 )
-            )
-        ]
+            ),
+        ],
     ]
-    
+
     func testLinks() {
         let service = TestPositionsService(positions)
-        
+
         XCTAssertEqual(
             service.links,
             [Link(
@@ -78,10 +70,10 @@ class PositionsServiceTests: XCTestCase {
             )]
         )
     }
-    
+
     func testPositions() {
         let service = TestPositionsService(positions)
-        
+
         XCTAssertEqual(
             service.positions,
             [
@@ -118,16 +110,16 @@ class PositionsServiceTests: XCTestCase {
                         totalProgression: 3.0 / 4.0,
                         position: 4
                     )
-                )
+                ),
             ]
         )
     }
 
     func testGetPositions() {
         let service = TestPositionsService(positions)
-        
+
         let resource = service.get(link: Link(href: "/~readium/positions"))
-        
+
         XCTAssertEqual(
             try resource?.readAsString().get(),
             """
@@ -138,12 +130,12 @@ class PositionsServiceTests: XCTestCase {
 
     func testGetUnknown() {
         let service = TestPositionsService(positions)
-        
+
         let resource = service.get(link: Link(href: "/unknown"))
-        
+
         XCTAssertNil(resource)
     }
-    
+
     /// The Publication helpers will use the `PositionsService` if there's one.
     func testPublicationHelpersUsesPositionsService() {
         let publication = makePublication(positions: { _ in TestPositionsService(self.positions) })
@@ -162,7 +154,7 @@ class PositionsServiceTests: XCTestCase {
                             totalProgression: 0.0,
                             position: 1
                         )
-                    )
+                    ),
                 ],
                 [
                     Locator(
@@ -172,7 +164,7 @@ class PositionsServiceTests: XCTestCase {
                             totalProgression: 1.0 / 4.0,
                             position: 2
                         )
-                    )
+                    ),
                 ],
                 [
                     Locator(
@@ -192,18 +184,17 @@ class PositionsServiceTests: XCTestCase {
                             totalProgression: 3.0 / 4.0,
                             position: 4
                         )
-                    )
-                ]
-
+                    ),
+                ],
             ]
         )
     }
-    
+
     /// The Publication helpers will attempt to fetch the positions from a Positions WS declared
     /// in the manifest if there is no service.
     func testPublicationHelpersFallbackOnManifest() {
         let publication = makePublication(positions: nil)
-        
+
         XCTAssertEqual(publication.positions, [
             Locator(href: "chap1", type: "text/html", locations: .init(position: 1)),
             Locator(href: "chap1", type: "text/html", locations: .init(position: 2)),
@@ -212,14 +203,14 @@ class PositionsServiceTests: XCTestCase {
         XCTAssertEqual(publication.positionsByReadingOrder, [
             [
                 Locator(href: "chap1", type: "text/html", locations: .init(position: 1)),
-                Locator(href: "chap1", type: "text/html", locations: .init(position: 2))
+                Locator(href: "chap1", type: "text/html", locations: .init(position: 2)),
             ],
             [
-                Locator(href: "chap2", type: "text/html", locations: .init(position: 3))
-            ]
+                Locator(href: "chap2", type: "text/html", locations: .init(position: 3)),
+            ],
         ])
     }
-    
+
     private func makePublication(positions: PositionsServiceFactory? = nil) -> Publication {
         // Serve a default positions WS from `/positions`.
         let positionsHref = "/positions"
@@ -227,51 +218,50 @@ class PositionsServiceTests: XCTestCase {
             guard link.href == "/positions" else {
                 return FailureResource(link: link, error: .notFound(nil))
             }
-            
+
             return DataResource(link: link, string: """
-                {
-                    "positions": [
-                        {
-                            "href": "chap1",
-                            "locations": {
-                                "position": 1
-                            },
-                            "type": "text/html"
+            {
+                "positions": [
+                    {
+                        "href": "chap1",
+                        "locations": {
+                            "position": 1
                         },
-                        {
-                            "href": "chap1",
-                            "locations": {
-                                "position": 2
-                            },
-                            "type": "text/html"
+                        "type": "text/html"
+                    },
+                    {
+                        "href": "chap1",
+                        "locations": {
+                            "position": 2
                         },
-                        {
-                            "href": "chap2",
-                            "locations": {
-                                "position": 3
-                            },
-                            "type": "text/html"
-                        }
-                    ],
-                    "total": 3
-                }
-                """)
+                        "type": "text/html"
+                    },
+                    {
+                        "href": "chap2",
+                        "locations": {
+                            "position": 3
+                        },
+                        "type": "text/html"
+                    }
+                ],
+                "total": 3
+            }
+            """)
         }
-        
+
         return Publication(
             manifest: Manifest(
                 metadata: Metadata(title: ""),
                 links: [
-                    Link(href: positionsHref, type: "application/vnd.readium.position-list+json")
+                    Link(href: positionsHref, type: "application/vnd.readium.position-list+json"),
                 ],
                 readingOrder: [
                     Link(href: "chap1", type: "text/html"),
-                    Link(href: "chap2", type: "text/html")
+                    Link(href: "chap2", type: "text/html"),
                 ]
             ),
             fetcher: fetcher,
             servicesBuilder: PublicationServicesBuilder(positions: positions)
         )
     }
-
 }

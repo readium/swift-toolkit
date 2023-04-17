@@ -1,24 +1,23 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import UIKit
-import R2Shared
 import R2Navigator
+import R2Shared
 import ReadiumAdapterGCDWebServer
 import SwiftUI
+import UIKit
 
-extension FontFamily {
+public extension FontFamily {
     // Example of adding a custom font embedded in the application.
-    public static let literata: FontFamily = "Literata"
+    static let literata: FontFamily = "Literata"
 }
 
 class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
-
     private let preferencesStore: AnyUserPreferencesStore<EPUBPreferences>
-    
+
     init(
         publication: Publication,
         locator: Locator?,
@@ -47,32 +46,32 @@ class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
                             // Literata is a variable font family, so we can provide a font weight range.
                             CSSFontFace(
                                 file: resources.appendingPathComponent("Fonts/Literata-VariableFont_opsz,wght.ttf"),
-                                style: .normal, weight: .variable(200...900)
+                                style: .normal, weight: .variable(200 ... 900)
                             ),
                             CSSFontFace(
                                 file: resources.appendingPathComponent("Fonts/Literata-Italic-VariableFont_opsz,wght.ttf"),
-                                style: .italic, weight: .variable(200...900)
-                            )
+                                style: .italic, weight: .variable(200 ... 900)
+                            ),
                         ]
-                    ).eraseToAnyHTMLFontFamilyDeclaration()
+                    ).eraseToAnyHTMLFontFamilyDeclaration(),
                 ]
             ),
             httpServer: GCDHTTPServer.shared
         )
 
         self.preferencesStore = preferencesStore
-        
+
         super.init(navigator: navigator, publication: publication, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights)
-        
+
         navigator.delegate = self
     }
 
     override func presentUserPreferences() {
         Task {
-            let userPrefs = UserPreferences(
+            let userPrefs = await UserPreferences(
                 model: UserPreferencesViewModel(
                     bookId: bookId,
-                    preferences: try! await preferencesStore.preferences(for: bookId),
+                    preferences: try! preferencesStore.preferences(for: bookId),
                     configurable: navigator,
                     store: preferencesStore
                 ),
@@ -85,12 +84,12 @@ class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
             present(vc, animated: true)
         }
     }
-    
+
     override var currentBookmark: Bookmark? {
         guard let locator = navigator.currentLocation else {
             return nil
         }
-        
+
         return Bookmark(bookId: bookId, locator: locator)
     }
 
@@ -103,14 +102,10 @@ class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
     }
 }
 
-extension EPUBViewController: EPUBNavigatorDelegate {
-    
-}
+extension EPUBViewController: EPUBNavigatorDelegate {}
 
 extension EPUBViewController: UIGestureRecognizerDelegate {
-    
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        return true
+        true
     }
-    
 }

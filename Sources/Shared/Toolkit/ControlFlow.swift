@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -10,14 +10,14 @@ import Foundation
 
 /// Throttles the given `block` so that it is executed in `duration` seconds, ignoring additional
 /// calls until then.
-public func throttle(duration: TimeInterval = 0, on queue: DispatchQueue = .main,  _ block: @escaping () -> Void) -> () -> Void {
+public func throttle(duration: TimeInterval = 0, on queue: DispatchQueue = .main, _ block: @escaping () -> Void) -> () -> Void {
     var throttling = false
     return {
         guard !throttling else {
             return
         }
         throttling = true
-        
+
         queue.asyncAfter(deadline: .now() + duration) {
             throttling = false
             block()
@@ -29,13 +29,13 @@ public func throttle(duration: TimeInterval = 0, on queue: DispatchQueue = .main
 /// seconds until `condition` gets true.
 ///
 /// Additional calls are ignored while polling the condition.
-public func execute(when condition: @escaping () -> Bool, pollingInterval: TimeInterval = 0, on queue: DispatchQueue = .main,  _ block: @escaping () -> Void) -> () -> Void {
+public func execute(when condition: @escaping () -> Bool, pollingInterval: TimeInterval = 0, on queue: DispatchQueue = .main, _ block: @escaping () -> Void) -> () -> Void {
     var polling = false
     return {
         guard !polling else {
             return
         }
-        
+
         func poll() {
             guard condition() else {
                 polling = true
@@ -45,7 +45,7 @@ public func execute(when condition: @escaping () -> Bool, pollingInterval: TimeI
             polling = false
             block()
         }
-        
+
         poll()
     }
 }

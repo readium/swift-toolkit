@@ -1,22 +1,16 @@
 //
-//  EPUBDeobfuscatorTests.swift
-//  r2-streamer-swift
-//
-//  Created by Mickaël Menu on 01/06/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 import R2Shared
 @testable import R2Streamer
+import XCTest
 
 class EPUBDeobfuscatorTests: XCTestCase {
-    
     let fixtures = Fixtures(path: "EPUBDeobfuscator")
-    
+
     var deobfuscator: EPUBDeobfuscator!
     var font: Data!
 
@@ -27,14 +21,14 @@ class EPUBDeobfuscatorTests: XCTestCase {
 
     func testDeobfuscateIDPF() throws {
         let resource = makeResource(at: "cut-cut.obf.woff", algorithm: "http://www.idpf.org/2008/embedding")
-        
+
         let result = try deobfuscator.deobfuscate(resource: resource).read().get()
         XCTAssertEqual(result, font)
     }
 
     func testDeobfuscateAdobe() throws {
         let resource = makeResource(at: "cut-cut.adb.woff", algorithm: "http://ns.adobe.com/pdf/enc#RC")
-        
+
         let result = try deobfuscator.deobfuscate(resource: resource).read().get()
         XCTAssertEqual(result, font)
     }
@@ -58,11 +52,11 @@ class EPUBDeobfuscatorTests: XCTestCase {
             href: path,
             properties: Properties([
                 "encrypted": [
-                    "algorithm": algorithm
-                ]
+                    "algorithm": algorithm,
+                ],
             ])
         )
-        return DataResource(link: link, data: self.fixtures.data(at: path))
+        let fixtures = fixtures // capture `fixtures` for the autoclosure
+        return DataResource(link: link, data: fixtures.data(at: path))
     }
-
 }

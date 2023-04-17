@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -23,7 +23,7 @@ public enum LCPError: LocalizedError {
     case licenseRenew(RenewError)
     // Failed to return the loan.
     case licenseReturn(ReturnError)
-    
+
     // Failed to retrieve the Certificate Revocation List.
     case crlFetching
 
@@ -40,7 +40,7 @@ public enum LCPError: LocalizedError {
         switch self {
         case .licenseIsBusy:
             return R2LCPLocalizedString("LCPError.licenseIsBusy")
-        case .licenseIntegrity(let error):
+        case let .licenseIntegrity(error):
             let description: String = {
                 switch error {
                 case .licenseOutOfDate:
@@ -66,9 +66,9 @@ public enum LCPError: LocalizedError {
                 }
             }()
             return R2LCPLocalizedString("LCPError.licenseIntegrity", description)
-        case .licenseStatus(let error):
+        case let .licenseStatus(error):
             return error.localizedDescription
-        case .licenseContainer(_):
+        case .licenseContainer:
             return R2LCPLocalizedString("LCPError.licenseContainer")
         case .licenseInteractionNotAvailable:
             return R2LCPLocalizedString("LCPError.licenseInteractionNotAvailable")
@@ -76,23 +76,21 @@ public enum LCPError: LocalizedError {
             return R2LCPLocalizedString("LCPError.licenseProfileNotSupported")
         case .crlFetching:
             return R2LCPLocalizedString("LCPError.crlFetching")
-        case .licenseRenew(let error):
+        case let .licenseRenew(error):
             return error.localizedDescription
-        case .licenseReturn(let error):
+        case let .licenseReturn(error):
             return error.localizedDescription
-        case .parsing(_):
+        case .parsing:
             return R2LCPLocalizedString("LCPError.parsing")
-        case .network(let error):
+        case let .network(error):
             return error?.localizedDescription ?? R2LCPLocalizedString("LCPError.network")
-        case .runtime(let error):
+        case let .runtime(error):
             return error
-        case .unknown(let error):
+        case let .unknown(error):
             return error?.localizedDescription
         }
     }
-    
 }
-
 
 /// Errors while checking the status of the License, using the Status Document.
 public enum StatusError: LocalizedError {
@@ -108,26 +106,24 @@ public enum StatusError: LocalizedError {
         dateFormatter.dateStyle = .medium
 
         switch self {
-        case .cancelled(let date):
+        case let .cancelled(date):
             return R2LCPLocalizedString("StatusError.cancelled", dateFormatter.string(from: date))
-            
-        case .returned(let date):
+
+        case let .returned(date):
             return R2LCPLocalizedString("StatusError.returned", dateFormatter.string(from: date))
-            
-        case .expired(start: let start, end: let end):
+
+        case let .expired(start: start, end: end):
             if start > Date() {
                 return R2LCPLocalizedString("StatusError.expired.start", dateFormatter.string(from: start))
             } else {
                 return R2LCPLocalizedString("StatusError.expired.end", dateFormatter.string(from: end))
             }
 
-        case .revoked(let date, let devicesCount):
+        case let .revoked(date, devicesCount):
             return R2LCPLocalizedString("StatusError.revoked", dateFormatter.string(from: date), devicesCount)
         }
     }
-    
 }
-
 
 /// Errors while renewing a loan.
 public enum RenewError: LocalizedError {
@@ -137,7 +133,7 @@ public enum RenewError: LocalizedError {
     case invalidRenewalPeriod(maxRenewDate: Date?)
     // An unexpected error has occurred on the licensing server.
     case unexpectedServerError
-    
+
     public var errorDescription: String? {
         switch self {
         case .renewFailed:
@@ -148,9 +144,7 @@ public enum RenewError: LocalizedError {
             return R2LCPLocalizedString("RenewError.unexpectedServerError")
         }
     }
-    
 }
-
 
 /// Errors while returning a loan.
 public enum ReturnError: LocalizedError {
@@ -160,7 +154,7 @@ public enum ReturnError: LocalizedError {
     case alreadyReturnedOrExpired
     // An unexpected error has occurred on the licensing server.
     case unexpectedServerError
-    
+
     public var errorDescription: String? {
         switch self {
         case .returnFailed:
@@ -171,9 +165,7 @@ public enum ReturnError: LocalizedError {
             return R2LCPLocalizedString("ReturnError.unexpectedServerError")
         }
     }
-    
 }
-
 
 /// Errors while parsing the License or Status JSON Documents.
 public enum ParsingError: Error {
@@ -192,7 +184,6 @@ public enum ParsingError: Error {
     // Invalid URL for link with rel %@.
     case url(rel: String)
 }
-
 
 /// Errors while reading or writing a LCP container (LCPL, EPUB, LCPDF, etc.)
 public enum ContainerError: Error {

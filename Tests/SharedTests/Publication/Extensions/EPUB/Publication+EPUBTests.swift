@@ -1,19 +1,13 @@
 //
-//  Publication+EPUBTests.swift
-//  r2-shared-swiftTests
-//
-//  Created by Mickaël Menu on 14.03.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 class PublicationEPUBTests: XCTestCase {
-    
     func testNoPageList() {
         let sut = makePublication()
         XCTAssertEqual(sut.pageList, [])
@@ -32,10 +26,10 @@ class PublicationEPUBTests: XCTestCase {
         let sut = makePublication()
         XCTAssertEqual(sut.landmarks, [])
     }
-    
+
     func testLandmarks() {
         let sut = makePublication(["landmarks": [PublicationCollection(links: [Link(href: "/landmark.html")])]])
-        
+
         XCTAssertEqual(
             sut.landmarks,
             [Link(href: "/landmark.html")]
@@ -46,7 +40,7 @@ class PublicationEPUBTests: XCTestCase {
         let sut = makePublication()
         XCTAssertEqual(sut.listOfAudioClips, [])
     }
-    
+
     func testListOfAudioClips() {
         let sut = makePublication(["loa": [PublicationCollection(links: [Link(href: "/audio.mp3")])]])
 
@@ -60,7 +54,7 @@ class PublicationEPUBTests: XCTestCase {
         let sut = makePublication()
         XCTAssertEqual(sut.listOfIllustrations, [])
     }
-    
+
     func testListOfIllustrations() {
         let sut = makePublication(["loi": [PublicationCollection(links: [Link(href: "/image.jpg")])]])
 
@@ -74,7 +68,7 @@ class PublicationEPUBTests: XCTestCase {
         let sut = makePublication()
         XCTAssertEqual(sut.listOfTables, [])
     }
-    
+
     func testListOfTables() {
         let sut = makePublication(["lot": [PublicationCollection(links: [Link(href: "/table.html")])]])
 
@@ -88,18 +82,17 @@ class PublicationEPUBTests: XCTestCase {
         let sut = makePublication()
         XCTAssertEqual(sut.listOfVideoClips, [])
     }
-    
+
     func testListOfVideoClips() {
         let sut = makePublication(["lov": [PublicationCollection(links: [Link(href: "/video.mov")])]])
-        
+
         XCTAssertEqual(
             sut.listOfVideoClips,
             [Link(href: "/video.mov")]
         )
     }
-    
-    private func makePublication(_ collections: [String: [PublicationCollection]] = [:]) -> Publication {
-        return Publication(manifest: .init(metadata: Metadata(title: ""), links: [], readingOrder: [], subcollections: collections))
-    }
 
+    private func makePublication(_ collections: [String: [PublicationCollection]] = [:]) -> Publication {
+        Publication(manifest: .init(metadata: Metadata(title: ""), links: [], readingOrder: [], subcollections: collections))
+    }
 }

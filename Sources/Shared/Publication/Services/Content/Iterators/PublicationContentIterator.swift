@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -15,7 +15,6 @@ public typealias ResourceContentIteratorFactory =
 /// A composite [Content.Iterator] which iterates through a whole [publication] and delegates the
 /// iteration inside a given resource to media type-specific iterators.
 public class PublicationContentIterator: ContentIterator, Loggable {
-
     /// `ContentIterator` for a resource, associated with its index in the reading order.
     private typealias IndexedIterator = (index: Int, iterator: ContentIterator)
 
@@ -34,7 +33,7 @@ public class PublicationContentIterator: ContentIterator, Loggable {
 
     public init(publication: Publication, start: Locator?, resourceContentIteratorFactories: [ResourceContentIteratorFactory]) {
         self.publication = publication
-        self.startLocator = start
+        startLocator = start
         self.resourceContentIteratorFactories = resourceContentIteratorFactories
     }
 
@@ -130,16 +129,15 @@ private enum LocatorOrProgression {
 
     func toLocator(to link: Link, in publication: Publication) -> Locator? {
         switch self {
-        case .locator(let locator):
+        case let .locator(locator):
             return locator
-        case .progression(let progression):
+        case let .progression(progression):
             return publication.locate(link)?.copy(locations: { $0.progression = progression })
         }
     }
 }
 
 private extension Optional where Wrapped == Locator {
-
     /// Returns this locator if not null, or the given `progression` as a fallback.
     func orProgression(_ progression: Double) -> LocatorOrProgression {
         if case let .some(locator) = self {

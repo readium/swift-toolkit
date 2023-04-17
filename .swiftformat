@@ -1,0 +1,4 @@
+--swiftversion 5.6
+--exclude Carthage
+--header "//\n//  Copyright {year} Readium Foundation. All rights reserved.\n//  Use of this source code is governed by the BSD-style license\n//  available in the top-level LICENSE file of the project.\n//"
+--stripunusedargs closure-only

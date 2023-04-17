@@ -1,14 +1,13 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import Foundation
 import CommonCrypto
+import Foundation
 
 extension URL: Loggable {
-
     /// Indicates whether this URL is an HTTP or HTTPS URL.
     public var isHTTP: Bool {
         ["http", "https"].contains(scheme?.lowercased())
@@ -46,7 +45,7 @@ extension URL: Loggable {
                 } else {
                     return false // End of file
                 }
-            }) { }
+            }) {}
 
             // Computes the MD5 digest.
             var digest: [UInt8] = Array(repeating: 0, count: Int(CC_MD5_DIGEST_LENGTH))
@@ -60,12 +59,11 @@ extension URL: Loggable {
             return nil
         }
     }
-    
+
     /// Returns the first available URL by appending the given `pathComponent`.
     ///
     /// If `pathComponent` is already taken, then it appends a number to it.
     public func appendingUniquePathComponent(_ pathComponent: String? = nil) -> URL {
-        
         /// Returns the first path component matching the given `validation` closure.
         /// Numbers are appended to the path component until a valid candidate is found.
         func uniquify(_ pathComponent: String?, validation: (String) -> Bool) -> String {
@@ -75,7 +73,7 @@ extension URL: Loggable {
                 ext = ".\(ext)"
             }
             let pathComponentWithoutExtension = (pathComponent as NSString).deletingPathExtension
-            
+
             var candidate = pathComponent
             var i = 0
             while !validation(candidate) {
@@ -84,24 +82,23 @@ extension URL: Loggable {
             }
             return candidate
         }
-        
+
         let pathComponent = uniquify(pathComponent) { candidate in
             let destination = appendingPathComponent(candidate)
             return !((try? destination.checkResourceIsReachable()) ?? false)
         }
-        
+
         return appendingPathComponent(pathComponent)
     }
-    
+
     /// Adds the given `newScheme` to the URL, but only if the URL doesn't already have one.
     public func addingSchemeIfMissing(_ newScheme: String) -> URL {
         guard scheme == nil else {
             return self
         }
-        
+
         var components = URLComponents(url: self, resolvingAgainstBaseURL: true)
         components?.scheme = newScheme
         return components?.url ?? self
     }
-
 }

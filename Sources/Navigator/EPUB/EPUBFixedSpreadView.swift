@@ -1,25 +1,23 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
+import R2Shared
 import UIKit
 import WebKit
-import R2Shared
-
 
 /// A view rendering a spread of resources with a fixed layout.
 final class EPUBFixedSpreadView: EPUBSpreadView {
-    
     /// Whether the host wrapper page is loaded or not. The wrapper page contains the iframe that will display the resource.
     private var isWrapperLoaded = false
     /// URL to load in the iframe once the wrapper page is loaded.
     private var urlToLoad: URL?
-    
+
     private static let fixedScript = loadScript(named: "readium-fixed")
-    
+
     required init(
         viewModel: EPUBNavigatorViewModel,
         spread: EPUBSpread,
@@ -28,26 +26,26 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
     ) {
         var scripts = scripts
         scripts.append(WKUserScript(source: Self.fixedScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
-        
+
         super.init(viewModel: viewModel, spread: spread, scripts: scripts, animatedLoad: animatedLoad)
     }
-    
+
     override func setupWebView() {
         super.setupWebView()
-        
+
         // Used to center the web view's content. Since the web view is centered by changing its frame directly, unclipping its bounds allows to see the overflowing content when zooming in.
         webView.clipsToBounds = false
         scrollView.clipsToBounds = false
         clipsToBounds = true
-        
+
         // Required to have the page centered when zooming out. It also feels more natural.
         scrollView.bounces = true
-        
+
         // Makes sure that we can see the superview's background color behind the iframe.
         webView.isOpaque = false
         webView.backgroundColor = UIColor.clear
         scrollView.backgroundColor = UIColor.clear
-        
+
         // Loads the wrapper page into the web view.
         let spreadFile = "fxl-spread-\(spread.pageCount.rawValue)"
         if
@@ -60,17 +58,17 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
                     ? "/r2-navigator/epub"
                     : viewModel.assetsURL.absoluteString
             )
-            
+
             // The publication's base URL is used to make sure we can access the resources through the iframe with JavaScript.
             webView.loadHTMLString(wrapperPage, baseURL: viewModel.publicationBaseURL)
         }
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
         layoutSpread()
     }
-    
+
     override func safeAreaInsetsDidChange() {
         super.safeAreaInsetsDidChange()
         layoutSpread()
@@ -105,7 +103,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         goToCompletions.complete()
     }
 
-    override func evaluateScript(_ script: String, inHREF href: String?, completion: ((Result<Any, Error>) -> ())?) {
+    override func evaluateScript(_ script: String, inHREF href: String?, completion: ((Result<Any, Error>) -> Void)?) {
         let href = href ?? ""
         let script = "spread.eval('\(href)', `\(script.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "`", with: "\\`"))`);"
         super.evaluateScript(script, completion: completion)
@@ -130,7 +128,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
 
     override func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         super.webView(webView, didFinish: navigation)
-        
+
         if !isWrapperLoaded {
             isWrapperLoaded = true
             layoutSpread()
@@ -138,11 +136,11 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         }
     }
 
-    /// MARK: - Location and progression
+    // MARK: - Location and progression
 
     private let goToCompletions = CompletionList()
 
-    override func go(to location: PageLocation, completion: (() -> ())?) {
+    override func go(to location: PageLocation, completion: (() -> Void)?) {
         // Fixed layout resources are always fully visible so we don't use the location.
         guard let completion = completion else {
             return
@@ -154,5 +152,4 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
             goToCompletions.add(completion)
         }
     }
-
 }

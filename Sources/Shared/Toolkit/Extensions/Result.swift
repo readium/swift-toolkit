@@ -1,20 +1,14 @@
 //
-//  Result.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 13/07/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 
 extension Result {
-    
     func getOrNil() -> Success? {
-        return try? get()
+        try? get()
     }
 
     func get(or def: Success) -> Success {
@@ -22,7 +16,7 @@ extension Result {
     }
 
     func `catch`(_ recover: (Failure) -> Self) -> Self {
-        if case .failure(let error) = self {
+        if case let .failure(error) = self {
             return recover(error)
         }
         return self
@@ -34,10 +28,10 @@ extension Result {
 }
 
 extension Result where Failure == Error {
-    func tryMap<T>(_ transform:(Success) throws -> T)  -> Result<T, Error> {
+    func tryMap<T>(_ transform: (Success) throws -> T) -> Result<T, Error> {
         flatMap {
             do {
-                return .success(try transform($0))
+                return try .success(transform($0))
             } catch {
                 return .failure(error)
             }

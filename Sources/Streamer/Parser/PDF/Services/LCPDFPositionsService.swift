@@ -1,19 +1,13 @@
 //
-//  LCPDFPositionsService.swift
-//  r2-streamer-swift
-//
-//  Created by Mickaël Menu on 30/05/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 import R2Shared
 
 final class LCPDFPositionsService: PositionsService, PDFPublicationService, Loggable {
-
     private let readingOrder: [Link]
     private let fetcher: Fetcher
     var pdfFactory: PDFDocumentFactory
@@ -23,7 +17,7 @@ final class LCPDFPositionsService: PositionsService, PDFPublicationService, Logg
         self.fetcher = fetcher
         self.pdfFactory = pdfFactory
     }
-    
+
     lazy var positionsByReadingOrder: [[Locator]] = {
         // Calculates the page count of each resource from the reading order.
         let resources = readingOrder.map { link -> (Int, Link) in
@@ -34,9 +28,9 @@ final class LCPDFPositionsService: PositionsService, PDFPublicationService, Logg
             }
             return (document.pageCount, link)
         }
-        
+
         let totalPageCount = resources.reduce(0) { count, current in count + current.0 }
-        
+
         var lastPositionOfPreviousResource = 0
         return resources.map { pageCount, link -> [Locator] in
             guard pageCount > 0 else {
@@ -47,12 +41,12 @@ final class LCPDFPositionsService: PositionsService, PDFPublicationService, Logg
             return positionList
         }
     }()
-    
+
     private func makePositionList(of link: Link, pageCount: Int, totalPageCount: Int, startPosition: Int = 0) -> [Locator] {
         assert(pageCount > 0, "Invalid PDF page count")
         assert(totalPageCount > 0, "Invalid PDF total page count")
-        
-        return (1...pageCount).map { position in
+
+        return (1 ... pageCount).map { position in
             let progression = Double(position - 1) / Double(pageCount)
             let totalProgression = Double(startPosition + position - 1) / Double(totalPageCount)
             return Locator(
@@ -67,9 +61,9 @@ final class LCPDFPositionsService: PositionsService, PDFPublicationService, Logg
             )
         }
     }
-    
+
     static func makeFactory(pdfFactory: PDFDocumentFactory) -> (PublicationServiceContext) -> LCPDFPositionsService? {
-        return { context in
+        { context in
             LCPDFPositionsService(
                 readingOrder: context.manifest.readingOrder,
                 fetcher: context.fetcher,
@@ -77,5 +71,4 @@ final class LCPDFPositionsService: PositionsService, PDFPublicationService, Logg
             )
         }
     }
-    
 }

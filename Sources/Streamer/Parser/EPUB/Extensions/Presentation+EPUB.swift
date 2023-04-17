@@ -1,21 +1,15 @@
 //
-//  Presentation+EPUB.swift
-//  r2-streamer-swift
-//
-//  Created by Mickaël on 24/02/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 import R2Shared
 
-extension Presentation.Orientation {
-    
+public extension Presentation.Orientation {
     /// Creates from an EPUB rendition:orientation property.
-    public init(epub: String, fallback: Presentation.Orientation? = nil) {
+    init(epub: String, fallback: Presentation.Orientation? = nil) {
         switch epub {
         case "landscape":
             self = .landscape
@@ -27,13 +21,11 @@ extension Presentation.Orientation {
             self = fallback ?? .auto
         }
     }
-
 }
 
-extension Presentation.Overflow {
-    
+public extension Presentation.Overflow {
     /// Creates from an EPUB rendition:flow property.
-    public init(epub: String, fallback: Presentation.Overflow? = nil) {
+    init(epub: String, fallback: Presentation.Overflow? = nil) {
         switch epub {
         case "auto":
             self = .auto
@@ -45,13 +37,11 @@ extension Presentation.Overflow {
             self = fallback ?? .auto
         }
     }
-    
 }
 
-extension Presentation.Spread {
-
+public extension Presentation.Spread {
     /// Creates from an EPUB rendition:spread property.
-    public init(epub: String, fallback: Presentation.Spread? = nil) {
+    init(epub: String, fallback: Presentation.Spread? = nil) {
         switch epub {
         case "none":
             self = .none
@@ -59,7 +49,7 @@ extension Presentation.Spread {
             self = .auto
         case "landscape":
             self = .landscape
-            // `portrait` is deprecated and should fallback to `both`.
+        // `portrait` is deprecated and should fallback to `both`.
         // See. https://readium.org/architecture/streamer/parser/metadata#epub-3x-11
         case "both", "portrait":
             self = .both
@@ -67,13 +57,11 @@ extension Presentation.Spread {
             self = fallback ?? .auto
         }
     }
-    
 }
 
-extension EPUBLayout {
-    
+public extension EPUBLayout {
     /// Creates from an EPUB rendition:layout property.
-    public init(epub: String, fallback: EPUBLayout? = nil) {
+    init(epub: String, fallback: EPUBLayout? = nil) {
         switch epub {
         case "reflowable":
             self = .reflowable
@@ -83,5 +71,4 @@ extension EPUBLayout {
             self = fallback ?? .reflowable
         }
     }
-    
 }

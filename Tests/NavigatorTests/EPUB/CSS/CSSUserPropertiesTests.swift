@@ -1,15 +1,14 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
-import R2Shared
 @testable import R2Navigator
+import R2Shared
+import XCTest
 
 class CSSUserPropertiesTests: XCTestCase {
-
     func testConvertEmptyUserPropertiesToCSSProperties() {
         XCTAssertEqual(
             CSSUserProperties().cssProperties(),
@@ -35,7 +34,7 @@ class CSSUserPropertiesTests: XCTestCase {
                 "--USER__letterSpacing": nil,
                 "--USER__bodyHyphens": nil,
                 "--USER__ligatures": nil,
-                "--USER__a11yNormalize": nil
+                "--USER__a11yNormalize": nil,
             ]
         )
     }
@@ -98,7 +97,7 @@ class CSSUserPropertiesTests: XCTestCase {
             colCount: .one,
             overrides: [
                 "--USER__colCount": "2",
-                "--USER__custom": "value"
+                "--USER__custom": "value",
             ]
         ).cssProperties()
 

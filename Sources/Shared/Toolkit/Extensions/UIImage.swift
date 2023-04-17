@@ -1,22 +1,16 @@
 //
-//  UIImage.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 31/05/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
+import func AVFoundation.AVMakeRect
 import Foundation
 import UIKit
-import func AVFoundation.AVMakeRect
 
 extension UIImage {
-    
     func scaleToFit(maxSize: CGSize) -> UIImage {
-        if size.width <= maxSize.width && size.height <= maxSize.height {
+        if size.width <= maxSize.width, size.height <= maxSize.height {
             return self
         }
 
@@ -26,5 +20,4 @@ extension UIImage {
             draw(in: targetRect)
         }
     }
-    
 }

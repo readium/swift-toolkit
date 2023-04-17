@@ -13,7 +13,6 @@ import R2Shared
 /// interface or modifying existing preferences. It includes rules for
 /// adjusting preferences, such as the supported values or ranges.
 public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreferences, PDFSettings> {
-
     public init(initialPreferences: PDFPreferences, metadata: Metadata, defaults: PDFDefaults) {
         super.init(
             initialPreferences: initialPreferences,
@@ -37,7 +36,7 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
             preference: \.offsetFirstPage,
             setting: \.offsetFirstPage,
             isEffective: {
-                return (!$0.settings.scroll || $0.settings.scrollAxis == .vertical)
+                (!$0.settings.scroll || $0.settings.scrollAxis == .vertical)
                     && $0.settings.spread != .never
             }
         )
@@ -48,7 +47,7 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
             preference: \.pageSpacing,
             setting: \.pageSpacing,
             isEffective: { _ in true },
-            supportedRange: 0...200,
+            supportedRange: 0 ... 200,
             progressionStrategy: .increment(4.0),
             format: { String(format: "%.1f pt", $0) }
         )

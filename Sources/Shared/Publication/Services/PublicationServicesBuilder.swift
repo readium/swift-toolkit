@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -10,7 +10,6 @@ import Foundation
 ///
 /// Provides helpers to manipulate the list of services of a `Publication`.
 public struct PublicationServicesBuilder {
-    
     private var factories: [String: PublicationServiceFactory] = [:]
 
     public init(
@@ -42,7 +41,7 @@ public struct PublicationServicesBuilder {
     public mutating func set<T>(_ serviceType: T.Type, _ factory: @escaping PublicationServiceFactory) {
         factories[String(describing: serviceType)] = factory
     }
-    
+
     /// Removes any service factory associated with the given service type.
     public mutating func remove<T>(_ serviceType: T.Type) {
         factories.removeValue(forKey: String(describing: serviceType))
@@ -53,5 +52,4 @@ public struct PublicationServicesBuilder {
         let key = String(describing: serviceType)
         factories[key] = transform(factories[key])
     }
-    
 }

@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -12,7 +12,7 @@ struct BookmarkCellView: View {
         formatter.dateStyle = .medium
         return formatter
     }
-    
+
     let bookmark: Bookmark
     var body: some View {
         HStack {
@@ -24,8 +24,8 @@ struct BookmarkCellView: View {
                     .font(.footnote)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+
             Text(BookmarkCellView.dateFormatter.string(from: bookmark.created))
                 .font(.footnote)
                 .frame(maxHeight: .infinity, alignment: .bottomTrailing)

@@ -1,12 +1,7 @@
 //
-//  Seekable.swift
-//  r2-streamer-swift
-//
-//  Created by Olivier Körner on 11/01/2017.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -40,21 +35,16 @@ public protocol Seekable {
 
 /// Base (abstract) class for seekable input streams
 open class SeekableInputStream: InputStream, Seekable {
-    
-    public var length: UInt64 {
-        get { fatalError("This getter must be overriden") }
-    }
-    
-    public var offset: UInt64 {
-        get { fatalError("This getter must be overriden") }
-    }
-    
+    public var length: UInt64 { fatalError("This getter must be overriden") }
+
+    public var offset: UInt64 { fatalError("This getter must be overriden") }
+
     public func seek(offset: Int64, whence: SeekWhence) throws {
         setProperty(offset, forKey: Stream.PropertyKey.fileCurrentOffsetKey)
         fatalError("This getter must be overriden")
     }
 
-    public override init(data: Data = Data()) {
+    override public init(data: Data = Data()) {
         super.init(data: data)
     }
 }

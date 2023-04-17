@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -28,7 +28,6 @@ public func makeDefaultTextTokenizer(unit: TextUnit, language: Language? = nil) 
     }
 }
 
-
 // MARK: - NL Text Tokenizer
 
 /// A text `Tokenizer` using iOS 12+'s NaturalLanguage framework.
@@ -44,7 +43,7 @@ public func makeNLTextTokenizer(unit: TextUnit, language: Language? = nil) -> Te
             tokenizer.setLanguage(language)
         }
 
-        return tokenizer.tokens(for: text.startIndex..<text.endIndex)
+        return tokenizer.tokens(for: text.startIndex ..< text.endIndex)
             .map { $0.trimmingWhitespaces(in: text) }
             // Remove empty ranges.
             .filter { $0.upperBound.utf16Offset(in: text) - $0.lowerBound.utf16Offset(in: text) > 0 }
@@ -66,7 +65,6 @@ private extension TextUnit {
         }
     }
 }
-
 
 // MARK: - NS Text Tokenizer
 
@@ -124,7 +122,6 @@ private extension TextUnit {
     }
 }
 
-
 // MARK: - Simple Text Tokenizer
 
 /// A `Tokenizer` using the basic `NSString.enumerateSubstrings()` API.
@@ -136,7 +133,7 @@ public func makeSimpleTextTokenizer(unit: TextUnit) -> TextTokenizer {
     func tokenize(_ text: String) throws -> [Range<String.Index>] {
         var tokens: [Range<String.Index>] = []
         text.enumerateSubstrings(
-            in: text.startIndex..<text.endIndex,
+            in: text.startIndex ..< text.endIndex,
             options: options
         ) { _, range, _, _ in
             tokens.append(range)
