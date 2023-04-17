@@ -10,7 +10,7 @@ import XCTest
 class AccessibilityTests: XCTestCase {
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            try? Accessibility(json: [:]),
+            try? Accessibility(json: [:] as [String: Any]),
             Accessibility()
         )
     }
@@ -33,7 +33,7 @@ class AccessibilityTests: XCTestCase {
                 "accessModeSufficient": [["visual", "tactile"]],
                 "feature": ["readingOrder", "alternativeText"],
                 "hazard": ["flashing", "motionSimulation"],
-            ]),
+            ] as [String: Any]),
             Accessibility(
                 conformsTo: [
                     Accessibility.Profile("https://profile1"),
@@ -110,7 +110,7 @@ class AccessibilityTests: XCTestCase {
         )
         XCTAssertEqual(
             try? Accessibility(json: [
-                "accessModeSufficient": ["auditory", ["visual"]],
+                "accessModeSufficient": ["auditory", ["visual"]] as [Any],
             ]),
             Accessibility(
                 accessModesSufficient: [[.auditory], [.visual]]
@@ -118,7 +118,7 @@ class AccessibilityTests: XCTestCase {
         )
         XCTAssertEqual(
             try? Accessibility(json: [
-                "accessModeSufficient": ["auditory", ["visual", "tactile"], [], "visual"],
+                "accessModeSufficient": ["auditory", ["visual", "tactile"], [] as [String], "visual"] as [Any],
             ]),
             Accessibility(
                 accessModesSufficient: [[.auditory], [.visual, .tactile], [.visual]]
@@ -167,7 +167,7 @@ class AccessibilityTests: XCTestCase {
     func testGetMinimalJSON() {
         AssertJSONEqual(
             Accessibility().json,
-            [:]
+            [:] as [String: Any]
         )
     }
 
@@ -202,7 +202,7 @@ class AccessibilityTests: XCTestCase {
                 "accessModeSufficient": [["auditory"], ["visual", "tactile"], ["visual"]],
                 "feature": ["readingOrder", "alternativeText"],
                 "hazard": ["flashing", "motionSimulation"],
-            ]
+            ] as [String: Any]
         )
     }
 }

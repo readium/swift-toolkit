@@ -34,7 +34,7 @@ class ContributorTests: XCTestCase {
                     ["href": "http://link1"],
                     ["href": "http://link2"],
                 ],
-            ]),
+            ] as [String: Any]),
             Contributor(
                 name: "Colin Greenwood",
                 identifier: "colin",
@@ -54,7 +54,7 @@ class ContributorTests: XCTestCase {
             try? Contributor(json: [
                 "name": "Thom Yorke",
                 "role": ["singer", "guitarist"],
-            ]),
+            ] as [String: Any]),
             Contributor(
                 name: "Thom Yorke",
                 roles: ["singer", "guitarist"]
@@ -75,8 +75,8 @@ class ContributorTests: XCTestCase {
                 [
                     "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
                     "role": "guitarist",
-                ],
-            ]),
+                ] as [String: Any],
+            ] as [Any]),
             [
                 Contributor(name: "Thom Yorke"),
                 Contributor(
@@ -101,7 +101,7 @@ class ContributorTests: XCTestCase {
                 [
                     "role": "guitarist",
                 ],
-            ]),
+            ] as [Any]),
             [
                 Contributor(name: "Thom Yorke"),
             ]
@@ -120,7 +120,7 @@ class ContributorTests: XCTestCase {
             [Contributor](json: [
                 "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
                 "role": "guitarist",
-            ]),
+            ] as [String: Any]),
             [
                 Contributor(
                     name: ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
@@ -157,10 +157,10 @@ class ContributorTests: XCTestCase {
                 "role": ["guitarist", "pianist"],
                 "position": 2.5,
                 "links": [
-                    ["href": "http://link1", "templated": false],
+                    ["href": "http://link1", "templated": false] as [String: Any],
                     ["href": "http://link2", "templated": false],
                 ],
-            ]
+            ] as [String: Any]
         )
     }
 
@@ -176,7 +176,7 @@ class ContributorTests: XCTestCase {
             [
                 [
                     "name": "Thom Yorke",
-                ],
+                ] as [String: Any],
                 [
                     "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
                     "role": ["guitarist"],

@@ -209,8 +209,7 @@ struct EPUBSpread: Loggable {
                 spreads.append(EPUBSpread(
                     pageCount: .two, links: [first],
                     readingProgression: readingProgression, layout: layout
-                )
-                )
+                ))
             }
 
             return makeSpreads(for: links, in: spreads)

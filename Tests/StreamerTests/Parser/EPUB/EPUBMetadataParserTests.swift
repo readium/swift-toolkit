@@ -45,7 +45,7 @@ class EPUBMetadataParserTests: XCTestCase {
                         "http://my.url/#scheme": "http",
                     ],
                     "Internet",
-                ],
+                ] as [Any],
                 "http://purl.org/dc/terms/rights": "Public Domain",
                 "http://idpf.org/epub/vocab/package/#type": "article",
                 "http://my.url/#customProperty": [
@@ -60,7 +60,7 @@ class EPUBMetadataParserTests: XCTestCase {
                     "overflow": "scrolled",
                     "orientation": "landscape",
                     "layout": "fixed",
-                ],
+                ] as [String: Any],
             ]
         ))
     }
@@ -78,7 +78,7 @@ class EPUBMetadataParserTests: XCTestCase {
                     "overflow": "auto",
                     "orientation": "auto",
                     "layout": "reflowable",
-                ],
+                ] as [String: Any],
             ]
         ))
     }
@@ -96,7 +96,7 @@ class EPUBMetadataParserTests: XCTestCase {
                     "overflow": "auto",
                     "orientation": "auto",
                     "layout": "reflowable",
-                ],
+                ] as [String: Any],
             ]
         ))
     }
@@ -212,7 +212,7 @@ class EPUBMetadataParserTests: XCTestCase {
                     "overflow": "auto",
                     "orientation": "auto",
                     "layout": "reflowable",
-                ],
+                ] as [String: Any],
             ]
         ))
     }
@@ -307,7 +307,7 @@ class EPUBMetadataParserTests: XCTestCase {
                 "overflow": "auto",
                 "orientation": "landscape",
                 "layout": "fixed",
-            ]
+            ] as [String: Any]
         )
     }
 

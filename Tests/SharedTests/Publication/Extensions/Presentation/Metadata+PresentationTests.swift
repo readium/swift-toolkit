@@ -16,7 +16,7 @@ class MetadataPresentationTests: XCTestCase {
                     "presentation": [
                         "continuous": false,
                         "orientation": "landscape",
-                    ],
+                    ] as [String: Any],
                 ]
             ).presentation,
             Presentation(continuous: false, orientation: .landscape)

@@ -20,7 +20,7 @@ class ManifestTests: XCTestCase {
                 "readingOrder": [
                     ["href": "/chap1.html", "type": "text/html"],
                 ],
-            ]),
+            ] as [String: Any]),
             Manifest(
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "/manifest.json", rels: [.self])],
@@ -52,7 +52,7 @@ class ManifestTests: XCTestCase {
                         ["href": "/sublink"],
                     ],
                 ],
-            ]),
+            ] as [String: Any]),
             Manifest(
                 context: ["https://readium.org/webpub-manifest/context.jsonld"],
                 metadata: Metadata(title: "Title"),
@@ -76,7 +76,7 @@ class ManifestTests: XCTestCase {
                 "readingOrder": [
                     ["href": "/chap1.html", "type": "text/html"],
                 ],
-            ]),
+            ] as [String: Any]),
             Manifest(
                 context: ["context1", "context2"],
                 metadata: Metadata(title: "Title"),
@@ -112,7 +112,7 @@ class ManifestTests: XCTestCase {
                 "spine": [
                     ["href": "/chap1.html", "type": "text/html"],
                 ],
-            ]),
+            ] as [String: Any]),
             Manifest(
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "/manifest.json", rels: [.self])],
@@ -132,7 +132,7 @@ class ManifestTests: XCTestCase {
                     ["href": "/chap1.html", "type": "text/html"],
                     ["href": "/chap2.html"],
                 ],
-            ]),
+            ] as [String: Any]),
             Manifest(
                 metadata: Metadata(title: "Title"),
                 links: [
@@ -157,7 +157,7 @@ class ManifestTests: XCTestCase {
                     ["href": "/withtype", "type": "text/html"],
                     ["href": "/withouttype"],
                 ],
-            ]),
+            ] as [String: Any]),
             Manifest(
                 metadata: Metadata(title: "Title"),
                 links: [
@@ -224,12 +224,12 @@ class ManifestTests: XCTestCase {
             [
                 "metadata": ["title": "Title", "readingProgression": "auto"],
                 "links": [
-                    ["href": "/manifest.json", "rel": ["self"], "templated": false],
+                    ["href": "/manifest.json", "rel": ["self"], "templated": false] as [String: Any],
                 ],
                 "readingOrder": [
-                    ["href": "/chap1.html", "type": "text/html", "templated": false],
+                    ["href": "/chap1.html", "type": "text/html", "templated": false] as [String: Any],
                 ],
-            ]
+            ] as [String: Any]
         )
     }
 
@@ -248,24 +248,24 @@ class ManifestTests: XCTestCase {
                 "@context": ["https://readium.org/webpub-manifest/context.jsonld"],
                 "metadata": ["title": "Title", "readingProgression": "auto"],
                 "links": [
-                    ["href": "/manifest.json", "rel": ["self"], "templated": false],
+                    ["href": "/manifest.json", "rel": ["self"], "templated": false] as [String: Any],
                 ],
                 "readingOrder": [
-                    ["href": "/chap1.html", "type": "text/html", "templated": false],
+                    ["href": "/chap1.html", "type": "text/html", "templated": false] as [String: Any],
                 ],
                 "resources": [
-                    ["href": "/image.png", "type": "image/png", "templated": false],
+                    ["href": "/image.png", "type": "image/png", "templated": false] as [String: Any],
                 ],
                 "toc": [
-                    ["href": "/cover.html", "templated": false],
+                    ["href": "/cover.html", "templated": false] as [String: Any],
                     ["href": "/chap1.html", "templated": false],
                 ],
                 "sub": [
                     "links": [
-                        ["href": "/sublink", "templated": false],
+                        ["href": "/sublink", "templated": false] as [String: Any],
                     ],
                 ],
-            ]
+            ] as [String: Any]
         )
     }
 
@@ -367,21 +367,21 @@ class ManifestTests: XCTestCase {
                     "readingProgression": "auto",
                 ],
                 "links": [
-                    ["href": "copy-links", "templated": false],
+                    ["href": "copy-links", "templated": false] as [String: Any],
                 ],
                 "readingOrder": [
-                    ["href": "copy-reading-order", "templated": false],
+                    ["href": "copy-reading-order", "templated": false] as [String: Any],
                 ],
                 "resources": [
-                    ["href": "copy-resources", "templated": false],
+                    ["href": "copy-resources", "templated": false] as [String: Any],
                 ],
                 "toc": [
-                    ["href": "copy-toc", "templated": false],
+                    ["href": "copy-toc", "templated": false] as [String: Any],
                 ],
                 "copy": [
-                    "links": [],
+                    "links": [] as [Any],
                 ],
-            ]
+            ] as [String: Any]
         )
     }
 

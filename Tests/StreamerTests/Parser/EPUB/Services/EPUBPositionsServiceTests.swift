@@ -437,7 +437,7 @@ private func makeProperties(layout: EPUBLayout? = nil, archiveEntryLength: UInt6
         props["encrypted"] = [
             "algorithm": "algo",
             "originalLength": originalLength,
-        ]
+        ] as [String: Any]
     }
     if let archiveEntryLength = archiveEntryLength {
         props["archive"] = [

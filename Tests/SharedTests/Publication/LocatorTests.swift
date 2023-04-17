@@ -33,7 +33,7 @@ class LocatorTests: XCTestCase {
                 "text": [
                     "highlight": "Excerpt",
                 ],
-            ]),
+            ] as [String: Any]),
             Locator(
                 href: "http://locator",
                 type: "text/html",
@@ -101,7 +101,7 @@ class LocatorTests: XCTestCase {
                 "text": [
                     "highlight": "Excerpt",
                 ],
-            ]
+            ] as [String: Any]
         )
     }
 
@@ -148,7 +148,7 @@ class LocatorTests: XCTestCase {
                     "before": "before",
                     "highlight": "Excerpt",
                 ],
-            ]
+            ] as [String: Any]
         )
     }
 }
@@ -173,7 +173,7 @@ class LocatorLocationsTests: XCTestCase {
                 "totalProgression": 25.32,
                 "position": 42,
                 "other": "other-location",
-            ]),
+            ] as [String: Any]),
             Locator.Locations(
                 fragments: ["p=4", "frag34"],
                 progression: 0.74,
@@ -197,7 +197,7 @@ class LocatorLocationsTests: XCTestCase {
 
     func testParseEmptyJSON() {
         XCTAssertEqual(
-            try Locator.Locations(json: [:]),
+            try Locator.Locations(json: [:] as [String: Any]),
             Locator.Locations()
         )
     }
@@ -232,7 +232,7 @@ class LocatorLocationsTests: XCTestCase {
                 "totalProgression": 25.32,
                 "position": 42,
                 "other": "other-location",
-            ]
+            ] as [String: Any]
         )
     }
 }
@@ -266,7 +266,7 @@ class LocatorTextTests: XCTestCase {
 
     func testParseEmptyJSON() {
         XCTAssertEqual(
-            try Locator.Text(json: [:]),
+            try Locator.Text(json: [:] as [String: Any]),
             Locator.Text()
         )
     }
@@ -305,7 +305,7 @@ class LocatorTextTests: XCTestCase {
 class LocatorCollectionTests: XCTestCase {
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            _LocatorCollection(json: [:]),
+            _LocatorCollection(json: [:] as [String: Any]),
             _LocatorCollection()
         )
     }
@@ -320,7 +320,7 @@ class LocatorCollectionTests: XCTestCase {
                     ],
                     "numberOfItems": 3,
                     "extraMetadata": "value",
-                ],
+                ] as [String: Any],
                 "links": [
                     ["rel": "self", "href": "/978-1503222687/search?query=apple", "type": "application/vnd.readium.locators+json"],
                     ["rel": "next", "href": "/978-1503222687/search?query=apple&page=2", "type": "application/vnd.readium.locators+json"],
@@ -334,13 +334,13 @@ class LocatorCollectionTests: XCTestCase {
                                 ":~:text=riddle,-yet%3F'",
                             ],
                             "progression": 0.43,
-                        ],
+                        ] as [String: Any],
                         "text": [
                             "before": "'Have you guessed the ",
                             "highlight": "riddle",
                             "after": " yet?' the Hatter said, turning to Alice again.",
                         ],
-                    ],
+                    ] as [String: Any],
                     [
                         "href": "/978-1503222687/chap7.html",
                         "type": "application/xhtml+xml",
@@ -349,7 +349,7 @@ class LocatorCollectionTests: XCTestCase {
                                 ":~:text=in%20asking-,riddles",
                             ],
                             "progression": 0.47,
-                        ],
+                        ] as [String: Any],
                         "text": [
                             "before": "I'm glad they've begun asking ",
                             "highlight": "riddles",
@@ -357,7 +357,7 @@ class LocatorCollectionTests: XCTestCase {
                         ],
                     ],
                 ],
-            ]),
+            ] as [String: Any]),
             _LocatorCollection(
                 metadata: _LocatorCollection.Metadata(
                     title: LocalizedString.localized([
@@ -407,7 +407,7 @@ class LocatorCollectionTests: XCTestCase {
 
     func testParseEmptyJSON() {
         XCTAssertEqual(
-            _LocatorCollection(json: [:]),
+            _LocatorCollection(json: [:] as [String: Any]),
             _LocatorCollection()
         )
     }
@@ -417,14 +417,14 @@ class LocatorCollectionTests: XCTestCase {
     }
 
     func testParseInvalidJSON() {
-        XCTAssertNil(_LocatorCollection(json: []))
+        XCTAssertNil(_LocatorCollection(json: [] as [Any]))
     }
 
     func testGetMinimalJSON() {
         AssertJSONEqual(
             _LocatorCollection().json as Any,
             [
-                "locators": [],
+                "locators": [] as [Any],
             ]
         )
     }
@@ -483,9 +483,9 @@ class LocatorCollectionTests: XCTestCase {
                     ],
                     "numberOfItems": 3,
                     "extraMetadata": "value",
-                ],
+                ] as [String: Any],
                 "links": [
-                    ["rel": ["self"], "href": "/978-1503222687/search?query=apple", "type": "application/vnd.readium.locators+json", "templated": false],
+                    ["rel": ["self"], "href": "/978-1503222687/search?query=apple", "type": "application/vnd.readium.locators+json", "templated": false] as [String: Any],
                     ["rel": ["next"], "href": "/978-1503222687/search?query=apple&page=2", "type": "application/vnd.readium.locators+json", "templated": false],
                 ],
                 "locators": [
@@ -497,13 +497,13 @@ class LocatorCollectionTests: XCTestCase {
                                 ":~:text=riddle,-yet%3F'",
                             ],
                             "progression": 0.43,
-                        ],
+                        ] as [String: Any],
                         "text": [
                             "before": "'Have you guessed the ",
                             "highlight": "riddle",
                             "after": " yet?' the Hatter said, turning to Alice again.",
                         ],
-                    ],
+                    ] as [String: Any],
                     [
                         "href": "/978-1503222687/chap7.html",
                         "type": "application/xhtml+xml",
@@ -512,7 +512,7 @@ class LocatorCollectionTests: XCTestCase {
                                 ":~:text=in%20asking-,riddles",
                             ],
                             "progression": 0.47,
-                        ],
+                        ] as [String: Any],
                         "text": [
                             "before": "I'm glad they've begun asking ",
                             "highlight": "riddles",
@@ -520,7 +520,7 @@ class LocatorCollectionTests: XCTestCase {
                         ],
                     ],
                 ],
-            ]
+            ] as [String: Any]
         )
     }
 

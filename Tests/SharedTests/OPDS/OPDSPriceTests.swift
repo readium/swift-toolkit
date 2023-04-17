@@ -13,7 +13,7 @@ class OPDSPriceTests: XCTestCase {
             try? OPDSPrice(json: [
                 "currency": "EUR",
                 "value": 4.65,
-            ]),
+            ] as [String: Any]),
             OPDSPrice(currency: "EUR", value: 4.65)
         )
     }
@@ -42,7 +42,7 @@ class OPDSPriceTests: XCTestCase {
         XCTAssertThrowsError(try OPDSPrice(json: [
             "currency": "EUR",
             "value": -20,
-        ]))
+        ] as [String: Any]))
     }
 
     func testGetJSON() {
@@ -51,7 +51,7 @@ class OPDSPriceTests: XCTestCase {
             [
                 "currency": "EUR",
                 "value": 4.65,
-            ]
+            ] as [String: Any]
         )
     }
 }

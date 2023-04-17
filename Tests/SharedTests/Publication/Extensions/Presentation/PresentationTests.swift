@@ -10,7 +10,7 @@ import XCTest
 class PresentationTests: XCTestCase {
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            try? Presentation(json: [:]),
+            try? Presentation(json: [:] as [String: Any]),
             Presentation()
         )
     }
@@ -25,7 +25,7 @@ class PresentationTests: XCTestCase {
                 "overflow": "paginated",
                 "spread": "both",
                 "layout": "fixed",
-            ]),
+            ] as [String: Any]),
             Presentation(
                 clipped: true,
                 continuous: false,
@@ -47,7 +47,7 @@ class PresentationTests: XCTestCase {
     }
 
     func testGetMinimalJSON() {
-        AssertJSONEqual(Presentation().json, [:])
+        AssertJSONEqual(Presentation().json, [:] as [String: Any])
     }
 
     func testGetFullJSON() {
@@ -69,7 +69,7 @@ class PresentationTests: XCTestCase {
                 "overflow": "paginated",
                 "spread": "both",
                 "layout": "fixed",
-            ]
+            ] as [String: Any]
         )
     }
 

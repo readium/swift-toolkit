@@ -25,7 +25,7 @@ class OPFParserTests: XCTestCase {
                         "overflow": "auto",
                         "orientation": "auto",
                         "layout": "reflowable",
-                    ],
+                    ] as [String: Any],
                 ]
             ),
             readingOrder: [

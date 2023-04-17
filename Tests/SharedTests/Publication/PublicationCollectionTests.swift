@@ -49,7 +49,7 @@ class PublicationCollectionTests: XCTestCase {
                         ],
                     ],
                 ],
-            ]),
+            ] as [String: Any]),
             PublicationCollection(
                 metadata: [
                     "metadata1": "value",
@@ -96,7 +96,7 @@ class PublicationCollectionTests: XCTestCase {
                         ],
                     ],
                 ],
-            ]),
+            ] as [String: Any]),
             [
                 "sub1": [PublicationCollection(links: [Link(href: "/sublink")])],
                 "sub2": [PublicationCollection(links: [Link(href: "/sublink1"), Link(href: "/sublink2")])],
@@ -113,7 +113,7 @@ class PublicationCollectionTests: XCTestCase {
             PublicationCollection(links: [Link(href: "/link")]).json,
             [
                 "links": [
-                    ["href": "/link", "templated": false],
+                    ["href": "/link", "templated": false] as [String: Any],
                 ],
             ]
         )
@@ -140,23 +140,23 @@ class PublicationCollectionTests: XCTestCase {
                     "metadata1": "value",
                 ],
                 "links": [
-                    ["href": "/link", "templated": false],
+                    ["href": "/link", "templated": false] as [String: Any],
                 ],
                 "sub1": [
                     "links": [
-                        ["href": "/sublink", "templated": false],
+                        ["href": "/sublink", "templated": false] as [String: Any],
                     ],
                 ],
                 "sub2": [
                     "links": [
-                        ["href": "/sublink1", "templated": false],
+                        ["href": "/sublink1", "templated": false] as [String: Any],
                         ["href": "/sublink2", "templated": false],
                     ],
                 ],
                 "sub3": [
                     [
                         "links": [
-                            ["href": "/sublink3", "templated": false],
+                            ["href": "/sublink3", "templated": false] as [String: Any],
                         ],
                     ],
                     [
@@ -165,7 +165,7 @@ class PublicationCollectionTests: XCTestCase {
                         ],
                     ],
                 ],
-            ]
+            ] as [String: Any]
         )
     }
 
@@ -182,19 +182,19 @@ class PublicationCollectionTests: XCTestCase {
             [
                 "sub1": [
                     "links": [
-                        ["href": "/sublink", "templated": false],
+                        ["href": "/sublink", "templated": false] as [String: Any],
                     ],
                 ],
                 "sub2": [
                     "links": [
-                        ["href": "/sublink1", "templated": false],
+                        ["href": "/sublink1", "templated": false] as [String: Any],
                         ["href": "/sublink2", "templated": false],
                     ],
                 ],
                 "sub3": [
                     [
                         "links": [
-                            ["href": "/sublink3", "templated": false],
+                            ["href": "/sublink3", "templated": false] as [String: Any],
                         ],
                     ],
                     [
@@ -203,7 +203,7 @@ class PublicationCollectionTests: XCTestCase {
                         ],
                     ],
                 ],
-            ]
+            ] as [String: Any]
         )
     }
 }

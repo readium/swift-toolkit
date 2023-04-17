@@ -140,9 +140,9 @@ final class LCPDecryptor {
                     let sliceStart = (rangeFirst - encryptedStart)
 
                     let isLastBlockRead = encryptedLength - encryptedEndExclusive <= AESBlockSize
-                    let rangeLength = isLastBlockRead
-                    // Use decrypted length to ensure `rangeLast` doesn't exceed decrypted length - 1.
-                    try ? min(rangeLast, length.get() - 1) - rangeFirst + 1
+                    let rangeLength = try isLastBlockRead
+                        // Use decrypted length to ensure `rangeLast` doesn't exceed decrypted length - 1.
+                        ? min(rangeLast, length.get() - 1) - rangeFirst + 1
                         // The last block won't be read, so there's no need to compute the length
                         : rangeLast - rangeFirst + 1
 

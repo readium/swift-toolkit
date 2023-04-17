@@ -23,7 +23,7 @@ class EncryptionTests: XCTestCase {
                 "originalLength": 42099,
                 "profile": "http://profile",
                 "scheme": "http://scheme",
-            ]),
+            ] as [String: Any]),
             Encryption(
                 algorithm: "http://algo",
                 compression: "gzip",
@@ -55,7 +55,7 @@ class EncryptionTests: XCTestCase {
             try? Encryption(json: [
                 "algorithm": "http://algo",
                 "original-length": 42099,
-            ]),
+            ] as [String: Any]),
             Encryption(algorithm: "http://algo", originalLength: 42099)
         )
     }
@@ -82,7 +82,7 @@ class EncryptionTests: XCTestCase {
                 "originalLength": 42099,
                 "profile": "http://profile",
                 "scheme": "http://scheme",
-            ]
+            ] as [String: Any]
         )
     }
 }

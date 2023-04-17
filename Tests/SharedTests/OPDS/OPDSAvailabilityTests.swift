@@ -46,7 +46,7 @@ class OPDSAvailabilityTests: XCTestCase {
     }
 
     func testParseInvalidJSON() {
-        XCTAssertThrowsError(try OPDSAvailability(json: [:]))
+        XCTAssertThrowsError(try OPDSAvailability(json: [:] as [String: Any]))
     }
 
     func testParseRequiresState() {

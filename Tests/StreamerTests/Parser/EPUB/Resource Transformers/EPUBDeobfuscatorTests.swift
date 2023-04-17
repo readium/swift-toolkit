@@ -56,6 +56,7 @@ class EPUBDeobfuscatorTests: XCTestCase {
                 ],
             ])
         )
+        let fixtures = fixtures // capture `fixtures` for the autoclosure
         return DataResource(link: link, data: fixtures.data(at: path))
     }
 }

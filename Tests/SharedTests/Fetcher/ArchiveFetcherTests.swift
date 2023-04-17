@@ -36,7 +36,7 @@ class ArchiveFetcherTests: XCTestCase {
                     "archive": [
                         "entryLength": entryLength,
                         "isEntryCompressed": isCompressed,
-                    ] as Any,
+                    ] as [String: Any],
                 ]))
             }
         )
@@ -92,9 +92,9 @@ class ArchiveFetcherTests: XCTestCase {
                 "archive": [
                     "entryLength": 595,
                     "isEntryCompressed": true,
-                ],
+                ] as [String: Any],
                 "compressedLength": 595,
-            ]
+            ] as [String: Any]
         )
     }
 

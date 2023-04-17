@@ -32,7 +32,7 @@ class PropertiesOPDSTests: XCTestCase {
         let sut = Properties(["price": [
             "currency": "EUR",
             "value": 3.65,
-        ]])
+        ] as [String: Any]])
 
         XCTAssertEqual(sut.price, OPDSPrice(currency: "EUR", value: 3.65))
     }

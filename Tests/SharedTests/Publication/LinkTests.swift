@@ -61,7 +61,7 @@ class LinkTests: XCTestCase {
                     ["href": "http://child1"],
                     ["href": "http://child2"],
                 ],
-            ]),
+            ] as [String: Any]),
             fullLink
         )
     }
@@ -82,13 +82,13 @@ class LinkTests: XCTestCase {
     }
 
     func testParseJSONTemplatedAsNull() {
-        XCTAssertFalse(try Link(json: ["href": "a", "templated": NSNull()]).templated)
+        XCTAssertFalse(try Link(json: ["href": "a", "templated": NSNull()] as [String: Any]).templated)
         XCTAssertFalse(try Link(json: ["href": "a", "templated": nil]).templated)
     }
 
     func testParseJSONMultipleLanguages() {
         XCTAssertEqual(
-            try? Link(json: ["href": "a", "language": ["fr", "en"]]),
+            try? Link(json: ["href": "a", "language": ["fr", "en"]] as [String: Any]),
             Link(href: "a", languages: ["fr", "en"])
         )
     }
@@ -99,28 +99,28 @@ class LinkTests: XCTestCase {
 
     func testParseJSONRequiresPositiveWidth() {
         XCTAssertEqual(
-            try? Link(json: ["href": "a", "width": -20]),
+            try? Link(json: ["href": "a", "width": -20] as [String: Any]),
             Link(href: "a")
         )
     }
 
     func testParseJSONRequiresPositiveHeight() {
         XCTAssertEqual(
-            try? Link(json: ["href": "a", "height": -20]),
+            try? Link(json: ["href": "a", "height": -20] as [String: Any]),
             Link(href: "a")
         )
     }
 
     func testParseJSONRequiresPositiveBitrate() {
         XCTAssertEqual(
-            try? Link(json: ["href": "a", "bitrate": -20]),
+            try? Link(json: ["href": "a", "bitrate": -20] as [String: Any]),
             Link(href: "a")
         )
     }
 
     func testParseJSONRequiresPositiveDuration() {
         XCTAssertEqual(
-            try? Link(json: ["href": "a", "duration": -20]),
+            try? Link(json: ["href": "a", "duration": -20] as [String: Any]),
             Link(href: "a")
         )
     }
@@ -163,7 +163,7 @@ class LinkTests: XCTestCase {
             [
                 "href": "http://href",
                 "templated": false,
-            ]
+            ] as [String: Any]
         )
     }
 
@@ -185,14 +185,14 @@ class LinkTests: XCTestCase {
                 "duration": 45.6,
                 "language": ["fr"],
                 "alternate": [
-                    ["href": "/alternate1", "templated": false],
+                    ["href": "/alternate1", "templated": false] as [String: Any],
                     ["href": "/alternate2", "templated": false],
                 ],
                 "children": [
-                    ["href": "http://child1", "templated": false],
+                    ["href": "http://child1", "templated": false] as [String: Any],
                     ["href": "http://child2", "templated": false],
                 ],
-            ]
+            ] as [String: Any]
         )
     }
 
@@ -203,7 +203,7 @@ class LinkTests: XCTestCase {
                 Link(href: "http://child2"),
             ].json,
             [
-                ["href": "http://child1", "templated": false],
+                ["href": "http://child1", "templated": false] as [String: Any],
                 ["href": "http://child2", "templated": false],
             ]
         )
@@ -391,12 +391,12 @@ class LinkTests: XCTestCase {
                 "duration": 542.2,
                 "language": ["copy-language"],
                 "alternate": [
-                    ["href": "copy-alternate", "templated": false],
+                    ["href": "copy-alternate", "templated": false] as [String: Any],
                 ],
                 "children": [
-                    ["href": "copy-children", "templated": false],
+                    ["href": "copy-children", "templated": false] as [String: Any],
                 ],
-            ]
+            ] as [String: Any]
         )
     }
 
@@ -426,14 +426,14 @@ class LinkTests: XCTestCase {
                 "duration": 45.6,
                 "language": ["fr"],
                 "alternate": [
-                    ["href": "/alternate1", "templated": false],
+                    ["href": "/alternate1", "templated": false] as [String: Any],
                     ["href": "/alternate2", "templated": false],
                 ],
                 "children": [
-                    ["href": "http://child1", "templated": false],
+                    ["href": "http://child1", "templated": false] as [String: Any],
                     ["href": "http://child2", "templated": false],
                 ],
-            ]
+            ] as [String: Any]
         )
     }
 }

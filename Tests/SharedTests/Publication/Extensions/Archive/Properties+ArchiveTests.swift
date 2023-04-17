@@ -17,7 +17,7 @@ class PropertiesArchiveTests: XCTestCase {
         let sut = Properties(["archive": [
             "entryLength": 8273,
             "isEntryCompressed": true,
-        ]])
+        ] as [String: Any]])
 
         XCTAssertEqual(sut.archive, Properties.Archive(entryLength: 8273, isEntryCompressed: true))
     }
@@ -47,7 +47,7 @@ class PropertiesArchiveTests: XCTestCase {
             [
                 "entryLength": 8273,
                 "isEntryCompressed": true,
-            ]
+            ] as [String: Any]
         )
     }
 }

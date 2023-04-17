@@ -125,8 +125,6 @@ extension ReadiumCSS: HTMLInjectable {
         // https://github.com/readium/r2-navigator-kotlin/issues/193
         inj.append(.style("audio[controls] { width: revert; height: revert; }"))
 
-        // TODO: fonts
-
         return inj
     }
 

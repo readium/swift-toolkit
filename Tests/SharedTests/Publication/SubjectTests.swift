@@ -33,7 +33,7 @@ class SubjectTests: XCTestCase {
                     ["href": "subject1"],
                     ["href": "subject2"],
                 ],
-            ]),
+            ] as [String: Any]),
             Subject(
                 name: "Science Fiction",
                 sortAs: "science-fiction",
@@ -61,7 +61,7 @@ class SubjectTests: XCTestCase {
                     "name": "Science Fiction",
                     "scheme": "http://scheme",
                 ],
-            ]),
+            ] as [Any]),
             [
                 Subject(name: "Fantasy"),
                 Subject(
@@ -86,7 +86,7 @@ class SubjectTests: XCTestCase {
                 [
                     "code": "CODE",
                 ],
-            ]),
+            ] as [Any]),
             [
                 Subject(name: "Fantasy"),
             ]
@@ -140,10 +140,10 @@ class SubjectTests: XCTestCase {
                 "scheme": "http://scheme",
                 "code": "CODE",
                 "links": [
-                    ["href": "subject1", "templated": false],
+                    ["href": "subject1", "templated": false] as [String: Any],
                     ["href": "subject2", "templated": false],
                 ],
-            ]
+            ] as [String: Any]
         )
     }
 

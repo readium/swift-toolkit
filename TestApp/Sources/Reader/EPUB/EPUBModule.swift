@@ -28,7 +28,7 @@ final class EPUBModule: ReaderFormatModule {
         }
 
         let preferencesStore = makePreferencesStore(books: books)
-        let epubViewController = try await try EPUBViewController(
+        let epubViewController = try await EPUBViewController(
             publication: publication,
             locator: locator,
             bookId: bookId,

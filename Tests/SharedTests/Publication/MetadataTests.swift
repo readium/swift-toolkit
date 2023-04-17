@@ -107,13 +107,13 @@ class MetadataTests: XCTestCase {
                 ],
                 "other-metadata1": "value",
                 "other-metadata2": [42],
-            ]),
+            ] as [String: Any]),
             fullMetadata
         )
     }
 
     func testParseInvalidJSON() {
-        XCTAssertThrowsError(try Metadata(json: []))
+        XCTAssertThrowsError(try Metadata(json: [] as [Any]))
     }
 
     func testParseJSONWithSingleProfile() {
@@ -148,14 +148,14 @@ class MetadataTests: XCTestCase {
 
     func testParseJSONRequiresPositiveDuration() {
         XCTAssertEqual(
-            try? Metadata(json: ["title": "t", "duration": -20]),
+            try? Metadata(json: ["title": "t", "duration": -20] as [String: Any]),
             Metadata(title: "t")
         )
     }
 
     func testParseJSONRequiresPositiveNumberOfPages() {
         XCTAssertEqual(
-            try? Metadata(json: ["title": "t", "numberOfPages": -20]),
+            try? Metadata(json: ["title": "t", "numberOfPages": -20] as [String: Any]),
             Metadata(title: "t")
         )
     }
@@ -217,7 +217,7 @@ class MetadataTests: XCTestCase {
                 ],
                 "other-metadata1": "value",
                 "other-metadata2": [42],
-            ]
+            ] as [String: Any]
         )
     }
 
@@ -339,7 +339,7 @@ class MetadataTests: XCTestCase {
                     "schema:Periodical": [["name": "copy-periodical"]],
                 ],
                 "copy": true,
-            ]
+            ] as [String: Any]
         )
     }
 }

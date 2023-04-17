@@ -10,7 +10,7 @@ import XCTest
 class PropertiesTests: XCTestCase {
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            try? Properties(json: [:]),
+            try? Properties(json: [:] as [String: Any]),
             Properties()
         )
     }
@@ -20,7 +20,7 @@ class PropertiesTests: XCTestCase {
             try? Properties(json: [
                 "other-property1": "value",
                 "other-property2": [42],
-            ]),
+            ] as [String: Any]),
             Properties([
                 "other-property1": "value",
                 "other-property2": [42],
@@ -37,7 +37,7 @@ class PropertiesTests: XCTestCase {
     }
 
     func testGetMinimalJSON() {
-        AssertJSONEqual(Properties().json, [:])
+        AssertJSONEqual(Properties().json, [:] as [String: Any])
     }
 
     func testGetFullJSON() {
@@ -49,7 +49,7 @@ class PropertiesTests: XCTestCase {
             [
                 "other-property1": "value",
                 "other-property2": [42],
-            ]
+            ] as [String: Any]
         )
     }
 
@@ -70,7 +70,7 @@ class PropertiesTests: XCTestCase {
                 "other-property1": "override",
                 "other-property2": [42],
                 "additional": "property",
-            ]
+            ] as [String: Any]
         )
     }
 }

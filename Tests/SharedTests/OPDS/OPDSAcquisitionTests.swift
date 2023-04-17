@@ -28,9 +28,9 @@ class OPDSAcquisitionTests: XCTestCase {
                             ["type": "sub-sub1"],
                             ["type": "sub-sub2"],
                         ],
-                    ],
+                    ] as [String: Any],
                 ],
-            ]),
+            ] as [String: Any]),
             OPDSAcquisition(type: "acquisition-type", children: [
                 OPDSAcquisition(type: "sub-acquisition", children: [
                     OPDSAcquisition(type: "sub-sub1"),
@@ -45,7 +45,7 @@ class OPDSAcquisitionTests: XCTestCase {
     }
 
     func testParseJSONRequiresType() {
-        XCTAssertThrowsError(try OPDSAcquisition(json: ["child": []]))
+        XCTAssertThrowsError(try OPDSAcquisition(json: ["child": [] as [Any]]))
     }
 
     func testParseJSONArray() {
@@ -106,9 +106,9 @@ class OPDSAcquisitionTests: XCTestCase {
                             ["type": "sub-sub1"],
                             ["type": "sub-sub2"],
                         ],
-                    ],
+                    ] as [String: Any],
                 ],
-            ]
+            ] as [String: Any]
         )
     }
 

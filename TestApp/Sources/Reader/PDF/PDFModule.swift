@@ -23,7 +23,7 @@ final class PDFModule: ReaderFormatModule {
     @MainActor
     func makeReaderViewController(for publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) async throws -> UIViewController {
         let preferencesStore = makePreferencesStore(books: books)
-        let viewController = try await try PDFViewController(
+        let viewController = try await PDFViewController(
             publication: publication,
             locator: locator,
             bookId: bookId,
