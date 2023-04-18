@@ -9,12 +9,8 @@ import R2Shared
 
 /// A list of EPUB resources to be displayed together on the screen, as one-page or two-pages spread.
 struct EPUBSpread: Loggable {
-    enum PageCount: String {
-        case one, two
-    }
-
-    /// Number of page "slots" in the spread.
-    let pageCount: PageCount
+    /// Indicates whether two pages are displayed side by side.
+    let spread: Bool
 
     /// Links for the resources displayed in the spread, in reading order.
     /// Note: it's possible to have less links than the amount of `pageCount` available, because a single page might be displayed in a two-page spread (eg. with Properties.Page center, left or right)
@@ -26,11 +22,11 @@ struct EPUBSpread: Loggable {
     /// Rendition layout of the links in the spread.
     let layout: EPUBLayout
 
-    init(pageCount: PageCount, links: [Link], readingProgression: ReadingProgression, layout: EPUBLayout) {
+    init(spread: Bool, links: [Link], readingProgression: ReadingProgression, layout: EPUBLayout) {
         precondition(!links.isEmpty, "A spread must have at least one page")
-        precondition(pageCount != .one || links.count == 1, "A one-page spread must have only one page")
-        precondition(pageCount != .two || 1 ... 2 ~= links.count, "A two-pages spread must have one or two pages max")
-        self.pageCount = pageCount
+        precondition(spread || links.count == 1, "A one-page spread must have only one page")
+        precondition(!spread || 1 ... 2 ~= links.count, "A two-pages spread must have one or two pages max")
+        self.spread = spread
         self.links = links
         self.readingProgression = readingProgression
         self.layout = layout
@@ -115,65 +111,23 @@ struct EPUBSpread: Loggable {
         serializeJSONString(json(forBaseURL: baseURL)) ?? "[]"
     }
 
-    /// Returns the number of pages in a spread for the given parameters.
-    ///
-    /// - Parameters:
-    ///   - publication: The publication to paginate.
-    ///   - isLandscape: Whether the navigator viewport is in landscape or portrait.
-    static func pageCountPerSpread(for publication: Publication, spread: Spread, isLandscape: Bool) -> PageCount {
-        switch spread {
-        case .never:
-            return .one
-        case .always:
-            return .two
-        case .auto:
-            switch publication.metadata.presentation.spread ?? .auto {
-            case .both:
-                return .two
-            case .none:
-                return .one
-            // FIXME: We consider that .auto means a 2p spread in landscape, and 1p in portrait. But this default should probably be customizable by the host app.
-            case .auto, .landscape:
-                return isLandscape ? .two : .one
-            }
-        }
-    }
-
-    /// Returns the EPUBRendition spread setting for the given UserSettings.
-    private static func spreadSetting(in userSettings: UserSettings) -> Presentation.Spread {
-        guard let columnCount = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.columnCount.rawValue) as? Enumerable else {
-            return .auto
-        }
-        switch columnCount.index {
-        case 0:
-            return .auto
-        case 1:
-            return .none
-        default:
-            return .both
-        }
-    }
-
     /// Builds a list of spreads for the given Publication.
     ///
     /// - Parameters:
     ///   - publication: The Publication to build the spreads for.
     ///   - readingProgression: Reading progression direction used to layout the pages.
-    ///   - pageCountPerSpread: Number of pages to display in a given spread (1 or 2).
-    static func makeSpreads(for publication: Publication, readingProgression: ReadingProgression, pageCountPerSpread: EPUBSpread.PageCount) -> [EPUBSpread] {
-        switch pageCountPerSpread {
-        case .one:
-            return makeOnePageSpreads(for: publication, readingProgression: readingProgression)
-        case .two:
-            return makeTwoPagesSpreads(for: publication, readingProgression: readingProgression)
-        }
+    ///   - spread: Indicates whether two pages are displayed side-by-side.
+    static func makeSpreads(for publication: Publication, readingProgression: ReadingProgression, spread: Bool) -> [EPUBSpread] {
+        spread
+            ? makeTwoPagesSpreads(for: publication, readingProgression: readingProgression)
+            : makeOnePageSpreads(for: publication, readingProgression: readingProgression)
     }
 
     /// Builds a list of one-page spreads for the given Publication.
     private static func makeOnePageSpreads(for publication: Publication, readingProgression: ReadingProgression) -> [EPUBSpread] {
         publication.readingOrder.map {
             EPUBSpread(
-                pageCount: .one,
+                spread: false,
                 links: [$0],
                 readingProgression: readingProgression,
                 layout: publication.metadata.presentation.layout(of: $0)
@@ -200,14 +154,15 @@ struct EPUBSpread: Loggable {
                areConsecutive(first, second)
             {
                 spreads.append(EPUBSpread(
-                    pageCount: .two, links: [first, second],
+                    spread: true,
+                    links: [first, second],
                     readingProgression: readingProgression, layout: layout
-                )
-                )
+                ))
                 links.removeFirst() // Removes the consumed "second" page
             } else {
                 spreads.append(EPUBSpread(
-                    pageCount: .two, links: [first],
+                    spread: true,
+                    links: [first],
                     readingProgression: readingProgression, layout: layout
                 ))
             }

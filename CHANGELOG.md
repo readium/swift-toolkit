@@ -8,6 +8,19 @@ All notable changes to this project will be documented in this file. Take a look
 
 * The Readium toolkit now requires iOS 11.0+.
 
+### Added
+
+#### Navigator
+
+* The `auto` spread setting is now available for fixed-layout EPUBs. It will display two pages in landscape and a single one in portrait.
+
+### Fixed
+
+#### Navigator
+
+* Fixed the PDF `auto` spread setting and scaling pages when rotating the screen.
+
+
 ## [2.5.0]
 
 ### Added

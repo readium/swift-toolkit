@@ -206,6 +206,18 @@ final class EPUBNavigatorViewModel: Loggable {
         return url
     }
 
+    private var needsInvalidatePagination = false
+    private func setNeedsInvalidatePagination() {
+        guard !needsInvalidatePagination else {
+            return
+        }
+        needsInvalidatePagination = true
+        DispatchQueue.main.async { [self] in
+            needsInvalidatePagination = false
+            delegate?.epubNavigatorViewModelInvalidatePaginationView(self)
+        }
+    }
+
     // MARK: - User preferences
 
     private(set) var settings: EPUBSettings
@@ -218,19 +230,19 @@ final class EPUBNavigatorViewModel: Loggable {
             metadata: publication.metadata
         )
         settings = newSettings
+        updateSpread()
         updateCSS(with: settings)
         css.update(with: settings)
 
-        let needsInvalidation: Bool = (
-            oldSettings.readingProgression != newSettings.readingProgression ||
-                oldSettings.language != newSettings.language ||
-                oldSettings.verticalText != newSettings.verticalText ||
-                oldSettings.spread != newSettings.spread ||
-                oldSettings.scroll != newSettings.scroll
-        )
+        let needsInvalidation: Bool =
+            oldSettings.readingProgression != newSettings.readingProgression
+                || oldSettings.language != newSettings.language
+                || oldSettings.verticalText != newSettings.verticalText
+                || oldSettings.scroll != newSettings.scroll
+                || oldSettings.spread != newSettings.spread
 
         if needsInvalidation {
-            delegate?.epubNavigatorViewModelInvalidatePaginationView(self)
+            setNeedsInvalidatePagination()
         }
     }
 
@@ -241,6 +253,14 @@ final class EPUBNavigatorViewModel: Loggable {
             defaults: config.defaults
         )
     }
+
+    var readingProgression: ReadingProgression {
+        useLegacySettings
+            ? (ReadingProgression(legacyReadingProgression) ?? .ltr)
+            : settings.readingProgression
+    }
+
+    var legacyReadingProgression: R2Shared.ReadingProgression
 
     var theme: Theme {
         useLegacySettings ? legacyTheme : settings.theme
@@ -277,31 +297,56 @@ final class EPUBNavigatorViewModel: Loggable {
         (config.userSettings.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable)?.on ?? false
     }
 
-    var spread: Spread {
+    // MARK: Spread
+
+    private(set) var spreadEnabled: Bool = false
+    private var viewSize: CGSize?
+
+    func viewSizeWillChange(_ newSize: CGSize) {
+        guard viewSize != newSize else {
+            return
+        }
+        viewSize = newSize
+        updateSpread()
+    }
+
+    private func updateSpread() {
+        let size = viewSize ?? .zero
+        let isLandscape = size.width > size.height
+        let oldEnabled = spreadEnabled
+
+        switch spread {
+        case .never:
+            spreadEnabled = false
+        case .always:
+            spreadEnabled = true
+        case .auto:
+            spreadEnabled = isLandscape
+        }
+
+        if oldEnabled != spreadEnabled {
+            setNeedsInvalidatePagination()
+        }
+    }
+
+    private var spread: Spread {
         useLegacySettings ? legacySpread : settings.spread
     }
 
     private var legacySpread: Spread {
-        guard let columnCount = config.userSettings.userProperties.getProperty(reference: ReadiumCSSReference.columnCount.rawValue) as? Enumerable else {
+        let columnCount = config.userSettings.userProperties.getProperty(reference: ReadiumCSSReference.columnCount.rawValue) as? Enumerable
+
+        switch columnCount?.index {
+        case 0:
             return .auto
-        }
-        switch columnCount.index {
         case 1:
             return .never
         case 2:
             return .always
         default:
-            return .auto
+            return Spread(publication.metadata.presentation.spread) ?? .auto
         }
     }
-
-    var readingProgression: ReadingProgression {
-        useLegacySettings
-            ? (ReadingProgression(legacyReadingProgression) ?? .ltr)
-            : settings.readingProgression
-    }
-
-    var legacyReadingProgression: R2Shared.ReadingProgression
 
     // MARK: - Readium CSS
 

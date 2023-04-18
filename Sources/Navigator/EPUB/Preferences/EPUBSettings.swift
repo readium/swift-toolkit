@@ -161,8 +161,9 @@ public struct EPUBSettings: ConfigurableSettings {
                 ?? defaults.scroll
                 ?? false,
             spread: preferences.spread
+                ?? Spread(metadata.presentation.spread)
                 ?? defaults.spread
-                ?? .never,
+                ?? .auto,
             textAlign: preferences.textAlign
                 ?? defaults.textAlign,
             textColor: preferences.textColor,

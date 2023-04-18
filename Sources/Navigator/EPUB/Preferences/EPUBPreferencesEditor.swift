@@ -44,7 +44,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             isEffective: { [unowned self] _ in preferences.backgroundColor != nil }
         )
 
-    /// Number of reflowable columns to display (one-page view or two-page spread).
+    /// Number of reflowable columns to display (one-page view or two-page
+    /// spread).
     ///
     /// Only effective when:
     ///  - the publication is reflowable
@@ -72,7 +73,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
 
     /// Base text font size as a percentage. Default to 100%.
     ///
-    /// Note that allowing a font size that is too large could break the pagination.
+    /// Note that allowing a font size that is too large could break the
+    /// pagination.
     ///
     /// Only effective with reflowable publications.
     public lazy var fontSize: AnyRangePreference<Double> =
@@ -87,8 +89,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
 
     /// Default boldness for the text as a percentage.
     ///
-    /// If you want to change the boldness of all text, including headers, you can use this with
-    /// `textNormalization`.
+    /// If you want to change the boldness of all text, including headers, you
+    /// can use this with `textNormalization`.
     ///
     /// Only effective with reflowable publications.
     public lazy var fontWeight: AnyRangePreference<Double> =
@@ -256,8 +258,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             format: \.percentageString
         )
 
-    /// Indicates whether the original publisher styles should be observed. Many advanced settings
-    /// require this to be off.
+    /// Indicates whether the original publisher styles should be observed.
+    /// Many advanced settings require this to be off.
     ///
     /// Only effective with reflowable publications.
     public lazy var publisherStyles: AnyPreference<Bool> =
@@ -278,8 +280,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             supportedValues: [.ltr, .rtl]
         )
 
-    /// Indicates if the overflow of resources should be handled using scrolling instead of synthetic
-    /// pagination.
+    /// Indicates if the overflow of resources should be handled using
+    /// scrolling instead of synthetic pagination.
     ///
     /// Only effective with reflowable publications.
     public lazy var scroll: AnyPreference<Bool> =
@@ -289,8 +291,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             isEffective: { [unowned self] _ in layout == .reflowable }
         )
 
-    /// Indicates if the fixed-layout publication should be rendered with a synthetic spread
-    /// (dual-page).
+    /// Indicates if the fixed-layout publication should be rendered with a
+    /// synthetic spread (dual-page).
     ///
     /// Only effective with fixed-layout publications.
     public lazy var spread: AnyEnumPreference<Spread> =
@@ -298,7 +300,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.spread,
             setting: \.spread,
             isEffective: { [unowned self] _ in layout == .fixed },
-            supportedValues: [.never, .always]
+            supportedValues: [.auto, .never, .always]
         )
 
     /// Page text alignment.
@@ -377,8 +379,9 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             format: { $0.formatDecimal(maximumFractionDigits: 5) }
         )
 
-    /// Indicates whether the text should be laid out vertically. This is used for example with CJK
-    /// languages. This setting is automatically derived from the language if no preference is given.
+    /// Indicates whether the text should be laid out vertically. This is used
+    /// for example with CJK languages. This setting is automatically derived
+    /// from the language if no preference is given.
     ///
     /// Only effective with reflowable publications.
     public lazy var verticalText: AnyPreference<Bool> =
