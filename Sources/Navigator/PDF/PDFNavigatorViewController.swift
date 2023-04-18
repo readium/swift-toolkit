@@ -199,18 +199,17 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         super.viewWillTransition(to: size, with: coordinator)
 
         if let pdfView = pdfView, scalesDocumentToFit {
-            // Reset the PDF view to update the spread if needed.
-            if settings.spread == .auto {
-                // FIXME: Threshold
-                resetPDFView(at: currentLocation)
-            }
-
             // Makes sure that the PDF is always properly scaled down when rotating the screen, if the user didn't zoom in.
             let isAtMinScaleFactor = (pdfView.scaleFactor == pdfView.minScaleFactor)
             coordinator.animate(alongsideTransition: { _ in
                 self.updateScaleFactors()
                 if isAtMinScaleFactor {
                     pdfView.scaleFactor = pdfView.minScaleFactor
+                }
+
+                // Reset the PDF view to update the spread if needed.
+                if self.settings.spread == .auto {
+                    self.resetPDFView(at: self.currentLocation)
                 }
             })
         }
