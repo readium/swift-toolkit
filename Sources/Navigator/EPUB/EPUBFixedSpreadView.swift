@@ -47,7 +47,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         scrollView.backgroundColor = UIColor.clear
 
         // Loads the wrapper page into the web view.
-        let spreadFile = "fxl-spread-\(spread.pageCount.rawValue)"
+        let spreadFile = "fxl-spread-\(spread.spread ? "two" : "one")"
         if
             let wrapperPageURL = Bundle.module.url(forResource: spreadFile, withExtension: "html", subdirectory: "Assets"),
             var wrapperPage = try? String(contentsOf: wrapperPageURL, encoding: .utf8)

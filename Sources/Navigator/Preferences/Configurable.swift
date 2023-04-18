@@ -29,10 +29,10 @@ public protocol Configurable {
 }
 
 /// Marker interface for the setting properties holder.
-public protocol ConfigurableSettings {}
+public protocol ConfigurableSettings: Hashable {}
 
 /// Marker interface for the `Preferences` properties holder.
-public protocol ConfigurablePreferences: Codable, Equatable {
+public protocol ConfigurablePreferences: Codable, Hashable {
     /// Empty set of preferences.
     static var empty: Self { get }
 

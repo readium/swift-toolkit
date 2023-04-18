@@ -327,8 +327,15 @@ open class EPUBNavigatorViewController: UIViewController,
         }
     }
 
+    override open func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        viewModel.viewSizeWillChange(view.bounds.size)
+    }
+
     override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
+
+        viewModel.viewSizeWillChange(size)
 
         coordinator.animate(alongsideTransition: nil) { [weak self] _ in
             self?.reloadSpreads(force: false)
@@ -552,16 +559,9 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     private func _reloadSpreads(at locator: Locator? = nil, force: Bool, completion: @escaping () -> Void) {
-        let isLandscape = (view.bounds.width > view.bounds.height)
-        let pageCountPerSpread = EPUBSpread.pageCountPerSpread(
-            for: publication,
-            spread: viewModel.spread,
-            isLandscape: isLandscape
-        )
-
         guard
             // Already loaded with the expected amount of spreads?
-            force || spreads.first?.pageCount != pageCountPerSpread,
+            force || spreads.first?.spread != viewModel.spreadEnabled,
             on(.load)
         else {
             completion()
@@ -569,7 +569,11 @@ open class EPUBNavigatorViewController: UIViewController,
         }
 
         let locator = locator ?? currentLocation
-        spreads = EPUBSpread.makeSpreads(for: publication, readingProgression: viewModel.readingProgression, pageCountPerSpread: pageCountPerSpread)
+        spreads = EPUBSpread.makeSpreads(
+            for: publication,
+            readingProgression: viewModel.readingProgression,
+            spread: viewModel.spreadEnabled
+        )
 
         let initialIndex: Int = {
             if let href = locator?.href, let foundIndex = self.spreads.firstIndex(withHref: href) {

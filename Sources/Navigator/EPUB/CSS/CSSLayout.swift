@@ -10,13 +10,13 @@ import R2Shared
 /// Readium CSS layout variant to use.
 ///
 /// See https://github.com/readium/readium-css/tree/master/css/dist
-struct CSSLayout: Equatable {
+struct CSSLayout: Hashable {
     let language: Language?
     let stylesheets: Stylesheets
     let readingProgression: ReadingProgression
 
     /// Readium CSS stylesheet variants.
-    enum Stylesheets {
+    enum Stylesheets: Hashable {
         /// Left to right
         case `default`
         /// Right to left
