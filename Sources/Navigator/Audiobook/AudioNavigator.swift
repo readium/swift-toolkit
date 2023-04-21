@@ -8,7 +8,12 @@ import AVFoundation
 import Foundation
 import R2Shared
 
-public protocol _AudioNavigatorDelegate: _MediaNavigatorDelegate {}
+@available(*, deprecated, message: "Use `AudioNavigatorDelegate` instead")
+public typealias _AudioNavigatorDelegate = AudioNavigatorDelegate
+@available(*, deprecated, message: "Use `AudioNavigator` instead")
+public typealias _AudioNavigator = AudioNavigator
+
+public protocol AudioNavigatorDelegate: MediaNavigatorDelegate {}
 
 /// Navigator for audio-based publications such as:
 ///
@@ -17,17 +22,17 @@ public protocol _AudioNavigatorDelegate: _MediaNavigatorDelegate {}
 ///
 /// **WARNING:** This API is experimental and may change or be removed in a future release without
 /// notice. Use with caution.
-open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
-    public weak var delegate: _AudioNavigatorDelegate?
+open class AudioNavigator: MediaNavigator, AudioSessionUser, Loggable {
+    public weak var delegate: AudioNavigatorDelegate?
 
     private let publication: Publication
     private let initialLocation: Locator?
-    public let audioConfiguration: _AudioSession.Configuration
+    public let audioConfiguration: AudioSession.Configuration
 
     public init(
         publication: Publication,
         initialLocation: Locator? = nil,
-        audioConfig: _AudioSession.Configuration = .init(
+        audioConfig: AudioSession.Configuration = .init(
             category: .playback,
             mode: .default,
             routeSharingPolicy: .longForm,
@@ -47,7 +52,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
     }
 
     deinit {
-        _AudioSession.shared.end(for: self)
+        AudioSession.shared.end(for: self)
     }
 
     /// Current playback info.
@@ -327,7 +332,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
     }
 
     public func play() {
-        _AudioSession.shared.start(with: self)
+        AudioSession.shared.start(with: self)
 
         if player.currentItem == nil, let location = initialLocation {
             go(to: location)

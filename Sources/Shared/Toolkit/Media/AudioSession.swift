@@ -7,25 +7,30 @@
 import AVFoundation
 import Foundation
 
+@available(*, deprecated, message: "Use `AudioSession` instead")
+public typealias _AudioSession = AudioSession
+@available(*, deprecated, message: "Use `AudioSessionUser` instead")
+public typealias _AudioSessionUser = AudioSessionUser
+
 /// An user of the `AudioSession`, for example a media player object.
-public protocol _AudioSessionUser: AnyObject {
+public protocol AudioSessionUser: AnyObject {
     /// Audio session configuration to use for this user.
-    var audioConfiguration: _AudioSession.Configuration { get }
+    var audioConfiguration: AudioSession.Configuration { get }
 
     /// Called when an audio interruption (e.g. phone call) finishes, to resume audio playback or
     /// recording.
     func play()
 }
 
-public extension _AudioSessionUser {
-    var audioConfiguration: _AudioSession.Configuration { .init() }
+public extension AudioSessionUser {
+    var audioConfiguration: AudioSession.Configuration { .init() }
 }
 
 /// Manages an activated `AVAudioSession`.
 ///
 /// **WARNING:** This API is experimental and may change or be removed in a future release without
 /// notice. Use with caution.
-public final class _AudioSession: Loggable {
+public final class AudioSession: Loggable {
     public struct Configuration {
         let category: AVAudioSession.Category
         let mode: AVAudioSession.Mode
@@ -46,15 +51,15 @@ public final class _AudioSession: Loggable {
     }
 
     /// Shared `AudioSession` for this app.
-    public static let shared = _AudioSession()
+    public static let shared = AudioSession()
 
     private init() {}
 
     /// Current user of the `AudioSession`.
-    private weak var user: _AudioSessionUser?
+    private weak var user: AudioSessionUser?
 
     /// Starts a new audio session with the given `user`.
-    public func start(with user: _AudioSessionUser) {
+    public func start(with user: AudioSessionUser) {
         guard self.user !== user else {
             return
         }
@@ -83,7 +88,7 @@ public final class _AudioSession: Loggable {
     }
 
     /// Ends the current audio session.
-    public func end(for user: _AudioSessionUser) {
+    public func end(for user: AudioSessionUser) {
         guard self.user === user || self.user == nil else {
             return
         }

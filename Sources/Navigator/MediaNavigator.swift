@@ -6,11 +6,13 @@
 
 import Foundation
 
+@available(*, deprecated, message: "Use `MediaNavigator` instead")
+public typealias _MediaNavigator = MediaNavigator
+@available(*, deprecated, message: "Use `MediaNavigatorDelegate` instead")
+public typealias _MediaNavigatorDelegate = MediaNavigatorDelegate
+
 /// Protocol for a navigator rendering an audio or video based publication.
-///
-/// **WARNING:** This API is experimental and may change or be removed in a future release without
-/// notice. Use with caution.
-public protocol _MediaNavigator: Navigator {
+public protocol MediaNavigator: Navigator {
     /// Total duration in the publication, if known.
     var totalDuration: Double? { get }
 
@@ -37,7 +39,7 @@ public protocol _MediaNavigator: Navigator {
     func seek(relatively delta: Double)
 }
 
-public extension _MediaNavigator {
+public extension MediaNavigator {
     /// Toggles the playback.
     func playPause() {
         switch state {
@@ -79,23 +81,23 @@ public struct MediaPlaybackInfo {
     }
 }
 
-public protocol _MediaNavigatorDelegate: NavigatorDelegate {
+public protocol MediaNavigatorDelegate: NavigatorDelegate {
     /// Called when the playback updates.
-    func navigator(_ navigator: _MediaNavigator, playbackDidChange info: MediaPlaybackInfo)
+    func navigator(_ navigator: MediaNavigator, playbackDidChange info: MediaPlaybackInfo)
 
     /// Called when the navigator finished playing the current resource.
     /// Returns whether the next resource should be played. Default is true.
-    func navigator(_ navigator: _MediaNavigator, shouldPlayNextResource info: MediaPlaybackInfo) -> Bool
+    func navigator(_ navigator: MediaNavigator, shouldPlayNextResource info: MediaPlaybackInfo) -> Bool
 
     /// Called when the ranges of buffered media data change.
     /// Warning: They may be discontinuous.
-    func navigator(_ navigator: _MediaNavigator, loadedTimeRangesDidChange ranges: [Range<Double>])
+    func navigator(_ navigator: MediaNavigator, loadedTimeRangesDidChange ranges: [Range<Double>])
 }
 
-public extension _MediaNavigatorDelegate {
-    func navigator(_ navigator: _MediaNavigator, playbackDidChange info: MediaPlaybackInfo) {}
+public extension MediaNavigatorDelegate {
+    func navigator(_ navigator: MediaNavigator, playbackDidChange info: MediaPlaybackInfo) {}
 
-    func navigator(_ navigator: _MediaNavigator, shouldPlayNextResource info: MediaPlaybackInfo) -> Bool { true }
+    func navigator(_ navigator: MediaNavigator, shouldPlayNextResource info: MediaPlaybackInfo) -> Bool { true }
 
-    func navigator(_ navigator: _MediaNavigator, loadedTimeRangesDidChange ranges: [Range<Double>]) {}
+    func navigator(_ navigator: MediaNavigator, loadedTimeRangesDidChange ranges: [Range<Double>]) {}
 }
