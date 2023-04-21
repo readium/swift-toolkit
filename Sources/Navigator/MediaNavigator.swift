@@ -79,6 +79,18 @@ public struct MediaPlaybackInfo {
         }
         return time / duration
     }
+
+    public init(
+        resourceIndex: Int = 0,
+        state: MediaPlaybackState = .loading,
+        time: Double = 0,
+        duration: Double? = nil
+    ) {
+        self.resourceIndex = resourceIndex
+        self.state = state
+        self.time = time
+        self.duration = duration
+    }
 }
 
 public protocol MediaNavigatorDelegate: NavigatorDelegate {
