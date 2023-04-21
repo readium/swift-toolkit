@@ -199,7 +199,9 @@ open class AudioNavigator: MediaNavigator, AudioSessionUser, Loggable {
 
     // MARK: - Loaded Time Ranges
 
-    private lazy var loadedTimeRangesTimer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(notifyLoadedTimeRanges), userInfo: nil, repeats: true)
+    private lazy var loadedTimeRangesTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+        self?.notifyLoadedTimeRanges()
+    }
     private var lastLoadedTimeRanges: [Range<Double>] = []
 
     @objc func notifyLoadedTimeRanges() {
