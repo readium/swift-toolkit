@@ -67,7 +67,7 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
     // MARK: - AudioNavigatorDelegate
 
     func navigator(_ navigator: MediaNavigator, playbackDidChange info: MediaPlaybackInfo) {
-        model.playbackDidChange(info: info)
+        model.onPlaybackChanged(info: info)
     }
 }
 
@@ -87,8 +87,12 @@ class AudiobookViewModel: ObservableObject {
         }
     }
 
-    func playbackDidChange(info: MediaPlaybackInfo) {
+    func onPlaybackChanged(info: MediaPlaybackInfo) {
         playback = info
+    }
+
+    func onSliderChanged(time: Double) {
+        navigator.seek(to: time)
     }
 
     func playPause() {
@@ -107,24 +111,87 @@ struct AudiobookReader: View {
                 Image(uiImage: cover)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .padding()
+                    .padding(.bottom)
             }
 
-            HStack {
-                Spacer()
-
-                IconButton(
-                    systemName: model.playback.state != .paused
+            if model.playback.state == .loading {
+                ProgressView()
+                    .progressViewStyle(.circular)
+            } else {
+                if let duration = model.playback.duration, duration > 0 {
+                    TimeSlider(
+                        time: Binding(
+                            get: { model.playback.time },
+                            set: { model.onSliderChanged(time: $0) }
+                        ),
+                        duration: duration
+                    )
+                }
+                
+                HStack {
+                    Spacer()
+                    
+                    IconButton(
+                        systemName: model.playback.state != .paused
                         ? "pause.fill"
                         : "play.fill"
-                ) {
-                    model.playPause()
+                    ) {
+                        model.playPause()
+                    }
+                    
+                    Spacer()
                 }
-
-                Spacer()
             }
-
-            Spacer(minLength: 40)
         }
+        .padding(40)
+    }
+}
+
+struct TimeSlider: View {
+
+    /// Current time in seconds.
+    @Binding var time: Double
+    
+    /// Duration in seconds.
+    let duration: Double
+
+    /// When the user is dragging the slider, `isEditing` is true to prevent
+    /// updating the slider value with `time` during playback.
+    @State private var isEditing: Bool = false
+    
+    /// Current slider progress, computed either from the current `time` or
+    /// from the thumb position while dragging.
+    @State private var progress: Double = 0
+    
+    var body: some View {
+        Slider(
+            value: $progress,
+            label: { EmptyView() },
+            minimumValueLabel: { Text(formatTime(time)) },
+            maximumValueLabel: { Text(formatTime(duration)) },
+            onEditingChanged: { isEditing in
+                self.isEditing = isEditing
+                if !isEditing {
+                    time = progress * duration
+                }
+            }
+        )
+        .onChange(of: time) { _ in
+            if !isEditing {
+                progress = time / duration
+            }
+        }
+    }
+
+    /// Formats the given `time` in seconds to a `[hh:]mm:ss` string.
+    func formatTime(_ time: Double) -> String {
+        let formatter = DateComponentsFormatter()
+        formatter.unitsStyle = .positional
+        formatter.zeroFormattingBehavior = .pad
+        formatter.allowedUnits = [.minute, .second]
+        if time > 60 * 60 {
+            formatter.allowedUnits.insert(.hour)
+        }
+        return formatter.string(from: time) ?? "00:00"
     }
 }
