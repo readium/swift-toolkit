@@ -249,8 +249,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
             }
 
             // Seeks to time
-            let time = locator.time(forDuration: resourceDuration) ?? 0
-            if time > 0 {
+            if let time = locator.time(forDuration: resourceDuration) {
                 player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
             }
 
