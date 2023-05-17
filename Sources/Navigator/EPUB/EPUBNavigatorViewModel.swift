@@ -79,7 +79,9 @@ final class EPUBNavigatorViewModel: Loggable {
         )
 
         if let endpoint = publicationEndpoint {
-            httpServer.transformResources(at: endpoint, with: injectReadiumCSS)
+            httpServer.transformResources(at: endpoint) { [weak self] in
+                self?.injectReadiumCSS(in: $0) ?? $0
+            }
         }
     }
 
