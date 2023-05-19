@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -9,7 +9,6 @@ import R2Shared
 
 /// Parses a Publication from an asset.
 public protocol PublicationParser {
-    
     /// Constructs a `Publication.Builder` to build a `Publication` from a publication asset.
     ///
     /// - Parameters:
@@ -23,5 +22,4 @@ public protocol PublicationParser {
     ///     mistakes. This is useful to warn users of potential rendering issues or help authors
     ///     debug their publications.
     func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder?
-
 }

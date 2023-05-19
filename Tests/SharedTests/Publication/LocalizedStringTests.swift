@@ -1,19 +1,13 @@
 //
-//  LocalizedStringTests.swift
-//  r2-shared-swiftTests
-//
-//  Created by Mickaël Menu on 09.03.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 class LocalizedStringTests: XCTestCase {
-
     func testParseJSONString() {
         XCTAssertEqual(
             try? LocalizedString(json: "a string"),
@@ -27,15 +21,15 @@ class LocalizedStringTests: XCTestCase {
             .localized(["en": "a string", "fr": "une chaîne"])
         )
     }
-    
+
     func testParseInvalidJSON() {
         XCTAssertThrowsError(try LocalizedString(json: ["a string", "une chaîne"]))
     }
-    
+
     func testParseAllowsNil() {
         XCTAssertNil(try LocalizedString(json: nil))
     }
-    
+
     func testGetJSON() {
         AssertJSONEqual(
             LocalizedString.nonlocalized("a string").json,
@@ -46,14 +40,14 @@ class LocalizedStringTests: XCTestCase {
             ["en": "a string", "fr": "une chaîne"]
         )
     }
-    
+
     func testGetString() {
         XCTAssertEqual(
             LocalizedString.localized(["en": "hello", "fr": "bonjour"]).string,
             "hello"
         )
     }
-    
+
     func testStringConversion() {
         XCTAssertEqual(
             String(describing: LocalizedString.localized(["en": "hello", "fr": "bonjour"])),
@@ -67,20 +61,19 @@ class LocalizedStringTests: XCTestCase {
             "bonjour"
         )
     }
-    
+
     func testConvertFromLocalizedString() {
-        let string: LocalizedString = LocalizedString.localized(["en": "hello"]).localizedString
+        let string = LocalizedString.localized(["en": "hello"]).localizedString
         XCTAssertEqual(string, .localized(["en": "hello"]))
     }
-    
+
     func testConvertFromStringLiteral() {
         let string: LocalizedString = "hello".localizedString
         XCTAssertEqual(string, .nonlocalized("hello"))
     }
-    
+
     func testConvertFromDictionaryLiteral() {
         let strings: LocalizedString = ["en": "hello", "fr": "bonjour"].localizedString
         XCTAssertEqual(strings, .localized(["en": "hello", "fr": "bonjour"]))
     }
-
 }

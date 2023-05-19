@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -16,13 +16,12 @@ import Foundation
 /// **WARNING:** This API is experimental and may change or be removed in a future release without
 /// notice. Use with caution.
 public class _StringSearchService: _SearchService {
-
     public static func makeFactory(
         snippetLength: Int = 200,
         searchAlgorithm: StringSearchAlgorithm = BasicStringSearchAlgorithm(),
         extractorFactory: _ResourceContentExtractorFactory = _DefaultResourceContentExtractorFactory()
     ) -> (PublicationServiceContext) -> _StringSearchService? {
-        return { context in
+        { context in
             _StringSearchService(
                 publication: context.publication,
                 language: context.manifest.metadata.language,
@@ -53,11 +52,11 @@ public class _StringSearchService: _SearchService {
         self.options = options
     }
 
-    public func search(query: String, options: SearchOptions?, completion: @escaping (SearchResult<SearchIterator>) -> ()) -> Cancellable {
+    public func search(query: String, options: SearchOptions?, completion: @escaping (SearchResult<SearchIterator>) -> Void) -> Cancellable {
         let cancellable = CancellableObject()
 
         DispatchQueue.main.async(unlessCancelled: cancellable) { [self] in
-            guard let publication = self.publication() else {
+            guard let publication = publication() else {
                 completion(.failure(.cancelled))
                 return
             }
@@ -77,7 +76,6 @@ public class _StringSearchService: _SearchService {
     }
 
     private class Iterator: SearchIterator, Loggable {
-
         private(set) var resultCount: Int? = 0
 
         private let publication: Publication
@@ -109,7 +107,7 @@ public class _StringSearchService: _SearchService {
         /// Index of the last reading order resource searched in.
         private var index = -1
 
-        func next(completion: @escaping (SearchResult<_LocatorCollection?>) -> ()) -> Cancellable {
+        func next(completion: @escaping (SearchResult<_LocatorCollection?>) -> Void) -> Cancellable {
             let cancellable = CancellableObject()
             DispatchQueue.global().async(unlessCancelled: cancellable) {
                 self.findNext(cancellable) { result in
@@ -121,7 +119,7 @@ public class _StringSearchService: _SearchService {
             return cancellable
         }
 
-        private func findNext(_ cancellable: CancellableObject, _ completion: @escaping (SearchResult<_LocatorCollection?>) -> ()) {
+        private func findNext(_ cancellable: CancellableObject, _ completion: @escaping (SearchResult<_LocatorCollection?>) -> Void) {
             guard index < publication.readingOrder.count - 1 else {
                 completion(.success(nil))
                 return
@@ -169,7 +167,7 @@ public class _StringSearchService: _SearchService {
             var locators: [Locator] = []
 
             let currentLanguage = options.language ?? language
-            
+
             for range in searchAlgorithm.findRanges(of: query, options: options, in: text, language: currentLanguage, cancellable: cancellable) {
                 guard !cancellable.isCancelled else {
                     return locators
@@ -236,7 +234,6 @@ public class _StringSearchService: _SearchService {
 
 /// Implements the actual search algorithm in sanitized text content.
 public protocol StringSearchAlgorithm {
-
     /// Default value for the search options available with this algorithm.
     ///
     /// If an option does not have a value, it is not supported by the algorithm.
@@ -250,8 +247,7 @@ public protocol StringSearchAlgorithm {
 
 /// A basic `StringSearchAlgorithm` using the native `String.range(of:)` APIs.
 public class BasicStringSearchAlgorithm: StringSearchAlgorithm {
-
-    public let options: SearchOptions = SearchOptions(
+    public let options: SearchOptions = .init(
         caseSensitive: false,
         diacriticSensitive: false,
         exact: false,
@@ -264,7 +260,7 @@ public class BasicStringSearchAlgorithm: StringSearchAlgorithm {
         var compareOptions: NSString.CompareOptions = []
         if options.regularExpression ?? false {
             compareOptions.insert(.regularExpression)
-        } else if (options.exact ?? false) {
+        } else if options.exact ?? false {
             compareOptions.insert(.literal)
         } else {
             if !(options.caseSensitive ?? false) {
@@ -280,7 +276,7 @@ public class BasicStringSearchAlgorithm: StringSearchAlgorithm {
         while
             !cancellable.isCancelled,
             index < text.endIndex,
-            let range = text.range(of: query, options: compareOptions, range: index..<text.endIndex, locale: language?.locale),
+            let range = text.range(of: query, options: compareOptions, range: index ..< text.endIndex, locale: language?.locale),
             !range.isEmpty
         {
             ranges.append(range)
@@ -291,7 +287,7 @@ public class BasicStringSearchAlgorithm: StringSearchAlgorithm {
     }
 }
 
-fileprivate extension Array where Element == Link {
+private extension Array where Element == Link {
     func titleMatchingHREF(_ href: String) -> String? {
         for link in self {
             if let title = link.titleMatchingHREF(href) {
@@ -302,9 +298,9 @@ fileprivate extension Array where Element == Link {
     }
 }
 
-fileprivate extension Link {
+private extension Link {
     func titleMatchingHREF(_ targetHREF: String) -> String? {
-        if (href.substringBeforeLast("#") == targetHREF) {
+        if href.substringBeforeLast("#") == targetHREF {
             return title
         }
         return children.titleMatchingHREF(targetHREF)

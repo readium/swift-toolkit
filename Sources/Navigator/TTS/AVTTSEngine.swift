@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -16,7 +16,6 @@ public protocol AVTTSEngineDelegate: AnyObject {
 
 /// Implementation of a `TTSEngine` using Apple AVFoundation's `AVSpeechSynthesizer`.
 public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Loggable {
-
     /// Range of valid values for an AVUtterance rate.
     ///
     /// > The speech rate is a decimal representation within the range of `AVSpeechUtteranceMinimumSpeechRate` and
@@ -24,20 +23,20 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     /// > faster speech. The default value is `AVSpeechUtteranceDefaultSpeechRate`.
     /// > https://developer.apple.com/documentation/avfaudio/avspeechutterance/1619708-rate
     private static let avRateRange =
-        Double(AVSpeechUtteranceMinimumSpeechRate)...Double(AVSpeechUtteranceMaximumSpeechRate)
+        Double(AVSpeechUtteranceMinimumSpeechRate) ... Double(AVSpeechUtteranceMaximumSpeechRate)
 
     /// Range of valid values for an AVUtterance pitch.
     ///
     /// > Before enqueuing the utterance, set this property to a value within the range of 0.5 for lower pitch to 2.0 for
     /// > higher pitch. The default value is 1.0.
     /// > https://developer.apple.com/documentation/avfaudio/avspeechutterance/1619683-pitchmultiplier
-    private static let avPitchRange = 0.5...2.0
-    
+    private static let avPitchRange = 0.5 ... 2.0
+
     public weak var delegate: AVTTSEngineDelegate?
 
     private let debug: Bool = false
     private let synthesizer = AVSpeechSynthesizer()
-    
+
     /// Creates a new `AVTTSEngine` instance.
     ///
     /// - Parameters:
@@ -51,7 +50,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         ),
         delegate: AVTTSEngineDelegate? = nil
     ) {
-        self.audioSessionUser = audioSessionConfig.map { AudioSessionUser(config: $0) }
+        audioSessionUser = audioSessionConfig.map { AudioSessionUser(config: $0) }
         self.delegate = delegate
 
         super.init()
@@ -69,8 +68,8 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
 
     public func speak(
         _ utterance: TTSUtterance,
-        onSpeakRange: @escaping (Range<String.Index>) -> (),
-        completion: @escaping (Result<Void, TTSError>) -> ()
+        onSpeakRange: @escaping (Range<String.Index>) -> Void,
+        completion: @escaping (Result<Void, TTSError>) -> Void
     ) -> Cancellable {
         let task = Task(
             utterance: utterance,
@@ -89,11 +88,11 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
 
     private class Task: Equatable, CustomStringConvertible {
         let utterance: TTSUtterance
-        let onSpeakRange: (Range<String.Index>) -> ()
-        let completion: (Result<Void, TTSError>) -> ()
+        let onSpeakRange: (Range<String.Index>) -> Void
+        let completion: (Result<Void, TTSError>) -> Void
         var cancellable: CancellableObject? = nil
 
-        init(utterance: TTSUtterance, onSpeakRange: @escaping (Range<String.Index>) -> (), completion: @escaping (Result<Void, TTSError>) -> ()) {
+        init(utterance: TTSUtterance, onSpeakRange: @escaping (Range<String.Index>) -> Void, completion: @escaping (Result<Void, TTSError>) -> Void) {
             self.utterance = utterance
             self.onSpeakRange = onSpeakRange
             self.completion = completion
@@ -107,7 +106,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
             utterance.text
         }
 
-        static func ==(lhs: Task, rhs: Task) -> Bool {
+        static func == (lhs: Task, rhs: Task) -> Bool {
             ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
         }
     }
@@ -130,13 +129,14 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
             super.init(string: task.utterance.text)
         }
 
+        @available(*, unavailable)
         required init?(coder: NSCoder) {
             fatalError("Not supported")
         }
     }
 
     // MARK: AVSpeechSynthesizerDelegate
-    
+
     public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
         guard let task = (utterance as? TaskUtterance)?.task else {
             return
@@ -150,7 +150,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         }
         on(.didFinish(task))
     }
-    
+
     public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
         guard let task = (utterance as? TaskUtterance)?.task else {
             return
@@ -169,9 +169,8 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         on(.willSpeakRange(range, task: task))
     }
 
-    
     // MARK: State machine
-    
+
     // Submitting new utterances to `AVSpeechSynthesizer` when the `didStart` or
     // `didFinish` events for the previous utterance were not received triggers
     // a deadlock on iOS 15. The engine ignores the following requests.
@@ -201,7 +200,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
             stopping -> stopped [label = "didFinish w/o next"]
         }
      */
-    
+
     /// Represents a state of the TTS engine.
     private enum State: Equatable {
         /// The TTS engine is waiting for the next utterance to play.
@@ -214,7 +213,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         /// and/or didFinish. The queued utterance will be played once the engine is successfully stopped.
         case stopping(Task, queued: Task?)
     }
-    
+
     /// State machine events triggered by the `AVSpeechSynthesizer` or the client
     /// of `AVTTSEngine`.
     private enum Event: Equatable {
@@ -230,22 +229,21 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
 
     private var state: State = .stopped {
         didSet {
-            if (debug) {
+            if debug {
                 log(.debug, "* \(state)")
             }
         }
     }
-    
+
     /// Raises a TTS event triggering a state change and handles its side effects.
     private func on(_ event: Event) {
         assert(Thread.isMainThread, "Raising AVTTSEngine events must be done from the main thread")
 
-        if (debug) {
+        if debug {
             log(.debug, "-> on \(event)")
         }
 
         switch (state, event) {
-
         // stopped
         case let (.stopped, .play(task)):
             state = .starting(task)
@@ -305,7 +303,6 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         case let (.stopping(current, queued: _), .stop(toStop)) where current == toStop:
             state = .stopping(current, queued: nil)
 
-
         default:
             break
         }
@@ -325,9 +322,9 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
 
     private func voice(for utterance: TTSUtterance) -> AVSpeechSynthesisVoice? {
         switch utterance.voiceOrLanguage {
-        case .left(let voice):
+        case let .left(voice):
             return AVSpeechSynthesisVoice(identifier: voice.identifier)
-        case .right(let language):
+        case let .right(language):
             return AVSpeechSynthesisVoice(language: language)
         }
     }
@@ -340,7 +337,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         let audioConfiguration: _AudioSession.Configuration
 
         init(config: _AudioSession.Configuration) {
-            self.audioConfiguration = config
+            audioConfiguration = config
         }
 
         deinit {
@@ -389,10 +386,10 @@ private extension TTSVoice.Quality {
             self = .medium
         case .enhanced:
             self = .high
-#if swift(>=5.7)
-        case .premium:
-            self = .high
-#endif
+        #if swift(>=5.7)
+            case .premium:
+                self = .high
+        #endif
         @unknown default:
             return nil
         }

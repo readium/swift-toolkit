@@ -1,20 +1,13 @@
 //
-//  UIViewController.swift
-//  r2-testapp-swift
-//
-//  Created by Mickaël Menu on 20.02.19.
-//
-//  Copyright 2019 European Digital Reading Lab. All rights reserved.
-//  Licensed to the Readium Foundation under one or more contributor license agreements.
-//  Use of this source code is governed by a BSD-style license which is detailed in the
-//  LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 import UIKit
 
 extension UIViewController {
-    
     /// Finds the first child view controller with the given type, recursively.
     func findChildViewController<T: UIViewController>() -> T? {
         for childViewController in children {
@@ -27,5 +20,4 @@ extension UIViewController {
         }
         return nil
     }
-
 }

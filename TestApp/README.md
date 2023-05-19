@@ -2,7 +2,7 @@
 
 This sample application demonstrates how to integrate the Readium Swift toolkit in your own reading app. Stable versions are [published on TestFlight](https://testflight.apple.com/join/lYEMEfBr).
 
-:warning: The Readium toolkit itself supports down to iOS 10, but the Test App requires iOS 14 and Xcode 13.2.
+:warning: The Readium toolkit itself supports down to iOS 11, but the Test App requires iOS 14 and Xcode 13.2.
 
 ## Features
 

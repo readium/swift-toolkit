@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -27,9 +27,9 @@ public func R2LocalizedString(_ key: String, in bundleID: String, _ values: [CVa
 }
 
 public func R2LocalizedString(_ key: String, in bundleID: String, _ values: CVarArg...) -> String {
-    return R2LocalizedString(key, in: bundleID, values)
+    R2LocalizedString(key, in: bundleID, values)
 }
 
 func R2SharedLocalizedString(_ key: String, _ values: CVarArg...) -> String {
-    return R2LocalizedString("R2Shared.\(key)", in: Bundle.module, values)
+    R2LocalizedString("R2Shared.\(key)", in: Bundle.module, values)
 }

@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -10,13 +10,13 @@ import R2Shared
 /// Readium CSS layout variant to use.
 ///
 /// See https://github.com/readium/readium-css/tree/master/css/dist
-struct CSSLayout: Equatable {
+struct CSSLayout: Hashable {
     let language: Language?
     let stylesheets: Stylesheets
     let readingProgression: ReadingProgression
 
     /// Readium CSS stylesheet variants.
-    enum Stylesheets {
+    enum Stylesheets: Hashable {
         /// Left to right
         case `default`
         /// Right to left
@@ -52,7 +52,7 @@ struct CSSLayout: Equatable {
         case unspecified = ""
         case ltr
         case rtl
-        
+
         var isRTL: Bool? {
             switch self {
             case .unspecified:

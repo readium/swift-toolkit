@@ -13,7 +13,6 @@ public enum ResourcesServerError: Error {
 }
 
 public protocol ResourcesServer {
-    
     /// Serves the local file URL at the given absolute path on the server.
     /// If the given URL is a directory, then all the files in the directory are served.
     /// Subsequent calls with the same served path overwrite each other.
@@ -21,5 +20,4 @@ public protocol ResourcesServer {
     /// Returns: The URL to access the file on the server.
     @discardableResult
     func serve(_ url: URL, at path: String) throws -> URL
-    
 }

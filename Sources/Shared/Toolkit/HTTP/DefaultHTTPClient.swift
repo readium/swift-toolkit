@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -9,7 +9,6 @@ import UIKit
 
 /// Delegate protocol for `DefaultHTTPClient`.
 public protocol DefaultHTTPClientDelegate: AnyObject {
-
     /// Tells the delegate that the HTTP client will start a new `request`.
     ///
     /// Warning: You MUST call the `completion` handler with the request to start, otherwise the client will hang.
@@ -43,27 +42,23 @@ public protocol DefaultHTTPClientDelegate: AnyObject {
     /// This will be called only if `httpClient(_:recoverRequest:fromError:completion:)` is not implemented, or returns
     /// an error.
     func httpClient(_ httpClient: DefaultHTTPClient, request: HTTPRequest, didFailWithError error: HTTPError)
-
 }
 
 public extension DefaultHTTPClientDelegate {
-
-    func httpClient(_ httpClient: DefaultHTTPClient, willStartRequest request: HTTPRequest, completion: @escaping (HTTPResult<HTTPRequestConvertible>) -> ()) {
+    func httpClient(_ httpClient: DefaultHTTPClient, willStartRequest request: HTTPRequest, completion: @escaping (HTTPResult<HTTPRequestConvertible>) -> Void) {
         completion(.success(request))
     }
 
-    func httpClient(_ httpClient: DefaultHTTPClient, recoverRequest request: HTTPRequest, fromError error: HTTPError, completion: @escaping (HTTPResult<HTTPRequestConvertible>) -> ()) {
+    func httpClient(_ httpClient: DefaultHTTPClient, recoverRequest request: HTTPRequest, fromError error: HTTPError, completion: @escaping (HTTPResult<HTTPRequestConvertible>) -> Void) {
         completion(.failure(error))
     }
 
     func httpClient(_ httpClient: DefaultHTTPClient, request: HTTPRequest, didReceiveResponse response: HTTPResponse) {}
     func httpClient(_ httpClient: DefaultHTTPClient, request: HTTPRequest, didFailWithError error: HTTPError) {}
-
 }
 
 /// An implementation of `HTTPClient` using native APIs.
 public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSessionDataDelegate {
-    
     /// Returns the default user agent used when issuing requests.
     ///
     /// For example, TestApp/1.3 x86_64 iOS/15.0 CFNetwork/1312 Darwin/20.6.0
@@ -90,7 +85,7 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
 
         return "\(appName)/\(appVersion) \(deviceName) \(device.systemName)/\(device.systemVersion) CFNetwork/\(cfNetworkVersion) Darwin/\(darwinVersion)"
     }()
-    
+
     /// Creates a `DefaultHTTPClient` with common configuration settings.
     ///
     /// - Parameters:
@@ -141,7 +136,7 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
         self.userAgent = userAgent ?? DefaultHTTPClient.defaultUserAgent
         self.delegate = delegate
         super.init()
-        self.session = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
+        session = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
     }
 
     public weak var delegate: DefaultHTTPClientDelegate? = nil
@@ -153,7 +148,7 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
         session.invalidateAndCancel()
     }
 
-    public func stream(_ request: HTTPRequestConvertible, receiveResponse: ((HTTPResponse) -> ())?, consume: @escaping (Data, Double?) -> (), completion: @escaping (HTTPResult<HTTPResponse>) -> ()) -> Cancellable {
+    public func stream(_ request: HTTPRequestConvertible, receiveResponse: ((HTTPResponse) -> Void)?, consume: @escaping (Data, Double?) -> Void, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
         let mediator = MediatorCancellable()
 
         /// Attempts to start a `request`.
@@ -163,7 +158,7 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
                 .flatMap(willStartRequest)
                 .flatMap(requireNotCancelled)
                 .flatMap { request in
-                    return startTask(for: request)
+                    startTask(for: request)
                         .flatCatch { error in
                             recoverRequest(request, fromError: error)
                                 .flatMap(requireNotCancelled)
@@ -190,7 +185,7 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
                 if request.userAgent == nil {
                     request.userAgent = self.userAgent
                 }
-                
+
                 let cancellable = self.start(Task(
                     request: request,
                     task: self.session.dataTask(with: request.urlRequest),
@@ -202,7 +197,7 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
                     },
                     consume: consume,
                     completion: { [weak self] result in
-                        if let self = self, case .failure(let error) = result {
+                        if let self = self, case let .failure(error) = result {
                             self.delegate?.httpClient(self, request: request, didFailWithError: error)
                         }
                         completion(CancellableResult(result))
@@ -248,12 +243,11 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
         return mediator
     }
 
-
     // MARK: - Task Management
 
     /// On-going tasks.
     @Atomic private var tasks: [Task] = []
-    
+
     private func start(_ task: Task) -> Cancellable {
         $tasks.write { $0.append(task) }
         task.start()
@@ -261,17 +255,16 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
     }
 
     private func findTask(for urlTask: URLSessionTask) -> Task? {
-        let task = tasks.first { $0.task == urlTask}
+        let task = tasks.first { $0.task == urlTask }
         if task == nil {
             log(.error, "Cannot find on-going HTTP task for \(urlTask)")
         }
         return task
     }
 
-
     // MARK: - URLSessionDataDelegate
 
-    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> ()) {
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
         guard let task = findTask(for: dataTask) else {
             completionHandler(.cancel)
             return
@@ -287,17 +280,15 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
         findTask(for: task)?.urlSession(session, didCompleteWithError: error)
     }
 
-
     /// Represents an on-going HTTP task.
     private class Task: Cancellable, Loggable {
-
         enum TaskError: Error {
             case byteRangesNotSupported(url: URL)
         }
 
         private let request: HTTPRequest
         fileprivate let task: URLSessionTask
-        private let receiveResponse: ((HTTPResponse) -> Void)
+        private let receiveResponse: (HTTPResponse) -> Void
         private let consume: (Data, Double?) -> Void
         private let completion: (HTTPResult<HTTPResponse>) -> Void
 
@@ -325,7 +316,7 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
         }
 
         func start() {
-            self.log(.info, request)
+            log(.info, request)
             task.resume()
         }
 
@@ -338,10 +329,10 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
             case .start:
                 preconditionFailure("finish() called in `start` state")
 
-            case .stream(let response, _):
+            case let .stream(response, _):
                 completion(.success(response))
 
-            case .failure(let kind, let cause, let response):
+            case let .failure(kind, cause, response):
                 let error = HTTPError(kind: kind, cause: cause, response: response)
                 log(.error, "\(request.method) \(request.url) failed with: \(error.localizedDescription)")
                 completion(.failure(error))
@@ -353,7 +344,7 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
             state = .finished
         }
 
-        func urlSession(_ session: URLSession, didReceive urlResponse: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> ()) {
+        func urlSession(_ session: URLSession, didReceive urlResponse: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
             if case .finished = state {
                 completionHandler(.cancel)
                 return
@@ -432,12 +423,10 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
             }
             finish()
         }
-
     }
 }
 
 private extension HTTPRequest {
-
     var urlRequest: URLRequest {
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
@@ -449,14 +438,13 @@ private extension HTTPRequest {
 
         if let body = body {
             switch body {
-            case .data(let data):
+            case let .data(data):
                 request.httpBody = data
-            case .file(let url):
+            case let .file(url):
                 request.httpBodyStream = InputStream(url: url)
             }
         }
 
         return request
     }
-
 }

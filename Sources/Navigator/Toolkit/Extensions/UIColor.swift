@@ -1,17 +1,16 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import UIKit
 
-extension UIColor {
-
+public extension UIColor {
     /// Converts the color to a CSS expression.
     ///
     /// - Parameter alpha: When set, overrides the actual color alpha.
-    public func cssValue(alpha: Double? = nil) -> String {
+    func cssValue(alpha: Double? = nil) -> String {
         var r: CGFloat = 0
         var g: CGFloat = 0
         var b: CGFloat = 0

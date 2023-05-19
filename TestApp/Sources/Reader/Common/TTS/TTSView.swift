@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -19,7 +19,6 @@ struct TTSControls: View {
             alignment: .center,
             spacing: 16
         ) {
-
             IconButton(
                 systemName: "backward.fill",
                 size: .small,
@@ -108,7 +107,7 @@ struct TTSSettings: View {
             }
         }
     }
-    
+
     private func configBinding<T>(for keyPath: WritableKeyPath<Config, T>) -> Binding<T> {
         Binding(
             get: { viewModel.settings.config[keyPath: keyPath] },

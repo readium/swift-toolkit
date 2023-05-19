@@ -1,24 +1,17 @@
 //
-//  LicensesService.swift
-//  r2-lcp-swift
-//
-//  Created by Mickaël Menu on 01.02.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 import R2Shared
 
-
 final class LicensesService: Loggable {
-
     // Mapping between an unprotected format to the matching LCP protected format.
     private let mediaTypesMapping: [MediaType: MediaType] = [
         .readiumAudiobook: .lcpProtectedAudiobook,
-        .pdf: .lcpProtectedPDF
+        .pdf: .lcpProtectedPDF,
     ]
 
     private let isProduction: Bool
@@ -40,7 +33,7 @@ final class LicensesService: Loggable {
     }
 
     func retrieve(from publication: URL, authentication: LCPAuthenticating?, allowUserInteraction: Bool, sender: Any?) -> Deferred<License?, LCPError> {
-        return makeLicenseContainer(for: publication)
+        makeLicenseContainer(for: publication)
             .flatMap { container in
                 guard let container = container, container.containsLicense() else {
                     // Not protected with LCP
@@ -54,18 +47,18 @@ final class LicensesService: Loggable {
     }
 
     fileprivate func retrieve(from container: LicenseContainer, authentication: LCPAuthenticating?, allowUserInteraction: Bool, sender: Any?) -> Deferred<License, Error> {
-        return deferredCatching(on: .global(qos: .background)) {
+        deferredCatching(on: .global(qos: .background)) {
             let initialData = try container.read()
-            
+
             func onLicenseValidated(of license: LicenseDocument) throws {
                 // Any errors are ignored to avoid blocking the publication.
-                
+
                 do {
                     try self.licenses.addLicense(license)
                 } catch {
                     self.log(.error, "Failed to add the LCP License to the local database: \(error)")
                 }
-                
+
                 // Updates the License in the container if needed
                 if license.data != initialData {
                     do {
@@ -76,7 +69,7 @@ final class LicensesService: Loggable {
                     }
                 }
             }
-            
+
             let validation = LicenseValidation(
                 authentication: authentication,
                 allowUserInteraction: allowUserInteraction,
@@ -101,13 +94,13 @@ final class LicensesService: Loggable {
                 }
         }
     }
-    
+
     func acquirePublication(from lcpl: URL, onProgress: @escaping (LCPAcquisition.Progress) -> Void, completion: @escaping (CancellableResult<LCPAcquisition.Publication, LCPError>) -> Void) -> LCPAcquisition {
         let acquisition = LCPAcquisition(onProgress: onProgress, completion: completion)
-        
+
         readLicense(from: lcpl).resolve { result in
             switch result {
-            case .success(let license):
+            case let .success(license):
                 guard let license = license else {
                     acquisition.cancel()
                     return
@@ -115,7 +108,7 @@ final class LicensesService: Loggable {
 
                 self.acquirePublication(from: license, using: acquisition)
 
-            case .failure(let error):
+            case let .failure(error):
                 acquisition.didComplete(with: .failure(error))
             case .cancelled:
                 acquisition.cancel()
@@ -124,7 +117,7 @@ final class LicensesService: Loggable {
 
         return acquisition
     }
-    
+
     private func readLicense(from lcpl: URL) -> Deferred<LicenseDocument?, LCPError> {
         makeLicenseContainer(for: lcpl)
             .tryMap { container in
@@ -132,7 +125,7 @@ final class LicensesService: Loggable {
                     // Not protected with LCP
                     return nil
                 }
-                
+
                 return try LicenseDocument(data: container.read())
             }
             .mapError(LCPError.wrap)
@@ -150,23 +143,23 @@ final class LicensesService: Loggable {
                 onProgress: { acquisition.onProgress(.percent(Float($0))) },
                 completion: { result in
                     switch result {
-                    case .success(let download):
+                    case let .success(download):
                         self.injectLicense(license, in: download)
                             .resolve { result in
                                 switch result {
-                                case .success(let file):
+                                case let .success(file):
                                     acquisition.didComplete(with: .success(LCPAcquisition.Publication(
                                         localURL: file,
                                         suggestedFilename: self.suggestedFilename(for: file, license: license)
                                     )))
-                                case .failure(let error):
+                                case let .failure(error):
                                     acquisition.didComplete(with: .failure(LCPError.wrap(error)))
                                 case .cancelled:
                                     acquisition.cancel()
                                 }
                             }
 
-                    case .failure(let error):
+                    case let .failure(error):
                         acquisition.didComplete(with: .failure(LCPError.wrap(error)))
                     }
                 }
@@ -177,11 +170,11 @@ final class LicensesService: Loggable {
             acquisition.didComplete(with: .failure(.wrap(error)))
         }
     }
-    
+
     /// Injects the given License Document into the `file` acquired using `downloadTask`.
     private func injectLicense(_ license: LicenseDocument, in download: HTTPDownload) -> Deferred<URL, LCPError> {
         var mimetypes: [String] = [
-            download.mediaType.string
+            download.mediaType.string,
         ]
         if let linkType = license.link(for: .publication)?.type {
             mimetypes.append(linkType)
@@ -213,5 +206,4 @@ final class LicensesService: Loggable {
 
         return "\(license.id).\(fileExtension)"
     }
-
 }

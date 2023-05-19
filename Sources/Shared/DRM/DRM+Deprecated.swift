@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -12,7 +12,7 @@ import Foundation
 public struct DRM {
     public let brand: Brand
     public let scheme: Scheme
-    
+
     /// The license will be filled when passed back to the DRM module.
     public var license: DRMLicense?
 
@@ -38,7 +38,6 @@ public struct DRM {
 /// If there's a need for other generic DRM features, it can be implemented as a set of adapters in the client app, to cater to the interface's needs and capabilities.
 @available(*, unavailable, message: "The new `Streamer` is handling DRM through a `ContentProtectionService`")
 public protocol DRMLicense {
-
     /// Encryption profile, if available.
     var encryptionProfile: String? { get }
 
@@ -47,26 +46,23 @@ public protocol DRMLicense {
 
     /// Returns whether the user can copy extracts from the publication.
     var canCopy: Bool { get }
-    
+
     /// Processes the given text to be copied by the user.
     /// For example, you can save how much characters was copied to limit the overall quantity.
     /// - Parameter consumes: If true, then the user's copy right is consumed accordingly to the `text` input. Sets to false if you want to peek at the processed text without debiting the rights straight away.
     /// - Returns: The (potentially modified) text to put in the user clipboard, or nil if the user is not allowed to copy it.
     func copy(_ text: String, consumes: Bool) -> String?
-    
 }
 
 @available(*, unavailable)
 public extension DRMLicense {
-    
-    var encryptionProfile: String? { return nil }
+    var encryptionProfile: String? { nil }
 
-    var canCopy: Bool { return true }
-    
+    var canCopy: Bool { true }
+
     func copy(_ text: String, consumes: Bool) -> String? {
-        return canCopy ? text : nil
+        canCopy ? text : nil
     }
-    
 }
 
 @available(*, unavailable, renamed: "DRM")
@@ -75,80 +71,74 @@ public typealias Drm = DRM
 @available(*, unavailable, renamed: "DRMLicense")
 public typealias DrmLicense = DRMLicense
 
-
 @available(*, unavailable)
-extension DRM {
-
+public extension DRM {
     @available(*, unavailable, message: "Use `license?.encryptionProfile` instead")
-    public var profile: String? {
-        return license?.encryptionProfile
+    var profile: String? {
+        license?.encryptionProfile
     }
-    
 }
 
-
 @available(*, unavailable)
-extension DRMLicense {
-    
+public extension DRMLicense {
     @available(*, unavailable, message: "Use `LCPLicense.renewLoan` instead")
-    public func renew(endDate: Date?, completion: @escaping (Error?) -> Void) {
+    func renew(endDate: Date?, completion: @escaping (Error?) -> Void) {
         completion(nil)
     }
 
     @available(*, unavailable, message: "Use `LCPLicense.returnPublication` instead")
-    public func `return`(completion: @escaping (Error?) -> Void) {
+    func `return`(completion: @escaping (Error?) -> Void) {
         completion(nil)
     }
-    
+
     @available(*, unavailable, message: "Checking for the rights is handled by r2-lcp-swift now")
-    public func areRightsValid() throws {}
-    
+    func areRightsValid() throws {}
+
     @available(*, unavailable, message: "Registering the device is handled by r2-lcp-swift now")
-    public func register() {}
-    
+    func register() {}
+
     @available(*, unavailable, message: "Update DrmManagementTableViewController from r2-testapp-swift")
-    public func currentStatus() -> String {
-        return ""
+    func currentStatus() -> String {
+        ""
     }
-    
+
     @available(*, unavailable, message: "Update DrmManagementTableViewController from r2-testapp-swift")
-    public func lastUpdate() -> Date {
-        return Date()
+    func lastUpdate() -> Date {
+        Date()
     }
-    
+
     @available(*, unavailable, message: "Update DrmManagementTableViewController from r2-testapp-swift")
-    public func issued() -> Date {
-        return Date()
+    func issued() -> Date {
+        Date()
     }
-    
+
     @available(*, unavailable, message: "Update DrmManagementTableViewController from r2-testapp-swift")
-    public func provider() -> URL {
-        return URL(fileURLWithPath: "/")
+    func provider() -> URL {
+        URL(fileURLWithPath: "/")
     }
-    
+
     @available(*, unavailable, message: "Update DrmManagementTableViewController from r2-testapp-swift")
-    public func rightsEnd() -> Date? {
-        return nil
+    func rightsEnd() -> Date? {
+        nil
     }
-    
+
     @available(*, unavailable, message: "Update DrmManagementTableViewController from r2-testapp-swift")
-    public func potentialRightsEnd() -> Date? {
-        return nil
+    func potentialRightsEnd() -> Date? {
+        nil
     }
-    
+
     @available(*, unavailable, message: "Update DrmManagementTableViewController from r2-testapp-swift")
-    public func rightsStart() -> Date? {
-        return nil
+    func rightsStart() -> Date? {
+        nil
     }
-    
+
     @available(*, unavailable, message: "Update DrmManagementTableViewController from r2-testapp-swift")
-    public func rightsPrints() -> Int? {
-        return nil
+    func rightsPrints() -> Int? {
+        nil
     }
-    
+
     @available(*, unavailable, message: "Update DrmManagementTableViewController from r2-testapp-swift")
-    public func rightsCopies() -> Int? {
-        return nil
+    func rightsCopies() -> Int? {
+        nil
     }
-    
 }

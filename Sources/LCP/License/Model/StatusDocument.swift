@@ -1,12 +1,7 @@
 //
-//  StatusDocument.swift
-//  r2-lcp-swift
-//
-//  Created by Alexandre Camilleri on 9/6/17.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -15,7 +10,6 @@ import R2Shared
 /// Document that contains information about the history of a License Document, along with its current status and available interactions.
 /// https://github.com/readium/lcp-specs/blob/master/schema/status.schema.json
 public struct StatusDocument {
-
     public enum Status: String {
         // The License Document is available, but the user hasn't accessed the License and/or Status Document yet.
         case ready
@@ -37,7 +31,7 @@ public struct StatusDocument {
         case `return`
         case renew
     }
-    
+
     public let id: String
     public let status: Status
     /// A message meant to be displayed to the User regarding the current status of the license.
@@ -58,35 +52,35 @@ public struct StatusDocument {
         }
 
         guard let json = deserializedJSON as? [String: Any],
-            let id = json["id"] as? String,
-            let statusRaw = json["status"] as? String,
-            let status = Status(rawValue: statusRaw),
-            let message = json["message"] as? String,
-            let updated = json["updated"] as? [String: Any],
-            let licenseUpdated = (updated["license"] as? String)?.dateFromISO8601,
-            let statusUpdated = (updated["status"] as? String)?.dateFromISO8601,
-            let links = json["links"] as? [[String: Any]] else
-        {
+              let id = json["id"] as? String,
+              let statusRaw = json["status"] as? String,
+              let status = Status(rawValue: statusRaw),
+              let message = json["message"] as? String,
+              let updated = json["updated"] as? [String: Any],
+              let licenseUpdated = (updated["license"] as? String)?.dateFromISO8601,
+              let statusUpdated = (updated["status"] as? String)?.dateFromISO8601,
+              let links = json["links"] as? [[String: Any]]
+        else {
             throw ParsingError.statusDocument
         }
-        
+
         self.id = id
         self.status = status
         self.message = message
         self.licenseUpdated = licenseUpdated
         self.updated = statusUpdated
         self.links = try Links(json: links)
-        
+
         if let potentialRights = json["potential_rights"] as? [String: Any] {
             self.potentialRights = try PotentialRights(json: potentialRights)
         } else {
-            self.potentialRights = nil
+            potentialRights = nil
         }
 
         if let events = json["events"] as? [[String: Any]] {
             self.events = events.compactMap(Event.init)
         } else {
-            self.events = []
+            events = []
         }
     }
 
@@ -111,7 +105,7 @@ public struct StatusDocument {
     ///
     /// - Throws: `LCPError.invalidLink` if the URL can't be built.
     func url(for rel: Rel, preferredType: MediaType? = nil, with parameters: [String: LosslessStringConvertible] = [:]) throws -> URL {
-        let link = self.link(for: rel, type: preferredType)
+        let link = link(for: rel, type: preferredType)
             ?? linkWithNoType(for: rel)
 
         guard let url = link?.url(with: parameters) else {
@@ -123,20 +117,16 @@ public struct StatusDocument {
 
     /// Returns all the events with the given type.
     public func events(for type: Event.EventType) -> [Event] {
-        return events(for: type.rawValue)
+        events(for: type.rawValue)
     }
-    
+
     public func events(for type: String) -> [Event] {
-        return events.filter { $0.type == type }
+        events.filter { $0.type == type }
     }
-    
 }
 
-
 extension StatusDocument: CustomStringConvertible {
-    
     public var description: String {
-        return "Status(\(status.rawValue))"
+        "Status(\(status.rawValue))"
     }
-    
 }

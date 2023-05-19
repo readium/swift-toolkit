@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -16,7 +16,6 @@ enum MinizipArchiveError: Error {
 
 /// A ZIP `Archive` using the Minizip library.
 final class MinizipArchive: Archive, Loggable {
-
     static func make(url: URL) -> ArchiveResult<MinizipArchive> {
         guard url.isFileURL else {
             return .failure(.openFailed(archive: url, cause: MinizipArchiveError.notAFileURL(url)))
@@ -43,7 +42,7 @@ final class MinizipArchive: Archive, Loggable {
                 }
             } while try file.goToNextEntry()
 
-            return .success(try Self(url: url, entries: entries))
+            return try .success(Self(url: url, entries: entries))
 
         } catch {
             return .failure(.openFailed(archive: url, cause: error))
@@ -60,7 +59,7 @@ final class MinizipArchive: Archive, Loggable {
     }
 
     func readEntry(at path: ArchivePath) -> ArchiveEntryReader? {
-        guard let entry = self.entry(at: path) else {
+        guard let entry = entry(at: path) else {
             return nil
         }
         return MinizipEntryReader(archive: url, entry: entry)
@@ -70,7 +69,6 @@ final class MinizipArchive: Archive, Loggable {
 }
 
 private final class MinizipEntryReader: ArchiveEntryReader, Loggable {
-
     private let archive: URL
     private let entry: ArchiveEntry
     private var isClosed = false
@@ -93,12 +91,12 @@ private final class MinizipEntryReader: ArchiveEntryReader, Loggable {
 
     func read(range: Range<UInt64>?) -> ArchiveResult<Data> {
         transaction {
-            let range = range ?? 0..<entry.length
+            let range = range ?? 0 ..< entry.length
 
             do {
                 let file = try self.file()
                 try file.openEntry(at: entry.path, offset: range.lowerBound)
-                return .success(try file.readFromCurrentOffset(length: UInt64(range.count)))
+                return try .success(file.readFromCurrentOffset(length: UInt64(range.count)))
 
             } catch {
                 return .failure(.readFailed(entry: entry.path, archive: archive, cause: error))
@@ -129,13 +127,12 @@ private final class MinizipEntryReader: ArchiveEntryReader, Loggable {
             return try block()
         }
     }
-    private let queue = DispatchQueue(label: "org.readium.r2-shared-swift.MinizipFile")
 
+    private let queue = DispatchQueue(label: "org.readium.r2-shared-swift.MinizipFile")
 }
 
 /// Holds an opened Minizip file and provide a bridge to its C++ API.
 private final class MinizipFile {
-
     enum MinizipError: Error {
         case status(Int32)
         case noEntryOpened
@@ -151,7 +148,7 @@ private final class MinizipFile {
     private let file: unzFile
     private var isClosed = false
     /// Information about the currently opened entry.
-    private(set) var openedEntry: (path: ArchivePath, offset: UInt64)? = nil
+    private(set) var openedEntry: (path: ArchivePath, offset: UInt64)?
     /// Length of the buffer used when reading an entry's data.
     private var bufferLength: Int { 1024 * 32 }
 
@@ -221,9 +218,8 @@ private final class MinizipFile {
         } else {
             let isCompressed = (fileInfo.compression_method != 0)
             return .file(path,
-                length: UInt64(fileInfo.uncompressed_size),
-                compressedLength: isCompressed ? UInt64(fileInfo.compressed_size) : nil
-            )
+                         length: UInt64(fileInfo.uncompressed_size),
+                         compressedLength: isCompressed ? UInt64(fileInfo.compressed_size) : nil)
         }
     }
 
@@ -270,7 +266,7 @@ private final class MinizipFile {
         }
 
         var data = Data(capacity: Int(length))
-        try readFromCurrentOffset(length: length) { (bytes, length) in
+        try readFromCurrentOffset(length: length) { bytes, length in
             data.append(bytes, count: Int(length))
         }
         return data
@@ -295,7 +291,7 @@ private final class MinizipFile {
 
         while totalBytesRead < length {
             let bytesToRead = min(UInt64(bufferLength), length - totalBytesRead)
-            var buffer = Array<CUnsignedChar>(repeating: 0, count: Int(bytesToRead))
+            var buffer = [CUnsignedChar](repeating: 0, count: Int(bytesToRead))
             let bytesRead = UInt64(unzReadCurrentFile(file, &buffer, UInt32(bytesToRead)))
             if bytesRead == 0 {
                 break
@@ -316,6 +312,4 @@ private final class MinizipFile {
             throw MinizipError.status(status)
         }
     }
-
 }
-

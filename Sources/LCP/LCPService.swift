@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -17,20 +17,19 @@ import R2Shared
 /// your instance of `LCPAuthenticating`. This can be useful to provide the host `UIViewController`
 /// when presenting a dialog, for example.
 public final class LCPService: Loggable {
-
     private let licenses: LicensesService
     private let passphrases: PassphrasesRepository
-    
+
     public init(client: LCPClient, httpClient: HTTPClient = DefaultHTTPClient()) {
         // Determine whether the embedded liblcp.a is in production mode, by attempting to open a production license.
         let isProduction: Bool = {
             guard
                 let prodLicenseURL = Bundle.module.url(forResource: "prod-license", withExtension: "lcpl"),
                 let prodLicense = try? String(contentsOf: prodLicenseURL, encoding: .utf8)
-                else {
+            else {
                 return false
             }
-            let passphrase = "7B7602FEF5DEDA10F768818FFACBC60B173DB223B7E66D8B2221EBE2C635EFAD"  // "One passphrase"
+            let passphrase = "7B7602FEF5DEDA10F768818FFACBC60B173DB223B7E66D8B2221EBE2C635EFAD" // "One passphrase"
             return client.findOneValidPassphrase(jsonLicense: prodLicense, hashedPassphrases: [passphrase]) == passphrase
         }()
 
@@ -52,7 +51,7 @@ public final class LCPService: Loggable {
         warnIfMainThread()
         return makeLicenseContainerSync(for: file)?.containsLicense() == true
     }
-    
+
     /// Acquires a protected publication from a standalone LCPL file.
     ///
     /// You can cancel the on-going download with `acquisition.cancel()`.
@@ -60,7 +59,7 @@ public final class LCPService: Loggable {
     public func acquirePublication(from lcpl: URL, onProgress: @escaping (LCPAcquisition.Progress) -> Void = { _ in }, completion: @escaping (CancellableResult<LCPAcquisition.Publication, LCPError>) -> Void) -> LCPAcquisition {
         licenses.acquirePublication(from: lcpl, onProgress: onProgress, completion: completion)
     }
-    
+
     /// Opens the LCP license of a protected publication, to access its DRM metadata and decipher
     /// its content.
     ///
@@ -79,7 +78,7 @@ public final class LCPService: Loggable {
         allowUserInteraction: Bool = true,
         sender: Any? = nil,
         completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void
-    ) -> Void {
+    ) {
         licenses.retrieve(from: publication, authentication: authentication, allowUserInteraction: allowUserInteraction, sender: sender)
             .map { $0 as LCPLicense? }
             .resolve(completion)
@@ -94,5 +93,4 @@ public final class LCPService: Loggable {
     public func contentProtection(with authentication: LCPAuthenticating = LCPDialogAuthentication()) -> ContentProtection {
         LCPContentProtection(service: self, authentication: authentication)
     }
-
 }

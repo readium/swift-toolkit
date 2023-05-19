@@ -1,26 +1,20 @@
 //
-//  PresentationTests.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël on 24/02/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 class PresentationTests: XCTestCase {
-    
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            try? Presentation(json: [:]),
+            try? Presentation(json: [:] as [String: Any]),
             Presentation()
         )
     }
-    
+
     func testParseFullJSON() {
         XCTAssertEqual(
             try? Presentation(json: [
@@ -30,8 +24,8 @@ class PresentationTests: XCTestCase {
                 "orientation": "landscape",
                 "overflow": "paginated",
                 "spread": "both",
-                "layout": "fixed"
-            ]),
+                "layout": "fixed",
+            ] as [String: Any]),
             Presentation(
                 clipped: true,
                 continuous: false,
@@ -43,19 +37,19 @@ class PresentationTests: XCTestCase {
             )
         )
     }
-    
+
     func testParseInvalidJSON() {
         XCTAssertThrowsError(try Presentation(json: ""))
     }
-    
+
     func testParseAllowsNil() {
         XCTAssertEqual(try Presentation(json: nil), Presentation())
     }
-    
+
     func testGetMinimalJSON() {
-        AssertJSONEqual(Presentation().json, [:])
+        AssertJSONEqual(Presentation().json, [:] as [String: Any])
     }
-    
+
     func testGetFullJSON() {
         AssertJSONEqual(
             Presentation(
@@ -74,8 +68,8 @@ class PresentationTests: XCTestCase {
                 "orientation": "landscape",
                 "overflow": "paginated",
                 "spread": "both",
-                "layout": "fixed"
-            ]
+                "layout": "fixed",
+            ] as [String: Any]
         )
     }
 
@@ -86,21 +80,21 @@ class PresentationTests: XCTestCase {
         XCTAssertEqual(Presentation.Fit(rawValue: "height"), .height)
         XCTAssertNil(Presentation.Fit(rawValue: "foobar"))
     }
-    
+
     func testGetFitJSONValue() {
         XCTAssertEqual("contain", Presentation.Fit.contain.rawValue)
         XCTAssertEqual("cover", Presentation.Fit.cover.rawValue)
         XCTAssertEqual("width", Presentation.Fit.width.rawValue)
         XCTAssertEqual("height", Presentation.Fit.height.rawValue)
     }
-    
+
     func testParseOrientationFromJSONValue() {
         XCTAssertEqual(Presentation.Orientation(rawValue: "landscape"), .landscape)
         XCTAssertEqual(Presentation.Orientation(rawValue: "portrait"), .portrait)
         XCTAssertEqual(Presentation.Orientation(rawValue: "auto"), .auto)
         XCTAssertNil(Presentation.Orientation(rawValue: "foobar"))
     }
-    
+
     func testGetOrientationJSONValue() {
         XCTAssertEqual("landscape", Presentation.Orientation.landscape.rawValue)
         XCTAssertEqual("portrait", Presentation.Orientation.portrait.rawValue)
@@ -113,7 +107,7 @@ class PresentationTests: XCTestCase {
         XCTAssertEqual(Presentation.Overflow(rawValue: "auto"), .auto)
         XCTAssertNil(Presentation.Overflow(rawValue: "foobar"))
     }
-    
+
     func testGetOverflowJSONValue() {
         XCTAssertEqual("paginated", Presentation.Overflow.paginated.rawValue)
         XCTAssertEqual("scrolled", Presentation.Overflow.scrolled.rawValue)
@@ -126,26 +120,25 @@ class PresentationTests: XCTestCase {
         XCTAssertEqual(Presentation.Page(rawValue: "center"), .center)
         XCTAssertNil(Presentation.Page(rawValue: "foobar"))
     }
-    
+
     func testGetPageJSONValue() {
         XCTAssertEqual("left", Presentation.Page.left.rawValue)
         XCTAssertEqual("right", Presentation.Page.right.rawValue)
         XCTAssertEqual("center", Presentation.Page.center.rawValue)
     }
-    
+
     func testParseSpreadFromJSONValue() {
         XCTAssertEqual(Presentation.Spread(rawValue: "landscape"), .landscape)
         XCTAssertEqual(Presentation.Spread(rawValue: "both"), .both)
-        XCTAssertEqual(Presentation.Spread(rawValue: "none"), Presentation.Spread.none)  // For some reason this fails if we don't fully qualify .none
+        XCTAssertEqual(Presentation.Spread(rawValue: "none"), Presentation.Spread.none) // For some reason this fails if we don't fully qualify .none
         XCTAssertEqual(Presentation.Spread(rawValue: "auto"), .auto)
         XCTAssertNil(Presentation.Spread(rawValue: "foobar"))
     }
-    
+
     func testGetSpreadJSONValue() {
         XCTAssertEqual("landscape", Presentation.Spread.landscape.rawValue)
         XCTAssertEqual("both", Presentation.Spread.both.rawValue)
         XCTAssertEqual("none", Presentation.Spread.none.rawValue)
         XCTAssertEqual("auto", Presentation.Spread.auto.rawValue)
     }
-
 }

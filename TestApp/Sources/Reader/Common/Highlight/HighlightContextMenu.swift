@@ -1,26 +1,26 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import SwiftUI
 import Combine
+import SwiftUI
 
 struct HighlightContextMenu: View {
     let colors: [HighlightColor]
     let systemFontSize: CGFloat
-    
+
     private let colorSubject = PassthroughSubject<HighlightColor, Never>()
     var selectedColorPublisher: AnyPublisher<HighlightColor, Never> {
-        return colorSubject.eraseToAnyPublisher()
+        colorSubject.eraseToAnyPublisher()
     }
-    
+
     private let deleteSubject = PassthroughSubject<Void, Never>()
     var selectedDeletePublisher: AnyPublisher<Void, Never> {
-        return deleteSubject.eraseToAnyPublisher()
+        deleteSubject.eraseToAnyPublisher()
     }
-    
+
     var body: some View {
         HStack {
             ForEach(colors, id: \.self) { color in
@@ -32,7 +32,7 @@ struct HighlightContextMenu: View {
                 }
                 Divider()
             }
-                
+
             Button {
                 deleteSubject.send()
             } label: {
@@ -41,14 +41,15 @@ struct HighlightContextMenu: View {
             }
         }
     }
-    
+
     var preferredSize: CGSize {
         let itemSide = itemSideSize
         let itemsCount = colors.count + 1 // 1 is for "delete"
-        return CGSize(width: itemSide*CGFloat(itemsCount), height: itemSide)
+        return CGSize(width: itemSide * CGFloat(itemsCount), height: itemSide)
     }
-    
-// MARK: - Private
+
+    // MARK: - Private
+
     private func emoji(for color: HighlightColor) -> String {
         switch color {
         case .red:
@@ -61,7 +62,7 @@ struct HighlightContextMenu: View {
             return "🟡"
         }
     }
-    
+
     private var itemSideSize: CGFloat {
         let font = UIFont.systemFont(ofSize: systemFontSize)
         let fontAttributes = [NSAttributedString.Key.font: font]

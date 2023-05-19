@@ -1,12 +1,7 @@
 //
-//  RoutingFetcher.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 10/05/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -18,22 +13,21 @@ import Foundation
 ///
 /// The `routes` will be tested in the given order.
 final class RoutingFetcher: Fetcher {
-    
     /// Holds a child fetcher and the predicate used to determine if it can answer a request.
     ///
     /// The default value for `accepts` means that the fetcher will accept any link.
     struct Route {
         let fetcher: Fetcher
         let accepts: (Link) -> Bool
-        
+
         init(fetcher: Fetcher, accepts: @escaping (Link) -> Bool = { _ in true }) {
             self.fetcher = fetcher
             self.accepts = accepts
         }
     }
-    
+
     private let routes: [Route]
-    
+
     /// Creates a `RoutingFetcher` from a list of routes, which will be tested in the given order.
     init(routes: [Route]) {
         self.routes = routes
@@ -43,23 +37,22 @@ final class RoutingFetcher: Fetcher {
     convenience init(local: Fetcher, remote: Fetcher) {
         self.init(routes: [
             Route(fetcher: local, accepts: { $0.href.hasPrefix("/") }),
-            Route(fetcher: remote)
+            Route(fetcher: remote),
         ])
     }
-    
-    var links: [Link] { routes.flatMap { $0.fetcher.links } }
-    
+
+    var links: [Link] { routes.flatMap(\.fetcher.links) }
+
     func get(_ link: Link) -> Resource {
         guard let route = routes.first(where: { $0.accepts(link) }) else {
             return FailureResource(link: link, error: .notFound(nil))
         }
         return route.fetcher.get(link)
     }
-    
+
     func close() {
         for route in routes {
             route.fetcher.close()
         }
     }
-    
 }

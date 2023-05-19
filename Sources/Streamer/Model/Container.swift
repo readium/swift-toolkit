@@ -1,12 +1,7 @@
 //
-//  Container.swift
-//  r2-streamer-swift
-//
-//  Created by Olivier Körner on 14/12/2016.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -38,10 +33,9 @@ public enum ContainerError: Error {
 /// Provide methods for accessing raw data from container's files.
 @available(*, unavailable, message: "Use `Publication.get()` to access a publication's resources")
 public protocol Container: AnyObject {
-
     /// See `RootFile`.
     var rootFile: RootFile { get set }
-    
+
     /// Last modification date of the container.
     var modificationDate: Date { get }
 
@@ -75,14 +69,12 @@ public protocol Container: AnyObject {
 
 @available(*, unavailable, message: "Use `Publication.get()` to access a publication's resources")
 public extension Container {
-    
     /// The default implementation reads the modification date from the root file.
     /// FIXME: This is needed because the PublicationServer is returning the Publications sorted by date, so that the most recent are visible at the top in the library. But this is UX behavior and should be refactored in the test app's LibraryViewController, instead of exposing it here.
     var modificationDate: Date {
         let url = NSURL(fileURLWithPath: rootFile.rootPath)
-        var modificationDate : AnyObject?
+        var modificationDate: AnyObject?
         try? url.getResourceValue(&modificationDate, forKey: .contentModificationDateKey)
         return (modificationDate as? Date) ?? Date()
     }
-    
 }

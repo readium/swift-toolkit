@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -8,7 +8,6 @@ import Foundation
 
 /// A default implementation of the `LocatorService` using the `PositionsService` to locate its inputs.
 open class DefaultLocatorService: LocatorService, Loggable {
-
     public let publication: Weak<Publication>
 
     public init(publication: Weak<Publication>) {
@@ -63,7 +62,7 @@ open class DefaultLocatorService: LocatorService, Loggable {
     }
 
     open func locate(progression totalProgression: Double) -> Locator? {
-        guard 0.0...1.0 ~= totalProgression else {
+        guard 0.0 ... 1.0 ~= totalProgression else {
             log(.error, "Progression must be between 0.0 and 1.0, received \(totalProgression)")
             return nil
         }
@@ -116,7 +115,7 @@ open class DefaultLocatorService: LocatorService, Loggable {
             if
                 let prog1 = first.locations.totalProgression,
                 let prog2 = second.locations.totalProgression,
-                prog1..<prog2 ~= totalProgression
+                prog1 ..< prog2 ~= totalProgression
             {
                 return true
             }
@@ -159,5 +158,4 @@ open class DefaultLocatorService: LocatorService, Loggable {
         }
         return last
     }
-
 }

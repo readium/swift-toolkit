@@ -9,8 +9,7 @@ import R2Shared
 
 /// Preferences for the `EPUBNavigatorViewController`.
 public struct EPUBPreferences: ConfigurablePreferences {
-
-    public static let empty: EPUBPreferences = EPUBPreferences()
+    public static let empty: EPUBPreferences = .init()
 
     /// Default page background color.
     public var backgroundColor: Color?
@@ -55,7 +54,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
     /// Vertical margins for paragraphs.
     public var paragraphSpacing: Double?
 
-    /// Indicates whether the original publisher styles should be observed. 
+    /// Indicates whether the original publisher styles should be observed.
     ///
     /// Many settings require this to be off.
     public var publisherStyles: Bool?
@@ -87,7 +86,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
     public var typeScale: Double?
 
     /// Indicates whether the text should be laid out vertically.
-    /// 
+    ///
     /// This is used for example with CJK languages. This setting is
     /// automatically derived from the language if no preference is given.
     public var verticalText: Bool?
@@ -119,14 +118,14 @@ public struct EPUBPreferences: ConfigurablePreferences {
         textNormalization: Bool? = nil,
         theme: Theme? = nil,
         typeScale: Double? = nil,
-        verticalText: Bool? = nil, 
+        verticalText: Bool? = nil,
         wordSpacing: Double? = nil
     ) {
         self.backgroundColor = backgroundColor
         self.columnCount = columnCount
         self.fontFamily = fontFamily
         self.fontSize = fontSize.map { max($0, 0) }
-        self.fontWeight = fontWeight?.clamped(to: 0.0...2.5)
+        self.fontWeight = fontWeight?.clamped(to: 0.0 ... 2.5)
         self.hyphens = hyphens
         self.imageFilter = imageFilter
         self.language = language

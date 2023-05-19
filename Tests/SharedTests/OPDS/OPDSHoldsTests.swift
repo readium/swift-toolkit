@@ -1,55 +1,49 @@
 //
-//  OPDSHoldsTests.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 24/02/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 class OPDSHoldsTests: XCTestCase {
-
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            try? OPDSHolds(json: [:]),
+            try? OPDSHolds(json: [:] as [String: Any]),
             OPDSHolds(total: nil, position: nil)
         )
     }
-    
+
     func testParseFullJSON() {
         XCTAssertEqual(
             try? OPDSHolds(json: [
                 "total": 5,
-                "position": 6
+                "position": 6,
             ]),
             OPDSHolds(total: 5, position: 6)
         )
     }
-    
+
     func testParseInvalidJSON() {
         XCTAssertThrowsError(try OPDSHolds(json: ""))
     }
-    
+
     func testParseRequiresPositiveTotal() {
         XCTAssertEqual(
             try? OPDSHolds(json: [
                 "total": -5,
-                "position": 6
+                "position": 6,
             ]),
             OPDSHolds(total: nil, position: 6)
         )
     }
-    
+
     func testParseRequiresPositivePosition() {
         XCTAssertEqual(
             try? OPDSHolds(json: [
                 "total": 5,
-                "position": -6
+                "position": -6,
             ]),
             OPDSHolds(total: 5, position: nil)
         )
@@ -58,18 +52,17 @@ class OPDSHoldsTests: XCTestCase {
     func testGetMinimalJSON() {
         AssertJSONEqual(
             OPDSHolds(total: nil, position: nil).json,
-            [:]
+            [:] as [String: Any]
         )
     }
-    
+
     func testGetFullJSON() {
         AssertJSONEqual(
             OPDSHolds(total: 5, position: 6).json,
             [
                 "total": 5,
-                "position": 6
+                "position": 6,
             ]
         )
     }
-
 }

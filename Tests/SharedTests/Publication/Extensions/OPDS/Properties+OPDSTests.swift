@@ -1,29 +1,23 @@
 //
-//  Properties+OPDSTests.swift
-//  r2-shared-swiftTests
-//
-//  Created by Mickaël Menu on 14.03.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 class PropertiesOPDSTests: XCTestCase {
-
     func testNoNumberOfItems() {
         let sut = Properties()
         XCTAssertNil(sut.numberOfItems)
     }
-    
+
     func testNumberOfItems() {
         let sut = Properties(["numberOfItems": 42])
         XCTAssertEqual(sut.numberOfItems, 42)
     }
-    
+
     func testNumberOfItemsMustBePositive() {
         let sut = Properties(["numberOfItems": -20])
         XCTAssertNil(sut.numberOfItems)
@@ -33,12 +27,12 @@ class PropertiesOPDSTests: XCTestCase {
         let sut = Properties()
         XCTAssertNil(sut.price)
     }
-    
+
     func testPrice() {
         let sut = Properties(["price": [
             "currency": "EUR",
-            "value": 3.65
-        ]])
+            "value": 3.65,
+        ] as [String: Any]])
 
         XCTAssertEqual(sut.price, OPDSPrice(currency: "EUR", value: 3.65))
     }
@@ -47,14 +41,14 @@ class PropertiesOPDSTests: XCTestCase {
         let sut = Properties()
         XCTAssertEqual(sut.indirectAcquisitions, [])
     }
-    
+
     func testIndirectAcquisition() {
         let sut = Properties(["indirectAcquisition": [
-            [ "type": "acqtype" ]
+            ["type": "acqtype"],
         ]])
-        
+
         XCTAssertEqual(sut.indirectAcquisitions, [
-            OPDSAcquisition(type: "acqtype")
+            OPDSAcquisition(type: "acqtype"),
         ])
     }
 
@@ -62,12 +56,12 @@ class PropertiesOPDSTests: XCTestCase {
         let sut = Properties()
         XCTAssertNil(sut.holds)
     }
-    
+
     func testHolds() {
         let sut = Properties(["holds": [
-            "total": 5
+            "total": 5,
         ]])
-        
+
         XCTAssertEqual(sut.holds, OPDSHolds(total: 5, position: nil))
     }
 
@@ -75,12 +69,12 @@ class PropertiesOPDSTests: XCTestCase {
         let sut = Properties()
         XCTAssertNil(sut.copies)
     }
-    
+
     func testCopies() {
         let sut = Properties(["copies": [
-            "total": 5
+            "total": 5,
         ]])
-        
+
         XCTAssertEqual(sut.copies, OPDSCopies(total: 5, available: nil))
     }
 
@@ -88,12 +82,12 @@ class PropertiesOPDSTests: XCTestCase {
         let sut = Properties()
         XCTAssertNil(sut.availability)
     }
-    
+
     func testAvailability() {
         let sut = Properties(["availability": [
-            "state": "available"
+            "state": "available",
         ]])
-        
+
         XCTAssertEqual(sut.availability, OPDSAvailability(state: .available))
     }
 
@@ -119,5 +113,4 @@ class PropertiesOPDSTests: XCTestCase {
         ]])
         XCTAssertNil(sut.authenticate)
     }
-
 }

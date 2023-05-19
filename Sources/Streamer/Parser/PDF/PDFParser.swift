@@ -1,16 +1,11 @@
 //
-//  PDFParser.swift
-//  r2-streamer-swift
-//
-//  Created by Mickaël Menu on 05.03.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import Foundation
 import CoreGraphics
+import Foundation
 import R2Shared
 
 /// Errors thrown during the parsing of the PDF.
@@ -25,29 +20,27 @@ public enum PDFParserError: Error {
     case invalidLCPDF
 }
 
-
 public final class PDFParser: PublicationParser, Loggable {
-    
     enum Error: Swift.Error {
         case fileNotReadable
     }
 
     private let pdfFactory: PDFDocumentFactory
-    
+
     public init(pdfFactory: PDFDocumentFactory = DefaultPDFDocumentFactory()) {
         self.pdfFactory = pdfFactory
     }
-    
+
     public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
         guard asset.mediaType() == .pdf else {
             return nil
         }
-       
+
         let readingOrder = fetcher.links.filter(byMediaType: .pdf)
         guard let firstLink = readingOrder.first else {
             throw PDFDocumentError.openFailed
         }
-        
+
         let resource = fetcher.get(firstLink)
         let document = try pdfFactory.open(resource: resource, password: nil)
         let authors = Array(ofNotNil: document.author.map { Contributor(name: $0) })
@@ -73,7 +66,7 @@ public final class PDFParser: PublicationParser, Loggable {
             )
         )
     }
-    
+
     @available(*, unavailable, message: "Use `init(pdfFactory:)` instead")
     public convenience init(parserType: PDFFileParser.Type) {
         self.init(pdfFactory: PDFFileParserFactory(parserType: parserType))
@@ -83,5 +76,4 @@ public final class PDFParser: PublicationParser, Loggable {
     public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
         fatalError("Not available")
     }
-
 }

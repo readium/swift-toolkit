@@ -50,14 +50,12 @@ public extension Preference where Value == Bool {
 
 /// A `Preference` which accepts a closed set of values.
 public protocol EnumPreference: Preference where Value: Hashable {
-
     /// List of valid values for this preference.
     var supportedValues: [Value] { get }
 }
 
 /// A `Preference` whose values must be in a `ClosedRange` of `Value`.
 public protocol RangePreference: Preference where Value: Comparable {
-
     /// Supported range for the values.
     var supportedRange: ClosedRange<Value> { get }
 
@@ -75,16 +73,15 @@ public protocol RangePreference: Preference where Value: Comparable {
 
 // MARK: - Type erasers
 
-extension Preference {
+public extension Preference {
     /// Wraps this `Preference` with a type eraser.
-    public func eraseToAnyPreference() -> AnyPreference<Value> {
+    func eraseToAnyPreference() -> AnyPreference<Value> {
         AnyPreference(preference: self)
     }
 }
 
 /// A type-erasing `Preference` object.
 public class AnyPreference<Value>: Preference {
-
     public var value: Value? { _value() }
     public var effectiveValue: Value { _effectiveValue() }
     public var isEffective: Bool { _isEffective() }
@@ -106,16 +103,15 @@ public class AnyPreference<Value>: Preference {
     }
 }
 
-extension EnumPreference {
+public extension EnumPreference {
     /// Wraps this `Preference` with a type eraser.
-    public func eraseToAnyPreference() -> AnyEnumPreference<Value> {
+    func eraseToAnyPreference() -> AnyEnumPreference<Value> {
         AnyEnumPreference(enumPreference: self)
     }
 }
 
 /// A type-erasing `EnumPreference` object.
 public class AnyEnumPreference<Value: Hashable>: AnyPreference<Value>, EnumPreference {
-
     public var supportedValues: [Value] { _supportedValues() }
 
     private let _supportedValues: () -> [Value]
@@ -126,16 +122,15 @@ public class AnyEnumPreference<Value: Hashable>: AnyPreference<Value>, EnumPrefe
     }
 }
 
-extension RangePreference {
+public extension RangePreference {
     /// Wraps this `RangePreference` with a type eraser.
-    public func eraseToAnyPreference() -> AnyRangePreference<Value> {
+    func eraseToAnyPreference() -> AnyRangePreference<Value> {
         AnyRangePreference(rangePreference: self)
     }
 }
 
 /// A type-erasing `Preference` object.
 public class AnyRangePreference<Value: Comparable>: AnyPreference<Value>, RangePreference {
-
     public var supportedRange: ClosedRange<Value> { _supportedRange() }
 
     private let _supportedRange: () -> ClosedRange<Value>

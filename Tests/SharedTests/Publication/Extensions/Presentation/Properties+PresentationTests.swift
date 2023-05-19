@@ -1,19 +1,13 @@
 //
-//  Properties+PresentationTests.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël on 24/02/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 class PropertiesPresentationTests: XCTestCase {
-
     func testGetClippedWhenAvailable() {
         XCTAssertEqual(Properties(["clipped": true]).clipped, true)
     }
@@ -25,7 +19,7 @@ class PropertiesPresentationTests: XCTestCase {
     func testGetFitWhenAvailable() {
         XCTAssertEqual(Properties(["fit": "cover"]).fit, .cover)
     }
-    
+
     func testGetFitWhenMissing() {
         XCTAssertNil(Properties().fit)
     }
@@ -33,7 +27,7 @@ class PropertiesPresentationTests: XCTestCase {
     func testGetOrientationWhenAvailable() {
         XCTAssertEqual(Properties(["orientation": "landscape"]).orientation, .landscape)
     }
-    
+
     func testGetOrientationWhenMissing() {
         XCTAssertNil(Properties().orientation)
     }
@@ -41,7 +35,7 @@ class PropertiesPresentationTests: XCTestCase {
     func testGetOverflowWhenAvailable() {
         XCTAssertEqual(Properties(["overflow": "scrolled"]).overflow, .scrolled)
     }
-    
+
     func testGetOverflowWhenMissing() {
         XCTAssertNil(Properties().overflow)
     }
@@ -49,7 +43,7 @@ class PropertiesPresentationTests: XCTestCase {
     func testGetPageWhenAvailable() {
         XCTAssertEqual(Properties(["page": "right"]).page, .right)
     }
-    
+
     func testGetPageWhenMissing() {
         XCTAssertNil(Properties().page)
     }
@@ -57,9 +51,8 @@ class PropertiesPresentationTests: XCTestCase {
     func testGetSpreadWhenAvailable() {
         XCTAssertEqual(Properties(["spread": "both"]).spread, .both)
     }
-    
+
     func testGetSpreadWhenMissing() {
         XCTAssertNil(Properties().spread)
     }
-    
 }

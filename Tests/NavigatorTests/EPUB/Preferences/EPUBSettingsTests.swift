@@ -1,15 +1,14 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
-import R2Shared
 @testable import R2Navigator
+import R2Shared
+import XCTest
 
 class EPUBSettingsTests: XCTestCase {
-    
     func resolveLayout(
         languages: [String] = [],
         readingProgression: R2Shared.ReadingProgression = .auto,
@@ -28,7 +27,7 @@ class EPUBSettingsTests: XCTestCase {
             metadata: metadata
         ).cssLayout
     }
-    
+
     func testComputeLayoutWithoutPreferencesOrDefaults() {
         XCTAssertEqual(
             resolveLayout(),
@@ -79,7 +78,7 @@ class EPUBSettingsTests: XCTestCase {
             CSSLayout(language: "zh-TW", stylesheets: .cjkVertical, readingProgression: .rtl)
         )
     }
-    
+
     func testComputeLayoutWithLTRReadingProgression() {
         XCTAssertEqual(
             resolveLayout(readingProgression: .ltr),
@@ -130,7 +129,7 @@ class EPUBSettingsTests: XCTestCase {
             CSSLayout(language: "zh-TW", stylesheets: .cjkHorizontal, readingProgression: .ltr)
         )
     }
-    
+
     func testComputeLayoutWithRTLReadingProgression() {
         XCTAssertEqual(
             resolveLayout(readingProgression: .rtl),
@@ -181,7 +180,7 @@ class EPUBSettingsTests: XCTestCase {
             CSSLayout(language: "zh-TW", stylesheets: .cjkVertical, readingProgression: .rtl)
         )
     }
-    
+
     func testComputeLayoutWithVerticalTextForceEnabled() {
         XCTAssertEqual(
             resolveLayout(preferences: EPUBPreferences(verticalText: true)),
@@ -200,7 +199,7 @@ class EPUBSettingsTests: XCTestCase {
             CSSLayout(language: "en", stylesheets: .cjkVertical, readingProgression: .ltr)
         )
     }
-    
+
     func testComputeLayoutWithVerticalTextForceDisabled() {
         XCTAssertEqual(
             resolveLayout(preferences: EPUBPreferences(verticalText: false)),
@@ -231,7 +230,7 @@ class EPUBSettingsTests: XCTestCase {
             CSSLayout(language: "ja", stylesheets: .cjkHorizontal, readingProgression: .rtl)
         )
     }
-    
+
     func testRTLPreferenceTakesPrecedenceOverLTRPublicationMetadata() {
         XCTAssertEqual(
             resolveLayout(readingProgression: .ltr, preferences: EPUBPreferences(readingProgression: .rtl)),
@@ -264,7 +263,7 @@ class EPUBSettingsTests: XCTestCase {
             CSSLayout(language: "ja", stylesheets: .cjkHorizontal, readingProgression: .ltr)
         )
     }
-    
+
     func testRTLPublicationMetadataTakesPrecedenceOverLTRDefault() {
         XCTAssertEqual(
             resolveLayout(readingProgression: .rtl, defaults: EPUBDefaults(readingProgression: .ltr)),
@@ -275,21 +274,21 @@ class EPUBSettingsTests: XCTestCase {
             CSSLayout(language: "zh-tw", stylesheets: .cjkVertical, readingProgression: .rtl)
         )
     }
-    
+
     func testReadingProgressionFallbacksToLTR() {
         XCTAssertEqual(
             resolveLayout(readingProgression: .auto),
             CSSLayout(language: nil, stylesheets: .default, readingProgression: .ltr)
         )
     }
-    
+
     func testReadingProgressionFallbacksToDefaultReadingProgressionIfThereAreNoLanguagePreferenceOrHint() {
         XCTAssertEqual(
             resolveLayout(readingProgression: .auto, defaults: EPUBDefaults(readingProgression: .rtl)),
             CSSLayout(language: nil, stylesheets: .rtl, readingProgression: .rtl)
         )
     }
-    
+
     func testLanguageMetadataTakesPrecedenceOverDefaultReadingProgression() {
         XCTAssertEqual(
             resolveLayout(languages: ["en"], readingProgression: .auto, defaults: EPUBDefaults(readingProgression: .rtl)),
@@ -300,7 +299,7 @@ class EPUBSettingsTests: XCTestCase {
             CSSLayout(language: "zh", stylesheets: .cjkHorizontal, readingProgression: .ltr)
         )
     }
-    
+
     func testRTLPreferenceTakesPrecedenceOverLanguageMetadata() {
         XCTAssertEqual(
             resolveLayout(languages: ["en"], readingProgression: .auto, preferences: EPUBPreferences(readingProgression: .rtl)),
@@ -322,7 +321,7 @@ class EPUBSettingsTests: XCTestCase {
             CSSLayout(language: "zh-tw", stylesheets: .cjkHorizontal, readingProgression: .ltr)
         )
     }
-    
+
     func testRTLPreferenceTakesPrecedenceOverLanguagePreference() {
         XCTAssertEqual(
             resolveLayout(preferences: EPUBPreferences(language: "en", readingProgression: .rtl)),
@@ -336,14 +335,14 @@ class EPUBSettingsTests: XCTestCase {
             CSSLayout(language: "he", stylesheets: .default, readingProgression: .ltr)
         )
     }
-    
+
     func testHELanguagePreferenceTakesPrecedenceOverLanguageMetadata() {
         XCTAssertEqual(
             resolveLayout(languages: ["en"], readingProgression: .ltr, preferences: EPUBPreferences(language: "he")),
             CSSLayout(language: "he", stylesheets: .rtl, readingProgression: .rtl)
         )
     }
-    
+
     func testZHTWLanguagePreferenceTakesPrecedenceOverLanguageMetadata() {
         XCTAssertEqual(
             resolveLayout(languages: ["en"], readingProgression: .ltr, preferences: EPUBPreferences(language: "zh-tw")),

@@ -16,10 +16,11 @@ A [Test App](TestApp) demonstrates how to integrate the Readium Swift toolkit in
 
 <!-- https://swiftversion.net/ -->
 
-| Readium | iOS  | Swift compiler | Xcode |
-|---------|------|----------------|-------|
-| 2.5.0+  | 10.0 | 5.6.1          | 13.4  |
-| 2.4.0   | 10.0 | 5.3.2          | 12.4  |
+| Readium   | iOS  | Swift compiler | Xcode |
+|-----------|------|----------------|-------|
+| `develop` | 11.0 | 5.6.1          | 13.4  |
+| 2.5.0     | 10.0 | 5.6.1          | 13.4  |
+| 2.4.0     | 10.0 | 5.3.2          | 12.4  |
 
 ## Using Readium
 
@@ -77,7 +78,7 @@ pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-tool
 pod 'ReadiumInternal', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.0/Support/CocoaPods/ReadiumInternal.podspec'
 
 # Required if you use R2Streamer.
-pod 'GCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/3.7.3/GCDWebServer.podspec'
+pod 'GCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/3.7.4/GCDWebServer.podspec'
 ```
 
 Take a look at [CocoaPods's documentation](https://guides.cocoapods.org/using/using-cocoapods.html) for more information.

@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -16,9 +16,8 @@ import R2Shared
 /// https://github.com/readium/architecture/issues/101
 ///
 public final class EPUBPositionsService: PositionsService {
-
     public static func makeFactory(reflowableStrategy: ReflowableStrategy = .recommended) -> (PublicationServiceContext) -> EPUBPositionsService? {
-        return { context in
+        { context in
             EPUBPositionsService(
                 readingOrder: context.manifest.readingOrder,
                 presentation: context.manifest.metadata.presentation,
@@ -48,21 +47,21 @@ public final class EPUBPositionsService: PositionsService {
         /// Returns the number of positions in the given `resource` according to the strategy.
         func positionCount(for resource: Resource) -> Int {
             switch self {
-            case .originalLength(let pageLength):
+            case let .originalLength(pageLength):
                 let length = resource.link.properties.encryption?.originalLength.map { UInt64($0) }
                     ?? (try? resource.length.get())
                     ?? 0
-                return max(1, Int(ceil((Double(length) / Double(pageLength)))))
+                return max(1, Int(ceil(Double(length) / Double(pageLength))))
 
-            case .archiveEntryLength(let pageLength):
+            case let .archiveEntryLength(pageLength):
                 let length = resource.link.properties.archive?.entryLength
                     ?? (try? resource.length.get())
                     ?? 0
-                return max(1, Int(ceil((Double(length) / Double(pageLength)))))
+                return max(1, Int(ceil(Double(length) / Double(pageLength))))
             }
         }
     }
-    
+
     private let readingOrder: [Link]
     private let presentation: Presentation
     private let fetcher: Fetcher
@@ -74,7 +73,7 @@ public final class EPUBPositionsService: PositionsService {
         self.presentation = presentation
         self.reflowableStrategy = reflowableStrategy
     }
-    
+
     public lazy var positionsByReadingOrder: [[Locator]] = {
         var lastPositionOfPreviousResource = 0
         var positions = readingOrder.map { link -> [Locator] in
@@ -88,9 +87,9 @@ public final class EPUBPositionsService: PositionsService {
             lastPositionOfPreviousResource = lastPosition
             return positions
         }
-        
+
         // Calculates totalProgression
-        let totalPageCount = positions.map { $0.count }.reduce(0, +)
+        let totalPageCount = positions.map(\.count).reduce(0, +)
         if totalPageCount > 0 {
             positions = positions.map { locators in
                 locators.map { locator in
@@ -102,10 +101,10 @@ public final class EPUBPositionsService: PositionsService {
                 }
             }
         }
-        
+
         return positions
     }()
-    
+
     private func makePositions(ofFixedResource link: Link, from startPosition: Int) -> (Int, [Locator]) {
         let position = startPosition + 1
         let positions = [
@@ -113,17 +112,17 @@ public final class EPUBPositionsService: PositionsService {
                 for: link,
                 progression: 0,
                 position: position
-            )
+            ),
         ]
         return (position, positions)
     }
-    
+
     private func makePositions(ofReflowableResource link: Link, from startPosition: Int) -> (Int, [Locator]) {
         let resource = fetcher.get(link)
         let positionCount = reflowableStrategy.positionCount(for: resource)
         resource.close()
 
-        let positions = (1...positionCount).map { position in
+        let positions = (1 ... positionCount).map { position in
             makeLocator(
                 for: link,
                 progression: Double(position - 1) / Double(positionCount),
@@ -134,7 +133,7 @@ public final class EPUBPositionsService: PositionsService {
     }
 
     private func makeLocator(for link: Link, progression: Double, position: Int) -> Locator {
-        return Locator(
+        Locator(
             href: link.href,
             type: link.type ?? MediaType.html.string,
             title: link.title,
@@ -144,5 +143,4 @@ public final class EPUBPositionsService: PositionsService {
             )
         )
     }
-
 }

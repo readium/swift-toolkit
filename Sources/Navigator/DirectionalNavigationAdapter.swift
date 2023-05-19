@@ -4,8 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import Foundation
 import CoreGraphics
+import Foundation
 
 /// Helper handling directional UI events (e.g. edge taps or arrow keys) to turn
 /// the pages of a `VisualNavigator`.
@@ -13,7 +13,6 @@ import CoreGraphics
 /// This takes into account the reading progression of the navigator to turn
 /// pages in the right direction.
 public final class DirectionalNavigationAdapter {
-
     /// Indicates which viewport edges trigger page turns on tap.
     public struct TapEdges: OptionSet {
         /// The user can turn pages when tapping on the edges of both the
@@ -23,9 +22,9 @@ public final class DirectionalNavigationAdapter {
         public static let horizontal = TapEdges(rawValue: 1 << 0)
         /// The user can turn pages when tapping on the top and bottom edges.
         public static let vertical = TapEdges(rawValue: 1 << 1)
-        
+
         public var rawValue: Int
-        
+
         public init(rawValue: Int) {
             self.rawValue = rawValue
         }
@@ -39,7 +38,7 @@ public final class DirectionalNavigationAdapter {
     private let minimumVerticalEdgeSize: Double
     private let verticalEdgeThresholdPercent: Double?
     private let animatedTransition: Bool
-    
+
     /// Initializes a new `DirectionalNavigationAdapter`.
     ///
     /// - Parameters:
@@ -100,23 +99,23 @@ public final class DirectionalNavigationAdapter {
             let horizontalEdgeSize = horizontalEdgeThresholdPercent
                 .map { max(minimumHorizontalEdgeSize, $0 * bounds.width) }
                 ?? minimumHorizontalEdgeSize
-            let leftRange = 0.0...horizontalEdgeSize
-            let rightRange = (bounds.width - horizontalEdgeSize)...bounds.width
-            
+            let leftRange = 0.0 ... horizontalEdgeSize
+            let rightRange = (bounds.width - horizontalEdgeSize) ... bounds.width
+
             if rightRange.contains(point.x) {
                 return navigator.goRight(animated: animatedTransition)
             } else if leftRange.contains(point.x) {
                 return navigator.goLeft(animated: animatedTransition)
             }
         }
-        
+
         if tapEdges.contains(.vertical) {
             let verticalEdgeSize = verticalEdgeThresholdPercent
                 .map { max(minimumVerticalEdgeSize, $0 * bounds.height) }
                 ?? minimumVerticalEdgeSize
-            let topRange = 0.0...verticalEdgeSize
-            let bottomRange = (bounds.height - verticalEdgeSize)...bounds.height
-            
+            let topRange = 0.0 ... verticalEdgeSize
+            let bottomRange = (bounds.height - verticalEdgeSize) ... bounds.height
+
             if bottomRange.contains(point.y) {
                 return navigator.goForward(animated: animatedTransition)
             } else if topRange.contains(point.y) {
@@ -140,7 +139,7 @@ public final class DirectionalNavigationAdapter {
         else {
             return false
         }
-        
+
         switch event.key {
         case .arrowUp:
             return navigator.goBackward(animated: animatedTransition)

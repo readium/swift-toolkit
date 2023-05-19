@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -19,7 +19,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
 
         public var errorDescription: String? {
             switch self {
-            case .invalidHREF(let href):
+            case let .invalidHREF(href):
                 return "Can't produce an URL to create an AVAsset for HREF \(href)"
             }
         }
@@ -84,7 +84,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
         guard
             let href = request.href,
             var reqs = requests[href],
-            let index = reqs.firstIndex(where: { (req, _) in req == request })
+            let index = reqs.firstIndex(where: { req, _ in req == request })
         else {
             return
         }
@@ -125,17 +125,17 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
         return true
     }
 
-    private func fillInfo(_ infoRequest: AVAssetResourceLoadingContentInformationRequest , of request: AVAssetResourceLoadingRequest, using resource: Resource) {
+    private func fillInfo(_ infoRequest: AVAssetResourceLoadingContentInformationRequest, of request: AVAssetResourceLoadingRequest, using resource: Resource) {
         infoRequest.isByteRangeAccessSupported = true
         infoRequest.contentType = resource.link.mediaType.uti
-        if case .success(let length) = resource.length {
+        if case let .success(length) = resource.length {
             infoRequest.contentLength = Int64(length)
         }
         request.finishLoading()
     }
 
     private func fillData(_ dataRequest: AVAssetResourceLoadingDataRequest, of request: AVAssetResourceLoadingRequest, using resource: Resource) {
-        let range: Range<UInt64> = UInt64(dataRequest.currentOffset)..<(UInt64(dataRequest.currentOffset) + UInt64(dataRequest.requestedLength))
+        let range: Range<UInt64> = UInt64(dataRequest.currentOffset) ..< (UInt64(dataRequest.currentOffset) + UInt64(dataRequest.requestedLength))
 
         let cancellable = resource.stream(
             range: range,
@@ -144,7 +144,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
                 switch result {
                 case .success:
                     request.finishLoading()
-                case .failure(let error):
+                case let .failure(error):
                     request.finishLoading(with: error)
                 }
                 self.finishRequest(request)
@@ -157,13 +157,11 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
     func resourceLoader(_ resourceLoader: AVAssetResourceLoader, didCancel loadingRequest: AVAssetResourceLoadingRequest) {
         finishRequest(loadingRequest)
     }
-
 }
 
 private let schemePrefix = "r2"
 
 private extension AVAssetResourceLoadingRequest {
-
     var href: String? {
         guard let url = request.url, url.scheme?.hasPrefix(schemePrefix) == true else {
             return nil
@@ -181,5 +179,4 @@ private extension AVAssetResourceLoadingRequest {
             return nil
         }
     }
-
 }

@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -61,11 +61,9 @@ public class DefaultContentService: ContentService {
     }
 }
 
-
 // MARK: Publication Helpers
 
 public extension Publication {
-
     /// Creates a [Content] starting from the given `start` location, or the beginning of the
     /// publication when missing.
     func content(from start: Locator? = nil) -> Content? {
@@ -73,11 +71,9 @@ public extension Publication {
     }
 }
 
-
 // MARK: PublicationServicesBuilder Helpers
 
 public extension PublicationServicesBuilder {
-
     mutating func setContentServiceFactory(_ factory: ContentServiceFactory?) {
         if let factory = factory {
             set(ContentService.self, factory)

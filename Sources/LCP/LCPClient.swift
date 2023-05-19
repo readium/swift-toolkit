@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -30,7 +30,6 @@ import Foundation
 ///
 ///      }
 public protocol LCPClient {
-
     /// Create a context for a given license/passphrase tuple.
     func createContext(jsonLicense: String, hashedPassphrase: String, pemCrl: String) throws -> LCPClientContext
 
@@ -39,7 +38,6 @@ public protocol LCPClient {
 
     /// Given an array of possible password hashes, return a valid password hash for the lcpl licence.
     func findOneValidPassphrase(jsonLicense: String, hashedPassphrases: [String]) -> String?
-
 }
 
 public typealias LCPClientContext = Any

@@ -1,50 +1,44 @@
 //
-//  StringExtension.swift
-//  r2-streamer-swift
-//
-//  Created by Alexandre Camilleri on 2/27/17.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 
 extension String {
-
     var ns: NSString {
-        return self as NSString
+        self as NSString
     }
 
     func appending(pathComponent: String) -> String {
-        return (self as NSString).appendingPathComponent(pathComponent)
+        (self as NSString).appendingPathComponent(pathComponent)
     }
 
     var deletingLastPathComponent: String {
-        return ns.deletingLastPathComponent
+        ns.deletingLastPathComponent
     }
 
     var lastPathComponent: String {
-        return ns.lastPathComponent
+        ns.lastPathComponent
     }
 
     var pathExtension: String {
-        return ns.pathExtension
+        ns.pathExtension
     }
 
     func endIndex(of string: String, options: CompareOptions = .literal) -> Index? {
-        return range(of: string, options: options)?.upperBound
+        range(of: string, options: options)?.upperBound
     }
 
     func startIndex(of string: String, options: CompareOptions = .literal) -> Index? {
-        return range(of: string, options: options)?.lowerBound
+        range(of: string, options: options)?.lowerBound
     }
 
     func insert(string: String, at index: String.Index) -> String {
-        let prefix = self[..<index] //substring(to: index)
-        let suffix = self[index...] //substring(from: index)
+        let prefix = self[..<index] // substring(to: index)
+        let suffix = self[index...] // substring(from: index)
 
-        return  prefix + string + suffix
+        return prefix + string + suffix
     }
 }

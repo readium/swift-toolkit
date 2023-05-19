@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -20,7 +20,6 @@ enum DecorationChange {
 }
 
 extension Array where Element == DiffableDecoration {
-
     func changesByHREF(from source: [DiffableDecoration]) -> [String: [DecorationChange]] {
         let changeset = StagedChangeset(source: source, target: self)
 

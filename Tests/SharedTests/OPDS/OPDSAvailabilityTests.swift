@@ -1,19 +1,13 @@
 //
-//  OPDSAvailabilityTests.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 24/02/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 class OPDSAvailabilityTests: XCTestCase {
-
     func testParseStateFromJSON() {
         XCTAssertEqual(OPDSAvailability.State(rawValue: "available"), .available)
         XCTAssertEqual(OPDSAvailability.State(rawValue: "unavailable"), .unavailable)
@@ -28,20 +22,20 @@ class OPDSAvailabilityTests: XCTestCase {
         XCTAssertEqual(OPDSAvailability.State.reserved.rawValue, "reserved")
         XCTAssertEqual(OPDSAvailability.State.ready.rawValue, "ready")
     }
-    
+
     func testParseMinimalJSON() {
         XCTAssertEqual(
             try? OPDSAvailability(json: ["state": "available"]),
             OPDSAvailability(state: .available)
         )
     }
-    
+
     func testParseFullJSON() {
         XCTAssertEqual(
             try? OPDSAvailability(json: [
                 "state": "available",
                 "since": "2001-01-01T12:36:27+0000",
-                "until": "2001-02-01T12:36:27+0000"
+                "until": "2001-02-01T12:36:27+0000",
             ]),
             OPDSAvailability(
                 state: .available,
@@ -50,22 +44,22 @@ class OPDSAvailabilityTests: XCTestCase {
             )
         )
     }
-    
+
     func testParseInvalidJSON() {
-        XCTAssertThrowsError(try OPDSAvailability(json: [:]))
+        XCTAssertThrowsError(try OPDSAvailability(json: [:] as [String: Any]))
     }
-    
+
     func testParseRequiresState() {
         XCTAssertNil(try? OPDSAvailability(json: ["since": "2001-01-01T12:36:27+0000"]))
     }
-    
+
     func testGetMinimalJSON() {
         AssertJSONEqual(
             OPDSAvailability(state: .available).json,
             ["state": "available"]
         )
     }
-    
+
     func testGetFullJSON() {
         AssertJSONEqual(
             OPDSAvailability(
@@ -76,9 +70,8 @@ class OPDSAvailabilityTests: XCTestCase {
             [
                 "state": "available",
                 "since": "2001-01-01T12:36:27+0000",
-                "until": "2001-02-01T12:36:27+0000"
+                "until": "2001-02-01T12:36:27+0000",
             ]
         )
     }
-    
 }

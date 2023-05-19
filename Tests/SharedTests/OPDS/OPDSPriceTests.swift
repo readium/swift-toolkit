@@ -1,64 +1,57 @@
 //
-//  OPDSPriceTests.swift
-//  r2-shared-swiftTests
-//
-//  Created by Mickaël Menu on 12.03.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 class OPDSPriceTests: XCTestCase {
-    
     func testParseJSON() {
         XCTAssertEqual(
             try? OPDSPrice(json: [
                 "currency": "EUR",
-                "value": 4.65
-            ]),
+                "value": 4.65,
+            ] as [String: Any]),
             OPDSPrice(currency: "EUR", value: 4.65)
         )
     }
-    
+
     func testParseInvalidJSON() {
         XCTAssertThrowsError(try OPDSPrice(json: ""))
     }
-    
+
     func testParseJSONNil() {
         XCTAssertNil(try OPDSPrice(json: nil))
     }
-    
+
     func testParseJSONRequiresCurrency() {
         XCTAssertThrowsError(try OPDSPrice(json: [
-            "value": 4.65
+            "value": 4.65,
         ]))
     }
-    
+
     func testParseJSONRequiresValue() {
         XCTAssertThrowsError(try OPDSPrice(json: [
-            "currency": "EUR"
+            "currency": "EUR",
         ]))
     }
-    
+
     func testParseJSONRequiresPositiveValue() {
         XCTAssertThrowsError(try OPDSPrice(json: [
             "currency": "EUR",
-            "value": -20
-        ]))
+            "value": -20,
+        ] as [String: Any]))
     }
-    
+
     func testGetJSON() {
         AssertJSONEqual(
             OPDSPrice(currency: "EUR", value: 4.65).json,
             [
                 "currency": "EUR",
-                "value": 4.65
-            ]
+                "value": 4.65,
+            ] as [String: Any]
         )
     }
-
 }

@@ -1,14 +1,8 @@
 //
-//  Feed.swift
-//  r2-shared-swift
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
-//  Created by Alexandre Camilleri on 10/27/17.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
-//
-
 
 /// Main structure of an OPDS catalog.
 public class Feed {
@@ -21,13 +15,13 @@ public class Feed {
     public var context = [String]()
 
     public init(title: String) {
-        self.metadata = OpdsMetadata(title: title)
+        metadata = OpdsMetadata(title: title)
     }
 
     /// Return a String representing the URL of the searchLink of the feed.
     ///
     /// - Returns: The HREF value of the search link
     internal func getSearchLinkHref() -> String? {
-        return links.first(withRel: .search)?.href
+        links.first(withRel: .search)?.href
     }
 }

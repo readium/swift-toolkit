@@ -1,12 +1,7 @@
 //
-//  OPDS2Parser.swift
-//  readium-opds
-//
-//  Created by Nikita Aizikovskyi on Jan-30-2018.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -32,7 +27,7 @@ public class OPDS2Parser: Loggable {
     /// - parameter url: The feed URL
     public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
         feedURL = url
-    
+
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, let response = response else {
                 completion(nil, error ?? OPDSParserError.documentNotFound)
@@ -47,7 +42,7 @@ public class OPDS2Parser: Loggable {
             }
         }.resume()
     }
-    
+
     /// Parse an OPDS feed or publication.
     /// Feed can only be v2 (JSON).
     /// - parameter jsonData: The json raw data
@@ -55,28 +50,27 @@ public class OPDS2Parser: Loggable {
     /// - parameter response: The response payload
     /// - Returns: The intermediate structure of type ParseData
     public static func parse(jsonData: Data, url: URL, response: URLResponse) throws -> ParseData {
-        
         feedURL = url
-        
+
         var parseData = ParseData(url: url, response: response, version: .OPDS2)
-        
+
         guard let jsonRoot = try? JSONSerialization.jsonObject(with: jsonData, options: []) else {
             throw OPDS2ParserError.invalidJSON
         }
-        
+
         guard let topLevelDict = jsonRoot as? [String: Any] else {
             throw OPDS2ParserError.invalidJSON
         }
-        
+
         do {
-            if topLevelDict["navigation"] == nil
-                && topLevelDict["groups"] == nil
-                && topLevelDict["publications"] == nil
-                && topLevelDict["facets"] == nil {
-    
+            if topLevelDict["navigation"] == nil,
+               topLevelDict["groups"] == nil,
+               topLevelDict["publications"] == nil,
+               topLevelDict["facets"] == nil
+            {
                 // Publication only
                 parseData.publication = try Publication(json: topLevelDict)
-    
+
             } else {
                 // Feed
                 parseData.feed = try parse(jsonDict: topLevelDict)
@@ -86,27 +80,24 @@ public class OPDS2Parser: Loggable {
         }
 
         return parseData
-        
     }
-    
+
     /// Parse an OPDS feed.
     /// Feed can only be v2 (JSON).
     /// - parameter jsonDict: The json top level dictionary
     /// - Returns: The resulting Feed
     public static func parse(jsonDict: [String: Any]) throws -> Feed {
-        
         guard let metadataDict = jsonDict["metadata"] as? [String: Any] else {
             throw OPDS2ParserError.metadataNotFound
-            
         }
-        
+
         guard let title = metadataDict["title"] as? String else {
             throw OPDS2ParserError.missingTitle
         }
-        
+
         let feed = Feed(title: title)
         parseMetadata(opdsMetadata: feed.metadata, metadataDict: metadataDict)
-        
+
         for (k, v) in jsonDict {
             switch k {
             case "@context":
@@ -149,11 +140,10 @@ public class OPDS2Parser: Loggable {
                 continue
             }
         }
-        
+
         return feed
-        
     }
-    
+
     static func parseMetadata(opdsMetadata: OpdsMetadata, metadataDict: [String: Any]) {
         for (k, v) in metadataDict {
             switch k {
@@ -190,7 +180,7 @@ public class OPDS2Parser: Loggable {
             let facet = Facet(title: title)
             parseMetadata(opdsMetadata: facet.metadata, metadataDict: metadata)
             for (k, v) in facetDict {
-                if (k == "links") {
+                if k == "links" {
                     guard let links = v as? [[String: Any]] else {
                         throw OPDS2ParserError.invalidFacet
                     }
@@ -273,9 +263,8 @@ public class OPDS2Parser: Loggable {
             feed.groups.append(group)
         }
     }
-
 }
 
 private func hrefNormalizer(_ baseURL: URL?) -> (String) -> (String) {
-    return { href in URLHelper.getAbsolute(href: href, base: baseURL) ?? href }
+    { href in URLHelper.getAbsolute(href: href, base: baseURL) ?? href }
 }

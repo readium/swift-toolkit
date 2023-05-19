@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
   s.summary       = "R2 Navigator"
   s.homepage      = "http://readium.github.io"
   s.author        = { "Readium" => "contact@readium.org" }
-  s.source        = { :git => "https://github.com/readium/swift-toolkit.git", :tag => "2.5.0" }
+  s.source        = { :git => "https://github.com/readium/swift-toolkit.git", :branch => "develop" }
   s.requires_arc  = true
   s.resource_bundles = {
     'ReadiumNavigator' => [
@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   }
   s.source_files  = "Sources/Navigator/**/*.{m,h,swift}"
   s.platform      = :ios
-  s.ios.deployment_target = "10.0"
+  s.ios.deployment_target = "11.0"
   s.dependency 'R2Shared'
   s.dependency 'ReadiumInternal'
   s.dependency 'DifferenceKit', '~> 1.0'

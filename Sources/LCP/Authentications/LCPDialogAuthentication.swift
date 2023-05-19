@@ -1,12 +1,12 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import UIKit
 import R2Shared
+import UIKit
 
 /// An `LCPAuthenticating` implementation presenting a dialog to the user.
 ///
@@ -14,11 +14,10 @@ import R2Shared
 /// `UIViewController` to `Streamer.open()` or `LCPService.retrieveLicense()`. It will be used
 /// as the presenting view controller for the dialog.
 public class LCPDialogAuthentication: LCPAuthenticating, Loggable {
-    
     private let animated: Bool
     private let modalPresentationStyle: UIModalPresentationStyle
     private let modalTransitionStyle: UIModalTransitionStyle
-    
+
     public init(animated: Bool = true, modalPresentationStyle: UIModalPresentationStyle = .formSheet, modalTransitionStyle: UIModalTransitionStyle = .coverVertical) {
         self.animated = animated
         self.modalPresentationStyle = modalPresentationStyle
@@ -33,7 +32,7 @@ public class LCPDialogAuthentication: LCPAuthenticating, Loggable {
             completion(nil)
             return
         }
-        
+
         let dialogViewController = LCPDialogViewController(license: license, reason: reason, completion: completion)
 
         let navController = UINavigationController(rootViewController: dialogViewController)
@@ -42,5 +41,4 @@ public class LCPDialogAuthentication: LCPAuthenticating, Loggable {
 
         viewController.present(navController, animated: animated)
     }
-
 }

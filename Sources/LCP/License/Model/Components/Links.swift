@@ -1,5 +1,5 @@
 //
-//  Copyright 2019 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -8,16 +8,15 @@ import Foundation
 import R2Shared
 
 public struct Links {
-    
     private let links: [Link]
-    
-    init(json: [[String : Any]]) throws {
+
+    init(json: [[String: Any]]) throws {
         links = try json.map(Link.init)
     }
 
     /// Returns all the links with the given `rel`.
     public subscript(rel: String) -> [Link] {
-        return links.filter { $0.rel.contains(rel) }
+        links.filter { $0.rel.contains(rel) }
     }
 
     /// Returns the first link with the given `rel` and optional `type`.
@@ -36,7 +35,6 @@ public struct Links {
     func firstWithRelAndNoType(_ rel: String) -> Link? {
         links.first { $0.rel.contains(rel) && $0.type == nil }
     }
-
 }
 
 private extension Link {
