@@ -238,14 +238,11 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
             }
 
             // Seeks to time
-            if let time = locator.time(forDuration: resourceDuration), time >= 0 {
-                player.seek(to: CMTime(seconds: time, preferredTimescale: 1000)) { [weak self] finished in
-                    if let self, let delegate = self.delegate {
-                        delegate.navigator(self, didJumpTo: locator)
-                    }
-                    DispatchQueue.main.async(execute: completion)
+            let time = locator.time(forDuration: resourceDuration) ?? 0
+            player.seek(to: CMTime(seconds: time, preferredTimescale: 1000)) { [weak self] finished in
+                if let self, finished {
+                    self.delegate?.navigator(self, didJumpTo: locator)
                 }
-            } else {
                 DispatchQueue.main.async(execute: completion)
             }
             return true
