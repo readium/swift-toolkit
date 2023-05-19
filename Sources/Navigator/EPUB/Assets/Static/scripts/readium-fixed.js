@@ -10,7 +10,7 @@
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "DOMRectReadOnly": () => (/* binding */ DOMRectReadOnly)
+/* harmony export */   DOMRectReadOnly: () => (/* binding */ DOMRectReadOnly)
 /* harmony export */ });
 /* harmony import */ var _utils_freeze__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils/freeze */ "./node_modules/@juggle/resize-observer/lib/utils/freeze.js");
 
@@ -49,7 +49,7 @@ var DOMRectReadOnly = (function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "ResizeObservation": () => (/* binding */ ResizeObservation)
+/* harmony export */   ResizeObservation: () => (/* binding */ ResizeObservation)
 /* harmony export */ });
 /* harmony import */ var _ResizeObserverBoxOptions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ResizeObserverBoxOptions */ "./node_modules/@juggle/resize-observer/lib/ResizeObserverBoxOptions.js");
 /* harmony import */ var _algorithms_calculateBoxSize__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./algorithms/calculateBoxSize */ "./node_modules/@juggle/resize-observer/lib/algorithms/calculateBoxSize.js");
@@ -98,7 +98,7 @@ var ResizeObservation = (function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "ResizeObserver": () => (/* binding */ ResizeObserver)
+/* harmony export */   ResizeObserver: () => (/* binding */ ResizeObserver)
 /* harmony export */ });
 /* harmony import */ var _ResizeObserverController__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ResizeObserverController */ "./node_modules/@juggle/resize-observer/lib/ResizeObserverController.js");
 /* harmony import */ var _utils_element__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils/element */ "./node_modules/@juggle/resize-observer/lib/utils/element.js");
@@ -154,7 +154,7 @@ var ResizeObserver = (function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "ResizeObserverBoxOptions": () => (/* binding */ ResizeObserverBoxOptions)
+/* harmony export */   ResizeObserverBoxOptions: () => (/* binding */ ResizeObserverBoxOptions)
 /* harmony export */ });
 var ResizeObserverBoxOptions;
 (function (ResizeObserverBoxOptions) {
@@ -176,7 +176,7 @@ var ResizeObserverBoxOptions;
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "ResizeObserverController": () => (/* binding */ ResizeObserverController)
+/* harmony export */   ResizeObserverController: () => (/* binding */ ResizeObserverController)
 /* harmony export */ });
 /* harmony import */ var _utils_scheduler__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils/scheduler */ "./node_modules/@juggle/resize-observer/lib/utils/scheduler.js");
 /* harmony import */ var _ResizeObservation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ResizeObservation */ "./node_modules/@juggle/resize-observer/lib/ResizeObservation.js");
@@ -244,7 +244,7 @@ var ResizeObserverController = (function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "ResizeObserverDetail": () => (/* binding */ ResizeObserverDetail)
+/* harmony export */   ResizeObserverDetail: () => (/* binding */ ResizeObserverDetail)
 /* harmony export */ });
 var ResizeObserverDetail = (function () {
     function ResizeObserverDetail(resizeObserver, callback) {
@@ -270,7 +270,7 @@ var ResizeObserverDetail = (function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "ResizeObserverEntry": () => (/* binding */ ResizeObserverEntry)
+/* harmony export */   ResizeObserverEntry: () => (/* binding */ ResizeObserverEntry)
 /* harmony export */ });
 /* harmony import */ var _algorithms_calculateBoxSize__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./algorithms/calculateBoxSize */ "./node_modules/@juggle/resize-observer/lib/algorithms/calculateBoxSize.js");
 /* harmony import */ var _utils_freeze__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils/freeze */ "./node_modules/@juggle/resize-observer/lib/utils/freeze.js");
@@ -301,7 +301,7 @@ var ResizeObserverEntry = (function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "ResizeObserverSize": () => (/* binding */ ResizeObserverSize)
+/* harmony export */   ResizeObserverSize: () => (/* binding */ ResizeObserverSize)
 /* harmony export */ });
 /* harmony import */ var _utils_freeze__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils/freeze */ "./node_modules/@juggle/resize-observer/lib/utils/freeze.js");
 
@@ -327,7 +327,7 @@ var ResizeObserverSize = (function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "broadcastActiveObservations": () => (/* binding */ broadcastActiveObservations)
+/* harmony export */   broadcastActiveObservations: () => (/* binding */ broadcastActiveObservations)
 /* harmony export */ });
 /* harmony import */ var _utils_resizeObservers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/resizeObservers */ "./node_modules/@juggle/resize-observer/lib/utils/resizeObservers.js");
 /* harmony import */ var _ResizeObserverEntry__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../ResizeObserverEntry */ "./node_modules/@juggle/resize-observer/lib/ResizeObserverEntry.js");
@@ -379,8 +379,8 @@ var broadcastActiveObservations = function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "calculateBoxSize": () => (/* binding */ calculateBoxSize),
-/* harmony export */   "calculateBoxSizes": () => (/* binding */ calculateBoxSizes)
+/* harmony export */   calculateBoxSize: () => (/* binding */ calculateBoxSize),
+/* harmony export */   calculateBoxSizes: () => (/* binding */ calculateBoxSizes)
 /* harmony export */ });
 /* harmony import */ var _ResizeObserverBoxOptions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../ResizeObserverBoxOptions */ "./node_modules/@juggle/resize-observer/lib/ResizeObserverBoxOptions.js");
 /* harmony import */ var _ResizeObserverSize__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../ResizeObserverSize */ "./node_modules/@juggle/resize-observer/lib/ResizeObserverSize.js");
@@ -480,7 +480,7 @@ var calculateBoxSize = function (target, observedBox, forceRecalculation) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "calculateDepthForNode": () => (/* binding */ calculateDepthForNode)
+/* harmony export */   calculateDepthForNode: () => (/* binding */ calculateDepthForNode)
 /* harmony export */ });
 /* harmony import */ var _utils_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/element */ "./node_modules/@juggle/resize-observer/lib/utils/element.js");
 
@@ -510,7 +510,7 @@ var calculateDepthForNode = function (node) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "deliverResizeLoopError": () => (/* binding */ deliverResizeLoopError)
+/* harmony export */   deliverResizeLoopError: () => (/* binding */ deliverResizeLoopError)
 /* harmony export */ });
 var msg = 'ResizeObserver loop completed with undelivered notifications.';
 var deliverResizeLoopError = function () {
@@ -541,7 +541,7 @@ var deliverResizeLoopError = function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "gatherActiveObservationsAtDepth": () => (/* binding */ gatherActiveObservationsAtDepth)
+/* harmony export */   gatherActiveObservationsAtDepth: () => (/* binding */ gatherActiveObservationsAtDepth)
 /* harmony export */ });
 /* harmony import */ var _utils_resizeObservers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/resizeObservers */ "./node_modules/@juggle/resize-observer/lib/utils/resizeObservers.js");
 /* harmony import */ var _calculateDepthForNode__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./calculateDepthForNode */ "./node_modules/@juggle/resize-observer/lib/algorithms/calculateDepthForNode.js");
@@ -577,7 +577,7 @@ var gatherActiveObservationsAtDepth = function (depth) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "hasActiveObservations": () => (/* binding */ hasActiveObservations)
+/* harmony export */   hasActiveObservations: () => (/* binding */ hasActiveObservations)
 /* harmony export */ });
 /* harmony import */ var _utils_resizeObservers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/resizeObservers */ "./node_modules/@juggle/resize-observer/lib/utils/resizeObservers.js");
 
@@ -598,7 +598,7 @@ var hasActiveObservations = function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "hasSkippedObservations": () => (/* binding */ hasSkippedObservations)
+/* harmony export */   hasSkippedObservations: () => (/* binding */ hasSkippedObservations)
 /* harmony export */ });
 /* harmony import */ var _utils_resizeObservers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/resizeObservers */ "./node_modules/@juggle/resize-observer/lib/utils/resizeObservers.js");
 
@@ -619,9 +619,9 @@ var hasSkippedObservations = function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "ResizeObserver": () => (/* reexport safe */ _ResizeObserver__WEBPACK_IMPORTED_MODULE_0__.ResizeObserver),
-/* harmony export */   "ResizeObserverEntry": () => (/* reexport safe */ _ResizeObserverEntry__WEBPACK_IMPORTED_MODULE_1__.ResizeObserverEntry),
-/* harmony export */   "ResizeObserverSize": () => (/* reexport safe */ _ResizeObserverSize__WEBPACK_IMPORTED_MODULE_2__.ResizeObserverSize)
+/* harmony export */   ResizeObserver: () => (/* reexport safe */ _ResizeObserver__WEBPACK_IMPORTED_MODULE_0__.ResizeObserver),
+/* harmony export */   ResizeObserverEntry: () => (/* reexport safe */ _ResizeObserverEntry__WEBPACK_IMPORTED_MODULE_1__.ResizeObserverEntry),
+/* harmony export */   ResizeObserverSize: () => (/* reexport safe */ _ResizeObserverSize__WEBPACK_IMPORTED_MODULE_2__.ResizeObserverSize)
 /* harmony export */ });
 /* harmony import */ var _ResizeObserver__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../ResizeObserver */ "./node_modules/@juggle/resize-observer/lib/ResizeObserver.js");
 /* harmony import */ var _ResizeObserverEntry__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../ResizeObserverEntry */ "./node_modules/@juggle/resize-observer/lib/ResizeObserverEntry.js");
@@ -642,10 +642,10 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "isElement": () => (/* binding */ isElement),
-/* harmony export */   "isHidden": () => (/* binding */ isHidden),
-/* harmony export */   "isReplacedElement": () => (/* binding */ isReplacedElement),
-/* harmony export */   "isSVG": () => (/* binding */ isSVG)
+/* harmony export */   isElement: () => (/* binding */ isElement),
+/* harmony export */   isHidden: () => (/* binding */ isHidden),
+/* harmony export */   isReplacedElement: () => (/* binding */ isReplacedElement),
+/* harmony export */   isSVG: () => (/* binding */ isSVG)
 /* harmony export */ });
 var isSVG = function (target) { return target instanceof SVGElement && 'getBBox' in target; };
 var isHidden = function (target) {
@@ -695,7 +695,7 @@ var isReplacedElement = function (target) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "freeze": () => (/* binding */ freeze)
+/* harmony export */   freeze: () => (/* binding */ freeze)
 /* harmony export */ });
 var freeze = function (obj) { return Object.freeze(obj); };
 
@@ -711,7 +711,7 @@ var freeze = function (obj) { return Object.freeze(obj); };
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "global": () => (/* binding */ global)
+/* harmony export */   global: () => (/* binding */ global)
 /* harmony export */ });
 var global = typeof window !== 'undefined' ? window : {};
 
@@ -727,7 +727,7 @@ var global = typeof window !== 'undefined' ? window : {};
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "process": () => (/* binding */ process)
+/* harmony export */   process: () => (/* binding */ process)
 /* harmony export */ });
 /* harmony import */ var _algorithms_hasActiveObservations__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../algorithms/hasActiveObservations */ "./node_modules/@juggle/resize-observer/lib/algorithms/hasActiveObservations.js");
 /* harmony import */ var _algorithms_hasSkippedObservations__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../algorithms/hasSkippedObservations */ "./node_modules/@juggle/resize-observer/lib/algorithms/hasSkippedObservations.js");
@@ -765,7 +765,7 @@ var process = function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "queueMicroTask": () => (/* binding */ queueMicroTask)
+/* harmony export */   queueMicroTask: () => (/* binding */ queueMicroTask)
 /* harmony export */ });
 var trigger;
 var callbacks = [];
@@ -795,7 +795,7 @@ var queueMicroTask = function (callback) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "queueResizeObserver": () => (/* binding */ queueResizeObserver)
+/* harmony export */   queueResizeObserver: () => (/* binding */ queueResizeObserver)
 /* harmony export */ });
 /* harmony import */ var _queueMicroTask__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./queueMicroTask */ "./node_modules/@juggle/resize-observer/lib/utils/queueMicroTask.js");
 
@@ -818,7 +818,7 @@ var queueResizeObserver = function (cb) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "resizeObservers": () => (/* binding */ resizeObservers)
+/* harmony export */   resizeObservers: () => (/* binding */ resizeObservers)
 /* harmony export */ });
 var resizeObservers = [];
 
@@ -835,8 +835,8 @@ var resizeObservers = [];
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "scheduler": () => (/* binding */ scheduler),
-/* harmony export */   "updateCount": () => (/* binding */ updateCount)
+/* harmony export */   scheduler: () => (/* binding */ scheduler),
+/* harmony export */   updateCount: () => (/* binding */ updateCount)
 /* harmony export */ });
 /* harmony import */ var _process__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./process */ "./node_modules/@juggle/resize-observer/lib/utils/process.js");
 /* harmony import */ var _global__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./global */ "./node_modules/@juggle/resize-observer/lib/utils/global.js");
@@ -1248,10 +1248,10 @@ exports["default"] = search;
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "DecorationGroup": () => (/* binding */ DecorationGroup),
-/* harmony export */   "getDecorations": () => (/* binding */ getDecorations),
-/* harmony export */   "handleDecorationClickEvent": () => (/* binding */ handleDecorationClickEvent),
-/* harmony export */   "registerTemplates": () => (/* binding */ registerTemplates)
+/* harmony export */   DecorationGroup: () => (/* binding */ DecorationGroup),
+/* harmony export */   getDecorations: () => (/* binding */ getDecorations),
+/* harmony export */   handleDecorationClickEvent: () => (/* binding */ handleDecorationClickEvent),
+/* harmony export */   registerTemplates: () => (/* binding */ registerTemplates)
 /* harmony export */ });
 /* harmony import */ var _rect__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rect */ "./src/rect.js");
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils */ "./src/utils.js");
@@ -1581,8 +1581,8 @@ window.addEventListener("load", function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "findFirstVisibleLocator": () => (/* binding */ findFirstVisibleLocator),
-/* harmony export */   "findNearestInteractiveElement": () => (/* binding */ findNearestInteractiveElement)
+/* harmony export */   findFirstVisibleLocator: () => (/* binding */ findFirstVisibleLocator),
+/* harmony export */   findNearestInteractiveElement: () => (/* binding */ findNearestInteractiveElement)
 /* harmony export */ });
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils.js");
 /* harmony import */ var css_selector_generator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! css-selector-generator */ "./node_modules/css-selector-generator/esm/index.js");
@@ -1877,10 +1877,10 @@ function sendPressKeyMessage(event, keyType) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "adjustPointToViewport": () => (/* binding */ adjustPointToViewport),
-/* harmony export */   "getClientRectsNoOverlap": () => (/* binding */ getClientRectsNoOverlap),
-/* harmony export */   "rectContainsPoint": () => (/* binding */ rectContainsPoint),
-/* harmony export */   "toNativeRect": () => (/* binding */ toNativeRect)
+/* harmony export */   adjustPointToViewport: () => (/* binding */ adjustPointToViewport),
+/* harmony export */   getClientRectsNoOverlap: () => (/* binding */ getClientRectsNoOverlap),
+/* harmony export */   rectContainsPoint: () => (/* binding */ rectContainsPoint),
+/* harmony export */   toNativeRect: () => (/* binding */ toNativeRect)
 /* harmony export */ });
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils.js");
 //
@@ -2181,9 +2181,9 @@ function log() {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "convertRangeInfo": () => (/* binding */ convertRangeInfo),
-/* harmony export */   "getCurrentSelection": () => (/* binding */ getCurrentSelection),
-/* harmony export */   "location2RangeInfo": () => (/* binding */ location2RangeInfo)
+/* harmony export */   convertRangeInfo: () => (/* binding */ convertRangeInfo),
+/* harmony export */   getCurrentSelection: () => (/* binding */ getCurrentSelection),
+/* harmony export */   location2RangeInfo: () => (/* binding */ location2RangeInfo)
 /* harmony export */ });
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils.js");
 /* harmony import */ var _rect__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./rect */ "./src/rect.js");
@@ -2368,20 +2368,20 @@ function log() {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "getColumnCountPerScreen": () => (/* binding */ getColumnCountPerScreen),
-/* harmony export */   "isScrollModeEnabled": () => (/* binding */ isScrollModeEnabled),
-/* harmony export */   "log": () => (/* binding */ log),
-/* harmony export */   "logError": () => (/* binding */ logError),
-/* harmony export */   "logErrorMessage": () => (/* binding */ logErrorMessage),
-/* harmony export */   "rangeFromLocator": () => (/* binding */ rangeFromLocator),
-/* harmony export */   "removeProperty": () => (/* binding */ removeProperty),
-/* harmony export */   "scrollLeft": () => (/* binding */ scrollLeft),
-/* harmony export */   "scrollRight": () => (/* binding */ scrollRight),
-/* harmony export */   "scrollToId": () => (/* binding */ scrollToId),
-/* harmony export */   "scrollToPosition": () => (/* binding */ scrollToPosition),
-/* harmony export */   "scrollToText": () => (/* binding */ scrollToText),
-/* harmony export */   "setCSSProperties": () => (/* binding */ setCSSProperties),
-/* harmony export */   "setProperty": () => (/* binding */ setProperty)
+/* harmony export */   getColumnCountPerScreen: () => (/* binding */ getColumnCountPerScreen),
+/* harmony export */   isScrollModeEnabled: () => (/* binding */ isScrollModeEnabled),
+/* harmony export */   log: () => (/* binding */ log),
+/* harmony export */   logError: () => (/* binding */ logError),
+/* harmony export */   logErrorMessage: () => (/* binding */ logErrorMessage),
+/* harmony export */   rangeFromLocator: () => (/* binding */ rangeFromLocator),
+/* harmony export */   removeProperty: () => (/* binding */ removeProperty),
+/* harmony export */   scrollLeft: () => (/* binding */ scrollLeft),
+/* harmony export */   scrollRight: () => (/* binding */ scrollRight),
+/* harmony export */   scrollToId: () => (/* binding */ scrollToId),
+/* harmony export */   scrollToPosition: () => (/* binding */ scrollToPosition),
+/* harmony export */   scrollToText: () => (/* binding */ scrollToText),
+/* harmony export */   setCSSProperties: () => (/* binding */ setCSSProperties),
+/* harmony export */   setProperty: () => (/* binding */ setProperty)
 /* harmony export */ });
 /* harmony import */ var _vendor_hypothesis_anchoring_types__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./vendor/hypothesis/anchoring/types */ "./src/vendor/hypothesis/anchoring/types.js");
 /* harmony import */ var _selection__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./selection */ "./src/selection.js");
@@ -2677,7 +2677,7 @@ function logError(e) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "matchQuote": () => (/* binding */ matchQuote)
+/* harmony export */   matchQuote: () => (/* binding */ matchQuote)
 /* harmony export */ });
 /* harmony import */ var approx_string_match__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! approx-string-match */ "./node_modules/approx-string-match/dist/index.js");
 
@@ -2832,10 +2832,10 @@ function matchQuote(text, quote) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "RESOLVE_BACKWARDS": () => (/* binding */ RESOLVE_BACKWARDS),
-/* harmony export */   "RESOLVE_FORWARDS": () => (/* binding */ RESOLVE_FORWARDS),
-/* harmony export */   "TextPosition": () => (/* binding */ TextPosition),
-/* harmony export */   "TextRange": () => (/* binding */ TextRange)
+/* harmony export */   RESOLVE_BACKWARDS: () => (/* binding */ RESOLVE_BACKWARDS),
+/* harmony export */   RESOLVE_FORWARDS: () => (/* binding */ RESOLVE_FORWARDS),
+/* harmony export */   TextPosition: () => (/* binding */ TextPosition),
+/* harmony export */   TextRange: () => (/* binding */ TextRange)
 /* harmony export */ });
 /**
  * Return the combined length of text nodes contained in `node`.
@@ -3165,9 +3165,9 @@ class TextRange {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "RangeAnchor": () => (/* binding */ RangeAnchor),
-/* harmony export */   "TextPositionAnchor": () => (/* binding */ TextPositionAnchor),
-/* harmony export */   "TextQuoteAnchor": () => (/* binding */ TextQuoteAnchor)
+/* harmony export */   RangeAnchor: () => (/* binding */ RangeAnchor),
+/* harmony export */   TextPositionAnchor: () => (/* binding */ TextPositionAnchor),
+/* harmony export */   TextQuoteAnchor: () => (/* binding */ TextQuoteAnchor)
 /* harmony export */ });
 /* harmony import */ var _match_quote__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./match-quote */ "./src/vendor/hypothesis/anchoring/match-quote.js");
 /* harmony import */ var _text_range__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./text-range */ "./src/vendor/hypothesis/anchoring/text-range.js");
@@ -3423,8 +3423,8 @@ class TextQuoteAnchor {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "nodeFromXPath": () => (/* binding */ nodeFromXPath),
-/* harmony export */   "xpathFromNode": () => (/* binding */ xpathFromNode)
+/* harmony export */   nodeFromXPath: () => (/* binding */ nodeFromXPath),
+/* harmony export */   xpathFromNode: () => (/* binding */ xpathFromNode)
 /* harmony export */ });
 /**
  * Get the node name for use in generating an xpath expression.
@@ -4051,18 +4051,23 @@ var ThrowTypeError = $gOPD
 	: throwTypeError;
 
 var hasSymbols = __webpack_require__(/*! has-symbols */ "./node_modules/has-symbols/index.js")();
+var hasProto = __webpack_require__(/*! has-proto */ "./node_modules/has-proto/index.js")();
 
-var getProto = Object.getPrototypeOf || function (x) { return x.__proto__; }; // eslint-disable-line no-proto
+var getProto = Object.getPrototypeOf || (
+	hasProto
+		? function (x) { return x.__proto__; } // eslint-disable-line no-proto
+		: null
+);
 
 var needsEval = {};
 
-var TypedArray = typeof Uint8Array === 'undefined' ? undefined : getProto(Uint8Array);
+var TypedArray = typeof Uint8Array === 'undefined' || !getProto ? undefined : getProto(Uint8Array);
 
 var INTRINSICS = {
 	'%AggregateError%': typeof AggregateError === 'undefined' ? undefined : AggregateError,
 	'%Array%': Array,
 	'%ArrayBuffer%': typeof ArrayBuffer === 'undefined' ? undefined : ArrayBuffer,
-	'%ArrayIteratorPrototype%': hasSymbols ? getProto([][Symbol.iterator]()) : undefined,
+	'%ArrayIteratorPrototype%': hasSymbols && getProto ? getProto([][Symbol.iterator]()) : undefined,
 	'%AsyncFromSyncIteratorPrototype%': undefined,
 	'%AsyncFunction%': needsEval,
 	'%AsyncGenerator%': needsEval,
@@ -4092,10 +4097,10 @@ var INTRINSICS = {
 	'%Int32Array%': typeof Int32Array === 'undefined' ? undefined : Int32Array,
 	'%isFinite%': isFinite,
 	'%isNaN%': isNaN,
-	'%IteratorPrototype%': hasSymbols ? getProto(getProto([][Symbol.iterator]())) : undefined,
+	'%IteratorPrototype%': hasSymbols && getProto ? getProto(getProto([][Symbol.iterator]())) : undefined,
 	'%JSON%': typeof JSON === 'object' ? JSON : undefined,
 	'%Map%': typeof Map === 'undefined' ? undefined : Map,
-	'%MapIteratorPrototype%': typeof Map === 'undefined' || !hasSymbols ? undefined : getProto(new Map()[Symbol.iterator]()),
+	'%MapIteratorPrototype%': typeof Map === 'undefined' || !hasSymbols || !getProto ? undefined : getProto(new Map()[Symbol.iterator]()),
 	'%Math%': Math,
 	'%Number%': Number,
 	'%Object%': Object,
@@ -4108,10 +4113,10 @@ var INTRINSICS = {
 	'%Reflect%': typeof Reflect === 'undefined' ? undefined : Reflect,
 	'%RegExp%': RegExp,
 	'%Set%': typeof Set === 'undefined' ? undefined : Set,
-	'%SetIteratorPrototype%': typeof Set === 'undefined' || !hasSymbols ? undefined : getProto(new Set()[Symbol.iterator]()),
+	'%SetIteratorPrototype%': typeof Set === 'undefined' || !hasSymbols || !getProto ? undefined : getProto(new Set()[Symbol.iterator]()),
 	'%SharedArrayBuffer%': typeof SharedArrayBuffer === 'undefined' ? undefined : SharedArrayBuffer,
 	'%String%': String,
-	'%StringIteratorPrototype%': hasSymbols ? getProto(''[Symbol.iterator]()) : undefined,
+	'%StringIteratorPrototype%': hasSymbols && getProto ? getProto(''[Symbol.iterator]()) : undefined,
 	'%Symbol%': hasSymbols ? Symbol : undefined,
 	'%SyntaxError%': $SyntaxError,
 	'%ThrowTypeError%': ThrowTypeError,
@@ -4127,12 +4132,14 @@ var INTRINSICS = {
 	'%WeakSet%': typeof WeakSet === 'undefined' ? undefined : WeakSet
 };
 
-try {
-	null.error; // eslint-disable-line no-unused-expressions
-} catch (e) {
-	// https://github.com/tc39/proposal-shadowrealm/pull/384#issuecomment-1364264229
-	var errorProto = getProto(getProto(e));
-	INTRINSICS['%Error.prototype%'] = errorProto;
+if (getProto) {
+	try {
+		null.error; // eslint-disable-line no-unused-expressions
+	} catch (e) {
+		// https://github.com/tc39/proposal-shadowrealm/pull/384#issuecomment-1364264229
+		var errorProto = getProto(getProto(e));
+		INTRINSICS['%Error.prototype%'] = errorProto;
+	}
 }
 
 var doEval = function doEval(name) {
@@ -4150,7 +4157,7 @@ var doEval = function doEval(name) {
 		}
 	} else if (name === '%AsyncIteratorPrototype%') {
 		var gen = doEval('%AsyncGenerator%');
-		if (gen) {
+		if (gen && getProto) {
 			value = getProto(gen.prototype);
 		}
 	}
@@ -5630,6 +5637,9 @@ module.exports = function flags() {
 	}
 	if (this.unicode) {
 		result += 'u';
+	}
+	if (this.unicodeSets) {
+		result += 'v';
 	}
 	if (this.sticky) {
 		result += 'y';
@@ -8255,14 +8265,14 @@ module.exports = function sign(number) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "CHILD_OPERATOR": () => (/* binding */ CHILD_OPERATOR),
-/* harmony export */   "DESCENDANT_OPERATOR": () => (/* binding */ DESCENDANT_OPERATOR),
-/* harmony export */   "INVALID_CLASS_RE": () => (/* binding */ INVALID_CLASS_RE),
-/* harmony export */   "INVALID_ID_RE": () => (/* binding */ INVALID_ID_RE),
-/* harmony export */   "NONE_OPERATOR": () => (/* binding */ NONE_OPERATOR),
-/* harmony export */   "OPERATOR_DATA": () => (/* binding */ OPERATOR_DATA),
-/* harmony export */   "SELECTOR_PATTERN": () => (/* binding */ SELECTOR_PATTERN),
-/* harmony export */   "SELECTOR_SEPARATOR": () => (/* binding */ SELECTOR_SEPARATOR)
+/* harmony export */   CHILD_OPERATOR: () => (/* binding */ CHILD_OPERATOR),
+/* harmony export */   DESCENDANT_OPERATOR: () => (/* binding */ DESCENDANT_OPERATOR),
+/* harmony export */   INVALID_CLASS_RE: () => (/* binding */ INVALID_CLASS_RE),
+/* harmony export */   INVALID_ID_RE: () => (/* binding */ INVALID_ID_RE),
+/* harmony export */   NONE_OPERATOR: () => (/* binding */ NONE_OPERATOR),
+/* harmony export */   OPERATOR_DATA: () => (/* binding */ OPERATOR_DATA),
+/* harmony export */   SELECTOR_PATTERN: () => (/* binding */ SELECTOR_PATTERN),
+/* harmony export */   SELECTOR_SEPARATOR: () => (/* binding */ SELECTOR_SEPARATOR)
 /* harmony export */ });
 /* harmony import */ var _types_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./types.js */ "./node_modules/css-selector-generator/esm/types.js");
 
@@ -8316,7 +8326,7 @@ const SELECTOR_PATTERN = [
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
-/* harmony export */   "getCssSelector": () => (/* binding */ getCssSelector)
+/* harmony export */   getCssSelector: () => (/* binding */ getCssSelector)
 /* harmony export */ });
 /* harmony import */ var _selector_fallback_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./selector-fallback.js */ "./node_modules/css-selector-generator/esm/selector-fallback.js");
 /* harmony import */ var _utilities_options_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities-options.js */ "./node_modules/css-selector-generator/esm/utilities-options.js");
@@ -8375,12 +8385,12 @@ function getCssSelector(needle, custom_options = {}) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "attributeBlacklistMatch": () => (/* binding */ attributeBlacklistMatch),
-/* harmony export */   "attributeNodeToSelector": () => (/* binding */ attributeNodeToSelector),
-/* harmony export */   "attributeNodeToSimplifiedSelector": () => (/* binding */ attributeNodeToSimplifiedSelector),
-/* harmony export */   "getAttributeSelectors": () => (/* binding */ getAttributeSelectors),
-/* harmony export */   "getElementAttributeSelectors": () => (/* binding */ getElementAttributeSelectors),
-/* harmony export */   "isValidAttributeNode": () => (/* binding */ isValidAttributeNode)
+/* harmony export */   attributeBlacklistMatch: () => (/* binding */ attributeBlacklistMatch),
+/* harmony export */   attributeNodeToSelector: () => (/* binding */ attributeNodeToSelector),
+/* harmony export */   attributeNodeToSimplifiedSelector: () => (/* binding */ attributeNodeToSimplifiedSelector),
+/* harmony export */   getAttributeSelectors: () => (/* binding */ getAttributeSelectors),
+/* harmony export */   getElementAttributeSelectors: () => (/* binding */ getElementAttributeSelectors),
+/* harmony export */   isValidAttributeNode: () => (/* binding */ isValidAttributeNode)
 /* harmony export */ });
 /* harmony import */ var _utilities_selectors_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities-selectors.js */ "./node_modules/css-selector-generator/esm/utilities-selectors.js");
 /* harmony import */ var _utilities_data_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities-data.js */ "./node_modules/css-selector-generator/esm/utilities-data.js");
@@ -8448,8 +8458,8 @@ function getAttributeSelectors(elements) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "getClassSelectors": () => (/* binding */ getClassSelectors),
-/* harmony export */   "getElementClassSelectors": () => (/* binding */ getElementClassSelectors)
+/* harmony export */   getClassSelectors: () => (/* binding */ getClassSelectors),
+/* harmony export */   getElementClassSelectors: () => (/* binding */ getElementClassSelectors)
 /* harmony export */ });
 /* harmony import */ var _utilities_selectors_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities-selectors.js */ "./node_modules/css-selector-generator/esm/utilities-selectors.js");
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants.js */ "./node_modules/css-selector-generator/esm/constants.js");
@@ -8487,8 +8497,8 @@ function getClassSelectors(elements) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "getElementFallbackSelector": () => (/* binding */ getElementFallbackSelector),
-/* harmony export */   "getFallbackSelector": () => (/* binding */ getFallbackSelector)
+/* harmony export */   getElementFallbackSelector: () => (/* binding */ getElementFallbackSelector),
+/* harmony export */   getFallbackSelector: () => (/* binding */ getFallbackSelector)
 /* harmony export */ });
 /* harmony import */ var _utilities_dom_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities-dom.js */ "./node_modules/css-selector-generator/esm/utilities-dom.js");
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants.js */ "./node_modules/css-selector-generator/esm/constants.js");
@@ -8531,8 +8541,8 @@ function getFallbackSelector(elements) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "getElementIdSelectors": () => (/* binding */ getElementIdSelectors),
-/* harmony export */   "getIdSelector": () => (/* binding */ getIdSelector)
+/* harmony export */   getElementIdSelectors: () => (/* binding */ getElementIdSelectors),
+/* harmony export */   getIdSelector: () => (/* binding */ getIdSelector)
 /* harmony export */ });
 /* harmony import */ var _utilities_selectors_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities-selectors.js */ "./node_modules/css-selector-generator/esm/utilities-selectors.js");
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants.js */ "./node_modules/css-selector-generator/esm/constants.js");
@@ -8573,8 +8583,8 @@ function getIdSelector(elements) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "getElementNthChildSelector": () => (/* binding */ getElementNthChildSelector),
-/* harmony export */   "getNthChildSelector": () => (/* binding */ getNthChildSelector)
+/* harmony export */   getElementNthChildSelector: () => (/* binding */ getElementNthChildSelector),
+/* harmony export */   getNthChildSelector: () => (/* binding */ getNthChildSelector)
 /* harmony export */ });
 /* harmony import */ var _utilities_iselement_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities-iselement.js */ "./node_modules/css-selector-generator/esm/utilities-iselement.js");
 /* harmony import */ var _utilities_data_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities-data.js */ "./node_modules/css-selector-generator/esm/utilities-data.js");
@@ -8613,8 +8623,8 @@ function getNthChildSelector(elements) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "getElementNthOfTypeSelector": () => (/* binding */ getElementNthOfTypeSelector),
-/* harmony export */   "getNthOfTypeSelector": () => (/* binding */ getNthOfTypeSelector)
+/* harmony export */   getElementNthOfTypeSelector: () => (/* binding */ getElementNthOfTypeSelector),
+/* harmony export */   getNthOfTypeSelector: () => (/* binding */ getNthOfTypeSelector)
 /* harmony export */ });
 /* harmony import */ var _selector_tag_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./selector-tag.js */ "./node_modules/css-selector-generator/esm/selector-tag.js");
 /* harmony import */ var _utilities_data_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities-data.js */ "./node_modules/css-selector-generator/esm/utilities-data.js");
@@ -8656,8 +8666,8 @@ function getNthOfTypeSelector(elements) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "getElementTagSelectors": () => (/* binding */ getElementTagSelectors),
-/* harmony export */   "getTagSelector": () => (/* binding */ getTagSelector)
+/* harmony export */   getElementTagSelectors: () => (/* binding */ getElementTagSelectors),
+/* harmony export */   getTagSelector: () => (/* binding */ getTagSelector)
 /* harmony export */ });
 /* harmony import */ var _utilities_selectors_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities-selectors.js */ "./node_modules/css-selector-generator/esm/utilities-selectors.js");
 /* harmony import */ var _utilities_data_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities-data.js */ "./node_modules/css-selector-generator/esm/utilities-data.js");
@@ -8693,8 +8703,8 @@ function getTagSelector(elements) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "CssSelectorType": () => (/* binding */ CssSelectorType),
-/* harmony export */   "OPERATOR": () => (/* binding */ OPERATOR)
+/* harmony export */   CssSelectorType: () => (/* binding */ CssSelectorType),
+/* harmony export */   OPERATOR: () => (/* binding */ OPERATOR)
 /* harmony export */ });
 var OPERATOR;
 (function (OPERATOR) {
@@ -8724,7 +8734,7 @@ var CssSelectorType;
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "getCartesianProduct": () => (/* binding */ getCartesianProduct)
+/* harmony export */   getCartesianProduct: () => (/* binding */ getCartesianProduct)
 /* harmony export */ });
 /**
  * Generates cartesian product out of input object.
@@ -8757,10 +8767,10 @@ function getCartesianProduct(input = {}) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "createPatternMatcher": () => (/* binding */ createPatternMatcher),
-/* harmony export */   "flattenArray": () => (/* binding */ flattenArray),
-/* harmony export */   "getIntersection": () => (/* binding */ getIntersection),
-/* harmony export */   "wildcardToRegExp": () => (/* binding */ wildcardToRegExp)
+/* harmony export */   createPatternMatcher: () => (/* binding */ createPatternMatcher),
+/* harmony export */   flattenArray: () => (/* binding */ flattenArray),
+/* harmony export */   getIntersection: () => (/* binding */ getIntersection),
+/* harmony export */   wildcardToRegExp: () => (/* binding */ wildcardToRegExp)
 /* harmony export */ });
 /* harmony import */ var _utilities_options_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities-options.js */ "./node_modules/css-selector-generator/esm/utilities-options.js");
 /* harmony import */ var _utilities_messages_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities-messages.js */ "./node_modules/css-selector-generator/esm/utilities-messages.js");
@@ -8837,11 +8847,11 @@ function createPatternMatcher(list) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "getElementParents": () => (/* binding */ getElementParents),
-/* harmony export */   "getParents": () => (/* binding */ getParents),
-/* harmony export */   "getRootNode": () => (/* binding */ getRootNode),
-/* harmony export */   "testMultiSelector": () => (/* binding */ testMultiSelector),
-/* harmony export */   "testSelector": () => (/* binding */ testSelector)
+/* harmony export */   getElementParents: () => (/* binding */ getElementParents),
+/* harmony export */   getParents: () => (/* binding */ getParents),
+/* harmony export */   getRootNode: () => (/* binding */ getRootNode),
+/* harmony export */   testMultiSelector: () => (/* binding */ testMultiSelector),
+/* harmony export */   testSelector: () => (/* binding */ testSelector)
 /* harmony export */ });
 /* harmony import */ var _utilities_iselement_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utilities-iselement.js */ "./node_modules/css-selector-generator/esm/utilities-iselement.js");
 /* harmony import */ var _utilities_data_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities-data.js */ "./node_modules/css-selector-generator/esm/utilities-data.js");
@@ -8904,9 +8914,9 @@ function getRootNode(element) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "constructElementSelector": () => (/* binding */ constructElementSelector),
-/* harmony export */   "createElementData": () => (/* binding */ createElementData),
-/* harmony export */   "createElementSelectorData": () => (/* binding */ createElementSelectorData)
+/* harmony export */   constructElementSelector: () => (/* binding */ constructElementSelector),
+/* harmony export */   createElementData: () => (/* binding */ createElementData),
+/* harmony export */   createElementSelectorData: () => (/* binding */ createElementSelectorData)
 /* harmony export */ });
 /* harmony import */ var _types_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./types.js */ "./node_modules/css-selector-generator/esm/types.js");
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants.js */ "./node_modules/css-selector-generator/esm/constants.js");
@@ -8971,7 +8981,7 @@ function constructElementSelector({ selectors, operator }) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "isElement": () => (/* binding */ isElement)
+/* harmony export */   isElement: () => (/* binding */ isElement)
 /* harmony export */ });
 /**
  * Guard function that checks if provided `input` is an Element.
@@ -8992,7 +9002,7 @@ function isElement(input) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "showWarning": () => (/* binding */ showWarning)
+/* harmony export */   showWarning: () => (/* binding */ showWarning)
 /* harmony export */ });
 const libraryName = 'CssSelectorGenerator';
 /**
@@ -9015,16 +9025,16 @@ function showWarning(id = 'unknown problem', ...args) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "DEFAULT_OPTIONS": () => (/* binding */ DEFAULT_OPTIONS),
-/* harmony export */   "isCssSelectorMatch": () => (/* binding */ isCssSelectorMatch),
-/* harmony export */   "isNode": () => (/* binding */ isNode),
-/* harmony export */   "isParentNode": () => (/* binding */ isParentNode),
-/* harmony export */   "isRegExp": () => (/* binding */ isRegExp),
-/* harmony export */   "sanitizeCssSelectorMatchList": () => (/* binding */ sanitizeCssSelectorMatchList),
-/* harmony export */   "sanitizeMaxNumber": () => (/* binding */ sanitizeMaxNumber),
-/* harmony export */   "sanitizeOptions": () => (/* binding */ sanitizeOptions),
-/* harmony export */   "sanitizeRoot": () => (/* binding */ sanitizeRoot),
-/* harmony export */   "sanitizeSelectorTypes": () => (/* binding */ sanitizeSelectorTypes)
+/* harmony export */   DEFAULT_OPTIONS: () => (/* binding */ DEFAULT_OPTIONS),
+/* harmony export */   isCssSelectorMatch: () => (/* binding */ isCssSelectorMatch),
+/* harmony export */   isNode: () => (/* binding */ isNode),
+/* harmony export */   isParentNode: () => (/* binding */ isParentNode),
+/* harmony export */   isRegExp: () => (/* binding */ isRegExp),
+/* harmony export */   sanitizeCssSelectorMatchList: () => (/* binding */ sanitizeCssSelectorMatchList),
+/* harmony export */   sanitizeMaxNumber: () => (/* binding */ sanitizeMaxNumber),
+/* harmony export */   sanitizeOptions: () => (/* binding */ sanitizeOptions),
+/* harmony export */   sanitizeRoot: () => (/* binding */ sanitizeRoot),
+/* harmony export */   sanitizeSelectorTypes: () => (/* binding */ sanitizeSelectorTypes)
 /* harmony export */ });
 /* harmony import */ var _types_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./types.js */ "./node_modules/css-selector-generator/esm/types.js");
 /* harmony import */ var _utilities_typescript_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utilities-typescript.js */ "./node_modules/css-selector-generator/esm/utilities-typescript.js");
@@ -9156,7 +9166,7 @@ function sanitizeOptions(element, custom_options = {}) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "getPowerSet": () => (/* binding */ getPowerSet)
+/* harmony export */   getPowerSet: () => (/* binding */ getPowerSet)
 /* harmony export */ });
 /**
  * Generates power set of input items.
@@ -9217,27 +9227,27 @@ function generateOffsets(size = 1) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "ELEMENT_SELECTOR_TYPE_GETTERS": () => (/* binding */ ELEMENT_SELECTOR_TYPE_GETTERS),
-/* harmony export */   "ESCAPED_COLON": () => (/* binding */ ESCAPED_COLON),
-/* harmony export */   "SELECTOR_TYPE_GETTERS": () => (/* binding */ SELECTOR_TYPE_GETTERS),
-/* harmony export */   "SPECIAL_CHARACTERS_RE": () => (/* binding */ SPECIAL_CHARACTERS_RE),
-/* harmony export */   "combineSelectorTypes": () => (/* binding */ combineSelectorTypes),
-/* harmony export */   "constructSelector": () => (/* binding */ constructSelector),
-/* harmony export */   "constructSelectorType": () => (/* binding */ constructSelectorType),
-/* harmony export */   "constructSelectors": () => (/* binding */ constructSelectors),
-/* harmony export */   "filterSelectors": () => (/* binding */ filterSelectors),
-/* harmony export */   "getAllSelectors": () => (/* binding */ getAllSelectors),
-/* harmony export */   "getClosestIdentifiableParent": () => (/* binding */ getClosestIdentifiableParent),
-/* harmony export */   "getElementSelectorsByType": () => (/* binding */ getElementSelectorsByType),
-/* harmony export */   "getSelectorWithinRoot": () => (/* binding */ getSelectorWithinRoot),
-/* harmony export */   "getSelectorsByType": () => (/* binding */ getSelectorsByType),
-/* harmony export */   "getSelectorsList": () => (/* binding */ getSelectorsList),
-/* harmony export */   "getSelectorsToGet": () => (/* binding */ getSelectorsToGet),
-/* harmony export */   "getTypeCombinations": () => (/* binding */ getTypeCombinations),
-/* harmony export */   "legacySanitizeSelectorItem": () => (/* binding */ legacySanitizeSelectorItem),
-/* harmony export */   "orderSelectors": () => (/* binding */ orderSelectors),
-/* harmony export */   "sanitizeSelectorItem": () => (/* binding */ sanitizeSelectorItem),
-/* harmony export */   "sanitizeSelectorNeedle": () => (/* binding */ sanitizeSelectorNeedle)
+/* harmony export */   ELEMENT_SELECTOR_TYPE_GETTERS: () => (/* binding */ ELEMENT_SELECTOR_TYPE_GETTERS),
+/* harmony export */   ESCAPED_COLON: () => (/* binding */ ESCAPED_COLON),
+/* harmony export */   SELECTOR_TYPE_GETTERS: () => (/* binding */ SELECTOR_TYPE_GETTERS),
+/* harmony export */   SPECIAL_CHARACTERS_RE: () => (/* binding */ SPECIAL_CHARACTERS_RE),
+/* harmony export */   combineSelectorTypes: () => (/* binding */ combineSelectorTypes),
+/* harmony export */   constructSelector: () => (/* binding */ constructSelector),
+/* harmony export */   constructSelectorType: () => (/* binding */ constructSelectorType),
+/* harmony export */   constructSelectors: () => (/* binding */ constructSelectors),
+/* harmony export */   filterSelectors: () => (/* binding */ filterSelectors),
+/* harmony export */   getAllSelectors: () => (/* binding */ getAllSelectors),
+/* harmony export */   getClosestIdentifiableParent: () => (/* binding */ getClosestIdentifiableParent),
+/* harmony export */   getElementSelectorsByType: () => (/* binding */ getElementSelectorsByType),
+/* harmony export */   getSelectorWithinRoot: () => (/* binding */ getSelectorWithinRoot),
+/* harmony export */   getSelectorsByType: () => (/* binding */ getSelectorsByType),
+/* harmony export */   getSelectorsList: () => (/* binding */ getSelectorsList),
+/* harmony export */   getSelectorsToGet: () => (/* binding */ getSelectorsToGet),
+/* harmony export */   getTypeCombinations: () => (/* binding */ getTypeCombinations),
+/* harmony export */   legacySanitizeSelectorItem: () => (/* binding */ legacySanitizeSelectorItem),
+/* harmony export */   orderSelectors: () => (/* binding */ orderSelectors),
+/* harmony export */   sanitizeSelectorItem: () => (/* binding */ sanitizeSelectorItem),
+/* harmony export */   sanitizeSelectorNeedle: () => (/* binding */ sanitizeSelectorNeedle)
 /* harmony export */ });
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants.js */ "./node_modules/css-selector-generator/esm/constants.js");
 /* harmony import */ var _selector_attribute_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./selector-attribute.js */ "./node_modules/css-selector-generator/esm/selector-attribute.js");
@@ -9535,7 +9545,7 @@ function sanitizeSelectorNeedle(needle) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "isEnumValue": () => (/* binding */ isEnumValue)
+/* harmony export */   isEnumValue: () => (/* binding */ isEnumValue)
 /* harmony export */ });
 /**
  * Checks whether value is one of the enum's values.
