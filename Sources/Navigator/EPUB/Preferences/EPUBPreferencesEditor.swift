@@ -29,7 +29,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             settings: { EPUBSettings(preferences: $0, defaults: defaults, metadata: metadata) }
         )
     }
-    
+
     /// Default background color.
     ///
     /// For fixed-layout publications, it applies to the navigator background

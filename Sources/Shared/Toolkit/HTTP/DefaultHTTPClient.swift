@@ -146,7 +146,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         self.tasks = tasks
         // Note that URLSession keeps a strong reference to its delegate, so we
         // don't use the DefaultHTTPClient itself as its delegate.
-        self.session = URLSession(configuration: configuration, delegate: tasks, delegateQueue: nil)
+        session = URLSession(configuration: configuration, delegate: tasks, delegateQueue: nil)
     }
 
     deinit {
@@ -251,13 +251,13 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
     private class TaskManager: NSObject, URLSessionDataDelegate {
         /// On-going tasks.
         @Atomic private var tasks: [Task] = []
-        
+
         func start(_ task: Task) -> Cancellable {
             $tasks.write { $0.append(task) }
             task.start()
             return task
         }
-        
+
         private func findTask(for urlTask: URLSessionTask) -> Task? {
             let task = tasks.first { $0.task == urlTask }
             if task == nil {
@@ -265,9 +265,9 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
             }
             return task
         }
-        
+
         // MARK: - URLSessionDataDelegate
-        
+
         public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
             guard let task = findTask(for: dataTask) else {
                 completionHandler(.cancel)
@@ -275,11 +275,11 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
             }
             task.urlSession(session, didReceive: response, completionHandler: completionHandler)
         }
-        
+
         public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
             findTask(for: dataTask)?.urlSession(session, didReceive: data)
         }
-        
+
         public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
             findTask(for: task)?.urlSession(session, didCompleteWithError: error)
         }

@@ -13,7 +13,6 @@ import R2Shared
 /// interface or modifying existing preferences. It includes rules for
 /// adjusting preferences, such as the supported values or ranges.
 public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreferences, PDFSettings> {
-    
     private let defaults: PDFDefaults
 
     public init(initialPreferences: PDFPreferences, metadata: Metadata, defaults: PDFDefaults) {
