@@ -214,7 +214,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
             return
         }
 
-        lastLoadedTimeRanges = ranges
+        self.lastLoadedTimeRanges = ranges
         self.delegate?.navigator(self, loadedTimeRangesDidChange: ranges)
     }
 
