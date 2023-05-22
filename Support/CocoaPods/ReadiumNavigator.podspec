@@ -20,6 +20,6 @@ Pod::Spec.new do |s|
   s.dependency 'R2Shared'
   s.dependency 'ReadiumInternal'
   s.dependency 'DifferenceKit', '~> 1.0'
-  s.dependency 'SwiftSoup', '~> 2.0'
+  s.dependency 'SwiftSoup', '<= 2.5.3' # From 2.6.0, Xcode 14 is required
 
 end
