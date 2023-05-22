@@ -58,7 +58,7 @@ public extension DefaultHTTPClientDelegate {
 }
 
 /// An implementation of `HTTPClient` using native APIs.
-public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSessionDataDelegate {
+public final class DefaultHTTPClient: HTTPClient, Loggable {
     /// Returns the default user agent used when issuing requests.
     ///
     /// For example, TestApp/1.3 x86_64 iOS/15.0 CFNetwork/1312 Darwin/20.6.0
@@ -124,6 +124,12 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
         self.init(configuration: config, userAgent: userAgent, delegate: delegate)
     }
 
+    public weak var delegate: DefaultHTTPClientDelegate? = nil
+
+    private let tasks: TaskManager
+    private let session: URLSession
+    private let userAgent: String
+
     /// Creates a `DefaultHTTPClient` with a custom configuration.
     ///
     /// - Parameters:
@@ -133,16 +139,15 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
         userAgent: String? = nil,
         delegate: DefaultHTTPClientDelegate? = nil
     ) {
+        let tasks = TaskManager()
+
         self.userAgent = userAgent ?? DefaultHTTPClient.defaultUserAgent
         self.delegate = delegate
-        super.init()
-        session = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
+        self.tasks = tasks
+        // Note that URLSession keeps a strong reference to its delegate, so we
+        // don't use the DefaultHTTPClient itself as its delegate.
+        self.session = URLSession(configuration: configuration, delegate: tasks, delegateQueue: nil)
     }
-
-    public weak var delegate: DefaultHTTPClientDelegate? = nil
-
-    private var session: URLSession!
-    private let userAgent: String
 
     deinit {
         session.invalidateAndCancel()
@@ -186,7 +191,7 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
                     request.userAgent = self.userAgent
                 }
 
-                let cancellable = self.start(Task(
+                let cancellable = self.tasks.start(Task(
                     request: request,
                     task: self.session.dataTask(with: request.urlRequest),
                     receiveResponse: { [weak self] response in
@@ -243,41 +248,41 @@ public final class DefaultHTTPClient: NSObject, HTTPClient, Loggable, URLSession
         return mediator
     }
 
-    // MARK: - Task Management
-
-    /// On-going tasks.
-    @Atomic private var tasks: [Task] = []
-
-    private func start(_ task: Task) -> Cancellable {
-        $tasks.write { $0.append(task) }
-        task.start()
-        return task
-    }
-
-    private func findTask(for urlTask: URLSessionTask) -> Task? {
-        let task = tasks.first { $0.task == urlTask }
-        if task == nil {
-            log(.error, "Cannot find on-going HTTP task for \(urlTask)")
+    private class TaskManager: NSObject, URLSessionDataDelegate {
+        /// On-going tasks.
+        @Atomic private var tasks: [Task] = []
+        
+        func start(_ task: Task) -> Cancellable {
+            $tasks.write { $0.append(task) }
+            task.start()
+            return task
         }
-        return task
-    }
-
-    // MARK: - URLSessionDataDelegate
-
-    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
-        guard let task = findTask(for: dataTask) else {
-            completionHandler(.cancel)
-            return
+        
+        private func findTask(for urlTask: URLSessionTask) -> Task? {
+            let task = tasks.first { $0.task == urlTask }
+            if task == nil {
+                log(.error, "Cannot find on-going HTTP task for \(urlTask)")
+            }
+            return task
         }
-        task.urlSession(session, didReceive: response, completionHandler: completionHandler)
-    }
-
-    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        findTask(for: dataTask)?.urlSession(session, didReceive: data)
-    }
-
-    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        findTask(for: task)?.urlSession(session, didCompleteWithError: error)
+        
+        // MARK: - URLSessionDataDelegate
+        
+        public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+            guard let task = findTask(for: dataTask) else {
+                completionHandler(.cancel)
+                return
+            }
+            task.urlSession(session, didReceive: response, completionHandler: completionHandler)
+        }
+        
+        public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+            findTask(for: dataTask)?.urlSession(session, didReceive: data)
+        }
+        
+        public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+            findTask(for: task)?.urlSession(session, didCompleteWithError: error)
+        }
     }
 
     /// Represents an on-going HTTP task.
