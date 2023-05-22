@@ -14,7 +14,10 @@ final class WebView: WKWebView {
 
     init(editingActions: EditingActionsController) {
         self.editingActions = editingActions
-        super.init(frame: .zero, configuration: .init())
+
+        let config = WKWebViewConfiguration()
+        config.mediaTypesRequiringUserActionForPlayback = .all
+        super.init(frame: .zero, configuration: config)
     }
 
     @available(*, unavailable)

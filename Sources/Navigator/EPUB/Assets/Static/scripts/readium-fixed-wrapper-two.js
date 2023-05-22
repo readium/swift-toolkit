@@ -10,7 +10,7 @@
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "FixedPage": () => (/* binding */ FixedPage)
+/* harmony export */   FixedPage: () => (/* binding */ FixedPage)
 /* harmony export */ });
 //
 //  Copyright 2022 Readium Foundation. All rights reserved.
