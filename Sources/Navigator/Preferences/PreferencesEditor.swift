@@ -55,25 +55,45 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
     func preference<Value>(
         preference prefKP: WritableKeyPath<Preferences, Value?>,
         setting settingKP: KeyPath<Settings, Value>,
+        defaultEffectiveValue: Value,
         isEffective: @escaping (State) -> Bool
     ) -> AnyPreference<Value> {
         preference(
             preference: prefKP,
             effectiveValue: { $0.settings[keyPath: settingKP] },
+            defaultEffectiveValue: defaultEffectiveValue,
             isEffective: isEffective
         )
     }
 
     func preference<Value>(
         preference prefKP: WritableKeyPath<Preferences, Value?>,
-        effectiveValue: @escaping (State) -> Value,
+        effectiveValue: @escaping (State) -> Value?,
+        defaultEffectiveValue: Value,
         isEffective: @escaping (State) -> Bool
     ) -> AnyPreference<Value> {
         ProxyPreference(
-            value: { [unowned self] in preferences[keyPath: prefKP] },
-            effectiveValue: { [unowned self] in effectiveValue(state) },
-            isEffective: { [unowned self] in isEffective(state) },
-            set: { [unowned self] v in edit { $0[keyPath: prefKP] = v } }
+            value: { [weak self] in
+                self?.preferences[keyPath: prefKP]
+            },
+            effectiveValue: { [weak self] in
+                guard let self = self else {
+                    return defaultEffectiveValue
+                }
+                return effectiveValue(self.state) ?? defaultEffectiveValue
+            },
+            isEffective: { [weak self] in
+                guard let self = self else {
+                    return false
+                }
+                return isEffective(self.state)
+            },
+            set: { [weak self] value in
+                guard let self = self else {
+                    return
+                }
+                self.edit { $0[keyPath: prefKP] = value }
+            }
         ).eraseToAnyPreference()
     }
 
@@ -83,22 +103,38 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
         isEffective: @escaping (State) -> Bool
     ) -> AnyPreference<Value?> {
         ProxyPreference(
-            value: { [unowned self] in preferences[keyPath: prefKP] },
-            effectiveValue: { [unowned self] in state.settings[keyPath: settingKP] },
-            isEffective: { [unowned self] in isEffective(state) },
-            set: { [unowned self] v in edit { $0[keyPath: prefKP] = v ?? nil } }
+            value: { [weak self] in
+                self?.preferences[keyPath: prefKP]
+            },
+            effectiveValue: { [weak self] in
+                self?.state.settings[keyPath: settingKP]
+            },
+            isEffective: { [weak self] in
+                guard let self = self else {
+                    return false
+                }
+                return isEffective(self.state)
+            },
+            set: { [weak self] value in
+                guard let self = self else {
+                    return
+                }
+                self.edit { $0[keyPath: prefKP] = value ?? nil }
+            }
         ).eraseToAnyPreference()
     }
 
     func enumPreference<Value>(
         preference prefKP: WritableKeyPath<Preferences, Value?>,
         setting settingKP: KeyPath<Settings, Value>,
+        defaultEffectiveValue: Value,
         isEffective: @escaping (State) -> Bool,
         supportedValues: [Value]
     ) -> AnyEnumPreference<Value> {
         enumPreference(
             preference: prefKP,
             effectiveValue: { $0.settings[keyPath: settingKP] },
+            defaultEffectiveValue: defaultEffectiveValue,
             isEffective: isEffective,
             supportedValues: supportedValues
         )
@@ -106,15 +142,33 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
 
     func enumPreference<Value>(
         preference prefKP: WritableKeyPath<Preferences, Value?>,
-        effectiveValue: @escaping (State) -> Value,
+        effectiveValue: @escaping (State) -> Value?,
+        defaultEffectiveValue: Value,
         isEffective: @escaping (State) -> Bool,
         supportedValues: [Value]
     ) -> AnyEnumPreference<Value> {
         ProxyEnumPreference(
-            value: { [unowned self] in preferences[keyPath: prefKP] },
-            effectiveValue: { [unowned self] in effectiveValue(state) },
-            isEffective: { [unowned self] in isEffective(state) },
-            set: { [unowned self] v in edit { $0[keyPath: prefKP] = v } },
+            value: { [weak self] in
+                self?.preferences[keyPath: prefKP]
+            },
+            effectiveValue: { [weak self] in
+                guard let self = self else {
+                    return defaultEffectiveValue
+                }
+                return effectiveValue(self.state) ?? defaultEffectiveValue
+            },
+            isEffective: { [weak self] in
+                guard let self = self else {
+                    return false
+                }
+                return isEffective(self.state)
+            },
+            set: { [weak self] value in
+                guard let self = self else {
+                    return
+                }
+                return self.edit { $0[keyPath: prefKP] = value }
+            },
             supportedValues: supportedValues
         ).eraseToAnyPreference()
     }
@@ -126,10 +180,24 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
         supportedValues: [Value?]
     ) -> AnyEnumPreference<Value?> {
         ProxyEnumPreference(
-            value: { [unowned self] in preferences[keyPath: prefKP] },
-            effectiveValue: { [unowned self] in state.settings[keyPath: settingKP] },
-            isEffective: { [unowned self] in isEffective(state) },
-            set: { [unowned self] v in edit { $0[keyPath: prefKP] = v ?? nil } },
+            value: { [weak self] in
+                self?.preferences[keyPath: prefKP]
+            },
+            effectiveValue: { [weak self] in
+                self?.state.settings[keyPath: settingKP]
+            },
+            isEffective: { [weak self] in
+                guard let self = self else {
+                    return false
+                }
+                return isEffective(self.state)
+            },
+            set: { [weak self] value in
+                guard let self = self else {
+                    return
+                }
+                self.edit { $0[keyPath: prefKP] = value ?? nil }
+            },
             supportedValues: supportedValues
         ).eraseToAnyPreference()
     }
@@ -137,6 +205,7 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
     func rangePreference<Value: Comparable>(
         preference prefKP: WritableKeyPath<Preferences, Value?>,
         setting settingKP: KeyPath<Settings, Value>,
+        defaultEffectiveValue: Value,
         isEffective: @escaping (State) -> Bool,
         supportedRange: ClosedRange<Value>,
         progressionStrategy: AnyProgressionStrategy<Value>,
@@ -145,6 +214,7 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
         rangePreference(
             preference: prefKP,
             effectiveValue: { $0.settings[keyPath: settingKP] },
+            defaultEffectiveValue: defaultEffectiveValue,
             isEffective: isEffective,
             supportedRange: supportedRange,
             progressionStrategy: progressionStrategy,
@@ -154,17 +224,35 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
 
     func rangePreference<Value: Comparable>(
         preference prefKP: WritableKeyPath<Preferences, Value?>,
-        effectiveValue: @escaping (State) -> Value,
+        effectiveValue: @escaping (State) -> Value?,
+        defaultEffectiveValue: Value,
         isEffective: @escaping (State) -> Bool,
         supportedRange: ClosedRange<Value>,
         progressionStrategy: AnyProgressionStrategy<Value>,
         format: @escaping (Value) -> String
     ) -> AnyRangePreference<Value> {
         ProxyRangePreference(
-            value: { [unowned self] in preferences[keyPath: prefKP] },
-            effectiveValue: { [unowned self] in effectiveValue(state) },
-            isEffective: { [unowned self] in isEffective(state) },
-            set: { [unowned self] v in edit { $0[keyPath: prefKP] = v } },
+            value: { [weak self] in
+                self?.preferences[keyPath: prefKP]
+            },
+            effectiveValue: { [weak self] in
+                guard let self = self else {
+                    return defaultEffectiveValue
+                }
+                return effectiveValue(self.state) ?? defaultEffectiveValue
+            },
+            isEffective: { [weak self] in
+                guard let self = self else {
+                    return false
+                }
+                return isEffective(self.state)
+            },
+            set: { [weak self] value in
+                guard let self = self else {
+                    return
+                }
+                return self.edit { $0[keyPath: prefKP] = value }
+            },
             supportedRange: supportedRange,
             progressionStrategy: progressionStrategy,
             format: format

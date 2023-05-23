@@ -37,7 +37,7 @@ final class EPUBNavigatorViewModel: Loggable {
 
     /// Local file URL associated to the HTTP URL used to serve the file on the
     /// `httpServer`. This is used to serve custom font files, for example.
-    private var servedFiles: [URL: URL] = [:]
+    @Atomic private var servedFiles: [URL: URL] = [:]
 
     convenience init(
         publication: Publication,
@@ -79,7 +79,9 @@ final class EPUBNavigatorViewModel: Loggable {
         )
 
         if let endpoint = publicationEndpoint {
-            httpServer.transformResources(at: endpoint, with: injectReadiumCSS)
+            httpServer.transformResources(at: endpoint) { [weak self] in
+                self?.injectReadiumCSS(in: $0) ?? $0
+            }
         }
     }
 
@@ -202,7 +204,7 @@ final class EPUBNavigatorViewModel: Loggable {
         }
         let endpoint = baseEndpoint.addingSuffix("/") + file.lastPathComponent
         let url = try httpServer.serve(at: endpoint, contentsOf: file)
-        servedFiles[file] = url
+        $servedFiles.write { $0[file] = url }
         return url
     }
 
