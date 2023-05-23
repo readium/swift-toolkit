@@ -7,16 +7,17 @@
 import SwiftUI
 
 struct BookCover: View {
-    var title: String
+    let width: Double
+    let height: Double
+    let title: String
     var authors: String?
     var url: URL?
     var action: () -> Void = {}
     
     var body: some View {
         VStack {
-            let width: CGFloat = 150
             cover
-                .frame(width: width, height: 220, alignment: .bottom)
+                .frame(width: width, height: height, alignment: .bottom)
             labels
                 .frame(width: width, alignment: .topLeading)
         }
@@ -64,6 +65,6 @@ struct BookCover: View {
 struct BookCover_Previews: PreviewProvider {
     static var previews: some View {
         let book = Book(title: "Test Title", authors: "Test Author", type: "application/epub+zip", path: "/test/path/")
-        BookCover(title: book.title, authors: book.authors)
+        BookCover(width: Constant.bookCoverWidth, height: Constant.bookCoverHeight, title: book.title, authors: book.authors)
     }
 }

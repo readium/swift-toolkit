@@ -35,6 +35,8 @@ struct CatalogGroup: View {
                             NavigationLink(destination: publicationDetail(publication)) {
                                 // FIXME Ideally the title and author should not be truncated
                                 BookCover(
+                                    width: Constant.bookCoverWidth,
+                                    height: Constant.bookCoverHeight,
                                     title: publication.metadata.title,
                                     authors: authors,
                                     url: publication.images.first

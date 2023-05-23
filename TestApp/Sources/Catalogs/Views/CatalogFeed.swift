@@ -41,6 +41,8 @@ struct CatalogFeed: View {
                                     .joined(separator: ", ")
                                 NavigationLink(destination: publicationDetail(publication)) {
                                     BookCover(
+                                        width: Constant.bookCoverWidth,
+                                        height: Constant.bookCoverHeight,
                                         title: publication.metadata.title,
                                         authors: authors,
                                         url: publication.images.first

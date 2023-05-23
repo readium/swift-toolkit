@@ -22,6 +22,7 @@ enum LibraryError: LocalizedError {
     case openFailed(Error)
     case downloadFailed(Error)
     case cancelled
+    case unknown
 
     var errorDescription: String? {
         switch self {

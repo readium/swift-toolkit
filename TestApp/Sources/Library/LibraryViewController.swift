@@ -34,13 +34,6 @@ class LibraryViewController: UIViewController, Loggable {
     
     weak var lastFlippedCell: PublicationCollectionViewCell?
     
-    var library: LibraryService! {
-        didSet {
-            oldValue?.delegate = nil
-            library.delegate = self
-        }
-    }
-    
     weak var libraryDelegate: LibraryModuleDelegate?
     
     private var subscriptions = Set<AnyCancellable>()
@@ -62,18 +55,6 @@ class LibraryViewController: UIViewController, Loggable {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        library.allBooks()
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                if case .failure(let error) = completion {
-                    self.libraryDelegate?.presentError(error, from: self)
-                }
-            } receiveValue: { newBooks in
-                self.books = newBooks
-                self.collectionView.reloadData()
-            }
-            .store(in: &subscriptions)
         
         // Add long press gesture recognizer.
         let recognizer = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
@@ -179,14 +160,7 @@ class LibraryViewController: UIViewController, Loggable {
             }
             
             func tryAdd(from url: URL) {
-                library.importPublication(from: url, sender: self)
-                    .receive(on: DispatchQueue.main)
-                    .sink { completion in
-                        if case .failure(let error) = completion {
-                            retry(message: error.localizedDescription)
-                        }
-                    } receiveValue: { _ in }
-                    .store(in: &subscriptions)
+                
             }
 
             let hideActivity = toastActivity(on: view)
@@ -240,14 +214,7 @@ extension LibraryViewController: UIDocumentPickerDelegate {
     }
     
     private func importFiles(at urls: [URL]) {
-        library.importPublications(from: urls, sender: self)
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                if case .failure(let error) = completion {
-                    self.libraryDelegate?.presentError(error, from: self)
-                }
-            } receiveValue: { _ in }
-            .store(in: &subscriptions)
+    
     }
     
 }
@@ -329,17 +296,6 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         }
         
         let book = books[indexPath.item]
-        library.openBook(book, forPresentation: true, sender: self)
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                if case .failure(let error) = completion {
-                    self.libraryDelegate?.presentError(error, from: self)
-                }
-                done()
-            } receiveValue: { pub in
-                libraryDelegate.libraryDidSelectPublication(pub, book: book, completion: done)
-            }
-            .store(in: &subscriptions)
     }
 }
 
@@ -353,14 +309,7 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
             message: NSLocalizedString("library_delete_alert_message", comment: "Message of the publication remove confirmation alert"),
             preferredStyle: .alert
         )
-        let removeAction = UIAlertAction(title: NSLocalizedString("remove_button", comment: "Button to confirm the deletion of a publication"), style: .destructive, handler: { alert in
-            self.library.remove(book)
-                .sink { completion in
-                    if case .failure(let error) = completion {
-                        self.libraryDelegate?.presentError(error, from: self)
-                    }
-                } receiveValue: {}
-                .store(in: &self.subscriptions)
+        let removeAction = UIAlertAction(title: NSLocalizedString("remove_button", comment: "Button to confirm the deletion of a publication"), style: .destructive, handler: { _ in
         })
         let cancelAction = UIAlertAction(title: NSLocalizedString("cancel_button", comment: "Button to cancel the deletion of a publication"), style: .cancel)
         
@@ -372,18 +321,7 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
     func displayInformation(forCellAt indexPath: IndexPath) {
         let book = books[indexPath.row]
         
-        library.openBook(book, forPresentation: true, sender: self)
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                if case .failure(let error) = completion {
-                    self.libraryDelegate?.presentError(error, from: self)
-                }
-            } receiveValue: { pub in
-                let detailsViewController = self.factory.make(publication: pub)
-                detailsViewController.modalPresentationStyle = .popover
-                self.navigationController?.pushViewController(detailsViewController, animated: true)
-            }
-            .store(in: &subscriptions)
+        
     }
     
     // Used to reset ui of the last flipped cell, we must not have two cells
@@ -392,32 +330,6 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
         lastFlippedCell?.flipMenu()
         lastFlippedCell = cell
     }
-}
-
-extension LibraryViewController: LibraryServiceDelegate {
-    
-    func confirmImportingDuplicatePublication(withTitle title: String) -> AnyPublisher<Bool, Never> {
-        Future(on: .main) { promise in
-            let confirmAction = UIAlertAction(title: NSLocalizedString("add_button", comment: "Confirmation button to import a duplicated publication"), style: .default) { _ in
-                promise(.success(true))
-            }
-            
-            let cancelAction = UIAlertAction(title: NSLocalizedString("cancel_button", comment: "Cancel the confirmation alert"), style: .cancel) { _ in
-                promise(.success(false))
-            }
-    
-            let alert = UIAlertController(
-                title: NSLocalizedString("library_duplicate_alert_title", comment: "Title of the import confirmation alert when the publication already exists in the library"),
-                message: NSLocalizedString("library_duplicate_alert_message", comment: "Message of the import confirmation alert when the publication already exists in the library"),
-                preferredStyle: .alert
-            )
-            alert.addAction(confirmAction)
-            alert.addAction(cancelAction)
-            
-            self.present(alert, animated: true)
-        }.eraseToAnyPublisher()
-    }
-    
 }
 
 class PublicationIndicator: UIView  {

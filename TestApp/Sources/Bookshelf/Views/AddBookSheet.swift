@@ -6,23 +6,43 @@
 
 import SwiftUI
 
+enum AddBookSheetError: Error {
+    case invalidURLString
+    case unknown(error: Error)
+}
+
 struct AddBookSheet: View {
-    
     // For iOS 15, we can use @Environment(\.dismiss)
     @Binding var showingSheet: Bool
-    var action: (String) -> Void
+    var completion: (Result<URL, AddBookSheetError>) -> Void
     
-    @State var url: String = ""
+    @State var url1: String = ""
+    @State var url2: URL?
+    @State private var showingBookPicker = false
     
     var body: some View {
         NavigationView {
             Form {
-                TextField("URL", text: $url)
+                Button {
+                    showingBookPicker = true
+                } label: {
+                    Text("From a filesystem")
+                }
+                
+                TextField("URL", text: $url1)
                     .keyboardType(.URL)
                     .autocapitalization(.none)
             }
             .navigationBarTitle("Add a Book")
             .toolbar(content: toolbarContent)
+            .sheet(isPresented: $showingBookPicker) {
+                BookImporterView(choosenURL: $url2, completion: { resultURL in
+                    if case .success(let url) = resultURL {
+                        completion(.success(url))
+                    }
+                    showingSheet = false
+                })
+            }
         }
     }
     
@@ -35,16 +55,14 @@ struct AddBookSheet: View {
         }
         ToolbarItem(placement: .navigationBarTrailing) {
             Button(.save) {
-                action(url)
+                if let url = URL(string: url1) {
+                    completion(.success(url))
+                } else {
+                    completion(.failure(.invalidURLString))
+                }
                 showingSheet = false
             }
-            .disabled(url.isEmpty)
+            .disabled(url1.isEmpty)
         }
     }
 }
-
-//struct AddBookSheet_Previews: PreviewProvider {
-//    static var previews: some View {
-//        AddBookSheet(showingSheet: true)
-//    }
-//}

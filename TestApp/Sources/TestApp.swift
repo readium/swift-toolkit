@@ -13,20 +13,29 @@ struct TestApp: App {
     
     var body: some Scene {
         WindowGroup {
-            TabView {
-                container.bookshelf()
-                    .tabItem {
-                        Label("Bookshelf", systemImage: "books.vertical.fill")
-                    }
-                container.catalogs()
-                    .tabItem {
-                        Label("Catalogs", systemImage: "magazine.fill")
-                    }
-                container.about()
-                    .tabItem {
-                        Label("About", systemImage: "info.circle.fill")
-                    }
+            NavigationStack {
+                TabView {
+                    container.bookshelf()
+                        .tabItem {
+                            Label("Bookshelf", systemImage: "books.vertical.fill")
+                        }
+                    container.catalogs()
+                        .tabItem {
+                            Label("Catalogs", systemImage: "magazine.fill")
+                        }
+                    container.about()
+                        .tabItem {
+                            Label("About", systemImage: "info.circle.fill")
+                        }
+                }
             }
+            .onOpenURL { (url) in
+                let bookImporter = BookImporter(readerDependencies: container.readerDependencies)
+                Task {
+                    await bookImporter.importPublication(from: url)
+                }
+            }
+            .navigationViewStyle(.stack)
         }
     }
 }
