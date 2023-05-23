@@ -199,14 +199,15 @@ open class AudioNavigator: MediaNavigator, AudioSessionUser, Loggable {
 
     // MARK: - Loaded Time Ranges
 
-    private lazy var loadedTimeRangesTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
-        self?.notifyLoadedTimeRanges()
-    }
-
     private var lastLoadedTimeRanges: [Range<Double>] = []
 
-    @objc func notifyLoadedTimeRanges() {
-        let ranges: [Range<Double>] = (player.currentItem?.loadedTimeRanges ?? [])
+    private lazy var loadedTimeRangesTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] timer in
+        guard let self = self else {
+            timer.invalidate()
+            return
+        }
+
+        let ranges: [Range<Double>] = (self.player.currentItem?.loadedTimeRanges ?? [])
             .map { value in
                 let range = value.timeRangeValue
                 let start = range.start.secondsOrZero
@@ -214,12 +215,12 @@ open class AudioNavigator: MediaNavigator, AudioSessionUser, Loggable {
                 return start ..< (start + duration)
             }
 
-        guard ranges != lastLoadedTimeRanges else {
+        guard ranges != self.lastLoadedTimeRanges else {
             return
         }
 
-        lastLoadedTimeRanges = ranges
-        delegate?.navigator(self, loadedTimeRangesDidChange: ranges)
+        self.lastLoadedTimeRanges = ranges
+        self.delegate?.navigator(self, loadedTimeRangesDidChange: ranges)
     }
 
     // MARK: - Navigator

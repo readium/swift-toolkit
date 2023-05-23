@@ -19,6 +19,8 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * Fixed the PDF `auto` spread setting and scaling pages when rotating the screen.
+* Prevent auto-playing videos in EPUB publications.
+* Fix various memory leaks and data races.
 
 
 ## [2.5.0]
