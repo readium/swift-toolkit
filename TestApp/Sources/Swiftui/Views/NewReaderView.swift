@@ -24,14 +24,12 @@ struct NewReaderView: View, Hashable, Equatable {
     
     var body: some View {
         VStack {
-            GeometryReader { reader in
-                // "actual" reader view
-                NewReaderViewController(
-                    makeReaderVCFunc: viewModel.makeReaderVCFunc
-                )
-            }
+            // "actual" reader view
+            NewReaderViewController(
+                makeReaderVCFunc: viewModel.makeReaderVCFunc
+            )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .border(.red, width: 2) // debug info
+            .ignoresSafeArea()
             
             positionLabel()
         }
@@ -74,6 +72,7 @@ struct NewReaderView: View, Hashable, Equatable {
                 }
             }
         }
+        .toolbar(viewModel.showNavigationBar ? .hidden : .visible, for: .navigationBar)
     }
     
     @ViewBuilder

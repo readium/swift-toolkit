@@ -18,7 +18,7 @@ class ReaderDependencies {
     let bookmarks: BookmarkRepository
     let highlights: HighlightRepository
     let publicationServer: PublicationServer
-    let makeReaderVCFunc: (Publication, Book) -> ReaderViewControllerType
+    let makeReaderVCFunc: (Publication, Book, NavigatorDelegate) -> ReaderViewControllerType
     let drmLibraryServices: [DRMLibraryService]
     let streamer: Streamer
     let httpClient: HTTPClient
@@ -27,7 +27,7 @@ class ReaderDependencies {
          bookmarks: BookmarkRepository,
          highlights: HighlightRepository,
          publicationServer: PublicationServer,
-         makeReaderVCFunc: @escaping (Publication, Book) -> ReaderViewControllerType,
+         makeReaderVCFunc: @escaping (Publication, Book, NavigatorDelegate) -> ReaderViewControllerType,
          drmLibraryServices: [DRMLibraryService],
          streamer: Streamer,
          httpClient: HTTPClient
@@ -114,14 +114,14 @@ class Container {
     
 // MARK: - Reader
     
-    func createNavigatorVC(for publication: Publication, book: Book) -> ReaderViewControllerType {
+    func createNavigatorVC(for publication: Publication, book: Book, delegate: NavigatorDelegate) -> ReaderViewControllerType {
         
         let locator = book.locator
         let resourcesServer = readerDependencies.publicationServer
         
         if publication.conforms(to: .pdf) {
             let navigator = PDFNavigatorViewController(publication: publication, initialLocation: locator)
-            //navigator.delegate = self
+            navigator.delegate = delegate as? PDFNavigatorDelegate
             return navigator
         }
         
@@ -133,13 +133,13 @@ class Container {
             }
             
             let navigator = EPUBNavigatorViewController(publication: publication, initialLocation: locator, resourcesServer: resourcesServer)
-//            self.navigator = navigator 
+            navigator.delegate = delegate as? EPUBNavigatorDelegate
             return navigator
         }
         
         if publication.conforms(to: .divina) {
             let navigator = CBZNavigatorViewController(publication: publication, initialLocation: locator)
-            //navigator.delegate = self
+            navigator.delegate = delegate as? CBZNavigatorDelegate
             return navigator
         }
         
