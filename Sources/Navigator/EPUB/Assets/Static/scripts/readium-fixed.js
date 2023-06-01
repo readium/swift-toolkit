@@ -8308,7 +8308,7 @@ const SELECTOR_PATTERN = [
     _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.nthoftype,
     _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.tag,
     _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.id,
-    _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType["class"],
+    _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.class,
     _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.attribute,
     _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.nthchild
 ];
@@ -9045,7 +9045,7 @@ __webpack_require__.r(__webpack_exports__);
 const DEFAULT_OPTIONS = {
     selectors: [
         _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.id,
-        _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType["class"],
+        _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.class,
         _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.tag,
         _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.attribute,
     ],

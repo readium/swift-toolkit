@@ -20,7 +20,8 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Fixed the PDF `auto` spread setting and scaling pages when rotating the screen.
 * Prevent auto-playing videos in EPUB publications.
-* Fix various memory leaks and data races.
+* Fixed various memory leaks and data races.
+* The `WKWebView` is now inspectable again with Safari starting from iOS 16.4.
 
 
 ## [2.5.0]
