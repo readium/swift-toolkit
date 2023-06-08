@@ -130,6 +130,12 @@ class ReaderViewController<N: UIViewController & Navigator>: UIViewController, U
         }
     }
 
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+
+        ttsViewModel?.stop()
+    }
+
     // MARK: - Navigation bar
 
     private var navigationBarHidden: Bool = true {

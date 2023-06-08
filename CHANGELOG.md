@@ -21,7 +21,9 @@ All notable changes to this project will be documented in this file. Take a look
 * Fixed the PDF `auto` spread setting and scaling pages when rotating the screen.
 * Fixed navigating to the first chapter of an audiobook with a single resource (contributed by [@grighakobian](https://github.com/readium/swift-toolkit/pull/292)).
 * Prevent auto-playing videos in EPUB publications.
-* Fix various memory leaks and data races.
+* Fixed various memory leaks and data races.
+* The `WKWebView` is now inspectable again with Safari starting from iOS 16.4.
+* Fixed crash in the `PublicationSpeechSynthesizer` when closing the navigator without stopping it first.
 
 ## [2.5.0]
 

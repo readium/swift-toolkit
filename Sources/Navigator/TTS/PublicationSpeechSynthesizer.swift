@@ -233,8 +233,12 @@ public class PublicationSpeechSynthesizer: Loggable {
                 delay: 0,
                 voiceOrLanguage: voiceOrLanguage(for: utterance)
             ),
-            onSpeakRange: { [unowned self] range in
-                state = .playing(
+            onSpeakRange: { [weak self] range in
+                guard let self = self else {
+                    return
+                }
+
+                self.state = .playing(
                     utterance,
                     range: utterance.locator.copy(
                         text: { text in
@@ -249,13 +253,17 @@ public class PublicationSpeechSynthesizer: Loggable {
                     )
                 )
             },
-            completion: { [unowned self] result in
+            completion: { [weak self] result in
+                guard let self = self else {
+                    return
+                }
+
                 switch result {
                 case .success:
-                    playNextUtterance(.forward)
+                    self.playNextUtterance(.forward)
                 case let .failure(error):
-                    state = .paused(utterance)
-                    delegate?.publicationSpeechSynthesizer(self, utterance: utterance, didFailWithError: .engine(error))
+                    self.state = .paused(utterance)
+                    self.delegate?.publicationSpeechSynthesizer(self, utterance: utterance, didFailWithError: .engine(error))
                 }
             }
         )
