@@ -18,6 +18,12 @@ final class WebView: WKWebView {
         let config = WKWebViewConfiguration()
         config.mediaTypesRequiringUserActionForPlayback = .all
         super.init(frame: .zero, configuration: config)
+
+        #if DEBUG && swift(>=5.8)
+            if #available(macOS 13.3, iOS 16.4, *) {
+                isInspectable = true
+            }
+        #endif
     }
 
     @available(*, unavailable)

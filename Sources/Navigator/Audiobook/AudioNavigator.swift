@@ -235,35 +235,26 @@ open class AudioNavigator: MediaNavigator, AudioSessionUser, Loggable {
         let link = publication.readingOrder[newResourceIndex]
 
         do {
-            let asset = try mediaLoader.makeAsset(for: link)
-            pause()
-
+            currentLocation = locator
             // Loads resource
             if player.currentItem == nil || resourceIndex != newResourceIndex {
                 log(.info, "Starts playing \(link.href)")
+                let asset = try mediaLoader.makeAsset(for: link)
                 player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
                 resourceIndex = newResourceIndex
-                currentLocation = locator
                 loadedTimeRangesTimer.fire()
                 delegate?.navigator(self, loadedTimeRangesDidChange: [])
             }
 
             // Seeks to time
             let time = locator.time(forDuration: resourceDuration) ?? 0
-            if time > 0 {
-                player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
+            player.seek(to: CMTime(seconds: time, preferredTimescale: 1000)) { [weak self] finished in
+                if let self = self, finished {
+                    self.delegate?.navigator(self, didJumpTo: locator)
+                }
+                DispatchQueue.main.async(execute: completion)
             }
-
-            play()
-
-            if let delegate = delegate, let location = currentLocation {
-                delegate.navigator(self, didJumpTo: location)
-            }
-
-            DispatchQueue.main.async(execute: completion)
-
             return true
-
         } catch {
             log(.error, error)
             return false
