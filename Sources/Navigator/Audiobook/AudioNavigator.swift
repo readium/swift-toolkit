@@ -106,7 +106,6 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
                 return
             }
 
-
             let session = _AudioSession.shared
             switch player.timeControlStatus {
             case .paused:
@@ -125,7 +124,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
         currentItemObserver = player.observe(\.currentItem, options: [.new, .old]) { [weak self] _, _ in
             self?.playbackDidChange()
         }
-        
+
         NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: nil, queue: .main) { [weak self] notification in
             guard
                 let self = self,

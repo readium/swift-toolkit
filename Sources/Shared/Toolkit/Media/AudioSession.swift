@@ -52,7 +52,7 @@ public final class _AudioSession: Loggable {
     private init() {
         observeAppStateChanges()
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
@@ -82,19 +82,19 @@ public final class _AudioSession: Loggable {
         }
 
         self.user = nil
-        self.isPlaying = false
+        isPlaying = false
 
         endSession()
     }
-    
+
     /// Indicates whether the `user` is playing.
     private var isPlaying: Bool = false
-    
+
     public func user(_ user: _AudioSessionUser, didChangePlaying isPlaying: Bool) {
         guard self.user === user, self.isPlaying != isPlaying else {
             return
         }
-        
+
         self.isPlaying = isPlaying
 
         if isPlaying {
@@ -103,21 +103,21 @@ public final class _AudioSession: Loggable {
             endSession()
         }
     }
-    
+
     // MARK: App background state
-    
+
     private func observeAppStateChanges() {
         NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
     }
-    
+
     @objc private func appDidEnterBackground() {
         if !isPlaying {
             endSession()
         }
     }
-    
+
     // MARK: Session management
-    
+
     private var isSessionStarted = false
 
     private func startSession(with config: Configuration) {
@@ -132,7 +132,7 @@ public final class _AudioSession: Loggable {
         } catch {
             log(.error, "Failed to start the audio session: \(error)")
         }
-        
+
         isSessionStarted = true
 
         interruptionObserver = NotificationCenter.default.addObserver(
@@ -143,7 +143,7 @@ public final class _AudioSession: Loggable {
             self?.handleAudioSessionInterruption(notification: notification)
         }
     }
-    
+
     private func endSession() {
         guard isSessionStarted else {
             return

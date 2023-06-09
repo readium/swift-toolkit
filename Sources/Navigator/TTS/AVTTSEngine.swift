@@ -243,7 +243,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         if debug {
             log(.debug, "-> on \(event)")
         }
-        
+
         switch (state, event) {
         // stopped
         case let (.stopped, .play(task)):
@@ -311,7 +311,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
             break
         }
     }
-    
+
     private func didChangePlaying(_ isPlaying: Bool) {
         guard let user = audioSessionUser else {
             return
