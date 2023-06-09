@@ -83,6 +83,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
     /// Durations indexed by reading order position.
     private let durations: [Double]
 
+    private var rateObserver: NSKeyValueObservation?
     private var timeControlStatusObserver: NSKeyValueObservation?
     private var currentItemObserver: NSKeyValueObservation?
 
@@ -100,6 +101,23 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
             }
         }
 
+        rateObserver = player.observe(\.rate, options: [.new, .old]) { [weak self] player, _ in
+            guard let self = self else {
+                return
+            }
+
+
+            let session = _AudioSession.shared
+            switch player.timeControlStatus {
+            case .paused:
+                session.user(self, didChangePlaying: false)
+            case .waitingToPlayAtSpecifiedRate, .playing:
+                session.user(self, didChangePlaying: true)
+            @unknown default:
+                break
+            }
+        }
+
         timeControlStatusObserver = player.observe(\.timeControlStatus, options: [.new, .old]) { [weak self] _, _ in
             self?.playbackDidChange()
         }
@@ -107,7 +125,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
         currentItemObserver = player.observe(\.currentItem, options: [.new, .old]) { [weak self] _, _ in
             self?.playbackDidChange()
         }
-
+        
         NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: nil, queue: .main) { [weak self] notification in
             guard
                 let self = self,
@@ -322,7 +340,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
     }
 
     public func play() {
-        _AudioSession.shared.start(with: self)
+        _AudioSession.shared.start(with: self, isPlaying: false)
 
         if player.currentItem == nil, let location = initialLocation {
             go(to: location)

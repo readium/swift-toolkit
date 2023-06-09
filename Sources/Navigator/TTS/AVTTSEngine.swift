@@ -40,8 +40,9 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     /// Creates a new `AVTTSEngine` instance.
     ///
     /// - Parameters:
-    ///   - audioSessionConfig: AudioSession configuration used while playing utterances. If `nil`, utterances won't
-    ///     play when the app is in the background.
+    ///   - audioSessionConfig: AudioSession configuration used while playing
+    ///   utterances. If `nil`, utterances won't play when the app is in the
+    ///   background.
     public init(
         audioSessionConfig: _AudioSession.Configuration? = .init(
             category: .playback,
@@ -242,7 +243,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         if debug {
             log(.debug, "-> on \(event)")
         }
-
+        
         switch (state, event) {
         // stopped
         case let (.stopped, .play(task)):
@@ -253,6 +254,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
 
         case let (.starting(current), .didStart(started)) where current == started:
             state = .playing(current)
+            didChangePlaying(true)
 
         case let (.starting(current), .play(next)):
             state = .stopping(current, queued: next)
@@ -264,6 +266,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
 
         case let (.playing(current), .didFinish(finished)) where current == finished:
             state = .stopped
+            didChangePlaying(false)
             current.completion(.success(()))
 
         case let (.playing(current), .play(next)):
@@ -291,6 +294,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
                 startEngine(with: next)
             } else {
                 state = .stopped
+                didChangePlaying(false)
             }
 
             if !current.isCancelled {
@@ -307,12 +311,19 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
             break
         }
     }
+    
+    private func didChangePlaying(_ isPlaying: Bool) {
+        guard let user = audioSessionUser else {
+            return
+        }
+        _AudioSession.shared.user(user, didChangePlaying: isPlaying)
+    }
 
     private func startEngine(with task: Task) {
         synthesizer.speak(taskUtterance(with: task))
 
         if let user = audioSessionUser {
-            _AudioSession.shared.start(with: user)
+            _AudioSession.shared.start(with: user, isPlaying: false)
         }
     }
 

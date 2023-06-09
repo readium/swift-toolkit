@@ -6,6 +6,7 @@
 
 import AVFoundation
 import Foundation
+import UIKit
 
 /// An user of the `AudioSession`, for example a media player object.
 public protocol _AudioSessionUser: AnyObject {
@@ -48,13 +49,19 @@ public final class _AudioSession: Loggable {
     /// Shared `AudioSession` for this app.
     public static let shared = _AudioSession()
 
-    private init() {}
+    private init() {
+        observeAppStateChanges()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
 
     /// Current user of the `AudioSession`.
     private weak var user: _AudioSessionUser?
 
     /// Starts a new audio session with the given `user`.
-    public func start(with user: _AudioSessionUser) {
+    public func start(with user: _AudioSessionUser, isPlaying: Bool) {
         guard self.user !== user else {
             return
         }
@@ -63,15 +70,70 @@ public final class _AudioSession: Loggable {
             end(for: oldUser)
         }
         self.user = user
+        self.isPlaying = false
+
+        startSession(with: user.audioConfiguration)
+    }
+
+    /// Ends the current audio session.
+    public func end(for user: _AudioSessionUser) {
+        guard self.user === user || self.user == nil else {
+            return
+        }
+
+        self.user = nil
+        self.isPlaying = false
+
+        endSession()
+    }
+    
+    /// Indicates whether the `user` is playing.
+    private var isPlaying: Bool = false
+    
+    public func user(_ user: _AudioSessionUser, didChangePlaying isPlaying: Bool) {
+        guard self.user === user, self.isPlaying != isPlaying else {
+            return
+        }
+        
+        self.isPlaying = isPlaying
+
+        if isPlaying {
+            startSession(with: user.audioConfiguration)
+        } else if UIApplication.shared.applicationState != .active {
+            endSession()
+        }
+    }
+    
+    // MARK: App background state
+    
+    private func observeAppStateChanges() {
+        NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
+    }
+    
+    @objc private func appDidEnterBackground() {
+        if !isPlaying {
+            endSession()
+        }
+    }
+    
+    // MARK: Session management
+    
+    private var isSessionStarted = false
+
+    private func startSession(with config: Configuration) {
+        guard !isSessionStarted else {
+            return
+        }
 
         let audioSession = AVAudioSession.sharedInstance()
         do {
-            let config = user.audioConfiguration
             try audioSession.setCategory(config.category, mode: config.mode, policy: config.routeSharingPolicy, options: config.options)
             try audioSession.setActive(true)
         } catch {
             log(.error, "Failed to start the audio session: \(error)")
         }
+        
+        isSessionStarted = true
 
         interruptionObserver = NotificationCenter.default.addObserver(
             forName: AVAudioSession.interruptionNotification,
@@ -81,24 +143,22 @@ public final class _AudioSession: Loggable {
             self?.handleAudioSessionInterruption(notification: notification)
         }
     }
-
-    /// Ends the current audio session.
-    public func end(for user: _AudioSessionUser) {
-        guard self.user === user || self.user == nil else {
+    
+    private func endSession() {
+        guard isSessionStarted else {
             return
         }
 
         do {
+            AVAudioSession.sharedInstance()
             try AVAudioSession.sharedInstance().setActive(false)
         } catch {
             log(.error, "Failed to end the audio session: \(error)")
         }
 
+        isSessionStarted = false
         interruptionObserver = nil
-        self.user = nil
     }
-
-    // MARK: Interruption
 
     /// Whether the audio session is currently interrupted, e.g. by a phone call.
     public private(set) var isInterrupted: Bool = false
