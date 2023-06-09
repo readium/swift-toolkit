@@ -402,7 +402,6 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
 
             case .stream(let response, var readBytes):
                 readBytes += Int64(data.count)
-                // FIXME: Use task.progress.fractionCompleted once we bump minimum iOS version to 11+
                 var progress: Double? = nil
                 if let expectedBytes = response.contentLength {
                     progress = Double(min(readBytes, expectedBytes)) / Double(expectedBytes)
