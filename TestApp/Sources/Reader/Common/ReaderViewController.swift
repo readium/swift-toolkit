@@ -59,12 +59,6 @@ class ReaderViewController<N: Navigator>: UIViewController,
         navigationItem.rightBarButtonItems = makeNavigationBarButtons()
     }
 
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-
-        ttsViewModel?.stop()
-    }
-
     // MARK: - Navigation bar
 
     func makeNavigationBarButtons() -> [UIBarButtonItem] {

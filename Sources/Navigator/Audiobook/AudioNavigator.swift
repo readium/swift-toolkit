@@ -88,6 +88,7 @@ open class AudioNavigator: MediaNavigator, AudioSessionUser, Loggable {
     /// Durations indexed by reading order position.
     private let durations: [Double]
 
+    private var rateObserver: NSKeyValueObservation?
     private var timeControlStatusObserver: NSKeyValueObservation?
     private var currentItemObserver: NSKeyValueObservation?
 
@@ -102,6 +103,22 @@ open class AudioNavigator: MediaNavigator, AudioSessionUser, Loggable {
             if let self = self {
                 let time = time.secondsOrZero
                 self.playbackDidChange(time)
+            }
+        }
+
+        rateObserver = player.observe(\.rate, options: [.new, .old]) { [weak self] player, _ in
+            guard let self = self else {
+                return
+            }
+
+            let session = AudioSession.shared
+            switch player.timeControlStatus {
+            case .paused:
+                session.user(self, didChangePlaying: false)
+            case .waitingToPlayAtSpecifiedRate, .playing:
+                session.user(self, didChangePlaying: true)
+            @unknown default:
+                break
             }
         }
 
@@ -327,7 +344,7 @@ open class AudioNavigator: MediaNavigator, AudioSessionUser, Loggable {
     }
 
     public func play() {
-        AudioSession.shared.start(with: self)
+        AudioSession.shared.start(with: self, isPlaying: false)
 
         if player.currentItem == nil, let location = initialLocation {
             go(to: location)

@@ -33,7 +33,7 @@ final class AudiobookModule: ReaderFormatModule {
             throw ReaderError.epubNotValid
         }
 
-        let viewController = try await AudiobookViewController(
+        let viewController = AudiobookViewController(
             publication: publication,
             locator: locator,
             bookId: bookId,

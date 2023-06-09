@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file. Take a look
 * Fixed various memory leaks and data races.
 * The `WKWebView` is now inspectable again with Safari starting from iOS 16.4.
 * Fixed crash in the `PublicationSpeechSynthesizer` when closing the navigator without stopping it first.
+* Fixed the audio session kept opened while the app is in the background and paused.
 
 ## [2.5.0]
 
