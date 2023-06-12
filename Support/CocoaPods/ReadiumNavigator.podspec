@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   }
   s.source_files  = "Sources/Navigator/**/*.{m,h,swift}"
   s.platform      = :ios
-  s.ios.deployment_target = "10.0"
+  s.ios.deployment_target = "11.0"
   s.dependency 'R2Shared'
   s.dependency 'ReadiumInternal'
   s.dependency 'DifferenceKit', '~> 1.0'

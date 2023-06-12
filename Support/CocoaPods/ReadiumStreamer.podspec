@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   }
   s.source_files  = "Sources/Streamer/**/*.{m,h,swift}"
   s.platform      = :ios
-  s.ios.deployment_target = "10.0"
+  s.ios.deployment_target = "11.0"
   s.libraries     =  'z', 'xml2'
   s.xcconfig      = { 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2' }
 
