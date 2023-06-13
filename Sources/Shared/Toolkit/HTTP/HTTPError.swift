@@ -31,6 +31,8 @@ public struct HTTPError: LocalizedError, Equatable, Loggable {
         case clientError
         /// (5xx) Server errors
         case serverError
+        /// Cannot connect to the server, or the host cannot be resolved.
+        case serverUnreachable
         /// The device is offline.
         case offline
         /// IO error while accessing the disk.
@@ -78,6 +80,8 @@ public struct HTTPError: LocalizedError, Equatable, Loggable {
                     self = .malformedResponse
                 case .notConnectedToInternet, .networkConnectionLost:
                     self = .offline
+                case .cannotConnectToHost, .cannotFindHost:
+                    self = .serverUnreachable
                 case .timedOut:
                     self = .timeout
                 case .userAuthenticationRequired, .appTransportSecurityRequiresSecureConnection, .noPermissionsToReadFile:
@@ -168,6 +172,8 @@ public struct HTTPError: LocalizedError, Equatable, Loggable {
             return R2SharedLocalizedString("HTTPError.clientError")
         case .serverError:
             return R2SharedLocalizedString("HTTPError.serverError")
+        case .serverUnreachable:
+            return R2SharedLocalizedString("HTTPError.serverUnreachable")
         case .cancelled:
             return R2SharedLocalizedString("HTTPError.cancelled")
         case .offline:

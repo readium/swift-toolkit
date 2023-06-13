@@ -172,7 +172,7 @@ public enum ResourceError: LocalizedError {
             switch error.kind {
             case .malformedRequest, .badRequest:
                 return .badRequest(error)
-            case .timeout, .offline:
+            case .timeout, .offline, .serverUnreachable:
                 return .unavailable(error)
             case .unauthorized, .forbidden:
                 return .forbidden(error)
