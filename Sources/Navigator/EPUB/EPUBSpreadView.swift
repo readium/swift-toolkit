@@ -468,6 +468,10 @@ extension EPUBSpreadView: WKNavigationDelegate {
 
         decisionHandler(policy)
     }
+
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        loadSpread()
+    }
 }
 
 extension EPUBSpreadView: UIScrollViewDelegate {
