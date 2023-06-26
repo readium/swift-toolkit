@@ -26,6 +26,8 @@ All notable changes to this project will be documented in this file. Take a look
 * Fixed crash in the `PublicationSpeechSynthesizer` when closing the navigator without stopping it first.
 * Fixed the audio session kept opened while the app is in the background and paused.
 * Fixed the **Attribute dir redefined** error when the EPUB resource already has a `dir` attribute.
+* [#309](https://github.com/readium/swift-toolkit/issues/309) Fixed restoring the EPUB location when the application was killed in the background (contributed by [@triin-ko](https://github.com/readium/swift-toolkit/pull/311)).
+
 
 ## [2.5.0]
 
