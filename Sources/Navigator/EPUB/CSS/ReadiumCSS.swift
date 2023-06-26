@@ -88,6 +88,12 @@ extension ReadiumCSS {
 }
 
 extension ReadiumCSS: HTMLInjectable {
+    func willInject(in html: String) -> String {
+        // Removes any dir attributes in html/body.
+        let range = NSRange(html.startIndex..., in: html)
+        return dirRegex.stringByReplacingMatches(in: html, options: [], range: range, withTemplate: "$1")
+    }
+
     /// https://github.com/readium/readium-css/blob/develop/docs/CSS06-stylesheets_order.md
     func injections(for html: String) throws -> [HTMLInjection] {
         let document = try parse(html)
@@ -200,3 +206,8 @@ private extension Element {
         return code.map { Language(code: .bcp47($0)) }
     }
 }
+
+private let dirRegex = try! NSRegularExpression(
+    pattern: "(<(?:html|body)[^>]*)\\s+dir=[\"']\\w*[\"']",
+    options: [.caseInsensitive, .anchorsMatchLines]
+)

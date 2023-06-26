@@ -10,13 +10,18 @@ import ReadiumInternal
 
 /// An object that can be injected into an HTML document.
 protocol HTMLInjectable {
+    /// Extension point to do treatment on the HTML document before injection.
+    func willInject(in html: String) -> String
+
     func injections(for html: String) throws -> [HTMLInjection]
 }
 
 extension HTMLInjectable {
+    func willInject(in html: String) -> String { html }
+
     /// Injects the receiver in the given `html` document.
     func inject(in html: String) throws -> String {
-        var result = html
+        var result = willInject(in: html)
         for injection in try injections(for: html) {
             result = try injection.inject(in: result)
         }
