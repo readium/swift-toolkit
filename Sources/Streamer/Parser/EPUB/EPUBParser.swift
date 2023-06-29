@@ -81,7 +81,7 @@ public final class EPUBParser: PublicationParser {
             servicesBuilder: .init(
                 content: DefaultContentService.makeFactory(
                     resourceContentIteratorFactories: [
-                        HTMLResourceContentIterator.makeFactory(),
+                        HTMLResourceContentIterator.Factory(),
                     ]
                 ),
                 positions: EPUBPositionsService.makeFactory(reflowableStrategy: reflowablePositionsStrategy),

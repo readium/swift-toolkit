@@ -6,11 +6,18 @@
 
 import Foundation
 
-/// Creates a `ContentIterator` instance for the `resource`, starting from the given `locator`.
-///
-/// - Returns: nil if the resource format is not supported.
-public typealias ResourceContentIteratorFactory =
-    (_ resource: Resource, _ locator: Locator) -> ContentIterator?
+public protocol ResourceContentIteratorFactory {
+    /// Creates a `ContentIterator` instance for the `resource`, starting from
+    /// the given `locator`.
+    ///
+    /// - Returns: nil if the resource format is not supported.
+    func make(
+        publication: Publication,
+        readingOrderIndex: Int,
+        resource: Resource,
+        locator: Locator
+    ) -> ContentIterator?
+}
 
 /// A composite [Content.Iterator] which iterates through a whole [publication] and delegates the
 /// iteration inside a given resource to media type-specific iterators.
@@ -117,7 +124,14 @@ public class PublicationContentIterator: ContentIterator, Loggable {
 
         let resource = publication.get(link)
         return resourceContentIteratorFactories
-            .first { factory in factory(resource, locator) }
+            .first { factory in
+                factory.make(
+                    publication: publication,
+                    readingOrderIndex: index,
+                    resource: resource,
+                    locator: locator
+                )
+            }
             .map { IndexedIterator(index: index, iterator: $0) }
     }
 }
