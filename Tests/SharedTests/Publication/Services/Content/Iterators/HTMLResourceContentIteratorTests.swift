@@ -209,7 +209,10 @@ class HTMLResourceContentIteratorTest: XCTestCase {
 
     func testStartingFromCSSSelector() {
         let iter = iterator(html, start: locator(selector: "#pgepubid00498 > p:nth-child(3)"))
-        XCTAssertEqual(Array(elements[2...]), iter.elements())
+        XCTAssertEqual(elements[2], try iter.next()?.equatable())
+        XCTAssertEqual(elements[3], try iter.next()?.equatable())
+        XCTAssertEqual(elements[4], try iter.next()?.equatable())
+        XCTAssertNil(try iter.next())
     }
 
     func testCallingPreviousWhenStartingFromCSSSelector() {
@@ -320,7 +323,10 @@ class HTMLResourceContentIteratorTest: XCTestCase {
             ).equatable(),
         ]
 
-        XCTAssertEqual(expectedElements, iterator(html).elements())
+        let iter = iterator(html)
+        XCTAssertEqual(expectedElements[0], try iter.next()?.equatable())
+        XCTAssertEqual(expectedElements[1], try iter.next()?.equatable())
+        XCTAssertNil(try iter.next())
     }
 
     func testIteratingOverAudioElements() {
@@ -354,7 +360,10 @@ class HTMLResourceContentIteratorTest: XCTestCase {
             ).equatable(),
         ]
 
-        XCTAssertEqual(expectedElements, iterator(html).elements())
+        let iter = iterator(html)
+        XCTAssertEqual(expectedElements[0], try iter.next()?.equatable())
+        XCTAssertEqual(expectedElements[1], try iter.next()?.equatable())
+        XCTAssertNil(try iter.next())
     }
 
     func testIteratingOverVideoElements() {
@@ -388,7 +397,10 @@ class HTMLResourceContentIteratorTest: XCTestCase {
             ).equatable(),
         ]
 
-        XCTAssertEqual(expectedElements, iterator(html).elements())
+        let iter = iterator(html)
+        XCTAssertEqual(expectedElements[0], try iter.next()?.equatable())
+        XCTAssertEqual(expectedElements[1], try iter.next()?.equatable())
+        XCTAssertNil(try iter.next())
     }
 
     func testIteratingOverElementContainingTextAndChildElements() {
@@ -485,16 +497,6 @@ class HTMLResourceContentIteratorTest: XCTestCase {
         XCTAssertEqual(expectedElements[1], try iter.next()?.equatable())
         XCTAssertEqual(expectedElements[2], try iter.next()?.equatable())
         XCTAssertNil(try iter.next())
-    }
-}
-
-private extension ContentIterator {
-    func elements() -> [AnyEquatableContentElement] {
-        var elements: [AnyEquatableContentElement] = []
-        while let next = try? next() {
-            elements.append(AnyEquatableContentElement(next))
-        }
-        return elements
     }
 }
 
