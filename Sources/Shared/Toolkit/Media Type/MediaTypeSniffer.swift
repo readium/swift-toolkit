@@ -322,20 +322,21 @@ public extension MediaType {
         }
         
         if context.contentAsArchive != nil {
-            func isIgnored(_ url: URL) -> Bool {
+            func isIgnored(_ url: URL, fileExtensions: [String]) -> Bool {
                 let filename = url.lastPathComponent
-                return url.hasDirectoryPath || filename.hasPrefix(".") || filename == "Thumbs.db"
+                return url.hasDirectoryPath || filename.hasPrefix(".") || filename == "Thumbs.db" || !fileExtensions.contains(url.pathExtension)
             }
 
             func archiveContainsOnlyExtensions(_ fileExtensions: [String]) -> Bool {
                 return context.archiveEntriesAllSatisfy { url in
-                    isIgnored(url) || fileExtensions.contains(url.pathExtension.lowercased())
+                    isIgnored(url, fileExtensions: fileExtensions) || fileExtensions.contains(url.pathExtension.lowercased())
                 }
             }
 
             if archiveContainsOnlyExtensions(cbzExtensions) {
                 return .cbz
             }
+            
             if archiveContainsOnlyExtensions(zabExtensions) {
                 return .zab
             }
