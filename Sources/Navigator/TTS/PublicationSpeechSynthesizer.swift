@@ -225,8 +225,6 @@ public class PublicationSpeechSynthesizer: Loggable {
 
     /// Plays the given `utterance` with the TTS `engine`.
     private func play(_ utterance: Utterance) {
-        state = .playing(utterance, range: nil)
-
         currentTask = engine.speak(
             TTSUtterance(
                 text: utterance.text,
@@ -267,6 +265,8 @@ public class PublicationSpeechSynthesizer: Loggable {
                 }
             }
         )
+
+        state = .playing(utterance, range: nil)
     }
 
     /// Returns the user selected voice if it's compatible with the utterance language. Otherwise, falls back on

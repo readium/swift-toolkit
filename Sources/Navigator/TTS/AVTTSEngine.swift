@@ -267,7 +267,10 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         case let (.playing(current), .didFinish(finished)) where current == finished:
             state = .stopped
             didChangePlaying(false)
-            current.completion(.success(()))
+
+            if !current.isCancelled {
+                current.completion(.success(()))
+            }
 
         case let (.playing(current), .play(next)):
             state = .stopping(current, queued: next)
