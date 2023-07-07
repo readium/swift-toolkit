@@ -99,7 +99,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
                     $0.setSearchServiceFactory(_StringSearchService.makeFactory())
                     $0.setContentServiceFactory(DefaultContentService.makeFactory(
                         resourceContentIteratorFactories: [
-                            HTMLResourceContentIterator.makeFactory(),
+                            HTMLResourceContentIterator.Factory(),
                         ]
                     ))
                 }

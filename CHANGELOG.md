@@ -16,6 +16,17 @@ All notable changes to this project will be documented in this file. Take a look
 
 * The `auto` spread setting is now available for fixed-layout EPUBs. It will display two pages in landscape and a single one in portrait.
 
+#### Streamer
+
+* The EPUB content iterator now returns `audio` and `video` elements and fill in the `progression` and `totalProgression` locator properties.
+
+### Changed
+
+#### Navigator
+
+* `EPUBNavigatorViewController.firstVisibleElementLocator()` now returns the first *block* element that is visible on the screen, even if it starts on previous pages.
+    * This is used to make sure the user will not miss any context when restoring a TTS session in the middle of a resource.
+
 ### Fixed
 
 #### Navigator
@@ -26,8 +37,15 @@ All notable changes to this project will be documented in this file. Take a look
 * Fixed various memory leaks and data races.
 * The `WKWebView` is now inspectable again with Safari starting from iOS 16.4.
 * Fixed crash in the `PublicationSpeechSynthesizer` when closing the navigator without stopping it first.
+* Fixed pausing the `PublicationSpeechSynthesizer` right before starting the utterance.
 * Fixed the audio session kept opened while the app is in the background and paused.
 * Fixed the **Attribute dir redefined** error when the EPUB resource already has a `dir` attribute.
+* [#309](https://github.com/readium/swift-toolkit/issues/309) Fixed restoring the EPUB location when the application was killed in the background (contributed by [@triin-ko](https://github.com/readium/swift-toolkit/pull/311)).
+
+#### Streamer
+
+* Fix issue with the TTS starting from the beginning of the chapter instead of the current position.
+
 
 ## [2.5.0]
 
