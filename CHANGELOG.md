@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-## [Unreleased]
+<!-- ## [Unreleased] -->
+
+## [2.5.1]
 
 * The Readium toolkit now requires iOS 11.0+.
 
@@ -35,10 +37,10 @@ All notable changes to this project will be documented in this file. Take a look
 * Fixed various memory leaks and data races.
 * The `WKWebView` is now inspectable again with Safari starting from iOS 16.4.
 * Fixed crash in the `PublicationSpeechSynthesizer` when closing the navigator without stopping it first.
+* Fixed pausing the `PublicationSpeechSynthesizer` right before starting the utterance.
 * Fixed the audio session kept opened while the app is in the background and paused.
 * Fixed the **Attribute dir redefined** error when the EPUB resource already has a `dir` attribute.
 * [#309](https://github.com/readium/swift-toolkit/issues/309) Fixed restoring the EPUB location when the application was killed in the background (contributed by [@triin-ko](https://github.com/readium/swift-toolkit/pull/311)).
-* Fixed pausing the `PublicationSpeechSynthesizer` right before starting the utterance.
 
 #### Streamer
 
@@ -572,3 +574,4 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [2.3.0]: https://github.com/readium/swift-toolkit/compare/2.2.0...2.3.0
 [2.4.0]: https://github.com/readium/swift-toolkit/compare/2.3.0...2.4.0
 [2.5.0]: https://github.com/readium/swift-toolkit/compare/2.4.0...2.5.0
+[2.5.1]: https://github.com/readium/swift-toolkit/compare/2.5.0...2.5.1

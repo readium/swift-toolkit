@@ -19,6 +19,7 @@ A [Test App](TestApp) demonstrates how to integrate the Readium Swift toolkit in
 | Readium   | iOS  | Swift compiler | Xcode |
 |-----------|------|----------------|-------|
 | `develop` | 11.0 | 5.6.1          | 13.4  |
+| 2.5.1     | 11.0 | 5.6.1          | 13.4  |
 | 2.5.0     | 10.0 | 5.6.1          | 13.4  |
 | 2.4.0     | 10.0 | 5.3.2          | 12.4  |
 
@@ -43,7 +44,7 @@ If you're stuck, find more information at [developer.apple.com](https://develope
 Add the following to your `Cartfile`:
 
 ```
-github "readium/swift-toolkit" ~> 2.5.0
+github "readium/swift-toolkit" ~> 2.5.1
 ```
 
 Then, [follow the usual Carthage steps](https://github.com/Carthage/Carthage#adding-frameworks-to-an-application) to add the Readium libraries to your project.
@@ -70,12 +71,12 @@ Refer to the following table to know which dependencies are required for each Re
 Add the following `pod` statements to your `Podfile` for the Readium libraries you want to use:
 
 ```
-pod 'R2Shared', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.0/Support/CocoaPods/ReadiumShared.podspec'
-pod 'R2Streamer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.0/Support/CocoaPods/ReadiumStreamer.podspec'
-pod 'R2Navigator', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.0/Support/CocoaPods/ReadiumNavigator.podspec'
-pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.0/Support/CocoaPods/ReadiumOPDS.podspec'
-pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.0/Support/CocoaPods/ReadiumLCP.podspec'
-pod 'ReadiumInternal', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.0/Support/CocoaPods/ReadiumInternal.podspec'
+pod 'R2Shared', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.1/Support/CocoaPods/ReadiumShared.podspec'
+pod 'R2Streamer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.1/Support/CocoaPods/ReadiumStreamer.podspec'
+pod 'R2Navigator', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.1/Support/CocoaPods/ReadiumNavigator.podspec'
+pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.1/Support/CocoaPods/ReadiumOPDS.podspec'
+pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.1/Support/CocoaPods/ReadiumLCP.podspec'
+pod 'ReadiumInternal', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.1/Support/CocoaPods/ReadiumInternal.podspec'
 
 # Required if you use R2Streamer.
 pod 'GCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/3.7.4/GCDWebServer.podspec'
