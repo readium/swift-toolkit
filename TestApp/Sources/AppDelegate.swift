@@ -43,6 +43,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             opdsViewController,
             aboutViewController,
         ]
+        
+        setBarAppearance()
 
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = tabBarController
@@ -56,5 +58,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             try! await app.library.importPublication(from: url, sender: window!.rootViewController!)
         }
         return true
+    }
+    
+    private func setBarAppearance() {
+        if #available(iOS 15.0, *) {
+            let navBarAppearance = UINavigationBarAppearance()
+            UINavigationBar.appearance().standardAppearance = navBarAppearance
+            UINavigationBar.appearance().compactAppearance = navBarAppearance
+            UINavigationBar.appearance().scrollEdgeAppearance = navBarAppearance
+            
+            let tabBarAppearance = UITabBarAppearance()
+            UITabBar.appearance().standardAppearance = tabBarAppearance
+            UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
+        }
     }
 }
