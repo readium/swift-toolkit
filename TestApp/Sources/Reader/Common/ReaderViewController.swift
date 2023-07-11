@@ -78,6 +78,7 @@ class ReaderViewController<N: UIViewController & Navigator>: UIViewController, U
         view.backgroundColor = .white
 
         navigationItem.rightBarButtonItems = makeNavigationBarButtons()
+        fixTranparentNavigationBar()
         updateNavigationBar(animated: false)
 
         stackView = UIStackView(frame: view.bounds)
@@ -172,6 +173,21 @@ class ReaderViewController<N: UIViewController & Navigator>: UIViewController, U
 
     func toggleNavigationBar() {
         navigationBarHidden = !navigationBarHidden
+    }
+
+    /// Since iOS 15, UIKit bars are transparent by default. As the navigators
+    /// display content under the navigation bar, this is undesirable in most
+    /// cases.
+    ///
+    /// For more information, take a look at:
+    /// https://pspdfkit.com/guides/ios/troubleshooting/user-interface/transparent-bar-backgrounds
+    func fixTranparentNavigationBar() {
+        if #available(iOS 15.0, *), let navBar = navigationController?.navigationBar {
+            let defaultAppearance = UINavigationBarAppearance()
+            navBar.standardAppearance = defaultAppearance
+            navBar.compactAppearance = defaultAppearance
+            navBar.scrollEdgeAppearance = defaultAppearance
+        }
     }
 
     func updateNavigationBar(animated: Bool = true) {
