@@ -355,8 +355,4 @@ public class PublicationServer: ResourcesServer, Loggable {
     public func add(_ publication: Publication, with container: Container, at endpoint: String = UUID().uuidString) throws {
         try add(publication, at: endpoint)
     }
-
-    // Mapping between endpoint and the matching container.
-    @available(*, unavailable, message: "`Container` is not used anymore in the `PublicationServer")
-    public private(set) var containers: [String: Container] = [:]
 }
