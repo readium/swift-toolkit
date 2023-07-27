@@ -42,6 +42,7 @@ class ReaderViewController<N: UIViewController & Navigator>: UIViewController, U
 
     private var highlightContextMenu: UIHostingController<HighlightContextMenu>?
     private let highlightDecorationGroup = "highlights"
+    private let pageListDecorationGroup = "pagelist"
     private var currentHighlightCancellable: AnyCancellable?
 
     init(navigator: N, publication: Publication, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository? = nil) {
@@ -59,6 +60,7 @@ class ReaderViewController<N: UIViewController & Navigator>: UIViewController, U
 
         addHighlightDecorationsObserverOnce()
         updateHighlightDecorations()
+        updatePageListDecorations()
 
         NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: UIAccessibility.voiceOverStatusDidChangeNotification, object: nil)
     }
@@ -283,6 +285,27 @@ class ReaderViewController<N: UIViewController & Navigator>: UIViewController, U
                 }
             }
             .store(in: &subscriptions)
+    }
+
+    private func updatePageListDecorations() {
+        guard let navigator = navigator as? DecorableNavigator else {
+            return
+        }
+
+        let decorations: [Decoration] = publication.pageList.enumerated().compactMap { index, link in
+            guard let title = link.title,
+                  let locator = self.publication.locate(link)
+            else {
+                return nil
+            }
+
+            return Decoration(
+                id: "page-list-\(index)",
+                locator: locator,
+                style: .init(id: "page_list", config: PageListConfig(label: title))
+            )
+        }
+        navigator.apply(decorations: decorations, in: pageListDecorationGroup)
     }
 
     private func activateDecoration(_ event: OnDecorationActivatedEvent) {
@@ -526,4 +549,8 @@ extension ReaderViewController {
             try! await highlights.remove(highlightID)
         }
     }
+}
+
+struct PageListConfig: Hashable {
+    var label: String
 }

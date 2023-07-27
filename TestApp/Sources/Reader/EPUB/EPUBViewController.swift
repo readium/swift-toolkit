@@ -28,6 +28,35 @@ class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
         initialPreferences: EPUBPreferences,
         preferencesStore: AnyUserPreferencesStore<EPUBPreferences>
     ) throws {
+        func pageListTemplate(_ tintColor: UIColor = .red) -> HTMLDecorationTemplate {
+            let className = "cantook-page-list-mark"
+
+            return HTMLDecorationTemplate(
+                layout: .bounds,
+                width: .page,
+                element: { decoration in
+                    let config = decoration.style.config as? PageListConfig
+                    return """
+                        <div><span class="\(className)" style="background-color: var(--RS__backgroundColor) !important">\(config?.label ?? "")</span></div>
+                    """
+                },
+                stylesheet: """
+                    .\(className) {
+                        float: left;
+                        margin-left: 4px;
+                        padding: 0px 2px 0px 2px;
+                        border: 1px solid;
+                        border-radius: 10%;
+                        box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+                        opacity: 0.8;
+                    }
+                """
+            )
+        }
+
+        var templates = HTMLDecorationTemplate.defaultTemplates()
+        templates["page_list"] = pageListTemplate()
+
         let resources = Bundle.main.resourceURL!
         let navigator = try EPUBNavigatorViewController(
             publication: publication,
@@ -39,6 +68,7 @@ class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
                         title: "Highlight",
                         action: #selector(highlightSelection)
                     )),
+                decorationTemplates: templates,
                 fontFamilyDeclarations: [
                     CSSFontFamilyDeclaration(
                         fontFamily: .literata,

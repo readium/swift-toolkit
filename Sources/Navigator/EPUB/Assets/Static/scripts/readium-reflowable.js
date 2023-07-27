@@ -2564,28 +2564,47 @@ function snapCurrentPosition() {
   document.scrollingElement.scrollLeft = currentOffsetSnapped;
 }
 function rangeFromLocator(locator) {
-  let text = locator.text;
-  if (!text || !text.highlight) {
-    return null;
-  }
   try {
-    var root;
     let locations = locator.locations;
-    if (locations && locations.cssSelector) {
-      root = document.querySelector(locations.cssSelector);
+    let text = locator.text;
+    if (text && text.highlight) {
+      var root;
+      if (locations && locations.cssSelector) {
+        root = document.querySelector(locations.cssSelector);
+      }
+      if (!root) {
+        root = document.body;
+      }
+      let anchor = new _vendor_hypothesis_anchoring_types__WEBPACK_IMPORTED_MODULE_0__.TextQuoteAnchor(root, text.highlight, {
+        prefix: text.before,
+        suffix: text.after
+      });
+      return anchor.toRange();
     }
-    if (!root) {
-      root = document.body;
+    if (locations) {
+      var element = null;
+      if (!element && locations.cssSelector) {
+        element = document.querySelector(locations.cssSelector);
+      }
+      if (!element && locations.fragments) {
+        for (const htmlId of locations.fragments) {
+          element = document.getElementById(htmlId);
+          if (element) {
+            break;
+          }
+        }
+      }
+      if (element) {
+        let range = document.createRange();
+        range.setStartBefore(element);
+        range.setEndAfter(element);
+        return range;
+      }
     }
-    let anchor = new _vendor_hypothesis_anchoring_types__WEBPACK_IMPORTED_MODULE_0__.TextQuoteAnchor(root, text.highlight, {
-      prefix: text.before,
-      suffix: text.after
-    });
-    return anchor.toRange();
   } catch (e) {
     logError(e);
-    return null;
   }
+  return null;
 }
 
 /// User Settings.
@@ -6329,9 +6348,9 @@ module.exports = function shimStringTrim() {
 var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
 
 var CodePointAt = __webpack_require__(/*! ./CodePointAt */ "./node_modules/es-abstract/2022/CodePointAt.js");
-var IsIntegralNumber = __webpack_require__(/*! ./IsIntegralNumber */ "./node_modules/es-abstract/2022/IsIntegralNumber.js");
 var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
 
+var isInteger = __webpack_require__(/*! ../helpers/isInteger */ "./node_modules/es-abstract/helpers/isInteger.js");
 var MAX_SAFE_INTEGER = __webpack_require__(/*! ../helpers/maxSafeInteger */ "./node_modules/es-abstract/helpers/maxSafeInteger.js");
 
 var $TypeError = GetIntrinsic('%TypeError%');
@@ -6342,7 +6361,7 @@ module.exports = function AdvanceStringIndex(S, index, unicode) {
 	if (Type(S) !== 'String') {
 		throw new $TypeError('Assertion failed: `S` must be a String');
 	}
-	if (!IsIntegralNumber(index) || index < 0 || index > MAX_SAFE_INTEGER) {
+	if (!isInteger(index) || index < 0 || index > MAX_SAFE_INTEGER) {
 		throw new $TypeError('Assertion failed: `length` must be an integer >= 0 and <= 2**53');
 	}
 	if (Type(unicode) !== 'Boolean') {
@@ -6838,22 +6857,24 @@ var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-
 
 var $TypeError = GetIntrinsic('%TypeError%');
 
+var inspect = __webpack_require__(/*! object-inspect */ "./node_modules/object-inspect/index.js");
+
 var IsPropertyKey = __webpack_require__(/*! ./IsPropertyKey */ "./node_modules/es-abstract/2022/IsPropertyKey.js");
-var ToObject = __webpack_require__(/*! ./ToObject */ "./node_modules/es-abstract/2022/ToObject.js");
+// var ToObject = require('./ToObject');
 
 // https://262.ecma-international.org/6.0/#sec-getv
 
 module.exports = function GetV(V, P) {
 	// 7.3.2.1
 	if (!IsPropertyKey(P)) {
-		throw new $TypeError('Assertion failed: IsPropertyKey(P) is not true');
+		throw new $TypeError('Assertion failed: IsPropertyKey(P) is not true, got ' + inspect(P));
 	}
 
 	// 7.3.2.2-3
-	var O = ToObject(V);
+	// var O = ToObject(V);
 
 	// 7.3.2.4
-	return O[P];
+	return V[P];
 };
 
 
@@ -7004,35 +7025,6 @@ module.exports = function IsDataDescriptor(Desc) {
 	}
 
 	return true;
-};
-
-
-/***/ }),
-
-/***/ "./node_modules/es-abstract/2022/IsIntegralNumber.js":
-/*!***********************************************************!*\
-  !*** ./node_modules/es-abstract/2022/IsIntegralNumber.js ***!
-  \***********************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var abs = __webpack_require__(/*! ./abs */ "./node_modules/es-abstract/2022/abs.js");
-var floor = __webpack_require__(/*! ./floor */ "./node_modules/es-abstract/2022/floor.js");
-var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2022/Type.js");
-
-var $isNaN = __webpack_require__(/*! ../helpers/isNaN */ "./node_modules/es-abstract/helpers/isNaN.js");
-var $isFinite = __webpack_require__(/*! ../helpers/isFinite */ "./node_modules/es-abstract/helpers/isFinite.js");
-
-// https://tc39.es/ecma262/#sec-isintegralnumber
-
-module.exports = function IsIntegralNumber(argument) {
-	if (Type(argument) !== 'Number' || $isNaN(argument) || !$isFinite(argument)) {
-		return false;
-	}
-	var absValue = abs(argument);
-	return floor(absValue) === absValue;
 };
 
 
@@ -7503,31 +7495,6 @@ module.exports = function ToNumber(argument) {
 
 /***/ }),
 
-/***/ "./node_modules/es-abstract/2022/ToObject.js":
-/*!***************************************************!*\
-  !*** ./node_modules/es-abstract/2022/ToObject.js ***!
-  \***************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-
-var $Object = GetIntrinsic('%Object%');
-
-var RequireObjectCoercible = __webpack_require__(/*! ./RequireObjectCoercible */ "./node_modules/es-abstract/2022/RequireObjectCoercible.js");
-
-// https://262.ecma-international.org/6.0/#sec-toobject
-
-module.exports = function ToObject(value) {
-	RequireObjectCoercible(value);
-	return $Object(value);
-};
-
-
-/***/ }),
-
 /***/ "./node_modules/es-abstract/2022/ToPrimitive.js":
 /*!******************************************************!*\
   !*** ./node_modules/es-abstract/2022/ToPrimitive.js ***!
@@ -7925,6 +7892,7 @@ var $TypeError = GetIntrinsic('%TypeError%');
 var $SyntaxError = GetIntrinsic('%SyntaxError%');
 
 var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+var isInteger = __webpack_require__(/*! ./isInteger */ "./node_modules/es-abstract/helpers/isInteger.js");
 
 var isMatchRecord = __webpack_require__(/*! ./isMatchRecord */ "./node_modules/es-abstract/helpers/isMatchRecord.js");
 
@@ -7976,6 +7944,21 @@ var predicates = {
 			&& has(value, '[[Completion]]') // TODO: confirm is a completion record
 			&& has(value, '[[Capability]]')
 			&& predicates['PromiseCapability Record'](value['[[Capability]]']);
+	},
+	'RegExp Record': function isRegExpRecord(value) {
+		return value
+			&& has(value, '[[IgnoreCase]]')
+			&& typeof value['[[IgnoreCase]]'] === 'boolean'
+			&& has(value, '[[Multiline]]')
+			&& typeof value['[[Multiline]]'] === 'boolean'
+			&& has(value, '[[DotAll]]')
+			&& typeof value['[[DotAll]]'] === 'boolean'
+			&& has(value, '[[Unicode]]')
+			&& typeof value['[[Unicode]]'] === 'boolean'
+			&& has(value, '[[CapturingGroupsCount]]')
+			&& typeof value['[[CapturingGroupsCount]]'] === 'number'
+			&& isInteger(value['[[CapturingGroupsCount]]'])
+			&& value['[[CapturingGroupsCount]]'] >= 0;
 	}
 };
 
@@ -8060,6 +8043,35 @@ module.exports = function fromPropertyDescriptor(Desc) {
 var $isNaN = __webpack_require__(/*! ./isNaN */ "./node_modules/es-abstract/helpers/isNaN.js");
 
 module.exports = function (x) { return (typeof x === 'number' || typeof x === 'bigint') && !$isNaN(x) && x !== Infinity && x !== -Infinity; };
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/helpers/isInteger.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/es-abstract/helpers/isInteger.js ***!
+  \*******************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var $abs = GetIntrinsic('%Math.abs%');
+var $floor = GetIntrinsic('%Math.floor%');
+
+var $isNaN = __webpack_require__(/*! ./isNaN */ "./node_modules/es-abstract/helpers/isNaN.js");
+var $isFinite = __webpack_require__(/*! ./isFinite */ "./node_modules/es-abstract/helpers/isFinite.js");
+
+module.exports = function isInteger(argument) {
+	if (typeof argument !== 'number' || $isNaN(argument) || !$isFinite(argument)) {
+		return false;
+	}
+	var absValue = $abs(argument);
+	return $floor(absValue) === absValue;
+};
+
 
 
 /***/ }),
