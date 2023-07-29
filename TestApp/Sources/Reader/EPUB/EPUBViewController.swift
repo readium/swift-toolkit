@@ -28,34 +28,8 @@ class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
         initialPreferences: EPUBPreferences,
         preferencesStore: AnyUserPreferencesStore<EPUBPreferences>
     ) throws {
-        func pageListTemplate(_ tintColor: UIColor = .red) -> HTMLDecorationTemplate {
-            let className = "cantook-page-list-mark"
-
-            return HTMLDecorationTemplate(
-                layout: .bounds,
-                width: .page,
-                element: { decoration in
-                    let config = decoration.style.config as? PageListConfig
-                    return """
-                        <div><span class="\(className)" style="background-color: var(--RS__backgroundColor) !important">\(config?.label ?? "")</span></div>
-                    """
-                },
-                stylesheet: """
-                    .\(className) {
-                        float: left;
-                        margin-left: 4px;
-                        padding: 0px 2px 0px 2px;
-                        border: 1px solid;
-                        border-radius: 10%;
-                        box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
-                        opacity: 0.8;
-                    }
-                """
-            )
-        }
-
         var templates = HTMLDecorationTemplate.defaultTemplates()
-        templates["page_list"] = pageListTemplate()
+        templates[.pageList] = pageListTemplate()
 
         let resources = Bundle.main.resourceURL!
         let navigator = try EPUBNavigatorViewController(
@@ -138,4 +112,40 @@ extension EPUBViewController: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         true
     }
+}
+
+extension Decoration.Style.Id {
+    static let pageList: Decoration.Style.Id = "page_list"
+}
+
+/**
+ * This Decoration Style is used to display the page number labels in the margins, when a book
+ * provides a `page-list`. The label is stored in the [DecorationStylePageNumber] itself.
+ *
+ * See http://kb.daisy.org/publishing/docs/navigation/pagelist.html
+ */
+private func pageListTemplate(_ tintColor: UIColor = .red) -> HTMLDecorationTemplate {
+    let className = "cantook-page-list-mark"
+
+    return HTMLDecorationTemplate(
+        layout: .bounds,
+        width: .page,
+        element: { decoration in
+            let config = decoration.style.config as? PageListConfig
+            return """
+                <div><span class="\(className)" style="background-color: var(--RS__backgroundColor) !important">\(config?.label ?? "")</span></div>
+            """
+        },
+        stylesheet: """
+            .\(className) {
+                float: left;
+                margin-left: 4px;
+                padding: 0px 2px 0px 2px;
+                border: 1px solid;
+                border-radius: 10%;
+                box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+                opacity: 0.8;
+            }
+        """
+    )
 }

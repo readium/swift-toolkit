@@ -302,7 +302,7 @@ class ReaderViewController<N: UIViewController & Navigator>: UIViewController, U
             return Decoration(
                 id: "page-list-\(index)",
                 locator: locator,
-                style: .init(id: "page_list", config: PageListConfig(label: title))
+                style: .init(id: .pageList, config: PageListConfig(label: title))
             )
         }
         navigator.apply(decorations: decorations, in: pageListDecorationGroup)
