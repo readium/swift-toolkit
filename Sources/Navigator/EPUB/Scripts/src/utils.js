@@ -189,7 +189,7 @@ function scrollToRange(range) {
 function scrollToRect(rect) {
   if (isScrollModeEnabled()) {
     document.scrollingElement.scrollTop =
-      rect.top + window.scrollY - window.innerHeight / 2;
+      rect.top + window.scrollY;
   } else {
     document.scrollingElement.scrollLeft = snapOffset(
       rect.left + window.scrollX
