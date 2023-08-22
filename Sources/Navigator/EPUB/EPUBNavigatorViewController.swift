@@ -963,6 +963,13 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
                 return
             }
         }
+      
+        // Ask if we should navigate to the link
+        if let delegate = delegate {
+          if !delegate.navigator(self, shouldNavigateToLink: Link(href: href, type: "text/html")) {
+            return
+          }
+        }
 
         go(to: Link(href: href))
     }
