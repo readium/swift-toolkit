@@ -228,6 +228,7 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     private let initialLocation: Locator?
+    private let readingOrder: [Link]
 
     private let viewModel: EPUBNavigatorViewModel
     private var publication: Publication { viewModel.publication }
@@ -238,7 +239,8 @@ open class EPUBNavigatorViewController: UIViewController,
         publication: Publication,
         initialLocation: Locator?,
         config: Configuration = .init(),
-        httpServer: HTTPServer
+        httpServer: HTTPServer,
+        readingOrder: [Link]? = nil
     ) throws {
         guard !publication.isRestricted else {
             throw EPUBError.publicationRestricted
@@ -250,7 +252,7 @@ open class EPUBNavigatorViewController: UIViewController,
             httpServer: httpServer
         )
 
-        self.init(viewModel: viewModel, initialLocation: initialLocation)
+        self.init(viewModel: viewModel, initialLocation: initialLocation, readingOrder: readingOrder)
     }
 
     @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server and settings API")
@@ -258,7 +260,8 @@ open class EPUBNavigatorViewController: UIViewController,
         publication: Publication,
         initialLocation: Locator? = nil,
         resourcesServer: ResourcesServer,
-        config: Configuration = .init()
+        config: Configuration = .init(),
+        readingOrder: [Link]? = nil
     ) {
         precondition(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
 
@@ -268,15 +271,17 @@ open class EPUBNavigatorViewController: UIViewController,
                 config: config,
                 resourcesServer: resourcesServer
             ),
-            initialLocation: initialLocation
+            initialLocation: initialLocation,
+            readingOrder: readingOrder
         )
 
         userSettings = config.userSettings
     }
 
-    private init(viewModel: EPUBNavigatorViewModel, initialLocation: Locator?) {
+    private init(viewModel: EPUBNavigatorViewModel, initialLocation: Locator?, readingOrder: [Link]? = nil) {
         self.viewModel = viewModel
         self.initialLocation = initialLocation
+        self.readingOrder = readingOrder ?? viewModel.publication.readingOrder
 
         super.init(nibName: nil, bundle: nil)
 
@@ -528,7 +533,7 @@ open class EPUBNavigatorViewController: UIViewController,
             return nil
         }
 
-        return publication.readingOrder.firstIndex(withHREF: spreads[currentSpreadIndex].left.href)
+        return readingOrder.firstIndex(withHREF: spreads[currentSpreadIndex].left.href)
     }
 
     private let reloadSpreadsCompletions = CompletionList()
@@ -571,6 +576,7 @@ open class EPUBNavigatorViewController: UIViewController,
         let locator = locator ?? currentLocation
         spreads = EPUBSpread.makeSpreads(
             for: publication,
+            readingOrder: readingOrder,
             readingProgression: viewModel.readingProgression,
             spread: viewModel.spreadEnabled
         )
@@ -638,7 +644,8 @@ open class EPUBNavigatorViewController: UIViewController,
         // The positions are not always available, for example a Readium WebPub doesn't have any
         // unless a Publication Positions Web Service is provided.
         if
-            let index = publication.readingOrder.firstIndex(withHREF: href),
+            let index = readingOrder.firstIndex(withHREF: href),
+            // FIXME: If readingOrder is provided we might need to do something different here:
             let positionList = Optional(publication.positionsByReadingOrder[index]),
             positionList.count > 0
         {
