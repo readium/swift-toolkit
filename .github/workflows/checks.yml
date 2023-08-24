@@ -28,7 +28,7 @@ jobs:
         run: |
           # Check that the Carthage project is up to date.
           make carthage-project
-          git diff --exit-code --name-only Support/Carthage/Readium.xcodeproj
+          git diff --exit-code Support/Carthage/Readium.xcodeproj
       - name: Build
         run: |
           xcodebuild build-for-testing -scheme "$scheme" -destination "platform=$platform,name=$device"
