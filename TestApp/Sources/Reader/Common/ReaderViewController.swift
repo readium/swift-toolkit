@@ -555,21 +555,20 @@ extension ReaderViewController {
 // See http://kb.daisy.org/publishing/docs/navigation/pagelist.html
 
 extension ReaderViewController {
-    
     /// Will take the `publication.pageList` and create a `Decoration` for each
     /// label.
     private func updatePageListDecorations() {
         guard let navigator = navigator as? DecorableNavigator else {
             return
         }
-        
+
         let decorations: [Decoration] = publication.pageList.enumerated().compactMap { index, link in
             guard let title = link.title,
                   let locator = self.publication.locate(link)
             else {
                 return nil
             }
-            
+
             return Decoration(
                 id: "page-list-\(index)",
                 locator: locator,
@@ -584,7 +583,6 @@ extension ReaderViewController {
 }
 
 extension Decoration.Style.Id {
-
     /// Decoration Style for a page number label.
     ///
     /// This is an example of a custom Decoration Style ID declaration.
@@ -597,7 +595,6 @@ struct PageListConfig: Hashable {
 }
 
 extension HTMLDecorationTemplate {
-
     /// Concrete implementation of the `pageList` decoration style for
     /// HTML-based navigators, such as the `EPUBNavigatorViewController`.
     ///
@@ -605,13 +602,13 @@ extension HTMLDecorationTemplate {
     /// when creating the navigator.
     static var pageList: HTMLDecorationTemplate {
         let className = "testapp-page-number"
-        
+
         return HTMLDecorationTemplate(
             layout: .bounds,
             width: .page,
             element: { decoration in
                 let config = decoration.style.config as? PageListConfig
-                
+
                 // Using `var(--RS__backgroundColor)` is a trick to use the
                 // same background color as the Readium theme. If we don't set
                 // it directly inline in the HTML, it might be forced
