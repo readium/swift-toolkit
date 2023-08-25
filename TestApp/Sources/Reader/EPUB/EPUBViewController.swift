@@ -28,6 +28,9 @@ class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
         initialPreferences: EPUBPreferences,
         preferencesStore: AnyUserPreferencesStore<EPUBPreferences>
     ) throws {
+        var templates = HTMLDecorationTemplate.defaultTemplates()
+        templates[.pageList] = .pageList
+
         let resources = Bundle.main.resourceURL!
         let navigator = try EPUBNavigatorViewController(
             publication: publication,
@@ -39,6 +42,7 @@ class EPUBViewController: ReaderViewController<EPUBNavigatorViewController> {
                         title: "Highlight",
                         action: #selector(highlightSelection)
                     )),
+                decorationTemplates: templates,
                 fontFamilyDeclarations: [
                     CSSFontFamilyDeclaration(
                         fontFamily: .literata,

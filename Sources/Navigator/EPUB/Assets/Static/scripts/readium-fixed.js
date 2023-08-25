@@ -2568,28 +2568,47 @@ function snapCurrentPosition() {
   document.scrollingElement.scrollLeft = currentOffsetSnapped;
 }
 function rangeFromLocator(locator) {
-  let text = locator.text;
-  if (!text || !text.highlight) {
-    return null;
-  }
   try {
-    var root;
     let locations = locator.locations;
-    if (locations && locations.cssSelector) {
-      root = document.querySelector(locations.cssSelector);
+    let text = locator.text;
+    if (text && text.highlight) {
+      var root;
+      if (locations && locations.cssSelector) {
+        root = document.querySelector(locations.cssSelector);
+      }
+      if (!root) {
+        root = document.body;
+      }
+      let anchor = new _vendor_hypothesis_anchoring_types__WEBPACK_IMPORTED_MODULE_0__.TextQuoteAnchor(root, text.highlight, {
+        prefix: text.before,
+        suffix: text.after
+      });
+      return anchor.toRange();
     }
-    if (!root) {
-      root = document.body;
+    if (locations) {
+      var element = null;
+      if (!element && locations.cssSelector) {
+        element = document.querySelector(locations.cssSelector);
+      }
+      if (!element && locations.fragments) {
+        for (const htmlId of locations.fragments) {
+          element = document.getElementById(htmlId);
+          if (element) {
+            break;
+          }
+        }
+      }
+      if (element) {
+        let range = document.createRange();
+        range.setStartBefore(element);
+        range.setEndAfter(element);
+        return range;
+      }
     }
-    let anchor = new _vendor_hypothesis_anchoring_types__WEBPACK_IMPORTED_MODULE_0__.TextQuoteAnchor(root, text.highlight, {
-      prefix: text.before,
-      suffix: text.after
-    });
-    return anchor.toRange();
   } catch (e) {
     logError(e);
-    return null;
   }
+  return null;
 }
 
 /// User Settings.
