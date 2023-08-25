@@ -27,7 +27,7 @@ public extension _AudioSessionUser {
 /// **WARNING:** This API is experimental and may change or be removed in a future release without
 /// notice. Use with caution.
 public final class _AudioSession: Loggable {
-    public struct Configuration {
+    public struct Configuration: Equatable {
         let category: AVAudioSession.Category
         let mode: AVAudioSession.Mode
         let routeSharingPolicy: AVAudioSession.RouteSharingPolicy

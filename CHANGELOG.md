@@ -6,11 +6,25 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
+### Added
+
+#### Navigator
+
+* The `PublicationSpeechSynthesizer` (TTS) now supports background playback by default.
+    * You will need to enable the **Audio Background Mode** in your app's build info.
+
 ### Fixed
 
 #### Navigator
 
 * Improved performance when adding hundreds of HTML decorations at once.
+* Fixed broadcasting the `PublicationSpeechSynthesizer` with AirPlay when the screen is locked.
+
+### Changed
+
+#### Navigator
+
+* You need to provide the configuration of the Audio Session to the constructor of `PublicationSpeechSynthesizer`, instead of `AVTTSEngine`.
 
 
 ## [2.5.1]
