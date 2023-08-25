@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name          = "ReadiumAdapterGCDWebServer"
-  s.version       = "2.5.0"
+  s.version       = "2.5.1"
   s.license       = "BSD 3-Clause License"
   s.summary       = "Adapter to use GCDWebServer as an HTTP server in Readium"
   s.homepage      = "http://readium.github.io"
