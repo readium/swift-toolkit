@@ -23,7 +23,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install dependencies
-        run: brew install xcodegen
+        run: |
+          brew update
+          brew install xcodegen
       - name: Check Carthage project
         run: |
           # Check that the Carthage project is up to date.
@@ -71,7 +73,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install dependencies
-        run: brew install xcodegen
+        run: |
+          brew update
+          brew install xcodegen
       - name: Generate project
         run: make dev lcp=${{ secrets.LCP_URL_SPM }}
       - name: Build
@@ -96,7 +100,9 @@ jobs:
         run: |
           echo "commit_sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
       - name: Install dependencies
-        run: brew install xcodegen
+        run: |
+          brew update
+          brew install xcodegen
       - name: Generate project
         run: make spm lcp=${{ secrets.LCP_URL_SPM }} commit=$commit_sha
       - name: Build
@@ -121,7 +127,9 @@ jobs:
         run: |
           echo "commit_sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
       - name: Install dependencies
-        run: brew install xcodegen
+        run: |
+          brew update
+          brew install xcodegen
       - name: Generate project
         run: make carthage lcp=${{ secrets.LCP_URL_CARTHAGE }} commit=$commit_sha
       - name: Build
@@ -142,7 +150,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install dependencies
-        run: brew install xcodegen
+        run: |
+          brew update
+          brew install xcodegen
       - name: Generate project
         run: make cocoapods lcp=${{ secrets.LCP_URL_COCOAPODS }} commit=$commit_sha
       - name: Build
