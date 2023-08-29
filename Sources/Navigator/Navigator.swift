@@ -90,12 +90,6 @@ public protocol NavigatorDelegate: AnyObject {
     /// note yourself, using its `content`. `link.type` contains information about the
     /// format of `content` and `referrer`, such as `text/html`.
     func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, referrer: String?) -> Bool
-    
-    /// Called when the user taps on an internal link
-    ///
-    /// Return `true` to navigate to the link, or `false` if you intend to present the
-    /// link yourself
-    func navigator(_ navigator: Navigator, shouldNavigateToLink link: Link) -> Bool
 }
 
 public extension NavigatorDelegate {
@@ -109,10 +103,6 @@ public extension NavigatorDelegate {
 
     func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, referrer: String?) -> Bool {
         true
-    }
-  
-    func navigator(_ navigator: Navigator, shouldNavigateToLink link: Link) -> Bool {
-      true
     }
 }
 
