@@ -508,7 +508,7 @@ open class EPUBNavigatorViewController: UIViewController,
     // MARK: - Pagination and spreads
 
     private lazy var paginationView: PaginationView = {
-        let hasPositions = !publication.positions.isEmpty
+        let hasPositions = readingOrder == nil && !publication.positions.isEmpty
         let view = PaginationView(
             frame: .zero,
             preloadPreviousPositionCount: hasPositions ? config.preloadPreviousPositionCount : 0,
@@ -640,10 +640,15 @@ open class EPUBNavigatorViewController: UIViewController,
         let href = link.href
         let progression = min(max(spreadView.progression(in: href), 0.0), 1.0)
 
-        // The positions are not always available, for example a Readium WebPub doesn't have any
-        // unless a Publication Positions Web Service is provided.
-        if
-            let index = (readingOrder ?? viewModel.publication.readingOrder).firstIndex(withHREF: href),
+        // For custom reading orders we just copy the locator without progression
+        if readingOrder != nil {
+          return publication.locate(link)?.copy(
+            locations: { $0.progression = nil }
+          )
+        } else if
+            // The positions are not always available, for example a Readium WebPub doesn't have any
+            // unless a Publication Positions Web Service is provided
+            let index = viewModel.publication.readingOrder.firstIndex(withHREF: href),
             let positionList = Optional(publication.positionsByReadingOrder[index]),
             positionList.count > 0
         {
