@@ -228,20 +228,34 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     private let initialLocation: Locator?
-    private let readingOrder: [Link]?
+    private let readingOrder: [Link]
+    private let positionsByReadingOrder: [[Locator]]
 
     private let viewModel: EPUBNavigatorViewModel
     private var publication: Publication { viewModel.publication }
 
     var config: Configuration { viewModel.config }
 
+    /// Creates a new instance of `EPUBNavigatorViewController`.
+    ///
+    /// - Parameters:
+    ///   - publication: EPUB publication to render.
+    ///   - initialLocation: Starting location in the publication, defaults to
+    ///   the beginning.
+    ///   - readingOrder: Custom order of resources to display. Used for example
+    ///   to display a non-linear resource on its own.
+    ///   - config: Additional navigator configuration.
+    ///   - httpServer: HTTP server used to serve the publication resources to
+    ///   the web views.
     public convenience init(
         publication: Publication,
         initialLocation: Locator?,
-        readingOrder: [Link]?,
+        readingOrder: [Link]? = nil,
         config: Configuration = .init(),
         httpServer: HTTPServer
     ) throws {
+        precondition(readingOrder.map { !$0.isEmpty } ?? true)
+
         guard !publication.isRestricted else {
             throw EPUBError.publicationRestricted
         }
@@ -252,7 +266,18 @@ open class EPUBNavigatorViewController: UIViewController,
             httpServer: httpServer
         )
 
-        self.init(viewModel: viewModel, initialLocation: initialLocation, readingOrder: readingOrder)
+        self.init(
+            viewModel: viewModel,
+            initialLocation: initialLocation,
+            readingOrder: readingOrder ?? publication.readingOrder,
+            positionsByReadingOrder:
+            // Positions and total progression only make sense in the context
+            // of the publication's actual reading order. Therefore when
+            // provided with a different reading order, we should assume the
+            // positions list is empty, and also not compute the
+            // totalProgression when calculating the current locator.
+            (readingOrder != nil) ? [] : publication.positionsByReadingOrder
+        )
     }
 
     @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server and settings API")
@@ -271,16 +296,23 @@ open class EPUBNavigatorViewController: UIViewController,
                 resourcesServer: resourcesServer
             ),
             initialLocation: initialLocation,
-            readingOrder: nil
+            readingOrder: publication.readingOrder,
+            positionsByReadingOrder: publication.positionsByReadingOrder
         )
 
         userSettings = config.userSettings
     }
 
-    private init(viewModel: EPUBNavigatorViewModel, initialLocation: Locator?, readingOrder: [Link]?) {
+    private init(
+        viewModel: EPUBNavigatorViewModel,
+        initialLocation: Locator?,
+        readingOrder: [Link],
+        positionsByReadingOrder: [[Locator]]
+    ) {
         self.viewModel = viewModel
         self.initialLocation = initialLocation
         self.readingOrder = readingOrder
+        self.positionsByReadingOrder = positionsByReadingOrder
 
         super.init(nibName: nil, bundle: nil)
 
@@ -508,7 +540,7 @@ open class EPUBNavigatorViewController: UIViewController,
     // MARK: - Pagination and spreads
 
     private lazy var paginationView: PaginationView = {
-        let hasPositions = readingOrder == nil && !publication.positions.isEmpty
+        let hasPositions = !positionsByReadingOrder.isEmpty
         let view = PaginationView(
             frame: .zero,
             preloadPreviousPositionCount: hasPositions ? config.preloadPreviousPositionCount : 0,
@@ -532,7 +564,7 @@ open class EPUBNavigatorViewController: UIViewController,
             return nil
         }
 
-        return (readingOrder ?? viewModel.publication.readingOrder).firstIndex(withHREF: spreads[currentSpreadIndex].left.href)
+        return readingOrder.firstIndex(withHREF: spreads[currentSpreadIndex].left.href)
     }
 
     private let reloadSpreadsCompletions = CompletionList()
@@ -640,16 +672,12 @@ open class EPUBNavigatorViewController: UIViewController,
         let href = link.href
         let progression = min(max(spreadView.progression(in: href), 0.0), 1.0)
 
-        // For custom reading orders we just copy the locator without progression
-        if readingOrder != nil {
-          return publication.locate(link)?.copy(
-            locations: { $0.progression = nil }
-          )
-        } else if
-            // The positions are not always available, for example a Readium WebPub doesn't have any
-            // unless a Publication Positions Web Service is provided
-            let index = viewModel.publication.readingOrder.firstIndex(withHREF: href),
-            let positionList = Optional(publication.positionsByReadingOrder[index]),
+        if
+            // The positions are not always available, for example a Readium
+            // WebPub doesn't have any unless a Publication Positions Web
+            // Service is provided
+            let index = readingOrder.firstIndex(withHREF: href),
+            let positionList = positionsByReadingOrder.getOrNil(index),
             positionList.count > 0
         {
             // Gets the current locator from the positionList, and fill its missing data.
@@ -1114,6 +1142,6 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
     }
 
     func paginationView(_ paginationView: PaginationView, positionCountAtIndex index: Int) -> Int {
-        spreads[index].positionCount(in: publication)
+        spreads[index].positionCount(in: readingOrder, positionsByReadingOrder: positionsByReadingOrder)
     }
 }
