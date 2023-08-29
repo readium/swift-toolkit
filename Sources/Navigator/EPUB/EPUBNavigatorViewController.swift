@@ -271,7 +271,7 @@ open class EPUBNavigatorViewController: UIViewController,
                 resourcesServer: resourcesServer
             ),
             initialLocation: initialLocation,
-            readingOrder: readingOrder
+            readingOrder: nil
         )
 
         userSettings = config.userSettings
