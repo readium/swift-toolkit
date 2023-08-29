@@ -985,6 +985,11 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     }
 
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, clickEvent: ClickEvent?) {
+        guard let link = publication.link(withHREF: href)?.copy(href: href) else {
+            log(.warning, "Cannot find link with HREF: \(href)")
+            return
+        }
+
         // Check to see if this was a noteref link and give delegate the opportunity to display it.
         if
             let clickEvent = clickEvent,
@@ -994,22 +999,20 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         {
             if !delegate.navigator(
                 self,
-                shouldNavigateToNoteAt: Link(href: href, type: "text/html"),
+                shouldNavigateToNoteAt: link,
                 content: note,
                 referrer: referrer
             ) {
                 return
             }
         }
-      
+
         // Ask if we should navigate to the link
-        if let delegate = delegate {
-          if !delegate.navigator(self, shouldNavigateToLink: Link(href: href, type: "text/html")) {
+        if let delegate = delegate, !delegate.navigator(self, shouldNavigateToLink: link) {
             return
-          }
         }
 
-        go(to: Link(href: href))
+        go(to: link)
     }
 
     /// Checks if the internal link is a noteref, and retrieves both the referring text of the link and the body of the note.
