@@ -12,6 +12,8 @@ All notable changes to this project will be documented in this file. Take a look
 
 * The `PublicationSpeechSynthesizer` (TTS) now supports background playback by default.
     * You will need to enable the **Audio Background Mode** in your app's build info.
+* The EPUB navigator can now render a custom reading order (contributed by [@chrfalch](https://github.com/readium/swift-toolkit/pull/332)).
+    * This is useful when displaying a non-linear resource.
 
 ### Fixed
 
