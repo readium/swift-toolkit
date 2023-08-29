@@ -117,15 +117,15 @@ struct EPUBSpread: Loggable {
     ///   - publication: The Publication to build the spreads for.
     ///   - readingProgression: Reading progression direction used to layout the pages.
     ///   - spread: Indicates whether two pages are displayed side-by-side.
-  static func makeSpreads(for publication: Publication, readingOrder: [Link], readingProgression: ReadingProgression, spread: Bool) -> [EPUBSpread] {
+  static func makeSpreads(for publication: Publication, readingOrder: [Link]?, readingProgression: ReadingProgression, spread: Bool) -> [EPUBSpread] {
         spread
             ? makeTwoPagesSpreads(for: publication, readingOrder: readingOrder, readingProgression: readingProgression)
             : makeOnePageSpreads(for: publication, readingOrder: readingOrder, readingProgression: readingProgression)
     }
 
     /// Builds a list of one-page spreads for the given Publication.
-    private static func makeOnePageSpreads(for publication: Publication, readingOrder: [Link], readingProgression: ReadingProgression) -> [EPUBSpread] {
-        readingOrder.map {
+    private static func makeOnePageSpreads(for publication: Publication, readingOrder: [Link]?, readingProgression: ReadingProgression) -> [EPUBSpread] {
+        (readingOrder ?? publication.readingOrder).map {
             EPUBSpread(
                 spread: false,
                 links: [$0],
@@ -136,7 +136,7 @@ struct EPUBSpread: Loggable {
     }
 
     /// Builds a list of two-page spreads for the given Publication.
-    private static func makeTwoPagesSpreads(for publication: Publication, readingOrder: [Link], readingProgression: ReadingProgression) -> [EPUBSpread] {
+    private static func makeTwoPagesSpreads(for publication: Publication, readingOrder: [Link]?, readingProgression: ReadingProgression) -> [EPUBSpread] {
         /// Builds two-pages spreads from a list of links and a spread accumulator.
         func makeSpreads(for links: [Link], in spreads: [EPUBSpread] = []) -> [EPUBSpread] {
             var links = links
@@ -185,7 +185,7 @@ struct EPUBSpread: Loggable {
             }
         }
 
-        return makeSpreads(for: readingOrder)
+        return makeSpreads(for: readingOrder ?? publication.readingOrder)
     }
 }
 

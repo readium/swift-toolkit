@@ -228,7 +228,7 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     private let initialLocation: Locator?
-    private let readingOrder: [Link]
+    private let readingOrder: [Link]?
 
     private let viewModel: EPUBNavigatorViewModel
     private var publication: Publication { viewModel.publication }
@@ -238,7 +238,7 @@ open class EPUBNavigatorViewController: UIViewController,
     public convenience init(
         publication: Publication,
         initialLocation: Locator?,
-        readingOrder: [Link]? = nil,
+        readingOrder: [Link]?,
         config: Configuration = .init(),
         httpServer: HTTPServer
     ) throws {
@@ -277,10 +277,10 @@ open class EPUBNavigatorViewController: UIViewController,
         userSettings = config.userSettings
     }
 
-    private init(viewModel: EPUBNavigatorViewModel, initialLocation: Locator?, readingOrder: [Link]? = nil) {
+    private init(viewModel: EPUBNavigatorViewModel, initialLocation: Locator?, readingOrder: [Link]?) {
         self.viewModel = viewModel
         self.initialLocation = initialLocation
-        self.readingOrder = readingOrder ?? viewModel.publication.readingOrder
+        self.readingOrder = readingOrder
 
         super.init(nibName: nil, bundle: nil)
 
@@ -532,7 +532,7 @@ open class EPUBNavigatorViewController: UIViewController,
             return nil
         }
 
-        return readingOrder.firstIndex(withHREF: spreads[currentSpreadIndex].left.href)
+        return (readingOrder ?? viewModel.publication.readingOrder).firstIndex(withHREF: spreads[currentSpreadIndex].left.href)
     }
 
     private let reloadSpreadsCompletions = CompletionList()
@@ -643,8 +643,7 @@ open class EPUBNavigatorViewController: UIViewController,
         // The positions are not always available, for example a Readium WebPub doesn't have any
         // unless a Publication Positions Web Service is provided.
         if
-            let index = readingOrder.firstIndex(withHREF: href),
-            // FIXME: If readingOrder is provided we might need to do something different here:
+            let index = (readingOrder ?? viewModel.publication.readingOrder).firstIndex(withHREF: href),
             let positionList = Optional(publication.positionsByReadingOrder[index]),
             positionList.count > 0
         {
