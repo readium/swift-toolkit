@@ -260,8 +260,7 @@ open class EPUBNavigatorViewController: UIViewController,
         publication: Publication,
         initialLocation: Locator? = nil,
         resourcesServer: ResourcesServer,
-        config: Configuration = .init(),
-        readingOrder: [Link]? = nil
+        config: Configuration = .init()
     ) {
         precondition(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
 
