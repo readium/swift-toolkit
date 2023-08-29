@@ -238,9 +238,9 @@ open class EPUBNavigatorViewController: UIViewController,
     public convenience init(
         publication: Publication,
         initialLocation: Locator?,
+        readingOrder: [Link]? = nil,
         config: Configuration = .init(),
-        httpServer: HTTPServer,
-        readingOrder: [Link]? = nil
+        httpServer: HTTPServer
     ) throws {
         guard !publication.isRestricted else {
             throw EPUBError.publicationRestricted
