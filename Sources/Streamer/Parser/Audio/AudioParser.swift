@@ -60,7 +60,7 @@ public final class AudioParser: PublicationParser {
         let filename = url.lastPathComponent
         let fileExtension = url.pathExtension.lowercased()
         // // For archives containing PDF files.
-        let ignoredFileExtensions = ["pdf"]
+        let ignoredFileExtensions = ["pdf", "jpg"]
         let allowedExtensions = ["asx", "bio", "m3u", "m3u8", "pla", "pls", "smil", "txt", "vlc", "wpl", "xspf", "zpl"]
         
         return allowedExtensions.contains(fileExtension) ||
