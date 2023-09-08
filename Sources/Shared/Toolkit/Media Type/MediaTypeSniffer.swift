@@ -313,7 +313,7 @@ public extension MediaType {
     
     // For archives containing PDF files.
     private static let ignoredFileExtensions = [
-        "pdf"
+        "pdf", "jpg"
     ]
     
     /// Sniffs a simple archive-based format, like Comic Book Archive or Zipped Audio Book.
