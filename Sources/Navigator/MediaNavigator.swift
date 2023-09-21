@@ -9,7 +9,7 @@ import Foundation
 /// Protocol for a navigator rendering an audio or video based publication.
 ///
 /// **WARNING:** This API is experimental and may change or be removed in a
-/// future release without notice. Use with caution. 
+/// future release without notice. Use with caution.
 public protocol _MediaNavigator: Navigator {
     /// Total duration in the publication, if known.
     var totalDuration: Double? { get }

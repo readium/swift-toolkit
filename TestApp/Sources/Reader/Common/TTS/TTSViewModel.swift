@@ -151,8 +151,8 @@ final class TTSViewModel: ObservableObject, Loggable {
 
         let commandCenter = MPRemoteCommandCenter.shared()
 
-        commandCenter.togglePlayPauseCommand.addTarget { [unowned self] _ in
-            pauseOrResume()
+        commandCenter.togglePlayPauseCommand.addTarget { [weak self] _ in
+            self?.pauseOrResume()
             return .success
         }
     }

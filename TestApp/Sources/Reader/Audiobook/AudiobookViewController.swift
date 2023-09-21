@@ -6,6 +6,7 @@
 
 import Combine
 import Foundation
+import MediaPlayer
 import R2Navigator
 import R2Shared
 import SwiftUI
@@ -56,17 +57,125 @@ class AudiobookViewController: ReaderViewController<_AudioNavigator>, _AudioNavi
         readerController.didMove(toParent: self)
 
         navigator.play()
+        setupNowPlaying()
+        setupCommandCenterControls()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+
         navigator.pause()
+        clearNowPlaying()
     }
 
     // MARK: - AudioNavigatorDelegate
 
     func navigator(_ navigator: _MediaNavigator, playbackDidChange info: MediaPlaybackInfo) {
         model.onPlaybackChanged(info: info)
+
+        updateNowPlaying(info: info)
+        updateCommandCenterControls()
+    }
+
+    // MARK: - Command Center controls
+
+    private func setupCommandCenterControls() {
+        NowPlayingInfo.shared.media = .init(
+            title: publication.metadata.title,
+            artist: publication.metadata.authors.map(\.name).joined(separator: ", "),
+            artwork: publication.cover
+        )
+
+        let rcc = MPRemoteCommandCenter.shared()
+
+        func on(_ command: MPRemoteCommand, _ block: @escaping (_AudioNavigator, MPRemoteCommandEvent) -> Void) {
+            command.addTarget { [weak self] event in
+                guard let self = self else {
+                    return .noActionableNowPlayingItem
+                }
+                block(self.navigator, event)
+                return .success
+            }
+        }
+
+        on(rcc.playCommand) { navigator, _ in
+            navigator.play()
+        }
+
+        on(rcc.pauseCommand) { navigator, _ in
+            navigator.pause()
+        }
+
+        on(rcc.togglePlayPauseCommand) { navigator, _ in
+            navigator.playPause()
+        }
+
+        on(rcc.previousTrackCommand) { navigator, _ in
+            navigator.goBackward()
+        }
+
+        on(rcc.nextTrackCommand) { navigator, _ in
+            navigator.goForward()
+        }
+
+        rcc.skipBackwardCommand.preferredIntervals = [10]
+        on(rcc.skipBackwardCommand) { navigator, _ in
+            navigator.seek(by: -10)
+        }
+
+        rcc.skipForwardCommand.preferredIntervals = [30]
+        on(rcc.skipForwardCommand) { navigator, _ in
+            navigator.seek(by: +30)
+        }
+
+        on(rcc.changePlaybackPositionCommand) { navigator, event in
+            guard let event = event as? MPChangePlaybackPositionCommandEvent else {
+                return
+            }
+            navigator.seek(to: event.positionTime)
+        }
+    }
+
+    private func updateCommandCenterControls() {
+        let rcc = MPRemoteCommandCenter.shared()
+        rcc.previousTrackCommand.isEnabled = navigator.canGoBackward
+        rcc.nextTrackCommand.isEnabled = navigator.canGoForward
+    }
+
+    // MARK: - Now Playing metadata
+
+    private func setupNowPlaying() {
+        let nowPlaying = NowPlayingInfo.shared
+
+        // Initial publication metadata.
+        nowPlaying.media = NowPlayingInfo.Media(
+            title: publication.metadata.title,
+            artist: publication.metadata.authors.map(\.name).joined(separator: ", "),
+            chapterCount: publication.readingOrder.count
+        )
+
+        // Update the artwork after the view model loaded it.
+        model.$cover
+            .sink { cover in
+                nowPlaying.media?.artwork = cover
+            }
+            .store(in: &subscriptions)
+    }
+
+    private func updateNowPlaying(info: MediaPlaybackInfo) {
+        let nowPlaying = NowPlayingInfo.shared
+
+        nowPlaying.playback = NowPlayingInfo.Playback(
+            duration: info.duration,
+            elapsedTime: info.time,
+            rate: navigator.rate
+        )
+
+        nowPlaying.media?.chapterNumber = info.resourceIndex
+    }
+
+    private func clearNowPlaying() {
+        NowPlayingInfo.shared.clear()
     }
 }
 
