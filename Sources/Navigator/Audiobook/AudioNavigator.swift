@@ -8,19 +8,17 @@ import AVFoundation
 import Foundation
 import R2Shared
 
-@available(*, deprecated, message: "Use `AudioNavigatorDelegate` instead")
-public typealias _AudioNavigatorDelegate = AudioNavigatorDelegate
-@available(*, deprecated, message: "Use `AudioNavigator` instead")
-public typealias _AudioNavigator = AudioNavigator
-
-public protocol AudioNavigatorDelegate: MediaNavigatorDelegate {}
+public protocol _AudioNavigatorDelegate: _MediaNavigatorDelegate {}
 
 /// Navigator for audio-based publications such as:
 ///
 /// * Readium Audiobook
 /// * ZAB (Zipped Audio Book)
-open class AudioNavigator: MediaNavigator, AudioSessionUser, Loggable {
-    public weak var delegate: AudioNavigatorDelegate?
+///
+/// **WARNING:** This API is experimental and may change or be removed in a
+/// future release without notice. Use with caution.
+open class _AudioNavigator: _MediaNavigator, AudioSessionUser, Loggable {
+    public weak var delegate: _AudioNavigatorDelegate?
 
     public let publication: Publication
     private let initialLocation: Locator?
@@ -359,7 +357,7 @@ open class AudioNavigator: MediaNavigator, AudioSessionUser, Loggable {
         player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
     }
 
-    public func seek(relatively delta: Double) {
+    public func seek(by delta: Double) {
         seek(to: currentTime + delta)
     }
 }

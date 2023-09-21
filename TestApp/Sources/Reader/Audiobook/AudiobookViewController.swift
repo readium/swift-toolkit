@@ -11,7 +11,7 @@ import R2Shared
 import SwiftUI
 import UIKit
 
-class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNavigatorDelegate {
+class AudiobookViewController: ReaderViewController<_AudioNavigator>, _AudioNavigatorDelegate {
     private let model: AudiobookViewModel
 
     init(
@@ -21,7 +21,7 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
         books: BookRepository,
         bookmarks: BookmarkRepository
     ) {
-        let navigator = AudioNavigator(
+        let navigator = _AudioNavigator(
             publication: publication,
             initialLocation: locator
         )
@@ -65,18 +65,18 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
 
     // MARK: - AudioNavigatorDelegate
 
-    func navigator(_ navigator: MediaNavigator, playbackDidChange info: MediaPlaybackInfo) {
+    func navigator(_ navigator: _MediaNavigator, playbackDidChange info: MediaPlaybackInfo) {
         model.onPlaybackChanged(info: info)
     }
 }
 
 class AudiobookViewModel: ObservableObject {
-    let navigator: AudioNavigator
+    let navigator: _AudioNavigator
 
     @Published var cover: UIImage?
     @Published var playback: MediaPlaybackInfo = .init()
 
-    init(navigator: AudioNavigator) {
+    init(navigator: _AudioNavigator) {
         self.navigator = navigator
 
         Task {
@@ -122,7 +122,7 @@ struct AudiobookReader: View {
 
                     // Skip backward by 10 seconds.
                     IconButton(systemName: "gobackward.10") {
-                        model.navigator.seek(relatively: -10)
+                        model.navigator.seek(by: -10)
                     }
 
                     // Play the previous resource
@@ -148,7 +148,7 @@ struct AudiobookReader: View {
 
                     // Skip forward by 30 seconds.
                     IconButton(systemName: "goforward.30") {
-                        model.navigator.seek(relatively: 30)
+                        model.navigator.seek(by: 30)
                     }
 
                     Spacer()
