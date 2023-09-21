@@ -6,6 +6,7 @@
 
 import Combine
 import Foundation
+import MediaPlayer
 import R2Navigator
 import R2Shared
 
@@ -112,6 +113,8 @@ final class TTSViewModel: ObservableObject, Loggable {
         } else {
             synthesizer.start(from: navigator.currentLocation)
         }
+
+        setupNowPlaying()
     }
 
     @objc func stop() {
@@ -133,6 +136,30 @@ final class TTSViewModel: ObservableObject, Loggable {
     @objc func next() {
         synthesizer.next()
     }
+
+    // MARK: - Now Playing
+
+    // This will display the publication in the Control Center and support
+    // external controls.
+
+    private func setupNowPlaying() {
+        NowPlayingInfo.shared.media = .init(
+            title: publication.metadata.title,
+            artist: publication.metadata.authors.map(\.name).joined(separator: ", "),
+            artwork: publication.cover
+        )
+
+        let commandCenter = MPRemoteCommandCenter.shared()
+
+        commandCenter.togglePlayPauseCommand.addTarget { [unowned self] _ in
+            pauseOrResume()
+            return .success
+        }
+    }
+
+    private func clearNowPlaying() {
+        NowPlayingInfo.shared.clear()
+    }
 }
 
 extension TTSViewModel: PublicationSpeechSynthesizerDelegate {
@@ -142,6 +169,7 @@ extension TTSViewModel: PublicationSpeechSynthesizerDelegate {
             state.showControls = false
             state.isPlaying = false
             playingUtterance = nil
+            clearNowPlaying()
 
         case let .playing(utterance, range: wordRange):
             state.showControls = true

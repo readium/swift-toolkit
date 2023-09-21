@@ -63,11 +63,11 @@ struct EPUBSpread: Loggable {
     }
 
     /// Return the number of positions (as in `Publication.positionList`) contained in the spread.
-    func positionCount(in publication: Publication) -> Int {
+    func positionCount(in readingOrder: [Link], positionsByReadingOrder: [[Locator]]) -> Int {
         links
             .map {
-                if let index = publication.readingOrder.firstIndex(withHREF: $0.href) {
-                    return publication.positionsByReadingOrder[index].count
+                if let index = readingOrder.firstIndex(withHREF: $0.href) {
+                    return positionsByReadingOrder[index].count
                 } else {
                     return 0
                 }
@@ -117,15 +117,24 @@ struct EPUBSpread: Loggable {
     ///   - publication: The Publication to build the spreads for.
     ///   - readingProgression: Reading progression direction used to layout the pages.
     ///   - spread: Indicates whether two pages are displayed side-by-side.
-    static func makeSpreads(for publication: Publication, readingProgression: ReadingProgression, spread: Bool) -> [EPUBSpread] {
+    static func makeSpreads(
+        for publication: Publication,
+        readingOrder: [Link],
+        readingProgression: ReadingProgression,
+        spread: Bool
+    ) -> [EPUBSpread] {
         spread
-            ? makeTwoPagesSpreads(for: publication, readingProgression: readingProgression)
-            : makeOnePageSpreads(for: publication, readingProgression: readingProgression)
+            ? makeTwoPagesSpreads(for: publication, readingOrder: readingOrder, readingProgression: readingProgression)
+            : makeOnePageSpreads(for: publication, readingOrder: readingOrder, readingProgression: readingProgression)
     }
 
     /// Builds a list of one-page spreads for the given Publication.
-    private static func makeOnePageSpreads(for publication: Publication, readingProgression: ReadingProgression) -> [EPUBSpread] {
-        publication.readingOrder.map {
+    private static func makeOnePageSpreads(
+        for publication: Publication,
+        readingOrder: [Link],
+        readingProgression: ReadingProgression
+    ) -> [EPUBSpread] {
+        readingOrder.map {
             EPUBSpread(
                 spread: false,
                 links: [$0],
@@ -136,7 +145,11 @@ struct EPUBSpread: Loggable {
     }
 
     /// Builds a list of two-page spreads for the given Publication.
-    private static func makeTwoPagesSpreads(for publication: Publication, readingProgression: ReadingProgression) -> [EPUBSpread] {
+    private static func makeTwoPagesSpreads(
+        for publication: Publication,
+        readingOrder: [Link],
+        readingProgression: ReadingProgression
+    ) -> [EPUBSpread] {
         /// Builds two-pages spreads from a list of links and a spread accumulator.
         func makeSpreads(for links: [Link], in spreads: [EPUBSpread] = []) -> [EPUBSpread] {
             var links = links
@@ -185,7 +198,7 @@ struct EPUBSpread: Loggable {
             }
         }
 
-        return makeSpreads(for: publication.readingOrder)
+        return makeSpreads(for: readingOrder)
     }
 }
 

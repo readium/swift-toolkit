@@ -302,4 +302,32 @@ class ReadiumCSSTests: XCTestCase {
             ]
         )
     }
+
+    func testInjectDirAttributeWhenAlreadyPresent() {
+        let css = ReadiumCSS(
+            layout: CSSLayout(language: Language(code: .bcp47("en"))),
+            baseURL: baseURL
+        )
+
+        XCTAssertEqual(
+            try css.inject(in: """
+            <?xml version="1.0" encoding="utf-8"?>
+            <html xmlns="http://www.w3.org/1999/xhtml">
+                <head>
+                    <title>Publication</title>
+                </head>
+                <body dir="rtl" lang="fr"></body>
+            </html>
+            """),
+            """
+            <?xml version="1.0" encoding="utf-8"?>
+            <html xml:lang="fr" dir="ltr" style="" xmlns="http://www.w3.org/1999/xhtml">
+                <head><link rel="stylesheet" href="https://readium/assets/ReadiumCSS-before.css" type="text/css"/>
+                    <title>Publication</title>
+                <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0"/><link rel="stylesheet" href="https://readium/assets/ReadiumCSS-default.css" type="text/css"/><link rel="stylesheet" href="https://readium/assets/ReadiumCSS-after.css" type="text/css"/><style type="text/css">audio[controls] { width: revert; height: revert; }</style></head>
+                <body dir="ltr" lang="fr"></body>
+            </html>
+            """
+        )
+    }
 }

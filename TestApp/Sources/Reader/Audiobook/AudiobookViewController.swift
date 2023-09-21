@@ -127,18 +127,18 @@ struct AudiobookReader: View {
                         duration: duration
                     )
                 }
-                
+
                 HStack {
                     Spacer()
-                    
+
                     IconButton(
                         systemName: model.playback.state != .paused
-                        ? "pause.fill"
-                        : "play.fill"
+                            ? "pause.fill"
+                            : "play.fill"
                     ) {
                         model.playPause()
                     }
-                    
+
                     Spacer()
                 }
             }
@@ -148,21 +148,20 @@ struct AudiobookReader: View {
 }
 
 struct TimeSlider: View {
-
     /// Current time in seconds.
     @Binding var time: Double
-    
+
     /// Duration in seconds.
     let duration: Double
 
     /// When the user is dragging the slider, `isEditing` is true to prevent
     /// updating the slider value with `time` during playback.
     @State private var isEditing: Bool = false
-    
+
     /// Current slider progress, computed either from the current `time` or
     /// from the thumb position while dragging.
     @State private var progress: Double = 0
-    
+
     var body: some View {
         Slider(
             value: $progress,

@@ -113,6 +113,6 @@ public struct HTMLDecorationTemplate {
     private static var classNamesId = 0
     private static func makeUniqueClassName(key: String) -> String {
         classNamesId += 1
-        return "r2-\(key)-\(classNamesId)"
+        return "readium-\(key)-\(classNamesId)"
     }
 }

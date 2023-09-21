@@ -42,6 +42,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 
         addHighlightDecorationsObserverOnce()
         updateHighlightDecorations()
+        updatePageListDecorations()
 
         NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: UIAccessibility.voiceOverStatusDidChangeNotification, object: nil)
     }
@@ -114,7 +115,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        
+
         ttsViewModel?.stop()
     }
 
@@ -341,5 +342,95 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 
     @objc private func goForward() {
         navigator.goForward()
+    }
+}
+
+// MARK: - Page list decorations
+
+// This is an example on how to use custom decoration style to display the
+// page labels in a `publication.pageList` in the navigator as a side margin
+// label.
+//
+// See http://kb.daisy.org/publishing/docs/navigation/pagelist.html
+
+extension VisualReaderViewController {
+    /// Will take the `publication.pageList` and create a `Decoration` for each
+    /// label.
+    private func updatePageListDecorations() {
+        guard let navigator = navigator as? DecorableNavigator else {
+            return
+        }
+
+        let decorations: [Decoration] = publication.pageList.enumerated().compactMap { index, link in
+            guard let title = link.title,
+                  let locator = self.publication.locate(link)
+            else {
+                return nil
+            }
+
+            return Decoration(
+                id: "page-list-\(index)",
+                locator: locator,
+                style: Decoration.Style(
+                    id: .pageList,
+                    config: PageListConfig(label: title)
+                )
+            )
+        }
+        navigator.apply(decorations: decorations, in: "page-list")
+    }
+}
+
+extension Decoration.Style.Id {
+    /// Decoration Style for a page number label.
+    ///
+    /// This is an example of a custom Decoration Style ID declaration.
+    static let pageList: Decoration.Style.Id = "page_list"
+}
+
+struct PageListConfig: Hashable {
+    /// Page number label, taken from `publication.pageList[].title`.
+    var label: String
+}
+
+extension HTMLDecorationTemplate {
+    /// Concrete implementation of the `pageList` decoration style for
+    /// HTML-based navigators, such as the `EPUBNavigatorViewController`.
+    ///
+    /// It must be added to `EPUBNavigatorViewController.Configuration.decorationTemplates`
+    /// when creating the navigator.
+    static var pageList: HTMLDecorationTemplate {
+        let className = "testapp-page-number"
+
+        return HTMLDecorationTemplate(
+            layout: .bounds,
+            width: .page,
+            element: { decoration in
+                let config = decoration.style.config as? PageListConfig
+
+                // Using `var(--RS__backgroundColor)` is a trick to use the
+                // same background color as the Readium theme. If we don't set
+                // it directly inline in the HTML, it might be forced
+                // transparent by Readium CSS.
+                return """
+                    <div>
+                        <span class="\(className)" style="background-color: var(--RS__backgroundColor) !important">
+                            \(config?.label ?? "")
+                        </span>
+                    </div>
+                """
+            },
+            stylesheet: """
+                .\(className) {
+                    float: left;
+                    margin-left: 4px;
+                    padding: 0px 2px 0px 2px;
+                    border: 1px solid;
+                    border-radius: 10%;
+                    box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+                    opacity: 0.8;
+                }
+            """
+        )
     }
 }
