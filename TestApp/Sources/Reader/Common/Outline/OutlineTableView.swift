@@ -37,7 +37,11 @@ struct OutlineTableView: View {
         }
 
         outlines = [
-            .tableOfContents: flatten(publication.tableOfContents),
+            .tableOfContents: flatten(
+                !publication.tableOfContents.isEmpty
+                    ? publication.tableOfContents
+                    : publication.readingOrder
+            ),
             .landmarks: flatten(publication.landmarks),
             .pageList: flatten(publication.pageList),
         ]

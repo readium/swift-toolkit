@@ -232,7 +232,7 @@ open class EPUBNavigatorViewController: UIViewController,
     private let positionsByReadingOrder: [[Locator]]
 
     private let viewModel: EPUBNavigatorViewModel
-    private var publication: Publication { viewModel.publication }
+    public var publication: Publication { viewModel.publication }
 
     var config: Configuration { viewModel.config }
 

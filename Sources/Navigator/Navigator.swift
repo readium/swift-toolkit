@@ -9,31 +9,44 @@ import R2Shared
 import SafariServices
 
 public protocol Navigator: AnyObject {
+    /// Publication being rendered.
+    var publication: Publication { get }
+
     /// Current position in the publication.
     /// Can be used to save a bookmark to the current position.
     var currentLocation: Locator? { get }
 
-    /// Moves to the position in the publication correponding to the given `Locator`.
+    /// Moves to the position in the publication correponding to the given
+    /// `Locator`.
+    ///
     /// - Parameter completion: Called when the transition is completed.
-    /// - Returns: Whether the navigator is able to move to the locator. The completion block is only called if true was returned.
+    /// - Returns: Whether the navigator is able to move to the locator. The
+    ///   completion block is only called if true was returned.
     @discardableResult
     func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool
 
     /// Moves to the position in the publication targeted by the given link.
     /// - Parameter completion: Called when the transition is completed.
-    /// - Returns: Whether the navigator is able to move to the locator. The completion block is only called if true was returned.
+    /// - Returns: Whether the navigator is able to move to the locator. The
+    ///   completion block is only called if true was returned.
     @discardableResult
     func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool
 
-    /// Moves to the next content portion (eg. page) in the reading progression direction.
+    /// Moves to the next content portion (eg. page or audiobook resource) in
+    /// the reading progression direction.
+    ///
     /// - Parameter completion: Called when the transition is completed.
-    /// - Returns: Whether the navigator is able to move to the next content portion. The completion block is only called if true was returned.
+    /// - Returns: Whether the navigator is able to move to the next content
+    ///   portion. The completion block is only called if true was returned.
     @discardableResult
     func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool
 
-    /// Moves to the previous content portion (eg. page) in the reading progression direction.
+    /// Moves to the previous content portion (eg. page or audiobook resource)
+    /// in the reading progression direction.
+    ///
     /// - Parameter completion: Called when the transition is completed.
-    /// - Returns: Whether the navigator is able to move to the previous content portion. The completion block is only called if true was returned.
+    /// - Returns: Whether the navigator is able to move to the previous content
+    ///   portion. The completion block is only called if true was returned.
     @discardableResult
     func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool
 }

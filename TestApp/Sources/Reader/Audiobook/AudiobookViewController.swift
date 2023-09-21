@@ -27,7 +27,6 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
         )
 
         model = AudiobookViewModel(
-            publication: publication,
             navigator: navigator
         )
 
@@ -72,31 +71,21 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
 }
 
 class AudiobookViewModel: ObservableObject {
-    private let publication: Publication
-    private let navigator: AudioNavigator
+    let navigator: AudioNavigator
 
     @Published var cover: UIImage?
     @Published var playback: MediaPlaybackInfo = .init()
 
-    init(publication: Publication, navigator: AudioNavigator) {
-        self.publication = publication
+    init(navigator: AudioNavigator) {
         self.navigator = navigator
 
         Task {
-            cover = publication.cover
+            cover = navigator.publication.cover
         }
     }
 
     func onPlaybackChanged(info: MediaPlaybackInfo) {
         playback = info
-    }
-
-    func onSliderChanged(time: Double) {
-        navigator.seek(to: time)
-    }
-
-    func playPause() {
-        navigator.playPause()
     }
 }
 
@@ -122,21 +111,44 @@ struct AudiobookReader: View {
                     TimeSlider(
                         time: Binding(
                             get: { model.playback.time },
-                            set: { model.onSliderChanged(time: $0) }
+                            set: { model.navigator.seek(to: $0) }
                         ),
                         duration: duration
                     )
                 }
 
-                HStack {
+                HStack(spacing: 16) {
                     Spacer()
 
+                    // Skip backward by 10 seconds.
+                    IconButton(systemName: "gobackward.10") {
+                        model.navigator.seek(relatively: -10)
+                    }
+
+                    // Play the previous resource
+                    IconButton(systemName: "backward.fill") {
+                        model.navigator.goBackward()
+                    }
+                    .disabled(!model.navigator.canGoBackward)
+
+                    // Toggle play-pause.
                     IconButton(
                         systemName: model.playback.state != .paused
                             ? "pause.fill"
                             : "play.fill"
                     ) {
-                        model.playPause()
+                        model.navigator.playPause()
+                    }
+
+                    // Play the next resource.
+                    IconButton(systemName: "forward.fill") {
+                        model.navigator.goForward()
+                    }
+                    .disabled(!model.navigator.canGoForward)
+
+                    // Skip forward by 30 seconds.
+                    IconButton(systemName: "goforward.30") {
+                        model.navigator.seek(relatively: 30)
                     }
 
                     Spacer()
