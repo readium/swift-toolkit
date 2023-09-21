@@ -72,7 +72,7 @@ struct UserPreferences<
         userPreferences(editor: model.editor, commit: model.commit)
     }
 
-    @ViewBuilder func userPreferences<E: PreferencesEditor>(editor: E, commit: @escaping () -> Void) -> some View {
+    @ViewBuilder func userPreferences<PE: PreferencesEditor>(editor: PE, commit: @escaping () -> Void) -> some View {
         NavigationView {
             List {
                 switch editor {
