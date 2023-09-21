@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
+* Support for Xcode 15.
+
 ### Added
 
 #### Navigator
@@ -27,6 +29,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Navigator
 
+* `AudioSession` and `NowPlayingInfo` are now stable!
 * You need to provide the configuration of the Audio Session to the constructor of `PublicationSpeechSynthesizer`, instead of `AVTTSEngine`.
 
 
