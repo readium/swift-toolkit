@@ -86,7 +86,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     public private(set) var state: State = .stopped {
         didSet {
             if oldValue.isPlaying != state.isPlaying {
-                _AudioSession.shared.user(audioSessionUser, didChangePlaying: state.isPlaying)
+                AudioSession.shared.user(audioSessionUser, didChangePlaying: state.isPlaying)
             }
 
             delegate?.publicationSpeechSynthesizer(self, stateDidChange: state)
@@ -120,7 +120,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     public init?(
         publication: Publication,
         config: Configuration = Configuration(),
-        audioSessionConfig: _AudioSession.Configuration = .init(
+        audioSessionConfig: AudioSession.Configuration = .init(
             category: .playback,
             mode: .spokenAudio
         ),
@@ -176,7 +176,7 @@ public class PublicationSpeechSynthesizer: Loggable {
 
     /// (Re)starts the synthesizer from the given locator or the beginning of the publication.
     public func start(from startLocator: Locator? = nil) {
-        _AudioSession.shared.start(with: audioSessionUser, isPlaying: false)
+        AudioSession.shared.start(with: audioSessionUser, isPlaying: false)
 
         currentTask?.cancel()
         publicationIterator = publication.content(from: startLocator)?.iterator()
@@ -404,15 +404,15 @@ public class PublicationSpeechSynthesizer: Loggable {
 
     private let audioSessionUser: AudioSessionUser
 
-    private final class AudioSessionUser: R2Shared._AudioSessionUser {
-        let audioConfiguration: _AudioSession.Configuration
+    private final class AudioSessionUser: R2Shared.AudioSessionUser {
+        let audioConfiguration: AudioSession.Configuration
 
-        init(config: _AudioSession.Configuration) {
+        init(config: AudioSession.Configuration) {
             audioConfiguration = config
         }
 
         deinit {
-            _AudioSession.shared.end(for: self)
+            AudioSession.shared.end(for: self)
         }
 
         func play() {}

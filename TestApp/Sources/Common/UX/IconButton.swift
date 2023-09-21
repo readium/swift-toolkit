@@ -14,13 +14,11 @@ struct IconButton: View {
     }
 
     private let systemName: String
-    private let foregroundColor: Color
     private let size: Size
     private let action: () -> Void
 
-    init(systemName: String, foregroundColor: Color = Color(UIColor.label), size: Size = .medium, action: @escaping () -> Void) {
+    init(systemName: String, size: Size = .medium, action: @escaping () -> Void) {
         self.systemName = systemName
-        self.foregroundColor = foregroundColor
         self.size = size
         self.action = action
     }
@@ -32,7 +30,6 @@ struct IconButton: View {
                 Image(systemName: systemName)
                     .resizable()
                     .scaledToFit()
-                    .foregroundColor(foregroundColor)
             }
         )
         .frame(width: size.rawValue, height: size.rawValue)

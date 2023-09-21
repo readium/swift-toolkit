@@ -11,7 +11,7 @@ import ReadiumAdapterGCDWebServer
 import SwiftUI
 import UIKit
 
-final class PDFViewController: ReaderViewController<PDFNavigatorViewController> {
+final class PDFViewController: VisualReaderViewController<PDFNavigatorViewController> {
     private let preferencesStore: AnyUserPreferencesStore<PDFPreferences>
 
     init(
@@ -38,14 +38,6 @@ final class PDFViewController: ReaderViewController<PDFNavigatorViewController> 
         super.init(navigator: navigator, publication: publication, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights)
 
         navigator.delegate = self
-    }
-
-    override var currentBookmark: Bookmark? {
-        guard let locator = navigator.currentLocation else {
-            return nil
-        }
-
-        return Bookmark(bookId: bookId, locator: locator)
     }
 
     override func presentUserPreferences() {

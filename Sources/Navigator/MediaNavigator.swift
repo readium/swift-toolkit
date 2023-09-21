@@ -8,8 +8,8 @@ import Foundation
 
 /// Protocol for a navigator rendering an audio or video based publication.
 ///
-/// **WARNING:** This API is experimental and may change or be removed in a future release without
-/// notice. Use with caution.
+/// **WARNING:** This API is experimental and may change or be removed in a
+/// future release without notice. Use with caution.
 public protocol _MediaNavigator: Navigator {
     /// Total duration in the publication, if known.
     var totalDuration: Double? { get }
@@ -34,7 +34,7 @@ public protocol _MediaNavigator: Navigator {
     func seek(to time: Double)
 
     /// Seeks relatively from the current time in the current resource.
-    func seek(relatively delta: Double)
+    func seek(by delta: Double)
 }
 
 public extension _MediaNavigator {
@@ -76,6 +76,18 @@ public struct MediaPlaybackInfo {
             return 0
         }
         return time / duration
+    }
+
+    public init(
+        resourceIndex: Int = 0,
+        state: MediaPlaybackState = .loading,
+        time: Double = 0,
+        duration: Double? = nil
+    ) {
+        self.resourceIndex = resourceIndex
+        self.state = state
+        self.time = time
+        self.duration = duration
     }
 }
 

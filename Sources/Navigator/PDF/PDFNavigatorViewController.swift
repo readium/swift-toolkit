@@ -51,7 +51,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     public private(set) var pdfView: PDFDocumentView?
     private var pdfViewDefaultBackgroundColor: UIColor!
 
-    private let publication: Publication
+    public let publication: Publication
     private let initialLocation: Locator?
     private let config: Configuration
     private let editingActions: EditingActionsController

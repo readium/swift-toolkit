@@ -19,7 +19,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
     public weak var delegate: CBZNavigatorDelegate?
 
-    private let publication: Publication
+    public let publication: Publication
     private let initialIndex: Int
 
     private let pageViewController: UIPageViewController

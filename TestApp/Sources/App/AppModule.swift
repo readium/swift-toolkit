@@ -50,10 +50,12 @@ final class AppModule {
 
 extension AppModule: ModuleDelegate {
     func presentAlert(_ title: String, message: String, from viewController: UIViewController) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        let dismissButton = UIAlertAction(title: NSLocalizedString("ok_button", comment: "Alert button"), style: .cancel)
-        alert.addAction(dismissButton)
-        viewController.present(alert, animated: true)
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+            let dismissButton = UIAlertAction(title: NSLocalizedString("ok_button", comment: "Alert button"), style: .cancel)
+            alert.addAction(dismissButton)
+            viewController.present(alert, animated: true)
+        }
     }
 
     func presentError(_ error: Error?, from viewController: UIViewController) {

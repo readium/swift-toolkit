@@ -143,7 +143,7 @@ final class TTSViewModel: ObservableObject, Loggable {
     // external controls.
 
     private func setupNowPlaying() {
-        _NowPlayingInfo.shared.media = .init(
+        NowPlayingInfo.shared.media = .init(
             title: publication.metadata.title,
             artist: publication.metadata.authors.map(\.name).joined(separator: ", "),
             artwork: publication.cover
@@ -151,14 +151,14 @@ final class TTSViewModel: ObservableObject, Loggable {
 
         let commandCenter = MPRemoteCommandCenter.shared()
 
-        commandCenter.togglePlayPauseCommand.addTarget { [unowned self] _ in
-            pauseOrResume()
+        commandCenter.togglePlayPauseCommand.addTarget { [weak self] _ in
+            self?.pauseOrResume()
             return .success
         }
     }
 
     private func clearNowPlaying() {
-        _NowPlayingInfo.shared.clear()
+        NowPlayingInfo.shared.clear()
     }
 }
 

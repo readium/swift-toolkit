@@ -10,15 +10,28 @@ import R2Streamer
 import ReadiumAdapterGCDWebServer
 import UIKit
 
-class CBZViewController: ReaderViewController<CBZNavigatorViewController> {
-    init(publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository) throws {
+class CBZViewController: VisualReaderViewController<CBZNavigatorViewController> {
+    init(
+        publication: Publication,
+        locator: Locator?,
+        bookId: Book.Id,
+        books: BookRepository,
+        bookmarks: BookmarkRepository
+    ) throws {
         let navigator = try CBZNavigatorViewController(
             publication: publication,
             initialLocation: locator,
             httpServer: GCDHTTPServer.shared
         )
 
-        super.init(navigator: navigator, publication: publication, bookId: bookId, books: books, bookmarks: bookmarks)
+        super.init(
+            navigator: navigator,
+            publication: publication,
+            bookId: bookId,
+            books: books,
+            bookmarks: bookmarks,
+            highlights: nil
+        )
 
         navigator.delegate = self
     }
@@ -27,14 +40,6 @@ class CBZViewController: ReaderViewController<CBZNavigatorViewController> {
         super.viewDidLoad()
 
         view.backgroundColor = .black
-    }
-
-    override var currentBookmark: Bookmark? {
-        guard let locator = navigator.currentLocation else {
-            return nil
-        }
-
-        return Bookmark(bookId: bookId, locator: locator)
     }
 }
 

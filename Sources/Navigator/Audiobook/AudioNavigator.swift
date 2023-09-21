@@ -15,19 +15,19 @@ public protocol _AudioNavigatorDelegate: _MediaNavigatorDelegate {}
 /// * Readium Audiobook
 /// * ZAB (Zipped Audio Book)
 ///
-/// **WARNING:** This API is experimental and may change or be removed in a future release without
-/// notice. Use with caution.
-open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
+/// **WARNING:** This API is experimental and may change or be removed in a
+/// future release without notice. Use with caution.
+open class _AudioNavigator: _MediaNavigator, AudioSessionUser, Loggable {
     public weak var delegate: _AudioNavigatorDelegate?
 
-    private let publication: Publication
+    public let publication: Publication
     private let initialLocation: Locator?
-    public let audioConfiguration: _AudioSession.Configuration
+    public let audioConfiguration: AudioSession.Configuration
 
     public init(
         publication: Publication,
         initialLocation: Locator? = nil,
-        audioConfig: _AudioSession.Configuration = .init(
+        audioConfig: AudioSession.Configuration = .init(
             category: .playback,
             mode: .default,
             routeSharingPolicy: .longForm,
@@ -47,7 +47,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
     }
 
     deinit {
-        _AudioSession.shared.end(for: self)
+        AudioSession.shared.end(for: self)
     }
 
     /// Current playback info.
@@ -106,7 +106,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
                 return
             }
 
-            let session = _AudioSession.shared
+            let session = AudioSession.shared
             switch player.timeControlStatus {
             case .paused:
                 session.user(self, didChangePlaying: false)
@@ -135,7 +135,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
             }
 
             self.shouldPlayNextResource { playNext in
-                if playNext, self.goToNextResource() {
+                if playNext, self.goForward() {
                     self.play()
                 }
             }
@@ -281,28 +281,30 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
         return go(to: locator, animated: animated, completion: completion)
     }
 
+    /// Indicates whether the navigator can go to the next content portion
+    /// (e.g. page or audiobook resource).
+    public var canGoForward: Bool {
+        publication.readingOrder.indices.contains(resourceIndex + 1)
+    }
+
+    /// Indicates whether the navigator can go to the next content portion
+    /// (e.g. page or audiobook resource).
+    public var canGoBackward: Bool {
+        publication.readingOrder.indices.contains(resourceIndex - 1)
+    }
+
     @discardableResult
     public func goForward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        false
-    }
-
-    @discardableResult
-    public func goBackward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        false
-    }
-
-    @discardableResult
-    public func goToNextResource(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
         goToResourceIndex(resourceIndex + 1, animated: animated, completion: completion)
     }
 
     @discardableResult
-    public func goToPreviousResource(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+    public func goBackward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
         goToResourceIndex(resourceIndex - 1, animated: animated, completion: completion)
     }
 
     @discardableResult
-    public func goToResourceIndex(_ index: Int, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+    private func goToResourceIndex(_ index: Int, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
         guard publication.readingOrder.indices ~= index else {
             return false
         }
@@ -339,7 +341,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
     }
 
     public func play() {
-        _AudioSession.shared.start(with: self, isPlaying: false)
+        AudioSession.shared.start(with: self, isPlaying: false)
 
         if player.currentItem == nil, let location = initialLocation {
             go(to: location)
@@ -355,7 +357,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
         player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
     }
 
-    public func seek(relatively delta: Double) {
+    public func seek(by delta: Double) {
         seek(to: currentTime + delta)
     }
 }
