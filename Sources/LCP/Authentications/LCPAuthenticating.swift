@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -7,7 +7,6 @@
 import Foundation
 
 public protocol LCPAuthenticating {
-
     /// Retrieves the passphrase to decrypt the given license.
     ///
     /// If `allowUserInteraction` is true, the reading app can prompt the user to enter the
@@ -26,7 +25,6 @@ public protocol LCPAuthenticating {
     ///   - completion: Used to return the retrieved passphrase. If the user cancelled, send nil.
     ///     The passphrase may be already hashed.
     func retrievePassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, allowUserInteraction: Bool, sender: Any?, completion: @escaping (String?) -> Void)
-    
 }
 
 public enum LCPAuthenticationReason {
@@ -37,30 +35,29 @@ public enum LCPAuthenticationReason {
 }
 
 public struct LCPAuthenticatedLicense {
-
     /// A hint to be displayed to the User to help them remember the User Passphrase.
     public var hint: String {
-        return document.encryption.userKey.textHint
+        document.encryption.userKey.textHint
     }
-    
+
     /// Location where a Reading System can redirect a User looking for additional information about the User Passphrase.
     public var hintLink: Link? {
-        return document.link(for: .hint)
+        document.link(for: .hint)
     }
-    
+
     /// Support resources for the user (either a website, an email or a telephone number).
     public var supportLinks: [Link] {
-        return document.links(for: .support)
+        document.links(for: .support)
     }
-    
+
     /// URI of the license provider.
     public var provider: String {
-        return document.provider
+        document.provider
     }
-    
+
     /// Informations about the user owning the license.
     public var user: User? {
-        return document.user
+        document.user
     }
 
     /// License Document being opened.
@@ -69,5 +66,4 @@ public struct LCPAuthenticatedLicense {
     init(document: LicenseDocument) {
         self.document = document
     }
-
 }

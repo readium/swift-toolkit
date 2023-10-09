@@ -1,11 +1,11 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import SwiftUI
 import Combine
+import SwiftUI
 
 // This file contains view model wrappers for fetching data from Repositories: Bookmarks and Highlights.
 // It's not acceptable to fetch that data in a Swiftui View's constructor, so we need a reactive wrapper.
@@ -15,19 +15,17 @@ import Combine
 final class HighlightsViewModel: ObservableObject, OutlineViewModelLoaderDelegate {
     typealias T = Highlight
     @Published var highlights = [Highlight]()
-    
+
     private let bookId: Book.Id
     private let repository: HighlightRepository
-        
-    lazy private var loader: OutlineViewModelLoader<Highlight, HighlightsViewModel> = {
-        OutlineViewModelLoader(delegate: self)
-    }()
-    
+
+    private lazy var loader: OutlineViewModelLoader<Highlight, HighlightsViewModel> = OutlineViewModelLoader(delegate: self)
+
     init(bookId: Book.Id, repository: HighlightRepository) {
         self.bookId = bookId
         self.repository = repository
     }
-    
+
     func load() {
         loader.load()
     }
@@ -35,11 +33,11 @@ final class HighlightsViewModel: ObservableObject, OutlineViewModelLoaderDelegat
     func loadIfNeeded() {
         loader.loadIfNeeded()
     }
-    
+
     var dataTask: AnyPublisher<[Highlight], Error> {
-        self.repository.all(for: bookId)
+        repository.all(for: bookId)
     }
-    
+
     func setLoadedValues(_ values: [Highlight]) {
         highlights = values
     }
@@ -50,19 +48,17 @@ final class HighlightsViewModel: ObservableObject, OutlineViewModelLoaderDelegat
 final class BookmarksViewModel: ObservableObject, OutlineViewModelLoaderDelegate {
     typealias T = Bookmark
     @Published var bookmarks = [Bookmark]()
-    
+
     private let bookId: Book.Id
     private let repository: BookmarkRepository
-    
-    lazy private var loader: OutlineViewModelLoader<Bookmark, BookmarksViewModel> = {
-        OutlineViewModelLoader(delegate: self)
-    }()
-    
+
+    private lazy var loader: OutlineViewModelLoader<Bookmark, BookmarksViewModel> = OutlineViewModelLoader(delegate: self)
+
     init(bookId: Book.Id, repository: BookmarkRepository) {
         self.bookId = bookId
         self.repository = repository
     }
-    
+
     func load() {
         loader.load()
     }
@@ -70,11 +66,11 @@ final class BookmarksViewModel: ObservableObject, OutlineViewModelLoaderDelegate
     func loadIfNeeded() {
         loader.loadIfNeeded()
     }
-    
+
     var dataTask: AnyPublisher<[Bookmark], Error> {
-        self.repository.all(for: bookId)
+        repository.all(for: bookId)
     }
-    
+
     func setLoadedValues(_ values: [Bookmark]) {
         bookmarks = values
     }
@@ -84,7 +80,7 @@ final class BookmarksViewModel: ObservableObject, OutlineViewModelLoaderDelegate
 
 private protocol OutlineViewModelLoaderDelegate: AnyObject {
     associatedtype T
-    
+
     var dataTask: AnyPublisher<[T], Error> { get }
     func setLoadedValues(_ values: [T])
 }
@@ -93,21 +89,21 @@ private protocol OutlineViewModelLoaderDelegate: AnyObject {
 private final class OutlineViewModelLoader<T, Delegate: OutlineViewModelLoaderDelegate> {
     weak var delegate: Delegate!
     private var state = State.ready
-    
+
     enum State {
         case ready
         case loading(Combine.Cancellable)
         case loaded
         case error(Error)
     }
-    
+
     init(delegate: Delegate) {
         self.delegate = delegate
     }
-    
+
     func load() {
         assert(Thread.isMainThread)
-        self.state = .loading(delegate.dataTask.sink(
+        state = .loading(delegate.dataTask.sink(
             receiveCompletion: { completion in
                 switch completion {
                 case .finished:
@@ -125,7 +121,7 @@ private final class OutlineViewModelLoader<T, Delegate: OutlineViewModelLoaderDe
 
     func loadIfNeeded() {
         assert(Thread.isMainThread)
-        guard case .ready = self.state else { return }
-        self.load()
+        guard case .ready = state else { return }
+        load()
     }
 }

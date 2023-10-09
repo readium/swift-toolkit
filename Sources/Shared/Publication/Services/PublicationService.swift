@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -8,7 +8,6 @@ import Foundation
 
 /// Base interface to be implemented by all publication services.
 public protocol PublicationService {
-    
     /// Links which will be added to `Publication.links`.
     /// It can be used to expose a web API for the service, through `Publication.get()`.
     ///
@@ -24,7 +23,7 @@ public protocol PublicationService {
     /// )
     /// ```
     var links: [Link] { get }
-    
+
     /// A service can return a Resource to:
     ///  - respond to a request to its web API declared in links,
     ///  - serve additional resources on behalf of the publication,
@@ -35,20 +34,17 @@ public protocol PublicationService {
     /// - Returns: The Resource containing the response, or null if the service doesn't recognize
     ///   this request.
     func get(link: Link) -> Resource?
-    
+
     /// Closes any opened file handles, removes temporary files, etc.
     func close()
-
 }
 
 public extension PublicationService {
-    
     var links: [Link] { [] }
-    
-    func get(link: Link) -> Resource? { return nil }
-    
-    func close() { }
 
+    func get(link: Link) -> Resource? { nil }
+
+    func close() {}
 }
 
 /// Factory used to create a `PublicationService`.
@@ -56,7 +52,6 @@ public typealias PublicationServiceFactory = (PublicationServiceContext) -> Publ
 
 /// Container for the context from which a service is created.
 public struct PublicationServiceContext {
-
     /// Weak reference to the parent publication.
     ///
     /// Don't store directly the referenced publication, always access it through the `Weak` property.

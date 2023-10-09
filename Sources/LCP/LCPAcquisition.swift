@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -11,7 +11,6 @@ import R2Shared
 ///
 /// You can cancel the on-going download with `acquisition.cancel()`.
 public final class LCPAcquisition: Loggable, Cancellable {
-
     /// Informations about an acquired publication protected with LCP.
     public struct Publication {
         /// Path to the downloaded publication.
@@ -21,7 +20,7 @@ public final class LCPAcquisition: Loggable, Cancellable {
         /// Filename that should be used for the publication when importing it in the user library.
         public let suggestedFilename: String
     }
-    
+
     /// Percent-based progress of the acquisition.
     public enum Progress {
         /// Undetermined progress, a spinner should be shown to the user.
@@ -35,29 +34,28 @@ public final class LCPAcquisition: Loggable, Cancellable {
         cancellable.cancel()
         didComplete(with: .cancelled)
     }
-    
+
     let onProgress: (Progress) -> Void
     var cancellable = MediatorCancellable()
-    
+
     private var isCompleted = false
     private let completion: (CancellableResult<Publication, LCPError>) -> Void
-    
+
     init(onProgress: @escaping (Progress) -> Void, completion: @escaping (CancellableResult<Publication, LCPError>) -> Void) {
         self.onProgress = onProgress
         self.completion = completion
     }
-    
-    func didComplete(with result: CancellableResult<Publication, LCPError>) -> Void {
+
+    func didComplete(with result: CancellableResult<Publication, LCPError>) {
         guard !isCompleted else {
             return
         }
         isCompleted = true
-        
+
         completion(result)
-        
-        if case .success(let publication) = result, (try? publication.localURL.checkResourceIsReachable()) == true {
+
+        if case let .success(publication) = result, (try? publication.localURL.checkResourceIsReachable()) == true {
             log(.warning, "The acquired LCP publication file was not moved in the completion closure. It will be removed from the file system.")
         }
     }
-
 }

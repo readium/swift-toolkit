@@ -1,18 +1,15 @@
 //
-//  readium_opds2_0_test.swift
-//  readium-opdsTests
-//
-//  Created by Nikita Aizikovskyi on Jan-31-2018.
-//  Copyright © 2018 Readium. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 import R2Shared
+import XCTest
 
 @testable import ReadiumOPDS
 
 class readium_opds2_0_test: XCTestCase {
-
     var feed: Feed?
 
     override func setUp() {
@@ -34,12 +31,12 @@ class readium_opds2_0_test: XCTestCase {
 
         continueAfterFailure = true
     }
-    
+
     override func tearDown() {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()
     }
-    
+
     func testMetadata() {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct results.

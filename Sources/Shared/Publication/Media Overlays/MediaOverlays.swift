@@ -1,16 +1,10 @@
 //
-//  MediaOverlays.swift
-//  r2-shared-swift
-//
-//  Created by Alexandre Camilleri on 4/11/17.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-
 
 /// Errors related to MediaOverlays.
 ///
@@ -31,7 +25,7 @@ public class MediaOverlays {
     public init(withNodes nodes: [MediaOverlayNode] = [MediaOverlayNode]()) {
         self.nodes = nodes
     }
-    
+
     public func append(_ newNode: MediaOverlayNode) {
         nodes.append(newNode)
     }
@@ -85,7 +79,7 @@ public class MediaOverlays {
     /// - Parameter forFragment: The SMIL fragment identifier.
     /// - Returns: The node associated to the fragment.
     public func node(forFragmentId id: String?) throws -> MediaOverlayNode {
-        guard let node = _findNode(forFragment: id, inNodes: self.nodes) else {
+        guard let node = _findNode(forFragment: id, inNodes: nodes) else {
             throw MediaOverlaysError.nodeNotFound(forFragmentId: id)
         }
         return node
@@ -97,7 +91,7 @@ public class MediaOverlays {
     /// - Parameter forFragment: The SMIL fragment identifier.
     /// - Returns: The node right after the node associated to the fragment.
     public func node(nextAfterFragmentId id: String?) throws -> MediaOverlayNode {
-        let ret = _findNextNode(forFragment: id, inNodes: self.nodes)
+        let ret = _findNextNode(forFragment: id, inNodes: nodes)
 
         guard let node = ret.found else {
             throw MediaOverlaysError.nodeNotFound(forFragmentId: id)
@@ -105,7 +99,7 @@ public class MediaOverlays {
         return node
     }
 
-    // Mark: - Fileprivate Methods.
+    // MARK: - Fileprivate Methods.
 
     /// [RECURISVE]
     /// Find the node (<par>) corresponding to "fragment" ?? nil.
@@ -116,8 +110,8 @@ public class MediaOverlays {
     ///   - nodes: The set of MediaOverlayNodes where to search. Default to
     ///            self children.
     /// - Returns: The node we found ?? nil.
-    fileprivate func _findNode(forFragment fragment: String?,
-                               inNodes nodes: [MediaOverlayNode]) -> MediaOverlayNode?
+    private func _findNode(forFragment fragment: String?,
+                           inNodes nodes: [MediaOverlayNode]) -> MediaOverlayNode?
     {
         // For each node of the current scope..
         for node in nodes {
@@ -125,8 +119,7 @@ public class MediaOverlays {
             // FIXME: ask if really usefull?
             if node.role.contains("section") {
                 // Try to find par nodes inside.
-                if let found = _findNode(forFragment: fragment, inNodes: node.children)
-                {
+                if let found = _findNode(forFragment: fragment, inNodes: node.children) {
                     return found
                 }
             }
@@ -150,8 +143,8 @@ public class MediaOverlays {
     ///   - nodes: The set of MediaOverlayNodes where to search. Default to
     ///            self children.
     /// - Returns: The node we found ?? nil.
-    fileprivate func _findNextNode(forFragment fragment: String?,
-                                   inNodes nodes: [MediaOverlayNode]) -> (found: MediaOverlayNode?, prevFound: Bool)
+    private func _findNextNode(forFragment fragment: String?,
+                               inNodes nodes: [MediaOverlayNode]) -> (found: MediaOverlayNode?, prevFound: Bool)
     {
         var previousNodeFoundFlag = false
 
@@ -188,12 +181,11 @@ public class MediaOverlays {
         return (nil, previousNodeFoundFlag)
     }
 
-
     /// Returns the closest non section children node found.
     ///
     /// - Parameter node: The section node
     /// - Returns: The closest non section node or nil.
-    fileprivate func getFirstNonSectionChild(of node: MediaOverlayNode) -> MediaOverlayNode? {
+    private func getFirstNonSectionChild(of node: MediaOverlayNode) -> MediaOverlayNode? {
         for node in node.children {
             if node.role.contains("section") {
                 if let found = getFirstNonSectionChild(of: node) {
@@ -206,7 +198,3 @@ public class MediaOverlays {
         return nil
     }
 }
-
-
-
-

@@ -1,12 +1,7 @@
 //
-//  ZIPLicenseContainer.swift
-//  r2-lcp-swift
-//
-//  Created by Mickaël Menu on 05.02.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -15,30 +10,29 @@ import ZIPFoundation
 /// Access to a License Document stored in a ZIP archive.
 /// Meant to be subclassed to customize the pathInZIP property, eg. EPUBLicenseContainer.
 class ZIPLicenseContainer: LicenseContainer {
-    
     private let zip: URL
     private let pathInZIP: String
-    
+
     init(zip: URL, pathInZIP: String) {
         self.zip = zip
         self.pathInZIP = pathInZIP
     }
-    
+
     func containsLicense() -> Bool {
         guard let archive = Archive(url: zip, accessMode: .read) else {
             return false
         }
         return archive[pathInZIP] != nil
     }
-    
+
     func read() throws -> Data {
-        guard let archive = Archive(url: zip, accessMode: .read) else  {
+        guard let archive = Archive(url: zip, accessMode: .read) else {
             throw LCPError.licenseContainer(.openFailed)
         }
         guard let entry = archive[pathInZIP] else {
             throw LCPError.licenseContainer(.fileNotFound(pathInZIP))
         }
-        
+
         var data = Data()
         do {
             _ = try archive.extract(entry) { part in
@@ -50,9 +44,9 @@ class ZIPLicenseContainer: LicenseContainer {
 
         return data
     }
-    
+
     func write(_ license: LicenseDocument) throws {
-        guard let archive = Archive(url: zip, accessMode: .update) else  {
+        guard let archive = Archive(url: zip, accessMode: .update) else {
             throw LCPError.licenseContainer(.openFailed)
         }
 
@@ -64,12 +58,11 @@ class ZIPLicenseContainer: LicenseContainer {
 
             // Stores the License into the ZIP file
             let data = license.data
-            try archive.addEntry(with: pathInZIP, type: .file, uncompressedSize: UInt32(data.count), provider: { (position, size) -> Data in
-                return data[position..<size]
+            try archive.addEntry(with: pathInZIP, type: .file, uncompressedSize: UInt32(data.count), provider: { position, size -> Data in
+                data[position ..< size]
             })
         } catch {
             throw LCPError.licenseContainer(.writeFailed(path: pathInZIP))
         }
     }
-    
 }

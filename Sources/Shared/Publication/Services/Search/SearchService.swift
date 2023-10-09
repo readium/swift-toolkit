@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -13,7 +13,6 @@ public typealias SearchServiceFactory = (PublicationServiceContext) -> _SearchSe
 /// **WARNING:** This API is experimental and may change or be removed in a future release without
 /// notice. Use with caution.
 public protocol _SearchService: PublicationService {
-
     /// Default value for the search options of this service.
     ///
     /// If an option does not have a value, it is not supported by the service.
@@ -27,7 +26,6 @@ public protocol _SearchService: PublicationService {
 
 /// Iterates through search results.
 public protocol SearchIterator: AnyObject {
-
     /// Number of matches for this search, if known.
     ///
     /// Depending on the search algorithm, it may not be possible to know the result count until reaching the end of the
@@ -48,7 +46,6 @@ public protocol SearchIterator: AnyObject {
 }
 
 public extension SearchIterator {
-
     /// Iterates over all the search results, calling the given `block` for each page.
     @discardableResult
     func forEach(_ block: @escaping (_LocatorCollection) throws -> Void, completion: @escaping (SearchResult<Void>) -> Void) -> Cancellable {
@@ -57,7 +54,7 @@ public extension SearchIterator {
         func next() {
             let cancellable = self.next { result in
                 switch result {
-                case .success(let locators):
+                case let .success(locators):
                     if let locators = locators {
                         do {
                             try block(locators)
@@ -68,7 +65,7 @@ public extension SearchIterator {
                     } else {
                         completion(.success(()))
                     }
-                case .failure(let error):
+                case let .failure(error):
                     completion(.failure(error))
                 }
             }
@@ -136,7 +133,6 @@ public typealias SearchResult<Success> = Result<Success, SearchError>
 
 /// Represents an error which might occur during a search activity.
 public enum SearchError: LocalizedError {
-
     /// The publication is not searchable.
     case publicationNotSearchable
 
@@ -174,11 +170,11 @@ public enum SearchError: LocalizedError {
         switch self {
         case .publicationNotSearchable:
             return R2SharedLocalizedString("Publication.SearchError.publicationNotSearchable")
-        case .badQuery(let error):
+        case let .badQuery(error):
             return error.errorDescription
-        case .resourceError(let error):
+        case let .resourceError(error):
             return error.errorDescription
-        case .networkError(let error):
+        case let .networkError(error):
             return error.errorDescription
         case .cancelled:
             return R2SharedLocalizedString("Publication.SearchError.cancelled")
@@ -186,14 +182,11 @@ public enum SearchError: LocalizedError {
             return R2SharedLocalizedString("Publication.SearchError.other")
         }
     }
-
 }
-
 
 // MARK: Publication Helpers
 
 public extension Publication {
-
     private var searchService: _SearchService? { findService(_SearchService.self) }
 
     /// Indicates whether the content of this publication can be searched.
@@ -229,14 +222,11 @@ public extension Publication {
 
         return service.search(query: query, options: options, completion: completion)
     }
-
 }
-
 
 // MARK: PublicationServicesBuilder Helpers
 
 public extension PublicationServicesBuilder {
-
     mutating func setSearchServiceFactory(_ factory: SearchServiceFactory?) {
         if let factory = factory {
             set(_SearchService.self, factory)
@@ -244,5 +234,4 @@ public extension PublicationServicesBuilder {
             remove(_SearchService.self)
         }
     }
-
 }

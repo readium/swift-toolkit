@@ -10,7 +10,7 @@ import PackageDescription
 let package = Package(
     name: "Readium",
     defaultLocalization: "en",
-    platforms: [.iOS(.v10)],
+    platforms: [.iOS(.v11)],
     products: [
         .library(name: "R2Shared", targets: ["R2Shared"]),
         .library(name: "R2Streamer", targets: ["R2Streamer"]),
@@ -24,15 +24,16 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/cezheng/Fuzi.git", from: "3.1.3"),
         // From 1.6.0, the build fails in GitHub actions with Carthage
-        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", "1.5.1"..<"1.6.0"),
+        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", "1.5.1" ..< "1.6.0"),
         .package(url: "https://github.com/marmelroy/Zip.git", from: "2.1.2"),
         .package(url: "https://github.com/ra1028/DifferenceKit.git", from: "1.3.0"),
-        .package(url: "https://github.com/readium/GCDWebServer.git", from: "3.7.3"),
-        .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.4.3"),
+        .package(url: "https://github.com/readium/GCDWebServer.git", from: "3.7.4"),
+        // From 2.6.0, Xcode 14 is required
+        .package(url: "https://github.com/scinfu/SwiftSoup.git", "2.5.3" ..< "2.6.0"),
         // 0.14 introduced a breaking change
-        .package(url: "https://github.com/stephencelis/SQLite.swift.git", "0.12.0"..<"0.13.3"),
+        .package(url: "https://github.com/stephencelis/SQLite.swift.git", "0.12.0" ..< "0.13.3"),
         // 0.9.12 requires iOS 12+
-        .package(url: "https://github.com/weichsel/ZIPFoundation.git", "0.9.0"..<"0.9.12"),
+        .package(url: "https://github.com/weichsel/ZIPFoundation.git", "0.9.0" ..< "0.9.12"),
     ],
     targets: [
         .target(
@@ -67,7 +68,7 @@ let package = Package(
                 "Fuzi",
                 "GCDWebServer",
                 "Zip",
-                "R2Shared"
+                "R2Shared",
             ],
             path: "Sources/Streamer",
             resources: [
@@ -110,7 +111,7 @@ let package = Package(
             name: "ReadiumOPDS",
             dependencies: [
                 "Fuzi",
-                "R2Shared"
+                "R2Shared",
             ],
             path: "Sources/OPDS"
         ),
@@ -133,7 +134,7 @@ let package = Package(
             ],
             path: "Sources/LCP",
             resources: [
-                .process("Resources")
+                .process("Resources"),
             ]
         ),
         // These tests require a R2LCPClient.framework to run.
@@ -146,7 +147,7 @@ let package = Package(
         //         .copy("Fixtures"),
         //     ]
         // ),
-        
+
         .target(
             name: "ReadiumAdapterGCDWebServer",
             dependencies: [
@@ -167,4 +168,3 @@ let package = Package(
         ),
     ]
 )
-

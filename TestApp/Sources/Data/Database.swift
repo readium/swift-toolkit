@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -9,16 +9,15 @@ import Foundation
 import GRDB
 
 final class Database {
-    
     convenience init(file: URL) throws {
-        try self.init(writer: try DatabaseQueue(path: file.path))
+        try self.init(writer: DatabaseQueue(path: file.path))
     }
-    
+
     private let writer: DatabaseWriter
-    
+
     private init(writer: DatabaseWriter = DatabaseQueue()) throws {
         self.writer = writer
-        
+
         try writer.write { db in
             try db.create(table: "book", ifNotExists: true) { t in
                 t.autoIncrementedPrimaryKey("id")
@@ -33,7 +32,7 @@ final class Database {
                 t.column("created", .datetime).notNull()
                 t.column("preferencesJSON", .text)
             }
-            
+
             try db.create(table: "bookmark", ifNotExists: true) { t in
                 t.autoIncrementedPrimaryKey("id")
                 t.column("bookId", .integer).references("book", onDelete: .cascade).notNull()
@@ -41,7 +40,7 @@ final class Database {
                 t.column("progression", .double).notNull()
                 t.column("created", .datetime).notNull()
             }
-            
+
             try db.create(table: "highlight", ifNotExists: true) { t in
                 t.column("id", .text).primaryKey()
                 t.column("bookId", .integer).references("book", onDelete: .cascade).notNull()
@@ -50,26 +49,26 @@ final class Database {
                 t.column("color", .integer).notNull()
                 t.column("created", .datetime).notNull()
             }
-            
+
             // create an index to make sorting by progression faster
             try db.create(index: "index_highlight_progression", on: "highlight", columns: ["bookId", "progression"], ifNotExists: true)
             try db.create(index: "index_bookmark_progression", on: "bookmark", columns: ["bookId", "progression"], ifNotExists: true)
         }
     }
-    
+
     func read<T>(_ query: @escaping (GRDB.Database) throws -> T) async throws -> T {
         try await withCheckedThrowingContinuation { cont in
             writer.asyncRead { db in
                 do {
                     let db = try db.get()
-                    cont.resume(returning: try query(db))
+                    try cont.resume(returning: query(db))
                 } catch {
                     cont.resume(throwing: error)
                 }
             }
         }
     }
-    
+
     @discardableResult
     func write<T>(_ updates: @escaping (GRDB.Database) throws -> T) async throws -> T {
         try await withCheckedThrowingContinuation { cont in
@@ -81,7 +80,7 @@ final class Database {
             )
         }
     }
-    
+
     func observe<T>(_ query: @escaping (GRDB.Database) throws -> T) -> AnyPublisher<T, Error> {
         ValueObservation.tracking(query)
             .publisher(in: writer)
@@ -96,34 +95,33 @@ final class Database {
 protocol EntityId: Codable, Hashable, RawRepresentable, ExpressibleByIntegerLiteral, CustomStringConvertible, DatabaseValueConvertible where RawValue == Int64 {}
 
 extension EntityId {
-    
     // MARK: - ExpressibleByIntegerLiteral
-    
+
     init(integerLiteral value: Int64) {
         self.init(rawValue: value)!
     }
-    
+
     // MARK: - Codable
-    
+
     init(from decoder: Decoder) throws {
-        self.init(rawValue: try decoder.singleValueContainer().decode(Int64.self))!
+        try self.init(rawValue: decoder.singleValueContainer().decode(Int64.self))!
     }
-    
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(rawValue)
     }
-    
+
     // MARK: - CustomStringConvertible
-    
+
     var description: String {
         "\(Self.self)(\(rawValue))"
     }
-    
+
     // MARK: - DatabaseValueConvertible
-    
+
     var databaseValue: DatabaseValue { rawValue.databaseValue }
-    
+
     static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
         Int64.fromDatabaseValue(dbValue).map(Self.init)
     }

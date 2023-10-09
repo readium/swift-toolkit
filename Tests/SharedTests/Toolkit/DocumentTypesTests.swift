@@ -1,29 +1,23 @@
 //
-//  DocumentTypesTests.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 26/04/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 class DocumentTypesTests: XCTestCase {
-    
     private let infoDictionary = NSDictionary(contentsOf: Fixtures().url(for: "DocumentTypes.plist")) as! [String: Any]
     private var sut: DocumentTypes!
-    
+
     override func setUp() {
         sut = DocumentTypes(infoDictionary: infoDictionary)
     }
 
     func testGetAll() throws {
         let all = sut.all
-        
+
         XCTAssertEqual(all.count, 3)
         XCTAssertEqual(all[0], DocumentType(
             name: "Foo Format",
@@ -31,7 +25,7 @@ class DocumentTypesTests: XCTestCase {
             preferredMediaType: MediaType("application/vnd.bar")!,
             mediaTypes: [
                 MediaType("application/vnd.bar")!,
-                MediaType("application/vnd.bar2")!
+                MediaType("application/vnd.bar2")!,
             ],
             fileExtensions: ["foo", "foo2"]
         ))
@@ -40,7 +34,7 @@ class DocumentTypesTests: XCTestCase {
             utis: [],
             preferredMediaType: MediaType("application/pdf")!,
             mediaTypes: [
-                MediaType("application/pdf")!
+                MediaType("application/pdf")!,
             ],
             fileExtensions: ["pdff"]
         ))
@@ -49,45 +43,44 @@ class DocumentTypesTests: XCTestCase {
             utis: ["org.idpf.epub-container"],
             preferredMediaType: MediaType("application/epub+zip", name: "EPUB Publication", fileExtension: "epub")!,
             mediaTypes: [
-                MediaType("application/epub+zip")!
+                MediaType("application/epub+zip")!,
             ],
             fileExtensions: ["epub", "epub2"]
         ))
     }
-    
+
     func testSupportedUTIs() {
         XCTAssertEqual(sut.supportedUTIs, ["org.idpf.epub-container"])
     }
-    
+
     func testSupportedMediaTypes() {
         XCTAssertEqual(sut.supportedMediaTypes, [
             MediaType("application/epub+zip")!,
             MediaType("application/vnd.bar")!,
             MediaType("application/vnd.bar2")!,
-            MediaType("application/pdf")!
+            MediaType("application/pdf")!,
         ])
     }
 
     func testSupportedFileExtensions() {
         XCTAssertEqual(sut.supportedFileExtensions, ["epub", "foo", "foo2", "pdff", "epub2"])
     }
-    
+
     func testSupportsMediaType() {
         XCTAssertTrue(sut.supportsMediaType("application/epub+zip"))
         XCTAssertFalse(sut.supportsMediaType("text/html"))
     }
-    
+
     func testSupportsMediaTypeIgnoresExtraParameters() {
         XCTAssertTrue(sut.supportsMediaType("application/epub+zip;param=value"))
     }
-    
+
     func testSupportsFileExtension() {
         XCTAssertTrue(sut.supportsFileExtension("pdff"))
         XCTAssertFalse(sut.supportsFileExtension("bar"))
     }
-    
+
     func testSupportsFileExtensionIgnoresCase() {
         XCTAssertTrue(sut.supportsFileExtension("FoO2"))
     }
-
 }

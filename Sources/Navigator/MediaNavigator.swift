@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -8,16 +8,15 @@ import Foundation
 
 /// Protocol for a navigator rendering an audio or video based publication.
 ///
-/// **WARNING:** This API is experimental and may change or be removed in a future release without
-/// notice. Use with caution.
+/// **WARNING:** This API is experimental and may change or be removed in a
+/// future release without notice. Use with caution.
 public protocol _MediaNavigator: Navigator {
-
     /// Total duration in the publication, if known.
     var totalDuration: Double? { get }
-    
+
     /// Volume of playback, from 0.0 to 1.0.
     var volume: Double { get set }
-    
+
     /// Speed of playback.
     /// Default is 1.0
     var rate: Double { get set }
@@ -27,19 +26,18 @@ public protocol _MediaNavigator: Navigator {
 
     /// Resumes or start the playback.
     func play()
-    
+
     /// Pauses the playback.
     func pause()
-    
+
     /// Seeks to the given time in the current resource.
     func seek(to time: Double)
-    
+
     /// Seeks relatively from the current time in the current resource.
-    func seek(relatively delta: Double)
+    func seek(by delta: Double)
 }
 
 public extension _MediaNavigator {
-
     /// Toggles the playback.
     func playPause() {
         switch state {
@@ -60,7 +58,6 @@ public enum MediaPlaybackState {
 
 /// Holds metadata about a played media resource.
 public struct MediaPlaybackInfo {
-
     /// Index of the current resource in the `readingOrder`.
     public let resourceIndex: Int
 
@@ -80,27 +77,37 @@ public struct MediaPlaybackInfo {
         }
         return time / duration
     }
+
+    public init(
+        resourceIndex: Int = 0,
+        state: MediaPlaybackState = .loading,
+        time: Double = 0,
+        duration: Double? = nil
+    ) {
+        self.resourceIndex = resourceIndex
+        self.state = state
+        self.time = time
+        self.duration = duration
+    }
 }
 
 public protocol _MediaNavigatorDelegate: NavigatorDelegate {
-    
     /// Called when the playback updates.
     func navigator(_ navigator: _MediaNavigator, playbackDidChange info: MediaPlaybackInfo)
-    
+
     /// Called when the navigator finished playing the current resource.
     /// Returns whether the next resource should be played. Default is true.
     func navigator(_ navigator: _MediaNavigator, shouldPlayNextResource info: MediaPlaybackInfo) -> Bool
-    
+
     /// Called when the ranges of buffered media data change.
     /// Warning: They may be discontinuous.
     func navigator(_ navigator: _MediaNavigator, loadedTimeRangesDidChange ranges: [Range<Double>])
 }
 
 public extension _MediaNavigatorDelegate {
-    
     func navigator(_ navigator: _MediaNavigator, playbackDidChange info: MediaPlaybackInfo) {}
-    
+
     func navigator(_ navigator: _MediaNavigator, shouldPlayNextResource info: MediaPlaybackInfo) -> Bool { true }
-    
+
     func navigator(_ navigator: _MediaNavigator, loadedTimeRangesDidChange ranges: [Range<Double>]) {}
 }

@@ -13,15 +13,16 @@ import R2Shared
 /// interface or modifying existing preferences. It includes rules for
 /// adjusting preferences, such as the supported values or ranges.
 public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferences, EPUBSettings> {
-
     public let layout: EPUBLayout
+    private let defaults: EPUBDefaults
 
     public init(
         initialPreferences: EPUBPreferences,
         metadata: Metadata,
         defaults: EPUBDefaults
     ) {
-        self.layout = metadata.presentation.layout ?? .reflowable
+        layout = metadata.presentation.layout ?? .reflowable
+        self.defaults = defaults
 
         super.init(
             initialPreferences: initialPreferences,
@@ -38,14 +39,16 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     public lazy var backgroundColor: AnyPreference<Color> =
         preference(
             preference: \.backgroundColor,
-            effectiveValue: { [unowned self] in
-                return $0.settings.backgroundColor
-                    ?? (theme.value ?? theme.effectiveValue).backgroundColor
+            effectiveValue: { [weak theme] in
+                $0.settings.backgroundColor
+                    ?? (theme?.value ?? theme?.effectiveValue)?.backgroundColor
             },
-            isEffective: { [unowned self] _ in preferences.backgroundColor != nil }
+            defaultEffectiveValue: Theme.light.backgroundColor,
+            isEffective: { $0.preferences.backgroundColor != nil }
         )
 
-    /// Number of reflowable columns to display (one-page view or two-page spread).
+    /// Number of reflowable columns to display (one-page view or two-page
+    /// spread).
     ///
     /// Only effective when:
     ///  - the publication is reflowable
@@ -54,8 +57,9 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         enumPreference(
             preference: \.columnCount,
             setting: \.columnCount,
-            isEffective: { [unowned self] in
-                return layout == .reflowable
+            defaultEffectiveValue: defaults.columnCount ?? .auto,
+            isEffective: { [layout] in
+                layout == .reflowable
                     && !$0.settings.scroll
             },
             supportedValues: [.auto, .one, .two]
@@ -68,39 +72,42 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         preference(
             preference: \.fontFamily,
             setting: \.fontFamily,
-            isEffective: { [unowned self] _ in layout == .reflowable }
+            isEffective: { [layout] _ in layout == .reflowable }
         )
 
     /// Base text font size as a percentage. Default to 100%.
     ///
-    /// Note that allowing a font size that is too large could break the pagination.
+    /// Note that allowing a font size that is too large could break the
+    /// pagination.
     ///
     /// Only effective with reflowable publications.
     public lazy var fontSize: AnyRangePreference<Double> =
         rangePreference(
             preference: \.fontSize,
             setting: \.fontSize,
-            isEffective: { [unowned self] _ in layout == .reflowable },
-            supportedRange: 0.1...5.0,
+            defaultEffectiveValue: defaults.fontSize ?? 1.0,
+            isEffective: { [layout] _ in layout == .reflowable },
+            supportedRange: 0.1 ... 5.0,
             progressionStrategy: .increment(0.1),
             format: \.percentageString
         )
 
     /// Default boldness for the text as a percentage.
     ///
-    /// If you want to change the boldness of all text, including headers, you can use this with
-    /// `textNormalization`.
+    /// If you want to change the boldness of all text, including headers, you
+    /// can use this with `textNormalization`.
     ///
     /// Only effective with reflowable publications.
     public lazy var fontWeight: AnyRangePreference<Double> =
         rangePreference(
             preference: \.fontWeight,
-            effectiveValue: { $0.settings.fontWeight ?? 1.0 },
-            isEffective: { [unowned self] in
-                return layout == .reflowable
+            effectiveValue: { $0.settings.fontWeight },
+            defaultEffectiveValue: defaults.fontWeight ?? 1.0,
+            isEffective: { [layout] in
+                layout == .reflowable
                     && $0.preferences.fontWeight != nil
             },
-            supportedRange: 0.0...2.5,
+            supportedRange: 0.0 ... 2.5,
             progressionStrategy: .increment(0.25),
             format: \.percentageString
         )
@@ -115,8 +122,9 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         preference(
             preference: \.hyphens,
             effectiveValue: { $0.settings.hyphens ?? ($0.settings.textAlign == .justify) },
-            isEffective: { [unowned self] in
-                return layout == .reflowable
+            defaultEffectiveValue: defaults.hyphens ?? false,
+            isEffective: { [layout] in
+                layout == .reflowable
                     && $0.settings.cssLayout.stylesheets == .default
                     && !$0.settings.publisherStyles
                     && ($0.preferences.hyphens != nil || $0.settings.textAlign == .justify)
@@ -155,14 +163,15 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     public lazy var letterSpacing: AnyRangePreference<Double> =
         rangePreference(
             preference: \.letterSpacing,
-            effectiveValue: { $0.settings.letterSpacing ?? 0.0 },
-            isEffective: { [unowned self] in
-                return layout == .reflowable
+            effectiveValue: { $0.settings.letterSpacing },
+            defaultEffectiveValue: defaults.letterSpacing ?? 0.0,
+            isEffective: { [layout] in
+                layout == .reflowable
                     && $0.settings.cssLayout.stylesheets == .default
                     && !$0.settings.publisherStyles
                     && $0.preferences.letterSpacing != nil
             },
-            supportedRange: 0.0...1.0,
+            supportedRange: 0.0 ... 1.0,
             progressionStrategy: .increment(0.1),
             format: \.percentageString
         )
@@ -176,9 +185,10 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     public lazy var ligatures: AnyPreference<Bool> =
         preference(
             preference: \.ligatures,
-            effectiveValue: { $0.settings.ligatures ?? false },
-            isEffective: { [unowned self] in
-                return layout == .reflowable
+            effectiveValue: { $0.settings.ligatures },
+            defaultEffectiveValue: defaults.ligatures ?? false,
+            isEffective: { [layout] in
+                layout == .reflowable
                     && $0.settings.cssLayout.stylesheets == .rtl
                     && !$0.settings.publisherStyles
                     && $0.preferences.ligatures != nil
@@ -193,13 +203,14 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     public lazy var lineHeight: AnyRangePreference<Double> =
         rangePreference(
             preference: \.lineHeight,
-            effectiveValue: { $0.settings.lineHeight ?? 1.2 },
-            isEffective: { [unowned self] in
-                return layout == .reflowable
+            effectiveValue: { $0.settings.lineHeight },
+            defaultEffectiveValue: defaults.lineHeight ?? 1.2,
+            isEffective: { [layout] in
+                layout == .reflowable
                     && !$0.settings.publisherStyles
                     && $0.preferences.lineHeight != nil
             },
-            supportedRange: 1.0...2.0,
+            supportedRange: 1.0 ... 2.0,
             progressionStrategy: .increment(0.1),
             format: { $0.formatDecimal(maximumFractionDigits: 5) }
         )
@@ -211,8 +222,9 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         rangePreference(
             preference: \.pageMargins,
             setting: \.pageMargins,
-            isEffective: { [unowned self] _ in layout == .reflowable },
-            supportedRange: 0.0...4.0,
+            defaultEffectiveValue: defaults.pageMargins ?? 1.0,
+            isEffective: { [layout] _ in layout == .reflowable },
+            supportedRange: 0.0 ... 4.0,
             progressionStrategy: .increment(0.3),
             format: { $0.formatDecimal(maximumFractionDigits: 5) }
         )
@@ -226,14 +238,15 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     public lazy var paragraphIndent: AnyRangePreference<Double> =
         rangePreference(
             preference: \.paragraphIndent,
-            effectiveValue: { $0.settings.paragraphIndent ?? 0.0 },
-            isEffective: { [unowned self] in
-                return layout == .reflowable
+            effectiveValue: { $0.settings.paragraphIndent },
+            defaultEffectiveValue: defaults.paragraphIndent ?? 0.0,
+            isEffective: { [layout] in
+                layout == .reflowable
                     && [.default, .rtl].contains($0.settings.cssLayout.stylesheets)
                     && !$0.settings.publisherStyles
                     && $0.preferences.paragraphIndent != nil
             },
-            supportedRange: 0.0...3.0,
+            supportedRange: 0.0 ... 3.0,
             progressionStrategy: .increment(0.2),
             format: \.percentageString
         )
@@ -246,26 +259,28 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     public lazy var paragraphSpacing: AnyRangePreference<Double> =
         rangePreference(
             preference: \.paragraphSpacing,
-            effectiveValue: { $0.settings.paragraphSpacing ?? 0.0 },
-            isEffective: { [unowned self] in
-                return layout == .reflowable
+            effectiveValue: { $0.settings.paragraphSpacing },
+            defaultEffectiveValue: defaults.paragraphSpacing ?? 0.0,
+            isEffective: { [layout] in
+                layout == .reflowable
                     && !$0.settings.publisherStyles
                     && $0.preferences.paragraphSpacing != nil
             },
-            supportedRange: 0.0...2.0,
+            supportedRange: 0.0 ... 2.0,
             progressionStrategy: .increment(0.1),
             format: \.percentageString
         )
 
-    /// Indicates whether the original publisher styles should be observed. Many advanced settings
-    /// require this to be off.
+    /// Indicates whether the original publisher styles should be observed.
+    /// Many advanced settings require this to be off.
     ///
     /// Only effective with reflowable publications.
     public lazy var publisherStyles: AnyPreference<Bool> =
         preference(
             preference: \.publisherStyles,
             setting: \.publisherStyles,
-            isEffective: { [unowned self] _ in layout == .reflowable }
+            defaultEffectiveValue: defaults.publisherStyles ?? true,
+            isEffective: { [layout] _ in layout == .reflowable }
         )
 
     /// Direction of the reading progression across resources.
@@ -275,31 +290,34 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         enumPreference(
             preference: \.readingProgression,
             setting: \.readingProgression,
+            defaultEffectiveValue: defaults.readingProgression ?? .ltr,
             isEffective: { _ in true },
             supportedValues: [.ltr, .rtl]
         )
 
-    /// Indicates if the overflow of resources should be handled using scrolling instead of synthetic
-    /// pagination.
+    /// Indicates if the overflow of resources should be handled using
+    /// scrolling instead of synthetic pagination.
     ///
     /// Only effective with reflowable publications.
     public lazy var scroll: AnyPreference<Bool> =
         preference(
             preference: \.scroll,
             setting: \.scroll,
-            isEffective: { [unowned self] _ in layout == .reflowable }
+            defaultEffectiveValue: defaults.scroll ?? false,
+            isEffective: { [layout] _ in layout == .reflowable }
         )
 
-    /// Indicates if the fixed-layout publication should be rendered with a synthetic spread
-    /// (dual-page).
+    /// Indicates if the fixed-layout publication should be rendered with a
+    /// synthetic spread (dual-page).
     ///
     /// Only effective with fixed-layout publications.
     public lazy var spread: AnyEnumPreference<Spread> =
         enumPreference(
             preference: \.spread,
             setting: \.spread,
-            isEffective: { [unowned self] _ in layout == .fixed },
-            supportedValues: [.never, .always]
+            defaultEffectiveValue: defaults.spread ?? .auto,
+            isEffective: { [layout] _ in layout == .fixed },
+            supportedValues: [.auto, .never, .always]
         )
 
     /// Page text alignment.
@@ -312,8 +330,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         enumPreference(
             preference: \.textAlign,
             setting: \.textAlign,
-            isEffective: { [unowned self] in
-                return layout == .reflowable
+            isEffective: { [layout] in
+                layout == .reflowable
                     && [.default, .rtl].contains($0.settings.cssLayout.stylesheets)
                     && !$0.settings.publisherStyles
                     && $0.preferences.textAlign != nil
@@ -328,12 +346,13 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     public lazy var textColor: AnyPreference<Color> =
         preference(
             preference: \.textColor,
-            effectiveValue: { [unowned self] in
-                return $0.settings.textColor
-                    ?? (theme.value ?? theme.effectiveValue).contentColor
+            effectiveValue: { [weak theme] in
+                $0.settings.textColor
+                    ?? (theme?.value ?? theme?.effectiveValue)?.contentColor
             },
-            isEffective: { [unowned self] in
-                return layout == .reflowable
+            defaultEffectiveValue: Theme.light.contentColor,
+            isEffective: { [layout] in
+                layout == .reflowable
                     && $0.preferences.textColor != nil
             }
         )
@@ -345,7 +364,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         preference(
             preference: \.textNormalization,
             setting: \.textNormalization,
-            isEffective: { [unowned self] _ in layout == .reflowable }
+            defaultEffectiveValue: defaults.textNormalization ?? false,
+            isEffective: { [layout] _ in layout == .reflowable }
         )
 
     /// Reader theme (light, dark, sepia).
@@ -355,7 +375,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         enumPreference(
             preference: \.theme,
             setting: \.theme,
-            isEffective: { [unowned self] _ in layout == .reflowable },
+            defaultEffectiveValue: .light,
+            isEffective: { [layout] _ in layout == .reflowable },
             supportedValues: [.light, .dark, .sepia]
         )
 
@@ -367,26 +388,29 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     public lazy var typeScale: AnyRangePreference<Double> =
         rangePreference(
             preference: \.typeScale,
-            effectiveValue: { [unowned self] in $0.settings.typeScale ?? 1.2 },
-            isEffective: { [unowned self] in
-                return layout == .reflowable
+            effectiveValue: { $0.settings.typeScale },
+            defaultEffectiveValue: defaults.typeScale ?? 1.2,
+            isEffective: { [layout] in
+                layout == .reflowable
                     && !$0.settings.publisherStyles
-                    && preferences.typeScale != nil
+                    && $0.preferences.typeScale != nil
             },
-            supportedRange: 1.0...2.0,
+            supportedRange: 1.0 ... 2.0,
             progressionStrategy: .steps(1.0, 1.067, 1.125, 1.2, 1.25, 1.333, 1.414, 1.5, 1.618),
             format: { $0.formatDecimal(maximumFractionDigits: 5) }
         )
 
-    /// Indicates whether the text should be laid out vertically. This is used for example with CJK
-    /// languages. This setting is automatically derived from the language if no preference is given.
+    /// Indicates whether the text should be laid out vertically. This is used
+    /// for example with CJK languages. This setting is automatically derived
+    /// from the language if no preference is given.
     ///
     /// Only effective with reflowable publications.
     public lazy var verticalText: AnyPreference<Bool> =
         preference(
             preference: \.verticalText,
             setting: \.verticalText,
-            isEffective: { [unowned self] _ in layout == .reflowable }
+            defaultEffectiveValue: false,
+            isEffective: { [layout] _ in layout == .reflowable }
         )
 
     /// Space between words.
@@ -397,16 +421,16 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     public lazy var wordSpacing: AnyRangePreference<Double> =
         rangePreference(
             preference: \.wordSpacing,
-            effectiveValue: { [unowned self] in $0.settings.wordSpacing ?? 0.0 },
-            isEffective: { [unowned self] in
-                return layout == .reflowable
+            effectiveValue: { $0.settings.wordSpacing },
+            defaultEffectiveValue: defaults.wordSpacing ?? 0.0,
+            isEffective: { [layout] in
+                layout == .reflowable
                     && $0.settings.cssLayout.stylesheets == .default
                     && !$0.settings.publisherStyles
                     && $0.preferences.wordSpacing != nil
             },
-            supportedRange: 0.0...1.0,
+            supportedRange: 0.0 ... 1.0,
             progressionStrategy: .increment(0.1),
             format: \.percentageString
         )
-
 }

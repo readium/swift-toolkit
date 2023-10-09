@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -23,6 +23,20 @@ public enum Spread: String, Codable, Hashable {
     case never
     /// The publication should always be displayed in a spread.
     case always
+
+    init?(_ spread: R2Shared.Presentation.Spread?) {
+        guard let spread = spread else {
+            return nil
+        }
+        switch spread {
+        case .both:
+            self = .always
+        case .none:
+            self = .never
+        case .auto, .landscape:
+            self = .auto
+        }
+    }
 }
 
 /// Direction of the reading progression across resources.
@@ -32,12 +46,12 @@ public enum ReadingProgression: String, Codable, Hashable {
 
     init?(_ readingProgression: R2Shared.ReadingProgression) {
         switch readingProgression {
-            case .ltr: self = .ltr
-            case .rtl: self = .rtl
-            default: return nil
+        case .ltr: self = .ltr
+        case .rtl: self = .rtl
+        default: return nil
         }
     }
-    
+
     /// Returns the leading Page for the reading progression.
     var leadingPage: Presentation.Page {
         switch self {
@@ -52,8 +66,8 @@ public enum ReadingProgression: String, Codable, Hashable {
 extension R2Shared.ReadingProgression {
     init(_ readingProgression: ReadingProgression) {
         switch readingProgression {
-            case .ltr: self = .ltr
-            case .rtl: self = .rtl
+        case .ltr: self = .ltr
+        case .rtl: self = .rtl
         }
     }
 }
@@ -131,7 +145,6 @@ public enum TextAlignment: String, Codable, Hashable {
 
 /// Represents a color stored as a packed int.
 public struct Color: RawRepresentable, Codable, Hashable {
-
     /// Packed int representation.
     public var rawValue: Int
 
@@ -148,7 +161,7 @@ public struct Color: RawRepresentable, Codable, Hashable {
         }
         self.init(rawValue: Int(hexNumber))
     }
-    
+
     /// Creates a color from a UIKit color.
     ///
     /// Any alpha component is ignored.
@@ -165,7 +178,7 @@ public struct Color: RawRepresentable, Codable, Hashable {
         let b = Int(blue * 255)
         self.init(rawValue: (r << 16) | (g << 8) | b)
     }
-    
+
     /// Returns a UIKit color for the receiver.
     public var uiColor: UIColor {
         let r = CGFloat((rawValue >> 16) & 0xFF) / 255
@@ -175,26 +188,23 @@ public struct Color: RawRepresentable, Codable, Hashable {
     }
 }
 
-// FIXME: Only canImport(SwiftUI) should be enough starting from iOS 11
-// See https://stackoverflow.com/questions/61954607/swiftui-use-of-undeclared-type-xxx-on-deployment-targets-below-or-equal-to-i
-#if canImport(SwiftUI) && (arch(arm64) || arch(x86_64))
+#if canImport(SwiftUI)
 
-import SwiftUI
+    import SwiftUI
 
-@available(iOS 13.0, *)
-public extension Color {
+    @available(iOS 13.0, *)
+    public extension Color {
+        /// Creates a color from a SwiftUI color.
+        @available(iOS 14.0, *)
+        init?(color: SwiftUI.Color) {
+            self.init(uiColor: UIColor(color))
+        }
 
-    /// Creates a color from a SwiftUI color.
-    @available(iOS 14.0, *)
-    init?(color: SwiftUI.Color) {
-        self.init(uiColor: UIColor(color))
+        /// Returns a SwiftUI color for the receiver.
+        var color: SwiftUI.Color {
+            SwiftUI.Color(uiColor)
+        }
     }
-
-    /// Returns a SwiftUI color for the receiver.
-    var color: SwiftUI.Color {
-        SwiftUI.Color(uiColor)
-    }
-}
 #endif
 
 /// Typeface for a publication's text.
@@ -202,7 +212,6 @@ public extension Color {
 /// For a list of vetted font families, see
 /// https://readium.org/readium-css/docs/CSS10-libre_fonts.
 public struct FontFamily: RawRepresentable, ExpressibleByStringLiteral, Codable, Hashable {
-
     // Generic font families
     // See https://www.w3.org/TR/css-fonts-4/#generic-font-families
 
@@ -216,10 +225,10 @@ public struct FontFamily: RawRepresentable, ExpressibleByStringLiteral, Codable,
     public static let accessibleDfA: FontFamily = "AccessibleDfA"
     public static let iaWriterDuospace: FontFamily = "IA Writer Duospace"
     public static let openDyslexic: FontFamily = "OpenDyslexic"
-    
+
     // Recommended font families available on iOS
     // See https://readium.org/readium-css/docs/CSS09-default_fonts
-    
+
     // Old Style (serif)
     public static let iowanOldStyle: FontFamily = "Iowan Old Style"
     public static let palatino: FontFamily = "Palatino"

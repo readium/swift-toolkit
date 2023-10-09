@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -11,7 +11,6 @@ import R2Shared
 ///
 /// Implement this interface to support third-party engines with `PublicationSpeechSynthesizer`.
 public protocol TTSEngine: AnyObject {
-
     /// List of available synthesizer voices.
     var availableVoices: [TTSVoice] { get }
 
@@ -56,9 +55,9 @@ public struct TTSUtterance {
 
     public var language: Language {
         switch voiceOrLanguage {
-        case .left(let voice):
+        case let .left(voice):
             return voice.language
-        case .right(let language):
+        case let .right(language):
             return language
         }
     }

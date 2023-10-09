@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -10,7 +10,6 @@ import UIKit
 
 /// An `HTMLDecorationTemplate` renders a `Decoration` into a set of HTML elements and associated stylesheet.
 public struct HTMLDecorationTemplate {
-
     /// Determines the number of created HTML elements and their position relative to the matching DOM range.
     public enum Layout: String {
         /// A single HTML element covering the smallest region containing all CSS border boxes.
@@ -111,9 +110,9 @@ public struct HTMLDecorationTemplate {
         )
     }
 
-    private static var classNamesId = 0;
+    private static var classNamesId = 0
     private static func makeUniqueClassName(key: String) -> String {
         classNamesId += 1
-        return "r2-\(key)-\(classNamesId)"
+        return "readium-\(key)-\(classNamesId)"
     }
 }

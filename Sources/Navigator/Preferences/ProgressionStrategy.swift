@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -54,13 +54,12 @@ public class IncrementProgressionStrategy<Value: Numeric>: ProgressionStrategy {
 }
 
 public class AnyProgressionStrategy<Value>: ProgressionStrategy {
-
     private let _increment: (Value) -> Value
     private let _decrement: (Value) -> Value
 
     public init<S: ProgressionStrategy>(_ strategy: S) where S.Value == Value {
-        self._increment = strategy.increment
-        self._decrement = strategy.decrement
+        _increment = strategy.increment
+        _decrement = strategy.decrement
     }
 
     public func increment(_ value: Value) -> Value {
@@ -79,14 +78,12 @@ public extension ProgressionStrategy {
 }
 
 public extension AnyProgressionStrategy where Value: Numeric {
-
     static func increment(_ increment: Value) -> AnyProgressionStrategy<Value> {
         IncrementProgressionStrategy(increment: increment).eraseToAnyProgressionStrategy()
     }
 }
 
 public extension AnyProgressionStrategy where Value: Comparable {
-
     static func steps(_ steps: Value...) -> AnyProgressionStrategy<Value> {
         StepsProgressionStrategy(steps: steps).eraseToAnyProgressionStrategy()
     }

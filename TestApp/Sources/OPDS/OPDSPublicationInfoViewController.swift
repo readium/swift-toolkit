@@ -1,38 +1,31 @@
 //
-//  OPDSPublicationInfoViewController.swift
-//  r2-testapp-swift
-//
-//  Created by Nikita Aizikovskyi on Mar-27-2018.
-//
-//  Copyright 2018 European Digital Reading Lab. All rights reserved.
-//  Licensed to the Readium Foundation under one or more contributor license agreements.
-//  Use of this source code is governed by a BSD-style license which is detailed in the
-//  LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Combine
-import UIKit
-import R2Shared
 import Kingfisher
+import R2Shared
+import UIKit
 
 protocol OPDSPublicationInfoViewControllerFactory {
     func make(publication: Publication) -> OPDSPublicationInfoViewController
 }
 
 class OPDSPublicationInfoViewController: UIViewController, Loggable {
-
     weak var moduleDelegate: OPDSModuleDelegate?
-    
+
     var publication: Publication?
 
-    @IBOutlet weak var imageView: UIImageView!
-    @IBOutlet weak var fxImageView: UIImageView!
-    @IBOutlet weak var titleLabel: UILabel!
-    @IBOutlet weak var authorLabel: UILabel!
-    @IBOutlet weak var descriptionLabel: UILabel!
-    @IBOutlet weak var downloadButton: UIButton!
-    @IBOutlet weak var downloadActivityIndicator: UIActivityIndicatorView!
-    
+    @IBOutlet var imageView: UIImageView!
+    @IBOutlet var fxImageView: UIImageView!
+    @IBOutlet var titleLabel: UILabel!
+    @IBOutlet var authorLabel: UILabel!
+    @IBOutlet var descriptionLabel: UILabel!
+    @IBOutlet var downloadButton: UIButton!
+    @IBOutlet var downloadActivityIndicator: UIActivityIndicatorView!
+
     private lazy var downloadLink: Link? = publication?.downloadLinks.first
     private var subscriptions = Set<AnyCancellable>()
 
@@ -40,19 +33,19 @@ class OPDSPublicationInfoViewController: UIViewController, Loggable {
         fxImageView.clipsToBounds = true
         fxImageView!.contentMode = .scaleAspectFill
         imageView!.contentMode = .scaleAspectFit
-        
+
         let titleTextView = OPDSPlaceholderPublicationView(
             frame: imageView.frame,
             title: publication?.metadata.title,
             author: publication?.metadata.authors
-                .map { $0.name }
+                .map(\.name)
                 .joined(separator: ", ")
         )
-    
+
         if let images = publication?.images {
             if images.count > 0 {
                 let coverURL = URL(string: images[0].href)
-                if (coverURL != nil) {
+                if coverURL != nil {
                     imageView.kf.setImage(
                         with: coverURL,
                         placeholder: titleTextView,
@@ -60,7 +53,7 @@ class OPDSPublicationInfoViewController: UIViewController, Loggable {
                         progressBlock: nil
                     ) { result in
                         switch result {
-                        case .success(let image):
+                        case let .success(image):
                             self.fxImageView?.image = image.image
                             UIView.transition(
                                 with: self.fxImageView,
@@ -69,35 +62,35 @@ class OPDSPublicationInfoViewController: UIViewController, Loggable {
                                 animations: { self.fxImageView?.image = image.image },
                                 completion: nil
                             )
-                        case .failure(_):
+                        case .failure:
                             break
                         }
                     }
                 }
             }
         }
-        
+
         titleLabel.text = publication?.metadata.title
         authorLabel.text = publication?.metadata.authors
-            .map { $0.name }
+            .map(\.name)
             .joined(separator: ", ")
         descriptionLabel.text = publication?.metadata.description
         descriptionLabel.sizeToFit()
-        
+
         downloadActivityIndicator.stopAnimating()
-        
+
         // If we are not able to get a free link, we hide the download button
         // TODO: handle payment or redirection for others links?
         if downloadLink == nil {
             downloadButton.isHidden = true
         }
     }
-    
+
     @IBAction func downloadBook(_ sender: UIButton) {
         guard let delegate = moduleDelegate, let downloadLink = downloadLink else {
             return
         }
-        
+
         Task {
             downloadActivityIndicator.startAnimating()
             downloadButton.isEnabled = false
@@ -117,5 +110,4 @@ class OPDSPublicationInfoViewController: UIViewController, Loggable {
             downloadButton.isEnabled = true
         }
     }
-
 }

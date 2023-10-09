@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import R2Shared
 import GCDWebServer
+import R2Shared
 import UIKit
 
 public enum GCDHTTPServerError: Error {
@@ -17,13 +17,12 @@ public enum GCDHTTPServerError: Error {
 
 /// Implementation of `HTTPServer` using GCDWebServer under the hood.
 public class GCDHTTPServer: HTTPServer, Loggable {
-
     /// Shared instance of the HTTP server.
     public static let shared = GCDHTTPServer()
 
     /// The actual underlying HTTP server instance.
     private let server = GCDWebServer()
-    
+
     /// Mapping between endpoints and their handlers.
     private var handlers: [HTTPServerEndpoint: (HTTPServerRequest) -> Resource] = [:]
 
@@ -43,13 +42,13 @@ public class GCDHTTPServer: HTTPServer, Loggable {
         label: "org.readium.swift-toolkit.adapter.gcdwebserver",
         attributes: .concurrent
     )
-    
+
     /// Creates a new instance of the HTTP server.
     ///
     /// - Parameter logLevel: See `GCDWebServer.setLogLevel`.
     public init(logLevel: Int = 3) {
         GCDWebServer.setLogLevel(Int32(logLevel))
-        
+
         NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
 
         server.addDefaultHandler(
@@ -60,17 +59,17 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             }
         )
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     @objc private func willEnterForeground(_ notification: Notification) {
         // Restarts the server if it was stopped while the app was in the
         // background.
         queue.sync(flags: .barrier) {
             guard
-                case .started(let port, _) = state,
+                case let .started(port, _) = state,
                 isPortFree(port)
             else {
                 return
@@ -88,13 +87,13 @@ public class GCDHTTPServer: HTTPServer, Loggable {
         responseResource(for: request) { resource in
             let response: GCDWebServerResponse
             switch resource.length {
-            case .success(let length):
+            case let .success(length):
                 response = ResourceResponse(
                     resource: resource,
                     length: length,
                     range: request.hasByteRange() ? request.byteRange : nil
                 )
-            case .failure(let error):
+            case let .failure(error):
                 self.log(.error, error)
                 response = GCDWebServerErrorResponse(statusCode: error.httpStatusCode)
             }
@@ -150,7 +149,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
     }
 
     // MARK: HTTPServer
-    
+
     public func serve(at endpoint: HTTPServerEndpoint, handler: @escaping (HTTPServerRequest) -> Resource) throws -> URL {
         try queue.sync(flags: .barrier) {
             if case .stopped = state {
@@ -180,7 +179,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             transformers.removeValue(forKey: endpoint)
         }
     }
-    
+
     // MARK: Server lifecycle
 
     private func stop() {
@@ -196,7 +195,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             let upperBound = 65535
             return UInt(lowerBound + Int(arc4random_uniform(UInt32(upperBound - lowerBound))))
         }
-        
+
         var attemptsLeft = 50
         while attemptsLeft > 0 {
             attemptsLeft -= 1
@@ -212,7 +211,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             }
         }
     }
-    
+
     private func startWithPort(_ port: UInt) throws {
         dispatchPrecondition(condition: .onQueueAsBarrier(queue))
 
@@ -225,7 +224,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
                 // We disable automatically suspending the server in the
                 // background, to be able to play audiobooks even with the
                 // screen locked.
-                GCDWebServerOption_AutomaticallySuspendInBackground: false
+                GCDWebServerOption_AutomaticallySuspendInBackground: false,
             ])
         } catch {
             throw GCDHTTPServerError.failedToStartServer(cause: error)
@@ -238,14 +237,14 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
         state = .started(port: server.port, baseURL: baseURL)
     }
-    
+
     /// Checks if the given port is already taken (presumabily by the server).
     /// Inspired by https://stackoverflow.com/questions/33086356/swift-2-check-if-port-is-busy
     private func isPortFree(_ port: UInt) -> Bool {
         let port = in_port_t(port)
-        
+
         func getErrnoMessage() -> String {
-            return String(cString: UnsafePointer(strerror(errno)))
+            String(cString: UnsafePointer(strerror(errno)))
         }
 
         let socketDescriptor = socket(AF_INET, SOCK_STREAM, 0)
@@ -274,7 +273,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
                 return false
             }
         }
-        
+
         // It might not actually be free, but we'll try to restart the server.
         return true
     }

@@ -1,12 +1,7 @@
 //
-//  LicenseDocument.swift
-//  readium-lcp-swift
-//
-//  Created by Alexandre Camilleri on 9/6/17.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -15,7 +10,6 @@ import R2Shared
 /// Document that contains references to the various keys, links to related external resources, rights and restrictions that are applied to the Protected Publication, and user information.
 /// https://github.com/readium/lcp-specs/blob/master/schema/license.schema.json
 public struct LicenseDocument {
-
     // The possible rel of Links.
     public enum Rel: String {
         // Location where a Reading System can redirect a User looking for additional information about the User Passphrase.
@@ -29,7 +23,7 @@ public struct LicenseDocument {
         // Location to the Status Document for this license.
         case status
     }
-    
+
     /// Unique identifier for the Provider (URI).
     public let provider: String
     /// Unique identifier for the License.
@@ -55,30 +49,30 @@ public struct LicenseDocument {
 
     public init(data: Data) throws {
         guard let jsonString = String(data: data, encoding: .utf8),
-            let deserializedJSON = try? JSONSerialization.jsonObject(with: data) else
-        {
+              let deserializedJSON = try? JSONSerialization.jsonObject(with: data)
+        else {
             throw ParsingError.malformedJSON
         }
 
         guard let json = deserializedJSON as? [String: Any],
-            let provider = json["provider"] as? String,
-            let id = json["id"] as? String,
-            let issued = (json["issued"] as? String)?.dateFromISO8601,
-            let encryption = json["encryption"] as? [String: Any],
-            let links = json["links"] as? [[String : Any]],
-            let signature = json["signature"] as? [String: Any] else
-        {
+              let provider = json["provider"] as? String,
+              let id = json["id"] as? String,
+              let issued = (json["issued"] as? String)?.dateFromISO8601,
+              let encryption = json["encryption"] as? [String: Any],
+              let links = json["links"] as? [[String: Any]],
+              let signature = json["signature"] as? [String: Any]
+        else {
             throw ParsingError.licenseDocument
         }
-        
+
         self.provider = provider
         self.id = id
         self.issued = issued
-        self.updated = (json["updated"] as? String)?.dateFromISO8601 ?? issued
+        updated = (json["updated"] as? String)?.dateFromISO8601 ?? issued
         self.encryption = try Encryption(json: encryption)
         self.links = try Links(json: links)
-        self.user = try User(json: json["user"] as? [String: Any])
-        self.rights = try Rights(json: json["rights"] as? [String: Any])
+        user = try User(json: json["user"] as? [String: Any])
+        rights = try Rights(json: json["rights"] as? [String: Any])
         self.signature = try Signature(json: signature)
         self.json = jsonString
         self.data = data
@@ -106,22 +100,19 @@ public struct LicenseDocument {
     ///
     /// - Throws: `LCPError.invalidLink` if the URL can't be built.
     func url(for rel: Rel, preferredType: MediaType? = nil, with parameters: [String: LosslessStringConvertible] = [:]) throws -> URL {
-        let link = self.link(for: rel, type: preferredType)
+        let link = link(for: rel, type: preferredType)
             ?? links.firstWithRelAndNoType(rel.rawValue)
 
         guard let url = link?.url(with: parameters) else {
             throw ParsingError.url(rel: rel.rawValue)
         }
-        
+
         return url
     }
-
 }
 
 extension LicenseDocument: CustomStringConvertible {
-    
     public var description: String {
-        return "License(\(id))"
+        "License(\(id))"
     }
-    
 }

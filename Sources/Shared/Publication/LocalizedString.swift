@@ -1,16 +1,10 @@
 //
-//  LocalizedString.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 09.03.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-
 
 /// Represents a potentially localized string.
 /// Can be either:
@@ -19,7 +13,7 @@ import Foundation
 public enum LocalizedString: Hashable {
     case nonlocalized(String)
     case localized([String: String])
-    
+
     /// Parses the given JSON representation of the localized string.
     ///   "anyOf": [
     ///     {
@@ -49,13 +43,13 @@ public enum LocalizedString: Hashable {
             throw JSONError.parsing(Self.self)
         }
     }
-    
+
     /// Returns the JSON representation for this localized string.
     public var json: Any {
         switch self {
-        case .nonlocalized(let string):
+        case let .nonlocalized(string):
             return string
-        case .localized(let strings):
+        case let .localized(strings):
             return strings
         }
     }
@@ -64,18 +58,18 @@ public enum LocalizedString: Hashable {
     public var string: String {
         string(forLanguageCode: nil)
     }
-    
+
     /// Returns the localized string matching the given locale, or fallback on the user's locale.
     public func string(forLocale locale: Locale) -> String {
-        return string(forLanguageCode: locale.languageCode)
+        string(forLanguageCode: locale.languageCode)
     }
-    
+
     /// Returns the localized string matching the given language code, or fallback on the user's locale.
     public func string(forLanguageCode languageCode: String?) -> String {
         switch self {
-        case .nonlocalized(let string):
+        case let .nonlocalized(string):
             return string
-        case .localized(let strings):
+        case let .localized(strings):
             guard let languageCode = languageCode, let string = strings[languageCode] else {
                 // Recovers using the user's preferred language in the available ones
                 // See. https://developer.apple.com/library/archive/technotes/tn2418/_index.html
@@ -89,41 +83,29 @@ public enum LocalizedString: Hashable {
             return string
         }
     }
-    
 }
 
 extension LocalizedString: CustomStringConvertible {
-    
     public var description: String { string }
-    
 }
-
 
 /// Provides syntactic sugar when initializing a LocalizedString from a regular String (nonlocalized) or a [String: String] (localized).
 public protocol LocalizedStringConvertible {
-    
     var localizedString: LocalizedString { get }
-    
 }
 
 extension String: LocalizedStringConvertible {
-    
     public var localizedString: LocalizedString {
-        return .nonlocalized(self)
+        .nonlocalized(self)
     }
-    
 }
 
 extension LocalizedString: LocalizedStringConvertible {
-    
     public var localizedString: LocalizedString {
-        return self
+        self
     }
-    
 }
 
 extension Dictionary: LocalizedStringConvertible where Key == String, Value == String {
-    
     public var localizedString: LocalizedString { .localized(self) }
-    
 }

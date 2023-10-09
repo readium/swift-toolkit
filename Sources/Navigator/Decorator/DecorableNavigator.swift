@@ -1,16 +1,15 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import UIKit
 import R2Shared
+import UIKit
 
 /// A navigator able to render arbitrary decorations over a publication.
 public protocol DecorableNavigator {
-
     /// Declares the current state of the decorations in the given decoration `group`.
     ///
     /// The Navigator will decide when to actually render each decoration efficiently. Your only responsibility is to
@@ -60,7 +59,6 @@ public extension DecorableNavigator {
 ///
 /// For example, decorations can be used to draw highlights, images or buttons.
 public struct Decoration: Hashable {
-
     /// An identifier for this decoration. It must be unique in the group the decoration is applied to.
     public var id: Id
 
@@ -88,7 +86,6 @@ public struct Decoration: Hashable {
     /// It is media type agnostic, meaning that each Navigator will translate the style into a set of rendering
     /// instructions which makes sense for the resource type.
     public struct Style: Hashable {
-
         /// Unique ID for a style.
         public struct Id: RawRepresentable, ExpressibleByStringLiteral, Hashable {
             public let rawValue: String

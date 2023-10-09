@@ -1,12 +1,7 @@
 //
-//  MediaOverlayNode.swift
-//  r2-shared-swift
-//
-//  Created by Alexandre Camilleri on 4/4/17.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -29,7 +24,7 @@ public struct Clip {
     /// Total clip duration in seconds (end - start).
 //    @available(iOS, deprecated: 9.0, message: "Don't use it when the value is negative, because some information is missing in the original SMIL file. Try to get the duration from file system or APIs in Fetcher, then minus the start value.")
     public var duration: Double!
-    
+
     public init() {}
 }
 
@@ -46,23 +41,23 @@ public enum MediaOverlayNodeError: Error {
 public class MediaOverlayNode {
     public var text: String?
     public var clip: Clip?
-    
+
     public var role = [String]()
     public var children = [MediaOverlayNode]()
 
     public init(_ text: String? = nil, clip: Clip? = nil) {
         self.text = text
         self.clip = clip
-        self.clip?.fragmentId = self.fragmentId()
+        self.clip?.fragmentId = fragmentId()
     }
 
-    // Mark: - Internal Methods.
+    // MARK: - Internal Methods.
 
     /// Return the MO node's fragmentId.
     ///
     /// - Returns: Node's fragment id.
     public func fragmentId() -> String? {
-        guard let text = self.text else {
+        guard let text = text else {
             return nil
         }
         return text.components(separatedBy: "#").last

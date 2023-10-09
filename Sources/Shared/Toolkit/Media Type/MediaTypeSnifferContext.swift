@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -11,10 +11,9 @@ import Foundation
 /// A companion type of `MediaType.Sniffer` holding the type hints (file extensions, media types) and
 /// providing an access to the file content.
 public final class MediaTypeSnifferContext {
-    
     private let archiveFactory: ArchiveFactory
     private let xmlFactory: XMLDocumentFactory
-    
+
     internal init(content: MediaTypeSnifferContent? = nil, mediaTypes: [String], fileExtensions: [String], archiveFactory: ArchiveFactory = DefaultArchiveFactory(), xmlFactory: XMLDocumentFactory = DefaultXMLDocumentFactory()) {
         self.content = content
         self.mediaTypes = mediaTypes.compactMap { MediaType($0) }
@@ -22,18 +21,18 @@ public final class MediaTypeSnifferContext {
         self.archiveFactory = archiveFactory
         self.xmlFactory = xmlFactory
     }
-    
+
     // MARK: Metadata
 
     /// Media type hints.
     let mediaTypes: [MediaType]
-    
+
     /// File extension hints.
     let fileExtensions: [String]
 
     /// Finds the first `Encoding` declared in the media types' `charset` parameter.
     public lazy var encoding: String.Encoding? =
-        mediaTypes.compactMap { $0.encoding }.first
+        mediaTypes.compactMap(\.encoding).first
 
     /// Returns whether this context has any of the given file extensions, ignoring case.
     public func hasFileExtension(_ fileExtensions: String...) -> Bool {
@@ -44,7 +43,7 @@ public final class MediaTypeSnifferContext {
         }
         return false
     }
-    
+
     /// Returns whether this context has any of the given media type, ignoring case and extra
     /// parameters.
     ///
@@ -63,7 +62,7 @@ public final class MediaTypeSnifferContext {
 
     /// Underlying content holder.
     private let content: MediaTypeSnifferContent?
-    
+
     /// Content as plain text.
     ///
     /// It will extract the charset parameter from the media type hints to figure out an encoding.
@@ -84,7 +83,7 @@ public final class MediaTypeSnifferContext {
     public lazy var contentAsJSON: Any? = contentAsString
         .flatMap { $0.data(using: .utf8) }
         .flatMap { try? JSONSerialization.jsonObject(with: $0) }
-    
+
     /// Publication parsed from the content.
     public lazy var contentAsRWPM: Manifest? = contentAsJSON
         .flatMap { try? Manifest(json: $0) }
@@ -94,7 +93,7 @@ public final class MediaTypeSnifferContext {
     /// A byte stream can be useful when sniffers only need to read a few bytes at the beginning of
     /// the file.
     public func stream() -> InputStream? {
-        return content?.stream()
+        content?.stream()
     }
 
     /// Reads the first `length` bytes.
@@ -112,7 +111,7 @@ public final class MediaTypeSnifferContext {
             stream.close()
             buffer.deallocate()
         }
-        
+
         let bytesRead = stream.read(buffer, maxLength: length)
         guard bytesRead > 0 else {
             return nil
@@ -120,23 +119,22 @@ public final class MediaTypeSnifferContext {
 
         return Data(bytes: buffer, count: bytesRead)
     }
-    
+
     /// Returns whether an Archive entry exists in this file.
     func containsArchiveEntry(at path: String) -> Bool {
-        return contentAsArchive?.entry(at: path) != nil
+        contentAsArchive?.entry(at: path) != nil
     }
-    
+
     /// Returns the Archive entry data at the given `path` in this file.
     func readArchiveEntry(at path: String) -> Data? {
-        return contentAsArchive?.readEntry(at: path)?.read().getOrNil()
+        contentAsArchive?.readEntry(at: path)?.read().getOrNil()
     }
-    
+
     /// Returns whether all the Archive entry paths satisfy the given `predicate`.
     func archiveEntriesAllSatisfy(_ predicate: (URL) -> Bool) -> Bool {
-        return contentAsArchive?.entries
+        contentAsArchive?.entries
             .map { URL(fileURLWithPath: $0.path) }
             .allSatisfy(predicate)
             ?? false
     }
-
 }

@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -8,55 +8,48 @@ import AVFoundation
 import Foundation
 import R2Shared
 
-public protocol _AudioNavigatorDelegate: _MediaNavigatorDelegate { }
+public protocol _AudioNavigatorDelegate: _MediaNavigatorDelegate {}
 
 /// Navigator for audio-based publications such as:
 ///
 /// * Readium Audiobook
 /// * ZAB (Zipped Audio Book)
 ///
-/// **WARNING:** This API is experimental and may change or be removed in a future release without
-/// notice. Use with caution.
-open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
-    
+/// **WARNING:** This API is experimental and may change or be removed in a
+/// future release without notice. Use with caution.
+open class _AudioNavigator: _MediaNavigator, AudioSessionUser, Loggable {
     public weak var delegate: _AudioNavigatorDelegate?
-    
-    private let publication: Publication
+
+    public let publication: Publication
     private let initialLocation: Locator?
-    public let audioConfiguration: _AudioSession.Configuration
+    public let audioConfiguration: AudioSession.Configuration
 
     public init(
         publication: Publication,
         initialLocation: Locator? = nil,
-        audioConfig: _AudioSession.Configuration = .init(
+        audioConfig: AudioSession.Configuration = .init(
             category: .playback,
             mode: .default,
-            routeSharingPolicy: {
-                if #available(iOS 11.0, *) {
-                    return .longForm
-                } else {
-                    return .default
-                }
-            }(),
+            routeSharingPolicy: .longForm,
             options: []
         )
     ) {
         self.publication = publication
         self.initialLocation = initialLocation
             ?? publication.readingOrder.first.flatMap { publication.locate($0) }
-        self.audioConfiguration = audioConfig
-        
+        audioConfiguration = audioConfig
+
         let durations = publication.readingOrder.map { $0.duration ?? 0 }
         let totalDuration = durations.reduce(0, +)
-        
+
         self.durations = durations
         self.totalDuration = (totalDuration > 0) ? totalDuration : nil
     }
-    
+
     deinit {
-        _AudioSession.shared.end(for: self)
+        AudioSession.shared.end(for: self)
     }
-    
+
     /// Current playback info.
     public var playbackInfo: MediaPlaybackInfo {
         MediaPlaybackInfo(
@@ -69,7 +62,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
 
     /// Index of the current resource in the reading order.
     private var resourceIndex: Int = 0
-    
+
     /// Starting time of the current resource, in the reading order.
     private var resourceStartingTime: Double? {
         durations[..<resourceIndex].reduce(0, +)
@@ -90,6 +83,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
     /// Durations indexed by reading order position.
     private let durations: [Double]
 
+    private var rateObserver: NSKeyValueObservation?
     private var timeControlStatusObserver: NSKeyValueObservation?
     private var currentItemObserver: NSKeyValueObservation?
 
@@ -106,12 +100,28 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
                 self.playbackDidChange(time)
             }
         }
-        
-        timeControlStatusObserver = player.observe(\.timeControlStatus, options: [.new, .old]) { [weak self] player, change in
+
+        rateObserver = player.observe(\.rate, options: [.new, .old]) { [weak self] player, _ in
+            guard let self = self else {
+                return
+            }
+
+            let session = AudioSession.shared
+            switch player.timeControlStatus {
+            case .paused:
+                session.user(self, didChangePlaying: false)
+            case .waitingToPlayAtSpecifiedRate, .playing:
+                session.user(self, didChangePlaying: true)
+            @unknown default:
+                break
+            }
+        }
+
+        timeControlStatusObserver = player.observe(\.timeControlStatus, options: [.new, .old]) { [weak self] _, _ in
             self?.playbackDidChange()
         }
-        
-        currentItemObserver = player.observe(\.currentItem, options: [.new, .old]) { [weak self] player, change in
+
+        currentItemObserver = player.observe(\.currentItem, options: [.new, .old]) { [weak self] _, _ in
             self?.playbackDidChange()
         }
 
@@ -125,12 +135,12 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
             }
 
             self.shouldPlayNextResource { playNext in
-                if playNext && self.goToNextResource() {
+                if playNext, self.goForward() {
                     self.play()
                 }
             }
         }
-        
+
         return player
     }()
 
@@ -149,7 +159,7 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
         if let time = time {
             let locator = makeLocator(forTime: time)
             currentLocation = locator
-            self.delegate?.navigator(self, locationDidChange: locator)
+            delegate?.navigator(self, locationDidChange: locator)
         }
 
         makePlaybackInfo(forTime: time) { info in
@@ -176,17 +186,17 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
 
     private func makeLocator(forTime time: Double) -> Locator {
         let link = publication.readingOrder[resourceIndex]
-        
+
         var progression: Double?
         if let duration = resourceDuration, duration > 0 {
             progression = resourceDuration.map { time / max($0, 1) }
         }
-        
+
         var totalProgression: Double? = nil
         if let totalDuration = totalDuration, totalDuration > 0, let startingTime = resourceStartingTime {
             totalProgression = (startingTime + time) / totalDuration
         }
-        
+
         return Locator(
             href: link.href,
             type: link.type ?? "audio/*",
@@ -198,33 +208,35 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
             )
         )
     }
-    
-    
+
     // MARK: - Loaded Time Ranges
 
-    private lazy var loadedTimeRangesTimer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(notifyLoadedTimeRanges), userInfo: nil, repeats: true)
     private var lastLoadedTimeRanges: [Range<Double>] = []
-    
-    @objc func notifyLoadedTimeRanges() {
-        let ranges: [Range<Double>] = (player.currentItem?.loadedTimeRanges ?? [])
+
+    private lazy var loadedTimeRangesTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] timer in
+        guard let self = self else {
+            timer.invalidate()
+            return
+        }
+
+        let ranges: [Range<Double>] = (self.player.currentItem?.loadedTimeRanges ?? [])
             .map { value in
                 let range = value.timeRangeValue
                 let start = range.start.secondsOrZero
                 let duration = range.duration.secondsOrZero
-                return start..<(start + duration)
+                return start ..< (start + duration)
             }
-        
-        guard ranges != lastLoadedTimeRanges else {
+
+        guard ranges != self.lastLoadedTimeRanges else {
             return
         }
 
-        lastLoadedTimeRanges = ranges
-        delegate?.navigator(self, loadedTimeRangesDidChange: ranges)
+        self.lastLoadedTimeRanges = ranges
+        self.delegate?.navigator(self, loadedTimeRangesDidChange: ranges)
     }
-    
 
     // MARK: - Navigator
-    
+
     public private(set) var currentLocation: Locator?
 
     @discardableResult
@@ -247,14 +259,11 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
             }
 
             // Seeks to time
-            if let time = locator.time(forDuration: resourceDuration), time >= 0 {
-                player.seek(to: CMTime(seconds: time, preferredTimescale: 1000)) { [weak self] finished in
-                    if let self, let delegate = self.delegate {
-                        delegate.navigator(self, didJumpTo: locator)
-                    }
-                    DispatchQueue.main.async(execute: completion)
+            let time = locator.time(forDuration: resourceDuration) ?? 0
+            player.seek(to: CMTime(seconds: time, preferredTimescale: 1000)) { [weak self] finished in
+                if let self = self, finished {
+                    self.delegate?.navigator(self, didJumpTo: locator)
                 }
-            } else {
                 DispatchQueue.main.async(execute: completion)
             }
             return true
@@ -271,46 +280,47 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
         }
         return go(to: locator, animated: animated, completion: completion)
     }
-    
+
+    /// Indicates whether the navigator can go to the next content portion
+    /// (e.g. page or audiobook resource).
+    public var canGoForward: Bool {
+        publication.readingOrder.indices.contains(resourceIndex + 1)
+    }
+
+    /// Indicates whether the navigator can go to the next content portion
+    /// (e.g. page or audiobook resource).
+    public var canGoBackward: Bool {
+        publication.readingOrder.indices.contains(resourceIndex - 1)
+    }
+
     @discardableResult
     public func goForward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        return false
+        goToResourceIndex(resourceIndex + 1, animated: animated, completion: completion)
     }
-    
+
     @discardableResult
     public func goBackward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        return false
+        goToResourceIndex(resourceIndex - 1, animated: animated, completion: completion)
     }
-    
+
     @discardableResult
-    public func goToNextResource(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        return goToResourceIndex(resourceIndex + 1, animated: animated, completion: completion)
-    }
-    
-    @discardableResult
-    public func goToPreviousResource(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        return goToResourceIndex(resourceIndex - 1, animated: animated, completion: completion)
-    }
-    
-    @discardableResult
-    public func goToResourceIndex(_ index: Int, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+    private func goToResourceIndex(_ index: Int, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
         guard publication.readingOrder.indices ~= index else {
             return false
         }
         return go(to: publication.readingOrder[index], animated: animated, completion: completion)
     }
 
-
     // MARK: - MediaNavigator
-    
+
     public var currentTime: Double {
-        return player.currentTime().secondsOrZero
+        player.currentTime().secondsOrZero
     }
 
     public var volume: Double {
         get { Double(player.volume) }
         set {
-            assert(0...1 ~= newValue)
+            assert(0 ... 1 ~= newValue)
             player.volume = Float(newValue)
         }
     }
@@ -325,14 +335,14 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
             }
         }
     }
-    
+
     public var state: MediaPlaybackState {
         MediaPlaybackState(player.timeControlStatus)
     }
 
     public func play() {
-        _AudioSession.shared.start(with: self)
-        
+        AudioSession.shared.start(with: self, isPlaying: false)
+
         if player.currentItem == nil, let location = initialLocation {
             go(to: location)
         }
@@ -342,28 +352,26 @@ open class _AudioNavigator: _MediaNavigator, _AudioSessionUser, Loggable {
     public func pause() {
         player.pause()
     }
-    
+
     public func seek(to time: Double) {
         player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
     }
-    
-    public func seek(relatively delta: Double) {
+
+    public func seek(by delta: Double) {
         seek(to: currentTime + delta)
     }
-    
 }
 
 private extension Locator {
-    
     private static let timeFragmentRegex = try! NSRegularExpression(pattern: #"t=(\d+(?:\.\d+)?)"#)
-    
+
     // FIXME: Should probably be in `Locator` itself.
     func time(forDuration duration: Double? = nil) -> Double? {
         if let progression = locations.progression, let duration = duration {
             return progression * duration
         } else {
             for fragment in locations.fragments {
-                let range = NSRange(fragment.startIndex..<fragment.endIndex, in: fragment)
+                let range = NSRange(fragment.startIndex ..< fragment.endIndex, in: fragment)
                 if let match = Self.timeFragmentRegex.firstMatch(in: fragment, range: range) {
                     let matchRange = match.range(at: 1)
                     if matchRange.location != NSNotFound, let range = Range(matchRange, in: fragment) {
@@ -374,11 +382,9 @@ private extension Locator {
         }
         return nil
     }
-    
 }
 
 private extension MediaPlaybackState {
-    
     init(_ timeControlStatus: AVPlayer.TimeControlStatus) {
         switch timeControlStatus {
         case .paused:
@@ -391,13 +397,10 @@ private extension MediaPlaybackState {
             self = .loading
         }
     }
-    
 }
 
 private extension CMTime {
-    
     var secondsOrZero: Double {
-        return isNumeric ? seconds : 0
+        isNumeric ? seconds : 0
     }
-    
 }

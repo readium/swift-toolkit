@@ -6,6 +6,76 @@ All notable changes to this project will be documented in this file. Take a look
 
 <!-- ## [Unreleased] -->
 
+## [2.6.0]
+
+* Support for Xcode 15.
+
+### Added
+
+#### Navigator
+
+* The `PublicationSpeechSynthesizer` (TTS) now supports background playback by default.
+    * You will need to enable the **Audio Background Mode** in your app's build info.
+* Support for non-linear EPUB resources with an opt-in in reading apps (contributed by @chrfalch in [#332](https://github.com/readium/swift-toolkit/pull/332) and [#331](https://github.com/readium/swift-toolkit/pull/331)).
+    1. Override loading non-linear resources with `VisualNavigatorDelegate.navigator(_:shouldNavigateToLink:)`.
+    2. Present a new `EPUBNavigatorViewController` by providing a custom `readingOrder` with only this resource to the constructor.
+
+### Fixed
+
+#### Navigator
+
+* Improved performance when adding hundreds of HTML decorations at once.
+* Fixed broadcasting the `PublicationSpeechSynthesizer` with AirPlay when the screen is locked.
+
+### Changed
+
+#### Navigator
+
+* `AudioSession` and `NowPlayingInfo` are now stable!
+* You need to provide the configuration of the Audio Session to the constructor of `PublicationSpeechSynthesizer`, instead of `AVTTSEngine`.
+
+
+## [2.5.1]
+
+* The Readium toolkit now requires iOS 11.0+.
+
+### Added
+
+#### Navigator
+
+* The `auto` spread setting is now available for fixed-layout EPUBs. It will display two pages in landscape and a single one in portrait.
+
+#### Streamer
+
+* The EPUB content iterator now returns `audio` and `video` elements and fill in the `progression` and `totalProgression` locator properties.
+
+### Changed
+
+#### Navigator
+
+* `EPUBNavigatorViewController.firstVisibleElementLocator()` now returns the first *block* element that is visible on the screen, even if it starts on previous pages.
+    * This is used to make sure the user will not miss any context when restoring a TTS session in the middle of a resource.
+
+### Fixed
+
+#### Navigator
+
+* Fixed the PDF `auto` spread setting and scaling pages when rotating the screen.
+* Fixed navigating to the first chapter of an audiobook with a single resource (contributed by [@grighakobian](https://github.com/readium/swift-toolkit/pull/292)).
+* Prevent auto-playing videos in EPUB publications.
+* Fixed various memory leaks and data races.
+* The `WKWebView` is now inspectable again with Safari starting from iOS 16.4.
+* Fixed crash in the `PublicationSpeechSynthesizer` when closing the navigator without stopping it first.
+* Fixed pausing the `PublicationSpeechSynthesizer` right before starting the utterance.
+* Fixed the audio session kept opened while the app is in the background and paused.
+* Fixed the **Attribute dir redefined** error when the EPUB resource already has a `dir` attribute.
+* [#309](https://github.com/readium/swift-toolkit/issues/309) Fixed restoring the EPUB location when the application was killed in the background (contributed by [@triin-ko](https://github.com/readium/swift-toolkit/pull/311)).
+
+#### Streamer
+
+* Fix issue with the TTS starting from the beginning of the chapter instead of the current position.
+
+
 ## [2.5.0]
 
 ### Added
@@ -533,3 +603,5 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [2.3.0]: https://github.com/readium/swift-toolkit/compare/2.2.0...2.3.0
 [2.4.0]: https://github.com/readium/swift-toolkit/compare/2.3.0...2.4.0
 [2.5.0]: https://github.com/readium/swift-toolkit/compare/2.4.0...2.5.0
+[2.5.1]: https://github.com/readium/swift-toolkit/compare/2.5.0...2.5.1
+[2.6.0]: https://github.com/readium/swift-toolkit/compare/2.5.1...2.6.0

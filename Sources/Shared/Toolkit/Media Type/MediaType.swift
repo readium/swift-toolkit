@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -28,7 +28,6 @@ import Foundation
 /// }
 /// ```
 public struct MediaType: Hashable, Loggable {
-    
     /// The string representation of this media type.
     public var string: String {
         let params = parameters
@@ -37,22 +36,22 @@ public struct MediaType: Hashable, Loggable {
             .joined(separator: ";")
         return "\(type)/\(subtype)\(params.isEmpty ? "" : ";\(params)")"
     }
-    
+
     /// A human readable name identifying the media type, which may be presented to the user.
     public let name: String?
-    
+
     /// The default file extension to use for this media type.
     public let fileExtension: String?
-    
+
     /// The type component, e.g. `application` in `application/epub+zip`.
     public let type: String
-    
+
     /// The subtype component, e.g. `epub+zip` in `application/epub+zip`.
     public let subtype: String
-    
+
     /// The parameters in the media type, such as `charset=utf-8`.
     public let parameters: [String: String]
-    
+
     /// Structured syntax suffix, e.g. `+zip` in `application/epub+zip`
     ///
     /// Gives a hint on the underlying structure of this media type.
@@ -63,7 +62,7 @@ public struct MediaType: Hashable, Loggable {
             ? "+\(parts.last!)"
             : nil
     }
-    
+
     /// Encoding as declared in the `charset` parameter, if there's any.
     public var encoding: String.Encoding? {
         parameters["charset"].flatMap { String.Encoding(charset: $0) }
@@ -88,10 +87,10 @@ public struct MediaType: Hashable, Loggable {
         guard !string.isEmpty else {
             return nil
         }
-    
+
         self.name = name
         self.fileExtension = fileExtension
-    
+
         // Grammar: https://tools.ietf.org/html/rfc2045#section-5.1
         let components = string.split(separator: ";")
             .map { $0.trimmingCharacters(in: .whitespaces) }
@@ -101,18 +100,18 @@ public struct MediaType: Hashable, Loggable {
         }
 
         // > Both top-level type and subtype names are case-insensitive.
-        self.type = types[0].lowercased()
-        self.subtype = types[1].lowercased()
-        
+        type = types[0].lowercased()
+        subtype = types[1].lowercased()
+
         // > Parameter names are case-insensitive and no meaning is attached to the order in which
         // > they appear.
         let parameterPairs: [(String, String)] = components[1...]
             .map { $0.split(separator: "=").map(String.init) }
             .filter { $0.count == 2 }
             .map { parts in (parts[0].lowercased(), parts[1]) }
-        
+
         var parameters = Dictionary(uniqueKeysWithValues: parameterPairs)
-        
+
         // For now, we only support case-insensitive `charset`.
         //
         // > Parameter values might or might not be case-sensitive, depending on the semantics of
@@ -126,10 +125,10 @@ public struct MediaType: Hashable, Loggable {
         if let charset = parameters["charset"] {
             parameters["charset"] = charset.uppercased()
         }
-        
+
         self.parameters = parameters
     }
-    
+
     /// Returns whether the given `other` media type is included in this media type.
     ///
     /// For example, `text/html` contains `text/html;charset=utf-8`.
@@ -141,17 +140,17 @@ public struct MediaType: Hashable, Loggable {
     ///   everything.
     public func contains(_ other: Self?) -> Bool {
         guard let other = other,
-            type == "*" || type == other.type,
-            subtype == "*" || subtype == other.subtype else
-        {
+              type == "*" || type == other.type,
+              subtype == "*" || subtype == other.subtype
+        else {
             return false
         }
-        
+
         let paramsSet = Set(parameters.map { "\($0.key)=\($0.value)" })
         let otherParamsSet = Set(other.parameters.map { "\($0.key)=\($0.value)" })
         return paramsSet.isSubset(of: otherParamsSet)
     }
-    
+
     /// Returns whether the given `mediaType` is included in this media type.
     public func contains(_ other: String?) -> Bool {
         guard let other = other.map({ Self($0) }) else {
@@ -159,47 +158,47 @@ public struct MediaType: Hashable, Loggable {
         }
         return contains(other)
     }
-    
+
     /// Returns whether this media type and `other` are the same, ignoring parameters that are not
     /// in both media types.
     ///
     /// For example, `text/html` matches `text/html;charset=utf-8`, but `text/html;charset=ascii`
     /// doesn't. This is basically like `contains`, but working in both direction.
     public func matches(_ other: Self?) -> Bool {
-        return contains(other) || (other?.contains(self) ?? false)
+        contains(other) || (other?.contains(self) ?? false)
     }
-    
+
     /// Returns whether this media type and `other` are the same, ignoring parameters that are not
     /// in both media types.
     public func matches(_ other: String?) -> Bool {
-        return matches(other.flatMap { MediaType($0) })
+        matches(other.flatMap { MediaType($0) })
     }
-    
+
     /// Returns whether this media type matches any of the `others` media types.
     public func matchesAny(_ other: Self...) -> Bool {
-        return other.contains { matches($0) }
+        other.contains { matches($0) }
     }
-    
+
     /// Returns whether this media type matches any of the `others` media types.
     public func matchesAny(_ other: String...) -> Bool {
-        return other.contains { matches($0) }
+        other.contains { matches($0) }
     }
-    
+
     /// Returns whether this media type matches any of the `others` media types.
     public func matchesAny(_ others: [Self]) -> Bool {
-        return others.contains { matches($0) }
+        others.contains { matches($0) }
     }
-    
+
     /// Returns whether this media type matches any of the `others` media types.
     public func matchesAny(_ others: [String]) -> Bool {
-        return others.contains { matches($0) }
+        others.contains { matches($0) }
     }
 
     /// Returns whether this media type is structured as a ZIP archive.
     public var isZIP: Bool {
         matchesAny(.zip, .lcpProtectedAudiobook, .lcpProtectedPDF) || structuredSyntaxSuffix == "+zip"
     }
-    
+
     /// Returns whether this media type is structured as a JSON file.
     public var isJSON: Bool {
         matches(.json) || structuredSyntaxSuffix == "+json"
@@ -209,27 +208,27 @@ public struct MediaType: Hashable, Loggable {
     public var isOPDS: Bool {
         matchesAny(.opds1, .opds1Entry, .opds2, .opds2Publication, .opdsAuthentication)
     }
-    
+
     /// Returns whether this media type is of an HTML document.
     public var isHTML: Bool {
         matchesAny(.html, .xhtml)
     }
-    
+
     /// Returns whether this media type is of a bitmap image, so excluding vectorial formats.
     public var isBitmap: Bool {
         matchesAny(.bmp, .gif, .jpeg, .png, .tiff, .webp)
     }
-    
+
     /// Returns whether this media type is of an audio clip.
     public var isAudio: Bool {
         type == "audio"
     }
-    
+
     /// Returns whether this media type is of a video clip.
     public var isVideo: Bool {
-        return type == "video"
+        type == "video"
     }
-    
+
     /// Returns whether this media type is of a Readium Web Publication Manifest.
     public var isRWPM: Bool {
         matchesAny(.readiumWebPubManifest, .readiumAudiobookManifest, .divinaManifest)
@@ -238,13 +237,12 @@ public struct MediaType: Hashable, Loggable {
     /// Returns whether this media type is declared in the Document Types section of the app's main
     /// bundle.
     public var isSupportedDocumentType: Bool {
-        return DocumentTypes.main.supportsMediaType(string)
+        DocumentTypes.main.supportsMediaType(string)
             || DocumentTypes.main.supportsFileExtension(fileExtension)
     }
 
-    
     // MARK: Known Media Types
-    
+
     public static let aac = MediaType("audio/aac", fileExtension: "aac")!
     public static let acsm = MediaType("application/vnd.adobe.adept+xml", name: "Adobe Content Server Message", fileExtension: "acsm")!
     public static let aiff = MediaType("audio/aiff", fileExtension: "aiff")!
@@ -290,7 +288,7 @@ public struct MediaType: Hashable, Loggable {
     public static let text = MediaType("text/plain", fileExtension: "txt")!
     public static let tiff = MediaType("image/tiff", fileExtension: "tiff")!
     public static let ttf = MediaType("font/ttf", fileExtension: "ttf")!
-    public static let w3cWPUBManifest = MediaType("application/x.readium.w3c.wpub+json", name: "Web Publication", fileExtension: "json")!  // non-existent
+    public static let w3cWPUBManifest = MediaType("application/x.readium.w3c.wpub+json", name: "Web Publication", fileExtension: "json")! // non-existent
     public static let wav = MediaType("audio/wav", fileExtension: "wav")!
     public static let webmAudio = MediaType("audio/webm", fileExtension: "webm")!
     public static let webmVideo = MediaType("video/webm", fileExtension: "webm")!
@@ -299,9 +297,9 @@ public struct MediaType: Hashable, Loggable {
     public static let woff2 = MediaType("font/woff2", fileExtension: "woff2")!
     public static let xhtml = MediaType("application/xhtml+xml", fileExtension: "xhtml")!
     public static let xml = MediaType("application/xml", fileExtension: "xml")!
-    public static let zab = MediaType("application/x.readium.zab+zip", name: "Zipped Audio Book", fileExtension: "zab")!  // non-existent
+    public static let zab = MediaType("application/x.readium.zab+zip", name: "Zipped Audio Book", fileExtension: "zab")! // non-existent
     public static let zip = MediaType("application/zip", fileExtension: "zip")!
-    
+
     static let readiumPositions = MediaType("application/vnd.readium.position-list+json")!
     static let readiumContentProtection = MediaType("application/vnd.readium.content-protection+json")!
     static let readiumRightsCopy = MediaType("application/vnd.readium.rights.copy+json")!
@@ -314,11 +312,10 @@ public struct MediaType: Hashable, Loggable {
     /// To ignore this warning, compare `MediaType.string` instead of `MediaType` itself.
     @available(*, deprecated, message: "Strict media type comparisons can be a source of bug, if parameters are present", renamed: "matches()")
     public static func == (lhs: Self, rhs: Self) -> Bool {
-        return lhs.string == rhs.string
+        lhs.string == rhs.string
     }
 
     public static func ~= (pattern: MediaType, value: MediaType) -> Bool {
-        return pattern.matches(value)
+        pattern.matches(value)
     }
-
 }

@@ -36,7 +36,7 @@ public struct EPUBSettings: ConfigurableSettings {
     public let typeScale: Double?
     public let verticalText: Bool
     public let wordSpacing: Double?
-    
+
     public var effectiveBackgroundColor: Color {
         backgroundColor ?? theme.backgroundColor
     }
@@ -95,7 +95,7 @@ public struct EPUBSettings: ConfigurableSettings {
         self.typeScale = typeScale
         self.verticalText = verticalText
         self.wordSpacing = wordSpacing
-        self.cssLayout = CSSLayout(verticalText: verticalText, language: language, readingProgression: readingProgression)
+        cssLayout = CSSLayout(verticalText: verticalText, language: language, readingProgression: readingProgression)
     }
 
     init(preferences: EPUBPreferences, defaults: EPUBDefaults, metadata: Metadata) {
@@ -123,7 +123,7 @@ public struct EPUBSettings: ConfigurableSettings {
         let verticalText = preferences.verticalText
             ?? language?.verticalText(for: readingProgression)
             ?? false
-        
+
         self.init(
             backgroundColor: preferences.backgroundColor,
             columnCount: preferences.columnCount
@@ -146,7 +146,7 @@ public struct EPUBSettings: ConfigurableSettings {
                 ?? defaults.ligatures,
             lineHeight: preferences.lineHeight
                 ?? defaults.lineHeight,
-            pageMargins: preferences.pageMargins 
+            pageMargins: preferences.pageMargins
                 ?? defaults.pageMargins
                 ?? 1.0,
             paragraphIndent: preferences.paragraphIndent
@@ -161,8 +161,9 @@ public struct EPUBSettings: ConfigurableSettings {
                 ?? defaults.scroll
                 ?? false,
             spread: preferences.spread
+                ?? Spread(metadata.presentation.spread)
                 ?? defaults.spread
-                ?? .never,
+                ?? .auto,
             textAlign: preferences.textAlign
                 ?? defaults.textAlign,
             textColor: preferences.textColor,
@@ -251,7 +252,6 @@ public struct EPUBDefaults {
         self.typeScale = typeScale
         self.wordSpacing = wordSpacing
     }
-
 }
 
 private extension Language {
@@ -260,6 +260,6 @@ private extension Language {
     }
 
     func verticalText(for readingProgression: ReadingProgression) -> Bool {
-         isCJK && readingProgression == .rtl
+        isCJK && readingProgression == .rtl
     }
 }

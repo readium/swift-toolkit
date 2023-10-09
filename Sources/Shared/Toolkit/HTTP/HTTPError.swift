@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -11,7 +11,6 @@ public typealias HTTPDeferred<Success> = Deferred<Success, HTTPError>
 
 /// Represents an error occurring during an `HTTPClient` activity.
 public struct HTTPError: LocalizedError, Equatable, Loggable {
-
     public enum Kind: Equatable {
         /// The provided request was not valid.
         case malformedRequest(url: String?)
@@ -32,6 +31,8 @@ public struct HTTPError: LocalizedError, Equatable, Loggable {
         case clientError
         /// (5xx) Server errors
         case serverError
+        /// Cannot connect to the server, or the host cannot be resolved.
+        case serverUnreachable
         /// The device is offline.
         case offline
         /// IO error while accessing the disk.
@@ -43,7 +44,7 @@ public struct HTTPError: LocalizedError, Equatable, Loggable {
 
         public init?(statusCode: Int) {
             switch statusCode {
-            case 200..<400:
+            case 200 ..< 400:
                 return nil
             case 400:
                 self = .badRequest
@@ -53,11 +54,11 @@ public struct HTTPError: LocalizedError, Equatable, Loggable {
                 self = .forbidden
             case 404:
                 self = .notFound
-            case 405...498:
+            case 405 ... 498:
                 self = .clientError
             case 499:
                 self = .cancelled
-            case 500...599:
+            case 500 ... 599:
                 self = .serverError
             default:
                 self = .malformedResponse
@@ -79,6 +80,8 @@ public struct HTTPError: LocalizedError, Equatable, Loggable {
                     self = .malformedResponse
                 case .notConnectedToInternet, .networkConnectionLost:
                     self = .offline
+                case .cannotConnectToHost, .cannotFindHost:
+                    self = .serverUnreachable
                 case .timedOut:
                     self = .timeout
                 case .userAuthenticationRequired, .appTransportSecurityRequiresSecureConnection, .noPermissionsToReadFile:
@@ -113,7 +116,7 @@ public struct HTTPError: LocalizedError, Equatable, Loggable {
         self.cause = cause
         self.response = response
 
-        self.problemDetails = {
+        problemDetails = {
             if let body = response?.body, response?.mediaType.matches(.problemDetails) == true {
                 do {
                     return try HTTPProblemDetails(data: body)
@@ -169,6 +172,8 @@ public struct HTTPError: LocalizedError, Equatable, Loggable {
             return R2SharedLocalizedString("HTTPError.clientError")
         case .serverError:
             return R2SharedLocalizedString("HTTPError.serverError")
+        case .serverUnreachable:
+            return R2SharedLocalizedString("HTTPError.serverUnreachable")
         case .cancelled:
             return R2SharedLocalizedString("HTTPError.cancelled")
         case .offline:
@@ -180,10 +185,9 @@ public struct HTTPError: LocalizedError, Equatable, Loggable {
         }
     }
 
-    public static func ==(lhs: HTTPError, rhs: HTTPError) -> Bool {
-        return lhs.kind == rhs.kind
+    public static func == (lhs: HTTPError, rhs: HTTPError) -> Bool {
+        lhs.kind == rhs.kind
             && lhs.response == rhs.response
             && lhs.problemDetails == rhs.problemDetails
     }
-
 }

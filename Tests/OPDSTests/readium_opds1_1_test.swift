@@ -1,9 +1,7 @@
 //
-//  readium_opdsTests.swift
-//  readium-opdsTests
-//
-//  Created by Alexandre Camilleri on 10/27/17.
-//  Copyright © 2017 Readium. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import XCTest
@@ -13,9 +11,9 @@ import R2Shared
 @testable import ReadiumOPDS
 
 #if !SWIFT_PACKAGE
-extension Bundle {
-    static let module = Bundle(for: readium_opds1_1_test.self)
-}
+    extension Bundle {
+        static let module = Bundle(for: readium_opds1_1_test.self)
+    }
 #endif
 
 class readium_opds1_1_test: XCTestCase {
@@ -41,7 +39,7 @@ class readium_opds1_1_test: XCTestCase {
 
         continueAfterFailure = true
     }
-    
+
     override func tearDown() {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()

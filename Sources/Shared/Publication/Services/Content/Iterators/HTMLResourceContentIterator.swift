@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -7,53 +7,82 @@
 import Foundation
 import SwiftSoup
 
-// FIXME: Custom skipped elements
-
 /// Iterates an HTML `resource`, starting from the given `locator`.
 ///
-/// If you want to start mid-resource, the `locator` must contain a `cssSelector` key in its
-/// `Locator.Locations` object.
+/// If you want to start mid-resource, the `locator` must contain a
+/// `cssSelector` key in its `Locator.Locations` object.
 ///
-/// If you want to start from the end of the resource, the `locator` must have a `progression` of 1.0.
+/// If you want to start from the end of the resource, the `locator` must have
+/// a `progression` of 1.0.
 public class HTMLResourceContentIterator: ContentIterator {
+    /// Factory for an `HTMLResourceContentIterator`.
+    public class Factory: ResourceContentIteratorFactory {
+        public init() {}
 
-    /// Creates a new factory for `HTMLResourceContentIterator`.
-    public static func makeFactory() -> ResourceContentIteratorFactory {
-        { resource, locator in
+        public func make(
+            publication: Publication,
+            readingOrderIndex: Int,
+            resource: Resource,
+            locator: Locator
+        ) -> ContentIterator? {
             guard resource.link.mediaType.isHTML else {
                 return nil
             }
-            return HTMLResourceContentIterator(resource: resource, locator: locator)
+
+            let positions = publication.positionsByReadingOrder
+            return HTMLResourceContentIterator(
+                resource: resource,
+                totalProgressionRange: positions.getOrNil(readingOrderIndex)?
+                    .first?.locations.totalProgression
+                    .map { start in
+                        let end = positions.getOrNil(readingOrderIndex + 1)?
+                            .first?.locations.totalProgression
+                            ?? 1.0
+
+                        return start ... end
+                    },
+                locator: locator
+            )
         }
     }
 
     private let resource: Resource
+    private let totalProgressionRange: ClosedRange<Double>?
     private let locator: Locator
+    private let beforeMaxLength: Int = 50
 
-    public init(resource: Resource, locator: Locator) {
+    public init(
+        resource: Resource,
+        totalProgressionRange: ClosedRange<Double>?,
+        locator: Locator
+    ) {
         self.resource = resource
+        self.totalProgressionRange = totalProgressionRange
         self.locator = locator
     }
 
     public func previous() throws -> ContentElement? {
-        try next(by: -1)
-    }
+        let elements = try elements.get()
+        let index = (currentIndex ?? elements.startIndex) - 1
 
-    public func next() throws -> ContentElement? {
-        try next(by: +1)
-    }
-
-    private func next(by delta: Int) throws -> ContentElement? {
-        let elements = try self.elements.get()
-        let index = currentIndex.map { $0 + delta }
-            ?? elements.startIndex
-
-        guard elements.elements.indices.contains(index) else {
+        guard let content = elements.elements.getOrNil(index) else {
             return nil
         }
 
         currentIndex = index
-        return elements.elements[index]
+        return content
+    }
+
+    public func next() throws -> ContentElement? {
+        let elements = try elements.get()
+        let index = (currentIndex ?? (elements.startIndex - 1)) + 1
+
+        guard let content = elements.elements.getOrNil(index) else {
+            return nil
+        }
+
+        currentIndex = index
+        return content
     }
 
     private var currentIndex: Int?
@@ -65,32 +94,56 @@ public class HTMLResourceContentIterator: ContentIterator {
             .readAsString()
             .eraseToAnyError()
             .tryMap { try SwiftSoup.parse($0) }
-            .tryMap { try ContentParser.parse(document: $0, locator: locator) }
+            .tryMap { try ContentParser.parse(document: $0, locator: locator, beforeMaxLength: beforeMaxLength) }
+            .map { adjustProgressions(of: $0) }
         resource.close()
         return result
     }
 
-
-    /// Holds the result of parsing the HTML resource into a list of `ContentElement`.
+    /// Holds the result of parsing the HTML resource into a list of
+    /// `ContentElement`.
     ///
-    /// The `startIndex` will be calculated from the element matched by the base `locator`, if possible. Defaults to
-    /// 0.
-    private typealias ParsedElements = (elements: [ContentElement], startIndex: Int)
+    /// The `startIndex` will be calculated from the element matched by the
+    /// base `locator`, if possible. Defaults to 0.
+    private struct ParsedElements {
+        var elements: [ContentElement]
+        var startIndex: Int
+    }
+
+    private func adjustProgressions(of elements: ParsedElements) -> ParsedElements {
+        let count = Double(elements.elements.count)
+        guard count > 0 else {
+            return elements
+        }
+
+        var elements = elements
+        elements.elements = elements.elements.enumerated().map { index, element in
+            let progression = Double(index) / count
+            return element.copy(
+                progression: progression,
+                totalProgression: totalProgressionRange.map { range in
+                    range.lowerBound + progression * (range.upperBound - range.lowerBound)
+                }
+            )
+        }
+        return elements
+    }
 
     private class ContentParser: NodeVisitor {
-        
-        static func parse(document: Document, locator: Locator) throws -> ParsedElements {
-            let parser = ContentParser(
+        static func parse(document: Document, locator: Locator, beforeMaxLength: Int) throws -> ParsedElements {
+            let parser = try ContentParser(
                 baseLocator: locator,
-                startElement: try locator.locations.cssSelector
+                startElement: locator.locations.cssSelector
                     .flatMap {
-                        // The JS third-party library used to generate the CSS Selector sometimes adds
-                        // :root >, which doesn't work with JSoup.
+                        // The JS third-party library used to generate the CSS
+                        // Selector sometimes adds `:root >`, which doesn't work
+                        // with SwiftSoup.
                         try document.select($0.removingPrefix(":root > ")).first()
-                    }
+                    },
+                beforeMaxLength: beforeMaxLength
             )
 
-            try document.traverse(parser)
+            try (document.body() ?? document).traverse(parser)
 
             return ParsedElements(
                 elements: parser.elements,
@@ -100,137 +153,194 @@ public class HTMLResourceContentIterator: ContentIterator {
             )
         }
 
+        private init(baseLocator: Locator, startElement: Element?, beforeMaxLength: Int) {
+            self.baseLocator = baseLocator
+            self.startElement = startElement
+            self.beforeMaxLength = beforeMaxLength
+        }
+
         private let baseLocator: Locator
         private let startElement: Element?
+        private let beforeMaxLength: Int
 
         private var elements: [ContentElement] = []
         private var startIndex = 0
-        private var currentElement: Element?
 
+        /// Segments accumulated for the current element.
         private var segmentsAcc: [TextContentElement.Segment] = []
-        private var textAcc = StringBuilder()
-        private var wholeRawTextAcc: String = ""
-        private var elementRawTextAcc: String = ""
-        private var rawTextAcc: String = ""
-        private var currentLanguage: Language?
-        private var currentCSSSelector: String?
-        private var ignoredNode: Node?
 
-        private init(baseLocator: Locator, startElement: Element?) {
-            self.baseLocator = baseLocator
-            self.startElement = startElement
-        }
+        /// Text since the beginning of the current segment, after coalescing
+        /// whitespaces.
+        private var textAcc = StringBuilder()
+
+        /// Text content since the beginning of the resource, including
+        /// whitespaces.
+        private var wholeRawTextAcc: String?
+
+        /// Text content since the beginning of the current element, including
+        /// whitespaces.
+        private var elementRawTextAcc = ""
+
+        /// Text content since the beginning of the current segment, including
+        /// whitespaces.
+        private var rawTextAcc = ""
+
+        /// Language of the current segment.
+        private var currentLanguage: Language?
+
+        /// CSS selector of the current element.
+        private var currentCSSSelector: String?
+
+        /// LIFO stack of the current element's block ancestors.
+        private var breadcrumbs: [Element] = []
 
         public func head(_ node: Node, _ depth: Int) throws {
-            guard ignoredNode == nil else {
-                return
-            }
-            guard !node.isHidden else {
-                ignoredNode = node
-                return
-            }
+            if let node = node as? Element {
+                if node.isBlock() {
+                    breadcrumbs.append(node)
+                }
 
-            if let elem = node as? Element {
-                currentElement = elem
+                let tag = node.tagNameNormal()
 
-                let tag = elem.tagNameNormal()
+                lazy var elementLocator: Locator = baseLocator.copy(
+                    locations: {
+                        $0.otherLocations = [
+                            "cssSelector": (try? node.cssSelector()) as Any,
+                        ]
+                    }
+                )
 
                 if tag == "br" {
                     flushText()
+
                 } else if tag == "img" {
                     flushText()
-
-                    if
-                        let href = try elem.attr("src")
-                            .takeUnlessEmpty()
-                            .map({ HREF($0, relativeTo: baseLocator.href).string })
-                    {
+                    try node.srcRelativeToHREF(baseLocator.href).map { href in
                         var attributes: [ContentAttribute] = []
-                        if let alt = try elem.attr("alt").takeUnlessEmpty() {
+                        if let alt = try node.attr("alt").takeUnlessEmpty() {
                             attributes.append(ContentAttribute(key: .accessibilityLabel, value: alt))
                         }
 
                         elements.append(ImageContentElement(
-                            locator: baseLocator.copy(
-                                locations: {
-                                    $0 = Locator.Locations(
-                                        otherLocations: ["cssSelector": (try? elem.cssSelector()) as Any]
-                                    )
-                                }
-                            ),
+                            locator: elementLocator,
                             embeddedLink: Link(href: href),
                             caption: nil, // FIXME: Get the caption from figcaption
                             attributes: attributes
                         ))
                     }
 
-                } else if elem.isBlock() {
-                    segmentsAcc.removeAll()
-                    textAcc.clear()
-                    rawTextAcc = ""
-                    currentCSSSelector = try elem.cssSelector()
+                } else if tag == "audio" || tag == "video" {
+                    flushText()
+
+                    let link: Link? = try {
+                        if let href = try node.srcRelativeToHREF(baseLocator.href) {
+                            return Link(href: href)
+                        } else {
+                            let sources = try node.select("source")
+                                .compactMap { source in
+                                    try source.srcRelativeToHREF(baseLocator.href).map { href in
+                                        try Link(href: href, type: source.attr("type").takeUnlessEmpty())
+                                    }
+                                }
+
+                            return sources.first?.copy(alternates: Array(sources.dropFirst(1)))
+                        }
+                    }()
+
+                    if let link = link {
+                        switch tag {
+                        case "audio":
+                            elements.append(AudioContentElement(locator: elementLocator, embeddedLink: link))
+                        case "video":
+                            elements.append(VideoContentElement(locator: elementLocator, embeddedLink: link))
+                        default:
+                            break
+                        }
+                    }
+
+                } else if node.isBlock() {
+                    flushText()
+                    currentCSSSelector = try node.cssSelector()
                 }
             }
         }
 
         func tail(_ node: Node, _ depth: Int) throws {
-            if ignoredNode == node {
-                ignoredNode = nil
-            }
-
             if let node = node as? TextNode {
+                let wholeText = node.getWholeText()
+                guard !wholeText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                    return
+                }
+
                 let language = try node.language().map { Language(code: .bcp47($0)) }
-                if (currentLanguage != language) {
+                if currentLanguage != language {
                     flushSegment()
                     currentLanguage = language
                 }
 
-                rawTextAcc += try Parser.unescapeEntities(node.getWholeText(), false)
-                try appendNormalisedText(of: node)
+                let text = try Parser.unescapeEntities(wholeText, false)
+                rawTextAcc += text
+                try appendNormalisedText(text)
 
             } else if let node = node as? Element {
                 if node.isBlock() {
+                    assert(breadcrumbs.last == node)
                     flushText()
+                    breadcrumbs.removeLast()
                 }
             }
         }
 
-        private func appendNormalisedText(of textNode: TextNode) throws {
-            let text = try Parser.unescapeEntities(textNode.getWholeText(), false)
-            return StringUtil.appendNormalisedWhitespace(textAcc, string: text, stripLeading: lastCharIsWhitespace())
+        private func appendNormalisedText(_ text: String) throws {
+            StringUtil.appendNormalisedWhitespace(textAcc, string: text, stripLeading: lastCharIsWhitespace())
         }
 
         private func lastCharIsWhitespace() -> Bool {
-            textAcc.toString().last?.isWhitespace ?? false
+            guard let lastChar = textAcc.toString().last else {
+                return false
+            }
+
+            return lastChar.isWhitespace || lastChar.isNewline
         }
 
         private func flushText() {
             flushSegment()
+
+            if startIndex == 0, startElement != nil, breadcrumbs.last == startElement {
+                startIndex = elements.count
+            }
+
             guard !segmentsAcc.isEmpty else {
                 return
             }
 
-            if startElement != nil && currentElement == startElement {
-                startIndex = elements.count
+            // Trim the end of the last segment's text to get a cleaner output
+            // for the TextContentElement. Only whitespaces between the
+            // segments are meaningful.
+            if var segment = segmentsAcc.last {
+                segment.text = segment.text.trimmingCharacters(in: .whitespacesAndNewlines)
+                segmentsAcc[segmentsAcc.count - 1] = segment
             }
-            elements.append(TextContentElement(
-                locator: baseLocator.copy(
-                    locations: { [self] in
-                        $0 = Locator.Locations(
-                            otherLocations: [
-                                "cssSelector": currentCSSSelector as Any
-                            ]
-                        )
-                    },
-                    text: { [self] in
-                        $0 = Locator.Text(
-                            highlight: elementRawTextAcc
-                        )
-                    }
-                ),
-                role: .body,
-                segments: segmentsAcc
-            ))
+
+            elements.append(
+                TextContentElement(
+                    locator: baseLocator.copy(
+                        locations: {
+                            if let selector = self.currentCSSSelector {
+                                $0.otherLocations["cssSelector"] = selector
+                            }
+                        },
+                        text: {
+                            $0 = Locator.Text.trimming(
+                                text: self.elementRawTextAcc,
+                                before: self.segmentsAcc.first?.locator.text.before
+                            )
+                        }
+                    ),
+                    role: .body,
+                    segments: segmentsAcc
+                )
+            )
             elementRawTextAcc = ""
             segmentsAcc.removeAll()
         }
@@ -239,7 +349,7 @@ public class HTMLResourceContentIterator: ContentIterator {
             var text = textAcc.toString()
             let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
 
-            if !text.isEmpty {
+            if !trimmedText.isEmpty {
                 if segmentsAcc.isEmpty {
                     let whitespaceSuffix = text.last
                         .takeIf { $0.isWhitespace || $0.isNewline }
@@ -257,16 +367,14 @@ public class HTMLResourceContentIterator: ContentIterator {
                 segmentsAcc.append(TextContentElement.Segment(
                     locator: baseLocator.copy(
                         locations: { [self] in
-                            $0 = Locator.Locations(
-                                otherLocations: [
-                                    "cssSelector": currentCSSSelector as Any
-                                ]
-                            )
+                            $0.otherLocations = [
+                                "cssSelector": currentCSSSelector as Any,
+                            ]
                         },
                         text: { [self] in
-                            $0 = Locator.Text(
-                                before: String(wholeRawTextAcc.suffix(50)),
-                                highlight: rawTextAcc // FIXME: custom length
+                            $0 = Locator.Text.trimming(
+                                text: rawTextAcc,
+                                before: (wholeRawTextAcc?.suffix(beforeMaxLength)).map { String($0) }
                             )
                         }
                     ),
@@ -275,8 +383,10 @@ public class HTMLResourceContentIterator: ContentIterator {
                 ))
             }
 
-            wholeRawTextAcc += rawTextAcc
-            elementRawTextAcc += rawTextAcc
+            if rawTextAcc != "" {
+                wholeRawTextAcc = (wholeRawTextAcc ?? "") + rawTextAcc
+                elementRawTextAcc += rawTextAcc
+            }
             rawTextAcc = ""
             textAcc.clear()
         }
@@ -284,8 +394,10 @@ public class HTMLResourceContentIterator: ContentIterator {
 }
 
 private extension Node {
-    // FIXME: Setup ignore conditions
-    var isHidden: Bool { false }
+    func srcRelativeToHREF(_ baseHREF: String) throws -> String? {
+        try attr("src").takeUnlessEmpty()
+            .map { HREF($0, relativeTo: baseHREF).string }
+    }
 
     func language() throws -> String? {
         try attr("xml:lang").takeUnlessEmpty()
@@ -302,5 +414,60 @@ private extension Node {
 private extension String {
     func takeUnlessEmpty() -> String? {
         isEmpty ? nil : self
+    }
+}
+
+private extension ContentElement {
+    func copy(progression: Double?, totalProgression: Double?) -> ContentElement {
+        func update(_ locator: Locator) -> Locator {
+            locator.copy(locations: {
+                $0.progression = progression
+                $0.totalProgression = totalProgression
+            })
+        }
+
+        switch self {
+        case var e as TextContentElement:
+            e.locator = update(e.locator)
+            e.segments = e.segments.map { segment in
+                var segment = segment
+                segment.locator = update(segment.locator)
+                return segment
+            }
+            return e
+
+        case var e as AudioContentElement:
+            e.locator = update(e.locator)
+            return e
+
+        case var e as ImageContentElement:
+            e.locator = update(e.locator)
+            return e
+
+        case var e as VideoContentElement:
+            e.locator = update(e.locator)
+            return e
+
+        default:
+            return self
+        }
+    }
+}
+
+private extension Locator.Text {
+    static func trimming(text: String, before: String?) -> Locator.Text {
+        let leadingWhitespaceIdx = text.firstIndex { !$0.isWhitespace && !$0.isNewline } ?? text.startIndex
+        let leadingWhitespace = String(text[..<leadingWhitespaceIdx])
+
+        let trailingWhitespaceIdx = text.lastIndex { !$0.isWhitespace && !$0.isNewline }
+            .map { text.index(after: $0) }
+            ?? text.endIndex
+        let trailingWhitespace = String(text[trailingWhitespaceIdx...])
+
+        return Locator.Text(
+            after: trailingWhitespace.takeUnlessEmpty(),
+            before: ((before ?? "") + leadingWhitespace).takeUnlessEmpty(),
+            highlight: String(text[leadingWhitespaceIdx ..< trailingWhitespaceIdx])
+        )
     }
 }

@@ -1,9 +1,7 @@
 //
-//  ZipArchive.swift
-//  Zip
-//
-//  Created by Olivier Körner on 04/01/2017.
-//  Copyright © 2017 Roy Marmelstein. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -46,21 +44,18 @@ internal class ZipArchive: Loggable {
 
     /// The current offset position in the archive.
     internal var currentFileOffset: Int {
-        get {
-            return Int(unzGetOffset(unzFile))
-        }
+        Int(unzGetOffset(unzFile))
     }
+
     /// The total number of files in the archive.
     fileprivate var numberOfFiles: Int {
-        get {
-            var globalInfo = unz_global_info64()
+        var globalInfo = unz_global_info64()
 
-            memset(&globalInfo, 0, MemoryLayout<unz_global_info64>.size)
-            guard unzGetGlobalInfo64(unzFile, &globalInfo) == UNZ_OK else {
-                return 0
-            }
-            return Int(globalInfo.number_entry)
+        memset(&globalInfo, 0, MemoryLayout<unz_global_info64>.size)
+        guard unzGetGlobalInfo64(unzFile, &globalInfo) == UNZ_OK else {
+            return 0
         }
+        return Int(globalInfo.number_entry)
     }
 
     /// Initialize the object checking that the archive exists and opening it.
@@ -69,9 +64,9 @@ internal class ZipArchive: Loggable {
 
         // Check that archives exists then open it.
         guard fileManager.fileExists(atPath: url.path) != false,
-            let unzFile = unzOpen64(url.path)/*,
-            try? goToFirestFile() Is that done by default? Tocheck*/ else
-        {
+              let unzFile = unzOpen64(url.path)
+        /* , try? goToFirestFile() Is that done by default? Tocheck */
+        else {
             return nil
         }
         self.unzFile = unzFile
@@ -82,7 +77,7 @@ internal class ZipArchive: Loggable {
         unzClose(unzFile)
     }
 
-    // Mark: - Internal Methods.
+    // MARK: - Internal Methods.
 
     /// Build the file list of the archive (Not done by default as it's only
     /// usef in the CBZ so far).
@@ -90,7 +85,7 @@ internal class ZipArchive: Loggable {
         try goToFirstFile()
         repeat {
             let fileInfo = try informationsOfCurrentFile()
-            
+
             fileInfos[fileInfo.path] = fileInfo
         } while try goToNextFile()
     }
@@ -98,7 +93,7 @@ internal class ZipArchive: Loggable {
     /// Reads the data of the file at offset.
     ///
     /// - Returns: The data of the file at offset.
-    /// - Throws: 
+    /// - Throws:
     internal func readDataOfCurrentFile() throws -> Data {
         let fileInfo = try informationsOfCurrentFile()
 
@@ -113,7 +108,7 @@ internal class ZipArchive: Loggable {
     /// - Throws: <#throws value description#>
     fileprivate func readDataOfCurrentFile(range: Range<UInt64>) throws -> Data {
         let length = range.count
-        var buffer = Array<CUnsignedChar>(repeating: 0, count: bufferLength)
+        var buffer = [CUnsignedChar](repeating: 0, count: bufferLength)
         var data = Data(capacity: Int(length))
 
         /// Skip the first bytes of the file until lowerBound is reached.
@@ -126,11 +121,9 @@ internal class ZipArchive: Loggable {
             if bytesRead > 0 {
                 totalBytesRead += Int(bytesRead)
                 data.append(buffer, count: Int(bytesRead))
-            }
-            else if bytesRead == 0 {
+            } else if bytesRead == 0 {
                 break
-            }
-            else {
+            } else {
                 throw ZipArchiveError.readError
             }
         }
@@ -145,7 +138,6 @@ internal class ZipArchive: Loggable {
     /// - Returns: <#return value description#>
     /// - Throws: <#throws value description#>
     public func readDataFromCurrentFile(_ buffer: UnsafeMutablePointer<UInt8>, maxLength: UInt64) -> UInt64 {
-
         assert(maxLength < UInt64(UInt32.max), "maxLength must be less than \(UInt32.max)")
 
         let bytesRead = unzReadCurrentFile(unzFile, buffer, UInt32(maxLength))
@@ -172,7 +164,7 @@ internal class ZipArchive: Loggable {
         }
     }
 
-    // Mark: - Fileprivate Methods.
+    // MARK: - Fileprivate Methods.
 
     /// Move the offset to the file at `path` in the archive.
     ///
@@ -232,10 +224,10 @@ internal class ZipArchive: Loggable {
             // Deflate is stream-based, so we need to read the bytes from the beginning and discard
             // them until we reach the offset.
             let ioffset = Int(offset)
-            var buffer = Array<CUnsignedChar>(repeating: 0, count: bufferLength)
+            var buffer = [CUnsignedChar](repeating: 0, count: bufferLength)
 
             // Read the current file to the desired offset
-            var offsetBytesRead: Int = 0
+            var offsetBytesRead = 0
             while offsetBytesRead < ioffset {
                 let bytesToRead = min(bufferLength, ioffset - offsetBytesRead)
                 // Data is discarded
@@ -249,7 +241,7 @@ internal class ZipArchive: Loggable {
                     throw ZipArchiveError.minizipError
                 }
             }
-            
+
         } else {
             // For non-compressed entries, we can seek directly in the content.
             if unzseek(unzFile, offset, SEEK_CUR) != UNZ_OK {
@@ -272,7 +264,7 @@ internal class ZipArchive: Loggable {
         case UNZ_BADZIPFILE:
             throw ZipArchiveError.badZipFile
         case UNZ_OK:
-        break // Success.
+            break // Success.
         default: // UNZ_INTERNALERROR..
             throw ZipArchiveError.minizipError
         }
@@ -297,7 +289,7 @@ internal class ZipArchive: Loggable {
 
         memset(&fileInfo, 0, MemoryLayout<unz_file_info64>.size)
         guard unzGetCurrentFileInfo64(unzFile, &fileInfo, fileName, UInt(fileNameMaxSize), nil, 0, nil, 0) == UNZ_OK else {
-            //throw ZipError.unzipFail
+            // throw ZipError.unzipFail
             throw ZipArchiveError.minizipError
         }
         let path = String(cString: fileName)
@@ -326,5 +318,4 @@ internal class ZipArchive: Loggable {
         )
         return zipFileInfo
     }
-
 }

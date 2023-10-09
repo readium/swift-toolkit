@@ -1,33 +1,32 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
-import R2Shared
 @testable import R2Navigator
+import R2Shared
+import XCTest
 
 class ReadiumCSSTests: XCTestCase {
-    
     let baseURL = URL(string: "https://readium/assets")!
-    
+
     let viewportMeta = HTMLInjection.meta(name: "viewport", content: "width=device-width, height=device-height, initial-scale=1.0")
-    
+
     func cssBefore(folder: String = "") -> HTMLInjection {
         .stylesheetLink(href: "https://readium/assets/\(folder)ReadiumCSS-before.css", prepend: true)
     }
-    
+
     func cssDefault(folder: String = "") -> HTMLInjection {
         .stylesheetLink(href: "https://readium/assets/\(folder)ReadiumCSS-default.css")
     }
-    
+
     func cssAfter(folder: String = "") -> HTMLInjection {
         .stylesheetLink(href: "https://readium/assets/\(folder)ReadiumCSS-after.css")
     }
-    
+
     let audioFix = HTMLInjection.style("audio[controls] { width: revert; height: revert; }")
-    
+
     let html =
         """
         <?xml version="1.0" encoding="utf-8"?>
@@ -38,7 +37,7 @@ class ReadiumCSSTests: XCTestCase {
             <body></body>
         </html>
         """
-    
+
     func testInjectionsWithoutAnyStyle() {
         let css = ReadiumCSS(
             layout: CSSLayout(),
@@ -46,7 +45,7 @@ class ReadiumCSSTests: XCTestCase {
             userProperties: CSSUserProperties(),
             baseURL: baseURL
         )
-        
+
         XCTAssertEqual(
             try css.injections(for: html),
             [
@@ -61,7 +60,7 @@ class ReadiumCSSTests: XCTestCase {
             ]
         )
     }
-    
+
     func testInjectionsWithPublicationStyles() {
         let css = ReadiumCSS(
             layout: CSSLayout(),
@@ -69,48 +68,48 @@ class ReadiumCSSTests: XCTestCase {
             userProperties: CSSUserProperties(),
             baseURL: baseURL
         )
-        
+
         XCTAssertFalse(
             try css.injections(for: """
-                <?xml version="1.0" encoding="utf-8"?>
-                <html xmlns="http://www.w3.org/1999/xhtml">
-                    <head>
-                        <title>Publication</title>
-                        <link rel="stylesheet" href="style.css" type="text/css"/>
-                    </head>
-                    <body></body>
-                </html>
-                """).contains(cssDefault())
+            <?xml version="1.0" encoding="utf-8"?>
+            <html xmlns="http://www.w3.org/1999/xhtml">
+                <head>
+                    <title>Publication</title>
+                    <link rel="stylesheet" href="style.css" type="text/css"/>
+                </head>
+                <body></body>
+            </html>
+            """).contains(cssDefault())
         )
-        
+
         XCTAssertFalse(
             try css.injections(for: """
-                <?xml version="1.0" encoding="utf-8"?>
-                <html xmlns="http://www.w3.org/1999/xhtml">
-                    <head>
-                        <title>Publication</title>
-                        <style>font-size: 1em;</style>
-                    </head>
-                    <body></body>
-                </html>
-                """).contains(cssDefault())
+            <?xml version="1.0" encoding="utf-8"?>
+            <html xmlns="http://www.w3.org/1999/xhtml">
+                <head>
+                    <title>Publication</title>
+                    <style>font-size: 1em;</style>
+                </head>
+                <body></body>
+            </html>
+            """).contains(cssDefault())
         )
-        
+
         XCTAssertFalse(
             try css.injections(for: """
-                <?xml version="1.0" encoding="utf-8"?>
-                <html xmlns="http://www.w3.org/1999/xhtml">
-                    <head>
-                        <title>Publication</title>
-                    </head>
-                    <body>
-                        <p style="color: black;"></p>
-                    </body>
-                </html>
-                """).contains(cssDefault())
+            <?xml version="1.0" encoding="utf-8"?>
+            <html xmlns="http://www.w3.org/1999/xhtml">
+                <head>
+                    <title>Publication</title>
+                </head>
+                <body>
+                    <p style="color: black;"></p>
+                </body>
+            </html>
+            """).contains(cssDefault())
         )
     }
-    
+
     func testInjectionsWithReadiumCSSProperties() {
         let css = ReadiumCSS(
             layout: CSSLayout(),
@@ -124,7 +123,7 @@ class ReadiumCSSTests: XCTestCase {
             ),
             baseURL: baseURL
         )
-        
+
         XCTAssertEqual(
             try css.injections(for: html),
             [
@@ -134,18 +133,18 @@ class ReadiumCSSTests: XCTestCase {
                 cssAfter(),
                 audioFix,
                 .styleAttribute(on: .html, css: """
-                    --RS__colGap: 40.00000px !important;
-                    --RS__textColor: #FF0000 !important;
-                    --USER__appearance: readium-night-on !important;
-                    --USER__wordSpacing: 20.00000rem !important;
-                    
-                    """),
+                --RS__colGap: 40.00000px !important;
+                --RS__textColor: #FF0000 !important;
+                --USER__appearance: readium-night-on !important;
+                --USER__wordSpacing: 20.00000rem !important;
+
+                """),
                 .dirAttribute(on: .html, rtl: false),
                 .dirAttribute(on: .body, rtl: false),
             ]
         )
     }
-    
+
     func testInjectRTLDirStylesheets() {
         let css = ReadiumCSS(
             layout: CSSLayout(stylesheets: .rtl),
@@ -153,7 +152,7 @@ class ReadiumCSSTests: XCTestCase {
             userProperties: CSSUserProperties(),
             baseURL: baseURL
         )
-        
+
         XCTAssertEqual(
             try css.injections(for: html),
             [
@@ -168,7 +167,7 @@ class ReadiumCSSTests: XCTestCase {
             ]
         )
     }
-    
+
     func testInjectCJKHorizontalStylesheets() {
         let css = ReadiumCSS(
             layout: CSSLayout(stylesheets: .cjkHorizontal),
@@ -176,7 +175,7 @@ class ReadiumCSSTests: XCTestCase {
             userProperties: CSSUserProperties(),
             baseURL: baseURL
         )
-        
+
         XCTAssertEqual(
             try css.injections(for: html),
             [
@@ -191,7 +190,7 @@ class ReadiumCSSTests: XCTestCase {
             ]
         )
     }
-    
+
     func testInjectCJKVerticalStylesheets() {
         let css = ReadiumCSS(
             layout: CSSLayout(stylesheets: .cjkVertical),
@@ -199,7 +198,7 @@ class ReadiumCSSTests: XCTestCase {
             userProperties: CSSUserProperties(),
             baseURL: baseURL
         )
-        
+
         XCTAssertEqual(
             try css.injections(for: html),
             [
@@ -212,24 +211,24 @@ class ReadiumCSSTests: XCTestCase {
             ]
         )
     }
-    
+
     func testInjectLangAttributes() {
         let language = Language(code: .bcp47("en"))
         let css = ReadiumCSS(
             layout: CSSLayout(language: language),
             baseURL: baseURL
         )
-        
+
         XCTAssertEqual(
             try css.injections(for: """
-                <?xml version="1.0" encoding="utf-8"?>
-                <html xmlns="http://www.w3.org/1999/xhtml">
-                    <head>
-                        <title>Publication</title>
-                    </head>
-                    <body></body>
-                </html>
-                """),
+            <?xml version="1.0" encoding="utf-8"?>
+            <html xmlns="http://www.w3.org/1999/xhtml">
+                <head>
+                    <title>Publication</title>
+                </head>
+                <body></body>
+            </html>
+            """),
             [
                 viewportMeta,
                 cssBefore(),
@@ -244,23 +243,23 @@ class ReadiumCSSTests: XCTestCase {
             ]
         )
     }
-    
+
     func testInjectLangAttributesWhenOneExistsOnHTMLTag() {
         let css = ReadiumCSS(
             layout: CSSLayout(language: Language(code: .bcp47("en"))),
             baseURL: baseURL
         )
-        
+
         XCTAssertEqual(
             try css.injections(for: """
-                <?xml version="1.0" encoding="utf-8"?>
-                <html xmlns="http://www.w3.org/1999/xhtml" lang="fr">
-                    <head>
-                        <title>Publication</title>
-                    </head>
-                    <body></body>
-                </html>
-                """),
+            <?xml version="1.0" encoding="utf-8"?>
+            <html xmlns="http://www.w3.org/1999/xhtml" lang="fr">
+                <head>
+                    <title>Publication</title>
+                </head>
+                <body></body>
+            </html>
+            """),
             [
                 viewportMeta,
                 cssBefore(),
@@ -273,23 +272,23 @@ class ReadiumCSSTests: XCTestCase {
             ]
         )
     }
-    
+
     func testInjectLangAttributesCopiesTheOneFromBodyTag() {
         let css = ReadiumCSS(
             layout: CSSLayout(language: Language(code: .bcp47("en"))),
             baseURL: baseURL
         )
-        
+
         XCTAssertEqual(
             try css.injections(for: """
-                <?xml version="1.0" encoding="utf-8"?>
-                <html xmlns="http://www.w3.org/1999/xhtml">
-                    <head>
-                        <title>Publication</title>
-                    </head>
-                    <body lang="fr"></body>
-                </html>
-                """),
+            <?xml version="1.0" encoding="utf-8"?>
+            <html xmlns="http://www.w3.org/1999/xhtml">
+                <head>
+                    <title>Publication</title>
+                </head>
+                <body lang="fr"></body>
+            </html>
+            """),
             [
                 viewportMeta,
                 cssBefore(),
@@ -299,8 +298,36 @@ class ReadiumCSSTests: XCTestCase {
                 .styleAttribute(on: .html, css: ""),
                 .dirAttribute(on: .html, rtl: false),
                 .dirAttribute(on: .body, rtl: false),
-                .langAttribute(on: .html, language: Language(code: .bcp47("fr")))
+                .langAttribute(on: .html, language: Language(code: .bcp47("fr"))),
             ]
+        )
+    }
+
+    func testInjectDirAttributeWhenAlreadyPresent() {
+        let css = ReadiumCSS(
+            layout: CSSLayout(language: Language(code: .bcp47("en"))),
+            baseURL: baseURL
+        )
+
+        XCTAssertEqual(
+            try css.inject(in: """
+            <?xml version="1.0" encoding="utf-8"?>
+            <html xmlns="http://www.w3.org/1999/xhtml">
+                <head>
+                    <title>Publication</title>
+                </head>
+                <body dir="rtl" lang="fr"></body>
+            </html>
+            """),
+            """
+            <?xml version="1.0" encoding="utf-8"?>
+            <html xml:lang="fr" dir="ltr" style="" xmlns="http://www.w3.org/1999/xhtml">
+                <head><link rel="stylesheet" href="https://readium/assets/ReadiumCSS-before.css" type="text/css"/>
+                    <title>Publication</title>
+                <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0"/><link rel="stylesheet" href="https://readium/assets/ReadiumCSS-default.css" type="text/css"/><link rel="stylesheet" href="https://readium/assets/ReadiumCSS-after.css" type="text/css"/><style type="text/css">audio[controls] { width: revert; height: revert; }</style></head>
+                <body dir="ltr" lang="fr"></body>
+            </html>
+            """
         )
     }
 }

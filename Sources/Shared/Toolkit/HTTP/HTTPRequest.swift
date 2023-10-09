@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -8,7 +8,6 @@ import Foundation
 
 /// Holds the information about an HTTP request performed by an `HTTPClient`.
 public struct HTTPRequest: Equatable {
-
     /// Address of the remote resource to request.
     public var url: URL
 
@@ -64,7 +63,7 @@ public struct HTTPRequest: Equatable {
         self.allowUserInteraction = allowUserInteraction
         self.userInfo = userInfo
     }
-    
+
     /// User agent that will be issued with this request.
     public var userAgent: String? {
         get {
@@ -83,7 +82,7 @@ public struct HTTPRequest: Equatable {
     public mutating func setRange(_ range: Range<UInt64>) {
         let start = max(0, range.lowerBound)
         var value = "\(start)-"
-        if (range.upperBound >= start) {
+        if range.upperBound >= start {
             value += "\(range.upperBound)"
         }
         headers["Range"] = "bytes=\(value)"

@@ -1,12 +1,7 @@
 //
-//  Database.swift
-//  readium-lcp-swift
-//
-//  Created by Alexandre Camilleri on 10/2/17.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -39,10 +34,8 @@ final class Database {
 }
 
 extension Connection {
-    
     var userVersion: Int32 {
-        get { return Int32(try! scalar("PRAGMA user_version") as! Int64)}
+        get { Int32(try! scalar("PRAGMA user_version") as! Int64) }
         set { try! run("PRAGMA user_version = \(newValue)") }
     }
-    
 }

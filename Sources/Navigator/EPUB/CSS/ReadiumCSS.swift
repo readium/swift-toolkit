@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -10,9 +10,9 @@ import ReadiumInternal
 import SwiftSoup
 
 struct ReadiumCSS {
-    var layout: CSSLayout = CSSLayout()
-    var rsProperties: CSSRSProperties = CSSRSProperties()
-    var userProperties: CSSUserProperties = CSSUserProperties()
+    var layout: CSSLayout = .init()
+    var rsProperties: CSSRSProperties = .init()
+    var userProperties: CSSUserProperties = .init()
 
     /// Base URL of the Readium CSS assets.
     var baseURL: URL
@@ -44,7 +44,7 @@ extension ReadiumCSS {
             invertImages: settings.imageFilter == .invert,
             textColor: settings.textColor.map { CSSIntColor($0.rawValue) },
             backgroundColor: settings.backgroundColor.map { CSSIntColor($0.rawValue) },
-            fontOverride: (settings.fontFamily != nil || settings.textNormalization),
+            fontOverride: settings.fontFamily != nil || settings.textNormalization,
             fontFamily: settings.fontFamily.map(resolveFontStack),
             fontSize: CSSPercentLength(settings.fontSize),
             advancedSettings: !settings.publisherStyles,
@@ -68,12 +68,12 @@ extension ReadiumCSS {
             a11yNormalize: settings.textNormalization,
             overrides: [
                 "font-weight": settings.fontWeight
-                    .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1...1000)) }
-                    ?? ""
+                    .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1 ... 1000)) }
+                    ?? "",
             ]
         )
     }
-    
+
     func resolveFontStack(of fontFamily: FontFamily) -> [String] {
         var fonts: [String] = [fontFamily.rawValue]
 
@@ -88,20 +88,25 @@ extension ReadiumCSS {
 }
 
 extension ReadiumCSS: HTMLInjectable {
+    func willInject(in html: String) -> String {
+        // Removes any dir attributes in html/body.
+        let range = NSRange(html.startIndex..., in: html)
+        return dirRegex.stringByReplacingMatches(in: html, options: [], range: range, withTemplate: "$1")
+    }
 
     /// https://github.com/readium/readium-css/blob/develop/docs/CSS06-stylesheets_order.md
     func injections(for html: String) throws -> [HTMLInjection] {
         let document = try parse(html)
-        
+
         var inj: [HTMLInjection] = []
         inj.append(.meta(name: "viewport", content: "width=device-width, height=device-height, initial-scale=1.0"))
         inj.append(contentsOf: styleInjections(for: html))
         inj.append(cssPropertiesInjection())
         inj.append(contentsOf: dirInjection())
-        inj.append(contentsOf: try langInjections(for: document))
+        try inj.append(contentsOf: langInjections(for: document))
         return inj
     }
-    
+
     /// Injects the Readium CSS stylesheets and font face declarations.
     private func styleInjections(for html: String) -> [HTMLInjection] {
         var inj: [HTMLInjection] = []
@@ -120,26 +125,24 @@ extension ReadiumCSS: HTMLInjectable {
             inj.append(.stylesheetLink(href: stylesheetsFolder.appendingPathComponent("ReadiumCSS-default.css").absoluteString))
         }
         inj.append(.stylesheetLink(href: stylesheetsFolder.appendingPathComponent("ReadiumCSS-after.css").absoluteString))
-        
+
         // Fix Readium CSS issue with the positioning of <audio> elements.
         // https://github.com/readium/readium-css/issues/94
         // https://github.com/readium/r2-navigator-kotlin/issues/193
         inj.append(.style("audio[controls] { width: revert; height: revert; }"))
-        
-        // TODO fonts
-        
+
         return inj
     }
-    
+
     /// Returns whether the given `html` has any CSS styles.
     ///
     /// https://github.com/readium/readium-css/blob/develop/docs/CSS06-stylesheets_order.md#append-if-there-is-no-authors-styles
     private func hasStyles(_ html: String) -> Bool {
-        return html.localizedCaseInsensitiveContains("<link ")
+        html.localizedCaseInsensitiveContains("<link ")
             || html.localizedCaseInsensitiveContains(" style=")
             || html.localizedCaseInsensitiveContains("</style>")
     }
-    
+
     /// Injects the current Readium CSS properties inline in `html`.
     ///
     /// We inject them instead of using JavaScript to make sure they are taken into account during
@@ -150,7 +153,7 @@ extension ReadiumCSS: HTMLInjectable {
             css: (rsProperties.css() ?? "") + (userProperties.css() ?? "")
         )
     }
-    
+
     /// Inject the `dir` attribute in `html` and `body`.
     ///
     /// https://github.com/readium/readium-css/blob/develop/docs/CSS16-internationalization.md#direction
@@ -158,7 +161,7 @@ extension ReadiumCSS: HTMLInjectable {
         guard let rtl = layout.stylesheets.htmlDir.isRTL else {
             return []
         }
-        
+
         return [
             .dirAttribute(on: .html, rtl: rtl),
             .dirAttribute(on: .body, rtl: rtl),
@@ -180,7 +183,7 @@ extension ReadiumCSS: HTMLInjectable {
 
         if body.hasLang() {
             return [
-                .langAttribute(on: .html, language: body.lang() ?? language)
+                .langAttribute(on: .html, language: body.lang() ?? language),
             ]
         } else {
             return [
@@ -195,11 +198,16 @@ private extension Element {
     func hasLang() -> Bool {
         hasAttr("xml:lang") || hasAttr("lang")
     }
-    
+
     func lang() -> Language? {
         let code = (try? attr("xml:lang")).takeIf { !$0.isEmpty }
             ?? (try? attr("lang")).takeIf { !$0.isEmpty }
-        
+
         return code.map { Language(code: .bcp47($0)) }
     }
 }
+
+private let dirRegex = try! NSRegularExpression(
+    pattern: "(<(?:html|body)[^>]*)\\s+dir=[\"']\\w*[\"']",
+    options: [.caseInsensitive, .anchorsMatchLines]
+)

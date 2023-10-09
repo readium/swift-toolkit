@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -7,7 +7,6 @@
 import Foundation
 
 public struct Language: Hashable {
-
     public static var current: Language {
         Language(locale: Locale.current)
     }
@@ -22,7 +21,7 @@ public struct Language: Hashable {
 
         public var bcp47: String {
             switch self {
-            case .bcp47(let code):
+            case let .bcp47(code):
                 return code
             }
         }

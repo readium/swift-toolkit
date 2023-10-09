@@ -1,17 +1,16 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 class AccessibilityTests: XCTestCase {
-
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            try? Accessibility(json: [:]),
+            try? Accessibility(json: [:] as [String: Any]),
             Accessibility()
         )
     }
@@ -27,18 +26,18 @@ class AccessibilityTests: XCTestCase {
                 "certification": [
                     "certifiedBy": "company1",
                     "credential": "credential1",
-                    "report": "https://report1"
+                    "report": "https://report1",
                 ],
                 "summary": "Summary",
                 "accessMode": ["auditory", "chartOnVisual"],
                 "accessModeSufficient": [["visual", "tactile"]],
                 "feature": ["readingOrder", "alternativeText"],
-                "hazard": ["flashing", "motionSimulation"]
-            ]),
+                "hazard": ["flashing", "motionSimulation"],
+            ] as [String: Any]),
             Accessibility(
                 conformsTo: [
                     Accessibility.Profile("https://profile1"),
-                    Accessibility.Profile("https://profile2")
+                    Accessibility.Profile("https://profile2"),
                 ],
                 certification: Accessibility.Certification(
                     certifiedBy: "company1",
@@ -111,7 +110,7 @@ class AccessibilityTests: XCTestCase {
         )
         XCTAssertEqual(
             try? Accessibility(json: [
-                "accessModeSufficient": ["auditory", ["visual"]],
+                "accessModeSufficient": ["auditory", ["visual"]] as [Any],
             ]),
             Accessibility(
                 accessModesSufficient: [[.auditory], [.visual]]
@@ -119,7 +118,7 @@ class AccessibilityTests: XCTestCase {
         )
         XCTAssertEqual(
             try? Accessibility(json: [
-                "accessModeSufficient": ["auditory", ["visual", "tactile"], [], "visual"],
+                "accessModeSufficient": ["auditory", ["visual", "tactile"], [] as [String], "visual"] as [Any],
             ]),
             Accessibility(
                 accessModesSufficient: [[.auditory], [.visual, .tactile], [.visual]]
@@ -168,7 +167,7 @@ class AccessibilityTests: XCTestCase {
     func testGetMinimalJSON() {
         AssertJSONEqual(
             Accessibility().json,
-            [:]
+            [:] as [String: Any]
         )
     }
 
@@ -176,7 +175,7 @@ class AccessibilityTests: XCTestCase {
         let expected = Accessibility(
             conformsTo: [
                 .epubA11y10WCAG20A,
-                Accessibility.Profile("https://profile2")
+                Accessibility.Profile("https://profile2"),
             ],
             certification: Accessibility.Certification(
                 certifiedBy: "company1",
@@ -196,14 +195,14 @@ class AccessibilityTests: XCTestCase {
                 "certification": [
                     "certifiedBy": "company1",
                     "credential": "credential1",
-                    "report": "https://report1"
+                    "report": "https://report1",
                 ],
                 "summary": "Summary",
                 "accessMode": ["auditory", "chartOnVisual"],
                 "accessModeSufficient": [["auditory"], ["visual", "tactile"], ["visual"]],
                 "feature": ["readingOrder", "alternativeText"],
-                "hazard": ["flashing", "motionSimulation"]
-            ]
+                "hazard": ["flashing", "motionSimulation"],
+            ] as [String: Any]
         )
     }
 }

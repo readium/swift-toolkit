@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -10,14 +10,18 @@ import ReadiumInternal
 
 /// An object that can be injected into an HTML document.
 protocol HTMLInjectable {
+    /// Extension point to do treatment on the HTML document before injection.
+    func willInject(in html: String) -> String
+
     func injections(for html: String) throws -> [HTMLInjection]
 }
 
 extension HTMLInjectable {
+    func willInject(in html: String) -> String { html }
 
     /// Injects the receiver in the given `html` document.
     func inject(in html: String) throws -> String {
-        var result = html
+        var result = willInject(in: html)
         for injection in try injections(for: html) {
             result = try injection.inject(in: result)
         }
@@ -58,10 +62,9 @@ struct HTMLElement: Hashable {
 
     init(tag: String) {
         self.tag = tag
-        self.startRegex = NSRegularExpression("<\(tag)[^>]*>", options: [.caseInsensitive, .dotMatchesLineSeparators])
-        self.endRegex = NSRegularExpression("</\(tag)\\s*>", options: [.caseInsensitive, .dotMatchesLineSeparators])
+        startRegex = NSRegularExpression("<\(tag)[^>]*>", options: [.caseInsensitive, .dotMatchesLineSeparators])
+        endRegex = NSRegularExpression("</\(tag)\\s*>", options: [.caseInsensitive, .dotMatchesLineSeparators])
     }
-
 
     /// Locates the `location` of this element in the given `html` document.
     func locate(_ location: Location, in html: String) -> String.Index? {
@@ -111,19 +114,19 @@ extension HTMLInjection {
             location: .attributes
         )
     }
-    
+
     static func dirAttribute(on target: HTMLElement, rtl: Bool) -> HTMLInjection {
         .attribute("dir", on: target, value: rtl ? "rtl" : "ltr")
     }
-    
+
     static func langAttribute(on target: HTMLElement, language: Language) -> HTMLInjection {
         .attribute("xml:lang", on: target, value: language.code.bcp47)
     }
-    
+
     static func styleAttribute(on target: HTMLElement, css: String) -> HTMLInjection {
         .attribute("style", on: target, value: css)
     }
-    
+
     /// Injects a `link` tag in the `head` element.
     static func link(href: String, rel: String, type: MediaType? = nil, as asValue: String? = nil, crossOrigin: String? = nil, prepend: Bool = false) -> HTMLInjection {
         var content = "<link rel=\"\(rel)\" href=\"\(escapeAttribute(href))\""
@@ -144,11 +147,11 @@ extension HTMLInjection {
             location: prepend ? .start : .end
         )
     }
-    
+
     static func stylesheetLink(href: String, prepend: Bool = false) -> HTMLInjection {
         .link(href: href, rel: "stylesheet", type: .css, prepend: prepend)
     }
-    
+
     /// Injects a `meta` tag in the `head` element.
     static func meta(name: String, content: String) -> HTMLInjection {
         HTMLInjection(
@@ -157,7 +160,7 @@ extension HTMLInjection {
             location: .end
         )
     }
-    
+
     /// Injects a `style` tag in the `head` element.
     static func style(_ css: String, prepend: Bool = false) -> HTMLInjection {
         HTMLInjection(

@@ -1,9 +1,10 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
+import AVFoundation
 import Foundation
 import R2Shared
 
@@ -35,10 +36,14 @@ public class PublicationSpeechSynthesizer: Loggable {
     public struct Configuration: Equatable {
         /// Language overriding the publication one.
         public var defaultLanguage: Language?
+
         /// Identifier for the voice used to speak the utterances.
         public var voiceIdentifier: String?
 
-        public init(defaultLanguage: Language? = nil, voiceIdentifier: String? = nil) {
+        public init(
+            defaultLanguage: Language? = nil,
+            voiceIdentifier: String? = nil
+        ) {
             self.defaultLanguage = defaultLanguage
             self.voiceIdentifier = voiceIdentifier
         }
@@ -46,7 +51,7 @@ public class PublicationSpeechSynthesizer: Loggable {
 
     /// An utterance is an arbitrary text (e.g. sentence) extracted from the publication, that can be synthesized by
     /// the TTS engine.
-    public struct Utterance {
+    public struct Utterance: Equatable {
         /// Text to be spoken.
         public let text: String
         /// Locator to the utterance in the publication.
@@ -56,7 +61,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     }
 
     /// Represents a state of the `PublicationSpeechSynthesizer`.
-    public enum State {
+    public enum State: Equatable {
         /// The synthesizer is completely stopped and must be (re)started from a given locator.
         case stopped
 
@@ -66,11 +71,24 @@ public class PublicationSpeechSynthesizer: Loggable {
         /// The TTS engine is synthesizing the associated utterance.
         /// `range` will be regularly updated while the utterance is being played.
         case playing(Utterance, range: Locator?)
+
+        var isPlaying: Bool {
+            switch self {
+            case .stopped, .paused:
+                return false
+            case .playing:
+                return true
+            }
+        }
     }
 
     /// Current state of the `PublicationSpeechSynthesizer`.
     public private(set) var state: State = .stopped {
         didSet {
+            if oldValue.isPlaying != state.isPlaying {
+                AudioSession.shared.user(audioSessionUser, didChangePlaying: state.isPlaying)
+            }
+
             delegate?.publicationSpeechSynthesizer(self, stateDidChange: state)
         }
     }
@@ -93,6 +111,8 @@ public class PublicationSpeechSynthesizer: Loggable {
     /// - Parameters:
     ///   - publication: Publication which will be iterated through and synthesized.
     ///   - config: Initial TTS configuration.
+    ///   - audioSessionConfig: Configuration of the audio session used to play
+    ///     the utterances.
     ///   - engineFactory: Factory to create an instance of `TtsEngine`. Defaults to `AVTTSEngine`.
     ///   - tokenizerFactory: Factory to create a `ContentTokenizer` which will be used to
     ///     split each `ContentElement` item into smaller chunks. Splits by sentences by default.
@@ -100,6 +120,10 @@ public class PublicationSpeechSynthesizer: Loggable {
     public init?(
         publication: Publication,
         config: Configuration = Configuration(),
+        audioSessionConfig: AudioSession.Configuration = .init(
+            category: .playback,
+            mode: .spokenAudio
+        ),
         engineFactory: @escaping EngineFactory = { AVTTSEngine() },
         tokenizerFactory: @escaping TokenizerFactory = defaultTokenizerFactory,
         delegate: PublicationSpeechSynthesizerDelegate? = nil
@@ -110,6 +134,7 @@ public class PublicationSpeechSynthesizer: Loggable {
 
         self.publication = publication
         self.config = config
+        audioSessionUser = AudioSessionUser(config: audioSessionConfig)
         self.engineFactory = engineFactory
         self.tokenizerFactory = tokenizerFactory
         self.delegate = delegate
@@ -151,6 +176,8 @@ public class PublicationSpeechSynthesizer: Loggable {
 
     /// (Re)starts the synthesizer from the given locator or the beginning of the publication.
     public func start(from startLocator: Locator? = nil) {
+        AudioSession.shared.start(with: audioSessionUser, isPlaying: false)
+
         currentTask?.cancel()
         publicationIterator = publication.content(from: startLocator)?.iterator()
         playNextUtterance(.forward)
@@ -225,22 +252,24 @@ public class PublicationSpeechSynthesizer: Loggable {
 
     /// Plays the given `utterance` with the TTS `engine`.
     private func play(_ utterance: Utterance) {
-        state = .playing(utterance, range: nil)
-
         currentTask = engine.speak(
             TTSUtterance(
                 text: utterance.text,
                 delay: 0,
                 voiceOrLanguage: voiceOrLanguage(for: utterance)
             ),
-            onSpeakRange: { [unowned self] range in
-                state = .playing(
+            onSpeakRange: { [weak self] range in
+                guard let self = self else {
+                    return
+                }
+
+                self.state = .playing(
                     utterance,
                     range: utterance.locator.copy(
                         text: { text in
                             guard
                                 let highlight = text.highlight,
-                                highlight.startIndex <= range.lowerBound && highlight.endIndex >= range.upperBound
+                                highlight.startIndex <= range.lowerBound, highlight.endIndex >= range.upperBound
                             else {
                                 return
                             }
@@ -249,16 +278,22 @@ public class PublicationSpeechSynthesizer: Loggable {
                     )
                 )
             },
-            completion: { [unowned self] result in
+            completion: { [weak self] result in
+                guard let self = self else {
+                    return
+                }
+
                 switch result {
                 case .success:
-                    playNextUtterance(.forward)
-                case .failure(let error):
-                    state = .paused(utterance)
-                    delegate?.publicationSpeechSynthesizer(self, utterance: utterance, didFailWithError: .engine(error))
+                    self.playNextUtterance(.forward)
+                case let .failure(error):
+                    self.state = .paused(utterance)
+                    self.delegate?.publicationSpeechSynthesizer(self, utterance: utterance, didFailWithError: .engine(error))
                 }
             }
         )
+
+        state = .playing(utterance, range: nil)
     }
 
     /// Returns the user selected voice if it's compatible with the utterance language. Otherwise, falls back on
@@ -363,6 +398,24 @@ public class PublicationSpeechSynthesizer: Loggable {
         default:
             return []
         }
+    }
+
+    // MARK: - Audio session
+
+    private let audioSessionUser: AudioSessionUser
+
+    private final class AudioSessionUser: R2Shared.AudioSessionUser {
+        let audioConfiguration: AudioSession.Configuration
+
+        init(config: AudioSession.Configuration) {
+            audioConfiguration = config
+        }
+
+        deinit {
+            AudioSession.shared.end(for: self)
+        }
+
+        func play() {}
     }
 }
 

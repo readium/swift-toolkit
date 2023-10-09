@@ -1,64 +1,58 @@
 //
-//  PublicationCollectionTests.swift
-//  r2-shared-swiftTests
-//
-//  Created by Mickaël Menu on 11.03.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 class PublicationCollectionTests: XCTestCase {
-    
     func testParseMinimalJSON() {
         XCTAssertEqual(
             try? PublicationCollection(json: [
                 "links": [
-                    ["href": "/link"]
-                ]
+                    ["href": "/link"],
+                ],
             ]),
             PublicationCollection(links: [Link(href: "/link")])
         )
     }
-    
+
     func testParseFullJSON() {
         XCTAssertEqual(
             try? PublicationCollection(json: [
                 "metadata": [
-                    "metadata1": "value"
+                    "metadata1": "value",
                 ],
                 "links": [
-                    ["href": "/link"]
+                    ["href": "/link"],
                 ],
                 "sub1": [
                     "links": [
-                        ["href": "/sublink"]
-                    ]
+                        ["href": "/sublink"],
+                    ],
                 ],
                 "sub2": [
                     ["href": "/sublink1"],
-                    ["href": "/sublink2"]
+                    ["href": "/sublink2"],
                 ],
                 "sub3": [
                     [
                         "links": [
-                            ["href": "/sublink3"]
-                        ]
+                            ["href": "/sublink3"],
+                        ],
                     ],
                     [
                         "links": [
-                            ["href": "/sublink4"]
-                        ]
-                    ]
-                ]
-            ]),
+                            ["href": "/sublink4"],
+                        ],
+                    ],
+                ],
+            ] as [String: Any]),
             PublicationCollection(
                 metadata: [
-                    "metadata1": "value"
+                    "metadata1": "value",
                 ],
                 links: [Link(href: "/link")],
                 subcollections: [
@@ -66,13 +60,13 @@ class PublicationCollectionTests: XCTestCase {
                     "sub2": [PublicationCollection(links: [Link(href: "/sublink1"), Link(href: "/sublink2")])],
                     "sub3": [
                         PublicationCollection(links: [Link(href: "/sublink3")]),
-                        PublicationCollection(links: [Link(href: "/sublink4")])
-                    ]
+                        PublicationCollection(links: [Link(href: "/sublink4")]),
+                    ],
                 ]
             )
         )
     }
-    
+
     func testParseInvalidJSON() {
         XCTAssertThrowsError(try PublicationCollection(json: ""))
     }
@@ -80,56 +74,56 @@ class PublicationCollectionTests: XCTestCase {
     func testParseJSONArray() {
         XCTAssertEqual(
             PublicationCollection.makeCollections(json: [
-                "ignored": [ "value" ],
+                "ignored": ["value"],
                 "sub1": [
                     "links": [
-                        ["href": "/sublink"]
-                    ]
+                        ["href": "/sublink"],
+                    ],
                 ],
                 "sub2": [
                     ["href": "/sublink1"],
-                    ["href": "/sublink2"]
+                    ["href": "/sublink2"],
                 ],
                 "sub3": [
                     [
                         "links": [
-                            ["href": "/sublink3"]
-                        ]
+                            ["href": "/sublink3"],
+                        ],
                     ],
                     [
                         "links": [
-                            ["href": "/sublink4"]
-                        ]
-                    ]
-                ]
-            ]),
+                            ["href": "/sublink4"],
+                        ],
+                    ],
+                ],
+            ] as [String: Any]),
             [
                 "sub1": [PublicationCollection(links: [Link(href: "/sublink")])],
                 "sub2": [PublicationCollection(links: [Link(href: "/sublink1"), Link(href: "/sublink2")])],
                 "sub3": [
                     PublicationCollection(links: [Link(href: "/sublink3")]),
-                    PublicationCollection(links: [Link(href: "/sublink4")])
-                ]
+                    PublicationCollection(links: [Link(href: "/sublink4")]),
+                ],
             ]
         )
     }
-    
+
     func testGetMinimalJSON() {
         AssertJSONEqual(
             PublicationCollection(links: [Link(href: "/link")]).json,
             [
                 "links": [
-                    ["href": "/link", "templated": false]
-                ]
+                    ["href": "/link", "templated": false] as [String: Any],
+                ],
             ]
         )
     }
-    
+
     func testGetFullJSON() {
         AssertJSONEqual(
             PublicationCollection(
                 metadata: [
-                    "metadata1": "value"
+                    "metadata1": "value",
                 ],
                 links: [Link(href: "/link")],
                 subcollections: [
@@ -137,44 +131,44 @@ class PublicationCollectionTests: XCTestCase {
                     "sub2": [PublicationCollection(links: [Link(href: "/sublink1"), Link(href: "/sublink2")])],
                     "sub3": [
                         PublicationCollection(links: [Link(href: "/sublink3")]),
-                        PublicationCollection(links: [Link(href: "/sublink4")])
-                    ]
+                        PublicationCollection(links: [Link(href: "/sublink4")]),
+                    ],
                 ]
             ).json,
             [
                 "metadata": [
-                    "metadata1": "value"
+                    "metadata1": "value",
                 ],
                 "links": [
-                    ["href": "/link", "templated": false]
+                    ["href": "/link", "templated": false] as [String: Any],
                 ],
                 "sub1": [
                     "links": [
-                        ["href": "/sublink", "templated": false]
-                    ]
+                        ["href": "/sublink", "templated": false] as [String: Any],
+                    ],
                 ],
                 "sub2": [
                     "links": [
-                        ["href": "/sublink1", "templated": false],
-                        ["href": "/sublink2", "templated": false]
-                    ]
+                        ["href": "/sublink1", "templated": false] as [String: Any],
+                        ["href": "/sublink2", "templated": false],
+                    ],
                 ],
                 "sub3": [
                     [
                         "links": [
-                            ["href": "/sublink3", "templated": false]
-                        ]
+                            ["href": "/sublink3", "templated": false] as [String: Any],
+                        ],
                     ],
                     [
                         "links": [
-                            ["href": "/sublink4", "templated": false]
-                        ]
-                    ]
-                ]
-            ]
+                            ["href": "/sublink4", "templated": false],
+                        ],
+                    ],
+                ],
+            ] as [String: Any]
         )
     }
-    
+
     func testGetJSONArray() {
         AssertJSONEqual(
             PublicationCollection.serializeCollections([
@@ -182,35 +176,34 @@ class PublicationCollectionTests: XCTestCase {
                 "sub2": [PublicationCollection(links: [Link(href: "/sublink1"), Link(href: "/sublink2")])],
                 "sub3": [
                     PublicationCollection(links: [Link(href: "/sublink3")]),
-                    PublicationCollection(links: [Link(href: "/sublink4")])
-                ]
+                    PublicationCollection(links: [Link(href: "/sublink4")]),
+                ],
             ]),
             [
                 "sub1": [
                     "links": [
-                        ["href": "/sublink", "templated": false]
-                    ]
+                        ["href": "/sublink", "templated": false] as [String: Any],
+                    ],
                 ],
                 "sub2": [
                     "links": [
-                        ["href": "/sublink1", "templated": false],
-                        ["href": "/sublink2", "templated": false]
-                    ]
+                        ["href": "/sublink1", "templated": false] as [String: Any],
+                        ["href": "/sublink2", "templated": false],
+                    ],
                 ],
                 "sub3": [
                     [
                         "links": [
-                            ["href": "/sublink3", "templated": false]
-                        ]
+                            ["href": "/sublink3", "templated": false] as [String: Any],
+                        ],
                     ],
                     [
                         "links": [
-                            ["href": "/sublink4", "templated": false]
-                        ]
-                    ]
-                ]
-            ]
+                            ["href": "/sublink4", "templated": false],
+                        ],
+                    ],
+                ],
+            ] as [String: Any]
         )
     }
-
 }

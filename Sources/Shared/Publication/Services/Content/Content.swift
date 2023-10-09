@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -43,6 +43,37 @@ public extension Content {
 public protocol ContentElement: ContentAttributesHolder {
     /// Locator targeting this element in the Publication.
     var locator: Locator { get }
+
+    /// Returns whether the receiver is equivalent to `other`.
+    func isEqualTo(_ other: ContentElement) -> Bool
+}
+
+public extension ContentElement where Self: Equatable {
+    func isEqualTo(_ other: ContentElement) -> Bool {
+        guard let otherElement = other as? Self else { return false }
+        return self == otherElement
+    }
+}
+
+/// A type-erasing `ContentElement` object which implements `Equatable`.
+public struct AnyEquatableContentElement: Equatable, ContentElement {
+    private let element: ContentElement
+
+    public init<E: ContentElement>(_ element: E) {
+        self.element = element
+    }
+
+    public var locator: Locator { element.locator }
+
+    public var attributes: [ContentAttribute] { element.attributes }
+
+    public func isEqualTo(_ other: ContentElement) -> Bool {
+        element.isEqualTo(other)
+    }
+
+    public static func == (lhs: AnyEquatableContentElement, rhs: AnyEquatableContentElement) -> Bool {
+        lhs.element.isEqualTo(rhs.element)
+    }
 }
 
 /// An element which can be represented as human-readable text.
@@ -64,7 +95,7 @@ public protocol EmbeddedContentElement: ContentElement {
 }
 
 /// An audio clip.
-public struct AudioContentElement: EmbeddedContentElement, TextualContentElement {
+public struct AudioContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
     public var locator: Locator
     public var embeddedLink: Link
     public var attributes: [ContentAttribute]
@@ -77,7 +108,7 @@ public struct AudioContentElement: EmbeddedContentElement, TextualContentElement
 }
 
 /// A video clip.
-public struct VideoContentElement: EmbeddedContentElement, TextualContentElement {
+public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
     public var locator: Locator
     public var embeddedLink: Link
     public var attributes: [ContentAttribute]
@@ -90,7 +121,7 @@ public struct VideoContentElement: EmbeddedContentElement, TextualContentElement
 }
 
 /// A bitmap image.
-public struct ImageContentElement: EmbeddedContentElement, TextualContentElement {
+public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
     public var locator: Locator
     public var embeddedLink: Link
 
@@ -115,7 +146,7 @@ public struct ImageContentElement: EmbeddedContentElement, TextualContentElement
 ///
 /// @param role Purpose of this element in the broader context of the document.
 /// @param segments Ranged portions of text with associated attributes.
-public struct TextContentElement: TextualContentElement {
+public struct TextContentElement: Hashable, TextualContentElement {
     public var locator: Locator
     public var role: Role
     public var segments: [Segment]
@@ -132,9 +163,8 @@ public struct TextContentElement: TextualContentElement {
         segments.map(\.text).joined()
     }
 
-
     /// Represents a purpose of an element in the broader context of the document.
-    public enum Role {
+    public enum Role: Hashable {
         /// Title of a section with its level (1 being the highest).
         case heading(level: Int)
 
@@ -153,7 +183,7 @@ public struct TextContentElement: TextualContentElement {
     /// @param locator Locator to the segment of text.
     /// @param text Text in the segment.
     /// @param attributes Attributes associated with this segment, e.g. language.
-    public struct Segment: ContentAttributesHolder {
+    public struct Segment: Hashable, ContentAttributesHolder {
         public var locator: Locator
         public var text: String
         public var attributes: [ContentAttribute]
@@ -169,7 +199,7 @@ public struct TextContentElement: TextualContentElement {
 /// An attribute key identifies uniquely a type of attribute.
 ///
 /// The `V` phantom type is there to perform static type checking when requesting an attribute.
-public struct ContentAttributeKey<V> {
+public struct ContentAttributeKey<V>: Hashable {
     public static var accessibilityLabel: ContentAttributeKey<String> { .init("accessibilityLabel") }
     public static var language: ContentAttributeKey<Language> { .init("language") }
 
@@ -201,7 +231,6 @@ public protocol ContentAttributesHolder {
 }
 
 public extension ContentAttributesHolder {
-
     var language: Language? { self[.language] }
     var accessibilityLabel: String? { self[.accessibilityLabel] }
 
@@ -235,7 +264,6 @@ public extension ContentAttributesHolder {
 
 /// Iterates through a list of `ContentElement` items.
 public protocol ContentIterator: AnyObject {
-
     /// Retrieves the next element, or nil if we reached the end.
     func next() throws -> ContentElement?
 

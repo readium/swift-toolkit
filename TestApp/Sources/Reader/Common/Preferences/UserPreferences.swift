@@ -1,21 +1,20 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Combine
 import Foundation
-import SwiftUI
 import R2Navigator
 import R2Shared
+import SwiftUI
 
 final class UserPreferencesViewModel<
     S: ConfigurableSettings,
     P: ConfigurablePreferences,
     E: PreferencesEditor
 >: ObservableObject where E.Preferences == P {
-
     @Published private(set) var editor: E
 
     private let bookId: Book.Id
@@ -29,7 +28,7 @@ final class UserPreferencesViewModel<
         configurable: C,
         store: ST
     ) where C.Settings == S, C.Preferences == P, C.Editor == E, ST.Preferences == P {
-        self.editor = configurable.editor(of: preferences)
+        editor = configurable.editor(of: preferences)
         self.bookId = bookId
         self.configurable = configurable.eraseToAnyConfigurable()
         self.store = store.eraseToAnyPreferencesStore()
@@ -61,7 +60,6 @@ struct UserPreferences<
     P: ConfigurablePreferences,
     E: PreferencesEditor
 >: View where E.Preferences == P {
-
     @ObservedObject var model: UserPreferencesViewModel<S, P, E>
     var onClose: () -> Void
 
@@ -74,7 +72,7 @@ struct UserPreferences<
         userPreferences(editor: model.editor, commit: model.commit)
     }
 
-    @ViewBuilder func userPreferences<E: PreferencesEditor>(editor: E, commit: @escaping () -> Void) -> some View {
+    @ViewBuilder func userPreferences<PE: PreferencesEditor>(editor: PE, commit: @escaping () -> Void) -> some View {
         NavigationView {
             List {
                 switch editor {
@@ -209,7 +207,7 @@ struct UserPreferences<
                 )
             }
         }
-        
+
         if let scroll = scroll {
             Section {
                 toggleRow(
@@ -403,7 +401,7 @@ struct UserPreferences<
                         }
                     )
                 }
-                
+
                 if let imageFilter = imageFilter {
                     pickerRow(
                         title: "Image filter",
@@ -439,32 +437,32 @@ struct UserPreferences<
 
         if fontFamily != nil || fontSize != nil || fontWeight != nil || textNormalization != nil {
             Section {
-                 if let fontFamily = fontFamily {
-                     pickerRow(
-                         title: "Typeface",
-                         preference: fontFamily
+                if let fontFamily = fontFamily {
+                    pickerRow(
+                        title: "Typeface",
+                        preference: fontFamily
                             .with(supportedValues: [
                                 nil,
                                 .sansSerif,
                                 .iaWriterDuospace,
                                 .accessibleDfA,
                                 .openDyslexic,
-                                .literata
+                                .literata,
                             ])
                             .eraseToAnyPreference(),
-                         commit: commit,
-                         formatValue: { ff in
-                             if let ff = ff {
-                                 switch ff {
-                                     case .sansSerif: return "Sans serif"
-                                     default: return ff.rawValue
-                                 }
-                             } else {
-                                 return "Original"
-                             }
-                         }
-                     )
-                 }
+                        commit: commit,
+                        formatValue: { ff in
+                            if let ff = ff {
+                                switch ff {
+                                case .sansSerif: return "Sans serif"
+                                default: return ff.rawValue
+                                }
+                            } else {
+                                return "Original"
+                            }
+                        }
+                    )
+                }
 
                 if let fontSize = fontSize {
                     stepperRow(
@@ -689,9 +687,8 @@ struct UserPreferences<
         ) {
             HStack {
                 Stepper(title,
-                    onIncrement: onIncrement,
-                    onDecrement: onDecrement
-                )
+                        onIncrement: onIncrement,
+                        onDecrement: onDecrement)
 
                 Text(value)
                     .font(.caption)
@@ -752,9 +749,8 @@ struct UserPreferences<
             onClear: onClear
         ) {
             ColorPicker(title,
-                selection: value,
-                supportsOpacity: false
-            )
+                        selection: value,
+                        supportsOpacity: false)
         }
     }
 
@@ -777,7 +773,6 @@ struct UserPreferences<
 }
 
 extension Preference {
-
     /// Creates a SwiftUI binding to modify the preference's value.
     ///
     /// This is convenient when paired with a `Toggle` or `Picker`.

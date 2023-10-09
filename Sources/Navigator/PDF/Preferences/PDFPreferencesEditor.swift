@@ -13,8 +13,11 @@ import R2Shared
 /// interface or modifying existing preferences. It includes rules for
 /// adjusting preferences, such as the supported values or ranges.
 public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreferences, PDFSettings> {
+    private let defaults: PDFDefaults
 
     public init(initialPreferences: PDFPreferences, metadata: Metadata, defaults: PDFDefaults) {
+        self.defaults = defaults
+
         super.init(
             initialPreferences: initialPreferences,
             settings: { PDFSettings(preferences: $0, defaults: defaults, metadata: metadata) }
@@ -26,7 +29,7 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
         preference(
             preference: \.backgroundColor,
             setting: \.backgroundColor,
-            isEffective: { [unowned self] _ in preferences.backgroundColor != nil }
+            isEffective: { $0.preferences.backgroundColor != nil }
         )
 
     /// Indicates if the first page should be displayed in its own spread.
@@ -36,8 +39,9 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
         preference(
             preference: \.offsetFirstPage,
             setting: \.offsetFirstPage,
+            defaultEffectiveValue: defaults.offsetFirstPage ?? false,
             isEffective: {
-                return (!$0.settings.scroll || $0.settings.scrollAxis == .vertical)
+                (!$0.settings.scroll || $0.settings.scrollAxis == .vertical)
                     && $0.settings.spread != .never
             }
         )
@@ -47,8 +51,9 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
         rangePreference(
             preference: \.pageSpacing,
             setting: \.pageSpacing,
+            defaultEffectiveValue: 0,
             isEffective: { _ in true },
-            supportedRange: 0...200,
+            supportedRange: 0 ... 200,
             progressionStrategy: .increment(4.0),
             format: { String(format: "%.1f pt", $0) }
         )
@@ -58,6 +63,7 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
         enumPreference(
             preference: \.readingProgression,
             setting: \.readingProgression,
+            defaultEffectiveValue: defaults.readingProgression ?? .ltr,
             isEffective: { _ in true },
             supportedValues: [.ltr, .rtl]
         )
@@ -68,6 +74,7 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
         preference(
             preference: \.scroll,
             setting: \.scroll,
+            defaultEffectiveValue: defaults.scroll ?? false,
             isEffective: { _ in true }
         )
 
@@ -78,6 +85,7 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
         enumPreference(
             preference: \.scrollAxis,
             setting: \.scrollAxis,
+            defaultEffectiveValue: defaults.scrollAxis ?? .horizontal,
             isEffective: { $0.settings.scroll },
             supportedValues: [.vertical, .horizontal]
         )
@@ -88,6 +96,7 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
         enumPreference(
             preference: \.spread,
             setting: \.spread,
+            defaultEffectiveValue: defaults.spread ?? .auto,
             isEffective: {
                 !$0.settings.scroll || $0.settings.scrollAxis == .vertical
             },
@@ -101,6 +110,7 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
         preference(
             preference: \.visibleScrollbar,
             setting: \.visibleScrollbar,
+            defaultEffectiveValue: defaults.visibleScrollbar ?? true,
             isEffective: { $0.settings.scroll }
         )
 }

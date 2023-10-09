@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -9,7 +9,6 @@ import R2Shared
 
 /// Locator service for audio publications.
 final class AudioLocatorService: DefaultLocatorService {
-
     static func makeFactory() -> (PublicationServiceContext) -> AudioLocatorService {
         { context in AudioLocatorService(publication: context.publication) }
     }
@@ -31,14 +30,14 @@ final class AudioLocatorService: DefaultLocatorService {
         guard let totalDuration = totalDuration else {
             return nil
         }
-        
+
         let positionInPublication = progression * totalDuration
         guard let (link, resourcePosition) = readingOrderItemAtPosition(positionInPublication) else {
             return nil
         }
-        
+
         let positionInResource = positionInPublication - resourcePosition
-        
+
         return Locator(
             href: link.href,
             type: link.type ?? MediaType.binary.string,
@@ -62,18 +61,17 @@ final class AudioLocatorService: DefaultLocatorService {
         var current: Double = 0
         for (i, duration) in durations.enumerated() {
             let link = readingOrder[i]
-            if current..<current+duration ~= position {
+            if current ..< current + duration ~= position {
                 return (link, startPosition: current)
             }
-            
+
             current += duration
         }
-        
+
         if position == totalDuration, let link = readingOrder.last {
             return (link, startPosition: current - (link.duration ?? 0))
         }
-    
+
         return nil
     }
-    
 }

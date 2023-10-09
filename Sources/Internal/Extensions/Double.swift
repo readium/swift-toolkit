@@ -6,14 +6,13 @@
 
 import Foundation
 
-extension Double {
-
-    public var percentageString: String {
+public extension Double {
+    var percentageString: String {
         formatPercentage()
     }
 
     /// Formats as a percentage.
-    public func formatPercentage(maximumFractionDigits: Int = 0) -> String {
+    func formatPercentage(maximumFractionDigits: Int = 0) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .percent
         formatter.minimumIntegerDigits = 1
@@ -27,7 +26,7 @@ extension Double {
     }
 
     /// Formats as a decimal number.
-    public func formatDecimal(maximumFractionDigits: Int = 0) -> String {
+    func formatDecimal(maximumFractionDigits: Int = 0) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = maximumFractionDigits

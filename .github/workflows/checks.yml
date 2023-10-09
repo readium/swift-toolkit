@@ -23,12 +23,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install dependencies
-        run: brew install xcodegen
+        run: |
+          brew update
+          brew install xcodegen
       - name: Check Carthage project
         run: |
           # Check that the Carthage project is up to date.
           make carthage-project
-          git diff --exit-code --name-only Support/Carthage/Readium.xcodeproj
+          git diff --exit-code Support/Carthage/Readium.xcodeproj
       - name: Build
         run: |
           xcodebuild build-for-testing -scheme "$scheme" -destination "platform=$platform,name=$device"
@@ -38,7 +40,7 @@ jobs:
 
   lint:
     name: Lint
-    runs-on: macos-11
+    runs-on: macos-12
     if: ${{ !github.event.pull_request.draft }}
     env:
       scripts: ${{ 'Sources/Navigator/EPUB/Scripts' }}
@@ -56,10 +58,12 @@ jobs:
         run: |
             make scripts
             git diff --exit-code --name-only Sources/Navigator/EPUB/Assets/Static/scripts/*.js
+      - name: Lint Swift formatting
+        run: make lint-format
 
   int-dev:
     name: Integration (Local)
-    runs-on: macos-11
+    runs-on: macos-12
     if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
@@ -69,7 +73,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install dependencies
-        run: brew install xcodegen
+        run: |
+          brew update
+          brew install xcodegen
       - name: Generate project
         run: make dev lcp=${{ secrets.LCP_URL_SPM }}
       - name: Build
@@ -78,7 +84,7 @@ jobs:
 
   int-spm:
     name: Integration (Swift Package Manager)
-    runs-on: macos-11
+    runs-on: macos-12
     if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
@@ -94,7 +100,9 @@ jobs:
         run: |
           echo "commit_sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
       - name: Install dependencies
-        run: brew install xcodegen
+        run: |
+          brew update
+          brew install xcodegen
       - name: Generate project
         run: make spm lcp=${{ secrets.LCP_URL_SPM }} commit=$commit_sha
       - name: Build
@@ -103,7 +111,7 @@ jobs:
 
   int-carthage:
     name: Integration (Carthage)
-    runs-on: macos-11
+    runs-on: macos-12
     if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
@@ -119,7 +127,9 @@ jobs:
         run: |
           echo "commit_sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
       - name: Install dependencies
-        run: brew install xcodegen
+        run: |
+          brew update
+          brew install xcodegen
       - name: Generate project
         run: make carthage lcp=${{ secrets.LCP_URL_CARTHAGE }} commit=$commit_sha
       - name: Build
@@ -131,7 +141,7 @@ jobs:
   int-cocoapods:
     name: Integration (CocoaPods)
     if: github.event_name == 'push'
-    runs-on: macos-11
+    runs-on: macos-12
     defaults:
       run:
         working-directory: TestApp
@@ -140,7 +150,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install dependencies
-        run: brew install xcodegen
+        run: |
+          brew update
+          brew install xcodegen
       - name: Generate project
         run: make cocoapods lcp=${{ secrets.LCP_URL_COCOAPODS }} commit=$commit_sha
       - name: Build

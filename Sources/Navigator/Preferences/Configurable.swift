@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -29,11 +29,10 @@ public protocol Configurable {
 }
 
 /// Marker interface for the setting properties holder.
-public protocol ConfigurableSettings {}
+public protocol ConfigurableSettings: Hashable {}
 
 /// Marker interface for the `Preferences` properties holder.
-public protocol ConfigurablePreferences: Codable, Equatable {
-
+public protocol ConfigurablePreferences: Codable, Hashable {
     /// Empty set of preferences.
     static var empty: Self { get }
 
@@ -43,9 +42,9 @@ public protocol ConfigurablePreferences: Codable, Equatable {
     func merging(_ other: Self) -> Self
 }
 
-extension Configurable {
+public extension Configurable {
     /// Wraps this `Configurable` with a type eraser.
-    public func eraseToAnyConfigurable() -> AnyConfigurable<Settings, Preferences, Editor> {
+    func eraseToAnyConfigurable() -> AnyConfigurable<Settings, Preferences, Editor> {
         AnyConfigurable(self)
     }
 }
@@ -56,13 +55,13 @@ public class AnyConfigurable<
     Preferences: ConfigurablePreferences,
     Editor: PreferencesEditor
 >: Configurable where Editor.Preferences == Preferences {
-
     private let _settings: () -> Settings
     private let _submitPreferences: (Preferences) -> Void
     private let _editor: (Preferences) -> Editor
 
     init<C: Configurable>(_ configurable: C)
-    where C.Settings == Settings, C.Preferences == Preferences, C.Editor == Editor {
+        where C.Settings == Settings, C.Preferences == Preferences, C.Editor == Editor
+    {
         _settings = { configurable.settings }
         _submitPreferences = configurable.submitPreferences
         _editor = configurable.editor(of:)

@@ -7,7 +7,6 @@
 import Foundation
 
 public class ProxyPreference<Value>: Preference {
-
     private let _value: () -> Value?
     private let _effectiveValue: () -> Value
     private let _isEffective: () -> Bool
@@ -19,10 +18,10 @@ public class ProxyPreference<Value>: Preference {
         isEffective: @escaping () -> Bool,
         set: @escaping (Value?) -> Void
     ) {
-        self._value = value
-        self._effectiveValue = effectiveValue
-        self._isEffective = isEffective
-        self._set = set
+        _value = value
+        _effectiveValue = effectiveValue
+        _isEffective = isEffective
+        _set = set
     }
 
     public var value: Value? {
@@ -43,7 +42,6 @@ public class ProxyPreference<Value>: Preference {
 }
 
 public class ProxyEnumPreference<Value: Hashable>: ProxyPreference<Value>, EnumPreference {
-
     public let supportedValues: [Value]
 
     init(
@@ -57,15 +55,13 @@ public class ProxyEnumPreference<Value: Hashable>: ProxyPreference<Value>, EnumP
         super.init(value: value, effectiveValue: effectiveValue, isEffective: isEffective, set: set)
     }
 
-
-    public override func set(_ value: Value?) {
+    override public func set(_ value: Value?) {
         precondition(value == nil || supportedValues.contains(value!))
         super.set(value)
     }
 }
 
 public class ProxyRangePreference<Value: Comparable>: ProxyPreference<Value>, RangePreference {
-
     public var supportedRange: ClosedRange<Value>
     private let progressionStrategy: AnyProgressionStrategy<Value>
     private let valueFormatter: (Value) -> String
@@ -81,11 +77,11 @@ public class ProxyRangePreference<Value: Comparable>: ProxyPreference<Value>, Ra
     ) {
         self.supportedRange = supportedRange
         self.progressionStrategy = progressionStrategy
-        self.valueFormatter = format
+        valueFormatter = format
         super.init(value: value, effectiveValue: effectiveValue, isEffective: isEffective, set: set)
     }
 
-    public override func set(_ value: Value?) {
+    override public func set(_ value: Value?) {
         super.set(value?.clamped(to: supportedRange))
     }
 

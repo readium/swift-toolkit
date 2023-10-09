@@ -1,5 +1,5 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -24,7 +24,6 @@ public typealias ArchivePath = String
 
 /// Represents an immutable archive, such as a ZIP file or an exploded directory.
 public protocol Archive {
-
     /// List of all the archived entries metadata.
     var entries: [ArchiveEntry] { get }
 
@@ -36,15 +35,12 @@ public protocol Archive {
 
     /// Closes the archive.
     func close()
-
 }
 
 public extension Archive {
-
     func entry(at path: ArchivePath) -> ArchiveEntry? {
         entries.first { $0.path == path }
     }
-
 }
 
 /// Holds metadata about a single archive entry.
@@ -59,7 +55,6 @@ public struct ArchiveEntry: Equatable {
 
 /// Provides access to an entry's content.
 public protocol ArchiveEntryReader {
-
     /// Direct file to the entry, when available. For example when the archive is exploded on the file system.
     ///
     /// This is meant to be used as an optimization for consumers which can't work efficiently with streams. However,
@@ -75,36 +70,29 @@ public protocol ArchiveEntryReader {
 
     /// Closes any pending resources for this entry.
     func close()
-
 }
 
 extension ArchiveEntryReader {
-
     public var file: URL? { nil }
 
     /// Reads the whole content of this entry.
     func read() -> ArchiveResult<Data> {
-        return read(range: nil)
+        read(range: nil)
     }
-
 }
 
 public protocol ArchiveFactory {
-    
     /// Opens an archive from a local file path.
     func open(url: URL, password: String?) -> ArchiveResult<Archive>
-    
 }
 
 public class DefaultArchiveFactory: ArchiveFactory, Loggable {
-    
     public init() {}
 
     public func open(url: URL, password: String?) -> ArchiveResult<Archive> {
         warnIfMainThread()
         return ExplodedArchive.make(url: url)
-            .map { $0 as Archive}
+            .map { $0 as Archive }
             .catch { _ in MinizipArchive.make(url: url).map { $0 as Archive } }
     }
-    
 }

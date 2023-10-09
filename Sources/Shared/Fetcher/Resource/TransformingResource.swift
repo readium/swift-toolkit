@@ -1,12 +1,7 @@
 //
-//  TransformingResource.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 09/08/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -21,51 +16,47 @@ import Foundation
 /// You can either provide a `transform` closure during construction, or extend
 /// `TransformingResource` and override `transform()`.
 open class TransformingResource: ProxyResource {
-    
     private let transformClosure: ((ResourceResult<Data>) -> ResourceResult<Data>)?
-    
+
     public init(_ resource: Resource, transform: ((ResourceResult<Data>) -> ResourceResult<Data>)? = nil) {
-        self.transformClosure = transform
+        transformClosure = transform
         super.init(resource)
     }
 
     private lazy var data: ResourceResult<Data> = transform(resource.read())
-    
+
     open func transform(_ data: ResourceResult<Data>) -> ResourceResult<Data> {
-        return transformClosure?(data) ?? data
+        transformClosure?(data) ?? data
     }
-    
-    open override var length: ResourceResult<UInt64> {
+
+    override open var length: ResourceResult<UInt64> {
         data.map { UInt64($0.count) }
     }
-    
-    open override func read(range: Range<UInt64>?) -> ResourceResult<Data> {
-        return data.map { data in
-            if let range = range?.clamped(to: 0..<UInt64(data.count)) {
+
+    override open func read(range: Range<UInt64>?) -> ResourceResult<Data> {
+        data.map { data in
+            if let range = range?.clamped(to: 0 ..< UInt64(data.count)) {
                 return data[range]
             } else {
                 return data
             }
         }
     }
-
 }
 
 /// Convenient shortcuts to create a `TransformingResource`.
 public extension Resource {
-    
     func map(transform: @escaping (Data) -> Data) -> Resource {
-        return TransformingResource(self, transform: { $0.map(transform) })
+        TransformingResource(self, transform: { $0.map(transform) })
     }
-    
+
     func mapAsString(encoding: String.Encoding? = nil, transform: @escaping (String) -> String) -> Resource {
         let encoding = encoding ?? link.mediaType.encoding ?? .utf8
         return TransformingResource(self) {
-            return $0.map { data in
+            $0.map { data in
                 let string = String(data: data, encoding: encoding) ?? ""
                 return transform(string).data(using: .utf8) ?? Data()
             }
         }
     }
-    
 }

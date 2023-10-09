@@ -1,12 +1,7 @@
 //
-//  Logger.swift
-//  r2-shared-swift
-//
-//  Created by Alexandre Camilleri on 3/8/17.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -15,10 +10,10 @@ import Foundation
 /// Default logger is the `LoggerStub` class
 ///
 /// - Parameter customLogger: The Logger that will be used for printing logs.
-public func R2EnableLog(withMinimumSeverityLevel level: SeverityLevel, customLogger: LoggerType = LoggerStub()) -> () {
+public func R2EnableLog(withMinimumSeverityLevel level: SeverityLevel, customLogger: LoggerType = LoggerStub()) {
     Logger.sharedInstance.setupLogger(logger: customLogger)
     Logger.sharedInstance.setMinimumSeverityLevel(at: level)
-    
+
     print("\(SeverityLevel.info.symbol) Readium 2 Log enabled with minimum severity level of [\(level)].")
 }
 
@@ -49,9 +44,10 @@ public final class Logger {
     ///   - logger: The logger to be used as the `activeLogger`.
     ///   - severityLevel: The minimum severity level of displayed logs.
     public func setupLogger(logger: LoggerType,
-                            withMinimumSeverityLevel severityLevel: SeverityLevel? = .warning) {
+                            withMinimumSeverityLevel severityLevel: SeverityLevel? = .warning)
+    {
         activeLogger = logger
-        self.minimumSeverityLevel = severityLevel
+        minimumSeverityLevel = severityLevel
     }
 
     /// Allow the framework user to set the minimum severity level for the logs
@@ -62,7 +58,7 @@ public final class Logger {
         guard let severityLevel = severityLevel else {
             return
         }
-        self.minimumSeverityLevel = severityLevel
+        minimumSeverityLevel = severityLevel
     }
 
     // MARK: - Internal methods.

@@ -1,21 +1,20 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2023 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
 @testable import R2Shared
+import XCTest
 
 class HTTPProblemDetailsTests: XCTestCase {
-
     /// Parses a minimal Problem Details JSON.
     func testParseMinimalJSON() throws {
         let json = """
             {"title": "You do not have enough credit."}
         """.data(using: .utf8)!
 
-        XCTAssertEqual((try HTTPProblemDetails(data: json)).title, "You do not have enough credit.")
+        XCTAssertEqual(try (HTTPProblemDetails(data: json)).title, "You do not have enough credit.")
     }
 
     /// Parses a full Problem Details JSON.
@@ -47,5 +46,4 @@ class HTTPProblemDetailsTests: XCTestCase {
             )
         )
     }
-
 }

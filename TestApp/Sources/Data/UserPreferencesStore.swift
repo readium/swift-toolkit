@@ -4,9 +4,9 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import Combine
 import Foundation
 import R2Navigator
-import Combine
 
 /// A persistent store for a set of user preferences of type `Preferences`.
 protocol UserPreferencesStore {
@@ -21,7 +21,6 @@ protocol UserPreferencesStore {
     /// Observes the preferences of the given book ID.
     func preferencesPublisher(for bookId: Book.Id) -> AnyPublisher<Preferences, Never>
 }
-
 
 /// A `UserPreferencesStore` which splits user preferences and store them in
 /// separate stores.
@@ -85,7 +84,7 @@ final class DatabaseUserPreferencesStore<Preferences: ConfigurablePreferences>: 
     func preferencesPublisher(for bookId: Book.Id) -> AnyPublisher<Preferences, Never> {
         books.observe(bookId)
             .tryMap { book in
-                (try book?.preferences() as Preferences?) ?? .empty
+                try (book?.preferences() as Preferences?) ?? .empty
             }
             .removeDuplicates()
             .assertNoFailure()
@@ -97,7 +96,7 @@ final class DatabaseUserPreferencesStore<Preferences: ConfigurablePreferences>: 
 /// UserDefaults.
 final class UserDefaultsUserPreferencesStore<Preferences: ConfigurablePreferences>: UserPreferencesStore {
     private let userDefaults: UserDefaults
-    private let key: String = String(reflecting: Preferences.self)
+    private let key: String = .init(reflecting: Preferences.self)
 
     init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults
