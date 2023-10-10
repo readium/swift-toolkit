@@ -29,10 +29,6 @@ final class AudiobookModule: ReaderFormatModule {
         bookmarks: BookmarkRepository,
         highlights: HighlightRepository
     ) async throws -> UIViewController {
-        guard publication.metadata.identifier != nil else {
-            throw ReaderError.epubNotValid
-        }
-
         let viewController = AudiobookViewController(
             publication: publication,
             locator: locator,

@@ -103,6 +103,14 @@ final class LibraryService: Loggable {
     /// document.
     @discardableResult
     func importPublication(from sourceURL: URL, sender: UIViewController, progress: @escaping (Double) -> Void = { _ in }) async throws -> Book {
+        // Necessary to read URL exported from the Files app, for example.
+        let shouldRelinquishAccess = sourceURL.startAccessingSecurityScopedResource()
+        defer {
+            if shouldRelinquishAccess {
+                sourceURL.stopAccessingSecurityScopedResource()
+            }
+        }
+
         var url = try await downloadIfNeeded(sourceURL, progress: progress)
         url = try await fulfillIfNeeded(url)
         let (pub, mediaType) = try await openPublication(at: url, allowUserInteraction: false, sender: sender)
@@ -144,13 +152,6 @@ final class LibraryService: Loggable {
     /// Moves the given `sourceURL` to the user Documents/ directory.
     private func moveToDocuments(from source: URL, title: String, mediaType: MediaType) throws -> URL {
         let destination = Paths.makeDocumentURL(title: title, mediaType: mediaType)
-        // Necessary to read URL exported from the Files app, for example.
-        let shouldRelinquishAccess = source.startAccessingSecurityScopedResource()
-        defer {
-            if shouldRelinquishAccess {
-                source.stopAccessingSecurityScopedResource()
-            }
-        }
 
         do {
             // If the source file is part of the app folder, we can move it. Otherwise we make a
