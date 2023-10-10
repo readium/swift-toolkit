@@ -32,7 +32,6 @@ public final class ImageParser: PublicationParser {
 
         return Publication.Builder(
             mediaType: .cbz,
-            format: .cbz,
             manifest: Manifest(
                 metadata: Metadata(
                     conformsTo: [.divina],
@@ -65,10 +64,5 @@ public final class ImageParser: PublicationParser {
         return allowedExtensions.contains(url.pathExtension.lowercased())
             || filename.hasPrefix(".")
             || filename == "Thumbs.db"
-    }
-
-    @available(*, unavailable, message: "Not supported for `ImageParser`")
-    public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        fatalError("Not supported for `ImageParser`")
     }
 }

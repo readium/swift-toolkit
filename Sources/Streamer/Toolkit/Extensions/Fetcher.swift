@@ -48,21 +48,3 @@ extension Fetcher {
         return title
     }
 }
-
-/// Creates a `Fetcher` from an archive or a single file.
-///
-/// This is used as a support for backward compatibility in the old parser APIs, the `Streamer`
-/// implements its own algorithm for creating the leaf fetcher, with a recovery mechanism
-/// to handle user password.
-@available(*, unavailable)
-func makeFetcher(for url: URL) throws -> Fetcher {
-    guard (try? url.checkResourceIsReachable()) == true else {
-        throw Publication.OpeningError.notFound
-    }
-
-    do {
-        return try ArchiveFetcher(archive: DefaultArchiveFactory().open(url: url, password: nil).get())
-    } catch {
-        return FileFetcher(href: "/\(url.lastPathComponent)", path: url)
-    }
-}

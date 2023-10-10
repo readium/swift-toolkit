@@ -78,7 +78,6 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
 
         return Publication.Builder(
             mediaType: mediaType,
-            format: mediaType.matches(.lcpProtectedPDF) ? .pdf : .webpub,
             manifest: manifest,
             fetcher: fetcher,
             servicesBuilder: PublicationServicesBuilder(setup: {
@@ -112,11 +111,6 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             }
         )
     }
-
-    @available(*, unavailable, message: "Use an instance of `Streamer` to open a `Publication`")
-    public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        fatalError("Not available")
-    }
 }
 
 private extension MediaType {
@@ -128,9 +122,3 @@ private extension MediaType {
         )
     }
 }
-
-@available(*, unavailable, renamed: "ReadiumWebPubParserError")
-public typealias WEBPUBParserError = ReadiumWebPubParserError
-
-@available(*, unavailable, renamed: "ReadiumWebPubParser")
-public typealias WEBPUBParser = ReadiumWebPubParser

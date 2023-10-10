@@ -72,12 +72,6 @@ public extension Publication {
             ?? positionsFromManifest()
     }
 
-    /// List of all the positions in each resource, indexed by their `href`.
-    @available(*, unavailable, message: "Use `positionsByReadingOrder` instead", renamed: "positionsByReadingOrder")
-    var positionsByResource: [String: [Locator]] {
-        Dictionary(grouping: positions, by: { $0.href })
-    }
-
     /// Fetches the positions from a web service declared in the manifest, if there's one.
     private func positionsFromManifest() -> [Locator] {
         links.first(withMediaType: .readiumPositions)
