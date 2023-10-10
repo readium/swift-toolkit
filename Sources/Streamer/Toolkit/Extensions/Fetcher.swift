@@ -19,7 +19,7 @@ extension Fetcher {
     }
 
     /// Returns the data of a file at given `href`.
-    func readData(at href: String) throws -> Data {
+    func readData(at href: URL) throws -> Data {
         let resource = get(href)
         defer { resource.close() }
         return try resource.read().get()
@@ -34,13 +34,13 @@ extension Fetcher {
 
         let directories = links
             .filter { !ignoring($0) }
-            .compactMap { $0.href.removingPrefix("/").split(separator: "/", maxSplits: 1).first }
+            .compactMap { $0.href.string.removingPrefix("/").split(separator: "/", maxSplits: 1).first }
             .removingDuplicates()
 
         guard
             directories.count == 1,
             let title = directories.first.map(String.init),
-            title != firstLink?.href.removingPrefix("/")
+            title != firstLink?.href.string.removingPrefix("/")
         else {
             return nil
         }

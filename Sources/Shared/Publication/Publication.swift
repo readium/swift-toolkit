@@ -9,7 +9,6 @@ import Foundation
 
 /// Shared model for a Readium Publication.
 public class Publication: Loggable {
-
     private var manifest: Manifest
     private let fetcher: Fetcher
     private let services: [PublicationService]
@@ -80,7 +79,7 @@ public class Publication: Loggable {
     /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
     public var baseURL: URL? {
         links.first(withRel: .`self`)
-            .flatMap { URL(string: $0.href)?.deletingLastPathComponent() }
+            .flatMap { $0.url().getOrNil()?.deletingLastPathComponent() }
     }
 
     /// Finds the first Link having the given `href` in the publication's links.
@@ -98,21 +97,21 @@ public class Publication: Loggable {
         manifest.links(withRel: rel)
     }
 
-    /// Returns the resource targeted by the given `link`.
+    /// Returns the resource targeted by the given non-templated `link`.
     public func get(_ link: Link) -> Resource {
-        assert(!link.templated, "You must expand templated links before calling `Publication.get`")
+        assert(!link.href.isTemplated, "You must expand templated links before calling `Publication.get`")
 
         return services.first { $0.get(link: link) }
             ?? fetcher.get(link)
     }
 
     /// Returns the resource targeted by the given `href`.
-    public func get(_ href: String) -> Resource {
-        let link = link(withHREF: href)?
+    public func get(_ href: URL) -> Resource {
+        let link = link(withHREF: href.absoluteString)?
             // Uses the original href to keep the query parameters
-            .copy(href: href, templated: false)
+            .copy(href: .url(href))
 
-        return get(link ?? Link(href: href))
+        return get(link ?? Link(href: .url(href)))
     }
 
     /// Closes any opened resource associated with the `Publication`, including `services`.

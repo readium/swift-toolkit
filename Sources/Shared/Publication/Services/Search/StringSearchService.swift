@@ -159,7 +159,7 @@ public class _StringSearchService: _SearchService {
                 return []
             }
 
-            let title = publication.tableOfContents.titleMatchingHREF(link.href)
+            let title = publication.tableOfContents.titleMatchingHREF(link.href.string)
             resourceLocator = resourceLocator.copy(
                 title: Optional(title ?? link.title)
             )
@@ -300,7 +300,7 @@ private extension Array where Element == Link {
 
 private extension Link {
     func titleMatchingHREF(_ targetHREF: String) -> String? {
-        if href.substringBeforeLast("#") == targetHREF {
+        if href.string.substringBeforeLast("#") == targetHREF {
             return title
         }
         return children.titleMatchingHREF(targetHREF)

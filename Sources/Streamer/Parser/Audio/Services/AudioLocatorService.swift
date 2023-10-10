@@ -39,7 +39,7 @@ final class AudioLocatorService: DefaultLocatorService {
         let positionInResource = positionInPublication - resourcePosition
 
         return Locator(
-            href: link.href,
+            href: link.href.string,
             type: link.type ?? MediaType.binary.string,
             locations: .init(
                 fragments: ["t=\(Int(positionInResource))"],

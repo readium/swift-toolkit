@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /** Provides access to entries of a ZIP archive. */
 public final class ArchiveFetcher: Fetcher, Loggable {
@@ -15,9 +16,13 @@ public final class ArchiveFetcher: Fetcher, Loggable {
     }
 
     public lazy var links: [Link] =
-        archive.entries.map { entry in
-            Link(
-                href: entry.path.addingPrefix("/"),
+        archive.entries.compactMap { entry in
+            guard let url = URL(decodedPath: entry.path) else {
+                return nil
+            }
+
+            return Link(
+                href: .url(url),
                 type: MediaType.of(fileExtension: URL(fileURLWithPath: entry.path).pathExtension)?.string,
                 properties: Properties(entry.linkProperties)
             )
@@ -25,7 +30,7 @@ public final class ArchiveFetcher: Fetcher, Loggable {
 
     public func get(_ link: Link) -> Resource {
         guard
-            let entry = findEntry(at: link.href),
+            let entry = findEntry(at: link.href.string),
             let reader = archive.readEntry(at: entry.path)
         else {
             return FailureResource(link: link, error: .notFound(nil))

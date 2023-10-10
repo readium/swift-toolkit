@@ -62,7 +62,7 @@ private protocol RouteHandler {
 
 private final class ContentProtectionRouteHandler: RouteHandler {
     let routeLink = Link(
-        href: "/~readium/content-protection",
+        href: .url("/~readium/content-protection")!,
         type: MediaType.readiumContentProtection.string
     )
 
@@ -87,17 +87,16 @@ private final class CopyRightsRouteHandler: RouteHandler {
     /// `text` is the percent-encoded string to copy.
     /// `peek` is true or false. When missing, it defaults to false.
     let routeLink = Link(
-        href: "/~readium/rights/copy{?text,peek}",
-        type: MediaType.readiumRightsCopy.string,
-        templated: true
+        href: .template("/~readium/rights/copy{?text,peek}"),
+        type: MediaType.readiumRightsCopy.string
     )
 
     func accepts(link: Link) -> Bool {
-        link.href.hasPrefix("/~readium/rights/copy")
+        link.href.string.hasPrefix("/~readium/rights/copy")
     }
 
     func handle(link: Link, for service: ContentProtectionService) -> ResourceResult<Any> {
-        let params = HREF(link.href).queryParameters
+        let params = link.url().getOrNil()?.queryParameters ?? []
         let peek = params.first(named: "peek").flatMap(Bool.init) ?? false
         guard let text = params.first(named: "text") else {
             return .failure(.badRequest(ContentProtectionServiceError.missingParameter(name: "text")))
@@ -117,17 +116,16 @@ private final class PrintRightsRouteHandler: RouteHandler {
     /// `pageCount` is the number of pages to print, as a positive integer.
     /// `peek` is true or false. When missing, it defaults to false.
     let routeLink = Link(
-        href: "/~readium/rights/print{?pageCount,peek}",
-        type: MediaType.readiumRightsPrint.string,
-        templated: true
+        href: .template("/~readium/rights/print{?pageCount,peek}"),
+        type: MediaType.readiumRightsPrint.string
     )
 
     func accepts(link: Link) -> Bool {
-        link.href.hasPrefix("/~readium/rights/print")
+        link.href.string.hasPrefix("/~readium/rights/print")
     }
 
     func handle(link: Link, for service: ContentProtectionService) -> ResourceResult<Any> {
-        let params = HREF(link.href).queryParameters
+        let params = link.url().getOrNil()?.queryParameters ?? []
         let peek = params.first(named: "peek").flatMap(Bool.init) ?? false
         guard let pageCount = params.first(named: "pageCount").flatMap(Int.init) else {
             return .failure(.badRequest(ContentProtectionServiceError.missingParameter(name: "pageCount")))

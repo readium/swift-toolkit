@@ -25,7 +25,7 @@ public final class GeneratedCoverService: CoverService {
     }
 
     private let coverLink = Link(
-        href: "/~readium/cover",
+        href: .url("/~readium/cover")!,
         type: "image/png",
         rel: .cover
     )

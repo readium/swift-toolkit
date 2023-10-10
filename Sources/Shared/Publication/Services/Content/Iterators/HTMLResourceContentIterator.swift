@@ -155,11 +155,13 @@ public class HTMLResourceContentIterator: ContentIterator {
 
         private init(baseLocator: Locator, startElement: Element?, beforeMaxLength: Int) {
             self.baseLocator = baseLocator
+            baseHREF = URL(string: baseLocator.href)
             self.startElement = startElement
             self.beforeMaxLength = beforeMaxLength
         }
 
         private let baseLocator: Locator
+        private let baseHREF: URL?
         private let startElement: Element?
         private let beforeMaxLength: Int
 
@@ -215,7 +217,7 @@ public class HTMLResourceContentIterator: ContentIterator {
 
                 } else if tag == "img" {
                     flushText()
-                    try node.srcRelativeToHREF(baseLocator.href).map { href in
+                    try node.srcRelativeToHREF(baseHREF).map { href in
                         var attributes: [ContentAttribute] = []
                         if let alt = try node.attr("alt").takeUnlessEmpty() {
                             attributes.append(ContentAttribute(key: .accessibilityLabel, value: alt))
@@ -223,7 +225,7 @@ public class HTMLResourceContentIterator: ContentIterator {
 
                         elements.append(ImageContentElement(
                             locator: elementLocator,
-                            embeddedLink: Link(href: href),
+                            embeddedLink: Link(href: .url(href)),
                             caption: nil, // FIXME: Get the caption from figcaption
                             attributes: attributes
                         ))
@@ -233,13 +235,13 @@ public class HTMLResourceContentIterator: ContentIterator {
                     flushText()
 
                     let link: Link? = try {
-                        if let href = try node.srcRelativeToHREF(baseLocator.href) {
-                            return Link(href: href)
+                        if let href = try node.srcRelativeToHREF(baseHREF) {
+                            return Link(href: .url(href))
                         } else {
                             let sources = try node.select("source")
                                 .compactMap { source in
-                                    try source.srcRelativeToHREF(baseLocator.href).map { href in
-                                        try Link(href: href, type: source.attr("type").takeUnlessEmpty())
+                                    try source.srcRelativeToHREF(baseHREF).map { href in
+                                        try Link(href: .url(href), type: source.attr("type").takeUnlessEmpty())
                                     }
                                 }
 
@@ -394,9 +396,9 @@ public class HTMLResourceContentIterator: ContentIterator {
 }
 
 private extension Node {
-    func srcRelativeToHREF(_ baseHREF: String) throws -> String? {
+    func srcRelativeToHREF(_ baseHREF: URL?) throws -> URL? {
         try attr("src").takeUnlessEmpty()
-            .map { HREF($0, relativeTo: baseHREF).string }
+            .flatMap { URL(string: $0, relativeTo: baseHREF) }
     }
 
     func language() throws -> String? {

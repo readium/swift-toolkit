@@ -24,7 +24,7 @@ public final class PerResourcePositionsService: PositionsService {
     public lazy var positionsByReadingOrder: [[Locator]] = readingOrder.enumerated().map { index, link in
         [
             Locator(
-                href: link.href,
+                href: link.href.string,
                 type: link.type ?? fallbackMediaType,
                 title: link.title,
                 locations: Locator.Locations(

@@ -84,8 +84,8 @@ class HREFTests: XCTestCase {
     }
 
     func testQueryParameters() {
-        XCTAssertEqual(HREF("http://domain.com/path").queryParameters, [])
-        XCTAssertEqual(HREF("http://domain.com/path?query=param#anchor").queryParameters, [
+        XCTAssertEqual(.url("http://domain.com/path").queryParameters, [])
+        XCTAssertEqual(.url("http://domain.com/path?query=param#anchor").queryParameters, [
             .init(name: "query", value: "param"),
         ])
         XCTAssertEqual(HREF("http://domain.com/path?query=param&fruit=banana&query=other&empty").queryParameters, [

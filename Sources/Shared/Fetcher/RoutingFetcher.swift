@@ -33,10 +33,11 @@ final class RoutingFetcher: Fetcher {
         self.routes = routes
     }
 
-    /// Will route requests to `local` if the `Link::href` starts with `/`, otherwise to `remote`.
+    /// Will route requests to `local` if the `Link::href` is relative,
+    /// otherwise to `remote`.
     convenience init(local: Fetcher, remote: Fetcher) {
         self.init(routes: [
-            Route(fetcher: local, accepts: { $0.href.hasPrefix("/") }),
+            Route(fetcher: local, accepts: { $0.url().getOrNil()?.scheme == nil }),
             Route(fetcher: remote),
         ])
     }

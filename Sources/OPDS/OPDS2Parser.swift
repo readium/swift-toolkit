@@ -185,9 +185,7 @@ public class OPDS2Parser: Loggable {
                         throw OPDS2ParserError.invalidFacet
                     }
                     for linkDict in links {
-                        let link = try Link(json: linkDict, normalizeHREF: {
-                            URLHelper.getAbsolute(href: $0, base: feedURL) ?? $0
-                        })
+                        let link = try Link(json: linkDict, normalizeHREF: hrefNormalizer(feedURL))
                         facet.links.append(link)
                     }
                 }
@@ -266,5 +264,5 @@ public class OPDS2Parser: Loggable {
 }
 
 private func hrefNormalizer(_ baseURL: URL?) -> (String) -> (String) {
-    { href in URLHelper.getAbsolute(href: href, base: baseURL) ?? href }
+    { href in URL(string: href, relativeTo: baseURL)?.absoluteString ?? href }
 }

@@ -26,9 +26,13 @@ public struct PDFOutlineNode {
     ///
     /// - Parameter documentHref: HREF of the PDF document in the `Publication` to which the links
     ///   are relative to.
-    public func link(withDocumentHREF documentHREF: String) -> Link {
-        Link(
-            href: "\(documentHREF)#page=\(pageNumber)",
+    public func link(withDocumentHREF documentHREF: URL) -> Link? {
+        guard let url = documentHREF.copy({ $0.fragment = "page=\(pageNumber)" }) else {
+            return nil
+        }
+
+        return Link(
+            href: .url(url),
             type: MediaType.pdf.string,
             title: title,
             children: children.links(withDocumentHREF: documentHREF)
@@ -41,7 +45,7 @@ public extension Sequence where Element == PDFOutlineNode {
     ///
     /// - Parameter documentHref: HREF of the PDF document in the `Publication` to which the links
     ///   are relative to.
-    func links(withDocumentHREF documentHREF: String) -> [Link] {
-        map { $0.link(withDocumentHREF: documentHREF) }
+    func links(withDocumentHREF documentHREF: URL) -> [Link] {
+        compactMap { $0.link(withDocumentHREF: documentHREF) }
     }
 }

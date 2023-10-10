@@ -24,7 +24,7 @@ public extension PositionsService {
 // MARK: Web Service
 
 private let positionsLink = Link(
-    href: "/~readium/positions",
+    href: .url("/~readium/positions")!,
     type: MediaType.readiumPositions.string
 )
 
@@ -63,7 +63,7 @@ public extension Publication {
         }
 
         let positionsByResource = Dictionary(grouping: positionsFromManifest(), by: { $0.href })
-        return readingOrder.map { positionsByResource[$0.href] ?? [] }
+        return readingOrder.map { positionsByResource[$0.href.string] ?? [] }
     }
 
     /// List of all the positions in the publication.

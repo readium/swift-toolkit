@@ -134,10 +134,13 @@ public class GCDHTTPServer: HTTPServer, Loggable {
                     completion(transform(resource: resource, at: endpoint))
                     return
 
-                } else if path.hasPrefix(endpoint.addingSuffix("/")) {
+                } else if
+                    path.hasPrefix(endpoint.addingSuffix("/")),
+                    let href = URL(string: path.removingPrefix(endpoint.removingSuffix("/")))
+                {
                     let resource = handler(HTTPServerRequest(
                         url: request.url,
-                        href: path.removingPrefix(endpoint.removingSuffix("/"))
+                        href: href
                     ))
                     completion(transform(resource: resource, at: endpoint))
                     return

@@ -124,10 +124,10 @@ public class OPDS1Parser: Loggable {
                     // Check if there is a collection.
                     if rel == "collection" || rel == "http://opds-spec.org/group",
                        let href = link.attributes["href"],
-                       let absoluteHref = URLHelper.getAbsolute(href: href, base: feedURL)
+                       let absoluteHref = URL(string: href, relativeTo: feedURL)
                     {
                         collectionLink = Link(
-                            href: absoluteHref,
+                            href: .url(absoluteHref),
                             title: link.attributes["title"],
                             rel: .collection
                         )
@@ -147,7 +147,7 @@ public class OPDS1Parser: Loggable {
 
             } else if let link = entry.firstChild(tag: "link"),
                       let href = link.attr("href"),
-                      let absoluteHref = URLHelper.getAbsolute(href: href, base: feedURL)
+                      let absoluteHref = URL(string: href, relativeTo: feedURL)
             {
                 var properties: [String: Any] = [:]
                 if let facetElementCount = link.attr("count").map(Int.init) {
@@ -155,7 +155,7 @@ public class OPDS1Parser: Loggable {
                 }
 
                 let newLink = Link(
-                    href: absoluteHref,
+                    href: .url(absoluteHref),
                     type: link.attr("type"),
                     title: entry.firstChild(tag: "title")?.stringValue,
                     rel: link.attr("rel").map { LinkRelation($0) },
@@ -172,7 +172,7 @@ public class OPDS1Parser: Loggable {
         }
 
         for link in root.children(tag: "link") {
-            guard let href = link.attributes["href"], let absoluteHref = URLHelper.getAbsolute(href: href, base: feedURL) else {
+            guard let href = link.attributes["href"], let absoluteHref = URL(string: href, relativeTo: feedURL) else {
                 continue
             }
 
@@ -195,7 +195,7 @@ public class OPDS1Parser: Loggable {
             }
 
             let newLink = Link(
-                href: absoluteHref,
+                href: .url(absoluteHref),
                 type: link.attributes["type"],
                 title: link.attributes["title"],
                 rels: rels,
@@ -228,7 +228,7 @@ public class OPDS1Parser: Loggable {
     /// Fetch an Open Search template from an OPDS feed.
     /// - parameter feed: The OPDS feed
     public static func fetchOpenSearchTemplate(feed: Feed, completion: @escaping (String?, Error?) -> Void) {
-        guard let openSearchHref = feed.links.first(withRel: .search)?.href,
+        guard let openSearchHref = feed.links.first(withRel: .search)?.href.string,
               let openSearchURL = URL(string: openSearchHref)
         else {
             completion(nil, OPDSParserOpenSearchHelperError.searchLinkNotFound)
@@ -350,7 +350,7 @@ public class OPDS1Parser: Loggable {
         var images: [Link] = []
         var links: [Link] = []
         for linkElement in entry.children(tag: "link") {
-            guard let href = linkElement.attributes["href"], let absoluteHref = URLHelper.getAbsolute(href: href, base: feedURL) else {
+            guard let href = linkElement.attributes["href"], let absoluteHref = URL(string: href, relativeTo: feedURL) else {
                 continue
             }
 
@@ -364,7 +364,7 @@ public class OPDS1Parser: Loggable {
             }
 
             let link = Link(
-                href: absoluteHref,
+                href: .url(absoluteHref),
                 type: linkElement.attributes["type"],
                 title: linkElement.attributes["title"],
                 rel: linkElement.attributes["rel"].map { LinkRelation($0) },

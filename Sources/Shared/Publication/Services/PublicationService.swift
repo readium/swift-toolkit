@@ -17,9 +17,8 @@ public protocol PublicationService {
     /// You can use a templated URI to accept query parameters, e.g.:
     /// ```
     /// Link(
-    ///     href: "/~readium/search{?text}",
-    ///     type: "application/vnd.readium.search+json",
-    ///     templated: true
+    ///     href: .template("/~readium/search{?text}"),
+    ///     type: "application/vnd.readium.search+json"
     /// )
     /// ```
     var links: [Link] { get }

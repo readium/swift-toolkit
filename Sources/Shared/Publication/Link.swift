@@ -11,14 +11,10 @@ import ReadiumInternal
 /// https://readium.org/webpub-manifest/schema/link.schema.json
 public struct Link: JSONEquatable, Hashable {
     /// URI or URI template of the linked resource.
-    /// Note: a String because templates are lost with URL.
-    public let href: String // URI
+    public let href: HREF
 
     /// MIME type of the linked resource.
     public let type: String?
-
-    /// Indicates that a URI template is used in href.
-    public let templated: Bool
 
     /// Title of the linked resource.
     public let title: String?
@@ -50,7 +46,21 @@ public struct Link: JSONEquatable, Hashable {
     /// Resources that are children of the linked resource, in the context of a given collection role.
     public let children: [Link]
 
-    public init(href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [LinkRelation] = [], rel: LinkRelation? = nil, properties: Properties = Properties(), height: Int? = nil, width: Int? = nil, bitrate: Double? = nil, duration: Double? = nil, languages: [String] = [], alternates: [Link] = [], children: [Link] = []) {
+    public init(
+        href: HREF,
+        type: String? = nil,
+        title: String? = nil,
+        rels: [LinkRelation] = [],
+        rel: LinkRelation? = nil,
+        properties: Properties = Properties(),
+        height: Int? = nil,
+        width: Int? = nil,
+        bitrate: Double? = nil,
+        duration: Double? = nil,
+        languages: [String] = [],
+        alternates: [Link] = [],
+        children: [Link] = []
+    ) {
         // Convenience to set a single rel during construction.
         var rels = rels
         if let rel = rel {
@@ -58,7 +68,6 @@ public struct Link: JSONEquatable, Hashable {
         }
         self.href = href
         self.type = type
-        self.templated = templated
         self.title = title
         self.rels = rels
         self.properties = properties
@@ -71,17 +80,49 @@ public struct Link: JSONEquatable, Hashable {
         self.children = children
     }
 
-    public init(json: Any, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) throws {
-        guard let jsonObject = json as? [String: Any],
-              let href = jsonObject["href"] as? String
-        else {
-            warnings?.log("`href` is required", model: Self.self, source: json)
+    public init(
+        json: Any,
+        warnings: WarningLogger? = nil,
+        normalizeHREF: (String) -> String = { $0 }
+    ) throws {
+        guard let jsonObject = json as? [String: Any] else {
             throw JSONError.parsing(Self.self)
         }
+
+        func parseHREF(json: [String: Any]) -> HREF? {
+            guard var hrefString = jsonObject["href"] as? String else {
+                warnings?.log("`href` is required", model: Self.self, source: json)
+                return nil
+            }
+            hrefString = normalizeHREF(hrefString)
+
+            let templated = (jsonObject["templated"] as? Bool) ?? false
+            if templated {
+                return .template(hrefString)
+            } else {
+                // We support existing publications with incorrect HREFs (not valid percent-encoded
+                // URIs). We try to parse them first as valid, but fall back on a percent-decoded
+                // path if it fails.
+                let url: URL? = {
+                    if let url = URL(string: hrefString) {
+                        return url
+                    } else {
+                        warnings?.log("`href` is not a valid percent-encoded URL", model: Self.self, source: json)
+                        return URL(decodedPath: hrefString)
+                    }
+                }()
+                return url.map { .url($0) }
+            }
+        }
+
+        guard let href = parseHREF(json: jsonObject) else {
+            warnings?.log("`href` is not a valid URL or URL template", model: Self.self, source: json)
+            throw JSONError.parsing(Self.self)
+        }
+
         self.init(
-            href: normalizeHREF(href),
+            href: href,
             type: jsonObject["type"] as? String,
-            templated: (jsonObject["templated"] as? Bool) ?? false,
             title: jsonObject["title"] as? String,
             rels: .init(json: jsonObject["rel"]),
             properties: (try? Properties(json: jsonObject["properties"], warnings: warnings)) ?? Properties(),
@@ -97,9 +138,9 @@ public struct Link: JSONEquatable, Hashable {
 
     public var json: [String: Any] {
         makeJSON([
-            "href": href,
+            "href": href.string,
             "type": encodeIfNotNil(type),
-            "templated": templated,
+            "templated": href.isTemplated,
             "title": encodeIfNotNil(title),
             "rel": encodeIfNotEmpty(rels.json),
             "properties": encodeIfNotEmpty(properties.json),
@@ -117,54 +158,25 @@ public struct Link: JSONEquatable, Hashable {
     public var mediaType: MediaType {
         MediaType.of(
             mediaType: type,
-            fileExtension: URL(string: href)?.pathExtension
+            fileExtension: url().getOrNil()?.pathExtension
         ) ?? .binary
     }
 
-    /// Computes an absolute URL to the link, relative to the given `baseURL`.
+    /// Returns the URL represented by this link's HREF, resolved to the given
+    /// `base` URL.
     ///
-    /// If the link's `href` is already absolute, the `baseURL` is ignored.
-    public func url(relativeTo baseURL: URL?) -> URL? {
-        if let url = URL(string: href), url.scheme != nil {
-            return url
-        } else if let baseURL = baseURL {
-            let safeHREF = (href.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? href).removingPrefix("/")
-            return URL(string: safeHREF, relativeTo: baseURL)?.absoluteURL
-        } else {
-            return nil
-        }
-    }
-
-    // MARK: URI Template
-
-    /// List of URI template parameter keys, if the `Link` is templated.
-    public var templateParameters: Set<String> {
-        guard templated else {
-            return []
-        }
-        return URITemplate(href).parameters
-    }
-
-    /// Expands the `Link`'s HREF by replacing URI template variables by the given parameters.
-    ///
-    /// See RFC 6570 on URI template: https://tools.ietf.org/html/rfc6570
-    public func expandTemplate(with parameters: [String: String]) -> Link {
-        guard templated else {
-            return self
-        }
-        return copy(
-            href: URITemplate(href).expand(with: parameters),
-            templated: false
-        )
+    /// If the HREF is a template, the `parameters` are used to expand it
+    /// according to RFC 6570.
+    public func url(relativeTo base: URL? = nil, parameters: [String: String] = [:]) -> Result<URL, HREFError> {
+        href.resolve(to: base, parameters: parameters)
     }
 
     // MARK: Copy
 
     /// Makes a copy of the `Link`, after modifying some of its properties.
     public func copy(
-        href: String? = nil,
+        href: HREF? = nil,
         type: String?? = nil,
-        templated: Bool? = nil,
         title: String?? = nil,
         rels: [LinkRelation]? = nil,
         properties: Properties? = nil,
@@ -179,7 +191,6 @@ public struct Link: JSONEquatable, Hashable {
         Link(
             href: href ?? self.href,
             type: type ?? self.type,
-            templated: templated ?? self.templated,
             title: title ?? self.title,
             rels: rels ?? self.rels,
             properties: properties ?? self.properties,
@@ -228,12 +239,12 @@ public extension Array where Element == Link {
 
     /// Finds the first link matching the given HREF.
     func first(withHREF href: String) -> Link? {
-        first { $0.href == href }
+        first { $0.href.string == href }
     }
 
     /// Finds the index of the first link matching the given HREF.
     func firstIndex(withHREF href: String) -> Int? {
-        firstIndex { $0.href == href }
+        firstIndex { $0.href.string == href }
     }
 
     /// Finds the first link matching the given media type.
@@ -288,19 +299,16 @@ public extension Array where Element == Link {
             }
         }
     }
+}
 
-    @available(*, unavailable, message: "This API will be removed.")
-    func firstIndex<T: Equatable>(withProperty otherProperty: String, matching: T, recursively: Bool = false) -> Int? {
-        firstIndex { ($0.properties.otherProperties[otherProperty] as? T) == matching }
-    }
+public extension Link {
+    /// List of URI template parameter keys, if the `Link` is templated.
+    @available(*, unavailable, message: "Open a GitHub issue if you were using this")
+    var templateParameters: Set<String> { fatalError() }
 
-    @available(*, unavailable, renamed: "first(withHREF:)")
-    func first(withHref href: String) -> Link? {
-        first(withHREF: href)
-    }
-
-    @available(*, unavailable, renamed: "firstIndex(withHREF:)")
-    func firstIndex(withHref href: String) -> Int? {
-        firstIndex(withHREF: href)
-    }
+    /// Expands the `Link`'s HREF by replacing URI template variables by the given parameters.
+    ///
+    /// See RFC 6570 on URI template: https://tools.ietf.org/html/rfc6570
+    @available(*, unavailable, message: "Use url(parameters:) instead.", renamed: "url(parameters:)")
+    func expandTemplate(with parameters: [String: String]) -> Link { fatalError() }
 }

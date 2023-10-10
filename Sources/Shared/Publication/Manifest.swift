@@ -56,20 +56,10 @@ public struct Manifest: JSONEquatable, Hashable {
             throw JSONError.parsing(Publication.self)
         }
 
-        let baseHREF = isPackaged ? "/" : (
-            [Link](json: json.json["links"], warnings: warnings)
-                .first(withRel: .self)
-                .flatMap { URL(string: $0.href) }?
-                .absoluteString
-                ?? "/"
-        )
-
-        let normalizer = HREF.normalizer(relativeTo: baseHREF)
-
         context = parseArray(json.pop("@context"), allowingSingle: true)
-        metadata = try Metadata(json: json.pop("metadata"), warnings: warnings, normalizeHREF: normalizer)
+        metadata = try Metadata(json: json.pop("metadata"), warnings: warnings)
 
-        links = [Link](json: json.pop("links"), warnings: warnings, normalizeHREF: normalizer)
+        links = [Link](json: json.pop("links"), warnings: warnings)
             // If the manifest is packaged, replace any `self` link by an `alternate`.
             .map { link in
                 (isPackaged && link.rels.contains(.self))
@@ -78,13 +68,13 @@ public struct Manifest: JSONEquatable, Hashable {
             }
 
         // `readingOrder` used to be `spine`, so we parse `spine` as a fallback.
-        readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"), warnings: warnings, normalizeHREF: normalizer)
+        readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"), warnings: warnings)
             .filter { $0.type != nil }
-        resources = [Link](json: json.pop("resources"), warnings: warnings, normalizeHREF: normalizer)
+        resources = [Link](json: json.pop("resources"), warnings: warnings)
             .filter { $0.type != nil }
 
         // Parses sub-collections from remaining JSON properties.
-        subcollections = PublicationCollection.makeCollections(json: json.json, warnings: warnings, normalizeHREF: normalizer)
+        subcollections = PublicationCollection.makeCollections(json: json.json, warnings: warnings)
     }
 
     public var json: [String: Any] {
@@ -127,7 +117,7 @@ public struct Manifest: JSONEquatable, Hashable {
         func deepFind(in linkLists: [Link]...) -> Link? {
             for links in linkLists {
                 for link in links {
-                    if link.href == href {
+                    if link.href.string == href {
                         return link
                     } else if let child = deepFind(in: link.alternates, link.children) {
                         return child

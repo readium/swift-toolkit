@@ -39,11 +39,11 @@ public extension HTTPServer {
     @discardableResult
     func serve(at endpoint: HTTPServerEndpoint, contentsOf url: URL) throws -> URL {
         try serve(at: endpoint) { request in
-            let file = url.appendingPathComponent(request.href ?? "")
+            let file = request.href.flatMap { URL(string: $0.absoluteString, relativeTo: url) } ?? url
 
             return FileResource(
                 link: Link(
-                    href: request.url.absoluteString,
+                    href: .url(request.url),
                     type: MediaType.of(file)?.string
                 ),
                 file: file
@@ -63,7 +63,7 @@ public extension HTTPServer {
         try serve(at: endpoint) { request in
             guard let href = request.href else {
                 return FailureResource(
-                    link: Link(href: request.url.absoluteString),
+                    link: Link(href: .url(request.url)),
                     error: .notFound(nil)
                 )
             }
@@ -82,9 +82,9 @@ public struct HTTPServerRequest {
     public let url: URL
 
     /// HREF for the resource, relative to the server endpoint.
-    public let href: String?
+    public let href: URL?
 
-    public init(url: URL, href: String?) {
+    public init(url: URL, href: URL?) {
         self.url = url
         self.href = href
     }

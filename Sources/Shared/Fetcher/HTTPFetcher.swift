@@ -22,11 +22,11 @@ public final class HTTPFetcher: Fetcher, Loggable {
 
     public func get(_ link: Link) -> Resource {
         guard
-            let url = link.url(relativeTo: baseURL),
+            let url = link.url(relativeTo: baseURL).getOrNil(),
             url.isHTTP
         else {
             log(.error, "Not a valid HTTP URL: \(link.href)")
-            return FailureResource(link: link, error: .badRequest(HTTPError(kind: .malformedRequest(url: link.href))))
+            return FailureResource(link: link, error: .badRequest(HTTPError(kind: .malformedRequest(url: link.href.string))))
         }
         return HTTPResource(client: client, link: link, url: url)
     }

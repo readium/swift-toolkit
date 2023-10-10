@@ -6,7 +6,7 @@
 
 import Foundation
 
-extension Result {
+public extension Result {
     func getOrNil() -> Success? {
         try? get()
     }
@@ -27,7 +27,7 @@ extension Result {
     }
 }
 
-extension Result where Failure == Error {
+public extension Result where Failure == Error {
     func tryMap<T>(_ transform: (Success) throws -> T) -> Result<T, Error> {
         flatMap {
             do {

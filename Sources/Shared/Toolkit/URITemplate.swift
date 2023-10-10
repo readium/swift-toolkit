@@ -7,6 +7,8 @@
 import Foundation
 import ReadiumInternal
 
+public enum URITemplateError: Error {}
+
 /// A lightweight implementation of URI Template (RFC 6570).
 ///
 /// Only handles simple cases, fitting Readium's use cases.
@@ -37,7 +39,7 @@ public struct URITemplate: CustomStringConvertible {
     ///
     /// Any extra parameter is appended as query parameters.
     /// See RFC 6570 on URI template: https://tools.ietf.org/html/rfc6570
-    public func expand(with parameters: [String: String]) -> String {
+    public func expand(with parameters: [String: String]) -> URL? {
         func expandSimpleString(_ string: String) -> String {
             string
                 .split(separator: ",")
@@ -54,7 +56,7 @@ public struct URITemplate: CustomStringConvertible {
                 .joined(separator: "&")
         }
 
-        return ReplacingRegularExpression(#"\{(\??)([^}]+)\}"#) { _, groups in
+        let urlString = ReplacingRegularExpression(#"\{(\??)([^}]+)\}"#) { _, groups in
             guard groups.count == 3 else {
                 return ""
             }
@@ -63,6 +65,8 @@ public struct URITemplate: CustomStringConvertible {
                 : expandFormStyle(groups[2])
 
         }.stringByReplacingMatches(in: uri)
+
+        return URL(string: urlString)
     }
 
     // MARK: CustomStringConvertible

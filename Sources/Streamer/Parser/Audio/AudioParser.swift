@@ -21,7 +21,7 @@ public final class AudioParser: PublicationParser {
 
         let readingOrder = fetcher.links
             .filter { !ignores($0) && $0.mediaType.isAudio }
-            .sorted { $0.href.localizedCaseInsensitiveCompare($1.href) == .orderedAscending }
+            .sorted { $0.href.string.localizedCaseInsensitiveCompare($1.href.string) == .orderedAscending }
 
         guard !readingOrder.isEmpty else {
             return nil
@@ -54,7 +54,10 @@ public final class AudioParser: PublicationParser {
     }
 
     private func ignores(_ link: Link) -> Bool {
-        let url = URL(fileURLWithPath: link.href)
+        guard let url = link.url().getOrNil() else {
+            return true
+        }
+
         let filename = url.lastPathComponent
         let allowedExtensions = ["asx", "bio", "m3u", "m3u8", "pla", "pls", "smil", "txt", "vlc", "wpl", "xspf", "zpl"]
 

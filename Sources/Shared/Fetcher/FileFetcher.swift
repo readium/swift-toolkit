@@ -7,6 +7,7 @@
 import Foundation
 
 /// Provides access to resources on the local file system.
+// FIXME: Review
 public final class FileFetcher: Fetcher, Loggable {
     /// Reachable local paths, indexed by the exposed HREF.
     /// Sub-paths are reachable as well, to be able to access a whole directory.
@@ -23,7 +24,7 @@ public final class FileFetcher: Fetcher, Loggable {
     }
 
     public func get(_ link: Link) -> Resource {
-        let linkHREF = link.href.addingPrefix("/")
+        let linkHREF = link.href.string.addingPrefix("/")
         for (href, url) in paths {
             if linkHREF.hasPrefix(href) {
                 let resourceURL = url.appendingPathComponent(linkHREF.removingPrefix(href)).standardizedFileURL
@@ -48,9 +49,9 @@ public final class FileFetcher: Fetcher, Loggable {
 
             let hrefURL = URL(fileURLWithPath: href)
 
-            return ([path] + enumerator).compactMap {
+            return ([path] + enumerator).compactMap { elem in
                 guard
-                    let url = $0 as? URL,
+                    let url = elem as? URL,
                     let values = try? url.resourceValues(forKeys: [.isDirectoryKey]),
                     values.isDirectory == false
                 else {
@@ -59,7 +60,7 @@ public final class FileFetcher: Fetcher, Loggable {
 
                 let subPath = url.standardizedFileURL.path.removingPrefix(path.standardizedFileURL.path)
                 return Link(
-                    href: hrefURL.appendingPathComponent(subPath).standardizedFileURL.path,
+                    href: .url(hrefURL.appendingPathComponent(subPath).standardizedFileURL),
                     type: MediaType.of(url)?.string
                 )
             }

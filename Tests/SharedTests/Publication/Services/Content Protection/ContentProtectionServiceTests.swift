@@ -15,18 +15,16 @@ class ContentProtectionServiceTests: XCTestCase {
             service.links,
             [
                 Link(
-                    href: "/~readium/content-protection",
+                    href: .url("/~readium/content-protection")!,
                     type: "application/vnd.readium.content-protection+json"
                 ),
                 Link(
-                    href: "/~readium/rights/copy{?text,peek}",
-                    type: "application/vnd.readium.rights.copy+json",
-                    templated: true
+                    href: .template("/~readium/rights/copy{?text,peek}"),
+                    type: "application/vnd.readium.rights.copy+json"
                 ),
                 Link(
-                    href: "/~readium/rights/print{?pageCount,peek}",
-                    type: "application/vnd.readium.rights.print+json",
-                    templated: true
+                    href: .template("/~readium/rights/print{?pageCount,peek}"),
+                    type: "application/vnd.readium.rights.print+json"
                 ),
             ]
         )
@@ -41,7 +39,7 @@ class ContentProtectionServiceTests: XCTestCase {
             name: .localized(["en": "DRM", "fr": "GDN"])
         )
 
-        let resource = service.get(link: Link(href: "/~readium/content-protection"))
+        let resource = service.get(link: Link(href: .url("/~readium/content-protection")!))
 
         XCTAssertEqual(
             try resource?.readAsString().get(),

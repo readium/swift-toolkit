@@ -430,9 +430,9 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     /// Mapping between reading order hrefs and the table of contents title.
-    private lazy var tableOfContentsTitleByHref: [String: String] = {
-        func fulfill(linkList: [Link]) -> [String: String] {
-            var result = [String: String]()
+    private lazy var tableOfContentsTitleByHref: [HREF: String] = {
+        func fulfill(linkList: [Link]) -> [HREF: String] {
+            var result = [HREF: String]()
 
             for link in linkList {
                 if let title = link.title {
@@ -564,7 +564,7 @@ open class EPUBNavigatorViewController: UIViewController,
             return nil
         }
 
-        return readingOrder.firstIndex(withHREF: spreads[currentSpreadIndex].left.href)
+        return readingOrder.firstIndex(withHREF: spreads[currentSpreadIndex].left.href.string)
     }
 
     private let reloadSpreadsCompletions = CompletionList()
@@ -670,13 +670,13 @@ open class EPUBNavigatorViewController: UIViewController,
 
         let link = spreadView.focusedResource ?? spreadView.spread.leading
         let href = link.href
-        let progression = min(max(spreadView.progression(in: href), 0.0), 1.0)
+        let progression = min(max(spreadView.progression(in: href.string), 0.0), 1.0)
 
         if
             // The positions are not always available, for example a Readium
             // WebPub doesn't have any unless a Publication Positions Web
             // Service is provided
-            let index = readingOrder.firstIndex(withHREF: href),
+            let index = readingOrder.firstIndex(withHREF: href.string),
             let positionList = positionsByReadingOrder.getOrNil(index),
             positionList.count > 0
         {
@@ -936,13 +936,13 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
                 let href = link.href
                 for (group, decorations) in self.decorations {
                     let decorations = decorations
-                        .filter { $0.decoration.locator.href == href }
+                        .filter { $0.decoration.locator.href == href.string }
                         .map { DecorationChange.add($0.decoration) }
 
                     guard let script = decorations.javascript(forGroup: group, styles: self.config.decorationTemplates) else {
                         continue
                     }
-                    spreadView.evaluateScript(script, inHREF: href)
+                    spreadView.evaluateScript(script, inHREF: href.string)
                 }
             }
         }

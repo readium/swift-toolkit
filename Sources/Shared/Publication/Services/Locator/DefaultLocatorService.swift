@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// A default implementation of the `LocatorService` using the `PositionsService` to locate its inputs.
 open class DefaultLocatorService: LocatorService, Loggable {
@@ -39,19 +40,20 @@ open class DefaultLocatorService: LocatorService, Loggable {
     }
 
     open func locate(_ link: Link) -> Locator? {
-        let components = link.href.split(separator: "#", maxSplits: 1).map(String.init)
-        let href = components.first ?? link.href
-        let fragment = components.getOrNil(1)
+        guard var url = link.url().getOrNil() else {
+            return nil
+        }
+        let fragment = url.removeFragment()
 
         guard
-            let resourceLink = publication()?.link(withHREF: href),
+            let resourceLink = publication()?.link(withHREF: url.absoluteString),
             let type = resourceLink.type
         else {
             return nil
         }
 
         return Locator(
-            href: href,
+            href: url.absoluteString,
             type: type,
             title: resourceLink.title ?? link.title,
             locations: Locator.Locations(

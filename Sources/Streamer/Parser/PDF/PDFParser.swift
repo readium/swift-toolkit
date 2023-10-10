@@ -7,6 +7,7 @@
 import CoreGraphics
 import Foundation
 import R2Shared
+import ReadiumInternal
 
 /// Errors thrown during the parsing of the PDF.
 public enum PDFParserError: Error {
@@ -37,7 +38,10 @@ public final class PDFParser: PublicationParser, Loggable {
         }
 
         let readingOrder = fetcher.links.filter(byMediaType: .pdf)
-        guard let firstLink = readingOrder.first else {
+        guard
+            let firstLink = readingOrder.first,
+            let firstLinkURL = firstLink.url().getOrNil()
+        else {
             throw PDFDocumentError.openFailed
         }
 
@@ -56,7 +60,7 @@ public final class PDFParser: PublicationParser, Loggable {
                     numberOfPages: document.pageCount
                 ),
                 readingOrder: readingOrder,
-                tableOfContents: document.tableOfContents.links(withDocumentHREF: firstLink.href)
+                tableOfContents: document.tableOfContents.links(withDocumentHREF: firstLinkURL)
             ),
             fetcher: fetcher,
             servicesBuilder: PublicationServicesBuilder(

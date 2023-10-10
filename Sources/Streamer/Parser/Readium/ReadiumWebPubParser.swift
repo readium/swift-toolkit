@@ -41,7 +41,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         // Reads the manifest data from the fetcher.
         guard let manifestData: Data = (
             isPackage
-                ? try? fetcher.readData(at: "/manifest.json")
+                ? try? fetcher.readData(at: URL(string: "/manifest.json")!)
                 // For a single manifest file, reads the first (and only) file in the fetcher.
                 : try? fetcher.readData(at: fetcher.links.first)
         ) else {
@@ -55,7 +55,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         // used to read the manifest file. We use an `HTTPFetcher` instead to serve the remote
         // resources.
         if !isPackage {
-            let baseURL = manifest.link(withRel: .`self`)?.url(relativeTo: nil)?.deletingLastPathComponent()
+            let baseURL = manifest.link(withRel: .`self`)?.url().getOrNil()?.deletingLastPathComponent()
             fetcher = HTTPFetcher(client: httpClient, baseURL: baseURL)
         }
 
