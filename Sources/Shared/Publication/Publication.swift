@@ -134,16 +134,8 @@ public class Publication: Loggable {
     }
 
     /// Sets the URL where this `Publication`'s RWPM manifest is served.
-    public func setSelfLink(href: String?) {
-        manifest.links.removeAll { $0.rels.contains(.`self`) }
-        if let href = href {
-            manifest.links.insert(Link(
-                href: href,
-                type: MediaType.readiumWebPubManifest.string,
-                rel: .`self`
-            ), at: 0)
-        }
-    }
+    @available(*, unavailable, message: "Not used anymore")
+    public func setSelfLink(href: String?) { fatalError() }
 
     /// Represents a Readium Web Publication Profile a `Publication` can conform to.
     ///
