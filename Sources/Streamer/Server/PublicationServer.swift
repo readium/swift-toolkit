@@ -350,9 +350,4 @@ public class PublicationServer: ResourcesServer, Loggable {
         assert(file.pathExtension.lowercased() != "css" || contentType == "text/css")
         return GCDWebServerDataResponse(data: data, contentType: contentType)
     }
-
-    @available(*, unavailable, message: "Passing a `Container` is not needed anymore")
-    public func add(_ publication: Publication, with container: Container, at endpoint: String = UUID().uuidString) throws {
-        try add(publication, at: endpoint)
-    }
 }

@@ -9,12 +9,6 @@ import Foundation
 
 /// Shared model for a Readium Publication.
 public class Publication: Loggable {
-    /// Format of the publication, if specified.
-    @available(*, deprecated, message: "Use publication.conforms(to:) to check the profile of a Publication")
-    public var format: Format = .unknown
-    /// Version of the publication's format, eg. 3 for EPUB 3
-    @available(*, deprecated, message: "This API will be removed in a future version. If you still need it, please explain your use case at https://github.com/readium/swift-toolkit/issues/new")
-    public var formatVersion: String?
 
     private var manifest: Manifest
     private let fetcher: Fetcher
@@ -172,6 +166,102 @@ public class Publication: Loggable {
         public static let pdf = Profile("https://readium.org/webpub-manifest/profiles/pdf")
     }
 
+    /// Errors occurring while opening a Publication.
+    public enum OpeningError: LocalizedError {
+        /// The file format could not be recognized by any parser.
+        case unsupportedFormat
+        /// The publication file was not found on the file system.
+        case notFound
+        /// The publication parser failed with the given underlying error.
+        case parsingFailed(Error)
+        /// We're not allowed to open the publication at all, for example because it expired.
+        case forbidden(Error?)
+        /// The publication can't be opened at the moment, for example because of a networking error.
+        /// This error is generally temporary, so the operation may be retried or postponed.
+        case unavailable(Error?)
+        /// The provided credentials are incorrect and we can't open the publication in a
+        /// `restricted` state (e.g. for a password-protected ZIP).
+        case incorrectCredentials
+
+        public var errorDescription: String? {
+            switch self {
+            case .unsupportedFormat:
+                return R2SharedLocalizedString("Publication.OpeningError.unsupportedFormat")
+            case .notFound:
+                return R2SharedLocalizedString("Publication.OpeningError.notFound")
+            case .parsingFailed:
+                return R2SharedLocalizedString("Publication.OpeningError.parsingFailed")
+            case .forbidden:
+                return R2SharedLocalizedString("Publication.OpeningError.forbidden")
+            case .unavailable:
+                return R2SharedLocalizedString("Publication.OpeningError.unavailable")
+            case .incorrectCredentials:
+                return R2SharedLocalizedString("Publication.OpeningError.incorrectCredentials")
+            }
+        }
+    }
+
+    /// Holds the components of a `Publication` to build it.
+    ///
+    /// A `Publication`'s construction is distributed over the Streamer and its parsers, and since
+    /// `Publication` is immutable, it's useful to pass the parts around before actually building
+    /// it.
+    public struct Builder {
+        /// Transform which can be used to modify a `Publication`'s components before building it.
+        /// For example, to add Publication Services or wrap the root Fetcher.
+        public typealias Transform = (_ mediaType: MediaType, _ manifest: inout Manifest, _ fetcher: inout Fetcher, _ services: inout PublicationServicesBuilder) -> Void
+
+        private let mediaType: MediaType
+        private var manifest: Manifest
+        private var fetcher: Fetcher
+        private var servicesBuilder: PublicationServicesBuilder
+
+        /// Closure which will be called once the `Publication` is built.
+        /// This is used for backwrad compatibility, until `Publication` is purely immutable.
+        private let setupPublication: ((Publication) -> Void)?
+
+        public init(
+            mediaType: MediaType,
+            manifest: Manifest,
+            fetcher: Fetcher,
+            servicesBuilder: PublicationServicesBuilder = .init(),
+            setupPublication: ((Publication) -> Void)? = nil
+        ) {
+            self.mediaType = mediaType
+            self.manifest = manifest
+            self.fetcher = fetcher
+            self.servicesBuilder = servicesBuilder
+            self.setupPublication = setupPublication
+        }
+
+        public mutating func apply(_ transform: Transform?) {
+            guard let transform = transform else {
+                return
+            }
+
+            transform(mediaType, &manifest, &fetcher, &servicesBuilder)
+        }
+
+        /// Builds the `Publication` from its parts.
+        public func build() -> Publication {
+            let publication = Publication(
+                manifest: manifest,
+                fetcher: fetcher,
+                servicesBuilder: servicesBuilder
+            )
+            setupPublication?(publication)
+            return publication
+        }
+    }
+
+    /// Format of the publication, if specified.
+    @available(*, unavailable, message: "Use publication.conforms(to:) to check the profile of a Publication")
+    public var format: Format { fatalError() }
+    /// Version of the publication's format, eg. 3 for EPUB 3
+    @available(*, unavailable, message: "This API will be removed in a future version. If you still need it, please explain your use case at https://github.com/readium/swift-toolkit/issues/new")
+    public var formatVersion: String? { fatalError() }
+
+    @available(*, unavailable, message: "Use publication.conforms(to:) to check the profile of a Publication")
     public enum Format: Equatable, Hashable {
         /// Formats natively supported by Readium.
         case cbz, epub, pdf, webpub
@@ -225,96 +315,6 @@ public class Publication: Loggable {
             default:
                 self = .unknown
             }
-        }
-
-        @available(*, unavailable, renamed: "init(file:)")
-        public init(url: URL) {
-            self.init(file: url)
-        }
-    }
-
-    /// Errors occurring while opening a Publication.
-    public enum OpeningError: LocalizedError {
-        /// The file format could not be recognized by any parser.
-        case unsupportedFormat
-        /// The publication file was not found on the file system.
-        case notFound
-        /// The publication parser failed with the given underlying error.
-        case parsingFailed(Error)
-        /// We're not allowed to open the publication at all, for example because it expired.
-        case forbidden(Error?)
-        /// The publication can't be opened at the moment, for example because of a networking error.
-        /// This error is generally temporary, so the operation may be retried or postponed.
-        case unavailable(Error?)
-        /// The provided credentials are incorrect and we can't open the publication in a
-        /// `restricted` state (e.g. for a password-protected ZIP).
-        case incorrectCredentials
-
-        public var errorDescription: String? {
-            switch self {
-            case .unsupportedFormat:
-                return R2SharedLocalizedString("Publication.OpeningError.unsupportedFormat")
-            case .notFound:
-                return R2SharedLocalizedString("Publication.OpeningError.notFound")
-            case .parsingFailed:
-                return R2SharedLocalizedString("Publication.OpeningError.parsingFailed")
-            case .forbidden:
-                return R2SharedLocalizedString("Publication.OpeningError.forbidden")
-            case .unavailable:
-                return R2SharedLocalizedString("Publication.OpeningError.unavailable")
-            case .incorrectCredentials:
-                return R2SharedLocalizedString("Publication.OpeningError.incorrectCredentials")
-            }
-        }
-    }
-
-    /// Holds the components of a `Publication` to build it.
-    ///
-    /// A `Publication`'s construction is distributed over the Streamer and its parsers, and since
-    /// `Publication` is immutable, it's useful to pass the parts around before actually building
-    /// it.
-    public struct Builder {
-        /// Transform which can be used to modify a `Publication`'s components before building it.
-        /// For example, to add Publication Services or wrap the root Fetcher.
-        public typealias Transform = (_ mediaType: MediaType, _ manifest: inout Manifest, _ fetcher: inout Fetcher, _ services: inout PublicationServicesBuilder) -> Void
-
-        private let mediaType: MediaType
-        private let format: Format
-        private var manifest: Manifest
-        private var fetcher: Fetcher
-        private var servicesBuilder: PublicationServicesBuilder
-
-        /// Closure which will be called once the `Publication` is built.
-        /// This is used for backwrad compatibility, until `Publication` is purely immutable.
-        private let setupPublication: ((Publication) -> Void)?
-
-        public init(mediaType: MediaType, format: Format, manifest: Manifest, fetcher: Fetcher, servicesBuilder: PublicationServicesBuilder = .init(), setupPublication: ((Publication) -> Void)? = nil) {
-            self.mediaType = mediaType
-            self.format = format
-            self.manifest = manifest
-            self.fetcher = fetcher
-            self.servicesBuilder = servicesBuilder
-            self.setupPublication = setupPublication
-        }
-
-        public mutating func apply(_ transform: Transform?) {
-            guard let transform = transform else {
-                return
-            }
-
-            transform(mediaType, &manifest, &fetcher, &servicesBuilder)
-        }
-
-        /// Builds the `Publication` from its parts.
-        public func build() -> Publication {
-            let publication = Publication(
-                manifest: manifest,
-                fetcher: fetcher,
-                servicesBuilder: servicesBuilder,
-                format: format
-            )
-            setupPublication?(publication)
-            return publication
         }
     }
 }

@@ -29,7 +29,6 @@ public final class AudioParser: PublicationParser {
 
         return Publication.Builder(
             mediaType: .zab,
-            format: .cbz,
             manifest: Manifest(
                 metadata: Metadata(
                     conformsTo: [.audiobook],
@@ -62,10 +61,5 @@ public final class AudioParser: PublicationParser {
         return allowedExtensions.contains(url.pathExtension.lowercased())
             || filename.hasPrefix(".")
             || filename == "Thumbs.db"
-    }
-
-    @available(*, unavailable, message: "Not supported for `AudioParser`")
-    public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        fatalError("Not supported for `AudioParser`")
     }
 }
