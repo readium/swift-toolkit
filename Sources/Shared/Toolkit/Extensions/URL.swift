@@ -8,6 +8,26 @@ import CommonCrypto
 import Foundation
 
 extension URL: Loggable {
+
+    /// Creates a `URL` from a legacy HREF.
+    ///
+    /// For example, if it is a relative path such as `/dir/my chapter.html`,
+    /// it will be / converted to the valid relative URL `dir/my%20chapter.html`.
+    ///
+    /// Only use this API when you are upgrading to Readium 3.x and migrating
+    /// the HREFs stored in / your database. See the 3.0 migration guide for more
+    /// information.
+    public init?(legacyReadiumHREF href: String) {
+        guard let url = URL(string: href), url.scheme != nil else {
+            guard let url = URL(decodedPath: href.removingPrefix("/")) else {
+                return nil
+            }
+            self = url
+            return
+        }
+        self = url
+    }
+
     /// Indicates whether this URL is an HTTP or HTTPS URL.
     public var isHTTP: Bool {
         ["http", "https"].contains(scheme?.lowercased())
