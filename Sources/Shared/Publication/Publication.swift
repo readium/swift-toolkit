@@ -9,7 +9,6 @@ import Foundation
 
 /// Shared model for a Readium Publication.
 public class Publication: Loggable {
-
     private var manifest: Manifest
     private let fetcher: Fetcher
     private let services: [PublicationService]
