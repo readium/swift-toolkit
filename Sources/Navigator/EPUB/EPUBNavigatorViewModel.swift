@@ -29,15 +29,15 @@ final class EPUBNavigatorViewModel: Loggable {
     let editingActions: EditingActionsController
     private let httpServer: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
-    let publicationBaseURL: URL
-    let assetsURL: URL
+    let publicationBaseURL: AbsoluteURL
+    let assetsURL: AbsoluteURL
     weak var delegate: EPUBNavigatorViewModelDelegate?
 
     let useLegacySettings: Bool
 
     /// Local file URL associated to the HTTP URL used to serve the file on the
     /// `httpServer`. This is used to serve custom font files, for example.
-    @Atomic private var servedFiles: [URL: URL] = [:]
+    @Atomic private var servedFiles: [URL: AbsoluteURL] = [:]
 
     convenience init(
         publication: Publication,
@@ -45,8 +45,8 @@ final class EPUBNavigatorViewModel: Loggable {
         httpServer: HTTPServer
     ) throws {
         let publicationEndpoint: HTTPServerEndpoint?
-        let baseURL: URL
-        if let url = publication.baseURL {
+        let baseURL: AbsoluteURL
+        if let url = publication.baseURL?.absoluteURL {
             publicationEndpoint = nil
             baseURL = url
         } else {
@@ -61,7 +61,7 @@ final class EPUBNavigatorViewModel: Loggable {
         // FIXME: Remove in Readium 3.0
         // Serve the fonts under the /fonts endpoint as the Streamer's
         // EPUBHTMLInjector is expecting it there.
-        if let fontsURL = Bundle.module.resourceURL?.appendingPathComponent("Assets/Static/fonts") {
+        if let fontsURL = (Bundle.module.resourceURL?.appendingPathComponent("Assets/Static/fonts")).flatMap(AbsoluteURL.init(url:)) {
             try httpServer.serve(at: "fonts", contentsOf: fontsURL)
         }
 
@@ -73,49 +73,25 @@ final class EPUBNavigatorViewModel: Loggable {
             publicationBaseURL: baseURL,
             assetsURL: httpServer.serve(
                 at: "readium",
-                contentsOf: Bundle.module.resourceURL!.appendingPathComponent("Assets/Static")
+                contentsOf: AbsoluteURL(url: Bundle.module.resourceURL!.appendingPathComponent("Assets/Static"))!
             ),
             useLegacySettings: false
         )
 
         if let endpoint = publicationEndpoint {
-            httpServer.transformResources(at: endpoint) { [weak self] in
+            try httpServer.transformResources(at: endpoint) { [weak self] in
                 self?.injectReadiumCSS(in: $0) ?? $0
             }
         }
     }
 
-    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
+    @available(*, unavailable, message: "See the 2.5.0 migration guide to migrate the Settings API")
     convenience init(
         publication: Publication,
         config: EPUBNavigatorViewController.Configuration,
         resourcesServer: ResourcesServer
     ) {
-        guard let baseURL = publication.baseURL else {
-            preconditionFailure("No base URL provided for the publication. Add it to the HTTP server.")
-        }
-
-        publication.userProperties.properties = config.userSettings.userProperties.properties
-
-        self.init(
-            publication: publication,
-            config: config,
-            httpServer: nil,
-            publicationEndpoint: nil,
-            publicationBaseURL: baseURL,
-            assetsURL: {
-                do {
-                    return try resourcesServer.serve(
-                        Bundle.module.resourceURL!.appendingPathComponent("Assets/Static"),
-                        at: "/r2-navigator/epub"
-                    )
-                } catch {
-                    EPUBNavigatorViewController.log(.error, error)
-                    return URL(string: "")!
-                }
-            }(),
-            useLegacySettings: true
-        )
+        fatalError()
     }
 
     private init(
@@ -123,8 +99,8 @@ final class EPUBNavigatorViewModel: Loggable {
         config: EPUBNavigatorViewController.Configuration,
         httpServer: HTTPServer?,
         publicationEndpoint: HTTPServerEndpoint?,
-        publicationBaseURL: URL,
-        assetsURL: URL,
+        publicationBaseURL: AbsoluteURL,
+        assetsURL: AbsoluteURL,
         useLegacySettings: Bool
     ) {
         var config = config
@@ -163,7 +139,7 @@ final class EPUBNavigatorViewModel: Loggable {
         )
         self.httpServer = httpServer
         self.publicationEndpoint = publicationEndpoint
-        self.publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
+        self.publicationBaseURL = publicationBaseURL
         self.assetsURL = assetsURL
         self.useLegacySettings = useLegacySettings
         legacyReadingProgression = publication.metadata.effectiveReadingProgression
@@ -174,7 +150,7 @@ final class EPUBNavigatorViewModel: Loggable {
         css = ReadiumCSS(
             layout: CSSLayout(),
             rsProperties: config.readiumCSSRSProperties,
-            baseURL: assetsURL.appendingPathComponent("/readium-css/"),
+            baseURL: assetsURL.appendingPath("readium-css/")!,
             fontFamilyDeclarations: config.fontFamilyDeclarations
         )
 
@@ -192,15 +168,15 @@ final class EPUBNavigatorViewModel: Loggable {
         NotificationCenter.default.removeObserver(self)
 
         if let endpoint = publicationEndpoint {
-            httpServer?.remove(at: endpoint)
+            try? httpServer?.remove(at: endpoint)
         }
     }
 
     func url(to link: Link) -> URL? {
-        link.url(relativeTo: publicationBaseURL)
+        link.url(relativeTo: publicationBaseURL.url)
     }
 
-    private func serveFile(at file: URL, baseEndpoint: HTTPServerEndpoint) throws -> URL {
+    private func serveFile(at file: URL, baseEndpoint: HTTPServerEndpoint) throws -> AbsoluteURL {
         if let url = servedFiles[file] {
             return url
         }
@@ -209,7 +185,7 @@ final class EPUBNavigatorViewModel: Loggable {
             throw Error.noHTTPServer
         }
         let endpoint = baseEndpoint.addingSuffix("/") + file.lastPathComponent
-        let url = try httpServer.serve(at: endpoint, contentsOf: file)
+        let url = try httpServer.serve(at: endpoint, contentsOf: AbsoluteURL(url: file)!)
         $servedFiles.write { $0[file] = url }
         return url
     }
@@ -367,7 +343,7 @@ final class EPUBNavigatorViewModel: Loggable {
 
     private var css: ReadiumCSS
 
-    private func serveFont(at file: URL) throws -> URL {
+    private func serveFont(at file: URL) throws -> AbsoluteURL {
         try serveFile(at: file, baseEndpoint: "custom-fonts/\(UUID().uuidString)")
     }
 

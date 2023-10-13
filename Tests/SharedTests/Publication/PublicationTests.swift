@@ -13,17 +13,17 @@ class PublicationTests: XCTestCase {
             Publication(
                 manifest: Manifest(
                     metadata: Metadata(title: "Title"),
-                    links: [Link(href: "/manifest.json", rels: [.`self`])],
-                    readingOrder: [Link(href: "/chap1.html", type: "text/html")]
+                    links: [Link(href: "manifest.json", rels: [.`self`])],
+                    readingOrder: [Link(href: "chap1.html", type: "text/html")]
                 )
             ).jsonManifest,
             serializeJSONString([
                 "metadata": ["title": "Title", "readingProgression": "auto"],
                 "links": [
-                    ["href": "/manifest.json", "rel": ["self"], "templated": false] as [String: Any],
+                    ["href": "manifest.json", "rel": ["self"], "templated": false] as [String: Any],
                 ],
                 "readingOrder": [
-                    ["href": "/chap1.html", "type": "text/html", "templated": false] as [String: Any],
+                    ["href": "chap1.html", "type": "text/html", "templated": false] as [String: Any],
                 ],
             ] as [String: Any])
         )

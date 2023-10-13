@@ -56,15 +56,18 @@ public struct Manifest: JSONEquatable, Hashable {
             throw JSONError.parsing(Publication.self)
         }
 
-        let baseHREF = isPackaged ? "/" : (
+        let baseHREF: URI? = isPackaged ? nil : (
             [Link](json: json.json["links"], warnings: warnings)
                 .first(withRel: .self)
-                .flatMap { URL(string: $0.href) }?
-                .absoluteString
-                ?? "/"
+                .flatMap { URI(string: $0.href) }
         )
 
-        let normalizer = HREF.normalizer(relativeTo: baseHREF)
+        let normalizer: (String) -> String = {
+            guard let uri = URI(string: $0) else {
+                return $0
+            }
+            return baseHREF?.resolve(uri)?.string ?? $0
+        }
 
         context = parseArray(json.pop("@context"), allowingSingle: true)
         metadata = try Metadata(json: json.pop("metadata"), warnings: warnings, normalizeHREF: normalizer)

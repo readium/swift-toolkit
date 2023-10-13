@@ -128,11 +128,27 @@ public struct Link: JSONEquatable, Hashable {
         if let url = URL(string: href), url.scheme != nil {
             return url
         } else if let baseURL = baseURL {
-            let safeHREF = (href.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? href).removingPrefix("/")
-            return URL(string: safeHREF, relativeTo: baseURL)?.absoluteURL
+            return URL(
+                string: href.removingPrefix("/"),
+                relativeTo: baseURL
+            )?.absoluteURL
         } else {
             return nil
         }
+    }
+
+    /// Returns the URL represented by this link's HREF, resolved to the given
+    /// `base` URL.
+    ///
+    /// If the HREF is a template, the `parameters` are used to expand it
+    /// according to RFC 6570.
+    public func url(
+        relativeTo baseURL: URI? = nil,
+        parameters: [String: String] = [:]
+    ) -> URI {
+        let href = templated ? expandTemplate(with: parameters).href : href
+        let url = URI(string: href)!
+        return baseURL?.resolve(url) ?? url
     }
 
     // MARK: URI Template

@@ -71,6 +71,23 @@ class URITest: XCTestCase {
         XCTAssertEqual("file:///foo/bar?query#fragment", URI(string: "file:///foo/bar?query#fragment")?.string)
     }
 
+    func testPath() {
+        XCTAssertEqual(URI(string: "foo/bar?query#fragment")?.path, "foo/bar")
+        XCTAssertEqual(URI(string: "http://example.com/foo/bar/")?.path, "/foo/bar/")
+        XCTAssertEqual(URI(string: "http://example.com/foo/bar?query#fragment")?.path, "/foo/bar")
+        XCTAssertEqual(URI(string: "file:///foo/bar/")?.path, "/foo/bar/")
+        XCTAssertEqual(URI(string: "file:///foo/bar?query#fragment")?.path, "/foo/bar")
+    }
+
+    func testPathFromEmptyRelativeUrl() {
+        XCTAssertNil(URI(string: "#fragment")!.path)
+    }
+
+    func testPathIsPercentDecoded() {
+        XCTAssertEqual(URI(string: "foo/%25bar%20quz")?.path, "foo/%bar quz")
+        XCTAssertEqual(URI(string: "http://example.com/foo/%25bar%20quz")?.path, "/foo/%bar quz")
+    }
+
     func testScheme() {
         XCTAssertEqual(.file, URI(string: "FILE:///foo/bar")?.absoluteURL?.scheme)
         XCTAssertEqual(.file, URI(string: "file:///foo/bar")?.absoluteURL?.scheme)

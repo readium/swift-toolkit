@@ -148,8 +148,8 @@ extension HTMLInjection {
         )
     }
 
-    static func stylesheetLink(href: String, prepend: Bool = false) -> HTMLInjection {
-        .link(href: href, rel: "stylesheet", type: .css, prepend: prepend)
+    static func stylesheetLink(href: AbsoluteURL, prepend: Bool = false) -> HTMLInjection {
+        .link(href: href.string, rel: "stylesheet", type: .css, prepend: prepend)
     }
 
     /// Injects a `meta` tag in the `head` element.

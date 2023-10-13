@@ -30,7 +30,7 @@ public enum OPFParserError: Error {
 /// OPF: Open Packaging Format.
 final class OPFParser: Loggable {
     /// Relative path to the OPF in the EPUB container
-    private let basePath: String
+    private let baseURI: URI
 
     /// DOM representation of the OPF file.
     private let document: Fuzi.XMLDocument
@@ -47,10 +47,10 @@ final class OPFParser: Loggable {
     private let metas: OPFMetaList
 
     /// Encryption information, indexed by resource HREF.
-    private let encryptions: [String: Encryption]
+    private let encryptions: [URI: Encryption]
 
-    init(basePath: String, data: Data, fallbackTitle: String, displayOptionsData: Data? = nil, encryptions: [String: Encryption]) throws {
-        self.basePath = basePath
+    init(baseURI: URI, data: Data, fallbackTitle: String, displayOptionsData: Data? = nil, encryptions: [URI: Encryption]) throws {
+        self.baseURI = baseURI
         self.fallbackTitle = fallbackTitle
         document = try Fuzi.XMLDocument(data: data)
         document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
@@ -59,16 +59,16 @@ final class OPFParser: Loggable {
         self.encryptions = encryptions
     }
 
-    convenience init(fetcher: Fetcher, opfHREF: String, fallbackTitle: String, encryptions: [String: Encryption] = [:]) throws {
+    convenience init(fetcher: Fetcher, opfHREF: URI, fallbackTitle: String, encryptions: [URI: Encryption] = [:]) throws {
         try self.init(
-            basePath: opfHREF,
+            baseURI: opfHREF,
             data: fetcher.readData(at: opfHREF),
             fallbackTitle: fallbackTitle,
             displayOptionsData: {
-                let iBooksPath = "/META-INF/com.apple.ibooks.display-options.xml"
-                let koboPath = "/META-INF/com.kobobooks.display-options.xml"
-                return (try? fetcher.readData(at: iBooksPath))
-                    ?? (try? fetcher.readData(at: koboPath))
+                let iBooksHREF = URI(string: "META-INF/com.apple.ibooks.display-options.xml")!
+                let koboHREF = URI(string: "META-INF/com.kobobooks.display-options.xml")!
+                return (try? fetcher.readData(at: iBooksHREF))
+                    ?? (try? fetcher.readData(at: koboHREF))
                     ?? nil
             }(),
             encryptions: encryptions
@@ -158,11 +158,12 @@ final class OPFParser: Loggable {
     }
 
     private func makeLink(manifestItem: Fuzi.XMLElement, spineItem: Fuzi.XMLElement?, isCover: Bool) -> Link? {
-        guard var href = manifestItem.attr("href")?.removingPercentEncoding else {
+        guard
+            let relativeHref = manifestItem.attr("href").flatMap(URI.init(epubHREF:)),
+            let href = baseURI.resolve(relativeHref)
+        else {
             return nil
         }
-
-        href = HREF(href, relativeTo: basePath).string
 
         // Merges the string properties found in the manifest and spine items.
         let stringProperties = "\(manifestItem.attr("properties") ?? "") \(spineItem?.attr("properties") ?? "")"
@@ -184,23 +185,16 @@ final class OPFParser: Loggable {
         }
 
         let type = manifestItem.attr("media-type")
-        var duration: Double?
 
         if let id = manifestItem.attr("id") {
             properties["id"] = id
-
-            // If the link references a SMIL resource, retrieves and fills its duration.
-            if MediaType.smil.matches(type), let durationMeta = metas["duration", in: .media, refining: id].first {
-                duration = Double(SMILParser.smilTimeToSeconds(durationMeta.content))
-            }
         }
 
         return Link(
-            href: href,
+            href: href.string,
             type: type,
             rels: rels,
-            properties: Properties(properties),
-            duration: duration
+            properties: Properties(properties)
         )
     }
 

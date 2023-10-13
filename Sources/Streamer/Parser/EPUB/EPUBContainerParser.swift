@@ -18,9 +18,9 @@ final class EPUBContainerParser: Loggable {
     }
 
     convenience init(fetcher: Fetcher) throws {
-        let href = "/META-INF/container.xml"
+        let href = "META-INF/container.xml"
         do {
-            let data = try fetcher.readData(at: href)
+            let data = try fetcher.readData(at: URI(string: href)!)
             try self.init(data: data)
         } catch {
             throw EPUBParserError.missingFile(path: href)
@@ -29,11 +29,15 @@ final class EPUBContainerParser: Loggable {
 
     /// Parses the container.xml file and retrieves the relative path to the OPF file (rootFilePath)
     /// (the default one for now, not handling multiple renditions).
-    func parseOPFHREF() throws -> String {
+    func parseOPFHREF() throws -> URI {
         // Get the path of the OPF file, relative to the metadata.rootPath.
-        guard let path = document.firstChild(xpath: "/cn:container/cn:rootfiles/cn:rootfile")?.attr("full-path") else {
+        guard let uri = document
+            .firstChild(xpath: "/cn:container/cn:rootfiles/cn:rootfile")?
+            .attr("full-path")
+            .flatMap(URI.init(epubHREF:))
+        else {
             throw EPUBParserError.missingRootfile
         }
-        return path.addingPrefix("/")
+        return uri
     }
 }

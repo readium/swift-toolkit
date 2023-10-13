@@ -17,7 +17,7 @@ public final class ArchiveFetcher: Fetcher, Loggable {
     public lazy var links: [Link] =
         archive.entries.map { entry in
             Link(
-                href: entry.path.addingPrefix("/"),
+                href: entry.path,
                 type: MediaType.of(fileExtension: URL(fileURLWithPath: entry.path).pathExtension)?.string,
                 properties: Properties(entry.linkProperties)
             )
@@ -25,7 +25,8 @@ public final class ArchiveFetcher: Fetcher, Loggable {
 
     public func get(_ link: Link) -> Resource {
         guard
-            let entry = findEntry(at: link.href),
+            let path = link.uri().relativeURL?.path,
+            let entry = findEntry(at: path),
             let reader = archive.readEntry(at: entry.path)
         else {
             return FailureResource(link: link, error: .notFound(nil))

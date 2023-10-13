@@ -35,7 +35,7 @@ final class MinizipArchive: Archive, Loggable {
             repeat {
                 switch try file.entryMetadataAtCurrentOffset() {
                 case let .file(path, length: length, compressedLength: compressedLength):
-                    entries.append(ArchiveEntry(path: path.addingPrefix("/"), length: length, compressedLength: compressedLength))
+                    entries.append(ArchiveEntry(path: path, length: length, compressedLength: compressedLength))
                 case .directory:
                     // Directories are ignored
                     break

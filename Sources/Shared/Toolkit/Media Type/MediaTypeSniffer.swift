@@ -215,7 +215,7 @@ public extension MediaType {
         func readRWPM() -> (isManifest: Bool, Manifest)? {
             if let rwpm = context.contentAsRWPM {
                 return (isManifest: true, rwpm)
-            } else if let manifestData = context.readArchiveEntry(at: "/manifest.json"),
+            } else if let manifestData = context.readArchiveEntry(at: "manifest.json"),
                       let manifestJSON = try? JSONSerialization.jsonObject(with: manifestData),
                       let rwpm = try? Manifest(json: manifestJSON)
             {
@@ -226,7 +226,7 @@ public extension MediaType {
         }
 
         if let (isManifest, rwpm) = readRWPM() {
-            let isLCPProtected = context.containsArchiveEntry(at: "/license.lcpl")
+            let isLCPProtected = context.containsArchiveEntry(at: "license.lcpl")
 
             if rwpm.conforms(to: .audiobook) {
                 return isManifest ? .readiumAudiobookManifest :

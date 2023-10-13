@@ -27,7 +27,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         if viewModel.useLegacySettings {
             let layout = ReadiumCSSLayout(languages: viewModel.publication.metadata.languages, readingProgression: viewModel.readingProgression)
             scripts.append(WKUserScript(
-                source: "window.readiumCSSBaseURL = '\(viewModel.assetsURL.appendingPathComponent(layout.readiumCSSBasePath))'",
+                source: "window.readiumCSSBaseURL = '\(viewModel.assetsURL.resolve(layout.readiumCSSBasePath)!)'",
                 injectionTime: .atDocumentStart,
                 forMainFrameOnly: false
             ))
@@ -418,7 +418,7 @@ private enum ReadiumCSSLayout: String {
         }
     }
 
-    var readiumCSSBasePath: String {
+    var readiumCSSBasePath: RelativeURL {
         let folder: String = {
             switch self {
             case .ltr:
@@ -431,10 +431,10 @@ private enum ReadiumCSSLayout: String {
                 return "cjk-horizontal/"
             }
         }()
-        return "readium-css/\(folder)"
+        return RelativeURL(string: "readium-css/\(folder)")!
     }
 
-    func readiumCSSPath(for name: String) -> String {
-        "\(readiumCSSBasePath)ReadiumCSS-\(name).css"
+    func readiumCSSPath(for name: String) -> RelativeURL {
+        readiumCSSBasePath.appendingPath("ReadiumCSS-\(name).css")!
     }
 }

@@ -61,6 +61,9 @@ extension AppModule: ModuleDelegate {
     func presentError(_ error: Error?, from viewController: UIViewController) {
         guard let error = error else { return }
         if case LibraryError.cancelled = error { return }
+
+        print("Error: \(error)")
+
         presentAlert(
             NSLocalizedString("error_title", comment: "Alert title for errors"),
             message: error.localizedDescription,
@@ -79,7 +82,7 @@ extension AppModule: ReaderModuleDelegate {}
 
 extension AppModule: OPDSModuleDelegate {
     func opdsDownloadPublication(_ publication: Publication?, at link: Link, sender: UIViewController) async throws -> Book {
-        guard let url = link.url(relativeTo: publication?.baseURL) else {
+        guard let url = link.url(relativeTo: publication?.baseURL?.url.url) else {
             throw LibraryError.cancelled
         }
 

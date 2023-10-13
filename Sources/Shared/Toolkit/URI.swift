@@ -84,13 +84,16 @@ public enum URI: Hashable {
 
     public var string: String { url.string }
 
+    /// Decoded path segments identifying a location.
+    public var path: String? { url.path }
+
     /// Resolves the given `uri` to this URI, if possible.
     ///
     /// For example:
     ///     this = "http://example.com/foo/"
     ///     url = "bar/baz"
     ///     result = "http://example.com/foo/bar/baz"
-    func resolve(_ uri: URI) -> URI? {
+    public func resolve(_ uri: URI) -> URI? {
         guard case .relativeURL = uri else {
             return uri
         }
@@ -112,7 +115,7 @@ public enum URI: Hashable {
     ///     this = "http://example.com/foo"
     ///     url = "http://example.com/foo/bar/baz"
     ///     result = "bar/baz"
-    func relativize(_ uri: URI) -> URI? {
+    public func relativize(_ uri: URI) -> URI? {
         URI(string: uri.string.removingPrefix(string.addingSuffix("/")).removingPrefix(string))
     }
 }
@@ -120,8 +123,6 @@ public enum URI: Hashable {
 /// Represents a relative Uniform Resource Locator.
 public struct RelativeURL: _URLProtocol, Hashable {
     public let url: URL
-
-    public var string: String { url.absoluteString }
 
     /// Creates a `RelativeURL` from its encoded string representation.
     public init?(string: String) {
@@ -148,6 +149,29 @@ public struct RelativeURL: _URLProtocol, Hashable {
 
         self.init(string: path)
     }
+
+    /// Resolves the given `url` to this URL, if possible.
+    ///
+    /// For example:
+    ///     this = "foo/bar"
+    ///     url = "baz"
+    ///     result = "foo/baz"
+    public func resolve(_ url: RelativeURL) -> RelativeURL? {
+        guard let url = URL(string: url.string, relativeTo: url.url) else {
+            return nil
+        }
+        return RelativeURL(url: url)
+    }
+
+    /// Relativizes the given `url` against this relative URL, if possible.
+    ///
+    /// For example:
+    ///     this = "foo/bar"
+    ///     url = "foo/bar/baz"
+    ///     result = "baz"
+    public func relativize(_ url: RelativeURL) -> RelativeURL? {
+        RelativeURL(string: url.string.removingPrefix(string.addingSuffix("/")).removingPrefix(string))
+    }
 }
 
 /// Represents an absolute Uniform Resource Locator.
@@ -162,8 +186,6 @@ public struct AbsoluteURL: _URLProtocol, Hashable {
 
     /// Indicates whether this URL points to a file.
     public var isFile: Bool { scheme == .file }
-
-    public var string: String { url.absoluteString }
 
     /// Creates an `AbsoluteURL` from its encoded string representation.
     public init?(string: String) {
@@ -181,6 +203,29 @@ public struct AbsoluteURL: _URLProtocol, Hashable {
 
         self.scheme = URLScheme(rawValue: scheme)
         self.url = url.absoluteURL
+    }
+
+    /// Resolves the given `url` to this URL, if possible.
+    ///
+    /// For example:
+    ///     this = "http://example.com/foo/"
+    ///     url = "bar/baz"
+    ///     result = "http://example.com/foo/bar/baz"
+    public func resolve(_ url: RelativeURL) -> AbsoluteURL? {
+        guard let url = URL(string: url.string, relativeTo: self.url) else {
+            return nil
+        }
+        return AbsoluteURL(url: url)
+    }
+
+    /// Relativizes the given `url` against this base URL, if possible.
+    ///
+    /// For example:
+    ///     this = "http://example.com/foo"
+    ///     url = "http://example.com/foo/bar/baz"
+    ///     result = "bar/baz"
+    public func relativize(_ url: AbsoluteURL) -> RelativeURL? {
+        RelativeURL(string: url.string.removingPrefix(string.addingSuffix("/")).removingPrefix(string))
     }
 }
 
@@ -235,18 +280,47 @@ private extension URL {
 /// Internal protocol to simplify the implementation of `URI`.
 /// Don't use it directly.
 public protocol _URLProtocol {
+    init?(url: URL)
+
     /// Returns the Swift `URL` representation for this URL.
     var url: URL { get }
 
     /// Returns the string representation for this URL.
     var string: String { get }
 
+    /// Decoded path segments identifying a location.
+    var path: String? { get }
+
+    /// Returns a copy of this URL after appending path components.
+    func appendingPath(_ path: String) -> Self?
+
     /// Returns the decoded query parameters present in this URL, in the order
     /// they appear.
     var query: URLQuery { get }
+
+    /// Creates a copy of this URL after removing its query portion.
+    func removingQuery() -> Self?
+
+    /// Creates a copy of this URL after removing its fragment portion.
+    func removingFragment() -> Self?
 }
 
 public extension _URLProtocol {
+    var string: String { url.absoluteString }
+
+    var path: String? {
+        // We can't use `url.path`, see https://openradar.appspot.com/28357201
+        components?.path.orNilIfEmpty()
+    }
+
+    func appendingPath(_ path: String) -> Self? {
+        guard !path.isEmpty else {
+            return self
+        }
+
+        return Self(url: url.appendingPathComponent(path, isDirectory: path.hasSuffix("/")))
+    }
+
     var query: URLQuery {
         guard let items = URLComponents(url: url, resolvingAgainstBaseURL: true)?.queryItems else {
             return URLQuery()
@@ -255,5 +329,33 @@ public extension _URLProtocol {
         return URLQuery(parameters: items.map {
             URLQueryParameter(name: $0.name, value: $0.value)
         })
+    }
+
+    func removingQuery() -> Self? {
+        guard let url = url.copy({ $0.query = nil }) else {
+            return nil
+        }
+        return Self(url: url)
+    }
+
+    func removingFragment() -> Self? {
+        guard let url = url.copy({ $0.fragment = nil }) else {
+            return nil
+        }
+        return Self(url: url)
+    }
+
+    fileprivate var components: URLComponents? {
+        URLComponents(url: url, resolvingAgainstBaseURL: true)
+    }
+}
+
+private extension URL {
+    func copy(_ changes: (inout URLComponents) -> Void) -> URL? {
+        guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
+            return nil
+        }
+        changes(&components)
+        return components.url
     }
 }

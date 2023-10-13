@@ -26,7 +26,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
     private let server: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
-    private let publicationBaseURL: URL
+    private let publicationBaseURL: AbsoluteURL
 
     public convenience init(
         publication: Publication,
@@ -39,8 +39,8 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         }
 
         let publicationEndpoint: HTTPServerEndpoint?
-        let baseURL: URL
-        if let url = publication.baseURL {
+        let baseURL: AbsoluteURL
+        if let url = publication.baseURL?.absoluteURL {
             publicationEndpoint = nil
             baseURL = url
         } else {
@@ -58,20 +58,9 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         )
     }
 
-    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
+    @available(*, unavailable, message: "See the 2.5.0 migration guide to migrate the HTTP server")
     public convenience init(publication: Publication, initialLocation: Locator? = nil) {
-        precondition(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
-        guard let baseURL = publication.baseURL else {
-            preconditionFailure("No base URL provided for the publication. Add it to the HTTP server.")
-        }
-
-        self.init(
-            publication: publication,
-            initialLocation: initialLocation,
-            httpServer: nil,
-            publicationEndpoint: nil,
-            publicationBaseURL: baseURL
-        )
+        fatalError()
     }
 
     private init(
@@ -79,12 +68,12 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         initialLocation: Locator?,
         httpServer: HTTPServer?,
         publicationEndpoint: HTTPServerEndpoint?,
-        publicationBaseURL: URL
+        publicationBaseURL: AbsoluteURL
     ) {
         self.publication = publication
         server = httpServer
         self.publicationEndpoint = publicationEndpoint
-        self.publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
+        self.publicationBaseURL = publicationBaseURL
 
         initialIndex = {
             guard let initialLocation = initialLocation, let initialIndex = publication.readingOrder.firstIndex(withHREF: initialLocation.href) else {
@@ -108,7 +97,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
     deinit {
         if let endpoint = publicationEndpoint {
-            server?.remove(at: endpoint)
+            try? server?.remove(at: endpoint)
         }
     }
 
@@ -180,8 +169,9 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
 
     private func imageViewController(at index: Int) -> ImageViewController? {
-        guard publication.readingOrder.indices.contains(index),
-              let url = publication.readingOrder[index].url(relativeTo: publicationBaseURL)
+        guard
+            publication.readingOrder.indices.contains(index),
+            let url = publication.readingOrder[index].url(relativeTo: publicationBaseURL.url)
         else {
             return nil
         }

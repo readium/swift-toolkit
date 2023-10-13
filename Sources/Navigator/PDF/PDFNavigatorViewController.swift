@@ -75,13 +75,13 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
     private let server: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
-    private let publicationBaseURL: URL
+    private let publicationBaseURL: AbsoluteURL
 
     public init(
         publication: Publication,
         initialLocation: Locator?,
         config: Configuration = .init(),
-        delegate: PDFNavigatorViewController? = nil,
+        delegate: PDFNavigatorDelegate? = nil,
         httpServer: HTTPServer
     ) throws {
         guard !publication.isRestricted else {
@@ -89,8 +89,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         }
 
         let publicationEndpoint: HTTPServerEndpoint?
-        let baseURL: URL
-        if let url = publication.baseURL {
+        let baseURL: AbsoluteURL
+        if let url = publication.baseURL?.absoluteURL {
             publicationEndpoint = nil
             baseURL = url
         } else {
@@ -101,11 +101,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
         self.publication = publication
         self.initialLocation = initialLocation
-        server = httpServer
+        self.server = httpServer
         self.publicationEndpoint = publicationEndpoint
-        publicationBaseURL = URL(string: baseURL.absoluteString.addingSuffix("/"))!
+        self.publicationBaseURL = baseURL
         self.config = config
-        editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
+        self.delegate = delegate
+        self.editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
 
         settings = PDFSettings(
             preferences: config.preferences,
@@ -115,40 +116,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
         super.init(nibName: nil, bundle: nil)
 
-        postInit()
-    }
-
-    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
-    public init(
-        publication: Publication,
-        initialLocation: Locator? = nil,
-        editingActions: [EditingAction] = EditingAction.defaultActions
-    ) {
-        precondition(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
-        guard let baseURL = publication.baseURL else {
-            preconditionFailure("No base URL provided for the publication. Add it to the HTTP server.")
-        }
-
-        self.publication = publication
-        self.initialLocation = initialLocation
-        server = nil
-        publicationEndpoint = nil
-        publicationBaseURL = URL(string: baseURL.absoluteString.addingSuffix("/"))!
-        config = Configuration(editingActions: editingActions)
-        self.editingActions = EditingActionsController(actions: editingActions, rights: publication.rights)
-
-        settings = PDFSettings(
-            preferences: config.preferences,
-            defaults: config.defaults,
-            metadata: publication.metadata
-        )
-
-        super.init(nibName: nil, bundle: nil)
-
-        postInit()
-    }
-
-    private func postInit() {
         editingActions.delegate = self
 
         // Wraps the PDF factories of publication services to return the currently opened document
@@ -161,33 +128,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         }
     }
 
-    private init(
-        publication: Publication,
-        initialLocation: Locator?,
-        httpServer: HTTPServer?,
-        publicationEndpoint: HTTPServerEndpoint?,
-        publicationBaseURL: URL,
-        config: Configuration
-    ) {
-        self.publication = publication
-        self.initialLocation = initialLocation
-        server = httpServer
-        self.publicationEndpoint = publicationEndpoint
-        self.publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
-        self.config = config
-        editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
-
-        settings = PDFSettings(
-            preferences: config.preferences,
-            defaults: config.defaults,
-            metadata: publication.metadata
-        )
-
-        super.init(nibName: nil, bundle: nil)
-
-        postInit()
-    }
-
     @available(*, unavailable)
     public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -197,7 +137,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         NotificationCenter.default.removeObserver(self)
 
         if let endpoint = publicationEndpoint {
-            server?.remove(at: endpoint)
+            try? server?.remove(at: endpoint)
         }
     }
 
@@ -303,7 +243,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         tapGestureController = PDFTapGestureController(pdfView: pdfView, target: self, action: #selector(didTap))
 
         apply(settings: settings, to: pdfView)
-        setupPDFView()
+        delegate?.navigator(self, setupPDFView: pdfView)
 
         NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: .PDFViewPageChanged, object: pdfView)
         NotificationCenter.default.addObserver(self, selector: #selector(selectionDidChange), name: .PDFViewSelectionChanged, object: pdfView)
@@ -382,10 +322,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     }
 
     /// Override to customize the PDFDocumentView.
-    @available(*, deprecated, message: "Override the PDFNavigatorDelegate instead")
-    open func setupPDFView() {
-        delegate?.navigator(self, setupPDFView: pdfView!)
-    }
+    @available(*, unavailable, message: "Override `PDFNavigatorDelegate` instead")
+    open func setupPDFView() {}
 
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
         let point = gesture.location(in: view)
@@ -420,7 +358,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         }
 
         if currentResourceIndex != index {
-            guard let url = link.url(relativeTo: publicationBaseURL),
+            guard let url = link.url(relativeTo: publicationBaseURL.url),
                   let document = PDFDocument(url: url)
             else {
                 log(.error, "Can't open PDF document at \(link)")

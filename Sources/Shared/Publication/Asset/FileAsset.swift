@@ -58,7 +58,7 @@ public final class FileAsset: PublicationAsset, Loggable {
 
             } catch {
                 // Falls back on serving the file as a single resource.
-                completion(.success(FileFetcher(href: "/\(self.name)", path: self.url)))
+                completion(.success(FileFetcher(href: RelativeURL(decodedPath: "\(self.name)")!, path: self.url)))
             }
         }
     }

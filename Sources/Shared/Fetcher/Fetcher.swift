@@ -31,8 +31,8 @@ public extension Fetcher {
     ///
     /// A `Resource` is always returned, since for some cases we can't know if it exists before
     /// actually fetching it, such as HTTP. Therefore, errors are handled at the Resource level.
-    func get(_ href: String) -> Resource {
-        get(Link(href: href))
+    func get(_ href: URI) -> Resource {
+        get(Link(href: href.string))
     }
 }
 
