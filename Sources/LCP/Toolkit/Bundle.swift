@@ -21,10 +21,10 @@ import Foundation
             static let module = Bundle.getCocoaPodsBundle()
             static func getCocoaPodsBundle() -> Bundle {
                 let rootBundle = Bundle(for: LCPService.self)
-                guard let resourceBundleUrl = rootBundle.url(forResource: "ReadiumLCP", withExtension: "bundle") else {
+                guard let resourceBundleUrl = rootBundle.wrapped(forResource: "ReadiumLCP", withExtension: "bundle") else {
                     fatalError("Unable to locate ReadiumLCP.bundle")
                 }
-                guard let bundle = Bundle(url: resourceBundleUrl) else {
+                guard let bundle = Bundle(wrapped: resourceBundleUrl) else {
                     fatalError("Unable to load ReadiumLCP.bundle")
                 }
 

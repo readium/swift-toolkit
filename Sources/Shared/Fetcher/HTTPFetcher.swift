@@ -11,9 +11,9 @@ public final class HTTPFetcher: Fetcher, Loggable {
     /// HTTP client used to perform HTTP requests.
     private let client: HTTPClient
     /// Base URL from which relative HREF are served.
-    private let baseURL: URL?
+    private let baseURL: AbsoluteURL?
 
-    public init(client: HTTPClient, baseURL: URL? = nil) {
+    public init(client: HTTPClient, baseURL: AbsoluteURL? = nil) {
         self.client = client
         self.baseURL = baseURL
     }
@@ -22,7 +22,7 @@ public final class HTTPFetcher: Fetcher, Loggable {
 
     public func get(_ link: Link) -> Resource {
         guard
-            let url = link.url(relativeTo: baseURL),
+            let url = link.url(relativeTo: baseURL).absoluteURL,
             url.isHTTP
         else {
             log(.error, "Not a valid HTTP URL: \(link.href)")
@@ -36,11 +36,11 @@ public final class HTTPFetcher: Fetcher, Loggable {
     /// HTTPResource provides access to an external URL.
     final class HTTPResource: NSObject, Resource, Loggable, URLSessionDataDelegate {
         let link: Link
-        let url: URL
+        let url: AbsoluteURL
 
         private let client: HTTPClient
 
-        init(client: HTTPClient, link: Link, url: URL) {
+        init(client: HTTPClient, link: Link, url: AbsoluteURL) {
             self.client = client
             self.link = link
             self.url = url
@@ -57,14 +57,14 @@ public final class HTTPFetcher: Fetcher, Loggable {
         }
 
         /// Cached HEAD response to get the expected content length and other metadata.
-        private lazy var headResponse: ResourceResult<HTTPResponse> = client.fetchSync(HTTPRequest(url: url, method: .head))
+        private lazy var headResponse: ResourceResult<HTTPResponse> = client.fetchSync(HTTPRequest(url: url.url, method: .head))
             .mapError { ResourceError.wrap($0) }
 
         /// An HTTP resource is always remote.
         var file: URL? { nil }
 
         func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void, completion: @escaping (ResourceResult<Void>) -> Void) -> Cancellable {
-            var request = HTTPRequest(url: url)
+            var request = HTTPRequest(url: url.url)
             if let range = range {
                 request.setRange(range)
             }

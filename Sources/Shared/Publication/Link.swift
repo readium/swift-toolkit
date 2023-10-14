@@ -121,20 +121,15 @@ public struct Link: JSONEquatable, Hashable {
         ) ?? .binary
     }
 
-    /// Computes an absolute URL to the link, relative to the given `baseURL`.
+    /// Returns the URL represented by this link's HREF.
     ///
-    /// If the link's `href` is already absolute, the `baseURL` is ignored.
-    public func url(relativeTo baseURL: URL?) -> URL? {
-        if let url = URL(string: href), url.scheme != nil {
-            return url
-        } else if let baseURL = baseURL {
-            return URL(
-                string: href.removingPrefix("/"),
-                relativeTo: baseURL
-            )?.absoluteURL
-        } else {
-            return nil
-        }
+    /// If the HREF is a template, the `parameters` are used to expand it
+    /// according to RFC 6570.
+    public func url(
+        parameters: [String: String] = [:]
+    ) -> AnyURL {
+        let href = templated ? expandTemplate(with: parameters).href : href
+        return AnyURL(string: href)!
     }
 
     /// Returns the URL represented by this link's HREF, resolved to the given
@@ -142,13 +137,13 @@ public struct Link: JSONEquatable, Hashable {
     ///
     /// If the HREF is a template, the `parameters` are used to expand it
     /// according to RFC 6570.
-    public func url(
-        relativeTo baseURL: URI? = nil,
+    public func url<T : URLConvertible>(
+        relativeTo baseURL: T?,
         parameters: [String: String] = [:]
-    ) -> URI {
+    ) -> AnyURL {
         let href = templated ? expandTemplate(with: parameters).href : href
-        let url = URI(string: href)!
-        return baseURL?.resolve(url) ?? url
+        let url = AnyURL(string: href)!
+        return baseURL?.anyURL.resolve(url) ?? url
     }
 
     // MARK: URI Template

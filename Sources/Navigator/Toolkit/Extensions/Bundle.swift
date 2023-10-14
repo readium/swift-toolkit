@@ -21,10 +21,10 @@ import Foundation
             static let module = Bundle.getCocoaPodsBundle()
             static func getCocoaPodsBundle() -> Bundle {
                 let rootBundle = Bundle(for: EPUBNavigatorViewController.self)
-                guard let resourceBundleUrl = rootBundle.url(forResource: "ReadiumNavigator", withExtension: "bundle") else {
+                guard let resourceBundleUrl = rootBundle.wrapped(forResource: "ReadiumNavigator", withExtension: "bundle") else {
                     fatalError("Unable to locate ReadiumNavigator.bundle")
                 }
-                guard let bundle = Bundle(url: resourceBundleUrl) else {
+                guard let bundle = Bundle(wrapped: resourceBundleUrl) else {
                     fatalError("Unable to load ReadiumNavigator.bundle")
                 }
 

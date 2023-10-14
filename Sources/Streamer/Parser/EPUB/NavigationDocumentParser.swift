@@ -23,12 +23,12 @@ final class NavigationDocumentParser {
     }
 
     private let data: Data
-    private let uri: URI
+    private let url: RelativeURL
 
     /// Builds the navigation document parser from Navigation Document data and its path. The path is used to normalize the links' hrefs.
-    init(data: Data, at uri: URI) {
+    init(data: Data, at url: RelativeURL) {
         self.data = data
-        self.uri = uri
+        self.url = url
     }
 
     private lazy var document: Fuzi.XMLDocument? = {
@@ -65,21 +65,21 @@ final class NavigationDocumentParser {
 
         return NavigationDocumentParser.makeLink(
             title: label.stringValue,
-            href: label.attr("href").flatMap(URI.init(epubHREF:)),
+            href: label.attr("href").flatMap(RelativeURL.init(epubHREF:)),
             children: links(in: li),
-            baseURI: uri
+            baseURL: url
         )
     }
 
     /// Creates a new navigation `Link` object from a label, href and children, after validating the data.
-    static func makeLink(title: String?, href: URI?, children: [Link], baseURI: URI) -> Link? {
+    static func makeLink(title: String?, href: RelativeURL?, children: [Link], baseURL: RelativeURL) -> Link? {
         // Cleans up title label.
         // http://www.idpf.org/epub/301/spec/epub-contentdocs.html#confreq-nav-a-cnt
         let title = (title ?? "")
             .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
 
-        let href = href.flatMap { baseURI.resolve($0) }
+        let href = href.flatMap { baseURL.resolve($0) }
 
         guard
             // A zero-length text label must be ignored

@@ -496,7 +496,7 @@ extension EPUBSpreadView: WKUIDelegate {
         guard let url = elementInfo.linkURL.flatMap(AbsoluteURL.init(url:)) else {
             return true
         }
-        return viewModel.publicationBaseURL.relativize(url) != nil
+        return url.isRelative(to: viewModel.publicationBaseURL)
     }
 }
 

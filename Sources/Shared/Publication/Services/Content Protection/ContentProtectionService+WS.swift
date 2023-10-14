@@ -98,7 +98,7 @@ private final class CopyRightsRouteHandler: RouteHandler {
     }
 
     func handle(link: Link, for service: ContentProtectionService) -> ResourceResult<Any> {
-        let params = URI(string: link.href)?.url.query ?? URLQuery()
+        let params = AnyURL(string: link.href)?.query ?? URLQuery()
         let peek = params.first(named: "peek").flatMap(Bool.init) ?? false
         guard let text = params.first(named: "text") else {
             return .failure(.badRequest(ContentProtectionServiceError.missingParameter(name: "text")))
@@ -128,7 +128,7 @@ private final class PrintRightsRouteHandler: RouteHandler {
     }
 
     func handle(link: Link, for service: ContentProtectionService) -> ResourceResult<Any> {
-        let params = URI(string: link.href)?.url.query ?? URLQuery()
+        let params = AnyURL(string: link.href)?.query ?? URLQuery()
         let peek = params.first(named: "peek").flatMap(Bool.init) ?? false
         guard let pageCount = params.first(named: "pageCount").flatMap(Int.init) else {
             return .failure(.badRequest(ContentProtectionServiceError.missingParameter(name: "pageCount")))

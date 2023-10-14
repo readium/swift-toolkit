@@ -81,7 +81,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             log(.error, "Can't get URL for link \(link.href)")
             return
         }
-        webView.load(URLRequest(url: url))
+        webView.load(URLRequest(url: url.url))
     }
 
     override func applySettings() {

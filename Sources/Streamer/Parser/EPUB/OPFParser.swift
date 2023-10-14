@@ -30,7 +30,7 @@ public enum OPFParserError: Error {
 /// OPF: Open Packaging Format.
 final class OPFParser: Loggable {
     /// Relative path to the OPF in the EPUB container
-    private let baseURI: URI
+    private let baseURL: RelativeURL
 
     /// DOM representation of the OPF file.
     private let document: Fuzi.XMLDocument
@@ -47,10 +47,10 @@ final class OPFParser: Loggable {
     private let metas: OPFMetaList
 
     /// Encryption information, indexed by resource HREF.
-    private let encryptions: [URI: Encryption]
+    private let encryptions: [RelativeURL: Encryption]
 
-    init(baseURI: URI, data: Data, fallbackTitle: String, displayOptionsData: Data? = nil, encryptions: [URI: Encryption]) throws {
-        self.baseURI = baseURI
+    init(baseURL: RelativeURL, data: Data, fallbackTitle: String, displayOptionsData: Data? = nil, encryptions: [RelativeURL: Encryption]) throws {
+        self.baseURL = baseURL
         self.fallbackTitle = fallbackTitle
         document = try Fuzi.XMLDocument(data: data)
         document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
@@ -59,14 +59,14 @@ final class OPFParser: Loggable {
         self.encryptions = encryptions
     }
 
-    convenience init(fetcher: Fetcher, opfHREF: URI, fallbackTitle: String, encryptions: [URI: Encryption] = [:]) throws {
+    convenience init(fetcher: Fetcher, opfHREF: RelativeURL, fallbackTitle: String, encryptions: [RelativeURL: Encryption] = [:]) throws {
         try self.init(
-            baseURI: opfHREF,
-            data: fetcher.readData(at: opfHREF),
+            baseURL: opfHREF,
+            data: fetcher.readData(at: AnyURL(opfHREF)),
             fallbackTitle: fallbackTitle,
             displayOptionsData: {
-                let iBooksHREF = URI(string: "META-INF/com.apple.ibooks.display-options.xml")!
-                let koboHREF = URI(string: "META-INF/com.kobobooks.display-options.xml")!
+                let iBooksHREF = AnyURL(string: "META-INF/com.apple.ibooks.display-options.xml")!
+                let koboHREF = AnyURL(string: "META-INF/com.kobobooks.display-options.xml")!
                 return (try? fetcher.readData(at: iBooksHREF))
                     ?? (try? fetcher.readData(at: koboHREF))
                     ?? nil
@@ -159,8 +159,8 @@ final class OPFParser: Loggable {
 
     private func makeLink(manifestItem: Fuzi.XMLElement, spineItem: Fuzi.XMLElement?, isCover: Bool) -> Link? {
         guard
-            let relativeHref = manifestItem.attr("href").flatMap(URI.init(epubHREF:)),
-            let href = baseURI.resolve(relativeHref)
+            let relativeHref = manifestItem.attr("href").flatMap(RelativeURL.init(epubHREF:)),
+            let href = baseURL.resolve(relativeHref)
         else {
             return nil
         }

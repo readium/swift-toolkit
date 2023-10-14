@@ -358,9 +358,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         }
 
         if currentResourceIndex != index {
-            guard let url = link.url(relativeTo: publicationBaseURL.url),
-                  let document = PDFDocument(url: url)
-            else {
+            let url = link.url(relativeTo: publicationBaseURL)
+            guard let document = PDFDocument(url: url.url) else {
                 log(.error, "Can't open PDF document at \(link)")
                 return false
             }

@@ -21,12 +21,12 @@ final class NCXParser {
     }
 
     private let data: Data
-    private let uri: URI
+    private let url: RelativeURL
 
     /// Builds the NCX parser from the NCX data and its path. The path is used to normalize the links' hrefs.
-    init(data: Data, at uri: URI) {
+    init(data: Data, at url: RelativeURL) {
         self.data = data
-        self.uri = uri
+        self.url = url
     }
 
     private lazy var document: Fuzi.XMLDocument? = {
@@ -64,9 +64,9 @@ final class NCXParser {
     private func link(for element: Fuzi.XMLElement, nodeTagName: String) -> Link? {
         NavigationDocumentParser.makeLink(
             title: element.firstChild(xpath: "ncx:navLabel/ncx:text")?.stringValue,
-            href: element.firstChild(xpath: "ncx:content")?.attr("src").flatMap(URI.init(epubHREF:)),
+            href: element.firstChild(xpath: "ncx:content")?.attr("src").flatMap(RelativeURL.init(epubHREF:)),
             children: links(in: element, nodeTagName: nodeTagName),
-            baseURI: uri
+            baseURL: url
         )
     }
 }

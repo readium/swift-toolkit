@@ -263,7 +263,7 @@ public extension MediaType {
         if context.hasFileExtension("epub") || context.hasMediaType("application/epub+zip") {
             return .epub
         }
-        if let mimetypeData = context.readArchiveEntry(at: "/mimetype"),
+        if let mimetypeData = context.readArchiveEntry(at: "mimetype"),
            let mimetype = String(data: mimetypeData, encoding: .ascii)?.trimmingCharacters(in: .whitespacesAndNewlines),
            mimetype == "application/epub+zip"
         {
@@ -280,10 +280,10 @@ public extension MediaType {
         if context.hasFileExtension("lpf") || context.hasMediaType("application/lpf+zip") {
             return .lpf
         }
-        if context.containsArchiveEntry(at: "/index.html") {
+        if context.containsArchiveEntry(at: "index.html") {
             return .lpf
         }
-        if let data = context.readArchiveEntry(at: "/publication.json"),
+        if let data = context.readArchiveEntry(at: "publication.json"),
            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
            let contexts = json["@context"] as? [Any],
            contexts.contains(where: { ($0 as? String) == "https://www.w3.org/ns/pub-context" })

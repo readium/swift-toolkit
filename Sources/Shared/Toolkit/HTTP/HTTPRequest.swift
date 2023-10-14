@@ -171,9 +171,6 @@ extension String: HTTPRequestConvertible {
 
 extension Link: HTTPRequestConvertible {
     public func httpRequest() -> HTTPResult<HTTPRequest> {
-        guard let url = url(relativeTo: nil) else {
-            return .failure(HTTPError(kind: .malformedRequest(url: href)))
-        }
-        return .success(HTTPRequest(url: url))
+        .success(HTTPRequest(url: url().url))
     }
 }

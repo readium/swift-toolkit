@@ -169,14 +169,12 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
 
     private func imageViewController(at index: Int) -> ImageViewController? {
-        guard
-            publication.readingOrder.indices.contains(index),
-            let url = publication.readingOrder[index].url(relativeTo: publicationBaseURL.url)
-        else {
+        guard publication.readingOrder.indices.contains(index) else {
             return nil
         }
 
-        return ImageViewController(index: index, url: url)
+        let url = publication.readingOrder[index].url(relativeTo: publicationBaseURL)
+        return ImageViewController(index: index, url: url.url)
     }
 
     // MARK: - Navigator

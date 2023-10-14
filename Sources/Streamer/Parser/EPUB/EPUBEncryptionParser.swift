@@ -21,7 +21,7 @@ final class EPUBEncryptionParser: Loggable {
     convenience init(fetcher: Fetcher) throws {
         let path = "META-INF/encryption.xml"
         do {
-            let data = try fetcher.readData(at: URI(string: path)!)
+            let data = try fetcher.readData(at: AnyURL(string: path)!)
             self.init(fetcher: fetcher, data: data)
         } catch {
             throw EPUBParserError.missingFile(path: path)
@@ -39,19 +39,19 @@ final class EPUBEncryptionParser: Loggable {
     /// Parse the Encryption.xml EPUB file. It contains the informationg about encrypted resources and how to decrypt them.
     ///
     /// - Returns: A map between the resource `href` and the matching `Encryption`.
-    func parseEncryptions() -> [URI: Encryption] {
+    func parseEncryptions() -> [RelativeURL: Encryption] {
         guard let document = document else {
             return [:]
         }
 
-        var encryptions: [URI: Encryption] = [:]
+        var encryptions: [RelativeURL: Encryption] = [:]
 
         // Loop through <EncryptedData> elements..
         for encryptedDataElement in document.xpath("./enc:EncryptedData") {
             guard
                 let algorithm = encryptedDataElement.firstChild(xpath: "enc:EncryptionMethod")?.attr("Algorithm"),
                 let resourceURI = encryptedDataElement.firstChild(xpath: "enc:CipherData/enc:CipherReference")?.attr("URI")
-                .flatMap(URI.init(epubHREF:))
+                .flatMap(RelativeURL.init(epubHREF:))
             else {
                 continue
             }

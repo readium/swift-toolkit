@@ -155,13 +155,13 @@ public class HTMLResourceContentIterator: ContentIterator {
 
         private init(baseLocator: Locator, startElement: Element?, beforeMaxLength: Int) {
             self.baseLocator = baseLocator
-            baseHREF = URI(string: baseLocator.href)
+            baseHREF = AnyURL(string: baseLocator.href)
             self.startElement = startElement
             self.beforeMaxLength = beforeMaxLength
         }
 
         private let baseLocator: Locator
-        private let baseHREF: URI?
+        private let baseHREF: AnyURL?
         private let startElement: Element?
         private let beforeMaxLength: Int
 
@@ -396,10 +396,11 @@ public class HTMLResourceContentIterator: ContentIterator {
 }
 
 private extension Node {
-    func srcRelativeToHREF(_ baseHREF: URI?) throws -> URI? {
+    func srcRelativeToHREF(_ baseHREF: AnyURL?) throws -> AnyURL? {
         try attr("src").takeUnlessEmpty()
-            .flatMap { URI(string: $0) }
-            .flatMap { baseHREF?.relativize($0) ?? $0 }
+            .flatMap { AnyURL(string: $0) }
+            .flatMap {
+                baseHREF?.relativize($0) ?? $0 }
     }
 
     func language() throws -> String? {

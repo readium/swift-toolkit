@@ -23,12 +23,12 @@ public final class FileFetcher: Fetcher, Loggable {
     }
 
     public func get(_ link: Link) -> Resource {
-        if let linkHREF = link.uri().relativeURL {
+        if let linkHREF = link.url().relativeURL {
             for (href, url) in paths {
                 if linkHREF == href {
                     return FileResource(link: link, file: url)
 
-                } else if let relativeHREF = linkHREF.relativize(href)?.path {
+                } else if let relativeHREF = href.relativize(linkHREF)?.path {
                     let resourceURL = url.appendingPathComponent(relativeHREF).standardizedFileURL
                     // Makes sure that the requested resource is `url` or one of its descendant.
                     if url.isParentOf(resourceURL) {

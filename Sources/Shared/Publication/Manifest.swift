@@ -56,14 +56,14 @@ public struct Manifest: JSONEquatable, Hashable {
             throw JSONError.parsing(Publication.self)
         }
 
-        let baseHREF: URI? = isPackaged ? nil : (
+        let baseHREF: AbsoluteURL? = isPackaged ? nil : (
             [Link](json: json.json["links"], warnings: warnings)
                 .first(withRel: .self)
-                .flatMap { URI(string: $0.href) }
+                .flatMap { AbsoluteURL(string: $0.href) }
         )
 
         let normalizer: (String) -> String = {
-            guard let uri = URI(string: $0) else {
+            guard let uri = AnyURL(string: $0) else {
                 return $0
             }
             return baseHREF?.resolve(uri)?.string ?? $0

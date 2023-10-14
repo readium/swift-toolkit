@@ -103,7 +103,7 @@ public final class EPUBParser: PublicationParser {
         // Get the link in the readingOrder pointing to the Navigation Document.
         guard
             let navLink = links.first(withRel: .contents),
-            let navURI = URI(string: navLink.href),
+            let navURI = RelativeURL(string: navLink.href),
             let navDocumentData = try? fetcher.readData(at: navURI)
         else {
             return [:]
@@ -138,7 +138,7 @@ public final class EPUBParser: PublicationParser {
         // Get the link in the readingOrder pointing to the NCX document.
         guard
             let ncxLink = links.first(withMediaType: .ncx),
-            let ncxURI = URI(string: ncxLink.href),
+            let ncxURI = RelativeURL(string: ncxLink.href),
             let ncxDocumentData = try? fetcher.readData(at: ncxURI)
         else {
             return [:]

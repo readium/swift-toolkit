@@ -26,15 +26,15 @@ struct ZIPTester {
 
     func testGetNonExistingEntry() throws {
         let archive = try make(fixtures.url(for: "test.zip"))
-        XCTAssertNil(archive.entry(at: "/unknown"))
+        XCTAssertNil(archive.entry(at: "unknown"))
     }
 
     func testGetFileEntry() throws {
         let archive = try make(fixtures.url(for: "test.zip"))
         XCTAssertEqual(
-            archive.entry(at: "/A folder/wasteland-cover.jpg"),
+            archive.entry(at: "A folder/wasteland-cover.jpg"),
             ArchiveEntry(
-                path: "/A folder/wasteland-cover.jpg",
+                path: "A folder/wasteland-cover.jpg",
                 length: 103_477,
                 compressedLength: 82374
             )
@@ -44,9 +44,9 @@ struct ZIPTester {
     func testGetUncompressedFileEntry() throws {
         let archive = try make(fixtures.url(for: "test.zip"))
         XCTAssertEqual(
-            archive.entry(at: "/uncompressed.jpg"),
+            archive.entry(at: "uncompressed.jpg"),
             ArchiveEntry(
-                path: "/uncompressed.jpg",
+                path: "uncompressed.jpg",
                 length: 279_551,
                 compressedLength: nil
             )
@@ -55,26 +55,26 @@ struct ZIPTester {
 
     func testGetDirectoryEntry() throws {
         let archive = try make(fixtures.url(for: "test.zip"))
-        XCTAssertNil(archive.entry(at: "/A folder"))
-        XCTAssertNil(archive.entry(at: "/A folder/"))
+        XCTAssertNil(archive.entry(at: "A folder"))
+        XCTAssertNil(archive.entry(at: "A folder/"))
     }
 
     func testGetEntries() throws {
         let archive = try make(fixtures.url(for: "test.zip"))
         XCTAssertEqual(archive.entries, [
-            ArchiveEntry(path: "/.hidden", length: 0, compressedLength: nil),
-            ArchiveEntry(path: "/A folder/Sub.folder%/file.txt", length: 20, compressedLength: nil),
-            ArchiveEntry(path: "/A folder/wasteland-cover.jpg", length: 103_477, compressedLength: 82374),
-            ArchiveEntry(path: "/root.txt", length: 0, compressedLength: nil),
-            ArchiveEntry(path: "/uncompressed.jpg", length: 279_551, compressedLength: nil),
-            ArchiveEntry(path: "/uncompressed.txt", length: 30, compressedLength: nil),
-            ArchiveEntry(path: "/A folder/Sub.folder%/file-compressed.txt", length: 29609, compressedLength: 8659),
+            ArchiveEntry(path: ".hidden", length: 0, compressedLength: nil),
+            ArchiveEntry(path: "A folder/Sub.folder%/file.txt", length: 20, compressedLength: nil),
+            ArchiveEntry(path: "A folder/wasteland-cover.jpg", length: 103_477, compressedLength: 82374),
+            ArchiveEntry(path: "root.txt", length: 0, compressedLength: nil),
+            ArchiveEntry(path: "uncompressed.jpg", length: 279_551, compressedLength: nil),
+            ArchiveEntry(path: "uncompressed.txt", length: 30, compressedLength: nil),
+            ArchiveEntry(path: "A folder/Sub.folder%/file-compressed.txt", length: 29609, compressedLength: 8659),
         ])
     }
 
     func testReadCompressedEntry() throws {
         let archive = try make(fixtures.url(for: "test.zip"))
-        let entry = try XCTUnwrap(archive.readEntry(at: "/A folder/Sub.folder%/file-compressed.txt"))
+        let entry = try XCTUnwrap(archive.readEntry(at: "A folder/Sub.folder%/file-compressed.txt"))
         let data = try entry.read().get()
         let string = String(data: data, encoding: .utf8)!
         XCTAssertEqual(string.count, 29609)
@@ -83,7 +83,7 @@ struct ZIPTester {
 
     func testReadUncompressedEntry() throws {
         let archive = try make(fixtures.url(for: "test.zip"))
-        let entry = try XCTUnwrap(archive.readEntry(at: "/A folder/Sub.folder%/file.txt"))
+        let entry = try XCTUnwrap(archive.readEntry(at: "A folder/Sub.folder%/file.txt"))
         let data = try entry.read().get()
         XCTAssertNotNil(data)
         XCTAssertEqual(
@@ -95,7 +95,7 @@ struct ZIPTester {
     func testReadUncompressedRange() throws {
         // FIXME: It looks like unzseek64 starts from the beginning of the file header, instead of the content. Reading a first byte solves this but then Minizip crashes randomly... Note that this only fails in the test case. I didn't see actual issues in LCPDF or videos embedded in EPUBs.
         let archive = try make(fixtures.url(for: "test.zip"))
-        let entry = try XCTUnwrap(archive.readEntry(at: "/A folder/Sub.folder%/file.txt"))
+        let entry = try XCTUnwrap(archive.readEntry(at: "A folder/Sub.folder%/file.txt"))
         let data = try entry.read(range: 14 ..< 20).get()
         XCTAssertEqual(
             String(data: data, encoding: .utf8),
@@ -105,7 +105,7 @@ struct ZIPTester {
 
     func testReadCompressedRange() throws {
         let archive = try make(fixtures.url(for: "test.zip"))
-        let entry = try XCTUnwrap(archive.readEntry(at: "/A folder/Sub.folder%/file-compressed.txt"))
+        let entry = try XCTUnwrap(archive.readEntry(at: "A folder/Sub.folder%/file-compressed.txt"))
         let data = try entry.read(range: 14 ..< 20).get()
         XCTAssertEqual(
             String(data: data, encoding: .utf8),
@@ -160,7 +160,7 @@ class ZIPBenchmarkingTests: XCTestCase {
             try! MinizipArchive.make(url: fixtures.url(for: "test.zip")).get(),
 //            try! ZIPFoundationArchive(url: fixtures.url(for: "test.zip"))
         ]
-        let path = "/A folder/wasteland-cover.jpg"
+        let path = "A folder/wasteland-cover.jpg"
         let length: UInt64 = 103_477
 
         let entries = try archives

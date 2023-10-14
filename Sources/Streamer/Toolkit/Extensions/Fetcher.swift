@@ -19,7 +19,7 @@ extension Fetcher {
     }
 
     /// Returns the data of a file at given `href`.
-    func readData(at href: URI) throws -> Data {
+    func readData<T : URLConvertible>(at href: T) throws -> Data {
         let resource = get(href)
         defer { resource.close() }
         return try resource.read().get()

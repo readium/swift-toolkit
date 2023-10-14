@@ -172,8 +172,8 @@ final class EPUBNavigatorViewModel: Loggable {
         }
     }
 
-    func url(to link: Link) -> URL? {
-        link.url(relativeTo: publicationBaseURL.url)
+    func url(to link: Link) -> AnyURL? {
+        link.url(relativeTo: publicationBaseURL)
     }
 
     private func serveFile(at file: URL, baseEndpoint: HTTPServerEndpoint) throws -> AbsoluteURL {
