@@ -9,22 +9,22 @@ import Minizip
 
 enum MinizipArchiveError: Error {
     case notAFileURL(URL)
-    case fileNotReachable(URL)
-    case notAValidZIP(URL)
+    case fileNotReachable(FileURL)
+    case notAValidZIP(FileURL)
     case entryAlreadyClosed(ArchivePath)
 }
 
 /// A ZIP `Archive` using the Minizip library.
 final class MinizipArchive: Archive, Loggable {
     static func make(url: URL) -> ArchiveResult<MinizipArchive> {
-        guard url.isFileURL else {
-            return .failure(.openFailed(archive: url, cause: MinizipArchiveError.notAFileURL(url)))
+        guard let url = FileURL(url: url) else {
+            return .failure(.openFailed(archive: url.absoluteString, cause: MinizipArchiveError.notAFileURL(url)))
         }
-        guard (try? url.checkResourceIsReachable()) ?? false else {
-            return .failure(.openFailed(archive: url, cause: MinizipArchiveError.fileNotReachable(url)))
+        guard (try? url.exists()) ?? false else {
+            return .failure(.openFailed(archive: url.string, cause: MinizipArchiveError.fileNotReachable(url)))
         }
-        guard let file = MinizipFile(url: url) else {
-            return .failure(.openFailed(archive: url, cause: MinizipArchiveError.notAValidZIP(url)))
+        guard let file = MinizipFile(url: url.url) else {
+            return .failure(.openFailed(archive: url.string, cause: MinizipArchiveError.notAValidZIP(url)))
         }
         defer { try? file.close() }
 
@@ -45,15 +45,15 @@ final class MinizipArchive: Archive, Loggable {
             return try .success(Self(url: url, entries: entries))
 
         } catch {
-            return .failure(.openFailed(archive: url, cause: error))
+            return .failure(.openFailed(archive: url.string, cause: error))
         }
     }
 
     let entries: [ArchiveEntry]
 
-    private let url: URL
+    private let url: FileURL
 
-    private init(url: URL, entries: [ArchiveEntry]) throws {
+    private init(url: FileURL, entries: [ArchiveEntry]) throws {
         self.url = url
         self.entries = entries
     }
@@ -69,11 +69,11 @@ final class MinizipArchive: Archive, Loggable {
 }
 
 private final class MinizipEntryReader: ArchiveEntryReader, Loggable {
-    private let archive: URL
+    private let archive: FileURL
     private let entry: ArchiveEntry
     private var isClosed = false
 
-    init(archive: URL, entry: ArchiveEntry) {
+    init(archive: FileURL, entry: ArchiveEntry) {
         self.archive = archive
         self.entry = entry
     }
@@ -99,7 +99,7 @@ private final class MinizipEntryReader: ArchiveEntryReader, Loggable {
                 return try .success(file.readFromCurrentOffset(length: UInt64(range.count)))
 
             } catch {
-                return .failure(.readFailed(entry: entry.path, archive: archive, cause: error))
+                return .failure(.readFailed(entry: entry.path, archive: archive.string, cause: error))
             }
         }
     }
@@ -108,7 +108,7 @@ private final class MinizipEntryReader: ArchiveEntryReader, Loggable {
     private func file() throws -> MinizipFile {
         if let file = _file {
             return file
-        } else if let file = MinizipFile(url: archive) {
+        } else if let file = MinizipFile(url: archive.url) {
             _file = file
             return file
         } else {

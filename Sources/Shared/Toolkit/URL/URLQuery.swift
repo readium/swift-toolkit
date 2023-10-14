@@ -8,7 +8,6 @@ import Foundation
 
 /// Represents a list of query parameters in a URL.
 public struct URLQuery {
-
     /// Represents a single query parameter and its value in a URL.
     public struct Parameter {
         public let name: String
@@ -20,12 +19,12 @@ public struct URLQuery {
     public init(parameters: [Parameter] = []) {
         self.parameters = parameters
     }
-    
+
     public init(url: URL) {
         let parameters = URLComponents(url: url, resolvingAgainstBaseURL: true)?
             .queryItems?
             .map { Parameter(name: $0.name, value: $0.value) }
-        
+
         self.init(parameters: parameters ?? [])
     }
 

@@ -75,7 +75,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
     private let server: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
-    private let publicationBaseURL: AbsoluteURL
+    private let publicationBaseURL: HTTPURL
 
     public init(
         publication: Publication,
@@ -89,8 +89,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         }
 
         let publicationEndpoint: HTTPServerEndpoint?
-        let baseURL: AbsoluteURL
-        if let url = publication.baseURL?.absoluteURL {
+        let baseURL: HTTPURL
+        if let url = publication.baseURL?.httpURL {
             publicationEndpoint = nil
             baseURL = url
         } else {

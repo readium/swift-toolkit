@@ -73,13 +73,13 @@ public final class LCPService: Loggable {
     ///   - sender: Free object that can be used by reading apps to give some UX context when
     ///     presenting dialogs with `LCPAuthenticating`.
     public func retrieveLicense(
-        from publication: URL,
+        from publication: FileURL,
         authentication: LCPAuthenticating = LCPDialogAuthentication(),
         allowUserInteraction: Bool = true,
         sender: Any? = nil,
         completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void
     ) {
-        licenses.retrieve(from: publication, authentication: authentication, allowUserInteraction: allowUserInteraction, sender: sender)
+        licenses.retrieve(from: publication.url, authentication: authentication, allowUserInteraction: allowUserInteraction, sender: sender)
             .map { $0 as LCPLicense? }
             .resolve(completion)
     }

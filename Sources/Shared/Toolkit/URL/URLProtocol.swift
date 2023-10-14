@@ -8,7 +8,6 @@ import Foundation
 
 /// A type that can represent a URL.
 public protocol URLProtocol {
-    
     /// Creates a new instance of this type from a Foundation `URL`.
     init?(url: URL)
 
@@ -21,8 +20,14 @@ public protocol URLProtocol {
     /// Decoded path segments identifying a location.
     var path: String? { get }
 
+    /// The last path component of the receiver.
+    var lastPathComponent: String? { get }
+
     /// Returns a copy of this URL after appending path components.
     func appendingPath(_ path: String) -> Self?
+
+    /// Returns a copy of this URL after appending path components.
+    func appendingPath(_ path: String, isDirectory: Bool) -> Self?
 
     /// Returns the decoded query parameters present in this URL, in the order
     /// they appear.
@@ -36,6 +41,13 @@ public protocol URLProtocol {
 }
 
 public extension URLProtocol {
+    init?(string: String) {
+        guard let url = URL(percentEncodedString: string) else {
+            return nil
+        }
+        self.init(url: url)
+    }
+
     var string: String { url.absoluteString }
 
     var path: String? {
@@ -43,12 +55,20 @@ public extension URLProtocol {
         components?.path.orNilIfEmpty()
     }
 
+    var lastPathComponent: String? {
+        url.lastPathComponent.orNilIfEmpty()
+    }
+
     func appendingPath(_ path: String) -> Self? {
+        appendingPath(path, isDirectory: path.hasSuffix("/"))
+    }
+
+    func appendingPath(_ path: String, isDirectory: Bool) -> Self? {
         guard !path.isEmpty else {
             return self
         }
 
-        return Self(url: url.appendingPathComponent(path, isDirectory: path.hasSuffix("/")))
+        return Self(url: url.appendingPathComponent(path, isDirectory: isDirectory))
     }
 
     var query: URLQuery { URLQuery(url: url) }
@@ -67,7 +87,7 @@ public extension URLProtocol {
         return Self(url: url)
     }
 
-    fileprivate var components: URLComponents? {
+    private var components: URLComponents? {
         URLComponents(url: url, resolvingAgainstBaseURL: true)
     }
 }

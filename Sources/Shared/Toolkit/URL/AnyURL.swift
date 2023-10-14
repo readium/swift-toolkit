@@ -11,27 +11,18 @@ import ReadiumInternal
 ///
 /// See https://url.spec.whatwg.org
 public enum AnyURL: URLProtocol, Hashable {
-    
     /// An absolute URL.
-    case absolute(AbsoluteURL)
-    
+    case absolute(AnyAbsoluteURL)
+
     /// A relative URL.
     case relative(RelativeURL)
 
-    /// Creates an `AnyURL` from its encoded string representation.
-    public init?(string: String) {
-        guard let url = URL(percentEncodedString: string) else {
-            return nil
-        }
-        self.init(url: url)
-    }
-
     /// Creates an `AnyURL` from a Foundation `URL`.
     public init(url: URL) {
-        if let url = AbsoluteURL(url: url) {
-            self.init(url)
+        if let url = AnyAbsoluteURL(url: url) {
+            self = .absolute(url)
         } else if let url = RelativeURL(url: url) {
-            self.init(url)
+            self = .relative(url)
         } else {
             fatalError("URL is not absolute nor relative: \(url)")
         }
@@ -54,21 +45,11 @@ public enum AnyURL: URLProtocol, Hashable {
     /// the HREFs stored in / your database. See the 3.0 migration guide for
     /// more information.
     public init?(legacyHref href: String) {
-        if let url = AbsoluteURL(string: href) {
-            self.init(url)
+        if let url = AnyAbsoluteURL(string: href) {
+            self = .absolute(url)
         } else {
             self.init(decodedPath: href.removingPrefix("/"))
         }
-    }
-    
-    /// Wraps an `AbsoluteURL`.
-    public init(_ url: AbsoluteURL) {
-        self = .absolute(url)
-    }
-    
-    /// Wraps a `RelativeURL`.
-    public init(_ url: RelativeURL) {
-        self = .relative(url)
     }
 
     private var wrapped: URLProtocol {
@@ -89,7 +70,7 @@ public enum AnyURL: URLProtocol, Hashable {
     ///     self: http://example.com/foo/
     ///     other: bar/baz
     ///     returns http://example.com/foo/bar/baz
-    public func resolve<T : URLConvertible>(_ other: T) -> AnyURL? {
+    public func resolve<T: URLConvertible>(_ other: T) -> AnyURL? {
         switch self {
         case let .absolute(url):
             return url.resolve(other)?.anyURL
@@ -104,7 +85,7 @@ public enum AnyURL: URLProtocol, Hashable {
     ///     self: http://example.com/foo
     ///     other: http://example.com/foo/bar/baz
     ///     returns bar/baz
-    public func relativize<T : URLConvertible>(_ other: T) -> AnyURL? {
+    public func relativize<T: URLConvertible>(_ other: T) -> AnyURL? {
         switch self {
         case let .absolute(url):
             return url.relativize(other)?.anyURL

@@ -7,27 +7,12 @@
 import Foundation
 
 extension URL {
-
     init?(percentEncodedString: String) {
         if #available(iOS 17.0, *) {
             self.init(string: percentEncodedString, encodingInvalidCharacters: false)
         } else {
             self.init(string: percentEncodedString)
         }
-    }
-    
-    var origin: String {
-        var o = ""
-        if let scheme = scheme {
-            o += scheme + "://"
-        }
-        if let host = host {
-            o += host
-            if let port = port {
-                o += ":\(port)"
-            }
-        }
-        return o
     }
 
     func copy(_ changes: (inout URLComponents) -> Void) -> URL? {

@@ -8,13 +8,13 @@ import Foundation
 
 public enum ArchiveError: Error {
     /// The provided password was incorrect.
-    case invalidPassword(archive: URL)
+    case invalidPassword(archive: String)
     /// Impossible to open the given archive.
-    case openFailed(archive: URL, cause: Error?)
+    case openFailed(archive: String, cause: Error?)
     /// The entry could not be found in the archive.
-    case entryNotFound(entry: ArchivePath, archive: URL)
+    case entryNotFound(entry: ArchivePath, archive: String)
     /// Impossible to read the given entry.
-    case readFailed(entry: ArchivePath, archive: URL, cause: Error?)
+    case readFailed(entry: ArchivePath, archive: String, cause: Error?)
 }
 
 public typealias ArchiveResult<Success> = Result<Success, ArchiveError>

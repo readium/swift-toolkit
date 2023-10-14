@@ -400,7 +400,8 @@ private extension Node {
         try attr("src").takeUnlessEmpty()
             .flatMap { AnyURL(string: $0) }
             .flatMap {
-                baseHREF?.relativize($0) ?? $0 }
+                baseHREF?.relativize($0) ?? $0
+            }
     }
 
     func language() throws -> String? {

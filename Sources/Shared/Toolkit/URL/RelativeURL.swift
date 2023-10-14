@@ -8,16 +8,7 @@ import Foundation
 
 /// Represents a relative URL.
 public struct RelativeURL: URLProtocol, Hashable {
-
     public let url: URL
-
-    /// Creates a `RelativeURL` from its encoded string representation.
-    public init?(string: String) {
-        guard let url = URL(percentEncodedString: string) else {
-            return nil
-        }
-        self.init(url: url)
-    }
 
     /// Creates a `RelativeURL` from a standard Swift `URL`.
     public init?(url: URL) {
@@ -43,7 +34,7 @@ public struct RelativeURL: URLProtocol, Hashable {
     ///     self: foo/bar
     ///     other: baz
     ///     returns foo/baz
-    public func resolve<T : URLConvertible>(_ other: T) -> AnyURL? {
+    public func resolve<T: URLConvertible>(_ other: T) -> AnyURL? {
         // other is absolute?
         guard let relativeURL = other.relativeURL else {
             return other.anyURL
@@ -65,20 +56,13 @@ public struct RelativeURL: URLProtocol, Hashable {
         return RelativeURL(string: url.absoluteString.removingPrefix("//"))
     }
 
-    /// Resolves the given absolute `url` to this URL.
-    ///
-    /// As the receiver is relative, the given absolute URL is returned.
-    public func resolve(_ other: AbsoluteURL) -> AbsoluteURL? {
-        other
-    }
-
     /// Relativizes the given `url` against this relative URL, if possible.
     ///
     /// For example:
     ///     self: foo/bar
     ///     other: foo/bar/baz
     ///     returns baz
-    public func relativize<T : URLConvertible>(_ other: T) -> RelativeURL? {
+    public func relativize<T: URLConvertible>(_ other: T) -> RelativeURL? {
         guard
             let relativeURL = other.relativeURL,
             relativeURL.string.hasPrefix(string)

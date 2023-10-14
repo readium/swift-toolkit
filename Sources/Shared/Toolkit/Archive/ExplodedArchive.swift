@@ -9,34 +9,32 @@ import Foundation
 /// An archive exploded on the file system as a directory.
 final class ExplodedArchive: Archive, Loggable {
     enum ExplodedArchiveError: Error {
-        case notAFileURL(URL)
-        case notADirectory(URL)
+        case notAFileURL(String)
+        case notADirectory(String)
     }
 
-    private let root: URL
+    private let root: FileURL
 
     public static func make(url: URL) -> ArchiveResult<ExplodedArchive> {
-        guard url.isFileURL else {
-            return .failure(.openFailed(archive: url, cause: ExplodedArchiveError.notAFileURL(url)))
+        guard let url = FileURL(url: url) else {
+            return .failure(.openFailed(archive: url.absoluteString, cause: ExplodedArchiveError.notAFileURL(url.absoluteString)))
+        }
+        guard url.isDirectory() else {
+            return .failure(.openFailed(archive: url.string, cause: ExplodedArchiveError.notADirectory(url.string)))
         }
 
-        let isDirectory = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
-        guard isDirectory else {
-            return .failure(.openFailed(archive: url, cause: ExplodedArchiveError.notADirectory(url)))
-        }
-
-        return .success(Self(url: url.standardizedFileURL))
+        return .success(Self(url: url))
     }
 
-    private init(url: URL) {
-        root = url.standardizedFileURL
+    private init(url: FileURL) {
+        root = url
     }
 
     lazy var entries: [ArchiveEntry] = {
         var entries: [ArchiveEntry] = []
-        if let enumerator = FileManager.default.enumerator(at: root, includingPropertiesForKeys: [.fileSizeKey, .isDirectoryKey]) {
+        if let enumerator = FileManager.default.enumerator(at: root.url, includingPropertiesForKeys: [.fileSizeKey, .isDirectoryKey]) {
             while let file = enumerator.nextObject() as? URL {
-                if let entry = makeEntry(at: file) {
+                if let file = FileURL(url: file), let entry = makeEntry(at: file) {
                     entries.append(entry)
                 }
             }
@@ -56,11 +54,10 @@ final class ExplodedArchive: Archive, Loggable {
 
     func close() {}
 
-    private func makeEntry(at url: URL) -> ArchiveEntry? {
-        let url = url.standardizedFileURL
+    private func makeEntry(at url: FileURL) -> ArchiveEntry? {
         guard
-            root.isParentOf(url),
-            let values = try? url.resourceValues(forKeys: [.fileSizeKey, .isDirectoryKey]),
+            root.isParent(of: url),
+            let values = try? url.url.resourceValues(forKeys: [.fileSizeKey, .isDirectoryKey]),
             let length = values.fileSize,
             values.isDirectory != true
         else {
@@ -74,25 +71,30 @@ final class ExplodedArchive: Archive, Loggable {
         )
     }
 
-    private func entryURL(fromPath path: String) -> URL? {
-        let url = root.appendingPathComponent(path).standardizedFileURL
-        return root.isParentOf(url) ? url : nil
+    private func entryURL(fromPath path: String) -> FileURL? {
+        guard
+            let url = root.appendingPath(path),
+            root.isParent(of: url)
+        else {
+            return nil
+        }
+        return url
     }
 }
 
 // FIXME: Add a version for iOS 13+ using non-deprecated FileHandle APIs.
 private final class ExplodedEntryReader: ArchiveEntryReader, Loggable {
-    private let root: URL
+    private let root: FileURL
     private let entry: ArchiveEntry
-    private let url: URL
+    private let url: FileURL
 
-    init(root: URL, entry: ArchiveEntry, url: URL) {
+    init(root: FileURL, entry: ArchiveEntry, url: FileURL) {
         self.root = root
         self.entry = entry
         self.url = url
     }
 
-    var file: URL? { url }
+    var file: URL? { url.url }
 
     func read(range: Range<UInt64>?) -> ArchiveResult<Data> {
         do {
@@ -103,7 +105,7 @@ private final class ExplodedEntryReader: ArchiveEntryReader, Loggable {
             }
             return .success(handle.readData(ofLength: Int(range.upperBound - range.lowerBound)))
         } catch {
-            return .failure(.readFailed(entry: entry.path, archive: root, cause: error))
+            return .failure(.readFailed(entry: entry.path, archive: root.string, cause: error))
         }
     }
 
@@ -116,7 +118,7 @@ private final class ExplodedEntryReader: ArchiveEntryReader, Loggable {
         if let handle = _handle {
             return handle
         } else {
-            let handle = try FileHandle(forReadingFrom: url)
+            let handle = try FileHandle(forReadingFrom: url.url)
             _handle = handle
             return handle
         }

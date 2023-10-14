@@ -29,15 +29,15 @@ final class EPUBNavigatorViewModel: Loggable {
     let editingActions: EditingActionsController
     private let httpServer: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
-    let publicationBaseURL: AbsoluteURL
-    let assetsURL: AbsoluteURL
+    let publicationBaseURL: HTTPURL
+    let assetsURL: HTTPURL
     weak var delegate: EPUBNavigatorViewModelDelegate?
 
     let useLegacySettings: Bool
 
     /// Local file URL associated to the HTTP URL used to serve the file on the
     /// `httpServer`. This is used to serve custom font files, for example.
-    @Atomic private var servedFiles: [URL: AbsoluteURL] = [:]
+    @Atomic private var servedFiles: [FileURL: HTTPURL] = [:]
 
     convenience init(
         publication: Publication,
@@ -45,8 +45,8 @@ final class EPUBNavigatorViewModel: Loggable {
         httpServer: HTTPServer
     ) throws {
         let publicationEndpoint: HTTPServerEndpoint?
-        let baseURL: AbsoluteURL
-        if let url = publication.baseURL?.absoluteURL {
+        let baseURL: HTTPURL
+        if let url = publication.baseURL?.httpURL {
             publicationEndpoint = nil
             baseURL = url
         } else {
@@ -61,7 +61,7 @@ final class EPUBNavigatorViewModel: Loggable {
         // FIXME: Remove in Readium 3.0
         // Serve the fonts under the /fonts endpoint as the Streamer's
         // EPUBHTMLInjector is expecting it there.
-        if let fontsURL = (Bundle.module.resourceURL?.appendingPathComponent("Assets/Static/fonts")).flatMap(AbsoluteURL.init(url:)) {
+        if let fontsURL = (Bundle.module.resourceURL?.appendingPathComponent("Assets/Static/fonts")).flatMap(FileURL.init(url:)) {
             try httpServer.serve(at: "fonts", contentsOf: fontsURL)
         }
 
@@ -73,7 +73,7 @@ final class EPUBNavigatorViewModel: Loggable {
             publicationBaseURL: baseURL,
             assetsURL: httpServer.serve(
                 at: "readium",
-                contentsOf: AbsoluteURL(url: Bundle.module.resourceURL!.appendingPathComponent("Assets/Static"))!
+                contentsOf: FileURL(url: Bundle.module.resourceURL!.appendingPathComponent("Assets/Static"))!
             ),
             useLegacySettings: false
         )
@@ -99,31 +99,31 @@ final class EPUBNavigatorViewModel: Loggable {
         config: EPUBNavigatorViewController.Configuration,
         httpServer: HTTPServer?,
         publicationEndpoint: HTTPServerEndpoint?,
-        publicationBaseURL: AbsoluteURL,
-        assetsURL: AbsoluteURL,
+        publicationBaseURL: HTTPURL,
+        assetsURL: HTTPURL,
         useLegacySettings: Bool
     ) {
         var config = config
 
-        if let fontsDir = Bundle.module.resourceURL?.appendingPathComponent("Assets/Static/fonts") {
+        if let fontsDir = Bundle.module.resourceURL.flatMap(FileURL.init(url:))?.appendingPath("Assets/Static/fonts") {
             config.fontFamilyDeclarations.append(
                 CSSFontFamilyDeclaration(
                     fontFamily: .openDyslexic,
                     fontFaces: [
                         CSSFontFace(
-                            file: fontsDir.appendingPathComponent("OpenDyslexic-Regular.otf"),
+                            file: fontsDir.appendingPath("OpenDyslexic-Regular.otf")!,
                             style: .normal, weight: .standard(.normal)
                         ),
                         CSSFontFace(
-                            file: fontsDir.appendingPathComponent("OpenDyslexic-Italic.otf"),
+                            file: fontsDir.appendingPath("OpenDyslexic-Italic.otf")!,
                             style: .italic, weight: .standard(.normal)
                         ),
                         CSSFontFace(
-                            file: fontsDir.appendingPathComponent("OpenDyslexic-Bold.otf"),
+                            file: fontsDir.appendingPath("OpenDyslexic-Bold.otf")!,
                             style: .normal, weight: .standard(.bold)
                         ),
                         CSSFontFace(
-                            file: fontsDir.appendingPathComponent("OpenDyslexic-BoldItalic.otf"),
+                            file: fontsDir.appendingPath("OpenDyslexic-BoldItalic.otf")!,
                             style: .italic, weight: .standard(.bold)
                         ),
                     ]
@@ -176,7 +176,7 @@ final class EPUBNavigatorViewModel: Loggable {
         link.url(relativeTo: publicationBaseURL)
     }
 
-    private func serveFile(at file: URL, baseEndpoint: HTTPServerEndpoint) throws -> AbsoluteURL {
+    private func serveFile(at file: FileURL, baseEndpoint: HTTPServerEndpoint) throws -> HTTPURL {
         if let url = servedFiles[file] {
             return url
         }
@@ -185,7 +185,7 @@ final class EPUBNavigatorViewModel: Loggable {
             throw Error.noHTTPServer
         }
         let endpoint = baseEndpoint.addingSuffix("/") + file.lastPathComponent
-        let url = try httpServer.serve(at: endpoint, contentsOf: AbsoluteURL(url: file)!)
+        let url = try httpServer.serve(at: endpoint, contentsOf: file)
         $servedFiles.write { $0[file] = url }
         return url
     }
@@ -343,7 +343,7 @@ final class EPUBNavigatorViewModel: Loggable {
 
     private var css: ReadiumCSS
 
-    private func serveFont(at file: URL) throws -> AbsoluteURL {
+    private func serveFont(at file: FileURL) throws -> HTTPURL {
         try serveFile(at: file, baseEndpoint: "custom-fonts/\(UUID().uuidString)")
     }
 

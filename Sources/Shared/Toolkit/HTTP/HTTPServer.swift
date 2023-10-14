@@ -17,7 +17,7 @@ public protocol HTTPServer {
     ///
     /// - Returns the base URL for this endpoint.
     @discardableResult
-    func serve(at endpoint: HTTPServerEndpoint, handler: @escaping (HTTPServerRequest) -> Resource) throws -> AbsoluteURL
+    func serve(at endpoint: HTTPServerEndpoint, handler: @escaping (HTTPServerRequest) -> Resource) throws -> HTTPURL
 
     /// Registers a `Resource` transformer that will be run on all responses
     /// matching the given `endpoint`.
@@ -37,7 +37,7 @@ public extension HTTPServer {
     ///
     /// - Returns the URL to access the file(s) on the server.
     @discardableResult
-    func serve(at endpoint: HTTPServerEndpoint, contentsOf url: AbsoluteURL) throws -> AbsoluteURL {
+    func serve(at endpoint: HTTPServerEndpoint, contentsOf url: FileURL) throws -> HTTPURL {
         try serve(at: endpoint) { request in
             let file = request.href.flatMap { url.resolve($0) }
                 ?? url
@@ -47,7 +47,7 @@ public extension HTTPServer {
                     href: request.url.string,
                     type: MediaType.of(file.url)?.string
                 ),
-                file: file.url
+                file: file
             )
         }
     }
@@ -60,7 +60,7 @@ public extension HTTPServer {
     func serve(
         at endpoint: HTTPServerEndpoint,
         publication: Publication
-    ) throws -> AbsoluteURL {
+    ) throws -> HTTPURL {
         try serve(at: endpoint) { request in
             guard let href = request.href else {
                 return FailureResource(
@@ -80,12 +80,12 @@ public typealias HTTPServerEndpoint = String
 /// Request made to an `HTTPServer`.
 public struct HTTPServerRequest {
     /// Absolute URL on the server.
-    public let url: AbsoluteURL
+    public let url: HTTPURL
 
     /// HREF for the resource, relative to the server endpoint.
     public let href: RelativeURL?
 
-    public init(url: AbsoluteURL, href: RelativeURL?) {
+    public init(url: HTTPURL, href: RelativeURL?) {
         self.url = url
         self.href = href
     }

@@ -55,8 +55,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         // used to read the manifest file. We use an `HTTPFetcher` instead to serve the remote
         // resources.
         if !isPackage,
-           let baseURL = manifest.link(withRel: .`self`)?.url().absoluteURL,
-           baseURL.isHTTP
+           let baseURL = manifest.link(withRel: .`self`)?.url().absoluteURL?.httpURL
         {
             fetcher = HTTPFetcher(client: httpClient, baseURL: baseURL)
         }

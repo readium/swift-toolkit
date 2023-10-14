@@ -148,7 +148,7 @@ extension HTMLInjection {
         )
     }
 
-    static func stylesheetLink(href: AbsoluteURL, prepend: Bool = false) -> HTMLInjection {
+    static func stylesheetLink(href: HTTPURL, prepend: Bool = false) -> HTMLInjection {
         .link(href: href.string, rel: "stylesheet", type: .css, prepend: prepend)
     }
 

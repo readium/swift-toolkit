@@ -25,14 +25,14 @@ public class GCDHTTPServer: HTTPServer, Loggable {
     private let server = GCDWebServer()
 
     /// Mapping between endpoints and their handlers.
-    private var handlers: [AbsoluteURL: (HTTPServerRequest) -> Resource] = [:]
+    private var handlers: [HTTPURL: (HTTPServerRequest) -> Resource] = [:]
 
     /// Mapping between endpoints and resource transformers.
-    private var transformers: [AbsoluteURL: [ResourceTransformer]] = [:]
+    private var transformers: [HTTPURL: [ResourceTransformer]] = [:]
 
     private enum State {
         case stopped
-        case started(port: UInt, baseURL: AbsoluteURL)
+        case started(port: UInt, baseURL: HTTPURL)
     }
 
     private var state: State = .stopped
@@ -113,12 +113,12 @@ public class GCDHTTPServer: HTTPServer, Loggable {
         }
 
         queue.async { [self] in
-            guard let url = AbsoluteURL(url: request.url) else {
+            guard let url = HTTPURL(url: request.url) else {
                 completion(FailureResource(link: Link(href: request.url.absoluteString), error: .notFound(nil)))
                 return
             }
 
-            func transform(resource: Resource, at endpoint: AbsoluteURL) -> Resource {
+            func transform(resource: Resource, at endpoint: HTTPURL) -> Resource {
                 guard let transformers = transformers[endpoint], !transformers.isEmpty else {
                     return resource
                 }
@@ -151,7 +151,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
     // MARK: HTTPServer
 
-    public func serve(at endpoint: HTTPServerEndpoint, handler: @escaping (HTTPServerRequest) -> Resource) throws -> AbsoluteURL {
+    public func serve(at endpoint: HTTPServerEndpoint, handler: @escaping (HTTPServerRequest) -> Resource) throws -> HTTPURL {
         try queue.sync(flags: .barrier) {
             if case .stopped = state {
                 try start()
@@ -180,7 +180,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
         }
     }
 
-    private func url(for endpoint: HTTPServerEndpoint) throws -> AbsoluteURL {
+    private func url(for endpoint: HTTPServerEndpoint) throws -> HTTPURL {
         guard case let .started(port: _, baseURL: baseURL) = state else {
             throw GCDHTTPServerError.serverNotStarted
         }
@@ -243,7 +243,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             throw GCDHTTPServerError.failedToStartServer(cause: error)
         }
 
-        guard let baseURL = server.serverURL.flatMap(AbsoluteURL.init(url:)) else {
+        guard let baseURL = server.serverURL.flatMap(HTTPURL.init(url:)) else {
             stop()
             throw GCDHTTPServerError.nullServerURL
         }

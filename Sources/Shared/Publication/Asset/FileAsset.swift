@@ -9,7 +9,7 @@ import Foundation
 /// Represents a publication stored as a file on the local file system.
 public final class FileAsset: PublicationAsset, Loggable {
     /// File URL on the file system.
-    public let url: URL
+    public let url: FileURL
 
     private let mediaTypeHint: String?
     private let knownMediaType: MediaType?
@@ -17,7 +17,7 @@ public final class FileAsset: PublicationAsset, Loggable {
     /// Creates a `File` from a file `url`.
     ///
     /// Providing a known `mediaType` will improve performances when sniffing the file format.
-    public init(url: URL, mediaType: String? = nil) {
+    public init(url: FileURL, mediaType: String? = nil) {
         self.url = url
         mediaTypeHint = mediaType
         knownMediaType = nil
@@ -26,7 +26,7 @@ public final class FileAsset: PublicationAsset, Loggable {
     /// Creates a `File` from a file `url`.
     ///
     /// Providing a known `mediaType` will improve performances when sniffing the file format.
-    public init(url: URL, mediaType: MediaType?) {
+    public init(url: FileURL, mediaType: MediaType?) {
         self.url = url
         mediaTypeHint = nil
         knownMediaType = mediaType
@@ -39,18 +39,18 @@ public final class FileAsset: PublicationAsset, Loggable {
         return resolvedMediaType
     }
 
-    private lazy var resolvedMediaType: MediaType? = knownMediaType ?? MediaType.of(url, mediaType: mediaTypeHint)
+    private lazy var resolvedMediaType: MediaType? = knownMediaType ?? MediaType.of(url.url, mediaType: mediaTypeHint)
 
     public func makeFetcher(using dependencies: PublicationAssetDependencies, credentials: String?, completion: @escaping (CancellableResult<Fetcher, Publication.OpeningError>) -> Void) {
         DispatchQueue.global(qos: .background).async {
-            guard (try? self.url.checkResourceIsReachable()) == true else {
+            guard (try? self.url.exists()) == true else {
                 completion(.failure(.notFound))
                 return
             }
 
             do {
                 // Attempts to open the file as a ZIP or exploded directory.
-                let archive = try dependencies.archiveFactory.open(url: self.url, password: credentials).get()
+                let archive = try dependencies.archiveFactory.open(url: self.url.url, password: credentials).get()
                 completion(.success(ArchiveFetcher(archive: archive)))
 
             } catch ArchiveError.invalidPassword {

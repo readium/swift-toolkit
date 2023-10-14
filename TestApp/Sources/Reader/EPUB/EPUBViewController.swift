@@ -33,7 +33,7 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
         var templates = HTMLDecorationTemplate.defaultTemplates()
         templates[.pageList] = .pageList
 
-        let resources = Bundle.main.resourceURL!
+        let resources = FileURL(url: Bundle.main.resourceURL!)!
         let navigator = try EPUBNavigatorViewController(
             publication: publication,
             initialLocation: locator,
@@ -51,11 +51,11 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
                         fontFaces: [
                             // Literata is a variable font family, so we can provide a font weight range.
                             CSSFontFace(
-                                file: resources.appendingPathComponent("Fonts/Literata-VariableFont_opsz,wght.ttf"),
+                                file: resources.appendingPath("Fonts/Literata-VariableFont_opsz,wght.ttf")!,
                                 style: .normal, weight: .variable(200 ... 900)
                             ),
                             CSSFontFace(
-                                file: resources.appendingPathComponent("Fonts/Literata-Italic-VariableFont_opsz,wght.ttf"),
+                                file: resources.appendingPath("Fonts/Literata-Italic-VariableFont_opsz,wght.ttf")!,
                                 style: .italic, weight: .variable(200 ... 900)
                             ),
                         ]

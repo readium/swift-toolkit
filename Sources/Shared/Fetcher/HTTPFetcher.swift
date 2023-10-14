@@ -11,9 +11,9 @@ public final class HTTPFetcher: Fetcher, Loggable {
     /// HTTP client used to perform HTTP requests.
     private let client: HTTPClient
     /// Base URL from which relative HREF are served.
-    private let baseURL: AbsoluteURL?
+    private let baseURL: HTTPURL?
 
-    public init(client: HTTPClient, baseURL: AbsoluteURL? = nil) {
+    public init(client: HTTPClient, baseURL: HTTPURL? = nil) {
         self.client = client
         self.baseURL = baseURL
     }
@@ -21,10 +21,7 @@ public final class HTTPFetcher: Fetcher, Loggable {
     public let links: [Link] = []
 
     public func get(_ link: Link) -> Resource {
-        guard
-            let url = link.url(relativeTo: baseURL).absoluteURL,
-            url.isHTTP
-        else {
+        guard let url = link.url(relativeTo: baseURL).absoluteURL?.httpURL else {
             log(.error, "Not a valid HTTP URL: \(link.href)")
             return FailureResource(link: link, error: .badRequest(HTTPError(kind: .malformedRequest(url: link.href))))
         }
@@ -36,11 +33,11 @@ public final class HTTPFetcher: Fetcher, Loggable {
     /// HTTPResource provides access to an external URL.
     final class HTTPResource: NSObject, Resource, Loggable, URLSessionDataDelegate {
         let link: Link
-        let url: AbsoluteURL
+        let url: HTTPURL
 
         private let client: HTTPClient
 
-        init(client: HTTPClient, link: Link, url: AbsoluteURL) {
+        init(client: HTTPClient, link: Link, url: HTTPURL) {
             self.client = client
             self.link = link
             self.url = url

@@ -55,7 +55,7 @@ final class LibraryService: Loggable {
 
     /// Opens the Readium 2 Publication at the given `url`.
     private func openPublication(at url: URL, allowUserInteraction: Bool, sender: UIViewController?) async throws -> (Publication, MediaType) {
-        let asset = FileAsset(url: url)
+        let asset = FileAsset(url: FileURL(url: url)!)
         guard let mediaType = asset.mediaType() else {
             throw LibraryError.openFailed(Publication.OpeningError.unsupportedFormat)
         }

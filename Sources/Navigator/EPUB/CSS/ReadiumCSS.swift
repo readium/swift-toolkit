@@ -15,7 +15,7 @@ struct ReadiumCSS {
     var userProperties: CSSUserProperties = .init()
 
     /// Base URL of the Readium CSS assets.
-    var baseURL: AbsoluteURL
+    var baseURL: HTTPURL
 
     var fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration] = []
 }

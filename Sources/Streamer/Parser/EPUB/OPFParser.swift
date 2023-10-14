@@ -62,7 +62,7 @@ final class OPFParser: Loggable {
     convenience init(fetcher: Fetcher, opfHREF: RelativeURL, fallbackTitle: String, encryptions: [RelativeURL: Encryption] = [:]) throws {
         try self.init(
             baseURL: opfHREF,
-            data: fetcher.readData(at: AnyURL(opfHREF)),
+            data: fetcher.readData(at: opfHREF),
             fallbackTitle: fallbackTitle,
             displayOptionsData: {
                 let iBooksHREF = AnyURL(string: "META-INF/com.apple.ibooks.display-options.xml")!

@@ -10,15 +10,15 @@ import Foundation
 public final class FileFetcher: Fetcher, Loggable {
     /// Reachable local paths, indexed by the exposed HREF.
     /// Sub-paths are reachable as well, to be able to access a whole directory.
-    private let paths: [RelativeURL: URL]
+    private let paths: [RelativeURL: FileURL]
 
     /// Provides access to a collection of local paths.
-    public init(paths: [RelativeURL: URL]) {
-        self.paths = paths.mapValues { $0.standardizedFileURL }
+    public init(paths: [RelativeURL: FileURL]) {
+        self.paths = paths
     }
 
     /// Provides access to the given local `path` at `href`.
-    public convenience init(href: RelativeURL, path: URL) {
+    public convenience init(href: RelativeURL, path: FileURL) {
         self.init(paths: [href: path])
     }
 
@@ -28,10 +28,12 @@ public final class FileFetcher: Fetcher, Loggable {
                 if linkHREF == href {
                     return FileResource(link: link, file: url)
 
-                } else if let relativeHREF = href.relativize(linkHREF)?.path {
-                    let resourceURL = url.appendingPathComponent(relativeHREF).standardizedFileURL
+                } else if
+                    let relativeHREF = href.relativize(linkHREF)?.path,
+                    let resourceURL = url.appendingPath(relativeHREF)
+                {
                     // Makes sure that the requested resource is `url` or one of its descendant.
-                    if url.isParentOf(resourceURL) {
+                    if url.isParent(of: resourceURL) {
                         return FileResource(link: link, file: resourceURL)
                     }
                 }
@@ -49,12 +51,12 @@ public final class FileFetcher: Fetcher, Loggable {
     private func links(at href: RelativeURL) -> [Link] {
         guard
             let path = paths[href],
-            let enumerator = FileManager.default.enumerator(at: path, includingPropertiesForKeys: [.isDirectoryKey])
+            let enumerator = FileManager.default.enumerator(at: path.url, includingPropertiesForKeys: [.isDirectoryKey])
         else {
             return []
         }
 
-        return ([path] + enumerator).compactMap {
+        return ([path.url] + enumerator).compactMap {
             guard
                 let url = $0 as? URL,
                 let values = try? url.resourceValues(forKeys: [.isDirectoryKey]),
@@ -63,7 +65,7 @@ public final class FileFetcher: Fetcher, Loggable {
                 return nil
             }
 
-            let subPath = url.standardizedFileURL.path.removingPrefix(path.standardizedFileURL.path)
+            let subPath = url.standardizedFileURL.path.removingPrefix(path.path)
             guard let href = href.appendingPath(subPath) else {
                 return nil
             }

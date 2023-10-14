@@ -137,7 +137,7 @@ public struct Link: JSONEquatable, Hashable {
     ///
     /// If the HREF is a template, the `parameters` are used to expand it
     /// according to RFC 6570.
-    public func url<T : URLConvertible>(
+    public func url<T: URLConvertible>(
         relativeTo baseURL: T?,
         parameters: [String: String] = [:]
     ) -> AnyURL {
