@@ -8,7 +8,7 @@ import Foundation
 import ReadiumInternal
 
 /// A type that can represent a URL.
-public protocol URLProtocol: CustomStringConvertible {
+public protocol URLProtocol: CustomStringConvertible, URLConvertible {
     /// Creates a new instance of this type from a Foundation `URL`.
     init?(url: URL)
 
@@ -58,8 +58,6 @@ public extension URLProtocol {
     }
 
     var string: String { url.absoluteString }
-
-    var description: String { string }
 
     var path: String? {
         // We can't use `url.path`, see https://openradar.appspot.com/28357201
@@ -111,4 +109,9 @@ public extension URLProtocol {
     private var components: URLComponents? {
         URLComponents(url: url, resolvingAgainstBaseURL: true)
     }
+}
+
+/// Implements `CustomStringConvertible`
+public extension URLProtocol {
+    var description: String { string }
 }

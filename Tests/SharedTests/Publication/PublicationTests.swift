@@ -72,8 +72,8 @@ class PublicationTests: XCTestCase {
         XCTAssertEqual(
             makePublication(links: [
                 Link(href: "http://host/folder/manifest.json", rel: .`self`),
-            ]).baseURL,
-            AnyAbsoluteURL(string: "http://host/folder/manifest.json")!
+            ]).baseURL?.string,
+            "http://host/folder/manifest.json"
         )
     }
 
@@ -89,8 +89,8 @@ class PublicationTests: XCTestCase {
         XCTAssertEqual(
             makePublication(links: [
                 Link(href: "http://host/manifest.json", rel: .`self`),
-            ]).baseURL,
-            AnyAbsoluteURL(string: "http://host/manifest.json")!
+            ]).baseURL?.string,
+            "http://host/manifest.json"
         )
     }
 

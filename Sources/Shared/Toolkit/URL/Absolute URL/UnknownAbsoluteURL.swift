@@ -6,11 +6,12 @@
 
 import Foundation
 
-/// Represents an absolute URL with a scheme that is not special.
+/// Represents an absolute URL with a scheme that is not known.
 ///
-/// See https://url.spec.whatwg.org/#is-not-special
-public struct NonSpecialAbsoluteURL: AbsoluteURLProtocol, Hashable {
-    public init?(url: URL) {
+/// Kept private, it is the default `AbsoluteURL` implementation for schemes
+/// that we don't know.
+struct UnknownAbsoluteURL: AbsoluteURL, Hashable {
+    init?(url: URL) {
         guard
             let scheme = url.scheme.map(URLScheme.init(rawValue:)),
             scheme != .file, scheme != .http, scheme != .https
@@ -22,7 +23,7 @@ public struct NonSpecialAbsoluteURL: AbsoluteURLProtocol, Hashable {
         self.url = url.absoluteURL
     }
 
-    public let url: URL
-    public let scheme: URLScheme
-    public let origin: String? = nil
+    let url: URL
+    let scheme: URLScheme
+    let origin: String? = nil
 }

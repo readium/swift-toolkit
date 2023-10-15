@@ -7,7 +7,7 @@
 import Foundation
 
 /// A type that can represent an absolute URL with a scheme.
-public protocol AbsoluteURLProtocol: URLProtocol {
+public protocol AbsoluteURL: URLProtocol {
     /// Identifies the type of URL.
     var scheme: URLScheme { get }
 
@@ -36,7 +36,7 @@ public protocol AbsoluteURLProtocol: URLProtocol {
     func isRelative<T: URLConvertible>(to base: T) -> Bool
 }
 
-public extension AbsoluteURLProtocol {
+public extension AbsoluteURL {
     func resolve<T: URLConvertible>(_ other: T) -> Self? {
         guard let relativeURL = other.relativeURL else {
             return nil
@@ -68,6 +68,13 @@ public extension AbsoluteURLProtocol {
         base.absoluteURL?.scheme == scheme
             && base.absoluteURL?.origin == origin
     }
+}
+
+/// Implements `URLConvertible`.
+public extension AbsoluteURL {
+    var anyURL: AnyURL { .absolute(self) }
+    var relativeURL: RelativeURL? { nil }
+    var absoluteURL: AbsoluteURL? { self }
 }
 
 /// A URL scheme, e.g. http or file.

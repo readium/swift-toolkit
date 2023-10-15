@@ -97,3 +97,10 @@ public struct RelativeURL: URLProtocol, Hashable {
         )
     }
 }
+
+/// Implements `URLConvertible`.
+extension RelativeURL: URLConvertible {
+    public var anyURL: AnyURL { .relative(self) }
+    public var relativeURL: RelativeURL? { self }
+    public var absoluteURL: AbsoluteURL? { nil }
+}

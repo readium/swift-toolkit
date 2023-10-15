@@ -9,7 +9,7 @@ import Foundation
 /// Represents an absolute URL with the special schemes `http` or `https`.
 ///
 /// See https://url.spec.whatwg.org/#special-scheme
-public struct HTTPURL: AbsoluteURLProtocol, Hashable {
+public struct HTTPURL: AbsoluteURL, Hashable {
     public init?(url: URL) {
         guard
             let scheme = url.scheme.map(URLScheme.init(rawValue:)),
@@ -34,5 +34,12 @@ public struct HTTPURL: AbsoluteURLProtocol, Hashable {
             }
         }
         return o
+    }
+}
+
+public extension AbsoluteURL {
+    /// Returns an `HTTPURL` if the URL has an `http` or `https` scheme.
+    var httpURL: HTTPURL? {
+        (self as? HTTPURL) ?? HTTPURL(url: url)
     }
 }

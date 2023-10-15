@@ -10,19 +10,23 @@ import ReadiumInternal
 /// Represents either an absolute or relative URL.
 ///
 /// See https://url.spec.whatwg.org
-public enum AnyURL: URLProtocol, Hashable {
+public enum AnyURL: URLProtocol {
     /// An absolute URL.
-    case absolute(AnyAbsoluteURL)
+    case absolute(AbsoluteURL)
 
     /// A relative URL.
     case relative(RelativeURL)
 
     /// Creates an `AnyURL` from a Foundation `URL`.
     public init(url: URL) {
-        if let url = AnyAbsoluteURL(url: url) {
-            self = .absolute(url)
-        } else if let url = RelativeURL(url: url) {
+        if let url = RelativeURL(url: url) {
             self = .relative(url)
+        } else if let url = HTTPURL(url: url) {
+            self = .absolute(url)
+        } else if let url = FileURL(url: url) {
+            self = .absolute(url)
+        } else if let url = UnknownAbsoluteURL(url: url) {
+            self = .absolute(url)
         } else {
             fatalError("URL is not absolute nor relative: \(url)")
         }
@@ -45,8 +49,8 @@ public enum AnyURL: URLProtocol, Hashable {
     /// the HREFs stored in / your database. See the 3.0 migration guide for
     /// more information.
     public init?(legacyHref href: String) {
-        if let url = AnyAbsoluteURL(string: href) {
-            self = .absolute(url)
+        if let url = URL(string: href), url.scheme != nil {
+            self.init(url: url)
         } else {
             self.init(path: href.removingPrefix("/"))
         }
@@ -73,7 +77,7 @@ public enum AnyURL: URLProtocol, Hashable {
     public func resolve<T: URLConvertible>(_ other: T) -> AnyURL? {
         switch self {
         case let .absolute(url):
-            return url.resolve(other)?.anyURL
+            return url.resolve(other).map { .absolute($0) }
         case let .relative(url):
             return url.resolve(other)?.anyURL
         }
@@ -92,5 +96,39 @@ public enum AnyURL: URLProtocol, Hashable {
         case let .relative(url):
             return url.relativize(other)?.anyURL
         }
+    }
+}
+
+/// Implements `URLConvertible`.
+extension AnyURL: URLConvertible {
+    public var anyURL: AnyURL { self }
+
+    public var relativeURL: RelativeURL? {
+        guard case let .relative(url) = self else {
+            return nil
+        }
+        return url
+    }
+
+    public var absoluteURL: AbsoluteURL? {
+        guard case let .absolute(url) = self else {
+            return nil
+        }
+        return url
+    }
+}
+
+/// Implements `Hashable` and `Equatable`.
+extension AnyURL: Hashable {
+    public static func == (lhs: AnyURL, rhs: AnyURL) -> Bool {
+        lhs.string == rhs.string
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(string)
+    }
+
+    public var hashValue: Int {
+        string.hashValue
     }
 }

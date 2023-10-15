@@ -9,7 +9,7 @@ import Foundation
 /// Represents an absolute URL with the special scheme `file`.
 ///
 /// See https://url.spec.whatwg.org/#special-scheme
-public struct FileURL: AbsoluteURLProtocol, Hashable {
+public struct FileURL: AbsoluteURL, Hashable {
     public init?(url: URL) {
         let url = url.standardizedFileURL
         guard
@@ -54,5 +54,12 @@ public struct FileURL: AbsoluteURLProtocol, Hashable {
     /// Returns whether the file is a directory.
     public func isDirectory() -> Bool {
         (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
+    }
+}
+
+public extension AbsoluteURL {
+    /// Returns a `FileURL` if the URL has a `file` scheme.
+    var fileURL: FileURL? {
+        (self as? FileURL) ?? FileURL(url: url)
     }
 }
