@@ -8,181 +8,123 @@ import Foundation
 @testable import R2Shared
 import XCTest
 
-/*
- class AnyURLTests: XCTestCase {
-     func testCreateFromInvalidUrl() {
-         XCTAssertNil(AnyURL(string: ""))
-         XCTAssertNil(AnyURL(string: "     "))
-         XCTAssertNil(AnyURL(string: "invalid character"))
+class AnyURLTests: XCTestCase {
+    func testCreateFromInvalidUrl() {
+        XCTAssertNil(AnyURL(string: ""))
+        XCTAssertNil(AnyURL(string: "     "))
+        XCTAssertNil(AnyURL(string: "invalid character"))
+    }
 
-         XCTAssertNil(AnyAbsoluteURL(string: " "))
-         XCTAssertNil(AnyAbsoluteURL(string: "invalid character"))
+    func testCreateFromRelativePath() {
+        XCTAssertEqual(AnyURL(string: "/foo/bar"), .relative(RelativeURL(string: "/foo/bar")!))
+        XCTAssertEqual(AnyURL(string: "foo/bar"), .relative(RelativeURL(string: "foo/bar")!))
+        XCTAssertEqual(AnyURL(string: "../bar"), .relative(RelativeURL(string: "../bar")!))
+    }
 
-         XCTAssertNil(RelativeURL(string: " "))
-         XCTAssertNil(RelativeURL(string: "invalid character"))
-     }
+    func testCreateFromAbsoluteURLs() {
+        XCTAssertEqual(AnyURL(string: "file:///foo/bar"), .absolute(FileURL(string: "file:///foo/bar")!))
+        XCTAssertEqual(AnyURL(string: "http://host/foo/bar"), .absolute(HTTPURL(string: "http://host/foo/bar")!))
+        XCTAssertEqual(AnyURL(string: "opds://host/foo/bar"), .absolute(UnknownAbsoluteURL(string: "opds://host/foo/bar")!))
+    }
 
-     func testCreateFromRelativePath() {
-         XCTAssertEqual(.relative(RelativeURL(string: "/foo/bar")!), AnyURL(string: "/foo/bar"))
-         XCTAssertEqual(.relative(RelativeURL(string: "foo/bar")!), AnyURL(string: "foo/bar"))
-         XCTAssertEqual(.relative(RelativeURL(string: "../bar")!), AnyURL(string: "../bar"))
+    func testCreateFromLegacyHref() {
+        XCTAssertEqual(AnyURL(legacyHref: "dir/chapter.xhtml"), .relative(RelativeURL(string: "dir/chapter.xhtml")!))
+        // Starting slash is removed.
+        XCTAssertEqual(AnyURL(legacyHref: "/dir/chapter.xhtml"), .relative(RelativeURL(string: "dir/chapter.xhtml")!))
+        // Special characters are percent-encoded.
+        XCTAssertEqual(AnyURL(legacyHref: "/dir/per%cent.xhtml"), .relative(RelativeURL(string: "dir/per%25cent.xhtml")!))
+        XCTAssertEqual(AnyURL(legacyHref: "/barré.xhtml"), .relative(RelativeURL(string: "barr%C3%A9.xhtml")!))
+        XCTAssertEqual(AnyURL(legacyHref: "/spa ce.xhtml"), .relative(RelativeURL(string: "spa%20ce.xhtml")!))
+        // We assume that a relative path is percent-decoded.
+        XCTAssertEqual(AnyURL(legacyHref: "/spa%20ce.xhtml"), .relative(RelativeURL(string: "spa%2520ce.xhtml")!))
+        // Some special characters are authorized in a path.
+        XCTAssertEqual(AnyURL(legacyHref: "/$&+,/=@"), .relative(RelativeURL(string: "$&+,/=@")!))
+        // Valid absolute URL are left untouched.
+        XCTAssertEqual(
+            AnyURL(legacyHref: "http://domain.com/a%20book?page=3"),
+            .absolute(HTTPURL(string: "http://domain.com/a%20book?page=3")!)
+        )
+    }
 
-         // Special characters valid in a path
-         XCTAssertEqual(RelativeURL(string: "$&+,/=@")?.string, "$&+,/=@")
+    func testResolveHTTPURL() {
+        var base = AnyURL(string: "http://example.com/foo/bar")!
+        XCTAssertEqual(base.resolve(AnyURL(string: "quz/baz")!)!, AnyURL(string: "http://example.com/foo/quz/baz")!)
+        XCTAssertEqual(base.resolve(AnyURL(string: "../quz/baz")!)!, AnyURL(string: "http://example.com/quz/baz")!)
+        XCTAssertEqual(base.resolve(AnyURL(string: "/quz/baz")!)!, AnyURL(string: "http://example.com/quz/baz")!)
+        XCTAssertEqual(base.resolve(AnyURL(string: "#fragment")!)!, AnyURL(string: "http://example.com/foo/bar#fragment")!)
+        XCTAssertNil(base.resolve(AnyURL(string: "file:///foo/bar")!))
 
-         // Used in the EPUB parser
-         let url = AnyURL(string: "#")
-         XCTAssertNotNil(url?.relativeURL)
-     }
+        // With trailing slash
+        base = AnyURL(string: "http://example.com/foo/bar/")!
+        XCTAssertEqual(base.resolve(AnyURL(string: "quz/baz")!)!, AnyURL(string: "http://example.com/foo/bar/quz/baz")!)
+        XCTAssertEqual(base.resolve(AnyURL(string: "../quz/baz")!)!, AnyURL(string: "http://example.com/foo/quz/baz")!)
+    }
 
-     func testCreateFromLegacyHref() {
-         XCTAssertEqual(AnyURL(legacyHref: "dir/chapter.xhtml"), .relative(RelativeURL(string: "dir/chapter.xhtml")!))
-         // Starting slash is removed.
-         XCTAssertEqual(AnyURL(legacyHref: "/dir/chapter.xhtml"), .relative(RelativeURL(string: "dir/chapter.xhtml")!))
-         // Special characters are percent-encoded.
-         XCTAssertEqual(AnyURL(legacyHref: "/dir/per%cent.xhtml"), .relative(RelativeURL(string: "dir/per%25cent.xhtml")!))
-         XCTAssertEqual(AnyURL(legacyHref: "/barré.xhtml"), .relative(RelativeURL(string: "barr%C3%A9.xhtml")!))
-         XCTAssertEqual(AnyURL(legacyHref: "/spa ce.xhtml"), .relative(RelativeURL(string: "spa%20ce.xhtml")!))
-         // We assume that a relative path is percent-decoded.
-         XCTAssertEqual(AnyURL(legacyHref: "/spa%20ce.xhtml"), .relative(RelativeURL(string: "spa%2520ce.xhtml")!))
-         // Some special characters are authorized in a path.
-         XCTAssertEqual(AnyURL(legacyHref: "/$&+,/=@"), .relative(RelativeURL(string: "$&+,/=@")!))
-         // Valid absolute URL are left untouched.
-         XCTAssertEqual(
-             AnyURL(legacyHref: "http://domain.com/a%20book?page=3"),
-             .absolute(AnyAbsoluteURL(string: "http://domain.com/a%20book?page=3")!)
-         )
-     }
+    func testResolveFileURL() {
+        var base = AnyURL(string: "file:///root/foo/bar")!
+        XCTAssertEqual(base.resolve(AnyURL(string: "quz")!)!, AnyURL(string: "file:///root/foo/quz")!)
+        XCTAssertEqual(base.resolve(AnyURL(string: "quz/baz")!)!, AnyURL(string: "file:///root/foo/quz/baz")!)
+        XCTAssertEqual(base.resolve(AnyURL(string: "../quz")!)!, AnyURL(string: "file:///root/quz")!)
 
-     func testCreateFromFragmentOnly() {
-         XCTAssertEqual(AnyURL(string: "#fragment"), .relative(RelativeURL(url: URL(string: "#fragment")!)!))
-     }
+        // With trailing slash
+        base = AnyURL(string: "file:///root/foo/bar/")!
+        XCTAssertEqual(base.resolve(AnyURL(string: "quz/baz")!)!, AnyURL(string: "file:///root/foo/bar/quz/baz")!)
+        XCTAssertEqual(base.resolve(AnyURL(string: "../quz")!)!, AnyURL(string: "file:///root/foo/quz")!)
+    }
 
-     func testCreateFromQueryOnly() {
-         XCTAssertEqual(AnyURL(string: "?query=param"), .relative(RelativeURL(url: URL(string: "?query=param")!)!))
-     }
+    func testResolveTwoRelativeURLs() {
+        var base = RelativeURL(string: "foo/bar")!
+        XCTAssertEqual(base.resolve(RelativeURL(string: "quz/baz")!)!, RelativeURL(string: "foo/quz/baz")!)
+        XCTAssertEqual(base.resolve(RelativeURL(string: "../quz/baz")!)!, RelativeURL(string: "quz/baz")!)
+        XCTAssertEqual(base.resolve(RelativeURL(string: "/quz/baz")!)!, RelativeURL(string: "/quz/baz")!)
+        XCTAssertEqual(base.resolve(RelativeURL(string: "#fragment")!)!, RelativeURL(string: "foo/bar#fragment")!)
 
-     func testCreateFromAbsoluteURL() {
-         XCTAssertEqual(AnyURL(string: "http://example.com/foo"), .absolute(AnyAbsoluteURL(url: URL(string: "http://example.com/foo")!)!))
-     }
+        // With trailing slash
+        base = RelativeURL(string: "foo/bar/")!
+        XCTAssertEqual(base.resolve(RelativeURL(string: "quz/baz")!)!, RelativeURL(string: "foo/bar/quz/baz")!)
+        XCTAssertEqual(base.resolve(RelativeURL(string: "../quz/baz")!)!, RelativeURL(string: "foo/quz/baz")!)
 
-     func testString() {
-         XCTAssertEqual("foo/bar?query#fragment", AnyURL(string: "foo/bar?query#fragment")?.string)
-         XCTAssertEqual("http://example.com/foo/bar?query#fragment", AnyURL(string: "http://example.com/foo/bar?query#fragment")?.string)
-         XCTAssertEqual("file:///foo/bar", AnyURL(string: "file:///foo/bar?query#fragment")?.string)
-     }
+        // With starting slash
+        base = RelativeURL(string: "/foo/bar")!
+        XCTAssertEqual(base.resolve(RelativeURL(string: "quz/baz")!)!, RelativeURL(string: "/foo/quz/baz")!)
+        XCTAssertEqual(base.resolve(RelativeURL(string: "/quz/baz")!)!, RelativeURL(string: "/quz/baz")!)
+    }
 
-     func testPath() {
-         XCTAssertEqual(AnyURL(string: "foo/bar?query#fragment")?.path, "foo/bar")
-         XCTAssertEqual(AnyURL(string: "http://example.com/foo/bar/")?.path, "/foo/bar/")
-         XCTAssertEqual(AnyURL(string: "http://example.com/foo/bar?query#fragment")?.path, "/foo/bar")
-         XCTAssertEqual(AnyURL(string: "file:///foo/bar/")?.path, "/foo/bar/")
-         XCTAssertEqual(AnyURL(string: "file:///foo/bar?query#fragment")?.path, "/foo/bar")
-     }
+    func testRelativizeHTTPURL() {
+        var base = AnyURL(string: "http://example.com/foo")!
+        XCTAssertEqual(base.relativize(AnyURL(string: "http://example.com/foo/quz/baz")!)!, AnyURL(string: "quz/baz")!)
+        XCTAssertEqual(base.relativize(AnyURL(string: "http://example.com/foo#fragment")!)!, AnyURL(string: "#fragment")!)
 
-     func testPathFromEmptyRelativeUrl() {
-         XCTAssertNil(AnyURL(string: "#fragment")!.path)
-     }
+        // With trailing slash
+        base = AnyURL(string: "http://example.com/foo/")!
+        XCTAssertEqual(base.relativize(AnyURL(string: "http://example.com/foo/quz/baz")!)!, AnyURL(string: "quz/baz")!)
+    }
 
-     func testPathIsPercentDecoded() {
-         XCTAssertEqual(AnyURL(string: "foo/%25bar%20quz")?.path, "foo/%bar quz")
-         XCTAssertEqual(AnyURL(string: "http://example.com/foo/%25bar%20quz")?.path, "/foo/%bar quz")
-     }
+    func testRelativizeFileURL() {
+        var base = AnyURL(string: "file:///root/foo")!
+        XCTAssertEqual(base.relativize(AnyURL(string: "file:///root/foo/quz/baz")!)!, AnyURL(string: "quz/baz")!)
+        XCTAssertNil(base.relativize(AnyURL(string: "http://example.com/foo/bar")!))
 
-     func testScheme() {
-         XCTAssertEqual(.file, AnyURL(string: "FILE:///foo/bar")?.absoluteURL?.scheme)
-         XCTAssertEqual(.file, AnyURL(string: "file:///foo/bar")?.absoluteURL?.scheme)
-         XCTAssertEqual(.http, AnyURL(string: "http://example.com/foo")?.absoluteURL?.scheme)
-         XCTAssertEqual(.https, AnyURL(string: "https://example.com/foo")?.absoluteURL?.scheme)
-     }
+        // With trailing slash
+        base = AnyURL(string: "file:///root/foo/")!
+        XCTAssertEqual(base.relativize(AnyURL(string: "file:///root/foo/quz/baz")!)!, AnyURL(string: "quz/baz")!)
+    }
 
- //    func testSchemeType() {
- //        XCTAssertEqual(AnyURL(string: "file:///foo/bar")?.absoluteURL?.isFile, true)
- //        XCTAssertEqual(AnyURL(string: "file:///foo/bar")?.absoluteURL?.isHTTP, false)
- //        XCTAssertEqual(AnyURL(string: "http://example.com/foo")?.absoluteURL?.isFile, false)
- //        XCTAssertEqual(AnyURL(string: "http://example.com/foo")?.absoluteURL?.isHTTP, true)
- //        XCTAssertEqual(AnyURL(string: "https://example.com/foo")?.absoluteURL?.isHTTP, true)
- //    }
+    func testRelativizeTwoRelativeURLs() {
+        var base = AnyURL(string: "foo")!
+        XCTAssertEqual(base.relativize(AnyURL(string: "foo/quz/baz")!)!, AnyURL(string: "quz/baz")!)
+        XCTAssertEqual(base.relativize(AnyURL(string: "foo#fragment")!)!, AnyURL(string: "#fragment")!)
+        XCTAssertNil(base.relativize(AnyURL(string: "quz/baz")!))
+        XCTAssertNil(base.relativize(AnyURL(string: "/quz/baz")!))
+        XCTAssertNil(base.relativize(AnyURL(string: "http://example.com/foo/bar")!))
 
-     func testResolveHTTPURL() {
-         var base = AnyURL(string: "http://example.com/foo/bar")!
-         XCTAssertEqual(base.resolve(AnyURL(string: "quz/baz")!)!, AnyURL(string: "http://example.com/foo/quz/baz")!)
-         XCTAssertEqual(base.resolve(AnyURL(string: "../quz/baz")!)!, AnyURL(string: "http://example.com/quz/baz")!)
-         XCTAssertEqual(base.resolve(AnyURL(string: "/quz/baz")!)!, AnyURL(string: "http://example.com/quz/baz")!)
-         XCTAssertEqual(base.resolve(AnyURL(string: "#fragment")!)!, AnyURL(string: "http://example.com/foo/bar#fragment")!)
-         XCTAssertNil(base.resolve(AnyURL(string: "file:///foo/bar")!))
+        // With trailing slash
+        base = AnyURL(string: "foo/")!
+        XCTAssertEqual(base.relativize(AnyURL(string: "foo/quz/baz")!)!, AnyURL(string: "quz/baz")!)
 
-         // With trailing slash
-         base = AnyURL(string: "http://example.com/foo/bar/")!
-         XCTAssertEqual(base.resolve(AnyURL(string: "quz/baz")!)!, AnyURL(string: "http://example.com/foo/bar/quz/baz")!)
-         XCTAssertEqual(base.resolve(AnyURL(string: "../quz/baz")!)!, AnyURL(string: "http://example.com/foo/quz/baz")!)
-     }
-
-     func testResolveFileURL() {
-         var base = AnyURL(string: "file:///root/foo/bar")!
-         XCTAssertEqual(base.resolve(AnyURL(string: "quz")!)!, AnyURL(string: "file:///root/foo/quz")!)
-         XCTAssertEqual(base.resolve(AnyURL(string: "quz/baz")!)!, AnyURL(string: "file:///root/foo/quz/baz")!)
-         XCTAssertEqual(base.resolve(AnyURL(string: "../quz")!)!, AnyURL(string: "file:///root/quz")!)
-
-         // With trailing slash
-         base = AnyURL(string: "file:///root/foo/bar/")!
-         XCTAssertEqual(base.resolve(AnyURL(string: "quz/baz")!)!, AnyURL(string: "file:///root/foo/bar/quz/baz")!)
-         XCTAssertEqual(base.resolve(AnyURL(string: "../quz")!)!, AnyURL(string: "file:///root/foo/quz")!)
-     }
-
-     func testResolveTwoRelativeURLs() {
-         var base = RelativeURL(string: "foo/bar")!
-         XCTAssertEqual(base.resolve(RelativeURL(string: "quz/baz")!)!, RelativeURL(string: "foo/quz/baz")!)
-         XCTAssertEqual(base.resolve(RelativeURL(string: "../quz/baz")!)!, RelativeURL(string: "quz/baz")!)
-         XCTAssertEqual(base.resolve(RelativeURL(string: "/quz/baz")!)!, RelativeURL(string: "/quz/baz")!)
-         XCTAssertEqual(base.resolve(RelativeURL(string: "#fragment")!)!, RelativeURL(string: "foo/bar#fragment")!)
-
-         // With trailing slash
-         base = RelativeURL(string: "foo/bar/")!
-         XCTAssertEqual(base.resolve(RelativeURL(string: "quz/baz")!)!, RelativeURL(string: "foo/bar/quz/baz")!)
-         XCTAssertEqual(base.resolve(RelativeURL(string: "../quz/baz")!)!, RelativeURL(string: "foo/quz/baz")!)
-
-         // With starting slash
-         base = RelativeURL(string: "/foo/bar")!
-         XCTAssertEqual(base.resolve(RelativeURL(string: "quz/baz")!)!, RelativeURL(string: "/foo/quz/baz")!)
-         XCTAssertEqual(base.resolve(RelativeURL(string: "/quz/baz")!)!, RelativeURL(string: "/quz/baz")!)
-     }
-
-     func testRelativizeHTTPURL() {
-         var base = AnyURL(string: "http://example.com/foo")!
-         XCTAssertEqual(base.relativize(AnyURL(string: "http://example.com/foo/quz/baz")!)!, AnyURL(string: "quz/baz")!)
-         XCTAssertEqual(base.relativize(AnyURL(string: "http://example.com/foo#fragment")!)!, AnyURL(string: "#fragment")!)
-
-         // With trailing slash
-         base = AnyURL(string: "http://example.com/foo/")!
-         XCTAssertEqual(base.relativize(AnyURL(string: "http://example.com/foo/quz/baz")!)!, AnyURL(string: "quz/baz")!)
-     }
-
-     func testRelativizeFileURL() {
-         var base = AnyURL(string: "file:///root/foo")!
-         XCTAssertEqual(base.relativize(AnyURL(string: "file:///root/foo/quz/baz")!)!, AnyURL(string: "quz/baz")!)
-         XCTAssertNil(base.relativize(AnyURL(string: "http://example.com/foo/bar")!))
-
-         // With trailing slash
-         base = AnyURL(string: "file:///root/foo/")!
-         XCTAssertEqual(base.relativize(AnyURL(string: "file:///root/foo/quz/baz")!)!, AnyURL(string: "quz/baz")!)
-     }
-
-     func testRelativizeTwoRelativeURLs() {
-         var base = AnyURL(string: "foo")!
-         XCTAssertEqual(base.relativize(AnyURL(string: "foo/quz/baz")!)!, AnyURL(string: "quz/baz")!)
-         XCTAssertEqual(base.relativize(AnyURL(string: "foo#fragment")!)!, AnyURL(string: "#fragment")!)
-         XCTAssertNil(base.relativize(AnyURL(string: "quz/baz")!))
-         XCTAssertNil(base.relativize(AnyURL(string: "/quz/baz")!))
-         XCTAssertNil(base.relativize(AnyURL(string: "http://example.com/foo/bar")!))
-
-         // With trailing slash
-         base = AnyURL(string: "foo/")!
-         XCTAssertEqual(base.relativize(AnyURL(string: "foo/quz/baz")!)!, AnyURL(string: "quz/baz")!)
-
-         // With starting slash
-         base = AnyURL(string: "/foo")!
-         XCTAssertEqual(base.relativize(AnyURL(string: "/foo/quz/baz")!)!, AnyURL(string: "quz/baz")!)
-         XCTAssertNil(base.relativize(AnyURL(string: "/quz/baz")!))
-     }
- }*/
+        // With starting slash
+        base = AnyURL(string: "/foo")!
+        XCTAssertEqual(base.relativize(AnyURL(string: "/foo/quz/baz")!)!, AnyURL(string: "quz/baz")!)
+        XCTAssertNil(base.relativize(AnyURL(string: "/quz/baz")!))
+    }
+}

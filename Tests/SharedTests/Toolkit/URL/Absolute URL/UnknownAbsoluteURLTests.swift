@@ -105,7 +105,7 @@ class UnknownAbsoluteURLTests: XCTestCase {
         XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar#quz%20baz")?.removingFragment(), UnknownAbsoluteURL(string: "opds://foo/bar")!)
     }
 
-    // MARK: - AbsoluteURLProtocol
+    // MARK: - AbsoluteURL
 
     func testScheme() {
         XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar")?.scheme, URLScheme(rawValue: "opds"))

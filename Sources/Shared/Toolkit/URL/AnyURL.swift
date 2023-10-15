@@ -32,14 +32,6 @@ public enum AnyURL: URLProtocol {
         }
     }
 
-    /// Creates a relative URL from a percent-decoded path.
-    public init?(path: String) {
-        guard let url = RelativeURL(path: path) else {
-            return nil
-        }
-        self = .relative(url)
-    }
-
     /// Creates an `AnyURL` from a legacy HREF.
     ///
     /// For example, if it is a relative path such as `/dir/my chapter.html`,
@@ -51,8 +43,10 @@ public enum AnyURL: URLProtocol {
     public init?(legacyHref href: String) {
         if let url = URL(string: href), url.scheme != nil {
             self.init(url: url)
+        } else if let url = RelativeURL(path: href.removingPrefix("/")) {
+            self = .relative(url)
         } else {
-            self.init(path: href.removingPrefix("/"))
+            return nil
         }
     }
 

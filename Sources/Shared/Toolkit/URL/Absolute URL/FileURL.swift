@@ -25,8 +25,9 @@ public struct FileURL: AbsoluteURL, Hashable {
         self.url = url
     }
 
+    /// Creates a file URL from a percent-decoded absolute path.
     public init?(path: String, isDirectory: Bool) {
-        guard path.hasPrefix("/") else {
+        guard path != "/", !path.isEmpty, path.hasPrefix("/") else {
             return nil
         }
         self.init(url: URL(fileURLWithPath: path, isDirectory: isDirectory))
@@ -39,7 +40,10 @@ public struct FileURL: AbsoluteURL, Hashable {
 
     public var lastPathComponent: String { url.lastPathComponent }
 
-    public var pathExtension: String { url.pathExtension }
+    public func appendingPath(_ path: String) -> Self? {
+        // The default strategy in `AbsoluteURL` doesn't work with file URLs.
+        appendingPath(path, isDirectory: path.hasSuffix("/"))
+    }
 
     /// Returns whether the given `url` is `self` or one of its descendants.
     public func isParent(of other: FileURL) -> Bool {

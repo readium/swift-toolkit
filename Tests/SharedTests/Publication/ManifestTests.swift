@@ -186,23 +186,6 @@ class ManifestTests: XCTestCase {
         )
     }
 
-    /// The `Link`s' hrefs are normalized to `/` for a package.
-    func testHrefsAreNormalizedToRootForPackages() {
-        let json: Any = fixtures.json(at: "flatland-href.json")
-
-        XCTAssertEqual(
-            try Manifest(json: json, isPackaged: true).readingOrder.map(\.href),
-            [
-                "http://www.archive.org/download/flatland_rg_librivox/flatland_1_abbott.mp3",
-                "flatland_2_abbott.mp3",
-                "directory/flatland_2_abbott.mp3",
-                "flatland_3_abbott.mp3",
-                "directory/flatland_4_abbott.mp3",
-                "../flatland_5_abbott.mp3",
-            ]
-        )
-    }
-
     /// The `Link` with `self` relation is converted to an `alternate` for a package.
     func testSelfBecomesAlternateForPackages() throws {
         let json: Any = fixtures.json(at: "flatland-href.json")
