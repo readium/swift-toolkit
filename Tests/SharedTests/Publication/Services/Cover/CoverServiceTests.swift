@@ -53,7 +53,7 @@ class CoverServiceTests: XCTestCase {
                     Link(href: coverPath, rels: [.cover]),
                 ]
             ),
-            fetcher: FileFetcher(href: RelativeURL(string: coverPath)!, path: coverURL),
+            fetcher: FileFetcher(href: RelativeURL(string: coverPath)!, file: coverURL),
             servicesBuilder: PublicationServicesBuilder(cover: cover)
         )
     }

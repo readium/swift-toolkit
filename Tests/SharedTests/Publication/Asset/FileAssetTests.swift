@@ -13,14 +13,14 @@ class FileAssetTests: XCTestCase {
     lazy var directoryURL = fixtures.url(for: "epub")
 
     func testMediaTypeIsSniffedFromURL() {
-        XCTAssertEqual(FileAsset(url: epubURL).mediaType(), .epub)
+        XCTAssertEqual(FileAsset(file: epubURL).mediaType(), .epub)
     }
 
     func testMediaTypeUsesProvidedMediaTypeHint() {
-        XCTAssertEqual(FileAsset(url: epubURL, mediaType: "application/pdf").mediaType(), .pdf)
+        XCTAssertEqual(FileAsset(file: epubURL, mediaType: "application/pdf").mediaType(), .pdf)
     }
 
     func testMediaTypeUsesProvidedFormat() {
-        XCTAssertEqual(FileAsset(url: epubURL, mediaType: .pdf).mediaType(), .pdf)
+        XCTAssertEqual(FileAsset(file: epubURL, mediaType: .pdf).mediaType(), .pdf)
     }
 }

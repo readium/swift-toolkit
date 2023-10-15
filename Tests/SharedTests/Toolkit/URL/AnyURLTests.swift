@@ -184,27 +184,4 @@ class AnyURLTests: XCTestCase {
         XCTAssertEqual(base.relativize(AnyURL(string: "/foo/quz/baz")!)!, AnyURL(string: "quz/baz")!)
         XCTAssertNil(base.relativize(AnyURL(string: "/quz/baz")!))
     }
-
-    func testGetFirstQueryParameterNamedX() throws {
-        let query = try XCTUnwrap(AnyURL(string: "foo?query=param&fruit=banana&query=other&empty")).query
-
-        XCTAssertEqual(query.first(named: "query"), "param")
-        XCTAssertEqual(query.first(named: "fruit"), "banana")
-        XCTAssertNil(query.first(named: "empty"))
-        XCTAssertNil(query.first(named: "not-found"))
-    }
-
-    func testGetAllQueryParametersNamedX() throws {
-        let query = try XCTUnwrap(AnyURL(string: "foo?query=param&fruit=banana&query=other&empty")).query
-
-        XCTAssertEqual(query.all(named: "query"), ["param", "other"])
-        XCTAssertEqual(query.all(named: "fruit"), ["banana"])
-        XCTAssertEqual(query.all(named: "empty"), [])
-        XCTAssertEqual(query.all(named: "not-found"), [])
-    }
-
-    func testQueryParameterArePercentDecoded() throws {
-        let query = try XCTUnwrap(AnyURL(string: "foo?query=hello%20world")).query
-        XCTAssertEqual(query.first(named: "query"), "hello world")
-    }
 }

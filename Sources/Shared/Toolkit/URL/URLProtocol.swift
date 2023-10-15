@@ -28,6 +28,8 @@ public protocol URLProtocol: CustomStringConvertible {
     var pathExtension: String? { get }
 
     /// Returns a copy of this URL after appending path components.
+    ///
+    /// If `path` ends with `/`, it is considered a directory.
     func appendingPath(_ path: String) -> Self?
 
     /// Returns a copy of this URL after appending path components.
@@ -35,7 +37,7 @@ public protocol URLProtocol: CustomStringConvertible {
 
     /// Returns the decoded query parameters present in this URL, in the order
     /// they appear.
-    var query: URLQuery { get }
+    var query: URLQuery? { get }
 
     /// Creates a copy of this URL after removing its query portion.
     func removingQuery() -> Self?
@@ -73,7 +75,11 @@ public extension URLProtocol {
     }
 
     func appendingPath(_ path: String) -> Self? {
-        appendingPath(path, isDirectory: path.hasSuffix("/"))
+        guard !path.isEmpty else {
+            return self
+        }
+
+        return Self(url: url.appendingPathComponent(path))
     }
 
     func appendingPath(_ path: String, isDirectory: Bool) -> Self? {
@@ -84,7 +90,7 @@ public extension URLProtocol {
         return Self(url: url.appendingPathComponent(path, isDirectory: isDirectory))
     }
 
-    var query: URLQuery { URLQuery(url: url) }
+    var query: URLQuery? { URLQuery(url: url) }
 
     func removingQuery() -> Self? {
         guard let url = url.copy({ $0.query = nil }) else {
@@ -93,7 +99,7 @@ public extension URLProtocol {
         return Self(url: url)
     }
 
-    var fragment: String? { url.fragment?.orNilIfEmpty() }
+    var fragment: String? { url.fragment?.orNilIfEmpty()?.removingPercentEncoding }
 
     func removingFragment() -> Self? {
         guard let url = url.copy({ $0.fragment = nil }) else {

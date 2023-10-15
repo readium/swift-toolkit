@@ -7,9 +7,9 @@
 import Foundation
 
 /// Represents a list of query parameters in a URL.
-public struct URLQuery {
+public struct URLQuery: Hashable {
     /// Represents a single query parameter and its value in a URL.
-    public struct Parameter {
+    public struct Parameter: Hashable {
         public let name: String
         public let value: String?
     }
@@ -20,12 +20,15 @@ public struct URLQuery {
         self.parameters = parameters
     }
 
-    public init(url: URL) {
-        let parameters = URLComponents(url: url, resolvingAgainstBaseURL: true)?
+    public init?(url: URL) {
+        guard let parameters = URLComponents(url: url, resolvingAgainstBaseURL: true)?
             .queryItems?
-            .map { Parameter(name: $0.name, value: $0.value) }
+            .map({ Parameter(name: $0.name, value: $0.value) })
+        else {
+            return nil
+        }
 
-        self.init(parameters: parameters ?? [])
+        self.init(parameters: parameters)
     }
 
     /// Returns the first value for the parameter with the given `name`.
