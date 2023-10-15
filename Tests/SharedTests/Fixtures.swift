@@ -22,7 +22,7 @@ class Fixtures {
     }
 
     func url(for filepath: String) -> FileURL {
-        try! FileURL(url: XCTUnwrap(Bundle.module.resourceURL?.appendingPathComponent("Fixtures/\(path ?? "")/\(filepath)")))!
+        FileURL(url: Bundle.module.resourceURL!.appendingPathComponent("Fixtures/\(path ?? "")/\(filepath)"))!
     }
 
     func data(at filepath: String) -> Data {

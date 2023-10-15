@@ -16,7 +16,7 @@ extension RelativeURL {
     /// As a workaround, we assume the HREFs are valid percent-encoded URLs,
     /// and fallback to decoded paths if we can't parse the URL.
     init?(epubHREF: String) {
-        guard let uri = RelativeURL(string: epubHREF) ?? RelativeURL(decodedPath: epubHREF) else {
+        guard let uri = RelativeURL(string: epubHREF) ?? RelativeURL(path: epubHREF) else {
             return nil
         }
         self = uri

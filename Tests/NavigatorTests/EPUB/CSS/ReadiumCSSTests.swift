@@ -9,7 +9,7 @@ import R2Shared
 import XCTest
 
 class ReadiumCSSTests: XCTestCase {
-    let baseURL = URL(string: "https://readium/assets")!
+    let baseURL = HTTPURL(string: "https://readium/assets")!
 
     let viewportMeta = HTMLInjection.meta(name: "viewport", content: "width=device-width, height=device-height, initial-scale=1.0")
 

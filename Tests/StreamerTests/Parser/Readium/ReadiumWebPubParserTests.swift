@@ -24,19 +24,19 @@ class ReadiumWebPubParserTests: XCTestCase {
     override func setUpWithError() throws {
         parser = ReadiumWebPubParser(pdfFactory: DefaultPDFDocumentFactory(), httpClient: DefaultHTTPClient())
 
-        manifestAsset = FileAsset(url: fixtures.url(for: "flatland.json"))
-        manifestFetcher = FileFetcher(href: "/flatland.json", path: manifestAsset.url)
+        manifestAsset = FileAsset(file: fixtures.url(for: "flatland.json"))
+        manifestFetcher = FileFetcher(href: RelativeURL(path: "/flatland.json")!, file: manifestAsset.file)
 
-        packageAsset = FileAsset(url: fixtures.url(for: "audiotest.lcpa"))
-        packageFetcher = try ArchiveFetcher(url: packageAsset.url)
+        packageAsset = FileAsset(file: fixtures.url(for: "audiotest.lcpa"))
+        packageFetcher = try ArchiveFetcher(file: packageAsset.file)
 
-        lcpdfAsset = FileAsset(url: fixtures.url(for: "daisy.lcpdf"))
-        lcpdfFetcher = try ArchiveFetcher(url: lcpdfAsset.url)
+        lcpdfAsset = FileAsset(file: fixtures.url(for: "daisy.lcpdf"))
+        lcpdfFetcher = try ArchiveFetcher(file: lcpdfAsset.file)
     }
 
     func testRefusesNonReadiumWebPub() throws {
-        let asset = FileAsset(url: fixtures.url(for: "audiotest.zab"))
-        let fetcher = try ArchiveFetcher(url: asset.url)
+        let asset = FileAsset(file: fixtures.url(for: "audiotest.zab"))
+        let fetcher = try ArchiveFetcher(file: asset.file)
         XCTAssertNil(try parser.parse(asset: asset, fetcher: fetcher, warnings: nil))
     }
 

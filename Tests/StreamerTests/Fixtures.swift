@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import R2Shared
 
 #if !SWIFT_PACKAGE
     extension Bundle {
@@ -19,11 +20,11 @@ class Fixtures {
         self.path = path
     }
 
-    func url(for filepath: String) -> URL {
-        Bundle.module.resourceURL!.appendingPathComponent("Fixtures/\(path ?? "")/\(filepath)")
+    func url(for filepath: String) -> FileURL {
+        FileURL(url: Bundle.module.resourceURL!.appendingPathComponent("Fixtures/\(path ?? "")/\(filepath)"))!
     }
 
     func data(at filepath: String) -> Data {
-        try! Data(contentsOf: url(for: filepath))
+        try! Data(contentsOf: url(for: filepath).url)
     }
 }

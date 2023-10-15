@@ -20,12 +20,11 @@ public struct RelativeURL: URLProtocol, Hashable {
     }
 
     /// Creates a `RelativeURL` from a percent-decoded path.
-    public init?(decodedPath: String) {
-        guard let path = decodedPath.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+    public init?(path: String) {
+        guard let url = URL(path: path) else {
             return nil
         }
-
-        self.init(string: path)
+        self.init(url: url)
     }
 
     /// Resolves the given `url` to this URL, if possible.
@@ -49,11 +48,32 @@ public struct RelativeURL: URLProtocol, Hashable {
     ///     other: baz
     ///     returns foo/baz
     public func resolve(_ other: RelativeURL) -> RelativeURL? {
-        guard let url = URL(string: other.string, relativeTo: url) else {
+        guard !other.string.hasPrefix("/") else {
+            return other
+        }
+
+        guard var path = path?.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+            return nil
+        }
+        if other.path != nil, !path.hasSuffix("/") {
+            path = url.deletingLastPathComponent().path.addingSuffix("/")
+        }
+
+        guard
+            let otherComponents = URLComponents(url: other.url, resolvingAgainstBaseURL: true),
+            var resolvedComponents = URLComponents(string: path + other.string)
+        else {
             return nil
         }
 
-        return RelativeURL(string: url.absoluteString.removingPrefix("//"))
+        resolvedComponents.fragment = otherComponents.fragment
+        resolvedComponents.query = otherComponents.query
+
+        guard let resolvedURL = resolvedComponents.url?.standardized else {
+            return nil
+        }
+
+        return RelativeURL(url: resolvedURL)
     }
 
     /// Relativizes the given `url` against this relative URL, if possible.

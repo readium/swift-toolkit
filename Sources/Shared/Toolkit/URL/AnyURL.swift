@@ -29,8 +29,8 @@ public enum AnyURL: URLProtocol, Hashable {
     }
 
     /// Creates a relative URL from a percent-decoded path.
-    public init?(decodedPath: String) {
-        guard let url = RelativeURL(decodedPath: decodedPath) else {
+    public init?(path: String) {
+        guard let url = RelativeURL(path: path) else {
             return nil
         }
         self = .relative(url)
@@ -48,7 +48,7 @@ public enum AnyURL: URLProtocol, Hashable {
         if let url = AnyAbsoluteURL(string: href) {
             self = .absolute(url)
         } else {
-            self.init(decodedPath: href.removingPrefix("/"))
+            self.init(path: href.removingPrefix("/"))
         }
     }
 

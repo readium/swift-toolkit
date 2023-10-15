@@ -69,6 +69,6 @@ class NavigationDocumentParserTests: XCTestCase {
 
     func parseNavDocument(_ name: String) -> NavigationDocumentParser {
         let data = fixtures.data(at: "\(name).xhtml")
-        return NavigationDocumentParser(data: data, at: "/base/nav.xhtml")
+        return NavigationDocumentParser(data: data, at: RelativeURL(path: "/base/nav.xhtml")!)
     }
 }

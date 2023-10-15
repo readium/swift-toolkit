@@ -5,9 +5,10 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// A type that can represent a URL.
-public protocol URLProtocol {
+public protocol URLProtocol: CustomStringConvertible {
     /// Creates a new instance of this type from a Foundation `URL`.
     init?(url: URL)
 
@@ -39,6 +40,9 @@ public protocol URLProtocol {
     /// Creates a copy of this URL after removing its query portion.
     func removingQuery() -> Self?
 
+    /// Returns the decoded fragment portion of this URL, if there's any.
+    var fragment: String? { get }
+
     /// Creates a copy of this URL after removing its fragment portion.
     func removingFragment() -> Self?
 }
@@ -52,6 +56,8 @@ public extension URLProtocol {
     }
 
     var string: String { url.absoluteString }
+
+    var description: String { string }
 
     var path: String? {
         // We can't use `url.path`, see https://openradar.appspot.com/28357201
@@ -86,6 +92,8 @@ public extension URLProtocol {
         }
         return Self(url: url)
     }
+
+    var fragment: String? { url.fragment?.orNilIfEmpty() }
 
     func removingFragment() -> Self? {
         guard let url = url.copy({ $0.fragment = nil }) else {

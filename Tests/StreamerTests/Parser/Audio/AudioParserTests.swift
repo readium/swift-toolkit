@@ -21,16 +21,16 @@ class AudioParserTests: XCTestCase {
     override func setUpWithError() throws {
         parser = AudioParser()
 
-        zabAsset = FileAsset(url: fixtures.url(for: "audiotest.zab"))
-        zabFetcher = try ArchiveFetcher(url: zabAsset.url)
+        zabAsset = FileAsset(file: fixtures.url(for: "audiotest.zab"))
+        zabFetcher = try ArchiveFetcher(file: zabAsset.file)
 
-        mp3Asset = FileAsset(url: fixtures.url(for: "audiotest/Test Audiobook/Latin.mp3"))
-        mp3Fetcher = FileFetcher(href: "/Latin.mp3", path: mp3Asset.url)
+        mp3Asset = FileAsset(file: fixtures.url(for: "audiotest/Test Audiobook/Latin.mp3"))
+        mp3Fetcher = FileFetcher(href: RelativeURL(path: "Latin.mp3")!, file: mp3Asset.file)
     }
 
     func testRefusesNonAudioBased() throws {
-        let asset = FileAsset(url: fixtures.url(for: "futuristic_tales.cbz"))
-        let fetcher = try ArchiveFetcher(url: asset.url)
+        let asset = FileAsset(file: fixtures.url(for: "futuristic_tales.cbz"))
+        let fetcher = try ArchiveFetcher(file: asset.file)
         XCTAssertNil(try parser.parse(asset: asset, fetcher: fetcher, warnings: nil))
     }
 
@@ -54,9 +54,9 @@ class AudioParserTests: XCTestCase {
         let publication = try XCTUnwrap(parser.parse(asset: zabAsset, fetcher: zabFetcher, warnings: nil)?.build())
 
         XCTAssertEqual(publication.readingOrder.map(\.href), [
-            "/Test Audiobook/gtr-jazz.mp3",
-            "/Test Audiobook/Latin.mp3",
-            "/Test Audiobook/vln-lin-cs.mp3",
+            "Test Audiobook/gtr-jazz.mp3",
+            "Test Audiobook/Latin.mp3",
+            "Test Audiobook/vln-lin-cs.mp3",
         ])
     }
 

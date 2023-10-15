@@ -16,6 +16,6 @@ class EPUBContainerParserTests: XCTestCase {
         let data = fixtures.data(at: "container.xml")
         let parser = try EPUBContainerParser(data: data)
 
-        XCTAssertEqual(try parser.parseOPFHREF(), "/EPUB/content.opf")
+        XCTAssertEqual(try parser.parseOPFHREF(), RelativeURL(path: "EPUB/content.opf"))
     }
 }

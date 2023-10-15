@@ -114,17 +114,17 @@ extension ReadiumCSS: HTMLInjectable {
         let hasStyles = hasStyles(html)
         var stylesheetsFolder = baseURL
         if let folder = layout.stylesheets.folder {
-            stylesheetsFolder = stylesheetsFolder.appendingPath(folder.addingSuffix("/"))!
+            stylesheetsFolder = stylesheetsFolder.appendingPath(folder, isDirectory: true)!
         }
 
         inj.append(.stylesheetLink(
-            href: stylesheetsFolder.appendingPath("ReadiumCSS-before.css")!,
+            href: stylesheetsFolder.appendingPath("ReadiumCSS-before.css")!.string,
             prepend: true
         ))
         if !hasStyles {
-            inj.append(.stylesheetLink(href: stylesheetsFolder.appendingPath("ReadiumCSS-default.css")!))
+            inj.append(.stylesheetLink(href: stylesheetsFolder.appendingPath("ReadiumCSS-default.css")!.string))
         }
-        inj.append(.stylesheetLink(href: stylesheetsFolder.appendingPath("ReadiumCSS-after.css")!))
+        inj.append(.stylesheetLink(href: stylesheetsFolder.appendingPath("ReadiumCSS-after.css")!.string))
 
         // Fix Readium CSS issue with the positioning of <audio> elements.
         // https://github.com/readium/readium-css/issues/94

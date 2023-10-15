@@ -130,22 +130,21 @@ class AnyURLTests: XCTestCase {
     }
 
     func testResolveTwoRelativeURLs() {
-        var base = AnyURL(string: "foo/bar")!
-        XCTAssertEqual(base.resolve(AnyURL(string: "quz/baz")!)!, AnyURL(string: "foo/quz/baz")!)
-        XCTAssertEqual(base.resolve(AnyURL(string: "../quz/baz")!)!, AnyURL(string: "quz/baz")!)
-        XCTAssertEqual(base.resolve(AnyURL(string: "/quz/baz")!)!, AnyURL(string: "/quz/baz")!)
-        XCTAssertEqual(base.resolve(AnyURL(string: "#fragment")!)!, AnyURL(string: "foo/bar#fragment")!)
-        XCTAssertEqual(base.resolve(AnyURL(string: "http://example.com/foo/bar")!)!, AnyURL(string: "http://example.com/foo/bar")!)
+        var base = RelativeURL(string: "foo/bar")!
+        XCTAssertEqual(base.resolve(RelativeURL(string: "quz/baz")!)!, RelativeURL(string: "foo/quz/baz")!)
+        XCTAssertEqual(base.resolve(RelativeURL(string: "../quz/baz")!)!, RelativeURL(string: "quz/baz")!)
+        XCTAssertEqual(base.resolve(RelativeURL(string: "/quz/baz")!)!, RelativeURL(string: "/quz/baz")!)
+        XCTAssertEqual(base.resolve(RelativeURL(string: "#fragment")!)!, RelativeURL(string: "foo/bar#fragment")!)
 
         // With trailing slash
-        base = AnyURL(string: "foo/bar/")!
-        XCTAssertEqual(base.resolve(AnyURL(string: "quz/baz")!)!, AnyURL(string: "foo/bar/quz/baz")!)
-        XCTAssertEqual(base.resolve(AnyURL(string: "../quz/baz")!)!, AnyURL(string: "foo/quz/baz")!)
+        base = RelativeURL(string: "foo/bar/")!
+        XCTAssertEqual(base.resolve(RelativeURL(string: "quz/baz")!)!, RelativeURL(string: "foo/bar/quz/baz")!)
+        XCTAssertEqual(base.resolve(RelativeURL(string: "../quz/baz")!)!, RelativeURL(string: "foo/quz/baz")!)
 
         // With starting slash
-        base = AnyURL(string: "/foo/bar")!
-        XCTAssertEqual(base.resolve(AnyURL(string: "quz/baz")!)!, AnyURL(string: "/foo/quz/baz")!)
-        XCTAssertEqual(base.resolve(AnyURL(string: "/quz/baz")!)!, AnyURL(string: "/quz/baz")!)
+        base = RelativeURL(string: "/foo/bar")!
+        XCTAssertEqual(base.resolve(RelativeURL(string: "quz/baz")!)!, RelativeURL(string: "/foo/quz/baz")!)
+        XCTAssertEqual(base.resolve(RelativeURL(string: "/quz/baz")!)!, RelativeURL(string: "/quz/baz")!)
     }
 
     func testRelativizeHTTPURL() {

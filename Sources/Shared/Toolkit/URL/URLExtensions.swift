@@ -7,6 +7,13 @@
 import Foundation
 
 extension URL {
+    init?(path: String) {
+        guard let path = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+            return nil
+        }
+        self.init(percentEncodedString: path)
+    }
+
     init?(percentEncodedString: String) {
         if #available(iOS 17.0, *) {
             self.init(string: percentEncodedString, encodingInvalidCharacters: false)
