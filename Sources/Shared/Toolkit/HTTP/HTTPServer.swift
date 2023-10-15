@@ -45,7 +45,7 @@ public extension HTTPServer {
             return FileResource(
                 link: Link(
                     href: request.url.string,
-                    type: MediaType.of(file.url)?.string
+                    type: MediaType.of(file)?.string
                 ),
                 file: file
             )

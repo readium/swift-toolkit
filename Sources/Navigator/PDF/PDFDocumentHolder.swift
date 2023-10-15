@@ -19,8 +19,8 @@ final class PDFDocumentHolder {
 }
 
 extension PDFDocumentHolder: R2Shared.PDFDocumentFactory {
-    func open(url: URL, password: String?) throws -> R2Shared.PDFDocument {
-        guard let document = document, url.absoluteString == href else {
+    func open(file: FileURL, password: String?) throws -> R2Shared.PDFDocument {
+        guard let document = document, file.string == href else {
             throw PDFDocumentError.openFailed
         }
         return document

@@ -21,7 +21,7 @@ public final class LazyResource: Resource {
         self.factory = factory
     }
 
-    public var file: URL? { resource.file }
+    public var file: FileURL? { resource.file }
 
     public var link: Link { resource.link }
 

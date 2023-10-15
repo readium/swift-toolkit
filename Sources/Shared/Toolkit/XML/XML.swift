@@ -51,7 +51,7 @@ protocol XMLDocumentFactory {
     /// Opens an XML document from a local file path.
     ///
     /// - Parameter namespaces: List of namespace prefixes to declare in the document.
-    func open(url: URL, namespaces: [XMLNamespace]) throws -> XMLDocument
+    func open(file: FileURL, namespaces: [XMLNamespace]) throws -> XMLDocument
 
     /// Opens an XML document from its raw string content.
     ///
@@ -62,9 +62,9 @@ protocol XMLDocumentFactory {
 class DefaultXMLDocumentFactory: XMLDocumentFactory, Loggable {
     init() {}
 
-    func open(url: URL, namespaces: [XMLNamespace]) throws -> XMLDocument {
+    func open(file: FileURL, namespaces: [XMLNamespace]) throws -> XMLDocument {
         warnIfMainThread()
-        return try open(string: String(contentsOf: url), namespaces: namespaces)
+        return try open(string: String(contentsOf: file.url), namespaces: namespaces)
     }
 
     func open(string: String, namespaces: [XMLNamespace]) throws -> XMLDocument {

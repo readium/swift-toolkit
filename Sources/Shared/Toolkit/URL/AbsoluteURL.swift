@@ -135,6 +135,7 @@ public struct HTTPURL: AbsoluteURLProtocol, Hashable {
 /// See https://url.spec.whatwg.org/#special-scheme
 public struct FileURL: AbsoluteURLProtocol, Hashable {
     public init?(url: URL) {
+        let url = url.standardizedFileURL
         guard
             let scheme = url.scheme.map(URLScheme.init(rawValue:)),
             scheme == .file,
@@ -145,7 +146,7 @@ public struct FileURL: AbsoluteURLProtocol, Hashable {
 
         self.path = path
         self.scheme = scheme
-        self.url = url.standardizedFileURL
+        self.url = url
     }
 
     public init?(path: String, isDirectory: Bool) {
@@ -161,6 +162,8 @@ public struct FileURL: AbsoluteURLProtocol, Hashable {
     public let origin: String? = nil
 
     public var lastPathComponent: String { url.lastPathComponent }
+
+    public var pathExtension: String { url.pathExtension }
 
     /// Returns whether the given `url` is `self` or one of its descendants.
     public func isParent(of other: FileURL) -> Bool {

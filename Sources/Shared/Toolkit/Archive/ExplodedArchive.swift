@@ -9,18 +9,14 @@ import Foundation
 /// An archive exploded on the file system as a directory.
 final class ExplodedArchive: Archive, Loggable {
     enum ExplodedArchiveError: Error {
-        case notAFileURL(String)
-        case notADirectory(String)
+        case notADirectory(FileURL)
     }
 
     private let root: FileURL
 
-    public static func make(url: URL) -> ArchiveResult<ExplodedArchive> {
-        guard let url = FileURL(url: url) else {
-            return .failure(.openFailed(archive: url.absoluteString, cause: ExplodedArchiveError.notAFileURL(url.absoluteString)))
-        }
+    public static func make(url: FileURL) -> ArchiveResult<ExplodedArchive> {
         guard url.isDirectory() else {
-            return .failure(.openFailed(archive: url.string, cause: ExplodedArchiveError.notADirectory(url.string)))
+            return .failure(.openFailed(archive: url.string, cause: ExplodedArchiveError.notADirectory(url)))
         }
 
         return .success(Self(url: url))
@@ -94,7 +90,7 @@ private final class ExplodedEntryReader: ArchiveEntryReader, Loggable {
         self.url = url
     }
 
-    var file: URL? { url.url }
+    var file: FileURL? { url }
 
     func read(range: Range<UInt64>?) -> ArchiveResult<Data> {
         do {

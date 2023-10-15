@@ -29,14 +29,14 @@ public extension MediaType {
 
     /// Resolves a media type from a local file path.
     /// **Warning**: This API should never be called from the UI thread.
-    static func of(_ file: URL, mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = sniffers) -> MediaType? {
+    static func of(_ file: FileURL, mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = sniffers) -> MediaType? {
         of(file, mediaTypes: Array(ofNotNil: mediaType), fileExtensions: Array(ofNotNil: fileExtension), sniffers: sniffers)
     }
 
     /// Resolves a media type from a local file path.
     /// **Warning**: This API should never be called from the UI thread.
-    static func of(_ file: URL, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = sniffers) -> MediaType? {
-        let fileExtensions = [file.pathExtension] + fileExtensions
+    static func of(_ file: FileURL, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = sniffers) -> MediaType? {
+        let fileExtensions = Array(ofNotNil: file.pathExtension) + fileExtensions
         return of(content: FileMediaTypeSnifferContent(file: file), mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
     }
 

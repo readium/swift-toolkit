@@ -72,7 +72,7 @@ public final class FileFetcher: Fetcher, Loggable {
 
             return Link(
                 href: href.string,
-                type: MediaType.of(url)?.string
+                type: FileURL(url: url).flatMap { MediaType.of($0)?.string }
             )
         }
     }

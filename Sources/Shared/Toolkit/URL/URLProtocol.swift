@@ -23,6 +23,9 @@ public protocol URLProtocol {
     /// The last path component of the receiver.
     var lastPathComponent: String? { get }
 
+    /// The path extension, or nil if it is empty.
+    var pathExtension: String? { get }
+
     /// Returns a copy of this URL after appending path components.
     func appendingPath(_ path: String) -> Self?
 
@@ -57,6 +60,10 @@ public extension URLProtocol {
 
     var lastPathComponent: String? {
         url.lastPathComponent.orNilIfEmpty()
+    }
+
+    var pathExtension: String? {
+        url.pathExtension.orNilIfEmpty()
     }
 
     func appendingPath(_ path: String) -> Self? {

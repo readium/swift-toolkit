@@ -58,7 +58,7 @@ public final class HTTPFetcher: Fetcher, Loggable {
             .mapError { ResourceError.wrap($0) }
 
         /// An HTTP resource is always remote.
-        var file: URL? { nil }
+        var file: FileURL? { nil }
 
         func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void, completion: @escaping (ResourceResult<Void>) -> Void) -> Cancellable {
             var request = HTTPRequest(url: url.url)

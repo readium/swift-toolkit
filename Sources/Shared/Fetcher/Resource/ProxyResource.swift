@@ -17,7 +17,7 @@ open class ProxyResource: Resource {
         self.resource = resource
     }
 
-    open var file: URL? { resource.file }
+    open var file: FileURL? { resource.file }
 
     open var link: Link { resource.link }
 

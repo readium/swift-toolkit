@@ -11,7 +11,7 @@ public final class FileResource: Resource, Loggable {
     public let link: Link
 
     private let _file: FileURL
-    public var file: URL? { _file.url }
+    public var file: FileURL? { _file }
 
     public init(link: Link, file: FileURL) {
         self.link = link

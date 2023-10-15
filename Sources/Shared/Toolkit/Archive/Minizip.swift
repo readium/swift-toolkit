@@ -8,7 +8,6 @@ import Foundation
 import Minizip
 
 enum MinizipArchiveError: Error {
-    case notAFileURL(URL)
     case fileNotReachable(FileURL)
     case notAValidZIP(FileURL)
     case entryAlreadyClosed(ArchivePath)
@@ -16,10 +15,7 @@ enum MinizipArchiveError: Error {
 
 /// A ZIP `Archive` using the Minizip library.
 final class MinizipArchive: Archive, Loggable {
-    static func make(url: URL) -> ArchiveResult<MinizipArchive> {
-        guard let url = FileURL(url: url) else {
-            return .failure(.openFailed(archive: url.absoluteString, cause: MinizipArchiveError.notAFileURL(url)))
-        }
+    static func make(url: FileURL) -> ArchiveResult<MinizipArchive> {
         guard (try? url.exists()) ?? false else {
             return .failure(.openFailed(archive: url.string, cause: MinizipArchiveError.fileNotReachable(url)))
         }

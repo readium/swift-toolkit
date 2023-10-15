@@ -14,7 +14,7 @@ public protocol Resource {
     /// with streams. However, `file` is not guaranteed to be set, for example if the resource
     /// underwent transformations or is being read from an archive. Therefore, consumers should
     /// always fallback on regular stream reading, using `read` or `ResourceInputStream`.
-    var file: URL? { get }
+    var file: FileURL? { get }
 
     /// The link from which the resource was retrieved.
     ///

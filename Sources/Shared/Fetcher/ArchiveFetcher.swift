@@ -53,7 +53,7 @@ public final class ArchiveFetcher: Fetcher, Loggable {
     private final class ArchiveResource: Resource {
         lazy var link: Link = originalLink.addingProperties(entry.linkProperties)
 
-        var file: URL? { reader.file }
+        var file: FileURL? { reader.file }
 
         private let originalLink: Link
 

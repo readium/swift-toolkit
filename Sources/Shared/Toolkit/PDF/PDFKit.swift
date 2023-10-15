@@ -33,8 +33,8 @@ extension PDFKit.PDFDocument: PDFDocument {
 
 /// Creates a `PDFDocument` using PDFKit.
 public class PDFKitPDFDocumentFactory: PDFDocumentFactory {
-    public func open(url: URL, password: String?) throws -> PDFDocument {
-        guard let document = PDFKit.PDFDocument(url: url) else {
+    public func open(file: FileURL, password: String?) throws -> PDFDocument {
+        guard let document = PDFKit.PDFDocument(url: file.url) else {
             throw PDFDocumentError.openFailed
         }
 
@@ -42,8 +42,8 @@ public class PDFKitPDFDocumentFactory: PDFDocumentFactory {
     }
 
     public func open(resource: Resource, password: String?) throws -> PDFDocument {
-        if let url = resource.file {
-            return try open(url: url, password: password)
+        if let file = resource.file {
+            return try open(file: file, password: password)
         }
 
         // Unfortunately, PDFKit doesn't support streams, so we need to load the full document in

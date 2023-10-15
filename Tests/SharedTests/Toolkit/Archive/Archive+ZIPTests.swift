@@ -10,7 +10,7 @@ import XCTest
 private let fixtures = Fixtures(path: "Archive")
 
 struct ZIPTester {
-    let make: (URL) throws -> Archive
+    let make: (FileURL) throws -> Archive
 
     func testOpenSuccess() {
         XCTAssertNoThrow(try make(fixtures.url(for: "test.zip")))

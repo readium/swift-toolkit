@@ -73,7 +73,7 @@ class PublicationTests: XCTestCase {
             makePublication(links: [
                 Link(href: "http://host/folder/manifest.json", rel: .`self`),
             ]).baseURL,
-            AbsoluteURL(string: "http://host/folder/manifest.json")!
+            AnyAbsoluteURL(string: "http://host/folder/manifest.json")!
         )
     }
 
@@ -90,7 +90,7 @@ class PublicationTests: XCTestCase {
             makePublication(links: [
                 Link(href: "http://host/manifest.json", rel: .`self`),
             ]).baseURL,
-            AbsoluteURL(string: "http://host/manifest.json")!
+            AnyAbsoluteURL(string: "http://host/manifest.json")!
         )
     }
 

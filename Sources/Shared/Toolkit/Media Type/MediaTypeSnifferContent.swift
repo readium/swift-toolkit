@@ -20,13 +20,9 @@ protocol MediaTypeSnifferContent {
 
 /// Used to sniff a local file.
 final class FileMediaTypeSnifferContent: MediaTypeSnifferContent, Loggable {
-    let file: URL
+    let file: FileURL
 
-    init?(file: URL) {
-        guard file.isFileURL || file.scheme == nil else {
-            return nil
-        }
-
+    init(file: FileURL) {
         self.file = file
     }
 
@@ -35,16 +31,16 @@ final class FileMediaTypeSnifferContent: MediaTypeSnifferContent, Loggable {
         guard let length = length, length < 5 * 1000 * 1000 else {
             return nil
         }
-        return try? Data(contentsOf: file)
+        return try? Data(contentsOf: file.url)
     }
 
     func stream() -> InputStream? {
-        InputStream(url: file)
+        InputStream(url: file.url)
     }
 
     private lazy var length: Int? = {
         do {
-            return try file.resourceValues(forKeys: [.fileSizeKey]).fileSize
+            return try file.url.resourceValues(forKeys: [.fileSizeKey]).fileSize
         } catch {
             log(.error, error)
             return nil

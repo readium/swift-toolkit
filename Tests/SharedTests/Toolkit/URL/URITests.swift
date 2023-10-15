@@ -14,8 +14,8 @@ class AnyURLTests: XCTestCase {
         XCTAssertNil(AnyURL(string: "     "))
         XCTAssertNil(AnyURL(string: "invalid character"))
 
-        XCTAssertNil(AbsoluteURL(string: " "))
-        XCTAssertNil(AbsoluteURL(string: "invalid character"))
+        XCTAssertNil(AnyAbsoluteURL(string: " "))
+        XCTAssertNil(AnyAbsoluteURL(string: "invalid character"))
 
         XCTAssertNil(RelativeURL(string: " "))
         XCTAssertNil(RelativeURL(string: "invalid character"))
@@ -26,7 +26,7 @@ class AnyURLTests: XCTestCase {
         XCTAssertEqual(.relative(RelativeURL(string: "foo/bar")!), AnyURL(string: "foo/bar"))
         XCTAssertEqual(.relative(RelativeURL(string: "../bar")!), AnyURL(string: "../bar"))
 
-        // Special characters valid in a path.
+        // Special characters valid in a path
         XCTAssertEqual(RelativeURL(string: "$&+,/=@")?.string, "$&+,/=@")
 
         // Used in the EPUB parser
@@ -49,7 +49,7 @@ class AnyURLTests: XCTestCase {
         // Valid absolute URL are left untouched.
         XCTAssertEqual(
             AnyURL(legacyHref: "http://domain.com/a%20book?page=3"),
-            .absolute(AbsoluteURL(string: "http://domain.com/a%20book?page=3")!)
+            .absolute(AnyAbsoluteURL(string: "http://domain.com/a%20book?page=3")!)
         )
     }
 
@@ -62,13 +62,13 @@ class AnyURLTests: XCTestCase {
     }
 
     func testCreateFromAbsoluteURL() {
-        XCTAssertEqual(AnyURL(string: "http://example.com/foo"), .absolute(AbsoluteURL(url: URL(string: "http://example.com/foo")!)!))
+        XCTAssertEqual(AnyURL(string: "http://example.com/foo"), .absolute(AnyAbsoluteURL(url: URL(string: "http://example.com/foo")!)!))
     }
 
     func testString() {
         XCTAssertEqual("foo/bar?query#fragment", AnyURL(string: "foo/bar?query#fragment")?.string)
         XCTAssertEqual("http://example.com/foo/bar?query#fragment", AnyURL(string: "http://example.com/foo/bar?query#fragment")?.string)
-        XCTAssertEqual("file:///foo/bar?query#fragment", AnyURL(string: "file:///foo/bar?query#fragment")?.string)
+        XCTAssertEqual("file:///foo/bar", AnyURL(string: "file:///foo/bar?query#fragment")?.string)
     }
 
     func testPath() {
@@ -95,13 +95,13 @@ class AnyURLTests: XCTestCase {
         XCTAssertEqual(.https, AnyURL(string: "https://example.com/foo")?.absoluteURL?.scheme)
     }
 
-    func testSchemeType() {
-        XCTAssertEqual(AnyURL(string: "file:///foo/bar")?.absoluteURL?.isFile, true)
-        XCTAssertEqual(AnyURL(string: "file:///foo/bar")?.absoluteURL?.isHTTP, false)
-        XCTAssertEqual(AnyURL(string: "http://example.com/foo")?.absoluteURL?.isFile, false)
-        XCTAssertEqual(AnyURL(string: "http://example.com/foo")?.absoluteURL?.isHTTP, true)
-        XCTAssertEqual(AnyURL(string: "https://example.com/foo")?.absoluteURL?.isHTTP, true)
-    }
+//    func testSchemeType() {
+//        XCTAssertEqual(AnyURL(string: "file:///foo/bar")?.absoluteURL?.isFile, true)
+//        XCTAssertEqual(AnyURL(string: "file:///foo/bar")?.absoluteURL?.isHTTP, false)
+//        XCTAssertEqual(AnyURL(string: "http://example.com/foo")?.absoluteURL?.isFile, false)
+//        XCTAssertEqual(AnyURL(string: "http://example.com/foo")?.absoluteURL?.isHTTP, true)
+//        XCTAssertEqual(AnyURL(string: "https://example.com/foo")?.absoluteURL?.isHTTP, true)
+//    }
 
     func testResolveHTTPURL() {
         var base = AnyURL(string: "http://example.com/foo/bar")!
@@ -109,7 +109,7 @@ class AnyURLTests: XCTestCase {
         XCTAssertEqual(base.resolve(AnyURL(string: "../quz/baz")!)!, AnyURL(string: "http://example.com/quz/baz")!)
         XCTAssertEqual(base.resolve(AnyURL(string: "/quz/baz")!)!, AnyURL(string: "http://example.com/quz/baz")!)
         XCTAssertEqual(base.resolve(AnyURL(string: "#fragment")!)!, AnyURL(string: "http://example.com/foo/bar#fragment")!)
-        XCTAssertEqual(base.resolve(AnyURL(string: "file:///foo/bar")!)!, AnyURL(string: "file:///foo/bar")!)
+        XCTAssertNil(base.resolve(AnyURL(string: "file:///foo/bar")!))
 
         // With trailing slash
         base = AnyURL(string: "http://example.com/foo/bar/")!

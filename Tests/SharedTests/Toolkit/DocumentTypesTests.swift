@@ -8,7 +8,7 @@
 import XCTest
 
 class DocumentTypesTests: XCTestCase {
-    private let infoDictionary = NSDictionary(contentsOf: Fixtures().url(for: "DocumentTypes.plist")) as! [String: Any]
+    private let infoDictionary = NSDictionary(contentsOf: Fixtures().url(for: "DocumentTypes.plist").url) as! [String: Any]
     private var sut: DocumentTypes!
 
     override func setUp() {

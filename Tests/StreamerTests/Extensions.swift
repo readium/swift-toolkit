@@ -8,7 +8,7 @@ import Foundation
 import R2Shared
 
 extension ArchiveFetcher {
-    convenience init(url: URL, password: String? = nil) throws {
-        try self.init(archive: DefaultArchiveFactory().open(url: url, password: password).get())
+    convenience init(file: FileURL, password: String? = nil) throws {
+        try self.init(archive: DefaultArchiveFactory().open(file: file, password: password).get())
     }
 }

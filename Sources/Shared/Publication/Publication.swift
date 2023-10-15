@@ -259,54 +259,5 @@ public class Publication: Loggable {
         case cbz, epub, pdf, webpub
         /// Default value when the format is not specified.
         case unknown
-
-        /// Finds the format for the given mimetype.
-        public init(mimetype: String?) {
-            guard let mimetype = mimetype else {
-                self = .unknown
-                return
-            }
-            self.init(mimetypes: [mimetype])
-        }
-
-        /// Finds the format from a list of possible mimetypes or fallback on a file extension.
-        public init(mimetypes: [String] = [], fileExtension: String? = nil) {
-            self.init(mediaType: .of(mediaTypes: mimetypes, fileExtensions: Array(ofNotNil: fileExtension)))
-        }
-
-        /// Finds the format of the publication at the given url.
-        /// Uses the format declared as exported UTIs in the app's Info.plist, or fallbacks on the file extension.
-        ///
-        /// - Parameter mimetype: Fallback mimetype if the UTI can't be determined.
-        public init(file: URL, mimetype: String) {
-            self.init(file: file, mimetypes: [mimetype])
-        }
-
-        /// Finds the format of the publication at the given url.
-        /// Uses the format declared as exported UTIs in the app's Info.plist, or fallbacks on the file extension.
-        ///
-        /// - Parameter mimetypes: Fallback mimetypes if the UTI can't be determined.
-        public init(file: URL, mimetypes: [String] = []) {
-            self.init(mediaType: .of(file, mediaTypes: mimetypes, fileExtensions: []))
-        }
-
-        private init(mediaType: MediaType?) {
-            guard let mediaType = mediaType else {
-                self = .unknown
-                return
-            }
-            switch mediaType {
-            case .epub:
-                self = .epub
-            case .cbz:
-                self = .cbz
-            case .pdf, .lcpProtectedPDF:
-                self = .pdf
-            case .readiumWebPubManifest, .readiumAudiobookManifest:
-                self = .webpub
-            default:
-                self = .unknown
-            }
-        }
     }
 }

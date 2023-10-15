@@ -39,7 +39,7 @@ public final class FileAsset: PublicationAsset, Loggable {
         return resolvedMediaType
     }
 
-    private lazy var resolvedMediaType: MediaType? = knownMediaType ?? MediaType.of(url.url, mediaType: mediaTypeHint)
+    private lazy var resolvedMediaType: MediaType? = knownMediaType ?? MediaType.of(url, mediaType: mediaTypeHint)
 
     public func makeFetcher(using dependencies: PublicationAssetDependencies, credentials: String?, completion: @escaping (CancellableResult<Fetcher, Publication.OpeningError>) -> Void) {
         DispatchQueue.global(qos: .background).async {
@@ -50,7 +50,7 @@ public final class FileAsset: PublicationAsset, Loggable {
 
             do {
                 // Attempts to open the file as a ZIP or exploded directory.
-                let archive = try dependencies.archiveFactory.open(url: self.url.url, password: credentials).get()
+                let archive = try dependencies.archiveFactory.open(file: self.url, password: credentials).get()
                 completion(.success(ArchiveFetcher(archive: archive)))
 
             } catch ArchiveError.invalidPassword {
