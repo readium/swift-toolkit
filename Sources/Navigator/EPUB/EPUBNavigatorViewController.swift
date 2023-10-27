@@ -142,14 +142,27 @@ open class EPUBNavigatorViewController: UIViewController,
 
     /// Navigation state.
     private enum State: Equatable {
-        /// Loading the spreads, for example after changing the user settings or loading the publication.
-        case loading
+        /// Loading the spreads at the `pendingLocator`, for example after
+        /// changing the user settings, rotating the screen or loading the
+        /// publication.
+        case loading(pendingLocator: Locator?)
         /// Waiting for further navigation instructions.
         case idle
         /// Jumping to `pendingLocator`.
         case jumping(pendingLocator: Locator)
         /// Turning the page in the given `direction`.
         case moving(direction: EPUBSpreadView.Direction)
+
+        var pendingLocator: Locator? {
+            switch self {
+            case let .loading(pendingLocator: locator):
+                return locator
+            case let .jumping(pendingLocator: locator):
+                return locator
+            default:
+                return nil
+            }
+        }
 
         mutating func transition(_ event: Event) -> Bool {
             switch (self, event) {
@@ -182,8 +195,8 @@ open class EPUBNavigatorViewController: UIViewController,
 
             // Loading the spreads is always possible, because it can be triggered by rotating the
             // screen. In which case it cancels any on-going state.
-            case (_, .load):
-                self = .loading
+            case let (_, .load(locator)):
+                self = .loading(pendingLocator: locator)
 
             default:
                 log(.error, "Invalid event \(event) for state \(self)")
@@ -196,8 +209,9 @@ open class EPUBNavigatorViewController: UIViewController,
 
     /// Navigation event.
     private enum Event: Equatable {
-        /// Load the spreads, for example after changing the user settings or loading the publication.
-        case load
+        /// Load the spreads at the given locator, for example after changing
+        /// the user settings, rotating the screen or loading the publication.
+        case load(Locator?)
         /// The spreads were loaded.
         case loaded
         /// Jump to the given locator.
@@ -211,7 +225,7 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     /// Current navigation state.
-    private var state: State = .loading {
+    private var state: State = .loading(pendingLocator: nil) {
         didSet {
             if config.debugState {
                 log(.debug, "* transitioned to \(state)")
@@ -349,7 +363,7 @@ open class EPUBNavigatorViewController: UIViewController,
 
     /// Intercepts tap gesture when the web views are not loaded.
     @objc private func didTapBackground(_ gesture: UITapGestureRecognizer) {
-        guard state == .loading else { return }
+        guard case .loading = state else { return }
         didTap(at: gesture.location(in: view))
     }
 
@@ -595,16 +609,17 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     private func _reloadSpreads(at locator: Locator? = nil, force: Bool, completion: @escaping () -> Void) {
+        let locator = locator ?? currentLocation
+
         guard
             // Already loaded with the expected amount of spreads?
             force || spreads.first?.spread != viewModel.spreadEnabled,
-            on(.load)
+            on(.load(locator))
         else {
             completion()
             return
         }
 
-        let locator = locator ?? currentLocation
         spreads = EPUBSpread.makeSpreads(
             for: publication,
             readingOrder: readingOrder,
@@ -660,7 +675,7 @@ open class EPUBNavigatorViewController: UIViewController,
 
     public var currentLocation: Locator? {
         // Returns any pending locator to prevent returning invalid locations while loading it.
-        if case let .jumping(pendingLocator) = state {
+        if let pendingLocator = state.pendingLocator {
             return pendingLocator
         }
 

@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Fixed
+
+#### Navigator
+
+* [#344](https://github.com/readium/swift-toolkit/issues/344) EPUB: Fixed lost position when rotating quickly the screen several times.
+
 
 ## [2.6.0]
 
