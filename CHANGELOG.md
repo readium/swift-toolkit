@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Added
+
+#### Navigator
+
+* You can now customize the playback refresh rate of `_AudiobookNavigator` in its configuration.
+
 
 ## [2.6.0]
 
