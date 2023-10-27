@@ -168,11 +168,8 @@ final class EPUBNavigatorViewModel: Loggable {
         self.useLegacySettings = useLegacySettings
         legacyReadingProgression = publication.metadata.effectiveReadingProgression
 
-        settings = EPUBSettings(
-            preferences: config.preferences,
-            defaults: config.defaults,
-            metadata: publication.metadata
-        )
+        preferences = config.preferences
+        settings = EPUBSettings(publication: publication, config: config)
 
         css = ReadiumCSS(
             layout: CSSLayout(),
@@ -182,9 +179,18 @@ final class EPUBNavigatorViewModel: Loggable {
         )
 
         css.update(with: settings)
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(voiceOverStatusDidChange),
+            name: UIAccessibility.voiceOverStatusDidChangeNotification,
+            object: nil
+        )
     }
 
     deinit {
+        NotificationCenter.default.removeObserver(self)
+
         if let endpoint = publicationEndpoint {
             httpServer?.remove(at: endpoint)
         }
@@ -222,15 +228,25 @@ final class EPUBNavigatorViewModel: Loggable {
 
     // MARK: - User preferences
 
+    /// Currently applied settings.
     private(set) var settings: EPUBSettings
 
+    /// Last submitted preferences.
+    private var preferences: EPUBPreferences
+
     func submitPreferences(_ preferences: EPUBPreferences) {
+        self.preferences = preferences
+        applyPreferences()
+    }
+
+    private func applyPreferences() {
         let oldSettings = settings
         let newSettings = EPUBSettings(
             preferences: preferences,
-            defaults: config.defaults,
-            metadata: publication.metadata
+            publication: publication,
+            config: config
         )
+
         settings = newSettings
         updateSpread()
         updateCSS(with: settings)
@@ -287,12 +303,7 @@ final class EPUBNavigatorViewModel: Loggable {
     }
 
     var scroll: Bool {
-        // Force-enables scroll when VoiceOver is running, because pagination
-        // breaks the screen reader.
-        guard !UIAccessibility.isVoiceOverRunning else {
-            return true
-        }
-        return useLegacySettings ? legacyScroll : settings.scroll
+        useLegacySettings ? legacyScroll : settings.scroll
     }
 
     private var legacyScroll: Bool {
@@ -412,6 +423,41 @@ final class EPUBNavigatorViewModel: Loggable {
                 runScript: "readium.setCSSProperties(\(json));",
                 in: .loadedResources
             )
+        }
+    }
+
+    // MARK: - Accessibility
+
+    private var isVoiceOverRunning = UIAccessibility.isVoiceOverRunning
+
+    @objc private func voiceOverStatusDidChange() {
+        // Avoids excessive settings refresh when the status didn't change.
+        guard isVoiceOverRunning != UIAccessibility.isVoiceOverRunning else {
+            return
+        }
+        isVoiceOverRunning = UIAccessibility.isVoiceOverRunning
+
+        // Re-apply preferences to force the scroll mode if needed.
+        applyPreferences()
+    }
+}
+
+private extension EPUBSettings {
+    init(
+        preferences: EPUBPreferences? = nil,
+        publication: Publication,
+        config: EPUBNavigatorViewController.Configuration
+    ) {
+        self.init(
+            preferences: preferences ?? config.preferences,
+            defaults: config.defaults,
+            metadata: publication.metadata
+        )
+
+        // Force-enables scroll when VoiceOver is running, because pagination
+        // breaks the screen reader.
+        if UIAccessibility.isVoiceOverRunning {
+            scroll = true
         }
     }
 }
