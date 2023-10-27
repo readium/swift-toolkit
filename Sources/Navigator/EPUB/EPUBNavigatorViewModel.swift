@@ -249,8 +249,6 @@ final class EPUBNavigatorViewModel: Loggable {
 
         settings = newSettings
         updateSpread()
-        updateCSS(with: settings)
-        css.update(with: settings)
 
         let needsInvalidation: Bool =
             oldSettings.readingProgression != newSettings.readingProgression
@@ -258,6 +256,10 @@ final class EPUBNavigatorViewModel: Loggable {
                 || oldSettings.verticalText != newSettings.verticalText
                 || oldSettings.scroll != newSettings.scroll
                 || oldSettings.spread != newSettings.spread
+
+        // We don't commit the CSS changes if we invalidate the pagination, as
+        // the resources will be reloaded anyway.
+        updateCSS(with: settings, commitNow: !needsInvalidation)
 
         if needsInvalidation {
             setNeedsInvalidatePagination()
@@ -392,19 +394,25 @@ final class EPUBNavigatorViewModel: Loggable {
         }
     }
 
-    private func updateCSS(with settings: EPUBSettings) {
-        let previousCSS = css
+    private func updateCSS(with settings: EPUBSettings, commitNow: Bool) {
+        let previous = css
         css.update(with: settings)
 
+        if commitNow {
+            commitCSSChange(from: previous, to: css)
+        }
+    }
+
+    private func commitCSSChange(from previous: ReadiumCSS, to new: ReadiumCSS) {
         var properties: [String: String?] = [:]
-        let rsProperties = css.rsProperties.cssProperties()
-        if previousCSS.rsProperties.cssProperties() != rsProperties {
+        let rsProperties = new.rsProperties.cssProperties()
+        if previous.rsProperties.cssProperties() != rsProperties {
             for (k, v) in rsProperties {
                 properties[k] = v
             }
         }
-        let userProperties = css.userProperties.cssProperties()
-        if previousCSS.userProperties.cssProperties() != userProperties {
+        let userProperties = new.userProperties.cssProperties()
+        if previous.userProperties.cssProperties() != userProperties {
             for (k, v) in userProperties {
                 properties[k] = v
             }
