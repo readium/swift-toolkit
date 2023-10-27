@@ -20,24 +20,42 @@ public protocol _AudioNavigatorDelegate: _MediaNavigatorDelegate {}
 open class _AudioNavigator: _MediaNavigator, AudioSessionUser, Loggable {
     public weak var delegate: _AudioNavigatorDelegate?
 
+    public struct Configuration {
+        /// Interval between two updates of the playback state.
+        public var playbackRefreshInterval: TimeInterval
+
+        /// Custom configuration for the audio session.
+        public var audioSession: AudioSession.Configuration
+
+        public init(
+            playbackRefreshInterval: TimeInterval = 0.5,
+            audioSession: AudioSession.Configuration = .init(
+                category: .playback,
+                mode: .default,
+                routeSharingPolicy: .longForm,
+                options: []
+            )
+        ) {
+            self.playbackRefreshInterval = playbackRefreshInterval
+            self.audioSession = audioSession
+        }
+    }
+
     public let publication: Publication
     private let initialLocation: Locator?
-    public let audioConfiguration: AudioSession.Configuration
+    private let config: Configuration
+
+    public var audioConfiguration: AudioSession.Configuration { config.audioSession }
 
     public init(
         publication: Publication,
         initialLocation: Locator? = nil,
-        audioConfig: AudioSession.Configuration = .init(
-            category: .playback,
-            mode: .default,
-            routeSharingPolicy: .longForm,
-            options: []
-        )
+        config: Configuration = Configuration()
     ) {
         self.publication = publication
         self.initialLocation = initialLocation
             ?? publication.readingOrder.first.flatMap { publication.locate($0) }
-        audioConfiguration = audioConfig
+        self.config = config
 
         let durations = publication.readingOrder.map { $0.duration ?? 0 }
         let totalDuration = durations.reduce(0, +)
@@ -94,7 +112,13 @@ open class _AudioNavigator: _MediaNavigator, AudioSessionUser, Loggable {
         player.allowsExternalPlayback = false
         player.automaticallyWaitsToMinimizeStalling = false
 
-        player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.5, preferredTimescale: 1000), queue: .main) { [weak self] time in
+        player.addPeriodicTimeObserver(
+            forInterval: CMTime(
+                seconds: config.playbackRefreshInterval,
+                preferredTimescale: 1000
+            ),
+            queue: .main
+        ) { [weak self] time in
             if let self = self {
                 let time = time.secondsOrZero
                 self.playbackDidChange(time)

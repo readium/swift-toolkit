@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
+### Added
+
+#### Navigator
+
+* You can now customize the playback refresh rate of `_AudiobookNavigator` in its configuration.
+
 ### Fixed
 
 #### Navigator
