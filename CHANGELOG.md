@@ -12,6 +12,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 * You can now customize the playback refresh rate of `_AudiobookNavigator` in its configuration.
 
+### Fixed
+
+#### Navigator
+
+* [#344](https://github.com/readium/swift-toolkit/issues/344) EPUB: Fixed lost position when rotating quickly the screen several times.
+
 
 ## [2.6.0]
 
