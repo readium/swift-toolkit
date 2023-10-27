@@ -3625,7 +3625,7 @@ module.exports = function callBoundIntrinsic(name, allowMissing) {
 "use strict";
 
 
-var bind = __webpack_require__(/*! function-bind */ "./node_modules/function-bind/index.js");
+var bind = __webpack_require__(/*! function-bind */ "./node_modules/call-bind/node_modules/function-bind/index.js");
 var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
 
 var $apply = GetIntrinsic('%Function.prototype.apply%');
@@ -3674,6 +3674,85 @@ if ($defineProperty) {
 
 /***/ }),
 
+/***/ "./node_modules/call-bind/node_modules/function-bind/implementation.js":
+/*!*****************************************************************************!*\
+  !*** ./node_modules/call-bind/node_modules/function-bind/implementation.js ***!
+  \*****************************************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+/* eslint no-invalid-this: 1 */
+
+var ERROR_MESSAGE = 'Function.prototype.bind called on incompatible ';
+var slice = Array.prototype.slice;
+var toStr = Object.prototype.toString;
+var funcType = '[object Function]';
+
+module.exports = function bind(that) {
+    var target = this;
+    if (typeof target !== 'function' || toStr.call(target) !== funcType) {
+        throw new TypeError(ERROR_MESSAGE + target);
+    }
+    var args = slice.call(arguments, 1);
+
+    var bound;
+    var binder = function () {
+        if (this instanceof bound) {
+            var result = target.apply(
+                this,
+                args.concat(slice.call(arguments))
+            );
+            if (Object(result) === result) {
+                return result;
+            }
+            return this;
+        } else {
+            return target.apply(
+                that,
+                args.concat(slice.call(arguments))
+            );
+        }
+    };
+
+    var boundLength = Math.max(0, target.length - args.length);
+    var boundArgs = [];
+    for (var i = 0; i < boundLength; i++) {
+        boundArgs.push('$' + i);
+    }
+
+    bound = Function('binder', 'return function (' + boundArgs.join(',') + '){ return binder.apply(this,arguments); }')(binder);
+
+    if (target.prototype) {
+        var Empty = function Empty() {};
+        Empty.prototype = target.prototype;
+        bound.prototype = new Empty();
+        Empty.prototype = null;
+    }
+
+    return bound;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/call-bind/node_modules/function-bind/index.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/call-bind/node_modules/function-bind/index.js ***!
+  \********************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var implementation = __webpack_require__(/*! ./implementation */ "./node_modules/call-bind/node_modules/function-bind/implementation.js");
+
+module.exports = Function.prototype.bind || implementation;
+
+
+/***/ }),
+
 /***/ "./node_modules/define-data-property/index.js":
 /*!****************************************************!*\
   !*** ./node_modules/define-data-property/index.js ***!
@@ -3688,6 +3767,14 @@ var hasPropertyDescriptors = __webpack_require__(/*! has-property-descriptors */
 var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
 
 var $defineProperty = hasPropertyDescriptors && GetIntrinsic('%Object.defineProperty%', true);
+if ($defineProperty) {
+	try {
+		$defineProperty({}, 'a', { value: 1 });
+	} catch (e) {
+		// IE 8 has a broken defineProperty
+		$defineProperty = false;
+	}
+}
 
 var $SyntaxError = GetIntrinsic('%SyntaxError%');
 var $TypeError = GetIntrinsic('%TypeError%');
@@ -3803,6 +3890,87 @@ module.exports = defineProperties;
 
 /***/ }),
 
+/***/ "./node_modules/es-abstract/node_modules/call-bind/callBound.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/es-abstract/node_modules/call-bind/callBound.js ***!
+  \**********************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+
+var callBind = __webpack_require__(/*! ./ */ "./node_modules/es-abstract/node_modules/call-bind/index.js");
+
+var $indexOf = callBind(GetIntrinsic('String.prototype.indexOf'));
+
+module.exports = function callBoundIntrinsic(name, allowMissing) {
+	var intrinsic = GetIntrinsic(name, !!allowMissing);
+	if (typeof intrinsic === 'function' && $indexOf(name, '.prototype.') > -1) {
+		return callBind(intrinsic);
+	}
+	return intrinsic;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/es-abstract/node_modules/call-bind/index.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/es-abstract/node_modules/call-bind/index.js ***!
+  \******************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var bind = __webpack_require__(/*! function-bind */ "./node_modules/function-bind/index.js");
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+var setFunctionLength = __webpack_require__(/*! set-function-length */ "./node_modules/set-function-length/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+var $apply = GetIntrinsic('%Function.prototype.apply%');
+var $call = GetIntrinsic('%Function.prototype.call%');
+var $reflectApply = GetIntrinsic('%Reflect.apply%', true) || bind.call($call, $apply);
+
+var $defineProperty = GetIntrinsic('%Object.defineProperty%', true);
+var $max = GetIntrinsic('%Math.max%');
+
+if ($defineProperty) {
+	try {
+		$defineProperty({}, 'a', { value: 1 });
+	} catch (e) {
+		// IE 8 has a broken defineProperty
+		$defineProperty = null;
+	}
+}
+
+module.exports = function callBind(originalFunction) {
+	if (typeof originalFunction !== 'function') {
+		throw new $TypeError('a function is required');
+	}
+	var func = $reflectApply(bind, $call, arguments);
+	return setFunctionLength(
+		func,
+		1 + $max(0, originalFunction.length - (arguments.length - 1)),
+		true
+	);
+};
+
+var applyBind = function applyBind() {
+	return $reflectApply(bind, $apply, arguments);
+};
+
+if ($defineProperty) {
+	$defineProperty(module.exports, 'apply', { value: applyBind });
+} else {
+	module.exports.apply = applyBind;
+}
+
+
+/***/ }),
+
 /***/ "./node_modules/es-set-tostringtag/index.js":
 /*!**************************************************!*\
   !*** ./node_modules/es-set-tostringtag/index.js ***!
@@ -3817,13 +3985,13 @@ var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-
 var $defineProperty = GetIntrinsic('%Object.defineProperty%', true);
 
 var hasToStringTag = __webpack_require__(/*! has-tostringtag/shams */ "./node_modules/has-tostringtag/shams.js")();
-var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+var hasOwn = __webpack_require__(/*! hasown */ "./node_modules/hasown/index.js");
 
 var toStringTag = hasToStringTag ? Symbol.toStringTag : null;
 
 module.exports = function setToStringTag(object, value) {
 	var overrideIfSet = arguments.length > 2 && arguments[2] && arguments[2].force;
-	if (toStringTag && (overrideIfSet || !has(object, toStringTag))) {
+	if (toStringTag && (overrideIfSet || !hasOwn(object, toStringTag))) {
 		if ($defineProperty) {
 			$defineProperty(object, toStringTag, {
 				configurable: true,
@@ -3954,43 +4122,75 @@ module.exports = function isPrimitive(value) {
 /* eslint no-invalid-this: 1 */
 
 var ERROR_MESSAGE = 'Function.prototype.bind called on incompatible ';
-var slice = Array.prototype.slice;
 var toStr = Object.prototype.toString;
+var max = Math.max;
 var funcType = '[object Function]';
+
+var concatty = function concatty(a, b) {
+    var arr = [];
+
+    for (var i = 0; i < a.length; i += 1) {
+        arr[i] = a[i];
+    }
+    for (var j = 0; j < b.length; j += 1) {
+        arr[j + a.length] = b[j];
+    }
+
+    return arr;
+};
+
+var slicy = function slicy(arrLike, offset) {
+    var arr = [];
+    for (var i = offset || 0, j = 0; i < arrLike.length; i += 1, j += 1) {
+        arr[j] = arrLike[i];
+    }
+    return arr;
+};
+
+var joiny = function (arr, joiner) {
+    var str = '';
+    for (var i = 0; i < arr.length; i += 1) {
+        str += arr[i];
+        if (i + 1 < arr.length) {
+            str += joiner;
+        }
+    }
+    return str;
+};
 
 module.exports = function bind(that) {
     var target = this;
-    if (typeof target !== 'function' || toStr.call(target) !== funcType) {
+    if (typeof target !== 'function' || toStr.apply(target) !== funcType) {
         throw new TypeError(ERROR_MESSAGE + target);
     }
-    var args = slice.call(arguments, 1);
+    var args = slicy(arguments, 1);
 
     var bound;
     var binder = function () {
         if (this instanceof bound) {
             var result = target.apply(
                 this,
-                args.concat(slice.call(arguments))
+                concatty(args, arguments)
             );
             if (Object(result) === result) {
                 return result;
             }
             return this;
-        } else {
-            return target.apply(
-                that,
-                args.concat(slice.call(arguments))
-            );
         }
+        return target.apply(
+            that,
+            concatty(args, arguments)
+        );
+
     };
 
-    var boundLength = Math.max(0, target.length - args.length);
+    var boundLength = max(0, target.length - args.length);
     var boundArgs = [];
     for (var i = 0; i < boundLength; i++) {
-        boundArgs.push('$' + i);
+        boundArgs[i] = '$' + i;
     }
 
-    bound = Function('binder', 'return function (' + boundArgs.join(',') + '){ return binder.apply(this,arguments); }')(binder);
+    bound = Function('binder', 'return function (' + joiny(boundArgs, ',') + '){ return binder.apply(this,arguments); }')(binder);
 
     if (target.prototype) {
         var Empty = function Empty() {};
@@ -4286,7 +4486,7 @@ var LEGACY_ALIASES = {
 };
 
 var bind = __webpack_require__(/*! function-bind */ "./node_modules/function-bind/index.js");
-var hasOwn = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+var hasOwn = __webpack_require__(/*! hasown */ "./node_modules/hasown/index.js");
 var $concat = bind.call(Function.call, Array.prototype.concat);
 var $spliceApply = bind.call(Function.apply, Array.prototype.splice);
 var $replace = bind.call(Function.call, String.prototype.replace);
@@ -4613,18 +4813,21 @@ module.exports = function hasToStringTagShams() {
 
 /***/ }),
 
-/***/ "./node_modules/has/src/index.js":
-/*!***************************************!*\
-  !*** ./node_modules/has/src/index.js ***!
-  \***************************************/
+/***/ "./node_modules/hasown/index.js":
+/*!**************************************!*\
+  !*** ./node_modules/hasown/index.js ***!
+  \**************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
+var call = Function.prototype.call;
+var $hasOwn = Object.prototype.hasOwnProperty;
 var bind = __webpack_require__(/*! function-bind */ "./node_modules/function-bind/index.js");
 
-module.exports = bind.call(Function.call, Object.prototype.hasOwnProperty);
+/** @type {(o: {}, p: PropertyKey) => p is keyof o} */
+module.exports = bind.call(call, $hasOwn);
 
 
 /***/ }),
@@ -4639,7 +4842,7 @@ module.exports = bind.call(Function.call, Object.prototype.hasOwnProperty);
 
 
 var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+var hasOwn = __webpack_require__(/*! hasown */ "./node_modules/hasown/index.js");
 var channel = __webpack_require__(/*! side-channel */ "./node_modules/side-channel/index.js")();
 
 var $TypeError = GetIntrinsic('%TypeError%');
@@ -4675,7 +4878,7 @@ var SLOT = {
 			throw new $TypeError('`slot` must be a string');
 		}
 		var slots = channel.get(O);
-		return !!slots && has(slots, '$' + slot);
+		return !!slots && hasOwn(slots, '$' + slot);
 	},
 	set: function (O, slot, V) {
 		if (!O || (typeof O !== 'object' && typeof O !== 'function')) {
@@ -5208,6 +5411,14 @@ module.exports = function inspect_(obj, options, depth, seen) {
     }
     if (isString(obj)) {
         return markBoxed(inspect(String(obj)));
+    }
+    // note: in IE 8, sometimes `global !== window` but both are the prototypes of each other
+    /* eslint-env browser */
+    if (typeof window !== 'undefined' && obj === window) {
+        return '{ [object Window] }';
+    }
+    if (obj === __webpack_require__.g) {
+        return '{ [object globalThis] }';
     }
     if (!isDate(obj) && !isRegExp(obj)) {
         var ys = arrObjKeys(obj, inspect);
@@ -5883,6 +6094,58 @@ module.exports = function regexTester(regex) {
 
 /***/ }),
 
+/***/ "./node_modules/set-function-length/index.js":
+/*!***************************************************!*\
+  !*** ./node_modules/set-function-length/index.js ***!
+  \***************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+var define = __webpack_require__(/*! define-data-property */ "./node_modules/define-data-property/index.js");
+var hasDescriptors = __webpack_require__(/*! has-property-descriptors */ "./node_modules/has-property-descriptors/index.js")();
+var gOPD = __webpack_require__(/*! gopd */ "./node_modules/gopd/index.js");
+
+var $TypeError = GetIntrinsic('%TypeError%');
+var $floor = GetIntrinsic('%Math.floor%');
+
+module.exports = function setFunctionLength(fn, length) {
+	if (typeof fn !== 'function') {
+		throw new $TypeError('`fn` is not a function');
+	}
+	if (typeof length !== 'number' || length < 0 || length > 0xFFFFFFFF || $floor(length) !== length) {
+		throw new $TypeError('`length` must be a positive 32-bit integer');
+	}
+
+	var loose = arguments.length > 2 && !!arguments[2];
+
+	var functionLengthIsConfigurable = true;
+	var functionLengthIsWritable = true;
+	if ('length' in fn && gOPD) {
+		var desc = gOPD(fn, 'length');
+		if (desc && !desc.configurable) {
+			functionLengthIsConfigurable = false;
+		}
+		if (desc && !desc.writable) {
+			functionLengthIsWritable = false;
+		}
+	}
+
+	if (functionLengthIsConfigurable || functionLengthIsWritable || !loose) {
+		if (hasDescriptors) {
+			define(fn, 'length', length, true, true);
+		} else {
+			define(fn, 'length', length);
+		}
+	}
+	return fn;
+};
+
+
+/***/ }),
+
 /***/ "./node_modules/set-function-name/index.js":
 /*!*************************************************!*\
   !*** ./node_modules/set-function-name/index.js ***!
@@ -6508,7 +6771,7 @@ module.exports = function AdvanceStringIndex(S, index, unicode) {
 
 
 var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
-var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
+var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/es-abstract/node_modules/call-bind/callBound.js");
 
 var $TypeError = GetIntrinsic('%TypeError%');
 
@@ -6541,7 +6804,7 @@ module.exports = function Call(F, V) {
 var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
 
 var $TypeError = GetIntrinsic('%TypeError%');
-var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
+var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/es-abstract/node_modules/call-bind/callBound.js");
 var isLeadingSurrogate = __webpack_require__(/*! ../helpers/isLeadingSurrogate */ "./node_modules/es-abstract/helpers/isLeadingSurrogate.js");
 var isTrailingSurrogate = __webpack_require__(/*! ../helpers/isTrailingSurrogate */ "./node_modules/es-abstract/helpers/isTrailingSurrogate.js");
 
@@ -7006,7 +7269,7 @@ module.exports = function GetV(V, P) {
 "use strict";
 
 
-var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+var hasOwn = __webpack_require__(/*! hasown */ "./node_modules/hasown/index.js");
 
 var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2023/Type.js");
 
@@ -7021,7 +7284,7 @@ module.exports = function IsAccessorDescriptor(Desc) {
 
 	assertRecord(Type, 'Property Descriptor', 'Desc', Desc);
 
-	if (!has(Desc, '[[Get]]') && !has(Desc, '[[Set]]')) {
+	if (!hasOwn(Desc, '[[Get]]') && !hasOwn(Desc, '[[Set]]')) {
 		return false;
 	}
 
@@ -7122,7 +7385,7 @@ if (DefinePropertyOrThrow && $construct) {
 "use strict";
 
 
-var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+var hasOwn = __webpack_require__(/*! hasown */ "./node_modules/hasown/index.js");
 
 var Type = __webpack_require__(/*! ./Type */ "./node_modules/es-abstract/2023/Type.js");
 
@@ -7137,7 +7400,7 @@ module.exports = function IsDataDescriptor(Desc) {
 
 	assertRecord(Type, 'Property Descriptor', 'Desc', Desc);
 
-	if (!has(Desc, '[[Value]]') && !has(Desc, '[[Writable]]')) {
+	if (!hasOwn(Desc, '[[Value]]') && !hasOwn(Desc, '[[Writable]]')) {
 		return false;
 	}
 
@@ -7280,7 +7543,7 @@ var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-
 
 var $TypeError = GetIntrinsic('%TypeError%');
 
-var regexExec = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js")('RegExp.prototype.exec');
+var regexExec = __webpack_require__(/*! call-bind/callBound */ "./node_modules/es-abstract/node_modules/call-bind/callBound.js")('RegExp.prototype.exec');
 
 var Call = __webpack_require__(/*! ./Call */ "./node_modules/es-abstract/2023/Call.js");
 var Get = __webpack_require__(/*! ./Get */ "./node_modules/es-abstract/2023/Get.js");
@@ -7465,7 +7728,7 @@ var $RegExp = GetIntrinsic('%RegExp%');
 var $TypeError = GetIntrinsic('%TypeError%');
 var $parseInteger = GetIntrinsic('%parseInt%');
 
-var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
+var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/es-abstract/node_modules/call-bind/callBound.js");
 var regexTester = __webpack_require__(/*! safe-regex-test */ "./node_modules/safe-regex-test/index.js");
 
 var $strSlice = callBound('String.prototype.slice');
@@ -7640,7 +7903,7 @@ module.exports = function ToPrimitive(input) {
 "use strict";
 
 
-var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+var hasOwn = __webpack_require__(/*! hasown */ "./node_modules/hasown/index.js");
 
 var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
 
@@ -7658,26 +7921,26 @@ module.exports = function ToPropertyDescriptor(Obj) {
 	}
 
 	var desc = {};
-	if (has(Obj, 'enumerable')) {
+	if (hasOwn(Obj, 'enumerable')) {
 		desc['[[Enumerable]]'] = ToBoolean(Obj.enumerable);
 	}
-	if (has(Obj, 'configurable')) {
+	if (hasOwn(Obj, 'configurable')) {
 		desc['[[Configurable]]'] = ToBoolean(Obj.configurable);
 	}
-	if (has(Obj, 'value')) {
+	if (hasOwn(Obj, 'value')) {
 		desc['[[Value]]'] = Obj.value;
 	}
-	if (has(Obj, 'writable')) {
+	if (hasOwn(Obj, 'writable')) {
 		desc['[[Writable]]'] = ToBoolean(Obj.writable);
 	}
-	if (has(Obj, 'get')) {
+	if (hasOwn(Obj, 'get')) {
 		var getter = Obj.get;
 		if (typeof getter !== 'undefined' && !IsCallable(getter)) {
 			throw new $TypeError('getter must be a function');
 		}
 		desc['[[Get]]'] = getter;
 	}
-	if (has(Obj, 'set')) {
+	if (hasOwn(Obj, 'set')) {
 		var setter = Obj.set;
 		if (typeof setter !== 'undefined' && !IsCallable(setter)) {
 			throw new $TypeError('setter must be a function');
@@ -7685,7 +7948,7 @@ module.exports = function ToPropertyDescriptor(Obj) {
 		desc['[[Set]]'] = setter;
 	}
 
-	if ((has(desc, '[[Get]]') || has(desc, '[[Set]]')) && (has(desc, '[[Value]]') || has(desc, '[[Writable]]'))) {
+	if ((hasOwn(desc, '[[Get]]') || hasOwn(desc, '[[Set]]')) && (hasOwn(desc, '[[Value]]') || hasOwn(desc, '[[Writable]]'))) {
 		throw new $TypeError('Invalid property descriptor. Cannot both specify accessors and a value or writable attribute');
 	}
 	return desc;
@@ -7927,7 +8190,7 @@ var hasArrayLengthDefineBug = hasPropertyDescriptors.hasArrayLengthDefineBug();
 // eslint-disable-next-line global-require
 var isArray = hasArrayLengthDefineBug && __webpack_require__(/*! ../helpers/IsArray */ "./node_modules/es-abstract/helpers/IsArray.js");
 
-var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js");
+var callBound = __webpack_require__(/*! call-bind/callBound */ "./node_modules/es-abstract/node_modules/call-bind/callBound.js");
 
 var $isEnumerable = callBound('Object.prototype.propertyIsEnumerable');
 
@@ -7987,7 +8250,7 @@ var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-
 var $Array = GetIntrinsic('%Array%');
 
 // eslint-disable-next-line global-require
-var toStr = !$Array.isArray && __webpack_require__(/*! call-bind/callBound */ "./node_modules/call-bind/callBound.js")('Object.prototype.toString');
+var toStr = !$Array.isArray && __webpack_require__(/*! call-bind/callBound */ "./node_modules/es-abstract/node_modules/call-bind/callBound.js")('Object.prototype.toString');
 
 module.exports = $Array.isArray || function IsArray(argument) {
 	return toStr(argument) === '[object Array]';
@@ -8010,7 +8273,7 @@ var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-
 var $TypeError = GetIntrinsic('%TypeError%');
 var $SyntaxError = GetIntrinsic('%SyntaxError%');
 
-var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+var hasOwn = __webpack_require__(/*! hasown */ "./node_modules/hasown/index.js");
 var isInteger = __webpack_require__(/*! ./isInteger */ "./node_modules/es-abstract/helpers/isInteger.js");
 
 var isMatchRecord = __webpack_require__(/*! ./isMatchRecord */ "./node_modules/es-abstract/helpers/isMatchRecord.js");
@@ -8031,13 +8294,13 @@ var predicates = {
 			return false;
 		}
 		for (var key in Desc) { // eslint-disable-line
-			if (has(Desc, key) && !allowed[key]) {
+			if (hasOwn(Desc, key) && !allowed[key]) {
 				return false;
 			}
 		}
 
-		var isData = has(Desc, '[[Value]]');
-		var IsAccessor = has(Desc, '[[Get]]') || has(Desc, '[[Set]]');
+		var isData = hasOwn(Desc, '[[Value]]');
+		var IsAccessor = hasOwn(Desc, '[[Get]]') || hasOwn(Desc, '[[Set]]');
 		if (isData && IsAccessor) {
 			throw new $TypeError('Property Descriptors may not be both accessor and data descriptors');
 		}
@@ -8046,35 +8309,35 @@ var predicates = {
 	// https://262.ecma-international.org/13.0/#sec-match-records
 	'Match Record': isMatchRecord,
 	'Iterator Record': function isIteratorRecord(value) {
-		return has(value, '[[Iterator]]') && has(value, '[[NextMethod]]') && has(value, '[[Done]]');
+		return hasOwn(value, '[[Iterator]]') && hasOwn(value, '[[NextMethod]]') && hasOwn(value, '[[Done]]');
 	},
 	'PromiseCapability Record': function isPromiseCapabilityRecord(value) {
 		return !!value
-			&& has(value, '[[Resolve]]')
+			&& hasOwn(value, '[[Resolve]]')
 			&& typeof value['[[Resolve]]'] === 'function'
-			&& has(value, '[[Reject]]')
+			&& hasOwn(value, '[[Reject]]')
 			&& typeof value['[[Reject]]'] === 'function'
-			&& has(value, '[[Promise]]')
+			&& hasOwn(value, '[[Promise]]')
 			&& value['[[Promise]]']
 			&& typeof value['[[Promise]]'].then === 'function';
 	},
 	'AsyncGeneratorRequest Record': function isAsyncGeneratorRequestRecord(value) {
 		return !!value
-			&& has(value, '[[Completion]]') // TODO: confirm is a completion record
-			&& has(value, '[[Capability]]')
+			&& hasOwn(value, '[[Completion]]') // TODO: confirm is a completion record
+			&& hasOwn(value, '[[Capability]]')
 			&& predicates['PromiseCapability Record'](value['[[Capability]]']);
 	},
 	'RegExp Record': function isRegExpRecord(value) {
 		return value
-			&& has(value, '[[IgnoreCase]]')
+			&& hasOwn(value, '[[IgnoreCase]]')
 			&& typeof value['[[IgnoreCase]]'] === 'boolean'
-			&& has(value, '[[Multiline]]')
+			&& hasOwn(value, '[[Multiline]]')
 			&& typeof value['[[Multiline]]'] === 'boolean'
-			&& has(value, '[[DotAll]]')
+			&& hasOwn(value, '[[DotAll]]')
 			&& typeof value['[[DotAll]]'] === 'boolean'
-			&& has(value, '[[Unicode]]')
+			&& hasOwn(value, '[[Unicode]]')
 			&& typeof value['[[Unicode]]'] === 'boolean'
-			&& has(value, '[[CapturingGroupsCount]]')
+			&& hasOwn(value, '[[CapturingGroupsCount]]')
 			&& typeof value['[[CapturingGroupsCount]]'] === 'number'
 			&& isInteger(value['[[CapturingGroupsCount]]'])
 			&& value['[[CapturingGroupsCount]]'] >= 0;
@@ -8220,14 +8483,14 @@ module.exports = function isLeadingSurrogate(charCode) {
 "use strict";
 
 
-var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+var hasOwn = __webpack_require__(/*! hasown */ "./node_modules/hasown/index.js");
 
 // https://262.ecma-international.org/13.0/#sec-match-records
 
 module.exports = function isMatchRecord(record) {
 	return (
-		has(record, '[[StartIndex]]')
-        && has(record, '[[EndIndex]]')
+		hasOwn(record, '[[StartIndex]]')
+        && hasOwn(record, '[[EndIndex]]')
         && record['[[StartIndex]]'] >= 0
         && record['[[EndIndex]]'] >= record['[[StartIndex]]']
         && String(parseInt(record['[[StartIndex]]'], 10)) === String(record['[[StartIndex]]'])
@@ -8281,7 +8544,7 @@ module.exports = function isPrimitive(value) {
 
 var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
 
-var has = __webpack_require__(/*! has */ "./node_modules/has/src/index.js");
+var hasOwn = __webpack_require__(/*! hasown */ "./node_modules/hasown/index.js");
 var $TypeError = GetIntrinsic('%TypeError%');
 
 module.exports = function IsPropertyDescriptor(ES, Desc) {
@@ -8298,7 +8561,7 @@ module.exports = function IsPropertyDescriptor(ES, Desc) {
 	};
 
 	for (var key in Desc) { // eslint-disable-line no-restricted-syntax
-		if (has(Desc, key) && !allowed[key]) {
+		if (hasOwn(Desc, key) && !allowed[key]) {
 			return false;
 		}
 	}
