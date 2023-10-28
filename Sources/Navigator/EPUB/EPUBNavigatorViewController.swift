@@ -342,6 +342,10 @@ open class EPUBNavigatorViewController: UIViewController,
     override open func viewDidLoad() {
         super.viewDidLoad()
 
+        // Will call `accessibilityScroll()` when VoiceOver reaches the end of
+        // the current resource. We can use this to go to the next resource.
+        view.accessibilityTraits.insert(.causesPageTurn)
+
         paginationView.frame = view.bounds
         paginationView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         view.addSubview(paginationView)
@@ -892,6 +896,27 @@ open class EPUBNavigatorViewController: UIViewController,
             return
         }
         spreadView.evaluateScript(script, completion: completion)
+    }
+
+    // MARK: - UIAccessibilityAction
+
+    override open func accessibilityScroll(_ direction: UIAccessibilityScrollDirection) -> Bool {
+        guard !super.accessibilityScroll(direction) else {
+            return true
+        }
+
+        switch direction {
+        case .right:
+            return goLeft(animated: false)
+        case .left:
+            return goRight(animated: false)
+        case .next, .down:
+            return goForward(animated: false)
+        case .previous, .up:
+            return goBackward(animated: false)
+        @unknown default:
+            return false
+        }
     }
 }
 
