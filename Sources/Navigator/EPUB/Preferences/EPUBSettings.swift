@@ -11,31 +11,31 @@ import R2Shared
 ///
 /// See `EPUBPreferences`
 public struct EPUBSettings: ConfigurableSettings {
-    public let backgroundColor: Color?
-    public let columnCount: ColumnCount
-    public let fontFamily: FontFamily?
-    public let fontSize: Double
-    public let fontWeight: Double?
-    public let hyphens: Bool?
-    public let imageFilter: ImageFilter?
-    public let language: Language?
-    public let letterSpacing: Double?
-    public let ligatures: Bool?
-    public let lineHeight: Double?
-    public let pageMargins: Double
-    public let paragraphIndent: Double?
-    public let paragraphSpacing: Double?
-    public let publisherStyles: Bool
-    public let readingProgression: ReadingProgression
-    public let scroll: Bool
-    public let spread: Spread
-    public let textAlign: TextAlignment?
-    public let textColor: Color?
-    public let textNormalization: Bool
-    public let theme: Theme
-    public let typeScale: Double?
-    public let verticalText: Bool
-    public let wordSpacing: Double?
+    public var backgroundColor: Color?
+    public var columnCount: ColumnCount
+    public var fontFamily: FontFamily?
+    public var fontSize: Double
+    public var fontWeight: Double?
+    public var hyphens: Bool?
+    public var imageFilter: ImageFilter?
+    public var language: Language?
+    public var letterSpacing: Double?
+    public var ligatures: Bool?
+    public var lineHeight: Double?
+    public var pageMargins: Double
+    public var paragraphIndent: Double?
+    public var paragraphSpacing: Double?
+    public var publisherStyles: Bool
+    public var readingProgression: ReadingProgression
+    public var scroll: Bool
+    public var spread: Spread
+    public var textAlign: TextAlignment?
+    public var textColor: Color?
+    public var textNormalization: Bool
+    public var theme: Theme
+    public var typeScale: Double?
+    public var verticalText: Bool
+    public var wordSpacing: Double?
 
     public var effectiveBackgroundColor: Color {
         backgroundColor ?? theme.backgroundColor

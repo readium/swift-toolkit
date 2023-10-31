@@ -8614,52 +8614,31 @@ module.exports = Number.MAX_SAFE_INTEGER || 9007199254740991; // Math.pow(2, 53)
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CHILD_OPERATOR: () => (/* binding */ CHILD_OPERATOR),
-/* harmony export */   DESCENDANT_OPERATOR: () => (/* binding */ DESCENDANT_OPERATOR),
 /* harmony export */   INVALID_CLASS_RE: () => (/* binding */ INVALID_CLASS_RE),
 /* harmony export */   INVALID_ID_RE: () => (/* binding */ INVALID_ID_RE),
-/* harmony export */   NONE_OPERATOR: () => (/* binding */ NONE_OPERATOR),
-/* harmony export */   OPERATOR_DATA: () => (/* binding */ OPERATOR_DATA),
 /* harmony export */   SELECTOR_PATTERN: () => (/* binding */ SELECTOR_PATTERN),
 /* harmony export */   SELECTOR_SEPARATOR: () => (/* binding */ SELECTOR_SEPARATOR)
 /* harmony export */ });
 /* harmony import */ var _types_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./types.js */ "./node_modules/css-selector-generator/esm/types.js");
 
-const NONE_OPERATOR = '';
-const DESCENDANT_OPERATOR = ' > ';
-const CHILD_OPERATOR = ' ';
-const OPERATOR_DATA = {
-    [_types_js__WEBPACK_IMPORTED_MODULE_0__.OPERATOR.NONE]: {
-        type: _types_js__WEBPACK_IMPORTED_MODULE_0__.OPERATOR.NONE,
-        value: NONE_OPERATOR
-    },
-    [_types_js__WEBPACK_IMPORTED_MODULE_0__.OPERATOR.DESCENDANT]: {
-        type: _types_js__WEBPACK_IMPORTED_MODULE_0__.OPERATOR.DESCENDANT,
-        value: DESCENDANT_OPERATOR
-    },
-    [_types_js__WEBPACK_IMPORTED_MODULE_0__.OPERATOR.CHILD]: {
-        type: _types_js__WEBPACK_IMPORTED_MODULE_0__.OPERATOR.CHILD,
-        value: CHILD_OPERATOR
-    }
-};
-const SELECTOR_SEPARATOR = ', ';
+const SELECTOR_SEPARATOR = ", ";
 // RegExp that will match invalid patterns that can be used in ID attribute.
 const INVALID_ID_RE = new RegExp([
-    '^$',
-    '\\s', // contains whitespace
-].join('|'));
+    "^$",
+    "\\s", // contains whitespace
+].join("|"));
 // RegExp that will match invalid patterns that can be used in class attribute.
 const INVALID_CLASS_RE = new RegExp([
-    '^$', // empty or not set
-].join('|'));
+    "^$", // empty or not set
+].join("|"));
 // Order in which a combined selector is constructed.
 const SELECTOR_PATTERN = [
-    _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.nthoftype,
-    _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.tag,
-    _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.id,
-    _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.class,
-    _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.attribute,
-    _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.nthchild
+    _types_js__WEBPACK_IMPORTED_MODULE_0__.CSS_SELECTOR_TYPE.nthoftype,
+    _types_js__WEBPACK_IMPORTED_MODULE_0__.CSS_SELECTOR_TYPE.tag,
+    _types_js__WEBPACK_IMPORTED_MODULE_0__.CSS_SELECTOR_TYPE.id,
+    _types_js__WEBPACK_IMPORTED_MODULE_0__.CSS_SELECTOR_TYPE.class,
+    _types_js__WEBPACK_IMPORTED_MODULE_0__.CSS_SELECTOR_TYPE.attribute,
+    _types_js__WEBPACK_IMPORTED_MODULE_0__.CSS_SELECTOR_TYPE.nthchild,
 ];
 //# sourceMappingURL=constants.js.map
 
@@ -8693,7 +8672,7 @@ __webpack_require__.r(__webpack_exports__);
 function getCssSelector(needle, custom_options = {}) {
     const elements = (0,_utilities_selectors_js__WEBPACK_IMPORTED_MODULE_2__.sanitizeSelectorNeedle)(needle);
     const options = (0,_utilities_options_js__WEBPACK_IMPORTED_MODULE_1__.sanitizeOptions)(elements[0], custom_options);
-    let partialSelector = '';
+    let partialSelector = "";
     let currentRoot = options.root;
     /**
      * Utility function to make subsequent calls shorter.
@@ -8703,7 +8682,7 @@ function getCssSelector(needle, custom_options = {}) {
     }
     let closestIdentifiableParent = updateIdentifiableParent();
     while (closestIdentifiableParent) {
-        const { foundElements, selector, } = closestIdentifiableParent;
+        const { foundElements, selector } = closestIdentifiableParent;
         if ((0,_utilities_dom_js__WEBPACK_IMPORTED_MODULE_3__.testSelector)(elements, selector, options.root)) {
             return selector;
         }
@@ -8747,10 +8726,10 @@ __webpack_require__.r(__webpack_exports__);
 
 // List of attributes to be ignored. These are handled by different selector types.
 const attributeBlacklistMatch = (0,_utilities_data_js__WEBPACK_IMPORTED_MODULE_1__.createPatternMatcher)([
-    'class',
-    'id',
+    "class",
+    "id",
     // Angular attributes
-    'ng-*',
+    "ng-*",
 ]);
 /**
  * Get simplified attribute selector for an element.
@@ -8771,7 +8750,7 @@ function attributeNodeToSelector({ nodeName, nodeValue, }) {
 function isValidAttributeNode({ nodeName }, element) {
     // form input value should not be used as a selector
     const tagName = element.tagName.toLowerCase();
-    if (['input', 'option'].includes(tagName) && nodeName === 'value') {
+    if (["input", "option"].includes(tagName) && nodeName === "value") {
         return false;
     }
     return !attributeBlacklistMatch(nodeName);
@@ -8780,8 +8759,7 @@ function isValidAttributeNode({ nodeName }, element) {
  * Get attribute selectors for an element.
  */
 function getElementAttributeSelectors(element) {
-    const validAttributes = Array.from(element.attributes)
-        .filter((attributeNode) => isValidAttributeNode(attributeNode, element));
+    const validAttributes = Array.from(element.attributes).filter((attributeNode) => isValidAttributeNode(attributeNode, element));
     return [
         ...validAttributes.map(attributeNodeToSimplifiedSelector),
         ...validAttributes.map(attributeNodeToSelector),
@@ -8820,7 +8798,7 @@ __webpack_require__.r(__webpack_exports__);
  * Get class selectors for an element.
  */
 function getElementClassSelectors(element) {
-    return (element.getAttribute('class') || '')
+    return (element.getAttribute("class") || "")
         .trim()
         .split(/\s+/)
         .filter((item) => !_constants_js__WEBPACK_IMPORTED_MODULE_1__.INVALID_CLASS_RE.test(item))
@@ -8863,13 +8841,13 @@ __webpack_require__.r(__webpack_exports__);
 function getElementFallbackSelector(element) {
     const parentElements = (0,_utilities_dom_js__WEBPACK_IMPORTED_MODULE_0__.getElementParents)(element).reverse();
     const elementsData = parentElements.map((element) => {
-        const elementData = (0,_utilities_element_data_js__WEBPACK_IMPORTED_MODULE_3__.createElementData)(element, [_types_js__WEBPACK_IMPORTED_MODULE_2__.CssSelectorType.nthchild], _types_js__WEBPACK_IMPORTED_MODULE_2__.OPERATOR.DESCENDANT);
+        const elementData = (0,_utilities_element_data_js__WEBPACK_IMPORTED_MODULE_3__.createElementData)(element, [_types_js__WEBPACK_IMPORTED_MODULE_2__.CSS_SELECTOR_TYPE.nthchild], _types_js__WEBPACK_IMPORTED_MODULE_2__.OPERATOR.CHILD);
         elementData.selectors.nthchild.forEach((selectorData) => {
             selectorData.include = true;
         });
         return elementData;
     });
-    return [':root', ...elementsData.map(_utilities_element_data_js__WEBPACK_IMPORTED_MODULE_3__.constructElementSelector)].join('');
+    return [":root", ...elementsData.map(_utilities_element_data_js__WEBPACK_IMPORTED_MODULE_3__.constructElementSelector)].join("");
 }
 /**
  * Creates chain of :nth-child selectors from root to the elements.
@@ -8903,11 +8881,10 @@ __webpack_require__.r(__webpack_exports__);
  * Get ID selector for an element.
  * */
 function getElementIdSelectors(element) {
-    const id = element.getAttribute('id') || '';
+    const id = element.getAttribute("id") || "";
     const selector = `#${(0,_utilities_selectors_js__WEBPACK_IMPORTED_MODULE_0__.sanitizeSelectorItem)(id)}`;
     const rootNode = element.getRootNode({ composed: false });
-    return (!_constants_js__WEBPACK_IMPORTED_MODULE_1__.INVALID_ID_RE.test(id)
-        && (0,_utilities_dom_js__WEBPACK_IMPORTED_MODULE_2__.testSelector)([element], selector, rootNode))
+    return !_constants_js__WEBPACK_IMPORTED_MODULE_1__.INVALID_ID_RE.test(id) && (0,_utilities_dom_js__WEBPACK_IMPORTED_MODULE_2__.testSelector)([element], selector, rootNode)
         ? [selector]
         : [];
 }
@@ -8915,7 +8892,7 @@ function getElementIdSelectors(element) {
  * Get ID selector for an element.
  */
 function getIdSelector(elements) {
-    return (elements.length === 0 || elements.length > 1)
+    return elements.length === 0 || elements.length > 1
         ? []
         : getElementIdSelectors(elements[0]);
 }
@@ -8986,12 +8963,12 @@ function getElementNthOfTypeSelector(element) {
     const tag = (0,_selector_tag_js__WEBPACK_IMPORTED_MODULE_0__.getTagSelector)([element])[0];
     const parentElement = element.parentElement;
     if (parentElement) {
-        const siblings = Array
-            .from(parentElement.children)
-            .filter((element) => element.tagName.toLowerCase() === tag);
+        const siblings = Array.from(parentElement.children).filter((element) => element.tagName.toLowerCase() === tag);
         const elementIndex = siblings.indexOf(element);
         if (elementIndex > -1) {
-            return [`${tag}:nth-of-type(${elementIndex + 1})`];
+            return [
+                `${tag}:nth-of-type(${elementIndex + 1})`,
+            ];
         }
     }
     return [];
@@ -9037,7 +9014,7 @@ function getTagSelector(elements) {
     const selectors = [
         ...new Set((0,_utilities_data_js__WEBPACK_IMPORTED_MODULE_1__.flattenArray)(elements.map(getElementTagSelectors))),
     ];
-    return (selectors.length === 0 || selectors.length > 1) ? [] : [selectors[0]];
+    return selectors.length === 0 || selectors.length > 1 ? [] : [selectors[0]];
 }
 //# sourceMappingURL=selector-tag.js.map
 
@@ -9052,24 +9029,22 @@ function getTagSelector(elements) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CssSelectorType: () => (/* binding */ CssSelectorType),
+/* harmony export */   CSS_SELECTOR_TYPE: () => (/* binding */ CSS_SELECTOR_TYPE),
 /* harmony export */   OPERATOR: () => (/* binding */ OPERATOR)
 /* harmony export */ });
-var OPERATOR;
-(function (OPERATOR) {
-    OPERATOR["NONE"] = "none";
-    OPERATOR["DESCENDANT"] = "descendant";
-    OPERATOR["CHILD"] = "child";
-})(OPERATOR || (OPERATOR = {}));
-var CssSelectorType;
-(function (CssSelectorType) {
-    CssSelectorType["id"] = "id";
-    CssSelectorType["class"] = "class";
-    CssSelectorType["tag"] = "tag";
-    CssSelectorType["attribute"] = "attribute";
-    CssSelectorType["nthchild"] = "nthchild";
-    CssSelectorType["nthoftype"] = "nthoftype";
-})(CssSelectorType || (CssSelectorType = {}));
+const OPERATOR = {
+    NONE: "",
+    DESCENDANT: " ",
+    CHILD: " > ",
+};
+const CSS_SELECTOR_TYPE = {
+    id: "id",
+    class: "class",
+    tag: "tag",
+    attribute: "attribute",
+    nthchild: "nthchild",
+    nthoftype: "nthoftype",
+};
 //# sourceMappingURL=types.js.map
 
 /***/ }),
@@ -9090,14 +9065,13 @@ __webpack_require__.r(__webpack_exports__);
  */
 function getCartesianProduct(input = {}) {
     let result = [];
-    Object.entries(input)
-        .forEach(([key, values]) => {
-        result = values.flatMap(value => {
+    Object.entries(input).forEach(([key, values]) => {
+        result = values.flatMap((value) => {
             if (result.length === 0) {
                 return [{ [key]: value }];
             }
             else {
-                return result.map(memo => (Object.assign(Object.assign({}, memo), { [key]: value })));
+                return result.map((memo) => (Object.assign(Object.assign({}, memo), { [key]: value })));
             }
         });
     });
@@ -9133,7 +9107,7 @@ function getIntersection(items = []) {
     if (otherItems.length === 0) {
         return firstItem;
     }
-    return (otherItems).reduce((accumulator, currentValue) => {
+    return otherItems.reduce((accumulator, currentValue) => {
         return accumulator.filter((item) => currentValue.includes(item));
     }, firstItem);
 }
@@ -9147,11 +9121,11 @@ function flattenArray(input) {
  * Convert string that can contain wildcards (asterisks) to RegExp source.
  */
 function wildcardToRegExp(input) {
-    return input
+    return (input
         // convert all special characters used by RegExp, except an asterisk
-        .replace(/[|\\{}()[\]^$+?.]/g, '\\$&')
+        .replace(/[|\\{}()[\]^$+?.]/g, "\\$&")
         // convert asterisk to pattern that matches anything
-        .replace(/\*/g, '.+');
+        .replace(/\*/g, ".+"));
 }
 /**
  * Creates function that will test list of provided matchers against input.
@@ -9162,23 +9136,23 @@ function createPatternMatcher(list) {
         if ((0,_utilities_options_js__WEBPACK_IMPORTED_MODULE_0__.isRegExp)(item)) {
             return (input) => item.test(input);
         }
-        if (typeof item === 'function') {
+        if (typeof item === "function") {
             return (input) => {
                 const result = item(input);
-                if (typeof result !== 'boolean') {
+                if (typeof result !== "boolean") {
                     // eslint-disable-next-line max-len
-                    (0,_utilities_messages_js__WEBPACK_IMPORTED_MODULE_1__.showWarning)('pattern matcher function invalid', 'Provided pattern matching function does not return boolean. It\'s result will be ignored.', item);
+                    (0,_utilities_messages_js__WEBPACK_IMPORTED_MODULE_1__.showWarning)("pattern matcher function invalid", "Provided pattern matching function does not return boolean. It's result will be ignored.", item);
                     return false;
                 }
                 return result;
             };
         }
-        if (typeof item === 'string') {
-            const re = new RegExp('^' + wildcardToRegExp(item) + '$');
+        if (typeof item === "string") {
+            const re = new RegExp("^" + wildcardToRegExp(item) + "$");
             return (input) => re.test(input);
         }
         // eslint-disable-next-line max-len
-        (0,_utilities_messages_js__WEBPACK_IMPORTED_MODULE_1__.showWarning)('pattern matcher invalid', 'Pattern matching only accepts strings, regular expressions and/or functions. This item is invalid and will be ignored.', item);
+        (0,_utilities_messages_js__WEBPACK_IMPORTED_MODULE_1__.showWarning)("pattern matcher invalid", "Pattern matching only accepts strings, regular expressions and/or functions. This item is invalid and will be ignored.", item);
         return () => false;
     });
     return (input) => matchFunctions.some((matchFunction) => matchFunction(input));
@@ -9212,17 +9186,15 @@ __webpack_require__.r(__webpack_exports__);
  * Check whether element is matched uniquely by selector.
  */
 function testSelector(elements, selector, root) {
-    const result = Array.from((0,_utilities_options_js__WEBPACK_IMPORTED_MODULE_2__.sanitizeRoot)(root, elements[0])
-        .querySelectorAll(selector));
-    return (result.length === elements.length
-        && elements.every((element) => result.includes(element)));
+    const result = Array.from((0,_utilities_options_js__WEBPACK_IMPORTED_MODULE_2__.sanitizeRoot)(root, elements[0]).querySelectorAll(selector));
+    return (result.length === elements.length &&
+        elements.every((element) => result.includes(element)));
 }
 /**
  * Test whether selector targets element. It does not have to be a unique match.
  */
 function testMultiSelector(element, selector, root) {
-    const result = Array.from((0,_utilities_options_js__WEBPACK_IMPORTED_MODULE_2__.sanitizeRoot)(root, element)
-        .querySelectorAll(selector));
+    const result = Array.from((0,_utilities_options_js__WEBPACK_IMPORTED_MODULE_2__.sanitizeRoot)(root, element).querySelectorAll(selector));
     return result.includes(element);
 }
 /**
@@ -9248,7 +9220,7 @@ function getParents(elements, root) {
  * Returns root node for given element. This needs to be used because of document-less environments, e.g. jsdom.
  */
 function getRootNode(element) {
-    return element.ownerDocument.querySelector(':root');
+    return element.ownerDocument.querySelector(":root");
 }
 //# sourceMappingURL=utilities-dom.js.map
 
@@ -9288,25 +9260,25 @@ function createElementSelectorData(selector) {
 function createElementData(element, selectorTypes, operator = _types_js__WEBPACK_IMPORTED_MODULE_0__.OPERATOR.NONE) {
     const selectors = {};
     selectorTypes.forEach((selectorType) => {
-        Reflect.set(selectors, selectorType, (0,_utilities_selectors_js__WEBPACK_IMPORTED_MODULE_2__.getElementSelectorsByType)(element, selectorType)
-            .map(createElementSelectorData));
+        Reflect.set(selectors, selectorType, (0,_utilities_selectors_js__WEBPACK_IMPORTED_MODULE_2__.getElementSelectorsByType)(element, selectorType).map(createElementSelectorData));
     });
     return {
         element,
-        operator: _constants_js__WEBPACK_IMPORTED_MODULE_1__.OPERATOR_DATA[operator],
+        operator,
         selectors,
     };
 }
 /**
  * Constructs selector from element data.
  */
-function constructElementSelector({ selectors, operator }) {
+function constructElementSelector({ selectors, operator, }) {
     let pattern = [..._constants_js__WEBPACK_IMPORTED_MODULE_1__.SELECTOR_PATTERN];
     // `nthoftype` already contains tag
-    if (selectors[_types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.tag] && selectors[_types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.nthoftype]) {
-        pattern = pattern.filter((item) => item !== _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.tag);
+    if (selectors[_types_js__WEBPACK_IMPORTED_MODULE_0__.CSS_SELECTOR_TYPE.tag] &&
+        selectors[_types_js__WEBPACK_IMPORTED_MODULE_0__.CSS_SELECTOR_TYPE.nthoftype]) {
+        pattern = pattern.filter((item) => item !== _types_js__WEBPACK_IMPORTED_MODULE_0__.CSS_SELECTOR_TYPE.tag);
     }
-    let selector = '';
+    let selector = "";
     pattern.forEach((selectorType) => {
         const selectorsOfType = selectors[selectorType] || [];
         selectorsOfType.forEach(({ value, include }) => {
@@ -9315,7 +9287,7 @@ function constructElementSelector({ selectors, operator }) {
             }
         });
     });
-    return (operator.value + selector);
+    return (operator + selector);
 }
 //# sourceMappingURL=utilities-element-data.js.map
 
@@ -9353,11 +9325,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   showWarning: () => (/* binding */ showWarning)
 /* harmony export */ });
-const libraryName = 'CssSelectorGenerator';
+const libraryName = "CssSelectorGenerator";
 /**
  * Convenient wrapper for `console.warn` using consistent formatting.
  */
-function showWarning(id = 'unknown problem', ...args) {
+function showWarning(id = "unknown problem", ...args) {
     // eslint-disable-next-line no-console
     console.warn(`${libraryName}: ${id}`, ...args);
 }
@@ -9393,10 +9365,10 @@ __webpack_require__.r(__webpack_exports__);
 
 const DEFAULT_OPTIONS = {
     selectors: [
-        _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.id,
-        _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.class,
-        _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.tag,
-        _types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType.attribute,
+        _types_js__WEBPACK_IMPORTED_MODULE_0__.CSS_SELECTOR_TYPE.id,
+        _types_js__WEBPACK_IMPORTED_MODULE_0__.CSS_SELECTOR_TYPE.class,
+        _types_js__WEBPACK_IMPORTED_MODULE_0__.CSS_SELECTOR_TYPE.tag,
+        _types_js__WEBPACK_IMPORTED_MODULE_0__.CSS_SELECTOR_TYPE.attribute,
     ],
     // if set to true, always include tag name
     includeTag: false,
@@ -9416,7 +9388,7 @@ function sanitizeSelectorTypes(input) {
     if (!Array.isArray(input)) {
         return [];
     }
-    return input.filter((item) => (0,_utilities_typescript_js__WEBPACK_IMPORTED_MODULE_1__.isEnumValue)(_types_js__WEBPACK_IMPORTED_MODULE_0__.CssSelectorType, item));
+    return input.filter((item) => (0,_utilities_typescript_js__WEBPACK_IMPORTED_MODULE_1__.isEnumValue)(_types_js__WEBPACK_IMPORTED_MODULE_0__.CSS_SELECTOR_TYPE, item));
 }
 /**
  * Checks whether provided value is of type RegExp.
@@ -9429,7 +9401,7 @@ function isRegExp(input) {
  * @param input
  */
 function isCssSelectorMatch(input) {
-    return ['string', 'function'].includes(typeof input) || isRegExp(input);
+    return ["string", "function"].includes(typeof input) || isRegExp(input);
 }
 /**
  * Converts input to a list of valid values for whitelist or blacklist.
@@ -9450,12 +9422,12 @@ function isNode(input) {
  * Checks whether provided value is valid ParentNode.
  */
 function isParentNode(input) {
-    const validNodeTypes = [
+    const validParentNodeTypes = [
         Node.DOCUMENT_NODE,
         Node.DOCUMENT_FRAGMENT_NODE,
         Node.ELEMENT_NODE,
     ];
-    return isNode(input) && validNodeTypes.includes(input.nodeType);
+    return isNode(input) && validParentNodeTypes.includes(input.nodeType);
 }
 /**
  * Makes sure that the root node in options is valid.
@@ -9464,7 +9436,7 @@ function sanitizeRoot(input, element) {
     if (isParentNode(input)) {
         if (!input.contains(element)) {
             // eslint-disable-next-line max-len
-            (0,_utilities_messages_js__WEBPACK_IMPORTED_MODULE_2__.showWarning)('element root mismatch', 'Provided root does not contain the element. This will most likely result in producing a fallback selector using element\'s real root node. If you plan to use the selector using provided root (e.g. `root.querySelector`), it will nto work as intended.');
+            (0,_utilities_messages_js__WEBPACK_IMPORTED_MODULE_2__.showWarning)("element root mismatch", "Provided root does not contain the element. This will most likely result in producing a fallback selector using element's real root node. If you plan to use the selector using provided root (e.g. `root.querySelector`), it will nto work as intended.");
         }
         return input;
     }
@@ -9472,18 +9444,18 @@ function sanitizeRoot(input, element) {
     if (isParentNode(rootNode)) {
         if (rootNode !== document) {
             // eslint-disable-next-line max-len
-            (0,_utilities_messages_js__WEBPACK_IMPORTED_MODULE_2__.showWarning)('shadow root inferred', 'You did not provide a root and the element is a child of Shadow DOM. This will produce a selector using ShadowRoot as a root. If you plan to use the selector using document as a root (e.g. `document.querySelector`), it will not work as intended.');
+            (0,_utilities_messages_js__WEBPACK_IMPORTED_MODULE_2__.showWarning)("shadow root inferred", "You did not provide a root and the element is a child of Shadow DOM. This will produce a selector using ShadowRoot as a root. If you plan to use the selector using document as a root (e.g. `document.querySelector`), it will not work as intended.");
         }
         return rootNode;
     }
-    return element.ownerDocument.querySelector(':root');
+    return element.ownerDocument.querySelector(":root");
 }
 /**
  * Makes sure that the output is a number, usable as `maxResults` option in
  * powerset generator.
  */
 function sanitizeMaxNumber(input) {
-    return typeof input === 'number' ? input : Number.POSITIVE_INFINITY;
+    return typeof input === "number" ? input : Number.POSITIVE_INFINITY;
 }
 /**
  * Makes sure the options object contains all required keys.
@@ -9515,21 +9487,24 @@ function sanitizeOptions(element, custom_options = {}) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   getPowerSet: () => (/* binding */ getPowerSet)
+/* harmony export */   getPowerSet: () => (/* binding */ getPowerSet),
+/* harmony export */   powerSetGenerator: () => (/* binding */ powerSetGenerator)
 /* harmony export */ });
+function* powerSetGenerator(input = [], { maxResults = Number.POSITIVE_INFINITY } = {}) {
+    let resultCounter = 0;
+    let offsets = generateOffsets(1);
+    while (offsets.length <= input.length && resultCounter < maxResults) {
+        resultCounter += 1;
+        const result = offsets.map((offset) => input[offset]);
+        yield result;
+        offsets = bumpOffsets(offsets, input.length - 1);
+    }
+}
 /**
  * Generates power set of input items.
  */
 function getPowerSet(input = [], { maxResults = Number.POSITIVE_INFINITY } = {}) {
-    const result = [];
-    let resultCounter = 0;
-    let offsets = generateOffsets(1);
-    while ((offsets.length <= input.length) && (resultCounter < maxResults)) {
-        resultCounter += 1;
-        result.push(offsets.map((offset) => input[offset]));
-        offsets = bumpOffsets(offsets, input.length - 1);
-    }
-    return result;
+    return Array.from(powerSetGenerator(input, { maxResults }));
 }
 /**
  * Helper function used by `getPowerSet`. Updates internal pointers.
@@ -9624,17 +9599,14 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const ESCAPED_COLON = ':'
-    .charCodeAt(0)
-    .toString(16)
-    .toUpperCase();
+const ESCAPED_COLON = ":".charCodeAt(0).toString(16).toUpperCase();
 // Square brackets need to be escaped, but eslint has a problem with that.
 /* eslint-disable-next-line no-useless-escape */
 const SPECIAL_CHARACTERS_RE = /[ !"#$%&'()\[\]{|}<>*+,./;=?@^`~\\]/;
 /**
  * Escapes special characters used by CSS selector items.
  */
-function sanitizeSelectorItem(input = '') {
+function sanitizeSelectorItem(input = "") {
     var _a, _b;
     return (_b = (_a = CSS === null || CSS === void 0 ? void 0 : CSS.escape) === null || _a === void 0 ? void 0 : _a.call(CSS, input)) !== null && _b !== void 0 ? _b : legacySanitizeSelectorItem(input);
 }
@@ -9643,19 +9615,19 @@ function sanitizeSelectorItem(input = '') {
  * probably be replaced by a polyfill:
  * https://github.com/mathiasbynens/CSS.escape
  */
-function legacySanitizeSelectorItem(input = '') {
-    return input.split('')
+function legacySanitizeSelectorItem(input = "") {
+    return input
+        .split("")
         .map((character) => {
-        if (character === ':') {
+        if (character === ":") {
             return `\\${ESCAPED_COLON} `;
         }
         if (SPECIAL_CHARACTERS_RE.test(character)) {
             return `\\${character}`;
         }
-        return escape(character)
-            .replace(/%/g, '\\');
+        return escape(character).replace(/%/g, "\\");
     })
-        .join('');
+        .join("");
 }
 const SELECTOR_TYPE_GETTERS = {
     tag: _selector_tag_js__WEBPACK_IMPORTED_MODULE_6__.getTagSelector,
@@ -9684,15 +9656,14 @@ function getElementSelectorsByType(element, selectorType) {
  */
 function getSelectorsByType(elements, selector_type) {
     var _a;
-    const getter = ((_a = SELECTOR_TYPE_GETTERS[selector_type]) !== null && _a !== void 0 ? _a : (() => []));
+    const getter = (_a = SELECTOR_TYPE_GETTERS[selector_type]) !== null && _a !== void 0 ? _a : (() => []);
     return getter(elements);
 }
 /**
  * Remove blacklisted selectors from list.
  */
 function filterSelectors(list = [], matchBlacklist, matchWhitelist) {
-    return list.filter((item) => (matchWhitelist(item)
-        || !matchBlacklist(item)));
+    return list.filter((item) => matchWhitelist(item) || !matchBlacklist(item));
 }
 /**
  * Prioritise whitelisted selectors in list.
@@ -9723,7 +9694,7 @@ function getAllSelectors(elements, root, options) {
  * Creates object containing all selector types and their potential values.
  */
 function getSelectorsList(elements, options) {
-    const { blacklist, whitelist, combineWithinSelector, maxCombinations, } = options;
+    const { blacklist, whitelist, combineWithinSelector, maxCombinations } = options;
     const matchBlacklist = (0,_utilities_data_js__WEBPACK_IMPORTED_MODULE_7__.createPatternMatcher)(blacklist);
     const matchWhitelist = (0,_utilities_data_js__WEBPACK_IMPORTED_MODULE_7__.createPatternMatcher)(whitelist);
     const reducer = (data, selector_type) => {
@@ -9735,17 +9706,16 @@ function getSelectorsList(elements, options) {
             : found_selectors.map((item) => [item]);
         return data;
     };
-    return getSelectorsToGet(options)
-        .reduce(reducer, {});
+    return getSelectorsToGet(options).reduce(reducer, {});
 }
 /**
  * Creates list of selector types that we will need to generate the selector.
  */
 function getSelectorsToGet(options) {
-    const { selectors, includeTag, } = options;
+    const { selectors, includeTag } = options;
     const selectors_to_get = [].concat(selectors);
-    if (includeTag && !selectors_to_get.includes('tag')) {
-        selectors_to_get.push('tag');
+    if (includeTag && !selectors_to_get.includes("tag")) {
+        selectors_to_get.push("tag");
     }
     return selectors_to_get;
 }
@@ -9755,22 +9725,20 @@ function getSelectorsToGet(options) {
  * TAG part.
  */
 function addTagTypeIfNeeded(list) {
-    return (list.includes(_types_js__WEBPACK_IMPORTED_MODULE_9__.CssSelectorType.tag)
-        || list.includes(_types_js__WEBPACK_IMPORTED_MODULE_9__.CssSelectorType.nthoftype))
+    return list.includes(_types_js__WEBPACK_IMPORTED_MODULE_9__.CSS_SELECTOR_TYPE.tag) ||
+        list.includes(_types_js__WEBPACK_IMPORTED_MODULE_9__.CSS_SELECTOR_TYPE.nthoftype)
         ? [...list]
-        : [...list, _types_js__WEBPACK_IMPORTED_MODULE_9__.CssSelectorType.tag];
+        : [...list, _types_js__WEBPACK_IMPORTED_MODULE_9__.CSS_SELECTOR_TYPE.tag];
 }
 /**
  * Generates list of possible selector type combinations.
  */
 function combineSelectorTypes(options) {
-    const { selectors, combineBetweenSelectors, includeTag, maxCandidates, } = options;
+    const { selectors, combineBetweenSelectors, includeTag, maxCandidates } = options;
     const combinations = combineBetweenSelectors
         ? (0,_utilities_powerset_js__WEBPACK_IMPORTED_MODULE_11__.getPowerSet)(selectors, { maxResults: maxCandidates })
-        : selectors.map(item => [item]);
-    return includeTag
-        ? combinations.map(addTagTypeIfNeeded)
-        : combinations;
+        : selectors.map((item) => [item]);
+    return includeTag ? combinations.map(addTagTypeIfNeeded) : combinations;
 }
 /**
  * Generates list of combined CSS selectors.
@@ -9800,9 +9768,9 @@ function constructSelectors(selector_types, selectors_by_type) {
  * Creates selector for given selector type. Combines several parts if needed.
  */
 function constructSelectorType(selector_type, selectors_data) {
-    return (selectors_data[selector_type])
-        ? selectors_data[selector_type].join('')
-        : '';
+    return selectors_data[selector_type]
+        ? selectors_data[selector_type].join("")
+        : "";
 }
 /**
  * Converts selector data object to a selector.
@@ -9810,13 +9778,13 @@ function constructSelectorType(selector_type, selectors_data) {
 function constructSelector(selectorData = {}) {
     const pattern = [..._constants_js__WEBPACK_IMPORTED_MODULE_0__.SELECTOR_PATTERN];
     // selector "nthoftype" already contains "tag"
-    if (selectorData[_types_js__WEBPACK_IMPORTED_MODULE_9__.CssSelectorType.tag]
-        && selectorData[_types_js__WEBPACK_IMPORTED_MODULE_9__.CssSelectorType.nthoftype]) {
-        pattern.splice(pattern.indexOf(_types_js__WEBPACK_IMPORTED_MODULE_9__.CssSelectorType.tag), 1);
+    if (selectorData[_types_js__WEBPACK_IMPORTED_MODULE_9__.CSS_SELECTOR_TYPE.tag] &&
+        selectorData[_types_js__WEBPACK_IMPORTED_MODULE_9__.CSS_SELECTOR_TYPE.nthoftype]) {
+        pattern.splice(pattern.indexOf(_types_js__WEBPACK_IMPORTED_MODULE_9__.CSS_SELECTOR_TYPE.tag), 1);
     }
     return pattern
         .map((type) => constructSelectorType(type, selectorData))
-        .join('');
+        .join("");
 }
 /**
  * Generates combinations of child and descendant selectors within root
@@ -9824,8 +9792,8 @@ function constructSelector(selectorData = {}) {
  */
 function generateCandidateCombinations(selectors, rootSelector) {
     return [
-        ...selectors.map((selector) => rootSelector + _constants_js__WEBPACK_IMPORTED_MODULE_0__.CHILD_OPERATOR + selector),
-        ...selectors.map((selector) => rootSelector + _constants_js__WEBPACK_IMPORTED_MODULE_0__.DESCENDANT_OPERATOR + selector),
+        ...selectors.map((selector) => rootSelector + _types_js__WEBPACK_IMPORTED_MODULE_9__.OPERATOR.DESCENDANT + selector),
+        ...selectors.map((selector) => rootSelector + _types_js__WEBPACK_IMPORTED_MODULE_9__.OPERATOR.CHILD + selector),
     ];
 }
 /**
@@ -9833,14 +9801,14 @@ function generateCandidateCombinations(selectors, rootSelector) {
  * element.
  */
 function generateCandidates(selectors, rootSelector) {
-    return rootSelector === ''
+    return rootSelector === ""
         ? selectors
         : generateCandidateCombinations(selectors, rootSelector);
 }
 /**
  * Tries to find an unique CSS selector for element within given parent.
  */
-function getSelectorWithinRoot(elements, root, rootSelector = '', options) {
+function getSelectorWithinRoot(elements, root, rootSelector = "", options) {
     const elementSelectors = getAllSelectors(elements, options.root, options);
     const selectorCandidates = generateCandidates(elementSelectors, rootSelector);
     for (const candidateSelector of selectorCandidates) {
@@ -9854,14 +9822,13 @@ function getSelectorWithinRoot(elements, root, rootSelector = '', options) {
  * Climbs through parents of the element and tries to find the one that is
  * identifiable by unique CSS selector.
  */
-function getClosestIdentifiableParent(elements, root, rootSelector = '', options) {
+function getClosestIdentifiableParent(elements, root, rootSelector = "", options) {
     if (elements.length === 0) {
         return null;
     }
     const candidatesList = [
-        (elements.length > 1) ? elements : [],
-        ...(0,_utilities_dom_js__WEBPACK_IMPORTED_MODULE_8__.getParents)(elements, root)
-            .map((element) => [element]),
+        elements.length > 1 ? elements : [],
+        ...(0,_utilities_dom_js__WEBPACK_IMPORTED_MODULE_8__.getParents)(elements, root).map((element) => [element]),
     ];
     for (const currentElements of candidatesList) {
         const result = getSelectorWithinRoot(currentElements, root, rootSelector, options);
@@ -9878,6 +9845,9 @@ function getClosestIdentifiableParent(elements, root, rootSelector = '', options
  * Converts input into list of elements, removing duplicates and non-elements.
  */
 function sanitizeSelectorNeedle(needle) {
+    if (needle instanceof NodeList || needle instanceof HTMLCollection) {
+        needle = Array.from(needle);
+    }
     const elements = (Array.isArray(needle) ? needle : [needle]).filter(_utilities_iselement_js__WEBPACK_IMPORTED_MODULE_10__.isElement);
     return [...new Set(elements)];
 }
@@ -9900,8 +9870,7 @@ __webpack_require__.r(__webpack_exports__);
  * Checks whether value is one of the enum's values.
  */
 function isEnumValue(haystack, needle) {
-    return Object.values(haystack)
-        .includes(needle);
+    return Object.values(haystack).includes(needle);
 }
 //# sourceMappingURL=utilities-typescript.js.map
 

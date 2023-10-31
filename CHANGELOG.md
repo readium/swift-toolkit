@@ -11,12 +11,14 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * You can now customize the playback refresh rate of `_AudiobookNavigator` in its configuration.
+* The EPUB navigator automatically moves to the next resource when VoiceOver reaches the end of the current one.
 
 ### Fixed
 
 #### Navigator
 
 * [#344](https://github.com/readium/swift-toolkit/issues/344) EPUB: Fixed lost position when rotating quickly the screen several times.
+* Fixed activating the scroll mode when VoiceOver is enabled in the EPUB navigator.
 
 
 ## [2.6.0]
