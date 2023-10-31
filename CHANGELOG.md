@@ -21,6 +21,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Fixed
 
+#### Shared
+
+* Zipped Audio Book archives are now detected even if they contain bitmap entries.
+
 #### Navigator
 
 * [#344](https://github.com/readium/swift-toolkit/issues/344) EPUB: Fixed lost position when rotating quickly the screen several times.

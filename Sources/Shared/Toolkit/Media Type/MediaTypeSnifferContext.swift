@@ -130,11 +130,35 @@ public final class MediaTypeSnifferContext {
         contentAsArchive?.readEntry(at: path)?.read().getOrNil()
     }
 
-    /// Returns whether all the Archive entry paths satisfy the given `predicate`.
-    func archiveEntriesAllSatisfy(_ predicate: (URL) -> Bool) -> Bool {
-        contentAsArchive?.entries
-            .map { URL(fileURLWithPath: $0.path) }
-            .allSatisfy(predicate)
-            ?? false
+    /// Returns whether the Archive entry paths satisfy at least one of the
+    /// `requiredExtensions`. The other extensions must satisfy the
+    /// `allowedExtensions`.
+    func archiveEntriesContains(requiredExtensions: [String], allowedExtensions: [String]) -> Bool {
+        guard let entries = contentAsArchive?.entries else {
+            return false
+        }
+
+        func isIgnored(_ url: URL) -> Bool {
+            let filename = url.lastPathComponent
+            return url.hasDirectoryPath || filename.hasPrefix(".") || filename == "Thumbs.db"
+        }
+
+        var containsRequiredExtensions = false
+        for entry in entries {
+            let url = URL(fileURLWithPath: entry.path)
+            guard !isIgnored(url) else {
+                continue
+            }
+
+            let ext = url.pathExtension.lowercased()
+
+            if requiredExtensions.contains(ext) {
+                containsRequiredExtensions = true
+            } else if !allowedExtensions.contains(ext) {
+                return false
+            }
+        }
+
+        return containsRequiredExtensions
     }
 }

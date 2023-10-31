@@ -293,24 +293,42 @@ public extension MediaType {
         return nil
     }
 
-    /// Authorized extensions for resources in a CBZ archive.
+    private static let bitmapExtensions = [
+        "bmp", "dib", "gif", "jif", "jfi", "jfif", "jpg", "jpeg", "png", "tif",
+        "tiff", "webp",
+    ]
+
+    private static let audioExtensions = [
+        "aac", "aiff", "alac", "flac", "m4a", "m4b", "mp3", "ogg", "oga",
+        "mogg", "opus", "wav", "webm",
+    ]
+
+    /// Required extensions for an archive to be considered a CBZ.
     /// Reference: https://wiki.mobileread.com/wiki/CBR_and_CBZ
-    private static let cbzExtensions = [
-        // bitmap
-        "bmp", "dib", "gif", "jif", "jfi", "jfif", "jpg", "jpeg", "png", "tif", "tiff", "webp",
+    private static let cbzRequiredExtensions = bitmapExtensions
+
+    /// Additional extensions authorized in a CBZ archive.
+    private static let cbzAllowedExtensions = [
         // metadata
         "acbf", "xml",
     ]
 
-    /// Authorized extensions for resources in a ZAB archive (Zipped Audio Book).
-    private static let zabExtensions = [
-        // audio
-        "aac", "aiff", "alac", "flac", "m4a", "m4b", "mp3", "ogg", "oga", "mogg", "opus", "wav", "webm",
-        // playlist
-        "asx", "bio", "m3u", "m3u8", "pla", "pls", "smil", "vlc", "wpl", "xspf", "zpl",
-    ]
+    /// Required extensions for an archive to be considered a ZAB (Zipped Audio Book).
+    private static let zabRequiredExtensions = audioExtensions
 
-    /// Sniffs a simple archive-based format, like Comic Book Archive or Zipped Audio Book.
+    /// Additional extensions authorized in a ZAB archive.
+    private static let zabAllowedExtensions = [
+        bitmapExtensions, // For covers
+        // playlist
+        [
+            "asx", "bio", "m3u", "m3u8", "pla", "pls", "smil", "vlc", "wpl",
+            "xspf", "zpl",
+        ],
+    ].flatMap { $0 }
+
+    /// Sniffs a simple archive-based format, like Comic Book Archive or Zipped
+    /// Audio Book.
+    ///
     /// Reference: https://wiki.mobileread.com/wiki/CBR_and_CBZ
     private static func sniffArchive(context: MediaTypeSnifferContext) -> MediaType? {
         if context.hasFileExtension("cbz") || context.hasMediaType("application/vnd.comicbook+zip", "application/x-cbz", "application/x-cbr") {
@@ -321,21 +339,17 @@ public extension MediaType {
         }
 
         if context.contentAsArchive != nil {
-            func isIgnored(_ url: URL) -> Bool {
-                let filename = url.lastPathComponent
-                return url.hasDirectoryPath || filename.hasPrefix(".") || filename == "Thumbs.db"
-            }
-
-            func archiveContainsOnlyExtensions(_ fileExtensions: [String]) -> Bool {
-                context.archiveEntriesAllSatisfy { url in
-                    isIgnored(url) || fileExtensions.contains(url.pathExtension.lowercased())
-                }
-            }
-
-            if archiveContainsOnlyExtensions(cbzExtensions) {
+            if context.archiveEntriesContains(
+                requiredExtensions: cbzRequiredExtensions,
+                allowedExtensions: cbzAllowedExtensions
+            ) {
                 return .cbz
             }
-            if archiveContainsOnlyExtensions(zabExtensions) {
+
+            if context.archiveEntriesContains(
+                requiredExtensions: zabRequiredExtensions,
+                allowedExtensions: zabAllowedExtensions
+            ) {
                 return .zab
             }
         }
