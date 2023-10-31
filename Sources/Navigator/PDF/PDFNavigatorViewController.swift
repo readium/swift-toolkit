@@ -9,7 +9,16 @@ import PDFKit
 import R2Shared
 import UIKit
 
-public protocol PDFNavigatorDelegate: VisualNavigatorDelegate, SelectableNavigatorDelegate {}
+public protocol PDFNavigatorDelegate: VisualNavigatorDelegate, SelectableNavigatorDelegate {
+    /// Called after the `PDFDocumentView` is created.
+    ///
+    /// Override to customize its behavior.
+    func navigator(_ navigator: PDFNavigatorViewController, setupPDFView view: PDFDocumentView)
+}
+
+public extension PDFNavigatorDelegate {
+    func navigator(_ navigator: PDFNavigatorViewController, setupPDFView view: PDFDocumentView) {}
+}
 
 /// A view controller used to render a PDF `Publication`.
 open class PDFNavigatorViewController: UIViewController, VisualNavigator, SelectableNavigator, Configurable, Loggable {
@@ -68,10 +77,11 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     private let publicationEndpoint: HTTPServerEndpoint?
     private let publicationBaseURL: URL
 
-    public convenience init(
+    public init(
         publication: Publication,
         initialLocation: Locator?,
         config: Configuration = .init(),
+        delegate: PDFNavigatorViewController? = nil,
         httpServer: HTTPServer
     ) throws {
         guard !publication.isRestricted else {
@@ -89,18 +99,27 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
             baseURL = try httpServer.serve(at: endpoint, publication: publication)
         }
 
-        self.init(
-            publication: publication,
-            initialLocation: initialLocation,
-            httpServer: httpServer,
-            publicationEndpoint: publicationEndpoint,
-            publicationBaseURL: baseURL,
-            config: config
+        self.publication = publication
+        self.initialLocation = initialLocation
+        server = httpServer
+        self.publicationEndpoint = publicationEndpoint
+        publicationBaseURL = URL(string: baseURL.absoluteString.addingSuffix("/"))!
+        self.config = config
+        editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
+
+        settings = PDFSettings(
+            preferences: config.preferences,
+            defaults: config.defaults,
+            metadata: publication.metadata
         )
+
+        super.init(nibName: nil, bundle: nil)
+
+        postInit()
     }
 
     @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
-    public convenience init(
+    public init(
         publication: Publication,
         initialLocation: Locator? = nil,
         editingActions: [EditingAction] = EditingAction.defaultActions
@@ -110,14 +129,36 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
             preconditionFailure("No base URL provided for the publication. Add it to the HTTP server.")
         }
 
-        self.init(
-            publication: publication,
-            initialLocation: initialLocation,
-            httpServer: nil,
-            publicationEndpoint: nil,
-            publicationBaseURL: baseURL,
-            config: Configuration(editingActions: editingActions)
+        self.publication = publication
+        self.initialLocation = initialLocation
+        server = nil
+        publicationEndpoint = nil
+        publicationBaseURL = URL(string: baseURL.absoluteString.addingSuffix("/"))!
+        config = Configuration(editingActions: editingActions)
+        self.editingActions = EditingActionsController(actions: editingActions, rights: publication.rights)
+
+        settings = PDFSettings(
+            preferences: config.preferences,
+            defaults: config.defaults,
+            metadata: publication.metadata
         )
+
+        super.init(nibName: nil, bundle: nil)
+
+        postInit()
+    }
+
+    private func postInit() {
+        editingActions.delegate = self
+
+        // Wraps the PDF factories of publication services to return the currently opened document
+        // held in `documentHolder` when relevant. This prevents opening several times the same
+        // document, which is useful in particular with `LCPDFPositionService`.
+        for service in publication.findServices(PDFPublicationService.self) {
+            service.pdfFactory = CompositePDFDocumentFactory(factories: [
+                documentHolder, service.pdfFactory,
+            ])
+        }
     }
 
     private init(
@@ -144,16 +185,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
         super.init(nibName: nil, bundle: nil)
 
-        editingActions.delegate = self
-
-        // Wraps the PDF factories of publication services to return the currently opened document
-        // held in `documentHolder` when relevant. This prevents opening several times the same
-        // document, which is useful in particular with `LCPDFPositionService`.
-        for service in publication.findServices(PDFPublicationService.self) {
-            service.pdfFactory = CompositePDFDocumentFactory(factories: [
-                documentHolder, service.pdfFactory,
-            ])
-        }
+        postInit()
     }
 
     @available(*, unavailable)
@@ -350,7 +382,10 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     }
 
     /// Override to customize the PDFDocumentView.
-    open func setupPDFView() {}
+    @available(*, deprecated, message: "Override the PDFNavigatorDelegate instead")
+    open func setupPDFView() {
+        delegate?.navigator(self, setupPDFView: pdfView!)
+    }
 
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
         let point = gesture.location(in: view)

@@ -13,11 +13,18 @@ All notable changes to this project will be documented in this file. Take a look
 * You can now customize the playback refresh rate of `_AudiobookNavigator` in its configuration.
 * The EPUB navigator automatically moves to the next resource when VoiceOver reaches the end of the current one.
 
+### Changed
+
+#### Navigator
+
+* You should not subclass `PDFNavigatorViewController` anymore. If you need to override `setupPDFView`, you can do so by implementing the `PDFNavigatorDelegate` protocol.
+
 ### Fixed
 
 #### Navigator
 
 * [#344](https://github.com/readium/swift-toolkit/issues/344) EPUB: Fixed lost position when rotating quickly the screen several times.
+* [#350](https://github.com/readium/swift-toolkit/discussions/350) Restore the ability to subclass the `PDFNavigatorViewController`.
 * Fixed activating the scroll mode when VoiceOver is enabled in the EPUB navigator.
 
 
