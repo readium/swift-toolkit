@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
   s.summary       = "Adapter to use GCDWebServer as an HTTP server in Readium"
   s.homepage      = "http://readium.github.io"
   s.author        = { "Readium" => "contact@readium.org" }
-  s.source        = { :git => "https://github.com/readium/swift-toolkit.git", :tag => "2.6.1" }
+  s.source        = { :git => "https://github.com/readium/swift-toolkit.git", :branch => "develop" }
   s.requires_arc  = true
   s.source_files  = "Sources/Adapters/GCDWebServer/**/*.{m,h,swift}"
   s.platform      = :ios
