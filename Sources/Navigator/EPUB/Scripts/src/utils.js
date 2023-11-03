@@ -10,6 +10,44 @@ import { TextQuoteAnchor } from "./vendor/hypothesis/anchoring/types";
 import { getCurrentSelection } from "./selection";
 import { toNativeRect } from "./rect";
 
+/**
+ * Least Recently Used Cache with a limit wraping a Map object
+ * The LRUCache constructor takes a limit argument which specifies the maximum number of items the cache can hold.
+ * The get method removes and re-adds an item to ensure it's marked as the most recently used.
+ * The set method checks the size of the cache, and removes the least recently used item if necessary before adding the new item.
+ * The clear method clears the cache.
+ */
+class LRUCache {
+  constructor(limit = 100) {
+    // Default limit of 100 items
+    this.limit = limit;
+    this.map = new Map();
+  }
+
+  get(key) {
+    if (!this.map.has(key)) return undefined;
+
+    // Remove and re-add to ensure this item is the most recently used
+    const value = this.map.get(key);
+    this.map.delete(key);
+    this.map.set(key, value);
+    return value;
+  }
+
+  set(key, value) {
+    if (this.map.size >= this.limit) {
+      // Remove the least recently used item
+      const firstKey = this.map.keys().next().value;
+      this.map.delete(firstKey);
+    }
+    this.map.set(key, value);
+  }
+
+  clear() {
+    this.map.clear();
+  }
+}
+
 window.addEventListener(
   "error",
   function (event) {
@@ -256,6 +294,100 @@ function snapCurrentPosition() {
   document.scrollingElement.scrollLeft = currentOffsetSnapped;
 }
 
+// Cache the higher level css elements range for faster calculating the word by word dom ranges
+let elementRangeCache = new LRUCache(10); // Key: cssSelector, Value: entire element range
+
+// Caches the css element range
+function cacheElementRange(cssSelector) {
+  const element = document.querySelector(cssSelector);
+  if (element) {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    elementRangeCache.set(cssSelector, range);
+  }
+}
+
+// Returns a range from a locator; it first searches for the higher level css element in the cache
+function rangeFromCachedLocator(locator) {
+  const cssSelector = locator.locations.cssSelector;
+  const entireRange = elementRangeCache.get(cssSelector);
+  if (!entireRange) {
+    cacheElementRange(cssSelector);
+    return rangeFromCachedLocator(locator);
+  }
+
+  const entireText = entireRange.toString();
+  let startIndex = 0;
+  let foundIndex = -1;
+
+  while (startIndex < entireText.length) {
+    const highlightIndex = entireText.indexOf(
+      locator.text.highlight,
+      startIndex
+    );
+    if (highlightIndex === -1) {
+      break; // No more occurrences of highlight text
+    }
+
+    const beforeText = locator.text.before
+      ? entireText.slice(
+          Math.max(0, highlightIndex - locator.text.before.length),
+          highlightIndex
+        )
+      : "";
+    const afterText = locator.text.after
+      ? entireText.slice(
+          highlightIndex + locator.text.highlight.length,
+          highlightIndex +
+            locator.text.highlight.length +
+            locator.text.after.length
+        )
+      : "";
+
+    const beforeTextMatches =
+      !locator.text.before || locator.text.before.endsWith(beforeText);
+    const afterTextMatches =
+      !locator.text.after || locator.text.after.startsWith(afterText);
+
+    if (beforeTextMatches && afterTextMatches) {
+      // Highlight text from locator was found
+      foundIndex = highlightIndex;
+      break;
+    }
+
+    // Update startIndex for next iteration to search for next occurrence of highlight text
+    startIndex = highlightIndex + 1;
+  }
+
+  if (foundIndex === -1) {
+    throw new Error("Locator range could not be calculated");
+  }
+
+  const highlightStartIndex = foundIndex;
+  const highlightEndIndex = foundIndex + locator.text.highlight.length;
+
+  const subRange = document.createRange();
+  let count = 0;
+  let node;
+  const nodeIterator = document.createNodeIterator(
+    entireRange.commonAncestorContainer, // This should be a Document or DocumentFragment node
+    NodeFilter.SHOW_TEXT
+  );
+
+  for (node = nodeIterator.nextNode(); node; node = nodeIterator.nextNode()) {
+    const nodeEndIndex = count + node.nodeValue.length;
+    if (nodeEndIndex > startIndex) {
+      break;
+    }
+    count = nodeEndIndex;
+  }
+
+  subRange.setStart(node, highlightStartIndex - count);
+  subRange.setEnd(node, highlightEndIndex - count);
+
+  return subRange;
+}
+
 export function rangeFromLocator(locator) {
   try {
     let locations = locator.locations;
@@ -263,7 +395,12 @@ export function rangeFromLocator(locator) {
     if (text && text.highlight) {
       var root;
       if (locations && locations.cssSelector) {
-        root = document.querySelector(locations.cssSelector);
+        try {
+          const range = rangeFromCachedLocator(locator);
+          return range;
+        } catch {
+          root = document.querySelector(locations.cssSelector);
+        }
       }
       if (!root) {
         root = document.body;
