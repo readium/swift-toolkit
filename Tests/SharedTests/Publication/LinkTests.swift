@@ -283,105 +283,64 @@ class LinkTests: XCTestCase {
     }
 
     func testExpandSimpleStringTemplates() {
+        var link = Link(
+            href: "/url{x,hello,y}name{z,y,w}",
+            templated: true
+        )
+        link.expandTemplate(with: [
+            "x": "aaa",
+            "hello": "Hello, world",
+            "y": "b",
+            "z": "45",
+            "w": "w",
+        ])
+
         XCTAssertEqual(
-            Link(
-                href: "/url{x,hello,y}name{z,y,w}",
-                templated: true
-            ).expandTemplate(with: [
-                "x": "aaa",
-                "hello": "Hello, world",
-                "y": "b",
-                "z": "45",
-                "w": "w",
-            ]),
+            link,
             Link(href: "/urlaaa,Hello,%20world,bname45,b,w")
         )
     }
 
     func testExpandFormStyleAmpersandSeparatedTemplates() {
+        var link = Link(
+            href: "/url{?x,hello,y}name",
+            templated: true
+        )
+        link.expandTemplate(with: [
+            "x": "aaa",
+            "hello": "Hello, world",
+            "y": "b",
+        ])
         XCTAssertEqual(
-            Link(
-                href: "/url{?x,hello,y}name",
-                templated: true
-            ).expandTemplate(with: [
-                "x": "aaa",
-                "hello": "Hello, world",
-                "y": "b",
-            ]),
+            link,
             Link(href: "/url?x=aaa&hello=Hello,%20world&y=bname")
         )
     }
 
     func testExpandIgnoresExtraParameters() {
+        var link = Link(
+            href: "/path{?search}",
+            templated: true
+        )
+        link.expandTemplate(with: [
+            "search": "banana",
+            "code": "14",
+        ])
         XCTAssertEqual(
-            Link(
-                href: "/path{?search}",
-                templated: true
-            ).expandTemplate(with: [
-                "search": "banana",
-                "code": "14",
-            ]),
+            link,
             Link(href: "/path?search=banana")
         )
     }
 
-    func testCopy() {
-        let link = fullLink
-
-        AssertJSONEqual(link.json, link.copy().json)
-
-        let copy = link.copy(
-            href: "copy-href",
-            type: "copy-type",
-            templated: !link.templated,
-            title: "copy-title",
-            rels: ["copy-rel"],
-            properties: Properties(["copy": true]),
-            height: 923,
-            width: 482,
-            bitrate: 28.42,
-            duration: 542.2,
-            languages: ["copy-language"],
-            alternates: [Link(href: "copy-alternate")],
-            children: [Link(href: "copy-children")]
-        )
-
-        AssertJSONEqual(
-            copy.json,
-            [
-                "href": "copy-href",
-                "type": "copy-type",
-                "templated": !link.templated,
-                "title": "copy-title",
-                "rel": ["copy-rel"],
-                "properties": [
-                    "copy": true,
-                ],
-                "height": 923,
-                "width": 482,
-                "bitrate": 28.42,
-                "duration": 542.2,
-                "language": ["copy-language"],
-                "alternate": [
-                    ["href": "copy-alternate", "templated": false] as [String: Any],
-                ],
-                "children": [
-                    ["href": "copy-children", "templated": false] as [String: Any],
-                ],
-            ] as [String: Any]
-        )
-    }
-
-    func testAddingProperties() {
-        let link = fullLink
-
-        let copy = link.addingProperties([
+    func testAddProperties() {
+        var link = fullLink
+        link.addProperties([
             "additional": "property",
             "orientation": "override",
         ])
 
         AssertJSONEqual(
-            copy.json,
+            link.json,
             [
                 "href": "http://href",
                 "type": "application/pdf",

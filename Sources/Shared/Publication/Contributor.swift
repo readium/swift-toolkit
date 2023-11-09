@@ -10,23 +10,23 @@ import ReadiumInternal
 /// https://readium.org/webpub-manifest/schema/contributor-object.schema.json
 public struct Contributor: Hashable {
     /// The name of the contributor.
-    public let localizedName: LocalizedString
+    public var localizedName: LocalizedString
     public var name: String { localizedName.string }
 
     /// An unambiguous reference to this contributor.
-    public let identifier: String?
+    public var identifier: String?
 
     /// The string used to sort the name of the contributor.
-    public let sortAs: String?
+    public var sortAs: String?
 
     /// The role of the contributor in the publication making.
-    public let roles: [String]
+    public var roles: [String]
 
     /// The position of the publication in this collection/series, when the contributor represents a collection.
-    public let position: Double?
+    public var position: Double?
 
     /// Used to retrieve similar publications for the given contributor.
-    public let links: [Link]
+    public var links: [Link]
 
     public init(name: LocalizedStringConvertible, identifier: String? = nil, sortAs: String? = nil, roles: [String] = [], role: String? = nil, position: Double? = nil, links: [Link] = []) {
         // convenience to set a single role during construction

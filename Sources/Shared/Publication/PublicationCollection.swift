@@ -11,15 +11,18 @@ import ReadiumInternal
 /// https://readium.org/webpub-manifest/schema/subcollection.schema.json
 /// Can be used as extension point in the Readium Web Publication Manifest.
 public struct PublicationCollection: JSONEquatable, Hashable {
-    public var metadata: [String: Any] { metadataJSON.json }
+    public var metadata: [String: Any] {
+        get { metadataJSON.json }
+        set { metadataJSON = JSONDictionary(newValue) ?? JSONDictionary() }
+    }
 
-    public let links: [Link]
+    public var links: [Link]
 
     /// Subcollections indexed by their role in this collection.
-    public let subcollections: [String: [PublicationCollection]]
+    public var subcollections: [String: [PublicationCollection]]
 
     // Trick to keep the struct hashable despite [String: Any]
-    private let metadataJSON: JSONDictionary
+    private var metadataJSON: JSONDictionary
 
     public init(metadata: [String: Any] = [:], links: [Link], subcollections: [String: [PublicationCollection]] = [:]) {
         metadataJSON = JSONDictionary(metadata) ?? JSONDictionary()

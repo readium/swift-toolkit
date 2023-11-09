@@ -1012,10 +1012,11 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     }
 
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, clickEvent: ClickEvent?) {
-        guard let link = publication.link(withHREF: href)?.copy(href: href) else {
+        guard var link = publication.link(withHREF: href) else {
             log(.warning, "Cannot find link with HREF: \(href)")
             return
         }
+        link.href = href
 
         // Check to see if this was a noteref link and give delegate the opportunity to display it.
         if

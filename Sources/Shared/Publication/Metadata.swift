@@ -13,52 +13,56 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
     /// For convenience, the JSON schema reuse the Contributor's definition.
     public typealias Collection = Contributor
 
-    public let identifier: String? // URI
-    public let type: String? // URI (@type)
-    public let conformsTo: [Publication.Profile]
+    public var identifier: String? // URI
+    public var type: String? // URI (@type)
+    public var conformsTo: [Publication.Profile]
 
-    public let localizedTitle: LocalizedString
+    public var localizedTitle: LocalizedString
     public var title: String { localizedTitle.string }
 
-    public let localizedSubtitle: LocalizedString?
+    public var localizedSubtitle: LocalizedString?
     public var subtitle: String? { localizedSubtitle?.string }
 
-    public let accessibility: Accessibility?
-    public let modified: Date?
-    public let published: Date?
-    public let languages: [String] // BCP 47 tag
+    public var accessibility: Accessibility?
+    public var modified: Date?
+    public var published: Date?
+    public var languages: [String] // BCP 47 tag
     // Main language of the publication.
-    public let language: Language?
-    public let sortAs: String?
-    public let subjects: [Subject]
-    public let authors: [Contributor]
-    public let translators: [Contributor]
-    public let editors: [Contributor]
-    public let artists: [Contributor]
-    public let illustrators: [Contributor]
-    public let letterers: [Contributor]
-    public let pencilers: [Contributor]
-    public let colorists: [Contributor]
-    public let inkers: [Contributor]
-    public let narrators: [Contributor]
-    public let contributors: [Contributor]
-    public let publishers: [Contributor]
-    public let imprints: [Contributor]
-    public let description: String?
-    public let duration: Double?
-    public let numberOfPages: Int?
-    public let belongsTo: [String: [Collection]]
+    public var language: Language?
+    public var sortAs: String?
+    public var subjects: [Subject]
+    public var authors: [Contributor]
+    public var translators: [Contributor]
+    public var editors: [Contributor]
+    public var artists: [Contributor]
+    public var illustrators: [Contributor]
+    public var letterers: [Contributor]
+    public var pencilers: [Contributor]
+    public var colorists: [Contributor]
+    public var inkers: [Contributor]
+    public var narrators: [Contributor]
+    public var contributors: [Contributor]
+    public var publishers: [Contributor]
+    public var imprints: [Contributor]
+    public var description: String?
+    public var duration: Double?
+    public var numberOfPages: Int?
+    public var belongsTo: [String: [Collection]]
 
-    /// WARNING: This contains the reading progression as declared in the manifest, so it might be
-    /// `auto`. To know the effective reading progression used to lay out the content, use
+    /// WARNING: This contains the reading progression as declared in the
+    /// manifest, so it might be `auto`. To know the effective reading
+    /// progression used to lay out the content, use
     /// `effectiveReadingProgression` instead.
-    public let readingProgression: ReadingProgression
+    public var readingProgression: ReadingProgression
 
     /// Additional properties for extensions.
-    public var otherMetadata: [String: Any] { otherMetadataJSON.json }
+    public var otherMetadata: [String: Any] {
+        get { otherMetadataJSON.json }
+        set { otherMetadataJSON = JSONDictionary(newValue) ?? JSONDictionary() }
+    }
 
     // Trick to keep the struct equatable despite [String: Any]
-    private let otherMetadataJSON: JSONDictionary
+    private var otherMetadataJSON: JSONDictionary
 
     public init(
         identifier: String? = nil,
@@ -249,6 +253,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
     }
 
     /// Makes a copy of the `Metadata`, after modifying some of its properties.
+    @available(*, deprecated, message: "Make a mutable copy of the struct instead")
     public func copy(
         identifier: String?? = nil,
         type: String?? = nil,

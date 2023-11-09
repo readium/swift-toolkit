@@ -28,7 +28,7 @@ public final class ImageParser: PublicationParser {
         }
 
         // First valid resource is the cover.
-        readingOrder[0] = readingOrder[0].copy(rels: [.cover])
+        readingOrder[0].rels = [.cover]
 
         return Publication.Builder(
             mediaType: .cbz,

@@ -12,24 +12,24 @@ import ReadiumInternal
 ///
 /// See. https://readium.org/webpub-manifest/
 public struct Manifest: JSONEquatable, Hashable {
-    public let context: [String] // @context
+    public var context: [String] // @context
 
-    public let metadata: Metadata
+    public var metadata: Metadata
 
-    // FIXME: should not be mutable, but we need it to set `self` in the publication server
     public var links: [Link]
 
     /// Identifies a list of resources in reading order for the publication.
-    public let readingOrder: [Link]
+    public var readingOrder: [Link]
 
     /// Identifies resources that are necessary for rendering the publication.
-    public let resources: [Link]
+    public var resources: [Link]
 
-    public let subcollections: [String: [PublicationCollection]]
+    public var subcollections: [String: [PublicationCollection]]
 
     /// Identifies the collection that contains a table of contents.
     public var tableOfContents: [Link] {
-        subcollections["toc"]?.first?.links ?? []
+        get { subcollections["toc"]?.first?.links ?? [] }
+        set { subcollections["toc"] = [PublicationCollection(links: newValue)] }
     }
 
     public init(context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], subcollections: [String: [PublicationCollection]] = [:]) {
@@ -75,9 +75,12 @@ public struct Manifest: JSONEquatable, Hashable {
         links = [Link](json: json.pop("links"), warnings: warnings, normalizeHREF: normalizer)
             // If the manifest is packaged, replace any `self` link by an `alternate`.
             .map { link in
-                (isPackaged && link.rels.contains(.self))
-                    ? link.copy(rels: link.rels.removing(.self).appending(.alternate))
-                    : link
+                var link = link
+                if isPackaged, link.rels.contains(.self) {
+                    link.rels.remove(.self)
+                    link.rels.append(.alternate)
+                }
+                return link
             }
 
         // `readingOrder` used to be `spine`, so we parse `spine` as a fallback.
@@ -167,6 +170,7 @@ public struct Manifest: JSONEquatable, Hashable {
     }
 
     /// Makes a copy of the `Manifest`, after modifying some of its properties.
+    @available(*, deprecated, message: "Make a mutable copy of the struct instead")
     public func copy(
         context: [String]? = nil,
         metadata: Metadata? = nil,

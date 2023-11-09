@@ -11,10 +11,13 @@ import ReadiumInternal
 /// https://readium.org/webpub-manifest/schema/properties.schema.json
 public struct Properties: Hashable, Loggable, WarningLogger {
     /// Additional properties for extensions.
-    public var otherProperties: [String: Any] { otherPropertiesJSON.json }
+    public var otherProperties: [String: Any] {
+        get { otherPropertiesJSON.json }
+        set { otherPropertiesJSON = JSONDictionary(newValue) ?? JSONDictionary() }
+    }
 
     // Trick to keep the struct equatable despite [String: Any]
-    private let otherPropertiesJSON: JSONDictionary
+    private var otherPropertiesJSON: JSONDictionary
 
     public init(_ otherProperties: [String: Any] = [:]) {
         otherPropertiesJSON = JSONDictionary(otherProperties) ?? JSONDictionary()
@@ -41,8 +44,16 @@ public struct Properties: Hashable, Loggable, WarningLogger {
         otherProperties[key]
     }
 
+    /// Merges in the given additional other `properties`.
+    public mutating func add(_ properties: [String: Any]) {
+        otherPropertiesJSON.json.merge(properties, uniquingKeysWith: { _, second in second })
+    }
+
     /// Makes a copy of this `Properties` after merging in the given additional other `properties`.
+    @available(*, deprecated, message: "Use `add` on a mutable copy")
     public func adding(_ properties: [String: Any]) -> Properties {
-        Properties(otherProperties.merging(properties, uniquingKeysWith: { _, second in second }))
+        var copy = self
+        copy.add(properties)
+        return copy
     }
 }

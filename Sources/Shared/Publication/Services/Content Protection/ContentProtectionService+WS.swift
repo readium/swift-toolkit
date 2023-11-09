@@ -12,11 +12,12 @@ public extension ContentProtectionService {
         handlers.map(\.routeLink)
     }
 
-    func get(link: Link) -> Resource? {
-        guard let handler = handlers.first(where: { $0.accepts(link: link) }) else {
+    func get(link requestedLink: Link) -> Resource? {
+        guard let handler = handlers.first(where: { $0.accepts(link: requestedLink) }) else {
             return nil
         }
-        let link = handler.routeLink.copy(href: link.href)
+        var link = handler.routeLink
+        link.href = requestedLink.href
 
         let response: ResourceResult<String> = handler.handle(link: link, for: self)
             .flatMap {

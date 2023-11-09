@@ -245,7 +245,9 @@ public class HTMLResourceContentIterator: ContentIterator {
                                     }
                                 }
 
-                            return sources.first?.copy(alternates: Array(sources.dropFirst(1)))
+                            var link = sources.first
+                            link?.alternates = Array(sources.dropFirst(1))
+                            return link
                         }
                     }()
 

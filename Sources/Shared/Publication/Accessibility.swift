@@ -13,40 +13,40 @@ import ReadiumInternal
 /// https://readium.org/webpub-manifest/schema/a11y.schema.json
 public struct Accessibility: Hashable {
     /// An established standard to which the described resource conforms.
-    public let conformsTo: [Profile]
+    public var conformsTo: [Profile]
 
     /// Certification of accessible publications.
-    public let certification: Certification?
+    public var certification: Certification?
 
     /// A human-readable summary of specific accessibility features or deficiencies, consistent with the other
     /// accessibility metadata but expressing subtleties such as "short descriptions are present but long descriptions
     /// will be needed for non-visual users" or "short descriptions are present and no long descriptions are needed."
     ///
     /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessibilitySummary
-    public let summary: String?
+    public var summary: String?
 
     /// The human sensory perceptual system or cognitive faculty through which a person may process or perceive
     /// information.
     ///
     /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessMode
-    public let accessModes: [AccessMode]
+    public var accessModes: [AccessMode]
 
     /// A list of single or combined accessModes that are sufficient to understand all the intellectual content of a
     /// resource.
     ///
     /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessModeSufficient
-    public let accessModesSufficient: [[PrimaryAccessMode]]
+    public var accessModesSufficient: [[PrimaryAccessMode]]
 
     /// Content features of the resource, such as accessible media, alternatives and supported enhancements for
     /// accessibility.
     ///
     /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessibilityFeature
-    public let features: [Feature]
+    public var features: [Feature]
 
     /// A characteristic of the described resource that is physiologically dangerous to some users.
     ///
     /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessibilityHazard
-    public let hazards: [Hazard]
+    public var hazards: [Hazard]
 
     /// Accessibility profile.
     public struct Profile: Hashable {
@@ -68,19 +68,19 @@ public struct Accessibility: Hashable {
         /// Identifies a party responsible for the testing and certification of the accessibility of a Publication.
         ///
         /// https://www.w3.org/TR/epub-a11y/#certifiedBy
-        public let certifiedBy: String?
+        public var certifiedBy: String?
 
         /// Identifies a credential or badge that establishes the authority of the party identified in the associated
         /// `certifiedBy` property to certify content accessible.
         ///
         /// https://www.w3.org/TR/epub-a11y/#certifierCredential
-        public let credential: String?
+        public var credential: String?
 
         /// Provides a link to an accessibility report created by the party identified in the associated certifiedBy
         /// property.
         ///
         /// https://www.w3.org/TR/epub-a11y/#certifierReport
-        public let report: String?
+        public var report: String?
 
         public init(certifiedBy: String? = nil, credential: String? = nil, report: String? = nil) {
             self.certifiedBy = certifiedBy

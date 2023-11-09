@@ -51,7 +51,11 @@ public final class ArchiveFetcher: Fetcher, Loggable {
     public func close() {}
 
     private final class ArchiveResource: Resource {
-        lazy var link: Link = originalLink.addingProperties(entry.linkProperties)
+        lazy var link: Link = {
+            var link = originalLink
+            link.addProperties(entry.linkProperties)
+            return link
+        }()
 
         var file: FileURL? { reader.file }
 
