@@ -29,7 +29,13 @@ public struct Manifest: JSONEquatable, Hashable {
     /// Identifies the collection that contains a table of contents.
     public var tableOfContents: [Link] {
         get { subcollections["toc"]?.first?.links ?? [] }
-        set { subcollections["toc"] = [PublicationCollection(links: newValue)] }
+        set {
+            if newValue.isEmpty {
+                subcollections.removeValue(forKey: "toc")
+            } else {
+                subcollections["toc"] = [PublicationCollection(links: newValue)]
+            }
+        }
     }
 
     public init(
