@@ -50,7 +50,7 @@ public final class PDFParser: PublicationParser, Loggable {
             manifest: Manifest(
                 metadata: Metadata(
                     identifier: document.identifier,
-                    title: document.title ?? asset.name,
+                    title: document.title,
                     authors: authors,
                     readingProgression: document.readingProgression ?? .auto,
                     numberOfPages: document.pageCount

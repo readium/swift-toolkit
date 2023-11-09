@@ -143,7 +143,6 @@ class OPFParserTests: XCTestCase {
         let parts = try OPFParser(
             baseURL: XCTUnwrap(RelativeURL(path: path)),
             data: fixtures.data(at: "\(name).opf"),
-            fallbackTitle: "title",
             displayOptionsData: displayOptions.map { fixtures.data(at: "\($0).xml") },
             encryptions: [:]
         ).parsePublication()

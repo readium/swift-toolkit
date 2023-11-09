@@ -35,10 +35,6 @@ final class OPFParser: Loggable {
     /// DOM representation of the OPF file.
     private let document: Fuzi.XMLDocument
 
-    /// EPUB title which will be used as a fallback if we can't parse one. Title is mandatory in
-    /// RWPM.
-    private let fallbackTitle: String
-
     /// iBooks Display Options XML file to use as a fallback for metadata.
     /// See https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#epub-2x-9
     private let displayOptions: Fuzi.XMLDocument?
@@ -49,9 +45,8 @@ final class OPFParser: Loggable {
     /// Encryption information, indexed by resource HREF.
     private let encryptions: [RelativeURL: Encryption]
 
-    init(baseURL: RelativeURL, data: Data, fallbackTitle: String, displayOptionsData: Data? = nil, encryptions: [RelativeURL: Encryption]) throws {
+    init(baseURL: RelativeURL, data: Data, displayOptionsData: Data? = nil, encryptions: [RelativeURL: Encryption]) throws {
         self.baseURL = baseURL
-        self.fallbackTitle = fallbackTitle
         document = try Fuzi.XMLDocument(data: data)
         document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
         displayOptions = (displayOptionsData.map { try? Fuzi.XMLDocument(data: $0) }) ?? nil
@@ -59,11 +54,10 @@ final class OPFParser: Loggable {
         self.encryptions = encryptions
     }
 
-    convenience init(fetcher: Fetcher, opfHREF: RelativeURL, fallbackTitle: String, encryptions: [RelativeURL: Encryption] = [:]) throws {
+    convenience init(fetcher: Fetcher, opfHREF: RelativeURL, encryptions: [RelativeURL: Encryption] = [:]) throws {
         try self.init(
             baseURL: opfHREF,
             data: fetcher.readData(at: opfHREF),
-            fallbackTitle: fallbackTitle,
             displayOptionsData: {
                 let iBooksHREF = AnyURL(string: "META-INF/com.apple.ibooks.display-options.xml")!
                 let koboHREF = AnyURL(string: "META-INF/com.kobobooks.display-options.xml")!
@@ -80,7 +74,7 @@ final class OPFParser: Loggable {
     func parsePublication() throws -> (version: String, metadata: Metadata, readingOrder: [Link], resources: [Link]) {
         let links = parseLinks()
         let (resources, readingOrder) = splitResourcesAndReadingOrderLinks(links)
-        let metadata = EPUBMetadataParser(document: document, fallbackTitle: fallbackTitle, displayOptions: displayOptions, metas: metas)
+        let metadata = EPUBMetadataParser(document: document, displayOptions: displayOptions, metas: metas)
 
         return try (
             version: parseEPUBVersion(),

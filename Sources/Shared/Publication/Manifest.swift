@@ -32,7 +32,15 @@ public struct Manifest: JSONEquatable, Hashable {
         set { subcollections["toc"] = [PublicationCollection(links: newValue)] }
     }
 
-    public init(context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], subcollections: [String: [PublicationCollection]] = [:]) {
+    public init(
+        context: [String] = [],
+        metadata: Metadata = Metadata(),
+        links: [Link] = [],
+        readingOrder: [Link] = [],
+        resources: [Link] = [],
+        tableOfContents: [Link] = [],
+        subcollections: [String: [PublicationCollection]] = [:]
+    ) {
         // Convenience to set the table of contents during construction
         var subcollections = subcollections
         if !tableOfContents.isEmpty {

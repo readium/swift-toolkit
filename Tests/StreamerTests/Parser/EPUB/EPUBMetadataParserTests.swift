@@ -363,7 +363,6 @@ class EPUBMetadataParserTests: XCTestCase {
         let document = try parseDocument(named: name, type: "opf")
         return try EPUBMetadataParser(
             document: document,
-            fallbackTitle: "title",
             displayOptions: displayOptions.map { try parseDocument(named: $0, type: "xml") },
             metas: OPFMetaList(document: document)
         ).parse()

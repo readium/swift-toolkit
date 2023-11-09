@@ -17,8 +17,8 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
     public var type: String? // URI (@type)
     public var conformsTo: [Publication.Profile]
 
-    public var localizedTitle: LocalizedString
-    public var title: String { localizedTitle.string }
+    public var localizedTitle: LocalizedString?
+    public var title: String? { localizedTitle?.string }
 
     public var localizedSubtitle: LocalizedString?
     public var subtitle: String? { localizedSubtitle?.string }
@@ -68,7 +68,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         identifier: String? = nil,
         type: String? = nil,
         conformsTo: [Publication.Profile] = [],
-        title: LocalizedStringConvertible,
+        title: LocalizedStringConvertible? = nil,
         subtitle: LocalizedStringConvertible? = nil,
         accessibility: Accessibility? = nil,
         modified: Date? = nil,
@@ -101,7 +101,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         self.identifier = identifier
         self.type = type
         self.conformsTo = conformsTo
-        localizedTitle = title.localizedString
+        localizedTitle = title?.localizedString
         localizedSubtitle = subtitle?.localizedString
         self.accessibility = accessibility
         self.modified = modified
@@ -188,7 +188,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
             "identifier": encodeIfNotNil(identifier),
             "@type": encodeIfNotNil(type),
             "conformsTo": encodeIfNotEmpty(conformsTo.map(\.uri)),
-            "title": localizedTitle.json,
+            "title": encodeIfNotNil(localizedTitle?.json),
             "subtitle": encodeIfNotNil(localizedSubtitle?.json),
             "accessibility": encodeIfNotEmpty(accessibility?.json),
             "modified": encodeIfNotNil(modified?.iso8601),

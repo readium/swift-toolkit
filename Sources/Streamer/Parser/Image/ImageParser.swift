@@ -35,7 +35,7 @@ public final class ImageParser: PublicationParser {
             manifest: Manifest(
                 metadata: Metadata(
                     conformsTo: [.divina],
-                    title: fetcher.guessTitle(ignoring: ignores) ?? asset.name
+                    title: fetcher.guessTitle(ignoring: ignores)
                 ),
                 readingOrder: readingOrder
             ),

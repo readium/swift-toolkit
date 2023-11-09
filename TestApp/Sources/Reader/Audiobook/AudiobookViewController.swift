@@ -81,7 +81,7 @@ class AudiobookViewController: ReaderViewController<_AudioNavigator>, _AudioNavi
 
     private func setupCommandCenterControls() {
         NowPlayingInfo.shared.media = .init(
-            title: publication.metadata.title,
+            title: publication.metadata.title ?? "",
             artist: publication.metadata.authors.map(\.name).joined(separator: ", "),
             artwork: publication.cover
         )
@@ -149,7 +149,7 @@ class AudiobookViewController: ReaderViewController<_AudioNavigator>, _AudioNavi
 
         // Initial publication metadata.
         nowPlaying.media = NowPlayingInfo.Media(
-            title: publication.metadata.title,
+            title: publication.metadata.title ?? "",
             artist: publication.metadata.authors.map(\.name).joined(separator: ", "),
             chapterCount: publication.readingOrder.count
         )

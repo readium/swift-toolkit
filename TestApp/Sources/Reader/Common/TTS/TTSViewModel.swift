@@ -144,7 +144,7 @@ final class TTSViewModel: ObservableObject, Loggable {
 
     private func setupNowPlaying() {
         NowPlayingInfo.shared.media = .init(
-            title: publication.metadata.title,
+            title: publication.metadata.title ?? "",
             artist: publication.metadata.authors.map(\.name).joined(separator: ", "),
             artwork: publication.cover
         )
