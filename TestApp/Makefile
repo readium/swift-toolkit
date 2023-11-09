@@ -26,6 +26,7 @@ clean:
 	@rm -rf Pods
 	@rm -rf TestApp.xcodeproj
 	@rm -rf TestApp.xcworkspace
+	@rm -rf TestApp.xctestplan
 	@rm -rf R2LCPClient
 
 spm: clean
@@ -84,7 +85,8 @@ ifdef lcp
 else
 	@cp Integrations/Local/project.yml .
 endif
-	xcodegen generate
 	@cp -r Integrations/Local/TestApp.xcworkspace .
+	@cp -r Integrations/Local/TestApp.xctestplan .
+	xcodegen generate
 	@echo "\nopen TestApp.xcworkspace"
 
