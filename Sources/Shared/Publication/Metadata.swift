@@ -140,7 +140,10 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         otherMetadataJSON = JSONDictionary(otherMetadata) ?? JSONDictionary()
     }
 
-    public init(json: Any?, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) throws {
+    public init(
+        json: Any?,
+        warnings: WarningLogger? = nil
+    ) throws {
         guard var json = JSONDictionary(json),
               let title = try? LocalizedString(json: json.pop("title"), warnings: warnings)
         else {
@@ -160,25 +163,25 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         language = languages.first.map { Language(code: .bcp47($0)) }
         sortAs = json.pop("sortAs") as? String
         subjects = [Subject](json: json.pop("subject"), warnings: warnings)
-        authors = [Contributor](json: json.pop("author"), warnings: warnings, normalizeHREF: normalizeHREF)
-        translators = [Contributor](json: json.pop("translator"), warnings: warnings, normalizeHREF: normalizeHREF)
-        editors = [Contributor](json: json.pop("editor"), warnings: warnings, normalizeHREF: normalizeHREF)
-        artists = [Contributor](json: json.pop("artist"), warnings: warnings, normalizeHREF: normalizeHREF)
-        illustrators = [Contributor](json: json.pop("illustrator"), warnings: warnings, normalizeHREF: normalizeHREF)
-        letterers = [Contributor](json: json.pop("letterer"), warnings: warnings, normalizeHREF: normalizeHREF)
-        pencilers = [Contributor](json: json.pop("penciler"), warnings: warnings, normalizeHREF: normalizeHREF)
-        colorists = [Contributor](json: json.pop("colorist"), warnings: warnings, normalizeHREF: normalizeHREF)
-        inkers = [Contributor](json: json.pop("inker"), warnings: warnings, normalizeHREF: normalizeHREF)
-        narrators = [Contributor](json: json.pop("narrator"), warnings: warnings, normalizeHREF: normalizeHREF)
-        contributors = [Contributor](json: json.pop("contributor"), warnings: warnings, normalizeHREF: normalizeHREF)
-        publishers = [Contributor](json: json.pop("publisher"), warnings: warnings, normalizeHREF: normalizeHREF)
-        imprints = [Contributor](json: json.pop("imprint"), warnings: warnings, normalizeHREF: normalizeHREF)
+        authors = [Contributor](json: json.pop("author"), warnings: warnings)
+        translators = [Contributor](json: json.pop("translator"), warnings: warnings)
+        editors = [Contributor](json: json.pop("editor"), warnings: warnings)
+        artists = [Contributor](json: json.pop("artist"), warnings: warnings)
+        illustrators = [Contributor](json: json.pop("illustrator"), warnings: warnings)
+        letterers = [Contributor](json: json.pop("letterer"), warnings: warnings)
+        pencilers = [Contributor](json: json.pop("penciler"), warnings: warnings)
+        colorists = [Contributor](json: json.pop("colorist"), warnings: warnings)
+        inkers = [Contributor](json: json.pop("inker"), warnings: warnings)
+        narrators = [Contributor](json: json.pop("narrator"), warnings: warnings)
+        contributors = [Contributor](json: json.pop("contributor"), warnings: warnings)
+        publishers = [Contributor](json: json.pop("publisher"), warnings: warnings)
+        imprints = [Contributor](json: json.pop("imprint"), warnings: warnings)
         readingProgression = parseRaw(json.pop("readingProgression")) ?? .auto
         description = json.pop("description") as? String
         duration = parsePositiveDouble(json.pop("duration"))
         numberOfPages = parsePositive(json.pop("numberOfPages"))
         belongsTo = (json.pop("belongsTo") as? [String: Any])?
-            .compactMapValues { item in [Collection](json: item, warnings: warnings, normalizeHREF: normalizeHREF) }
+            .compactMapValues { item in [Collection](json: item, warnings: warnings) }
             ?? [:]
         otherMetadataJSON = json
     }

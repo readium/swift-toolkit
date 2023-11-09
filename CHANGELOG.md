@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Shared
 
 * `Publication.localizedTitle` is now optional, as we cannot guarantee a publication will always have a title.
+* Links are not resolved to the `self` URL of a manifest anymore. However, you can still normalize the HREFs yourselves by calling `Manifest.normalizeToHREFsToSelf()`.
 
 
 ## [2.6.1]

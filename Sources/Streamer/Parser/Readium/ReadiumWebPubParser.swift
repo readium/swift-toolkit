@@ -31,7 +31,11 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         self.epubReflowablePositionsStrategy = epubReflowablePositionsStrategy
     }
 
-    public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
+    public func parse(
+        asset: PublicationAsset,
+        fetcher: Fetcher,
+        warnings: WarningLogger?
+    ) throws -> Publication.Builder? {
         guard let mediaType = asset.mediaType(), mediaType.isReadiumWebPubProfile else {
             return nil
         }
@@ -48,7 +52,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             throw Error.manifestNotFound
         }
 
-        let manifest = try Manifest(json: JSONSerialization.jsonObject(with: manifestData), isPackaged: isPackage)
+        let manifest = try Manifest(json: JSONSerialization.jsonObject(with: manifestData))
         var fetcher = fetcher
 
         // For a manifest, we discard the `fetcher` provided by the Streamer, because it was only

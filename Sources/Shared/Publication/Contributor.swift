@@ -43,7 +43,7 @@ public struct Contributor: Hashable {
         self.links = links
     }
 
-    public init?(json: Any, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) throws {
+    public init?(json: Any, warnings: WarningLogger? = nil) throws {
         if let name = json as? String {
             self.init(name: name)
 
@@ -54,7 +54,7 @@ public struct Contributor: Hashable {
                 sortAs: json["sortAs"] as? String,
                 roles: parseArray(json["role"], allowingSingle: true),
                 position: parseDouble(json["position"]),
-                links: .init(json: json["links"], warnings: warnings, normalizeHREF: normalizeHREF)
+                links: .init(json: json["links"], warnings: warnings)
             )
 
         } else {
@@ -78,16 +78,16 @@ public struct Contributor: Hashable {
 public extension Array where Element == Contributor {
     /// Parses multiple JSON contributors into an array of Contributors.
     /// eg. let authors = [Contributor](json: ["Apple", "Pear"])
-    init(json: Any?, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) {
+    init(json: Any?, warnings: WarningLogger? = nil) {
         self.init()
         guard let json = json else {
             return
         }
 
         if let json = json as? [Any] {
-            let contributors = json.compactMap { try? Contributor(json: $0, warnings: warnings, normalizeHREF: normalizeHREF) }
+            let contributors = json.compactMap { try? Contributor(json: $0, warnings: warnings) }
             append(contentsOf: contributors)
-        } else if let contributor = try? Contributor(json: json, warnings: warnings, normalizeHREF: normalizeHREF) {
+        } else if let contributor = try? Contributor(json: json, warnings: warnings) {
             append(contributor)
         }
     }

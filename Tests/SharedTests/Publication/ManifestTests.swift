@@ -169,34 +169,6 @@ class ManifestTests: XCTestCase {
         )
     }
 
-    /// The `Link`s' hrefs are normalized to the `self` link for a RWPM.
-    func testHrefsAreNormalizedToSelfForManifests() {
-        let json: Any = fixtures.json(at: "flatland-href.json")
-
-        XCTAssertEqual(
-            try Manifest(json: json, isPackaged: false).readingOrder.map(\.href),
-            [
-                "http://www.archive.org/download/flatland_rg_librivox/flatland_1_abbott.mp3",
-                "https://readium.org/webpub-manifest/examples/Flatland/flatland_2_abbott.mp3",
-                "https://readium.org/webpub-manifest/examples/Flatland/directory/flatland_2_abbott.mp3",
-                "https://readium.org/flatland_3_abbott.mp3",
-                "https://readium.org/directory/flatland_4_abbott.mp3",
-                "https://readium.org/webpub-manifest/examples/flatland_5_abbott.mp3",
-            ]
-        )
-    }
-
-    /// The `Link` with `self` relation is converted to an `alternate` for a package.
-    func testSelfBecomesAlternateForPackages() throws {
-        let json: Any = fixtures.json(at: "flatland-href.json")
-        let manifest = try Manifest(json: json, isPackaged: true)
-
-        XCTAssertNil(manifest.link(withRel: .self))
-        XCTAssertEqual(manifest.links(withRel: .alternate), [
-            Link(href: "https://readium.org/webpub-manifest/examples/Flatland/manifest.json", type: "application/audiobook+json", rels: ["other", .alternate]),
-        ])
-    }
-
     func testGetMinimalJSON() {
         AssertJSONEqual(
             Manifest(
@@ -315,56 +287,6 @@ class ManifestTests: XCTestCase {
                 Link(href: "l2"),
             ]).links(withRel: "rel1"),
             []
-        )
-    }
-
-    func testCopy() {
-        let manifest = Manifest(
-            context: ["https://readium.org/webpub-manifest/context.jsonld"],
-            metadata: Metadata(title: "Title"),
-            links: [Link(href: "manifest.json", rels: [.self])],
-            readingOrder: [Link(href: "chap1.html", type: "text/html")],
-            resources: [Link(href: "image.png", type: "image/png")],
-            tableOfContents: [Link(href: "cover.html"), Link(href: "chap1.html")],
-            subcollections: ["sub": [PublicationCollection(links: [Link(href: "sublink")])]]
-        )
-
-        AssertJSONEqual(manifest.json, manifest.copy().json)
-
-        let copy = manifest.copy(
-            context: ["copy-context"],
-            metadata: Metadata(title: "copy-title"),
-            links: [Link(href: "copy-links")],
-            readingOrder: [Link(href: "copy-reading-order")],
-            resources: [Link(href: "copy-resources")],
-            tableOfContents: [Link(href: "copy-toc")],
-            subcollections: ["copy": [PublicationCollection(links: [])]]
-        )
-
-        AssertJSONEqual(
-            copy.json,
-            [
-                "@context": ["copy-context"],
-                "metadata": [
-                    "title": "copy-title",
-                    "readingProgression": "auto",
-                ],
-                "links": [
-                    ["href": "copy-links", "templated": false] as [String: Any],
-                ],
-                "readingOrder": [
-                    ["href": "copy-reading-order", "templated": false] as [String: Any],
-                ],
-                "resources": [
-                    ["href": "copy-resources", "templated": false] as [String: Any],
-                ],
-                "toc": [
-                    ["href": "copy-toc", "templated": false] as [String: Any],
-                ],
-                "copy": [
-                    "links": [] as [Any],
-                ],
-            ] as [String: Any]
         )
     }
 

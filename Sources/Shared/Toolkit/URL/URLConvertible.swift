@@ -24,3 +24,9 @@ public extension URLConvertible {
     var relativeURL: RelativeURL? { anyURL.relativeURL }
     var absoluteURL: AbsoluteURL? { anyURL.absoluteURL }
 }
+
+extension URL: URLConvertible {
+    public var anyURL: AnyURL {
+        AnyURL(url: self)
+    }
+}

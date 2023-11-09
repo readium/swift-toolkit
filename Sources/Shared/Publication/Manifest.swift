@@ -65,46 +65,24 @@ public struct Manifest: JSONEquatable, Hashable {
     /// https://readium.org/webpub-manifest/schema/publication.schema.json
     ///
     /// If a non-fatal parsing error occurs, it will be logged through `warnings`.
-    public init(json: Any, isPackaged: Bool = false, warnings: WarningLogger? = nil) throws {
+    public init(json: Any, warnings: WarningLogger? = nil) throws {
         guard var json = JSONDictionary(json) else {
             throw JSONError.parsing(Publication.self)
         }
 
-        let baseHREF: AnyURL? = isPackaged ? nil : (
-            [Link](json: json.json["links"], warnings: warnings)
-                .first(withRel: .self)
-                .flatMap { AnyURL(string: $0.href) }
-        )
-
-        let normalizer: (String) -> String = {
-            guard let uri = AnyURL(string: $0) else {
-                return $0
-            }
-            return baseHREF?.resolve(uri)?.string ?? $0
-        }
-
         context = parseArray(json.pop("@context"), allowingSingle: true)
-        metadata = try Metadata(json: json.pop("metadata"), warnings: warnings, normalizeHREF: normalizer)
+        metadata = try Metadata(json: json.pop("metadata"), warnings: warnings)
 
-        links = [Link](json: json.pop("links"), warnings: warnings, normalizeHREF: normalizer)
-            // If the manifest is packaged, replace any `self` link by an `alternate`.
-            .map { link in
-                var link = link
-                if isPackaged, link.rels.contains(.self) {
-                    link.rels.remove(.self)
-                    link.rels.append(.alternate)
-                }
-                return link
-            }
+        links = [Link](json: json.pop("links"), warnings: warnings)
 
         // `readingOrder` used to be `spine`, so we parse `spine` as a fallback.
-        readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"), warnings: warnings, normalizeHREF: normalizer)
+        readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"), warnings: warnings)
             .filter { $0.type != nil }
-        resources = [Link](json: json.pop("resources"), warnings: warnings, normalizeHREF: normalizer)
+        resources = [Link](json: json.pop("resources"), warnings: warnings)
             .filter { $0.type != nil }
 
         // Parses sub-collections from remaining JSON properties.
-        subcollections = PublicationCollection.makeCollections(json: json.json, warnings: warnings, normalizeHREF: normalizer)
+        subcollections = PublicationCollection.makeCollections(json: json.json, warnings: warnings)
     }
 
     public var json: [String: Any] {
