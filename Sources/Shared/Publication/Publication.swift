@@ -77,10 +77,10 @@ public class Publication: Loggable {
     /// The URL where this publication is served, computed from the `Link` with `self` relation.
     ///
     /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
-    public var baseURL: AbsoluteURL? {
+    public var baseURL: HTTPURL? {
         links.first(withRel: .`self`)
             .takeIf { !$0.templated }
-            .flatMap { AnyURL(string: $0.href)?.absoluteURL }
+            .flatMap { HTTPURL(string: $0.href) }
     }
 
     /// Finds the first Link having the given `href` in the publication's links.
