@@ -54,9 +54,9 @@ class AudioParserTests: XCTestCase {
         let publication = try XCTUnwrap(parser.parse(asset: zabAsset, fetcher: zabFetcher, warnings: nil)?.build())
 
         XCTAssertEqual(publication.readingOrder.map(\.href), [
-            "Test Audiobook/gtr-jazz.mp3",
-            "Test Audiobook/Latin.mp3",
-            "Test Audiobook/vln-lin-cs.mp3",
+            "Test%20Audiobook/gtr-jazz.mp3",
+            "Test%20Audiobook/Latin.mp3",
+            "Test%20Audiobook/vln-lin-cs.mp3",
         ])
     }
 

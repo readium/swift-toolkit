@@ -15,10 +15,13 @@ public final class ArchiveFetcher: Fetcher, Loggable {
     }
 
     public lazy var links: [Link] =
-        archive.entries.map { entry in
-            Link(
-                href: entry.path,
-                type: MediaType.of(fileExtension: URL(fileURLWithPath: entry.path).pathExtension)?.string,
+        archive.entries.compactMap { entry in
+            guard let url = RelativeURL(path: entry.path) else {
+                return nil
+            }
+            return Link(
+                href: url.string,
+                type: MediaType.of(fileExtension: url.pathExtension)?.string,
                 properties: Properties(entry.linkProperties)
             )
         }

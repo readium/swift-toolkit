@@ -28,7 +28,11 @@ final class AppModule {
 
     init() throws {
         let httpClient = DefaultHTTPClient()
-        let db = try Database(file: Paths.library.appendingPathComponent("database.db"))
+
+        let file = Paths.library.appendingPathComponent("database.db")
+        let db = try Database(file: file)
+        print("Created database at \(file.path)")
+
         let books = BookRepository(db: db)
         let bookmarks = BookmarkRepository(db: db)
         let highlights = HighlightRepository(db: db)

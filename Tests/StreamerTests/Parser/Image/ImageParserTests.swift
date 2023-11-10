@@ -54,11 +54,11 @@ class ImageParserTests: XCTestCase {
         let publication = try XCTUnwrap(parser.parse(asset: cbzAsset, fetcher: cbzFetcher, warnings: nil)?.build())
 
         XCTAssertEqual(publication.readingOrder.map(\.href), [
-            "Cory Doctorow's Futuristic Tales of the Here and Now/a-fc.jpg",
-            "Cory Doctorow's Futuristic Tales of the Here and Now/x-002.jpg",
-            "Cory Doctorow's Futuristic Tales of the Here and Now/x-003.jpg",
-            "Cory Doctorow's Futuristic Tales of the Here and Now/x-153.jpg",
-            "Cory Doctorow's Futuristic Tales of the Here and Now/z-bc.jpg",
+            "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/a-fc.jpg",
+            "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-002.jpg",
+            "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-003.jpg",
+            "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-153.jpg",
+            "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/z-bc.jpg",
         ])
     }
 
@@ -78,7 +78,7 @@ class ImageParserTests: XCTestCase {
 
         XCTAssertEqual(publication.positions, [
             Locator(
-                href: "Cory Doctorow's Futuristic Tales of the Here and Now/a-fc.jpg",
+                href: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/a-fc.jpg",
                 type: "image/jpeg",
                 locations: .init(
                     totalProgression: 0,
@@ -86,7 +86,7 @@ class ImageParserTests: XCTestCase {
                 )
             ),
             Locator(
-                href: "Cory Doctorow's Futuristic Tales of the Here and Now/x-002.jpg",
+                href: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-002.jpg",
                 type: "image/jpeg",
                 locations: .init(
                     totalProgression: 1 / 5.0,
@@ -94,7 +94,7 @@ class ImageParserTests: XCTestCase {
                 )
             ),
             Locator(
-                href: "Cory Doctorow's Futuristic Tales of the Here and Now/x-003.jpg",
+                href: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-003.jpg",
                 type: "image/jpeg",
                 locations: .init(
                     totalProgression: 2 / 5.0,
@@ -102,7 +102,7 @@ class ImageParserTests: XCTestCase {
                 )
             ),
             Locator(
-                href: "Cory Doctorow's Futuristic Tales of the Here and Now/x-153.jpg",
+                href: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-153.jpg",
                 type: "image/jpeg",
                 locations: .init(
                     totalProgression: 3 / 5.0,
@@ -110,7 +110,7 @@ class ImageParserTests: XCTestCase {
                 )
             ),
             Locator(
-                href: "Cory Doctorow's Futuristic Tales of the Here and Now/z-bc.jpg",
+                href: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/z-bc.jpg",
                 type: "image/jpeg",
                 locations: .init(
                     totalProgression: 4 / 5.0,
