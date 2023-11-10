@@ -72,12 +72,23 @@ class RelativeURLTests: XCTestCase {
         XCTAssertNil(RelativeURL(string: "?query")?.path)
     }
 
-    func testLastPathComponent() {
-        XCTAssertEqual(RelativeURL(string: "foo/bar%20baz")?.lastPathComponent, "bar baz")
-        XCTAssertEqual(RelativeURL(string: "foo/bar%20baz/")?.lastPathComponent, "bar baz")
-        XCTAssertEqual(RelativeURL(string: "foo/bar?query#fragment")?.lastPathComponent, "bar")
-        XCTAssertNil(RelativeURL(string: "#fragment")?.lastPathComponent)
-        XCTAssertNil(RelativeURL(string: "?query")?.lastPathComponent)
+    func testPathSegments() {
+        XCTAssertEqual(RelativeURL(string: "foo")?.pathSegments, ["foo"])
+        // Segments are percent-decoded.
+        XCTAssertEqual(RelativeURL(string: "foo/bar%20baz")?.pathSegments, ["foo", "bar baz"])
+        XCTAssertEqual(RelativeURL(string: "foo/bar%20baz/")?.pathSegments, ["foo", "bar baz"])
+        XCTAssertEqual(RelativeURL(string: "/foo/bar%20baz")?.pathSegments, ["foo", "bar baz"])
+        XCTAssertEqual(RelativeURL(string: "foo/bar?query#fragment")?.pathSegments, ["foo", "bar"])
+        XCTAssertEqual(RelativeURL(string: "#fragment")?.pathSegments, [])
+        XCTAssertEqual(RelativeURL(string: "?query")?.pathSegments, [])
+    }
+
+    func testLastPathSegment() {
+        XCTAssertEqual(RelativeURL(string: "foo/bar%20baz")?.lastPathSegment, "bar baz")
+        XCTAssertEqual(RelativeURL(string: "foo/bar%20baz/")?.lastPathSegment, "bar baz")
+        XCTAssertEqual(RelativeURL(string: "foo/bar?query#fragment")?.lastPathSegment, "bar")
+        XCTAssertNil(RelativeURL(string: "#fragment")?.lastPathSegment)
+        XCTAssertNil(RelativeURL(string: "?query")?.lastPathSegment)
     }
 
     func testPathExtension() {

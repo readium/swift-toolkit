@@ -49,12 +49,22 @@ class UnknownAbsoluteURLTests: XCTestCase {
         XCTAssertNil(UnknownAbsoluteURL(string: "opds://host?query")?.path)
     }
 
-    func testLastPathComponent() {
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar%20baz")?.lastPathComponent, "bar baz")
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar%20baz/")?.lastPathComponent, "bar baz")
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar?query#fragment")?.lastPathComponent, "bar")
-        XCTAssertNil(UnknownAbsoluteURL(string: "opds://#fragment")?.lastPathComponent)
-        XCTAssertNil(UnknownAbsoluteURL(string: "opds://?query")?.lastPathComponent)
+    func testPathSegments() {
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://host/foo")?.pathSegments, ["foo"])
+        // Segments are percent-decoded.
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://host/foo/bar%20baz")?.pathSegments, ["foo", "bar baz"])
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://host/foo/bar%20baz/")?.pathSegments, ["foo", "bar baz"])
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://host/foo/bar?query#fragment")?.pathSegments, ["foo", "bar"])
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://host#fragment")?.pathSegments, [])
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://host?query")?.pathSegments, [])
+    }
+
+    func testLastPathSegment() {
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar%20baz")?.lastPathSegment, "bar baz")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar%20baz/")?.lastPathSegment, "bar baz")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar?query#fragment")?.lastPathSegment, "bar")
+        XCTAssertNil(UnknownAbsoluteURL(string: "opds://#fragment")?.lastPathSegment)
+        XCTAssertNil(UnknownAbsoluteURL(string: "opds://?query")?.lastPathSegment)
     }
 
     func testPathExtension() {

@@ -49,12 +49,22 @@ class HTTPURLTests: XCTestCase {
         XCTAssertNil(HTTPURL(string: "http://host?query")?.path)
     }
 
-    func testLastPathComponent() {
-        XCTAssertEqual(HTTPURL(string: "http://foo/bar%20baz")?.lastPathComponent, "bar baz")
-        XCTAssertEqual(HTTPURL(string: "http://foo/bar%20baz/")?.lastPathComponent, "bar baz")
-        XCTAssertEqual(HTTPURL(string: "http://foo/bar?query#fragment")?.lastPathComponent, "bar")
-        XCTAssertNil(HTTPURL(string: "http://#fragment")?.lastPathComponent)
-        XCTAssertNil(HTTPURL(string: "http://?query")?.lastPathComponent)
+    func testPathSegments() {
+        XCTAssertEqual(HTTPURL(string: "http://host/foo")?.pathSegments, ["foo"])
+        // Segments are percent-decoded.
+        XCTAssertEqual(HTTPURL(string: "http://host/foo/bar%20baz")?.pathSegments, ["foo", "bar baz"])
+        XCTAssertEqual(HTTPURL(string: "http://host/foo/bar%20baz/")?.pathSegments, ["foo", "bar baz"])
+        XCTAssertEqual(HTTPURL(string: "http://host/foo/bar?query#fragment")?.pathSegments, ["foo", "bar"])
+        XCTAssertEqual(HTTPURL(string: "http://host#fragment")?.pathSegments, [])
+        XCTAssertEqual(HTTPURL(string: "http://host?query")?.pathSegments, [])
+    }
+
+    func testLastPathSegment() {
+        XCTAssertEqual(HTTPURL(string: "http://foo/bar%20baz")?.lastPathSegment, "bar baz")
+        XCTAssertEqual(HTTPURL(string: "http://foo/bar%20baz/")?.lastPathSegment, "bar baz")
+        XCTAssertEqual(HTTPURL(string: "http://foo/bar?query#fragment")?.lastPathSegment, "bar")
+        XCTAssertNil(HTTPURL(string: "http://#fragment")?.lastPathSegment)
+        XCTAssertNil(HTTPURL(string: "http://?query")?.lastPathSegment)
     }
 
     func testPathExtension() {

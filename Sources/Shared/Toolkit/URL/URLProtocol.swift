@@ -21,8 +21,12 @@ public protocol URLProtocol: CustomStringConvertible, URLConvertible {
     /// Decoded path segments identifying a location.
     var path: String? { get }
 
-    /// The last path component of the receiver.
-    var lastPathComponent: String? { get }
+    /// Returns the decoded path segments of the URL, or an empty array if the
+    /// path is an empty string.
+    var pathSegments: [String] { get }
+
+    /// The last path segment of the URL.
+    var lastPathSegment: String? { get }
 
     /// The path extension, or nil if it is empty.
     var pathExtension: String? { get }
@@ -64,7 +68,15 @@ public extension URLProtocol {
         components?.path.orNilIfEmpty()
     }
 
-    var lastPathComponent: String? {
+    var pathSegments: [String] {
+        var comp = url.pathComponents
+        if comp.first == "/" {
+            comp.remove(at: 0)
+        }
+        return comp
+    }
+
+    var lastPathSegment: String? {
         url.lastPathComponent.orNilIfEmpty()
     }
 

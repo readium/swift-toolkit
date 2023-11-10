@@ -68,10 +68,17 @@ class FileURLTests: XCTestCase {
         XCTAssertEqual(FileURL(string: "file:///foo/bar%20baz/")?.path, "/foo/bar baz/")
     }
 
-    func testLastPathComponent() {
-        XCTAssertEqual(FileURL(string: "file:///foo/bar%20baz")?.lastPathComponent, "bar baz")
-        XCTAssertEqual(FileURL(string: "file:///foo/bar%20baz/")?.lastPathComponent, "bar baz")
-        XCTAssertEqual(FileURL(string: "file:///foo/bar?query#fragment")?.lastPathComponent, "bar")
+    func testPathSegments() {
+        XCTAssertEqual(FileURL(string: "file:///foo")?.pathSegments, ["foo"])
+        XCTAssertEqual(FileURL(string: "file:///foo/bar%20baz")?.pathSegments, ["foo", "bar baz"])
+        XCTAssertEqual(FileURL(string: "file:///foo/bar%20baz/")?.pathSegments, ["foo", "bar baz"])
+        XCTAssertEqual(FileURL(string: "file:///foo/bar?query#fragment")?.pathSegments, ["foo", "bar"])
+    }
+
+    func testLastPathSegment() {
+        XCTAssertEqual(FileURL(string: "file:///foo/bar%20baz")?.lastPathSegment, "bar baz")
+        XCTAssertEqual(FileURL(string: "file:///foo/bar%20baz/")?.lastPathSegment, "bar baz")
+        XCTAssertEqual(FileURL(string: "file:///foo/bar?query#fragment")?.lastPathSegment, "bar")
     }
 
     func testPathExtension() {
