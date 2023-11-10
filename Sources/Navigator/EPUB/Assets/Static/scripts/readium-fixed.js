@@ -8732,17 +8732,22 @@ const attributeBlacklistMatch = (0,_utilities_data_js__WEBPACK_IMPORTED_MODULE_1
     "ng-*",
 ]);
 /**
+ * Prevents errors when attribute name contains a colon (e.g. "xlink:href").
+ */
+function sanitizeAttributeName(name) {
+    return name.replace(/:/g, "\\:");
+}
+/**
  * Get simplified attribute selector for an element.
  */
-function attributeNodeToSimplifiedSelector({ nodeName, }) {
-    return `[${nodeName}]`;
+function attributeNodeToSimplifiedSelector({ name, }) {
+    return `[${name}]`;
 }
 /**
  * Get attribute selector for an element.
  */
-function attributeNodeToSelector({ nodeName, nodeValue, }) {
-    const selector = `[${nodeName}='${(0,_utilities_selectors_js__WEBPACK_IMPORTED_MODULE_0__.sanitizeSelectorItem)(nodeValue)}']`;
-    return selector;
+function attributeNodeToSelector({ name, value, }) {
+    return `[${name}='${value}']`;
 }
 /**
  * Checks whether attribute should be used as a selector.
@@ -8756,10 +8761,19 @@ function isValidAttributeNode({ nodeName }, element) {
     return !attributeBlacklistMatch(nodeName);
 }
 /**
+ * Sanitize all attribute data. We want to do it once, before we start to generate simplified/full selectors from the same data.
+ */
+function sanitizeAttributeData({ nodeName, nodeValue }) {
+    return {
+        name: sanitizeAttributeName(nodeName),
+        value: (0,_utilities_selectors_js__WEBPACK_IMPORTED_MODULE_0__.sanitizeSelectorItem)(nodeValue),
+    };
+}
+/**
  * Get attribute selectors for an element.
  */
 function getElementAttributeSelectors(element) {
-    const validAttributes = Array.from(element.attributes).filter((attributeNode) => isValidAttributeNode(attributeNode, element));
+    const validAttributes = Array.from(element.attributes).filter((attributeNode) => isValidAttributeNode(attributeNode, element)).map(sanitizeAttributeData);
     return [
         ...validAttributes.map(attributeNodeToSimplifiedSelector),
         ...validAttributes.map(attributeNodeToSelector),
