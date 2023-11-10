@@ -58,7 +58,9 @@ public final class FileAsset: PublicationAsset, Loggable {
 
             } catch {
                 // Falls back on serving the file as a single resource.
-                completion(.success(FileFetcher(href: RelativeURL(path: "\(self.name)")!, file: self.file)))
+                let fileExtension = self.resolvedMediaType?.fileExtension?.addingPrefix(".") ?? ""
+                let href = RelativeURL(path: "publication\(fileExtension)")!
+                completion(.success(FileFetcher(href: href, file: self.file)))
             }
         }
     }

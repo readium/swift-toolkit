@@ -101,12 +101,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
         self.publication = publication
         self.initialLocation = initialLocation
-        self.server = httpServer
+        server = httpServer
         self.publicationEndpoint = publicationEndpoint
-        self.publicationBaseURL = baseURL
+        publicationBaseURL = baseURL
         self.config = config
         self.delegate = delegate
-        self.editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
+        editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
 
         settings = PDFSettings(
             preferences: config.preferences,
@@ -339,17 +339,36 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
     @discardableResult
     private func go(to locator: Locator, isJump: Bool, completion: @escaping () -> Void = {}) -> Bool {
-        guard let index = publication.readingOrder.firstIndex(withHREF: locator.href) else {
+        guard let link = findLink(at: locator) else {
             return false
         }
 
         return go(
-            to: publication.readingOrder[index],
+            to: link,
             pageNumber: pageNumber(for: locator),
             isJump: isJump,
             completion: completion
         )
     }
+
+    private func findLink(at locator: Locator) -> Link? {
+        if isPDFFile {
+            return publication.readingOrder.first
+        } else {
+            return publication.readingOrder.first(withHREF: locator.href)
+        }
+    }
+
+    /// Historically, the reading order of a standalone PDF file contained a
+    /// single link with the HREF `"/<asset filename>"`. This was fragile if
+    /// the asset named changed, or was different on other devices.
+    ///
+    /// To avoid this, we now use a single link with the HREF
+    /// `"publication.pdf"`. And to avoid breaking legacy locators, we match
+    /// any HREF if the reading order contains a single link with the HREF
+    /// `"publication.pdf"`.
+    private lazy var isPDFFile: Bool =
+        publication.readingOrder.count == 1 && publication.readingOrder[0].href == "publication.pdf"
 
     @discardableResult
     private func go(to link: Link, pageNumber: Int?, isJump: Bool, completion: @escaping () -> Void = {}) -> Bool {
