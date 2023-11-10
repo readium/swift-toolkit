@@ -31,9 +31,8 @@ open class _AudioNavigator: _MediaNavigator, AudioSessionUser, Loggable {
             playbackRefreshInterval: TimeInterval = 0.5,
             audioSession: AudioSession.Configuration = .init(
                 category: .playback,
-                mode: .default,
-                routeSharingPolicy: .longForm,
-                options: []
+                mode: .spokenAudio,
+                routeSharingPolicy: .longFormAudio
             )
         ) {
             self.playbackRefreshInterval = playbackRefreshInterval
