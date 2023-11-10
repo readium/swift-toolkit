@@ -122,7 +122,8 @@ public class PublicationSpeechSynthesizer: Loggable {
         config: Configuration = Configuration(),
         audioSessionConfig: AudioSession.Configuration = .init(
             category: .playback,
-            mode: .spokenAudio
+            mode: .spokenAudio,
+            routeSharingPolicy: .longFormAudio
         ),
         engineFactory: @escaping EngineFactory = { AVTTSEngine() },
         tokenizerFactory: @escaping TokenizerFactory = defaultTokenizerFactory,
