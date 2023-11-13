@@ -102,7 +102,7 @@ extension EntityId {
     var string: String {
         String(rawValue)
     }
-    
+
     init?(string: String) {
         guard let rawValue = Int64(string) else {
             return nil

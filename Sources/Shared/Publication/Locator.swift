@@ -64,7 +64,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
 
         try self.init(json: json, warnings: warnings)
     }
-    
+
     /// Creates a ``Locator`` from its legacy JSON representation.
     ///
     /// Only use this API when you are upgrading to Readium 3.x and migrating
@@ -72,7 +72,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
     /// for more information.
     public init?(legacyJSONString: String, warnings: WarningLogger? = nil) throws {
         try self.init(jsonString: legacyJSONString, warnings: warnings)
-        
+
         guard let url = AnyURL(legacyHREF: href) else {
             return nil
         }

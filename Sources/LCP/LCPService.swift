@@ -47,7 +47,7 @@ public final class LCPService: Loggable {
     }
 
     /// Returns whether the given `file` is protected by LCP.
-    public func isLCPProtected(_ file: URL) -> Bool {
+    public func isLCPProtected(_ file: FileURL) -> Bool {
         warnIfMainThread()
         return makeLicenseContainerSync(for: file)?.containsLicense() == true
     }
@@ -56,7 +56,7 @@ public final class LCPService: Loggable {
     ///
     /// You can cancel the on-going download with `acquisition.cancel()`.
     @discardableResult
-    public func acquirePublication(from lcpl: URL, onProgress: @escaping (LCPAcquisition.Progress) -> Void = { _ in }, completion: @escaping (CancellableResult<LCPAcquisition.Publication, LCPError>) -> Void) -> LCPAcquisition {
+    public func acquirePublication(from lcpl: FileURL, onProgress: @escaping (LCPAcquisition.Progress) -> Void = { _ in }, completion: @escaping (CancellableResult<LCPAcquisition.Publication, LCPError>) -> Void) -> LCPAcquisition {
         licenses.acquirePublication(from: lcpl, onProgress: onProgress, completion: completion)
     }
 
@@ -79,7 +79,7 @@ public final class LCPService: Loggable {
         sender: Any? = nil,
         completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void
     ) {
-        licenses.retrieve(from: publication.url, authentication: authentication, allowUserInteraction: allowUserInteraction, sender: sender)
+        licenses.retrieve(from: publication, authentication: authentication, allowUserInteraction: allowUserInteraction, sender: sender)
             .map { $0 as LCPLicense? }
             .resolve(completion)
     }

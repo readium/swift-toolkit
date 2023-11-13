@@ -15,7 +15,7 @@ public final class LCPAcquisition: Loggable, Cancellable {
     public struct Publication {
         /// Path to the downloaded publication.
         /// You must move this file to the user library's folder.
-        public let localURL: URL
+        public let localURL: FileURL
 
         /// Filename that should be used for the publication when importing it in the user library.
         public let suggestedFilename: String
@@ -54,7 +54,7 @@ public final class LCPAcquisition: Loggable, Cancellable {
 
         completion(result)
 
-        if case let .success(publication) = result, (try? publication.localURL.checkResourceIsReachable()) == true {
+        if case let .success(publication) = result, (try? publication.localURL.url.checkResourceIsReachable()) == true {
             log(.warning, "The acquired LCP publication file was not moved in the completion closure. It will be removed from the file system.")
         }
     }
