@@ -40,7 +40,7 @@ public enum AnyURL: URLProtocol {
     /// Only use this API when you are upgrading to Readium 3.x and migrating
     /// the HREFs stored in / your database. See the 3.0 migration guide for
     /// more information.
-    public init?(legacyHref href: String) {
+    public init?(legacyHREF href: String) {
         if let url = URL(string: href), url.scheme != nil {
             self.init(url: url)
         } else if let url = RelativeURL(path: href.removingPrefix("/")) {

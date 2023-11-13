@@ -64,6 +64,20 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
 
         try self.init(json: json, warnings: warnings)
     }
+    
+    /// Creates a ``Locator`` from its legacy JSON representation.
+    ///
+    /// Only use this API when you are upgrading to Readium 3.x and migrating
+    /// the ``Locator`` objects stored in your database. See the migration guide
+    /// for more information.
+    public init?(legacyJSONString: String, warnings: WarningLogger? = nil) throws {
+        try self.init(jsonString: legacyJSONString, warnings: warnings)
+        
+        guard let url = AnyURL(legacyHREF: href) else {
+            return nil
+        }
+        href = url.string
+    }
 
     @available(*, unavailable, message: "This may create an incorrect `Locator` if the link `type` is missing. Use `publication.locate(Link)` instead.")
     public init(link: Link) { fatalError() }

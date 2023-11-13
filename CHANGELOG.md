@@ -10,8 +10,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Shared
 
-* `Publication.localizedTitle` is now optional, as we cannot guarantee a publication will always have a title.
+* `Link` and `Locator`'s `href` are normalized as valid URLs to improve interoperability with the Readium Web toolkits.
+   * **You MUST migrate your database if you were persisting HREFs and Locators**. Take a look at [the migration guide](Documentation/Migration%20Guide.md) for guidance.
 * Links are not resolved to the `self` URL of a manifest anymore. However, you can still normalize the HREFs yourselves by calling `Manifest.normalizeToHREFsToSelf()`.
+* `Publication.localizedTitle` is now optional, as we cannot guarantee a publication will always have a title.
 
 
 ## [2.6.1]

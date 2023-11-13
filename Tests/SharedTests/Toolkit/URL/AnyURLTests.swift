@@ -27,21 +27,21 @@ class AnyURLTests: XCTestCase {
         XCTAssertEqual(AnyURL(string: "opds://host/foo/bar"), .absolute(UnknownAbsoluteURL(string: "opds://host/foo/bar")!))
     }
 
-    func testCreateFromLegacyHref() {
-        XCTAssertEqual(AnyURL(legacyHref: "dir/chapter.xhtml"), .relative(RelativeURL(string: "dir/chapter.xhtml")!))
+    func testCreateFromLegacyHREF() {
+        XCTAssertEqual(AnyURL(legacyHREF: "dir/chapter.xhtml"), .relative(RelativeURL(string: "dir/chapter.xhtml")!))
         // Starting slash is removed.
-        XCTAssertEqual(AnyURL(legacyHref: "/dir/chapter.xhtml"), .relative(RelativeURL(string: "dir/chapter.xhtml")!))
+        XCTAssertEqual(AnyURL(legacyHREF: "/dir/chapter.xhtml"), .relative(RelativeURL(string: "dir/chapter.xhtml")!))
         // Special characters are percent-encoded.
-        XCTAssertEqual(AnyURL(legacyHref: "/dir/per%cent.xhtml"), .relative(RelativeURL(string: "dir/per%25cent.xhtml")!))
-        XCTAssertEqual(AnyURL(legacyHref: "/barré.xhtml"), .relative(RelativeURL(string: "barr%C3%A9.xhtml")!))
-        XCTAssertEqual(AnyURL(legacyHref: "/spa ce.xhtml"), .relative(RelativeURL(string: "spa%20ce.xhtml")!))
+        XCTAssertEqual(AnyURL(legacyHREF: "/dir/per%cent.xhtml"), .relative(RelativeURL(string: "dir/per%25cent.xhtml")!))
+        XCTAssertEqual(AnyURL(legacyHREF: "/barré.xhtml"), .relative(RelativeURL(string: "barr%C3%A9.xhtml")!))
+        XCTAssertEqual(AnyURL(legacyHREF: "/spa ce.xhtml"), .relative(RelativeURL(string: "spa%20ce.xhtml")!))
         // We assume that a relative path is percent-decoded.
-        XCTAssertEqual(AnyURL(legacyHref: "/spa%20ce.xhtml"), .relative(RelativeURL(string: "spa%2520ce.xhtml")!))
+        XCTAssertEqual(AnyURL(legacyHREF: "/spa%20ce.xhtml"), .relative(RelativeURL(string: "spa%2520ce.xhtml")!))
         // Some special characters are authorized in a path.
-        XCTAssertEqual(AnyURL(legacyHref: "/$&+,/=@"), .relative(RelativeURL(string: "$&+,/=@")!))
+        XCTAssertEqual(AnyURL(legacyHREF: "/$&+,/=@"), .relative(RelativeURL(string: "$&+,/=@")!))
         // Valid absolute URL are left untouched.
         XCTAssertEqual(
-            AnyURL(legacyHref: "http://domain.com/a%20book?page=3"),
+            AnyURL(legacyHREF: "http://domain.com/a%20book?page=3"),
             .absolute(HTTPURL(string: "http://domain.com/a%20book?page=3")!)
         )
     }
