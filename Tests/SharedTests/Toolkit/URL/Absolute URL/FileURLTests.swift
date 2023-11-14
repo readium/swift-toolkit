@@ -68,42 +68,57 @@ class FileURLTests: XCTestCase {
         XCTAssertEqual(FileURL(string: "file:///foo/bar%20baz/")?.path, "/foo/bar baz/")
     }
 
-    func testPathSegments() {
-        XCTAssertEqual(FileURL(string: "file:///foo")?.pathSegments, ["foo"])
-        XCTAssertEqual(FileURL(string: "file:///foo/bar%20baz")?.pathSegments, ["foo", "bar baz"])
-        XCTAssertEqual(FileURL(string: "file:///foo/bar%20baz/")?.pathSegments, ["foo", "bar baz"])
-        XCTAssertEqual(FileURL(string: "file:///foo/bar?query#fragment")?.pathSegments, ["foo", "bar"])
-    }
-
-    func testLastPathSegment() {
-        XCTAssertEqual(FileURL(string: "file:///foo/bar%20baz")?.lastPathSegment, "bar baz")
-        XCTAssertEqual(FileURL(string: "file:///foo/bar%20baz/")?.lastPathSegment, "bar baz")
-        XCTAssertEqual(FileURL(string: "file:///foo/bar?query#fragment")?.lastPathSegment, "bar")
-    }
-
-    func testPathExtension() {
-        XCTAssertEqual(FileURL(string: "file:///foo/bar.txt")?.pathExtension, "txt")
-        XCTAssertNil(FileURL(string: "file:///foo/bar")?.pathExtension)
-        XCTAssertNil(FileURL(string: "file:///foo/bar/")?.pathExtension)
-        XCTAssertNil(FileURL(string: "file:///foo/.hidden")?.pathExtension)
-    }
-
     func testAppendingPath() {
         var base = FileURL(string: "file:///foo/bar")!
-        XCTAssertEqual(base.appendingPath("")?.string, "file:///foo/bar")
-        XCTAssertEqual(base.appendingPath("baz/quz")?.string, "file:///foo/bar/baz/quz")
-        XCTAssertEqual(base.appendingPath("/baz/quz")?.string, "file:///foo/bar/baz/quz")
+        XCTAssertEqual(base.appendingPath("", isDirectory: false).string, "file:///foo/bar")
+        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false).string, "file:///foo/bar/baz/quz")
+        XCTAssertEqual(base.appendingPath("/baz/quz", isDirectory: false).string, "file:///foo/bar/baz/quz")
         // The path is supposed to be decoded
-        XCTAssertEqual(base.appendingPath("baz quz")?.string, "file:///foo/bar/baz%20quz")
-        XCTAssertEqual(base.appendingPath("baz%20quz")?.string, "file:///foo/bar/baz%2520quz")
+        XCTAssertEqual(base.appendingPath("baz quz", isDirectory: false).string, "file:///foo/bar/baz%20quz")
+        XCTAssertEqual(base.appendingPath("baz%20quz", isDirectory: false).string, "file:///foo/bar/baz%2520quz")
         // Directory
-        XCTAssertEqual(base.appendingPath("baz/quz/")?.string, "file:///foo/bar/baz/quz/")
-        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: true)?.string, "file:///foo/bar/baz/quz/")
-        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false)?.string, "file:///foo/bar/baz/quz")
+        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: true).string, "file:///foo/bar/baz/quz/")
+        XCTAssertEqual(base.appendingPath("baz/quz/", isDirectory: true).string, "file:///foo/bar/baz/quz/")
+        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false).string, "file:///foo/bar/baz/quz")
+        XCTAssertEqual(base.appendingPath("baz/quz/", isDirectory: false).string, "file:///foo/bar/baz/quz")
 
         // With trailing slash.
         base = FileURL(string: "file:///foo/bar/")!
-        XCTAssertEqual(base.appendingPath("baz/quz")?.string, "file:///foo/bar/baz/quz")
+        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false).string, "file:///foo/bar/baz/quz")
+    }
+
+    func testPathSegments() {
+        XCTAssertEqual(FileURL(string: "file:///foo")!.pathSegments, ["foo"])
+        XCTAssertEqual(FileURL(string: "file:///foo/bar%20baz")!.pathSegments, ["foo", "bar baz"])
+        XCTAssertEqual(FileURL(string: "file:///foo/bar%20baz/")!.pathSegments, ["foo", "bar baz"])
+        XCTAssertEqual(FileURL(string: "file:///foo/bar?query#fragment")!.pathSegments, ["foo", "bar"])
+    }
+
+    func testLastPathSegment() {
+        XCTAssertEqual(FileURL(string: "file:///foo/bar%20baz")!.lastPathSegment, "bar baz")
+        XCTAssertEqual(FileURL(string: "file:///foo/bar%20baz/")!.lastPathSegment, "bar baz")
+        XCTAssertEqual(FileURL(string: "file:///foo/bar?query#fragment")!.lastPathSegment, "bar")
+    }
+
+    func testRemovingLastPathSegment() {
+        XCTAssertEqual(FileURL(string: "file:///")!.removingLastPathSegment().string, "file:///")
+        XCTAssertEqual(FileURL(string: "file:///foo")!.removingLastPathSegment().string, "file:///")
+        XCTAssertEqual(FileURL(string: "file:///foo/bar")!.removingLastPathSegment().string, "file:///foo/")
+    }
+
+    func testPathExtension() {
+        XCTAssertEqual(FileURL(string: "file:///foo/bar.txt")!.pathExtension, "txt")
+        XCTAssertNil(FileURL(string: "file:///foo/bar")!.pathExtension)
+        XCTAssertNil(FileURL(string: "file:///foo/bar/")!.pathExtension)
+        XCTAssertNil(FileURL(string: "file:///foo/.hidden")!.pathExtension)
+    }
+
+    func testReplacingPathExtension() {
+        XCTAssertEqual(FileURL(string: "file:///foo/bar")!.replacingPathExtension("xml").string, "file:///foo/bar.xml")
+        XCTAssertEqual(FileURL(string: "file:///foo/bar.txt")!.replacingPathExtension("xml").string, "file:///foo/bar.xml")
+        XCTAssertEqual(FileURL(string: "file:///foo/bar.txt")!.replacingPathExtension(nil).string, "file:///foo/bar")
+        XCTAssertEqual(FileURL(string: "file:///foo/bar/")!.replacingPathExtension("xml").string, "file:///foo/bar/")
+        XCTAssertEqual(FileURL(string: "file:///foo/bar/")!.replacingPathExtension(nil).string, "file:///foo/bar/")
     }
 
     func testQuery() {
@@ -131,20 +146,24 @@ class FileURLTests: XCTestCase {
     // MARK: - AbsoluteURL
 
     func testScheme() {
-        XCTAssertEqual(FileURL(string: "file:///foo/bar")?.scheme, .file)
-        XCTAssertEqual(FileURL(string: "FILE:///foo/bar")?.scheme, .file)
+        XCTAssertEqual(FileURL(string: "file:///foo/bar")!.scheme, .file)
+        XCTAssertEqual(FileURL(string: "FILE:///foo/bar")!.scheme, .file)
+    }
+
+    func testHost() {
+        XCTAssertNil(FileURL(string: "file:///foo/bar")!.host)
     }
 
     func testOrigin() {
         // Always null for a file URL.
-        XCTAssertNil(FileURL(string: "file:///foo/bar")?.origin)
+        XCTAssertNil(FileURL(string: "file:///foo/bar")!.origin)
     }
 
     func testResolveAbsoluteURL() {
         let base = FileURL(string: "file:///foo/bar")!
-        XCTAssertNil(base.resolve(FileURL(string: "file:///foo")!))
-        XCTAssertNil(base.resolve(HTTPURL(string: "http://domain.com")!))
-        XCTAssertNil(base.resolve(UnknownAbsoluteURL(string: "opds://other")!))
+        XCTAssertEqual(base.resolve(FileURL(string: "file:///foo")!)!.string, "file:///foo")
+        XCTAssertEqual(base.resolve(HTTPURL(string: "http://domain.com")!)!.string, "http://domain.com")
+        XCTAssertEqual(base.resolve(UnknownAbsoluteURL(string: "opds://other")!)!.string, "opds://other")
     }
 
     func testResolveRelativeURL() {

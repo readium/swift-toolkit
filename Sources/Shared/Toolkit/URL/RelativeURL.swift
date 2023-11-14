@@ -36,7 +36,7 @@ public struct RelativeURL: URLProtocol, Hashable {
     public func resolve<T: URLConvertible>(_ other: T) -> AnyURL? {
         // other is absolute?
         guard let relativeURL = other.relativeURL else {
-            return nil
+            return other.anyURL
         }
         return resolve(relativeURL)?.anyURL
     }

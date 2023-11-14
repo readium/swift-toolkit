@@ -144,11 +144,16 @@ public struct Link: JSONEquatable, Hashable {
     /// If the HREF is a template, the `parameters` are used to expand it
     /// according to RFC 6570.
     public func url(
-        parameters: [String: String] = [:]
+        parameters: [String: LosslessStringConvertible] = [:]
     ) -> AnyURL {
-        var expanded = self
-        expanded.expandTemplate(with: parameters)
-        return AnyURL(string: expanded.href)!
+        var href = href
+        if templated {
+            href = URITemplate(href).expand(with: parameters)
+        }
+        if href.isEmpty {
+            href = "#"
+        }
+        return AnyURL(string: href)!
     }
 
     /// Returns the URL represented by this link's HREF, resolved to the given
@@ -158,7 +163,7 @@ public struct Link: JSONEquatable, Hashable {
     /// according to RFC 6570.
     public func url<T: URLConvertible>(
         relativeTo baseURL: T?,
-        parameters: [String: String] = [:]
+        parameters: [String: LosslessStringConvertible] = [:]
     ) -> AnyURL {
         var expanded = self
         expanded.expandTemplate(with: parameters)
@@ -179,7 +184,7 @@ public struct Link: JSONEquatable, Hashable {
     /// Expands the `Link`'s HREF by replacing URI template variables by the given parameters.
     ///
     /// See RFC 6570 on URI template: https://tools.ietf.org/html/rfc6570
-    public mutating func expandTemplate(with parameters: [String: String]) {
+    public mutating func expandTemplate(with parameters: [String: LosslessStringConvertible]) {
         guard templated else {
             return
         }

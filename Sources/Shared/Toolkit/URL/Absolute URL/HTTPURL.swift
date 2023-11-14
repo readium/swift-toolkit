@@ -37,9 +37,9 @@ public struct HTTPURL: AbsoluteURL, Hashable {
     }
 }
 
-public extension AbsoluteURL {
+public extension URLConvertible {
     /// Returns an `HTTPURL` if the URL has an `http` or `https` scheme.
     var httpURL: HTTPURL? {
-        (self as? HTTPURL) ?? HTTPURL(url: url)
+        (absoluteURL as? HTTPURL) ?? HTTPURL(url: anyURL.url)
     }
 }

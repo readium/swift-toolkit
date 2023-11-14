@@ -49,6 +49,25 @@ class UnknownAbsoluteURLTests: XCTestCase {
         XCTAssertNil(UnknownAbsoluteURL(string: "opds://host?query")?.path)
     }
 
+    func testAppendingPath() {
+        var base = UnknownAbsoluteURL(string: "opds://foo/bar")!
+        XCTAssertEqual(base.appendingPath("", isDirectory: false).string, "opds://foo/bar")
+        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false).string, "opds://foo/bar/baz/quz")
+        XCTAssertEqual(base.appendingPath("/baz/quz", isDirectory: false).string, "opds://foo/bar/baz/quz")
+        // The path is supposed to be decoded
+        XCTAssertEqual(base.appendingPath("baz quz", isDirectory: false).string, "opds://foo/bar/baz%20quz")
+        XCTAssertEqual(base.appendingPath("baz%20quz", isDirectory: false).string, "opds://foo/bar/baz%2520quz")
+        // Directory
+        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: true).string, "opds://foo/bar/baz/quz/")
+        XCTAssertEqual(base.appendingPath("baz/quz/", isDirectory: true).string, "opds://foo/bar/baz/quz/")
+        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false).string, "opds://foo/bar/baz/quz")
+        XCTAssertEqual(base.appendingPath("baz/quz/", isDirectory: false).string, "opds://foo/bar/baz/quz")
+
+        // With trailing slash.
+        base = UnknownAbsoluteURL(string: "opds://foo/bar/")!
+        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false).string, "opds://foo/bar/baz/quz")
+    }
+
     func testPathSegments() {
         XCTAssertEqual(UnknownAbsoluteURL(string: "opds://host/foo")?.pathSegments, ["foo"])
         // Segments are percent-decoded.
@@ -67,6 +86,13 @@ class UnknownAbsoluteURLTests: XCTestCase {
         XCTAssertNil(UnknownAbsoluteURL(string: "opds://?query")?.lastPathSegment)
     }
 
+    func testRemovingLastPathSegment() {
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://")!.removingLastPathSegment().string, "opds://")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo")!.removingLastPathSegment().string, "opds://foo")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar")!.removingLastPathSegment().string, "opds://foo/")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar/baz")!.removingLastPathSegment().string, "opds://foo/bar/")
+    }
+
     func testPathExtension() {
         XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar.txt")?.pathExtension, "txt")
         XCTAssertNil(UnknownAbsoluteURL(string: "opds://foo/bar")?.pathExtension)
@@ -74,22 +100,13 @@ class UnknownAbsoluteURLTests: XCTestCase {
         XCTAssertNil(UnknownAbsoluteURL(string: "opds://foo/.hidden")?.pathExtension)
     }
 
-    func testAppendingPath() {
-        var base = UnknownAbsoluteURL(string: "opds://foo/bar")!
-        XCTAssertEqual(base.appendingPath("")?.string, "opds://foo/bar")
-        XCTAssertEqual(base.appendingPath("baz/quz")?.string, "opds://foo/bar/baz/quz")
-        XCTAssertEqual(base.appendingPath("/baz/quz")?.string, "opds://foo/bar/baz/quz")
-        // The path is supposed to be decoded
-        XCTAssertEqual(base.appendingPath("baz quz")?.string, "opds://foo/bar/baz%20quz")
-        XCTAssertEqual(base.appendingPath("baz%20quz")?.string, "opds://foo/bar/baz%2520quz")
-        // Directory
-        XCTAssertEqual(base.appendingPath("baz/quz/")?.string, "opds://foo/bar/baz/quz/")
-        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: true)?.string, "opds://foo/bar/baz/quz/")
-        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false)?.string, "opds://foo/bar/baz/quz")
-
-        // With trailing slash.
-        base = UnknownAbsoluteURL(string: "opds://foo/bar/")!
-        XCTAssertEqual(base.appendingPath("baz/quz")?.string, "opds://foo/bar/baz/quz")
+    func testReplacingPathExtension() {
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar")!.replacingPathExtension("xml").string, "opds://foo/bar.xml")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar.txt")!.replacingPathExtension("xml").string, "opds://foo/bar.xml")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar.txt")!.replacingPathExtension(nil).string, "opds://foo/bar")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar/")!.replacingPathExtension("xml").string, "opds://foo/bar/")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar/")!.replacingPathExtension(nil).string, "opds://foo/bar/")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo")!.replacingPathExtension("xml").string, "opds://foo")
     }
 
     func testQuery() {
@@ -122,15 +139,22 @@ class UnknownAbsoluteURLTests: XCTestCase {
         XCTAssertEqual(UnknownAbsoluteURL(string: "OPDS://foo/bar")?.scheme, URLScheme(rawValue: "opds"))
     }
 
+    func testHost() {
+        XCTAssertNil(UnknownAbsoluteURL(string: "opds://")!.host)
+        XCTAssertNil(UnknownAbsoluteURL(string: "opds:///")!.host)
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://domain")!.host, "domain")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://domain/path")!.host, "domain")
+    }
+
     func testOrigin() {
         XCTAssertNil(UnknownAbsoluteURL(string: "opds://foo/bar")!.origin)
     }
 
     func testResolveAbsoluteURL() {
         let base = UnknownAbsoluteURL(string: "opds://host/foo/bar")!
-        XCTAssertNil(base.resolve(UnknownAbsoluteURL(string: "opds://other")!))
-        XCTAssertNil(base.resolve(HTTPURL(string: "http://domain.com")!))
-        XCTAssertNil(base.resolve(FileURL(string: "file:///foo")!))
+        XCTAssertEqual(base.resolve(UnknownAbsoluteURL(string: "opds://other")!)!.string, "opds://other")
+        XCTAssertEqual(base.resolve(HTTPURL(string: "http://domain.com")!)!.string, "http://domain.com")
+        XCTAssertEqual(base.resolve(FileURL(string: "file:///foo")!)!.string, "file:///foo")
     }
 
     func testResolveRelativeURL() {

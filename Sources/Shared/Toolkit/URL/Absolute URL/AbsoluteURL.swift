@@ -11,6 +11,9 @@ public protocol AbsoluteURL: URLProtocol {
     /// Identifies the type of URL.
     var scheme: URLScheme { get }
 
+    /// Host component of the URL, if any.
+    var host: String? { get }
+
     /// Origin of the URL.
     ///
     /// See https://url.spec.whatwg.org/#origin
@@ -22,7 +25,15 @@ public protocol AbsoluteURL: URLProtocol {
     ///     self: http://example.com/foo/
     ///     other: bar/baz
     ///     returns http://example.com/foo/bar/baz
-    func resolve<T: URLConvertible>(_ other: T) -> Self?
+    func resolve<T: URLConvertible>(_ other: T) -> AbsoluteURL?
+
+    /// Resolves the given `url` to this relative URL, if possible.
+    ///
+    /// For example:
+    ///     self: http://example.com/foo/
+    ///     other: bar/baz
+    ///     returns http://example.com/foo/bar/baz
+    func resolve(_ other: RelativeURL) -> Self?
 
     /// Relativizes the given `url` against this base URL, if possible.
     ///
@@ -37,12 +48,21 @@ public protocol AbsoluteURL: URLProtocol {
 }
 
 public extension AbsoluteURL {
-    func resolve<T: URLConvertible>(_ other: T) -> Self? {
-        guard let relativeURL = other.relativeURL else {
-            return nil
-        }
+    var host: String? {
+        url.host
+    }
 
-        guard let url = URL(string: relativeURL.string, relativeTo: url) else {
+    func resolve<T: URLConvertible>(_ other: T) -> AbsoluteURL? {
+        switch other.anyURL {
+        case let .relative(url):
+            return resolve(url)
+        case let .absolute(url):
+            return url
+        }
+    }
+
+    func resolve(_ other: RelativeURL) -> Self? {
+        guard let url = URL(string: other.string, relativeTo: url) else {
             return nil
         }
         return Self(url: url)
@@ -79,10 +99,12 @@ public extension AbsoluteURL {
 
 /// A URL scheme, e.g. http or file.
 public struct URLScheme: RawRepresentable, CustomStringConvertible, Hashable {
+    public static let data = URLScheme(rawValue: "data")
     public static let file = URLScheme(rawValue: "file")
     public static let ftp = URLScheme(rawValue: "ftp")
     public static let http = URLScheme(rawValue: "http")
     public static let https = URLScheme(rawValue: "https")
+    public static let opds = URLScheme(rawValue: "opds")
 
     public let rawValue: String
 

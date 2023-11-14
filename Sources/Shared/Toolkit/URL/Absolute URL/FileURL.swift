@@ -38,11 +38,8 @@ public struct FileURL: AbsoluteURL, Hashable {
     public let scheme: URLScheme
     public let origin: String? = nil
 
-    public var lastPathComponent: String { url.lastPathComponent }
-
-    public func appendingPath(_ path: String) -> Self? {
-        // The default strategy in `AbsoluteURL` doesn't work with file URLs.
-        appendingPath(path, isDirectory: path.hasSuffix("/"))
+    public var lastPathComponent: String {
+        url.lastPathComponent
     }
 
     /// Returns whether the given `url` is `self` or one of its descendants.
@@ -51,19 +48,21 @@ public struct FileURL: AbsoluteURL, Hashable {
     }
 
     /// Returns whether the file exists on the file system.
+    // FIXME: Async
     public func exists() throws -> Bool {
         try url.checkResourceIsReachable()
     }
 
     /// Returns whether the file is a directory.
-    public func isDirectory() -> Bool {
-        (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
+    // FIXME: Async
+    public func isDirectory() throws -> Bool {
+        try (url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
     }
 }
 
-public extension AbsoluteURL {
+public extension URLConvertible {
     /// Returns a `FileURL` if the URL has a `file` scheme.
     var fileURL: FileURL? {
-        (self as? FileURL) ?? FileURL(url: url)
+        (absoluteURL as? FileURL) ?? FileURL(url: anyURL.url)
     }
 }

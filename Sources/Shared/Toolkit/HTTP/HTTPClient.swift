@@ -184,7 +184,7 @@ public struct HTTPResponse: Equatable {
     public let request: HTTPRequest
 
     /// URL for the response, after any redirect.
-    public let url: URL
+    public let url: HTTPURL
 
     /// HTTP status code returned by the server.
     public let statusCode: Int
@@ -199,7 +199,7 @@ public struct HTTPResponse: Equatable {
     /// Response body content, when available.
     public var body: Data?
 
-    public init(request: HTTPRequest, url: URL, statusCode: Int, headers: [String: String], mediaType: MediaType, body: Data?) {
+    public init(request: HTTPRequest, url: HTTPURL, statusCode: Int, headers: [String: String], mediaType: MediaType, body: Data?) {
         self.request = request
         self.url = url
         self.statusCode = statusCode
@@ -208,7 +208,7 @@ public struct HTTPResponse: Equatable {
         self.body = body
     }
 
-    public init(request: HTTPRequest, response: HTTPURLResponse, url: URL, body: Data? = nil) {
+    public init(request: HTTPRequest, response: HTTPURLResponse, url: HTTPURL, body: Data? = nil) {
         var headers: [String: String] = [:]
         for (k, v) in response.allHeaderFields {
             if let ks = k as? String, let vs = v as? String {

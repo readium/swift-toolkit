@@ -104,11 +104,11 @@ public struct StatusDocument {
     /// are found, the first link with the `rel` and an empty `type` will be returned.
     ///
     /// - Throws: `LCPError.invalidLink` if the URL can't be built.
-    func url(for rel: Rel, preferredType: MediaType? = nil, with parameters: [String: LosslessStringConvertible] = [:]) throws -> URL {
+    func url(for rel: Rel, preferredType: MediaType? = nil, parameters: [String: LosslessStringConvertible] = [:]) throws -> HTTPURL {
         let link = link(for: rel, type: preferredType)
             ?? linkWithNoType(for: rel)
 
-        guard let url = link?.url(with: parameters) else {
+        guard let url = link?.url(parameters: parameters) else {
             throw ParsingError.url(rel: rel.rawValue)
         }
 

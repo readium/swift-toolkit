@@ -28,10 +28,8 @@ public final class FileFetcher: Fetcher, Loggable {
                 if linkHREF == href {
                     return FileResource(link: link, file: url)
 
-                } else if
-                    let relativeHREF = href.relativize(linkHREF)?.path,
-                    let resourceURL = url.appendingPath(relativeHREF)
-                {
+                } else if let relativeHREF = href.relativize(linkHREF)?.path {
+                    let resourceURL = url.appendingPath(relativeHREF, isDirectory: false)
                     // Makes sure that the requested resource is `url` or one of its descendant.
                     if url.isParent(of: resourceURL) {
                         return FileResource(link: link, file: resourceURL)
@@ -66,12 +64,8 @@ public final class FileFetcher: Fetcher, Loggable {
             }
 
             let subPath = url.standardizedFileURL.path.removingPrefix(path.path)
-            guard let href = href.appendingPath(subPath) else {
-                return nil
-            }
-
             return Link(
-                href: href.string,
+                href: href.appendingPath(subPath, isDirectory: false).string,
                 type: FileURL(url: url).flatMap { MediaType.of($0)?.string }
             )
         }

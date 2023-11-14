@@ -21,7 +21,7 @@ public final class HTTPFetcher: Fetcher, Loggable {
     public let links: [Link] = []
 
     public func get(_ link: Link) -> Resource {
-        guard let url = link.url(relativeTo: baseURL).absoluteURL?.httpURL else {
+        guard let url = link.url(relativeTo: baseURL).httpURL else {
             log(.error, "Not a valid HTTP URL: \(link.href)")
             return FailureResource(link: link, error: .badRequest(HTTPError(kind: .malformedRequest(url: link.href))))
         }
@@ -54,24 +54,26 @@ public final class HTTPFetcher: Fetcher, Loggable {
         }
 
         /// Cached HEAD response to get the expected content length and other metadata.
-        private lazy var headResponse: ResourceResult<HTTPResponse> = client.fetchSync(HTTPRequest(url: url.url, method: .head))
+        private lazy var headResponse: ResourceResult<HTTPResponse> = client.fetchSync(HTTPRequest(url: url, method: .head))
             .mapError { ResourceError.wrap($0) }
 
         /// An HTTP resource is always remote.
         var file: FileURL? { nil }
 
         func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void, completion: @escaping (ResourceResult<Void>) -> Void) -> Cancellable {
-            var request = HTTPRequest(url: url.url)
+            var request = HTTPRequest(url: url)
             if let range = range {
                 request.setRange(range)
             }
 
-            return client.stream(request,
-                                 receiveResponse: nil,
-                                 consume: { data, _ in consume(data) },
-                                 completion: { result in
-                                     completion(result.map { _ in }.mapError { ResourceError.wrap($0) })
-                                 })
+            return client.stream(
+                request,
+                receiveResponse: nil,
+                consume: { data, _ in consume(data) },
+                completion: { result in
+                    completion(result.map { _ in }.mapError { ResourceError.wrap($0) })
+                }
+            )
         }
 
         func close() {}

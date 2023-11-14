@@ -58,12 +58,15 @@ final class EPUBNavigatorViewModel: Loggable {
             )
         }
 
+        let resourceURL = Bundle.module.resourceURL!.fileURL!
+
         // FIXME: Remove in Readium 3.0
         // Serve the fonts under the /fonts endpoint as the Streamer's
         // EPUBHTMLInjector is expecting it there.
-        if let fontsURL = (Bundle.module.resourceURL?.appendingPathComponent("Assets/Static/fonts")).flatMap(FileURL.init(url:)) {
-            try httpServer.serve(at: "fonts", contentsOf: fontsURL)
-        }
+        try httpServer.serve(
+            at: "fonts",
+            contentsOf: resourceURL.appendingPath("Assets/Static/fonts", isDirectory: true)
+        )
 
         try self.init(
             publication: publication,
@@ -73,7 +76,7 @@ final class EPUBNavigatorViewModel: Loggable {
             publicationBaseURL: baseURL,
             assetsURL: httpServer.serve(
                 at: "readium",
-                contentsOf: FileURL(url: Bundle.module.resourceURL!.appendingPathComponent("Assets/Static"))!
+                contentsOf: resourceURL.appendingPath("Assets/Static", isDirectory: true)
             ),
             useLegacySettings: false
         )
@@ -105,25 +108,25 @@ final class EPUBNavigatorViewModel: Loggable {
     ) {
         var config = config
 
-        if let fontsDir = Bundle.module.resourceURL.flatMap(FileURL.init(url:))?.appendingPath("Assets/Static/fonts") {
+        if let fontsDir = Bundle.module.resourceURL?.fileURL?.appendingPath("Assets/Static/fonts", isDirectory: true) {
             config.fontFamilyDeclarations.append(
                 CSSFontFamilyDeclaration(
                     fontFamily: .openDyslexic,
                     fontFaces: [
                         CSSFontFace(
-                            file: fontsDir.appendingPath("OpenDyslexic-Regular.otf")!,
+                            file: fontsDir.appendingPath("OpenDyslexic-Regular.otf", isDirectory: false),
                             style: .normal, weight: .standard(.normal)
                         ),
                         CSSFontFace(
-                            file: fontsDir.appendingPath("OpenDyslexic-Italic.otf")!,
+                            file: fontsDir.appendingPath("OpenDyslexic-Italic.otf", isDirectory: false),
                             style: .italic, weight: .standard(.normal)
                         ),
                         CSSFontFace(
-                            file: fontsDir.appendingPath("OpenDyslexic-Bold.otf")!,
+                            file: fontsDir.appendingPath("OpenDyslexic-Bold.otf", isDirectory: false),
                             style: .normal, weight: .standard(.bold)
                         ),
                         CSSFontFace(
-                            file: fontsDir.appendingPath("OpenDyslexic-BoldItalic.otf")!,
+                            file: fontsDir.appendingPath("OpenDyslexic-BoldItalic.otf", isDirectory: false),
                             style: .italic, weight: .standard(.bold)
                         ),
                     ]
@@ -150,7 +153,7 @@ final class EPUBNavigatorViewModel: Loggable {
         css = ReadiumCSS(
             layout: CSSLayout(),
             rsProperties: config.readiumCSSRSProperties,
-            baseURL: assetsURL.appendingPath("readium-css/")!,
+            baseURL: assetsURL.appendingPath("readium-css", isDirectory: true),
             fontFamilyDeclarations: config.fontFamilyDeclarations
         )
 

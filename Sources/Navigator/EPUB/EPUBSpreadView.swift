@@ -455,7 +455,7 @@ extension EPUBSpreadView: WKNavigationDelegate {
         var policy: WKNavigationActionPolicy = .allow
 
         if navigationAction.navigationType == .linkActivated {
-            if let url = navigationAction.request.url.flatMap(HTTPURL.init(url:)) {
+            if let url = navigationAction.request.url?.httpURL {
                 let baseURL = viewModel.publicationBaseURL
                 // Check if url is internal or external
                 if let relativeURL = baseURL.relativize(url) {
@@ -493,7 +493,7 @@ extension EPUBSpreadView: UIScrollViewDelegate {
 extension EPUBSpreadView: WKUIDelegate {
     func webView(_ webView: WKWebView, shouldPreviewElement elementInfo: WKPreviewElementInfo) -> Bool {
         // Preview allowed only if the link is not internal
-        guard let url = elementInfo.linkURL.flatMap(HTTPURL.init(url:)) else {
+        guard let url = elementInfo.linkURL?.httpURL else {
             return true
         }
         return url.isRelative(to: viewModel.publicationBaseURL)

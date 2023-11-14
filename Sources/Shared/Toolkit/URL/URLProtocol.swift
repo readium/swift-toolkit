@@ -21,6 +21,9 @@ public protocol URLProtocol: CustomStringConvertible, URLConvertible {
     /// Decoded path segments identifying a location.
     var path: String? { get }
 
+    /// Returns a copy of this URL after appending path components.
+    func appendingPath(_ path: String, isDirectory: Bool) -> Self
+
     /// Returns the decoded path segments of the URL, or an empty array if the
     /// path is an empty string.
     var pathSegments: [String] { get }
@@ -28,29 +31,32 @@ public protocol URLProtocol: CustomStringConvertible, URLConvertible {
     /// The last path segment of the URL.
     var lastPathSegment: String? { get }
 
+    /// Returns a URL constructed by removing the last path component of self.
+    func removingLastPathSegment() -> Self
+
     /// The path extension, or nil if it is empty.
     var pathExtension: String? { get }
 
-    /// Returns a copy of this URL after appending path components.
+    /// Returns a URL constructed by replacing or appending the given path
+    /// extension to self.
     ///
-    /// If `path` ends with `/`, it is considered a directory.
-    func appendingPath(_ path: String) -> Self?
-
-    /// Returns a copy of this URL after appending path components.
-    func appendingPath(_ path: String, isDirectory: Bool) -> Self?
+    /// If the URL has an empty path (e.g., `http://www.example.com`), or a
+    /// directory for last path segment, then this function will return the URL
+    /// unchanged.
+    func replacingPathExtension(_ pathExtension: String?) -> Self
 
     /// Returns the decoded query parameters present in this URL, in the order
     /// they appear.
     var query: URLQuery? { get }
 
     /// Creates a copy of this URL after removing its query portion.
-    func removingQuery() -> Self?
+    func removingQuery() -> Self
 
     /// Returns the decoded fragment portion of this URL, if there's any.
     var fragment: String? { get }
 
     /// Creates a copy of this URL after removing its fragment portion.
-    func removingFragment() -> Self?
+    func removingFragment() -> Self
 }
 
 public extension URLProtocol {
@@ -68,6 +74,15 @@ public extension URLProtocol {
         components?.path.orNilIfEmpty()
     }
 
+    func appendingPath(_ path: String, isDirectory: Bool) -> Self {
+        let path = path.removingSuffix("/")
+        guard !path.isEmpty else {
+            return self
+        }
+
+        return Self(url: url.appendingPathComponent(path, isDirectory: isDirectory))!
+    }
+
     var pathSegments: [String] {
         var comp = url.pathComponents
         if comp.first == "/" {
@@ -80,42 +95,48 @@ public extension URLProtocol {
         url.lastPathComponent.orNilIfEmpty()
     }
 
+    func removingLastPathSegment() -> Self {
+        Self(url: url.deletingLastPathComponent())!
+    }
+
     var pathExtension: String? {
         url.pathExtension.orNilIfEmpty()
     }
 
-    func appendingPath(_ path: String) -> Self? {
-        guard !path.isEmpty else {
+    func replacingPathExtension(_ pathExtension: String?) -> Self {
+        guard let path = path, !path.hasSuffix("/") else {
             return self
         }
 
-        return Self(url: url.appendingPathComponent(path))
-    }
-
-    func appendingPath(_ path: String, isDirectory: Bool) -> Self? {
-        guard !path.isEmpty else {
-            return self
+        var url = url.deletingPathExtension()
+        if let pathExtension = pathExtension {
+            url = url.appendingPathExtension(pathExtension)
         }
-
-        return Self(url: url.appendingPathComponent(path, isDirectory: isDirectory))
+        return Self(url: url)!
     }
 
     var query: URLQuery? { URLQuery(url: url) }
 
-    func removingQuery() -> Self? {
-        guard let url = url.copy({ $0.query = nil }) else {
-            return nil
+    func removingQuery() -> Self {
+        if let url = url.copy({ $0.query = nil }) {
+            return Self(url: url)!
+        } else if let withoutQuery = string.components(separatedBy: "?").first {
+            return Self(string: withoutQuery)!
+        } else {
+            return self
         }
-        return Self(url: url)
     }
 
     var fragment: String? { url.fragment?.orNilIfEmpty()?.removingPercentEncoding }
 
-    func removingFragment() -> Self? {
-        guard let url = url.copy({ $0.fragment = nil }) else {
-            return nil
+    func removingFragment() -> Self {
+        if let url = url.copy({ $0.fragment = nil }) {
+            return Self(url: url)!
+        } else if let withoutFragment = string.components(separatedBy: "#").first {
+            return Self(string: withoutFragment)!
+        } else {
+            return self
         }
-        return Self(url: url)
     }
 
     private var components: URLComponents? {

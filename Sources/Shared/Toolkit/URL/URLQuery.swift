@@ -32,6 +32,11 @@ public struct URLQuery: Hashable {
     }
 
     /// Returns the first value for the parameter with the given `name`.
+    public subscript(_ name: String) -> String? {
+        first(named: name)
+    }
+
+    /// Returns the first value for the parameter with the given `name`.
     public func first(named name: String) -> String? {
         parameters.first(where: { $0.name == name })?.value
     }

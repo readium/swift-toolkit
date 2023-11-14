@@ -113,7 +113,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
         }
 
         queue.async { [self] in
-            guard let url = HTTPURL(url: request.url) else {
+            guard let url = request.url.httpURL else {
                 completion(FailureResource(link: Link(href: request.url.absoluteString), error: .notFound(nil)))
                 return
             }
@@ -130,7 +130,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             }
 
             for (endpoint, handler) in handlers {
-                if endpoint == url.removingQuery()?.removingFragment() {
+                if endpoint == url.removingQuery().removingFragment() {
                     let resource = handler(HTTPServerRequest(url: url, href: nil))
                     completion(transform(resource: resource, at: endpoint))
                     return
@@ -243,7 +243,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             throw GCDHTTPServerError.failedToStartServer(cause: error)
         }
 
-        guard let baseURL = server.serverURL.flatMap(HTTPURL.init(url:)) else {
+        guard let baseURL = server.serverURL?.httpURL else {
             stop()
             throw GCDHTTPServerError.nullServerURL
         }

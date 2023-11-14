@@ -72,6 +72,25 @@ class RelativeURLTests: XCTestCase {
         XCTAssertNil(RelativeURL(string: "?query")?.path)
     }
 
+    func testAppendingPath() {
+        var base = RelativeURL(string: "foo/bar")!
+        XCTAssertEqual(base.appendingPath("", isDirectory: false).string, "foo/bar")
+        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false).string, "foo/bar/baz/quz")
+        XCTAssertEqual(base.appendingPath("/baz/quz", isDirectory: false).string, "foo/bar/baz/quz")
+        // The path is supposed to be decoded
+        XCTAssertEqual(base.appendingPath("baz quz", isDirectory: false).string, "foo/bar/baz%20quz")
+        XCTAssertEqual(base.appendingPath("baz%20quz", isDirectory: false).string, "foo/bar/baz%2520quz")
+        // Directory
+        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: true).string, "foo/bar/baz/quz/")
+        XCTAssertEqual(base.appendingPath("baz/quz/", isDirectory: true).string, "foo/bar/baz/quz/")
+        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false).string, "foo/bar/baz/quz")
+        XCTAssertEqual(base.appendingPath("baz/quz/", isDirectory: false).string, "foo/bar/baz/quz")
+
+        // With trailing slash.
+        base = RelativeURL(string: "foo/bar/")!
+        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false).string, "foo/bar/baz/quz")
+    }
+
     func testPathSegments() {
         XCTAssertEqual(RelativeURL(string: "foo")?.pathSegments, ["foo"])
         // Segments are percent-decoded.
@@ -91,6 +110,16 @@ class RelativeURLTests: XCTestCase {
         XCTAssertNil(RelativeURL(string: "?query")?.lastPathSegment)
     }
 
+    func testRemovingLastPathSegment() {
+        XCTAssertEqual(RelativeURL(string: "foo")!.removingLastPathSegment().string, "./")
+        XCTAssertEqual(RelativeURL(string: "foo/bar")!.removingLastPathSegment().string, "foo/")
+        XCTAssertEqual(RelativeURL(string: "foo/bar/")!.removingLastPathSegment().string, "foo/")
+        XCTAssertEqual(RelativeURL(string: "/")!.removingLastPathSegment().string, "/../")
+        XCTAssertEqual(RelativeURL(string: "/foo")!.removingLastPathSegment().string, "/")
+        XCTAssertEqual(RelativeURL(string: "/foo/bar")!.removingLastPathSegment().string, "/foo/")
+        XCTAssertEqual(RelativeURL(string: "/foo/bar/")!.removingLastPathSegment().string, "/foo/")
+    }
+
     func testPathExtension() {
         XCTAssertEqual(RelativeURL(string: "foo/bar.txt")?.pathExtension, "txt")
         XCTAssertNil(RelativeURL(string: "foo/bar")?.pathExtension)
@@ -98,22 +127,12 @@ class RelativeURLTests: XCTestCase {
         XCTAssertNil(RelativeURL(string: "foo/.hidden")?.pathExtension)
     }
 
-    func testAppendingPath() {
-        var base = RelativeURL(string: "foo/bar")!
-        XCTAssertEqual(base.appendingPath("")?.string, "foo/bar")
-        XCTAssertEqual(base.appendingPath("baz/quz")?.string, "foo/bar/baz/quz")
-        XCTAssertEqual(base.appendingPath("/baz/quz")?.string, "foo/bar/baz/quz")
-        // The path is supposed to be decoded
-        XCTAssertEqual(base.appendingPath("baz quz")?.string, "foo/bar/baz%20quz")
-        XCTAssertEqual(base.appendingPath("baz%20quz")?.string, "foo/bar/baz%2520quz")
-        // Directory
-        XCTAssertEqual(base.appendingPath("baz/quz/")?.string, "foo/bar/baz/quz/")
-        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: true)?.string, "foo/bar/baz/quz/")
-        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false)?.string, "foo/bar/baz/quz")
-
-        // With trailing slash.
-        base = RelativeURL(string: "foo/bar/")!
-        XCTAssertEqual(base.appendingPath("baz/quz")?.string, "foo/bar/baz/quz")
+    func testReplacingPathExtension() {
+        XCTAssertEqual(RelativeURL(string: "/foo/bar")!.replacingPathExtension("xml").string, "/foo/bar.xml")
+        XCTAssertEqual(RelativeURL(string: "/foo/bar.txt")!.replacingPathExtension("xml").string, "/foo/bar.xml")
+        XCTAssertEqual(RelativeURL(string: "/foo/bar.txt")!.replacingPathExtension(nil).string, "/foo/bar")
+        XCTAssertEqual(RelativeURL(string: "/foo/bar/")!.replacingPathExtension("xml").string, "/foo/bar/")
+        XCTAssertEqual(RelativeURL(string: "/foo/bar/")!.replacingPathExtension(nil).string, "/foo/bar/")
     }
 
     func testQuery() {
@@ -144,8 +163,8 @@ class RelativeURLTests: XCTestCase {
     func testResolveURLConvertible() {
         let base = RelativeURL(string: "foo/bar")!
         XCTAssertEqual(base.resolve(AnyURL(string: "quz")!)?.string, "foo/quz")
-        XCTAssertNil(base.resolve(HTTPURL(string: "http://domain.com")!))
-        XCTAssertNil(base.resolve(FileURL(string: "file:///foo")!))
+        XCTAssertEqual(base.resolve(HTTPURL(string: "http://domain.com")!)!.string, "http://domain.com")
+        XCTAssertEqual(base.resolve(FileURL(string: "file:///foo")!)!.string, "file:///foo")
     }
 
     func testResolveRelativeURL() {

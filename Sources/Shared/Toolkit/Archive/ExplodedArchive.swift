@@ -15,7 +15,7 @@ final class ExplodedArchive: Archive, Loggable {
     private let root: FileURL
 
     public static func make(url: FileURL) -> ArchiveResult<ExplodedArchive> {
-        guard url.isDirectory() else {
+        guard (try? url.isDirectory()) == true else {
             return .failure(.openFailed(archive: url.string, cause: ExplodedArchiveError.notADirectory(url)))
         }
 
@@ -68,8 +68,8 @@ final class ExplodedArchive: Archive, Loggable {
     }
 
     private func entryURL(fromPath path: String) -> FileURL? {
+        let url = root.appendingPath(path, isDirectory: false)
         guard
-            let url = root.appendingPath(path),
             root.isParent(of: url)
         else {
             return nil

@@ -435,6 +435,6 @@ private enum ReadiumCSSLayout: String {
     }
 
     func readiumCSSPath(for name: String) -> RelativeURL {
-        readiumCSSBasePath.appendingPath("ReadiumCSS-\(name).css")!
+        readiumCSSBasePath.appendingPath("ReadiumCSS-\(name).css", isDirectory: false)
     }
 }
