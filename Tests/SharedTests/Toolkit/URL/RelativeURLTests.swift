@@ -68,8 +68,8 @@ class RelativeURLTests: XCTestCase {
         XCTAssertEqual(RelativeURL(string: "foo/bar%20baz/")?.path, "foo/bar baz/")
         XCTAssertEqual(RelativeURL(string: "/foo/bar%20baz")?.path, "/foo/bar baz")
         XCTAssertEqual(RelativeURL(string: "foo/bar?query#fragment")?.path, "foo/bar")
-        XCTAssertNil(RelativeURL(string: "#fragment")?.path)
-        XCTAssertNil(RelativeURL(string: "?query")?.path)
+        XCTAssertEqual(RelativeURL(string: "#fragment")?.path, "")
+        XCTAssertEqual(RelativeURL(string: "?query")?.path, "")
     }
 
     func testAppendingPath() {

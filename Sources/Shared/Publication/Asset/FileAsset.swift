@@ -39,7 +39,8 @@ public final class FileAsset: PublicationAsset, Loggable {
         return resolvedMediaType
     }
 
-    private lazy var resolvedMediaType: MediaType? = knownMediaType ?? MediaType.of(file, mediaType: mediaTypeHint)
+    private lazy var resolvedMediaType: MediaType? =
+        MediaType.of(file, mediaType: mediaTypeHint ?? knownMediaType?.string)
 
     public func makeFetcher(using dependencies: PublicationAssetDependencies, credentials: String?, completion: @escaping (CancellableResult<Fetcher, Publication.OpeningError>) -> Void) {
         DispatchQueue.global(qos: .background).async {

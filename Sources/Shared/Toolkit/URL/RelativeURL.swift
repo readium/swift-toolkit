@@ -52,10 +52,10 @@ public struct RelativeURL: URLProtocol, Hashable {
             return other
         }
 
-        guard var path = path?.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+        guard var path = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
             return nil
         }
-        if other.path != nil, !path.hasSuffix("/") {
+        if !other.path.isEmpty, !path.hasSuffix("/") {
             path = url.deletingLastPathComponent().path.addingSuffix("/")
         }
 

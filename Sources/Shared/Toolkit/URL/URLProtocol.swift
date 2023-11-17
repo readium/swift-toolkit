@@ -19,7 +19,7 @@ public protocol URLProtocol: CustomStringConvertible, URLConvertible {
     var string: String { get }
 
     /// Decoded path segments identifying a location.
-    var path: String? { get }
+    var path: String { get }
 
     /// Returns a copy of this URL after appending path components.
     func appendingPath(_ path: String, isDirectory: Bool) -> Self
@@ -69,9 +69,9 @@ public extension URLProtocol {
 
     var string: String { url.absoluteString }
 
-    var path: String? {
+    var path: String {
         // We can't use `url.path`, see https://openradar.appspot.com/28357201
-        components?.path.orNilIfEmpty()
+        components?.path ?? ""
     }
 
     func appendingPath(_ path: String, isDirectory: Bool) -> Self {
@@ -104,7 +104,7 @@ public extension URLProtocol {
     }
 
     func replacingPathExtension(_ pathExtension: String?) -> Self {
-        guard let path = path, !path.hasSuffix("/") else {
+        guard !path.hasSuffix("/") else {
             return self
         }
 

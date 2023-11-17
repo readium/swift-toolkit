@@ -15,7 +15,9 @@ public struct FileURL: AbsoluteURL, Hashable {
         guard
             let scheme = url.scheme.map(URLScheme.init(rawValue:)),
             scheme == .file,
-            let path = url.path.orNilIfEmpty()
+            // We can't use `url.path`, see https://openradar.appspot.com/28357201
+            let path = URLComponents(url: url, resolvingAgainstBaseURL: true)?.path,
+            !path.isEmpty
         else {
             return nil
         }
@@ -44,7 +46,7 @@ public struct FileURL: AbsoluteURL, Hashable {
 
     /// Returns whether the given `url` is `self` or one of its descendants.
     public func isParent(of other: FileURL) -> Bool {
-        path == other.path || other.path.hasPrefix(path + "/")
+        path == other.path || other.path.hasPrefix(path.addingSuffix("/"))
     }
 
     /// Returns whether the file exists on the file system.

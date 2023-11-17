@@ -45,8 +45,8 @@ class UnknownAbsoluteURLTests: XCTestCase {
         XCTAssertEqual(UnknownAbsoluteURL(string: "opds://host/foo/bar%20baz")?.path, "/foo/bar baz")
         XCTAssertEqual(UnknownAbsoluteURL(string: "opds://host/foo/bar%20baz/")?.path, "/foo/bar baz/")
         XCTAssertEqual(UnknownAbsoluteURL(string: "opds://host/foo/bar?query#fragment")?.path, "/foo/bar")
-        XCTAssertNil(UnknownAbsoluteURL(string: "opds://host#fragment")?.path)
-        XCTAssertNil(UnknownAbsoluteURL(string: "opds://host?query")?.path)
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://host#fragment")?.path, "")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://host?query")?.path, "")
     }
 
     func testAppendingPath() {

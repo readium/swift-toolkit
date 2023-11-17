@@ -45,8 +45,8 @@ class HTTPURLTests: XCTestCase {
         XCTAssertEqual(HTTPURL(string: "http://host/foo/bar%20baz")?.path, "/foo/bar baz")
         XCTAssertEqual(HTTPURL(string: "http://host/foo/bar%20baz/")?.path, "/foo/bar baz/")
         XCTAssertEqual(HTTPURL(string: "http://host/foo/bar?query#fragment")?.path, "/foo/bar")
-        XCTAssertNil(HTTPURL(string: "http://host#fragment")?.path)
-        XCTAssertNil(HTTPURL(string: "http://host?query")?.path)
+        XCTAssertEqual(HTTPURL(string: "http://host#fragment")?.path, "")
+        XCTAssertEqual(HTTPURL(string: "http://host?query")?.path, "")
     }
 
     func testAppendingPath() {
