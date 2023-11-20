@@ -90,7 +90,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
         let publicationEndpoint: HTTPServerEndpoint?
         let baseURL: HTTPURL
-        if let url = publication.baseURL?.httpURL {
+        if let url = publication.baseURL {
             publicationEndpoint = nil
             baseURL = url
         } else {
@@ -137,7 +137,11 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         NotificationCenter.default.removeObserver(self)
 
         if let endpoint = publicationEndpoint {
-            try? server?.remove(at: endpoint)
+            do {
+                try server?.remove(at: endpoint)
+            } catch {
+                log(.warning, "Failed to remove the server endpoint \(endpoint): \(error.localizedDescription)")
+            }
         }
     }
 

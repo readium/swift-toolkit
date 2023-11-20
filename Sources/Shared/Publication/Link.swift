@@ -165,9 +165,7 @@ public struct Link: JSONEquatable, Hashable {
         relativeTo baseURL: T?,
         parameters: [String: LosslessStringConvertible] = [:]
     ) -> AnyURL {
-        var expanded = self
-        expanded.expandTemplate(with: parameters)
-        let url = AnyURL(string: expanded.href)!
+        let url = url(parameters: parameters)
         return baseURL?.anyURL.resolve(url) ?? url
     }
 

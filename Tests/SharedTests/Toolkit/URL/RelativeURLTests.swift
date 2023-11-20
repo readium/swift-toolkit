@@ -11,6 +11,21 @@ import Foundation
 import XCTest
 
 class RelativeURLTests: XCTestCase {
+    func testEquality() {
+        XCTAssertEqual(
+            RelativeURL(string: "dir/file")!,
+            RelativeURL(string: "dir/file")!
+        )
+        XCTAssertNotEqual(
+            RelativeURL(string: "dir/file/")!,
+            RelativeURL(string: "dir/file")!
+        )
+        XCTAssertNotEqual(
+            RelativeURL(string: "dir")!,
+            RelativeURL(string: "dir/file")!
+        )
+    }
+
     // MARK: - URLProtocol
 
     func testCreateFromURL() {

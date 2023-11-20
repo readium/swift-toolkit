@@ -91,7 +91,7 @@ public class DefaultArchiveFactory: ArchiveFactory, Loggable {
 
     public func open(file: FileURL, password: String?) -> ArchiveResult<Archive> {
         warnIfMainThread()
-        return ExplodedArchive.make(url: file)
+        return ExplodedArchive.make(file: file)
             .map { $0 as Archive }
             .catch { _ in MinizipArchive.make(url: file).map { $0 as Archive } }
     }

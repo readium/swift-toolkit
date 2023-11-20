@@ -40,7 +40,7 @@ public struct FileURL: AbsoluteURL, Hashable {
     public let scheme: URLScheme
     public let origin: String? = nil
 
-    public var lastPathComponent: String {
+    public var lastPathSegment: String {
         url.lastPathComponent
     }
 

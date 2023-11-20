@@ -9,6 +9,17 @@ import Foundation
 import XCTest
 
 class HTTPURLTests: XCTestCase {
+    func testEquality() {
+        XCTAssertEqual(
+            HTTPURL(string: "http://domain.com")!,
+            HTTPURL(string: "http://domain.com")!
+        )
+        XCTAssertNotEqual(
+            HTTPURL(string: "http://domain.com")!,
+            HTTPURL(string: "http://domain.com#fragment")!
+        )
+    }
+
     // MARK: - URLProtocol
 
     func testCreateFromURL() {

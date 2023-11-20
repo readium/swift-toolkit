@@ -21,10 +21,10 @@ import Foundation
             static let module = Bundle.getCocoaPodsBundle()
             static func getCocoaPodsBundle() -> Bundle {
                 let rootBundle = Bundle(for: Streamer.self)
-                guard let resourceBundleUrl = rootBundle.wrapped(forResource: "ReadiumStreamer", withExtension: "bundle") else {
+                guard let resourceBundleUrl = rootBundle.url(forResource: "ReadiumStreamer", withExtension: "bundle") else {
                     fatalError("Unable to locate ReadiumStreamer.bundle")
                 }
-                guard let bundle = Bundle(wrapped: resourceBundleUrl) else {
+                guard let bundle = Bundle(url: resourceBundleUrl) else {
                     fatalError("Unable to load ReadiumStreamer.bundle")
                 }
 

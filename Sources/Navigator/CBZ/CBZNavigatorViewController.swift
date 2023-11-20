@@ -40,7 +40,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
         let publicationEndpoint: HTTPServerEndpoint?
         let baseURL: HTTPURL
-        if let url = publication.baseURL?.httpURL {
+        if let url = publication.baseURL {
             publicationEndpoint = nil
             baseURL = url
         } else {

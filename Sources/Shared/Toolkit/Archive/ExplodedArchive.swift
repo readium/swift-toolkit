@@ -14,16 +14,16 @@ final class ExplodedArchive: Archive, Loggable {
 
     private let root: FileURL
 
-    public static func make(url: FileURL) -> ArchiveResult<ExplodedArchive> {
-        guard (try? url.isDirectory()) == true else {
-            return .failure(.openFailed(archive: url.string, cause: ExplodedArchiveError.notADirectory(url)))
+    public static func make(file: FileURL) -> ArchiveResult<ExplodedArchive> {
+        guard (try? file.isDirectory()) == true else {
+            return .failure(.openFailed(archive: file.string, cause: ExplodedArchiveError.notADirectory(file)))
         }
 
-        return .success(Self(url: url))
+        return .success(Self(file: file))
     }
 
-    private init(url: FileURL) {
-        root = url
+    private init(file: FileURL) {
+        root = file
     }
 
     lazy var entries: [ArchiveEntry] = {

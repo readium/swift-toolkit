@@ -10,7 +10,7 @@ import Foundation
 public struct RelativeURL: URLProtocol, Hashable {
     public let url: URL
 
-    /// Creates a `RelativeURL` from a standard Swift `URL`.
+    /// Creates a ``RelativeURL`` from a standard Swift ``URL``.
     public init?(url: URL) {
         guard url.scheme == nil else {
             return nil
@@ -19,7 +19,7 @@ public struct RelativeURL: URLProtocol, Hashable {
         self.url = url.absoluteURL
     }
 
-    /// Creates a `RelativeURL` from a percent-decoded path.
+    /// Creates a ``RelativeURL`` from a percent-decoded path.
     public init?(path: String) {
         guard let url = URL(path: path) else {
             return nil
@@ -27,7 +27,7 @@ public struct RelativeURL: URLProtocol, Hashable {
         self.init(url: url)
     }
 
-    /// Resolves the given `url` to this URL, if possible.
+    /// Resolves the `other` URL to this URL, if possible.
     ///
     /// For example:
     ///     self: foo/bar
@@ -41,7 +41,7 @@ public struct RelativeURL: URLProtocol, Hashable {
         return resolve(relativeURL)?.anyURL
     }
 
-    /// Resolves the given `url` to this URL, if possible.
+    /// Resolves the `other` URL to this URL, if possible.
     ///
     /// For example:
     ///     self: foo/bar
@@ -76,7 +76,7 @@ public struct RelativeURL: URLProtocol, Hashable {
         return RelativeURL(url: resolvedURL)
     }
 
-    /// Relativizes the given `url` against this relative URL, if possible.
+    /// Relativizes the `other` URL against this relative URL, if possible.
     ///
     /// For example:
     ///     self: foo/bar

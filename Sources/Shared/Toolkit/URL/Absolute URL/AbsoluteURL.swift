@@ -11,47 +11,24 @@ public protocol AbsoluteURL: URLProtocol {
     /// Identifies the type of URL.
     var scheme: URLScheme { get }
 
-    /// Host component of the URL, if any.
-    var host: String? { get }
-
     /// Origin of the URL.
     ///
     /// See https://url.spec.whatwg.org/#origin
     var origin: String? { get }
-
-    /// Resolves the given `url` to this URL, if possible.
-    ///
-    /// For example:
-    ///     self: http://example.com/foo/
-    ///     other: bar/baz
-    ///     returns http://example.com/foo/bar/baz
-    func resolve<T: URLConvertible>(_ other: T) -> AbsoluteURL?
-
-    /// Resolves the given `url` to this relative URL, if possible.
-    ///
-    /// For example:
-    ///     self: http://example.com/foo/
-    ///     other: bar/baz
-    ///     returns http://example.com/foo/bar/baz
-    func resolve(_ other: RelativeURL) -> Self?
-
-    /// Relativizes the given `url` against this base URL, if possible.
-    ///
-    /// For example:
-    ///     self: http://example.com/foo
-    ///     other: http://example.com/foo/bar/baz
-    ///     returns bar/baz
-    func relativize<T: URLConvertible>(_ other: T) -> RelativeURL?
-
-    /// Indicates whether the receiver is relative to the given `base` URL.
-    func isRelative<T: URLConvertible>(to base: T) -> Bool
 }
 
 public extension AbsoluteURL {
+    /// Host component of the URL, if any.
     var host: String? {
         url.host
     }
 
+    /// Resolves the `other` URL to this URL, if possible.
+    ///
+    /// For example:
+    ///     self: http://example.com/foo/
+    ///     other: bar/baz
+    ///     returns http://example.com/foo/bar/baz
     func resolve<T: URLConvertible>(_ other: T) -> AbsoluteURL? {
         switch other.anyURL {
         case let .relative(url):
@@ -61,6 +38,12 @@ public extension AbsoluteURL {
         }
     }
 
+    /// Resolves the `other` relative URL to this URL, if possible.
+    ///
+    /// For example:
+    ///     self: http://example.com/foo/
+    ///     other: bar/baz
+    ///     returns http://example.com/foo/bar/baz
     func resolve(_ other: RelativeURL) -> Self? {
         guard let url = URL(string: other.string, relativeTo: url) else {
             return nil
@@ -68,6 +51,12 @@ public extension AbsoluteURL {
         return Self(url: url)
     }
 
+    /// Relativizes the `other` URL against this base URL, if possible.
+    ///
+    /// For example:
+    ///     self: http://example.com/foo
+    ///     other: http://example.com/foo/bar/baz
+    ///     returns bar/baz
     func relativize<T: URLConvertible>(_ other: T) -> RelativeURL? {
         guard
             let absoluteURL = other.absoluteURL,
@@ -84,13 +73,14 @@ public extension AbsoluteURL {
         )
     }
 
+    /// Indicates whether the receiver is relative to the given `base` URL.
     func isRelative<T: URLConvertible>(to base: T) -> Bool {
         base.absoluteURL?.scheme == scheme
             && base.absoluteURL?.origin == origin
     }
 }
 
-/// Implements `URLConvertible`.
+/// Implements ``URLConvertible``.
 public extension AbsoluteURL {
     var anyURL: AnyURL { .absolute(self) }
     var relativeURL: RelativeURL? { nil }

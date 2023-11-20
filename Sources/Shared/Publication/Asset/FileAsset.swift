@@ -32,7 +32,7 @@ public final class FileAsset: PublicationAsset, Loggable {
         knownMediaType = mediaType
     }
 
-    public var name: String { file.lastPathComponent }
+    public var name: String { file.lastPathSegment }
 
     public func mediaType() -> MediaType? {
         warnIfMainThread()

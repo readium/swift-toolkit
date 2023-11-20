@@ -12,10 +12,7 @@ import Foundation
 /// that we don't know.
 struct UnknownAbsoluteURL: AbsoluteURL, Hashable {
     init?(url: URL) {
-        guard
-            let scheme = url.scheme.map(URLScheme.init(rawValue:)),
-            scheme != .file, scheme != .http, scheme != .https
-        else {
+        guard let scheme = url.scheme.map(URLScheme.init(rawValue:)) else {
             return nil
         }
 

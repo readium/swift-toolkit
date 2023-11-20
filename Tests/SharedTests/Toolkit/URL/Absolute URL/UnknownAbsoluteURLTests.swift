@@ -9,13 +9,20 @@ import Foundation
 import XCTest
 
 class UnknownAbsoluteURLTests: XCTestCase {
+    func testEquality() {
+        XCTAssertEqual(
+            UnknownAbsoluteURL(string: "opds://domain.com")!,
+            UnknownAbsoluteURL(string: "opds://domain.com")!
+        )
+        XCTAssertNotEqual(
+            UnknownAbsoluteURL(string: "opds://domain.com")!,
+            UnknownAbsoluteURL(string: "opds://domain.com#fragment")!
+        )
+    }
+
     // MARK: - URLProtocol
 
     func testCreateFromURL() {
-        // Only valid for schemes that are not http, https and file.
-        XCTAssertNil(UnknownAbsoluteURL(url: URL(string: "http://domain.com")!))
-        XCTAssertNil(UnknownAbsoluteURL(url: URL(string: "https://domain.com")!))
-        XCTAssertNil(UnknownAbsoluteURL(url: URL(string: "file://domain.com")!))
         XCTAssertEqual(UnknownAbsoluteURL(url: URL(string: "opds://callback")!)?.string, "opds://callback")
     }
 
@@ -26,10 +33,6 @@ class UnknownAbsoluteURLTests: XCTestCase {
         XCTAssertNil(UnknownAbsoluteURL(string: "")?.string)
         // Not absolute
         XCTAssertNil(UnknownAbsoluteURL(string: "path"))
-        // Only valid for schemes that are not http, https and file.
-        XCTAssertNil(UnknownAbsoluteURL(string: "http://domain.com"))
-        XCTAssertNil(UnknownAbsoluteURL(string: "https://domain.com"))
-        XCTAssertNil(UnknownAbsoluteURL(string: "file://domain.com"))
     }
 
     func testURL() {

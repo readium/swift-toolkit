@@ -51,11 +51,11 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
                         fontFaces: [
                             // Literata is a variable font family, so we can provide a font weight range.
                             CSSFontFace(
-                                file: resources.appendingPath("Fonts/Literata-VariableFont_opsz,wght.ttf")!,
+                                file: resources.appendingPath("Fonts/Literata-VariableFont_opsz,wght.ttf", isDirectory: false),
                                 style: .normal, weight: .variable(200 ... 900)
                             ),
                             CSSFontFace(
-                                file: resources.appendingPath("Fonts/Literata-Italic-VariableFont_opsz,wght.ttf")!,
+                                file: resources.appendingPath("Fonts/Literata-Italic-VariableFont_opsz,wght.ttf", isDirectory: false),
                                 style: .italic, weight: .variable(200 ... 900)
                             ),
                         ]

@@ -9,6 +9,26 @@ import Foundation
 import XCTest
 
 class FileURLTests: XCTestCase {
+    func testEquality() {
+        XCTAssertEqual(
+            FileURL(string: "file:///foo/bar")!,
+            FileURL(string: "file:///foo/bar")!
+        )
+        // Fragments are ignored.
+        XCTAssertEqual(
+            FileURL(string: "file:///foo/bar")!,
+            FileURL(string: "file:///foo/bar#fragment")!
+        )
+        XCTAssertNotEqual(
+            FileURL(string: "file:///foo/bar")!,
+            FileURL(string: "file:///foo/baz")!
+        )
+        XCTAssertNotEqual(
+            FileURL(string: "file:///foo/bar")!,
+            FileURL(string: "file:///foo/bar/")!
+        )
+    }
+
     // MARK: - URLProtocol
 
     func testCreateFromURL() {

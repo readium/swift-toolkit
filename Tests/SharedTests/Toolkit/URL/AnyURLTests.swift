@@ -9,6 +9,26 @@ import Foundation
 import XCTest
 
 class AnyURLTests: XCTestCase {
+    func testEquality() {
+        XCTAssertEqual(
+            AnyURL(string: "opds://domain.com")!,
+            AnyURL(string: "opds://domain.com")!
+        )
+        XCTAssertNotEqual(
+            AnyURL(string: "opds://domain.com")!,
+            AnyURL(string: "https://domain.com")!
+        )
+
+        XCTAssertEqual(
+            AnyURL(string: "dir/file")!,
+            AnyURL(string: "dir/file")!
+        )
+        XCTAssertNotEqual(
+            AnyURL(string: "dir/file")!,
+            AnyURL(string: "dir/file#fragment")!
+        )
+    }
+
     func testCreateFromInvalidUrl() {
         XCTAssertNil(AnyURL(string: ""))
         XCTAssertNil(AnyURL(string: "     "))

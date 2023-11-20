@@ -54,7 +54,7 @@ public final class LCPAcquisition: Loggable, Cancellable {
 
         completion(result)
 
-        if case let .success(publication) = result, (try? publication.localURL.url.checkResourceIsReachable()) == true {
+        if case let .success(publication) = result, (try? publication.localURL.exists()) == true {
             log(.warning, "The acquired LCP publication file was not moved in the completion closure. It will be removed from the file system.")
         }
     }

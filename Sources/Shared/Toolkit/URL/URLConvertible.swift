@@ -6,17 +6,17 @@
 
 import Foundation
 
-/// A type that can be converted into a URL.
+/// A type that can be converted into an ``AnyURL``.
 public protocol URLConvertible {
-    /// Converts the receiver to an `AnyURL`.
+    /// Converts the receiver to an ``AnyURL``.
     var anyURL: AnyURL { get }
 
-    /// Converts the receiver to a `RelativeURL`, if the represented URL is
+    /// Converts the receiver to a ``RelativeURL``, if the represented URL is
     /// relative.
     var relativeURL: RelativeURL? { get }
 
-    /// Converts the receiver to an `AnyAbsoluteURL`, if the represented URL is
-    /// absolute.
+    /// Converts the receiver to an ``AnyAbsoluteURL``, if the represented URL
+    /// is absolute.
     var absoluteURL: AbsoluteURL? { get }
 }
 

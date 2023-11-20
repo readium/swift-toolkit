@@ -17,7 +17,7 @@ public enum AnyURL: URLProtocol {
     /// A relative URL.
     case relative(RelativeURL)
 
-    /// Creates an `AnyURL` from a Foundation `URL`.
+    /// Creates an ``AnyURL`` from a Foundation ``URL``.
     public init(url: URL) {
         if let url = RelativeURL(url: url) {
             self = .relative(url)
@@ -59,10 +59,10 @@ public enum AnyURL: URLProtocol {
         }
     }
 
-    /// Returns a foundation URL for this `AnyURL`.
+    /// Returns a foundation URL for this ``AnyURL``.
     public var url: URL { wrapped.url }
 
-    /// Resolves the given `url` to this URL, if possible.
+    /// Resolves the `other` URL to this URL, if possible.
     ///
     /// For example:
     ///     self: http://example.com/foo/
@@ -77,7 +77,7 @@ public enum AnyURL: URLProtocol {
         }
     }
 
-    /// Relativizes the given `uri` against this base URI, if possible.
+    /// Relativizes the `other` URL against this base URL, if possible.
     ///
     /// For example:
     ///     self: http://example.com/foo

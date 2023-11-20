@@ -46,7 +46,7 @@ final class EPUBNavigatorViewModel: Loggable {
     ) throws {
         let publicationEndpoint: HTTPServerEndpoint?
         let baseURL: HTTPURL
-        if let url = publication.baseURL?.httpURL {
+        if let url = publication.baseURL {
             publicationEndpoint = nil
             baseURL = url
         } else {
@@ -187,7 +187,7 @@ final class EPUBNavigatorViewModel: Loggable {
         guard let httpServer = httpServer else {
             throw Error.noHTTPServer
         }
-        let endpoint = baseEndpoint.addingSuffix("/") + file.lastPathComponent
+        let endpoint = baseEndpoint.addingSuffix("/") + file.lastPathSegment
         let url = try httpServer.serve(at: endpoint, contentsOf: file)
         $servedFiles.write { $0[file] = url }
         return url
