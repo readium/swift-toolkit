@@ -21,7 +21,7 @@ All migration steps necessary in reading apps to upgrade to major versions of th
      * We dropped the `/` prefix to avoid issues when resolving to a base URL.
      * Special characters are percent-encoded.
 
- **You must migrate the HREFs or Locators stored in your database** when upgrading to Readium 3. To assist you, two helpers are provided: `AnyURL(legacyHref:)` and `Locator(legacyJSONString:)`.
+ **You must migrate the HREFs or Locators stored in your database** when upgrading to Readium 3. To assist you, two helpers are provided: `AnyURL(legacyHREF:)` and `Locator(legacyJSONString:)`.
 
  Here's an example of a [GRDB migration](https://swiftpackageindex.com/groue/grdb.swift/master/documentation/grdb/migrations) that can serve as inspiration:
 
