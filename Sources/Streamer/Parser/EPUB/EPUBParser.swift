@@ -53,7 +53,7 @@ public final class EPUBParser: PublicationParser {
         let encryptions = (try? EPUBEncryptionParser(fetcher: fetcher))?.parseEncryptions() ?? [:]
 
         // Extracts metadata and links from the OPF.
-        let components = try OPFParser(fetcher: fetcher, opfHREF: opfHREF, fallbackTitle: asset.name, encryptions: encryptions).parsePublication()
+        let components = try OPFParser(fetcher: fetcher, opfHREF: opfHREF, encryptions: encryptions).parsePublication()
         let metadata = components.metadata
         let links = components.readingOrder + components.resources
 
@@ -101,14 +101,16 @@ public final class EPUBParser: PublicationParser {
     /// Attempt to fill the `Publication`'s `tableOfContent`, `landmarks`, `pageList` and `listOfX` links collections using the navigation document.
     private func parseNavigationDocument(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
         // Get the link in the readingOrder pointing to the Navigation Document.
-        guard let navLink = links.first(withRel: .contents),
-              let navDocumentData = try? fetcher.readData(at: navLink.href)
+        guard
+            let navLink = links.first(withRel: .contents),
+            let navURI = RelativeURL(string: navLink.href),
+            let navDocumentData = try? fetcher.readData(at: navURI)
         else {
             return [:]
         }
 
         // Get the location of the navigation document in order to normalize href paths.
-        let navigationDocument = NavigationDocumentParser(data: navDocumentData, at: navLink.href)
+        let navigationDocument = NavigationDocumentParser(data: navDocumentData, at: navURI)
 
         var collections: [String: [PublicationCollection]] = [:]
         func addCollection(_ type: NavigationDocumentParser.NavType, role: String) {
@@ -134,13 +136,15 @@ public final class EPUBParser: PublicationParser {
     /// previously (using the Navigation Document).
     private func parseNCXDocument(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
         // Get the link in the readingOrder pointing to the NCX document.
-        guard let ncxLink = links.first(withMediaType: .ncx),
-              let ncxDocumentData = try? fetcher.readData(at: ncxLink.href)
+        guard
+            let ncxLink = links.first(withMediaType: .ncx),
+            let ncxURI = RelativeURL(string: ncxLink.href),
+            let ncxDocumentData = try? fetcher.readData(at: ncxURI)
         else {
             return [:]
         }
 
-        let ncx = NCXParser(data: ncxDocumentData, at: ncxLink.href)
+        let ncx = NCXParser(data: ncxDocumentData, at: ncxURI)
 
         var collections: [String: [PublicationCollection]] = [:]
         func addCollection(_ type: NCXParser.NavType, role: String) {

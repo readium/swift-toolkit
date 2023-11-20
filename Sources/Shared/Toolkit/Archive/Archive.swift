@@ -8,13 +8,13 @@ import Foundation
 
 public enum ArchiveError: Error {
     /// The provided password was incorrect.
-    case invalidPassword(archive: URL)
+    case invalidPassword(archive: String)
     /// Impossible to open the given archive.
-    case openFailed(archive: URL, cause: Error?)
+    case openFailed(archive: String, cause: Error?)
     /// The entry could not be found in the archive.
-    case entryNotFound(entry: ArchivePath, archive: URL)
+    case entryNotFound(entry: ArchivePath, archive: String)
     /// Impossible to read the given entry.
-    case readFailed(entry: ArchivePath, archive: URL, cause: Error?)
+    case readFailed(entry: ArchivePath, archive: String, cause: Error?)
 }
 
 public typealias ArchiveResult<Success> = Result<Success, ArchiveError>
@@ -60,7 +60,7 @@ public protocol ArchiveEntryReader {
     /// This is meant to be used as an optimization for consumers which can't work efficiently with streams. However,
     /// the file is not guaranteed to be found, for example if the archive is a ZIP. Therefore, consumers should always
     /// fallback on regular stream reading, using `read()`.
-    var file: URL? { get }
+    var file: FileURL? { get }
 
     /// Reads the content of this entry.
     ///
@@ -73,7 +73,7 @@ public protocol ArchiveEntryReader {
 }
 
 extension ArchiveEntryReader {
-    public var file: URL? { nil }
+    public var file: FileURL? { nil }
 
     /// Reads the whole content of this entry.
     func read() -> ArchiveResult<Data> {
@@ -83,16 +83,16 @@ extension ArchiveEntryReader {
 
 public protocol ArchiveFactory {
     /// Opens an archive from a local file path.
-    func open(url: URL, password: String?) -> ArchiveResult<Archive>
+    func open(file: FileURL, password: String?) -> ArchiveResult<Archive>
 }
 
 public class DefaultArchiveFactory: ArchiveFactory, Loggable {
     public init() {}
 
-    public func open(url: URL, password: String?) -> ArchiveResult<Archive> {
+    public func open(file: FileURL, password: String?) -> ArchiveResult<Archive> {
         warnIfMainThread()
-        return ExplodedArchive.make(url: url)
+        return ExplodedArchive.make(file: file)
             .map { $0 as Archive }
-            .catch { _ in MinizipArchive.make(url: url).map { $0 as Archive } }
+            .catch { _ in MinizipArchive.make(url: file).map { $0 as Archive } }
     }
 }

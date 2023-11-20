@@ -35,8 +35,8 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
 
     /// Creates a new `AVURLAsset` to serve the given `link`.
     func makeAsset(for link: Link) throws -> AVURLAsset {
-        let originalURL = link.url(relativeTo: publication.baseURL) ?? URL(fileURLWithPath: link.href)
-        guard var components = URLComponents(url: originalURL, resolvingAgainstBaseURL: true) else {
+        let originalURL = link.url(relativeTo: publication.baseURL)
+        guard var components = URLComponents(url: originalURL.url, resolvingAgainstBaseURL: true) else {
             throw AssetError.invalidHREF(link.href)
         }
 

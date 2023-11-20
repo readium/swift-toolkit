@@ -44,7 +44,7 @@ final class CRLService {
 
     /// Fetches the updated Certificate Revocation List from EDRLab.
     private func fetch(timeout: TimeInterval? = nil) -> Deferred<String, Error> {
-        let url = URL(string: "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl")!
+        let url = HTTPURL(string: "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl")!
 
         return httpClient.fetch(HTTPRequest(url: url, timeoutInterval: timeout))
             .mapError { _ in LCPError.crlFetching }

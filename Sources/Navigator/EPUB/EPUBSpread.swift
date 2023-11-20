@@ -81,16 +81,13 @@ struct EPUBSpread: Loggable {
     ///   - link: Link object of the resource in the Publication
     ///   - url: Full URL to the resource.
     ///   - page [left|center|right]: (optional) Page position of the linked resource in the spread.
-    func json(forBaseURL baseURL: URL) -> [[String: Any]] {
+    func json(forBaseURL baseURL: HTTPURL) -> [[String: Any]] {
         func makeLinkJSON(_ link: Link, page: Presentation.Page? = nil) -> [String: Any]? {
-            guard let url = link.url(relativeTo: baseURL) else {
-                log(.error, "Can't get URL for link \(link.href)")
-                return nil
-            }
+            let url = link.url(relativeTo: baseURL)
             let page = page ?? link.properties.page ?? readingProgression.leadingPage
             return [
                 "link": link.json,
-                "url": url.absoluteString,
+                "url": url.string,
                 "page": page.rawValue,
             ]
         }
@@ -107,7 +104,7 @@ struct EPUBSpread: Loggable {
         return json.compactMap { $0 }
     }
 
-    func jsonString(forBaseURL baseURL: URL) -> String {
+    func jsonString(forBaseURL baseURL: HTTPURL) -> String {
         serializeJSONString(json(forBaseURL: baseURL)) ?? "[]"
     }
 

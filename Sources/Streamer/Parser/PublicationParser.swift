@@ -17,7 +17,7 @@ public protocol PublicationParser {
     ///     This can be used to:
     ///       - support content protection technologies
     ///       - parse exploded archives or in archiving formats unknown to the parser, e.g. RAR
-    ///     If the asset is not an archive, it will be reachable at the HREF /<asset.name>.
+    ///     If the asset is not an archive, it will be reachable at the HREF `publication.<asset extension>`.
     ///   - warnings: Used to report non-fatal parsing warnings, such as publication authoring
     ///     mistakes. This is useful to warn users of potential rendering issues or help authors
     ///     debug their publications.

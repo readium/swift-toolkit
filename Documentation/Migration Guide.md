@@ -2,6 +2,55 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
+## Unreleased
+
+### Migration of HREFs and Locators (bookmarks, annotations, etc.)
+
+ :warning: This requires a database migration in your application, if you were persisting `Locator` objects.
+
+ In Readium v2.x, a `Link` or `Locator`'s `href` could be either:
+
+ * a valid absolute URL for a streamed publication, e.g. `https://domain.com/isbn/dir/my%20chapter.html`,
+ * a percent-decoded path for a local archive such as an EPUB, e.g. `/dir/my chapter.html`.
+     * Note that it was relative to the root of the archive (`/`).
+
+ To improve the interoperability with other Readium toolkits (in particular the Readium Web Toolkits, which only work in a streaming context) **Readium v3 now generates and expects valid URLs** for `Locator` and `Link`'s `href`.
+
+ * `https://domain.com/isbn/dir/my%20chapter.html` is left unchanged, as it was already a valid URL.
+ * `/dir/my chapter.html` becomes the relative URL path `dir/my%20chapter.html`
+     * We dropped the `/` prefix to avoid issues when resolving to a base URL.
+     * Special characters are percent-encoded.
+
+ **You must migrate the HREFs or Locators stored in your database** when upgrading to Readium 3. To assist you, two helpers are provided: `AnyURL(legacyHREF:)` and `Locator(legacyJSONString:)`.
+
+ Here's an example of a [GRDB migration](https://swiftpackageindex.com/groue/grdb.swift/master/documentation/grdb/migrations) that can serve as inspiration:
+
+ ```swift
+ migrator.registerMigration("normalizeHREFs") { db in
+    let normalizedRows: [(id: Int, href: String, locator: String)] =
+        try Row.fetchAll(db, sql: "SELECT id, href, locator FROM bookmarks")
+            .compactMap { row in
+                guard
+                    let normalizedHREF = AnyURL(legacyHREF: row["href"])?.string,
+                    let normalizedLocator = try Locator(legacyJSONString: row["locator"])?.jsonString
+                else {
+                    return nil
+                }
+                return (row["id"], normalizedHREF, normalizedLocator)
+            }
+            
+    let updateStmt = try db.makeStatement(sql: "UPDATE bookmarks SET href = :href, locator = :locator WHERE id = :id")
+    for (id, href, locator) in normalizedRows {
+        try updateStmt.execute(arguments: [
+            "id": id,
+            "href": href
+            "locator": locator
+        ])
+    }
+}
+```
+
+
 ## 2.5.0
 
 In the following migration steps, only the `ReadiumInternal` one is mandatory with 2.5.0.

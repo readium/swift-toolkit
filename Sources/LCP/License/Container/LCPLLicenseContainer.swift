@@ -5,12 +5,13 @@
 //
 
 import Foundation
+import R2Shared
 
 /// Access to a License Document packaged as a standalone LCPL file.
 final class LCPLLicenseContainer: LicenseContainer {
-    private let lcpl: URL
+    private let lcpl: FileURL
 
-    init(lcpl: URL) {
+    init(lcpl: FileURL) {
         self.lcpl = lcpl
     }
 
@@ -19,7 +20,7 @@ final class LCPLLicenseContainer: LicenseContainer {
     }
 
     func read() throws -> Data {
-        guard let data = try? Data(contentsOf: lcpl) else {
+        guard let data = try? Data(contentsOf: lcpl.url) else {
             throw LCPError.licenseContainer(.readFailed(path: "."))
         }
         return data
@@ -27,7 +28,7 @@ final class LCPLLicenseContainer: LicenseContainer {
 
     func write(_ license: LicenseDocument) throws {
         do {
-            try license.data.write(to: lcpl, options: .atomic)
+            try license.data.write(to: lcpl.url, options: .atomic)
         } catch {
             throw LCPError.licenseContainer(.writeFailed(path: "."))
         }

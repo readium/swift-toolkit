@@ -75,13 +75,13 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
     private let server: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
-    private let publicationBaseURL: URL
+    private let publicationBaseURL: HTTPURL
 
     public init(
         publication: Publication,
         initialLocation: Locator?,
         config: Configuration = .init(),
-        delegate: PDFNavigatorViewController? = nil,
+        delegate: PDFNavigatorDelegate? = nil,
         httpServer: HTTPServer
     ) throws {
         guard !publication.isRestricted else {
@@ -89,7 +89,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         }
 
         let publicationEndpoint: HTTPServerEndpoint?
-        let baseURL: URL
+        let baseURL: HTTPURL
         if let url = publication.baseURL {
             publicationEndpoint = nil
             baseURL = url
@@ -103,8 +103,9 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         self.initialLocation = initialLocation
         server = httpServer
         self.publicationEndpoint = publicationEndpoint
-        publicationBaseURL = URL(string: baseURL.absoluteString.addingSuffix("/"))!
+        publicationBaseURL = baseURL
         self.config = config
+        self.delegate = delegate
         editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
 
         settings = PDFSettings(
@@ -115,40 +116,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
         super.init(nibName: nil, bundle: nil)
 
-        postInit()
-    }
-
-    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
-    public init(
-        publication: Publication,
-        initialLocation: Locator? = nil,
-        editingActions: [EditingAction] = EditingAction.defaultActions
-    ) {
-        precondition(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
-        guard let baseURL = publication.baseURL else {
-            preconditionFailure("No base URL provided for the publication. Add it to the HTTP server.")
-        }
-
-        self.publication = publication
-        self.initialLocation = initialLocation
-        server = nil
-        publicationEndpoint = nil
-        publicationBaseURL = URL(string: baseURL.absoluteString.addingSuffix("/"))!
-        config = Configuration(editingActions: editingActions)
-        self.editingActions = EditingActionsController(actions: editingActions, rights: publication.rights)
-
-        settings = PDFSettings(
-            preferences: config.preferences,
-            defaults: config.defaults,
-            metadata: publication.metadata
-        )
-
-        super.init(nibName: nil, bundle: nil)
-
-        postInit()
-    }
-
-    private func postInit() {
         editingActions.delegate = self
 
         // Wraps the PDF factories of publication services to return the currently opened document
@@ -161,33 +128,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         }
     }
 
-    private init(
-        publication: Publication,
-        initialLocation: Locator?,
-        httpServer: HTTPServer?,
-        publicationEndpoint: HTTPServerEndpoint?,
-        publicationBaseURL: URL,
-        config: Configuration
-    ) {
-        self.publication = publication
-        self.initialLocation = initialLocation
-        server = httpServer
-        self.publicationEndpoint = publicationEndpoint
-        self.publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
-        self.config = config
-        editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
-
-        settings = PDFSettings(
-            preferences: config.preferences,
-            defaults: config.defaults,
-            metadata: publication.metadata
-        )
-
-        super.init(nibName: nil, bundle: nil)
-
-        postInit()
-    }
-
     @available(*, unavailable)
     public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -197,7 +137,11 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         NotificationCenter.default.removeObserver(self)
 
         if let endpoint = publicationEndpoint {
-            server?.remove(at: endpoint)
+            do {
+                try server?.remove(at: endpoint)
+            } catch {
+                log(.warning, "Failed to remove the server endpoint \(endpoint): \(error.localizedDescription)")
+            }
         }
     }
 
@@ -303,7 +247,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         tapGestureController = PDFTapGestureController(pdfView: pdfView, target: self, action: #selector(didTap))
 
         apply(settings: settings, to: pdfView)
-        setupPDFView()
+        delegate?.navigator(self, setupPDFView: pdfView)
 
         NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: .PDFViewPageChanged, object: pdfView)
         NotificationCenter.default.addObserver(self, selector: #selector(selectionDidChange), name: .PDFViewSelectionChanged, object: pdfView)
@@ -382,10 +326,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     }
 
     /// Override to customize the PDFDocumentView.
-    @available(*, deprecated, message: "Override the PDFNavigatorDelegate instead")
-    open func setupPDFView() {
-        delegate?.navigator(self, setupPDFView: pdfView!)
-    }
+    @available(*, unavailable, message: "Override `PDFNavigatorDelegate` instead")
+    open func setupPDFView() {}
 
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
         let point = gesture.location(in: view)
@@ -401,17 +343,36 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
     @discardableResult
     private func go(to locator: Locator, isJump: Bool, completion: @escaping () -> Void = {}) -> Bool {
-        guard let index = publication.readingOrder.firstIndex(withHREF: locator.href) else {
+        guard let link = findLink(at: locator) else {
             return false
         }
 
         return go(
-            to: publication.readingOrder[index],
+            to: link,
             pageNumber: pageNumber(for: locator),
             isJump: isJump,
             completion: completion
         )
     }
+
+    private func findLink(at locator: Locator) -> Link? {
+        if isPDFFile {
+            return publication.readingOrder.first
+        } else {
+            return publication.readingOrder.first(withHREF: locator.href)
+        }
+    }
+
+    /// Historically, the reading order of a standalone PDF file contained a
+    /// single link with the HREF `"/<asset filename>"`. This was fragile if
+    /// the asset named changed, or was different on other devices.
+    ///
+    /// To avoid this, we now use a single link with the HREF
+    /// `"publication.pdf"`. And to avoid breaking legacy locators, we match
+    /// any HREF if the reading order contains a single link with the HREF
+    /// `"publication.pdf"`.
+    private lazy var isPDFFile: Bool =
+        publication.readingOrder.count == 1 && publication.readingOrder[0].href == "publication.pdf"
 
     @discardableResult
     private func go(to link: Link, pageNumber: Int?, isJump: Bool, completion: @escaping () -> Void = {}) -> Bool {
@@ -420,9 +381,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         }
 
         if currentResourceIndex != index {
-            guard let url = link.url(relativeTo: publicationBaseURL),
-                  let document = PDFDocument(url: url)
-            else {
+            let url = link.url(relativeTo: publicationBaseURL)
+            guard let document = PDFDocument(url: url.url) else {
                 log(.error, "Can't open PDF document at \(link)")
                 return false
             }

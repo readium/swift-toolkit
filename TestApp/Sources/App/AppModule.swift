@@ -28,7 +28,11 @@ final class AppModule {
 
     init() throws {
         let httpClient = DefaultHTTPClient()
-        let db = try Database(file: Paths.library.appendingPathComponent("database.db"))
+
+        let file = Paths.library.appendingPathComponent("database.db")
+        let db = try Database(file: file)
+        print("Created database at \(file.path)")
+
         let books = BookRepository(db: db)
         let bookmarks = BookmarkRepository(db: db)
         let highlights = HighlightRepository(db: db)
@@ -61,6 +65,9 @@ extension AppModule: ModuleDelegate {
     func presentError(_ error: Error?, from viewController: UIViewController) {
         guard let error = error else { return }
         if case LibraryError.cancelled = error { return }
+
+        print("Error: \(error)")
+
         presentAlert(
             NSLocalizedString("error_title", comment: "Alert title for errors"),
             message: error.localizedDescription,
@@ -79,10 +86,7 @@ extension AppModule: ReaderModuleDelegate {}
 
 extension AppModule: OPDSModuleDelegate {
     func opdsDownloadPublication(_ publication: Publication?, at link: Link, sender: UIViewController) async throws -> Book {
-        guard let url = link.url(relativeTo: publication?.baseURL) else {
-            throw LibraryError.cancelled
-        }
-
-        return try await library.importPublication(from: url, sender: sender)
+        let url = link.url(relativeTo: publication?.baseURL)
+        return try await library.importPublication(from: url.url, sender: sender)
     }
 }

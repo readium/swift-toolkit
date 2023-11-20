@@ -17,15 +17,15 @@ public protocol HTTPServer {
     ///
     /// - Returns the base URL for this endpoint.
     @discardableResult
-    func serve(at endpoint: HTTPServerEndpoint, handler: @escaping (HTTPServerRequest) -> Resource) throws -> URL
+    func serve(at endpoint: HTTPServerEndpoint, handler: @escaping (HTTPServerRequest) -> Resource) throws -> HTTPURL
 
     /// Registers a `Resource` transformer that will be run on all responses
     /// matching the given `endpoint`.
-    func transformResources(at endpoint: HTTPServerEndpoint, with transformer: @escaping ResourceTransformer)
+    func transformResources(at endpoint: HTTPServerEndpoint, with transformer: @escaping ResourceTransformer) throws
 
     /// Removes a handler serving resources at `endpoint`, as well as the
     /// resource transformers.
-    func remove(at endpoint: HTTPServerEndpoint)
+    func remove(at endpoint: HTTPServerEndpoint) throws
 }
 
 public extension HTTPServer {
@@ -37,13 +37,14 @@ public extension HTTPServer {
     ///
     /// - Returns the URL to access the file(s) on the server.
     @discardableResult
-    func serve(at endpoint: HTTPServerEndpoint, contentsOf url: URL) throws -> URL {
+    func serve(at endpoint: HTTPServerEndpoint, contentsOf url: FileURL) throws -> HTTPURL {
         try serve(at: endpoint) { request in
-            let file = url.appendingPathComponent(request.href ?? "")
+            let file = request.href.flatMap { url.resolve($0) }
+                ?? url
 
             return FileResource(
                 link: Link(
-                    href: request.url.absoluteString,
+                    href: request.url.string,
                     type: MediaType.of(file)?.string
                 ),
                 file: file
@@ -59,16 +60,16 @@ public extension HTTPServer {
     func serve(
         at endpoint: HTTPServerEndpoint,
         publication: Publication
-    ) throws -> URL {
+    ) throws -> HTTPURL {
         try serve(at: endpoint) { request in
             guard let href = request.href else {
                 return FailureResource(
-                    link: Link(href: request.url.absoluteString),
+                    link: Link(href: request.url.string),
                     error: .notFound(nil)
                 )
             }
 
-            return publication.get(href)
+            return publication.get(href.string)
         }
     }
 }
@@ -79,12 +80,12 @@ public typealias HTTPServerEndpoint = String
 /// Request made to an `HTTPServer`.
 public struct HTTPServerRequest {
     /// Absolute URL on the server.
-    public let url: URL
+    public let url: HTTPURL
 
     /// HREF for the resource, relative to the server endpoint.
-    public let href: String?
+    public let href: RelativeURL?
 
-    public init(url: URL, href: String?) {
+    public init(url: HTTPURL, href: RelativeURL?) {
         self.url = url
         self.href = href
     }

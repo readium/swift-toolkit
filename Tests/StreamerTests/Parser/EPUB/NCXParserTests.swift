@@ -49,6 +49,6 @@ class NCXParserTests: XCTestCase {
 
     func parseNCX(_ name: String) -> NCXParser {
         let data = fixtures.data(at: "\(name).ncx")
-        return NCXParser(data: data, at: "/base/nav.xhtml")
+        return NCXParser(data: data, at: RelativeURL(path: "/base/nav.xhtml")!)
     }
 }

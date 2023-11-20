@@ -5,10 +5,11 @@
 //
 
 import Foundation
+import R2Shared
 
 /// Access a License Document stored in a webpub, audiobook or LCPDF package.
 final class ReadiumLicenseContainer: ZIPLicenseContainer {
-    init(path: URL) {
+    init(path: FileURL) {
         super.init(zip: path, pathInZIP: "license.lcpl")
     }
 }

@@ -5,28 +5,29 @@
 //
 
 import Foundation
+import R2Shared
 import ZIPFoundation
 
 /// Access to a License Document stored in a ZIP archive.
 /// Meant to be subclassed to customize the pathInZIP property, eg. EPUBLicenseContainer.
 class ZIPLicenseContainer: LicenseContainer {
-    private let zip: URL
+    private let zip: FileURL
     private let pathInZIP: String
 
-    init(zip: URL, pathInZIP: String) {
+    init(zip: FileURL, pathInZIP: String) {
         self.zip = zip
         self.pathInZIP = pathInZIP
     }
 
     func containsLicense() -> Bool {
-        guard let archive = Archive(url: zip, accessMode: .read) else {
+        guard let archive = Archive(url: zip.url, accessMode: .read) else {
             return false
         }
         return archive[pathInZIP] != nil
     }
 
     func read() throws -> Data {
-        guard let archive = Archive(url: zip, accessMode: .read) else {
+        guard let archive = Archive(url: zip.url, accessMode: .read) else {
             throw LCPError.licenseContainer(.openFailed)
         }
         guard let entry = archive[pathInZIP] else {
@@ -46,7 +47,7 @@ class ZIPLicenseContainer: LicenseContainer {
     }
 
     func write(_ license: LicenseDocument) throws {
-        guard let archive = Archive(url: zip, accessMode: .update) else {
+        guard let archive = Archive(url: zip.url, accessMode: .update) else {
             throw LCPError.licenseContainer(.openFailed)
         }
 

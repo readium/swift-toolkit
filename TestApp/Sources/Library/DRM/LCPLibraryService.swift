@@ -24,7 +24,7 @@
 
         func fulfill(_ file: URL) async throws -> DRMFulfilledPublication? {
             try await withCheckedThrowingContinuation { cont in
-                lcpService.acquirePublication(from: file) { result in
+                lcpService.acquirePublication(from: FileURL(url: file)!) { result in
                     // Removes the license file, but only if it's in the App directory (e.g. Inbox/).
                     // Otherwise we might delete something from a shared location (e.g. iCloud).
                     if Paths.isAppFile(at: file) {
@@ -34,7 +34,7 @@
                     switch result {
                     case let .success(pub):
                         cont.resume(returning: DRMFulfilledPublication(
-                            localURL: pub.localURL,
+                            localURL: pub.localURL.url,
                             suggestedFilename: pub.suggestedFilename
                         ))
                     case let .failure(error):

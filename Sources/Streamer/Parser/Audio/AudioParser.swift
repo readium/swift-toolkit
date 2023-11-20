@@ -32,7 +32,7 @@ public final class AudioParser: PublicationParser {
             manifest: Manifest(
                 metadata: Metadata(
                     conformsTo: [.audiobook],
-                    title: fetcher.guessTitle(ignoring: ignores) ?? asset.name
+                    title: fetcher.guessTitle(ignoring: ignores)
                 ),
                 readingOrder: readingOrder
             ),

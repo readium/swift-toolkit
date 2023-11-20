@@ -299,6 +299,7 @@
 ../../Sources/Internal/Extensions/Double.swift
 ../../Sources/Internal/Extensions/NSRegularExpression.swift
 ../../Sources/Internal/Extensions/String.swift
+../../Sources/Internal/Extensions/URL.swift
 ../../Sources/Internal/JSON.swift
 ../../Sources/LCP
 ../../Sources/LCP/Authentications
@@ -311,7 +312,6 @@
 ../../Sources/LCP/Content Protection
 ../../Sources/LCP/Content Protection/LCPContentProtection.swift
 ../../Sources/LCP/Content Protection/LCPDecryptor.swift
-../../Sources/LCP/Deprecated.swift
 ../../Sources/LCP/LCPAcquisition.swift
 ../../Sources/LCP/LCPClient.swift
 ../../Sources/LCP/LCPError.swift
@@ -368,6 +368,7 @@
 ../../Sources/LCP/Toolkit/HTTPClient.swift
 ../../Sources/LCP/Toolkit/R2LCPLocalizedString.swift
 ../../Sources/Navigator
+../../Sources/Navigator/.DS_Store
 ../../Sources/Navigator/Audiobook
 ../../Sources/Navigator/Audiobook/AudioNavigator.swift
 ../../Sources/Navigator/Audiobook/PublicationMediaLoader.swift
@@ -380,16 +381,19 @@
 ../../Sources/Navigator/DirectionalNavigationAdapter.swift
 ../../Sources/Navigator/EditingAction.swift
 ../../Sources/Navigator/EPUB
+../../Sources/Navigator/EPUB/.DS_Store
 ../../Sources/Navigator/EPUB/Assets
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-one.html
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-two.html
 ../../Sources/Navigator/EPUB/Assets/Static
+../../Sources/Navigator/EPUB/Assets/Static/.DS_Store
 ../../Sources/Navigator/EPUB/Assets/Static/fonts
 ../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-Bold.otf
 ../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-BoldItalic.otf
 ../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-Italic.otf
 ../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-Regular.otf
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css
+../../Sources/Navigator/EPUB/Assets/Static/readium-css/.DS_Store
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-horizontal
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-horizontal/ReadiumCSS-after.css
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-horizontal/ReadiumCSS-before.css
@@ -441,6 +445,7 @@
 ../../Sources/Navigator/EPUB/Preferences/EPUBPreferencesEditor.swift
 ../../Sources/Navigator/EPUB/Preferences/EPUBSettings.swift
 ../../Sources/Navigator/EPUB/Scripts
+../../Sources/Navigator/EPUB/Scripts/.DS_Store
 ../../Sources/Navigator/EPUB/Scripts/.eslintrc.json
 ../../Sources/Navigator/EPUB/Scripts/.gitignore
 ../../Sources/Navigator/EPUB/Scripts/.prettierignore
@@ -6760,6 +6765,43 @@
 ../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/code-frame/LICENSE
 ../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/code-frame/package.json
 ../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/code-frame/README.md
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/lib
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/lib/index.js
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/LICENSE
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/ansi-styles
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/ansi-styles/index.js
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/ansi-styles/license
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/ansi-styles/package.json
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/ansi-styles/readme.md
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/chalk
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/chalk/index.js
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/chalk/index.js.flow
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/chalk/license
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/chalk/package.json
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/chalk/readme.md
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/chalk/templates.js
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/chalk/types
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/chalk/types/index.d.ts
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/escape-string-regexp
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/escape-string-regexp/index.js
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/escape-string-regexp/license
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/escape-string-regexp/package.json
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/escape-string-regexp/readme.md
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/has-flag
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/has-flag/index.js
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/has-flag/license
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/has-flag/package.json
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/has-flag/readme.md
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/supports-color
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/supports-color/browser.js
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/supports-color/index.js
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/supports-color/license
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/supports-color/package.json
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/node_modules/supports-color/readme.md
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/package.json
+../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/@babel/highlight/README.md
 ../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/chalk
 ../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/chalk/index.d.ts
 ../../Sources/Navigator/EPUB/Scripts/node_modules/eslint/node_modules/chalk/license
@@ -7124,6 +7166,7 @@
 ../../Sources/Navigator/EPUB/Scripts/node_modules/function-bind/test/index.js
 ../../Sources/Navigator/EPUB/Scripts/node_modules/function.prototype.name
 ../../Sources/Navigator/EPUB/Scripts/node_modules/function.prototype.name/.editorconfig
+../../Sources/Navigator/EPUB/Scripts/node_modules/function.prototype.name/.eslintignore
 ../../Sources/Navigator/EPUB/Scripts/node_modules/function.prototype.name/.eslintrc
 ../../Sources/Navigator/EPUB/Scripts/node_modules/function.prototype.name/.github
 ../../Sources/Navigator/EPUB/Scripts/node_modules/function.prototype.name/.github/FUNDING.yml
@@ -11230,15 +11273,12 @@
 ../../Sources/Navigator/TTS/TTSEngine.swift
 ../../Sources/Navigator/VisualNavigator.swift
 ../../Sources/OPDS
-../../Sources/OPDS/Deprecated.swift
 ../../Sources/OPDS/OPDS1Parser.swift
 ../../Sources/OPDS/OPDS2Parser.swift
 ../../Sources/OPDS/OPDSParser.swift
 ../../Sources/OPDS/ParseData.swift
 ../../Sources/OPDS/URLHelper.swift
 ../../Sources/Shared
-../../Sources/Shared/DRM
-../../Sources/Shared/DRM/DRM+Deprecated.swift
 ../../Sources/Shared/Fetcher
 ../../Sources/Shared/Fetcher/ArchiveFetcher.swift
 ../../Sources/Shared/Fetcher/Fetcher.swift
@@ -11277,7 +11317,6 @@
 ../../Sources/Shared/Publication/Asset
 ../../Sources/Shared/Publication/Asset/FileAsset.swift
 ../../Sources/Shared/Publication/Asset/PublicationAsset.swift
-../../Sources/Shared/Publication/ContentLayout.swift
 ../../Sources/Shared/Publication/ContentProtection.swift
 ../../Sources/Shared/Publication/Contributor.swift
 ../../Sources/Shared/Publication/Extensions
@@ -11300,11 +11339,13 @@
 ../../Sources/Shared/Publication/Extensions/Presentation/Metadata+Presentation.swift
 ../../Sources/Shared/Publication/Extensions/Presentation/Presentation.swift
 ../../Sources/Shared/Publication/Extensions/Presentation/Properties+Presentation.swift
+../../Sources/Shared/Publication/HREFNormalizer.swift
 ../../Sources/Shared/Publication/Link.swift
 ../../Sources/Shared/Publication/LinkRelation.swift
 ../../Sources/Shared/Publication/LocalizedString.swift
 ../../Sources/Shared/Publication/Locator.swift
 ../../Sources/Shared/Publication/Manifest.swift
+../../Sources/Shared/Publication/ManifestTransformer.swift
 ../../Sources/Shared/Publication/Media Overlays
 ../../Sources/Shared/Publication/Media Overlays/MediaOverlayNode.swift
 ../../Sources/Shared/Publication/Media Overlays/MediaOverlays.swift
@@ -11350,6 +11391,7 @@
 ../../Sources/Shared/Resources/en.lproj/Localizable.strings
 ../../Sources/Shared/RootFile.swift
 ../../Sources/Shared/Toolkit
+../../Sources/Shared/Toolkit/.DS_Store
 ../../Sources/Shared/Toolkit/Archive
 ../../Sources/Shared/Toolkit/Archive/Archive.swift
 ../../Sources/Shared/Toolkit/Archive/ExplodedArchive.swift
@@ -11387,7 +11429,6 @@
 ../../Sources/Shared/Toolkit/Media
 ../../Sources/Shared/Toolkit/Media Type
 ../../Sources/Shared/Toolkit/Media Type/MediaType.swift
-../../Sources/Shared/Toolkit/Media Type/MediaType+Deprecated.swift
 ../../Sources/Shared/Toolkit/Media Type/MediaTypeSniffer.swift
 ../../Sources/Shared/Toolkit/Media Type/MediaTypeSnifferContent.swift
 ../../Sources/Shared/Toolkit/Media Type/MediaTypeSnifferContext.swift
@@ -11404,7 +11445,20 @@
 ../../Sources/Shared/Toolkit/Tokenizer
 ../../Sources/Shared/Toolkit/Tokenizer/TextTokenizer.swift
 ../../Sources/Shared/Toolkit/Tokenizer/Tokenizer.swift
-../../Sources/Shared/Toolkit/URITemplate.swift
+../../Sources/Shared/Toolkit/URL
+../../Sources/Shared/Toolkit/URL/.DS_Store
+../../Sources/Shared/Toolkit/URL/Absolute URL
+../../Sources/Shared/Toolkit/URL/Absolute URL/AbsoluteURL.swift
+../../Sources/Shared/Toolkit/URL/Absolute URL/FileURL.swift
+../../Sources/Shared/Toolkit/URL/Absolute URL/HTTPURL.swift
+../../Sources/Shared/Toolkit/URL/Absolute URL/UnknownAbsoluteURL.swift
+../../Sources/Shared/Toolkit/URL/AnyURL.swift
+../../Sources/Shared/Toolkit/URL/RelativeURL.swift
+../../Sources/Shared/Toolkit/URL/URITemplate.swift
+../../Sources/Shared/Toolkit/URL/URLConvertible.swift
+../../Sources/Shared/Toolkit/URL/URLExtensions.swift
+../../Sources/Shared/Toolkit/URL/URLProtocol.swift
+../../Sources/Shared/Toolkit/URL/URLQuery.swift
 ../../Sources/Shared/Toolkit/UTI.swift
 ../../Sources/Shared/Toolkit/Weak.swift
 ../../Sources/Shared/Toolkit/XML
@@ -11414,10 +11468,6 @@
 ../../Sources/Streamer/Assets
 ../../Sources/Streamer/Assets/fonts
 ../../Sources/Streamer/Assets/fonts/OpenDyslexic-Regular.otf
-../../Sources/Streamer/Model
-../../Sources/Streamer/Model/Container.swift
-../../Sources/Streamer/Model/HTTPContainer.swift
-../../Sources/Streamer/Model/PublicationContainer.swift
 ../../Sources/Streamer/Parser
 ../../Sources/Streamer/Parser/Audio
 ../../Sources/Streamer/Parser/Audio/AudioParser.swift
@@ -11430,6 +11480,7 @@
 ../../Sources/Streamer/Parser/EPUB/EPUBParser.swift
 ../../Sources/Streamer/Parser/EPUB/Extensions
 ../../Sources/Streamer/Parser/EPUB/Extensions/Presentation+EPUB.swift
+../../Sources/Streamer/Parser/EPUB/Extensions/URLExtensions.swift
 ../../Sources/Streamer/Parser/EPUB/NavigationDocumentParser.swift
 ../../Sources/Streamer/Parser/EPUB/NCXParser.swift
 ../../Sources/Streamer/Parser/EPUB/OPFMeta.swift
@@ -11439,13 +11490,9 @@
 ../../Sources/Streamer/Parser/EPUB/Resource Transformers/EPUBHTMLInjector.swift
 ../../Sources/Streamer/Parser/EPUB/Services
 ../../Sources/Streamer/Parser/EPUB/Services/EPUBPositionsService.swift
-../../Sources/Streamer/Parser/EPUB/SMILParser.swift
 ../../Sources/Streamer/Parser/Image
-../../Sources/Streamer/Parser/Image/CBZParser.swift
 ../../Sources/Streamer/Parser/Image/ImageParser.swift
-../../Sources/Streamer/Parser/Parser+Deprecated.swift
 ../../Sources/Streamer/Parser/PDF
-../../Sources/Streamer/Parser/PDF/PDFFileParser.swift
 ../../Sources/Streamer/Parser/PDF/PDFParser.swift
 ../../Sources/Streamer/Parser/PDF/Services
 ../../Sources/Streamer/Parser/PDF/Services/LCPDFPositionsService.swift
@@ -11463,7 +11510,6 @@
 ../../Sources/Streamer/Toolkit/Extensions
 ../../Sources/Streamer/Toolkit/Extensions/Bundle.swift
 ../../Sources/Streamer/Toolkit/Extensions/Fetcher.swift
-../../Sources/Streamer/Toolkit/Logger.swift
 ../../Sources/Streamer/Toolkit/Streams
 ../../Sources/Streamer/Toolkit/Streams/DataInputStream.swift
 ../../Sources/Streamer/Toolkit/Streams/FileInputStream.swift

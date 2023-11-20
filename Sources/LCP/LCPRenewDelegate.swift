@@ -21,7 +21,7 @@ public protocol LCPRenewDelegate {
     ///
     /// You should present the URL in a `SFSafariViewController` and call the `completion` callback when the browser
     /// is dismissed by the user.
-    func presentWebPage(url: URL, completion: @escaping (CancellableResult<Void, Error>) -> Void)
+    func presentWebPage(url: HTTPURL, completion: @escaping (CancellableResult<Void, Error>) -> Void)
 }
 
 /// Default `LCPRenewDelegate` implementation using standard views.
@@ -41,8 +41,8 @@ public class LCPDefaultRenewDelegate: NSObject, LCPRenewDelegate {
         completion(.success(nil))
     }
 
-    public func presentWebPage(url: URL, completion: @escaping (CancellableResult<Void, Error>) -> Void) {
-        let safariVC = SFSafariViewController(url: url)
+    public func presentWebPage(url: HTTPURL, completion: @escaping (CancellableResult<Void, Error>) -> Void) {
+        let safariVC = SFSafariViewController(url: url.url)
         safariVC.modalPresentationStyle = modalPresentationStyle
         safariVC.presentationController?.delegate = self
         safariVC.delegate = self

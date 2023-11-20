@@ -9,7 +9,6 @@ import Foundation
 
 /// Shared model for a Readium Publication.
 public class Publication: Loggable {
-
     private var manifest: Manifest
     private let fetcher: Fetcher
     private let services: [PublicationService]
@@ -78,9 +77,10 @@ public class Publication: Loggable {
     /// The URL where this publication is served, computed from the `Link` with `self` relation.
     ///
     /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
-    public var baseURL: URL? {
+    public var baseURL: HTTPURL? {
         links.first(withRel: .`self`)
-            .flatMap { URL(string: $0.href)?.deletingLastPathComponent() }
+            .takeIf { !$0.templated }
+            .flatMap { HTTPURL(string: $0.href) }
     }
 
     /// Finds the first Link having the given `href` in the publication's links.
@@ -108,11 +108,11 @@ public class Publication: Loggable {
 
     /// Returns the resource targeted by the given `href`.
     public func get(_ href: String) -> Resource {
-        let link = link(withHREF: href)?
-            // Uses the original href to keep the query parameters
-            .copy(href: href, templated: false)
-
-        return get(link ?? Link(href: href))
+        var link = link(withHREF: href) ?? Link(href: href)
+        // Uses the original href to keep the query parameters
+        link.href = href
+        link.templated = false
+        return get(link)
     }
 
     /// Closes any opened resource associated with the `Publication`, including `services`.
@@ -134,16 +134,8 @@ public class Publication: Loggable {
     }
 
     /// Sets the URL where this `Publication`'s RWPM manifest is served.
-    public func setSelfLink(href: String?) {
-        manifest.links.removeAll { $0.rels.contains(.`self`) }
-        if let href = href {
-            manifest.links.insert(Link(
-                href: href,
-                type: MediaType.readiumWebPubManifest.string,
-                rel: .`self`
-            ), at: 0)
-        }
-    }
+    @available(*, unavailable, message: "Not used anymore")
+    public func setSelfLink(href: String?) { fatalError() }
 
     /// Represents a Readium Web Publication Profile a `Publication` can conform to.
     ///
@@ -267,54 +259,5 @@ public class Publication: Loggable {
         case cbz, epub, pdf, webpub
         /// Default value when the format is not specified.
         case unknown
-
-        /// Finds the format for the given mimetype.
-        public init(mimetype: String?) {
-            guard let mimetype = mimetype else {
-                self = .unknown
-                return
-            }
-            self.init(mimetypes: [mimetype])
-        }
-
-        /// Finds the format from a list of possible mimetypes or fallback on a file extension.
-        public init(mimetypes: [String] = [], fileExtension: String? = nil) {
-            self.init(mediaType: .of(mediaTypes: mimetypes, fileExtensions: Array(ofNotNil: fileExtension)))
-        }
-
-        /// Finds the format of the publication at the given url.
-        /// Uses the format declared as exported UTIs in the app's Info.plist, or fallbacks on the file extension.
-        ///
-        /// - Parameter mimetype: Fallback mimetype if the UTI can't be determined.
-        public init(file: URL, mimetype: String) {
-            self.init(file: file, mimetypes: [mimetype])
-        }
-
-        /// Finds the format of the publication at the given url.
-        /// Uses the format declared as exported UTIs in the app's Info.plist, or fallbacks on the file extension.
-        ///
-        /// - Parameter mimetypes: Fallback mimetypes if the UTI can't be determined.
-        public init(file: URL, mimetypes: [String] = []) {
-            self.init(mediaType: .of(file, mediaTypes: mimetypes, fileExtensions: []))
-        }
-
-        private init(mediaType: MediaType?) {
-            guard let mediaType = mediaType else {
-                self = .unknown
-                return
-            }
-            switch mediaType {
-            case .epub:
-                self = .epub
-            case .cbz:
-                self = .cbz
-            case .pdf, .lcpProtectedPDF:
-                self = .pdf
-            case .readiumWebPubManifest, .readiumAudiobookManifest:
-                self = .webpub
-            default:
-                self = .unknown
-            }
-        }
     }
 }

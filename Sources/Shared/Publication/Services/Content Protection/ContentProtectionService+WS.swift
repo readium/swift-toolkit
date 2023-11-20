@@ -5,17 +5,19 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 public extension ContentProtectionService {
     var links: [Link] {
         handlers.map(\.routeLink)
     }
 
-    func get(link: Link) -> Resource? {
-        guard let handler = handlers.first(where: { $0.accepts(link: link) }) else {
+    func get(link requestedLink: Link) -> Resource? {
+        guard let handler = handlers.first(where: { $0.accepts(link: requestedLink) }) else {
             return nil
         }
-        let link = handler.routeLink.copy(href: link.href)
+        var link = handler.routeLink
+        link.href = requestedLink.href
 
         let response: ResourceResult<String> = handler.handle(link: link, for: self)
             .flatMap {
@@ -97,7 +99,7 @@ private final class CopyRightsRouteHandler: RouteHandler {
     }
 
     func handle(link: Link, for service: ContentProtectionService) -> ResourceResult<Any> {
-        let params = HREF(link.href).queryParameters
+        let params = AnyURL(string: link.href)?.query ?? URLQuery()
         let peek = params.first(named: "peek").flatMap(Bool.init) ?? false
         guard let text = params.first(named: "text") else {
             return .failure(.badRequest(ContentProtectionServiceError.missingParameter(name: "text")))
@@ -127,7 +129,7 @@ private final class PrintRightsRouteHandler: RouteHandler {
     }
 
     func handle(link: Link, for service: ContentProtectionService) -> ResourceResult<Any> {
-        let params = HREF(link.href).queryParameters
+        let params = AnyURL(string: link.href)?.query ?? URLQuery()
         let peek = params.first(named: "peek").flatMap(Bool.init) ?? false
         guard let pageCount = params.first(named: "pageCount").flatMap(Int.init) else {
             return .failure(.badRequest(ContentProtectionServiceError.missingParameter(name: "pageCount")))

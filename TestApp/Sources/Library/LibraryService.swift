@@ -55,7 +55,7 @@ final class LibraryService: Loggable {
 
     /// Opens the Readium 2 Publication at the given `url`.
     private func openPublication(at url: URL, allowUserInteraction: Bool, sender: UIViewController?) async throws -> (Publication, MediaType) {
-        let asset = FileAsset(url: url)
+        let asset = FileAsset(file: FileURL(url: url)!)
         guard let mediaType = asset.mediaType() else {
             throw LibraryError.openFailed(Publication.OpeningError.unsupportedFormat)
         }
@@ -115,7 +115,11 @@ final class LibraryService: Loggable {
         url = try await fulfillIfNeeded(url)
         let (pub, mediaType) = try await openPublication(at: url, allowUserInteraction: false, sender: sender)
         let coverPath = try importCover(of: pub)
-        url = try moveToDocuments(from: url, title: pub.metadata.title, mediaType: mediaType)
+        url = try moveToDocuments(
+            from: url,
+            title: pub.metadata.title ?? url.lastPathComponent,
+            mediaType: mediaType
+        )
         return try await insertBook(at: url, publication: pub, mediaType: mediaType, coverPath: coverPath)
     }
 
@@ -186,7 +190,7 @@ final class LibraryService: Loggable {
     private func insertBook(at url: URL, publication: Publication, mediaType: MediaType, coverPath: String?) async throws -> Book {
         let book = Book(
             identifier: publication.metadata.identifier,
-            title: publication.metadata.title,
+            title: publication.metadata.title ?? url.lastPathComponent,
             authors: publication.metadata.authors
                 .map(\.name)
                 .joined(separator: ", "),

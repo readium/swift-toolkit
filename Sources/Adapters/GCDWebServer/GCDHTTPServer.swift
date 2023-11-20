@@ -12,6 +12,7 @@ import UIKit
 public enum GCDHTTPServerError: Error {
     case failedToStartServer(cause: Error)
     case serverNotStarted
+    case invalidEndpoint(HTTPServerEndpoint)
     case nullServerURL
 }
 
@@ -24,14 +25,14 @@ public class GCDHTTPServer: HTTPServer, Loggable {
     private let server = GCDWebServer()
 
     /// Mapping between endpoints and their handlers.
-    private var handlers: [HTTPServerEndpoint: (HTTPServerRequest) -> Resource] = [:]
+    private var handlers: [HTTPURL: (HTTPServerRequest) -> Resource] = [:]
 
     /// Mapping between endpoints and resource transformers.
-    private var transformers: [HTTPServerEndpoint: [ResourceTransformer]] = [:]
+    private var transformers: [HTTPURL: [ResourceTransformer]] = [:]
 
     private enum State {
         case stopped
-        case started(port: UInt, baseURL: URL)
+        case started(port: UInt, baseURL: HTTPURL)
     }
 
     private var state: State = .stopped
@@ -112,12 +113,12 @@ public class GCDHTTPServer: HTTPServer, Loggable {
         }
 
         queue.async { [self] in
-            var path = request.path.removingPrefix("/")
-            path = path.removingPercentEncoding ?? path
-            // Remove anchors and query params
-            let pathWithoutAnchor = path.components(separatedBy: .init(charactersIn: "#?")).first ?? path
+            guard let url = request.url.httpURL else {
+                completion(FailureResource(link: Link(href: request.url.absoluteString), error: .notFound(nil)))
+                return
+            }
 
-            func transform(resource: Resource, at endpoint: HTTPServerEndpoint) -> Resource {
+            func transform(resource: Resource, at endpoint: HTTPURL) -> Resource {
                 guard let transformers = transformers[endpoint], !transformers.isEmpty else {
                     return resource
                 }
@@ -129,15 +130,15 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             }
 
             for (endpoint, handler) in handlers {
-                if endpoint == pathWithoutAnchor {
-                    let resource = handler(HTTPServerRequest(url: request.url, href: nil))
+                if endpoint == url.removingQuery().removingFragment() {
+                    let resource = handler(HTTPServerRequest(url: url, href: nil))
                     completion(transform(resource: resource, at: endpoint))
                     return
 
-                } else if path.hasPrefix(endpoint.addingSuffix("/")) {
+                } else if let href = endpoint.relativize(url) {
                     let resource = handler(HTTPServerRequest(
-                        url: request.url,
-                        href: path.removingPrefix(endpoint.removingSuffix("/"))
+                        url: url,
+                        href: href
                     ))
                     completion(transform(resource: resource, at: endpoint))
                     return
@@ -150,34 +151,46 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
     // MARK: HTTPServer
 
-    public func serve(at endpoint: HTTPServerEndpoint, handler: @escaping (HTTPServerRequest) -> Resource) throws -> URL {
+    public func serve(at endpoint: HTTPServerEndpoint, handler: @escaping (HTTPServerRequest) -> Resource) throws -> HTTPURL {
         try queue.sync(flags: .barrier) {
             if case .stopped = state {
                 try start()
             }
-            guard case let .started(port: _, baseURL: baseURL) = state else {
-                throw GCDHTTPServerError.serverNotStarted
-            }
 
-            handlers[endpoint] = handler
-
-            return baseURL.appendingPathComponent(endpoint)
+            let url = try url(for: endpoint)
+            handlers[url] = handler
+            return url
         }
     }
 
-    public func transformResources(at endpoint: HTTPServerEndpoint, with transformer: @escaping ResourceTransformer) {
-        queue.sync(flags: .barrier) {
-            var trs = transformers[endpoint] ?? []
+    public func transformResources(at endpoint: HTTPServerEndpoint, with transformer: @escaping ResourceTransformer) throws {
+        try queue.sync(flags: .barrier) {
+            let url = try url(for: endpoint)
+            var trs = transformers[url] ?? []
             trs.append(transformer)
-            transformers[endpoint] = trs
+            transformers[url] = trs
         }
     }
 
-    public func remove(at endpoint: HTTPServerEndpoint) {
-        queue.sync(flags: .barrier) {
-            handlers.removeValue(forKey: endpoint)
-            transformers.removeValue(forKey: endpoint)
+    public func remove(at endpoint: HTTPServerEndpoint) throws {
+        try queue.sync(flags: .barrier) {
+            let url = try url(for: endpoint)
+            handlers.removeValue(forKey: url)
+            transformers.removeValue(forKey: url)
         }
+    }
+
+    private func url(for endpoint: HTTPServerEndpoint) throws -> HTTPURL {
+        guard case let .started(port: _, baseURL: baseURL) = state else {
+            throw GCDHTTPServerError.serverNotStarted
+        }
+        guard
+            let endpointPath = RelativeURL(string: endpoint.addingSuffix("/")),
+            let endpointURL = baseURL.resolve(endpointPath)
+        else {
+            throw GCDHTTPServerError.invalidEndpoint(endpoint)
+        }
+        return endpointURL
     }
 
     // MARK: Server lifecycle
@@ -230,7 +243,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             throw GCDHTTPServerError.failedToStartServer(cause: error)
         }
 
-        guard let baseURL = server.serverURL else {
+        guard let baseURL = server.serverURL?.httpURL else {
             stop()
             throw GCDHTTPServerError.nullServerURL
         }

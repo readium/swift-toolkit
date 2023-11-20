@@ -45,7 +45,7 @@ class MediaTypeSnifferTests: XCTestCase {
     }
 
     func testSniffFromBytes() {
-        let data = try! Data(contentsOf: fixtures.url(for: "audiobook.json"))
+        let data = try! Data(contentsOf: fixtures.url(for: "audiobook.json").url)
         XCTAssertEqual(MediaType.of { data }, .readiumAudiobookManifest)
     }
 

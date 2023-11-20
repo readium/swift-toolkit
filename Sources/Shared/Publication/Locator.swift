@@ -10,19 +10,19 @@ import ReadiumInternal
 /// https://github.com/readium/architecture/tree/master/locators
 public struct Locator: Hashable, CustomStringConvertible, Loggable {
     /// The URI of the resource that the Locator Object points to.
-    public let href: String // URI
+    public var href: String // URI
 
     /// The media type of the resource that the Locator Object points to.
-    public let type: String
+    public var type: String
 
     /// The title of the chapter or section which is more relevant in the context of this locator.
-    public let title: String?
+    public var title: String?
 
     /// One or more alternative expressions of the location.
-    public let locations: Locations
+    public var locations: Locations
 
     /// Textual context of the locator.
-    public let text: Text
+    public var text: Text
 
     public init(href: String, type: String, title: String? = nil, locations: Locations = .init(), text: Text = .init()) {
         self.href = href
@@ -65,18 +65,22 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
         try self.init(json: json, warnings: warnings)
     }
 
-    @available(*, deprecated, message: "This may create an incorrect `Locator` if the link `type` is missing. Use `publication.locate(Link)` instead.")
-    public init(link: Link) {
-        let components = link.href.split(separator: "#", maxSplits: 1).map(String.init)
-        let fragments = (components.count > 1) ? [String(components[1])] : []
+    /// Creates a ``Locator`` from its legacy JSON representation.
+    ///
+    /// Only use this API when you are upgrading to Readium 3.x and migrating
+    /// the ``Locator`` objects stored in your database. See the migration guide
+    /// for more information.
+    public init?(legacyJSONString: String, warnings: WarningLogger? = nil) throws {
+        try self.init(jsonString: legacyJSONString, warnings: warnings)
 
-        self.init(
-            href: components.first ?? link.href,
-            type: link.type ?? "",
-            title: link.title,
-            locations: Locations(fragments: fragments)
-        )
+        guard let url = AnyURL(legacyHREF: href) else {
+            return nil
+        }
+        href = url.string
     }
+
+    @available(*, unavailable, message: "This may create an incorrect `Locator` if the link `type` is missing. Use `publication.locate(Link)` instead.")
+    public init(link: Link) { fatalError() }
 
     public var json: [String: Any] {
         makeJSON([
@@ -297,9 +301,9 @@ public extension Array where Element == Locator {
 /// **WARNING:** This API is experimental and may change or be removed in a future release without
 /// notice. Use with caution.
 public struct _LocatorCollection: Hashable {
-    public let metadata: Metadata
-    public let links: [Link]
-    public let locators: [Locator]
+    public var metadata: Metadata
+    public var links: [Link]
+    public var locators: [Locator]
 
     public init(metadata: Metadata = Metadata(), links: [Link] = [], locators: [Locator] = []) {
         self.metadata = metadata
@@ -332,17 +336,20 @@ public struct _LocatorCollection: Hashable {
 
     /// Holds the metadata of a `LocatorCollection`.
     public struct Metadata: Hashable {
-        public let localizedTitle: LocalizedString?
+        public var localizedTitle: LocalizedString?
         public var title: String? { localizedTitle?.string }
 
         /// Indicates the total number of locators in the collection.
-        public let numberOfItems: Int?
+        public var numberOfItems: Int?
 
         /// Additional properties for extensions.
-        public var otherMetadata: [String: Any] { otherMetadataJSON.json }
+        public var otherMetadata: [String: Any] {
+            get { otherMetadataJSON.json }
+            set { otherMetadataJSON = JSONDictionary(newValue) ?? JSONDictionary() }
+        }
 
         // Trick to keep the struct equatable despite [String: Any]
-        private let otherMetadataJSON: JSONDictionary
+        private var otherMetadataJSON: JSONDictionary
 
         public init(
             title: LocalizedStringConvertible? = nil,

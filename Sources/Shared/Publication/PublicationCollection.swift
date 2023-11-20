@@ -11,15 +11,18 @@ import ReadiumInternal
 /// https://readium.org/webpub-manifest/schema/subcollection.schema.json
 /// Can be used as extension point in the Readium Web Publication Manifest.
 public struct PublicationCollection: JSONEquatable, Hashable {
-    public var metadata: [String: Any] { metadataJSON.json }
+    public var metadata: [String: Any] {
+        get { metadataJSON.json }
+        set { metadataJSON = JSONDictionary(newValue) ?? JSONDictionary() }
+    }
 
-    public let links: [Link]
+    public var links: [Link]
 
     /// Subcollections indexed by their role in this collection.
-    public let subcollections: [String: [PublicationCollection]]
+    public var subcollections: [String: [PublicationCollection]]
 
     // Trick to keep the struct hashable despite [String: Any]
-    private let metadataJSON: JSONDictionary
+    private var metadataJSON: JSONDictionary
 
     public init(metadata: [String: Any] = [:], links: [Link], subcollections: [String: [PublicationCollection]] = [:]) {
         metadataJSON = JSONDictionary(metadata) ?? JSONDictionary()
@@ -27,17 +30,20 @@ public struct PublicationCollection: JSONEquatable, Hashable {
         self.subcollections = subcollections
     }
 
-    public init?(json: Any, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) throws {
+    public init?(
+        json: Any,
+        warnings: WarningLogger? = nil
+    ) throws {
         // Parses a list of links.
         if let json = json as? [[String: Any]] {
-            self.init(links: .init(json: json, warnings: warnings, normalizeHREF: normalizeHREF))
+            self.init(links: .init(json: json, warnings: warnings))
 
             // Parses a Collection object.
         } else if var json = JSONDictionary(json) {
             self.init(
                 metadata: json.pop("metadata") as? [String: Any] ?? [:],
-                links: .init(json: json.pop("links"), normalizeHREF: normalizeHREF),
-                subcollections: Self.makeCollections(json: json.json, normalizeHREF: normalizeHREF)
+                links: .init(json: json.pop("links")),
+                subcollections: Self.makeCollections(json: json.json)
             )
 
         } else {
@@ -65,20 +71,20 @@ public struct PublicationCollection: JSONEquatable, Hashable {
             && lhs.subcollections == rhs.subcollections
     }
 
-    static func makeCollections(json: Any?, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) -> [String: [PublicationCollection]] {
+    static func makeCollections(json: Any?, warnings: WarningLogger? = nil) -> [String: [PublicationCollection]] {
         guard let json = json as? [String: Any] else {
             return [:]
         }
 
         return json.compactMapValues { json in
             // Parses list of links or a single collection object.
-            if let collection = try? PublicationCollection(json: json, warnings: warnings, normalizeHREF: normalizeHREF) {
+            if let collection = try? PublicationCollection(json: json, warnings: warnings) {
                 return [collection]
 
                 // Parses list of collection objects.
             } else if let collections = json as? [[String: Any]] {
                 return collections.compactMap {
-                    try? PublicationCollection(json: $0, warnings: warnings, normalizeHREF: normalizeHREF)
+                    try? PublicationCollection(json: $0, warnings: warnings)
                 }
 
             } else {
