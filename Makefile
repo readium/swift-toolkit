@@ -23,7 +23,7 @@ scripts:
 .PHONY: test
 test:
 	# To limit to a particular test suite: -only-testing:R2SharedTests
-	xcodebuild test -scheme "Readium-Package" -destination "platform=iOS Simulator,name=iPhone 12" | xcbeautify -q
+	xcodebuild test -scheme "Readium-Package" -destination "platform=iOS Simulator,name=iPhone 15" | xcbeautify -q
 
 .PHONY: lint-format
 lint-format:
