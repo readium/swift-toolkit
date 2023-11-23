@@ -52,4 +52,10 @@ public final class PDFDocumentView: PDFView {
     override public func copy(_ sender: Any?) {
         editingActions.copy()
     }
+
+    @available(iOS 13.0, *)
+    override public func buildMenu(with builder: UIMenuBuilder) {
+        editingActions.buildMenu(with: builder)
+        super.buildMenu(with: builder)
+    }
 }

@@ -352,8 +352,6 @@ open class EPUBNavigatorViewController: UIViewController,
 
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapBackground)))
 
-        viewModel.editingActions.updateSharedMenuController()
-
         reloadSpreads(at: initialLocation, force: false)
 
         applySettings()
