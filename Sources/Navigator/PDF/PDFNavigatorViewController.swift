@@ -560,7 +560,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
                 .insetBy(dx: -8, dy: -8)
         )
     }
-    
+
     /// From iOS 13 to 15, the Share menu action is impossible to remove without
     /// resorting to complex method swizzling in the subviews of ``PDFView``.
     /// (https://stackoverflow.com/a/61361294)

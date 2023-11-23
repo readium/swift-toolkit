@@ -102,8 +102,8 @@ final class EditingActionsController {
         publication: Publication
     ) {
         self.actions = actions
-        self.rights = publication.rights
-        self.canShare = !publication.isProtected
+        rights = publication.rights
+        canShare = !publication.isProtected
     }
 
     /// Current user selection contents and frame in the publication view.
@@ -134,7 +134,7 @@ final class EditingActionsController {
 
         return delegate?.editingActions(self, canPerformAction: action, for: selection) ?? true
     }
-    
+
     /// Verifies that the user has the rights to use the given `action`.
     private func isActionAllowed(_ action: EditingAction) -> Bool {
         switch action {
@@ -179,7 +179,7 @@ final class EditingActionsController {
     }
 
     // MARK: - Copy
-    
+
     /// Returns whether the copy interaction is at all allowed. It doesn't
     /// guarantee that the next copy action will be valid, if the license
     /// cancels it.
