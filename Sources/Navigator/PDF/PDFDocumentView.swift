@@ -23,7 +23,7 @@ public final class PDFDocumentView: PDFView {
         // account.
         firstScrollView?.contentInsetAdjustmentBehavior = .never
     }
-
+    
     @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -44,12 +44,18 @@ public final class PDFDocumentView: PDFView {
         firstScrollView?.contentInset.top = notchAreaInsets.top
         firstScrollView?.contentInset.bottom = notchAreaInsets.bottom
     }
-
+    
     override public func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
         super.canPerformAction(action, withSender: sender) && editingActions.canPerformAction(action)
     }
 
     override public func copy(_ sender: Any?) {
         editingActions.copy()
+    }
+    
+    @available(iOS 13.0, *)
+    public override func buildMenu(with builder: UIMenuBuilder) {
+        editingActions.buildMenu(with: builder)
+        super.buildMenu(with: builder)
     }
 }

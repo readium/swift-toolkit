@@ -265,14 +265,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         delegate?.spreadView(self, selectionDidChange: text, frame: frame)
     }
 
-    /// Called when the user hit the Share item in the selection context menu.
-    @objc func shareSelection(_ sender: Any?) {
-        guard let shareViewController = viewModel.editingActions.makeShareViewController(from: webView) else {
-            return
-        }
-        delegate?.spreadView(self, present: shareViewController)
-    }
-
     /// Update webview style to userSettings.
     /// To override in subclasses.
     func applySettings() {
