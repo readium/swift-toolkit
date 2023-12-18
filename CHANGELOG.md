@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 * From iOS 13 to 15, PDF text selection is disabled on protected publications disabling the **Copy** editing action.
 * The **Share** editing action is disabled for any protected publication.
+* Fixed starting the TTS from the current EPUB position.
 
 
 ## [2.6.1]
