@@ -265,12 +265,17 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
         /// Returns a copy of this text after highlighting a sub-range in the `highlight` property.
         ///
         /// The bounds of the range must be valid indices of the `highlight` property.
-        public subscript<R>(range: R) -> Text where R: RangeExpression, R.Bound == String.Index {
-            guard let highlight = highlight else {
+        public subscript(range: Range<String.Index>) -> Text {
+            guard
+                let highlight = highlight,
+                !highlight.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            else {
                 preconditionFailure("highlight is nil")
             }
 
-            let range = range.relative(to: highlight)
+            let range = range
+                .clamped(to: highlight.startIndex ..< highlight.endIndex)
+
             var before = before ?? ""
             var after = after ?? ""
             let newHighlight = highlight[range]
@@ -280,7 +285,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
             return Locator.Text(
                 after: Optional(after).takeIf { !$0.isEmpty },
                 before: Optional(before).takeIf { !$0.isEmpty },
-                highlight: Optional(String(newHighlight)).takeIf { !$0.isEmpty }
+                highlight: String(newHighlight)
             )
         }
 
