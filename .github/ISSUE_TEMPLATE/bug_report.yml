@@ -1,0 +1,85 @@
+name: Bug report
+description: File a bug report to help improve the Readium toolkit
+title: "[Bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for filing a bug report! Please [search for existing issues](https://github.com/readium/swift-toolkit/issues?q=is:issue) before submitting.
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Describe the bug
+      description: Also, please let us know what your expectations were.
+      placeholder: A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    id: bug-steps
+    attributes:
+      label: How to reproduce?
+      description: |
+        Step by step explanation to reproduce the issue in the Test App.
+
+        If you can, drag and drop:
+        - the publication used to reproduce the problem, after zipping it.
+        - screenshots or a screencast showing the issue
+
+      placeholder: |
+        1. Open book X
+        2. Go to chapter Y
+        3. Swipe left twice
+        4. See error
+        ...
+    validations:
+      required: true
+  - type: input
+    id: bug-readium-version
+    attributes:
+      label: Readium version
+      description: What version of the Readium toolkit are you running?
+    validations:
+      required: true
+  - type: input
+    id: bug-os-version
+    attributes:
+      label: OS version
+      description: On which OS version(s) did you reproduce the problem?
+      placeholder: iOS 17.0.1
+    validations:
+      required: true
+  - type: input
+    id: bug-device
+    attributes:
+      label: Testing device
+      description: On which Apple device did you reproduce the problem?
+      placeholder: iPhone 15 Pro Max (emulator)
+    validations:
+      required: true
+  - type: textarea
+    id: bug-environment
+    attributes:
+      label: Environment
+      description: |
+        Run the following shell commands and paste the result here:
+        ```shell
+        echo "macOS: `sw_vers -productVersion`"
+        echo "platform: `uname -m`"
+        echo "carthage: `carthage version`"
+        xcodebuild -version
+        ```
+      placeholder: |
+        macOS: 14.1.2
+        platform: arm64
+        carthage: 0.39.1
+        Xcode 15.1
+        Build version 15C65
+      render: bash
+  - type: textarea
+    id: bug-additional
+    attributes:
+      label: Additional context
+      description: |
+        Share additional code showing how you use Readium, if relevant. Output logs are useful as well.
+        If you already went through the codebase to find the bug, you can explain your findings here.
