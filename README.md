@@ -10,7 +10,7 @@ This toolkit is a modular project, which follows the [Readium Architecture](http
 * [`ReadiumOPDS`](Sources/OPDS) – Parsers for OPDS catalog feeds
 * [`ReadiumLCP`](Sources/LCP) – Service and models for [Readium LCP](https://www.edrlab.org/readium-lcp/)
 
-A [Test App](TestApp) demonstrates how to integrate the Readium Swift toolkit in your own reading app
+Take a look at the [guide to get started](Documentation/Guides/Getting%20Started.md). A [Test App](TestApp) demonstrates how to integrate the Readium Swift toolkit in your own reading app.
 
 ## Minimum Requirements
 

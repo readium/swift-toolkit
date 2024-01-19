@@ -1,5 +1,6 @@
 # User guides
 
+* [Getting Started](Getting%20Started.md)
 * [Extracting the content of a publication](Content.md)
 * [Text-to-speech](TTS.md)
 * Navigator
