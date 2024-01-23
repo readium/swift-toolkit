@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -51,5 +51,11 @@ public final class PDFDocumentView: PDFView {
 
     override public func copy(_ sender: Any?) {
         editingActions.copy()
+    }
+
+    @available(iOS 13.0, *)
+    override public func buildMenu(with builder: UIMenuBuilder) {
+        editingActions.buildMenu(with: builder)
+        super.buildMenu(with: builder)
     }
 }

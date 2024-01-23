@@ -19,6 +19,14 @@ All notable changes to this project will be documented in this file. Take a look
 * Links are not resolved to the `self` URL of a manifest anymore. However, you can still normalize the HREFs yourselves by calling `Manifest.normalizeHREFsToSelf()`.
 * `Publication.localizedTitle` is now optional, as we cannot guarantee a publication will always have a title.
 
+### Fixed
+
+#### Navigator
+
+* From iOS 13 to 15, PDF text selection is disabled on protected publications disabling the **Copy** editing action.
+* The **Share** editing action is disabled for any protected publication.
+* Fixed starting the TTS from the current EPUB position.
+
 
 ## [2.6.1]
 

@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -263,14 +263,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         focusedResource = spread.links.first(withHREF: href)
         frame.origin = convertPointToNavigatorSpace(frame.origin)
         delegate?.spreadView(self, selectionDidChange: text, frame: frame)
-    }
-
-    /// Called when the user hit the Share item in the selection context menu.
-    @objc func shareSelection(_ sender: Any?) {
-        guard let shareViewController = viewModel.editingActions.makeShareViewController(from: webView) else {
-            return
-        }
-        delegate?.spreadView(self, present: shareViewController)
     }
 
     /// Update webview style to userSettings.

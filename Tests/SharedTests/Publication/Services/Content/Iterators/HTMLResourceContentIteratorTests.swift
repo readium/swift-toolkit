@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -403,7 +403,7 @@ class HTMLResourceContentIteratorTest: XCTestCase {
         XCTAssertNil(try iter.next())
     }
 
-    func testIteratingOverElementContainingTextAndChildElements() {
+    func testIteratingOverElementContainingBothATextNodeAndChildElements() {
         let html = """
         <?xml version="1.0" encoding="UTF-8"?>
         <html xmlns="http://www.w3.org/1999/xhtml">
@@ -426,8 +426,7 @@ class HTMLResourceContentIteratorTest: XCTestCase {
                 locator: locator(
                     progression: 0.0,
                     selector: "#c06-li-0001",
-                    highlight: "Let's start at the top—the source of ideas.",
-                    after: "\n            "
+                    highlight: "Let's start at the top—the source of ideas."
                 ),
                 role: .body,
                 segments: [
@@ -435,8 +434,7 @@ class HTMLResourceContentIteratorTest: XCTestCase {
                         locator: locator(
                             progression: 0.0,
                             selector: "#c06-li-0001",
-                            highlight: "Let's start at the top—the source of ideas.",
-                            after: "\n            "
+                            highlight: "Let's start at the top—the source of ideas."
                         ),
                         text: "Let's start at the top—the source of ideas.",
                         attributes: []
@@ -469,20 +467,18 @@ class HTMLResourceContentIteratorTest: XCTestCase {
             TextContentElement(
                 locator: locator(
                     progression: 2 / 3.0,
-                    selector: "#c06-para-0019",
+                    selector: "#c06-li-0001 > aside",
                     before: "e just described is very much a waterfall process.\n            \n            ",
-                    highlight: "Trailing text",
-                    after: "\n        "
+                    highlight: "Trailing text"
                 ),
                 role: .body,
                 segments: [
                     TextContentElement.Segment(
                         locator: locator(
                             progression: 2 / 3.0,
-                            selector: "#c06-para-0019",
+                            selector: "#c06-li-0001 > aside",
                             before: "e just described is very much a waterfall process.\n            ",
-                            highlight: "Trailing text",
-                            after: "\n        "
+                            highlight: "Trailing text"
                         ),
                         text: "Trailing text",
                         attributes: []
@@ -496,6 +492,113 @@ class HTMLResourceContentIteratorTest: XCTestCase {
         XCTAssertEqual(expectedElements[0], try iter.next()?.equatable())
         XCTAssertEqual(expectedElements[1], try iter.next()?.equatable())
         XCTAssertEqual(expectedElements[2], try iter.next()?.equatable())
+        XCTAssertNil(try iter.next())
+    }
+
+    func testIteratingOverTextNodesLocatedAroundANestedBlockElement() {
+        let html = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <html xmlns="http://www.w3.org/1999/xhtml">
+        <body>
+            <div id="a">begin a <div id="b">in b</div> end a</div>
+            <div id="c">in c</div>
+        </body>
+        </html>
+        """
+        let expectedElements: [AnyEquatableContentElement] = [
+            TextContentElement(
+                locator: locator(
+                    progression: 0.0,
+                    selector: "#a",
+                    highlight: "begin a"
+                ),
+                role: .body,
+                segments: [
+                    TextContentElement.Segment(
+                        locator: locator(
+                            progression: 0.0,
+                            selector: "#a",
+                            highlight: "begin a"
+                        ),
+                        text: "begin a",
+                        attributes: []
+                    ),
+                ],
+                attributes: []
+            ).equatable(),
+            TextContentElement(
+                locator: locator(
+                    progression: 0.25,
+                    selector: "#b",
+                    before: "begin a ",
+                    highlight: "in b"
+                ),
+                role: .body,
+                segments: [
+                    TextContentElement.Segment(
+                        locator: locator(
+                            progression: 0.25,
+                            selector: "#b",
+                            before: "begin a ",
+                            highlight: "in b"
+                        ),
+                        text: "in b",
+                        attributes: []
+                    ),
+                ],
+                attributes: []
+            ).equatable(),
+            TextContentElement(
+                locator: locator(
+                    progression: 0.5,
+                    selector: "#a",
+                    before: "begin a in b  ",
+                    highlight: "end a"
+                ),
+                role: .body,
+                segments: [
+                    TextContentElement.Segment(
+                        locator: locator(
+                            progression: 0.5,
+                            selector: "#a",
+                            before: "begin a in b ",
+                            highlight: "end a"
+                        ),
+                        text: "end a",
+                        attributes: []
+                    ),
+                ],
+                attributes: []
+            ).equatable(),
+            TextContentElement(
+                locator: locator(
+                    progression: 0.75,
+                    selector: "#c",
+                    before: "begin a in b end a",
+                    highlight: "in c"
+                ),
+                role: .body,
+                segments: [
+                    TextContentElement.Segment(
+                        locator: locator(
+                            progression: 0.75,
+                            selector: "#c",
+                            before: "begin a in b end a",
+                            highlight: "in c"
+                        ),
+                        text: "in c",
+                        attributes: []
+                    ),
+                ],
+                attributes: []
+            ).equatable(),
+        ]
+
+        let iter = iterator(html)
+        XCTAssertEqual(expectedElements[0], try iter.next()?.equatable())
+        XCTAssertEqual(expectedElements[1], try iter.next()?.equatable())
+        XCTAssertEqual(expectedElements[2], try iter.next()?.equatable())
+        XCTAssertEqual(expectedElements[3], try iter.next()?.equatable())
         XCTAssertNil(try iter.next())
     }
 }

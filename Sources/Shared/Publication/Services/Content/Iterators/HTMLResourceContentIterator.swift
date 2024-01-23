@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -14,6 +14,9 @@ import SwiftSoup
 ///
 /// If you want to start from the end of the resource, the `locator` must have
 /// a `progression` of 1.0.
+///
+/// Locators will contain a `before` context of up to `beforeMaxLength`
+/// characters.
 public class HTMLResourceContentIterator: ContentIterator {
     /// Factory for an `HTMLResourceContentIterator`.
     public class Factory: ResourceContentIteratorFactory {
@@ -94,20 +97,28 @@ public class HTMLResourceContentIterator: ContentIterator {
             .readAsString()
             .eraseToAnyError()
             .tryMap { try SwiftSoup.parse($0) }
-            .tryMap { try ContentParser.parse(document: $0, locator: locator, beforeMaxLength: beforeMaxLength) }
+            .tryMap { try parse(document: $0, locator: locator, beforeMaxLength: beforeMaxLength) }
             .map { adjustProgressions(of: $0) }
         resource.close()
         return result
     }
 
-    /// Holds the result of parsing the HTML resource into a list of
-    /// `ContentElement`.
-    ///
-    /// The `startIndex` will be calculated from the element matched by the
-    /// base `locator`, if possible. Defaults to 0.
-    private struct ParsedElements {
-        var elements: [ContentElement]
-        var startIndex: Int
+    private func parse(document: Document, locator: Locator, beforeMaxLength: Int) throws -> ParsedElements {
+        let parser = try ContentParser(
+            baseLocator: locator,
+            startElement: locator.locations.cssSelector
+                .flatMap {
+                    // The JS third-party library used to generate the CSS
+                    // Selector sometimes adds `:root >`, which doesn't work
+                    // with SwiftSoup.
+                    try document.select($0.removingPrefix(":root > ")).first()
+                },
+            beforeMaxLength: beforeMaxLength
+        )
+
+        try (document.body() ?? document).traverse(parser)
+
+        return parser.result
     }
 
     private func adjustProgressions(of elements: ParsedElements) -> ParsedElements {
@@ -129,41 +140,37 @@ public class HTMLResourceContentIterator: ContentIterator {
         return elements
     }
 
+    /// Holds the result of parsing the HTML resource into a list of
+    /// `ContentElement`.
+    ///
+    /// The `startIndex` will be calculated from the element matched by the
+    /// base `locator`, if possible. Defaults to 0.
+    private struct ParsedElements {
+        var elements: [ContentElement] = []
+        var startIndex: Int = 0
+    }
+
     private class ContentParser: NodeVisitor {
-        static func parse(document: Document, locator: Locator, beforeMaxLength: Int) throws -> ParsedElements {
-            let parser = try ContentParser(
-                baseLocator: locator,
-                startElement: locator.locations.cssSelector
-                    .flatMap {
-                        // The JS third-party library used to generate the CSS
-                        // Selector sometimes adds `:root >`, which doesn't work
-                        // with SwiftSoup.
-                        try document.select($0.removingPrefix(":root > ")).first()
-                    },
-                beforeMaxLength: beforeMaxLength
-            )
+        private let baseLocator: Locator
+        private let baseHREF: AnyURL?
+        private let startElement: Element?
+        private let beforeMaxLength: Int
 
-            try (document.body() ?? document).traverse(parser)
-
-            return ParsedElements(
-                elements: parser.elements,
-                startIndex: (locator.locations.progression == 1.0)
-                    ? parser.elements.count - 1
-                    : parser.startIndex
-            )
-        }
-
-        private init(baseLocator: Locator, startElement: Element?, beforeMaxLength: Int) {
+        init(baseLocator: Locator, startElement: Element?, beforeMaxLength: Int) {
             self.baseLocator = baseLocator
             baseHREF = AnyURL(string: baseLocator.href)
             self.startElement = startElement
             self.beforeMaxLength = beforeMaxLength
         }
 
-        private let baseLocator: Locator
-        private let baseHREF: AnyURL?
-        private let startElement: Element?
-        private let beforeMaxLength: Int
+        var result: ParsedElements {
+            ParsedElements(
+                elements: elements,
+                startIndex: (baseLocator.locations.progression == 1.0)
+                    ? elements.count - 1
+                    : startIndex
+            )
+        }
 
         private var elements: [ContentElement] = []
         private var startIndex = 0
@@ -190,16 +197,25 @@ public class HTMLResourceContentIterator: ContentIterator {
         /// Language of the current segment.
         private var currentLanguage: Language?
 
-        /// CSS selector of the current element.
-        private var currentCSSSelector: String?
-
         /// LIFO stack of the current element's block ancestors.
-        private var breadcrumbs: [Element] = []
+        private var breadcrumbs: [ParentElement] = []
+
+        private struct ParentElement {
+            let element: Element
+            let cssSelector: String?
+
+            init(element: Element) {
+                self.element = element
+                cssSelector = try? element.cssSelector()
+            }
+        }
 
         public func head(_ node: Node, _ depth: Int) throws {
             if let node = node as? Element {
+                let parent = ParentElement(element: node)
                 if node.isBlock() {
-                    breadcrumbs.append(node)
+                    flushText()
+                    breadcrumbs.append(parent)
                 }
 
                 let tag = node.tagNameNormal()
@@ -207,7 +223,7 @@ public class HTMLResourceContentIterator: ContentIterator {
                 lazy var elementLocator: Locator = baseLocator.copy(
                     locations: {
                         $0.otherLocations = [
-                            "cssSelector": (try? node.cssSelector()) as Any,
+                            "cssSelector": parent.cssSelector as Any,
                         ]
                     }
                 )
@@ -219,7 +235,7 @@ public class HTMLResourceContentIterator: ContentIterator {
                     flushText()
                     try node.srcRelativeToHREF(baseHREF).map { href in
                         var attributes: [ContentAttribute] = []
-                        if let alt = try node.attr("alt").takeUnlessEmpty() {
+                        if let alt = try node.attr("alt").takeUnlessBlank() {
                             attributes.append(ContentAttribute(key: .accessibilityLabel, value: alt))
                         }
 
@@ -241,7 +257,7 @@ public class HTMLResourceContentIterator: ContentIterator {
                             let sources = try node.select("source")
                                 .compactMap { source in
                                     try source.srcRelativeToHREF(baseHREF).map { href in
-                                        try Link(href: href.string, type: source.attr("type").takeUnlessEmpty())
+                                        try Link(href: href.string, type: source.attr("type").takeUnlessBlank())
                                     }
                                 }
 
@@ -264,15 +280,13 @@ public class HTMLResourceContentIterator: ContentIterator {
 
                 } else if node.isBlock() {
                     flushText()
-                    currentCSSSelector = try node.cssSelector()
                 }
             }
         }
 
         func tail(_ node: Node, _ depth: Int) throws {
             if let node = node as? TextNode {
-                let wholeText = node.getWholeText()
-                guard !wholeText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                guard let wholeText = node.getWholeText().takeUnlessBlank() else {
                     return
                 }
 
@@ -288,7 +302,7 @@ public class HTMLResourceContentIterator: ContentIterator {
 
             } else if let node = node as? Element {
                 if node.isBlock() {
-                    assert(breadcrumbs.last == node)
+                    assert(breadcrumbs.last?.element == node)
                     flushText()
                     breadcrumbs.removeLast()
                 }
@@ -304,13 +318,15 @@ public class HTMLResourceContentIterator: ContentIterator {
                 return false
             }
 
-            return lastChar.isWhitespace || lastChar.isNewline
+            return lastChar == " "
         }
 
         private func flushText() {
             flushSegment()
 
-            if startIndex == 0, startElement != nil, breadcrumbs.last == startElement {
+            let parent = breadcrumbs.last
+
+            if startIndex == 0, startElement != nil, parent?.element == startElement {
                 startIndex = elements.count
             }
 
@@ -322,7 +338,7 @@ public class HTMLResourceContentIterator: ContentIterator {
             // for the TextContentElement. Only whitespaces between the
             // segments are meaningful.
             if var segment = segmentsAcc.last {
-                segment.text = segment.text.trimmingCharacters(in: .whitespacesAndNewlines)
+                segment.text = segment.text.trimingTrailingWhitespacesAndNewlines()
                 segmentsAcc[segmentsAcc.count - 1] = segment
             }
 
@@ -330,9 +346,7 @@ public class HTMLResourceContentIterator: ContentIterator {
                 TextContentElement(
                     locator: baseLocator.copy(
                         locations: {
-                            if let selector = self.currentCSSSelector {
-                                $0.otherLocations["cssSelector"] = selector
-                            }
+                            $0.otherLocations["cssSelector"] = parent?.cssSelector as Any
                         },
                         text: {
                             $0 = Locator.Text.trimming(
@@ -355,13 +369,17 @@ public class HTMLResourceContentIterator: ContentIterator {
 
             if !trimmedText.isEmpty {
                 if segmentsAcc.isEmpty {
+                    text = text.trimmingLeadingWhitespacesAndNewlines()
+
                     let whitespaceSuffix = text.last
-                        .takeIf { $0.isWhitespace || $0.isNewline }
+                        .takeIf { $0.isWhitespace }
                         .map { String($0) }
                         ?? ""
 
                     text = trimmedText + whitespaceSuffix
                 }
+
+                let parent = breadcrumbs.last
 
                 var attributes: [ContentAttribute] = []
                 if let lang = currentLanguage {
@@ -370,9 +388,9 @@ public class HTMLResourceContentIterator: ContentIterator {
 
                 segmentsAcc.append(TextContentElement.Segment(
                     locator: baseLocator.copy(
-                        locations: { [self] in
+                        locations: {
                             $0.otherLocations = [
-                                "cssSelector": currentCSSSelector as Any,
+                                "cssSelector": parent?.cssSelector as Any,
                             ]
                         },
                         text: { [self] in
@@ -399,7 +417,7 @@ public class HTMLResourceContentIterator: ContentIterator {
 
 private extension Node {
     func srcRelativeToHREF(_ baseHREF: AnyURL?) throws -> AnyURL? {
-        try attr("src").takeUnlessEmpty()
+        try attr("src").takeUnlessBlank()
             .flatMap { AnyURL(string: $0) }
             .flatMap {
                 baseHREF?.resolve($0) ?? $0
@@ -407,20 +425,15 @@ private extension Node {
     }
 
     func language() throws -> String? {
-        try attr("xml:lang").takeUnlessEmpty()
-            ?? attr("lang").takeUnlessEmpty()
+        try attr("xml:lang").takeUnlessBlank()
+            ?? attr("lang").takeUnlessBlank()
             ?? parent()?.language()
-    }
-
-    func parentElement() -> Element? {
-        (parent() as? Element)
-            ?? parent()?.parentElement()
     }
 }
 
 private extension String {
-    func takeUnlessEmpty() -> String? {
-        isEmpty ? nil : self
+    func takeUnlessBlank() -> String? {
+        trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : self
     }
 }
 
@@ -472,9 +485,23 @@ private extension Locator.Text {
         let trailingWhitespace = String(text[trailingWhitespaceIdx...])
 
         return Locator.Text(
-            after: trailingWhitespace.takeUnlessEmpty(),
-            before: ((before ?? "") + leadingWhitespace).takeUnlessEmpty(),
+            after: trailingWhitespace.takeUnlessBlank(),
+            before: ((before ?? "") + leadingWhitespace).takeUnlessBlank(),
             highlight: String(text[leadingWhitespaceIdx ..< trailingWhitespaceIdx])
         )
+    }
+}
+
+private extension String {
+    func trimmingLeadingWhitespacesAndNewlines() -> String {
+        firstIndex { !$0.isWhitespace && !$0.isNewline }
+            .map { index in String(self[index...]) }
+            ?? self
+    }
+
+    func trimingTrailingWhitespacesAndNewlines() -> String {
+        lastIndex { !$0.isWhitespace && !$0.isNewline }
+            .map { index in String(self[...index]) }
+            ?? self
     }
 }

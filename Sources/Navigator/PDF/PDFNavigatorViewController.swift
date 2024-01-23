@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -106,7 +106,10 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         publicationBaseURL = baseURL
         self.config = config
         self.delegate = delegate
-        editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
+        editingActions = EditingActionsController(
+            actions: config.editingActions,
+            publication: publication
+        )
 
         settings = PDFSettings(
             preferences: config.preferences,
@@ -149,8 +152,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         super.viewDidLoad()
 
         resetPDFView(at: initialLocation)
-
-        editingActions.updateSharedMenuController()
     }
 
     override open func viewWillAppear(_ animated: Bool) {
@@ -381,8 +382,10 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         }
 
         if currentResourceIndex != index {
-            let url = link.url(relativeTo: publicationBaseURL)
-            guard let document = PDFDocument(url: url.url) else {
+            guard
+                let url = try? link.url(relativeTo: publicationBaseURL),
+                let document = PDFDocument(url: url.url)
+            else {
                 log(.error, "Can't open PDF document at \(link)")
                 return false
             }
@@ -501,9 +504,10 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
     @objc func selectionDidChange(_ note: Notification) {
         guard
+            ensureSelectionIsAllowed(),
             let pdfView = pdfView,
-            let locator = currentLocation,
             let selection = pdfView.currentSelection,
+            let locator = currentLocation,
             let text = selection.string,
             let page = selection.pages.first
         else {
@@ -519,14 +523,28 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         )
     }
 
-    @objc private func shareSelection(_ sender: Any?) {
-        guard
-            let pdfView = pdfView,
-            let shareViewController = editingActions.makeShareViewController(from: pdfView)
-        else {
-            return
+    /// From iOS 13 to 15, the Share menu action is impossible to remove without
+    /// resorting to complex method swizzling in the subviews of ``PDFView``.
+    /// (https://stackoverflow.com/a/61361294)
+    ///
+    /// To prevent users from copying the text, we simply disable all text
+    /// selection in this case.
+    private func ensureSelectionIsAllowed() -> Bool {
+        guard !editingActions.canCopy else {
+            return true
         }
-        present(shareViewController, animated: true)
+
+        if #available(iOS 13, *) {
+            if #available(iOS 16, *) {
+                // Do nothing, as the issue is solved since iOS 16.
+            } else {
+                if let pdfView = pdfView, pdfView.currentSelection != nil {
+                    pdfView.clearSelection()
+                }
+                return false
+            }
+        }
+        return true
     }
 
     // MARK: - Navigator
