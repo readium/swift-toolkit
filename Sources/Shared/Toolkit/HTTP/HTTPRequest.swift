@@ -180,7 +180,7 @@ extension String: HTTPRequestConvertible {
 
 extension Link: HTTPRequestConvertible {
     public func httpRequest() -> HTTPResult<HTTPRequest> {
-        guard let url = url().httpURL else {
+        guard let url = try? url().httpURL else {
             return .failure(HTTPError(kind: .malformedRequest(url: href)))
         }
         return url.httpRequest()

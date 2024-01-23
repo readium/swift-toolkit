@@ -42,9 +42,9 @@ class HREFNormalizerTests: XCTestCase {
         ]
     )
 
-    func testNormalizeManifestHREFsToSelf() {
+    func testNormalizeManifestHREFsToSelf() throws {
         var sut = manifest
-        sut.normalizeHREFsToSelf()
+        try sut.normalizeHREFsToSelf()
         XCTAssertEqual(
             sut,
             Manifest(
@@ -83,9 +83,9 @@ class HREFNormalizerTests: XCTestCase {
         )
     }
 
-    func testNormalizeManifestHREFsToBaseURL() {
+    func testNormalizeManifestHREFsToBaseURL() throws {
         var sut = manifest
-        sut.normalizeHREFs(to: AnyURL(string: "https://other/dir/")!)
+        try sut.normalizeHREFs(to: AnyURL(string: "https://other/dir/")!)
 
         XCTAssertEqual(
             sut,
@@ -125,7 +125,7 @@ class HREFNormalizerTests: XCTestCase {
         )
     }
 
-    func testNormalizeLinkHREFsToBaseURL() {
+    func testNormalizeLinkHREFsToBaseURL() throws {
         var sut = Link(
             href: "href1",
             alternates: [
@@ -149,7 +149,7 @@ class HREFNormalizerTests: XCTestCase {
                 ),
             ]
         )
-        sut.normalizeHREFs(to: AnyURL(string: "https://other/dir/")!)
+        try sut.normalizeHREFs(to: AnyURL(string: "https://other/dir/")!)
 
         XCTAssertEqual(
             sut,

@@ -7,6 +7,11 @@
 import Foundation
 import ReadiumInternal
 
+public enum LinkError: Error, Equatable {
+    /// The link's HREF is not a valid URL.
+    case invalidHREF(String)
+}
+
 /// Link Object for the Readium Web Publication Manifest.
 /// https://readium.org/webpub-manifest/schema/link.schema.json
 public struct Link: JSONEquatable, Hashable {
@@ -91,15 +96,29 @@ public struct Link: JSONEquatable, Hashable {
         warnings: WarningLogger? = nil
     ) throws {
         guard let jsonObject = json as? [String: Any],
-              let href = jsonObject["href"] as? String
+              var href = jsonObject["href"] as? String
         else {
             warnings?.log("`href` is required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
+        
+        let templated = (jsonObject["templated"] as? Bool) ?? false
+        
+        // We support existing publications with incorrect HREFs (not valid percent-encoded
+        // URIs). We try to parse them first as valid, but fall back on a percent-decoded
+        // path if it fails.
+        if AnyURL(string: href) == nil {
+            warnings?.log("`href` is not a valid percent-encoded URL", model: Self.self, source: json)
+            guard let url = RelativeURL(path: href) else {
+                throw JSONError.parsing(Self.self)
+            }
+            href = url.string
+        }
+        
         self.init(
             href: href,
             type: jsonObject["type"] as? String,
-            templated: (jsonObject["templated"] as? Bool) ?? false,
+            templated: templated,
             title: jsonObject["title"] as? String,
             rels: .init(json: jsonObject["rel"]),
             properties: (try? Properties(json: jsonObject["properties"], warnings: warnings)) ?? Properties(),
@@ -145,7 +164,7 @@ public struct Link: JSONEquatable, Hashable {
     /// according to RFC 6570.
     public func url(
         parameters: [String: LosslessStringConvertible] = [:]
-    ) -> AnyURL {
+    ) throws -> AnyURL {
         var href = href
         if templated {
             href = URITemplate(href).expand(with: parameters)
@@ -153,7 +172,11 @@ public struct Link: JSONEquatable, Hashable {
         if href.isEmpty {
             href = "#"
         }
-        return AnyURL(string: href)!
+        
+        guard let url = AnyURL(string: href) else {
+            throw LinkError.invalidHREF(href)
+        }
+        return url
     }
 
     /// Returns the URL represented by this link's HREF, resolved to the given
@@ -164,8 +187,8 @@ public struct Link: JSONEquatable, Hashable {
     public func url<T: URLConvertible>(
         relativeTo baseURL: T?,
         parameters: [String: LosslessStringConvertible] = [:]
-    ) -> AnyURL {
-        let url = url(parameters: parameters)
+    ) throws -> AnyURL {
+        let url = try url(parameters: parameters)
         return baseURL?.anyURL.resolve(url) ?? url
     }
 

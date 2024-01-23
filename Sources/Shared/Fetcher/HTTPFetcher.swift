@@ -21,7 +21,7 @@ public final class HTTPFetcher: Fetcher, Loggable {
     public let links: [Link] = []
 
     public func get(_ link: Link) -> Resource {
-        guard let url = link.url(relativeTo: baseURL).httpURL else {
+        guard let url = try? link.url(relativeTo: baseURL).httpURL else {
             log(.error, "Not a valid HTTP URL: \(link.href)")
             return FailureResource(link: link, error: .badRequest(HTTPError(kind: .malformedRequest(url: link.href))))
         }

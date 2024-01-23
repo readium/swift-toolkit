@@ -83,7 +83,10 @@ struct EPUBSpread: Loggable {
     ///   - page [left|center|right]: (optional) Page position of the linked resource in the spread.
     func json(forBaseURL baseURL: HTTPURL) -> [[String: Any]] {
         func makeLinkJSON(_ link: Link, page: Presentation.Page? = nil) -> [String: Any]? {
-            let url = link.url(relativeTo: baseURL)
+            guard let url = try? link.url(relativeTo: baseURL) else {
+                return nil
+            }
+            
             let page = page ?? link.properties.page ?? readingProgression.leadingPage
             return [
                 "link": link.json,
