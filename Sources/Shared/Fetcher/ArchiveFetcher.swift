@@ -28,7 +28,7 @@ public final class ArchiveFetcher: Fetcher, Loggable {
 
     public func get(_ link: Link) -> Resource {
         guard
-            let path = link.url().relativeURL?.path,
+            let path = try? link.url().relativeURL?.path,
             let entry = findEntry(at: path),
             let reader = archive.readEntry(at: entry.path)
         else {

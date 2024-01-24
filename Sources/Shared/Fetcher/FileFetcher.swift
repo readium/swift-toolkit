@@ -23,7 +23,7 @@ public final class FileFetcher: Fetcher, Loggable {
     }
 
     public func get(_ link: Link) -> Resource {
-        if let linkHREF = link.url().relativeURL {
+        if let linkHREF = try? link.url().relativeURL {
             for (href, url) in paths {
                 if linkHREF == href {
                     return FileResource(link: link, file: url)

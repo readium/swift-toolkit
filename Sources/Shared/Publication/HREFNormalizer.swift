@@ -8,27 +8,27 @@ import Foundation
 
 public extension Manifest {
     /// Resolves the HREFs in the ``Manifest`` to the link with `rel="self"`.
-    mutating func normalizeHREFsToSelf() {
-        guard let base = link(withRel: .self)?.url() else {
+    mutating func normalizeHREFsToSelf() throws {
+        guard let base = try link(withRel: .self)?.url() else {
             return
         }
 
-        normalizeHREFs(to: base)
+        try normalizeHREFs(to: base)
     }
 
     /// Resolves the HREFs in the ``Manifest`` to the given `baseURL`.
-    mutating func normalizeHREFs<T: URLConvertible>(to baseURL: T) {
-        transform(HREFNormalizer(baseURL: baseURL))
+    mutating func normalizeHREFs<T: URLConvertible>(to baseURL: T) throws {
+        try transform(HREFNormalizer(baseURL: baseURL))
     }
 }
 
 public extension Link {
     /// Resolves the HREFs in the ``Link`` to the given `baseURL`.
-    mutating func normalizeHREFs<T: URLConvertible>(to baseURL: T?) {
+    mutating func normalizeHREFs<T: URLConvertible>(to baseURL: T?) throws {
         guard let baseURL = baseURL else {
             return
         }
-        transform(HREFNormalizer(baseURL: baseURL))
+        try transform(HREFNormalizer(baseURL: baseURL))
     }
 }
 
@@ -39,12 +39,12 @@ private struct HREFNormalizer: ManifestTransformer, Loggable {
         self.baseURL = baseURL.anyURL
     }
 
-    func transform(link: inout Link) {
+    func transform(link: inout Link) throws {
         guard !link.templated else {
             log(.warning, "Cannot safely resolve a URI template to a base URL before expanding it: \(link.href)")
             return
         }
 
-        link.href = link.url(relativeTo: baseURL).string
+        link.href = try link.url(relativeTo: baseURL).string
     }
 }

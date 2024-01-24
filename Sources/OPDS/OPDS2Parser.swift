@@ -180,7 +180,7 @@ public class OPDS2Parser: Loggable {
                     }
                     for linkDict in links {
                         var link = try Link(json: linkDict)
-                        link.normalizeHREFs(to: feedURL)
+                        try link.normalizeHREFs(to: feedURL)
                         facet.links.append(link)
                     }
                 }
@@ -192,7 +192,7 @@ public class OPDS2Parser: Loggable {
     static func parseLinks(feed: Feed, feedURL: URL, links: [[String: Any]]) throws {
         for linkDict in links {
             var link = try Link(json: linkDict)
-            link.normalizeHREFs(to: feedURL)
+            try link.normalizeHREFs(to: feedURL)
             feed.links.append(link)
         }
     }
@@ -207,7 +207,7 @@ public class OPDS2Parser: Loggable {
     static func parseNavigation(feed: Feed, feedURL: URL, navLinks: [[String: Any]]) throws {
         for navDict in navLinks {
             var link = try Link(json: navDict)
-            link.normalizeHREFs(to: feedURL)
+            try link.normalizeHREFs(to: feedURL)
             feed.navigation.append(link)
         }
     }
@@ -233,7 +233,7 @@ public class OPDS2Parser: Loggable {
                     }
                     for linkDict in links {
                         var link = try Link(json: linkDict)
-                        link.normalizeHREFs(to: feedURL)
+                        try link.normalizeHREFs(to: feedURL)
                         group.links.append(link)
                     }
                 case "navigation":
@@ -242,7 +242,7 @@ public class OPDS2Parser: Loggable {
                     }
                     for linkDict in links {
                         var link = try Link(json: linkDict)
-                        link.normalizeHREFs(to: feedURL)
+                        try link.normalizeHREFs(to: feedURL)
                         group.navigation.append(link)
                     }
                 case "publications":
