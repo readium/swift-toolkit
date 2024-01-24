@@ -165,18 +165,18 @@ private let schemePrefix = "r2"
 
 private extension AVAssetResourceLoadingRequest {
     var href: String? {
-        guard let url = request.url, url.scheme?.hasPrefix(schemePrefix) == true else {
+        guard let url = request.url?.absoluteURL, url.scheme.rawValue.hasPrefix(schemePrefix) == true else {
             return nil
         }
 
         // The URL can be either:
         // * r2file://directory/local-file.mp3
         // * r2http(s)://domain.com/external-file.mp3
-        switch url.scheme?.lowercased().removingPrefix(schemePrefix) {
-        case "file":
+        switch url.scheme.rawValue {
+        case "r2file", "r2":
             return url.path
-        case "http", "https":
-            return url.absoluteString.removingPrefix(schemePrefix)
+        case "r2http", "r2https":
+            return url.string.removingPrefix(schemePrefix)
         default:
             return nil
         }
