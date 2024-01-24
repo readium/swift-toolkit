@@ -86,7 +86,7 @@ struct EPUBSpread: Loggable {
             guard let url = try? link.url(relativeTo: baseURL) else {
                 return nil
             }
-            
+
             let page = page ?? link.properties.page ?? readingProgression.leadingPage
             return [
                 "link": link.json,

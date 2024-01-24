@@ -260,7 +260,7 @@ class LinkTests: XCTestCase {
             AnyURL(string: "http://test.com/folder/file.html")!
         )
     }
-    
+
     func testURLWithInvalidHREF() {
         XCTAssertThrowsError(try Link(href: "01_Note de l editeur audio.mp3").url()) { error in
             XCTAssertEqual(LinkError.invalidHREF("01_Note de l editeur audio.mp3"), error as? LinkError)

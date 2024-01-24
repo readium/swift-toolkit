@@ -101,9 +101,9 @@ public struct Link: JSONEquatable, Hashable {
             warnings?.log("`href` is required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
-        
+
         let templated = (jsonObject["templated"] as? Bool) ?? false
-        
+
         // We support existing publications with incorrect HREFs (not valid percent-encoded
         // URIs). We try to parse them first as valid, but fall back on a percent-decoded
         // path if it fails.
@@ -114,7 +114,7 @@ public struct Link: JSONEquatable, Hashable {
             }
             href = url.string
         }
-        
+
         self.init(
             href: href,
             type: jsonObject["type"] as? String,
@@ -172,7 +172,7 @@ public struct Link: JSONEquatable, Hashable {
         if href.isEmpty {
             href = "#"
         }
-        
+
         guard let url = AnyURL(string: href) else {
             throw LinkError.invalidHREF(href)
         }
