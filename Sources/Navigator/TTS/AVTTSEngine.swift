@@ -159,6 +159,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance avUtterance: AVSpeechUtterance) {
         guard
             let task = (avUtterance as? TaskUtterance)?.task,
+            characterRange.upperBound <= task.utterance.text.count,
             let range = Range(characterRange, in: task.utterance.text)
         else {
             return
