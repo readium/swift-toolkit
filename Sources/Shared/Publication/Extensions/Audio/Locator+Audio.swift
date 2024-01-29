@@ -51,6 +51,8 @@ public extension Locator.Locations {
 
   private static let timeFragmentRegex = try! NSRegularExpression(pattern: #"t=([^,]*),?([^,]*)"#)
 
+  /// The Temporal Dimension media fragment, if it exists.
+  /// https://www.w3.org/TR/media-frags/#media-fragment-syntax
   var time: TimeFragment? {
     for fragment in fragments {
       let range = NSRange(fragment.startIndex ..< fragment.endIndex, in: fragment)
