@@ -9,40 +9,40 @@ import Foundation
 /// Audio extensions for `Locator.Locations`.
 public extension Locator.Locations {
   enum TimeFragment: Equatable, Sendable {
-    case offset(Double)
-    case duration(Double)
-    case range(Double, Double)
+    case begin(Double)
+    case end(Double)
+    case interval(Double, Double)
 
-    init?(offset: Double?, duration: Double?) {
-      switch (offset, duration) {
-      case let (.some(offset), .some(duration)):
-        self = .range(offset, duration)
-      case let (.some(offset), .none):
-        self = .offset(offset)
-      case let (.none, .some(duration)):
-        self = .duration(duration)
+    init?(begin: Double?, end: Double?) {
+      switch (begin, end) {
+      case let (.some(begin), .some(end)):
+        self = .interval(begin, end)
+      case let (.some(begin), .none):
+        self = .begin(begin)
+      case let (.none, .some(end)):
+        self = .end(end)
       case (.none, .none):
         return nil
       }
     }
 
-    public var offset: Double? {
+    public var begin: Double? {
       switch self {
-      case let .offset(offset):
-        return offset
-      case let .range(offset, _):
-        return offset
+      case let .begin(begin):
+        return begin
+      case let .interval(begin, _):
+        return begin
       default:
         return nil
       }
     }
 
-    public var duration: Double? {
+    public var end: Double? {
       switch self {
-      case let .duration(duration):
-        return duration
-      case let .range(_, duration):
-        return duration
+      case let .end(end):
+        return end
+      case let .interval(_, end):
+        return end
       default:
         return nil
       }
@@ -59,15 +59,15 @@ public extension Locator.Locations {
       if let match = Self.timeFragmentRegex.firstMatch(in: fragment, range: range) {
         let group1NSRange = match.range(at: 1)
         let group2NSRange = match.range(at: 2)
-        var offset: Double?
-        var duration: Double?
+        var begin: Double?
+        var end: Double?
         if group1NSRange.location != NSNotFound, let group1Range = Range(group1NSRange, in: fragment) {
-          offset = Double(fragment[group1Range])
+          begin = Double(fragment[group1Range])
         }
         if group2NSRange.location != NSNotFound, let group2Range = Range(group2NSRange, in: fragment) {
-          duration = Double(fragment[group2Range])
+          end = Double(fragment[group2Range])
         }
-        return TimeFragment(offset: offset, duration: duration)
+        return TimeFragment(begin: begin, end: end)
       }
     }
     return nil

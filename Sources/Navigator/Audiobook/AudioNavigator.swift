@@ -282,7 +282,7 @@ open class _AudioNavigator: _MediaNavigator, AudioSessionUser, Loggable {
             }
 
             // Seeks to time
-            let time = locator.locations.time?.offset ?? ((resourceDuration ?? 0) * (locator.locations.progression ?? 0))
+            let time = locator.locations.time?.begin ?? ((resourceDuration ?? 0) * (locator.locations.progression ?? 0))
             player.seek(to: CMTime(seconds: time, preferredTimescale: 1000)) { [weak self] finished in
                 if let self = self, finished {
                     self.delegate?.navigator(self, didJumpTo: locator)
