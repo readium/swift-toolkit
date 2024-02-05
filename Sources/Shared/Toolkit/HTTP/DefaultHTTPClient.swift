@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import UIKit
+//import UIKit
 
 /// Delegate protocol for `DefaultHTTPClient`.
 public protocol DefaultHTTPClientDelegate: AnyObject {
@@ -81,9 +81,13 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         let appInfo = Bundle.main.infoDictionary
         let appName = appInfo?["CFBundleName"] as? String ?? "Unknown App"
         let appVersion = appInfo?["CFBundleShortVersionString"] as? String ?? "0"
-        let device = UIDevice.current
+#if os(iOS)
+        let device = UIDevice.current.systemName + "/" + UIDevice.current.systemVersion
+#else
+        let device = ProcessInfo().operatingSystemVersionString
+#endif
 
-        return "\(appName)/\(appVersion) \(deviceName) \(device.systemName)/\(device.systemVersion) CFNetwork/\(cfNetworkVersion) Darwin/\(darwinVersion)"
+        return "\(appName)/\(appVersion) \(deviceName) \(device) CFNetwork/\(cfNetworkVersion) Darwin/\(darwinVersion)"
     }()
 
     /// Creates a `DefaultHTTPClient` with common configuration settings.

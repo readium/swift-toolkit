@@ -24,7 +24,7 @@ public struct DocumentTypes {
     public let supportedUTIs: [String]
 
     /// Supported UTTypes.
-    @available(iOS 14.0, *)
+    @available(iOS 14.0, macOS 11.0, *)
     public var supportedUTTypes: [UTType] {
         supportedUTIs.compactMap { UTType($0) }
     }

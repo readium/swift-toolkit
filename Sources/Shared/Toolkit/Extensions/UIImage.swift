@@ -6,6 +6,7 @@
 
 import func AVFoundation.AVMakeRect
 import Foundation
+#if os(iOS)
 import UIKit
 
 extension UIImage {
@@ -21,3 +22,22 @@ extension UIImage {
         }
     }
 }
+
+#else
+import AppKit
+
+extension NSImage {
+    func scaleToFit(maxSize: CGSize) -> NSImage {
+        if self.size.width <= maxSize.width, self.size.height <= maxSize.height {
+            return self
+        }
+        
+        let targetRect = AVMakeRect(aspectRatio: self.size, insideRect: NSRect(origin: .zero, size: maxSize))
+        let newImage = NSImage(size: targetRect.size, flipped: false) { (dstRect) -> Bool in
+            self.draw(in: dstRect)
+            return true
+        }
+        return newImage
+    }
+}
+#endif

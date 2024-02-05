@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import UIKit
+//import UIKit
 
 /// An HTTP client performs HTTP requests.
 ///
@@ -103,12 +103,12 @@ public extension HTTPClient {
               completion: completion)
     }
 
-    /// Fetches the resource as an `UIImage`.
-    func fetchImage(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<UIImage>) -> Void) -> Cancellable {
-        fetch(request,
-              decoder: { UIImage(data: $1) },
-              completion: completion)
-    }
+//    /// Fetches the resource as an `UIImage`.
+//    func fetchImage(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<UIImage>) -> Void) -> Cancellable {
+//        fetch(request,
+//              decoder: { UIImage(data: $1) },
+//              completion: completion)
+//    }
 
     /// Downloads the resource at a temporary location.
     ///
@@ -144,7 +144,7 @@ public extension HTTPClient {
                 }
             },
             completion: { result in
-                if #available(iOS 13.0, *) {
+                if #available(iOS 13.0, macOS 10.15, *) {
                     do {
                         try fileHandle.close()
                     } catch {

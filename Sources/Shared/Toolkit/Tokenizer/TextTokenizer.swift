@@ -21,7 +21,7 @@ public enum TextTokenizerError: Error {
 
 /// A default cluster `Tokenizer` taking advantage of the best capabilities of each iOS version.
 public func makeDefaultTextTokenizer(unit: TextUnit, language: Language? = nil) -> TextTokenizer {
-    if #available(iOS 12.0, *) {
+    if #available(iOS 12.0, macOS 10.14, *) {
         return makeNLTextTokenizer(unit: unit, language: language)
     } else {
         return makeNSTextTokenizer(unit: unit)
@@ -31,7 +31,7 @@ public func makeDefaultTextTokenizer(unit: TextUnit, language: Language? = nil) 
 // MARK: - NL Text Tokenizer
 
 /// A text `Tokenizer` using iOS 12+'s NaturalLanguage framework.
-@available(iOS 12.0, *)
+@available(iOS 12.0, macOS 10.14, *)
 public func makeNLTextTokenizer(unit: TextUnit, language: Language? = nil) -> TextTokenizer {
     let unit = unit.nlUnit
     let language = language.map { NLLanguage($0.code.bcp47) }

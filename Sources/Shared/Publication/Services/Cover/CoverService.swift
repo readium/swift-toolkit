@@ -5,7 +5,11 @@
 //
 
 import Foundation
+#if os(iOS)
 import UIKit
+#else
+import AppKit
+#endif
 
 public typealias CoverServiceFactory = (PublicationServiceContext) -> CoverService?
 
@@ -29,25 +33,40 @@ public protocol CoverService: PublicationService {
     ///
     /// If the cover is not a bitmap format (e.g. SVG), it will be scaled down to fit the screen
     /// using `UIScreen.main.bounds.size`.
+    #if os(iOS)
     var cover: UIImage? { get }
+    #else
+    var cover: NSImage? { get }
+    #endif
 
     /// Returns the publication cover as a bitmap, scaled down to fit the given `maxSize`.
     ///
     /// If the cover is not in a bitmap format (e.g. SVG), it is exported as a bitmap filling
     /// `maxSize`. The cover might be cached in memory for next calls.
+    #if os(iOS)
     func coverFitting(maxSize: CGSize) -> UIImage?
+    #else
+    func coverFitting(maxSize: CGSize) -> NSImage?
+    #endif
 }
 
 public extension CoverService {
+    #if os(iOS)
     func coverFitting(maxSize: CGSize) -> UIImage? {
         cover?.scaleToFit(maxSize: maxSize)
     }
+    #else
+    func coverFitting(maxSize: CGSize) -> NSImage? {
+        cover?.scaleToFit(maxSize: maxSize)
+    }
+    #endif
 }
 
 // MARK: Publication Helpers
 
 public extension Publication {
     /// Returns the publication cover as a bitmap at its maximum size.
+    #if os(iOS)
     var cover: UIImage? {
         warnIfMainThread()
         return findService(CoverService.self)?.cover
@@ -70,6 +89,36 @@ public extension Publication {
         }
         return nil
     }
+    #else
+    var cover: NSImage? {
+        warnIfMainThread()
+        return findService(CoverService.self)?.cover
+            ?? coverFromManifest()
+    }
+
+    /// Returns the publication cover as a bitmap, scaled down to fit the given `maxSize`.
+    func coverFitting(maxSize: CGSize) -> NSImage? {
+        warnIfMainThread()
+        return findService(CoverService.self)?.coverFitting(maxSize: maxSize)
+            ?? coverFromManifest()?.scaleToFit(maxSize: maxSize)
+    }
+
+    /// Extracts the first valid cover from the manifest links with `cover` relation.
+    private func coverFromManifest() -> NSImage? {
+        for link in links(withRel: .cover) {
+            let result = get(link).read()
+            switch result {
+            case .success(let data):
+                if let cover = NSImage(data: data) {
+                    return cover
+                }
+            case .failure(_):
+                continue
+            }
+        }
+        return nil
+    }
+    #endif
 }
 
 // MARK: PublicationServicesBuilder Helpers
