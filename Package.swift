@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.6
 //
 //  Copyright 2021 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
@@ -29,11 +29,13 @@ let package = Package(
         .package(url: "https://github.com/ra1028/DifferenceKit.git", from: "1.3.0"),
         .package(url: "https://github.com/readium/GCDWebServer.git", from: "3.7.4"),
         // From 2.6.0, Xcode 14 is required
-        .package(url: "https://github.com/scinfu/SwiftSoup.git", "2.5.3" ..< "2.6.0"),
+//        .package(url: "https://github.com/scinfu/SwiftSoup.git", "2.5.3" ..< "2.6.0"),
+        .package(url: "https://github.com/lake-of-fire/SwiftSoup.git", branch: "master"),
         // 0.14 introduced a breaking change
         .package(url: "https://github.com/stephencelis/SQLite.swift.git", "0.12.0" ..< "0.13.3"),
         // 0.9.12 requires iOS 12+
-        .package(url: "https://github.com/weichsel/ZIPFoundation.git", "0.9.0" ..< "0.9.12"),
+//        .package(url: "https://github.com/weichsel/ZIPFoundation.git", "0.9.0" ..< "0.9.12"),
+        .package(url: "https://github.com/weichsel/ZIPFoundation.git", branch: "development"),
     ],
     targets: [
         .target(
@@ -49,7 +51,7 @@ let package = Package(
             ],
             linkerSettings: [
                 .linkedFramework("CoreServices"),
-                .linkedFramework("UIKit"),
+//                .linkedFramework("UIKit"),
             ]
         ),
         .testTarget(
