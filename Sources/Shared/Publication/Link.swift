@@ -107,7 +107,7 @@ public struct Link: JSONEquatable, Hashable {
         // We support existing publications with incorrect HREFs (not valid percent-encoded
         // URIs). We try to parse them first as valid, but fall back on a percent-decoded
         // path if it fails.
-        if AnyURL(string: href) == nil {
+        if !templated, AnyURL(string: href) == nil {
             warnings?.log("`href` is not a valid percent-encoded URL", model: Self.self, source: json)
             guard let url = RelativeURL(path: href) else {
                 throw JSONError.parsing(Self.self)
@@ -152,10 +152,7 @@ public struct Link: JSONEquatable, Hashable {
 
     /// Media type of the linked resource.
     public var mediaType: MediaType {
-        MediaType.of(
-            mediaType: type,
-            fileExtension: URL(string: href)?.pathExtension
-        ) ?? .binary
+        MediaType.of(mediaType: type) ?? .binary
     }
 
     /// Returns the URL represented by this link's HREF.
