@@ -83,6 +83,13 @@ class LinkTests: XCTestCase {
         )
     }
 
+    func testParseJSONWithTemplateURI() {
+        XCTAssertEqual(
+            try? Link(json: ["href": "https://catalog.feedbooks.com/search.json{?query}", "templated": true]),
+            Link(href: "https://catalog.feedbooks.com/search.json{?query}", templated: true)
+        )
+    }
+
     func testParseJSONTemplatedDefaultsToFalse() {
         XCTAssertFalse(try Link(json: ["href": "a"]).templated)
     }

@@ -15,10 +15,15 @@ carthage-project:
 
 .PHONY: scripts
 scripts:
+	rm -rf "$(SCRIPTS_PATH)/node_modules"
 	yarn --cwd "$(SCRIPTS_PATH)" install --frozen-lockfile
 	yarn --cwd "$(SCRIPTS_PATH)" run format
 	yarn --cwd "$(SCRIPTS_PATH)" run lint
 	yarn --cwd "$(SCRIPTS_PATH)" run bundle
+
+.PHONY: update-scripts
+update-scripts:
+	yarn --cwd "$(SCRIPTS_PATH)" install
 
 .PHONY: test
 test:
