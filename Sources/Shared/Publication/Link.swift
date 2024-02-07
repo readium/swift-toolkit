@@ -152,7 +152,12 @@ public struct Link: JSONEquatable, Hashable {
 
     /// Media type of the linked resource.
     public var mediaType: MediaType {
-        MediaType.of(mediaType: type) ?? .binary
+        MediaType.of(
+            mediaType: type,
+            fileExtension: href
+                .components(separatedBy: ".")
+                .last
+        ) ?? .binary
     }
 
     /// Returns the URL represented by this link's HREF.

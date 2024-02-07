@@ -82,7 +82,7 @@ class LinkTests: XCTestCase {
             Link(href: "a", rels: [.publication])
         )
     }
-    
+
     func testParseJSONWithTemplateURI() {
         XCTAssertEqual(
             try? Link(json: ["href": "https://catalog.feedbooks.com/search.json{?query}", "templated": true]),
