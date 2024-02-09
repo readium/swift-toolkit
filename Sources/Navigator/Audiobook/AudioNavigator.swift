@@ -282,7 +282,7 @@ open class _AudioNavigator: _MediaNavigator, AudioSessionUser, Loggable {
             }
 
             // Seeks to time
-            let time = locator.time(forDuration: resourceDuration) ?? 0
+            let time = locator.locations.time?.begin ?? ((resourceDuration ?? 0) * (locator.locations.progression ?? 0))
             player.seek(to: CMTime(seconds: time, preferredTimescale: 1000)) { [weak self] finished in
                 if let self = self, finished {
                     self.delegate?.navigator(self, didJumpTo: locator)
@@ -382,28 +382,6 @@ open class _AudioNavigator: _MediaNavigator, AudioSessionUser, Loggable {
 
     public func seek(by delta: Double) {
         seek(to: currentTime + delta)
-    }
-}
-
-private extension Locator {
-    private static let timeFragmentRegex = try! NSRegularExpression(pattern: #"t=(\d+(?:\.\d+)?)"#)
-
-    // FIXME: Should probably be in `Locator` itself.
-    func time(forDuration duration: Double? = nil) -> Double? {
-        if let progression = locations.progression, let duration = duration {
-            return progression * duration
-        } else {
-            for fragment in locations.fragments {
-                let range = NSRange(fragment.startIndex ..< fragment.endIndex, in: fragment)
-                if let match = Self.timeFragmentRegex.firstMatch(in: fragment, range: range) {
-                    let matchRange = match.range(at: 1)
-                    if matchRange.location != NSNotFound, let range = Range(matchRange, in: fragment) {
-                        return Double(fragment[range])
-                    }
-                }
-            }
-        }
-        return nil
     }
 }
 
