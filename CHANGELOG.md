@@ -14,6 +14,8 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Fixed
 
+* [#390](https://github.com/readium/swift-toolkit/issues/390) Fixed logger not logging above the minimum severity level (contributed by [@ettore](https://github.com/readium/swift-toolkit/pull/391)).
+
 #### Navigator
 
 * From iOS 13 to 15, PDF text selection is disabled on protected publications disabling the **Copy** editing action.
