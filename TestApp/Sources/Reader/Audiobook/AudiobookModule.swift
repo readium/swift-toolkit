@@ -29,14 +29,26 @@ final class AudiobookModule: ReaderFormatModule {
         bookmarks: BookmarkRepository,
         highlights: HighlightRepository
     ) async throws -> UIViewController {
-        let viewController = AudiobookViewController(
+        let preferencesStore = makePreferencesStore(books: books)
+        let viewController = try await AudiobookViewController(
             publication: publication,
             locator: locator,
             bookId: bookId,
             books: books,
-            bookmarks: bookmarks
+            bookmarks: bookmarks,
+            initialPreferences: preferencesStore.preferences(for: bookId),
+            preferencesStore: preferencesStore
         )
         viewController.moduleDelegate = delegate
         return viewController
+    }
+
+    func makePreferencesStore(books: BookRepository) -> AnyUserPreferencesStore<AudioPreferences> {
+        CompositeUserPreferencesStore(
+            publicationStore: DatabaseUserPreferencesStore(books: books),
+            sharedStore: UserDefaultsUserPreferencesStore(),
+            publicationFilter: { $0.filterPublicationPreferences() },
+            sharedFilter: { $0.filterSharedPreferences() }
+        ).eraseToAnyPreferencesStore()
     }
 }

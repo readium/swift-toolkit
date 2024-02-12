@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
+### Added
+
+#### Navigator
+
+* The `AudioNavigator` API has been promoted to stable and ships with a new Preferences API.
+
 ### Fixed
 
 #### Navigator
