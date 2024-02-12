@@ -51,14 +51,14 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
-          package_json_file: $scripts/package.json
+          package_json_file: Sources/Navigator/EPUB/Scripts/package.json
           run_install: false
       - name: Setup cache
         uses: actions/setup-node@v3
         with:
           node-version: 20
           cache: 'pnpm'
-          cache-dependency-path: $scripts/pnpm-lock.yaml
+          cache-dependency-path: Sources/Navigator/EPUB/Scripts/pnpm-lock.yaml
       - name: Install dependencies
         run: pnpm --dir "$scripts" install --frozen-lockfile
       - name: Lint
