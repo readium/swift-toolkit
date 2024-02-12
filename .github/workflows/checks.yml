@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install dependencies
         run: |
           brew update
@@ -47,13 +47,24 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          package_json_file: Sources/Navigator/EPUB/Scripts/package.json
+          run_install: false
+      - name: Setup cache
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'pnpm'
+          cache-dependency-path: Sources/Navigator/EPUB/Scripts/pnpm-lock.yaml
       - name: Install dependencies
-        run: yarn --cwd "$scripts" install --frozen-lockfile
-      - name: Lint JavaScript
-        run: yarn --cwd "$scripts" run lint
-      - name: Check JavaScript formatting
-        run: yarn --cwd "$scripts" run checkformat
+        run: pnpm --dir "$scripts" install --frozen-lockfile
+      - name: Lint
+        run: pnpm --dir "$scripts" run lint
+      - name: Check formatting
+        run: pnpm --dir "$scripts" run checkformat
       - name: Check if bundled scripts are up-to-date
         run: |
             make scripts
@@ -71,7 +82,7 @@ jobs:
     environment: LCP
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install dependencies
         run: |
           brew update
@@ -92,7 +103,7 @@ jobs:
     environment: LCP
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       # We can't use the current github.sha with pull_request event, because they will
       # reference the merge commit which cannot be fetched with SPM.
       - name: Set commit SHA
@@ -119,7 +130,7 @@ jobs:
     environment: LCP
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       # We can't use the current github.sha with pull_request event, because they will
       # reference the merge commit which cannot be fetched with Carthage.
       - name: Set commit SHA
@@ -148,7 +159,7 @@ jobs:
     environment: LCP
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install dependencies
         run: |
           brew update
