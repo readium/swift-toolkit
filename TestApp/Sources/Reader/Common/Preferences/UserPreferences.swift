@@ -128,6 +128,13 @@ struct UserPreferences<
                         )
                     }
 
+                case let editor as AudioPreferencesEditor:
+                    audioUserPreferences(
+                        commit: commit,
+                        volume: editor.volume,
+                        speed: editor.speed
+                    )
+
                 default:
                     Text("No user preferences available.")
                 }
@@ -585,6 +592,31 @@ struct UserPreferences<
                         )
                     }
                 }
+            }
+        }
+    }
+
+    /// User preferences screen for an audiobook.
+    @ViewBuilder func audioUserPreferences(
+        commit: @escaping () -> Void,
+        volume: AnyRangePreference<Double>? = nil,
+        speed: AnyRangePreference<Double>? = nil
+    ) -> some View {
+        Section {
+            if let volume = volume {
+                stepperRow(
+                    title: "Volume",
+                    preference: volume,
+                    commit: commit
+                )
+            }
+
+            if let speed = speed {
+                stepperRow(
+                    title: "Speed",
+                    preference: speed,
+                    commit: commit
+                )
             }
         }
     }
