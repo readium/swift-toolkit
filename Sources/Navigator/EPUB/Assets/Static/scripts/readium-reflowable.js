@@ -4938,7 +4938,7 @@ var call = Function.prototype.call;
 var $hasOwn = Object.prototype.hasOwnProperty;
 var bind = __webpack_require__(/*! function-bind */ "./node_modules/function-bind/index.js");
 
-/** @type {(o: {}, p: PropertyKey) => p is keyof o} */
+/** @type {import('.')} */
 module.exports = bind.call(call, $hasOwn);
 
 
@@ -6024,12 +6024,12 @@ module.exports = function isArguments(value) {
 
 
 var setFunctionName = __webpack_require__(/*! set-function-name */ "./node_modules/set-function-name/index.js");
+var $TypeError = __webpack_require__(/*! es-errors/type */ "./node_modules/es-errors/type.js");
 
 var $Object = Object;
-var $TypeError = TypeError;
 
 module.exports = setFunctionName(function flags() {
-	if (this != null && this !== $Object(this)) {
+	if (this == null || this !== $Object(this)) {
 		throw new $TypeError('RegExp.prototype.flags getter called on non-object');
 	}
 	var result = '';
@@ -6074,7 +6074,7 @@ module.exports = setFunctionName(function flags() {
 
 
 var define = __webpack_require__(/*! define-properties */ "./node_modules/define-properties/index.js");
-var callBind = __webpack_require__(/*! call-bind */ "./node_modules/call-bind/index.js");
+var callBind = __webpack_require__(/*! call-bind */ "./node_modules/regexp.prototype.flags/node_modules/call-bind/index.js");
 
 var implementation = __webpack_require__(/*! ./implementation */ "./node_modules/regexp.prototype.flags/implementation.js");
 var getPolyfill = __webpack_require__(/*! ./polyfill */ "./node_modules/regexp.prototype.flags/polyfill.js");
@@ -6089,6 +6089,61 @@ define(flagsBound, {
 });
 
 module.exports = flagsBound;
+
+
+/***/ }),
+
+/***/ "./node_modules/regexp.prototype.flags/node_modules/call-bind/index.js":
+/*!*****************************************************************************!*\
+  !*** ./node_modules/regexp.prototype.flags/node_modules/call-bind/index.js ***!
+  \*****************************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var bind = __webpack_require__(/*! function-bind */ "./node_modules/function-bind/index.js");
+var GetIntrinsic = __webpack_require__(/*! get-intrinsic */ "./node_modules/get-intrinsic/index.js");
+var setFunctionLength = __webpack_require__(/*! set-function-length */ "./node_modules/set-function-length/index.js");
+
+var $TypeError = __webpack_require__(/*! es-errors/type */ "./node_modules/es-errors/type.js");
+var $apply = GetIntrinsic('%Function.prototype.apply%');
+var $call = GetIntrinsic('%Function.prototype.call%');
+var $reflectApply = GetIntrinsic('%Reflect.apply%', true) || bind.call($call, $apply);
+
+var $defineProperty = GetIntrinsic('%Object.defineProperty%', true);
+var $max = GetIntrinsic('%Math.max%');
+
+if ($defineProperty) {
+	try {
+		$defineProperty({}, 'a', { value: 1 });
+	} catch (e) {
+		// IE 8 has a broken defineProperty
+		$defineProperty = null;
+	}
+}
+
+module.exports = function callBind(originalFunction) {
+	if (typeof originalFunction !== 'function') {
+		throw new $TypeError('a function is required');
+	}
+	var func = $reflectApply(bind, $call, arguments);
+	return setFunctionLength(
+		func,
+		1 + $max(0, originalFunction.length - (arguments.length - 1)),
+		true
+	);
+};
+
+var applyBind = function applyBind() {
+	return $reflectApply(bind, $apply, arguments);
+};
+
+if ($defineProperty) {
+	$defineProperty(module.exports, 'apply', { value: applyBind });
+} else {
+	module.exports.apply = applyBind;
+}
 
 
 /***/ }),

@@ -29,6 +29,19 @@ public enum SeverityLevel: String {
             return "❌"
         }
     }
+
+    var numericValue: Int {
+        switch self {
+        case .debug:
+            return 1
+        case .info:
+            return 2
+        case .warning:
+            return 3
+        case .error:
+            return 4
+        }
+    }
 }
 
 /// Loggable protocol, to be implemented by a custom Logging class.

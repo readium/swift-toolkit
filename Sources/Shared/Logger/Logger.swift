@@ -65,7 +65,7 @@ public final class Logger {
 
     internal func log(_ value: Any?, at level: SeverityLevel, file: String, line: Int) {
         if let minimumSeverityLevel = minimumSeverityLevel {
-            guard level.rawValue >= minimumSeverityLevel.rawValue else {
+            guard level.numericValue >= minimumSeverityLevel.numericValue else {
                 return
             }
         }
