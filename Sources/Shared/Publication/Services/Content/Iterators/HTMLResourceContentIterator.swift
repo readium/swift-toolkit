@@ -97,10 +97,28 @@ public class HTMLResourceContentIterator: ContentIterator {
             .readAsString()
             .eraseToAnyError()
             .tryMap { try SwiftSoup.parse($0) }
-            .tryMap { try ContentParser(document: $0, baseLocator: locator, beforeMaxLength: beforeMaxLength).parse() }
+            .tryMap { try parse(document: $0, locator: locator, beforeMaxLength: beforeMaxLength) }
             .map { adjustProgressions(of: $0) }
         resource.close()
         return result
+    }
+
+    private func parse(document: Document, locator: Locator, beforeMaxLength: Int) throws -> ParsedElements {
+        let parser = try ContentParser(
+            baseLocator: locator,
+            startElement: locator.locations.cssSelector
+                .flatMap {
+                    // The JS third-party library used to generate the CSS
+                    // Selector sometimes adds `:root >`, which doesn't work
+                    // with SwiftSoup.
+                    try document.select($0.removingPrefix(":root > ")).first()
+                },
+            beforeMaxLength: beforeMaxLength
+        )
+
+        try (document.body() ?? document).traverse(parser)
+
+        return parser.result
     }
 
     private func adjustProgressions(of elements: ParsedElements) -> ParsedElements {
@@ -128,57 +146,34 @@ public class HTMLResourceContentIterator: ContentIterator {
     /// The `startIndex` will be calculated from the element matched by the
     /// base `locator`, if possible. Defaults to 0.
     private struct ParsedElements {
-        var elements: [ContentElement]
-        var startIndex: Int
+        var elements: [ContentElement] = []
+        var startIndex: Int = 0
     }
 
     private class ContentParser: NodeVisitor {
-        private let document: Document
         private let baseLocator: Locator
         private let baseHREF: AnyURL?
         private let startElement: Element?
         private let beforeMaxLength: Int
 
-        init(document: Document, baseLocator: Locator, beforeMaxLength: Int) {
-            self.document = document
+        init(baseLocator: Locator, startElement: Element?, beforeMaxLength: Int) {
             self.baseLocator = baseLocator
             baseHREF = AnyURL(string: baseLocator.href)
-            self.startElement = baseLocator.locations.cssSelector
-                .flatMap {
-                    // The JS third-party library used to generate the CSS
-                    // Selector sometimes adds `:root >`, which doesn't work
-                    // with SwiftSoup.
-                    try? document.select($0.removingPrefix(":root > ")).first()
-                }
+            self.startElement = startElement
             self.beforeMaxLength = beforeMaxLength
         }
-        
-        func parse() throws -> ParsedElements {
-            try (document.body() ?? document).traverse(self)
-            
-            if startIndex == nil, let text = baseLocator.text.highlight?.takeUnlessBlank()?.coalescingWhitespaces() {
-                print("\nSEARCH FOR \(text)\n")
-                var i = -1
-                startIndex = elements.firstIndex { element in
-                    i += 1
-                    guard let currentText = (element as? TextualContentElement)?.text?.coalescingWhitespaces() else {
-                        return false
-                    }
-                    print("--- \(i) - \(currentText.hasPrefix(text) || text.hasPrefix(currentText))\n\(currentText)\n")
-                    return currentText.hasPrefix(text) || text.hasPrefix(currentText)
-                }
-            }
-            
-            return ParsedElements(
+
+        var result: ParsedElements {
+            ParsedElements(
                 elements: elements,
                 startIndex: (baseLocator.locations.progression == 1.0)
                     ? elements.count - 1
-                    : (startIndex ?? 0)
+                    : startIndex
             )
         }
 
         private var elements: [ContentElement] = []
-        private var startIndex: Int? = nil
+        private var startIndex = 0
 
         /// Segments accumulated for the current element.
         private var segmentsAcc: [TextContentElement.Segment] = []
@@ -331,7 +326,7 @@ public class HTMLResourceContentIterator: ContentIterator {
 
             let parent = breadcrumbs.last
 
-            if startIndex == nil, startElement != nil, parent?.element == startElement {
+            if startIndex == 0, startElement != nil, parent?.element == startElement {
                 startIndex = elements.count
             }
 
