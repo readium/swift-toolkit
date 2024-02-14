@@ -84,7 +84,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
     /// Terminates and removes the given loading request, cancelling it if necessary.
     private func finishRequest(_ request: AVAssetResourceLoadingRequest) {
         guard
-            let href = request.href,
+            let href = request.request.url?.audioHREF,
             var reqs = requests[href],
             let index = reqs.firstIndex(where: { req, _ in req == request })
         else {
@@ -106,7 +106,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
     // MARK: - AVAssetResourceLoaderDelegate
 
     func resourceLoader(_ resourceLoader: AVAssetResourceLoader, shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest) -> Bool {
-        guard let href = loadingRequest.href else {
+        guard let href = loadingRequest.request.url?.audioHREF else {
             return false
         }
 
@@ -163,22 +163,16 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
 
 private let schemePrefix = "r2"
 
-private extension AVAssetResourceLoadingRequest {
-    var href: String? {
-        guard let url = request.url?.absoluteURL, url.scheme.rawValue.hasPrefix(schemePrefix) == true else {
+extension URL {
+    var audioHREF: String? {
+        guard let url = absoluteURL, url.scheme.rawValue.hasPrefix(schemePrefix) == true else {
             return nil
         }
 
         // The URL can be either:
-        // * r2file://directory/local-file.mp3
+        // * r2:relative/file.mp3
+        // * r2file:///directory/local-file.mp3
         // * r2http(s)://domain.com/external-file.mp3
-        switch url.scheme.rawValue {
-        case "r2file", "r2":
-            return url.path
-        case "r2http", "r2https":
-            return url.string.removingPrefix(schemePrefix)
-        default:
-            return nil
-        }
+        return url.string.removingPrefix(schemePrefix).removingPrefix(":")
     }
 }
