@@ -117,7 +117,7 @@ open class EPUBNavigatorViewController: UIViewController,
             decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate] = HTMLDecorationTemplate.defaultTemplates(),
             fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration] = [],
             readiumCSSRSProperties: CSSRSProperties = CSSRSProperties(),
-            debugState: Bool = false
+            debugState: Bool = true
         ) {
             self.userSettings = userSettings
             self.preferences = preferences
