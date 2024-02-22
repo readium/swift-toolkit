@@ -254,7 +254,7 @@ streamer.open(
 )
 ```
 
-The `allowUserInteraction` and `sender` arguments are forwarded to the `LCPAuthenticating` implementation when the passphrase unknown. `LCPDialogAuthentication` shows a pop-up only if `allowUserInteraction` is `true`, using the `sender` as the pop-up's host `UIViewController`.
+The `allowUserInteraction` and `sender` arguments are forwarded to the `LCPAuthenticating` implementation when the passphrase is unknown. `LCPDialogAuthentication` shows a pop-up only if `allowUserInteraction` is `true`, using the `sender` as the pop-up's host `UIViewController`.
 
 When importing the publication to the bookshelf, set `allowUserInteraction` to `false` as you don't need the passphrase for accessing the publication metadata and cover. If you intend to present the publication using a Navigator, set `allowUserInteraction` to `true` as decryption will be required.
 
@@ -269,16 +269,13 @@ However, if you want to display the publication with a Navigator, verify it is n
 ```swift
 if publication.isRestricted {
     if let error = publication.protectionError as? LCPError {
-        // The user is not allowed to open the publication.
-        // You should display the error.
+        // The user is not allowed to open the publication. You should display the error.
     } else {
         // We don't have the user passphrase.
-        // You may use `publication` to access its
-        // metadata, but not to render its content.
+        // You may use `publication` to access its metadata, but not to render its content.
     }
 } else {
-    // The publication is not restricted, you may
-    // render it with a Navigator component.
+    // The publication is not restricted, you may render it with a Navigator component.
 }
 ```
 
@@ -367,8 +364,6 @@ lcpLicense.renewLoan(
 ## Handling `LCPError`
 
 The APIs may fail with an `LCPError`. These errors **must** be displayed to the user with a suitable message.
-
-LCPError implements ﻿LocalizedError, enabling you to retrieve a user-friendly message. It's advised to customize the LCP localized strings in your app for translation. These strings can be found at Sources/LCP/Resources/en.lproj/Localizable.strings.
 
 `LCPError` implements `LocalizedError`, enabling you to retrieve a user-friendly message. It's recommended to override the LCP localized strings in your app to translate them. These strings can be found at [Sources/LCP/Resources/en.lproj/Localizable.strings](https://github.com/readium/swift-toolkit/blob/main/Sources/LCP/Resources/en.lproj/Localizable.strings).
 

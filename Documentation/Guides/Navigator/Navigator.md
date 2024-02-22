@@ -88,7 +88,7 @@ navigator.play()
 
 ## Navigating the contents of the publication
 
-The `Navigator` offers various `go` APIs for navigating the publication. For instance:
+The `Navigator` interface offers various `go` APIs for navigating the publication. For instance:
 
 * to the previous or next pages: `navigator.goForward()` or `navigator.goBackward()`
 * to a link from the `publication.tableOfContents` or `publication.readingOrder`: `navigator.go(to: link)`
@@ -96,7 +96,7 @@ The `Navigator` offers various `go` APIs for navigating the publication. For ins
 
 ## Reading progression
 
-## Saving and restoring the last read location
+### Saving and restoring the last read location
 
 Navigators don't store any data permanently. Therefore, it is your responsibility to save the last read location in your database and restore it when creating a new Navigator.
 
