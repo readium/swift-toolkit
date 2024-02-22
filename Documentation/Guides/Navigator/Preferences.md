@@ -1,7 +1,5 @@
 # Configuring the Navigator
 
-:warning: The Navigator Setting API is brand new and currently only available with `EPUBNavigatorViewController` and `PDFNavigatorViewController`.
-
 Take a look at the [migration guide](../Migration%20Guide.md) if you are already using the legacy EPUB settings.
 
 ## Overview
