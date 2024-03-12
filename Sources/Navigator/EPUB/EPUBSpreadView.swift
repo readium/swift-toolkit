@@ -221,7 +221,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     private func spreadLoadDidStart(_ body: Any) {
-        log(.debug, "\(type(of: self))::\(#function)")
+        trace()
         activityIndicatorStopWorkItem?.cancel()
     }
 
@@ -240,7 +240,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     func showSpread() {
-        log(.debug, "\(type(of: self))::\(#function)")
+        trace()
         activityIndicatorView?.stopAnimating()
         UIView.animate(withDuration: animatedLoad ? 0.3 : 0, animations: {
             self.scrollView.alpha = 1
@@ -453,7 +453,7 @@ extension EPUBSpreadView: WKNavigationDelegate {
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         // Do not remove: overridden in subclasses.
-        log(.debug, "\(type(of: self))::\(#function)")
+        trace()
         setNeedsStopActivityIndicator()
     }
 
@@ -551,6 +551,7 @@ private extension EPUBSpreadView {
                 return
             }
 
+            self?.trace("stopping activity indicator because spread did not load")
             self?.activityIndicatorView?.stopAnimating()
         }
 
@@ -559,7 +560,7 @@ private extension EPUBSpreadView {
         // schedule below will stop the activity indicator.
         // If the spread begins to load it will send a `spreadLoadStart` JS
         // event which will cancel the work item being scheduled here.
-        log(.debug, "\(type(of: self))::\(#function) scheduling activityIndicatorStopWorkItem")
+        trace("scheduling activity indicator stop")
         DispatchQueue.main.asyncAfter(deadline: .now() + 1,
                                       execute: activityIndicatorStopWorkItem!)
     }
