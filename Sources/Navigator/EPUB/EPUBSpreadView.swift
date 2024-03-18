@@ -461,9 +461,8 @@ extension EPUBSpreadView: WKNavigationDelegate {
 
         if navigationAction.navigationType == .linkActivated {
             if let url = navigationAction.request.url {
-                let baseURL = viewModel.publicationBaseURL
                 // Check if url is internal or external
-                if url.host == baseURL.host {
+                if let baseURL = viewModel.publicationBaseURL, url.host == baseURL.host {
                     let href = url.absoluteString.replacingOccurrences(of: baseURL.absoluteString, with: "/")
                     delegate?.spreadView(self, didTapOnInternalLink: href, clickEvent: lastClick)
                 } else {

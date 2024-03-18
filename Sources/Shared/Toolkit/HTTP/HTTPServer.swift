@@ -11,13 +11,17 @@ import Foundation
 /// This is required by some Navigators to access a local publication's
 /// resources.
 public protocol HTTPServer {
+    typealias FailureHandler = (_ href: String?, _ url: URL?, _ error: ResourceError) -> Void
+
     /// Serves resources at the given `endpoint`.
     ///
     /// Subsequent calls with the same `endpoint` overwrite each other.
     ///
     /// - Returns the base URL for this endpoint.
     @discardableResult
-    func serve(at endpoint: HTTPServerEndpoint, handler: @escaping (HTTPServerRequest) -> Resource) throws -> URL
+    func serve(at endpoint: HTTPServerEndpoint, 
+               handler: @escaping (HTTPServerRequest) -> Resource,
+               failureHandler: FailureHandler?) throws -> URL
 
     /// Registers a `Resource` transformer that will be run on all responses
     /// matching the given `endpoint`.
@@ -37,8 +41,12 @@ public extension HTTPServer {
     ///
     /// - Returns the URL to access the file(s) on the server.
     @discardableResult
-    func serve(at endpoint: HTTPServerEndpoint, contentsOf url: URL) throws -> URL {
-        try serve(at: endpoint) { request in
+    func serve(
+        at endpoint: HTTPServerEndpoint,
+        contentsOf url: URL,
+        failureHandler: FailureHandler?
+    ) throws -> URL {
+        func handler(request: HTTPServerRequest) -> Resource {
             let file = url.appendingPathComponent(request.href ?? "")
 
             return FileResource(
@@ -49,6 +57,10 @@ public extension HTTPServer {
                 file: file
             )
         }
+
+        return try serve(at: endpoint, 
+                         handler: handler(request:),
+                         failureHandler: failureHandler)
     }
 
     /// Serves a `publication`'s resources at the given `endpoint`.
@@ -58,18 +70,26 @@ public extension HTTPServer {
     @discardableResult
     func serve(
         at endpoint: HTTPServerEndpoint,
-        publication: Publication
+        publication: Publication,
+        failureHandler: FailureHandler?
     ) throws -> URL {
-        try serve(at: endpoint) { request in
+        func handler(request: HTTPServerRequest) -> Resource {
             guard let href = request.href else {
+                failureHandler?(nil, request.url, .notFound(nil))
+
                 return FailureResource(
                     link: Link(href: request.url.absoluteString),
                     error: .notFound(nil)
                 )
             }
 
+
             return publication.get(href)
         }
+
+        return try serve(at: endpoint,
+                         handler: handler(request:),
+                         failureHandler: failureHandler)
     }
 }
 
