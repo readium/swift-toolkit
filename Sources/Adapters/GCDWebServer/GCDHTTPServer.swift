@@ -101,10 +101,12 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             case let .failure(error):
                 self.log(.error, error)
                 failureHandler?(resource.link.href, request.url, error)
-                response = ReadiumGCDWebServerErrorResponse(statusCode: error.httpStatusCode)
+                response = ReadiumGCDWebServerErrorResponse(
+                    statusCode: error.httpStatusCode,
+                    error: error)
             }
 
-            completion(response)
+            completion(response) // goes back to ReadiumGCDWebServerConnection.m
         }
     }
 
