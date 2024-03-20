@@ -452,7 +452,6 @@ extension EPUBSpreadView: WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        // Do not remove: overridden in subclasses.
         trace()
         setNeedsStopActivityIndicator()
     }
