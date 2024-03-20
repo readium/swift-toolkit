@@ -209,7 +209,7 @@ class MediaTypeSnifferTests: XCTestCase {
     }
 
     func testSniffMPEG() {
-        XCTAssertEqual(MediaType.of(mediaType: "audio/mpeg"), .mpeg)
+        XCTAssertEqual(MediaType.of(mediaType: "audio/mpeg"), .mpegAudio)
     }
 
     func testSniffOGG() {

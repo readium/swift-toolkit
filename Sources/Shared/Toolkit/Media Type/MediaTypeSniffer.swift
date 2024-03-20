@@ -410,7 +410,7 @@ public extension MediaType {
             return .mp4
         }
         if context.hasMediaType("audio/mpeg") {
-            return .mpeg
+            return .mpegAudio
         }
         if context.hasFileExtension("ogg", "oga", "mogg") || context.hasMediaType("audio/ogg") {
             return .ogg

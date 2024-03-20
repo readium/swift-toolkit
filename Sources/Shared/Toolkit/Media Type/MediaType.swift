@@ -268,7 +268,8 @@ public struct MediaType: Hashable, Loggable {
     public static let lpf = MediaType("application/lpf+zip", fileExtension: "lpf")!
     public static let mp3 = MediaType("audio/mpeg", fileExtension: "mp3")!
     public static let mp4 = MediaType("audio/mp4", fileExtension: "mp4")!
-    public static let mpeg = MediaType("video/mpeg", fileExtension: "mpeg")!
+    public static let mpegAudio = MediaType("audio/mpeg", fileExtension: "mpeg")!
+    public static let mpegVideo = MediaType("video/mpeg", fileExtension: "mpeg")!
     public static let ncx = MediaType("application/x-dtbncx+xml", fileExtension: "ncx")!
     public static let ogg = MediaType("audio/ogg", fileExtension: "oga")!
     public static let ogv = MediaType("video/ogg", fileExtension: "ogv")!
