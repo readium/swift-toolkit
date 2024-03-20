@@ -22,6 +22,10 @@ All notable changes to this project will be documented in this file. Take a look
 * The **Share** editing action is disabled for any protected publication.
 * Fixed starting the TTS from the current EPUB position.
 
+#### Streamer
+
+* [#399](https://github.com/readium/swift-toolkit/discussions/399) Zipped Audio Books and standalone audio files are now recognized.
+
 
 ## [2.6.1]
 
