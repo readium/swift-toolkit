@@ -15,13 +15,13 @@ public enum GCDHTTPServerError: Error {
     case nullServerURL
 }
 
-/// Implementation of `HTTPServer` using GCDWebServer under the hood.
+/// Implementation of `HTTPServer` using ReadiumGCDWebServer under the hood.
 public class GCDHTTPServer: HTTPServer, Loggable {
     /// Shared instance of the HTTP server.
     public static let shared = GCDHTTPServer()
 
     /// The actual underlying HTTP server instance.
-    private let server = GCDWebServer()
+    private let server = ReadiumGCDWebServer()
 
     /// Mapping between endpoints and their handlers.
     private var handlers: [HTTPServerEndpoint: (HTTPServerRequest) -> Resource] = [:]
@@ -45,15 +45,15 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
     /// Creates a new instance of the HTTP server.
     ///
-    /// - Parameter logLevel: See `GCDWebServer.setLogLevel`.
+    /// - Parameter logLevel: See `ReadiumGCDWebServer.setLogLevel`.
     public init(logLevel: Int = 3) {
-        GCDWebServer.setLogLevel(Int32(logLevel))
+        ReadiumGCDWebServer.setLogLevel(Int32(logLevel))
 
         NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
 
         server.addDefaultHandler(
             forMethod: "GET",
-            request: GCDWebServerRequest.self,
+            request: ReadiumGCDWebServerRequest.self,
             asyncProcessBlock: { [weak self] request, completion in
                 self?.handle(request: request, completion: completion)
             }
@@ -83,9 +83,9 @@ public class GCDHTTPServer: HTTPServer, Loggable {
         }
     }
 
-    private func handle(request: GCDWebServerRequest, completion: @escaping GCDWebServerCompletionBlock) {
+    private func handle(request: ReadiumGCDWebServerRequest, completion: @escaping ReadiumGCDWebServerCompletionBlock) {
         responseResource(for: request) { resource in
-            let response: GCDWebServerResponse
+            let response: ReadiumGCDWebServerResponse
             switch resource.length {
             case let .success(length):
                 response = ResourceResponse(
@@ -95,14 +95,14 @@ public class GCDHTTPServer: HTTPServer, Loggable {
                 )
             case let .failure(error):
                 self.log(.error, error)
-                response = GCDWebServerErrorResponse(statusCode: error.httpStatusCode)
+                response = ReadiumGCDWebServerErrorResponse(statusCode: error.httpStatusCode)
             }
 
             completion(response)
         }
     }
 
-    private func responseResource(for request: GCDWebServerRequest, completion: @escaping (Resource) -> Void) {
+    private func responseResource(for request: ReadiumGCDWebServerRequest, completion: @escaping (Resource) -> Void) {
         let completion = { resource in
             // Escape the queue to avoid deadlocks if something is using the
             // server in the handler.
@@ -219,12 +219,12 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
         do {
             try server.start(options: [
-                GCDWebServerOption_Port: port,
-                GCDWebServerOption_BindToLocalhost: true,
+                ReadiumGCDWebServerOption_Port: port,
+                ReadiumGCDWebServerOption_BindToLocalhost: true,
                 // We disable automatically suspending the server in the
                 // background, to be able to play audiobooks even with the
                 // screen locked.
-                GCDWebServerOption_AutomaticallySuspendInBackground: false,
+                ReadiumGCDWebServerOption_AutomaticallySuspendInBackground: false,
             ])
         } catch {
             throw GCDHTTPServerError.failedToStartServer(cause: error)
