@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file. Take a look
 * From iOS 13 to 15, PDF text selection is disabled on protected publications disabling the **Copy** editing action.
 * The **Share** editing action is disabled for any protected publication.
 * Fixed starting the TTS from the current EPUB position.
+* [#396](https://github.com/readium/swift-toolkit/issues/396) Ensure we stop the activity indicator when an EPUB resource fails to load correctly (contributed by [@ettore](https://github.com/readium/swift-toolkit/pull/397)).
 
 
 ## [2.6.1]
