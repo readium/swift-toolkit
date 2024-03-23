@@ -23,6 +23,10 @@ All notable changes to this project will be documented in this file. Take a look
 * Fixed starting the TTS from the current EPUB position.
 * [#396](https://github.com/readium/swift-toolkit/issues/396) Ensure we stop the activity indicator when an EPUB resource fails to load correctly (contributed by [@ettore](https://github.com/readium/swift-toolkit/pull/397)).
 
+#### Streamer
+
+* [#399](https://github.com/readium/swift-toolkit/discussions/399) Zipped Audio Books and standalone audio files are now recognized.
+
 
 ## [2.6.1]
 
