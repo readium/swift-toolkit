@@ -179,6 +179,33 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         }
     }
 
+    private init(
+        publication: Publication,
+        initialLocation: Locator?,
+        httpServer: HTTPServer?,
+        publicationEndpoint: HTTPServerEndpoint?,
+        publicationBaseURL: URL,
+        config: Configuration
+    ) {
+        self.publication = publication
+        self.initialLocation = initialLocation
+        server = httpServer
+        self.publicationEndpoint = publicationEndpoint
+        self.publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
+        self.config = config
+        editingActions = EditingActionsController(actions: config.editingActions, publication: publication)
+
+        settings = PDFSettings(
+            preferences: config.preferences,
+            defaults: config.defaults,
+            metadata: publication.metadata
+        )
+
+        super.init(nibName: nil, bundle: nil)
+
+        postInit()
+    }
+
     @available(*, unavailable)
     public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
