@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import GCDWebServer
 import R2Shared
+import ReadiumGCDWebServer
 import UIKit
 
 /// Errors thrown by the `PublicationServer`.
