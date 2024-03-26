@@ -120,6 +120,8 @@ public extension NavigatorDelegate {
     func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, referrer: String?) -> Bool {
         true
     }
+
+    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: String?, url: URL, withError error: ResourceError) {}
 }
 
 public enum NavigatorError: LocalizedError {

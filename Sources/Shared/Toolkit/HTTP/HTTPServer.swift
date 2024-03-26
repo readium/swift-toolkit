@@ -101,8 +101,8 @@ public extension HTTPServer {
     /// - Returns the base URL to access the publication's resources on the
     /// server.
     @discardableResult
-    func serve(at endpoint: HTTPServerEndpoint, publication: Publication) throws {
-        try serve(at: endpoint, publication: publication)
+    func serve(at endpoint: HTTPServerEndpoint, publication: Publication) throws -> URL {
+        try serve(at: endpoint, publication: publication, failureHandler: nil)
     }
 
     /// Serves a `publication`'s resources at the given `endpoint`.
