@@ -50,7 +50,7 @@ final class EPUBNavigatorViewModel: Loggable {
     ) throws {
         let uuidEndpoint: HTTPServerEndpoint = UUID().uuidString
         let publicationEndpoint: HTTPServerEndpoint?
-        if let url = publication.baseURL {
+        if publication.baseURL != nil {
             publicationEndpoint = nil
         } else {
             publicationEndpoint = uuidEndpoint

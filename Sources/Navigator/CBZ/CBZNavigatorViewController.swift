@@ -40,7 +40,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
         let publicationEndpoint: HTTPServerEndpoint?
         let uuidEndpoint = UUID().uuidString
-        if let url = publication.baseURL {
+        if publication.baseURL != nil {
             publicationEndpoint = nil
         } else {
             publicationEndpoint = uuidEndpoint
@@ -79,7 +79,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
     public convenience init(publication: Publication, initialLocation: Locator? = nil) {
         precondition(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
-        guard let baseURL = publication.baseURL else {
+        guard publication.baseURL != nil else {
             preconditionFailure("No base URL provided for the publication. Add it to the HTTP server.")
         }
 
