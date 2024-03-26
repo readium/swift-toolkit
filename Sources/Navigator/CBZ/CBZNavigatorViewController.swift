@@ -64,17 +64,16 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
                         guard let self = self else {
                             return
                         }
-                        self.delegate?.navigator(
-                            self,
-                            didFailToLoadResourceAt: request.href,
-                            url: request.url,
-                            withError: error)
+                        self.delegate?.navigator(self,
+                                                 didFailToLoadResourceAt: request.href,
+                                                 url: request.url,
+                                                 withError: error)
                     }
                 }
             )
         }
 
-        self.publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
+        publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
     }
 
     @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
@@ -91,7 +90,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
             publicationEndpoint: nil
         )
 
-        self.publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
+        publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
     }
 
     private init(

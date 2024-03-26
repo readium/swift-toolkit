@@ -125,11 +125,10 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
                         guard let self = self else {
                             return
                         }
-                        self.delegate?.navigator(
-                            self,
-                            didFailToLoadResourceAt: request.href,
-                            url: request.url,
-                            withError: error)
+                        self.delegate?.navigator(self,
+                                                 didFailToLoadResourceAt: request.href,
+                                                 url: request.url,
+                                                 withError: error)
                     }
                 }
             )

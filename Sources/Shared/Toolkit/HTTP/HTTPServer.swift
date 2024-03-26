@@ -19,7 +19,7 @@ public protocol HTTPServer {
     ///
     /// - Returns the base URL for this endpoint.
     @discardableResult
-    func serve(at endpoint: HTTPServerEndpoint, 
+    func serve(at endpoint: HTTPServerEndpoint,
                handler: @escaping (HTTPServerRequest) -> Resource) throws -> URL
 
     /// Serves resources at the given `endpoint`.
@@ -30,7 +30,7 @@ public protocol HTTPServer {
     ///
     /// - Returns the base URL for this endpoint.
     @discardableResult
-    func serve(at endpoint: HTTPServerEndpoint, 
+    func serve(at endpoint: HTTPServerEndpoint,
                handler: @escaping (HTTPServerRequest) -> Resource,
                failureHandler: FailureHandler?) throws -> URL
 
@@ -45,8 +45,10 @@ public protocol HTTPServer {
 
 public extension HTTPServer {
     @discardableResult
-    func serve(at endpoint: HTTPServerEndpoint,
-               handler: @escaping (HTTPServerRequest) -> Resource) throws -> URL {
+    func serve(
+        at endpoint: HTTPServerEndpoint,
+        handler: @escaping (HTTPServerRequest) -> Resource
+    ) throws -> URL {
         try serve(at: endpoint, handler: handler, failureHandler: nil)
     }
 
@@ -89,7 +91,7 @@ public extension HTTPServer {
             )
         }
 
-        return try serve(at: endpoint, 
+        return try serve(at: endpoint,
                          handler: handler(request:),
                          failureHandler: failureHandler)
     }
@@ -124,7 +126,6 @@ public extension HTTPServer {
                     error: .notFound(nil)
                 )
             }
-
 
             return publication.get(href)
         }

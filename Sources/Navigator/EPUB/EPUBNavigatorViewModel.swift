@@ -80,17 +80,16 @@ final class EPUBNavigatorViewModel: Loggable {
             publicationBaseURL = url
         } else {
             publicationBaseURL = try httpServer.serve(
-                at: uuidEndpoint,               //serving the chapters endpoint
+                at: uuidEndpoint, // serving the chapters endpoint
                 publication: publication,
                 failureHandler: { [weak self] request, error in
                     guard let self = self else {
                         return
                     }
-                    self.delegate?.epubNavigatorViewModel(
-                        self,
-                        didFailToLoadResourceAt: request.href,
-                        url: request.url,
-                        withError: error)
+                    self.delegate?.epubNavigatorViewModel(self,
+                                                          didFailToLoadResourceAt: request.href,
+                                                          url: request.url,
+                                                          withError: error)
                 }
             )
         }
@@ -134,7 +133,7 @@ final class EPUBNavigatorViewModel: Loggable {
             useLegacySettings: true
         )
 
-        self.publicationBaseURL = baseURL
+        publicationBaseURL = baseURL
     }
 
     private init(

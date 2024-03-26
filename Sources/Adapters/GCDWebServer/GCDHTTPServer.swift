@@ -163,19 +163,20 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             }
 
             log(.warning, "Resource not found for request \(request)")
-            completion(
-                HTTPServerRequest(url: request.url, href: nil),
-                FailureResource(link: Link(href: request.url.absoluteString),
-                                error: .notFound(nil)),
-                nil)
+            completion(HTTPServerRequest(url: request.url, href: nil),
+                       FailureResource(link: Link(href: request.url.absoluteString),
+                                       error: .notFound(nil)),
+                       nil)
         }
     }
 
     // MARK: HTTPServer
 
-    public func serve(at endpoint: HTTPServerEndpoint, 
-                      handler: @escaping (HTTPServerRequest) -> Resource,
-                      failureHandler: FailureHandler?) throws -> URL {
+    public func serve(
+        at endpoint: HTTPServerEndpoint,
+        handler: @escaping (HTTPServerRequest) -> Resource,
+        failureHandler: FailureHandler?
+    ) throws -> URL {
         try queue.sync(flags: .barrier) {
             if case .stopped = state {
                 try start()
