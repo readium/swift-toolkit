@@ -27,7 +27,7 @@ let package = Package(
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", "1.5.1" ..< "1.6.0"),
         .package(url: "https://github.com/marmelroy/Zip.git", from: "2.1.2"),
         .package(url: "https://github.com/ra1028/DifferenceKit.git", from: "1.3.0"),
-        .package(url: "https://github.com/readium/GCDWebServer.git", from: "3.7.4"),
+        .package(url: "https://github.com/readium/GCDWebServer.git", from: "4.0.0"),
         // From 2.6.0, Xcode 14 is required
         .package(url: "https://github.com/scinfu/SwiftSoup.git", "2.5.3" ..< "2.6.0"),
         // 0.14 introduced a breaking change
@@ -66,7 +66,7 @@ let package = Package(
             dependencies: [
                 "CryptoSwift",
                 "Fuzi",
-                "GCDWebServer",
+                .product(name: "ReadiumGCDWebServer", package: "GCDWebServer"),
                 "Zip",
                 "R2Shared",
             ],
@@ -151,7 +151,7 @@ let package = Package(
         .target(
             name: "ReadiumAdapterGCDWebServer",
             dependencies: [
-                "GCDWebServer",
+                .product(name: "ReadiumGCDWebServer", package: "GCDWebServer"),
                 "R2Shared",
             ],
             path: "Sources/Adapters/GCDWebServer"

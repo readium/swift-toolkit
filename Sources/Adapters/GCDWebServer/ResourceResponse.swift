@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import GCDWebServer
 import R2Shared
+import ReadiumGCDWebServer
 
 /// Errors thrown by the `WebServerResourceResponse`
 ///
@@ -19,7 +19,7 @@ enum WebServerResponseError: Error {
 
 /// The object containing the response's ressource data.
 /// If the ressource to be served is too big, multiple responses will be created.
-class ResourceResponse: GCDWebServerFileResponse, Loggable {
+class ResourceResponse: ReadiumGCDWebServerFileResponse, Loggable {
     private let bufferSize = 32 * 1024
 
     private var resource: Resource
