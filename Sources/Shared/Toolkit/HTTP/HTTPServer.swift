@@ -11,11 +11,22 @@ import Foundation
 /// This is required by some Navigators to access a local publication's
 /// resources.
 public protocol HTTPServer {
-    typealias FailureHandler = (_ href: String?, _ url: URL?, _ error: ResourceError) -> Void
+    typealias FailureHandler = (_ request: HTTPServerRequest, _ error: ResourceError) -> Void
 
     /// Serves resources at the given `endpoint`.
     ///
     /// Subsequent calls with the same `endpoint` overwrite each other.
+    ///
+    /// - Returns the base URL for this endpoint.
+    @discardableResult
+    func serve(at endpoint: HTTPServerEndpoint, 
+               handler: @escaping (HTTPServerRequest) -> Resource) throws -> URL
+
+    /// Serves resources at the given `endpoint`.
+    ///
+    /// Subsequent calls with the same `endpoint` overwrite each other.
+    ///
+    /// If the resource cannot be served, the `failureHandler` is called.
     ///
     /// - Returns the base URL for this endpoint.
     @discardableResult
@@ -33,11 +44,31 @@ public protocol HTTPServer {
 }
 
 public extension HTTPServer {
+    @discardableResult
+    func serve(at endpoint: HTTPServerEndpoint,
+               handler: @escaping (HTTPServerRequest) -> Resource) throws -> URL {
+        try serve(at: endpoint, handler: handler, failureHandler: nil)
+    }
+
     /// Serves the local file `url` at the given `endpoint`.
     ///
     /// If the provided `url` is a directory, then all the files in the
     /// directory are served. Subsequent calls with the same served `endpoint`
     /// overwrite each other.
+    ///
+    /// - Returns the URL to access the file(s) on the server.
+    @discardableResult
+    func serve(at endpoint: HTTPServerEndpoint, contentsOf url: URL) throws -> URL {
+        try serve(at: endpoint, contentsOf: url, failureHandler: nil)
+    }
+
+    /// Serves the local file `url` at the given `endpoint`.
+    ///
+    /// If the provided `url` is a directory, then all the files in the
+    /// directory are served. Subsequent calls with the same served `endpoint`
+    /// overwrite each other.
+    ///
+    /// If the file cannot be served, the `failureHandler` is called.
     ///
     /// - Returns the URL to access the file(s) on the server.
     @discardableResult
@@ -68,6 +99,17 @@ public extension HTTPServer {
     /// - Returns the base URL to access the publication's resources on the
     /// server.
     @discardableResult
+    func serve(at endpoint: HTTPServerEndpoint, publication: Publication) throws {
+        try serve(at: endpoint, publication: publication)
+    }
+
+    /// Serves a `publication`'s resources at the given `endpoint`.
+    ///
+    /// If the resource cannot be served, the `failureHandler` is called.
+    ///
+    /// - Returns the base URL to access the publication's resources on the
+    /// server.
+    @discardableResult
     func serve(
         at endpoint: HTTPServerEndpoint,
         publication: Publication,
@@ -75,7 +117,7 @@ public extension HTTPServer {
     ) throws -> URL {
         func handler(request: HTTPServerRequest) -> Resource {
             guard let href = request.href else {
-                failureHandler?(nil, request.url, .notFound(nil))
+                failureHandler?(request, .notFound(nil))
 
                 return FailureResource(
                     link: Link(href: request.url.absoluteString),

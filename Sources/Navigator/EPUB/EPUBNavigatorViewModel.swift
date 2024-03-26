@@ -13,7 +13,7 @@ protocol EPUBNavigatorViewModelDelegate: AnyObject {
     func epubNavigatorViewModelInvalidatePaginationView(_ viewModel: EPUBNavigatorViewModel)
     func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel,
                                 didFailToLoadResourceAt href: String?,
-                                url: URL?,
+                                url: URL,
                                 withError error: ResourceError)
 }
 
@@ -82,14 +82,14 @@ final class EPUBNavigatorViewModel: Loggable {
             publicationBaseURL = try httpServer.serve(
                 at: uuidEndpoint,               //serving the chapters endpoint
                 publication: publication,
-                failureHandler: { [weak self] href, url, error in
+                failureHandler: { [weak self] request, error in
                     guard let self = self else {
                         return
                     }
                     self.delegate?.epubNavigatorViewModel(
                         self,
-                        didFailToLoadResourceAt: href,
-                        url: url,
+                        didFailToLoadResourceAt: request.href,
+                        url: request.url,
                         withError: error)
                 }
             )

@@ -89,7 +89,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
     }
 
     private func handle(request: ReadiumGCDWebServerRequest, completion: @escaping ReadiumGCDWebServerCompletionBlock) {
-        responseResource(for: request) { resource, failureHandler in
+        responseResource(for: request) { httpServerRequest, resource, failureHandler in
             let response: ReadiumGCDWebServerResponse
             switch resource.length {
             case let .success(length):
@@ -100,10 +100,11 @@ public class GCDHTTPServer: HTTPServer, Loggable {
                 )
             case let .failure(error):
                 self.log(.error, error)
-                failureHandler?(resource.link.href, request.url, error)
+                failureHandler?(httpServerRequest, error)
                 response = ReadiumGCDWebServerErrorResponse(
                     statusCode: error.httpStatusCode,
-                    error: error)
+                    error: error
+                )
             }
 
             completion(response) // goes back to ReadiumGCDWebServerConnection.m
@@ -112,13 +113,13 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
     private func responseResource(
         for request: ReadiumGCDWebServerRequest,
-        completion: @escaping (Resource, FailureHandler?) -> Void
+        completion: @escaping (HTTPServerRequest, Resource, FailureHandler?) -> Void
     ) {
-        let completion = { resource, failureHandler in
+        let completion = { request, resource, failureHandler in
             // Escape the queue to avoid deadlocks if something is using the
             // server in the handler.
             DispatchQueue.global().async {
-                completion(resource, failureHandler)
+                completion(request, resource, failureHandler)
             }
         }
 
@@ -141,31 +142,39 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
             for (endpoint, handler) in handlers {
                 if endpoint == pathWithoutAnchor {
-                    let resource = handler.resourceHandler(HTTPServerRequest(url: request.url, href: nil))
-                    completion(transform(resource: resource, at: endpoint),
+                    let request = HTTPServerRequest(url: request.url, href: nil)
+                    let resource = handler.resourceHandler(request)
+                    completion(request,
+                               transform(resource: resource, at: endpoint),
                                handler.failureHandler)
                     return
 
                 } else if path.hasPrefix(endpoint.addingSuffix("/")) {
-                    let resource = handler.resourceHandler(HTTPServerRequest(
+                    let request = HTTPServerRequest(
                         url: request.url,
                         href: path.removingPrefix(endpoint.removingSuffix("/"))
-                    ))
-                    completion(transform(resource: resource, at: endpoint),
+                    )
+                    let resource = handler.resourceHandler(request)
+                    completion(request,
+                               transform(resource: resource, at: endpoint),
                                handler.failureHandler)
                     return
                 }
             }
 
             log(.warning, "Resource not found for request \(request)")
-            completion(FailureResource(link: Link(href: request.url.absoluteString), error: .notFound(nil)), nil)
+            completion(
+                HTTPServerRequest(url: request.url, href: nil),
+                FailureResource(link: Link(href: request.url.absoluteString),
+                                error: .notFound(nil)),
+                nil)
         }
     }
 
     // MARK: HTTPServer
 
     public func serve(at endpoint: HTTPServerEndpoint, 
-                      handler: @escaping (HTTPServerRequest) -> Resource, 
+                      handler: @escaping (HTTPServerRequest) -> Resource,
                       failureHandler: FailureHandler?) throws -> URL {
         try queue.sync(flags: .barrier) {
             if case .stopped = state {
@@ -173,7 +182,6 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             }
 
             guard case let .started(port: _, baseURL: baseURL) = state else {
-                failureHandler?(endpoint, server.serverURL, .other(GCDHTTPServerError.serverNotStarted))
                 throw GCDHTTPServerError.serverNotStarted
             }
 

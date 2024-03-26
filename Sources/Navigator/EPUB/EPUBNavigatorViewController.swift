@@ -947,7 +947,7 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
 
     func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel,
                                 didFailToLoadResourceAt href: String?,
-                                url: URL?,
+                                url: URL,
                                 withError error: ResourceError) {
         DispatchQueue.main.async {
             self.delegate?.navigator(self,

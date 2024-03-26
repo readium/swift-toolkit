@@ -59,15 +59,15 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
             publicationBaseURL = try httpServer.serve(
                 at: uuidEndpoint,
                 publication: publication,
-                failureHandler: { [weak self] href, url, error in
+                failureHandler: { [weak self] request, error in
                     DispatchQueue.main.async { [weak self] in
                         guard let self = self else {
                             return
                         }
                         self.delegate?.navigator(
                             self,
-                            didFailToLoadResourceAt: href,
-                            url: url,
+                            didFailToLoadResourceAt: request.href,
+                            url: request.url,
                             withError: error)
                     }
                 }
