@@ -105,7 +105,7 @@ public protocol NavigatorDelegate: AnyObject {
     func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, referrer: String?) -> Bool
 
     /// Called when an error occurs while attempting to load a resource.
-    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: String?, url: URL, withError error: ResourceError)
+    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: String, withError error: ResourceError)
 }
 
 public extension NavigatorDelegate {
@@ -121,7 +121,7 @@ public extension NavigatorDelegate {
         true
     }
 
-    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: String?, url: URL, withError error: ResourceError) {}
+    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: String, withError error: ResourceError) {}
 }
 
 public enum NavigatorError: LocalizedError {

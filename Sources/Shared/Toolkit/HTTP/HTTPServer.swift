@@ -19,8 +19,10 @@ public protocol HTTPServer {
     ///
     /// - Returns the base URL for this endpoint.
     @discardableResult
-    func serve(at endpoint: HTTPServerEndpoint,
-               handler: @escaping (HTTPServerRequest) -> Resource) throws -> URL
+    func serve(
+        at endpoint: HTTPServerEndpoint,
+        handler: @escaping (HTTPServerRequest) -> Resource
+    ) throws -> URL
 
     /// Serves resources at the given `endpoint`.
     ///
@@ -30,9 +32,11 @@ public protocol HTTPServer {
     ///
     /// - Returns the base URL for this endpoint.
     @discardableResult
-    func serve(at endpoint: HTTPServerEndpoint,
-               handler: @escaping (HTTPServerRequest) -> Resource,
-               failureHandler: FailureHandler?) throws -> URL
+    func serve(
+        at endpoint: HTTPServerEndpoint,
+        handler: @escaping (HTTPServerRequest) -> Resource,
+        failureHandler: FailureHandler?
+    ) throws -> URL
 
     /// Registers a `Resource` transformer that will be run on all responses
     /// matching the given `endpoint`.
@@ -47,21 +51,10 @@ public extension HTTPServer {
     @discardableResult
     func serve(
         at endpoint: HTTPServerEndpoint,
-        handler: @escaping (HTTPServerRequest) -> Resource
+        handler: @escaping (HTTPServerRequest) -> Resource,
+        failureHandler: FailureHandler?
     ) throws -> URL {
-        try serve(at: endpoint, handler: handler, failureHandler: nil)
-    }
-
-    /// Serves the local file `url` at the given `endpoint`.
-    ///
-    /// If the provided `url` is a directory, then all the files in the
-    /// directory are served. Subsequent calls with the same served `endpoint`
-    /// overwrite each other.
-    ///
-    /// - Returns the URL to access the file(s) on the server.
-    @discardableResult
-    func serve(at endpoint: HTTPServerEndpoint, contentsOf url: URL) throws -> URL {
-        try serve(at: endpoint, contentsOf: url, failureHandler: nil)
+        try serve(at: endpoint, handler: handler)
     }
 
     /// Serves the local file `url` at the given `endpoint`.
@@ -77,7 +70,7 @@ public extension HTTPServer {
     func serve(
         at endpoint: HTTPServerEndpoint,
         contentsOf url: URL,
-        failureHandler: FailureHandler?
+        failureHandler: FailureHandler? = nil
     ) throws -> URL {
         func handler(request: HTTPServerRequest) -> Resource {
             let file = url.appendingPathComponent(request.href ?? "")
@@ -91,18 +84,11 @@ public extension HTTPServer {
             )
         }
 
-        return try serve(at: endpoint,
-                         handler: handler(request:),
-                         failureHandler: failureHandler)
-    }
-
-    /// Serves a `publication`'s resources at the given `endpoint`.
-    ///
-    /// - Returns the base URL to access the publication's resources on the
-    /// server.
-    @discardableResult
-    func serve(at endpoint: HTTPServerEndpoint, publication: Publication) throws -> URL {
-        try serve(at: endpoint, publication: publication, failureHandler: nil)
+        return try serve(
+            at: endpoint,
+            handler: handler(request:),
+            failureHandler: failureHandler
+        )
     }
 
     /// Serves a `publication`'s resources at the given `endpoint`.
@@ -115,7 +101,7 @@ public extension HTTPServer {
     func serve(
         at endpoint: HTTPServerEndpoint,
         publication: Publication,
-        failureHandler: FailureHandler?
+        failureHandler: FailureHandler? = nil
     ) throws -> URL {
         func handler(request: HTTPServerRequest) -> Resource {
             guard let href = request.href else {
@@ -130,9 +116,11 @@ public extension HTTPServer {
             return publication.get(href)
         }
 
-        return try serve(at: endpoint,
-                         handler: handler(request:),
-                         failureHandler: failureHandler)
+        return try serve(
+            at: endpoint,
+            handler: handler(request:),
+            failureHandler: failureHandler
+        )
     }
 }
 

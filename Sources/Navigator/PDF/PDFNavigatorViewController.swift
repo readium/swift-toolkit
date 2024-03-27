@@ -122,13 +122,10 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
                 publication: publication,
                 failureHandler: { request, error in
                     DispatchQueue.main.async { [weak self] in
-                        guard let self = self else {
+                        guard let self = self, let href = request.href else {
                             return
                         }
-                        self.delegate?.navigator(self,
-                                                 didFailToLoadResourceAt: request.href,
-                                                 url: request.url,
-                                                 withError: error)
+                        self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
                     }
                 }
             )

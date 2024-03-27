@@ -11,10 +11,7 @@ import UIKit
 protocol EPUBNavigatorViewModelDelegate: AnyObject {
     func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel, runScript script: String, in scope: EPUBScriptScope)
     func epubNavigatorViewModelInvalidatePaginationView(_ viewModel: EPUBNavigatorViewModel)
-    func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel,
-                                didFailToLoadResourceAt href: String?,
-                                url: URL,
-                                withError error: ResourceError)
+    func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel, didFailToLoadResourceAt href: String, withError error: ResourceError)
 }
 
 enum EPUBScriptScope {
@@ -83,13 +80,10 @@ final class EPUBNavigatorViewModel: Loggable {
                 at: uuidEndpoint, // serving the chapters endpoint
                 publication: publication,
                 failureHandler: { [weak self] request, error in
-                    guard let self = self else {
+                    guard let self = self, let href = request.href else {
                         return
                     }
-                    self.delegate?.epubNavigatorViewModel(self,
-                                                          didFailToLoadResourceAt: request.href,
-                                                          url: request.url,
-                                                          withError: error)
+                    self.delegate?.epubNavigatorViewModel(self, didFailToLoadResourceAt: href, withError: error)
                 }
             )
         }
