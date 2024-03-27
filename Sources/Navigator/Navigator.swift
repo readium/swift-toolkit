@@ -103,6 +103,9 @@ public protocol NavigatorDelegate: AnyObject {
     /// note yourself, using its `content`. `link.type` contains information about the
     /// format of `content` and `referrer`, such as `text/html`.
     func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, referrer: String?) -> Bool
+
+    /// Called when an error occurs while attempting to load a resource.
+    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: String, withError error: ResourceError)
 }
 
 public extension NavigatorDelegate {
@@ -117,6 +120,8 @@ public extension NavigatorDelegate {
     func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, referrer: String?) -> Bool {
         true
     }
+
+    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: String, withError error: ResourceError) {}
 }
 
 public enum NavigatorError: LocalizedError {
