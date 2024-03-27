@@ -172,7 +172,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
     // MARK: HTTPServer
 
-    public func serve(at endpoint: HTTPServerEndpoint, handler: @escaping (HTTPServerRequest) -> any Resource) throws -> URL {
+    public func serve(at endpoint: HTTPServerEndpoint, handler: @escaping (HTTPServerRequest) -> Resource) throws -> URL {
         try serve(at: endpoint, handler: handler, failureHandler: nil)
     }
 
