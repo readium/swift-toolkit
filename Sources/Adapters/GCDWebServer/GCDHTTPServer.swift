@@ -17,6 +17,11 @@ public enum GCDHTTPServerError: Error {
 
 /// Implementation of `HTTPServer` using ReadiumGCDWebServer under the hood.
 public class GCDHTTPServer: HTTPServer, Loggable {
+    private struct EndpointHandler {
+        let resourceHandler: (HTTPServerRequest) -> Resource
+        let failureHandler: HTTPServer.FailureHandler?
+    }
+
     /// Shared instance of the HTTP server.
     public static let shared = GCDHTTPServer()
 
@@ -24,7 +29,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
     private let server = ReadiumGCDWebServer()
 
     /// Mapping between endpoints and their handlers.
-    private var handlers: [HTTPServerEndpoint: (HTTPServerRequest) -> Resource] = [:]
+    private var handlers: [HTTPServerEndpoint: EndpointHandler] = [:]
 
     /// Mapping between endpoints and resource transformers.
     private var transformers: [HTTPServerEndpoint: [ResourceTransformer]] = [:]
@@ -84,7 +89,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
     }
 
     private func handle(request: ReadiumGCDWebServerRequest, completion: @escaping ReadiumGCDWebServerCompletionBlock) {
-        responseResource(for: request) { resource in
+        responseResource(for: request) { httpServerRequest, resource, failureHandler in
             let response: ReadiumGCDWebServerResponse
             switch resource.length {
             case let .success(length):
@@ -95,19 +100,26 @@ public class GCDHTTPServer: HTTPServer, Loggable {
                 )
             case let .failure(error):
                 self.log(.error, error)
-                response = ReadiumGCDWebServerErrorResponse(statusCode: error.httpStatusCode)
+                failureHandler?(httpServerRequest, error)
+                response = ReadiumGCDWebServerErrorResponse(
+                    statusCode: error.httpStatusCode,
+                    error: error
+                )
             }
 
-            completion(response)
+            completion(response) // goes back to ReadiumGCDWebServerConnection.m
         }
     }
 
-    private func responseResource(for request: ReadiumGCDWebServerRequest, completion: @escaping (Resource) -> Void) {
-        let completion = { resource in
+    private func responseResource(
+        for request: ReadiumGCDWebServerRequest,
+        completion: @escaping (HTTPServerRequest, Resource, FailureHandler?) -> Void
+    ) {
+        let completion = { request, resource, failureHandler in
             // Escape the queue to avoid deadlocks if something is using the
             // server in the handler.
             DispatchQueue.global().async {
-                completion(resource)
+                completion(request, resource, failureHandler)
             }
         }
 
@@ -130,36 +142,56 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
             for (endpoint, handler) in handlers {
                 if endpoint == pathWithoutAnchor {
-                    let resource = handler(HTTPServerRequest(url: request.url, href: nil))
-                    completion(transform(resource: resource, at: endpoint))
+                    let request = HTTPServerRequest(url: request.url, href: nil)
+                    let resource = handler.resourceHandler(request)
+                    completion(request,
+                               transform(resource: resource, at: endpoint),
+                               handler.failureHandler)
                     return
 
                 } else if path.hasPrefix(endpoint.addingSuffix("/")) {
-                    let resource = handler(HTTPServerRequest(
+                    let request = HTTPServerRequest(
                         url: request.url,
                         href: path.removingPrefix(endpoint.removingSuffix("/"))
-                    ))
-                    completion(transform(resource: resource, at: endpoint))
+                    )
+                    let resource = handler.resourceHandler(request)
+                    completion(request,
+                               transform(resource: resource, at: endpoint),
+                               handler.failureHandler)
                     return
                 }
             }
 
-            completion(FailureResource(link: Link(href: request.url.absoluteString), error: .notFound(nil)))
+            log(.warning, "Resource not found for request \(request)")
+            completion(HTTPServerRequest(url: request.url, href: nil),
+                       FailureResource(link: Link(href: request.url.absoluteString),
+                                       error: .notFound(nil)),
+                       nil)
         }
     }
 
     // MARK: HTTPServer
 
     public func serve(at endpoint: HTTPServerEndpoint, handler: @escaping (HTTPServerRequest) -> Resource) throws -> URL {
+        try serve(at: endpoint, handler: handler, failureHandler: nil)
+    }
+
+    public func serve(
+        at endpoint: HTTPServerEndpoint,
+        handler: @escaping (HTTPServerRequest) -> Resource,
+        failureHandler: FailureHandler?
+    ) throws -> URL {
         try queue.sync(flags: .barrier) {
             if case .stopped = state {
                 try start()
             }
+
             guard case let .started(port: _, baseURL: baseURL) = state else {
                 throw GCDHTTPServerError.serverNotStarted
             }
 
-            handlers[endpoint] = handler
+            handlers[endpoint] = EndpointHandler(resourceHandler: handler,
+                                                 failureHandler: failureHandler)
 
             return baseURL.appendingPathComponent(endpoint)
         }

@@ -34,6 +34,7 @@ public final class FileFetcher: Fetcher, Loggable {
             }
         }
 
+        log(.warning, "Unable to create FileResource from link \(link)")
         return FailureResource(link: link, error: .notFound(nil))
     }
 

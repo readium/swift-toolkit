@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * The `AudioNavigator` API has been promoted to stable and ships with a new Preferences API.
+* The new `NavigatorDelegate.didFailToLoadResourceAt(_:didFailToLoadResourceAt:withError:)` delegate API notifies when an error occurs while loading a publication resource (contributed by [@ettore](https://github.com/readium/swift-toolkit/pull/400)).
 
 ### Fixed
 
