@@ -15,6 +15,6 @@ Pod::Spec.new do |s|
 
   s.dependency 'R2Shared'
   s.dependency 'ReadiumInternal'
-  s.dependency 'GCDWebServer', '~> 3.0'
+  s.dependency 'GCDWebServer', '~> 4.0'
 
 end

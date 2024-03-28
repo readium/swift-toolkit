@@ -39,8 +39,8 @@ targets:
     dependencies:
       - framework: CryptoSwift.framework
       - framework: Fuzi.framework
-      - framework: GCDWebServer.framework
       - framework: Minizip.framework
+      - framework: ReadiumGCDWebServer.framework
       - target: R2Shared
       - target: ReadiumInternal
     settings:
@@ -109,7 +109,7 @@ targets:
     sources: 
       - path: ../../Sources/Adapters/GCDWebServer
     dependencies:
-      - framework: GCDWebServer.framework
+      - framework: ReadiumGCDWebServer.framework
       - target: R2Shared
       - target: ReadiumInternal
     settings:

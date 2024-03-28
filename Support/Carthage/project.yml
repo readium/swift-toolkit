@@ -37,8 +37,8 @@ targets:
     dependencies:
       - framework: ../../Carthage/Build/CryptoSwift.xcframework
       - framework: ../../Carthage/Build/Fuzi.xcframework
-      - framework: ../../Carthage/Build/GCDWebServer.xcframework
       - framework: ../../Carthage/Build/Minizip.xcframework
+      - framework: ../../Carthage/Build/ReadiumGCDWebServer.xcframework
       - target: R2Shared
       - target: ReadiumInternal
     settings:
@@ -107,7 +107,7 @@ targets:
     sources: 
       - path: ../../Sources/Adapters/GCDWebServer
     dependencies:
-      - framework: ../../Carthage/Build/GCDWebServer.xcframework
+      - framework: ../../Carthage/Build/ReadiumGCDWebServer.xcframework
       - target: R2Shared
       - target: ReadiumInternal
     settings:
