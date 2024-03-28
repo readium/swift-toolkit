@@ -60,8 +60,8 @@ Refer to the following table to know which dependencies are required for each Re
 | `CryptoSwift`         |                    | :heavy_check_mark: |                    |                    | :heavy_check_mark: |
 | `DifferenceKit`       |                    |                    | :heavy_check_mark: |                    |                    |
 | `Fuzi`                | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| `GCDWebServer`        |                    | :heavy_check_mark: |                    |                    |                    |
 | `Minizip`             | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| `ReadiumGCDWebServer` |                    | :heavy_check_mark: |                    |                    |                    |
 | `SQLite.swift`        |                    |                    |                    |                    | :heavy_check_mark: |
 | `SwiftSoup`           | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | `ZIPFoundation`       |                    |                    |                    |                    | :heavy_check_mark: |
@@ -79,7 +79,7 @@ pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-tool
 pod 'ReadiumInternal', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.6.1/Support/CocoaPods/ReadiumInternal.podspec'
 
 # Required if you use R2Streamer.
-pod 'GCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/3.7.4/GCDWebServer.podspec'
+pod 'ReadiumGCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/3.7.4/GCDWebServer.podspec'
 ```
 
 Take a look at [CocoaPods's documentation](https://guides.cocoapods.org/using/using-cocoapods.html) for more information.
