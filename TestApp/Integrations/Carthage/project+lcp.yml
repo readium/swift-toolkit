@@ -18,6 +18,10 @@ targets:
     deploymentTarget: "15.0"
     sources: 
       - path: Sources
+        excludes:
+          - Resources/Fonts
+      - path: Sources/Resources/Fonts
+        type: folder
     dependencies:
       - framework: Carthage/Build/CryptoSwift.xcframework
       - framework: Carthage/Build/DifferenceKit.xcframework
@@ -29,6 +33,7 @@ targets:
       - framework: Carthage/Build/R2Shared.xcframework
       - framework: Carthage/Build/R2Streamer.xcframework
       - framework: Carthage/Build/ReadiumAdapterGCDWebServer.xcframework
+      - framework: Carthage/Build/ReadiumInternal.xcframework
       - framework: Carthage/Build/ReadiumLCP.xcframework
       - framework: Carthage/Build/ReadiumOPDS.xcframework
       - framework: Carthage/Build/SQLite.xcframework

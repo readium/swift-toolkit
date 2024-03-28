@@ -294,7 +294,12 @@ export function DecorationGroup(groupId, groupName) {
       container.setAttribute("id", groupId);
       container.setAttribute("data-group", groupName);
       container.style.setProperty("pointer-events", "none");
-      document.body.append(container);
+
+      requestAnimationFrame(function () {
+        if (container != null) {
+          document.body.append(container);
+        }
+      });
     }
     return container;
   }

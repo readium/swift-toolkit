@@ -1,17 +1,17 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Holds the accessibility metadata of a Publication.
 ///
 /// https://www.w3.org/2021/a11y-discov-vocab/latest/
 /// https://readium.org/webpub-manifest/schema/a11y.schema.json
 public struct Accessibility: Hashable {
-
     /// An established standard to which the described resource conforms.
     public let conformsTo: [Profile]
 
@@ -47,7 +47,7 @@ public struct Accessibility: Hashable {
     ///
     /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessibilityHazard
     public let hazards: [Hazard]
-    
+
     /// Accessibility profile.
     public struct Profile: Hashable {
         public let uri: String
@@ -55,7 +55,7 @@ public struct Accessibility: Hashable {
         public init(_ uri: String) {
             self.uri = uri
         }
-        
+
         /// EPUB Accessibility 1.0 - WCAG 2.0 Level A
         public static let epubA11y10WCAG20A = Profile("http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a")
         /// EPUB Accessibility 1.0 - WCAG 2.0 Level AA
@@ -65,7 +65,6 @@ public struct Accessibility: Hashable {
     }
 
     public struct Certification: Hashable {
-
         /// Identifies a party responsible for the testing and certification of the accessibility of a Publication.
         ///
         /// https://www.w3.org/TR/epub-a11y/#certifiedBy
@@ -137,19 +136,19 @@ public struct Accessibility: Hashable {
 
     public enum PrimaryAccessMode: String, Hashable {
         /// Indicates that auditory perception is necessary to consume the information.
-        case auditory = "auditory"
+        case auditory
 
         /// Indicates that tactile perception is necessary to consume the information.
-        case tactile = "tactile"
+        case tactile
 
         /// Indicates that the ability to read textual content is necessary to consume the information.
         ///
         /// Note that reading textual content does not require visual perception, as textual content can be rendered as
         /// audio using a text-to-speech capable device or assistive technology.
-        case textual = "textual"
+        case textual
 
         /// Indicates that visual perception is necessary to consume the information.
-        case visual = "visual"
+        case visual
     }
 
     public struct Feature: Hashable {
@@ -398,7 +397,7 @@ public struct Accessibility: Hashable {
             hazards: parseArray(jsonObject["hazard"]).map(Hazard.init)
         )
     }
-    
+
     public var json: [String: Any] {
         makeJSON([
             "conformsTo": encodeIfNotEmpty(conformsTo.map(\.uri)),

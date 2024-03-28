@@ -1,12 +1,12 @@
 //
-//  Copyright 2019 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import WebKit
 import R2Shared
 import SwiftSoup
+import WebKit
 
 protocol EPUBSpreadViewDelegate: AnyObject {
     /// Called when the spread view finished loading.
@@ -14,10 +14,10 @@ protocol EPUBSpreadViewDelegate: AnyObject {
 
     /// Called when the user tapped on the spread contents.
     func spreadView(_ spreadView: EPUBSpreadView, didTapAt point: CGPoint)
-    
+
     /// Called when the user tapped on an external link.
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnExternalURL url: URL)
-    
+
     /// Called when the user tapped on an internal link.
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, clickEvent: ClickEvent?)
 
@@ -29,67 +29,54 @@ protocol EPUBSpreadViewDelegate: AnyObject {
 
     /// Called when the pages visible in the spread changed.
     func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView)
-    
+
     /// Called when the spread view needs to present a view controller.
     func spreadView(_ spreadView: EPUBSpreadView, present viewController: UIViewController)
-    
+
     /// Called when the user pressed a key down and it was not handled by the resource.
     func spreadView(_ spreadView: EPUBSpreadView, didPressKey event: KeyEvent)
-    
+
     /// Called when the user released a key and it was not handled by the resource.
     func spreadView(_ spreadView: EPUBSpreadView, didReleaseKey event: KeyEvent)
+
+    /// Called when WKWebview terminates
+    func spreadViewDidTerminate()
 }
 
 class EPUBSpreadView: UIView, Loggable, PageView {
-
     weak var delegate: EPUBSpreadViewDelegate?
-    let publication: Publication
+    let viewModel: EPUBNavigatorViewModel
     let spread: EPUBSpread
     private(set) var focusedResource: Link?
-    
-    let baseURL: URL
-    let resourcesURL: URL
-    let webView: WebView
 
-    let readingProgression: ReadingProgression
-    let userSettings: UserSettings
-    let editingActions: EditingActionsController
+    let webView: WebView
 
     private var lastClick: ClickEvent? = nil
 
     /// If YES, the content will be faded in once loaded.
     let animatedLoad: Bool
-    
-    let contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
 
     weak var activityIndicatorView: UIActivityIndicatorView?
-
-    /// Whether the continuous scrolling mode is enabled.
-    var isScrollEnabled: Bool {
-        let userEnabled = (userSettings.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable)?.on ?? false
-        // Force-enables scroll when VoiceOver is running.
-        return userEnabled || UIAccessibility.isVoiceOverRunning
-    }
+    private var activityIndicatorStopWorkItem: DispatchWorkItem?
 
     private(set) var spreadLoaded = false
 
-    required init(publication: Publication, spread: EPUBSpread, baseURL: URL, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, scripts: [WKUserScript], animatedLoad: Bool = false, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
-        self.publication = publication
+    required init(
+        viewModel: EPUBNavigatorViewModel,
+        spread: EPUBSpread,
+        scripts: [WKUserScript],
+        animatedLoad: Bool
+    ) {
+        self.viewModel = viewModel
         self.spread = spread
-        self.baseURL = baseURL
-        self.resourcesURL = resourcesURL
-        self.readingProgression = readingProgression
-        self.userSettings = userSettings
-        self.editingActions = editingActions
         self.animatedLoad = animatedLoad
-        self.webView = WebView(editingActions: editingActions)
-        self.contentInset = contentInset
+        webView = WebView(editingActions: viewModel.editingActions)
 
         super.init(frame: .zero)
-        
+
         isOpaque = false
         backgroundColor = .clear
-        
+
         webView.frame = bounds
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         addSubview(webView)
@@ -98,13 +85,13 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         let gestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(didTapBackground))
         gestureRecognizer.delegate = self
         addGestureRecognizer(gestureRecognizer)
-        
+
         for script in scripts {
             webView.configuration.userContentController.addUserScript(script)
         }
         registerJSMessages()
 
-        NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: Notification.Name(UIAccessibilityVoiceOverStatusChanged), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(voiceOverStatusDidChange), name: UIAccessibility.voiceOverStatusDidChangeNotification, object: nil)
 
         updateActivityIndicator()
         loadSpread()
@@ -117,19 +104,17 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     func setupWebView() {
         scrollView.alpha = 0
-        
+
         webView.backgroundColor = UIColor.clear
         scrollView.backgroundColor = UIColor.clear
-        
+
         webView.allowsBackForwardNavigationGestures = false
 
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.showsVerticalScrollIndicator = false
-        
-        if #available(iOS 11.0, *) {
-            // Prevents the pages from jumping down when the status bar is toggled
-            scrollView.contentInsetAdjustmentBehavior = .never
-        }
+
+        // Prevents the pages from jumping down when the status bar is toggled
+        scrollView.contentInsetAdjustmentBehavior = .never
 
         webView.navigationDelegate = self
         webView.uiDelegate = self
@@ -142,12 +127,12 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     var scrollView: UIScrollView {
-        return webView.scrollView
+        webView.scrollView
     }
 
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
-        
+
         if superview == nil {
             disableJSMessages()
             // Fixing an iOS 9 bug by explicitly clearing scrollView.delegate before deinitialization
@@ -157,7 +142,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             scrollView.delegate = self
         }
     }
-    
+
     func loadSpread() {
         fatalError("loadSpread() must be implemented in subclasses")
     }
@@ -186,18 +171,18 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     /// Called from the JS code when logging an error.
     private func didLogError(_ body: Any) {
         guard let error = body as? [String: Any],
-            var message = error["message"] as? String else
-        {
+              var message = error["message"] as? String
+        else {
             return
         }
         message = "JavaScript: \(message)"
 
         if let file = error["filename"] as? String, file != "/",
-            let line = error["line"] as? Int, line != 0
+           let line = error["line"] as? Int, line != 0
         {
-            self.log(.error, message, file: file, line: line)
+            log(.error, message, file: file, line: line)
         } else {
-            self.log(.error, message)
+            log(.error, message)
         }
     }
 
@@ -209,9 +194,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             return
         }
         lastClick = clickEvent
-        
+
         // Ignores taps on interactive elements, or if the script prevents the default behavior.
-        if !clickEvent.defaultPrevented && clickEvent.interactiveElement == nil {
+        if !clickEvent.defaultPrevented, clickEvent.interactiveElement == nil {
             let point = convertPointToNavigatorSpace(clickEvent.point)
             delegate?.spreadView(self, didTapAt: point)
         }
@@ -220,13 +205,13 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     /// Converts the given JavaScript point into a point in the webview's coordinate space.
     func convertPointToNavigatorSpace(_ point: CGPoint) -> CGPoint {
         // To override in subclasses.
-        return point
+        point
     }
 
     /// Converts the given JavaScript rect into a rect in the webview's coordinate space.
     func convertRectToNavigatorSpace(_ rect: CGRect) -> CGRect {
         // To override in subclasses.
-        return rect
+        rect
     }
 
     /// Called by the UITapGestureRecognizer as a fallback tap when tapping around the webview.
@@ -235,21 +220,27 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         delegate?.spreadView(self, didTapAt: point)
     }
 
+    private func spreadLoadDidStart(_ body: Any) {
+        trace()
+        activityIndicatorStopWorkItem?.cancel()
+    }
+
     /// Called by the javascript code when the spread contents is fully loaded.
     /// The JS message `spreadLoaded` needs to be emitted by a subclass script, EPUBSpreadView's scripts don't.
     private func spreadDidLoad(_ body: Any) {
         spreadLoaded = true
-        applyUserSettingsStyle()
+        applySettings()
         spreadDidLoad()
         delegate?.spreadViewDidLoad(self)
     }
-    
+
     /// To be overriden to customize the behavior after the spread is loaded.
     func spreadDidLoad() {
         showSpread()
     }
-    
+
     func showSpread() {
+        trace()
         activityIndicatorView?.stopAnimating()
         UIView.animate(withDuration: animatedLoad ? 0.3 : 0, animations: {
             self.scrollView.alpha = 1
@@ -280,38 +271,29 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         frame.origin = convertPointToNavigatorSpace(frame.origin)
         delegate?.spreadView(self, selectionDidChange: text, frame: frame)
     }
-    
-    /// Called when the user hit the Share item in the selection context menu.
-    @objc func shareSelection(_ sender: Any?) {
-        guard let shareViewController = editingActions.makeShareViewController(from: webView) else {
-            return
-        }
-        delegate?.spreadView(self, present: shareViewController)
-    }
 
     /// Update webview style to userSettings.
     /// To override in subclasses.
-    func applyUserSettingsStyle() {
+    func applySettings() {
         assert(Thread.isMainThread, "User settings must be updated from the main thread")
     }
-    
-    
-    /// MARK: - Location and progression.
-    
+
+    // MARK: - Location and progression.
+
     /// Current progression in the resource with given href.
     func progression(in href: String) -> Double {
         // To be overridden in subclasses if the resource supports a progression.
-        return 0
+        0
     }
 
     func go(to location: PageLocation, completion: (() -> Void)?) {
         fatalError("go(to:completion:) must be implemented in subclasses")
     }
-    
+
     enum Direction: CustomStringConvertible {
         case left
         case right
-        
+
         var description: String {
             switch self {
             case .left: return "left"
@@ -319,10 +301,10 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             }
         }
     }
-    
+
     func go(to direction: Direction, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
         // The default implementation of a spread view considers that its content is entirely visible on screen.
-        return false
+        false
     }
 
     func findFirstVisibleElementLocator(completion: @escaping (Locator?) -> Void) {
@@ -341,9 +323,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
-
     // MARK: - JS Messages
-    
+
     private var JSMessages: [String: (Any) -> Void] = [:]
     private var JSMessagesEnabled = false
 
@@ -353,24 +334,25 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             log(.error, "JS message already registered: \(name)")
             return
         }
-        
+
         JSMessages[name] = handler
         if JSMessagesEnabled {
             webView.configuration.userContentController.add(self, name: name)
         }
     }
-    
+
     /// To override in subclasses if needed.
     func registerJSMessages() {
         registerJSMessage(named: "log") { [weak self] in self?.didLog($0) }
         registerJSMessage(named: "logError") { [weak self] in self?.didLogError($0) }
         registerJSMessage(named: "tap") { [weak self] in self?.didTap($0) }
+        registerJSMessage(named: "spreadLoadStarted") { [weak self] in self?.spreadLoadDidStart($0) }
         registerJSMessage(named: "spreadLoaded") { [weak self] in self?.spreadDidLoad($0) }
         registerJSMessage(named: "selectionChanged") { [weak self] in self?.selectionDidChange($0) }
         registerJSMessage(named: "decorationActivated") { [weak self] in self?.decorationDidActivate($0) }
         registerJSMessage(named: "pressKey") { [weak self] in self?.didPressKey($0) }
     }
-    
+
     /// Add the message handlers for incoming javascript events.
     private func enableJSMessages() {
         guard !JSMessagesEnabled else {
@@ -381,7 +363,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             webView.configuration.userContentController.add(self, name: name)
         }
     }
-    
+
     // Removes message handlers (preventing strong reference cycle).
     private func disableJSMessages() {
         guard JSMessagesEnabled else {
@@ -400,7 +382,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         else {
             return
         }
-        
+
         if type == "keydown" {
             delegate?.spreadView(self, didPressKey: keyEvent)
         } else if type == "keyup" {
@@ -410,7 +392,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
-    // MARK: – Decorator
+    // MARK: - Decorator
 
     /// Called by the JavaScript layer when the user activates a decoration.
     private func decorationDidActivate(_ body: Any) {
@@ -430,11 +412,10 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         delegate?.spreadView(self, didActivateDecoration: decorationId, inGroup: groupName, frame: frame, point: point)
     }
 
-    
     // MARK: - Accessibility
-    
+
     private var isVoiceOverRunning = UIAccessibility.isVoiceOverRunning
-    
+
     @objc private func voiceOverStatusDidChange() {
         // Avoids excessive settings refresh when the status didn't change.
         guard isVoiceOverRunning != UIAccessibility.isVoiceOverRunning else {
@@ -442,21 +423,20 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
         isVoiceOverRunning = UIAccessibility.isVoiceOverRunning
         // Scroll mode will be activated if VoiceOver is on
-        applyUserSettingsStyle()
+        applySettings()
     }
 
-    
     // MARK: - Scripts
-    
+
     class func loadScript(named name: String) -> String {
-        return Bundle.module.url(forResource: "\(name)", withExtension: "js", subdirectory: "Assets/Static/scripts")
+        Bundle.module.url(forResource: "\(name)", withExtension: "js", subdirectory: "Assets/Static/scripts")
             .flatMap { try? String(contentsOf: $0) }!
     }
 }
 
 // MARK: - WKScriptMessageHandler for handling incoming message from the javascript layer.
-extension EPUBSpreadView: WKScriptMessageHandler {
 
+extension EPUBSpreadView: WKScriptMessageHandler {
     /// Handles incoming calls from JS.
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard let handler = JSMessages[message.name] else {
@@ -464,13 +444,16 @@ extension EPUBSpreadView: WKScriptMessageHandler {
         }
         handler(message.body)
     }
-
 }
 
 extension EPUBSpreadView: WKNavigationDelegate {
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        log(.error, error)
+    }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        // Do not remove: overridden in subclasses.
+        trace()
+        setNeedsStopActivityIndicator()
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
@@ -478,28 +461,32 @@ extension EPUBSpreadView: WKNavigationDelegate {
 
         if navigationAction.navigationType == .linkActivated {
             if let url = navigationAction.request.url {
+                let baseURL = viewModel.publicationBaseURL
                 // Check if url is internal or external
                 if url.host == baseURL.host {
                     let href = url.absoluteString.replacingOccurrences(of: baseURL.absoluteString, with: "/")
-                    delegate?.spreadView(self, didTapOnInternalLink: href, clickEvent: self.lastClick)
+                    delegate?.spreadView(self, didTapOnInternalLink: href, clickEvent: lastClick)
                 } else {
                     delegate?.spreadView(self, didTapOnExternalURL: url)
                 }
-                
+
                 policy = .cancel
             }
         }
 
         decisionHandler(policy)
     }
+
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        delegate?.spreadViewDidTerminate()
+    }
 }
 
 extension EPUBSpreadView: UIScrollViewDelegate {
-    
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         scrollView.isUserInteractionEnabled = true
     }
-    
+
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         webView.clearSelection()
     }
@@ -507,14 +494,12 @@ extension EPUBSpreadView: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         // Do not remove, overridden in subclasses.
     }
-
 }
 
 extension EPUBSpreadView: WKUIDelegate {
-    
     func webView(_ webView: WKWebView, shouldPreviewElement elementInfo: WKPreviewElementInfo) -> Bool {
         // Preview allowed only if the link is not internal
-        return (elementInfo.linkURL?.host != baseURL.host)
+        elementInfo.linkURL?.host != viewModel.publicationBaseURL.host
     }
 }
 
@@ -527,37 +512,57 @@ extension EPUBSpreadView: UIGestureRecognizerDelegate {
 }
 
 private extension EPUBSpreadView {
-
     func updateActivityIndicator() {
-        guard let appearance = userSettings.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) as? Enumerable,
-            appearance.values.count > appearance.index else
-        {
-            return
-        }
-        let value = appearance.values[appearance.index]
-        switch value {
-        case "readium-night-on":
+        switch viewModel.theme {
+        case .dark:
             createActivityIndicator(style: .white)
         default:
             createActivityIndicator(style: .gray)
         }
     }
-    
+
     func createActivityIndicator(style: UIActivityIndicatorView.Style) {
         guard activityIndicatorView?.style != style else {
             return
         }
-        
+
         activityIndicatorView?.removeFromSuperview()
         let view = UIActivityIndicatorView(style: style)
         view.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(view)
-        view.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
-        view.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
+        addSubview(view)
+        view.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
+        view.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         view.startAnimating()
         activityIndicatorView = view
     }
 
+    private func setNeedsStopActivityIndicator() {
+        guard activityIndicatorStopWorkItem == nil else {
+            return
+        }
+
+        activityIndicatorStopWorkItem = DispatchWorkItem { [weak self] in
+            defer {
+                self?.activityIndicatorStopWorkItem = nil
+            }
+
+            if self?.activityIndicatorStopWorkItem?.isCancelled ?? true {
+                return
+            }
+
+            self?.trace("stopping activity indicator because spread did not load")
+            self?.activityIndicatorView?.stopAnimating()
+        }
+
+        // If the spread doesn't begin loading within 1 sec it means that we
+        // likely encountered an error. In that case the work item we
+        // schedule below will stop the activity indicator.
+        // If the spread begins to load it will send a `spreadLoadStart` JS
+        // event which will cancel the work item being scheduled here.
+        trace("scheduling activity indicator stop")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1,
+                                      execute: activityIndicatorStopWorkItem!)
+    }
 }
 
 /// Produced by gestures.js
@@ -566,14 +571,14 @@ struct ClickEvent {
     let point: CGPoint
     let targetElement: String
     let interactiveElement: String?
-    
+
     init(dict: [String: Any]) {
-        self.defaultPrevented = dict["defaultPrevented"] as? Bool ?? false
-        self.point = CGPoint(x: dict["x"] as? Double ?? 0, y: dict["y"] as? Double ?? 0)
-        self.targetElement = dict["targetElement"] as? String ?? ""
-        self.interactiveElement = dict["interactiveElement"] as? String
+        defaultPrevented = dict["defaultPrevented"] as? Bool ?? false
+        point = CGPoint(x: dict["x"] as? Double ?? 0, y: dict["y"] as? Double ?? 0)
+        targetElement = dict["targetElement"] as? String ?? ""
+        interactiveElement = dict["interactiveElement"] as? String
     }
-    
+
     init?(json: Any?) {
         guard let dict = json as? [String: Any] else {
             return nil
@@ -583,60 +588,59 @@ struct ClickEvent {
 }
 
 private extension KeyEvent {
-        
     /// Parses the dictionary created in keyboard.js
     init?(dict: [String: Any]) {
         guard let code = dict["code"] as? String else {
             return nil
         }
-        
+
         switch code {
-            case "Enter":
-                self.key = .enter
-            case "Tab":
-                self.key = .tab
-            case "Space":
-                self.key = .space
-                
-            case "ArrowDown":
-                self.key = .arrowDown
-            case "ArrowLeft":
-                self.key = .arrowLeft
-            case "ArrowRight":
-                self.key = .arrowRight
-            case "ArrowUp":
-                self.key = .arrowUp
-                
-            case "End":
-                self.key = .end
-            case "Home":
-                self.key = .home
-            case "PageDown":
-                self.key = .pageDown
-            case "PageUp":
-                self.key = .pageUp
-                
-            case "MetaLeft", "MetaRight":
-                self.key = .command
-            case "ControlLeft", "ControlRight":
-                self.key = .control
-            case "AltLeft", "AltRight":
-                self.key = .option
-            case "ShiftLeft", "ShiftRight":
-                self.key = .shift
-                
-            case "Backspace":
-                self.key = .backspace
-            case "Escape":
-                self.key = .escape
-                
-            default:
-                guard let char = dict["key"] as? String else {
-                    return nil
-                }
-                self.key = .character(char.lowercased())
+        case "Enter":
+            key = .enter
+        case "Tab":
+            key = .tab
+        case "Space":
+            key = .space
+
+        case "ArrowDown":
+            key = .arrowDown
+        case "ArrowLeft":
+            key = .arrowLeft
+        case "ArrowRight":
+            key = .arrowRight
+        case "ArrowUp":
+            key = .arrowUp
+
+        case "End":
+            key = .end
+        case "Home":
+            key = .home
+        case "PageDown":
+            key = .pageDown
+        case "PageUp":
+            key = .pageUp
+
+        case "MetaLeft", "MetaRight":
+            key = .command
+        case "ControlLeft", "ControlRight":
+            key = .control
+        case "AltLeft", "AltRight":
+            key = .option
+        case "ShiftLeft", "ShiftRight":
+            key = .shift
+
+        case "Backspace":
+            key = .backspace
+        case "Escape":
+            key = .escape
+
+        default:
+            guard let char = dict["key"] as? String else {
+                return nil
+            }
+            key = .character(char.lowercased())
         }
-        
+
         var modifiers: KeyModifiers = []
         if let holdCommand = dict["command"] as? Bool, holdCommand {
             modifiers.insert(.command)

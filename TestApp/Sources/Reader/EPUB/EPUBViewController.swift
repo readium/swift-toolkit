@@ -1,165 +1,168 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import UIKit
-import R2Shared
 import R2Navigator
+import R2Shared
 import ReadiumAdapterGCDWebServer
+import SwiftSoup
+import SwiftUI
+import UIKit
+import WebKit
 
-class EPUBViewController: ReaderViewController {
-    var popoverUserconfigurationAnchor: UIBarButtonItem?
-    var userSettingNavigationController: UserSettingsNavigationController
-    
-    init(publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) throws {
-        var navigatorEditingActions = EditingAction.defaultActions
-        navigatorEditingActions.append(EditingAction(title: "Highlight", action: #selector(highlightSelection)))
-        var navigatorConfig = EPUBNavigatorViewController.Configuration()
-        navigatorConfig.editingActions = navigatorEditingActions
-        
+public extension FontFamily {
+    // Example of adding a custom font embedded in the application.
+    static let literata: FontFamily = "Literata"
+}
+
+class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController> {
+    private let preferencesStore: AnyUserPreferencesStore<EPUBPreferences>
+
+    init(
+        publication: Publication,
+        locator: Locator?,
+        bookId: Book.Id,
+        books: BookRepository,
+        bookmarks: BookmarkRepository,
+        highlights: HighlightRepository,
+        initialPreferences: EPUBPreferences,
+        preferencesStore: AnyUserPreferencesStore<EPUBPreferences>
+    ) throws {
+        var templates = HTMLDecorationTemplate.defaultTemplates()
+        templates[.pageList] = .pageList
+
+        let resources = Bundle.main.resourceURL!
         let navigator = try EPUBNavigatorViewController(
             publication: publication,
             initialLocation: locator,
-            config: navigatorConfig,
+            config: .init(
+                preferences: initialPreferences,
+                editingActions: EditingAction.defaultActions
+                    .appending(EditingAction(
+                        title: "Highlight",
+                        action: #selector(highlightSelection)
+                    )),
+                decorationTemplates: templates,
+                fontFamilyDeclarations: [
+                    CSSFontFamilyDeclaration(
+                        fontFamily: .literata,
+                        fontFaces: [
+                            // Literata is a variable font family, so we can provide a font weight range.
+                            CSSFontFace(
+                                file: resources.appendingPathComponent("Fonts/Literata-VariableFont_opsz,wght.ttf"),
+                                style: .normal, weight: .variable(200 ... 900)
+                            ),
+                            CSSFontFace(
+                                file: resources.appendingPathComponent("Fonts/Literata-Italic-VariableFont_opsz,wght.ttf"),
+                                style: .italic, weight: .variable(200 ... 900)
+                            ),
+                        ]
+                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+                ]
+            ),
             httpServer: GCDHTTPServer.shared
         )
 
-        let settingsStoryboard = UIStoryboard(name: "UserSettings", bundle: nil)
-        userSettingNavigationController = settingsStoryboard.instantiateViewController(withIdentifier: "UserSettingsNavigationController") as! UserSettingsNavigationController
-        userSettingNavigationController.fontSelectionViewController =
-            (settingsStoryboard.instantiateViewController(withIdentifier: "FontSelectionViewController") as! FontSelectionViewController)
-        userSettingNavigationController.advancedSettingsViewController =
-            (settingsStoryboard.instantiateViewController(withIdentifier: "AdvancedSettingsViewController") as! AdvancedSettingsViewController)
-        
+        self.preferencesStore = preferencesStore
+
         super.init(navigator: navigator, publication: publication, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights)
-        
+
         navigator.delegate = self
     }
-    
-    var epubNavigator: EPUBNavigatorViewController {
-        return navigator as! EPUBNavigatorViewController
-    }
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-  
-        /// Set initial UI appearance.
-        if let appearance = publication.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) {
-            setUIColor(for: appearance)
-        }
-        
-        let userSettings = epubNavigator.userSettings
-        userSettingNavigationController.userSettings = userSettings
-        userSettingNavigationController.modalPresentationStyle = .popover
-        userSettingNavigationController.usdelegate = self
-        userSettingNavigationController.userSettingsTableViewController.publication = publication
-        
-
-        publication.userSettingsUIPresetUpdated = { [weak self] preset in
-            guard let `self` = self, let presetScrollValue:Bool = preset?[.scroll] else {
-                return
-            }
-            
-            if let scroll = self.userSettingNavigationController.userSettings.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable {
-                if scroll.on != presetScrollValue {
-                    self.userSettingNavigationController.scrollModeDidChange()
+    override func presentUserPreferences() {
+        Task {
+            let userPrefs = await UserPreferences(
+                model: UserPreferencesViewModel(
+                    bookId: bookId,
+                    preferences: try! preferencesStore.preferences(for: bookId),
+                    configurable: navigator,
+                    store: preferencesStore
+                ),
+                onClose: { [weak self] in
+                    self?.dismiss(animated: true)
                 }
-            }
-        }
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-    }
-
-    override open func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-        epubNavigator.userSettings.save()
-    }
-
-    override func makeNavigationBarButtons() -> [UIBarButtonItem] {
-        var buttons = super.makeNavigationBarButtons()
-
-        // User configuration button
-        let userSettingsButton = UIBarButtonItem(image: #imageLiteral(resourceName: "settingsIcon"), style: .plain, target: self, action: #selector(presentUserSettings))
-        buttons.insert(userSettingsButton, at: 1)
-        popoverUserconfigurationAnchor = userSettingsButton
-
-        return buttons
-    }
-    
-    override var currentBookmark: Bookmark? {
-        guard let locator = navigator.currentLocation else {
-            return nil
-        }
-        
-        return Bookmark(bookId: bookId, locator: locator)
-    }
-    
-    @objc func presentUserSettings() {
-        let popoverPresentationController = userSettingNavigationController.popoverPresentationController!
-        
-        popoverPresentationController.delegate = self
-        popoverPresentationController.barButtonItem = popoverUserconfigurationAnchor
-
-        userSettingNavigationController.publication = publication
-        present(userSettingNavigationController, animated: true) {
-            // Makes sure that the popover is dismissed also when tapping on one of the other UIBarButtonItems.
-            // ie. http://karmeye.com/2014/11/20/ios8-popovers-and-passthroughviews/
-            popoverPresentationController.passthroughViews = nil
+            )
+            let vc = UIHostingController(rootView: userPrefs)
+            vc.modalPresentationStyle = .formSheet
+            present(vc, animated: true)
         }
     }
 
     @objc func highlightSelection() {
-        if let navigator = navigator as? SelectableNavigator, let selection = navigator.currentSelection {
+        if let selection = navigator.currentSelection {
             let highlight = Highlight(bookId: bookId, locator: selection.locator, color: .yellow)
             saveHighlight(highlight)
             navigator.clearSelection()
         }
     }
+
+    // MARK: - Footnotes
+
+    private func presentFootnote(content: String, referrer: String?) -> Bool {
+        var title = referrer
+        if let t = title {
+            title = try? clean(t, .none())
+        }
+        if !suitableTitle(title) {
+            title = nil
+        }
+
+        let content = (try? clean(content, .none())) ?? ""
+        let page =
+            """
+            <html>
+                <head>
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                </head>
+                <body>
+                    \(content)
+                </body>
+            </html>
+            """
+
+        let wk = WKWebView()
+        wk.loadHTMLString(page, baseURL: nil)
+
+        let vc = UIViewController()
+        vc.view = wk
+        vc.navigationItem.title = title
+        vc.navigationItem.leftBarButtonItem = BarButtonItem(barButtonSystemItem: .done, actionHandler: { _ in
+            vc.dismiss(animated: true, completion: nil)
+        })
+
+        let nav = UINavigationController(rootViewController: vc)
+        nav.modalPresentationStyle = .formSheet
+        present(nav, animated: true, completion: nil)
+
+        return false
+    }
+
+    /// This regex matches any string with at least 2 consecutive letters (not limited to ASCII).
+    /// It's used when evaluating whether to display the body of a noteref referrer as the note's title.
+    /// I.e. a `*` or `1` would not be used as a title, but `on` or `好書` would.
+    private lazy var noterefTitleRegex: NSRegularExpression =
+        try! NSRegularExpression(pattern: "[\\p{Ll}\\p{Lu}\\p{Lt}\\p{Lo}]{2}")
+
+    /// Checks to ensure the title is non-nil and contains at least 2 letters.
+    private func suitableTitle(_ title: String?) -> Bool {
+        guard let title = title else { return false }
+        let range = NSRange(location: 0, length: title.utf16.count)
+        let match = noterefTitleRegex.firstMatch(in: title, range: range)
+        return match != nil
+    }
 }
 
 extension EPUBViewController: EPUBNavigatorDelegate {
-    
+    func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: R2Shared.Link, content: String, referrer: String?) -> Bool {
+        presentFootnote(content: content, referrer: referrer)
+    }
 }
 
 extension EPUBViewController: UIGestureRecognizerDelegate {
-    
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        return true
+        true
     }
-    
-}
-
-extension EPUBViewController: UserSettingsNavigationControllerDelegate {
-
-    internal func getUserSettings() -> UserSettings {
-        return epubNavigator.userSettings
-    }
-    
-    internal func updateUserSettingsStyle() {
-        DispatchQueue.main.async {
-            self.epubNavigator.updateUserSettingStyle()
-        }
-    }
-    
-    /// Synchronyze the UI appearance to the UserSettings.Appearance.
-    ///
-    /// - Parameter appearance: The appearance.
-    internal func setUIColor(for appearance: UserProperty) {
-        self.appearanceChanged(appearance)
-        let colors = AssociatedColors.getColors(for: appearance)
-        
-        navigator.view.backgroundColor = colors.mainColor
-        view.backgroundColor = colors.mainColor
-        //
-        navigationController?.navigationBar.barTintColor = colors.mainColor
-        navigationController?.navigationBar.tintColor = colors.textColor
-        
-        navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: colors.textColor]
-    }
-    
 }

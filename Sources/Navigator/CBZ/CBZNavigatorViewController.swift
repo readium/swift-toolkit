@@ -1,28 +1,25 @@
 //
-//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import UIKit
 import R2Shared
+import UIKit
 
-
-public protocol CBZNavigatorDelegate: VisualNavigatorDelegate { }
-
+public protocol CBZNavigatorDelegate: VisualNavigatorDelegate {}
 
 /// A view controller used to render a CBZ `Publication`.
 open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggable {
-
     enum Error: Swift.Error {
         /// The provided publication is restricted. Check that any DRM was
         /// properly unlocked using a Content Protection.
         case publicationRestricted
     }
-    
+
     public weak var delegate: CBZNavigatorDelegate?
 
-    private let publication: Publication
+    public let publication: Publication
     private let initialIndex: Int
 
     private let pageViewController: UIPageViewController
@@ -67,7 +64,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         guard let baseURL = publication.baseURL else {
             preconditionFailure("No base URL provided for the publication. Add it to the HTTP server.")
         }
-        
+
         self.init(
             publication: publication,
             initialLocation: initialLocation,
@@ -85,28 +82,27 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         publicationBaseURL: URL
     ) {
         self.publication = publication
-        self.server = httpServer
+        server = httpServer
         self.publicationEndpoint = publicationEndpoint
         self.publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
-        
-        self.initialIndex = {
+
+        initialIndex = {
             guard let initialLocation = initialLocation, let initialIndex = publication.readingOrder.firstIndex(withHREF: initialLocation.href) else {
                 return 0
             }
             return initialIndex
         }()
-        
-        self.pageViewController = UIPageViewController(
+
+        pageViewController = UIPageViewController(
             transitionStyle: .scroll,
             navigationOrientation: .horizontal
         )
 
         super.init(nibName: nil, bundle: nil)
-        
-        automaticallyAdjustsScrollViewInsets = false
     }
 
-    required public init?(coder aDecoder: NSCoder) {
+    @available(*, unavailable)
+    public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
@@ -118,10 +114,10 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
     override open func viewDidLoad() {
         super.viewDidLoad()
-        
+
         pageViewController.dataSource = self
         pageViewController.delegate = self
-        
+
         addChild(pageViewController)
         pageViewController.view.frame = view.bounds
         pageViewController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -129,26 +125,26 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         pageViewController.didMove(toParent: self)
 
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap)))
-        
+
         goToResourceAtIndex(initialIndex, animated: false, isJump: false)
     }
-    
+
     private var currentResourceIndex: Int {
         guard let imageViewController = pageViewController.viewControllers?.first as? ImageViewController,
-            publication.positions.indices.contains(imageViewController.index) else
-        {
+              publication.positions.indices.contains(imageViewController.index)
+        else {
             return initialIndex
         }
         return imageViewController.index
     }
-    
+
     public var currentPosition: Locator? {
         guard publication.positions.indices.contains(currentResourceIndex) else {
             return nil
         }
         return publication.positions[currentResourceIndex]
     }
-    
+
     @discardableResult
     private func goToResourceAtIndex(_ index: Int, animated: Bool, isJump: Bool, completion: @escaping () -> Void = {}) -> Bool {
         guard let imageViewController = imageViewController(at: index) else {
@@ -158,9 +154,9 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
             let forward: Bool = {
                 switch readingProgression {
                 case .ltr, .ttb, .auto:
-                    return (currentResourceIndex < index)
+                    return currentResourceIndex < index
                 case .rtl, .btt:
-                    return (currentResourceIndex >= index)
+                    return currentResourceIndex >= index
                 }
             }()
             return forward ? .forward : .reverse
@@ -182,54 +178,59 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         let point = gesture.location(in: view)
         delegate?.navigator(self, didTapAt: point)
     }
-    
+
     private func imageViewController(at index: Int) -> ImageViewController? {
         guard publication.readingOrder.indices.contains(index),
-            let url = publication.readingOrder[index].url(relativeTo: publicationBaseURL) else
-        {
+              let url = publication.readingOrder[index].url(relativeTo: publicationBaseURL)
+        else {
             return nil
         }
-        
+
         return ImageViewController(index: index, url: url)
     }
 
-
     // MARK: - Navigator
-    
-    public var readingProgression: ReadingProgression {
-        publication.metadata.effectiveReadingProgression
+
+    public var presentation: VisualNavigatorPresentation {
+        VisualNavigatorPresentation(
+            readingProgression: ReadingProgression(publication.metadata.effectiveReadingProgression) ?? .ltr,
+            scroll: false,
+            axis: .horizontal
+        )
+    }
+
+    public var readingProgression: R2Shared.ReadingProgression {
+        R2Shared.ReadingProgression(presentation.readingProgression)
     }
 
     public var currentLocation: Locator? {
-        return currentPosition
+        currentPosition
     }
-    
+
     public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
         guard let index = publication.readingOrder.firstIndex(withHREF: locator.href) else {
             return false
         }
         return goToResourceAtIndex(index, animated: animated, isJump: true, completion: completion)
     }
-    
+
     public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
         guard let index = publication.readingOrder.firstIndex(withHREF: link.href) else {
             return false
         }
         return goToResourceAtIndex(index, animated: animated, isJump: true, completion: completion)
     }
-    
+
     public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        return goToResourceAtIndex(currentResourceIndex + 1, animated: animated, isJump: false, completion: completion)
-    }
-    
-    public func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        return goToResourceAtIndex(currentResourceIndex - 1, animated: animated, isJump: false, completion: completion)
+        goToResourceAtIndex(currentResourceIndex + 1, animated: animated, isJump: false, completion: completion)
     }
 
+    public func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool {
+        goToResourceAtIndex(currentResourceIndex - 1, animated: animated, isJump: false, completion: completion)
+    }
 }
 
 extension CBZNavigatorViewController: UIPageViewControllerDataSource {
-    
     public func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
         guard let imageVC = viewController as? ImageViewController else {
             return nil
@@ -243,7 +244,7 @@ extension CBZNavigatorViewController: UIPageViewControllerDataSource {
         }
         return imageViewController(at: index)
     }
-    
+
     public func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
         guard let imageVC = viewController as? ImageViewController else {
             return nil
@@ -257,15 +258,12 @@ extension CBZNavigatorViewController: UIPageViewControllerDataSource {
         }
         return imageViewController(at: index)
     }
-
 }
 
 extension CBZNavigatorViewController: UIPageViewControllerDelegate {
-    
     public func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
         if completed, let position = currentPosition {
             delegate?.navigator(self, locationDidChange: position)
         }
     }
-
 }

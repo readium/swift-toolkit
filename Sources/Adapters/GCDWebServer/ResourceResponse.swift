@@ -1,18 +1,12 @@
 //
-//  RDGCDServerResourceResponse.swift
-//  r2-streamer-swift
-//
-//  Created by Olivier Körner on 13/01/2017.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 import R2Shared
-import GCDWebServer
-
+import ReadiumGCDWebServer
 
 /// Errors thrown by the `WebServerResourceResponse`
 ///
@@ -25,8 +19,7 @@ enum WebServerResponseError: Error {
 
 /// The object containing the response's ressource data.
 /// If the ressource to be served is too big, multiple responses will be created.
-class ResourceResponse: GCDWebServerFileResponse, Loggable {
-
+class ResourceResponse: ReadiumGCDWebServerFileResponse, Loggable {
     private let bufferSize = 32 * 1024
 
     private var resource: Resource
@@ -50,17 +43,18 @@ class ResourceResponse: GCDWebServerFileResponse, Loggable {
         if let range = range {
             /// Return a range of what to read next (nothing, next part, whole data).
             func getNextRange(after range: NSRange,
-                              forStreamOfLength streamLength: UInt64) -> Range<UInt64> {
+                              forStreamOfLength streamLength: UInt64) -> Range<UInt64>
+            {
                 let newRange: Range<UInt64>
 
                 if range.location == Int.max {
                     let len = min(UInt64(range.length), streamLength)
 
-                    newRange = (streamLength - len)..<streamLength
+                    newRange = (streamLength - len) ..< streamLength
                 } else if range.location < 0 {
                     // Negative range locations are not supported. We return
                     // the whole data for now.
-                    newRange = 0..<streamLength
+                    newRange = 0 ..< streamLength
                 } else {
                     let currentPosition = min(UInt64(range.location), streamLength)
                     let remainingLength = streamLength - currentPosition
@@ -71,19 +65,19 @@ class ResourceResponse: GCDWebServerFileResponse, Loggable {
                     } else {
                         length = min(UInt64(range.length), remainingLength)
                     }
-                    newRange = currentPosition..<(currentPosition + length)
+                    newRange = currentPosition ..< (currentPosition + length)
                 }
                 return newRange
             }
             self.range = getNextRange(after: range,
-                forStreamOfLength: length)
+                                      forStreamOfLength: length)
         } else /* nil */ {
-            self.range = 0..<length
+            self.range = 0 ..< length
         }
 
         super.init()
 
-        self.contentType = resource.link.type ?? ""
+        contentType = resource.link.type ?? ""
 
         // Disable HTTP caching for publication resources, because it poses a security threat for protected
         // publications.
@@ -111,11 +105,11 @@ class ResourceResponse: GCDWebServerFileResponse, Loggable {
     override open func readData() throws -> Data {
         let len = min(bufferSize, range.count - Int(totalNumberOfBytesRead))
         // If nothing to read, return
-        guard len > 0 && offset < length else {
+        guard len > 0, offset < length else {
             return Data()
         }
         // Read
-        let data = try resource.read(range: offset..<(offset + UInt64(len))).get()
+        let data = try resource.read(range: offset ..< (offset + UInt64(len))).get()
         totalNumberOfBytesRead += UInt64(data.count)
         offset += UInt64(data.count)
         return data
@@ -125,5 +119,3 @@ class ResourceResponse: GCDWebServerFileResponse, Loggable {
         resource.close()
     }
 }
-
-

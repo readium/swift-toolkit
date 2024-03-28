@@ -1,5 +1,5 @@
 //
-//  Copyright 2018 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -11,13 +11,12 @@ import UIKit
 import WebKit
 
 public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate, SelectableNavigatorDelegate {
-
     // MARK: - WebView Customization
 
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController)
 
     // MARK: - Deprecated
-    
+
     // Implement `NavigatorDelegate.navigator(didTapAt:)` instead.
     func middleTapHandler()
 
@@ -28,11 +27,9 @@ public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate, SelectableNaviga
 
     /// Implement `NavigatorDelegate.navigator(presentError:)` instead.
     func presentError(_ error: NavigatorError)
-
 }
 
 public extension EPUBNavigatorDelegate {
-
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController) {}
 
     func middleTapHandler() {}
@@ -40,14 +37,14 @@ public extension EPUBNavigatorDelegate {
     func didChangedDocumentPage(currentDocumentIndex: Int) {}
     func didNavigateViaInternalLinkTap(to documentIndex: Int) {}
     func presentError(_ error: NavigatorError) {}
-
 }
-
 
 public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
 
-open class EPUBNavigatorViewController: UIViewController, VisualNavigator, SelectableNavigator, DecorableNavigator, Loggable {
-
+open class EPUBNavigatorViewController: UIViewController,
+    VisualNavigator, SelectableNavigator, DecorableNavigator,
+    Configurable, Loggable
+{
     public enum EPUBError: Error {
         /// The provided publication is restricted. Check that any DRM was
         /// properly unlocked using a Content Protection.
@@ -63,8 +60,11 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
     }
 
     public struct Configuration {
-        /// Default user settings.
-        public var userSettings: UserSettings
+        /// Initial set of setting preferences.
+        public var preferences: EPUBPreferences
+
+        /// Provides default fallback values and ranges for the user settings.
+        public var defaults: EPUBDefaults
 
         /// Editing actions which will be displayed in the default text selection menu.
         ///
@@ -82,34 +82,53 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
 
         /// Number of positions (as in `Publication.positionList`) to preload before the current page.
         public var preloadPreviousPositionCount: Int
-        
+
         /// Number of positions (as in `Publication.positionList`) to preload after the current page.
         public var preloadNextPositionCount: Int
 
         /// Supported HTML decoration templates.
         public var decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate]
 
+        /// Additional font families which will be available in the preferences.
+        public var fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration]
+
+        /// Readium CSS reading system settings.
+        ///
+        /// See https://readium.org/readium-css/docs/CSS19-api.html#reading-system-styles
+        public var readiumCSSRSProperties: CSSRSProperties
+
         /// Logs the state changes when true.
         public var debugState: Bool
 
+        /// Default user settings.
+        public var userSettings: UserSettings
+
         public init(
             userSettings: UserSettings = UserSettings(),
+            preferences: EPUBPreferences = .empty,
+            defaults: EPUBDefaults = EPUBDefaults(),
             editingActions: [EditingAction] = EditingAction.defaultActions,
             contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets] = [
                 .compact: (top: 20, bottom: 20),
-                .regular: (top: 44, bottom: 44)
+                .regular: (top: 44, bottom: 44),
             ],
             preloadPreviousPositionCount: Int = 2,
             preloadNextPositionCount: Int = 6,
             decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate] = HTMLDecorationTemplate.defaultTemplates(),
+            fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration] = [],
+            readiumCSSRSProperties: CSSRSProperties = CSSRSProperties(),
             debugState: Bool = false
         ) {
             self.userSettings = userSettings
+            self.preferences = preferences
+            self.defaults = defaults
             self.editingActions = editingActions
             self.contentInset = contentInset
             self.preloadPreviousPositionCount = preloadPreviousPositionCount
             self.preloadNextPositionCount = preloadNextPositionCount
             self.decorationTemplates = decorationTemplates
+            self.fontFamilyDeclarations = fontFamilyDeclarations
+            self.readiumCSSRSProperties = readiumCSSRSProperties
             self.debugState = debugState
         }
     }
@@ -117,37 +136,50 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
     public weak var delegate: EPUBNavigatorDelegate? {
         didSet { notifyCurrentLocation() }
     }
-    public var userSettings: UserSettings
 
-    public var readingProgression: ReadingProgression {
-        didSet { updateUserSettingStyle() }
-    }
-    
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
+    public var userSettings: UserSettings = .init()
+
     /// Navigation state.
     private enum State: Equatable {
-        /// Loading the spreads, for example after changing the user settings or loading the publication.
-        case loading
+        /// Loading the spreads at the `pendingLocator`, for example after
+        /// changing the user settings, rotating the screen or loading the
+        /// publication.
+        case loading(pendingLocator: Locator?)
         /// Waiting for further navigation instructions.
         case idle
         /// Jumping to `pendingLocator`.
         case jumping(pendingLocator: Locator)
         /// Turning the page in the given `direction`.
         case moving(direction: EPUBSpreadView.Direction)
-        
+
+        var pendingLocator: Locator? {
+            switch self {
+            case let .loading(pendingLocator: locator):
+                return locator
+            case let .jumping(pendingLocator: locator):
+                return locator
+            default:
+                return nil
+            }
+        }
+
         mutating func transition(_ event: Event) -> Bool {
             switch (self, event) {
-            
+            // Loading the spreads is always possible, because it can be triggered by rotating the
+            // screen. In which case it cancels any on-going state.
+            case let (_, .load(locator)):
+                self = .loading(pendingLocator: locator)
+
             // All events are ignored when loading spreads, except for `loaded` and `load`.
-            case (.loading, .load):
-                return true
             case (.loading, .loaded):
                 self = .idle
             case (.loading, _):
                 return false
 
-            case (.idle, .jump(let locator)):
+            case let (.idle, .jump(locator)):
                 self = .jumping(pendingLocator: locator)
-            case (.idle, .move(let direction)):
+            case let (.idle, .move(direction)):
                 self = .moving(direction: direction)
 
             case (.jumping, .jumped):
@@ -156,7 +188,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
             case (.jumping, .jump),
                  (.jumping, .move):
                 return false
-                
+
             case (.moving, .moved):
                 self = .idle
             // Moving or jumping to another locator is not allowed during a pending move.
@@ -164,24 +196,20 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
                  (.moving, .move):
                 return false
 
-            // Loading the spreads is always possible, because it can be triggered by rotating the
-            // screen. In which case it cancels any on-going state.
-            case (_, .load):
-                self = .loading
-                
             default:
                 log(.error, "Invalid event \(event) for state \(self)")
                 return false
             }
-            
+
             return true
         }
     }
-    
+
     /// Navigation event.
     private enum Event: Equatable {
-        /// Load the spreads, for example after changing the user settings or loading the publication.
-        case load
+        /// Load the spreads at the given locator, for example after changing
+        /// the user settings, rotating the screen or loading the publication.
+        case load(Locator?)
         /// The spreads were loaded.
         case loaded
         /// Jump to the given locator.
@@ -193,14 +221,14 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         /// Finished turning the page.
         case moved
     }
-    
+
     /// Current navigation state.
-    private var state: State = .loading {
+    private var state: State = .loading(pendingLocator: nil) {
         didSet {
-            if (config.debugState) {
+            if config.debugState {
                 log(.debug, "* transitioned to \(state)")
             }
-            
+
             // Disable user interaction while transitioning, to avoid UX issues.
             switch state {
             case .loading, .jumping, .moving:
@@ -211,60 +239,60 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         }
     }
 
-    let config: Configuration
-    private let publication: Publication
     private let initialLocation: Locator?
-    private let editingActions: EditingActionsController
+    private let readingOrder: [Link]
+    private let positionsByReadingOrder: [[Locator]]
 
-    private let server: HTTPServer?
-    private let publicationEndpoint: HTTPServerEndpoint?
-    private let publicationBaseURL: URL
-    private let assetsURL: URL
+    private let viewModel: EPUBNavigatorViewModel
+    public var publication: Publication { viewModel.publication }
 
+    var config: Configuration { viewModel.config }
+
+    /// Creates a new instance of `EPUBNavigatorViewController`.
+    ///
+    /// - Parameters:
+    ///   - publication: EPUB publication to render.
+    ///   - initialLocation: Starting location in the publication, defaults to
+    ///   the beginning.
+    ///   - readingOrder: Custom order of resources to display. Used for example
+    ///   to display a non-linear resource on its own.
+    ///   - config: Additional navigator configuration.
+    ///   - httpServer: HTTP server used to serve the publication resources to
+    ///   the web views.
     public convenience init(
         publication: Publication,
         initialLocation: Locator?,
+        readingOrder: [Link]? = nil,
         config: Configuration = .init(),
         httpServer: HTTPServer
     ) throws {
+        precondition(readingOrder.map { !$0.isEmpty } ?? true)
+
         guard !publication.isRestricted else {
             throw EPUBError.publicationRestricted
         }
 
-        let publicationEndpoint: HTTPServerEndpoint?
-        let baseURL: URL
-        if let url = publication.baseURL {
-            publicationEndpoint = nil
-            baseURL = url
-        } else {
-            let endpoint = UUID().uuidString
-            publicationEndpoint = endpoint
-            baseURL = try httpServer.serve(at: endpoint, publication: publication)
-        }
-
-        // FIXME: Remove in Readium 3.0
-        // Serve the fonts under the /fonts endpoint as the Streamer's
-        // EPUBHTMLInjector is expecting it there.
-        try httpServer.serve(
-            at: "fonts",
-            contentsOf: Bundle.module.resourceURL!.appendingPathComponent("Assets/Static/fonts")
+        let viewModel = try EPUBNavigatorViewModel(
+            publication: publication,
+            config: config,
+            httpServer: httpServer
         )
 
         self.init(
-            publication: publication,
+            viewModel: viewModel,
             initialLocation: initialLocation,
-            httpServer: httpServer,
-            publicationEndpoint: publicationEndpoint,
-            publicationBaseURL: baseURL,
-            assetsURL: try httpServer.serve(
-                at: "readium",
-                contentsOf: Bundle.module.resourceURL!.appendingPathComponent("Assets/Static")
-            ),
-            config: config
+            readingOrder: readingOrder ?? publication.readingOrder,
+            positionsByReadingOrder:
+            // Positions and total progression only make sense in the context
+            // of the publication's actual reading order. Therefore when
+            // provided with a different reading order, we should assume the
+            // positions list is empty, and also not compute the
+            // totalProgression when calculating the current locator.
+            (readingOrder != nil) ? [] : publication.positionsByReadingOrder
         )
     }
 
-    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server and settings API")
     public convenience init(
         publication: Publication,
         initialLocation: Locator? = nil,
@@ -272,55 +300,36 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         config: Configuration = .init()
     ) {
         precondition(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
-        guard let baseURL = publication.baseURL else {
-            preconditionFailure("No base URL provided for the publication. Add it to the HTTP server.")
-        }
-        
+
         self.init(
-            publication: publication,
+            viewModel: EPUBNavigatorViewModel(
+                publication: publication,
+                config: config,
+                resourcesServer: resourcesServer
+            ),
             initialLocation: initialLocation,
-            httpServer: nil,
-            publicationEndpoint: nil,
-            publicationBaseURL: baseURL,
-            assetsURL: {
-                do {
-                    return try resourcesServer.serve(
-                        Bundle.module.resourceURL!.appendingPathComponent("Assets/Static"),
-                        at: "/r2-navigator/epub"
-                    )
-                } catch {
-                    EPUBNavigatorViewController.log(.error, error)
-                    return URL(string: "")!
-                }
-            }(),
-            config: config
+            readingOrder: publication.readingOrder,
+            positionsByReadingOrder: publication.positionsByReadingOrder
         )
+
+        userSettings = config.userSettings
     }
 
     private init(
-        publication: Publication,
+        viewModel: EPUBNavigatorViewModel,
         initialLocation: Locator?,
-        httpServer: HTTPServer?,
-        publicationEndpoint: HTTPServerEndpoint?,
-        publicationBaseURL: URL,
-        assetsURL: URL,
-        config: Configuration
+        readingOrder: [Link],
+        positionsByReadingOrder: [[Locator]]
     ) {
-        self.publication = publication
-        self.server = httpServer
-        self.publicationEndpoint = publicationEndpoint
-        self.publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
-        self.assetsURL = assetsURL
+        self.viewModel = viewModel
         self.initialLocation = initialLocation
-        self.editingActions = EditingActionsController(actions: config.editingActions, rights: publication.rights)
-        self.readingProgression = publication.metadata.effectiveReadingProgression
-        self.config = config
-        self.userSettings = config.userSettings
+        self.readingOrder = readingOrder
+        self.positionsByReadingOrder = positionsByReadingOrder
 
         super.init(nibName: nil, bundle: nil)
-        
-        self.publication.userProperties.properties = userSettings.userProperties.properties
-        self.editingActions.delegate = self
+
+        viewModel.delegate = self
+        viewModel.editingActions.delegate = self
     }
 
     @available(*, unavailable)
@@ -328,85 +337,88 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         fatalError("init(coder:) has not been implemented")
     }
 
-    deinit {
-        if let endpoint = publicationEndpoint {
-            server?.remove(at: endpoint)
-        }
-    }
-
-    open override func viewDidLoad() {
+    override open func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .clear
-        
+
+        // Will call `accessibilityScroll()` when VoiceOver reaches the end of
+        // the current resource. We can use this to go to the next resource.
+        view.accessibilityTraits.insert(.causesPageTurn)
+
         paginationView.frame = view.bounds
         paginationView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         view.addSubview(paginationView)
-        
+
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapBackground)))
 
-        editingActions.updateSharedMenuController()
+        reloadSpreads(at: initialLocation, force: false)
 
-        reloadSpreads(at: initialLocation)
+        applySettings()
     }
-    
+
     @available(iOS 13.0, *)
-    open override func buildMenu(with builder: UIMenuBuilder) {
-        editingActions.buildMenu(with: builder)
+    override open func buildMenu(with builder: UIMenuBuilder) {
+        viewModel.editingActions.buildMenu(with: builder)
         super.buildMenu(with: builder)
     }
-    
+
     /// Intercepts tap gesture when the web views are not loaded.
     @objc private func didTapBackground(_ gesture: UITapGestureRecognizer) {
-        guard state == .loading else { return }
-        let point = gesture.location(in: view)
-        delegate?.navigator(self, didTapAt: point)
+        guard case .loading = state else { return }
+        didTap(at: gesture.location(in: view))
     }
 
-    open override func viewWillDisappear(_ animated: Bool) {
+    override open func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        
+
         // FIXME: Deprecated, to be removed at some point.
         if let currentResourceIndex = currentResourceIndex {
             let progression = currentLocation?.locations.progression
             delegate?.willExitPublication(documentIndex: currentResourceIndex, progression: progression)
         }
     }
-    
-    open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+
+    override open func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        viewModel.viewSizeWillChange(view.bounds.size)
+    }
+
+    override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
-        
-        coordinator.animate(alongsideTransition: nil) { [weak self] context in
-            self?.reloadSpreads()
+
+        viewModel.viewSizeWillChange(size)
+
+        coordinator.animate(alongsideTransition: nil) { [weak self] _ in
+            self?.reloadSpreads(force: false)
         }
     }
-    
-    open override func viewDidAppear(_ animated: Bool) {
+
+    override open func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
+
         becomeFirstResponder()
     }
-    
-    open override var canBecomeFirstResponder: Bool { true }
-    
+
+    override open var canBecomeFirstResponder: Bool { true }
+
     override open func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         var didHandleEvent = false
-        if (isFirstResponder) {
+        if isFirstResponder {
             for press in presses {
                 if let event = KeyEvent(uiPress: press) {
-                    delegate?.navigator(self, didPressKey: event)
+                    didPressKey(event)
                     didHandleEvent = true
                 }
             }
         }
-        
+
         if !didHandleEvent {
             super.pressesBegan(presses, with: event)
         }
     }
-    
+
     override open func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         var didHandleEvent = false
-        if (isFirstResponder) {
+        if isFirstResponder {
             for press in presses {
                 if let event = KeyEvent(uiPress: press) {
                     delegate?.navigator(self, didReleaseKey: event)
@@ -414,40 +426,40 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
                 }
             }
         }
-        
+
         if !didHandleEvent {
             super.pressesEnded(presses, with: event)
         }
     }
-    
+
     @discardableResult
     private func on(_ event: Event) -> Bool {
         assert(Thread.isMainThread, "Raising navigation events must be done from the main thread")
-        
-        if (config.debugState) {
+
+        if config.debugState {
             log(.debug, "-> on \(event)")
         }
-        
+
         return state.transition(event)
     }
-    
+
     /// Mapping between reading order hrefs and the table of contents title.
     private lazy var tableOfContentsTitleByHref: [String: String] = {
         func fulfill(linkList: [Link]) -> [String: String] {
             var result = [String: String]()
-            
+
             for link in linkList {
                 if let title = link.title {
                     result[link.href] = title
                 }
                 let subResult = fulfill(linkList: link.children)
-                result.merge(subResult) { (current, another) -> String in
-                    return current
+                result.merge(subResult) { current, _ -> String in
+                    current
                 }
             }
             return result
         }
-        
+
         return fulfill(linkList: publication.tableOfContents)
     }()
 
@@ -456,20 +468,20 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         guard on(.move(direction)) else {
             return false
         }
-        
+
         let completion = {
             self.on(.moved)
             completionBlock()
         }
-        
+
         if
             let spreadView = paginationView.currentView as? EPUBSpreadView,
             spreadView.go(to: direction, animated: animated, completion: completion)
         {
             return true
         }
-        
-        let isRTL = (readingProgression == .rtl)
+
+        let isRTL = (viewModel.readingProgression == .rtl)
         let delta = isRTL ? -1 : 1
         let moved: Bool = {
             switch direction {
@@ -481,33 +493,34 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
                 return paginationView.goToIndex(currentSpreadIndex + delta, location: location, animated: animated, completion: completion)
             }
         }()
-        
+
         if !moved {
             on(.moved)
         }
-        
+
         return moved
     }
-    
-    
-    // MARK: - User settings
-    
+
+    // MARK: - Legacy user settings
+
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
     public func updateUserSettingStyle() {
-        assert(Thread.isMainThread, "User settings must be updated from the main thread")
+        precondition(viewModel.useLegacySettings, "updateUserSettingsStyle() is not available when using the new Settings API. See the 2.5.0 migration guide.")
+        precondition(Thread.isMainThread, "User settings must be updated from the main thread")
         _updateUserSettingsStyle()
     }
-    
+
     private lazy var _updateUserSettingsStyle = execute(
         when: { [weak self] in self?.state == .idle && self?.paginationView.isEmpty == false },
         pollingInterval: userSettingsStylePollingInterval
     ) { [weak self] in
         guard let self = self else { return }
 
-        self.reloadSpreads()
+        self.reloadSpreads(force: false)
 
         let location = self.currentLocation
         for (_, view) in self.paginationView.loadedViews {
-            (view as? EPUBSpreadView)?.applyUserSettingsStyle()
+            (view as? EPUBSpreadView)?.applySettings()
         }
 
         // Re-positions the navigator to the location before applying the settings
@@ -538,11 +551,10 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         }
     }()
 
-    
     // MARK: - Pagination and spreads
-    
+
     private lazy var paginationView: PaginationView = {
-        let hasPositions = !publication.positions.isEmpty
+        let hasPositions = !positionsByReadingOrder.isEmpty
         let view = PaginationView(
             frame: .zero,
             preloadPreviousPositionCount: hasPositions ? config.preloadPreviousPositionCount : 0,
@@ -552,12 +564,12 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         view.backgroundColor = .clear
         return view
     }()
-    
+
     private var spreads: [EPUBSpread] = []
 
     /// Index of the currently visible spread.
     private var currentSpreadIndex: Int {
-        return paginationView.currentIndex
+        paginationView.currentIndex
     }
 
     // Reading order index of the left-most resource in the visible spread.
@@ -565,50 +577,56 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         guard spreads.indices.contains(currentSpreadIndex) else {
             return nil
         }
-        
-        return publication.readingOrder.firstIndex(withHREF: spreads[currentSpreadIndex].left.href)
+
+        return readingOrder.firstIndex(withHREF: spreads[currentSpreadIndex].left.href)
     }
 
     private let reloadSpreadsCompletions = CompletionList()
     private var needsReloadSpreads = false
-    
-    private func reloadSpreads(at locator: Locator? = nil, completion: (() -> Void)? = nil) {
+
+    private func reloadSpreads(at locator: Locator? = nil, force: Bool, completion: (() -> Void)? = nil) {
         assert(Thread.isMainThread, "reloadSpreads() must be called from the main thread")
 
+        guard isViewLoaded else {
+            return
+        }
         guard !needsReloadSpreads else {
             if let completion = completion {
                 reloadSpreadsCompletions.add(completion)
             }
             return
         }
-        
+
         needsReloadSpreads = true
-        
+
         DispatchQueue.main.async {
             self.needsReloadSpreads = false
-            
-            self._reloadSpreads(at: locator) {
+
+            self._reloadSpreads(at: locator, force: force) {
                 self.reloadSpreadsCompletions.complete()
             }
         }
     }
-    
-    private func _reloadSpreads(at locator: Locator? = nil, completion: @escaping () -> Void) {
-        let isLandscape = (self.view.bounds.width > self.view.bounds.height)
-        let pageCountPerSpread = EPUBSpread.pageCountPerSpread(for: self.publication, userSettings: self.userSettings, isLandscape: isLandscape)
-        
+
+    private func _reloadSpreads(at locator: Locator? = nil, force: Bool, completion: @escaping () -> Void) {
+        let locator = locator ?? currentLocation
+
         guard
-            // Already loaded with the expected amount of spreads.
-            self.spreads.first?.pageCount != pageCountPerSpread,
-            self.on(.load)
+            // Already loaded with the expected amount of spreads?
+            force || spreads.first?.spread != viewModel.spreadEnabled,
+            on(.load(locator))
         else {
             completion()
             return
         }
 
-        let locator = locator ?? self.currentLocation
-        self.spreads = EPUBSpread.makeSpreads(for: self.publication, readingProgression: self.readingProgression, pageCountPerSpread: pageCountPerSpread)
-        
+        spreads = EPUBSpread.makeSpreads(
+            for: publication,
+            readingOrder: readingOrder,
+            readingProgression: viewModel.readingProgression,
+            spread: viewModel.spreadEnabled
+        )
+
         let initialIndex: Int = {
             if let href = locator?.href, let foundIndex = self.spreads.firstIndex(withHref: href) {
                 return foundIndex
@@ -616,8 +634,13 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
                 return 0
             }
         }()
-        
-        self.paginationView.reloadAtIndex(initialIndex, location: PageLocation(locator), pageCount: self.spreads.count, readingProgression: self.readingProgression) {
+
+        paginationView.reloadAtIndex(
+            initialIndex,
+            location: PageLocation(locator),
+            pageCount: spreads.count,
+            readingProgression: viewModel.readingProgression
+        ) {
             self.on(.loaded)
             completion()
         }
@@ -626,31 +649,50 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
     private func loadedSpreadView(forHREF href: String) -> EPUBSpreadView? {
         paginationView.loadedViews
             .compactMap { _, view in view as? EPUBSpreadView }
-            .first { $0.spread.links.first(withHREF: href) != nil}
+            .first { $0.spread.links.first(withHREF: href) != nil }
     }
 
-    
     // MARK: - Navigator
-    
+
+    public var presentation: VisualNavigatorPresentation {
+        VisualNavigatorPresentation(
+            readingProgression: settings.readingProgression,
+            scroll: settings.scroll,
+            axis: (settings.scroll && !settings.verticalText)
+                ? .vertical
+                : .horizontal
+        )
+    }
+
+    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
+    public var readingProgression: R2Shared.ReadingProgression {
+        get { viewModel.legacyReadingProgression }
+        set {
+            viewModel.legacyReadingProgression = newValue
+            updateUserSettingStyle()
+        }
+    }
+
     public var currentLocation: Locator? {
         // Returns any pending locator to prevent returning invalid locations while loading it.
-        if case let .jumping(pendingLocator) = state {
+        if let pendingLocator = state.pendingLocator {
             return pendingLocator
         }
-        
+
         guard let spreadView = paginationView.currentView as? EPUBSpreadView else {
             return nil
         }
-        
+
         let link = spreadView.focusedResource ?? spreadView.spread.leading
         let href = link.href
         let progression = min(max(spreadView.progression(in: href), 0.0), 1.0)
-        
-        // The positions are not always available, for example a Readium WebPub doesn't have any
-        // unless a Publication Positions Web Service is provided.
+
         if
-            let index = publication.readingOrder.firstIndex(withHREF: href),
-            let positionList = Optional(publication.positionsByReadingOrder[index]),
+            // The positions are not always available, for example a Readium
+            // WebPub doesn't have any unless a Publication Positions Web
+            // Service is provided
+            let index = readingOrder.firstIndex(withHREF: href),
+            let positionList = positionsByReadingOrder.getOrNil(index),
             positionList.count > 0
         {
             // Gets the current locator from the positionList, and fill its missing data.
@@ -666,7 +708,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         }
     }
 
-    public func firstVisibleElementLocator(completion: @escaping (Locator?) -> ()) {
+    public func firstVisibleElementLocator(completion: @escaping (Locator?) -> Void) {
         guard let spreadView = paginationView.currentView as? EPUBSpreadView else {
             DispatchQueue.main.async { completion(nil) }
             return
@@ -677,7 +719,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
     /// Last current location notified to the delegate.
     /// Used to avoid sending twice the same location.
     private var notifiedCurrentLocation: Locator?
-    
+
     private lazy var notifyCurrentLocation = execute(
         // If we're not in an `idle` state, we postpone the notification.
         when: { [weak self] in self?.state == .idle },
@@ -703,48 +745,50 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         else {
             return false
         }
-        
+
         return paginationView.goToIndex(spreadIndex, location: .locator(locator), animated: animated) {
             self.on(.jumped)
             self.delegate?.navigator(self, didJumpTo: locator)
             completion()
         }
     }
-    
+
     public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
         guard let locator = publication.locate(link) else {
             return false
         }
         return go(to: locator, animated: animated, completion: completion)
     }
-    
+
     public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
         let direction: EPUBSpreadView.Direction = {
-            switch readingProgression {
-            case .ltr, .ttb, .auto:
+            switch viewModel.readingProgression {
+            case .ltr:
                 return .right
-            case .rtl, .btt:
+            case .rtl:
                 return .left
             }
         }()
         return go(to: direction, animated: animated, completion: completion)
     }
-    
+
     public func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool {
         let direction: EPUBSpreadView.Direction = {
-            switch readingProgression {
-            case .ltr, .ttb, .auto:
+            switch viewModel.readingProgression {
+            case .ltr:
                 return .left
-            case .rtl, .btt:
+            case .rtl:
                 return .right
             }
         }()
         return go(to: direction, animated: animated, completion: completion)
     }
 
-    // MARK: – SelectableNavigator
+    // MARK: - SelectableNavigator
 
-    public var currentSelection: Selection? { editingActions.selection }
+    public var currentSelection: Selection? {
+        viewModel.editingActions.selection
+    }
 
     public func clearSelection() {
         for (_, pageView) in paginationView.loadedViews {
@@ -752,7 +796,7 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         }
     }
 
-    // MARK: – DecorableNavigator
+    // MARK: - DecorableNavigator
 
     private var decorations: [String: [DiffableDecoration]] = [:]
 
@@ -797,12 +841,47 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         callbacks.append(onActivated)
         decorationCallbacks[group] = callbacks
 
-        for (_, view) in self.paginationView.loadedViews {
+        for (_, view) in paginationView.loadedViews {
             (view as? EPUBSpreadView)?.evaluateScript("readium.getDecorations('\(group)').setActivable();")
         }
     }
 
-    // MARK: – EPUB-specific extensions
+    // MARK: - Configurable
+
+    public var settings: EPUBSettings { viewModel.settings }
+
+    public func submitPreferences(_ preferences: EPUBPreferences) {
+        viewModel.submitPreferences(preferences)
+        applySettings()
+
+        delegate?.navigator(self, presentationDidChange: presentation)
+    }
+
+    public func editor(of preferences: EPUBPreferences) -> EPUBPreferencesEditor {
+        viewModel.editor(of: preferences)
+    }
+
+    /// Applies user settings that require native configuration instead of
+    /// CSS properties.
+    private func applySettings() {
+        guard isViewLoaded, !viewModel.useLegacySettings else {
+            return
+        }
+
+        view.backgroundColor = settings.effectiveBackgroundColor.uiColor
+    }
+
+    // MARK: - User interactions
+
+    private func didTap(at point: CGPoint) {
+        delegate?.navigator(self, didTapAt: point)
+    }
+
+    private func didPressKey(_ event: KeyEvent) {
+        delegate?.navigator(self, didPressKey: event)
+    }
+
+    // MARK: - EPUB-specific extensions
 
     /// Evaluates the given JavaScript on the currently visible HTML resource.
     public func evaluateJavaScript(_ script: String, completion: ((Result<Any, Error>) -> Void)? = nil) {
@@ -814,10 +893,60 @@ open class EPUBNavigatorViewController: UIViewController, VisualNavigator, Selec
         }
         spreadView.evaluateScript(script, completion: completion)
     }
+
+    // MARK: - UIAccessibilityAction
+
+    override open func accessibilityScroll(_ direction: UIAccessibilityScrollDirection) -> Bool {
+        guard !super.accessibilityScroll(direction) else {
+            return true
+        }
+
+        switch direction {
+        case .right:
+            return goLeft(animated: false)
+        case .left:
+            return goRight(animated: false)
+        case .next, .down:
+            return goForward(animated: false)
+        case .previous, .up:
+            return goBackward(animated: false)
+        @unknown default:
+            return false
+        }
+    }
+}
+
+extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
+    func epubNavigatorViewModelInvalidatePaginationView(_ viewModel: EPUBNavigatorViewModel) {
+        reloadSpreads(force: true)
+    }
+
+    func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel, runScript script: String, in scope: EPUBScriptScope) {
+        switch scope {
+        case .currentResource:
+            (paginationView.currentView as? EPUBSpreadView)?.evaluateScript(script)
+
+        case .loadedResources:
+            for (_, view) in paginationView.loadedViews {
+                (view as? EPUBSpreadView)?.evaluateScript(script)
+            }
+
+        case let .resource(href):
+            for (_, view) in paginationView.loadedViews {
+                guard
+                    let view = view as? EPUBSpreadView,
+                    view.spread.links.first(withHREF: href) != nil
+                else {
+                    continue
+                }
+                view.evaluateScript(script, inHREF: href)
+                return
+            }
+        }
+    }
 }
 
 extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
-
     func spreadViewDidLoad(_ spreadView: EPUBSpreadView) {
         let templates = config.decorationTemplates.reduce(into: [:]) { styles, item in
             styles[item.key.rawValue] = item.value.json
@@ -858,12 +987,11 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     func spreadView(_ spreadView: EPUBSpreadView, didTapAt point: CGPoint) {
         // We allow taps in any state, because we should always be able to toggle the navigation bar,
         // even while a locator is pending.
-        
-        let point = view.convert(point, from: spreadView)
-        delegate?.navigator(self, didTapAt: point)
+
+        didTap(at: view.convert(point, from: spreadView))
         // FIXME: Deprecated, to be removed at some point.
         delegate?.middleTapHandler()
-        
+
         // Uncomment to debug the coordinates of the tap point.
 //        let tapView = UIView(frame: .init(x: 0, y: 0, width: 50, height: 50))
 //        view.addSubview(tapView)
@@ -877,42 +1005,52 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
 //            tapView.removeFromSuperview()
 //        }
     }
-    
+
     func spreadView(_ spreadView: EPUBSpreadView, didPressKey event: KeyEvent) {
-        delegate?.navigator(self, didPressKey: event)
+        didPressKey(event)
     }
-    
+
     func spreadView(_ spreadView: EPUBSpreadView, didReleaseKey event: KeyEvent) {
         delegate?.navigator(self, didReleaseKey: event)
     }
-    
+
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnExternalURL url: URL) {
         guard state == .idle else { return }
-        
+
         delegate?.navigator(self, presentExternalURL: url)
     }
-    
+
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, clickEvent: ClickEvent?) {
+        guard let link = publication.link(withHREF: href)?.copy(href: href) else {
+            log(.warning, "Cannot find link with HREF: \(href)")
+            return
+        }
+
         // Check to see if this was a noteref link and give delegate the opportunity to display it.
         if
             let clickEvent = clickEvent,
             let interactive = clickEvent.interactiveElement,
             let (note, referrer) = getNoteData(anchor: interactive, href: href),
-            let delegate = self.delegate
+            let delegate = delegate
         {
             if !delegate.navigator(
                 self,
-                shouldNavigateToNoteAt: Link(href: href, type: "text/html"),
+                shouldNavigateToNoteAt: link,
                 content: note,
                 referrer: referrer
             ) {
                 return
             }
         }
-            
-        go(to: Link(href: href))
+
+        // Ask if we should navigate to the link
+        if let delegate = delegate, !delegate.navigator(self, shouldNavigateToLink: link) {
+            return
+        }
+
+        go(to: link)
     }
-    
+
     /// Checks if the internal link is a noteref, and retrieves both the referring text of the link and the body of the note.
     ///
     /// Uses the navigation href from didTapOnInternalLink because it is normalized to a path within the book,
@@ -926,10 +1064,10 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         do {
             let doc = try parse(anchor)
             guard let link = try doc.select("a[epub:type=noteref]").first() else { return nil }
-            
+
             let anchorHref = try link.attr("href")
-            guard href.hasSuffix(anchorHref) else { return nil}
-            
+            guard href.hasSuffix(anchorHref) else { return nil }
+
             let hashParts = href.split(separator: "#")
             guard hashParts.count == 2 else {
                 log(.error, "Could not find hash in link \(href)")
@@ -940,20 +1078,20 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             if withoutFragment.hasPrefix("/") {
                 withoutFragment = String(withoutFragment.dropFirst())
             }
-            
-            let absolute = publicationBaseURL.appendingPathComponent(withoutFragment)
-            
+
+            let absolute = viewModel.publicationBaseURL.appendingPathComponent(withoutFragment)
+
             log(.debug, "Fetching note contents from \(absolute.absoluteString)")
             let contents = try String(contentsOf: absolute)
             let document = try parse(contents)
-            
+
             guard let aside = try document.select("#\(id)").first() else {
                 log(.error, "Could not find the element '#\(id)' in document \(absolute)")
                 return nil
             }
-            
-            return (try aside.html(), try link.html())
-            
+
+            return try (aside.html(), link.html())
+
         } catch {
             log(.error, "Caught error while getting note content: \(error)")
             return nil
@@ -964,8 +1102,8 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         guard
             let callbacks = decorationCallbacks[group].takeIf({ !$0.isEmpty }),
             let decoration: Decoration = decorations[group]?
-                .first(where: { $0.decoration.id == id })
-                .map({ $0.decoration })
+            .first(where: { $0.decoration.id == id })
+            .map(\.decoration)
         else {
             return
         }
@@ -980,10 +1118,10 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             let locator = currentLocation,
             let text = text
         else {
-            editingActions.selection = nil
+            viewModel.editingActions.selection = nil
             return
         }
-        editingActions.selection = Selection(
+        viewModel.editingActions.selection = Selection(
             locator: locator.copy(text: { $0 = text }),
             frame: frame
         )
@@ -994,15 +1132,17 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             notifyCurrentLocation()
         }
     }
-    
+
     func spreadView(_ spreadView: EPUBSpreadView, present viewController: UIViewController) {
         present(viewController, animated: true)
     }
 
+    func spreadViewDidTerminate() {
+        reloadSpreads(force: true)
+    }
 }
 
 extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
-    
     func editingActionsDidPreventCopy(_ editingActions: EditingActionsController) {
         delegate?.navigator(self, presentError: .copyForbidden)
         // FIXME: Deprecated, to be removed at some point.
@@ -1010,30 +1150,23 @@ extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
     }
 
     func editingActions(_ editingActions: EditingActionsController, shouldShowMenuForSelection selection: Selection) -> Bool {
-        return delegate?.navigator(self, shouldShowMenuForSelection: selection) ?? true
+        delegate?.navigator(self, shouldShowMenuForSelection: selection) ?? true
     }
 
     func editingActions(_ editingActions: EditingActionsController, canPerformAction action: EditingAction, for selection: Selection) -> Bool {
-        return delegate?.navigator(self, canPerformAction: action, for: selection) ?? true
+        delegate?.navigator(self, canPerformAction: action, for: selection) ?? true
     }
 }
 
 extension EPUBNavigatorViewController: PaginationViewDelegate {
-    
     func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int) -> (UIView & PageView)? {
         let spread = spreads[index]
         let spreadViewType = (spread.layout == .fixed) ? EPUBFixedSpreadView.self : EPUBReflowableSpreadView.self
         let spreadView = spreadViewType.init(
-            publication: publication,
+            viewModel: viewModel,
             spread: spread,
-            baseURL: publicationBaseURL,
-            resourcesURL: assetsURL,
-            readingProgression: readingProgression,
-            userSettings: userSettings,
             scripts: [],
-            animatedLoad: false,  // FIXME: custom animated
-            editingActions: editingActions,
-            contentInset: config.contentInset
+            animatedLoad: false
         )
         spreadView.delegate = self
 
@@ -1042,7 +1175,7 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
 
         return spreadView
     }
-    
+
     func paginationViewDidUpdateViews(_ paginationView: PaginationView) {
         // notice that you should set the delegate before you load views
         // otherwise, when open the publication, you may miss the first invocation
@@ -1055,6 +1188,6 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
     }
 
     func paginationView(_ paginationView: PaginationView, positionCountAtIndex index: Int) -> Int {
-        return spreads[index].positionCount(in: publication)
+        spreads[index].positionCount(in: readingOrder, positionsByReadingOrder: positionsByReadingOrder)
     }
 }

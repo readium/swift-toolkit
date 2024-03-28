@@ -1,4 +1,4 @@
-platform :ios, '10.3.1'
+platform :ios, '11.0'
 
 target 'TestApp' do
   # Comment the next line if you don't want to use dynamic frameworks
@@ -10,21 +10,22 @@ target 'TestApp' do
   pod 'ReadiumAdapterGCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumAdapterGCDWebServer.podspec'
   pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumOPDS.podspec'
   pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumLCP.podspec'
+  pod 'ReadiumInternal', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumInternal.podspec'
   pod 'R2LCPClient', podspec: 'LCP_URL'
 
   # Required for R2Streamer and ReadiumAdapterGCDWebServer.
   pod 'GCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/master/GCDWebServer.podspec'
 
-  pod 'GRDB.swift'
-  pod 'Kingfisher'
-  pod 'MBProgressHUD'
-  pod 'SwiftSoup'
+  pod 'GRDB.swift', '~> 5.0'
+  pod 'Kingfisher', '~> 5.0'
+  pod 'MBProgressHUD', '~> 1.0'
+  pod 'SwiftSoup', '~> 2.0'
 end
 
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
-        config.build_settings['SWIFT_VERSION'] = '5.1.4'
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '11.0'
         config.build_settings['ENABLE_BITCODE'] = 'NO'
     end
   end

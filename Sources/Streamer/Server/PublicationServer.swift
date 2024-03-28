@@ -1,17 +1,12 @@
 //
-//  PublicationServer.swift
-//  r2-streamer-swift
-//
-//  Created by Olivier Körner on 21/12/2016.
-//
-//  Copyright 2018 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 import R2Shared
-import GCDWebServer
+import ReadiumGCDWebServer
 import UIKit
 
 /// Errors thrown by the `PublicationServer`.
@@ -20,7 +15,7 @@ import UIKit
 /// - fetcher: An error thrown by the Fetcher.
 /// - nilBaseUrl: The base url is nil.
 /// - usedEndpoint: This endpoint is already in use.
-public enum PublicationServerError: Error{
+public enum PublicationServerError: Error {
     case parser(underlyingError: Error)
     case fetcher(underlyingError: Error)
     case nilBaseURL
@@ -31,44 +26,43 @@ public enum PublicationServerError: Error{
 @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
 public class PublicationServer: ResourcesServer, Loggable {
     /// The HTTP server.
-    var webServer: GCDWebServer
-    
+    var webServer: ReadiumGCDWebServer
+
     // Mapping between endpoint and the matching publication.
     public private(set) var publications: [String: Publication] = [:]
 
     /// The port is initially set to 0 to choose a random port when first starting the server.
     /// Only the first time the server is started a random port is chosen, to make sure we keep the same port when coming out of background.
     public var port: UInt {
-        return webServer.port
+        webServer.port
     }
-    
+
     /// The base URL of the server
     public var baseURL: URL? {
-        return webServer.serverURL
+        webServer.serverURL
     }
-    
 
     // MARK: - Public methods
-    
+
     public init?() {
         #if DEBUG
-        GCDWebServer.setLogLevel(2)
+            ReadiumGCDWebServer.setLogLevel(2)
         #else
-        GCDWebServer.setLogLevel(3)
+            ReadiumGCDWebServer.setLogLevel(3)
         #endif
-        webServer = GCDWebServer()
+        webServer = ReadiumGCDWebServer()
         if startWebServer() == false {
             return nil
         }
         addStaticResourcesHandlers()
-        
+
         NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     @objc private func willEnterForeground(_ notification: Notification) {
         // Restarts the server if it was stopped while the app was in the background.
         if isPortFree(port) {
@@ -79,7 +73,7 @@ public class PublicationServer: ResourcesServer, Loggable {
             }
         }
     }
-    
+
     func startWebServer() -> Bool {
         func makeRandomPort() -> UInt {
             // https://en.wikipedia.org/wiki/Ephemeral_port#Range
@@ -87,8 +81,8 @@ public class PublicationServer: ResourcesServer, Loggable {
             let upperBound = 65535
             return UInt(lowerBound + Int(arc4random_uniform(UInt32(upperBound - lowerBound))))
         }
-        
-        for _ in 1...50 {
+
+        for _ in 1 ... 50 {
             do {
                 try startWithPort(makeRandomPort())
                 return true
@@ -96,31 +90,31 @@ public class PublicationServer: ResourcesServer, Loggable {
                 log(.error, error)
             }
         }
-        
+
         log(.error, "Failed to start the HTTP server")
         return false
     }
-    
+
     private func startWithPort(_ port: UInt) throws {
         // TODO: Check if we can use unix socket instead of tcp.
         //       Check if it's supported by WKWebView first.
         webServer.stop()
         try webServer.start(options: [
-            GCDWebServerOption_Port: port,
-            GCDWebServerOption_BindToLocalhost: true,
+            ReadiumGCDWebServerOption_Port: port,
+            ReadiumGCDWebServerOption_BindToLocalhost: true,
             // We disable automatically suspending the server in the background, to be able to play
             // audiobooks even with the screen locked.
-            GCDWebServerOption_AutomaticallySuspendInBackground: false
+            ReadiumGCDWebServerOption_AutomaticallySuspendInBackground: false,
         ])
     }
-    
+
     /// Checks if the given port is already taken (presumabily by the server).
     /// Inspired by https://stackoverflow.com/questions/33086356/swift-2-check-if-port-is-busy
     private func isPortFree(_ port: UInt) -> Bool {
         let port = in_port_t(port)
-        
+
         func getErrnoMessage() -> String {
-            return String(cString: UnsafePointer(strerror(errno)))
+            String(cString: UnsafePointer(strerror(errno)))
         }
 
         let socketDescriptor = socket(AF_INET, SOCK_STREAM, 0)
@@ -151,7 +145,7 @@ public class PublicationServer: ResourcesServer, Loggable {
             }
             log(.error, "Bind failed: \(getErrnoMessage())")
         }
-        
+
         // It might not actually be free, but we'll try to restart the server.
         return true
     }
@@ -161,7 +155,7 @@ public class PublicationServer: ResourcesServer, Loggable {
         guard let resourceURL = Bundle.module.resourceURL?.appendingPathComponent("Assets") else {
             return
         }
-        
+
         for resource in ["fonts"] {
             do {
                 try serve(resourceURL.appendingPathComponent(resource), at: "/\(resource)")
@@ -191,11 +185,11 @@ public class PublicationServer: ResourcesServer, Loggable {
             log(.error, "Base URL is nil.")
             throw PublicationServerError.nilBaseURL
         }
-        
+
         // Add the self link to the publication.
         let manifestURL = baseURL.appendingPathComponent("\(endpoint)/manifest.json")
         publication.setSelfLink(href: manifestURL.absoluteString)
-        
+
         publications[endpoint] = publication
 
         /// Add resources handler.
@@ -206,21 +200,21 @@ public class PublicationServer: ResourcesServer, Loggable {
         }
         /// Add manifest handler.
         addManifestHandler(for: publication, at: endpoint)
-        
+
         log(.info, "Publication at \(endpoint) has been successfully added.")
     }
-    
+
     fileprivate func addResourcesHandler(for publication: Publication, at endpoint: String) throws {
         webServer.addHandler(
             forMethod: "GET",
             pathRegex: "/\(endpoint)/.*",
-            request: GCDWebServerRequest.self,
+            request: ReadiumGCDWebServerRequest.self,
             processBlock: { [weak self, weak publication] request in
                 guard let publication = publication else {
                     self?.log(.error, "The publication was deallocated.")
-                    return GCDWebServerErrorResponse(statusCode: 500)
+                    return ReadiumGCDWebServerErrorResponse(statusCode: 500)
                 }
-                
+
                 // Remove the prefix from the URI.
                 var href = request.url.absoluteString
                 if let range = href.range(of: endpoint) {
@@ -238,26 +232,26 @@ public class PublicationServer: ResourcesServer, Loggable {
             }
         )
     }
-    
+
     fileprivate func addManifestHandler(for publication: Publication, at endpoint: String) {
         webServer.addHandler(
             forMethod: "GET",
             pathRegex: "/\(endpoint)/manifest.json",
-            request: GCDWebServerRequest.self,
-            processBlock: { [weak self, weak publication] request in
+            request: ReadiumGCDWebServerRequest.self,
+            processBlock: { [weak self, weak publication] _ in
                 guard let publication = publication else {
                     self?.log(.error, "The publication was deallocated.")
-                    return GCDWebServerErrorResponse(statusCode: 500)
+                    return ReadiumGCDWebServerErrorResponse(statusCode: 500)
                 }
                 guard let manifestData = publication.jsonManifest?.data(using: .utf8) else {
-                    return GCDWebServerResponse(statusCode: 404)
+                    return ReadiumGCDWebServerResponse(statusCode: 404)
                 }
                 let type = "\(MediaType.readiumWebPubManifest.string); charset=utf-8"
-                return GCDWebServerDataResponse(data: manifestData, contentType: type)
+                return ReadiumGCDWebServerDataResponse(data: manifestData, contentType: type)
             }
         )
     }
-    
+
     @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
     public func remove(_ publication: Publication) {
         guard let endpoint = publications.first(where: { $0.value === publication })?.key else {
@@ -265,7 +259,7 @@ public class PublicationServer: ResourcesServer, Loggable {
         }
         remove(at: endpoint)
     }
-    
+
     /// Remove a publication from the server.
     ///
     /// - Parameter endpoint: The URI postfix of the ressource.
@@ -280,7 +274,7 @@ public class PublicationServer: ResourcesServer, Loggable {
         publication.setSelfLink(href: nil)
         log(.info, "Publication at \(endpoint) has been successfully removed.")
     }
-    
+
     /// Remove all publication from the server.
     @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
     public func removeAll() {
@@ -289,16 +283,15 @@ public class PublicationServer: ResourcesServer, Loggable {
             publication.setSelfLink(href: nil)
             log(.info, "Publication at \(endpoint) has been successfully removed.")
         }
-        
+
         publications.removeAll()
     }
-    
-    
-    /// MARK: ResourcesServer
-    
+
+    // MARK: ResourcesServer
+
     /// Mapping between the served path and the local file URL of resources.
     private var resources: [String: URL] = [:]
-    
+
     @discardableResult
     public func serve(_ url: URL, at path: String) throws -> URL {
         guard let baseURL = baseURL else {
@@ -312,60 +305,54 @@ public class PublicationServer: ResourcesServer, Loggable {
             throw ResourcesServerError.invalidPath
         }
         guard url.isFileURL,
-            FileManager.default.fileExists(atPath: url.path) else
-        {
+              FileManager.default.fileExists(atPath: url.path)
+        else {
             throw ResourcesServerError.fileNotFound
         }
-        
+
         if resources[path] == nil {
             webServer.addHandler(
                 forMethod: "GET",
                 pathRegex: "\(path)(/.*)?",
-                request: GCDWebServerRequest.self,
+                request: ReadiumGCDWebServerRequest.self,
                 processBlock: resourceHandler
             )
         }
-        
+
         resources[path] = url
-        
+
         return baseURL.appendingPathComponent(String(path.dropFirst()))
     }
-    
-    private func resourceHandler(_ request: GCDWebServerRequest?) -> GCDWebServerResponse? {
+
+    private func resourceHandler(_ request: ReadiumGCDWebServerRequest?) -> ReadiumGCDWebServerResponse? {
         guard let request = request else {
             return nil
         }
         var path = request.path
         let paths = resources.keys.sorted().reversed()
         guard let basePath = paths.first(where: { path.hasPrefix($0) }),
-            var file = resources[basePath] else
-        {
-            return GCDWebServerResponse(statusCode: 404)
+              var file = resources[basePath]
+        else {
+            return ReadiumGCDWebServerResponse(statusCode: 404)
         }
         path = String(path.dropFirst(basePath.count + 1))
         file.appendPathComponent(path)
-        
+
         guard let data = try? Data(contentsOf: file) else {
-            return GCDWebServerResponse(statusCode: 404)
+            return ReadiumGCDWebServerResponse(statusCode: 404)
         }
-        
+
         let contentType = MediaType.of(file)?.string
             ?? "application/octet-stream"
 
 //        log(.debug, "Serve resource `\(path)` (\(contentType))")
-        
+
         assert(file.pathExtension.lowercased() != "css" || contentType == "text/css")
-        return GCDWebServerDataResponse(data: data, contentType: contentType)
+        return ReadiumGCDWebServerDataResponse(data: data, contentType: contentType)
     }
-    
+
     @available(*, unavailable, message: "Passing a `Container` is not needed anymore")
     public func add(_ publication: Publication, with container: Container, at endpoint: String = UUID().uuidString) throws {
         try add(publication, at: endpoint)
     }
-    
-    // Mapping between endpoint and the matching container.
-    @available(*, unavailable, message: "`Container` is not used anymore in the `PublicationServer")
-    public private(set) var containers: [String: Container] = [:]
-    
 }
-

@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -11,7 +11,6 @@ import Foundation
 /// This is required by some Navigators to access a local publication's
 /// resources.
 public protocol HTTPServer {
-
     /// Serves resources at the given `endpoint`.
     ///
     /// Subsequent calls with the same `endpoint` overwrite each other.
@@ -20,12 +19,16 @@ public protocol HTTPServer {
     @discardableResult
     func serve(at endpoint: HTTPServerEndpoint, handler: @escaping (HTTPServerRequest) -> Resource) throws -> URL
 
-    /// Removes a handler serving resources at `endpoint`.
+    /// Registers a `Resource` transformer that will be run on all responses
+    /// matching the given `endpoint`.
+    func transformResources(at endpoint: HTTPServerEndpoint, with transformer: @escaping ResourceTransformer)
+
+    /// Removes a handler serving resources at `endpoint`, as well as the
+    /// resource transformers.
     func remove(at endpoint: HTTPServerEndpoint)
 }
 
 public extension HTTPServer {
-
     /// Serves the local file `url` at the given `endpoint`.
     ///
     /// If the provided `url` is a directory, then all the files in the
@@ -53,7 +56,10 @@ public extension HTTPServer {
     /// - Returns the base URL to access the publication's resources on the
     /// server.
     @discardableResult
-    func serve(at endpoint: HTTPServerEndpoint, publication: Publication) throws -> URL {
+    func serve(
+        at endpoint: HTTPServerEndpoint,
+        publication: Publication
+    ) throws -> URL {
         try serve(at: endpoint) { request in
             guard let href = request.href else {
                 return FailureResource(
@@ -72,7 +78,6 @@ public typealias HTTPServerEndpoint = String
 
 /// Request made to an `HTTPServer`.
 public struct HTTPServerRequest {
-
     /// Absolute URL on the server.
     public let url: URL
 

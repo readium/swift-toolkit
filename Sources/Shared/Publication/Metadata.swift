@@ -1,27 +1,22 @@
 //
-//  Metadata.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu, Alexandre Camilleri on 09.03.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
+import ReadiumInternal
 
 /// https://readium.org/webpub-manifest/schema/metadata.schema.json
 public struct Metadata: Hashable, Loggable, WarningLogger {
-
     /// Collection type used for collection/series metadata.
     /// For convenience, the JSON schema reuse the Contributor's definition.
     public typealias Collection = Contributor
 
-    public let identifier: String?  // URI
-    public let type: String?  // URI (@type)
+    public let identifier: String? // URI
+    public let type: String? // URI (@type)
     public let conformsTo: [Publication.Profile]
-    
+
     public let localizedTitle: LocalizedString
     public var title: String { localizedTitle.string }
 
@@ -31,7 +26,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
     public let accessibility: Accessibility?
     public let modified: Date?
     public let published: Date?
-    public let languages: [String]  // BCP 47 tag
+    public let languages: [String] // BCP 47 tag
     // Main language of the publication.
     public let language: Language?
     public let sortAs: String?
@@ -61,7 +56,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
 
     /// Additional properties for extensions.
     public var otherMetadata: [String: Any] { otherMetadataJSON.json }
-    
+
     // Trick to keep the struct equatable despite [String: Any]
     private let otherMetadataJSON: JSONDictionary
 
@@ -102,13 +97,13 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         self.identifier = identifier
         self.type = type
         self.conformsTo = conformsTo
-        self.localizedTitle = title.localizedString
-        self.localizedSubtitle = subtitle?.localizedString
+        localizedTitle = title.localizedString
+        localizedSubtitle = subtitle?.localizedString
         self.accessibility = accessibility
         self.modified = modified
         self.published = published
         self.languages = languages
-        self.language = languages.first.map { Language(code: .bcp47($0)) }
+        language = languages.first.map { Language(code: .bcp47($0)) }
         self.sortAs = sortAs
         self.subjects = subjects
         self.authors = authors
@@ -138,57 +133,57 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         }
         self.belongsTo = belongsTo
 
-        self.otherMetadataJSON = JSONDictionary(otherMetadata) ?? JSONDictionary()
+        otherMetadataJSON = JSONDictionary(otherMetadata) ?? JSONDictionary()
     }
-    
+
     public init(json: Any?, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) throws {
         guard var json = JSONDictionary(json),
-            let title = try? LocalizedString(json: json.pop("title"), warnings: warnings) else
-        {
+              let title = try? LocalizedString(json: json.pop("title"), warnings: warnings)
+        else {
             throw JSONError.parsing(Metadata.self)
         }
-        
-        self.identifier = json.pop("identifier") as? String
-        self.type = json.pop("@type") as? String ?? json.pop("type") as? String
-        self.conformsTo = parseArray(json.pop("conformsTo"), allowingSingle: true)
+
+        identifier = json.pop("identifier") as? String
+        type = json.pop("@type") as? String ?? json.pop("type") as? String
+        conformsTo = parseArray(json.pop("conformsTo"), allowingSingle: true)
             .map { Publication.Profile($0) }
-        self.localizedTitle = title
-        self.localizedSubtitle = try? LocalizedString(json: json.pop("subtitle"), warnings: warnings)
-        self.accessibility = try? Accessibility(json: json.pop("accessibility"), warnings: warnings)
-        self.modified = parseDate(json.pop("modified"))
-        self.published = parseDate(json.pop("published"))
-        self.languages = parseArray(json.pop("language"), allowingSingle: true)
-        self.language = languages.first.map { Language(code: .bcp47($0)) }
-        self.sortAs = json.pop("sortAs") as? String
-        self.subjects = [Subject](json: json.pop("subject"), warnings: warnings)
-        self.authors = [Contributor](json: json.pop("author"), warnings: warnings,  normalizeHREF: normalizeHREF)
-        self.translators = [Contributor](json: json.pop("translator"), warnings: warnings, normalizeHREF: normalizeHREF)
-        self.editors = [Contributor](json: json.pop("editor"), warnings: warnings, normalizeHREF: normalizeHREF)
-        self.artists = [Contributor](json: json.pop("artist"), warnings: warnings, normalizeHREF: normalizeHREF)
-        self.illustrators = [Contributor](json: json.pop("illustrator"), warnings: warnings, normalizeHREF: normalizeHREF)
-        self.letterers = [Contributor](json: json.pop("letterer"), warnings: warnings, normalizeHREF: normalizeHREF)
-        self.pencilers = [Contributor](json: json.pop("penciler"), warnings: warnings, normalizeHREF: normalizeHREF)
-        self.colorists = [Contributor](json: json.pop("colorist"), warnings: warnings, normalizeHREF: normalizeHREF)
-        self.inkers = [Contributor](json: json.pop("inker"), warnings: warnings, normalizeHREF: normalizeHREF)
-        self.narrators = [Contributor](json: json.pop("narrator"), warnings: warnings, normalizeHREF: normalizeHREF)
-        self.contributors = [Contributor](json: json.pop("contributor"), warnings: warnings, normalizeHREF: normalizeHREF)
-        self.publishers = [Contributor](json: json.pop("publisher"), warnings: warnings, normalizeHREF: normalizeHREF)
-        self.imprints = [Contributor](json: json.pop("imprint"), warnings: warnings, normalizeHREF: normalizeHREF)
-        self.readingProgression = parseRaw(json.pop("readingProgression")) ?? .auto
-        self.description = json.pop("description") as? String
-        self.duration = parsePositiveDouble(json.pop("duration"))
-        self.numberOfPages = parsePositive(json.pop("numberOfPages"))
-        self.belongsTo = (json.pop("belongsTo") as? [String: Any])?
+        localizedTitle = title
+        localizedSubtitle = try? LocalizedString(json: json.pop("subtitle"), warnings: warnings)
+        accessibility = try? Accessibility(json: json.pop("accessibility"), warnings: warnings)
+        modified = parseDate(json.pop("modified"))
+        published = parseDate(json.pop("published"))
+        languages = parseArray(json.pop("language"), allowingSingle: true)
+        language = languages.first.map { Language(code: .bcp47($0)) }
+        sortAs = json.pop("sortAs") as? String
+        subjects = [Subject](json: json.pop("subject"), warnings: warnings)
+        authors = [Contributor](json: json.pop("author"), warnings: warnings, normalizeHREF: normalizeHREF)
+        translators = [Contributor](json: json.pop("translator"), warnings: warnings, normalizeHREF: normalizeHREF)
+        editors = [Contributor](json: json.pop("editor"), warnings: warnings, normalizeHREF: normalizeHREF)
+        artists = [Contributor](json: json.pop("artist"), warnings: warnings, normalizeHREF: normalizeHREF)
+        illustrators = [Contributor](json: json.pop("illustrator"), warnings: warnings, normalizeHREF: normalizeHREF)
+        letterers = [Contributor](json: json.pop("letterer"), warnings: warnings, normalizeHREF: normalizeHREF)
+        pencilers = [Contributor](json: json.pop("penciler"), warnings: warnings, normalizeHREF: normalizeHREF)
+        colorists = [Contributor](json: json.pop("colorist"), warnings: warnings, normalizeHREF: normalizeHREF)
+        inkers = [Contributor](json: json.pop("inker"), warnings: warnings, normalizeHREF: normalizeHREF)
+        narrators = [Contributor](json: json.pop("narrator"), warnings: warnings, normalizeHREF: normalizeHREF)
+        contributors = [Contributor](json: json.pop("contributor"), warnings: warnings, normalizeHREF: normalizeHREF)
+        publishers = [Contributor](json: json.pop("publisher"), warnings: warnings, normalizeHREF: normalizeHREF)
+        imprints = [Contributor](json: json.pop("imprint"), warnings: warnings, normalizeHREF: normalizeHREF)
+        readingProgression = parseRaw(json.pop("readingProgression")) ?? .auto
+        description = json.pop("description") as? String
+        duration = parsePositiveDouble(json.pop("duration"))
+        numberOfPages = parsePositive(json.pop("numberOfPages"))
+        belongsTo = (json.pop("belongsTo") as? [String: Any])?
             .compactMapValues { item in [Collection](json: item, warnings: warnings, normalizeHREF: normalizeHREF) }
             ?? [:]
-        self.otherMetadataJSON = json
+        otherMetadataJSON = json
     }
-    
+
     public var json: [String: Any] {
-        return makeJSON([
+        makeJSON([
             "identifier": encodeIfNotNil(identifier),
             "@type": encodeIfNotNil(type),
-            "conformsTo": encodeIfNotEmpty(conformsTo.map { $0.uri }),
+            "conformsTo": encodeIfNotEmpty(conformsTo.map(\.uri)),
             "title": localizedTitle.json,
             "subtitle": encodeIfNotNil(localizedSubtitle?.json),
             "accessibility": encodeIfNotEmpty(accessibility?.json),
@@ -214,7 +209,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
             "description": encodeIfNotNil(description),
             "duration": encodeIfNotNil(duration),
             "numberOfPages": encodeIfNotNil(numberOfPages),
-            "belongsTo": encodeIfNotEmpty(belongsTo.mapValues { $0.json })
+            "belongsTo": encodeIfNotEmpty(belongsTo.mapValues { $0.json }),
         ], additional: otherMetadata)
     }
 
@@ -234,22 +229,22 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         guard readingProgression == .auto else {
             return readingProgression
         }
-        
+
         // https://github.com/readium/readium-css/blob/develop/docs/CSS16-internationalization.md#missing-page-progression-direction
         guard languages.count == 1, var language = languages.first?.lowercased() else {
             return .ltr
         }
-        
+
         if ["zh-hant", "zh-tw"].contains(language) {
             return .rtl
         }
-        
+
         // The region is ignored for ar, fa and he.
         language = language.split(separator: "-").first.map(String.init) ?? language
         if ["ar", "fa", "he"].contains(language) {
             return .rtl
         }
-        
+
         return .ltr
     }
 
@@ -288,12 +283,12 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         belongsToSeries: [Collection]? = nil,
         otherMetadata: [String: Any]? = nil
     ) -> Metadata {
-        return Metadata(
+        Metadata(
             identifier: identifier ?? self.identifier,
             type: type ?? self.type,
             conformsTo: conformsTo ?? self.conformsTo,
-            title: title ?? self.localizedTitle,
-            subtitle: subtitle ?? self.localizedSubtitle,
+            title: title ?? localizedTitle,
+            subtitle: subtitle ?? localizedSubtitle,
             accessibility: accessibility ?? self.accessibility,
             modified: modified ?? self.modified,
             published: published ?? self.published,
@@ -323,5 +318,4 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
             otherMetadata: otherMetadata ?? self.otherMetadata
         )
     }
-
 }
