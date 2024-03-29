@@ -134,9 +134,9 @@ class LibraryViewController: UIViewController, Loggable {
         var types = DocumentTypes.main.supportedUTTypes
         types.append(.text)
         
-        if let type = UTType(String(kUTTypeText)) {
-            types.append(type)
-        }
+//        if let type = UTType(String(kUTTypeText)) {
+//            types.append(type)
+//        }
 
         let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: types)
         documentPicker.delegate = self

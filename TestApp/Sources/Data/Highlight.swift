@@ -82,14 +82,14 @@ final class HighlightRepository {
         }
     }
 
-    func all(for bookId: Book.Id) -> AnyPublisher<[Highlight], Error> {
-        db.observe { db in
-            try Highlight
-                .filter(Highlight.Columns.bookId == bookId)
-                .order(Highlight.Columns.progression)
-                .fetchAll(db)
-        }
-    }
+//    func all(for bookId: Book.Id) -> AnyPublisher<[Highlight], Error> {
+//        db.observe { db in
+//            try Highlight
+//                .filter(Highlight.Columns.bookId == bookId)
+//                .order(Highlight.Columns.progression)
+//                .fetchAll(db)
+//        }
+//    }
     
     func highlight(for highlightId: Highlight.Id) -> AnyPublisher<Highlight, Never> {
         db.observe { db in
@@ -100,14 +100,14 @@ final class HighlightRepository {
         }
     }
 
-    func highlight(for highlightId: Highlight.Id) -> AnyPublisher<Highlight, Error> {
-        db.observe { db in
-            try Highlight
-                .filter(Highlight.Columns.id == highlightId)
-                .fetchOne(db)
-                .orThrow(HighlightNotFoundError())
-        }
-    }
+//    func highlight(for highlightId: Highlight.Id) -> AnyPublisher<Highlight, Error> {
+//        db.observe { db in
+//            try Highlight
+//                .filter(Highlight.Columns.id == highlightId)
+//                .fetchOne(db)
+//                .orThrow(HighlightNotFoundError())
+//        }
+//    }
     
     func add(_ highlight: Highlight) -> AnyPublisher<Highlight.Id, Error> {
         return db.writePublisher { db in
@@ -116,13 +116,13 @@ final class HighlightRepository {
         }.eraseToAnyPublisher()
     }
 
-    @discardableResult
-    func add(_ highlight: Highlight) async throws -> Highlight.Id {
-        try await db.write { db in
-            try highlight.insert(db)
-            return highlight.id
-        }
-    }
+//    @discardableResult
+//    func add(_ highlight: Highlight) async throws -> Highlight.Id {
+//        try await db.write { db in
+//            try highlight.insert(db)
+//            return highlight.id
+//        }
+//    }
     
     func update(_ id: Highlight.Id, color: HighlightColor) -> AnyPublisher<Void, Error> {
         return db.writePublisher { db in
@@ -132,21 +132,21 @@ final class HighlightRepository {
         }.eraseToAnyPublisher()
     }
 
-    func update(_ id: Highlight.Id, color: HighlightColor) async throws {
-        try await db.write { db in
-            let filtered = Highlight.filter(Highlight.Columns.id == id)
-            let assignment = Highlight.Columns.color.set(to: color)
-            try filtered.updateAll(db, onConflict: nil, assignment)
-        }
-    }
+//    func update(_ id: Highlight.Id, color: HighlightColor) async throws {
+//        try await db.write { db in
+//            let filtered = Highlight.filter(Highlight.Columns.id == id)
+//            let assignment = Highlight.Columns.color.set(to: color)
+//            try filtered.updateAll(db, onConflict: nil, assignment)
+//        }
+//    }
         
     func remove(_ id: Highlight.Id) -> AnyPublisher<Void, Error> {
         db.writePublisher { db in try Highlight.deleteOne(db, key: id) }
     }
 
-    func remove(_ id: Highlight.Id) async throws {
-        try await db.write { db in try Highlight.deleteOne(db, key: id) }
-    }
+//    func remove(_ id: Highlight.Id) async throws {
+//        try await db.write { db in try Highlight.deleteOne(db, key: id) }
+//    }
 }
 
 // for the default SwiftUI support

@@ -44,9 +44,9 @@ final class LibraryService: Loggable {
         books.all()
     }
 
-    func allBooks() -> AnyPublisher<[Book], Error> {
-        books.all()
-    }
+//    func allBooks() -> AnyPublisher<[Book], Error> {
+//        books.all()
+//    }
 
     // MARK: Opening
 

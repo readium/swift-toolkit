@@ -38,9 +38,9 @@ final class HighlightsViewModel: ObservableObject, OutlineViewModelLoaderDelegat
         self.repository.all(for: bookId)
     }
 
-    var dataTask: AnyPublisher<[Highlight], Error> {
-        repository.all(for: bookId)
-    }
+//    var dataTask: AnyPublisher<[Highlight], Error> {
+//        repository.all(for: bookId)
+//    }
 
     func setLoadedValues(_ values: [Highlight]) {
         highlights = values
@@ -75,9 +75,9 @@ final class BookmarksViewModel: ObservableObject, OutlineViewModelLoaderDelegate
         self.repository.all(for: bookId)
     }
 
-    var dataTask: AnyPublisher<[Bookmark], Error> {
-        repository.all(for: bookId)
-    }
+//    var dataTask: AnyPublisher<[Bookmark], Error> {
+//        repository.all(for: bookId)
+//    }
 
     func setLoadedValues(_ values: [Bookmark]) {
         bookmarks = values
@@ -91,7 +91,7 @@ private protocol OutlineViewModelLoaderDelegate: AnyObject {
     
     var dataTask: AnyPublisher<[T], Never> { get }
 
-    var dataTask: AnyPublisher<[T], Error> { get }
+//    var dataTask: AnyPublisher<[T], Error> { get }
     func setLoadedValues(_ values: [T])
 }
 

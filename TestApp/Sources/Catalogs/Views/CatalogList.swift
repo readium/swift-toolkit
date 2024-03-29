@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -46,7 +46,9 @@ struct CatalogList: View {
             AddFeedSheet(showingSheet: $showingSheet) { title, url in
                 Task {
                     do {
-                        _ = try await OPDSParser.parseURL(url: URL(string: url)!)
+                        OPDSParser.parseURL(url: URL(string: url)!) { data, error in
+                            
+                        }
                         try await addCatalog(catalog: Catalog(title: title, url: url))
                     } catch {
                         showingAlert = true

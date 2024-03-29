@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -77,7 +77,9 @@ extension CatalogFeed {
     
     func parseFeed() async {
         if let url = URL(string: catalog.url) {
-            self.parseData = try? await OPDSParser.parseURL(url: url)
+            OPDSParser.parseURL(url: url) { data, error in
+                self.parseData = data
+            }
         }
     }
 }

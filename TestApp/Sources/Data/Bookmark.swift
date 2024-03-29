@@ -53,14 +53,14 @@ final class BookmarkRepository {
         }
     }
 
-    func all(for bookId: Book.Id) -> AnyPublisher<[Bookmark], Error> {
-        db.observe { db in
-            try Bookmark
-                .filter(Bookmark.Columns.bookId == bookId)
-                .order(Bookmark.Columns.progression)
-                .fetchAll(db)
-        }
-    }
+//    func all(for bookId: Book.Id) -> AnyPublisher<[Bookmark], Error> {
+//        db.observe { db in
+//            try Bookmark
+//                .filter(Bookmark.Columns.bookId == bookId)
+//                .order(Bookmark.Columns.progression)
+//                .fetchAll(db)
+//        }
+//    }
     
     func add(_ bookmark: Bookmark) -> AnyPublisher<Bookmark.Id, Error> {
         return db.writePublisher { db in
@@ -69,21 +69,21 @@ final class BookmarkRepository {
         }.eraseToAnyPublisher()
     }
 
-    @discardableResult
-    func add(_ bookmark: Bookmark) async throws -> Bookmark.Id {
-        try await db.write { db in
-            try bookmark.insert(db)
-            return Bookmark.Id(rawValue: db.lastInsertedRowID)
-        }
-    }
+//    @discardableResult
+//    func add(_ bookmark: Bookmark) async throws -> Bookmark.Id {
+//        try await db.write { db in
+//            try bookmark.insert(db)
+//            return Bookmark.Id(rawValue: db.lastInsertedRowID)
+//        }
+//    }
     
     func remove(_ id: Bookmark.Id) -> AnyPublisher<Void, Error> {
         db.writePublisher { db in try Bookmark.deleteOne(db, key: id) }
     }
 
-    func remove(_ id: Bookmark.Id) async throws {
-        try await db.write { db in try Bookmark.deleteOne(db, key: id) }
-    }
+//    func remove(_ id: Bookmark.Id) async throws {
+//        try await db.write { db in try Bookmark.deleteOne(db, key: id) }
+//    }
 }
 
 // for the default SwiftUI support
