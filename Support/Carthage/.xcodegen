@@ -147,10 +147,10 @@
           "framework" : "..\/..\/Carthage\/Build\/Fuzi.xcframework"
         },
         {
-          "framework" : "..\/..\/Carthage\/Build\/GCDWebServer.xcframework"
+          "framework" : "..\/..\/Carthage\/Build\/Minizip.xcframework"
         },
         {
-          "framework" : "..\/..\/Carthage\/Build\/Minizip.xcframework"
+          "framework" : "..\/..\/Carthage\/Build\/ReadiumGCDWebServer.xcframework"
         },
         {
           "target" : "R2Shared"
@@ -182,7 +182,7 @@
     "ReadiumAdapterGCDWebServer" : {
       "dependencies" : [
         {
-          "framework" : "..\/..\/Carthage\/Build\/GCDWebServer.xcframework"
+          "framework" : "..\/..\/Carthage\/Build\/ReadiumGCDWebServer.xcframework"
         },
         {
           "target" : "R2Shared"
@@ -7517,7 +7517,6 @@
 ../../Sources/Navigator/EPUB/Scripts/node_modules/hasown/.nycrc
 ../../Sources/Navigator/EPUB/Scripts/node_modules/hasown/CHANGELOG.md
 ../../Sources/Navigator/EPUB/Scripts/node_modules/hasown/index.d.ts
-../../Sources/Navigator/EPUB/Scripts/node_modules/hasown/index.d.ts.map
 ../../Sources/Navigator/EPUB/Scripts/node_modules/hasown/index.js
 ../../Sources/Navigator/EPUB/Scripts/node_modules/hasown/LICENSE
 ../../Sources/Navigator/EPUB/Scripts/node_modules/hasown/package.json
@@ -8947,6 +8946,22 @@
 ../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/implementation.js
 ../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/index.js
 ../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/LICENSE
+../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/node_modules
+../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/node_modules/call-bind
+../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/node_modules/call-bind/.eslintignore
+../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/node_modules/call-bind/.eslintrc
+../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/node_modules/call-bind/.github
+../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/node_modules/call-bind/.github/FUNDING.yml
+../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/node_modules/call-bind/.nycrc
+../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/node_modules/call-bind/callBound.js
+../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/node_modules/call-bind/CHANGELOG.md
+../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/node_modules/call-bind/index.js
+../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/node_modules/call-bind/LICENSE
+../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/node_modules/call-bind/package.json
+../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/node_modules/call-bind/README.md
+../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/node_modules/call-bind/test
+../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/node_modules/call-bind/test/callBound.js
+../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/node_modules/call-bind/test/index.js
 ../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/package.json
 ../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/polyfill.js
 ../../Sources/Navigator/EPUB/Scripts/node_modules/regexp.prototype.flags/README.md
@@ -11506,6 +11521,7 @@
 ../../Sources/Navigator/EPUB/Scripts/node_modules/yallist/README.md
 ../../Sources/Navigator/EPUB/Scripts/node_modules/yallist/yallist.js
 ../../Sources/Navigator/EPUB/Scripts/package.json
+../../Sources/Navigator/EPUB/Scripts/pnpm-lock.yaml
 ../../Sources/Navigator/EPUB/Scripts/README.md
 ../../Sources/Navigator/EPUB/Scripts/src
 ../../Sources/Navigator/EPUB/Scripts/src/decorator.js
@@ -11549,7 +11565,6 @@
 ../../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/xpath.js
 ../../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/README.md
 ../../Sources/Navigator/EPUB/Scripts/webpack.config.js
-../../Sources/Navigator/EPUB/Scripts/yarn.lock
 ../../Sources/Navigator/EPUB/UserSettings.swift
 ../../Sources/Navigator/KeyEvent.swift
 ../../Sources/Navigator/Navigator.swift
