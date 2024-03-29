@@ -155,7 +155,6 @@ final class Database {
 //    func observe<T>(_ query: @escaping (GRDB.Database) throws -> T) -> AnyPublisher<T, Error> {
 //        ValueObservation.tracking(query)
 //            .publisher(in: writer)
-//            .assertNoFailure()
 //            .eraseToAnyPublisher()
 //    }
 }

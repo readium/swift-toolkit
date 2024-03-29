@@ -113,6 +113,12 @@ final class BookRepository {
 //        }
 //    }
     
+    func observe(_ id: Book.Id) -> AnyPublisher<Book?, Never> {
+        db.observe { db in
+            try Book.fetchOne(db, key: id)
+        }
+    }
+    
     func all() -> AnyPublisher<[Book], Never> {
         db.observe { db in
             try Book.order(Book.Columns.created).fetchAll(db)
