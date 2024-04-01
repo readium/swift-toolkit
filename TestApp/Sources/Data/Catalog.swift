@@ -38,7 +38,7 @@ final class CatalogRepository {
         self.db = db
     }
     
-    func all() -> AnyPublisher<[Catalog]?, Never> {
+    func all() -> AnyPublisher<[Catalog]?, Error> {
         db.observe {
             try Catalog.order(Catalog.Columns.title).fetchAll($0)
         }

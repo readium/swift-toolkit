@@ -32,8 +32,13 @@ struct CatalogList: View {
                         }
                     }
                 }
-                .onReceive(catalogRepository.all()) {
-                    catalogs = $0 ?? []
+                .onReceive(catalogRepository.all()
+                    .replaceError(with: nil)) { catalogsOrNil in
+                        if let catalogs = catalogsOrNil {
+                            self.catalogs = catalogs
+                        } else {
+                            print("Error fetching catalogs")
+                        }
                 }
                 .listStyle(DefaultListStyle())
                 

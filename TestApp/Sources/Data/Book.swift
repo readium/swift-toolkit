@@ -107,51 +107,28 @@ final class BookRepository {
         }
     }
 
-//    func observe(_ id: Book.Id) -> AnyPublisher<Book?, Error> {
-//        db.observe { db in
-//            try Book.fetchOne(db, key: id)
-//        }
-//    }
-    
-    func observe(_ id: Book.Id) -> AnyPublisher<Book?, Never> {
+    func observe(_ id: Book.Id) -> AnyPublisher<Book?, Error> {
         db.observe { db in
             try Book.fetchOne(db, key: id)
         }
     }
-    
-    func all() -> AnyPublisher<[Book], Never> {
+
+    func all() -> AnyPublisher<[Book], Error> {
         db.observe { db in
             try Book.order(Book.Columns.created).fetchAll(db)
         }
     }
 
-//    func all() -> AnyPublisher<[Book], Error> {
-//        db.observe { db in
-//            try Book.order(Book.Columns.created).fetchAll(db)
-//        }
-//    }
-
-//    @discardableResult
-//    func add(_ book: Book) async throws -> Book.Id {
-//        try await db.write { db in
-//            try book.insert(db)
-//            return Book.Id(rawValue: db.lastInsertedRowID)
-//        }
-//    }
-    
-    func add(_ book: Book) -> AnyPublisher<Book.Id, Error> {
-        return db.writePublisher { db in
+    @discardableResult
+    func add(_ book: Book) async throws -> Book.Id {
+        try await db.write { db in
             try book.insert(db)
             return Book.Id(rawValue: db.lastInsertedRowID)
-        }.eraseToAnyPublisher()
+        }
     }
 
-//    func remove(_ id: Book.Id) async throws {
-//        try await db.write { db in try Book.deleteOne(db, key: id) }
-//    }
-    
-    func remove(_ id: Book.Id) -> AnyPublisher<Void, Error> {
-        db.writePublisher { db in try Book.deleteOne(db, key: id) }
+    func remove(_ id: Book.Id) async throws {
+        try await db.write { db in try Book.deleteOne(db, key: id) }
     }
 
     func saveProgress(for id: Book.Id, locator: Locator) async throws {
@@ -167,12 +144,6 @@ final class BookRepository {
             """)
         }
     }
-    
-//    func saveProgress(for id: Book.Id, locator: Locator) async throws {
-//        guard let json = locator.jsonString else {
-//            return
-//        }
-//    }
 
     func savePreferences<Preferences: Encodable>(_ preferences: Preferences, of id: Book.Id) async throws {
         try await db.write { db in

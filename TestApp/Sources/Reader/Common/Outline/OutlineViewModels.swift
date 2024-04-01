@@ -33,14 +33,10 @@ final class HighlightsViewModel: ObservableObject, OutlineViewModelLoaderDelegat
     func loadIfNeeded() {
         loader.loadIfNeeded()
     }
-    
-    var dataTask: AnyPublisher<[Highlight], Never> {
-        self.repository.all(for: bookId)
-    }
 
-//    var dataTask: AnyPublisher<[Highlight], Error> {
-//        repository.all(for: bookId)
-//    }
+    var dataTask: AnyPublisher<[Highlight], Error> {
+        repository.all(for: bookId)
+    }
 
     func setLoadedValues(_ values: [Highlight]) {
         highlights = values
@@ -70,14 +66,10 @@ final class BookmarksViewModel: ObservableObject, OutlineViewModelLoaderDelegate
     func loadIfNeeded() {
         loader.loadIfNeeded()
     }
-    
-    var dataTask: AnyPublisher<[Bookmark], Never> {
-        self.repository.all(for: bookId)
-    }
 
-//    var dataTask: AnyPublisher<[Bookmark], Error> {
-//        repository.all(for: bookId)
-//    }
+    var dataTask: AnyPublisher<[Bookmark], Error> {
+        repository.all(for: bookId)
+    }
 
     func setLoadedValues(_ values: [Bookmark]) {
         bookmarks = values
@@ -88,10 +80,8 @@ final class BookmarksViewModel: ObservableObject, OutlineViewModelLoaderDelegate
 
 private protocol OutlineViewModelLoaderDelegate: AnyObject {
     associatedtype T
-    
-    var dataTask: AnyPublisher<[T], Never> { get }
 
-//    var dataTask: AnyPublisher<[T], Error> { get }
+    var dataTask: AnyPublisher<[T], Error> { get }
     func setLoadedValues(_ values: [T])
 }
 

@@ -39,14 +39,10 @@ final class LibraryService: Loggable {
             contentProtections: drmLibraryServices.compactMap(\.contentProtection)
         )
     }
-    
-    func allBooks() -> AnyPublisher<[Book], Never> {
+
+    func allBooks() -> AnyPublisher<[Book], Error> {
         books.all()
     }
-
-//    func allBooks() -> AnyPublisher<[Book], Error> {
-//        books.all()
-//    }
 
     // MARK: Opening
 

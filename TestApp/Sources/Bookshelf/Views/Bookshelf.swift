@@ -24,8 +24,11 @@ struct Bookshelf: View {
                             BookCover(title: book.title, authors: book.authors, url: book.cover)
                         }
                     }
-                    .onReceive(bookRepository.all()) {
-                        books = $0
+                    //TODO handle error
+                    .onReceive(bookRepository.all()
+                        .replaceError(with: [])
+                    ) { books in
+                        self.books = books
                     }
                 }
                 
