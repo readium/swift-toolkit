@@ -7,13 +7,12 @@
 import SwiftUI
 
 struct AddBookSheet: View {
-    
     // For iOS 15, we can use @Environment(\.dismiss)
     @Binding var showingSheet: Bool
     var action: (String) -> Void
-    
+
     @State var url: String = ""
-    
+
     var body: some View {
         NavigationView {
             Form {
@@ -25,7 +24,7 @@ struct AddBookSheet: View {
             .toolbar(content: toolbarContent)
         }
     }
-    
+
     @ToolbarContentBuilder
     private func toolbarContent() -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {
@@ -43,8 +42,8 @@ struct AddBookSheet: View {
     }
 }
 
-//struct AddBookSheet_Previews: PreviewProvider {
+// struct AddBookSheet_Previews: PreviewProvider {
 //    static var previews: some View {
 //        AddBookSheet(showingSheet: true)
 //    }
-//}
+// }

@@ -133,7 +133,7 @@ class LibraryViewController: UIViewController, Loggable {
     @objc func addBookFromDevice() {
         var types = DocumentTypes.main.supportedUTTypes
         types.append(.text)
-        
+
 //        if let type = UTType(String(kUTTypeText)) {
 //            types.append(type)
 //        }
@@ -228,7 +228,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         return cell
     }
 
-    internal func defaultCover(layout: UICollectionViewFlowLayout?, description: String) -> UITextView {
+    func defaultCover(layout: UICollectionViewFlowLayout?, description: String) -> UITextView {
         let width = layout?.itemSize.width ?? 0
         let height = layout?.itemSize.height ?? 0
         let titleTextView = UITextView(frame: CGRect(x: 0, y: 0, width: width, height: height))

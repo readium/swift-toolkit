@@ -52,7 +52,7 @@ final class BookmarkRepository {
                 .fetchAll(db)
         }
     }
-    
+
     @discardableResult
     func add(_ bookmark: Bookmark) async throws -> Bookmark.Id {
         try await db.write { db in
@@ -64,7 +64,6 @@ final class BookmarkRepository {
     func remove(_ id: Bookmark.Id) async throws {
         try await db.write { db in try Bookmark.deleteOne(db, key: id) }
     }
-
 }
 
 // for the default SwiftUI support

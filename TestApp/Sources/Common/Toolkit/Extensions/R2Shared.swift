@@ -7,4 +7,4 @@
 import R2Shared
 
 extension R2Shared.Publication: Identifiable {}
-extension R2Shared.Group : Identifiable {}
+extension R2Shared.Group: Identifiable {}

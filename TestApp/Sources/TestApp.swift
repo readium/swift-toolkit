@@ -4,13 +4,13 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import SwiftUI
 import GRDB
+import SwiftUI
 
 @main
 struct TestApp: App {
     let container = try! Container()
-    
+
     var body: some Scene {
         WindowGroup {
             TabView {

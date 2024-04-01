@@ -92,7 +92,7 @@ class DRMManagementTableViewController: UITableViewController {
         present(alert, animated: true)
     }
 
-    internal func reload() {
+    func reload() {
         typeLabel.text = viewModel.name
         stateLabel.text = viewModel.state
         providerLabel.text = viewModel.provider

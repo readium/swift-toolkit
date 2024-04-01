@@ -11,7 +11,7 @@ struct BookCover: View {
     var authors: String?
     var url: URL?
     var action: () -> Void = {}
-    
+
     var body: some View {
         VStack {
             let width: CGFloat = 150
@@ -21,10 +21,10 @@ struct BookCover: View {
                 .frame(width: width, alignment: .topLeading)
         }
     }
-    
+
     @ViewBuilder
     private var cover: some View {
-        if (url != nil) {
+        if url != nil {
             AsyncImage(
                 url: url,
                 content: { $0
@@ -43,14 +43,14 @@ struct BookCover: View {
                 .aspectRatio(contentMode: .fit)
         }
     }
-    
+
     @ViewBuilder
     private var labels: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
                 .font(.headline)
                 .lineLimit(1)
-            
+
             // Hack to reserve space for two lines of text.
             // See https://sarunw.com/posts/how-to-force-two-lines-of-text-in-swiftui/
             Text((authors ?? "") + "\n")

@@ -23,9 +23,9 @@ protocol OPDSRootTableViewControllerFactory {
 }
 
 class OPDSRootTableViewController: UITableViewController {
-    typealias Factory =
+    typealias Factory = OPDSFacetViewControllerFactory
+        &
         OPDSRootTableViewControllerFactory
-            & OPDSFacetViewControllerFactory
 
     var factory: Factory!
     var originalFeedURL: URL?

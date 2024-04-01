@@ -9,11 +9,11 @@ import SwiftUI
 struct ListRowItem: View {
     var action: () -> Void = {}
     var title: String
-    
+
     var body: some View {
         Text(title)
             .font(.title3)
-        .padding(.vertical, 8)
+            .padding(.vertical, 8)
     }
 }
 

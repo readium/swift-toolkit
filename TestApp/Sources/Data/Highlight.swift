@@ -90,7 +90,7 @@ final class HighlightRepository {
                 .orThrow(HighlightNotFoundError())
         }
     }
-    
+
     @discardableResult
     func add(_ highlight: Highlight) async throws -> Highlight.Id {
         try await db.write { db in
@@ -110,7 +110,6 @@ final class HighlightRepository {
     func remove(_ id: Highlight.Id) async throws {
         try await db.write { db in try Highlight.deleteOne(db, key: id) }
     }
-    
 }
 
 // for the default SwiftUI support

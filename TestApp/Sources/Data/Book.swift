@@ -94,7 +94,7 @@ final class BookRepository {
     init(db: Database) {
         self.db = db
     }
-    
+
     func save(_ book: inout Book) async throws {
         book = try await db.write { [book] db in
             try book.saved(db)

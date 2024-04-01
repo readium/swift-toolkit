@@ -13,42 +13,41 @@ import SwiftUI
 protocol DatabaseMigration {
     /// Schema version for this migration.
     var version: Int { get }
-    
+
     /// Applies the migration.
     func run(on db: GRDB.Database) throws
 }
 
 final class Database {
-    
     convenience init(file: URL, migrations: [DatabaseMigration]) throws {
-        try self.init(writer: try DatabaseQueue(path: file.path), migrations: migrations)
+        try self.init(writer: DatabaseQueue(path: file.path), migrations: migrations)
     }
 
     private let writer: DatabaseWriter
-    
+
     private init(writer: DatabaseWriter = DatabaseQueue(), migrations: [DatabaseMigration]) throws {
         self.writer = writer
-        
+
         try run(migrations)
     }
-    
+
     /// Runs the database migrations on `Database` initialization.
     private func run(_ migrations: [DatabaseMigration]) throws {
         try writer.write { db in
             let currentVersion = try Int64.fetchOne(db, sql: "PRAGMA user_version") ?? 0
-            
+
             try migrations
                 .filter { $0.version > currentVersion }
                 .sorted { $0.version < $1.version }
                 .forEach { try run($0, on: db) }
         }
     }
-    
+
     private func run(_ migration: DatabaseMigration, on db: GRDB.Database) throws {
         try migration.run(on: db)
         try db.execute(sql: "PRAGMA user_version = \(migration.version)")
     }
-    
+
     func read<T>(_ value: @escaping (GRDB.Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
             writer.asyncRead { result in
@@ -60,7 +59,7 @@ final class Database {
             }
         }
     }
-    
+
     @discardableResult
     func write<T>(_ updates: @escaping (GRDB.Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
@@ -69,7 +68,7 @@ final class Database {
             }
         }
     }
-    
+
     func writePublisher<T>(_ updates: @escaping (GRDB.Database) throws -> T) -> AnyPublisher<T, Error> {
         writer.writePublisher(updates: updates)
             .eraseToAnyPublisher()

@@ -7,16 +7,15 @@
 import SwiftUI
 
 struct AddFeedSheet: View {
-    
     typealias ActionCallback = ((title: String, url: String)) -> Void
-    
+
     // For iOS 15, we can use @Environment(\.dismiss)
     @Binding var showingSheet: Bool
     var action: ActionCallback
-    
+
     @State var title: String = ""
     @State var url: String = ""
-    
+
     var body: some View {
         NavigationView {
             Form {
@@ -31,7 +30,7 @@ struct AddFeedSheet: View {
             .toolbar(content: toolbarContent)
         }
     }
-    
+
     @ToolbarContentBuilder
     private func toolbarContent() -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {
@@ -49,8 +48,8 @@ struct AddFeedSheet: View {
     }
 }
 
-//struct AddFeedSheet_Previews: PreviewProvider {
+// struct AddFeedSheet_Previews: PreviewProvider {
 //    static var previews: some View {
 //        AddFeedSheet()
 //    }
-//}
+// }
