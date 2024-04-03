@@ -1,36 +1,30 @@
 //
-//  Contributor.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu, Alexandre Camilleri on 09.03.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-
+import ReadiumInternal
 
 /// https://readium.org/webpub-manifest/schema/contributor-object.schema.json
 public struct Contributor: Hashable {
-    
     /// The name of the contributor.
     public let localizedName: LocalizedString
     public var name: String { localizedName.string }
 
     /// An unambiguous reference to this contributor.
     public let identifier: String?
-    
+
     /// The string used to sort the name of the contributor.
     public let sortAs: String?
-    
+
     /// The role of the contributor in the publication making.
     public let roles: [String]
-    
+
     /// The position of the publication in this collection/series, when the contributor represents a collection.
     public let position: Double?
-    
+
     /// Used to retrieve similar publications for the given contributor.
     public let links: [Link]
 
@@ -40,15 +34,15 @@ public struct Contributor: Hashable {
         if let role = role {
             roles.append(role)
         }
-        
-        self.localizedName = name.localizedString
+
+        localizedName = name.localizedString
         self.identifier = identifier
         self.sortAs = sortAs
         self.roles = roles
         self.position = position
         self.links = links
     }
-    
+
     public init?(json: Any, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) throws {
         if let name = json as? String {
             self.init(name: name)
@@ -68,7 +62,7 @@ public struct Contributor: Hashable {
             throw JSONError.parsing(Self.self)
         }
     }
-    
+
     public var json: [String: Any] {
         makeJSON([
             "name": localizedName.json,
@@ -76,17 +70,15 @@ public struct Contributor: Hashable {
             "sortAs": encodeIfNotNil(sortAs),
             "role": encodeIfNotEmpty(roles),
             "position": encodeIfNotNil(position),
-            "links": encodeIfNotEmpty(links.json)
+            "links": encodeIfNotEmpty(links.json),
         ])
     }
-
 }
 
-extension Array where Element == Contributor {
-    
+public extension Array where Element == Contributor {
     /// Parses multiple JSON contributors into an array of Contributors.
     /// eg. let authors = [Contributor](json: ["Apple", "Pear"])
-    public init(json: Any?, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) {
+    init(json: Any?, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) {
         self.init()
         guard let json = json else {
             return
@@ -99,9 +91,8 @@ extension Array where Element == Contributor {
             append(contributor)
         }
     }
-    
-    public var json: [[String: Any]] {
-        return map { $0.json }
+
+    var json: [[String: Any]] {
+        map(\.json)
     }
-    
 }

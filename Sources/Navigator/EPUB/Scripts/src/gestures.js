@@ -6,6 +6,7 @@
 
 import { handleDecorationClickEvent } from "./decorator";
 import { adjustPointToViewport } from "./rect";
+import { findNearestInteractiveElement } from "./dom";
 
 window.addEventListener("DOMContentLoaded", function () {
   // If we don't set the CSS cursor property to pointer, then the click events are not triggered pre-iOS 13.
@@ -26,7 +27,7 @@ function onClick(event) {
     x: point.x,
     y: point.y,
     targetElement: event.target.outerHTML,
-    interactiveElement: nearestInteractiveElement(event.target),
+    interactiveElement: findNearestInteractiveElement(event.target),
   };
 
   if (handleDecorationClickEvent(event, clickEvent)) {
@@ -41,40 +42,4 @@ function onClick(event) {
   // We don't want to disable the default WebView behavior as it breaks some features without bringing any value.
   // event.stopPropagation();
   // event.preventDefault();
-}
-
-// See. https://github.com/JayPanoz/architecture/tree/touch-handling/misc/touch-handling
-function nearestInteractiveElement(element) {
-  var interactiveTags = [
-    "a",
-    "audio",
-    "button",
-    "canvas",
-    "details",
-    "input",
-    "label",
-    "option",
-    "select",
-    "submit",
-    "textarea",
-    "video",
-  ];
-  if (interactiveTags.indexOf(element.nodeName.toLowerCase()) !== -1) {
-    return element.outerHTML;
-  }
-
-  // Checks whether the element is editable by the user.
-  if (
-    element.hasAttribute("contenteditable") &&
-    element.getAttribute("contenteditable").toLowerCase() != "false"
-  ) {
-    return element.outerHTML;
-  }
-
-  // Checks parents recursively because the touch might be for example on an <em> inside a <a>.
-  if (element.parentElement) {
-    return nearestInteractiveElement(element.parentElement);
-  }
-
-  return null;
 }

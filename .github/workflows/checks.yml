@@ -13,125 +13,165 @@ env:
 jobs:
   build:
     name: Build
-    runs-on: macos-latest
+    runs-on: macos-12
+    if: ${{ !github.event.pull_request.draft }}
     env:
       scheme: ${{ 'Readium-Package' }}
-      DEVELOPER_DIR: /Applications/Xcode_12.4.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_13.4.1.app/Contents/Developer
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install dependencies
-        run: brew install xcodegen
+        run: |
+          brew update
+          brew install xcodegen
       - name: Check Carthage project
         run: |
           # Check that the Carthage project is up to date.
           make carthage-project
-          git diff --exit-code --name-only Support/Carthage/Readium.xcodeproj
+          git diff --exit-code Support/Carthage/Readium.xcodeproj
       - name: Build
         run: |
-          xcodebuild build-for-testing -scheme "$scheme" -destination "platform=$platform,name=$device"
+          set -eo pipefail
+          xcodebuild build-for-testing -scheme "$scheme" -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
       - name: Test
         run: |
-          xcodebuild test-without-building -scheme "$scheme" -destination "platform=$platform,name=$device"
+          set -eo pipefail
+          xcodebuild test-without-building -scheme "$scheme" -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
   lint:
     name: Lint
-    runs-on: macos-latest
+    runs-on: macos-12
+    if: ${{ !github.event.pull_request.draft }}
     env:
       scripts: ${{ 'Sources/Navigator/EPUB/Scripts' }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          package_json_file: Sources/Navigator/EPUB/Scripts/package.json
+          run_install: false
+      - name: Setup cache
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'pnpm'
+          cache-dependency-path: Sources/Navigator/EPUB/Scripts/pnpm-lock.yaml
       - name: Install dependencies
-        run: yarn --cwd "$scripts" install --frozen-lockfile
-      - name: Lint JavaScript
-        run: yarn --cwd "$scripts" run lint
-      - name: Check JavaScript formatting
-        run: yarn --cwd "$scripts" run checkformat
+        run: pnpm --dir "$scripts" install --frozen-lockfile
+      - name: Lint
+        run: pnpm --dir "$scripts" run lint
+      - name: Check formatting
+        run: pnpm --dir "$scripts" run checkformat
       - name: Check if bundled scripts are up-to-date
         run: |
             make scripts
             git diff --exit-code --name-only Sources/Navigator/EPUB/Assets/Static/scripts/*.js
+      - name: Lint Swift formatting
+        run: make lint-format
 
   int-dev:
     name: Integration (Local)
-    runs-on: macos-latest
+    runs-on: macos-12
+    if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
         working-directory: TestApp
     environment: LCP
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install dependencies
-        run: brew install xcodegen
+        run: |
+          brew update
+          brew install xcodegen
       - name: Generate project
         run: make dev lcp=${{ secrets.LCP_URL_SPM }}
       - name: Build
         run: |
-          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device"
-
-  # The following integration jobs are run only when pushing to `develop` or `main`.
-  # As they use a specific commit hash, they can't run properly from a pull request
-  # opened from forks.
+          set -eo pipefail
+          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
   int-spm:
     name: Integration (Swift Package Manager)
-    if: github.event_name == 'push'
-    runs-on: macos-latest
+    runs-on: macos-12
+    if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
         working-directory: TestApp
     environment: LCP
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+      # We can't use the current github.sha with pull_request event, because they will
+      # reference the merge commit which cannot be fetched with SPM.
+      - name: Set commit SHA
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "commit_sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
       - name: Install dependencies
-        run: brew install xcodegen
+        run: |
+          brew update
+          brew install xcodegen
       - name: Generate project
         run: make spm lcp=${{ secrets.LCP_URL_SPM }} commit=$commit_sha
       - name: Build
         run: |
-          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device"
+          set -eo pipefail
+          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
   int-carthage:
     name: Integration (Carthage)
-    if: github.event_name == 'push'
-    runs-on: macos-latest
+    runs-on: macos-12
+    if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
         working-directory: TestApp
     environment: LCP
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+      # We can't use the current github.sha with pull_request event, because they will
+      # reference the merge commit which cannot be fetched with Carthage.
+      - name: Set commit SHA
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "commit_sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
       - name: Install dependencies
-        run: brew install xcodegen
+        run: |
+          brew update
+          brew install xcodegen
       - name: Generate project
         run: make carthage lcp=${{ secrets.LCP_URL_CARTHAGE }} commit=$commit_sha
       - name: Build
         run: |
-          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device"
+          set -eo pipefail
+          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
   # Warning: This job cannot actually test the state of the current commit,
   # but will check that the latest branch/tag set in the Podspecs are valid.
   int-cocoapods:
     name: Integration (CocoaPods)
     if: github.event_name == 'push'
-    runs-on: macos-latest
+    runs-on: macos-12
     defaults:
       run:
         working-directory: TestApp
     environment: LCP
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install dependencies
-        run: brew install xcodegen
+        run: |
+          brew update
+          brew install xcodegen
       - name: Generate project
         run: make cocoapods lcp=${{ secrets.LCP_URL_COCOAPODS }} commit=$commit_sha
       - name: Build
         run: |
-          xcodebuild build -workspace TestApp.xcworkspace -scheme TestApp -destination "platform=$platform,name=$device"
+          set -eo pipefail
+          xcodebuild build -workspace TestApp.xcworkspace -scheme TestApp -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi

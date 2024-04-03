@@ -1,25 +1,24 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import SwiftUI
 import ReadiumOPDS
+import SwiftUI
 
 struct CatalogList: View {
-    
     let catalogRepository: CatalogRepository
     let catalogFeed: (Catalog) -> CatalogFeed
-    
+
     @State private var showingSheet = false
     @State private var showingAlert = false
     @State private var catalogs: [Catalog] = []
-    
+
     var body: some View {
         NavigationView {
             VStack {
-                List() {
+                List {
                     ForEach(catalogs, id: \.id) { catalog in
                         NavigationLink(destination: catalogFeed(catalog)) {
                             ListRowItem(title: catalog.title)
@@ -32,11 +31,16 @@ struct CatalogList: View {
                         }
                     }
                 }
-                .onReceive(catalogRepository.all()) {
-                    catalogs = $0 ?? []
+                .onReceive(catalogRepository.all()
+                    .replaceError(with: nil))
+                { catalogsOrNil in
+                    if let catalogs = catalogsOrNil {
+                        self.catalogs = catalogs
+                    } else {
+                        print("Error fetching catalogs")
+                    }
                 }
                 .listStyle(DefaultListStyle())
-                
             }
             .navigationTitle("Catalogs")
             .toolbar(content: toolbarContent)
@@ -46,7 +50,8 @@ struct CatalogList: View {
             AddFeedSheet(showingSheet: $showingSheet) { title, url in
                 Task {
                     do {
-                        _ = try await OPDSParser.parseURL(url: URL(string: url)!)
+                        OPDSParser.parseURL(url: URL(string: url)!) { _, _ in
+                        }
                         try await addCatalog(catalog: Catalog(title: title, url: url))
                     } catch {
                         showingAlert = true
@@ -60,7 +65,7 @@ struct CatalogList: View {
             Text("Feed is not valid, please try again.")
         })
     }
-    
+
     @ToolbarContentBuilder
     private func toolbarContent() -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
@@ -72,12 +77,11 @@ struct CatalogList: View {
 }
 
 extension CatalogList {
-    
     func addCatalog(catalog: Catalog) async throws {
         var savedCatalog = catalog
         try? await catalogRepository.save(&savedCatalog)
     }
-    
+
     func deleteCatalogs(ids: [Catalog.Id]) async throws {
         try? await catalogRepository.delete(ids: ids)
     }

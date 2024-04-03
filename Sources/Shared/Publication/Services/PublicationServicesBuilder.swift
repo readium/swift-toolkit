@@ -1,12 +1,7 @@
 //
-//  PublicationServicesBuilder.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 30/05/2020.
-//
-//  Copyright 2020 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
@@ -15,10 +10,10 @@ import Foundation
 ///
 /// Provides helpers to manipulate the list of services of a `Publication`.
 public struct PublicationServicesBuilder {
-    
     private var factories: [String: PublicationServiceFactory] = [:]
 
     public init(
+        content: ContentServiceFactory? = nil,
         contentProtection: ContentProtectionServiceFactory? = nil,
         cover: CoverServiceFactory? = nil,
         locator: LocatorServiceFactory? = { DefaultLocatorService(publication: $0.publication) },
@@ -26,6 +21,7 @@ public struct PublicationServicesBuilder {
         search: SearchServiceFactory? = nil,
         setup: (inout PublicationServicesBuilder) -> Void = { _ in }
     ) {
+        setContentServiceFactory(content)
         setContentProtectionServiceFactory(contentProtection)
         setCoverServiceFactory(cover)
         setLocatorServiceFactory(locator)
@@ -45,7 +41,7 @@ public struct PublicationServicesBuilder {
     public mutating func set<T>(_ serviceType: T.Type, _ factory: @escaping PublicationServiceFactory) {
         factories[String(describing: serviceType)] = factory
     }
-    
+
     /// Removes any service factory associated with the given service type.
     public mutating func remove<T>(_ serviceType: T.Type) {
         factories.removeValue(forKey: String(describing: serviceType))
@@ -56,5 +52,4 @@ public struct PublicationServicesBuilder {
         let key = String(describing: serviceType)
         factories[key] = transform(factories[key])
     }
-    
 }

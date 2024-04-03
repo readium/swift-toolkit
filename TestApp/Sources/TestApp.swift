@@ -1,16 +1,16 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import SwiftUI
 import GRDB
+import SwiftUI
 
 @main
 struct TestApp: App {
     let container = try! Container()
-    
+
     var body: some Scene {
         WindowGroup {
             TabView {

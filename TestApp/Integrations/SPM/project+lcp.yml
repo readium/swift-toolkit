@@ -26,6 +26,10 @@ targets:
     deploymentTarget: "15.0"
     sources: 
       - path: Sources
+        excludes:
+          - Resources/Fonts
+      - path: Sources/Resources/Fonts
+        type: folder
     dependencies:
       - package: R2LCPClient
         product: R2LCPClient
@@ -36,6 +40,8 @@ targets:
       - package: Readium
         product: R2Navigator
       - package: Readium
+        product: ReadiumAdapterGCDWebServer
+      - package: Readium
         product: ReadiumOPDS
       - package: Readium
         product: ReadiumLCP
@@ -45,3 +51,4 @@ targets:
       - package: SwiftSoup
     settings:
       OTHER_SWIFT_FLAGS: -DLCP
+      DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}

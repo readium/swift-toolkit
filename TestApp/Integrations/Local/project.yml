@@ -23,6 +23,10 @@ targets:
     deploymentTarget: "15.0"
     sources: 
       - path: Sources
+        excludes:
+          - Resources/Fonts
+      - path: Sources/Resources/Fonts
+        type: folder
     dependencies:
       - package: Readium
         product: R2Shared
@@ -31,9 +35,13 @@ targets:
       - package: Readium
         product: R2Navigator
       - package: Readium
+        product: ReadiumAdapterGCDWebServer
+      - package: Readium
         product: ReadiumOPDS
       - package: GRDB
       - package: Kingfisher
       - package: MBProgressHUD
       - package: SwiftSoup
+    settings:
+      DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}
 

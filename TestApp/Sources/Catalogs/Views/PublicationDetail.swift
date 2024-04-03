@@ -1,19 +1,18 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import SwiftUI
 import R2Shared
+import SwiftUI
 
 struct PublicationDetail: View {
-    
     @State var publication: Publication
-    
+
     var body: some View {
         let authors = publication.metadata.authors
-            .map { $0.name }
+            .map(\.name)
             .joined(separator: ", ")
         ScrollView {
             VStack {
@@ -36,19 +35,19 @@ struct PublicationDetail: View {
         .padding()
         .toolbar(content: toolbarContent)
     }
-    
+
     @ToolbarContentBuilder
     private func toolbarContent() -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
             Button(.download) {
-                // TODO download the publication
+                // TODO: download the publication
             }
         }
     }
 }
 
-//struct PublicationDetail_Previews: PreviewProvider {
+// struct PublicationDetail_Previews: PreviewProvider {
 //    static var previews: some View {
 //        PublicationDetail()
 //    }
-//}
+// }

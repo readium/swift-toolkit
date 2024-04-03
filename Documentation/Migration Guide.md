@@ -2,6 +2,123 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
+## 2.6.0
+
+To avoid [name collision with GCDWebServer](https://github.com/readium/swift-toolkit/issues/402), we renamed [our fork](https://github.com/readium/gcdwebserver) to `ReadiumGCDWebServer`. You will need to update your project to replace the old dependency:
+
+* Swift Package Manager: There's nothing to do.
+* Carthage:
+    * Update the Carthage dependencies and make sure the new `ReadiumGCDWebServer.xcframework` was built.
+    * Replace `GCDWebServer.xcframework` with `ReadiumGCDWebServer.xcframework` in your project.
+* CocoaPods:
+    * Rename the `pod 'GCDWebServer'` statement in your `Podfile` with `pod 'ReadiumGCDWebServer'`, then run `pod install`.
+
+## 2.5.0
+
+In the following migration steps, only the `ReadiumInternal` one is mandatory with 2.5.0.
+
+### New package: `ReadiumInternal`
+
+A new Readium package was added to host the private internal utilities used by the other Readium modules. You will need to update your project to include it.
+
+* Swift Package Manager: There's nothing to do.
+* Carthage:
+    * Update the Carthage dependencies and make sure the new `ReadiumInternal.xcframework` was built.
+    * Add `ReadiumInternal.xcframework` to your project like any other Carthage dependency.
+* CocoaPods:
+    * Add the following statement to your `Podfile`, then run `pod install`:
+    ```
+    pod 'ReadiumInternal', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.0/Support/CocoaPods/ReadiumInternal.podspec'
+    ```
+
+:warning: It is not recommended to use any API from `ReadiumInternal` directly in your application. No compatibility guarantee is made between two versions.
+
+### Migrating the HTTP server
+
+:warning: Migrating to the new Preferences API (see below) is required for the user settings to work with the new HTTP server.
+
+The Streamer's `PublicationServer` is now deprecated and you don't need to manage the HTTP server or register publications manually to it anymore.
+
+Instead, the EPUB, PDF and CBZ navigators expect an instance of `HTTPServer` upon creation. They will take care of registering and removing the publication automatically from the provided server.
+
+You can implement your own HTTP server using a third-party library. But the easiest way to migrate is to use the one provided in the new Readium package `ReadiumAdapterGCDWebServer`.
+
+```swift
+import R2Navigator
+import ReadiumAdapterGCDWebServer
+
+let navigator = try EPUBNavigatorViewController(
+    publication: publication,
+    httpServer: GCDHTTPServer.shared
+)
+```
+
+### Upgrading to the new Preferences API
+
+The 2.5.0 release introduces a brand new user preferences API for configuring the EPUB and PDF Navigators. This new API is easier and safer to use. To learn how to integrate it in your app, [please refer to the user guide](Guides/Navigator%20Preferences.md).
+
+If you integrated the EPUB navigator from a previous version, follow these steps to migrate:
+
+1. Get familiar with [the concepts of this new API](Guides/Navigator%20Preferences.md#overview).
+2. Migrate the local HTTP server from your app, [as explained in the previous section](#migrating-the-http-server).
+3. Adapt your user settings interface to the new API using preferences editors. The [Test App](https://github.com/readium/swift-toolkit/blob/2.5.0/TestApp/Sources/Reader/Common/Preferences/UserPreferences.swift) and the [user guide](Guides/Navigator%20Preferences.md#build-a-user-settings-interface) contain examples using SwiftUI.
+4. [Handle the persistence of the user preferences](Guides/Navigator%20Preferences.md#save-and-restore-the-user-preferences). The settings are not stored in the User Defaults by the toolkit anymore. Instead, you are responsible for persisting and restoring the user preferences as you see fit (e.g. as a JSON file).
+    * If you want to migrate the legacy EPUB settings, you can use the helper `EPUBPreferences.fromLegacyPreferences()` which will create a new `EPUBPreferences` object after translating the existing user settings.
+5. Make sure you [restore the stored user preferences](Guides/Navigator%20Preferences.md#setting-the-initial-navigator-preferences-and-app-defaults) when initializing the EPUB navigator.
+
+Please refer to the following table for the correspondence between legacy settings (from `UserSettings`) and new ones (`EPUBPreferences`).
+
+| **Legacy**          | **New**                                                |
+|---------------------|--------------------------------------------------------|
+| `appearance`        | `theme`                                                |
+| `backgroundColor`   | `backgroundColor`                                      |
+| `columnCount`       | `columnCount` (reflowable) and `spread` (fixed-layout) |
+| `fontFamily`        | `fontFamily`                                           |
+| `fontOverride`      | N/A (handled automatically)                            |
+| `fontSize`          | `fontSize`                                             |
+| `hyphens`           | `hyphens`                                              |
+| `letterSpacing`     | `letterSpacing`                                        |
+| `lineHeight`        | `lineHeight`                                           |
+| `pageMargins`       | `pageMargins`                                          |
+| `paragraphMargins`  | `paragraphSpacing`                                     |
+| `publisherDefaults` | `publisherStyles`                                      |
+| `textAlignment`     | `textAlign`                                            |
+| `textColor`         | `textColor`                                            |
+| `verticalScroll`    | `scroll`                                               |
+| `wordSpacing`       | `wordSpacing`                                          |
+| N/A                 | `fontWeight`                                           |
+| N/A                 | `imageFilter`                                          |
+| N/A                 | `language`                                             |
+| N/A                 | `ligatures`                                            |
+| N/A                 | `paragraphIndent`                                      |
+| N/A                 | `readingProgression`                                   |
+| N/A                 | `textNormalization`                                    |
+| N/A                 | `typeScale`                                            |
+| N/A                 | `verticalText`                                         |
+
+### Edge tap and keyboard navigation
+
+2.5.0 ships with a new `DirectionalNavigationAdapter` helper to turn pages with the arrows and space keyboard keys or taps on the edge of the screen. To use it, you need to implement the following `VisualNavigatorDelegate` methods.
+
+```swift
+extension ReaderViewController: VisualNavigatorDelegate {
+
+    func navigator(_ navigator: VisualNavigator, didTapAt point: CGPoint) {
+        let moved = DirectionalNavigationAdapter(navigator: navigator).didTap(at: point)
+        if !moved {
+            toggleNavigationBar()
+        }
+    }
+    
+    func navigator(_ navigator: VisualNavigator, didPressKey event: KeyEvent) {
+        DirectionalNavigationAdapter(navigator: navigator).didPressKey(event: event)
+    }
+}
+```
+
+`DirectionalNavigationAdapter` offers a lot of customization options, take a look at the type documentation.
+
+
 ## 2.2.0
 
 With this new release, we migrated all the [`r2-*-swift`](https://github.com/readium/?q=r2-swift) repositories to [a single `swift-toolkit` repository](https://github.com/readium/r2-testapp-swift/issues/404).

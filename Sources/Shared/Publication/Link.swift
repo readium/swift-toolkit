@@ -1,58 +1,52 @@
 //
-//  Link.swift
-//  r2-shared-swift
-//
-//  Created by Mickaël Menu on 09.03.19.
-//
-//  Copyright 2019 Readium Foundation. All rights reserved.
-//  Use of this source code is governed by a BSD-style license which is detailed
-//  in the LICENSE file present in the project repository where this source code is maintained.
+//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-
+import ReadiumInternal
 
 /// Link Object for the Readium Web Publication Manifest.
 /// https://readium.org/webpub-manifest/schema/link.schema.json
 public struct Link: JSONEquatable, Hashable {
-
     /// URI or URI template of the linked resource.
     /// Note: a String because templates are lost with URL.
-    public let href: String  // URI
+    public let href: String // URI
 
     /// MIME type of the linked resource.
     public let type: String?
-    
+
     /// Indicates that a URI template is used in href.
     public let templated: Bool
-    
+
     /// Title of the linked resource.
     public let title: String?
-    
+
     /// Relation between the linked resource and its containing collection.
     public let rels: [LinkRelation]
-    
+
     /// Properties associated to the linked resource.
     public let properties: Properties
-    
+
     /// Height of the linked resource in pixels.
     public let height: Int?
-    
+
     /// Width of the linked resource in pixels.
     public let width: Int?
-    
+
     /// Bitrate of the linked resource in kbps.
     public let bitrate: Double?
-    
+
     /// Length of the linked resource in seconds.
     public let duration: Double?
-    
+
     /// Expected language of the linked resource.
-    public let languages: [String]  // BCP 47 tag
-    
+    public let languages: [String] // BCP 47 tag
+
     /// Alternate resources for the linked resource.
     public let alternates: [Link]
-    
+
     /// Resources that are children of the linked resource, in the context of a given collection role.
     public let children: [Link]
 
@@ -76,11 +70,11 @@ public struct Link: JSONEquatable, Hashable {
         self.alternates = alternates
         self.children = children
     }
-    
+
     public init(json: Any, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) throws {
         guard let jsonObject = json as? [String: Any],
-            let href = jsonObject["href"] as? String else
-        {
+              let href = jsonObject["href"] as? String
+        else {
             warnings?.log("`href` is required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
@@ -100,7 +94,7 @@ public struct Link: JSONEquatable, Hashable {
             children: .init(json: jsonObject["children"], warnings: warnings, normalizeHREF: normalizeHREF)
         )
     }
-    
+
     public var json: [String: Any] {
         makeJSON([
             "href": href,
@@ -115,10 +109,10 @@ public struct Link: JSONEquatable, Hashable {
             "duration": encodeIfNotNil(duration),
             "language": encodeIfNotEmpty(languages),
             "alternate": encodeIfNotEmpty(alternates.json),
-            "children": encodeIfNotEmpty(children.json)
+            "children": encodeIfNotEmpty(children.json),
         ])
     }
-    
+
     /// Media type of the linked resource.
     public var mediaType: MediaType {
         MediaType.of(
@@ -126,7 +120,7 @@ public struct Link: JSONEquatable, Hashable {
             fileExtension: URL(string: href)?.pathExtension
         ) ?? .binary
     }
-    
+
     /// Computes an absolute URL to the link, relative to the given `baseURL`.
     ///
     /// If the link's `href` is already absolute, the `baseURL` is ignored.
@@ -140,10 +134,9 @@ public struct Link: JSONEquatable, Hashable {
             return nil
         }
     }
-    
-    
+
     // MARK: URI Template
-    
+
     /// List of URI template parameter keys, if the `Link` is templated.
     public var templateParameters: Set<String> {
         guard templated else {
@@ -164,10 +157,9 @@ public struct Link: JSONEquatable, Hashable {
             templated: false
         )
     }
-    
-    
+
     // MARK: Copy
-    
+
     /// Makes a copy of the `Link`, after modifying some of its properties.
     public func copy(
         href: String? = nil,
@@ -184,7 +176,7 @@ public struct Link: JSONEquatable, Hashable {
         alternates: [Link]? = nil,
         children: [Link]? = nil
     ) -> Link {
-        return Link(
+        Link(
             href: href ?? self.href,
             type: type ?? self.type,
             templated: templated ?? self.templated,
@@ -200,119 +192,115 @@ public struct Link: JSONEquatable, Hashable {
             children: children ?? self.children
         )
     }
-    
+
     ///  Makes a copy of this `Link` after merging in the given additional other `properties`.
     public func addingProperties(_ properties: [String: Any]) -> Link {
         copy(properties: self.properties.adding(properties))
     }
-
 }
 
-
-extension Array where Element == Link {
-    
+public extension Array where Element == Link {
     /// Parses multiple JSON links into an array of Link.
     /// eg. let links = [Link](json: [["href", "http://link1"], ["href", "http://link2"]])
-    public init(json: Any?, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) {
+    init(json: Any?, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) {
         self.init()
         guard let json = json as? [Any] else {
             return
         }
-        
+
         let links = json.compactMap { try? Link(json: $0, warnings: warnings, normalizeHREF: normalizeHREF) }
         append(contentsOf: links)
     }
-    
-    public var json: [[String: Any]] {
-        map { $0.json }
+
+    var json: [[String: Any]] {
+        map(\.json)
     }
-    
+
     /// Finds the first link with the given relation.
-    public func first(withRel rel: LinkRelation) -> Link? {
-        return first { $0.rels.contains(rel) }
+    func first(withRel rel: LinkRelation) -> Link? {
+        first { $0.rels.contains(rel) }
     }
 
     /// Finds all the links with the given relation.
-    public func filter(byRel rel: LinkRelation) -> [Link] {
-        return filter { $0.rels.contains(rel) }
+    func filter(byRel rel: LinkRelation) -> [Link] {
+        filter { $0.rels.contains(rel) }
     }
-    
+
     /// Finds the first link matching the given HREF.
-    public func first(withHREF href: String) -> Link? {
-        return first { $0.href == href }
+    func first(withHREF href: String) -> Link? {
+        first { $0.href == href }
     }
 
     /// Finds the index of the first link matching the given HREF.
-    public func firstIndex(withHREF href: String) -> Int? {
-        return firstIndex { $0.href == href }
+    func firstIndex(withHREF href: String) -> Int? {
+        firstIndex { $0.href == href }
     }
 
     /// Finds the first link matching the given media type.
-    public func first(withMediaType mediaType: MediaType) -> Link? {
-        return first { mediaType.matches($0.type) }
+    func first(withMediaType mediaType: MediaType) -> Link? {
+        first { mediaType.matches($0.type) }
     }
-    
+
     /// Finds all the links matching the given media type.
-    public func filter(byMediaType mediaType: MediaType) -> [Link] {
-        return filter { mediaType.matches($0.type) }
+    func filter(byMediaType mediaType: MediaType) -> [Link] {
+        filter { mediaType.matches($0.type) }
     }
-    
+
     /// Finds all the links matching any of the given media types.
-    public func filter(byMediaTypes mediaTypes: [MediaType]) -> [Link] {
-        return filter { link in
+    func filter(byMediaTypes mediaTypes: [MediaType]) -> [Link] {
+        filter { link in
             mediaTypes.contains { mediaType in
                 mediaType.matches(link.type)
             }
         }
     }
-    
+
     /// Returns whether all the resources in the collection are bitmaps.
-    public var allAreBitmap: Bool {
-        allSatisfy { $0.mediaType.isBitmap }
+    var allAreBitmap: Bool {
+        allSatisfy(\.mediaType.isBitmap)
     }
-    
+
     /// Returns whether all the resources in the collection are audio clips.
-    public var allAreAudio: Bool {
-        allSatisfy { $0.mediaType.isAudio }
+    var allAreAudio: Bool {
+        allSatisfy(\.mediaType.isAudio)
     }
-    
+
     /// Returns whether all the resources in the collection are video clips.
-    public var allAreVideo: Bool {
-        allSatisfy { $0.mediaType.isVideo }
+    var allAreVideo: Bool {
+        allSatisfy(\.mediaType.isVideo)
     }
-    
+
     /// Returns whether all the resources in the collection are HTML documents.
-    public var allAreHTML: Bool {
-        allSatisfy { $0.mediaType.isHTML }
+    var allAreHTML: Bool {
+        allSatisfy(\.mediaType.isHTML)
     }
-    
+
     /// Returns whether all the resources in the collection are matching the given media type.
-    public func all(matchMediaType mediaType: MediaType) -> Bool {
+    func all(matchMediaType mediaType: MediaType) -> Bool {
         allSatisfy { mediaType.matches($0.mediaType) }
     }
-    
+
     /// Returns whether all the resources in the collection are matching any of the given media types.
-    public func all(matchMediaTypes mediaTypes: [MediaType]) -> Bool {
+    func all(matchMediaTypes mediaTypes: [MediaType]) -> Bool {
         allSatisfy { link in
             mediaTypes.contains { mediaType in
                 mediaType.matches(link.mediaType)
             }
         }
     }
-    
+
     @available(*, unavailable, message: "This API will be removed.")
-    public func firstIndex<T: Equatable>(withProperty otherProperty: String, matching: T, recursively: Bool = false) -> Int? {
-        return firstIndex { ($0.properties.otherProperties[otherProperty] as? T) == matching }
+    func firstIndex<T: Equatable>(withProperty otherProperty: String, matching: T, recursively: Bool = false) -> Int? {
+        firstIndex { ($0.properties.otherProperties[otherProperty] as? T) == matching }
     }
-    
+
     @available(*, unavailable, renamed: "first(withHREF:)")
-    public func first(withHref href: String) -> Link? {
-        return first(withHREF: href)
+    func first(withHref href: String) -> Link? {
+        first(withHREF: href)
     }
-    
+
     @available(*, unavailable, renamed: "firstIndex(withHREF:)")
-    public func firstIndex(withHref href: String) -> Int? {
-        return firstIndex(withHREF: href)
+    func firstIndex(withHref href: String) -> Int? {
+        firstIndex(withHREF: href)
     }
-    
 }

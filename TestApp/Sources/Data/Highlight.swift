@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -7,8 +7,8 @@
 import Combine
 import Foundation
 import GRDB
-import R2Shared
 import R2Navigator
+import R2Shared
 import UIKit
 
 enum HighlightColor: UInt8, Codable, SQLExpressible {
@@ -35,7 +35,7 @@ extension HighlightColor {
 
 struct Highlight: Codable {
     typealias Id = String
-    
+
     let id: Id
     /// Foreign key to the publication.
     var bookId: Book.Id
@@ -44,15 +44,15 @@ struct Highlight: Codable {
     /// Color of the highlight.
     var color: HighlightColor
     /// Date of creation.
-    var created: Date = Date()
+    var created: Date = .init()
     /// Total progression in the publication.
     var progression: Double?
-    
+
     init(id: Id = UUID().uuidString, bookId: Book.Id, locator: Locator, color: HighlightColor, created: Date = Date()) {
         self.id = id
         self.bookId = bookId
         self.locator = locator
-        self.progression = locator.locations.totalProgression
+        progression = locator.locations.totalProgression
         self.color = color
         self.created = created
     }
@@ -68,12 +68,12 @@ struct HighlightNotFoundError: Error {}
 
 final class HighlightRepository {
     private let db: Database
-    
+
     init(db: Database) {
         self.db = db
     }
-    
-    func all(for bookId: Book.Id) -> AnyPublisher<[Highlight], Never> {
+
+    func all(for bookId: Book.Id) -> AnyPublisher<[Highlight], Error> {
         db.observe { db in
             try Highlight
                 .filter(Highlight.Columns.bookId == bookId)
@@ -81,8 +81,8 @@ final class HighlightRepository {
                 .fetchAll(db)
         }
     }
-    
-    func highlight(for highlightId: Highlight.Id) -> AnyPublisher<Highlight, Never> {
+
+    func highlight(for highlightId: Highlight.Id) -> AnyPublisher<Highlight, Error> {
         db.observe { db in
             try Highlight
                 .filter(Highlight.Columns.id == highlightId)
@@ -90,24 +90,25 @@ final class HighlightRepository {
                 .orThrow(HighlightNotFoundError())
         }
     }
-    
-    func add(_ highlight: Highlight) -> AnyPublisher<Highlight.Id, Error> {
-        return db.writePublisher { db in
+
+    @discardableResult
+    func add(_ highlight: Highlight) async throws -> Highlight.Id {
+        try await db.write { db in
             try highlight.insert(db)
             return highlight.id
-        }.eraseToAnyPublisher()
+        }
     }
-    
-    func update(_ id: Highlight.Id, color: HighlightColor) -> AnyPublisher<Void, Error> {
-        return db.writePublisher { db in
+
+    func update(_ id: Highlight.Id, color: HighlightColor) async throws {
+        try await db.write { db in
             let filtered = Highlight.filter(Highlight.Columns.id == id)
             let assignment = Highlight.Columns.color.set(to: color)
             try filtered.updateAll(db, onConflict: nil, assignment)
-        }.eraseToAnyPublisher()
+        }
     }
-        
-    func remove(_ id: Highlight.Id) -> AnyPublisher<Void, Error> {
-        db.writePublisher { db in try Highlight.deleteOne(db, key: id) }
+
+    func remove(_ id: Highlight.Id) async throws {
+        try await db.write { db in try Highlight.deleteOne(db, key: id) }
     }
 }
 

@@ -12,6 +12,17 @@ This toolkit is a modular project, which follows the [Readium Architecture](http
 
 A [Test App](TestApp) demonstrates how to integrate the Readium Swift toolkit in your own reading app
 
+## Minimum Requirements
+
+<!-- https://swiftversion.net/ -->
+
+| Readium   | iOS  | Swift compiler | Xcode |
+|-----------|------|----------------|-------|
+| `develop` | 11.0 | 5.6.1          | 13.4  |
+| 2.5.1     | 11.0 | 5.6.1          | 13.4  |
+| 2.5.0     | 10.0 | 5.6.1          | 13.4  |
+| 2.4.0     | 10.0 | 5.3.2          | 12.4  |
+
 ## Using Readium
 
 <!--:question: **Find documentation and API reference at [readium.org/kotlin-toolkit](https://readium.org/swift-toolkit)**.-->
@@ -33,7 +44,7 @@ If you're stuck, find more information at [developer.apple.com](https://develope
 Add the following to your `Cartfile`:
 
 ```
-github "readium/swift-toolkit" ~> 2.3.0
+github "readium/swift-toolkit" ~> 2.6.1
 ```
 
 Then, [follow the usual Carthage steps](https://github.com/Carthage/Carthage#adding-frameworks-to-an-application) to add the Readium libraries to your project.
@@ -42,31 +53,33 @@ Note that Carthage will build all Readium modules and their dependencies, but yo
 
 Refer to the following table to know which dependencies are required for each Readium library.
 
-|                 | `R2Shared`         | `R2Streamer`       | `R2Navigator`      | `ReadiumOPDS`      | `ReadiumLCP`       |
-|-----------------|:------------------:|:------------------:|:------------------:|:------------------:|:------------------:|
-| **`R2Shared`**  |                    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| `CryptoSwift`   |                    | :heavy_check_mark: |                    |                    | :heavy_check_mark: |
-| `DifferenceKit` |                    |                    | :heavy_check_mark: |                    |                    |
-| `Fuzi`          | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| `GCDWebServer`  |                    | :heavy_check_mark: |                    |                    |                    |
-| `Minizip`       | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| `SQLite.swift`  |                    |                    |                    |                    | :heavy_check_mark: |
-| `SwiftSoup`     | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| `ZIPFoundation` |                    |                    |                    |                    | :heavy_check_mark: |
+|                       |     `R2Shared`     |    `R2Streamer`    |    `R2Navigator`   |    `ReadiumOPDS`   |    `ReadiumLCP`    |
+|-----------------------|:------------------:|:------------------:|:------------------:|:------------------:|:------------------:|
+| **`R2Shared`**        |                    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| **`ReadiumInternal`** | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| `CryptoSwift`         |                    | :heavy_check_mark: |                    |                    | :heavy_check_mark: |
+| `DifferenceKit`       |                    |                    | :heavy_check_mark: |                    |                    |
+| `Fuzi`                | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| `Minizip`             | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| `ReadiumGCDWebServer` |                    | :heavy_check_mark: |                    |                    |                    |
+| `SQLite.swift`        |                    |                    |                    |                    | :heavy_check_mark: |
+| `SwiftSoup`           | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| `ZIPFoundation`       |                    |                    |                    |                    | :heavy_check_mark: |
 
 ### CocoaPods
 
 Add the following `pod` statements to your `Podfile` for the Readium libraries you want to use:
 
 ```
-pod 'R2Shared', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.3.0/Support/CocoaPods/ReadiumShared.podspec'
-pod 'R2Streamer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.3.0/Support/CocoaPods/ReadiumStreamer.podspec'
-pod 'R2Navigator', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.3.0/Support/CocoaPods/ReadiumNavigator.podspec'
-pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.3.0/Support/CocoaPods/ReadiumOPDS.podspec'
-pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.3.0/Support/CocoaPods/ReadiumLCP.podspec'
+pod 'R2Shared', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.6.1/Support/CocoaPods/ReadiumShared.podspec'
+pod 'R2Streamer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.6.1/Support/CocoaPods/ReadiumStreamer.podspec'
+pod 'R2Navigator', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.6.1/Support/CocoaPods/ReadiumNavigator.podspec'
+pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.6.1/Support/CocoaPods/ReadiumOPDS.podspec'
+pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.6.1/Support/CocoaPods/ReadiumLCP.podspec'
+pod 'ReadiumInternal', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.6.1/Support/CocoaPods/ReadiumInternal.podspec'
 
 # Required if you use R2Streamer.
-pod 'GCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/3.6.3/GCDWebServer.podspec'
+pod 'ReadiumGCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/3.7.4/GCDWebServer.podspec'
 ```
 
 Take a look at [CocoaPods's documentation](https://guides.cocoapods.org/using/using-cocoapods.html) for more information.

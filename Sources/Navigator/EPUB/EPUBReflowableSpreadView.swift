@@ -1,43 +1,54 @@
 //
-//  Copyright 2020 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
+import R2Shared
 import UIKit
 import WebKit
-import R2Shared
-
 
 /// A view rendering a spread of resources with a reflowable layout.
 final class EPUBReflowableSpreadView: EPUBSpreadView {
-
     private var topConstraint: NSLayoutConstraint!
     private var bottomConstraint: NSLayoutConstraint!
-    
+
     private static let reflowableScript = loadScript(named: "readium-reflowable")
-    
-    required init(publication: Publication, spread: EPUBSpread, resourcesURL: URL, readingProgression: ReadingProgression, userSettings: UserSettings, scripts: [WKUserScript], animatedLoad: Bool, editingActions: EditingActionsController, contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]) {
+
+    required init(
+        viewModel: EPUBNavigatorViewModel,
+        spread: EPUBSpread,
+        scripts: [WKUserScript],
+        animatedLoad: Bool
+    ) {
         var scripts = scripts
-        
-        let layout = ReadiumCSSLayout(languages: publication.metadata.languages, readingProgression: readingProgression)
-        scripts.append(WKUserScript(
-            source: "window.readiumCSSBaseURL = '\(resourcesURL.appendingPathComponent(layout.readiumCSSBasePath))'",
-            injectionTime: .atDocumentStart,
-            forMainFrameOnly: false
-        ))
-        
+
+        if viewModel.useLegacySettings {
+            let layout = ReadiumCSSLayout(languages: viewModel.publication.metadata.languages, readingProgression: viewModel.readingProgression)
+            scripts.append(WKUserScript(
+                source: "window.readiumCSSBaseURL = '\(viewModel.assetsURL.appendingPathComponent(layout.readiumCSSBasePath))'",
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: false
+            ))
+        }
+
         scripts.append(WKUserScript(source: Self.reflowableScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
-        
-        super.init(publication: publication, spread: spread, resourcesURL: resourcesURL, readingProgression: readingProgression, userSettings: userSettings, scripts: scripts, animatedLoad: animatedLoad, editingActions: editingActions, contentInset: contentInset)
+
+        super.init(viewModel: viewModel, spread: spread, scripts: scripts, animatedLoad: animatedLoad)
     }
 
     override func setupWebView() {
         super.setupWebView()
+
         scrollView.bounces = false
-        scrollView.isPagingEnabled = !isScrollEnabled
-        
+        // Since iOS 16, the default value of alwaysBounceX seems to be true
+        // for web views.
+        scrollView.alwaysBounceVertical = false
+        scrollView.alwaysBounceHorizontal = false
+
+        scrollView.isPagingEnabled = !viewModel.scroll
+
         webView.translatesAutoresizingMaskIntoConstraints = false
         topConstraint = webView.topAnchor.constraint(equalTo: topAnchor)
         topConstraint.priority = .defaultHigh
@@ -50,40 +61,52 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         ])
     }
 
-    @available(iOS 11.0, *)
     override func safeAreaInsetsDidChange() {
         super.safeAreaInsetsDidChange()
         updateContentInset()
     }
-    
+
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         updateContentInset()
     }
-    
+
     override func loadSpread() {
         guard spread.links.count == 1 else {
             log(.error, "Only one document at a time can be displayed in a reflowable spread")
             return
         }
         let link = spread.leading
-        guard let url = link.url(relativeTo: publication.baseURL) else {
+        guard let url = viewModel.url(to: link) else {
             log(.error, "Can't get URL for link \(link.href)")
             return
         }
         webView.load(URLRequest(url: url))
     }
 
-    override func applyUserSettingsStyle() {
-        super.applyUserSettingsStyle()
-        
-        let properties = userSettings.userProperties.properties
+    override func applySettings() {
+        super.applySettings()
+
+        applyLegacyUserSettingsStyle()
+
+        // Disables paginated mode if scroll is on.
+        scrollView.isPagingEnabled = !viewModel.scroll
+
+        updateContentInset()
+    }
+
+    private func applyLegacyUserSettingsStyle() {
+        guard viewModel.useLegacySettings else {
+            return
+        }
+
+        let properties = viewModel.config.userSettings.userProperties.properties
         let propertiesScript = properties.reduce("") { script, property in
             let value: String = {
                 // Scroll mode depends both on the user settings, and on the fact that VoiceOver is activated or not, so we need to generate the value dynamically.
                 // FIXME: This would be handled in a better way by decoupling the user settings from the actual ReadiumCSS properties sent to the WebView, which should be private details of the EPUBNavigator implementation and not shared with the host app.
                 if let switchable = property as? Switchable, property.name == ReadiumCSSName.scroll.rawValue {
-                    return switchable.values[isScrollEnabled]!
+                    return switchable.values[viewModel.scroll]!
                 } else {
                     return property.toString()
                 }
@@ -91,42 +114,38 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return script + "readium.setProperty(\"\(property.name)\", \"\(value)\");\n"
         }
         evaluateScript(propertiesScript) { res in
-            if case .failure(let error) = res {
+            if case let .failure(error) = res {
                 self.log(.error, error)
             }
         }
-
-        // Disables paginated mode if scroll is on.
-        scrollView.isPagingEnabled = !isScrollEnabled
-        
-        updateContentInset()
     }
 
     private func updateContentInset() {
-        if (isScrollEnabled) {
+        if viewModel.scroll {
             topConstraint.constant = 0
             bottomConstraint.constant = 0
             scrollView.contentInset = UIEdgeInsets(top: notchAreaInsets.top, left: 0, bottom: notchAreaInsets.bottom, right: 0)
-            
+
         } else {
+            let contentInset = viewModel.config.contentInset
             var insets = contentInset[traitCollection.verticalSizeClass]
                 ?? contentInset[.regular]
                 ?? contentInset[.unspecified]
                 ?? (top: 0, bottom: 0)
-            
+
             // Increases the insets by the notch area (eg. iPhone X) to make sure that the content is not overlapped by the screen notch.
             insets.top += notchAreaInsets.top
             insets.bottom += notchAreaInsets.bottom
-            
+
             topConstraint.constant = insets.top
             bottomConstraint.constant = -insets.bottom
             scrollView.contentInset = .zero
         }
     }
-    
+
     override func convertPointToNavigatorSpace(_ point: CGPoint) -> CGPoint {
         var point = point
-        if isScrollEnabled {
+        if viewModel.scroll {
             // Starting from iOS 12, the contentInset are not taken into account in the JS touch event.
             if #available(iOS 12.0, *) {
                 if scrollView.contentOffset.x < 0 {
@@ -151,8 +170,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         return rect
     }
 
-    /// MARK: - Location and progression
-    
+    // MARK: - Location and progression
+
     override func progression(in href: String) -> Double {
         guard spread.leading.href == href, let progression = progression else {
             return 0
@@ -181,12 +200,12 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             }
         }
     }
-    
+
     override func go(to direction: EPUBSpreadView.Direction, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        guard !isScrollEnabled else {
+        guard !viewModel.scroll else {
             return super.go(to: direction, animated: animated, completion: completion)
         }
-        
+
         let factor: CGFloat = {
             switch direction {
             case .left:
@@ -201,12 +220,12 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         newOffset.x += offsetX
         let rounded = round(newOffset.x / offsetX) * offsetX
         newOffset.x = rounded
-        guard 0..<scrollView.contentSize.width ~= newOffset.x else {
+        guard 0 ..< scrollView.contentSize.width ~= newOffset.x else {
             return false
         }
-        
+
         scrollView.setContentOffset(newOffset, animated: animated)
-        
+
         // This delay is only used when turning pages in a single resource if the page turn is animated. The delay is roughly the length of the animation.
         // FIXME: completion should be implemented using scroll view delegates
         DispatchQueue.main.asyncAfter(
@@ -216,7 +235,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
         return true
     }
-    
+
     // Location to scroll to in the resource once the page is loaded.
     private var pendingLocation: PageLocation = .start
 
@@ -232,7 +251,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
 
         switch location {
-        case .locator(let locator):
+        case let .locator(locator):
             go(to: locator) { _ in completion() }
         case .start:
             go(toProgression: 0) { _ in completion() }
@@ -250,7 +269,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
         if locator.text.highlight != nil {
             go(toText: locator.text, completion: completion)
-        // FIXME: find the first fragment matching a tag ID (need a regex)
+            // FIXME: find the first fragment matching a tag ID (need a regex)
         } else if let id = locator.locations.fragments.first, !id.isEmpty {
             go(toTagID: id, completion: completion)
         } else {
@@ -261,14 +280,14 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     /// Scrolls at given progression (from 0.0 to 1.0)
     private func go(toProgression progression: Double, completion: @escaping (Bool) -> Void) {
-        guard progression >= 0 && progression <= 1 else {
+        guard progression >= 0, progression <= 1 else {
             log(.warning, "Scrolling to invalid progression \(progression)")
             completion(false)
             return
         }
-        
+
         // Note: The JS layer does not take into account the scroll view's content inset. So it can't be used to reliably scroll to the top or the bottom of the page in scroll mode.
-        if isScrollEnabled && [0, 1].contains(progression) {
+        if viewModel.scroll, [0, 1].contains(progression) {
             var contentOffset = scrollView.contentOffset
             contentOffset.y = (progression == 0)
                 ? -scrollView.contentInset.top
@@ -276,18 +295,18 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             scrollView.contentOffset = contentOffset
             completion(true)
         } else {
-            let dir = readingProgression.rawValue
+            let dir = viewModel.readingProgression.rawValue
             evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')") { _ in completion(true) }
         }
     }
-    
+
     /// Scrolls at the tag with ID `tagID`.
     private func go(toTagID tagID: String, completion: @escaping (Bool) -> Void) {
         evaluateScript("readium.scrollToId(\'\(tagID)\');") { result in
             switch result {
-            case .success(let value):
+            case let .success(value):
                 completion((value as? Bool) ?? false)
-            case .failure(let error):
+            case let .failure(error):
                 self.log(.error, error)
                 completion(false)
             }
@@ -302,36 +321,35 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
         evaluateScript("readium.scrollToText(\(json));") { result in
             switch result {
-            case .success(let value):
+            case let .success(value):
                 completion((value as? Bool) ?? false)
-            case .failure(let error):
+            case let .failure(error):
                 self.log(.error, error)
                 completion(false)
             }
         }
     }
 
-
     // MARK: - Progression
-    
+
     // Current progression in the page.
     private var progression: Double?
     // To check if a progression change was cancelled or not.
     private var previousProgression: Double?
-    
+
     // Called by the javascript code to notify that scrolling ended.
     private func progressionDidChange(_ body: Any) {
         guard spreadLoaded, let bodyString = body as? String, var newProgression = Double(bodyString) else {
             return
         }
         newProgression = min(max(newProgression, 0.0), 1.0)
-        
+
         if previousProgression == nil {
             previousProgression = progression
         }
         progression = newProgression
     }
-    
+
     @objc private func notifyPagesDidChange() {
         guard previousProgression != progression else {
             return
@@ -339,20 +357,19 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         previousProgression = nil
         delegate?.spreadViewPagesDidChange(self)
     }
-    
-    
+
     // MARK: - Scripts
-    
+
     override func registerJSMessages() {
         super.registerJSMessages()
         registerJSMessage(named: "progressionChanged") { [weak self] in self?.progressionDidChange($0) }
     }
 
     // MARK: - WKNavigationDelegate
-    
+
     override func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         super.webView(webView, didFinish: navigation)
-        
+
         // Fixes https://github.com/readium/r2-navigator-swift/issues/141 by disabling the native
         // double-tap gesture.
         // It's an acceptable fix because reflowable resources are not supposed to handle double-tap
@@ -360,10 +377,9 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         // double-tap manually.
         webView.removeDoubleTapGestureRecognizer()
     }
-    
-    
+
     // MARK: - UIScrollViewDelegate
-    
+
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         super.scrollViewDidScroll(scrollView)
 
@@ -372,7 +388,6 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(notifyPagesDidChange), object: nil)
         perform(#selector(notifyPagesDidChange), with: nil, afterDelay: 0.3)
     }
-
 }
 
 /// Determines the Readium CSS stylesheets to use depending on the publication languages and
@@ -383,7 +398,7 @@ private enum ReadiumCSSLayout: String {
     case rtl
     case cjkVertical
     case cjkHorizontal
-    
+
     init(languages: [String], readingProgression: ReadingProgression) {
         let isCJK: Bool = {
             guard
@@ -394,15 +409,15 @@ private enum ReadiumCSSLayout: String {
             }
             return ["zh", "ja", "ko"].contains(language)
         }()
-        
+
         switch readingProgression {
-        case .rtl, .btt:
+        case .rtl:
             self = isCJK ? .cjkVertical : .rtl
-        case .ltr, .ttb, .auto:
+        case .ltr:
             self = isCJK ? .cjkHorizontal : .ltr
         }
     }
-    
+
     var readiumCSSBasePath: String {
         let folder: String = {
             switch self {
@@ -418,9 +433,8 @@ private enum ReadiumCSSLayout: String {
         }()
         return "readium-css/\(folder)"
     }
-    
+
     func readiumCSSPath(for name: String) -> String {
-        return "\(readiumCSSBasePath)ReadiumCSS-\(name).css"
+        "\(readiumCSSBasePath)ReadiumCSS-\(name).css"
     }
-    
 }

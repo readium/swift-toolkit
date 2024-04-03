@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -7,13 +7,12 @@
 import SwiftUI
 
 struct AddBookSheet: View {
-    
     // For iOS 15, we can use @Environment(\.dismiss)
     @Binding var showingSheet: Bool
     var action: (String) -> Void
-    
+
     @State var url: String = ""
-    
+
     var body: some View {
         NavigationView {
             Form {
@@ -25,7 +24,7 @@ struct AddBookSheet: View {
             .toolbar(content: toolbarContent)
         }
     }
-    
+
     @ToolbarContentBuilder
     private func toolbarContent() -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {
@@ -43,8 +42,8 @@ struct AddBookSheet: View {
     }
 }
 
-//struct AddBookSheet_Previews: PreviewProvider {
+// struct AddBookSheet_Previews: PreviewProvider {
 //    static var previews: some View {
 //        AddBookSheet(showingSheet: true)
 //    }
-//}
+// }

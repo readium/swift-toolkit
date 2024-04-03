@@ -131,11 +131,11 @@ export function getColumnCountPerScreen() {
 }
 
 export function isScrollModeEnabled() {
+  const style = document.documentElement.style;
   return (
-    document.documentElement.style
-      .getPropertyValue("--USER__scroll")
-      .toString()
-      .trim() === "readium-scroll-on"
+    style.getPropertyValue("--USER__view").trim() == "readium-scroll-on" ||
+    // FIXME: Will need to be removed in Readium 3.0, --USER__scroll was incorrect.
+    style.getPropertyValue("--USER__scroll").trim() == "readium-scroll-on"
   );
 }
 
@@ -179,23 +179,23 @@ export function scrollToText(text) {
   if (!range) {
     return false;
   }
-  scrollToRange(range);
-  return true;
+  return scrollToRange(range);
 }
 
 function scrollToRange(range) {
-  scrollToRect(range.getBoundingClientRect());
+  return scrollToRect(range.getBoundingClientRect());
 }
 
 function scrollToRect(rect) {
   if (isScrollModeEnabled()) {
-    document.scrollingElement.scrollTop =
-      rect.top + window.scrollY - window.innerHeight / 2;
+    document.scrollingElement.scrollTop = rect.top + window.scrollY;
   } else {
     document.scrollingElement.scrollLeft = snapOffset(
       rect.left + window.scrollX
     );
   }
+
+  return true;
 }
 
 // Returns false if the page is already at the left-most scroll offset.
@@ -247,29 +247,74 @@ function snapCurrentPosition() {
 }
 
 export function rangeFromLocator(locator) {
-  let text = locator.text;
-  if (!text || !text.highlight) {
-    return null;
-  }
   try {
-    let anchor = new TextQuoteAnchor(document.body, text.highlight, {
-      prefix: text.before,
-      suffix: text.after,
-    });
-    return anchor.toRange();
+    let locations = locator.locations;
+    let text = locator.text;
+    if (text && text.highlight) {
+      var root;
+      if (locations && locations.cssSelector) {
+        root = document.querySelector(locations.cssSelector);
+      }
+      if (!root) {
+        root = document.body;
+      }
+
+      let anchor = new TextQuoteAnchor(root, text.highlight, {
+        prefix: text.before,
+        suffix: text.after,
+      });
+
+      return anchor.toRange();
+    }
+
+    if (locations) {
+      var element = null;
+
+      if (!element && locations.cssSelector) {
+        element = document.querySelector(locations.cssSelector);
+      }
+
+      if (!element && locations.fragments) {
+        for (const htmlId of locations.fragments) {
+          element = document.getElementById(htmlId);
+          if (element) {
+            break;
+          }
+        }
+      }
+
+      if (element) {
+        let range = document.createRange();
+        range.setStartBefore(element);
+        range.setEndAfter(element);
+        return range;
+      }
+    }
   } catch (e) {
     logError(e);
-    return null;
   }
+
+  return null;
 }
 
 /// User Settings.
 
+export function setCSSProperties(properties) {
+  for (const name in properties) {
+    setProperty(name, properties[name]);
+  }
+}
+
 // For setting user setting.
 export function setProperty(key, value) {
-  var root = document.documentElement;
-
-  root.style.setProperty(key, value);
+  if (value === null) {
+    removeProperty(key);
+  } else {
+    var root = document.documentElement;
+    // The `!important` annotation is added with `setProperty()` because if
+    // it's part of the `value`, it will be ignored by the Web View.
+    root.style.setProperty(key, value, "important");
+  }
 }
 
 // For removing user setting.

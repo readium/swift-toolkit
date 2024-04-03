@@ -1,18 +1,17 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import SwiftUI
 import R2Shared
+import SwiftUI
 
 struct CatalogGroup: View {
-    
     var group: R2Shared.Group
     let publicationDetail: (Publication) -> PublicationDetail
     let catalogFeed: (Catalog) -> CatalogFeed
-    
+
     var body: some View {
         VStack(alignment: .leading) {
             let rows = [GridItem(.flexible(), alignment: .top)]
@@ -30,10 +29,10 @@ struct CatalogGroup: View {
                     LazyHGrid(rows: rows, spacing: 30) {
                         ForEach(group.publications) { publication in
                             let authors = publication.metadata.authors
-                                .map { $0.name }
+                                .map(\.name)
                                 .joined(separator: ", ")
                             NavigationLink(destination: publicationDetail(publication)) {
-                                // FIXME Ideally the title and author should not be truncated
+                                // FIXME: Ideally the title and author should not be truncated
                                 BookCover(
                                     title: publication.metadata.title,
                                     authors: authors,
@@ -56,8 +55,8 @@ struct CatalogGroup: View {
     }
 }
 
-//struct CatalogGroup_Previews: PreviewProvider {
+// struct CatalogGroup_Previews: PreviewProvider {
 //    static var previews: some View {
 //        CatalogGroup()
 //    }
-//}
+// }
