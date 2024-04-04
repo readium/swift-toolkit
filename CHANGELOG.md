@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Added
 
+#### Shared
+
+* You can now use `DefaultHTTPClientDelegate.httpClient(_:request:didReceive:completion:)` to handle authentication challenges (e.g. Basic) with `DefaultHTTPClient`.
+
 #### Navigator
 
 * The `AudioNavigator` API has been promoted to stable and ships with a new Preferences API.
