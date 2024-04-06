@@ -107,6 +107,10 @@ class ReaderViewController<N: Navigator>: UIViewController,
         moduleDelegate?.presentError(error, from: self)
     }
 
+    func navigator(_ navigator: any Navigator, didFailToLoadResourceAt href: RelativeURL, withError error: ResourceError) {
+        log(.error, "Failed to load resource at \(href): \(error)")
+    }
+
     // MARK: - Locations
 
     var currentBookmark: Bookmark? {

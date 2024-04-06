@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import GCDWebServer
 import R2Shared
+import ReadiumGCDWebServer
 import UIKit
 
 /// Errors thrown by the `PublicationServer`.
@@ -15,6 +15,7 @@ import UIKit
 /// - fetcher: An error thrown by the Fetcher.
 /// - nilBaseUrl: The base url is nil.
 /// - usedEndpoint: This endpoint is already in use.
+@available(*, unavailable, message: "See the 2.5.0 migration guide to migrate the HTTP server")
 public enum PublicationServerError: Error {
     case parser(underlyingError: Error)
     case fetcher(underlyingError: Error)

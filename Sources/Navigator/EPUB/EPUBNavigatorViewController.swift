@@ -931,6 +931,16 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
             }
         }
     }
+
+    func epubNavigatorViewModel(
+        _ viewModel: EPUBNavigatorViewModel,
+        didFailToLoadResourceAt href: RelativeURL,
+        withError error: ResourceError
+    ) {
+        DispatchQueue.main.async {
+            self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
+        }
+    }
 }
 
 extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {

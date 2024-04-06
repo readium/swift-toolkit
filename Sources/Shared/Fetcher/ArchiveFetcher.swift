@@ -32,6 +32,7 @@ public final class ArchiveFetcher: Fetcher, Loggable {
             let entry = findEntry(at: path),
             let reader = archive.readEntry(at: entry.path)
         else {
+            log(.warning, "Unable to create ArchiveResource from link \(link)")
             return FailureResource(link: link, error: .notFound(nil))
         }
 

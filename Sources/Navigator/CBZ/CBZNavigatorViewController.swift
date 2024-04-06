@@ -26,7 +26,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
     private let server: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
-    private let publicationBaseURL: HTTPURL
+    private var publicationBaseURL: HTTPURL!
 
     public convenience init(
         publication: Publication,
@@ -39,23 +39,36 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         }
 
         let publicationEndpoint: HTTPServerEndpoint?
-        let baseURL: HTTPURL
-        if let url = publication.baseURL {
+        let uuidEndpoint = UUID().uuidString
+        if publication.baseURL != nil {
             publicationEndpoint = nil
-            baseURL = url
         } else {
-            let endpoint = UUID().uuidString
-            publicationEndpoint = endpoint
-            baseURL = try httpServer.serve(at: endpoint, publication: publication)
+            publicationEndpoint = uuidEndpoint
         }
 
         self.init(
             publication: publication,
             initialLocation: initialLocation,
             httpServer: httpServer,
-            publicationEndpoint: publicationEndpoint,
-            publicationBaseURL: baseURL
+            publicationEndpoint: publicationEndpoint
         )
+
+        if let url = publication.baseURL {
+            publicationBaseURL = url
+        } else {
+            publicationBaseURL = try httpServer.serve(
+                at: uuidEndpoint,
+                publication: publication,
+                failureHandler: { [weak self] request, error in
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self = self, let href = request.href else {
+                            return
+                        }
+                        self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
+                    }
+                }
+            )
+        }
     }
 
     @available(*, unavailable, message: "See the 2.5.0 migration guide to migrate the HTTP server")
@@ -67,13 +80,11 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         publication: Publication,
         initialLocation: Locator?,
         httpServer: HTTPServer?,
-        publicationEndpoint: HTTPServerEndpoint?,
-        publicationBaseURL: HTTPURL
+        publicationEndpoint: HTTPServerEndpoint?
     ) {
         self.publication = publication
         server = httpServer
         self.publicationEndpoint = publicationEndpoint
-        self.publicationBaseURL = publicationBaseURL
 
         initialIndex = {
             guard let initialLocation = initialLocation, let initialIndex = publication.readingOrder.firstIndex(withHREF: initialLocation.href) else {

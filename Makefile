@@ -15,15 +15,20 @@ carthage-project:
 
 .PHONY: scripts
 scripts:
-	rm -rf "$(SCRIPTS_PATH)/node_modules"
-	yarn --cwd "$(SCRIPTS_PATH)" install --frozen-lockfile
-	yarn --cwd "$(SCRIPTS_PATH)" run format
-	yarn --cwd "$(SCRIPTS_PATH)" run lint
-	yarn --cwd "$(SCRIPTS_PATH)" run bundle
+	@which corepack >/dev/null 2>&1 || (echo "ERROR: corepack is required, please install it first\nhttps://pnpm.io/installation#using-corepack"; exit 1)
+
+	cd $(SCRIPTS_PATH); \
+	rm -rf "node_modules"; \
+	corepack install; \
+	pnpm install --frozen-lockfile; \
+	pnpm run format; \
+	pnpm run lint; \
+	pnpm run bundle
 
 .PHONY: update-scripts
 update-scripts:
-	yarn --cwd "$(SCRIPTS_PATH)" install
+	@which corepack >/dev/null 2>&1 || (echo "ERROR: corepack is required, please install it first\nhttps://pnpm.io/installation#using-corepack"; exit 1)
+	pnpm install --dir "$(SCRIPTS_PATH)"
 
 .PHONY: test
 test:
