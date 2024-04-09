@@ -4,7 +4,15 @@ The Readium Swift toolkit enables you to develop reading apps for iOS and iPadOS
 
 :warning: Readium offers only low-level tools. You are responsible for creating a user interface for reading and managing books, as well as a data layer to store the user's publications. The Test App is an example of such integration.
 
-The toolkit is divided into separate packages that can be used independently.
+## Design principles
+
+The toolkit has been designed following these core tenets:
+
+* **Modular**: It is divided into separate modules that can be used independently.
+* **Extensible**: Integrators should be able to support a custom DRM, publication format or inject their own stylesheets without modifying the toolkit itself.
+* **Opiniated**: We adhere to open standards but sometimes interpret them for practicality.
+
+## Packages
 
 ### Main packages
 
@@ -25,7 +33,9 @@ The toolkit is divided into separate packages that can be used independently.
 
 The Readium toolkit provides models used as exchange types between packages.
 
-### Publication
+### Publication models
+
+#### Publication
 
 `Publication` and its sub-components represent a single publication – ebook, audiobook or comic. It is loosely based on the [Readium Web Publication Manifest](https://readium.org/webpub-manifest/).
 
@@ -33,9 +43,9 @@ A `Publication` instance:
 
 * holds the metadata of a publication, such as its author or table of contents,
 * allows to read the contents of a publication, e.g. XHTML or audio resources,
-* provides additional services, for example content extraction or text search
+* provides additional services, for example content extraction or text search.
 
-### Link
+#### Link
 
 A [`Link` object](https://readium.org/webpub-manifest/#24-the-link-object) holds a pointer (URL) to a `Publication` resource along with additional metadata, such as its media type or title.
 
@@ -45,7 +55,7 @@ The `Publication` contains several `Link` collections, for example:
 * `resources` contains secondary resources necessary for rendering the `readingOrder`, such as an image or a font file.
 * `tableOfContents` represents the table of contents as a tree of `Link` objects.
 
-### Locator
+#### Locator
 
 A [`Locator` object](https://readium.org/architecture/models/locators/) represents a precise location in a publication resource in a format that can be stored and shared across reading systems. It is more accurate than a `Link` and contains additional information about the location, e.g. progression percentage, position or textual context.
 
@@ -54,6 +64,24 @@ A [`Locator` object](https://readium.org/architecture/models/locators/) represen
 * reporting the current progression in the publication
 * saving bookmarks, highlights and annotations
 * navigating search results
+
+### Data models
+
+#### Publication Asset
+
+A `PublicationAsset` is an interface representing a single file or package holding the content of a `Publication`. A default implementation `FileAsset` grants access to a publication stored locally.
+
+#### Resource
+
+A `Resource` provides read access to a single resource of a publication, such as a file or an entry in an archive.
+
+`Resource` instances are usually created by a `Fetcher`. The toolkit ships with various implementations supporting different data access protocols such as local files, HTTP, etc.
+
+#### Fetcher
+
+A `Fetcher` provides read access to a collection of resources. `Fetcher` instances are created by a `PublicationAsset` to provide access to the content of a publication.
+
+`Publication` objects internally use a `Fetcher` to expose their content.
 
 ## Opening a publication (`R2Streamer`)
 
