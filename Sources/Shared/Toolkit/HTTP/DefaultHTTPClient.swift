@@ -1,11 +1,23 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 import UIKit
+
+public enum URLAuthenticationChallengeResponse {
+    /// Use the specified credential.
+    case useCredential(URLCredential)
+    /// Use the default handling for the challenge as though this delegate method were not implemented.
+    case performDefaultHandling
+    /// Cancel the entire request.
+    case cancelAuthenticationChallenge
+    /// Reject this challenge, and call the authentication delegate method again with the next
+    /// authentication protection space.
+    case rejectProtectionSpace
+}
 
 /// Delegate protocol for `DefaultHTTPClient`.
 public protocol DefaultHTTPClientDelegate: AnyObject {
@@ -42,6 +54,14 @@ public protocol DefaultHTTPClientDelegate: AnyObject {
     /// This will be called only if `httpClient(_:recoverRequest:fromError:completion:)` is not implemented, or returns
     /// an error.
     func httpClient(_ httpClient: DefaultHTTPClient, request: HTTPRequest, didFailWithError error: HTTPError)
+
+    /// Requests credentials from the delegate in response to an authentication request from the remote server.
+    func httpClient(
+        _ httpClient: DefaultHTTPClient,
+        request: HTTPRequest,
+        didReceive challenge: URLAuthenticationChallenge,
+        completion: @escaping (URLAuthenticationChallengeResponse) -> Void
+    )
 }
 
 public extension DefaultHTTPClientDelegate {
@@ -55,6 +75,15 @@ public extension DefaultHTTPClientDelegate {
 
     func httpClient(_ httpClient: DefaultHTTPClient, request: HTTPRequest, didReceiveResponse response: HTTPResponse) {}
     func httpClient(_ httpClient: DefaultHTTPClient, request: HTTPRequest, didFailWithError error: HTTPError) {}
+
+    func httpClient(
+        _ httpClient: DefaultHTTPClient,
+        request: HTTPRequest,
+        didReceive challenge: URLAuthenticationChallenge,
+        completion: @escaping (URLAuthenticationChallengeResponse) -> Void
+    ) {
+        completion(.performDefaultHandling)
+    }
 }
 
 /// An implementation of `HTTPClient` using native APIs.
@@ -200,6 +229,13 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                         }
                         receiveResponse?(response)
                     },
+                    receiveChallenge: { [weak self] challenge, completion in
+                        if let self = self, let delegate = self.delegate {
+                            delegate.httpClient(self, request: request, didReceive: challenge, completion: completion)
+                        } else {
+                            completion(.performDefaultHandling)
+                        }
+                    },
                     consume: consume,
                     completion: { [weak self] result in
                         if let self = self, case let .failure(error) = result {
@@ -283,6 +319,15 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
             findTask(for: task)?.urlSession(session, didCompleteWithError: error)
         }
+
+        func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+            guard let task = findTask(for: task) else {
+                completionHandler(.performDefaultHandling, nil)
+                return
+            }
+
+            task.urlSession(session, didReceive: challenge, completion: completionHandler)
+        }
     }
 
     /// Represents an on-going HTTP task.
@@ -294,6 +339,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         private let request: HTTPRequest
         fileprivate let task: URLSessionTask
         private let receiveResponse: (HTTPResponse) -> Void
+        private let receiveChallenge: (URLAuthenticationChallenge, @escaping (URLAuthenticationChallengeResponse) -> Void) -> Void
         private let consume: (Data, Double?) -> Void
         private let completion: (HTTPResult<HTTPResponse>) -> Void
 
@@ -312,11 +358,19 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
             case finished
         }
 
-        init(request: HTTPRequest, task: URLSessionDataTask, receiveResponse: @escaping ((HTTPResponse) -> Void), consume: @escaping (Data, Double?) -> Void, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) {
+        init(
+            request: HTTPRequest,
+            task: URLSessionDataTask,
+            receiveResponse: @escaping (HTTPResponse) -> Void,
+            receiveChallenge: @escaping (URLAuthenticationChallenge, @escaping (URLAuthenticationChallengeResponse) -> Void) -> Void,
+            consume: @escaping (Data, Double?) -> Void,
+            completion: @escaping (HTTPResult<HTTPResponse>) -> Void
+        ) {
             self.request = request
             self.task = task
             self.completion = completion
             self.receiveResponse = receiveResponse
+            self.receiveChallenge = receiveChallenge
             self.consume = consume
         }
 
@@ -426,6 +480,21 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                 }
             }
             finish()
+        }
+
+        func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completion: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+            receiveChallenge(challenge) { response in
+                switch response {
+                case let .useCredential(credential):
+                    completion(.useCredential, credential)
+                case .performDefaultHandling:
+                    completion(.performDefaultHandling, nil)
+                case .cancelAuthenticationChallenge:
+                    completion(.cancelAuthenticationChallenge, nil)
+                case .rejectProtectionSpace:
+                    completion(.rejectProtectionSpace, nil)
+                }
+            }
         }
     }
 }

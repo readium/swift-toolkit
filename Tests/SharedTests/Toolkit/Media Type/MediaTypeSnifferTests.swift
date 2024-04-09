@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -66,6 +66,19 @@ class MediaTypeSnifferTests: XCTestCase {
         XCTAssertEqual(MediaType.of(fixtures.url(for: "audiobook-wrongtype.json")), .readiumAudiobookManifest)
     }
 
+    func testSniffAAC() {
+        XCTAssertEqual(MediaType.of(fileExtension: "aac"), .aac)
+        XCTAssertEqual(MediaType.of(mediaType: "audio/aac"), .aac)
+    }
+
+    func testSniffAIFF() {
+        XCTAssertEqual(MediaType.of(fileExtension: "aiff"), .aiff)
+        XCTAssertEqual(MediaType.of(fileExtension: "aif"), .aiff)
+        XCTAssertEqual(MediaType.of(fileExtension: "aifc"), .aiff)
+        XCTAssertEqual(MediaType.of(mediaType: "audio/aiff"), .aiff)
+        XCTAssertEqual(MediaType.of(mediaType: "audio/x-aiff"), .aiff)
+    }
+
     func testSniffBMP() {
         XCTAssertEqual(MediaType.of(fileExtension: "bmp"), .bmp)
         XCTAssertEqual(MediaType.of(fileExtension: "dib"), .bmp)
@@ -96,6 +109,11 @@ class MediaTypeSnifferTests: XCTestCase {
         XCTAssertEqual(MediaType.of(fileExtension: "epub"), .epub)
         XCTAssertEqual(MediaType.of(mediaType: "application/epub+zip"), .epub)
         XCTAssertEqual(MediaType.of(fixtures.url(for: "epub.unknown")), .epub)
+    }
+
+    func testSniffFLAC() {
+        XCTAssertEqual(MediaType.of(fileExtension: "flac"), .flac)
+        XCTAssertEqual(MediaType.of(mediaType: "audio/flac"), .flac)
     }
 
     func testSniffGIF() {
@@ -176,6 +194,36 @@ class MediaTypeSnifferTests: XCTestCase {
         XCTAssertEqual(MediaType.of(fixtures.url(for: "lpf-index-html.unknown")), .lpf)
     }
 
+    func testSniffMP3() {
+        XCTAssertEqual(MediaType.of(fileExtension: "mp3"), .mp3)
+    }
+
+    func testSniffMP4() {
+        XCTAssertEqual(MediaType.of(fileExtension: "mp4"), .mp4)
+        XCTAssertEqual(MediaType.of(fileExtension: "m4a"), .mp4)
+        XCTAssertEqual(MediaType.of(fileExtension: "m4b"), .mp4)
+        XCTAssertEqual(MediaType.of(fileExtension: "m4p"), .mp4)
+        XCTAssertEqual(MediaType.of(fileExtension: "m4r"), .mp4)
+        XCTAssertEqual(MediaType.of(fileExtension: "alac"), .mp4)
+        XCTAssertEqual(MediaType.of(mediaType: "audio/mp4"), .mp4)
+    }
+
+    func testSniffMPEG() {
+        XCTAssertEqual(MediaType.of(mediaType: "audio/mpeg"), .mpegAudio)
+    }
+
+    func testSniffOGG() {
+        XCTAssertEqual(MediaType.of(fileExtension: "ogg"), .ogg)
+        XCTAssertEqual(MediaType.of(fileExtension: "oga"), .ogg)
+        XCTAssertEqual(MediaType.of(fileExtension: "mogg"), .ogg)
+        XCTAssertEqual(MediaType.of(mediaType: "audio/ogg"), .ogg)
+    }
+
+    func testSniffOPUS() {
+        XCTAssertEqual(MediaType.of(fileExtension: "opus"), .opus)
+        XCTAssertEqual(MediaType.of(mediaType: "audio/opus"), .opus)
+    }
+
     func testSniffPDF() {
         XCTAssertEqual(MediaType.of(fileExtension: "pdf"), .pdf)
         XCTAssertEqual(MediaType.of(mediaType: "application/pdf"), .pdf)
@@ -194,9 +242,22 @@ class MediaTypeSnifferTests: XCTestCase {
         XCTAssertEqual(MediaType.of(mediaType: "image/tiff-fx"), .tiff)
     }
 
+    func testSniffWAV() {
+        XCTAssertEqual(MediaType.of(fileExtension: "wav"), .wav)
+        XCTAssertEqual(MediaType.of(fileExtension: "wave"), .wav)
+        XCTAssertEqual(MediaType.of(mediaType: "audio/wav"), .wav)
+        XCTAssertEqual(MediaType.of(mediaType: "audio/x-wav"), .wav)
+        XCTAssertEqual(MediaType.of(mediaType: "audio/wave"), .wav)
+    }
+
     func testSniffWebP() {
         XCTAssertEqual(MediaType.of(fileExtension: "webp"), .webp)
         XCTAssertEqual(MediaType.of(mediaType: "image/webp"), .webp)
+    }
+
+    func testSniffWebM() {
+        XCTAssertEqual(MediaType.of(fileExtension: "webm"), .webmAudio)
+        XCTAssertEqual(MediaType.of(mediaType: "audio/webm"), .webmAudio)
     }
 
     func testSniffWebPub() {

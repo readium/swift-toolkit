@@ -1,14 +1,14 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import GCDWebServer
 import R2Shared
+import ReadiumGCDWebServer
 
-extension GCDWebServerResponse: Loggable {}
+extension ReadiumGCDWebServerResponse: Loggable {}
 
 /// Errors thrown by the `WebServerResourceResponse`
 ///
@@ -22,7 +22,7 @@ public enum WebServerResponseError: Error {
 /// The object containing the response's ressource data.
 /// If the ressource to be served is too big, multiple responses will be created.
 @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
-open class WebServerResourceResponse: GCDWebServerFileResponse {
+open class WebServerResourceResponse: ReadiumGCDWebServerFileResponse {
     private let bufferSize = 32 * 1024
 
     private var resource: Resource

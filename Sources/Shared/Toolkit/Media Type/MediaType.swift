@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -254,6 +254,7 @@ public struct MediaType: Hashable, Loggable {
     public static let divina = MediaType("application/divina+zip", name: "Digital Visual Narratives", fileExtension: "divina")!
     public static let divinaManifest = MediaType("application/divina+json", name: "Digital Visual Narratives", fileExtension: "json")!
     public static let epub = MediaType("application/epub+zip", name: "EPUB", fileExtension: "epub")!
+    public static let flac = MediaType("audio/flac", fileExtension: "flac")!
     public static let gif = MediaType("image/gif", fileExtension: "gif")!
     public static let gz = MediaType("application/gzip", fileExtension: "gz")!
     public static let html = MediaType("text/html", fileExtension: "html")!
@@ -266,7 +267,9 @@ public struct MediaType: Hashable, Loggable {
     public static let lcpStatusDocument = MediaType("application/vnd.readium.license.status.v1.0+json")!
     public static let lpf = MediaType("application/lpf+zip", fileExtension: "lpf")!
     public static let mp3 = MediaType("audio/mpeg", fileExtension: "mp3")!
-    public static let mpeg = MediaType("video/mpeg", fileExtension: "mpeg")!
+    public static let mp4 = MediaType("audio/mp4", fileExtension: "mp4")!
+    public static let mpegAudio = MediaType("audio/mpeg", fileExtension: "mpeg")!
+    public static let mpegVideo = MediaType("video/mpeg", fileExtension: "mpeg")!
     public static let ncx = MediaType("application/x-dtbncx+xml", fileExtension: "ncx")!
     public static let ogg = MediaType("audio/ogg", fileExtension: "oga")!
     public static let ogv = MediaType("video/ogg", fileExtension: "ogv")!

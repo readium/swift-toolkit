@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -11,13 +11,32 @@ import Foundation
 /// This is required by some Navigators to access a local publication's
 /// resources.
 public protocol HTTPServer {
+    typealias FailureHandler = (_ request: HTTPServerRequest, _ error: ResourceError) -> Void
+
     /// Serves resources at the given `endpoint`.
     ///
     /// Subsequent calls with the same `endpoint` overwrite each other.
     ///
     /// - Returns the base URL for this endpoint.
     @discardableResult
-    func serve(at endpoint: HTTPServerEndpoint, handler: @escaping (HTTPServerRequest) -> Resource) throws -> URL
+    func serve(
+        at endpoint: HTTPServerEndpoint,
+        handler: @escaping (HTTPServerRequest) -> Resource
+    ) throws -> URL
+
+    /// Serves resources at the given `endpoint`.
+    ///
+    /// Subsequent calls with the same `endpoint` overwrite each other.
+    ///
+    /// If the resource cannot be served, the `failureHandler` is called.
+    ///
+    /// - Returns the base URL for this endpoint.
+    @discardableResult
+    func serve(
+        at endpoint: HTTPServerEndpoint,
+        handler: @escaping (HTTPServerRequest) -> Resource,
+        failureHandler: FailureHandler?
+    ) throws -> URL
 
     /// Registers a `Resource` transformer that will be run on all responses
     /// matching the given `endpoint`.
@@ -29,16 +48,31 @@ public protocol HTTPServer {
 }
 
 public extension HTTPServer {
+    @discardableResult
+    func serve(
+        at endpoint: HTTPServerEndpoint,
+        handler: @escaping (HTTPServerRequest) -> Resource,
+        failureHandler: FailureHandler?
+    ) throws -> URL {
+        try serve(at: endpoint, handler: handler)
+    }
+
     /// Serves the local file `url` at the given `endpoint`.
     ///
     /// If the provided `url` is a directory, then all the files in the
     /// directory are served. Subsequent calls with the same served `endpoint`
     /// overwrite each other.
     ///
+    /// If the file cannot be served, the `failureHandler` is called.
+    ///
     /// - Returns the URL to access the file(s) on the server.
     @discardableResult
-    func serve(at endpoint: HTTPServerEndpoint, contentsOf url: URL) throws -> URL {
-        try serve(at: endpoint) { request in
+    func serve(
+        at endpoint: HTTPServerEndpoint,
+        contentsOf url: URL,
+        failureHandler: FailureHandler? = nil
+    ) throws -> URL {
+        func handler(request: HTTPServerRequest) -> Resource {
             let file = url.appendingPathComponent(request.href ?? "")
 
             return FileResource(
@@ -49,19 +83,30 @@ public extension HTTPServer {
                 file: file
             )
         }
+
+        return try serve(
+            at: endpoint,
+            handler: handler(request:),
+            failureHandler: failureHandler
+        )
     }
 
     /// Serves a `publication`'s resources at the given `endpoint`.
+    ///
+    /// If the resource cannot be served, the `failureHandler` is called.
     ///
     /// - Returns the base URL to access the publication's resources on the
     /// server.
     @discardableResult
     func serve(
         at endpoint: HTTPServerEndpoint,
-        publication: Publication
+        publication: Publication,
+        failureHandler: FailureHandler? = nil
     ) throws -> URL {
-        try serve(at: endpoint) { request in
+        func handler(request: HTTPServerRequest) -> Resource {
             guard let href = request.href else {
+                failureHandler?(request, .notFound(nil))
+
                 return FailureResource(
                     link: Link(href: request.url.absoluteString),
                     error: .notFound(nil)
@@ -70,6 +115,12 @@ public extension HTTPServer {
 
             return publication.get(href)
         }
+
+        return try serve(
+            at: endpoint,
+            handler: handler(request:),
+            failureHandler: failureHandler
+        )
     }
 }
 

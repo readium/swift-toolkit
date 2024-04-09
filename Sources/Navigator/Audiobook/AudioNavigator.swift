@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -8,19 +8,83 @@ import AVFoundation
 import Foundation
 import R2Shared
 
-public protocol _AudioNavigatorDelegate: _MediaNavigatorDelegate {}
+/// Status of a played media resource.
+public enum MediaPlaybackState {
+    case paused
+    case loading
+    case playing
+}
+
+/// Holds metadata about a played media resource.
+public struct MediaPlaybackInfo {
+    /// Index of the current resource in the `readingOrder`.
+    public let resourceIndex: Int
+
+    /// Indicates whether the resource is currently playing or not.
+    public let state: MediaPlaybackState
+
+    /// Current playback position in the resource, in seconds.
+    public let time: Double
+
+    /// Duration in seconds of the resource, if known.
+    public let duration: Double?
+
+    /// Progress in the resource, from 0 to 1.
+    public var progress: Double {
+        guard let duration = duration else {
+            return 0
+        }
+        return time / duration
+    }
+
+    public init(
+        resourceIndex: Int = 0,
+        state: MediaPlaybackState = .loading,
+        time: Double = 0,
+        duration: Double? = nil
+    ) {
+        self.resourceIndex = resourceIndex
+        self.state = state
+        self.time = time
+        self.duration = duration
+    }
+}
+
+public protocol AudioNavigatorDelegate: NavigatorDelegate {
+    /// Called when the playback updates.
+    func navigator(_ navigator: AudioNavigator, playbackDidChange info: MediaPlaybackInfo)
+
+    /// Called when the navigator finished playing the current resource.
+    /// Returns whether the next resource should be played. Default is true.
+    func navigator(_ navigator: AudioNavigator, shouldPlayNextResource info: MediaPlaybackInfo) -> Bool
+
+    /// Called when the ranges of buffered media data change.
+    /// Warning: They may be discontinuous.
+    func navigator(_ navigator: AudioNavigator, loadedTimeRangesDidChange ranges: [Range<Double>])
+}
+
+public extension AudioNavigatorDelegate {
+    func navigator(_ navigator: AudioNavigator, playbackDidChange info: MediaPlaybackInfo) {}
+
+    func navigator(_ navigator: AudioNavigator, shouldPlayNextResource info: MediaPlaybackInfo) -> Bool { true }
+
+    func navigator(_ navigator: AudioNavigator, loadedTimeRangesDidChange ranges: [Range<Double>]) {}
+}
 
 /// Navigator for audio-based publications such as:
 ///
 /// * Readium Audiobook
 /// * ZAB (Zipped Audio Book)
-///
-/// **WARNING:** This API is experimental and may change or be removed in a
-/// future release without notice. Use with caution.
-open class _AudioNavigator: _MediaNavigator, AudioSessionUser, Loggable {
-    public weak var delegate: _AudioNavigatorDelegate?
+open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
+    public weak var delegate: AudioNavigatorDelegate?
 
     public struct Configuration {
+        /// Initial set of setting preferences.
+        public var preferences: AudioPreferences
+
+        /// Provides default fallback values and ranges for the user settings.
+        public var defaults: AudioDefaults
+
         /// Interval between two updates of the playback state.
         public var playbackRefreshInterval: TimeInterval
 
@@ -28,6 +92,8 @@ open class _AudioNavigator: _MediaNavigator, AudioSessionUser, Loggable {
         public var audioSession: AudioSession.Configuration
 
         public init(
+            preferences: AudioPreferences = AudioPreferences(),
+            defaults: AudioDefaults = AudioDefaults(),
             playbackRefreshInterval: TimeInterval = 0.5,
             audioSession: AudioSession.Configuration = .init(
                 category: .playback,
@@ -35,6 +101,8 @@ open class _AudioNavigator: _MediaNavigator, AudioSessionUser, Loggable {
                 routeSharingPolicy: .longFormAudio
             )
         ) {
+            self.preferences = preferences
+            self.defaults = defaults
             self.playbackRefreshInterval = playbackRefreshInterval
             self.audioSession = audioSession
         }
@@ -61,10 +129,20 @@ open class _AudioNavigator: _MediaNavigator, AudioSessionUser, Loggable {
 
         self.durations = durations
         self.totalDuration = (totalDuration > 0) ? totalDuration : nil
+
+        settings = AudioSettings(
+            preferences: config.preferences,
+            defaults: config.defaults
+        )
     }
 
     deinit {
         AudioSession.shared.end(for: self)
+    }
+
+    /// Returns whether the resource is currently playing or not.
+    public var state: MediaPlaybackState {
+        MediaPlaybackState(player.timeControlStatus)
     }
 
     /// Current playback info.
@@ -100,6 +178,45 @@ open class _AudioNavigator: _MediaNavigator, AudioSessionUser, Loggable {
     /// Durations indexed by reading order position.
     private let durations: [Double]
 
+    public var currentTime: Double {
+        player.currentTime().secondsOrZero
+    }
+
+    /// Resumes or start the playback.
+    public func play() {
+        AudioSession.shared.start(with: self, isPlaying: false)
+
+        if player.currentItem == nil, let location = initialLocation {
+            go(to: location)
+        }
+        player.playImmediately(atRate: Float(settings.speed))
+    }
+
+    /// Pauses the playback.
+    public func pause() {
+        player.pause()
+    }
+
+    /// Toggles the playback.
+    public func playPause() {
+        switch state {
+        case .loading, .playing:
+            pause()
+        case .paused:
+            play()
+        }
+    }
+
+    /// Seeks to the given time in the current resource.
+    public func seek(to time: Double) {
+        player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
+    }
+
+    /// Seeks relatively from the current time in the current resource.
+    public func seek(by delta: Double) {
+        seek(to: currentTime + delta)
+    }
+
     private var rateObserver: NSKeyValueObservation?
     private var timeControlStatusObserver: NSKeyValueObservation?
     private var currentItemObserver: NSKeyValueObservation?
@@ -110,6 +227,7 @@ open class _AudioNavigator: _MediaNavigator, AudioSessionUser, Loggable {
         let player = AVPlayer()
         player.allowsExternalPlayback = false
         player.automaticallyWaitsToMinimizeStalling = false
+        player.volume = Float(settings.volume)
 
         player.addPeriodicTimeObserver(
             forInterval: CMTime(
@@ -282,7 +400,7 @@ open class _AudioNavigator: _MediaNavigator, AudioSessionUser, Loggable {
             }
 
             // Seeks to time
-            let time = locator.time(forDuration: resourceDuration) ?? 0
+            let time = locator.locations.time?.begin ?? ((resourceDuration ?? 0) * (locator.locations.progression ?? 0))
             player.seek(to: CMTime(seconds: time, preferredTimescale: 1000)) { [weak self] finished in
                 if let self = self, finished {
                     self.delegate?.navigator(self, didJumpTo: locator)
@@ -334,76 +452,30 @@ open class _AudioNavigator: _MediaNavigator, AudioSessionUser, Loggable {
         return go(to: publication.readingOrder[index], animated: animated, completion: completion)
     }
 
-    // MARK: - MediaNavigator
+    // MARK: - Configurable
 
-    public var currentTime: Double {
-        player.currentTime().secondsOrZero
-    }
+    public private(set) var settings: AudioSettings
 
-    public var volume: Double {
-        get { Double(player.volume) }
-        set {
-            assert(0 ... 1 ~= newValue)
-            player.volume = Float(newValue)
+    public func submitPreferences(_ preferences: AudioPreferences) {
+        settings = AudioSettings(
+            preferences: preferences,
+            defaults: config.defaults
+        )
+
+        player.volume = Float(settings.volume)
+
+        // We don't directly change `player.rate`, because it might be 0 when the player is paused. `settings.speed`
+        // is actually the default speed while playing.
+        if state != .paused {
+            player.rate = Float(settings.speed)
         }
     }
 
-    public var rate: Double = 1 {
-        // We don't alias to `player.rate`, because it might be 0 when the player is paused. `rate`
-        // is actually the default rate while playing.
-        didSet {
-            assert(rate >= 0)
-            if state != .paused {
-                player.rate = Float(rate)
-            }
-        }
-    }
-
-    public var state: MediaPlaybackState {
-        MediaPlaybackState(player.timeControlStatus)
-    }
-
-    public func play() {
-        AudioSession.shared.start(with: self, isPlaying: false)
-
-        if player.currentItem == nil, let location = initialLocation {
-            go(to: location)
-        }
-        player.playImmediately(atRate: Float(rate))
-    }
-
-    public func pause() {
-        player.pause()
-    }
-
-    public func seek(to time: Double) {
-        player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
-    }
-
-    public func seek(by delta: Double) {
-        seek(to: currentTime + delta)
-    }
-}
-
-private extension Locator {
-    private static let timeFragmentRegex = try! NSRegularExpression(pattern: #"t=(\d+(?:\.\d+)?)"#)
-
-    // FIXME: Should probably be in `Locator` itself.
-    func time(forDuration duration: Double? = nil) -> Double? {
-        if let progression = locations.progression, let duration = duration {
-            return progression * duration
-        } else {
-            for fragment in locations.fragments {
-                let range = NSRange(fragment.startIndex ..< fragment.endIndex, in: fragment)
-                if let match = Self.timeFragmentRegex.firstMatch(in: fragment, range: range) {
-                    let matchRange = match.range(at: 1)
-                    if matchRange.location != NSNotFound, let range = Range(matchRange, in: fragment) {
-                        return Double(fragment[range])
-                    }
-                }
-            }
-        }
-        return nil
+    public func editor(of preferences: AudioPreferences) -> AudioPreferencesEditor {
+        AudioPreferencesEditor(
+            initialPreferences: preferences,
+            defaults: config.defaults
+        )
     }
 }
 
@@ -427,3 +499,15 @@ private extension CMTime {
         isNumeric ? seconds : 0
     }
 }
+
+@available(*, unavailable, renamed: "AudioNavigator")
+public typealias _AudioNavigator = AudioNavigator
+
+@available(*, unavailable, renamed: "AudioNavigatorDelegate")
+public typealias _AudioNavigatorDelegate = AudioNavigatorDelegate
+
+@available(*, unavailable, renamed: "AudioNavigator")
+public typealias _MediaNavigator = AudioNavigator
+
+@available(*, unavailable, renamed: "AudioNavigatorDelegate")
+public typealias _MediaNavigatorDelegate = AudioNavigatorDelegate

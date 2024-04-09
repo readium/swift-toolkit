@@ -20,13 +20,14 @@
     "babel-loader": "^8.2.3",
     "eslint": "^7.29.0",
     "prettier": "2.3.1",
-    "webpack": "^5.40.0",
-    "webpack-cli": "^4.7.2"
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
   },
   "dependencies": {
     "@juggle/resize-observer": "^3.3.1",
     "approx-string-match": "^1.1.0",
     "css-selector-generator": "^3.6.1",
     "string.prototype.matchall": "^4.0.5"
-  }
+  },
+  "packageManager": "pnpm@8.15.1"
 }

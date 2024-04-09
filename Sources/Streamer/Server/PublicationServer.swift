@@ -1,12 +1,12 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import GCDWebServer
 import R2Shared
+import ReadiumGCDWebServer
 import UIKit
 
 /// Errors thrown by the `PublicationServer`.
@@ -26,7 +26,7 @@ public enum PublicationServerError: Error {
 @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
 public class PublicationServer: ResourcesServer, Loggable {
     /// The HTTP server.
-    var webServer: GCDWebServer
+    var webServer: ReadiumGCDWebServer
 
     // Mapping between endpoint and the matching publication.
     public private(set) var publications: [String: Publication] = [:]
@@ -46,11 +46,11 @@ public class PublicationServer: ResourcesServer, Loggable {
 
     public init?() {
         #if DEBUG
-            GCDWebServer.setLogLevel(2)
+            ReadiumGCDWebServer.setLogLevel(2)
         #else
-            GCDWebServer.setLogLevel(3)
+            ReadiumGCDWebServer.setLogLevel(3)
         #endif
-        webServer = GCDWebServer()
+        webServer = ReadiumGCDWebServer()
         if startWebServer() == false {
             return nil
         }
@@ -100,11 +100,11 @@ public class PublicationServer: ResourcesServer, Loggable {
         //       Check if it's supported by WKWebView first.
         webServer.stop()
         try webServer.start(options: [
-            GCDWebServerOption_Port: port,
-            GCDWebServerOption_BindToLocalhost: true,
+            ReadiumGCDWebServerOption_Port: port,
+            ReadiumGCDWebServerOption_BindToLocalhost: true,
             // We disable automatically suspending the server in the background, to be able to play
             // audiobooks even with the screen locked.
-            GCDWebServerOption_AutomaticallySuspendInBackground: false,
+            ReadiumGCDWebServerOption_AutomaticallySuspendInBackground: false,
         ])
     }
 
@@ -208,11 +208,11 @@ public class PublicationServer: ResourcesServer, Loggable {
         webServer.addHandler(
             forMethod: "GET",
             pathRegex: "/\(endpoint)/.*",
-            request: GCDWebServerRequest.self,
+            request: ReadiumGCDWebServerRequest.self,
             processBlock: { [weak self, weak publication] request in
                 guard let publication = publication else {
                     self?.log(.error, "The publication was deallocated.")
-                    return GCDWebServerErrorResponse(statusCode: 500)
+                    return ReadiumGCDWebServerErrorResponse(statusCode: 500)
                 }
 
                 // Remove the prefix from the URI.
@@ -237,17 +237,17 @@ public class PublicationServer: ResourcesServer, Loggable {
         webServer.addHandler(
             forMethod: "GET",
             pathRegex: "/\(endpoint)/manifest.json",
-            request: GCDWebServerRequest.self,
+            request: ReadiumGCDWebServerRequest.self,
             processBlock: { [weak self, weak publication] _ in
                 guard let publication = publication else {
                     self?.log(.error, "The publication was deallocated.")
-                    return GCDWebServerErrorResponse(statusCode: 500)
+                    return ReadiumGCDWebServerErrorResponse(statusCode: 500)
                 }
                 guard let manifestData = publication.jsonManifest?.data(using: .utf8) else {
-                    return GCDWebServerResponse(statusCode: 404)
+                    return ReadiumGCDWebServerResponse(statusCode: 404)
                 }
                 let type = "\(MediaType.readiumWebPubManifest.string); charset=utf-8"
-                return GCDWebServerDataResponse(data: manifestData, contentType: type)
+                return ReadiumGCDWebServerDataResponse(data: manifestData, contentType: type)
             }
         )
     }
@@ -314,7 +314,7 @@ public class PublicationServer: ResourcesServer, Loggable {
             webServer.addHandler(
                 forMethod: "GET",
                 pathRegex: "\(path)(/.*)?",
-                request: GCDWebServerRequest.self,
+                request: ReadiumGCDWebServerRequest.self,
                 processBlock: resourceHandler
             )
         }
@@ -324,7 +324,7 @@ public class PublicationServer: ResourcesServer, Loggable {
         return baseURL.appendingPathComponent(String(path.dropFirst()))
     }
 
-    private func resourceHandler(_ request: GCDWebServerRequest?) -> GCDWebServerResponse? {
+    private func resourceHandler(_ request: ReadiumGCDWebServerRequest?) -> ReadiumGCDWebServerResponse? {
         guard let request = request else {
             return nil
         }
@@ -333,13 +333,13 @@ public class PublicationServer: ResourcesServer, Loggable {
         guard let basePath = paths.first(where: { path.hasPrefix($0) }),
               var file = resources[basePath]
         else {
-            return GCDWebServerResponse(statusCode: 404)
+            return ReadiumGCDWebServerResponse(statusCode: 404)
         }
         path = String(path.dropFirst(basePath.count + 1))
         file.appendPathComponent(path)
 
         guard let data = try? Data(contentsOf: file) else {
-            return GCDWebServerResponse(statusCode: 404)
+            return ReadiumGCDWebServerResponse(statusCode: 404)
         }
 
         let contentType = MediaType.of(file)?.string
@@ -348,7 +348,7 @@ public class PublicationServer: ResourcesServer, Loggable {
 //        log(.debug, "Serve resource `\(path)` (\(contentType))")
 
         assert(file.pathExtension.lowercased() != "css" || contentType == "text/css")
-        return GCDWebServerDataResponse(data: data, contentType: contentType)
+        return ReadiumGCDWebServerDataResponse(data: data, contentType: contentType)
     }
 
     @available(*, unavailable, message: "Passing a `Container` is not needed anymore")

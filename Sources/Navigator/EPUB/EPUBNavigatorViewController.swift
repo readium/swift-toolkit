@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -942,6 +942,16 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
                 view.evaluateScript(script, inHREF: href)
                 return
             }
+        }
+    }
+
+    func epubNavigatorViewModel(
+        _ viewModel: EPUBNavigatorViewModel,
+        didFailToLoadResourceAt href: String,
+        withError error: ResourceError
+    ) {
+        DispatchQueue.main.async {
+            self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
         }
     }
 }

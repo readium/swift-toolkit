@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -105,6 +105,10 @@ class ReaderViewController<N: Navigator>: UIViewController,
 
     func navigator(_ navigator: Navigator, presentError error: NavigatorError) {
         moduleDelegate?.presentError(error, from: self)
+    }
+
+    func navigator(_ navigator: any Navigator, didFailToLoadResourceAt href: String, withError error: ResourceError) {
+        log(.error, "Failed to load resource at \(href): \(error)")
     }
 
     // MARK: - Locations

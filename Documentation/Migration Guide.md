@@ -2,6 +2,29 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
+## 2.7.0
+
+### `AudioNavigator` is now stable
+
+`AudioNavigator` is now stable. Follow the deprecation errors to automatically rename the types.
+
+All the setting properties (e.g. `navigator.rate`) are now in `navigator.settings`.
+
+### GCDWebServer was renamed
+
+To avoid [name collision with GCDWebServer](https://github.com/readium/swift-toolkit/issues/402), we renamed [our fork](https://github.com/readium/gcdwebserver) to `ReadiumGCDWebServer`. You will need to update your project to replace the old dependency:
+
+* Swift Package Manager: There's nothing to do.
+* Carthage:
+    * Update the Carthage dependencies and make sure the new `ReadiumGCDWebServer.xcframework` was built.
+    * Replace `GCDWebServer.xcframework` with `ReadiumGCDWebServer.xcframework` in your project.
+* CocoaPods:
+    * Replace the `pod 'GCDWebServer'` statement in your `Podfile` with the following, before running `pod install`.
+        ```
+        pod 'ReadiumGCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/4.0.0/GCDWebServer.podspec'
+        ```
+
+
 ## 2.5.0
 
 In the following migration steps, only the `ReadiumInternal` one is mandatory with 2.5.0.

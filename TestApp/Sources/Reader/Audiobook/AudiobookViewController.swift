@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -12,19 +12,27 @@ import R2Shared
 import SwiftUI
 import UIKit
 
-class AudiobookViewController: ReaderViewController<_AudioNavigator>, _AudioNavigatorDelegate {
+class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNavigatorDelegate {
     private let model: AudiobookViewModel
+    private let preferencesStore: AnyUserPreferencesStore<AudioPreferences>
 
     init(
         publication: Publication,
         locator: Locator?,
         bookId: Book.Id,
         books: BookRepository,
-        bookmarks: BookmarkRepository
+        bookmarks: BookmarkRepository,
+        initialPreferences: AudioPreferences,
+        preferencesStore: AnyUserPreferencesStore<AudioPreferences>
     ) {
-        let navigator = _AudioNavigator(
+        self.preferencesStore = preferencesStore
+
+        let navigator = AudioNavigator(
             publication: publication,
-            initialLocation: locator
+            initialLocation: locator,
+            config: AudioNavigator.Configuration(
+                preferences: initialPreferences
+            )
         )
 
         model = AudiobookViewModel(
@@ -68,9 +76,28 @@ class AudiobookViewController: ReaderViewController<_AudioNavigator>, _AudioNavi
         clearNowPlaying()
     }
 
+    override func presentUserPreferences() {
+        Task {
+            let userPrefs = await UserPreferences(
+                model: UserPreferencesViewModel(
+                    bookId: bookId,
+                    preferences: try! preferencesStore.preferences(for: bookId),
+                    configurable: navigator,
+                    store: preferencesStore
+                ),
+                onClose: { [weak self] in
+                    self?.dismiss(animated: true)
+                }
+            )
+            let vc = UIHostingController(rootView: userPrefs)
+            vc.modalPresentationStyle = .formSheet
+            present(vc, animated: true)
+        }
+    }
+
     // MARK: - AudioNavigatorDelegate
 
-    func navigator(_ navigator: _MediaNavigator, playbackDidChange info: MediaPlaybackInfo) {
+    func navigator(_ navigator: AudioNavigator, playbackDidChange info: MediaPlaybackInfo) {
         model.onPlaybackChanged(info: info)
 
         updateNowPlaying(info: info)
@@ -88,7 +115,7 @@ class AudiobookViewController: ReaderViewController<_AudioNavigator>, _AudioNavi
 
         let rcc = MPRemoteCommandCenter.shared()
 
-        func on(_ command: MPRemoteCommand, _ block: @escaping (_AudioNavigator, MPRemoteCommandEvent) -> Void) {
+        func on(_ command: MPRemoteCommand, _ block: @escaping (AudioNavigator, MPRemoteCommandEvent) -> Void) {
             command.addTarget { [weak self] event in
                 guard let self = self else {
                     return .noActionableNowPlayingItem
@@ -168,7 +195,7 @@ class AudiobookViewController: ReaderViewController<_AudioNavigator>, _AudioNavi
         nowPlaying.playback = NowPlayingInfo.Playback(
             duration: info.duration,
             elapsedTime: info.time,
-            rate: navigator.rate
+            rate: navigator.settings.speed
         )
 
         nowPlaying.media?.chapterNumber = info.resourceIndex
@@ -180,12 +207,12 @@ class AudiobookViewController: ReaderViewController<_AudioNavigator>, _AudioNavi
 }
 
 class AudiobookViewModel: ObservableObject {
-    let navigator: _AudioNavigator
+    let navigator: AudioNavigator
 
     @Published var cover: UIImage?
     @Published var playback: MediaPlaybackInfo = .init()
 
-    init(navigator: _AudioNavigator) {
+    init(navigator: AudioNavigator) {
         self.navigator = navigator
 
         Task {

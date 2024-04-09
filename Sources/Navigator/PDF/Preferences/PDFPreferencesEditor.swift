@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -51,7 +51,7 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
         rangePreference(
             preference: \.pageSpacing,
             setting: \.pageSpacing,
-            defaultEffectiveValue: 0,
+            defaultEffectiveValue: defaults.pageSpacing ?? 0,
             isEffective: { _ in true },
             supportedRange: 0 ... 200,
             progressionStrategy: .increment(4.0),

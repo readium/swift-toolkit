@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -75,7 +75,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
     private let server: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
-    private let publicationBaseURL: URL
+    private var publicationBaseURL: URL!
 
     public init(
         publication: Publication,
@@ -88,22 +88,18 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
             throw Error.publicationRestricted
         }
 
+        let uuidEndpoint: HTTPServerEndpoint = UUID().uuidString
         let publicationEndpoint: HTTPServerEndpoint?
-        let baseURL: URL
-        if let url = publication.baseURL {
+        if publication.baseURL != nil {
             publicationEndpoint = nil
-            baseURL = url
         } else {
-            let endpoint = UUID().uuidString
-            publicationEndpoint = endpoint
-            baseURL = try httpServer.serve(at: endpoint, publication: publication)
+            publicationEndpoint = uuidEndpoint
         }
 
         self.publication = publication
         self.initialLocation = initialLocation
         server = httpServer
         self.publicationEndpoint = publicationEndpoint
-        publicationBaseURL = URL(string: baseURL.absoluteString.addingSuffix("/"))!
         self.config = config
         editingActions = EditingActionsController(
             actions: config.editingActions,
@@ -117,6 +113,23 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         )
 
         super.init(nibName: nil, bundle: nil)
+
+        if let url = publication.baseURL {
+            publicationBaseURL = url
+        } else {
+            publicationBaseURL = try httpServer.serve(
+                at: uuidEndpoint,
+                publication: publication,
+                failureHandler: { request, error in
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self = self, let href = request.href else {
+                            return
+                        }
+                        self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
+                    }
+                }
+            )
+        }
 
         postInit()
     }
@@ -152,6 +165,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     }
 
     private func postInit() {
+        publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
+
         editingActions.delegate = self
 
         // Wraps the PDF factories of publication services to return the currently opened document

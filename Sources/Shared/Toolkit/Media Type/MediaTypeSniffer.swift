@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -102,7 +102,7 @@ public extension MediaType {
     /// You can register additional sniffers globally by modifying this list.
     /// The sniffers order is important, because some media types are subsets of other media types.
     static var sniffers: [Sniffer] = [
-        sniffHTML, sniffOPDS, sniffLCPLicense, sniffBitmap,
+        sniffHTML, sniffOPDS, sniffLCPLicense, sniffBitmap, sniffAudio,
         sniffWebPub, sniffW3CWPUB, sniffEPUB, sniffLPF, sniffArchive, sniffPDF,
     ]
 
@@ -388,6 +388,41 @@ public extension MediaType {
         }
         if context.hasFileExtension("webp") || context.hasMediaType("image/webp") {
             return .webp
+        }
+        return nil
+    }
+
+    /// Sniffs an audio clip.
+    private static func sniffAudio(context: MediaTypeSnifferContext) -> MediaType? {
+        if context.hasFileExtension("aac") || context.hasMediaType("audio/aac") {
+            return .aac
+        }
+        if context.hasFileExtension("aiff", "aif", "aifc") || context.hasMediaType("audio/aiff", "audio/x-aiff") {
+            return .aiff
+        }
+        if context.hasFileExtension("flac") || context.hasMediaType("audio/flac") {
+            return .flac
+        }
+        if context.hasFileExtension("mp3") {
+            return .mp3
+        }
+        if context.hasFileExtension("mp4", "m4a", "m4b", "m4p", "m4r", "alac") || context.hasMediaType("audio/mp4") {
+            return .mp4
+        }
+        if context.hasMediaType("audio/mpeg") {
+            return .mpegAudio
+        }
+        if context.hasFileExtension("ogg", "oga", "mogg") || context.hasMediaType("audio/ogg") {
+            return .ogg
+        }
+        if context.hasFileExtension("opus") || context.hasMediaType("audio/opus") {
+            return .opus
+        }
+        if context.hasFileExtension("wav", "wave") || context.hasMediaType("audio/wav", "audio/x-wav", "audio/wave") {
+            return .wav
+        }
+        if context.hasFileExtension("webm") || context.hasMediaType("audio/webm") {
+            return .webmAudio
         }
         return nil
     }

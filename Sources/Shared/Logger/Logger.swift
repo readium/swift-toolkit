@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -65,7 +65,7 @@ public final class Logger {
 
     internal func log(_ value: Any?, at level: SeverityLevel, file: String, line: Int) {
         if let minimumSeverityLevel = minimumSeverityLevel {
-            guard level.rawValue >= minimumSeverityLevel.rawValue else {
+            guard level.numericValue >= minimumSeverityLevel.numericValue else {
                 return
             }
         }

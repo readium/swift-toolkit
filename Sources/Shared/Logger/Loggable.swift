@@ -1,5 +1,5 @@
 //
-//  Copyright 2023 Readium Foundation. All rights reserved.
+//  Copyright 2024 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -8,6 +8,7 @@ import Foundation
 
 /// The different levels of log-severity available for logging.
 public enum SeverityLevel: String {
+    case trace
     case debug
     case info
     case warning
@@ -19,6 +20,8 @@ public enum SeverityLevel: String {
 
     var symbol: String {
         switch self {
+        case .trace:
+            return "🐾"
         case .debug:
             return "🔎️"
         case .info:
@@ -27,6 +30,21 @@ public enum SeverityLevel: String {
             return "⚠️"
         case .error:
             return "❌"
+        }
+    }
+
+    var numericValue: Int {
+        switch self {
+        case .trace:
+            return 1
+        case .debug:
+            return 2
+        case .info:
+            return 3
+        case .warning:
+            return 4
+        case .error:
+            return 5
         }
     }
 }
@@ -78,6 +96,14 @@ public extension Loggable {
             return NSClassFromString("XCTest") == nil && Thread.isMainThread
         #else
             return false
+        #endif
+    }
+}
+
+public extension Loggable {
+    func trace(_ message: String = "", function: String = #function, file: String = #file, line: Int = #line) {
+        #if DEBUG
+            log(.trace, "\(type(of: self))::\(function) \(message)", file: file, line: line)
         #endif
     }
 }
