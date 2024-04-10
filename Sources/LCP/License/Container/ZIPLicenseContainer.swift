@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import ZIPFoundation
 
 /// Access to a License Document stored in a ZIP archive.

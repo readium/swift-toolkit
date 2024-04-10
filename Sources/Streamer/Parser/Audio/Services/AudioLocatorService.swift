@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Locator service for audio publications.
 final class AudioLocatorService: DefaultLocatorService {

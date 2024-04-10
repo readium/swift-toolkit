@@ -5,8 +5,8 @@
 //
 
 import Fuzi
-import R2Shared
-@testable import R2Streamer
+import ReadiumShared
+@testable import ReadiumStreamer
 import XCTest
 
 class EPUBMetadataParserTests: XCTestCase {

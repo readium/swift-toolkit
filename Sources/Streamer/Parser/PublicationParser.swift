@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Parses a Publication from an asset.
 public protocol PublicationParser {

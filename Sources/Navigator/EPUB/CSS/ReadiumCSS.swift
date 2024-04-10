@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import R2Shared
 import ReadiumInternal
+import ReadiumShared
 import SwiftSoup
 
 struct ReadiumCSS {

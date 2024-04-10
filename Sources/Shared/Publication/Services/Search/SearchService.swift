@@ -169,7 +169,7 @@ public enum SearchError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .publicationNotSearchable:
-            return R2SharedLocalizedString("Publication.SearchError.publicationNotSearchable")
+            return ReadiumSharedLocalizedString("Publication.SearchError.publicationNotSearchable")
         case let .badQuery(error):
             return error.errorDescription
         case let .resourceError(error):
@@ -177,9 +177,9 @@ public enum SearchError: LocalizedError {
         case let .networkError(error):
             return error.errorDescription
         case .cancelled:
-            return R2SharedLocalizedString("Publication.SearchError.cancelled")
+            return ReadiumSharedLocalizedString("Publication.SearchError.cancelled")
         case .other:
-            return R2SharedLocalizedString("Publication.SearchError.other")
+            return ReadiumSharedLocalizedString("Publication.SearchError.other")
         }
     }
 }

@@ -6,7 +6,7 @@
 
 import CoreServices
 import Foundation
-import R2Shared
+import ReadiumShared
 
 extension Publication {
     /// Finds all the downloadable links for this publication.

@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 extension RelativeURL {
     /// According to the EPUB specification, the HREFs in the EPUB package must

@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 
 /// Zoomable image view controller.

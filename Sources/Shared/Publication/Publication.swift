@@ -178,17 +178,17 @@ public class Publication: Loggable {
         public var errorDescription: String? {
             switch self {
             case .unsupportedFormat:
-                return R2SharedLocalizedString("Publication.OpeningError.unsupportedFormat")
+                return ReadiumSharedLocalizedString("Publication.OpeningError.unsupportedFormat")
             case .notFound:
-                return R2SharedLocalizedString("Publication.OpeningError.notFound")
+                return ReadiumSharedLocalizedString("Publication.OpeningError.notFound")
             case .parsingFailed:
-                return R2SharedLocalizedString("Publication.OpeningError.parsingFailed")
+                return ReadiumSharedLocalizedString("Publication.OpeningError.parsingFailed")
             case .forbidden:
-                return R2SharedLocalizedString("Publication.OpeningError.forbidden")
+                return ReadiumSharedLocalizedString("Publication.OpeningError.forbidden")
             case .unavailable:
-                return R2SharedLocalizedString("Publication.OpeningError.unavailable")
+                return ReadiumSharedLocalizedString("Publication.OpeningError.unavailable")
             case .incorrectCredentials:
-                return R2SharedLocalizedString("Publication.OpeningError.incorrectCredentials")
+                return ReadiumSharedLocalizedString("Publication.OpeningError.incorrectCredentials")
             }
         }
     }

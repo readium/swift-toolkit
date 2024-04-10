@@ -39,51 +39,51 @@ public enum LCPError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .licenseIsBusy:
-            return R2LCPLocalizedString("LCPError.licenseIsBusy")
+            return ReadiumLCPLocalizedString("LCPError.licenseIsBusy")
         case let .licenseIntegrity(error):
             let description: String = {
                 switch error {
                 case .licenseOutOfDate:
-                    return R2LCPLocalizedString("LCPClientError.licenseOutOfDate")
+                    return ReadiumLCPLocalizedString("LCPClientError.licenseOutOfDate")
                 case .certificateRevoked:
-                    return R2LCPLocalizedString("LCPClientError.certificateRevoked")
+                    return ReadiumLCPLocalizedString("LCPClientError.certificateRevoked")
                 case .certificateSignatureInvalid:
-                    return R2LCPLocalizedString("LCPClientError.certificateSignatureInvalid")
+                    return ReadiumLCPLocalizedString("LCPClientError.certificateSignatureInvalid")
                 case .licenseSignatureDateInvalid:
-                    return R2LCPLocalizedString("LCPClientError.licenseSignatureDateInvalid")
+                    return ReadiumLCPLocalizedString("LCPClientError.licenseSignatureDateInvalid")
                 case .licenseSignatureInvalid:
-                    return R2LCPLocalizedString("LCPClientError.licenseSignatureInvalid")
+                    return ReadiumLCPLocalizedString("LCPClientError.licenseSignatureInvalid")
                 case .contextInvalid:
-                    return R2LCPLocalizedString("LCPClientError.contextInvalid")
+                    return ReadiumLCPLocalizedString("LCPClientError.contextInvalid")
                 case .contentKeyDecryptError:
-                    return R2LCPLocalizedString("LCPClientError.contentKeyDecryptError")
+                    return ReadiumLCPLocalizedString("LCPClientError.contentKeyDecryptError")
                 case .userKeyCheckInvalid:
-                    return R2LCPLocalizedString("LCPClientError.userKeyCheckInvalid")
+                    return ReadiumLCPLocalizedString("LCPClientError.userKeyCheckInvalid")
                 case .contentDecryptError:
-                    return R2LCPLocalizedString("LCPClientError.contentDecryptError")
+                    return ReadiumLCPLocalizedString("LCPClientError.contentDecryptError")
                 case .unknown:
-                    return R2LCPLocalizedString("LCPClientError.unknown")
+                    return ReadiumLCPLocalizedString("LCPClientError.unknown")
                 }
             }()
-            return R2LCPLocalizedString("LCPError.licenseIntegrity", description)
+            return ReadiumLCPLocalizedString("LCPError.licenseIntegrity", description)
         case let .licenseStatus(error):
             return error.localizedDescription
         case .licenseContainer:
-            return R2LCPLocalizedString("LCPError.licenseContainer")
+            return ReadiumLCPLocalizedString("LCPError.licenseContainer")
         case .licenseInteractionNotAvailable:
-            return R2LCPLocalizedString("LCPError.licenseInteractionNotAvailable")
+            return ReadiumLCPLocalizedString("LCPError.licenseInteractionNotAvailable")
         case .licenseProfileNotSupported:
-            return R2LCPLocalizedString("LCPError.licenseProfileNotSupported")
+            return ReadiumLCPLocalizedString("LCPError.licenseProfileNotSupported")
         case .crlFetching:
-            return R2LCPLocalizedString("LCPError.crlFetching")
+            return ReadiumLCPLocalizedString("LCPError.crlFetching")
         case let .licenseRenew(error):
             return error.localizedDescription
         case let .licenseReturn(error):
             return error.localizedDescription
         case .parsing:
-            return R2LCPLocalizedString("LCPError.parsing")
+            return ReadiumLCPLocalizedString("LCPError.parsing")
         case let .network(error):
-            return error?.localizedDescription ?? R2LCPLocalizedString("LCPError.network")
+            return error?.localizedDescription ?? ReadiumLCPLocalizedString("LCPError.network")
         case let .runtime(error):
             return error
         case let .unknown(error):
@@ -107,20 +107,20 @@ public enum StatusError: LocalizedError {
 
         switch self {
         case let .cancelled(date):
-            return R2LCPLocalizedString("StatusError.cancelled", dateFormatter.string(from: date))
+            return ReadiumLCPLocalizedString("StatusError.cancelled", dateFormatter.string(from: date))
 
         case let .returned(date):
-            return R2LCPLocalizedString("StatusError.returned", dateFormatter.string(from: date))
+            return ReadiumLCPLocalizedString("StatusError.returned", dateFormatter.string(from: date))
 
         case let .expired(start: start, end: end):
             if start > Date() {
-                return R2LCPLocalizedString("StatusError.expired.start", dateFormatter.string(from: start))
+                return ReadiumLCPLocalizedString("StatusError.expired.start", dateFormatter.string(from: start))
             } else {
-                return R2LCPLocalizedString("StatusError.expired.end", dateFormatter.string(from: end))
+                return ReadiumLCPLocalizedString("StatusError.expired.end", dateFormatter.string(from: end))
             }
 
         case let .revoked(date, devicesCount):
-            return R2LCPLocalizedString("StatusError.revoked", dateFormatter.string(from: date), devicesCount)
+            return ReadiumLCPLocalizedString("StatusError.revoked", dateFormatter.string(from: date), devicesCount)
         }
     }
 }
@@ -137,11 +137,11 @@ public enum RenewError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .renewFailed:
-            return R2LCPLocalizedString("RenewError.renewFailed")
+            return ReadiumLCPLocalizedString("RenewError.renewFailed")
         case .invalidRenewalPeriod(maxRenewDate: _):
-            return R2LCPLocalizedString("RenewError.invalidRenewalPeriod")
+            return ReadiumLCPLocalizedString("RenewError.invalidRenewalPeriod")
         case .unexpectedServerError:
-            return R2LCPLocalizedString("RenewError.unexpectedServerError")
+            return ReadiumLCPLocalizedString("RenewError.unexpectedServerError")
         }
     }
 }
@@ -158,11 +158,11 @@ public enum ReturnError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .returnFailed:
-            return R2LCPLocalizedString("ReturnError.returnFailed")
+            return ReadiumLCPLocalizedString("ReturnError.returnFailed")
         case .alreadyReturnedOrExpired:
-            return R2LCPLocalizedString("ReturnError.alreadyReturnedOrExpired")
+            return ReadiumLCPLocalizedString("ReturnError.alreadyReturnedOrExpired")
         case .unexpectedServerError:
-            return R2LCPLocalizedString("ReturnError.unexpectedServerError")
+            return ReadiumLCPLocalizedString("ReturnError.unexpectedServerError")
         }
     }
 }

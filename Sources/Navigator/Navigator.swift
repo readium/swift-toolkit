@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import SafariServices
 
 public protocol Navigator: AnyObject {
@@ -131,7 +131,7 @@ public enum NavigatorError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .copyForbidden:
-            return R2NavigatorLocalizedString("NavigatorError.copyForbidden")
+            return ReadiumNavigatorLocalizedString("NavigatorError.copyForbidden")
         }
     }
 }

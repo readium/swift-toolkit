@@ -6,7 +6,7 @@
 
 import Foundation
 import Fuzi
-import R2Shared
+import ReadiumShared
 
 /// The navigation document if documented here at Navigation
 /// https://idpf.github.io/a11y-guidelines/

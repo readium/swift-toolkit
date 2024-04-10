@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import ZIPFoundation
 
 final class License: Loggable {

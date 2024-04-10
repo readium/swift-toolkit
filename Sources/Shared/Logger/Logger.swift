@@ -6,11 +6,16 @@
 
 import Foundation
 
-/// Initialize the R2Logger.
+@available(*, unavailable, renamed: "ReadiumEnableLog")
+public func R2EnableLog(withMinimumSeverityLevel level: SeverityLevel, customLogger: LoggerType = LoggerStub()) {
+    fatalError()
+}
+
+/// Initialize the Logger.
 /// Default logger is the `LoggerStub` class
 ///
 /// - Parameter customLogger: The Logger that will be used for printing logs.
-public func R2EnableLog(withMinimumSeverityLevel level: SeverityLevel, customLogger: LoggerType = LoggerStub()) {
+public func ReadiumEnableLog(withMinimumSeverityLevel level: SeverityLevel, customLogger: LoggerType = LoggerStub()) {
     Logger.sharedInstance.setupLogger(logger: customLogger)
     Logger.sharedInstance.setMinimumSeverityLevel(at: level)
 

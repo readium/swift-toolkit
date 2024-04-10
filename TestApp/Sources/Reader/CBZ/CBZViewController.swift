@@ -4,10 +4,10 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Navigator
-import R2Shared
-import R2Streamer
 import ReadiumAdapterGCDWebServer
+import ReadiumNavigator
+import ReadiumShared
+import ReadiumStreamer
 import UIKit
 
 class CBZViewController: VisualReaderViewController<CBZNavigatorViewController> {

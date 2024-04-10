@@ -6,7 +6,7 @@
 
 import Foundation
 import Fuzi
-import R2Shared
+import ReadiumShared
 
 /// Epub related constants.
 private enum EPUBConstant {

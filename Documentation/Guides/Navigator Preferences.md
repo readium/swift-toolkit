@@ -163,7 +163,7 @@ This stateless view displays the actual preferences for a fixed-layout publicati
 @ViewBuilder func fixedLayoutUserPreferences(
     commit: @escaping () -> Void,
     scroll: AnyPreference<Bool>? = nil,
-    fit: AnyEnumPreference<R2Navigator.Fit>? = nil,
+    fit: AnyEnumPreference<ReadiumNavigator.Fit>? = nil,
     pageSpacing: AnyRangePreference<Double>? = nil
 ) -> some View {
     if let scroll = scroll {

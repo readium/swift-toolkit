@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 
 /// A navigator rendering the publication visually on-screen.
@@ -18,7 +18,7 @@ public protocol VisualNavigator: Navigator {
 
     /// Current reading progression direction.
     @available(*, deprecated, message: "Use `presentation.readingProgression` instead", renamed: "presentation.readingProgression")
-    var readingProgression: R2Shared.ReadingProgression { get }
+    var readingProgression: ReadiumShared.ReadingProgression { get }
 
     /// Moves to the left content portion (eg. page) relative to the reading
     /// progression direction.

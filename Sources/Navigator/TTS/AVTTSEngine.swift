@@ -6,7 +6,7 @@
 
 import AVFoundation
 import Foundation
-import R2Shared
+import ReadiumShared
 
 public protocol AVTTSEngineDelegate: AnyObject {
     /// Called when the engine created a new utterance to be played.

@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Encapsulates the read/write access to the packaged License Document (eg. in an EPUB container, or a standalone LCPL file)
 protocol LicenseContainer {

@@ -7,8 +7,8 @@
 import Combine
 import Foundation
 import MediaPlayer
-import R2Navigator
-import R2Shared
+import ReadiumNavigator
+import ReadiumShared
 import SwiftUI
 import UIKit
 

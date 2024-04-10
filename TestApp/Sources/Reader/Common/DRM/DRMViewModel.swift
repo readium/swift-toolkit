@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 
 /// Used to display a DRM license's informations

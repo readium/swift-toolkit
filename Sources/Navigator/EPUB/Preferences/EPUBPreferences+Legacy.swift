@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 public extension EPUBPreferences {
     /// Loads the preferences from the legacy EPUB settings stored in the

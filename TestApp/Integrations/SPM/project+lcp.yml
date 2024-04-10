@@ -34,11 +34,11 @@ targets:
       - package: R2LCPClient
         product: R2LCPClient
       - package: Readium
-        product: R2Shared
+        product: ReadiumShared
       - package: Readium
-        product: R2Streamer
+        product: ReadiumStreamer
       - package: Readium
-        product: R2Navigator
+        product: ReadiumNavigator
       - package: Readium
         product: ReadiumAdapterGCDWebServer
       - package: Readium

@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
-func R2NavigatorLocalizedString(_ key: String, _ values: CVarArg...) -> String {
-    R2LocalizedString("R2Navigator.\(key)", in: Bundle.module, values)
+func ReadiumLCPLocalizedString(_ key: String, _ values: CVarArg...) -> String {
+    ReadiumLocalizedString("ReadiumLCP.\(key)", in: Bundle.module, values)
 }

@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Access to a License Document packaged as a standalone LCPL file.
 final class LCPLLicenseContainer: LicenseContainer {

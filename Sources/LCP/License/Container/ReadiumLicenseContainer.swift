@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Access a License Document stored in a webpub, audiobook or LCPDF package.
 final class ReadiumLicenseContainer: ZIPLicenseContainer {

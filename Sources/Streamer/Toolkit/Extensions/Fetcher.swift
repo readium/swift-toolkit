@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 extension Fetcher {
     /// Returns the data of a file at given `link`.

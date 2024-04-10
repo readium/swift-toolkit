@@ -5,7 +5,7 @@
 //
 
 import Foundation
-@testable import R2Shared
+@testable import ReadiumShared
 import XCTest
 
 class FileURLTests: XCTestCase {
