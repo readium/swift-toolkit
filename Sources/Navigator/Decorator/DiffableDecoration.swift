@@ -6,7 +6,7 @@
 
 import DifferenceKit
 import Foundation
-import R2Shared
+import ReadiumShared
 
 struct DiffableDecoration: Hashable, Differentiable {
     let decoration: Decoration

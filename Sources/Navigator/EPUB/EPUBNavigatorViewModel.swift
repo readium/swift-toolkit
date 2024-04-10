@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 
 protocol EPUBNavigatorViewModelDelegate: AnyObject {
@@ -258,7 +258,7 @@ final class EPUBNavigatorViewModel: Loggable {
             : settings.readingProgression
     }
 
-    var legacyReadingProgression: R2Shared.ReadingProgression
+    var legacyReadingProgression: ReadiumShared.ReadingProgression
 
     var theme: Theme {
         useLegacySettings ? legacyTheme : settings.theme

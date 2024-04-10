@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Opens a `Publication` using a list of parsers.
 public final class Streamer: Loggable {

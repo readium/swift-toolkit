@@ -32,7 +32,7 @@ update-scripts:
 
 .PHONY: test
 test:
-	# To limit to a particular test suite: -only-testing:R2SharedTests
+	# To limit to a particular test suite: -only-testing:ReadiumSharedTests
 	xcodebuild test -scheme "Readium-Package" -destination "platform=iOS Simulator,name=iPhone 15" | xcbeautify -q
 
 .PHONY: lint-format

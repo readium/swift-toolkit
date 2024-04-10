@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// A list of EPUB resources to be displayed together on the screen, as one-page or two-pages spread.
 struct EPUBSpread: Loggable {

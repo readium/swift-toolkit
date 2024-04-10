@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import R2Shared
 import ReadiumGCDWebServer
+import ReadiumShared
 import UIKit
 
 public enum GCDHTTPServerError: Error {

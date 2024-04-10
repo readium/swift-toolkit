@@ -4,9 +4,9 @@
 
 This toolkit is a modular project, which follows the [Readium Architecture](https://github.com/readium/architecture).
 
-* [`R2Shared`](Sources/Shared) – Shared `Publication` models and utilities
-* [`R2Streamer`](Sources/Streamer) – Publication parsers and local HTTP server
-* [`R2Navigator`](Sources/Navigator) – Plain `UIViewController` classes rendering publications
+* [`ReadiumShared`](Sources/Shared) – Shared `Publication` models and utilities
+* [`ReadiumStreamer`](Sources/Streamer) – Publication parsers and local HTTP server
+* [`ReadiumNavigator`](Sources/Navigator) – Plain `UIViewController` classes rendering publications
 * [`ReadiumOPDS`](Sources/OPDS) – Parsers for OPDS catalog feeds
 * [`ReadiumLCP`](Sources/LCP) – Service and models for [Readium LCP](https://www.edrlab.org/readium-lcp/)
 
@@ -53,9 +53,9 @@ Note that Carthage will build all Readium modules and their dependencies, but yo
 
 Refer to the following table to know which dependencies are required for each Readium library.
 
-|                       |     `R2Shared`     |    `R2Streamer`    |    `R2Navigator`   |    `ReadiumOPDS`   |    `ReadiumLCP`    |
+|                       |   `ReadiumShared`  |  `ReadiumStreamer` | `ReadiumNavigator` |    `ReadiumOPDS`   |    `ReadiumLCP`    |
 |-----------------------|:------------------:|:------------------:|:------------------:|:------------------:|:------------------:|
-| **`R2Shared`**        |                    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| **`ReadiumShared`**   |                    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | **`ReadiumInternal`** | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | `CryptoSwift`         |                    | :heavy_check_mark: |                    |                    | :heavy_check_mark: |
 | `DifferenceKit`       |                    |                    | :heavy_check_mark: |                    |                    |
@@ -71,14 +71,14 @@ Refer to the following table to know which dependencies are required for each Re
 Add the following `pod` statements to your `Podfile` for the Readium libraries you want to use:
 
 ```
-pod 'R2Shared', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.7.0/Support/CocoaPods/ReadiumShared.podspec'
-pod 'R2Streamer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.7.0/Support/CocoaPods/ReadiumStreamer.podspec'
-pod 'R2Navigator', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.7.0/Support/CocoaPods/ReadiumNavigator.podspec'
+pod 'ReadiumShared', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.7.0/Support/CocoaPods/ReadiumShared.podspec'
+pod 'ReadiumStreamer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.7.0/Support/CocoaPods/ReadiumStreamer.podspec'
+pod 'ReadiumNavigator', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.7.0/Support/CocoaPods/ReadiumNavigator.podspec'
 pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.7.0/Support/CocoaPods/ReadiumOPDS.podspec'
 pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.7.0/Support/CocoaPods/ReadiumLCP.podspec'
 pod 'ReadiumInternal', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.7.0/Support/CocoaPods/ReadiumInternal.podspec'
 
-# Required if you use R2Streamer.
+# Required if you use ReadiumStreamer.
 pod 'ReadiumGCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/4.0.0/GCDWebServer.podspec'
 ```
 

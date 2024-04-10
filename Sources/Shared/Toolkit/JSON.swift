@@ -13,9 +13,9 @@ public enum JSONError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case let .parsing(type):
-            return R2SharedLocalizedString("JSONError.parsing", "\(type)")
+            return ReadiumSharedLocalizedString("JSONError.parsing", "\(type)")
         case let .serializing(type):
-            return R2SharedLocalizedString("JSONError.serializing", "\(type)")
+            return ReadiumSharedLocalizedString("JSONError.serializing", "\(type)")
         }
     }
 }

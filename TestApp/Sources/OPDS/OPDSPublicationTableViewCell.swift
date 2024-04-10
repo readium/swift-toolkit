@@ -5,7 +5,7 @@
 //
 
 import Kingfisher
-import R2Shared
+import ReadiumShared
 import UIKit
 
 class OPDSPublicationTableViewCell: UITableViewCell {

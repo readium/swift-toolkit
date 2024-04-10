@@ -6,7 +6,7 @@
 
 import AVFoundation
 import Foundation
-import R2Shared
+import ReadiumShared
 
 public protocol PublicationSpeechSynthesizerDelegate: AnyObject {
     /// Called when the synthesizer's state is updated.
@@ -405,7 +405,7 @@ public class PublicationSpeechSynthesizer: Loggable {
 
     private let audioSessionUser: AudioSessionUser
 
-    private final class AudioSessionUser: R2Shared.AudioSessionUser {
+    private final class AudioSessionUser: ReadiumShared.AudioSessionUser {
         let audioConfiguration: AudioSession.Configuration
 
         init(config: AudioSession.Configuration) {

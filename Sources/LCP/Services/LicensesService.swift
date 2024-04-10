@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 final class LicensesService: Loggable {
     // Mapping between an unprotected format to the matching LCP protected format.

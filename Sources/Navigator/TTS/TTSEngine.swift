@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// A text-to-speech engine synthesizes text utterances (e.g. sentence).
 ///

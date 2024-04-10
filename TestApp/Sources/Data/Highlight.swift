@@ -7,8 +7,8 @@
 import Combine
 import Foundation
 import GRDB
-import R2Navigator
-import R2Shared
+import ReadiumNavigator
+import ReadiumShared
 import UIKit
 
 enum HighlightColor: UInt8, Codable, SQLExpressible {

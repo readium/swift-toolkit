@@ -6,7 +6,7 @@
 
 import Foundation
 
-import R2Shared
+import ReadiumShared
 
 public enum OPDS2ParserError: Error {
     case invalidJSON

@@ -6,7 +6,7 @@
 
 import Foundation
 import Fuzi
-import R2Shared
+import ReadiumShared
 
 /// From IDPF a11y-guidelines content/nav/toc.html :
 /// "The NCX file is allowed for forwards compatibility purposes only. An EPUB 2

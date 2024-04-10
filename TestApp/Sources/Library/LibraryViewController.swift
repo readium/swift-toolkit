@@ -7,10 +7,10 @@
 import Combine
 import Kingfisher
 import MobileCoreServices
-import R2Navigator
-import R2Shared
-import R2Streamer
+import ReadiumNavigator
 import ReadiumOPDS
+import ReadiumShared
+import ReadiumStreamer
 import UIKit
 import UniformTypeIdentifiers
 import WebKit

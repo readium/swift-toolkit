@@ -6,7 +6,7 @@
 
 import Foundation
 import PDFKit
-import R2Shared
+import ReadiumShared
 import UIKit
 
 public protocol PDFNavigatorDelegate: VisualNavigatorDelegate, SelectableNavigatorDelegate {
@@ -570,8 +570,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         )
     }
 
-    public var readingProgression: R2Shared.ReadingProgression {
-        R2Shared.ReadingProgression(presentation.readingProgression)
+    public var readingProgression: ReadiumShared.ReadingProgression {
+        ReadiumShared.ReadingProgression(presentation.readingProgression)
     }
 
     public var currentLocation: Locator? {

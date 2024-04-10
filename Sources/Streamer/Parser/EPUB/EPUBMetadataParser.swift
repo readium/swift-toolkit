@@ -6,7 +6,7 @@
 
 import Foundation
 import Fuzi
-import R2Shared
+import ReadiumShared
 
 /// Reference: https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md
 final class EPUBMetadataParser: Loggable {

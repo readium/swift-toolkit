@@ -6,7 +6,7 @@
 
 import AVFoundation
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Status of a played media resource.
 public enum MediaPlaybackState {

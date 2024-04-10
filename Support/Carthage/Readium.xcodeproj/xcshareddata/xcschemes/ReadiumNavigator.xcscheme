@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "C7534BA9CF83524D7681E457"
-               BuildableName = "R2Navigator.framework"
-               BlueprintName = "R2Navigator"
+               BlueprintIdentifier = "ADAFD9451AF38B07D6D08E4D"
+               BuildableName = "ReadiumNavigator.framework"
+               BlueprintName = "ReadiumNavigator"
                ReferencedContainer = "container:Readium.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -32,9 +32,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "C7534BA9CF83524D7681E457"
-            BuildableName = "R2Navigator.framework"
-            BlueprintName = "R2Navigator"
+            BlueprintIdentifier = "ADAFD9451AF38B07D6D08E4D"
+            BuildableName = "ReadiumNavigator.framework"
+            BlueprintName = "ReadiumNavigator"
             ReferencedContainer = "container:Readium.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -54,9 +54,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "C7534BA9CF83524D7681E457"
-            BuildableName = "R2Navigator.framework"
-            BlueprintName = "R2Navigator"
+            BlueprintIdentifier = "ADAFD9451AF38B07D6D08E4D"
+            BuildableName = "ReadiumNavigator.framework"
+            BlueprintName = "ReadiumNavigator"
             ReferencedContainer = "container:Readium.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -70,9 +70,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "C7534BA9CF83524D7681E457"
-            BuildableName = "R2Navigator.framework"
-            BlueprintName = "R2Navigator"
+            BlueprintIdentifier = "ADAFD9451AF38B07D6D08E4D"
+            BuildableName = "ReadiumNavigator.framework"
+            BlueprintName = "ReadiumNavigator"
             ReferencedContainer = "container:Readium.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

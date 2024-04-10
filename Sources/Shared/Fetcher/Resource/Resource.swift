@@ -191,17 +191,17 @@ public enum ResourceError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .badRequest:
-            return R2SharedLocalizedString("Publication.ResourceError.badRequest")
+            return ReadiumSharedLocalizedString("Publication.ResourceError.badRequest")
         case .notFound:
-            return R2SharedLocalizedString("Publication.ResourceError.notFound")
+            return ReadiumSharedLocalizedString("Publication.ResourceError.notFound")
         case .forbidden:
-            return R2SharedLocalizedString("Publication.ResourceError.forbidden")
+            return ReadiumSharedLocalizedString("Publication.ResourceError.forbidden")
         case .unavailable:
-            return R2SharedLocalizedString("Publication.ResourceError.unavailable")
+            return ReadiumSharedLocalizedString("Publication.ResourceError.unavailable")
         case .cancelled:
-            return R2SharedLocalizedString("Publication.ResourceError.cancelled")
+            return ReadiumSharedLocalizedString("Publication.ResourceError.cancelled")
         case .other:
-            return R2SharedLocalizedString("Publication.ResourceError.other")
+            return ReadiumSharedLocalizedString("Publication.ResourceError.other")
         }
     }
 }

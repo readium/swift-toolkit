@@ -6,8 +6,8 @@
 
 import Combine
 import Foundation
-import R2Shared
-import R2Streamer
+import ReadiumShared
+import ReadiumStreamer
 import UIKit
 
 /// Base module delegate, that sub-modules' delegate can extend.
@@ -42,7 +42,7 @@ final class AppModule {
         opds = OPDSModule(delegate: self)
 
         // Set Readium 2's logging minimum level.
-        R2EnableLog(withMinimumSeverityLevel: .debug)
+        ReadiumEnableLog(withMinimumSeverityLevel: .debug)
     }
 
     private(set) lazy var aboutViewController: UIViewController = {

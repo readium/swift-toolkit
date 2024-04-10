@@ -124,7 +124,7 @@ private final class MinizipEntryReader: ArchiveEntryReader, Loggable {
         }
     }
 
-    private let queue = DispatchQueue(label: "org.readium.r2-shared-swift.MinizipFile")
+    private let queue = DispatchQueue(label: "org.readium.swift-toolkit.shared.MinizipFile")
 }
 
 /// Holds an opened Minizip file and provide a bridge to its C++ API.

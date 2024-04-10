@@ -4,9 +4,9 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Navigator
-import R2Shared
 import ReadiumAdapterGCDWebServer
+import ReadiumNavigator
+import ReadiumShared
 import SwiftSoup
 import SwiftUI
 import UIKit
@@ -156,7 +156,7 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
 }
 
 extension EPUBViewController: EPUBNavigatorDelegate {
-    func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: R2Shared.Link, content: String, referrer: String?) -> Bool {
+    func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: ReadiumShared.Link, content: String, referrer: String?) -> Bool {
         presentFootnote(content: content, referrer: referrer)
     }
 }

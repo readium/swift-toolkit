@@ -9,8 +9,8 @@
     import Combine
     import Foundation
     import R2LCPClient
-    import R2Shared
     import ReadiumLCP
+    import ReadiumShared
     import UIKit
 
     class LCPLibraryService: DRMLibraryService {

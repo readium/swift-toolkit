@@ -5,8 +5,8 @@
 //
 
 import Combine
-import R2Navigator
-import R2Shared
+import ReadiumNavigator
+import ReadiumShared
 import SafariServices
 import SwiftUI
 import UIKit

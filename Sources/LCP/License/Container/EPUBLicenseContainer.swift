@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Access a License Document stored in an EPUB archive, under META-INF/license.lcpl.
 final class EPUBLicenseContainer: ZIPLicenseContainer {

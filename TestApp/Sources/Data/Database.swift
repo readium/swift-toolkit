@@ -7,7 +7,7 @@
 import Combine
 import Foundation
 import GRDB
-import R2Shared
+import ReadiumShared
 
 final class Database {
     convenience init(file: URL) throws {

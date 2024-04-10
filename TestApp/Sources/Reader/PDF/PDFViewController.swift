@@ -5,9 +5,9 @@
 //
 
 import Foundation
-import R2Navigator
-import R2Shared
 import ReadiumAdapterGCDWebServer
+import ReadiumNavigator
+import ReadiumShared
 import SwiftUI
 import UIKit
 

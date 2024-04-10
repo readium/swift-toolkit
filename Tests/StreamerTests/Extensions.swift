@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 extension ArchiveFetcher {
     convenience init(file: FileURL, password: String? = nil) throws {

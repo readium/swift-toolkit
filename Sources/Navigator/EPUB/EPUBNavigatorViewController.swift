@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
+import ReadiumShared
 import SafariServices
 import SwiftSoup
 import UIKit
@@ -652,7 +652,7 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
-    public var readingProgression: R2Shared.ReadingProgression {
+    public var readingProgression: ReadiumShared.ReadingProgression {
         get { viewModel.legacyReadingProgression }
         set {
             viewModel.legacyReadingProgression = newValue

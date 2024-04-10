@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import SQLite
 
 /// Database's TransactionsTable , in charge of keeping tracks of the previous license checking.

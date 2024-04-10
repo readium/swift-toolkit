@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Document that contains information about the history of a License Document, along with its current status and available interactions.
 /// https://github.com/readium/lcp-specs/blob/master/schema/status.schema.json

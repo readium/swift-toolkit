@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
+import ReadiumShared
 import UIKit
 
 public protocol CBZNavigatorDelegate: VisualNavigatorDelegate {}
@@ -200,8 +200,8 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         )
     }
 
-    public var readingProgression: R2Shared.ReadingProgression {
-        R2Shared.ReadingProgression(presentation.readingProgression)
+    public var readingProgression: ReadiumShared.ReadingProgression {
+        ReadiumShared.ReadingProgression(presentation.readingProgression)
     }
 
     public var currentLocation: Locator? {

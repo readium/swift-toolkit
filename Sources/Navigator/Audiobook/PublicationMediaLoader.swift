@@ -6,7 +6,7 @@
 
 import AVFoundation
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Serves `Publication`'s `Resource`s as an `AVURLAsset`.
 ///
@@ -31,7 +31,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
         self.publication = publication
     }
 
-    private let queue = DispatchQueue(label: "org.readium.r2-navigator-swift.PublicationMediaLoader")
+    private let queue = DispatchQueue(label: "org.readium.swift-toolkit.navigator.PublicationMediaLoader")
 
     /// Creates a new `AVURLAsset` to serve the given `link`.
     func makeAsset(for link: Link) throws -> AVURLAsset {
@@ -161,7 +161,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
     }
 }
 
-private let schemePrefix = "r2"
+private let schemePrefix = "readium"
 
 extension URL {
     var audioHREF: String? {
@@ -170,9 +170,9 @@ extension URL {
         }
 
         // The URL can be either:
-        // * r2:relative/file.mp3
-        // * r2file:///directory/local-file.mp3
-        // * r2http(s)://domain.com/external-file.mp3
+        // * readium:relative/file.mp3
+        // * readiumfile:///directory/local-file.mp3
+        // * readiumhttp(s)://domain.com/external-file.mp3
         return url.string.removingPrefix(schemePrefix).removingPrefix(":")
     }
 }

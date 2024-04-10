@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// List of OPDS versions compliant with the parser.
 public enum Version {

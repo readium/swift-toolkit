@@ -6,7 +6,7 @@
 
 import Foundation
 import Fuzi
-import R2Shared
+import ReadiumShared
 
 /// A parser for the META-INF/container.xml file.
 final class EPUBContainerParser: Loggable {
