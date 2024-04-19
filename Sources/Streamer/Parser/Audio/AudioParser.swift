@@ -35,7 +35,7 @@ public final class AudioParser: PublicationParser {
         let avAssets = readingOrder.map { link in fetcher.get(link).file.map { AVURLAsset(url: $0, options: [AVURLAssetPreferPreciseDurationAndTimingKey: true]) } }
 
         readingOrder = zip(readingOrder, avAssets).map { link, avAsset in
-            guard let avAsset else { return link }
+            guard let avAsset = avAsset else { return link }
             return link.copy(
                 title: metadataItems(avAsset.metadata, .commonKeyTitle).first?.stringValue,
                 bitrate: avAsset.tracks(withMediaType: .audio).first.map { Double($0.estimatedDataRate) },
