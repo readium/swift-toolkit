@@ -4,7 +4,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Added
+
+* [#417](https://github.com/readium/swift-toolkit/issues/417) Support for the new 2.x LCP Profiles.
+
 
 ## [2.7.0]
 
