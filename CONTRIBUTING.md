@@ -14,7 +14,7 @@ Before submitting a PR, save yourself some trouble by automatically formatting t
 
 ### Modifying the EPUB Navigator's JavaScript layer
 
-The EPUB navigator injects a set of JavaScript files into a publication's resources, exposing a JavaScript API under the `readium.` global namespace. The scripts are located under [`Sources/Navigator/EPUB/Scripts`](Sources/Navigator/EPUB/Scripts).
+The EPUB navigator injects a set of JavaScript files into a publication's resources, exposing a JavaScript API to the `WKWebView` under the `readium` global namespace. The JavaScript source code is located under [`Sources/Navigator/EPUB/Scripts`](Sources/Navigator/EPUB/Scripts).
 
 `index-reflowable.js` is the root of the bundle injected in a reflowable EPUB's resources, while `index-fixed.js` is used for a fixed-layout EPUB's resources.
 

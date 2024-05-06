@@ -6,14 +6,14 @@ You can use the Readium Swift toolkit to download and read publications that are
 
 ## Overview
 
-An LCP publication is distributed using an LCP License Document (`.lcpl`) protected with a *user passphrase*.
+An LCP publication is protected with a *user passphrase* and distributed using an LCP License Document (`.lcpl`) .
 
 The user flow typically goes as follows:
 
 1. The user imports a `.lcpl` file into your application.
 2. The application uses the Readium toolkit to download the protected publication from the `.lcpl` file to the user's bookshelf. The downloaded file can be a `.epub`, `.lcpdf` (PDF), or `.lcpa` (audiobook) package.
 3. The user opens the protected publication from the bookshelf.
-4. If the passphrase isn't saved, the user will be asked to enter it to unlock the contents.
+4. If the passphrase isn't already recorded in the `ReadiumLCP` internal database, the user will be asked to enter it to unlock the contents.
 5. The publication is decrypted and rendered on the screen.
 
 ## Setup

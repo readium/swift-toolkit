@@ -47,13 +47,15 @@ A `Publication` instance:
 
 #### Link
 
-A [`Link` object](https://readium.org/webpub-manifest/#24-the-link-object) holds a pointer (URL) to a `Publication` resource along with additional metadata, such as its media type or title.
+
+A [`Link` object](https://readium.org/webpub-manifest/#24-the-link-object) holds a pointer (URL) to a resource or service along with additional metadata, such as its media type or title.
 
 The `Publication` contains several `Link` collections, for example:
 
 * `readingOrder` lists the publication resources arranged in the order they should be read.
 * `resources` contains secondary resources necessary for rendering the `readingOrder`, such as an image or a font file.
 * `tableOfContents` represents the table of contents as a tree of `Link` objects.
+* `links` exposes additional resources, such as a canonical link to the manifest or a search web service.
 
 #### Locator
 
