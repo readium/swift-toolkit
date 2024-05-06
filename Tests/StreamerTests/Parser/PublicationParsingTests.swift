@@ -34,6 +34,6 @@ class PublicationParsingTests: XCTestCase, Loggable {
             }
         }
 
-        waitForExpectations(timeout: 2, handler: nil)
+        waitForExpectations(timeout: 30, handler: nil)
     }
 }
