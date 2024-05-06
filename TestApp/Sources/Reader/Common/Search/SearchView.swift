@@ -6,8 +6,8 @@
 
 import Combine
 import Foundation
-import R2Navigator
-import R2Shared
+import ReadiumNavigator
+import ReadiumShared
 import SwiftUI
 
 struct SearchBar: UIViewRepresentable {

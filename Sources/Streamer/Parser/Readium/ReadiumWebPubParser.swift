@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 public enum ReadiumWebPubParserError: Error {
     case parseFailure(url: URL, Error?)
@@ -31,7 +31,11 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         self.epubReflowablePositionsStrategy = epubReflowablePositionsStrategy
     }
 
-    public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
+    public func parse(
+        asset: PublicationAsset,
+        fetcher: Fetcher,
+        warnings: WarningLogger?
+    ) throws -> Publication.Builder? {
         guard let mediaType = asset.mediaType(), mediaType.isReadiumWebPubProfile else {
             return nil
         }
@@ -41,21 +45,21 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         // Reads the manifest data from the fetcher.
         guard let manifestData: Data = (
             isPackage
-                ? try? fetcher.readData(at: "/manifest.json")
+                ? try? fetcher.readData(at: AnyURL(string: "manifest.json")!)
                 // For a single manifest file, reads the first (and only) file in the fetcher.
                 : try? fetcher.readData(at: fetcher.links.first)
         ) else {
             throw Error.manifestNotFound
         }
 
-        let manifest = try Manifest(json: JSONSerialization.jsonObject(with: manifestData), isPackaged: isPackage)
+        let manifest = try Manifest(json: JSONSerialization.jsonObject(with: manifestData))
         var fetcher = fetcher
 
         // For a manifest, we discard the `fetcher` provided by the Streamer, because it was only
         // used to read the manifest file. We use an `HTTPFetcher` instead to serve the remote
         // resources.
         if !isPackage {
-            let baseURL = manifest.link(withRel: .`self`)?.url(relativeTo: nil)?.deletingLastPathComponent()
+            let baseURL = try manifest.link(withRel: .`self`)?.url().httpURL
             fetcher = HTTPFetcher(client: httpClient, baseURL: baseURL)
         }
 
@@ -78,7 +82,6 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
 
         return Publication.Builder(
             mediaType: mediaType,
-            format: mediaType.matches(.lcpProtectedPDF) ? .pdf : .webpub,
             manifest: manifest,
             fetcher: fetcher,
             servicesBuilder: PublicationServicesBuilder(setup: {
@@ -112,11 +115,6 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             }
         )
     }
-
-    @available(*, unavailable, message: "Use an instance of `Streamer` to open a `Publication`")
-    public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        fatalError("Not available")
-    }
 }
 
 private extension MediaType {
@@ -128,9 +126,3 @@ private extension MediaType {
         )
     }
 }
-
-@available(*, unavailable, renamed: "ReadiumWebPubParserError")
-public typealias WEBPUBParserError = ReadiumWebPubParserError
-
-@available(*, unavailable, renamed: "ReadiumWebPubParser")
-public typealias WEBPUBParser = ReadiumWebPubParser

@@ -4,14 +4,14 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import R2Navigator
-import R2Shared
+@testable import ReadiumNavigator
+import ReadiumShared
 import XCTest
 
 class EPUBSettingsTests: XCTestCase {
     func resolveLayout(
         languages: [String] = [],
-        readingProgression: R2Shared.ReadingProgression = .auto,
+        readingProgression: ReadiumShared.ReadingProgression = .auto,
         defaults: EPUBDefaults = EPUBDefaults(),
         preferences: EPUBPreferences = EPUBPreferences()
     ) -> CSSLayout {

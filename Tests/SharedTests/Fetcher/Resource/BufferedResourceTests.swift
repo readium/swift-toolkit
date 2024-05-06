@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import R2Shared
+@testable import ReadiumShared
 import XCTest
 
 class BufferedResourceTests: XCTestCase {
@@ -109,7 +109,7 @@ class BufferedResourceTests: XCTestCase {
 
     private let link = Link(href: "file")
     private let url = Fixtures(path: "Fetcher").url(for: "epub.epub")
-    private lazy var data = try! Data(contentsOf: url)
+    private lazy var data = try! Data(contentsOf: url.url)
     private lazy var resource = FileResource(link: link, file: url)
 
     private func sut(bufferSize: UInt64 = 1024) -> BufferedResource {

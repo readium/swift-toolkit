@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Opened license, used to decipher a protected publication and manage its license.
 public protocol LCPLicense: UserRights {

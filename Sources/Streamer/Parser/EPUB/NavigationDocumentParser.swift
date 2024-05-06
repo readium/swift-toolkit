@@ -6,7 +6,7 @@
 
 import Foundation
 import Fuzi
-import R2Shared
+import ReadiumShared
 
 /// The navigation document if documented here at Navigation
 /// https://idpf.github.io/a11y-guidelines/
@@ -23,12 +23,12 @@ final class NavigationDocumentParser {
     }
 
     private let data: Data
-    private let path: String
+    private let url: RelativeURL
 
     /// Builds the navigation document parser from Navigation Document data and its path. The path is used to normalize the links' hrefs.
-    init(data: Data, at path: String) {
+    init(data: Data, at url: RelativeURL) {
         self.data = data
-        self.path = path
+        self.url = url
     }
 
     private lazy var document: Fuzi.XMLDocument? = {
@@ -65,21 +65,21 @@ final class NavigationDocumentParser {
 
         return NavigationDocumentParser.makeLink(
             title: label.stringValue,
-            href: label.attr("href"),
+            href: label.attr("href").flatMap(RelativeURL.init(epubHREF:)),
             children: links(in: li),
-            basePath: path
+            baseURL: url
         )
     }
 
     /// Creates a new navigation `Link` object from a label, href and children, after validating the data.
-    static func makeLink(title: String?, href: String?, children: [Link], basePath: String) -> Link? {
+    static func makeLink(title: String?, href: RelativeURL?, children: [Link], baseURL: RelativeURL) -> Link? {
         // Cleans up title label.
         // http://www.idpf.org/epub/301/spec/epub-contentdocs.html#confreq-nav-a-cnt
         let title = (title ?? "")
             .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
 
-        let href = href.map { HREF($0, relativeTo: basePath).string }
+        let href = href.flatMap { baseURL.resolve($0) }
 
         guard
             // A zero-length text label must be ignored
@@ -92,6 +92,6 @@ final class NavigationDocumentParser {
             return nil
         }
 
-        return Link(href: href ?? "#", title: title, children: children)
+        return Link(href: href?.string ?? "#", title: title, children: children)
     }
 }

@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
+import ReadiumShared
 import UIKit
 
 public protocol CBZNavigatorDelegate: VisualNavigatorDelegate {}
@@ -26,7 +26,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
     private let server: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
-    private var publicationBaseURL: URL!
+    private var publicationBaseURL: HTTPURL!
 
     public convenience init(
         publication: Publication,
@@ -69,25 +69,11 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
                 }
             )
         }
-
-        publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
     }
 
-    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
+    @available(*, unavailable, message: "See the 2.5.0 migration guide to migrate the HTTP server")
     public convenience init(publication: Publication, initialLocation: Locator? = nil) {
-        precondition(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
-        guard publication.baseURL != nil else {
-            preconditionFailure("No base URL provided for the publication. Add it to the HTTP server.")
-        }
-
-        self.init(
-            publication: publication,
-            initialLocation: initialLocation,
-            httpServer: nil,
-            publicationEndpoint: nil
-        )
-
-        publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
+        fatalError()
     }
 
     private init(
@@ -122,7 +108,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
     deinit {
         if let endpoint = publicationEndpoint {
-            server?.remove(at: endpoint)
+            try? server?.remove(at: endpoint)
         }
     }
 
@@ -194,13 +180,14 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
 
     private func imageViewController(at index: Int) -> ImageViewController? {
-        guard publication.readingOrder.indices.contains(index),
-              let url = publication.readingOrder[index].url(relativeTo: publicationBaseURL)
+        guard
+            publication.readingOrder.indices.contains(index),
+            let url = try? publication.readingOrder[index].url(relativeTo: publicationBaseURL)
         else {
             return nil
         }
 
-        return ImageViewController(index: index, url: url)
+        return ImageViewController(index: index, url: url.url)
     }
 
     // MARK: - Navigator
@@ -213,8 +200,8 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         )
     }
 
-    public var readingProgression: R2Shared.ReadingProgression {
-        R2Shared.ReadingProgression(presentation.readingProgression)
+    public var readingProgression: ReadiumShared.ReadingProgression {
+        ReadiumShared.ReadingProgression(presentation.readingProgression)
     }
 
     public var currentLocation: Locator? {

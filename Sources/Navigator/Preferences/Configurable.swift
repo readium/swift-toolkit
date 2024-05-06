@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// A `Configurable` is a component with a set of `ConfigurableSettings`.
 public protocol Configurable {

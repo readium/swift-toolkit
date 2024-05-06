@@ -6,8 +6,8 @@
 
 import Combine
 import Foundation
-import R2Navigator
-import R2Shared
+import ReadiumNavigator
+import ReadiumShared
 import SwiftUI
 import UIKit
 
@@ -225,7 +225,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             .assertNoFailure()
             .sink { [weak self] highlights in
                 if let self = self, let decorator = self.navigator as? DecorableNavigator {
-                    let decorations = highlights.map { Decoration(id: $0.id, locator: $0.locator, style: .highlight(tint: $0.color.uiColor, isActive: false)) }
+                    let decorations = highlights.map { Decoration(id: $0.id!.string, locator: $0.locator, style: .highlight(tint: $0.color.uiColor, isActive: false)) }
                     decorator.apply(decorations: decorations, in: self.highlightDecorationGroup)
                 }
             }
@@ -235,7 +235,8 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
     private func activateDecoration(_ event: OnDecorationActivatedEvent) {
         guard let highlights = highlights else { return }
 
-        currentHighlightCancellable = highlights.highlight(for: event.decoration.id).sink { _ in
+        let id = event.decoration.highlightID
+        currentHighlightCancellable = highlights.highlight(for: id).sink { _ in
         } receiveValue: { [weak self] highlight in
             guard let self = self else { return }
             self.activateDecoration(for: highlight, on: event)
@@ -252,14 +253,14 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 
         menuView.selectedColorPublisher.sink { [weak self] color in
             self?.currentHighlightCancellable?.cancel()
-            self?.updateHighlight(event.decoration.id, withColor: color)
+            self?.updateHighlight(event.decoration.highlightID, withColor: color)
             self?.highlightContextMenu?.dismiss(animated: true, completion: nil)
         }
         .store(in: &subscriptions)
 
         menuView.selectedDeletePublisher.sink { [weak self] _ in
             self?.currentHighlightCancellable?.cancel()
-            self?.deleteHighlight(event.decoration.id)
+            self?.deleteHighlight(event.decoration.highlightID)
             self?.highlightContextMenu?.dismiss(animated: true, completion: nil)
         }
         .store(in: &subscriptions)
@@ -277,6 +278,12 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             popoverController.delegate = self
             present(highlightContextMenu!, animated: true, completion: nil)
         }
+    }
+}
+
+extension Decoration {
+    var highlightID: Highlight.Id {
+        Highlight.Id(string: id)!
     }
 }
 

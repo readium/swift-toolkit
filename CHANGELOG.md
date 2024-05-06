@@ -4,7 +4,22 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Changed
+
+* The `R2Shared`, `R2Streamer` and `R2Navigator` packages are now called `ReadiumShared`, `ReadiumStreamer` and `ReadiumNavigator`.
+* Many APIs now expect one of the new URL types (`RelativeURL`, `AbsoluteURL`, `HTTPURL` and `FileURL`). This is helpful because:
+    * It validates at compile time that we provide a URL that is supported.
+    * The API's capabilities are better documented, e.g. a download API could look like this : `download(url: HTTPURL) -> FileURL`. 
+
+#### Shared
+
+* `Link` and `Locator`'s `href` are normalized as valid URLs to improve interoperability with the Readium Web toolkits.
+   * **You MUST migrate your database if you were persisting HREFs and Locators**. Take a look at [the migration guide](Documentation/Migration%20Guide.md) for guidance.
+* Links are not resolved to the `self` URL of a manifest anymore. However, you can still normalize the HREFs yourselves by calling `Manifest.normalizeHREFsToSelf()`.
+* `Publication.localizedTitle` is now optional, as we cannot guarantee a publication will always have a title.
+
 
 ## [2.7.0]
 

@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 import WebKit
 
@@ -56,11 +56,11 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
                 of: "{{ASSETS_URL}}",
                 with: viewModel.useLegacySettings
                     ? "/r2-navigator/epub"
-                    : viewModel.assetsURL.absoluteString
+                    : viewModel.assetsURL.string
             )
 
             // The publication's base URL is used to make sure we can access the resources through the iframe with JavaScript.
-            webView.loadHTMLString(wrapperPage, baseURL: viewModel.publicationBaseURL)
+            webView.loadHTMLString(wrapperPage, baseURL: viewModel.publicationBaseURL.url)
         }
     }
 

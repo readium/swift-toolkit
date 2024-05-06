@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import R2Shared
+@testable import ReadiumShared
 import XCTest
 
 class MediaTypeSnifferTests: XCTestCase {
@@ -45,7 +45,7 @@ class MediaTypeSnifferTests: XCTestCase {
     }
 
     func testSniffFromBytes() {
-        let data = try! Data(contentsOf: fixtures.url(for: "audiobook.json"))
+        let data = try! Data(contentsOf: fixtures.url(for: "audiobook.json").url)
         XCTAssertEqual(MediaType.of { data }, .readiumAudiobookManifest)
     }
 

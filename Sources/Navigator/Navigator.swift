@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import SafariServices
 
 public protocol Navigator: AnyObject {
@@ -105,7 +105,7 @@ public protocol NavigatorDelegate: AnyObject {
     func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, referrer: String?) -> Bool
 
     /// Called when an error occurs while attempting to load a resource.
-    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: String, withError error: ResourceError)
+    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: RelativeURL, withError error: ResourceError)
 }
 
 public extension NavigatorDelegate {
@@ -131,7 +131,7 @@ public enum NavigatorError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .copyForbidden:
-            return R2NavigatorLocalizedString("NavigatorError.copyForbidden")
+            return ReadiumNavigatorLocalizedString("NavigatorError.copyForbidden")
         }
     }
 }

@@ -22,7 +22,7 @@ public protocol HTTPServer {
     func serve(
         at endpoint: HTTPServerEndpoint,
         handler: @escaping (HTTPServerRequest) -> Resource
-    ) throws -> URL
+    ) throws -> HTTPURL
 
     /// Serves resources at the given `endpoint`.
     ///
@@ -36,15 +36,15 @@ public protocol HTTPServer {
         at endpoint: HTTPServerEndpoint,
         handler: @escaping (HTTPServerRequest) -> Resource,
         failureHandler: FailureHandler?
-    ) throws -> URL
+    ) throws -> HTTPURL
 
     /// Registers a `Resource` transformer that will be run on all responses
     /// matching the given `endpoint`.
-    func transformResources(at endpoint: HTTPServerEndpoint, with transformer: @escaping ResourceTransformer)
+    func transformResources(at endpoint: HTTPServerEndpoint, with transformer: @escaping ResourceTransformer) throws
 
     /// Removes a handler serving resources at `endpoint`, as well as the
     /// resource transformers.
-    func remove(at endpoint: HTTPServerEndpoint)
+    func remove(at endpoint: HTTPServerEndpoint) throws
 }
 
 public extension HTTPServer {
@@ -53,7 +53,7 @@ public extension HTTPServer {
         at endpoint: HTTPServerEndpoint,
         handler: @escaping (HTTPServerRequest) -> Resource,
         failureHandler: FailureHandler?
-    ) throws -> URL {
+    ) throws -> HTTPURL {
         try serve(at: endpoint, handler: handler)
     }
 
@@ -69,15 +69,16 @@ public extension HTTPServer {
     @discardableResult
     func serve(
         at endpoint: HTTPServerEndpoint,
-        contentsOf url: URL,
+        contentsOf url: FileURL,
         failureHandler: FailureHandler? = nil
-    ) throws -> URL {
+    ) throws -> HTTPURL {
         func handler(request: HTTPServerRequest) -> Resource {
-            let file = url.appendingPathComponent(request.href ?? "")
+            let file = request.href.flatMap { url.resolve($0) }
+                ?? url
 
             return FileResource(
                 link: Link(
-                    href: request.url.absoluteString,
+                    href: request.url.string,
                     type: MediaType.of(file)?.string
                 ),
                 file: file
@@ -102,18 +103,18 @@ public extension HTTPServer {
         at endpoint: HTTPServerEndpoint,
         publication: Publication,
         failureHandler: FailureHandler? = nil
-    ) throws -> URL {
+    ) throws -> HTTPURL {
         func handler(request: HTTPServerRequest) -> Resource {
             guard let href = request.href else {
                 failureHandler?(request, .notFound(nil))
 
                 return FailureResource(
-                    link: Link(href: request.url.absoluteString),
+                    link: Link(href: request.url.string),
                     error: .notFound(nil)
                 )
             }
 
-            return publication.get(href)
+            return publication.get(href.string)
         }
 
         return try serve(
@@ -130,12 +131,12 @@ public typealias HTTPServerEndpoint = String
 /// Request made to an `HTTPServer`.
 public struct HTTPServerRequest {
     /// Absolute URL on the server.
-    public let url: URL
+    public let url: HTTPURL
 
     /// HREF for the resource, relative to the server endpoint.
-    public let href: String?
+    public let href: RelativeURL?
 
-    public init(url: URL, href: String?) {
+    public init(url: HTTPURL, href: RelativeURL?) {
         self.url = url
         self.href = href
     }

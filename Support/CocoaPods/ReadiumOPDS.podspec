@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = "11.0"
   s.xcconfig      = { 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2' }
 
-  s.dependency 'R2Shared'
+  s.dependency 'ReadiumShared'
   s.dependency 'ReadiumInternal'
   s.dependency 'Fuzi', '~> 3.0'
 

@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import R2Shared
+@testable import ReadiumShared
 import XCTest
 
 class PublicationTests: XCTestCase {
@@ -13,17 +13,17 @@ class PublicationTests: XCTestCase {
             Publication(
                 manifest: Manifest(
                     metadata: Metadata(title: "Title"),
-                    links: [Link(href: "/manifest.json", rels: [.`self`])],
-                    readingOrder: [Link(href: "/chap1.html", type: "text/html")]
+                    links: [Link(href: "manifest.json", rels: [.`self`])],
+                    readingOrder: [Link(href: "chap1.html", type: "text/html")]
                 )
             ).jsonManifest,
             serializeJSONString([
                 "metadata": ["title": "Title", "readingProgression": "auto"],
                 "links": [
-                    ["href": "/manifest.json", "rel": ["self"], "templated": false] as [String: Any],
+                    ["href": "manifest.json", "rel": ["self"], "templated": false] as [String: Any],
                 ],
                 "readingOrder": [
-                    ["href": "/chap1.html", "type": "text/html", "templated": false] as [String: Any],
+                    ["href": "chap1.html", "type": "text/html", "templated": false] as [String: Any],
                 ],
             ] as [String: Any])
         )
@@ -72,8 +72,8 @@ class PublicationTests: XCTestCase {
         XCTAssertEqual(
             makePublication(links: [
                 Link(href: "http://host/folder/manifest.json", rel: .`self`),
-            ]).baseURL,
-            URL(string: "http://host/folder/")!
+            ]).baseURL?.string,
+            "http://host/folder/manifest.json"
         )
     }
 
@@ -89,8 +89,8 @@ class PublicationTests: XCTestCase {
         XCTAssertEqual(
             makePublication(links: [
                 Link(href: "http://host/manifest.json", rel: .`self`),
-            ]).baseURL,
-            URL(string: "http://host/")!
+            ]).baseURL?.string,
+            "http://host/manifest.json"
         )
     }
 

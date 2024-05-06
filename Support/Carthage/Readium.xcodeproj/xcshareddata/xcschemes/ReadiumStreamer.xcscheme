@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "4AB147A840EB6BF7ECE05940"
-               BuildableName = "R2Streamer.framework"
-               BlueprintName = "R2Streamer"
+               BlueprintIdentifier = "3BF1E58F4F109CF643D36473"
+               BuildableName = "ReadiumStreamer.framework"
+               BlueprintName = "ReadiumStreamer"
                ReferencedContainer = "container:Readium.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -32,9 +32,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "4AB147A840EB6BF7ECE05940"
-            BuildableName = "R2Streamer.framework"
-            BlueprintName = "R2Streamer"
+            BlueprintIdentifier = "3BF1E58F4F109CF643D36473"
+            BuildableName = "ReadiumStreamer.framework"
+            BlueprintName = "ReadiumStreamer"
             ReferencedContainer = "container:Readium.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -54,9 +54,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "4AB147A840EB6BF7ECE05940"
-            BuildableName = "R2Streamer.framework"
-            BlueprintName = "R2Streamer"
+            BlueprintIdentifier = "3BF1E58F4F109CF643D36473"
+            BuildableName = "ReadiumStreamer.framework"
+            BlueprintName = "ReadiumStreamer"
             ReferencedContainer = "container:Readium.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -70,9 +70,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "4AB147A840EB6BF7ECE05940"
-            BuildableName = "R2Streamer.framework"
-            BlueprintName = "R2Streamer"
+            BlueprintIdentifier = "3BF1E58F4F109CF643D36473"
+            BuildableName = "ReadiumStreamer.framework"
+            BlueprintName = "ReadiumStreamer"
             ReferencedContainer = "container:Readium.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

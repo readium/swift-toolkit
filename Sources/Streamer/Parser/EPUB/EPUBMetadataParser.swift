@@ -6,18 +6,16 @@
 
 import Foundation
 import Fuzi
-import R2Shared
+import ReadiumShared
 
 /// Reference: https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md
 final class EPUBMetadataParser: Loggable {
     private let document: Fuzi.XMLDocument
-    private let fallbackTitle: String
     private let displayOptions: Fuzi.XMLDocument?
     private let metas: OPFMetaList
 
-    init(document: Fuzi.XMLDocument, fallbackTitle: String, displayOptions: Fuzi.XMLDocument?, metas: OPFMetaList) {
+    init(document: Fuzi.XMLDocument, displayOptions: Fuzi.XMLDocument?, metas: OPFMetaList) {
         self.document = document
-        self.fallbackTitle = fallbackTitle
         self.displayOptions = displayOptions
         self.metas = metas
 
@@ -41,7 +39,7 @@ final class EPUBMetadataParser: Loggable {
         return Metadata(
             identifier: uniqueIdentifier,
             conformsTo: [.epub],
-            title: mainTitle ?? fallbackTitle,
+            title: mainTitle,
             subtitle: subtitle,
             accessibility: accessibility(),
             modified: modifiedDate,

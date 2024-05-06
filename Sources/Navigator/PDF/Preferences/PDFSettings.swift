@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import R2Shared
 import ReadiumInternal
+import ReadiumShared
 
 /// Setting values of the `PDFNavigatorViewController`.
 ///

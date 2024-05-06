@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import R2Navigator
-import R2Shared
+import ReadiumNavigator
+import ReadiumShared
 import UIKit
 
 final class AudiobookModule: ReaderFormatModule {

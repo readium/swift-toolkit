@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Parses an audiobook Publication from an unstructured archive format containing audio files,
 /// such as ZAB (Zipped Audio Book) or a simple ZIP.
@@ -29,11 +29,10 @@ public final class AudioParser: PublicationParser {
 
         return Publication.Builder(
             mediaType: .zab,
-            format: .cbz,
             manifest: Manifest(
                 metadata: Metadata(
                     conformsTo: [.audiobook],
-                    title: fetcher.guessTitle(ignoring: ignores) ?? asset.name
+                    title: fetcher.guessTitle(ignoring: ignores)
                 ),
                 readingOrder: readingOrder
             ),
@@ -62,10 +61,5 @@ public final class AudioParser: PublicationParser {
         return allowedExtensions.contains(url.pathExtension.lowercased())
             || filename.hasPrefix(".")
             || filename == "Thumbs.db"
-    }
-
-    @available(*, unavailable, message: "Not supported for `AudioParser`")
-    public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        fatalError("Not supported for `AudioParser`")
     }
 }

@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "775EF03FA0776FAD5958EC01"
-               BuildableName = "R2Shared.framework"
-               BlueprintName = "R2Shared"
+               BlueprintIdentifier = "852FFC0F2178644D4E29E4A6"
+               BuildableName = "ReadiumShared.framework"
+               BlueprintName = "ReadiumShared"
                ReferencedContainer = "container:Readium.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -32,9 +32,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "775EF03FA0776FAD5958EC01"
-            BuildableName = "R2Shared.framework"
-            BlueprintName = "R2Shared"
+            BlueprintIdentifier = "852FFC0F2178644D4E29E4A6"
+            BuildableName = "ReadiumShared.framework"
+            BlueprintName = "ReadiumShared"
             ReferencedContainer = "container:Readium.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -54,9 +54,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "775EF03FA0776FAD5958EC01"
-            BuildableName = "R2Shared.framework"
-            BlueprintName = "R2Shared"
+            BlueprintIdentifier = "852FFC0F2178644D4E29E4A6"
+            BuildableName = "ReadiumShared.framework"
+            BlueprintName = "ReadiumShared"
             ReferencedContainer = "container:Readium.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -70,9 +70,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "775EF03FA0776FAD5958EC01"
-            BuildableName = "R2Shared.framework"
-            BlueprintName = "R2Shared"
+            BlueprintIdentifier = "852FFC0F2178644D4E29E4A6"
+            BuildableName = "ReadiumShared.framework"
+            BlueprintName = "ReadiumShared"
             ReferencedContainer = "container:Readium.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

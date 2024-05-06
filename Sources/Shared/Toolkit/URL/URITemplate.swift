@@ -37,7 +37,9 @@ public struct URITemplate: CustomStringConvertible {
     ///
     /// Any extra parameter is appended as query parameters.
     /// See RFC 6570 on URI template: https://tools.ietf.org/html/rfc6570
-    public func expand(with parameters: [String: String]) -> String {
+    public func expand(with parameters: [String: LosslessStringConvertible]) -> String {
+        let parameters = parameters.mapValues { $0.description }
+
         func expandSimpleString(_ string: String) -> String {
             string
                 .split(separator: ",")

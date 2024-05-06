@@ -5,9 +5,7 @@
 //
 
 import Foundation
-import R2Shared
-
-private typealias R2Link = R2Shared.Link
+import ReadiumShared
 
 private let lcpScheme = "http://readium.org/2014/01/lcp"
 private let AESBlockSize: UInt64 = 16 // bytes
@@ -184,7 +182,7 @@ private extension LCPLicense {
     }
 }
 
-private extension R2Link {
+private extension ReadiumShared.Link {
     var isDeflated: Bool {
         properties.encryption?.compression?.lowercased() == "deflate"
     }

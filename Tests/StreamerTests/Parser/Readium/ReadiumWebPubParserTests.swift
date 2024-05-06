@@ -4,8 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
-@testable import R2Streamer
+import ReadiumShared
+@testable import ReadiumStreamer
 import XCTest
 
 class ReadiumWebPubParserTests: XCTestCase {
@@ -24,19 +24,19 @@ class ReadiumWebPubParserTests: XCTestCase {
     override func setUpWithError() throws {
         parser = ReadiumWebPubParser(pdfFactory: DefaultPDFDocumentFactory(), httpClient: DefaultHTTPClient())
 
-        manifestAsset = FileAsset(url: fixtures.url(for: "flatland.json"))
-        manifestFetcher = FileFetcher(href: "/flatland.json", path: manifestAsset.url)
+        manifestAsset = FileAsset(file: fixtures.url(for: "flatland.json"))
+        manifestFetcher = FileFetcher(href: RelativeURL(path: "flatland.json")!, file: manifestAsset.file)
 
-        packageAsset = FileAsset(url: fixtures.url(for: "audiotest.lcpa"))
-        packageFetcher = try ArchiveFetcher(url: packageAsset.url)
+        packageAsset = FileAsset(file: fixtures.url(for: "audiotest.lcpa"))
+        packageFetcher = try ArchiveFetcher(file: packageAsset.file)
 
-        lcpdfAsset = FileAsset(url: fixtures.url(for: "daisy.lcpdf"))
-        lcpdfFetcher = try ArchiveFetcher(url: lcpdfAsset.url)
+        lcpdfAsset = FileAsset(file: fixtures.url(for: "daisy.lcpdf"))
+        lcpdfFetcher = try ArchiveFetcher(file: lcpdfAsset.file)
     }
 
     func testRefusesNonReadiumWebPub() throws {
-        let asset = FileAsset(url: fixtures.url(for: "audiotest.zab"))
-        let fetcher = try ArchiveFetcher(url: asset.url)
+        let asset = FileAsset(file: fixtures.url(for: "audiotest.zab"))
+        let fetcher = try ArchiveFetcher(file: asset.file)
         XCTAssertNil(try parser.parse(asset: asset, fetcher: fetcher, warnings: nil))
     }
 
@@ -46,33 +46,5 @@ class ReadiumWebPubParserTests: XCTestCase {
 
     func testAcceptsPackage() {
         XCTAssertNotNil(try parser.parse(asset: packageAsset, fetcher: packageFetcher, warnings: nil))
-    }
-
-    /// The `Link`s' hrefs are normalized to the `self` link for a manifest.
-    func testHrefsAreNormalizedToSelfForManifests() throws {
-        let publication = try XCTUnwrap(parser.parse(asset: manifestAsset, fetcher: manifestFetcher, warnings: nil)?.build())
-
-        XCTAssertEqual(
-            publication.readingOrder.map(\.href),
-            [
-                "http://www.archive.org/download/flatland_rg_librivox/flatland_1_abbott.mp3",
-                "https://readium.org/webpub-manifest/examples/Flatland/flatland_2_abbott.mp3",
-                "https://readium.org/flatland_3_abbott.mp3",
-            ]
-        )
-    }
-
-    /// The `Link`s' hrefs are normalized to `/` for a package.
-    func testHrefsAreNormalizedToRootForPackages() throws {
-        let publication = try XCTUnwrap(parser.parse(asset: packageAsset, fetcher: packageFetcher, warnings: nil)?.build())
-
-        XCTAssertEqual(
-            publication.readingOrder.map(\.href),
-            [
-                "http://readium.org/audio/gtr-jazz.mp3",
-                "/audio/Latin.mp3",
-                "/audio/oboe-bassoon.mp3",
-            ]
-        )
     }
 }

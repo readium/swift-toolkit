@@ -9,13 +9,6 @@ import Foundation
 
 /// Shared model for a Readium Publication.
 public class Publication: Loggable {
-    /// Format of the publication, if specified.
-    @available(*, deprecated, message: "Use publication.conforms(to:) to check the profile of a Publication")
-    public var format: Format = .unknown
-    /// Version of the publication's format, eg. 3 for EPUB 3
-    @available(*, deprecated, message: "This API will be removed in a future version. If you still need it, please explain your use case at https://github.com/readium/swift-toolkit/issues/new")
-    public var formatVersion: String?
-
     private var manifest: Manifest
     private let fetcher: Fetcher
     private let services: [PublicationService]
@@ -84,9 +77,10 @@ public class Publication: Loggable {
     /// The URL where this publication is served, computed from the `Link` with `self` relation.
     ///
     /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
-    public var baseURL: URL? {
+    public var baseURL: HTTPURL? {
         links.first(withRel: .`self`)
-            .flatMap { URL(string: $0.href)?.deletingLastPathComponent() }
+            .takeIf { !$0.templated }
+            .flatMap { HTTPURL(string: $0.href) }
     }
 
     /// Finds the first Link having the given `href` in the publication's links.
@@ -114,11 +108,11 @@ public class Publication: Loggable {
 
     /// Returns the resource targeted by the given `href`.
     public func get(_ href: String) -> Resource {
-        let link = link(withHREF: href)?
-            // Uses the original href to keep the query parameters
-            .copy(href: href, templated: false)
-
-        return get(link ?? Link(href: href))
+        var link = link(withHREF: href) ?? Link(href: href)
+        // Uses the original href to keep the query parameters
+        link.href = href
+        link.templated = false
+        return get(link)
     }
 
     /// Closes any opened resource associated with the `Publication`, including `services`.
@@ -140,16 +134,8 @@ public class Publication: Loggable {
     }
 
     /// Sets the URL where this `Publication`'s RWPM manifest is served.
-    public func setSelfLink(href: String?) {
-        manifest.links.removeAll { $0.rels.contains(.`self`) }
-        if let href = href {
-            manifest.links.insert(Link(
-                href: href,
-                type: MediaType.readiumWebPubManifest.string,
-                rel: .`self`
-            ), at: 0)
-        }
-    }
+    @available(*, unavailable, message: "Not used anymore")
+    public func setSelfLink(href: String?) { fatalError() }
 
     /// Represents a Readium Web Publication Profile a `Publication` can conform to.
     ///
@@ -172,67 +158,6 @@ public class Publication: Loggable {
         public static let pdf = Profile("https://readium.org/webpub-manifest/profiles/pdf")
     }
 
-    public enum Format: Equatable, Hashable {
-        /// Formats natively supported by Readium.
-        case cbz, epub, pdf, webpub
-        /// Default value when the format is not specified.
-        case unknown
-
-        /// Finds the format for the given mimetype.
-        public init(mimetype: String?) {
-            guard let mimetype = mimetype else {
-                self = .unknown
-                return
-            }
-            self.init(mimetypes: [mimetype])
-        }
-
-        /// Finds the format from a list of possible mimetypes or fallback on a file extension.
-        public init(mimetypes: [String] = [], fileExtension: String? = nil) {
-            self.init(mediaType: .of(mediaTypes: mimetypes, fileExtensions: Array(ofNotNil: fileExtension)))
-        }
-
-        /// Finds the format of the publication at the given url.
-        /// Uses the format declared as exported UTIs in the app's Info.plist, or fallbacks on the file extension.
-        ///
-        /// - Parameter mimetype: Fallback mimetype if the UTI can't be determined.
-        public init(file: URL, mimetype: String) {
-            self.init(file: file, mimetypes: [mimetype])
-        }
-
-        /// Finds the format of the publication at the given url.
-        /// Uses the format declared as exported UTIs in the app's Info.plist, or fallbacks on the file extension.
-        ///
-        /// - Parameter mimetypes: Fallback mimetypes if the UTI can't be determined.
-        public init(file: URL, mimetypes: [String] = []) {
-            self.init(mediaType: .of(file, mediaTypes: mimetypes, fileExtensions: []))
-        }
-
-        private init(mediaType: MediaType?) {
-            guard let mediaType = mediaType else {
-                self = .unknown
-                return
-            }
-            switch mediaType {
-            case .epub:
-                self = .epub
-            case .cbz:
-                self = .cbz
-            case .pdf, .lcpProtectedPDF:
-                self = .pdf
-            case .readiumWebPubManifest, .readiumAudiobookManifest:
-                self = .webpub
-            default:
-                self = .unknown
-            }
-        }
-
-        @available(*, unavailable, renamed: "init(file:)")
-        public init(url: URL) {
-            self.init(file: url)
-        }
-    }
-
     /// Errors occurring while opening a Publication.
     public enum OpeningError: LocalizedError {
         /// The file format could not be recognized by any parser.
@@ -253,17 +178,17 @@ public class Publication: Loggable {
         public var errorDescription: String? {
             switch self {
             case .unsupportedFormat:
-                return R2SharedLocalizedString("Publication.OpeningError.unsupportedFormat")
+                return ReadiumSharedLocalizedString("Publication.OpeningError.unsupportedFormat")
             case .notFound:
-                return R2SharedLocalizedString("Publication.OpeningError.notFound")
+                return ReadiumSharedLocalizedString("Publication.OpeningError.notFound")
             case .parsingFailed:
-                return R2SharedLocalizedString("Publication.OpeningError.parsingFailed")
+                return ReadiumSharedLocalizedString("Publication.OpeningError.parsingFailed")
             case .forbidden:
-                return R2SharedLocalizedString("Publication.OpeningError.forbidden")
+                return ReadiumSharedLocalizedString("Publication.OpeningError.forbidden")
             case .unavailable:
-                return R2SharedLocalizedString("Publication.OpeningError.unavailable")
+                return ReadiumSharedLocalizedString("Publication.OpeningError.unavailable")
             case .incorrectCredentials:
-                return R2SharedLocalizedString("Publication.OpeningError.incorrectCredentials")
+                return ReadiumSharedLocalizedString("Publication.OpeningError.incorrectCredentials")
             }
         }
     }
@@ -279,7 +204,6 @@ public class Publication: Loggable {
         public typealias Transform = (_ mediaType: MediaType, _ manifest: inout Manifest, _ fetcher: inout Fetcher, _ services: inout PublicationServicesBuilder) -> Void
 
         private let mediaType: MediaType
-        private let format: Format
         private var manifest: Manifest
         private var fetcher: Fetcher
         private var servicesBuilder: PublicationServicesBuilder
@@ -288,9 +212,14 @@ public class Publication: Loggable {
         /// This is used for backwrad compatibility, until `Publication` is purely immutable.
         private let setupPublication: ((Publication) -> Void)?
 
-        public init(mediaType: MediaType, format: Format, manifest: Manifest, fetcher: Fetcher, servicesBuilder: PublicationServicesBuilder = .init(), setupPublication: ((Publication) -> Void)? = nil) {
+        public init(
+            mediaType: MediaType,
+            manifest: Manifest,
+            fetcher: Fetcher,
+            servicesBuilder: PublicationServicesBuilder = .init(),
+            setupPublication: ((Publication) -> Void)? = nil
+        ) {
             self.mediaType = mediaType
-            self.format = format
             self.manifest = manifest
             self.fetcher = fetcher
             self.servicesBuilder = servicesBuilder
@@ -310,11 +239,25 @@ public class Publication: Loggable {
             let publication = Publication(
                 manifest: manifest,
                 fetcher: fetcher,
-                servicesBuilder: servicesBuilder,
-                format: format
+                servicesBuilder: servicesBuilder
             )
             setupPublication?(publication)
             return publication
         }
+    }
+
+    /// Format of the publication, if specified.
+    @available(*, unavailable, message: "Use publication.conforms(to:) to check the profile of a Publication")
+    public var format: Format { fatalError() }
+    /// Version of the publication's format, eg. 3 for EPUB 3
+    @available(*, unavailable, message: "This API will be removed in a future version. If you still need it, please explain your use case at https://github.com/readium/swift-toolkit/issues/new")
+    public var formatVersion: String? { fatalError() }
+
+    @available(*, unavailable, message: "Use publication.conforms(to:) to check the profile of a Publication")
+    public enum Format: Equatable, Hashable {
+        /// Formats natively supported by Readium.
+        case cbz, epub, pdf, webpub
+        /// Default value when the format is not specified.
+        case unknown
     }
 }

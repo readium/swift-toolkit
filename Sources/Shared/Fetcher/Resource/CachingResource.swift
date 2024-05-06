@@ -25,7 +25,7 @@ public final class CachingResource: Resource {
         self.resource = resource
     }
 
-    public lazy var file: URL? = resource.file
+    public lazy var file: FileURL? = resource.file
 
     public lazy var link: Link = resource.link
 

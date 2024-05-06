@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 extension HTTPClient {
     func fetch(_ url: HTTPRequestConvertible) -> Deferred<HTTPResponse, HTTPError> {

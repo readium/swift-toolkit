@@ -77,7 +77,7 @@ public final class MediaTypeSnifferContext {
     /// Content as an archive.
     /// Warning: ZIP is only supported for a local file, for now.
     lazy var contentAsArchive: Archive? = (content as? FileMediaTypeSnifferContent)
-        .flatMap { archiveFactory.open(url: $0.file, password: nil).getOrNil() }
+        .flatMap { archiveFactory.open(file: $0.file, password: nil).getOrNil() }
 
     /// Content parsed from JSON.
     public lazy var contentAsJSON: Any? = contentAsString

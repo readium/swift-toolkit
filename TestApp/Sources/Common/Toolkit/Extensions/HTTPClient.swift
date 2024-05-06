@@ -6,7 +6,7 @@
 
 import Combine
 import Foundation
-import R2Shared
+import ReadiumShared
 
 struct HTTPDownload {
     let file: URL
@@ -15,7 +15,7 @@ struct HTTPDownload {
 
 extension HTTPClient {
     func fetch(_ request: HTTPRequestConvertible) -> AnyPublisher<HTTPResponse, HTTPError> {
-        var cancellable: R2Shared.Cancellable? = nil
+        var cancellable: ReadiumShared.Cancellable? = nil
         return Future { promise in
             cancellable = self.fetch(request, completion: promise)
         }
@@ -27,7 +27,7 @@ extension HTTPClient {
         try await withCheckedThrowingContinuation { cont in
             do {
                 let (destination, handle) = try openTemporaryFileForWriting()
-                var cancellable: R2Shared.Cancellable? = nil
+                var cancellable: ReadiumShared.Cancellable? = nil
 
                 cancellable = stream(request,
                                      consume: { data, progression in

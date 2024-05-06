@@ -4,12 +4,12 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import R2Navigator
-import R2Shared
+@testable import ReadiumNavigator
+import ReadiumShared
 import XCTest
 
 class ReadiumCSSTests: XCTestCase {
-    let baseURL = URL(string: "https://readium/assets")!
+    let baseURL = HTTPURL(string: "https://readium/assets")!
 
     let viewportMeta = HTMLInjection.meta(name: "viewport", content: "width=device-width, height=device-height, initial-scale=1.0")
 

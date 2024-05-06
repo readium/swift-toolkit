@@ -5,8 +5,8 @@
 //
 
 import PDFKit
-import R2Shared
 @testable import ReadiumLCP
+import ReadiumShared
 import XCTest
 
 class LCPDecryptorTests: XCTestCase {

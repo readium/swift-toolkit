@@ -7,8 +7,8 @@
 #if LCP
 
     import Foundation
-    import R2Shared
     import ReadiumLCP
+    import ReadiumShared
     import UIKit
 
     final class LCPViewModel: DRMViewModel {

@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import R2Shared
+@testable import ReadiumShared
 import XCTest
 
 class PropertiesTests: XCTestCase {
@@ -53,19 +53,18 @@ class PropertiesTests: XCTestCase {
         )
     }
 
-    func testAddingProperties() {
-        let properties = Properties([
+    func testAddProperties() {
+        var properties = Properties([
             "other-property1": "value",
             "other-property2": [42],
         ])
-
-        let copy = properties.adding([
+        properties.add([
             "additional": "property",
             "other-property1": "override",
         ])
 
         AssertJSONEqual(
-            copy.json as Any,
+            properties.json as Any,
             [
                 "other-property1": "override",
                 "other-property2": [42],

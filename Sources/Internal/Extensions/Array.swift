@@ -57,6 +57,10 @@ public extension Array where Element: Hashable {
         array.removeAll { other in other == element }
         return array
     }
+
+    @inlinable mutating func remove(_ element: Element) {
+        removeAll { other in other == element }
+    }
 }
 
 public extension Array where Element: Equatable {

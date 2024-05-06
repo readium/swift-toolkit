@@ -84,4 +84,11 @@ public extension String {
         }
         return index
     }
+
+    func orNilIfEmpty() -> String? {
+        guard !isEmpty else {
+            return nil
+        }
+        return self
+    }
 }

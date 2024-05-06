@@ -4,38 +4,38 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
-@testable import R2Streamer
+import ReadiumShared
+@testable import ReadiumStreamer
 import XCTest
 
 class FetcherTests: XCTestCase {
     func testGuessTitleWithoutDirectories() {
-        let fetcher = TestFetcher(hrefs: ["/a.txt", "/b.png"])
+        let fetcher = TestFetcher(hrefs: ["a.txt", "b.png"])
         XCTAssertNil(fetcher.guessTitle())
     }
 
     func testGuessTitleWithOneRootDirectory() {
-        let fetcher = TestFetcher(hrefs: ["/Root Directory/b.png", "/Root Directory/dir/c.png"])
+        let fetcher = TestFetcher(hrefs: ["Root%20Directory/b.png", "Root%20Directory/dir/c.png"])
         XCTAssertEqual(fetcher.guessTitle(), "Root Directory")
     }
 
     func testGuessTitleWithOneRootDirectoryButRootFiles() {
-        let fetcher = TestFetcher(hrefs: ["/a.txt", "/Root Directory/b.png", "/Root Directory/dir/c.png"])
+        let fetcher = TestFetcher(hrefs: ["a.txt", "Root%20Directory/b.png", "Root%20Directory/dir/c.png"])
         XCTAssertNil(fetcher.guessTitle())
     }
 
     func testGuessTitleWithOneRootDirectoryButRootFilesWithIgnore() {
-        let fetcher = TestFetcher(hrefs: ["/.hidden", "/Root Directory/b.png", "/Root Directory/dir/c.png"])
-        XCTAssertEqual(fetcher.guessTitle(ignoring: { $0.href == "/.hidden" }), "Root Directory")
+        let fetcher = TestFetcher(hrefs: [".hidden", "Root%20Directory/b.png", "Root%20Directory/dir/c.png"])
+        XCTAssertEqual(fetcher.guessTitle(ignoring: { $0.href == ".hidden" }), "Root Directory")
     }
 
     func testGuessTitleWithSeveralDirectories() {
-        let fetcher = TestFetcher(hrefs: ["/a.txt", "/dir1/b.png", "/dir2/c.png"])
+        let fetcher = TestFetcher(hrefs: ["a.txt", "dir1/b.png", "dir2/c.png"])
         XCTAssertNil(fetcher.guessTitle())
     }
 
     func testGuessTitleIgnoresSingleFiles() {
-        let fetcher = TestFetcher(hrefs: ["/single"])
+        let fetcher = TestFetcher(hrefs: ["single"])
         XCTAssertNil(fetcher.guessTitle())
     }
 }
