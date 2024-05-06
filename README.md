@@ -2,6 +2,8 @@
 
 [Readium Mobile](https://github.com/readium/mobile) is a toolkit for ebooks, audiobooks and comics written in Swift & Kotlin.
 
+:point_up: **Take a look at the [guide to get started](Documentation/Guides/Getting%20Started.md).** A [Test App](TestApp) demonstrates how to integrate the Readium Swift toolkit in your own reading app.
+
 This toolkit is a modular project, which follows the [Readium Architecture](https://github.com/readium/architecture).
 
 * [`ReadiumShared`](Sources/Shared) – Shared `Publication` models and utilities
@@ -9,8 +11,6 @@ This toolkit is a modular project, which follows the [Readium Architecture](http
 * [`ReadiumNavigator`](Sources/Navigator) – Plain `UIViewController` classes rendering publications
 * [`ReadiumOPDS`](Sources/OPDS) – Parsers for OPDS catalog feeds
 * [`ReadiumLCP`](Sources/LCP) – Service and models for [Readium LCP](https://www.edrlab.org/readium-lcp/)
-
-A [Test App](TestApp) demonstrates how to integrate the Readium Swift toolkit in your own reading app
 
 ## Minimum Requirements
 
