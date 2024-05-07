@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name          = "ReadiumLCP"
-  s.version       = "2.7.0"
+  s.version       = "2.7.1"
   s.license       = "BSD 3-Clause License"
   s.summary       = "Readium LCP"
   s.homepage      = "http://readium.github.io"

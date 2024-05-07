@@ -21,6 +21,13 @@ All notable changes to this project will be documented in this file. Take a look
 * `Publication.localizedTitle` is now optional, as we cannot guarantee a publication will always have a title.
 
 
+## [2.7.1]
+
+### Added
+
+* [#417](https://github.com/readium/swift-toolkit/issues/417) Support for the new 2.x LCP Profiles.
+
+
 ## [2.7.0]
 
 ### Added
@@ -679,3 +686,4 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [2.6.0]: https://github.com/readium/swift-toolkit/compare/2.5.1...2.6.0
 [2.6.1]: https://github.com/readium/swift-toolkit/compare/2.6.0...2.6.1
 [2.7.0]: https://github.com/readium/swift-toolkit/compare/2.6.1...2.7.0
+[2.7.1]: https://github.com/readium/swift-toolkit/compare/2.7.0...2.7.1

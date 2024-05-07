@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>R2 Reader</string>
+	<string>Readium</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -228,9 +228,9 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.7.0</string>
+	<string>2.7.1</string>
 	<key>CFBundleVersion</key>
-	<string>2.7.0</string>
+	<string>2.7.1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
