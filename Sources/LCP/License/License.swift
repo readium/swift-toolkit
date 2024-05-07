@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import ZIPFoundation
 
 final class License: Loggable {
@@ -192,7 +192,7 @@ extension License: LCPLicense {
         func renewWithWebPage(_ link: Link) throws -> Deferred<Data, Error> {
             guard
                 let statusURL = try? license.url(for: .status, preferredType: .lcpStatusDocument),
-                let url = link.url
+                let url = link.url()
             else {
                 throw LCPError.licenseInteractionNotAvailable
             }
@@ -216,13 +216,13 @@ extension License: LCPLicense {
                     : Deferred.success(nil)
             }
 
-            func makeRenewURL(from endDate: Date?) throws -> URL {
+            func makeRenewURL(from endDate: Date?) throws -> HTTPURL {
                 var params = device.asQueryParameters
                 if let end = endDate {
                     params["end"] = end.iso8601
                 }
 
-                guard let url = link.url(with: params) else {
+                guard let url = link.url(parameters: params) else {
                     throw LCPError.licenseInteractionNotAvailable
                 }
                 return url
@@ -263,8 +263,13 @@ extension License: LCPLicense {
     }
 
     func returnPublication(completion: @escaping (LCPError?) -> Void) {
-        guard let status = documents.status,
-              let url = try? status.url(for: .return, preferredType: .lcpStatusDocument, with: device.asQueryParameters)
+        guard
+            let status = documents.status,
+            let url = try? status.url(
+                for: .return,
+                preferredType: .lcpStatusDocument,
+                parameters: device.asQueryParameters
+            )
         else {
             completion(LCPError.licenseInteractionNotAvailable)
             return
@@ -299,7 +304,7 @@ public extension LCPRenewDelegate {
         Deferred { preferredEndDate(maximum: maximum, completion: $0) }
     }
 
-    func presentWebPage(url: URL) -> Deferred<Void, Error> {
+    func presentWebPage(url: HTTPURL) -> Deferred<Void, Error> {
         Deferred { presentWebPage(url: url, completion: $0) }
     }
 }

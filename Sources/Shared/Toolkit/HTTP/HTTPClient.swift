@@ -118,12 +118,17 @@ public extension HTTPClient {
         onProgress: @escaping (Double) -> Void,
         completion: @escaping (HTTPResult<HTTPDownload>) -> Void
     ) -> Cancellable {
-        let location = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
-            .appendingUniquePathComponent()
+        let location = FileURL(
+            url: URL(
+                fileURLWithPath: NSTemporaryDirectory(),
+                isDirectory: true
+            ).appendingUniquePathComponent()
+        )!
+
         let fileHandle: FileHandle
         do {
-            try "".write(to: location, atomically: true, encoding: .utf8)
-            fileHandle = try FileHandle(forWritingTo: location)
+            try "".write(to: location.url, atomically: true, encoding: .utf8)
+            fileHandle = try FileHandle(forWritingTo: location.url)
         } catch {
             completion(.failure(HTTPError(kind: .ioError, cause: error)))
             return CancellableObject()
@@ -163,7 +168,7 @@ public extension HTTPClient {
                 case let .failure(error):
                     completion(.failure(error))
                     do {
-                        try FileManager.default.removeItem(at: location)
+                        try FileManager.default.removeItem(at: location.url)
                     } catch {
                         log(.warning, error)
                     }
@@ -179,7 +184,7 @@ public struct HTTPResponse: Equatable {
     public let request: HTTPRequest
 
     /// URL for the response, after any redirect.
-    public let url: URL
+    public let url: HTTPURL
 
     /// HTTP status code returned by the server.
     public let statusCode: Int
@@ -194,7 +199,7 @@ public struct HTTPResponse: Equatable {
     /// Response body content, when available.
     public var body: Data?
 
-    public init(request: HTTPRequest, url: URL, statusCode: Int, headers: [String: String], mediaType: MediaType, body: Data?) {
+    public init(request: HTTPRequest, url: HTTPURL, statusCode: Int, headers: [String: String], mediaType: MediaType, body: Data?) {
         self.request = request
         self.url = url
         self.statusCode = statusCode
@@ -203,7 +208,7 @@ public struct HTTPResponse: Equatable {
         self.body = body
     }
 
-    public init(request: HTTPRequest, response: HTTPURLResponse, url: URL, body: Data? = nil) {
+    public init(request: HTTPRequest, response: HTTPURLResponse, url: HTTPURL, body: Data? = nil) {
         var headers: [String: String] = [:]
         for (k, v) in response.allHeaderFields {
             if let ks = k as? String, let vs = v as? String {
@@ -276,7 +281,7 @@ public struct HTTPResponse: Equatable {
 public struct HTTPDownload {
     /// The location of a temporary file where the server's response is stored.
     /// You are responsible for moving or deleting the downloaded file..
-    public let location: URL
+    public let location: FileURL
 
     /// A suggested filename for the response data, taken from the `Content-Disposition` header.
     public let suggestedFilename: String?
@@ -284,7 +289,7 @@ public struct HTTPDownload {
     /// Media type sniffed from the `Content-Type` header and response body.
     public let mediaType: MediaType
 
-    public init(location: URL, suggestedFilename: String? = nil, mediaType: MediaType) {
+    public init(location: FileURL, suggestedFilename: String? = nil, mediaType: MediaType) {
         self.location = location
         self.suggestedFilename = suggestedFilename
         self.mediaType = mediaType

@@ -6,7 +6,7 @@
 
 import AVFoundation
 import Foundation
-import R2Shared
+import ReadiumShared
 
 public protocol AVTTSEngineDelegate: AnyObject {
     /// Called when the engine created a new utterance to be played.
@@ -159,6 +159,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance avUtterance: AVSpeechUtterance) {
         guard
             let task = (avUtterance as? TaskUtterance)?.task,
+            characterRange.upperBound <= task.utterance.text.count,
             let range = Range(characterRange, in: task.utterance.text)
         else {
             return

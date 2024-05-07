@@ -6,8 +6,8 @@
 
 import Combine
 import Foundation
-import R2Shared
-import R2Streamer
+import ReadiumShared
+import ReadiumStreamer
 import UIKit
 
 /// The Library module handles the presentation of the bookshelf, and the publications' management.

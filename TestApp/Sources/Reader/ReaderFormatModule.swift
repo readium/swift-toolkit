@@ -6,7 +6,7 @@
 
 import Combine
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 
 /// A ReaderFormatModule is a sub-module of ReaderModule that handles publication of a given format (eg. EPUB, CBZ).

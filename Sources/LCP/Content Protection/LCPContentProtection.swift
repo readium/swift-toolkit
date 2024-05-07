@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 final class LCPContentProtection: ContentProtection, Loggable {
     private let service: LCPService
@@ -34,7 +34,7 @@ final class LCPContentProtection: ContentProtection, Loggable {
             ?? self.authentication
 
         service.retrieveLicense(
-            from: file.url,
+            from: file.file,
             authentication: authentication,
             allowUserInteraction: allowUserInteraction,
             sender: sender

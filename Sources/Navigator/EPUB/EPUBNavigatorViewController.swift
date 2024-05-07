@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
+import ReadiumShared
 import SafariServices
 import SwiftSoup
 import UIKit
@@ -292,27 +292,14 @@ open class EPUBNavigatorViewController: UIViewController,
         )
     }
 
-    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server and settings API")
+    @available(*, unavailable, message: "See the 2.5.0 migration guide to migrate the HTTP server and settings API")
     public convenience init(
         publication: Publication,
         initialLocation: Locator? = nil,
         resourcesServer: ResourcesServer,
         config: Configuration = .init()
     ) {
-        precondition(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
-
-        self.init(
-            viewModel: EPUBNavigatorViewModel(
-                publication: publication,
-                config: config,
-                resourcesServer: resourcesServer
-            ),
-            initialLocation: initialLocation,
-            readingOrder: publication.readingOrder,
-            positionsByReadingOrder: publication.positionsByReadingOrder
-        )
-
-        userSettings = config.userSettings
+        fatalError()
     }
 
     private init(
@@ -665,7 +652,7 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
-    public var readingProgression: R2Shared.ReadingProgression {
+    public var readingProgression: ReadiumShared.ReadingProgression {
         get { viewModel.legacyReadingProgression }
         set {
             viewModel.legacyReadingProgression = newValue
@@ -947,7 +934,7 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
 
     func epubNavigatorViewModel(
         _ viewModel: EPUBNavigatorViewModel,
-        didFailToLoadResourceAt href: String,
+        didFailToLoadResourceAt href: RelativeURL,
         withError error: ResourceError
     ) {
         DispatchQueue.main.async {
@@ -1031,10 +1018,11 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     }
 
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, clickEvent: ClickEvent?) {
-        guard let link = publication.link(withHREF: href)?.copy(href: href) else {
+        guard var link = publication.link(withHREF: href) else {
             log(.warning, "Cannot find link with HREF: \(href)")
             return
         }
+        link.href = href
 
         // Check to see if this was a noteref link and give delegate the opportunity to display it.
         if
@@ -1080,7 +1068,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
 
             let hashParts = href.split(separator: "#")
             guard hashParts.count == 2 else {
-                log(.error, "Could not find hash in link \(href)")
+                log(.warning, "Could not find hash in link \(href)")
                 return nil
             }
             let id = String(hashParts[1])
@@ -1089,21 +1077,27 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
                 withoutFragment = String(withoutFragment.dropFirst())
             }
 
-            let absolute = viewModel.publicationBaseURL.appendingPathComponent(withoutFragment)
+            guard
+                let url = RelativeURL(string: withoutFragment),
+                let absolute = viewModel.publicationBaseURL.resolve(url)
+            else {
+                log(.warning, "Invalid URL: \(withoutFragment)")
+                return nil
+            }
 
-            log(.debug, "Fetching note contents from \(absolute.absoluteString)")
-            let contents = try String(contentsOf: absolute)
+            log(.debug, "Fetching note contents from \(absolute.string)")
+            let contents = try String(contentsOf: absolute.url)
             let document = try parse(contents)
 
             guard let aside = try document.select("#\(id)").first() else {
-                log(.error, "Could not find the element '#\(id)' in document \(absolute)")
+                log(.warning, "Could not find the element '#\(id)' in document \(absolute)")
                 return nil
             }
 
             return try (aside.html(), link.html())
 
         } catch {
-            log(.error, "Caught error while getting note content: \(error)")
+            log(.warning, "Caught error while getting note content: \(error)")
             return nil
         }
     }

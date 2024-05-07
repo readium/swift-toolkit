@@ -6,7 +6,7 @@
 
 import Combine
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 
 /// The OPDS module handles the presentation of OPDS catalogs.

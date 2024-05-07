@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 public extension Presentation.Orientation {
     /// Creates from an EPUB rendition:orientation property.

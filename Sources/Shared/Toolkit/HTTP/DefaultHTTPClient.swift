@@ -333,7 +333,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
     /// Represents an on-going HTTP task.
     private class Task: Cancellable, Loggable {
         enum TaskError: Error {
-            case byteRangesNotSupported(url: URL)
+            case byteRangesNotSupported(url: HTTPURL)
         }
 
         private let request: HTTPRequest
@@ -410,7 +410,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
             }
             guard
                 let urlResponse = urlResponse as? HTTPURLResponse,
-                let url = urlResponse.url
+                let url = urlResponse.url?.httpURL
             else {
                 completionHandler(.cancel)
                 return
@@ -501,7 +501,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
 
 private extension HTTPRequest {
     var urlRequest: URLRequest {
-        var request = URLRequest(url: url)
+        var request = URLRequest(url: url.url)
         request.httpMethod = method.rawValue
         request.allHTTPHeaderFields = headers
 

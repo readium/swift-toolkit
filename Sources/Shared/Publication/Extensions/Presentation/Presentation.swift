@@ -119,9 +119,6 @@ public struct Presentation: Equatable {
         case scrolled
         /// The User Agent can decide how overflow should be handled.
         case auto
-
-        @available(*, unavailable, message: "Use `Presentation.continuous` instead")
-        static let scrolledContinuous: Overflow = .scrolled
     }
 
     /// Indicates how the linked resource should be displayed in a reading environment that

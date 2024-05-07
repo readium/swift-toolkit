@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import R2Shared
 import ReadiumInternal
+import ReadiumShared
 import SwiftSoup
 
 struct ReadiumCSS {
@@ -15,7 +15,7 @@ struct ReadiumCSS {
     var userProperties: CSSUserProperties = .init()
 
     /// Base URL of the Readium CSS assets.
-    var baseURL: URL
+    var baseURL: HTTPURL
 
     var fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration] = []
 }
@@ -114,17 +114,17 @@ extension ReadiumCSS: HTMLInjectable {
         let hasStyles = hasStyles(html)
         var stylesheetsFolder = baseURL
         if let folder = layout.stylesheets.folder {
-            stylesheetsFolder.appendPathComponent(folder, isDirectory: true)
+            stylesheetsFolder = stylesheetsFolder.appendingPath(folder, isDirectory: true)
         }
 
         inj.append(.stylesheetLink(
-            href: stylesheetsFolder.appendingPathComponent("ReadiumCSS-before.css").absoluteString,
+            href: stylesheetsFolder.appendingPath("ReadiumCSS-before.css", isDirectory: false).string,
             prepend: true
         ))
         if !hasStyles {
-            inj.append(.stylesheetLink(href: stylesheetsFolder.appendingPathComponent("ReadiumCSS-default.css").absoluteString))
+            inj.append(.stylesheetLink(href: stylesheetsFolder.appendingPath("ReadiumCSS-default.css", isDirectory: false).string))
         }
-        inj.append(.stylesheetLink(href: stylesheetsFolder.appendingPathComponent("ReadiumCSS-after.css").absoluteString))
+        inj.append(.stylesheetLink(href: stylesheetsFolder.appendingPath("ReadiumCSS-after.css", isDirectory: false).string))
 
         // Fix Readium CSS issue with the positioning of <audio> elements.
         // https://github.com/readium/readium-css/issues/94

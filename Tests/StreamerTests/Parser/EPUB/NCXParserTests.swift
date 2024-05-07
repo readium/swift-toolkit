@@ -4,8 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
-@testable import R2Streamer
+import ReadiumShared
+@testable import ReadiumStreamer
 import XCTest
 
 class NCXParserTests: XCTestCase {
@@ -49,6 +49,6 @@ class NCXParserTests: XCTestCase {
 
     func parseNCX(_ name: String) -> NCXParser {
         let data = fixtures.data(at: "\(name).ncx")
-        return NCXParser(data: data, at: "/base/nav.xhtml")
+        return NCXParser(data: data, at: RelativeURL(path: "/base/nav.xhtml")!)
     }
 }

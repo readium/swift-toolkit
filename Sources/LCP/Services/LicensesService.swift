@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 final class LicensesService: Loggable {
     // Mapping between an unprotected format to the matching LCP protected format.
@@ -32,7 +32,7 @@ final class LicensesService: Loggable {
         self.passphrases = passphrases
     }
 
-    func retrieve(from publication: URL, authentication: LCPAuthenticating?, allowUserInteraction: Bool, sender: Any?) -> Deferred<License?, LCPError> {
+    func retrieve(from publication: FileURL, authentication: LCPAuthenticating?, allowUserInteraction: Bool, sender: Any?) -> Deferred<License?, LCPError> {
         makeLicenseContainer(for: publication)
             .flatMap { container in
                 guard let container = container, container.containsLicense() else {
@@ -95,7 +95,7 @@ final class LicensesService: Loggable {
         }
     }
 
-    func acquirePublication(from lcpl: URL, onProgress: @escaping (LCPAcquisition.Progress) -> Void, completion: @escaping (CancellableResult<LCPAcquisition.Publication, LCPError>) -> Void) -> LCPAcquisition {
+    func acquirePublication(from lcpl: FileURL, onProgress: @escaping (LCPAcquisition.Progress) -> Void, completion: @escaping (CancellableResult<LCPAcquisition.Publication, LCPError>) -> Void) -> LCPAcquisition {
         let acquisition = LCPAcquisition(onProgress: onProgress, completion: completion)
 
         readLicense(from: lcpl).resolve { result in
@@ -118,7 +118,7 @@ final class LicensesService: Loggable {
         return acquisition
     }
 
-    private func readLicense(from lcpl: URL) -> Deferred<LicenseDocument?, LCPError> {
+    private func readLicense(from lcpl: FileURL) -> Deferred<LicenseDocument?, LCPError> {
         makeLicenseContainer(for: lcpl)
             .tryMap { container in
                 guard let container = container, container.containsLicense() else {
@@ -172,7 +172,7 @@ final class LicensesService: Loggable {
     }
 
     /// Injects the given License Document into the `file` acquired using `downloadTask`.
-    private func injectLicense(_ license: LicenseDocument, in download: HTTPDownload) -> Deferred<URL, LCPError> {
+    private func injectLicense(_ license: LicenseDocument, in download: HTTPDownload) -> Deferred<FileURL, LCPError> {
         var mimetypes: [String] = [
             download.mediaType.string,
         ]
@@ -181,7 +181,7 @@ final class LicensesService: Loggable {
         }
 
         return makeLicenseContainer(for: download.location, mimetypes: mimetypes)
-            .tryMap(on: .global(qos: .background)) { container -> URL in
+            .tryMap(on: .global(qos: .background)) { container -> FileURL in
                 guard let container = container else {
                     throw LCPError.licenseContainer(.openFailed)
                 }
@@ -193,8 +193,8 @@ final class LicensesService: Loggable {
     }
 
     /// Returns the suggested filename to be used when importing a publication.
-    private func suggestedFilename(for file: URL, license: LicenseDocument) -> String {
-        let fileExtension: String = {
+    private func suggestedFilename(for file: FileURL, license: LicenseDocument) -> String {
+        let fileExtension: String? = {
             let publicationLink = license.link(for: .publication)
             if var mediaType = MediaType.of(file, mediaType: publicationLink?.type) {
                 mediaType = mediaTypesMapping[mediaType] ?? mediaType
@@ -203,7 +203,8 @@ final class LicensesService: Loggable {
                 return file.pathExtension
             }
         }()
+        let suffix = fileExtension?.addingPrefix(".") ?? ""
 
-        return "\(license.id).\(fileExtension)"
+        return "\(license.id)\(suffix)"
     }
 }

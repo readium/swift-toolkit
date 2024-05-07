@@ -4,12 +4,12 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import R2Shared
+@testable import ReadiumShared
 import XCTest
 
 class HTMLResourceContentIteratorTest: XCTestCase {
-    private let link = Link(href: "/dir/res.xhtml", type: "application/xhtml+xml")
-    private let locator = Locator(href: "/dir/res.xhtml", type: "application/xhtml+xml")
+    private let link = Link(href: "dir/res.xhtml", type: "application/xhtml+xml")
+    private let locator = Locator(href: "dir/res.xhtml", type: "application/xhtml+xml")
 
     private let html = """
     <?xml version="1.0" encoding="UTF-8"?>
@@ -311,13 +311,13 @@ class HTMLResourceContentIteratorTest: XCTestCase {
         let expectedElements: [AnyEquatableContentElement] = [
             ImageContentElement(
                 locator: locator(progression: 0.0, selector: "html > body > img:nth-child(1)"),
-                embeddedLink: Link(href: "/dir/image.png"),
+                embeddedLink: Link(href: "dir/image.png"),
                 caption: nil,
                 attributes: []
             ).equatable(),
             ImageContentElement(
                 locator: locator(progression: 0.5, selector: "html > body > img:nth-child(2)"),
-                embeddedLink: Link(href: "/cover.jpg"),
+                embeddedLink: Link(href: "cover.jpg"),
                 caption: nil,
                 attributes: [ContentAttribute(key: .accessibilityLabel, value: "Accessibility description")]
             ).equatable(),
@@ -346,15 +346,15 @@ class HTMLResourceContentIteratorTest: XCTestCase {
         let expectedElements: [AnyEquatableContentElement] = [
             AudioContentElement(
                 locator: locator(progression: 0.0, selector: "html > body > audio:nth-child(1)"),
-                embeddedLink: Link(href: "/dir/audio.mp3"),
+                embeddedLink: Link(href: "dir/audio.mp3"),
                 attributes: []
             ).equatable(),
             AudioContentElement(
                 locator: locator(progression: 0.5, selector: "html > body > audio:nth-child(2)"),
                 embeddedLink: Link(
-                    href: "/dir/audio.mp3",
+                    href: "dir/audio.mp3",
                     type: "audio/mp3",
-                    alternates: [Link(href: "/dir/audio.ogg", type: "audio/ogg")]
+                    alternates: [Link(href: "dir/audio.ogg", type: "audio/ogg")]
                 ),
                 attributes: []
             ).equatable(),
@@ -383,15 +383,15 @@ class HTMLResourceContentIteratorTest: XCTestCase {
         let expectedElements: [AnyEquatableContentElement] = [
             VideoContentElement(
                 locator: locator(progression: 0.0, selector: "html > body > video:nth-child(1)"),
-                embeddedLink: Link(href: "/dir/video.mp4"),
+                embeddedLink: Link(href: "dir/video.mp4"),
                 attributes: []
             ).equatable(),
             VideoContentElement(
                 locator: locator(progression: 0.5, selector: "html > body > video:nth-child(2)"),
                 embeddedLink: Link(
-                    href: "/dir/video.mp4",
+                    href: "dir/video.mp4",
                     type: "video/mp4",
-                    alternates: [Link(href: "/dir/video.m4v", type: "video/x-m4v")]
+                    alternates: [Link(href: "dir/video.m4v", type: "video/x-m4v")]
                 ),
                 attributes: []
             ).equatable(),

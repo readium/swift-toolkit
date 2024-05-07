@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 extension Array where Element == DecorationChange {
     /// Generates the JavaScript used to apply the receiver list of `DecorationChange` in a web view.

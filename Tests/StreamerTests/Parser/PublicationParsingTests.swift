@@ -4,8 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
-@testable import R2Streamer
+import ReadiumShared
+@testable import ReadiumStreamer
 import XCTest
 
 class PublicationParsingTests: XCTestCase, Loggable {
@@ -13,27 +13,27 @@ class PublicationParsingTests: XCTestCase, Loggable {
     let streamer = Streamer()
 
     func testParseCbz() {
-        parse(url: fixtures.url(for: "futuristic_tales.cbz"))
+        parse(file: fixtures.url(for: "futuristic_tales.cbz"))
     }
 
     func testParseCbzDirectory() {
-        parse(url: fixtures.url(for: "futuristic_tales"))
+        parse(file: fixtures.url(for: "futuristic_tales"))
     }
 
-    private func parse(url: URL) {
+    private func parse(file: FileURL) {
         let expect = expectation(description: "Publication parsed")
 
-        streamer.open(asset: FileAsset(url: url), allowUserInteraction: false) { result in
+        streamer.open(asset: FileAsset(file: file), allowUserInteraction: false) { result in
             switch result {
             case .success:
                 expect.fulfill()
             case .failure:
-                XCTFail("Failed to parse \(url)")
+                XCTFail("Failed to parse \(file)")
             case .cancelled:
-                XCTFail("Parsing of \(url) cancelled")
+                XCTFail("Parsing of \(file) cancelled")
             }
         }
 
-        waitForExpectations(timeout: 2, handler: nil)
+        waitForExpectations(timeout: 30, handler: nil)
     }
 }

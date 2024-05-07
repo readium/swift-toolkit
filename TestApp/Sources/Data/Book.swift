@@ -7,7 +7,7 @@
 import Combine
 import Foundation
 import GRDB
-import R2Shared
+import ReadiumShared
 
 struct Book: Codable {
     struct Id: EntityId { let rawValue: Int64 }

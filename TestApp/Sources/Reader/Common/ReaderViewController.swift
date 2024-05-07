@@ -5,8 +5,8 @@
 //
 
 import Combine
-import R2Navigator
-import R2Shared
+import ReadiumNavigator
+import ReadiumShared
 import SafariServices
 import SwiftUI
 import UIKit
@@ -107,7 +107,7 @@ class ReaderViewController<N: Navigator>: UIViewController,
         moduleDelegate?.presentError(error, from: self)
     }
 
-    func navigator(_ navigator: any Navigator, didFailToLoadResourceAt href: String, withError error: ResourceError) {
+    func navigator(_ navigator: any Navigator, didFailToLoadResourceAt href: RelativeURL, withError error: ResourceError) {
         log(.error, "Failed to load resource at \(href): \(error)")
     }
 

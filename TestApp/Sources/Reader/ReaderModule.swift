@@ -6,7 +6,7 @@
 
 import Combine
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 
 /// The ReaderModule handles the presentation of publications to be read by the user.

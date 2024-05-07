@@ -6,7 +6,7 @@
 
 import CryptoSwift
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Deobfuscates EPUB resources.
 /// https://www.w3.org/publishing/epub3/epub-ocf.html#sec-resource-obfuscation

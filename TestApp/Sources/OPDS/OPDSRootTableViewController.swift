@@ -4,8 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
 import ReadiumOPDS
+import ReadiumShared
 import UIKit
 
 enum FeedBrowsingState {

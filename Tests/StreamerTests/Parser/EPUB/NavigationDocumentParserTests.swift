@@ -4,8 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
-@testable import R2Streamer
+import ReadiumShared
+@testable import ReadiumStreamer
 import XCTest
 
 class NavigationDocumentParserTests: XCTestCase {
@@ -69,6 +69,6 @@ class NavigationDocumentParserTests: XCTestCase {
 
     func parseNavDocument(_ name: String) -> NavigationDocumentParser {
         let data = fixtures.data(at: "\(name).xhtml")
-        return NavigationDocumentParser(data: data, at: "/base/nav.xhtml")
+        return NavigationDocumentParser(data: data, at: RelativeURL(path: "/base/nav.xhtml")!)
     }
 }

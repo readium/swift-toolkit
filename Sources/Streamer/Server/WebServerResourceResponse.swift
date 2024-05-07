@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import R2Shared
 import ReadiumGCDWebServer
+import ReadiumShared
 
 extension ReadiumGCDWebServerResponse: Loggable {}
 

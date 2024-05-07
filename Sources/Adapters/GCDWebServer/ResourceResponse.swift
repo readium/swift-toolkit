@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import R2Shared
 import ReadiumGCDWebServer
+import ReadiumShared
 
 /// Errors thrown by the `WebServerResourceResponse`
 ///

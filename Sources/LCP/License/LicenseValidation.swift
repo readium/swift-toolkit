@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// To modify depending of the profiles supported by liblcp.a.
 private let supportedProfiles = [

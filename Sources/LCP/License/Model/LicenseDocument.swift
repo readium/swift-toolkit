@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Document that contains references to the various keys, links to related external resources, rights and restrictions that are applied to the Protected Publication, and user information.
 /// https://github.com/readium/lcp-specs/blob/master/schema/license.schema.json
@@ -99,11 +99,11 @@ public struct LicenseDocument {
     /// are found, the first link with the `rel` and an empty `type` will be returned.
     ///
     /// - Throws: `LCPError.invalidLink` if the URL can't be built.
-    func url(for rel: Rel, preferredType: MediaType? = nil, with parameters: [String: LosslessStringConvertible] = [:]) throws -> URL {
+    func url(for rel: Rel, preferredType: MediaType? = nil, parameters: [String: LosslessStringConvertible] = [:]) throws -> HTTPURL {
         let link = link(for: rel, type: preferredType)
             ?? links.firstWithRelAndNoType(rel.rawValue)
 
-        guard let url = link?.url(with: parameters) else {
+        guard let url = link?.url(parameters: parameters) else {
             throw ParsingError.url(rel: rel.rawValue)
         }
 

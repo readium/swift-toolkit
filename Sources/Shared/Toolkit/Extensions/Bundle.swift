@@ -14,10 +14,10 @@ import Foundation
 #if !SWIFT_PACKAGE
     extension Bundle {
         #if !COCOAPODS
-            /// Returns R2Shared's bundle by querying an arbitrary type.
+            /// Returns ReadiumShared's bundle by querying an arbitrary type.
             static let module = Bundle(for: Publication.self)
         #else
-            /// Returns R2Shared's bundle by querying for the cocoapods bundle.
+            /// Returns ReadiumShared's bundle by querying for the cocoapods bundle.
             static let module = Bundle.getCocoaPodsBundle()
             static func getCocoaPodsBundle() -> Bundle {
                 let rootBundle = Bundle(for: Publication.self)
