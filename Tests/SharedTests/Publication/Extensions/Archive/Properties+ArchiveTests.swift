@@ -14,7 +14,7 @@ class PropertiesArchiveTests: XCTestCase {
     }
 
     func testArchive() {
-        let sut = Properties(["archive": [
+        let sut = Properties(["https://readium.org/webpub-manifest/properties#archive": [
             "entryLength": 8273,
             "isEntryCompressed": true,
         ] as [String: Any]])
@@ -23,19 +23,19 @@ class PropertiesArchiveTests: XCTestCase {
     }
 
     func testInvalidArchive() {
-        let sut = Properties(["archive": [
+        let sut = Properties(["https://readium.org/webpub-manifest/properties#archive": [
             "foo": "bar",
         ]])
         XCTAssertNil(sut.archive)
     }
 
     func testIncompleteArchive() {
-        var sut = Properties(["archive": [
+        var sut = Properties(["https://readium.org/webpub-manifest/properties#archive": [
             "entryLength": 8273,
         ]])
         XCTAssertNil(sut.archive)
 
-        sut = Properties(["archive": [
+        sut = Properties(["https://readium.org/webpub-manifest/properties#archive": [
             "isEntryCompressed": true,
         ]])
         XCTAssertNil(sut.archive)

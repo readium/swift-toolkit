@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Changed
+
+#### Shared
+
+* The `Link` property key for archive-based publication assets (e.g. an EPUB/ZIP) is now `https://readium.org/webpub-manifest/properties#archive` instead of `archive`.
+
 
 ## [3.0.0-alpha.1]
 
