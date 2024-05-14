@@ -32,8 +32,7 @@ class ArchiveFetcherTests: XCTestCase {
                 ("META-INF/container.xml", "application/xml", 176, true),
             ].map { href, type, entryLength, isCompressed in
                 Link(href: href, type: type, properties: .init([
-                    "compressedLength": (isCompressed ? entryLength : nil) as Any, // legacy
-                    "archive": [
+                    "https://readium.org/webpub-manifest/properties#archive": [
                         "entryLength": entryLength,
                         "isEntryCompressed": isCompressed,
                     ] as [String: Any],
@@ -89,11 +88,10 @@ class ArchiveFetcherTests: XCTestCase {
         AssertJSONEqual(
             resource.link.properties.json,
             [
-                "archive": [
+                "https://readium.org/webpub-manifest/properties#archive": [
                     "entryLength": 595,
                     "isEntryCompressed": true,
                 ] as [String: Any],
-                "compressedLength": 595,
             ] as [String: Any]
         )
     }
