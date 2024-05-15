@@ -17,17 +17,6 @@ public protocol HTTPServer {
     ///
     /// Subsequent calls with the same `endpoint` overwrite each other.
     ///
-    /// - Returns the base URL for this endpoint.
-    @discardableResult
-    func serve(
-        at endpoint: HTTPServerEndpoint,
-        handler: @escaping (HTTPServerRequest) -> Resource
-    ) throws -> HTTPURL
-
-    /// Serves resources at the given `endpoint`.
-    ///
-    /// Subsequent calls with the same `endpoint` overwrite each other.
-    ///
     /// If the resource cannot be served, the `failureHandler` is called.
     ///
     /// - Returns the base URL for this endpoint.
@@ -48,14 +37,6 @@ public protocol HTTPServer {
 }
 
 public extension HTTPServer {
-    @discardableResult
-    func serve(
-        at endpoint: HTTPServerEndpoint,
-        handler: @escaping (HTTPServerRequest) -> Resource,
-        failureHandler: FailureHandler?
-    ) throws -> HTTPURL {
-        try serve(at: endpoint, handler: handler)
-    }
 
     /// Serves the local file `url` at the given `endpoint`.
     ///
