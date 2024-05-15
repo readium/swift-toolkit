@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 * The `Link` property key for archive-based publication assets (e.g. an EPUB/ZIP) is now `https://readium.org/webpub-manifest/properties#archive` instead of `archive`.
 
+#### Navigator
+
+* EPUB: The `scroll` preference is now forced to `true` when rendering vertical text (e.g. CJK vertical). [See this discussion for the rationale](https://github.com/readium/swift-toolkit/discussions/370).
+
 
 ## [3.0.0-alpha.1]
 
