@@ -62,7 +62,7 @@ final class EPUBNavigatorViewModel: Loggable {
                 at: "readium",
                 contentsOf: Bundle.module.resourceURL!.fileURL!
                     .appendingPath("Assets/Static", isDirectory: true),
-                failureHandler: nil
+                onFailure: nil
             ),
             useLegacySettings: false
         )
@@ -73,7 +73,7 @@ final class EPUBNavigatorViewModel: Loggable {
             publicationBaseURL = try httpServer.serve(
                 at: uuidEndpoint, // serving the chapters endpoint
                 publication: publication,
-                failureHandler: { [weak self] request, error in
+                onFailure: { [weak self] request, error in
                     guard let self = self, let href = request.href else {
                         return
                     }
@@ -187,7 +187,7 @@ final class EPUBNavigatorViewModel: Loggable {
             throw Error.noHTTPServer
         }
         let endpoint = baseEndpoint.addingSuffix("/") + file.lastPathSegment
-        let url = try httpServer.serve(at: endpoint, contentsOf: file, failureHandler: nil)
+        let url = try httpServer.serve(at: endpoint, contentsOf: file)
         $servedFiles.write { $0[file] = url }
         return url
     }

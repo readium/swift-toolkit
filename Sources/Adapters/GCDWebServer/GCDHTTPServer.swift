@@ -18,11 +18,6 @@ public enum GCDHTTPServerError: Error {
 
 /// Implementation of `HTTPServer` using ReadiumGCDWebServer under the hood.
 public class GCDHTTPServer: HTTPServer, Loggable {
-    private struct EndpointHandler {
-        let resourceHandler: (HTTPServerRequest) -> Resource
-        let failureHandler: HTTPServer.FailureHandler?
-    }
-
     /// Shared instance of the HTTP server.
     public static let shared = GCDHTTPServer()
 
@@ -30,7 +25,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
     private let server = ReadiumGCDWebServer()
 
     /// Mapping between endpoints and their handlers.
-    private var handlers: [HTTPURL: EndpointHandler] = [:]
+    private var handlers: [HTTPURL: HTTPRequestHandler] = [:]
 
     /// Mapping between endpoints and resource transformers.
     private var transformers: [HTTPURL: [ResourceTransformer]] = [:]
@@ -114,7 +109,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
     private func responseResource(
         for request: ReadiumGCDWebServerRequest,
-        completion: @escaping (HTTPServerRequest, Resource, FailureHandler?) -> Void
+        completion: @escaping (HTTPServerRequest, Resource, HTTPRequestHandler.OnFailure?) -> Void
     ) {
         let completion = { request, resource, failureHandler in
             // Escape the queue to avoid deadlocks if something is using the
@@ -145,11 +140,11 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             for (endpoint, handler) in handlers {
                 if endpoint == pathWithoutAnchor {
                     let request = HTTPServerRequest(url: url, href: nil)
-                    let resource = handler.resourceHandler(request)
+                    let resource = handler.onRequest(request)
                     completion(
                         request,
                         transform(resource: resource, at: endpoint),
-                        handler.failureHandler
+                        handler.onFailure
                     )
                     return
 
@@ -158,11 +153,11 @@ public class GCDHTTPServer: HTTPServer, Loggable {
                         url: url,
                         href: href
                     )
-                    let resource = handler.resourceHandler(request)
+                    let resource = handler.onRequest(request)
                     completion(
                         request,
                         transform(resource: resource, at: endpoint),
-                        handler.failureHandler
+                        handler.onFailure
                     )
                     return
                 }
@@ -184,8 +179,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
     public func serve(
         at endpoint: HTTPServerEndpoint,
-        handler: @escaping (HTTPServerRequest) -> Resource,
-        failureHandler: FailureHandler?
+        handler: HTTPRequestHandler
     ) throws -> HTTPURL {
         try queue.sync(flags: .barrier) {
             if case .stopped = state {
@@ -193,10 +187,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             }
 
             let url = try url(for: endpoint)
-            handlers[url] = EndpointHandler(
-                resourceHandler: handler,
-                failureHandler: failureHandler
-            )
+            handlers[url] = handler
             return url
         }
     }
