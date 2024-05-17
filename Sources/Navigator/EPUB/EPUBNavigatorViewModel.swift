@@ -61,8 +61,7 @@ final class EPUBNavigatorViewModel: Loggable {
             assetsURL: httpServer.serve(
                 at: "readium",
                 contentsOf: Bundle.module.resourceURL!.fileURL!
-                    .appendingPath("Assets/Static", isDirectory: true),
-                onFailure: nil
+                    .appendingPath("Assets/Static", isDirectory: true)
             ),
             useLegacySettings: false
         )
