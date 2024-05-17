@@ -13,6 +13,7 @@ The Readium Swift toolkit now requires a minimum of iOS 13.
 #### Shared
 
 * The `Link` property key for archive-based publication assets (e.g. an EPUB/ZIP) is now `https://readium.org/webpub-manifest/properties#archive` instead of `archive`.
+* The API of `HTTPServer` slightly changed to be more future-proof.
 
 #### Navigator
 

@@ -121,7 +121,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
             publicationBaseURL = try httpServer.serve(
                 at: uuidEndpoint,
                 publication: publication,
-                failureHandler: { request, error in
+                onFailure: { request, error in
                     DispatchQueue.main.async { [weak self] in
                         guard let self = self, let href = request.href else {
                             return
