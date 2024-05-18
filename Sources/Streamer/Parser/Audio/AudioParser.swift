@@ -26,40 +26,39 @@ public protocol AudioPublicationManifestAugmentor {
 
 public final class AVAudioPublicationManifestAugmentor: AudioPublicationManifestAugmentor {
     public init() {}
-    public func augment(_ baseManifest: Manifest, using fetcher: Fetcher) -> AudioPublicationAugmentedManifest
+    public func augment(_ manifest: Manifest, using fetcher: Fetcher) -> AudioPublicationAugmentedManifest
     {
-        let avAssets = baseManifest.readingOrder.map { link in
-            fetcher.get(link).file.map { AVURLAsset(url: $0, options: [AVURLAssetPreferPreciseDurationAndTimingKey: true]) }
+        let avAssets = manifest.readingOrder.map { link in
+            fetcher.get(link).file.map { AVURLAsset(url: $0.url, options: [AVURLAssetPreferPreciseDurationAndTimingKey: true]) }
         }
-        let readingOrder = zip(baseManifest.readingOrder, avAssets).map { link, avAsset in
+        var manifest = manifest
+        manifest.readingOrder = zip(manifest.readingOrder, avAssets).map { link, avAsset in
             guard let avAsset = avAsset else { return link }
-            return link.copy(
-                title: avAsset.metadata.filter([.commonIdentifierTitle]).first(where: { $0.stringValue }),
-                bitrate: avAsset.tracks(withMediaType: .audio).first.map { Double($0.estimatedDataRate) },
-                duration: avAsset.duration.seconds
-            )
+            var link = link
+            link.title = avAsset.metadata.filter([.commonIdentifierTitle]).first(where: { $0.stringValue })
+            link.bitrate = avAsset.tracks(withMediaType: .audio).first.map { Double($0.estimatedDataRate) }
+            link.duration = avAsset.duration.seconds
+            return link
         }
         let avMetadata = avAssets.compactMap { $0?.metadata }.reduce([], +)
-
-        let metadata = baseManifest.metadata.copy(
-            title: avMetadata.filter([.commonIdentifierTitle, .id3MetadataAlbumTitle]).first(where: { $0.stringValue }) ?? baseManifest.metadata.title,
-            subtitle: avMetadata.filter([.id3MetadataSubTitle, .iTunesMetadataTrackSubTitle]).first(where: { $0.stringValue }),
-            modified: avMetadata.filter([.commonIdentifierLastModifiedDate]).first(where: { $0.dateValue }),
-            published: avMetadata.filter([.commonIdentifierCreationDate, .id3MetadataDate]).first(where: { $0.dateValue }),
-            languages: avMetadata.filter([.commonIdentifierLanguage, .id3MetadataLanguage]).compactMap(\.stringValue).removingDuplicates(),
-            subjects: avMetadata.filter([.commonIdentifierSubject]).compactMap(\.stringValue).removingDuplicates().map { Subject(name: $0) },
-            authors: avMetadata.filter([.commonIdentifierAuthor, .iTunesMetadataAuthor]).compactMap(\.stringValue).removingDuplicates().map { Contributor(name: $0) },
-            artists: avMetadata.filter([.commonIdentifierArtist, .id3MetadataOriginalArtist, .iTunesMetadataArtist, .iTunesMetadataOriginalArtist]).compactMap(\.stringValue).removingDuplicates().map { Contributor(name: $0) },
-            illustrators: avMetadata.filter([.iTunesMetadataAlbumArtist]).compactMap(\.stringValue).removingDuplicates().map { Contributor(name: $0) },
-            contributors: avMetadata.filter([.commonIdentifierContributor]).compactMap(\.stringValue).removingDuplicates().map { Contributor(name: $0) },
-            publishers: avMetadata.filter([.commonIdentifierPublisher, .id3MetadataPublisher, .iTunesMetadataPublisher]).compactMap(\.stringValue).removingDuplicates().map { Contributor(name: $0) },
-            description: avMetadata.filter([.commonIdentifierDescription, .iTunesMetadataDescription]).first?.stringValue,
-            duration: avAssets.reduce(0) { duration, avAsset in
-                guard let duration = duration, let avAsset = avAsset else { return nil }
-                return duration + avAsset.duration.seconds
-            }
-        )
-        let manifest = baseManifest.copy(metadata: metadata, readingOrder: readingOrder)
+        var metadata = manifest.metadata
+        metadata.localizedTitle = avMetadata.filter([.commonIdentifierTitle, .id3MetadataAlbumTitle]).first(where: { $0.stringValue })?.localizedString ?? manifest.metadata.localizedTitle
+        metadata.localizedSubtitle = avMetadata.filter([.id3MetadataSubTitle, .iTunesMetadataTrackSubTitle]).first(where: { $0.stringValue })?.localizedString
+        metadata.modified = avMetadata.filter([.commonIdentifierLastModifiedDate]).first(where: { $0.dateValue })
+        metadata.published = avMetadata.filter([.commonIdentifierCreationDate, .id3MetadataDate]).first(where: { $0.dateValue })
+        metadata.languages = avMetadata.filter([.commonIdentifierLanguage, .id3MetadataLanguage]).compactMap(\.stringValue).removingDuplicates()
+        metadata.subjects = avMetadata.filter([.commonIdentifierSubject]).compactMap(\.stringValue).removingDuplicates().map { Subject(name: $0) }
+        metadata.authors = avMetadata.filter([.commonIdentifierAuthor, .iTunesMetadataAuthor]).compactMap(\.stringValue).removingDuplicates().map { Contributor(name: $0) }
+        metadata.artists = avMetadata.filter([.commonIdentifierArtist, .id3MetadataOriginalArtist, .iTunesMetadataArtist, .iTunesMetadataOriginalArtist]).compactMap(\.stringValue).removingDuplicates().map { Contributor(name: $0) }
+        metadata.illustrators = avMetadata.filter([.iTunesMetadataAlbumArtist]).compactMap(\.stringValue).removingDuplicates().map { Contributor(name: $0) }
+        metadata.contributors = avMetadata.filter([.commonIdentifierContributor]).compactMap(\.stringValue).removingDuplicates().map { Contributor(name: $0) }
+        metadata.publishers = avMetadata.filter([.commonIdentifierPublisher, .id3MetadataPublisher, .iTunesMetadataPublisher]).compactMap(\.stringValue).removingDuplicates().map { Contributor(name: $0) }
+        metadata.description = avMetadata.filter([.commonIdentifierDescription, .iTunesMetadataDescription]).first?.stringValue
+        metadata.duration = avAssets.reduce(0) { duration, avAsset in
+            guard let duration = duration, let avAsset = avAsset else { return nil }
+            return duration + avAsset.duration.seconds
+        }
+        manifest.metadata = metadata
         let cover = avMetadata.filter([.commonIdentifierArtwork, .id3MetadataAttachedPicture, .iTunesMetadataCoverArt]).first(where: { $0.dataValue.flatMap(UIImage.init(data:)) })
         return .init(manifest: manifest, cover: cover)
     }
