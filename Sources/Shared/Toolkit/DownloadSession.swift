@@ -6,7 +6,7 @@
 
 import Foundation
 
-@available(*, deprecated, message: "This API will be removed in the future, please use your own download solution in your app")
+@available(*, unavailable, message: "This API will be removed in the future, please use your own download solution in your app")
 public protocol DownloadDisplayDelegate {
     func didStartDownload(task: URLSessionDownloadTask, description: String)
     func didFinishDownload(task: URLSessionDownloadTask)
@@ -15,7 +15,7 @@ public protocol DownloadDisplayDelegate {
 }
 
 /// Represents the percent-based progress of the download.
-@available(*, deprecated, message: "This API will be removed in the future, please use your own download solution in your app")
+@available(*, unavailable, message: "This API will be removed in the future, please use your own download solution in your app")
 public enum DownloadProgress {
     /// Undetermined progress, a spinner should be shown to the user.
     case infinite
@@ -23,7 +23,7 @@ public enum DownloadProgress {
     case finite(Float)
 }
 
-@available(*, deprecated, message: "This API will be removed in the future, please use your own download solution in your app")
+@available(*, unavailable, message: "This API will be removed in the future, please use your own download solution in your app")
 public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDelegate {
     public typealias CompletionHandler = (URL?, URLResponse?, Error?, URLSessionDownloadTask) -> Bool?
 
@@ -38,7 +38,7 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
         var errorDescription: String? {
             switch self {
             case .notFound:
-                return R2SharedLocalizedString("DownloadSession.RequestError.notFound")
+                return ReadiumSharedLocalizedString("DownloadSession.RequestError.notFound")
             }
         }
     }
@@ -47,7 +47,7 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
     override private init() { super.init() }
 
     private lazy var session: URLSession = {
-        let config = URLSessionConfiguration.background(withIdentifier: "org.readium.r2-shared.DownloadSession")
+        let config = URLSessionConfiguration.background(withIdentifier: "org.readium.swift-toolkit.shared.DownloadSession")
         return URLSession(configuration: config, delegate: self, delegateQueue: OperationQueue.main)
     }()
 

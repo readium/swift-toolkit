@@ -5,8 +5,8 @@
 //
 
 import Fuzi
-import R2Shared
-@testable import R2Streamer
+import ReadiumShared
+@testable import ReadiumStreamer
 import XCTest
 
 class EPUBContainerParserTests: XCTestCase {
@@ -16,6 +16,6 @@ class EPUBContainerParserTests: XCTestCase {
         let data = fixtures.data(at: "container.xml")
         let parser = try EPUBContainerParser(data: data)
 
-        XCTAssertEqual(try parser.parseOPFHREF(), "/EPUB/content.opf")
+        XCTAssertEqual(try parser.parseOPFHREF(), RelativeURL(path: "EPUB/content.opf"))
     }
 }

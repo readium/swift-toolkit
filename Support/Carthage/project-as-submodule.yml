@@ -8,10 +8,10 @@ options:
 
 targets:
 
-  R2Shared:
+  ReadiumShared:
     type: framework
     platform: iOS
-    deploymentTarget: "11.0"
+    deploymentTarget: "13.0"
     sources: 
       - path: ../../Sources/Shared
         excludes:
@@ -23,13 +23,13 @@ targets:
       - sdk: CoreServices.framework
       - target: ReadiumInternal
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-shared-swift
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.shared
       INFOPLIST_FILE: Info.plist
 
-  R2Streamer:
+  ReadiumStreamer:
     type: framework
     platform: iOS
-    deploymentTarget: "11.0"
+    deploymentTarget: "13.0"
     sources: 
       - path: ../../Sources/Streamer
         excludes:
@@ -41,16 +41,16 @@ targets:
       - framework: Fuzi.framework
       - framework: Minizip.framework
       - framework: ReadiumGCDWebServer.framework
-      - target: R2Shared
+      - target: ReadiumShared
       - target: ReadiumInternal
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-streamer-swift
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.streamer
       INFOPLIST_FILE: Info.plist
 
-  R2Navigator:
+  ReadiumNavigator:
     type: framework
     platform: iOS
-    deploymentTarget: "11.0"
+    deploymentTarget: "13.0"
     sources: 
       - path: ../../Sources/Navigator
         excludes:
@@ -63,31 +63,31 @@ targets:
       - framework: Fuzi.framework
       - framework: Minizip.framework
       - framework: SwiftSoup.framework
-      - target: R2Shared
+      - target: ReadiumShared
       - target: ReadiumInternal
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: org.readium.r2-navigator-swift
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.navigator
       INFOPLIST_FILE: Info.plist
 
   ReadiumOPDS:
     type: framework
     platform: iOS
-    deploymentTarget: "11.0"
+    deploymentTarget: "13.0"
     sources: 
       - path: ../../Sources/OPDS
     dependencies:
       - framework: Fuzi.framework
       - framework: Minizip.framework
-      - target: R2Shared
+      - target: ReadiumShared
       - target: ReadiumInternal
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: com.readium.readium-opds
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.opds
       INFOPLIST_FILE: Info.plist
 
   ReadiumLCP:
     type: framework
     platform: iOS
-    deploymentTarget: "11.0"
+    deploymentTarget: "13.0"
     sources: 
       - path: ../../Sources/LCP
     dependencies:
@@ -96,21 +96,21 @@ targets:
       - framework: Minizip.framework
       - framework: SQLite.framework
       - framework: ZIPFoundation.framework
-      - target: R2Shared
+      - target: ReadiumShared
       - target: ReadiumInternal
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: org.readium.readium-lcp-swift
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.lcp
       INFOPLIST_FILE: Info.plist
 
   ReadiumAdapterGCDWebServer:
     type: framework
     platform: iOS
-    deploymentTarget: "11.0"
+    deploymentTarget: "13.0"
     sources: 
       - path: ../../Sources/Adapters/GCDWebServer
     dependencies:
       - framework: ReadiumGCDWebServer.framework
-      - target: R2Shared
+      - target: ReadiumShared
       - target: ReadiumInternal
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.adapter.gcdwebserver
@@ -119,7 +119,7 @@ targets:
   ReadiumInternal:
     type: framework
     platform: iOS
-    deploymentTarget: "11.0"
+    deploymentTarget: "13.0"
     sources: 
       - path: ../../Sources/Internal
     settings:
@@ -127,18 +127,18 @@ targets:
       INFOPLIST_FILE: Info.plist
 
 schemes:
-  R2Shared:
+  ReadiumShared:
     build:
       targets:
-        R2Shared: all
-  R2Streamer:
+        ReadiumShared: all
+  ReadiumStreamer:
     build:
       targets:
-        R2Streamer: all
-  R2Navigator:
+        ReadiumStreamer: all
+  ReadiumNavigator:
     build:
       targets:
-        R2Navigator: all
+        ReadiumNavigator: all
   ReadiumOPDS:
     build:
       targets:

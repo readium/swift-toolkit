@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Preferences for the `AudioNavigator`.
 public struct AudioPreferences: ConfigurablePreferences {

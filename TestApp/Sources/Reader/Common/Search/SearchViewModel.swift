@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import R2Shared
 import ReadiumOPDS
+import ReadiumShared
 
 // See https://github.com/readium/r2-testapp-swift/discussions/402
 final class SearchViewModel: ObservableObject {

@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name          = "ReadiumLCP"
-  s.version       = "2.7.0"
+  s.version       = "3.0.0-alpha.1"
   s.license       = "BSD 3-Clause License"
   s.summary       = "Readium LCP"
   s.homepage      = "http://readium.github.io"
@@ -16,10 +16,10 @@ Pod::Spec.new do |s|
   }
   s.source_files  = "Sources/LCP/**/*.{m,h,swift}"
   s.platform      = :ios
-  s.ios.deployment_target = "11.0"
+  s.ios.deployment_target = "13.0"
   s.xcconfig      = { 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2'}
   
-  s.dependency 'R2Shared' 
+  s.dependency 'ReadiumShared' 
   s.dependency 'ReadiumInternal'
   s.dependency 'ZIPFoundation', '<= 0.9.11' # 0.9.12 requires iOS 12+
   s.dependency 'SQLite.swift', '<= 0.13.3' # 0.14 introduces breaking changes

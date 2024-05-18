@@ -6,7 +6,7 @@
 
 import AVFoundation
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 
 private extension [AVMetadataItem] {
@@ -101,7 +101,6 @@ public final class AudioParser: PublicationParser {
 
         return Publication.Builder(
             mediaType: .zab,
-            format: .cbz,
             manifest: augmented.manifest,
             fetcher: fetcher,
             servicesBuilder: .init(
@@ -129,10 +128,5 @@ public final class AudioParser: PublicationParser {
         return allowedExtensions.contains(url.pathExtension.lowercased())
             || filename.hasPrefix(".")
             || filename == "Thumbs.db"
-    }
-
-    @available(*, unavailable, message: "Not supported for `AudioParser`")
-    public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        fatalError("Not supported for `AudioParser`")
     }
 }

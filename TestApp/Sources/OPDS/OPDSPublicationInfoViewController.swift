@@ -6,7 +6,7 @@
 
 import Combine
 import Kingfisher
-import R2Shared
+import ReadiumShared
 import UIKit
 
 protocol OPDSPublicationInfoViewControllerFactory {

@@ -15,17 +15,21 @@ public final class ArchiveFetcher: Fetcher, Loggable {
     }
 
     public lazy var links: [Link] =
-        archive.entries.map { entry in
-            Link(
-                href: entry.path.addingPrefix("/"),
-                type: MediaType.of(fileExtension: URL(fileURLWithPath: entry.path).pathExtension)?.string,
+        archive.entries.compactMap { entry in
+            guard let url = RelativeURL(path: entry.path) else {
+                return nil
+            }
+            return Link(
+                href: url.string,
+                type: MediaType.of(fileExtension: url.pathExtension)?.string,
                 properties: Properties(entry.linkProperties)
             )
         }
 
     public func get(_ link: Link) -> Resource {
         guard
-            let entry = findEntry(at: link.href),
+            let path = try? link.url().relativeURL?.path,
+            let entry = findEntry(at: path),
             let reader = archive.readEntry(at: entry.path)
         else {
             log(.warning, "Unable to create ArchiveResource from link \(link)")
@@ -51,9 +55,13 @@ public final class ArchiveFetcher: Fetcher, Loggable {
     public func close() {}
 
     private final class ArchiveResource: Resource {
-        lazy var link: Link = originalLink.addingProperties(entry.linkProperties)
+        lazy var link: Link = {
+            var link = originalLink
+            link.addProperties(entry.linkProperties)
+            return link
+        }()
 
-        var file: URL? { reader.file }
+        var file: FileURL? { reader.file }
 
         private let originalLink: Link
 
@@ -82,10 +90,7 @@ public final class ArchiveFetcher: Fetcher, Loggable {
 private extension ArchiveEntry {
     var linkProperties: [String: Any] {
         [
-            // FIXME: Legacy property, should be removed in 3.0.0
-            "compressedLength": compressedLength as Any,
-
-            "archive": [
+            "https://readium.org/webpub-manifest/properties#archive": [
                 "entryLength": compressedLength ?? length,
                 "isEntryCompressed": compressedLength != nil,
             ] as [String: Any],

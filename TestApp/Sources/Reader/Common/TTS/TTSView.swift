@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Navigator
+import ReadiumNavigator
 import SwiftUI
 
 private typealias Config = PublicationSpeechSynthesizer.Configuration

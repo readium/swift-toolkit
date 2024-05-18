@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Editor for a set of `EPUBPreferences`.
 ///
@@ -304,7 +304,9 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.scroll,
             setting: \.scroll,
             defaultEffectiveValue: defaults.scroll ?? false,
-            isEffective: { [layout] _ in layout == .reflowable }
+            isEffective: { [layout] in
+                layout == .reflowable && !$0.settings.verticalText
+            }
         )
 
     /// Indicates if the fixed-layout publication should be rendered with a

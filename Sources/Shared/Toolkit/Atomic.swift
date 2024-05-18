@@ -35,7 +35,7 @@ public final class Atomic<Value> {
     ///
     /// We could use a serial queue but that would impact performances as concurrent reads would not be
     /// possible. To make sure we don't get data races, writes are done using a `.barrier` flag.
-    private let queue = DispatchQueue(label: "org.readium.Atomic", attributes: .concurrent)
+    private let queue = DispatchQueue(label: "org.readium.swift-toolkit.Atomic", attributes: .concurrent)
 
     public init(wrappedValue value: Value) {
         self.value = value

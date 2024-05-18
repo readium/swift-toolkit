@@ -68,9 +68,9 @@ final class LCPDialogViewController: UIViewController {
 
         switch reason {
         case .passphraseNotFound:
-            label.text = R2LCPLocalizedString("dialog.reason.passphraseNotFound")
+            label.text = ReadiumLCPLocalizedString("dialog.reason.passphraseNotFound")
         case .invalidPassphrase:
-            label.text = R2LCPLocalizedString("dialog.reason.invalidPassphrase")
+            label.text = ReadiumLCPLocalizedString("dialog.reason.invalidPassphrase")
             passphraseField.layer.borderWidth = 1
             passphraseField.layer.borderColor = UIColor.red.cgColor
         }
@@ -84,12 +84,12 @@ final class LCPDialogViewController: UIViewController {
         let leftItem = UIBarButtonItem(customView: label)
         navigationItem.leftBarButtonItem = leftItem
 
-        promptLabel.text = R2LCPLocalizedString("dialog.prompt.message1")
-        messageLabel.text = String(format: R2LCPLocalizedString("dialog.prompt.message2"), provider)
-        forgotPassphraseButton.setTitle(R2LCPLocalizedString("dialog.prompt.forgotPassphrase"), for: .normal)
-        supportButton.setTitle(R2LCPLocalizedString("dialog.prompt.support"), for: .normal)
-        continueButton.setTitle(R2LCPLocalizedString("dialog.prompt.continue"), for: .normal)
-        passphraseField.placeholder = R2LCPLocalizedString("dialog.prompt.passphrase")
+        promptLabel.text = ReadiumLCPLocalizedString("dialog.prompt.message1")
+        messageLabel.text = String(format: ReadiumLCPLocalizedString("dialog.prompt.message2"), provider)
+        forgotPassphraseButton.setTitle(ReadiumLCPLocalizedString("dialog.prompt.forgotPassphrase"), for: .normal)
+        supportButton.setTitle(ReadiumLCPLocalizedString("dialog.prompt.support"), for: .normal)
+        continueButton.setTitle(ReadiumLCPLocalizedString("dialog.prompt.continue"), for: .normal)
+        passphraseField.placeholder = ReadiumLCPLocalizedString("dialog.prompt.passphrase")
         hintLabel.text = license.hint
 
         navigationItem.rightBarButtonItem = UIBarButtonItem(
@@ -142,16 +142,16 @@ final class LCPDialogViewController: UIViewController {
                 if let scheme = url.scheme {
                     switch scheme {
                     case "http", "https":
-                        return R2LCPLocalizedString("dialog.support.website")
+                        return ReadiumLCPLocalizedString("dialog.support.website")
                     case "tel":
-                        return R2LCPLocalizedString("dialog.support.phone")
+                        return ReadiumLCPLocalizedString("dialog.support.phone")
                     case "mailto":
-                        return R2LCPLocalizedString("dialog.support.mail")
+                        return ReadiumLCPLocalizedString("dialog.support.mail")
                     default:
                         break
                     }
                 }
-                return R2LCPLocalizedString("dialog.support")
+                return ReadiumLCPLocalizedString("dialog.support")
             }()
 
             let action = UIAlertAction(title: title, style: .default) { _ in
@@ -159,7 +159,7 @@ final class LCPDialogViewController: UIViewController {
             }
             alert.addAction(action)
         }
-        alert.addAction(UIAlertAction(title: R2LCPLocalizedString("dialog.cancel"), style: .cancel))
+        alert.addAction(UIAlertAction(title: ReadiumLCPLocalizedString("dialog.cancel"), style: .cancel))
 
         if let popover = alert.popoverPresentationController, let sender = sender as? UIView {
             popover.sourceView = sender

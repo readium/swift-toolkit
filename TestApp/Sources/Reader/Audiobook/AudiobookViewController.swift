@@ -7,8 +7,8 @@
 import Combine
 import Foundation
 import MediaPlayer
-import R2Navigator
-import R2Shared
+import ReadiumNavigator
+import ReadiumShared
 import SwiftUI
 import UIKit
 
@@ -108,7 +108,7 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
 
     private func setupCommandCenterControls() {
         NowPlayingInfo.shared.media = .init(
-            title: publication.metadata.title,
+            title: publication.metadata.title ?? "",
             artist: publication.metadata.authors.map(\.name).joined(separator: ", "),
             artwork: publication.cover
         )
@@ -176,7 +176,7 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
 
         // Initial publication metadata.
         nowPlaying.media = NowPlayingInfo.Media(
-            title: publication.metadata.title,
+            title: publication.metadata.title ?? "",
             artist: publication.metadata.authors.map(\.name).joined(separator: ", "),
             chapterCount: publication.readingOrder.count
         )

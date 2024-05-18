@@ -5,7 +5,7 @@
 //
 
 import Kingfisher
-import R2Shared
+import ReadiumShared
 import UIKit
 
 class OPDSPublicationTableViewCell: UITableViewCell {
@@ -64,7 +64,7 @@ extension OPDSPublicationTableViewCell: UICollectionViewDataSource {
                     .joined(separator: ", ")
             )
 
-            let coverURL: URL? = publication.link(withRel: .cover)?.url(relativeTo: publication.baseURL)
+            let coverURL: URL? = try? publication.link(withRel: .cover)?.url(relativeTo: publication.baseURL).url
                 ?? publication.images.first.flatMap { URL(string: $0.href) }
 
             if let coverURL = coverURL {

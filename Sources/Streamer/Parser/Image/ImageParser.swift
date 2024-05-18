@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Parses an image–based Publication from an unstructured archive format containing bitmap files,
 /// such as CBZ or a simple ZIP.
@@ -28,15 +28,14 @@ public final class ImageParser: PublicationParser {
         }
 
         // First valid resource is the cover.
-        readingOrder[0] = readingOrder[0].copy(rels: [.cover])
+        readingOrder[0].rels = [.cover]
 
         return Publication.Builder(
             mediaType: .cbz,
-            format: .cbz,
             manifest: Manifest(
                 metadata: Metadata(
                     conformsTo: [.divina],
-                    title: fetcher.guessTitle(ignoring: ignores) ?? asset.name
+                    title: fetcher.guessTitle(ignoring: ignores)
                 ),
                 readingOrder: readingOrder
             ),
@@ -65,10 +64,5 @@ public final class ImageParser: PublicationParser {
         return allowedExtensions.contains(url.pathExtension.lowercased())
             || filename.hasPrefix(".")
             || filename == "Thumbs.db"
-    }
-
-    @available(*, unavailable, message: "Not supported for `ImageParser`")
-    public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        fatalError("Not supported for `ImageParser`")
     }
 }

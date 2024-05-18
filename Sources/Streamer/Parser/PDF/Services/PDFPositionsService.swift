@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 final class PDFPositionsService: PositionsService {
     let positionsByReadingOrder: [[Locator]]

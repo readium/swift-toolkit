@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import R2Shared
 import ReadiumOPDS
+import ReadiumShared
 import UIKit
 
 protocol OPDSCatalogSelectorViewControllerFactory {

@@ -11,9 +11,9 @@ public final class HTTPFetcher: Fetcher, Loggable {
     /// HTTP client used to perform HTTP requests.
     private let client: HTTPClient
     /// Base URL from which relative HREF are served.
-    private let baseURL: URL?
+    private let baseURL: HTTPURL?
 
-    public init(client: HTTPClient, baseURL: URL? = nil) {
+    public init(client: HTTPClient, baseURL: HTTPURL? = nil) {
         self.client = client
         self.baseURL = baseURL
     }
@@ -21,10 +21,7 @@ public final class HTTPFetcher: Fetcher, Loggable {
     public let links: [Link] = []
 
     public func get(_ link: Link) -> Resource {
-        guard
-            let url = link.url(relativeTo: baseURL),
-            url.isHTTP
-        else {
+        guard let url = try? link.url(relativeTo: baseURL).httpURL else {
             log(.error, "Not a valid HTTP URL: \(link.href)")
             return FailureResource(link: link, error: .badRequest(HTTPError(kind: .malformedRequest(url: link.href))))
         }
@@ -36,11 +33,11 @@ public final class HTTPFetcher: Fetcher, Loggable {
     /// HTTPResource provides access to an external URL.
     final class HTTPResource: NSObject, Resource, Loggable, URLSessionDataDelegate {
         let link: Link
-        let url: URL
+        let url: HTTPURL
 
         private let client: HTTPClient
 
-        init(client: HTTPClient, link: Link, url: URL) {
+        init(client: HTTPClient, link: Link, url: HTTPURL) {
             self.client = client
             self.link = link
             self.url = url
@@ -61,7 +58,7 @@ public final class HTTPFetcher: Fetcher, Loggable {
             .mapError { ResourceError.wrap($0) }
 
         /// An HTTP resource is always remote.
-        var file: URL? { nil }
+        var file: FileURL? { nil }
 
         func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void, completion: @escaping (ResourceResult<Void>) -> Void) -> Cancellable {
             var request = HTTPRequest(url: url)
@@ -69,12 +66,14 @@ public final class HTTPFetcher: Fetcher, Loggable {
                 request.setRange(range)
             }
 
-            return client.stream(request,
-                                 receiveResponse: nil,
-                                 consume: { data, _ in consume(data) },
-                                 completion: { result in
-                                     completion(result.map { _ in }.mapError { ResourceError.wrap($0) })
-                                 })
+            return client.stream(
+                request,
+                receiveResponse: nil,
+                consume: { data, _ in consume(data) },
+                completion: { result in
+                    completion(result.map { _ in }.mapError { ResourceError.wrap($0) })
+                }
+            )
         }
 
         func close() {}

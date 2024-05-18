@@ -4,7 +4,45 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Changed
+
+The Readium Swift toolkit now requires a minimum of iOS 13.
+
+#### Shared
+
+* The `Link` property key for archive-based publication assets (e.g. an EPUB/ZIP) is now `https://readium.org/webpub-manifest/properties#archive` instead of `archive`.
+* The API of `HTTPServer` slightly changed to be more future-proof.
+
+#### Navigator
+
+* EPUB: The `scroll` preference is now forced to `true` when rendering vertical text (e.g. CJK vertical). [See this discussion for the rationale](https://github.com/readium/swift-toolkit/discussions/370).
+
+
+## [3.0.0-alpha.1]
+
+### Changed
+
+* The `R2Shared`, `R2Streamer` and `R2Navigator` packages are now called `ReadiumShared`, `ReadiumStreamer` and `ReadiumNavigator`.
+* Many APIs now expect one of the new URL types (`RelativeURL`, `AbsoluteURL`, `HTTPURL` and `FileURL`). This is helpful because:
+    * It validates at compile time that we provide a URL that is supported.
+    * The API's capabilities are better documented, e.g. a download API could look like this : `download(url: HTTPURL) -> FileURL`. 
+
+#### Shared
+
+* `Link` and `Locator`'s `href` are normalized as valid URLs to improve interoperability with the Readium Web toolkits.
+   * **You MUST migrate your database if you were persisting HREFs and Locators**. Take a look at [the migration guide](Documentation/Migration%20Guide.md) for guidance.
+* Links are not resolved to the `self` URL of a manifest anymore. However, you can still normalize the HREFs yourselves by calling `Manifest.normalizeHREFsToSelf()`.
+* `Publication.localizedTitle` is now optional, as we cannot guarantee a publication will always have a title.
+
+
+## [2.7.1]
+
+### Added
+
+* [#417](https://github.com/readium/swift-toolkit/issues/417) Support for the new 2.x LCP Profiles.
+
 
 ## [2.7.0]
 
@@ -664,3 +702,5 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [2.6.0]: https://github.com/readium/swift-toolkit/compare/2.5.1...2.6.0
 [2.6.1]: https://github.com/readium/swift-toolkit/compare/2.6.0...2.6.1
 [2.7.0]: https://github.com/readium/swift-toolkit/compare/2.6.1...2.7.0
+[2.7.1]: https://github.com/readium/swift-toolkit/compare/2.7.0...2.7.1
+[3.0.0-alpha.1]: https://github.com/readium/swift-toolkit/compare/2.7.1...3.0.0-alpha.1

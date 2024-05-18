@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Input stream to read a `Resource`'s content.
 class ResourceInputStream: SeekableInputStream {

@@ -7,7 +7,7 @@
 import Foundation
 import UIKit
 
-import R2Shared
+import ReadiumShared
 
 public class UserSettings {
     // WARNING: String values must not contain any single or double quotes characters, otherwise it breaks the streamer's injection.

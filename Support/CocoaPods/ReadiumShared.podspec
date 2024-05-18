@@ -1,9 +1,9 @@
 Pod::Spec.new do |s|
   
-  s.name         = "R2Shared"
-  s.version      = "2.7.0"
+  s.name         = "ReadiumShared"
+  s.version      = "3.0.0-alpha.1"
   s.license      = "BSD 3-Clause License"
-  s.summary      = "R2 Shared"
+  s.summary      = "Readium Shared"
   s.homepage     = "http://readium.github.io"
   s.author       = { "Readium" => "contact@readium.org" }
   s.source       = { :git => 'https://github.com/readium/swift-toolkit.git', :branch => "develop" }
@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   }
   s.source_files  = "Sources/Shared/**/*.{m,h,swift}"
   s.platform     = :ios
-  s.ios.deployment_target = "11.0"
+  s.ios.deployment_target = "13.0"
   s.frameworks   = "CoreServices"
   s.libraries =  "xml2"
   s.xcconfig = { 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2' }

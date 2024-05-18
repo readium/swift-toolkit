@@ -10,22 +10,21 @@ import Foundation
 public final class FileResource: Resource, Loggable {
     public let link: Link
 
-    private let _file: URL
-    public var file: URL? { _file }
+    private let _file: FileURL
+    public var file: FileURL? { _file }
 
-    public init(link: Link, file: URL) {
-        assert(file.isFileURL)
+    public init(link: Link, file: FileURL) {
         self.link = link
         _file = file
     }
 
     private lazy var handle: Result<FileHandle, ResourceError> = {
         do {
-            let values = try _file.resourceValues(forKeys: [.isReadableKey, .isDirectoryKey])
+            let values = try _file.url.resourceValues(forKeys: [.isReadableKey, .isDirectoryKey])
             guard let isReadable = values.isReadable, values.isDirectory != true else {
                 return .failure(.notFound(nil))
             }
-            return try .success(FileHandle(forReadingFrom: _file))
+            return try .success(FileHandle(forReadingFrom: _file.url))
         } catch {
             return .failure(.other(error))
         }
@@ -33,7 +32,7 @@ public final class FileResource: Resource, Loggable {
 
     public lazy var length: Result<UInt64, ResourceError> = {
         do {
-            let values = try _file.resourceValues(forKeys: [.fileSizeKey])
+            let values = try _file.url.resourceValues(forKeys: [.fileSizeKey])
             guard let length = values.fileSize else {
                 return .failure(.notFound(nil))
             }

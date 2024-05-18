@@ -10,11 +10,11 @@ import PackageDescription
 let package = Package(
     name: "Readium",
     defaultLocalization: "en",
-    platforms: [.iOS(.v11)],
+    platforms: [.iOS(.v13)],
     products: [
-        .library(name: "R2Shared", targets: ["R2Shared"]),
-        .library(name: "R2Streamer", targets: ["R2Streamer"]),
-        .library(name: "R2Navigator", targets: ["R2Navigator"]),
+        .library(name: "ReadiumShared", targets: ["ReadiumShared"]),
+        .library(name: "ReadiumStreamer", targets: ["ReadiumStreamer"]),
+        .library(name: "ReadiumNavigator", targets: ["ReadiumNavigator"]),
         .library(name: "ReadiumOPDS", targets: ["ReadiumOPDS"]),
         .library(name: "ReadiumLCP", targets: ["ReadiumLCP"]),
 
@@ -37,7 +37,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "R2Shared",
+            name: "ReadiumShared",
             dependencies: ["ReadiumInternal", "Fuzi", "SwiftSoup", "Zip"],
             path: "Sources/Shared",
             exclude: [
@@ -53,8 +53,8 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "R2SharedTests",
-            dependencies: ["R2Shared"],
+            name: "ReadiumSharedTests",
+            dependencies: ["ReadiumShared"],
             path: "Tests/SharedTests",
             resources: [
                 .copy("Fixtures"),
@@ -62,13 +62,13 @@ let package = Package(
         ),
 
         .target(
-            name: "R2Streamer",
+            name: "ReadiumStreamer",
             dependencies: [
                 "CryptoSwift",
                 "Fuzi",
                 .product(name: "ReadiumGCDWebServer", package: "GCDWebServer"),
                 "Zip",
-                "R2Shared",
+                "ReadiumShared",
             ],
             path: "Sources/Streamer",
             resources: [
@@ -76,8 +76,8 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "R2StreamerTests",
-            dependencies: ["R2Streamer"],
+            name: "ReadiumStreamerTests",
+            dependencies: ["ReadiumStreamer"],
             path: "Tests/StreamerTests",
             resources: [
                 .copy("Fixtures"),
@@ -85,10 +85,10 @@ let package = Package(
         ),
 
         .target(
-            name: "R2Navigator",
+            name: "ReadiumNavigator",
             dependencies: [
                 "ReadiumInternal",
-                "R2Shared",
+                "ReadiumShared",
                 "DifferenceKit",
                 "SwiftSoup",
             ],
@@ -102,8 +102,8 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "R2NavigatorTests",
-            dependencies: ["R2Navigator"],
+            name: "ReadiumNavigatorTests",
+            dependencies: ["ReadiumNavigator"],
             path: "Tests/NavigatorTests"
         ),
 
@@ -111,7 +111,7 @@ let package = Package(
             name: "ReadiumOPDS",
             dependencies: [
                 "Fuzi",
-                "R2Shared",
+                "ReadiumShared",
             ],
             path: "Sources/OPDS"
         ),
@@ -129,7 +129,7 @@ let package = Package(
             dependencies: [
                 "CryptoSwift",
                 "ZIPFoundation",
-                "R2Shared",
+                "ReadiumShared",
                 .product(name: "SQLite", package: "SQLite.swift"),
             ],
             path: "Sources/LCP",
@@ -152,7 +152,7 @@ let package = Package(
             name: "ReadiumAdapterGCDWebServer",
             dependencies: [
                 .product(name: "ReadiumGCDWebServer", package: "GCDWebServer"),
-                "R2Shared",
+                "ReadiumShared",
             ],
             path: "Sources/Adapters/GCDWebServer"
         ),

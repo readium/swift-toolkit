@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import R2Shared
 import ReadiumInternal
+import ReadiumShared
 
 /// An object that can be injected into an HTML document.
 protocol HTMLInjectable {

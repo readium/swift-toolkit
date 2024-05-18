@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 final class LCPDFPositionsService: PositionsService, PDFPublicationService, Loggable {
     private let readingOrder: [Link]

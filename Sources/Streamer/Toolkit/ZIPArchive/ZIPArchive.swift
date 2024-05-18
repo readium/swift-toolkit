@@ -6,7 +6,7 @@
 
 import Foundation
 import Minizip
-import R2Shared
+import ReadiumShared
 
 public struct ZipFileInfo {
     let path: String

@@ -5,12 +5,22 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// To modify depending of the profiles supported by liblcp.a.
 private let supportedProfiles = [
     "http://readium.org/lcp/basic-profile",
     "http://readium.org/lcp/profile-1.0",
+    "http://readium.org/lcp/profile-2.0",
+    "http://readium.org/lcp/profile-2.1",
+    "http://readium.org/lcp/profile-2.2",
+    "http://readium.org/lcp/profile-2.3",
+    "http://readium.org/lcp/profile-2.4",
+    "http://readium.org/lcp/profile-2.5",
+    "http://readium.org/lcp/profile-2.6",
+    "http://readium.org/lcp/profile-2.7",
+    "http://readium.org/lcp/profile-2.8",
+    "http://readium.org/lcp/profile-2.9",
 ]
 
 typealias Context = Either<LCPClientContext, StatusError>

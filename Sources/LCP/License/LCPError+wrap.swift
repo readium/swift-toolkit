@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 extension LCPError {
     static func wrap(_ optionalError: Error?) -> LCPError {

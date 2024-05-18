@@ -6,7 +6,7 @@
 
 import Foundation
 import Fuzi
-import R2Shared
+import ReadiumShared
 
 // FIXME: To remove in Readium 3.0. This was replaced by `ReadiumCSS` in the Navigator.
 

@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 
 /// Layout axis.
@@ -24,7 +24,7 @@ public enum Spread: String, Codable, Hashable {
     /// The publication should always be displayed in a spread.
     case always
 
-    init?(_ spread: R2Shared.Presentation.Spread?) {
+    init?(_ spread: ReadiumShared.Presentation.Spread?) {
         guard let spread = spread else {
             return nil
         }
@@ -44,7 +44,7 @@ public enum ReadingProgression: String, Codable, Hashable {
     case ltr
     case rtl
 
-    init?(_ readingProgression: R2Shared.ReadingProgression) {
+    init?(_ readingProgression: ReadiumShared.ReadingProgression) {
         switch readingProgression {
         case .ltr: self = .ltr
         case .rtl: self = .rtl
@@ -63,7 +63,7 @@ public enum ReadingProgression: String, Codable, Hashable {
     }
 }
 
-extension R2Shared.ReadingProgression {
+extension ReadiumShared.ReadingProgression {
     init(_ readingProgression: ReadingProgression) {
         switch readingProgression {
         case .ltr: self = .ltr

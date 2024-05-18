@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 public extension Deferred where Success == Void {
     /// Resolves a `Deferred` by returning an optional `Failure`, ignoring any success or cancelled

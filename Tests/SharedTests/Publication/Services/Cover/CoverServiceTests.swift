@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import R2Shared
+@testable import ReadiumShared
 import XCTest
 
 class CoverServiceTests: XCTestCase {
@@ -43,7 +43,7 @@ class CoverServiceTests: XCTestCase {
     }
 
     private func makePublication(cover: CoverServiceFactory? = nil) -> Publication {
-        let coverPath = "/cover.jpg"
+        let coverPath = "cover.jpg"
         return Publication(
             manifest: Manifest(
                 metadata: Metadata(
@@ -53,7 +53,7 @@ class CoverServiceTests: XCTestCase {
                     Link(href: coverPath, rels: [.cover]),
                 ]
             ),
-            fetcher: FileFetcher(href: coverPath, path: coverURL),
+            fetcher: FileFetcher(href: RelativeURL(path: coverPath)!, file: coverURL),
             servicesBuilder: PublicationServicesBuilder(cover: cover)
         )
     }

@@ -7,50 +7,70 @@
 import Foundation
 import ReadiumInternal
 
+public enum LinkError: Error, Equatable {
+    /// The link's HREF is not a valid URL.
+    case invalidHREF(String)
+}
+
 /// Link Object for the Readium Web Publication Manifest.
 /// https://readium.org/webpub-manifest/schema/link.schema.json
 public struct Link: JSONEquatable, Hashable {
     /// URI or URI template of the linked resource.
     /// Note: a String because templates are lost with URL.
-    public let href: String // URI
+    public var href: String // URI
 
     /// MIME type of the linked resource.
-    public let type: String?
+    public var type: String?
 
     /// Indicates that a URI template is used in href.
-    public let templated: Bool
+    public var templated: Bool
 
     /// Title of the linked resource.
-    public let title: String?
+    public var title: String?
 
     /// Relation between the linked resource and its containing collection.
-    public let rels: [LinkRelation]
+    public var rels: [LinkRelation]
 
     /// Properties associated to the linked resource.
-    public let properties: Properties
+    public var properties: Properties
 
     /// Height of the linked resource in pixels.
-    public let height: Int?
+    public var height: Int?
 
     /// Width of the linked resource in pixels.
-    public let width: Int?
+    public var width: Int?
 
     /// Bitrate of the linked resource in kbps.
-    public let bitrate: Double?
+    public var bitrate: Double?
 
     /// Length of the linked resource in seconds.
-    public let duration: Double?
+    public var duration: Double?
 
     /// Expected language of the linked resource.
-    public let languages: [String] // BCP 47 tag
+    public var languages: [String] // BCP 47 tag
 
     /// Alternate resources for the linked resource.
-    public let alternates: [Link]
+    public var alternates: [Link]
 
     /// Resources that are children of the linked resource, in the context of a given collection role.
-    public let children: [Link]
+    public var children: [Link]
 
-    public init(href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [LinkRelation] = [], rel: LinkRelation? = nil, properties: Properties = Properties(), height: Int? = nil, width: Int? = nil, bitrate: Double? = nil, duration: Double? = nil, languages: [String] = [], alternates: [Link] = [], children: [Link] = []) {
+    public init(
+        href: String,
+        type: String? = nil,
+        templated: Bool = false,
+        title: String? = nil,
+        rels: [LinkRelation] = [],
+        rel: LinkRelation? = nil,
+        properties: Properties = Properties(),
+        height: Int? = nil,
+        width: Int? = nil,
+        bitrate: Double? = nil,
+        duration: Double? = nil,
+        languages: [String] = [],
+        alternates: [Link] = [],
+        children: [Link] = []
+    ) {
         // Convenience to set a single rel during construction.
         var rels = rels
         if let rel = rel {
@@ -71,17 +91,34 @@ public struct Link: JSONEquatable, Hashable {
         self.children = children
     }
 
-    public init(json: Any, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) throws {
+    public init(
+        json: Any,
+        warnings: WarningLogger? = nil
+    ) throws {
         guard let jsonObject = json as? [String: Any],
-              let href = jsonObject["href"] as? String
+              var href = jsonObject["href"] as? String
         else {
             warnings?.log("`href` is required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
+
+        let templated = (jsonObject["templated"] as? Bool) ?? false
+
+        // We support existing publications with incorrect HREFs (not valid percent-encoded
+        // URIs). We try to parse them first as valid, but fall back on a percent-decoded
+        // path if it fails.
+        if !templated, AnyURL(string: href) == nil {
+            warnings?.log("`href` is not a valid percent-encoded URL", model: Self.self, source: json)
+            guard let url = RelativeURL(path: href) else {
+                throw JSONError.parsing(Self.self)
+            }
+            href = url.string
+        }
+
         self.init(
-            href: normalizeHREF(href),
+            href: href,
             type: jsonObject["type"] as? String,
-            templated: (jsonObject["templated"] as? Bool) ?? false,
+            templated: templated,
             title: jsonObject["title"] as? String,
             rels: .init(json: jsonObject["rel"]),
             properties: (try? Properties(json: jsonObject["properties"], warnings: warnings)) ?? Properties(),
@@ -90,8 +127,8 @@ public struct Link: JSONEquatable, Hashable {
             bitrate: parsePositiveDouble(jsonObject["bitrate"]),
             duration: parsePositiveDouble(jsonObject["duration"]),
             languages: parseArray(jsonObject["language"], allowingSingle: true),
-            alternates: .init(json: jsonObject["alternate"], warnings: warnings, normalizeHREF: normalizeHREF),
-            children: .init(json: jsonObject["children"], warnings: warnings, normalizeHREF: normalizeHREF)
+            alternates: .init(json: jsonObject["alternate"], warnings: warnings),
+            children: .init(json: jsonObject["children"], warnings: warnings)
         )
     }
 
@@ -117,22 +154,44 @@ public struct Link: JSONEquatable, Hashable {
     public var mediaType: MediaType {
         MediaType.of(
             mediaType: type,
-            fileExtension: URL(string: href)?.pathExtension
+            fileExtension: href
+                .components(separatedBy: ".")
+                .last
         ) ?? .binary
     }
 
-    /// Computes an absolute URL to the link, relative to the given `baseURL`.
+    /// Returns the URL represented by this link's HREF.
     ///
-    /// If the link's `href` is already absolute, the `baseURL` is ignored.
-    public func url(relativeTo baseURL: URL?) -> URL? {
-        if let url = URL(string: href), url.scheme != nil {
-            return url
-        } else if let baseURL = baseURL {
-            let safeHREF = (href.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? href).removingPrefix("/")
-            return URL(string: safeHREF, relativeTo: baseURL)?.absoluteURL
-        } else {
-            return nil
+    /// If the HREF is a template, the `parameters` are used to expand it
+    /// according to RFC 6570.
+    public func url(
+        parameters: [String: LosslessStringConvertible] = [:]
+    ) throws -> AnyURL {
+        var href = href
+        if templated {
+            href = URITemplate(href).expand(with: parameters)
         }
+        if href.isEmpty {
+            href = "#"
+        }
+
+        guard let url = AnyURL(string: href) else {
+            throw LinkError.invalidHREF(href)
+        }
+        return url
+    }
+
+    /// Returns the URL represented by this link's HREF, resolved to the given
+    /// `base` URL.
+    ///
+    /// If the HREF is a template, the `parameters` are used to expand it
+    /// according to RFC 6570.
+    public func url<T: URLConvertible>(
+        relativeTo baseURL: T?,
+        parameters: [String: LosslessStringConvertible] = [:]
+    ) throws -> AnyURL {
+        let url = try url(parameters: parameters)
+        return baseURL?.anyURL.resolve(url) ?? url
     }
 
     // MARK: URI Template
@@ -148,18 +207,17 @@ public struct Link: JSONEquatable, Hashable {
     /// Expands the `Link`'s HREF by replacing URI template variables by the given parameters.
     ///
     /// See RFC 6570 on URI template: https://tools.ietf.org/html/rfc6570
-    public func expandTemplate(with parameters: [String: String]) -> Link {
+    public mutating func expandTemplate(with parameters: [String: LosslessStringConvertible]) {
         guard templated else {
-            return self
+            return
         }
-        return copy(
-            href: URITemplate(href).expand(with: parameters),
-            templated: false
-        )
+        href = URITemplate(href).expand(with: parameters)
+        templated = false
     }
 
     // MARK: Copy
 
+    @available(*, deprecated, message: "Make a mutable copy of the struct instead")
     /// Makes a copy of the `Link`, after modifying some of its properties.
     public func copy(
         href: String? = nil,
@@ -193,22 +251,33 @@ public struct Link: JSONEquatable, Hashable {
         )
     }
 
+    ///  Merges in the given additional other `properties`.
+    public mutating func addProperties(_ properties: [String: Any]) {
+        self.properties.add(properties)
+    }
+
     ///  Makes a copy of this `Link` after merging in the given additional other `properties`.
+    @available(*, deprecated, message: "Use `addProperties` on a mutable copy")
     public func addingProperties(_ properties: [String: Any]) -> Link {
-        copy(properties: self.properties.adding(properties))
+        var copy = self
+        copy.addProperties(properties)
+        return copy
     }
 }
 
 public extension Array where Element == Link {
     /// Parses multiple JSON links into an array of Link.
     /// eg. let links = [Link](json: [["href", "http://link1"], ["href", "http://link2"]])
-    init(json: Any?, warnings: WarningLogger? = nil, normalizeHREF: (String) -> String = { $0 }) {
+    init(
+        json: Any?,
+        warnings: WarningLogger? = nil
+    ) {
         self.init()
         guard let json = json as? [Any] else {
             return
         }
 
-        let links = json.compactMap { try? Link(json: $0, warnings: warnings, normalizeHREF: normalizeHREF) }
+        let links = json.compactMap { try? Link(json: $0, warnings: warnings) }
         append(contentsOf: links)
     }
 

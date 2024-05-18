@@ -29,14 +29,14 @@ public extension MediaType {
 
     /// Resolves a media type from a local file path.
     /// **Warning**: This API should never be called from the UI thread.
-    static func of(_ file: URL, mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = sniffers) -> MediaType? {
+    static func of(_ file: FileURL, mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = sniffers) -> MediaType? {
         of(file, mediaTypes: Array(ofNotNil: mediaType), fileExtensions: Array(ofNotNil: fileExtension), sniffers: sniffers)
     }
 
     /// Resolves a media type from a local file path.
     /// **Warning**: This API should never be called from the UI thread.
-    static func of(_ file: URL, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = sniffers) -> MediaType? {
-        let fileExtensions = [file.pathExtension] + fileExtensions
+    static func of(_ file: FileURL, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = sniffers) -> MediaType? {
+        let fileExtensions = Array(ofNotNil: file.pathExtension) + fileExtensions
         return of(content: FileMediaTypeSnifferContent(file: file), mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
     }
 
@@ -215,7 +215,7 @@ public extension MediaType {
         func readRWPM() -> (isManifest: Bool, Manifest)? {
             if let rwpm = context.contentAsRWPM {
                 return (isManifest: true, rwpm)
-            } else if let manifestData = context.readArchiveEntry(at: "/manifest.json"),
+            } else if let manifestData = context.readArchiveEntry(at: "manifest.json"),
                       let manifestJSON = try? JSONSerialization.jsonObject(with: manifestData),
                       let rwpm = try? Manifest(json: manifestJSON)
             {
@@ -226,7 +226,7 @@ public extension MediaType {
         }
 
         if let (isManifest, rwpm) = readRWPM() {
-            let isLCPProtected = context.containsArchiveEntry(at: "/license.lcpl")
+            let isLCPProtected = context.containsArchiveEntry(at: "license.lcpl")
 
             if rwpm.conforms(to: .audiobook) {
                 return isManifest ? .readiumAudiobookManifest :
@@ -263,7 +263,7 @@ public extension MediaType {
         if context.hasFileExtension("epub") || context.hasMediaType("application/epub+zip") {
             return .epub
         }
-        if let mimetypeData = context.readArchiveEntry(at: "/mimetype"),
+        if let mimetypeData = context.readArchiveEntry(at: "mimetype"),
            let mimetype = String(data: mimetypeData, encoding: .ascii)?.trimmingCharacters(in: .whitespacesAndNewlines),
            mimetype == "application/epub+zip"
         {
@@ -280,10 +280,10 @@ public extension MediaType {
         if context.hasFileExtension("lpf") || context.hasMediaType("application/lpf+zip") {
             return .lpf
         }
-        if context.containsArchiveEntry(at: "/index.html") {
+        if context.containsArchiveEntry(at: "index.html") {
             return .lpf
         }
-        if let data = context.readArchiveEntry(at: "/publication.json"),
+        if let data = context.readArchiveEntry(at: "publication.json"),
            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
            let contexts = json["@context"] as? [Any],
            contexts.contains(where: { ($0 as? String) == "https://www.w3.org/ns/pub-context" })

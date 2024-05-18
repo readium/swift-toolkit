@@ -4,8 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
-@testable import R2Streamer
+import ReadiumShared
+@testable import ReadiumStreamer
 import XCTest
 
 class EPUBPositionsServiceTests: XCTestCase {
@@ -440,7 +440,7 @@ private func makeProperties(layout: EPUBLayout? = nil, archiveEntryLength: UInt6
         ] as [String: Any]
     }
     if let archiveEntryLength = archiveEntryLength {
-        props["archive"] = [
+        props["https://readium.org/webpub-manifest/properties#archive"] = [
             "entryLength": archiveEntryLength as NSNumber,
             "isEntryCompressed": true,
         ]
@@ -468,7 +468,7 @@ private class MockFetcher: Fetcher {
 
     struct MockResource: Resource {
         let link: Link
-        let file: URL? = nil
+        let file: FileURL? = nil
         var length: ResourceResult<UInt64> { .success(_length) }
 
         private let _length: UInt64

@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 
 final class DeviceService {
@@ -50,7 +50,7 @@ final class DeviceService {
             guard !registered else {
                 return .success(nil)
             }
-            guard let url = link.url(with: self.asQueryParameters) else {
+            guard let url = link.url(parameters: self.asQueryParameters) else {
                 throw LCPError.licenseInteractionNotAvailable
             }
 

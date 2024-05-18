@@ -5,7 +5,7 @@
 //
 
 import Foundation
-@testable import R2Shared
+@testable import ReadiumShared
 
 extension ResourceError: Equatable {
     public static func == (lhs: ResourceError, rhs: ResourceError) -> Bool {
