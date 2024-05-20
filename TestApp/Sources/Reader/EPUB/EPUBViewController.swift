@@ -44,6 +44,10 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
                         title: "Highlight",
                         action: #selector(highlightSelection)
                     )),
+                    .appending(EditingAction(
+                        title: "ChatGPT",
+                        action: #selector(gptSelection)
+                    )),
                 decorationTemplates: templates,
                 fontFamilyDeclarations: [
                     CSSFontFamilyDeclaration(
@@ -95,6 +99,13 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
         if let selection = navigator.currentSelection {
             let highlight = Highlight(bookId: bookId, locator: selection.locator, color: .yellow)
             saveHighlight(highlight)
+            navigator.clearSelection()
+        }
+    }
+
+    @objc func gptSelection() {
+        if let selection = navigator.currentSelection {
+            print(selection)
             navigator.clearSelection()
         }
     }
