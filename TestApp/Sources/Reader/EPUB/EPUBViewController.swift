@@ -43,7 +43,7 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
                     .appending(EditingAction(
                         title: "Highlight",
                         action: #selector(highlightSelection)
-                    )),
+                    ))
                     .appending(EditingAction(
                         title: "ChatGPT",
                         action: #selector(gptSelection)
