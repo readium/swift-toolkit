@@ -440,7 +440,7 @@ private func makeProperties(layout: EPUBLayout? = nil, archiveEntryLength: UInt6
         ] as [String: Any]
     }
     if let archiveEntryLength = archiveEntryLength {
-        props["archive"] = [
+        props["https://readium.org/webpub-manifest/properties#archive"] = [
             "entryLength": archiveEntryLength as NSNumber,
             "isEntryCompressed": true,
         ]

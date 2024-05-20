@@ -4,7 +4,21 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Changed
+
+The Readium Swift toolkit now requires a minimum of iOS 13.
+
+#### Shared
+
+* The `Link` property key for archive-based publication assets (e.g. an EPUB/ZIP) is now `https://readium.org/webpub-manifest/properties#archive` instead of `archive`.
+* The API of `HTTPServer` slightly changed to be more future-proof.
+
+#### Navigator
+
+* EPUB: The `scroll` preference is now forced to `true` when rendering vertical text (e.g. CJK vertical). [See this discussion for the rationale](https://github.com/readium/swift-toolkit/discussions/370).
+
 
 ## [3.0.0-alpha.1]
 

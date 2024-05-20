@@ -59,7 +59,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
             publicationBaseURL = try httpServer.serve(
                 at: uuidEndpoint,
                 publication: publication,
-                failureHandler: { [weak self] request, error in
+                onFailure: { [weak self] request, error in
                     DispatchQueue.main.async { [weak self] in
                         guard let self = self, let href = request.href else {
                             return
