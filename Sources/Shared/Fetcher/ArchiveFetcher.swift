@@ -90,10 +90,7 @@ public final class ArchiveFetcher: Fetcher, Loggable {
 private extension ArchiveEntry {
     var linkProperties: [String: Any] {
         [
-            // FIXME: Legacy property, should be removed in 3.0.0
-            "compressedLength": compressedLength as Any,
-
-            "archive": [
+            "https://readium.org/webpub-manifest/properties#archive": [
                 "entryLength": compressedLength ?? length,
                 "isEntryCompressed": compressedLength != nil,
             ] as [String: Any],
