@@ -36,7 +36,6 @@ public final class AVAudioPublicationManifestAugmentor: AudioPublicationManifest
             guard let avAsset = avAsset else { return link }
             var link = link
             link.title = avAsset.metadata.filter([.commonIdentifierTitle]).first(where: { $0.stringValue })
-            link.bitrate = avAsset.tracks(withMediaType: .audio).first.map { Double($0.estimatedDataRate) }
             link.duration = avAsset.duration.seconds
             return link
         }
