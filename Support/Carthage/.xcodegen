@@ -735,6 +735,7 @@
 ../../Sources/Streamer/Parser
 ../../Sources/Streamer/Parser/Audio
 ../../Sources/Streamer/Parser/Audio/AudioParser.swift
+../../Sources/Streamer/Parser/Audio/AudioPublicationManifestAugmentor.swift
 ../../Sources/Streamer/Parser/Audio/Services
 ../../Sources/Streamer/Parser/Audio/Services/AudioLocatorService.swift
 ../../Sources/Streamer/Parser/EPUB
