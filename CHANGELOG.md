@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
+### Added
+
+#### Streamer
+
+* Support for standalone audio files and their metadata (contributed by [@domkm](https://github.com/readium/swift-toolkit/pull/414)).
+
+
 ### Changed
 
 The Readium Swift toolkit now requires a minimum of iOS 13.
