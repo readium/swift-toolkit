@@ -24,15 +24,15 @@ class ExplodedArchiveTests: XCTestCase {
 
     func testGetNonExistingEntry() throws {
         let archive = try ExplodedArchive.make(file: fixtures.url(for: "exploded")).get()
-        XCTAssertNil(archive.entry(at: "/unknown"))
+        XCTAssertNil(archive.entry(at: "unknown"))
     }
 
     func testGetFileEntry() throws {
         let archive = try ExplodedArchive.make(file: fixtures.url(for: "exploded")).get()
         XCTAssertEqual(
-            archive.entry(at: "/A folder/wasteland-cover.jpg"),
+            archive.entry(at: "A folder/wasteland-cover.jpg"),
             ArchiveEntry(
-                path: "/A folder/wasteland-cover.jpg",
+                path: "A folder/wasteland-cover.jpg",
                 length: 103_477,
                 compressedLength: nil
             )
@@ -41,21 +41,21 @@ class ExplodedArchiveTests: XCTestCase {
 
     func testGetDirectoryEntryReturnsNil() throws {
         let archive = try ExplodedArchive.make(file: fixtures.url(for: "exploded")).get()
-        XCTAssertNil(archive.entry(at: "/A folder"))
-        XCTAssertNil(archive.entry(at: "/A folder/"))
+        XCTAssertNil(archive.entry(at: "A folder"))
+        XCTAssertNil(archive.entry(at: "A folder/"))
     }
 
     func testGetEntries() throws {
         let archive = try ExplodedArchive.make(file: fixtures.url(for: "exploded")).get()
         // The entries are sorted by path.
         XCTAssertEqual(archive.entries, [
-            ArchiveEntry(path: "/.hidden", length: 0, compressedLength: nil),
-            ArchiveEntry(path: "/A folder/Sub.folder%/file-compressed.txt", length: 29609, compressedLength: nil),
-            ArchiveEntry(path: "/A folder/Sub.folder%/file.txt", length: 20, compressedLength: nil),
-            ArchiveEntry(path: "/A folder/wasteland-cover.jpg", length: 103_477, compressedLength: nil),
-            ArchiveEntry(path: "/root.txt", length: 0, compressedLength: nil),
-            ArchiveEntry(path: "/uncompressed.jpg", length: 279_551, compressedLength: nil),
-            ArchiveEntry(path: "/uncompressed.txt", length: 30, compressedLength: nil),
+            ArchiveEntry(path: ".hidden", length: 0, compressedLength: nil),
+            ArchiveEntry(path: "A folder/Sub.folder%/file-compressed.txt", length: 29609, compressedLength: nil),
+            ArchiveEntry(path: "A folder/Sub.folder%/file.txt", length: 20, compressedLength: nil),
+            ArchiveEntry(path: "A folder/wasteland-cover.jpg", length: 103_477, compressedLength: nil),
+            ArchiveEntry(path: "root.txt", length: 0, compressedLength: nil),
+            ArchiveEntry(path: "uncompressed.jpg", length: 279_551, compressedLength: nil),
+            ArchiveEntry(path: "uncompressed.txt", length: 30, compressedLength: nil),
         ])
     }
 
@@ -66,7 +66,7 @@ class ExplodedArchiveTests: XCTestCase {
 
     func testReadFullEntry() throws {
         let archive = try ExplodedArchive.make(file: fixtures.url(for: "exploded")).get()
-        let entry = try XCTUnwrap(archive.readEntry(at: "/A folder/Sub.folder%/file.txt"))
+        let entry = try XCTUnwrap(archive.readEntry(at: "A folder/Sub.folder%/file.txt"))
         let data = try entry.read().get()
         XCTAssertEqual(
             String(data: data, encoding: .utf8),
@@ -76,7 +76,7 @@ class ExplodedArchiveTests: XCTestCase {
 
     func testReadRange() throws {
         let archive = try ExplodedArchive.make(file: fixtures.url(for: "exploded")).get()
-        let entry = try XCTUnwrap(archive.readEntry(at: "/A folder/Sub.folder%/file.txt"))
+        let entry = try XCTUnwrap(archive.readEntry(at: "A folder/Sub.folder%/file.txt"))
         let data = try entry.read(range: 14 ..< 20).get()
         XCTAssertEqual(
             String(data: data, encoding: .utf8),

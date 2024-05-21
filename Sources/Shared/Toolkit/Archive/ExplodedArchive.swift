@@ -61,7 +61,7 @@ final class ExplodedArchive: Archive, Loggable {
         }
 
         return ArchiveEntry(
-            path: url.path.removingPrefix(root.path).addingPrefix("/"),
+            path: url.path.removingPrefix(root.path),
             length: UInt64(length),
             compressedLength: nil
         )
