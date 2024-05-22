@@ -12,32 +12,41 @@ import ReadiumShared
 ///
 /// It can also work for a standalone audio file.
 public final class AudioParser: PublicationParser {
-    public init() {}
+    public init(manifestAugmentor: AudioPublicationManifestAugmentor = AVAudioPublicationManifestAugmentor()) {
+        self.manifestAugmentor = manifestAugmentor
+    }
+
+    private let manifestAugmentor: AudioPublicationManifestAugmentor
 
     public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
         guard accepts(asset, fetcher) else {
             return nil
         }
 
-        let readingOrder = fetcher.links
+        let defaultReadingOrder = fetcher.links
             .filter { !ignores($0) && $0.mediaType.isAudio }
             .sorted { $0.href.localizedCaseInsensitiveCompare($1.href) == .orderedAscending }
 
-        guard !readingOrder.isEmpty else {
+        guard !defaultReadingOrder.isEmpty else {
             return nil
         }
 
+        let defaultManifest = Manifest(
+            metadata: Metadata(
+                conformsTo: [.audiobook],
+                title: fetcher.guessTitle(ignoring: ignores) ?? asset.name
+            ),
+            readingOrder: defaultReadingOrder
+        )
+
+        let augmented = manifestAugmentor.augment(defaultManifest, using: fetcher)
+
         return Publication.Builder(
             mediaType: .zab,
-            manifest: Manifest(
-                metadata: Metadata(
-                    conformsTo: [.audiobook],
-                    title: fetcher.guessTitle(ignoring: ignores)
-                ),
-                readingOrder: readingOrder
-            ),
+            manifest: augmented.manifest,
             fetcher: fetcher,
             servicesBuilder: .init(
+                cover: augmented.cover.map(GeneratedCoverService.makeFactory(cover:)),
                 locator: AudioLocatorService.makeFactory()
             )
         )
