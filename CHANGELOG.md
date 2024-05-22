@@ -12,7 +12,6 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Support for standalone audio files and their metadata (contributed by [@domkm](https://github.com/readium/swift-toolkit/pull/414)).
 
-
 ### Changed
 
 The Readium Swift toolkit now requires a minimum of iOS 13.
@@ -25,6 +24,12 @@ The Readium Swift toolkit now requires a minimum of iOS 13.
 #### Navigator
 
 * EPUB: The `scroll` preference is now forced to `true` when rendering vertical text (e.g. CJK vertical). [See this discussion for the rationale](https://github.com/readium/swift-toolkit/discussions/370).
+
+### Fixed
+
+#### Navigator
+
+* Optimized scrolling to an EPUB text-based locator if it contains a CSS selector.
 
 
 ## [3.0.0-alpha.1]
