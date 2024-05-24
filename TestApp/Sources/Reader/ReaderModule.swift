@@ -77,7 +77,9 @@ final class ReaderModule: ReaderModuleAPI {
 
 extension ReaderModule: ReaderFormatModuleDelegate {
     func presentDRM(for publication: Publication, from viewController: UIViewController) {
-        let drmViewController: DRMManagementTableViewController = factory.make(publication: publication, delegate: delegate)
+        guard let drmViewController: LCPManagementTableViewController = factory.make(publication: publication, delegate: delegate) else {
+            return
+        }
         let backItem = UIBarButtonItem()
         backItem.title = ""
         drmViewController.navigationItem.backBarButtonItem = backItem

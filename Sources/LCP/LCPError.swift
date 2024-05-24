@@ -5,39 +5,58 @@
 //
 
 import Foundation
+import ReadiumShared
 
 public enum LCPError: LocalizedError {
-    // The operation can't be done right now because another License operation is running.
+    /// The license could not be retrieved because the passphrase is unknown.
+    case missingPassphrase
+
+    /// The given file is not an LCP License Document (LCPL).
+    case notALicenseDocument(FileURL)
+
+    /// The operation can't be done right now because another License operation is running.
     case licenseIsBusy
-    // An error occured while checking the integrity of the License, it can't be retrieved.
+
+    /// An error occured while checking the integrity of the License, it can't be retrieved.
     case licenseIntegrity(LCPClientError)
-    // The status of the License is not valid, it can't be used to decrypt the publication.
+
+    /// The status of the License is not valid, it can't be used to decrypt the publication.
     case licenseStatus(StatusError)
-    // Can't read or write the License Document from its container.
+
+    /// Can't read or write the License Document from its container.
     case licenseContainer(ContainerError)
-    // The interaction is not available with this License.
+
+    /// The interaction is not available with this License.
     case licenseInteractionNotAvailable
-    // This License's profile is not supported by liblcp.
+
+    /// This License's profile is not supported by liblcp.
     case licenseProfileNotSupported
-    // Failed to renew the loan.
+
+    /// Failed to renew the loan.
     case licenseRenew(RenewError)
-    // Failed to return the loan.
+
+    /// Failed to return the loan.
     case licenseReturn(ReturnError)
 
-    // Failed to retrieve the Certificate Revocation List.
+    /// Failed to retrieve the Certificate Revocation List.
     case crlFetching
 
-    // Failed to parse information from the License or Status Documents.
+    /// Failed to parse information from the License or Status Documents.
     case parsing(ParsingError)
-    // A network request failed with the given error.
+
+    /// A network request failed with the given error.
     case network(Error?)
-    // An unexpected LCP error occured. Please post an issue on r2-lcp-swift with the error message and how to reproduce it.
+
+    /// An unexpected LCP error occured. Please post an issue on r2-lcp-swift with the error message and how to reproduce it.
     case runtime(String)
-    // An unknown low-level error was reported.
+
+    /// An unknown low-level error was reported.
     case unknown(Error?)
 
     public var errorDescription: String? {
         switch self {
+        case .missingPassphrase: return nil
+        case .notALicenseDocument: return nil
         case .licenseIsBusy:
             return ReadiumLCPLocalizedString("LCPError.licenseIsBusy")
         case let .licenseIntegrity(error):

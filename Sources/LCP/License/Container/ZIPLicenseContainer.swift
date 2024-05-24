@@ -19,14 +19,14 @@ class ZIPLicenseContainer: LicenseContainer {
         self.pathInZIP = pathInZIP
     }
 
-    func containsLicense() -> Bool {
+    func containsLicense() async throws -> Bool {
         guard let archive = Archive(url: zip.url, accessMode: .read) else {
             return false
         }
         return archive[pathInZIP] != nil
     }
 
-    func read() throws -> Data {
+    func read() async throws -> Data {
         guard let archive = Archive(url: zip.url, accessMode: .read) else {
             throw LCPError.licenseContainer(.openFailed)
         }
@@ -46,7 +46,7 @@ class ZIPLicenseContainer: LicenseContainer {
         return data
     }
 
-    func write(_ license: LicenseDocument) throws {
+    func write(_ license: LicenseDocument) async throws {
         guard let archive = Archive(url: zip.url, accessMode: .update) else {
             throw LCPError.licenseContainer(.openFailed)
         }
@@ -58,7 +58,7 @@ class ZIPLicenseContainer: LicenseContainer {
             }
 
             // Stores the License into the ZIP file
-            let data = license.data
+            let data = license.jsonData
             try archive.addEntry(with: pathInZIP, type: .file, uncompressedSize: UInt32(data.count), provider: { position, size -> Data in
                 data[position ..< size]
             })

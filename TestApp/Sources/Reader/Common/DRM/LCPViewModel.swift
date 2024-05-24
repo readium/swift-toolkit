@@ -11,78 +11,73 @@
     import ReadiumShared
     import UIKit
 
-    final class LCPViewModel: DRMViewModel {
+    final class LCPViewModel {
         private let license: LCPLicense
 
-        init(publication: Publication, license: LCPLicense, presentingViewController: UIViewController) {
+        /// Host view controller to be used to present any dialog.
+        private weak var presentingViewController: UIViewController?
+
+        init(license: LCPLicense, presentingViewController: UIViewController) {
             self.license = license
-            super.init(publication: publication, presentingViewController: presentingViewController)
+            self.presentingViewController = presentingViewController
         }
 
-        override var state: String? {
+        var state: String? {
             license.status?.status.rawValue
         }
 
-        override var provider: String? {
+        var provider: String? {
             license.license.provider
         }
 
-        override var issued: Date? {
+        var issued: Date? {
             license.license.issued
         }
 
-        override var updated: Date? {
+        var updated: Date? {
             license.license.updated
         }
 
-        override var start: Date? {
+        var start: Date? {
             license.license.rights.start
         }
 
-        override var end: Date? {
+        var end: Date? {
             license.license.rights.end
         }
 
-        override var copiesLeft: String {
-            guard let quantity = license.charactersToCopyLeft else {
-                return super.copiesLeft
+        func copiesLeft() async -> String {
+            guard let quantity = await license.charactersToCopyLeft() else {
+                return NSLocalizedString("reader_drm_unlimited_label", comment: "Unlimited quantity for a given DRM consumable right")
             }
             return String(format: NSLocalizedString("lcp_characters_label", comment: "Quantity of characters left to be copied"), quantity)
         }
 
-        override var printsLeft: String {
-            guard let quantity = license.pagesToPrintLeft else {
-                return super.printsLeft
+        func printsLeft() async -> String {
+            guard let quantity = await license.pagesToPrintLeft() else {
+                return NSLocalizedString("reader_drm_unlimited_label", comment: "Unlimited quantity for a given DRM consumable right")
             }
             return String(format: NSLocalizedString("lcp_pages_label", comment: "Quantity of pages left to be printed"), quantity)
         }
 
-        override var canRenewLoan: Bool {
+        var canRenewLoan: Bool {
             license.canRenewLoan
         }
 
-        override func renewLoan(completion: @escaping (Error?) -> Void) {
+        func renewLoan() async throws {
             guard let presentingViewController = presentingViewController else {
-                completion(nil)
                 return
             }
 
-            license.renewLoan(with: LCPDefaultRenewDelegate(presentingViewController: presentingViewController)) { result in
-                switch result {
-                case .success, .cancelled:
-                    completion(nil)
-                case let .failure(error):
-                    completion(error)
-                }
-            }
+            try await license.renewLoan(with: LCPDefaultRenewDelegate(presentingViewController: presentingViewController)).get()
         }
 
-        override var canReturnPublication: Bool {
+        var canReturnPublication: Bool {
             license.canReturnPublication
         }
 
-        override func returnPublication(completion: @escaping (Error?) -> Void) {
-            license.returnPublication(completion: completion)
+        func returnPublication() async throws {
+            try await license.returnPublication().get()
         }
     }
 

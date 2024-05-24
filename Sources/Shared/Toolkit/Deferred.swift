@@ -108,6 +108,17 @@ public final class Deferred<Success, Failure: Error> {
         }
     }
 
+    /// Fires the deferred closure to resolve its value asynchronously.
+    ///
+    /// To keep things simple, this can only be called once since the value is not cached.
+    public func resolve() async -> CancellableResult<Success, Failure> {
+        await withCheckedContinuation { continuation in
+            resolve { result in
+                continuation.resume(returning: result)
+            }
+        }
+    }
+
     /// Transforms the value synchronously.
     ///
     ///     .map { user in
@@ -385,6 +396,41 @@ public func deferred<Success, Failure>(on queue: DispatchQueue? = nil, closure: 
             { completion(.failure($0)) },
             { completion(.cancelled) }
         )
+    }
+}
+
+/// Constructs a Deferred from an async task returning a result.
+///
+///     func traditionalAsync() async -> Result<String, Error> { ... }
+///
+///     deferredAsync {
+///         return await traditionalAsync()
+///     }
+public func deferredAsync<Success, Failure: Error>(
+    task: @escaping () async -> Result<Success, Failure>
+) -> Deferred<Success, Failure> {
+    Deferred { completion in
+        Task.detached {
+            await completion(CancellableResult(task()))
+        }
+    }
+}
+
+/// Constructs a Deferred from a failable async task returning a result.
+///
+/// Any thrown error is caught and wrapped in a result.
+public func deferredAsyncCatching<Success>(
+    task: @escaping () async throws -> Success
+) -> Deferred<Success, Error> {
+    Deferred { completion in
+        Task.detached {
+            do {
+                let result = try await task()
+                completion(.success(result))
+            } catch {
+                completion(.failure(error))
+            }
+        }
     }
 }
 

@@ -19,13 +19,22 @@ import UIKit
 /// when presenting a dialog, for example.
 public final class LCPService: Loggable {
     private let licenses: LicensesService
-    private let passphrases: PassphrasesRepository
+
+    @available(*, unavailable, message: "Provide a `licenseRepository` and `passphraseRepository`, following the migration guide")
+    public init(
+        client: LCPClient,
+        httpClient: HTTPClient = DefaultHTTPClient()
+    ) {
+        fatalError()
+    }
 
     /// - Parameter deviceName: Device name used when registering a license to an LSD server.
     ///   If not provided, the device name will be the default `UIDevice.current.name`.
     public init(
         client: LCPClient,
-        httpClient: HTTPClient = DefaultHTTPClient(),
+        licenseRepository: LCPLicenseRepository,
+        passphraseRepository: LCPPassphraseRepository,
+        httpClient: HTTPClient,
         deviceName: String? = nil
     ) {
         // Determine whether the embedded liblcp.a is in production mode, by attempting to open a production license.
@@ -40,35 +49,39 @@ public final class LCPService: Loggable {
             return client.findOneValidPassphrase(jsonLicense: prodLicense, hashedPassphrases: [passphrase]) == passphrase
         }()
 
-        let db = Database.shared
-        passphrases = db.transactions
         licenses = LicensesService(
             isProduction: isProduction,
             client: client,
-            licenses: db.licenses,
+            licenses: licenseRepository,
             crl: CRLService(httpClient: httpClient),
             device: DeviceService(
                 deviceName: deviceName ?? UIDevice.current.name,
-                repository: db.licenses,
+                repository: licenseRepository,
                 httpClient: httpClient
             ),
             httpClient: httpClient,
-            passphrases: PassphrasesService(client: client, repository: passphrases)
+            passphrases: PassphrasesService(
+                client: client,
+                repository: passphraseRepository
+            )
         )
     }
 
     /// Returns whether the given `file` is protected by LCP.
-    public func isLCPProtected(_ file: FileURL) -> Bool {
-        warnIfMainThread()
-        return makeLicenseContainerSync(for: file)?.containsLicense() == true
+    public func isLCPProtected(_ file: FileURL) async -> Bool {
+        await (try? makeLicenseContainer(for: file)?.containsLicense()) == true
     }
 
     /// Acquires a protected publication from a standalone LCPL file.
     ///
     /// You can cancel the on-going download with `acquisition.cancel()`.
-    @discardableResult
-    public func acquirePublication(from lcpl: FileURL, onProgress: @escaping (LCPAcquisition.Progress) -> Void = { _ in }, completion: @escaping (CancellableResult<LCPAcquisition.Publication, LCPError>) -> Void) -> LCPAcquisition {
-        licenses.acquirePublication(from: lcpl, onProgress: onProgress, completion: completion)
+    public func acquirePublication(
+        from lcpl: FileURL,
+        onProgress: @escaping (LCPProgress) -> Void = { _ in }
+    ) async -> Result<LCPAcquiredPublication, LCPError> {
+        await wrap {
+            try await licenses.acquirePublication(from: lcpl, onProgress: onProgress)
+        }
     }
 
     /// Opens the LCP license of a protected publication, to access its DRM metadata and decipher
@@ -87,12 +100,11 @@ public final class LCPService: Loggable {
         from publication: FileURL,
         authentication: LCPAuthenticating = LCPDialogAuthentication(),
         allowUserInteraction: Bool = true,
-        sender: Any? = nil,
-        completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void
-    ) {
-        licenses.retrieve(from: publication, authentication: authentication, allowUserInteraction: allowUserInteraction, sender: sender)
-            .map { $0 as LCPLicense? }
-            .resolve(completion)
+        sender: Any? = nil
+    ) async -> Result<LCPLicense?, LCPError> {
+        await wrap {
+            try await licenses.retrieve(from: publication, authentication: authentication, allowUserInteraction: allowUserInteraction, sender: sender)
+        }
     }
 
     /// Creates a `ContentProtection` instance which can be used with a `Streamer` to unlock
@@ -103,5 +115,30 @@ public final class LCPService: Loggable {
     /// user to enter their passphrase.
     public func contentProtection(with authentication: LCPAuthenticating = LCPDialogAuthentication()) -> ContentProtection {
         LCPContentProtection(service: self, authentication: authentication)
+    }
+
+    private func wrap<Success>(_ block: () async throws -> Success) async -> Result<Success, LCPError> {
+        do {
+            return try await .success(block())
+        } catch {
+            return .failure(.wrap(error))
+        }
+    }
+
+    @available(*, unavailable, message: "Use the async variant.")
+    @discardableResult
+    public func acquirePublication(from lcpl: FileURL, onProgress: @escaping (LCPAcquisition.Progress) -> Void = { _ in }, completion: @escaping (CancellableResult<LCPAcquisition.Publication, LCPError>) -> Void) -> LCPAcquisition {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Use the async variant.")
+    public func retrieveLicense(
+        from publication: FileURL,
+        authentication: LCPAuthenticating = LCPDialogAuthentication(),
+        allowUserInteraction: Bool = true,
+        sender: Any? = nil,
+        completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void
+    ) {
+        fatalError()
     }
 }

@@ -11,22 +11,17 @@ final class Database {
     /// Shared instance.
     static let shared = Database()
 
-    /// Connection.
     let connection: Connection
-    /// Tables.
-    let licenses: Licenses!
-    let transactions: Transactions!
 
     private init() {
         do {
-            var url = try FileManager.default.url(for: .libraryDirectory,
-                                                  in: .userDomainMask,
-                                                  appropriateFor: nil, create: true)
-
+            var url = try FileManager.default.url(
+                for: .libraryDirectory,
+                in: .userDomainMask,
+                appropriateFor: nil, create: true
+            )
             url.appendPathComponent("lcpdatabase.sqlite")
             connection = try Connection(url.absoluteString)
-            licenses = Licenses(connection)
-            transactions = Transactions(connection)
         } catch {
             fatalError("Error initializing db.")
         }

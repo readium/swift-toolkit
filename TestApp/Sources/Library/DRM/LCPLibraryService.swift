@@ -14,7 +14,12 @@
     import UIKit
 
     class LCPLibraryService: DRMLibraryService {
-        private var lcpService = LCPService(client: LCPClient())
+        private var lcpService = LCPService(
+            client: LCPClient(),
+            licenseRepository: SQLiteLCPLicenseRepository(),
+            passphraseRepository: SQLiteLCPPassphraseRepository(),
+            httpClient: DefaultHTTPClient()
+        )
 
         lazy var contentProtection: ContentProtection? = lcpService.contentProtection()
 
@@ -23,27 +28,17 @@
         }
 
         func fulfill(_ file: URL) async throws -> DRMFulfilledPublication? {
-            try await withCheckedThrowingContinuation { cont in
-                lcpService.acquirePublication(from: FileURL(url: file)!) { result in
-                    // Removes the license file, but only if it's in the App directory (e.g. Inbox/).
-                    // Otherwise we might delete something from a shared location (e.g. iCloud).
-                    if Paths.isAppFile(at: file) {
-                        try? FileManager.default.removeItem(at: file)
-                    }
-
-                    switch result {
-                    case let .success(pub):
-                        cont.resume(returning: DRMFulfilledPublication(
-                            localURL: pub.localURL.url,
-                            suggestedFilename: pub.suggestedFilename
-                        ))
-                    case let .failure(error):
-                        cont.resume(throwing: error)
-                    case .cancelled:
-                        cont.resume(returning: nil)
-                    }
-                }
+            let pub = try await lcpService.acquirePublication(from: FileURL(url: file)!).get()
+            // Removes the license file, but only if it's in the App directory (e.g. Inbox/).
+            // Otherwise we might delete something from a shared location (e.g. iCloud).
+            if Paths.isAppFile(at: file) {
+                try? FileManager.default.removeItem(at: file)
             }
+
+            return DRMFulfilledPublication(
+                localURL: pub.localURL.url,
+                suggestedFilename: pub.suggestedFilename
+            )
         }
     }
 

@@ -7,8 +7,10 @@
 import Foundation
 
 public struct User {
+    public typealias ID = String
+
     /// Unique identifier for the User at a specific Provider.
-    public let id: String?
+    public let id: ID?
     /// The User’s e-mail address.
     public let email: String?
     /// The User’s name.

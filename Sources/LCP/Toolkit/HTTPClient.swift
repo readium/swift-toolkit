@@ -8,10 +8,18 @@ import Foundation
 import ReadiumShared
 
 extension HTTPClient {
-    func fetch(_ url: HTTPRequestConvertible) -> Deferred<HTTPResponse, HTTPError> {
+    func fetchDeferred(_ url: HTTPRequestConvertible) -> Deferred<HTTPResponse, HTTPError> {
         deferred { completion in
             _ = fetch(url) { result in
                 completion(CancellableResult(result))
+            }
+        }
+    }
+
+    func fetch(_ url: HTTPRequestConvertible) async -> Result<HTTPResponse, HTTPError> {
+        await withCheckedContinuation { continuation in
+            _ = fetch(url) { result in
+                continuation.resume(returning: result)
             }
         }
     }

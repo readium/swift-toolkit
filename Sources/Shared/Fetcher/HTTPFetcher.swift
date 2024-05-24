@@ -54,7 +54,7 @@ public final class HTTPFetcher: Fetcher, Loggable {
         }
 
         /// Cached HEAD response to get the expected content length and other metadata.
-        private lazy var headResponse: ResourceResult<HTTPResponse> = client.fetchSync(HTTPRequest(url: url, method: .head))
+        private lazy var headResponse: ResourceResult<HTTPResponse> = client.fetchWait(HTTPRequest(url: url, method: .head))
             .mapError { ResourceError.wrap($0) }
 
         /// An HTTP resource is always remote.
@@ -68,7 +68,6 @@ public final class HTTPFetcher: Fetcher, Loggable {
 
             return client.stream(
                 request,
-                receiveResponse: nil,
                 consume: { data, _ in consume(data) },
                 completion: { result in
                     completion(result.map { _ in }.mapError { ResourceError.wrap($0) })
@@ -78,4 +77,26 @@ public final class HTTPFetcher: Fetcher, Loggable {
 
         func close() {}
     }
+}
+
+private extension HTTPClient {
+    // FIXME: Get rid of this hack.
+    func fetchWait(_ request: HTTPRequestConvertible) -> HTTPResult<HTTPResponse> {
+        warnIfMainThread()
+
+        let enclosure = Enclosure()
+        let semaphore = DispatchSemaphore(value: 0)
+
+        Task {
+            enclosure.value = await fetch(request)
+            semaphore.signal()
+        }
+        _ = semaphore.wait(timeout: .distantFuture)
+
+        return enclosure.value
+    }
+}
+
+class Enclosure {
+    var value: HTTPResult<HTTPResponse>!
 }

@@ -28,12 +28,15 @@ extension ReaderFactory: OutlineTableViewControllerFactory {
     }
 }
 
-extension ReaderFactory: DRMManagementTableViewControllerFactory {
-    func make(publication: Publication, delegate: ReaderModuleDelegate?) -> DRMManagementTableViewController {
-        let controller =
-            storyboards.drm.instantiateViewController(withIdentifier: "DRMManagementTableViewController") as! DRMManagementTableViewController
+extension ReaderFactory: LCPManagementTableViewControllerFactory {
+    func make(publication: Publication, delegate: ReaderModuleDelegate?) -> LCPManagementTableViewController? {
+        guard let license = publication.lcpLicense else {
+            return nil
+        }
+
+        let controller = storyboards.drm.instantiateViewController(withIdentifier: "DRMManagementTableViewController") as! LCPManagementTableViewController
         controller.moduleDelegate = delegate
-        controller.viewModel = DRMViewModel.make(publication: publication, presentingViewController: controller)
+        controller.viewModel = LCPViewModel(license: license, presentingViewController: controller)
         return controller
     }
 }

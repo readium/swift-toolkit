@@ -138,8 +138,6 @@ final class EditingActionsController {
     /// Verifies that the user has the rights to use the given `action`.
     private func isActionAllowed(_ action: EditingAction) -> Bool {
         switch action {
-        case .copy:
-            return rights.canCopy
         case .share:
             return canShare
         default:
@@ -189,14 +187,16 @@ final class EditingActionsController {
 
     /// Copies the authorized portion of the selection text into the pasteboard.
     func copy() {
-        guard let text = selection?.locator.text.highlight else {
-            return
-        }
-        guard rights.copy(text: text) else {
-            delegate?.editingActionsDidPreventCopy(self)
-            return
-        }
+        Task {
+            guard let text = selection?.locator.text.highlight else {
+                return
+            }
+            guard await rights.copy(text: text) else {
+                delegate?.editingActionsDidPreventCopy(self)
+                return
+            }
 
-        UIPasteboard.general.string = text
+            UIPasteboard.general.string = text
+        }
     }
 }

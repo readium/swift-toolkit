@@ -15,13 +15,13 @@ public protocol LCPRenewDelegate {
     ///
     /// You can prompt the user for the number of days to renew, for example.
     /// The returned date should not exceed `maximumDate`.
-    func preferredEndDate(maximum: Date?, completion: @escaping (CancellableResult<Date?, Error>) -> Void)
+    func preferredEndDate(maximum: Date?) async throws -> Date?
 
     /// Called when the renew interaction uses an HTML web page.
     ///
     /// You should present the URL in a `SFSafariViewController` and call the `completion` callback when the browser
     /// is dismissed by the user.
-    func presentWebPage(url: HTTPURL, completion: @escaping (CancellableResult<Void, Error>) -> Void)
+    func presentWebPage(url: HTTPURL) async throws
 }
 
 /// Default `LCPRenewDelegate` implementation using standard views.
@@ -37,33 +37,36 @@ public class LCPDefaultRenewDelegate: NSObject, LCPRenewDelegate {
         self.modalPresentationStyle = modalPresentationStyle
     }
 
-    public func preferredEndDate(maximum: Date?, completion: @escaping (CancellableResult<Date?, Error>) -> Void) {
-        completion(.success(nil))
+    public func preferredEndDate(maximum: Date?) async throws -> Date? {
+        nil
     }
 
-    public func presentWebPage(url: HTTPURL, completion: @escaping (CancellableResult<Void, Error>) -> Void) {
-        let safariVC = SFSafariViewController(url: url.url)
-        safariVC.modalPresentationStyle = modalPresentationStyle
-        safariVC.presentationController?.delegate = self
-        safariVC.delegate = self
+    @MainActor
+    public func presentWebPage(url: HTTPURL) async throws {
+        await withCheckedContinuation { continuation in
+            webPageContinuation = continuation
 
-        webPageCallback = completion
-        presentingViewController.present(safariVC, animated: true)
+            let safariVC = SFSafariViewController(url: url.url)
+            safariVC.modalPresentationStyle = modalPresentationStyle
+            safariVC.presentationController?.delegate = self
+            safariVC.delegate = self
+            presentingViewController.present(safariVC, animated: true)
+        }
     }
 
-    private var webPageCallback: ((CancellableResult<Void, Error>) -> Void)? = nil
+    private var webPageContinuation: CheckedContinuation<Void, Never>? = nil
 }
 
 extension LCPDefaultRenewDelegate: UIAdaptivePresentationControllerDelegate {
     public func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
-        webPageCallback?(.success(()))
-        webPageCallback = nil
+        webPageContinuation?.resume(returning: ())
+        webPageContinuation = nil
     }
 }
 
 extension LCPDefaultRenewDelegate: SFSafariViewControllerDelegate {
     public func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
-        webPageCallback?(.success(()))
-        webPageCallback = nil
+        webPageContinuation?.resume(returning: ())
+        webPageContinuation = nil
     }
 }
