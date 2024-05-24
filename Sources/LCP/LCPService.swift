@@ -6,6 +6,7 @@
 
 import Foundation
 import ReadiumShared
+import UIKit
 
 /// Service used to acquire and open publications protected with LCP.
 ///
@@ -20,7 +21,13 @@ public final class LCPService: Loggable {
     private let licenses: LicensesService
     private let passphrases: PassphrasesRepository
 
-    public init(client: LCPClient, httpClient: HTTPClient = DefaultHTTPClient()) {
+    /// - Parameter deviceName: Device name used when registering a license to an LSD server.
+    ///   If not provided, the device name will be the default `UIDevice.current.name`.
+    public init(
+        client: LCPClient,
+        httpClient: HTTPClient = DefaultHTTPClient(),
+        deviceName: String? = nil
+    ) {
         // Determine whether the embedded liblcp.a is in production mode, by attempting to open a production license.
         let isProduction: Bool = {
             guard
@@ -40,7 +47,11 @@ public final class LCPService: Loggable {
             client: client,
             licenses: db.licenses,
             crl: CRLService(httpClient: httpClient),
-            device: DeviceService(repository: db.licenses, httpClient: httpClient),
+            device: DeviceService(
+                deviceName: deviceName ?? UIDevice.current.name,
+                repository: db.licenses,
+                httpClient: httpClient
+            ),
             httpClient: httpClient,
             passphrases: PassphrasesService(client: client, repository: passphrases)
         )

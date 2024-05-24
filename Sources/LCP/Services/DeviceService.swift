@@ -6,13 +6,20 @@
 
 import Foundation
 import ReadiumShared
-import UIKit
 
 final class DeviceService {
     private let repository: DeviceRepository
     private let httpClient: HTTPClient
 
-    init(repository: DeviceRepository, httpClient: HTTPClient) {
+    /// Returns the device's name.
+    var name: String
+
+    init(
+        deviceName: String,
+        repository: DeviceRepository,
+        httpClient: HTTPClient
+    ) {
+        name = deviceName
         self.repository = repository
         self.httpClient = httpClient
     }
@@ -26,11 +33,6 @@ final class DeviceService {
             return deviceId.description
         }
         return deviceId
-    }
-
-    // Returns the device's name.
-    var name: String {
-        UIDevice.current.name
     }
 
     // Device ID and name as query parameters for HTTP requests.
