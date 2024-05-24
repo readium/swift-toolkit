@@ -172,10 +172,10 @@ export function scrollToPosition(position, dir) {
 
 // Scrolls to the first occurrence of the given text snippet.
 //
-// The expected text argument is a Locator Text object, as defined here:
+// The expected text argument is a Locator object, as defined here:
 // https://readium.org/architecture/models/locators/
-export function scrollToText(text) {
-  let range = rangeFromLocator({ text });
+export function scrollToLocator(locator) {
+  let range = rangeFromLocator(locator);
   if (!range) {
     return false;
   }

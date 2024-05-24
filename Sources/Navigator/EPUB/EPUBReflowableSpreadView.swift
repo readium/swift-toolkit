@@ -254,9 +254,9 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         case let .locator(locator):
             go(to: locator) { _ in completion() }
         case .start:
-            go(toProgression: 0) { _ in completion() }
+            scroll(toProgression: 0) { _ in completion() }
         case .end:
-            go(toProgression: 1) { _ in completion() }
+            scroll(toProgression: 1) { _ in completion() }
         }
     }
 
@@ -268,18 +268,18 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
 
         if locator.text.highlight != nil {
-            go(toText: locator.text, completion: completion)
+            scroll(toLocator: locator, completion: completion)
             // FIXME: find the first fragment matching a tag ID (need a regex)
         } else if let id = locator.locations.fragments.first, !id.isEmpty {
-            go(toTagID: id, completion: completion)
+            scroll(toTagID: id, completion: completion)
         } else {
             let progression = locator.locations.progression ?? 0
-            go(toProgression: progression, completion: completion)
+            scroll(toProgression: progression, completion: completion)
         }
     }
 
     /// Scrolls at given progression (from 0.0 to 1.0)
-    private func go(toProgression progression: Double, completion: @escaping (Bool) -> Void) {
+    private func scroll(toProgression progression: Double, completion: @escaping (Bool) -> Void) {
         guard progression >= 0, progression <= 1 else {
             log(.warning, "Scrolling to invalid progression \(progression)")
             completion(false)
@@ -301,7 +301,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
 
     /// Scrolls at the tag with ID `tagID`.
-    private func go(toTagID tagID: String, completion: @escaping (Bool) -> Void) {
+    private func scroll(toTagID tagID: String, completion: @escaping (Bool) -> Void) {
         evaluateScript("readium.scrollToId(\'\(tagID)\');") { result in
             switch result {
             case let .success(value):
@@ -314,12 +314,12 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
 
     /// Scrolls at the snippet matching the given text context.
-    private func go(toText text: Locator.Text, completion: @escaping (Bool) -> Void) {
-        guard let json = text.jsonString else {
+    private func scroll(toLocator locator: Locator, completion: @escaping (Bool) -> Void) {
+        guard let json = locator.jsonString else {
             completion(false)
             return
         }
-        evaluateScript("readium.scrollToText(\(json));") { result in
+        evaluateScript("readium.scrollToLocator(\(json));") { result in
             switch result {
             case let .success(value):
                 completion((value as? Bool) ?? false)
