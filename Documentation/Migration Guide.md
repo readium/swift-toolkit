@@ -2,6 +2,13 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
+## Unreleased
+
+### Async APIs
+
+Plenty of completion-based APIs were changed to use `async` functions instead. Follow the deprecation warnings to update your codebase.
+
+
 ## 3.0.0-alpha.1
 
 ### R2 prefix dropped
