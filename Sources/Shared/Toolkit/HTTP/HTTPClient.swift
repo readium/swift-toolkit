@@ -145,21 +145,21 @@ public extension HTTPClient {
         }
     }
 
-    @available(*, deprecated, message: "Use the async variant.")
+    @available(*, unavailable, message: "Use the async variant.")
     func stream(_ request: HTTPRequestConvertible, receiveResponse: ((HTTPResponse) -> Void)?, consume: @escaping (_ chunk: Data, _ progress: Double?) -> Void, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
         CancellableTask(task: Task {
             await completion(stream(request: request, consume: consume))
         })
     }
 
-    @available(*, deprecated, message: "Use the async variant.")
+    @available(*, unavailable, message: "Use the async variant.")
     func stream(_ request: HTTPRequestConvertible, consume: @escaping (Data, Double?) -> Void, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
         CancellableTask(task: Task {
             await completion(stream(request: request, consume: consume))
         })
     }
 
-    @available(*, deprecated, message: "Use the async variant.")
+    @available(*, unavailable, message: "Use the async variant.")
     func fetch(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
         CancellableTask(task: Task {
             await completion(fetch(request))

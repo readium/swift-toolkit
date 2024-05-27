@@ -61,18 +61,21 @@ public final class HTTPFetcher: Fetcher, Loggable {
         var file: FileURL? { nil }
 
         func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void, completion: @escaping (ResourceResult<Void>) -> Void) -> Cancellable {
-            var request = HTTPRequest(url: url)
-            if let range = range {
-                request.setRange(range)
-            }
-
-            return client.stream(
-                request,
-                consume: { data, _ in consume(data) },
-                completion: { result in
-                    completion(result.map { _ in }.mapError { ResourceError.wrap($0) })
+            let request = {
+                var request = HTTPRequest(url: url)
+                if let range = range {
+                    request.setRange(range)
                 }
-            )
+                return request
+            }()
+
+            return CancellableTask(task: Task {
+                let result = await client.stream(
+                    request: request,
+                    consume: { data, _ in consume(data) }
+                )
+                completion(result.map { _ in }.mapError { ResourceError.wrap($0) })
+            })
         }
 
         func close() {}
