@@ -44,4 +44,5 @@ targets:
       - package: MBProgressHUD
     settings:
       DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}
+      SWIFT_STRICT_CONCURRENCY: complete
 

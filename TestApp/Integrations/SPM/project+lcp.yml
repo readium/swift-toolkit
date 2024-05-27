@@ -52,3 +52,4 @@ targets:
     settings:
       OTHER_SWIFT_FLAGS: -DLCP
       DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}
+      SWIFT_STRICT_CONCURRENCY: complete

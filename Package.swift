@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.9
 //
 //  Copyright 2021 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
@@ -47,6 +47,9 @@ let package = Package(
             resources: [
                 .process("Resources"),
             ],
+            swiftSettings: [
+                .enableExperimentalFeature("StrictConcurrency")
+            ],
             linkerSettings: [
                 .linkedFramework("CoreServices"),
                 .linkedFramework("UIKit"),
@@ -73,6 +76,9 @@ let package = Package(
             path: "Sources/Streamer",
             resources: [
                 .copy("Assets"),
+            ],
+            swiftSettings: [
+                .enableExperimentalFeature("StrictConcurrency")
             ]
         ),
         .testTarget(
@@ -99,6 +105,9 @@ let package = Package(
             resources: [
                 .copy("EPUB/Assets"),
                 .process("Resources"),
+            ],
+            swiftSettings: [
+                .enableExperimentalFeature("StrictConcurrency")
             ]
         ),
         .testTarget(
@@ -113,7 +122,10 @@ let package = Package(
                 "Fuzi",
                 "ReadiumShared",
             ],
-            path: "Sources/OPDS"
+            path: "Sources/OPDS",
+            swiftSettings: [
+                .enableExperimentalFeature("StrictConcurrency")
+            ]
         ),
         .testTarget(
             name: "ReadiumOPDSTests",
@@ -135,6 +147,9 @@ let package = Package(
             path: "Sources/LCP",
             resources: [
                 .process("Resources"),
+            ],
+            swiftSettings: [
+                .enableExperimentalFeature("StrictConcurrency")
             ]
         ),
         // These tests require a R2LCPClient.framework to run.
@@ -154,12 +169,18 @@ let package = Package(
                 .product(name: "ReadiumGCDWebServer", package: "GCDWebServer"),
                 "ReadiumShared",
             ],
-            path: "Sources/Adapters/GCDWebServer"
+            path: "Sources/Adapters/GCDWebServer",
+            swiftSettings: [
+                .enableExperimentalFeature("StrictConcurrency")
+            ]
         ),
 
         .target(
             name: "ReadiumInternal",
-            path: "Sources/Internal"
+            path: "Sources/Internal",
+            swiftSettings: [
+                .enableExperimentalFeature("StrictConcurrency")
+            ]
         ),
         .testTarget(
             name: "ReadiumInternalTests",
