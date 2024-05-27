@@ -298,6 +298,7 @@
 ../../Sources/Internal/Extensions/Date+ISO8601.swift
 ../../Sources/Internal/Extensions/Double.swift
 ../../Sources/Internal/Extensions/NSRegularExpression.swift
+../../Sources/Internal/Extensions/Result.swift
 ../../Sources/Internal/Extensions/String.swift
 ../../Sources/Internal/Extensions/URL.swift
 ../../Sources/Internal/JSON.swift
@@ -312,10 +313,14 @@
 ../../Sources/LCP/Content Protection
 ../../Sources/LCP/Content Protection/LCPContentProtection.swift
 ../../Sources/LCP/Content Protection/LCPDecryptor.swift
+../../Sources/LCP/LCPAcquiredPublication.swift
 ../../Sources/LCP/LCPAcquisition.swift
 ../../Sources/LCP/LCPClient.swift
 ../../Sources/LCP/LCPError.swift
 ../../Sources/LCP/LCPLicense.swift
+../../Sources/LCP/LCPLicenseRepository.swift
+../../Sources/LCP/LCPPassphraseRepository.swift
+../../Sources/LCP/LCPProgress.swift
 ../../Sources/LCP/LCPRenewDelegate.swift
 ../../Sources/LCP/LCPService.swift
 ../../Sources/LCP/License
@@ -347,25 +352,21 @@
 ../../Sources/LCP/Persistence
 ../../Sources/LCP/Persistence/Connection.swift
 ../../Sources/LCP/Persistence/Database.swift
-../../Sources/LCP/Persistence/Licenses.swift
-../../Sources/LCP/Persistence/Transactions.swift
+../../Sources/LCP/Persistence/SQLiteLCPLicenseRepository.swift
+../../Sources/LCP/Persistence/SQLiteLCPPassphraseRepository.swift
 ../../Sources/LCP/Resources
 ../../Sources/LCP/Resources/en.lproj
 ../../Sources/LCP/Resources/en.lproj/Localizable.strings
 ../../Sources/LCP/Resources/prod-license.lcpl
 ../../Sources/LCP/Services
 ../../Sources/LCP/Services/CRLService.swift
-../../Sources/LCP/Services/DeviceRepository.swift
 ../../Sources/LCP/Services/DeviceService.swift
-../../Sources/LCP/Services/LicensesRepository.swift
 ../../Sources/LCP/Services/LicensesService.swift
-../../Sources/LCP/Services/PassphrasesRepository.swift
 ../../Sources/LCP/Services/PassphrasesService.swift
 ../../Sources/LCP/Toolkit
 ../../Sources/LCP/Toolkit/Bundle.swift
 ../../Sources/LCP/Toolkit/DataCompression.swift
 ../../Sources/LCP/Toolkit/Deferred.swift
-../../Sources/LCP/Toolkit/HTTPClient.swift
 ../../Sources/LCP/Toolkit/ReadiumLCPLocalizedString.swift
 ../../Sources/Navigator
 ../../Sources/Navigator/Audiobook
@@ -625,7 +626,6 @@
 ../../Sources/Shared/Publication/Services/Content
 ../../Sources/Shared/Publication/Services/Content Protection
 ../../Sources/Shared/Publication/Services/Content Protection/ContentProtectionService.swift
-../../Sources/Shared/Publication/Services/Content Protection/ContentProtectionService+WS.swift
 ../../Sources/Shared/Publication/Services/Content Protection/UserRights.swift
 ../../Sources/Shared/Publication/Services/Content/Content.swift
 ../../Sources/Shared/Publication/Services/Content/ContentService.swift
