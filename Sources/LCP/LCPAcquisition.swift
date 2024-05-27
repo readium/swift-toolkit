@@ -10,8 +10,10 @@ import ReadiumShared
 /// Represents an on-going LCP acquisition task.
 ///
 /// You can cancel the on-going download with `acquisition.cancel()`.
-public final class LCPAcquisition: Loggable, Cancellable {
+@available(*, deprecated)
+public final class LCPAcquisition: Loggable {
     /// Informations about an acquired publication protected with LCP.
+    @available(*, unavailable, renamed: "LCPAcquiredPublication")
     public struct Publication {
         /// Path to the downloaded publication.
         /// You must move this file to the user library's folder.
@@ -21,6 +23,7 @@ public final class LCPAcquisition: Loggable, Cancellable {
         public let suggestedFilename: String
     }
 
+    @available(*, unavailable, renamed: "LCPProgress")
     /// Percent-based progress of the acquisition.
     public enum Progress {
         /// Undetermined progress, a spinner should be shown to the user.
@@ -30,32 +33,6 @@ public final class LCPAcquisition: Loggable, Cancellable {
     }
 
     /// Cancels the acquisition.
-    public func cancel() {
-        cancellable.cancel()
-        didComplete(with: .cancelled)
-    }
-
-    let onProgress: (Progress) -> Void
-    var cancellable = MediatorCancellable()
-
-    private var isCompleted = false
-    private let completion: (CancellableResult<Publication, LCPError>) -> Void
-
-    init(onProgress: @escaping (Progress) -> Void, completion: @escaping (CancellableResult<Publication, LCPError>) -> Void) {
-        self.onProgress = onProgress
-        self.completion = completion
-    }
-
-    func didComplete(with result: CancellableResult<Publication, LCPError>) {
-        guard !isCompleted else {
-            return
-        }
-        isCompleted = true
-
-        completion(result)
-
-        if case let .success(publication) = result, (try? publication.localURL.exists()) == true {
-            log(.warning, "The acquired LCP publication file was not moved in the completion closure. It will be removed from the file system.")
-        }
-    }
+    @available(*, unavailable, message: "This is not needed with the new async variants")
+    public func cancel() {}
 }

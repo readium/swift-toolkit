@@ -29,8 +29,8 @@ final class AppModule {
     init() throws {
         let httpClient = DefaultHTTPClient()
 
-        let file = Paths.library.appendingPathComponent("database.db")
-        let db = try Database(file: file)
+        let file = Paths.library.appendingPath("database.db", isDirectory: false)
+        let db = try Database(file: file.url)
         print("Created database at \(file.path)")
 
         let books = BookRepository(db: db)
@@ -86,7 +86,9 @@ extension AppModule: ReaderModuleDelegate {}
 
 extension AppModule: OPDSModuleDelegate {
     func opdsDownloadPublication(_ publication: Publication?, at link: Link, sender: UIViewController) async throws -> Book {
-        let url = try link.url(relativeTo: publication?.baseURL)
-        return try await library.importPublication(from: url.url, sender: sender)
+        guard let url = try link.url(relativeTo: publication?.baseURL).absoluteURL else {
+            throw OPDSError.invalidURL(link.href)
+        }
+        return try await library.importPublication(from: url, sender: sender)
     }
 }

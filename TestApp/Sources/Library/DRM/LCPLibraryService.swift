@@ -14,42 +14,37 @@
     import UIKit
 
     class LCPLibraryService: DRMLibraryService {
-        private var lcpService = LCPService(client: LCPClient())
+        private var lcpService = LCPService(
+            client: LCPClient(),
+            licenseRepository: SQLiteLCPLicenseRepository(),
+            passphraseRepository: SQLiteLCPPassphraseRepository(),
+            httpClient: DefaultHTTPClient()
+        )
 
         lazy var contentProtection: ContentProtection? = lcpService.contentProtection()
 
-        func canFulfill(_ file: URL) -> Bool {
-            file.pathExtension.lowercased() == "lcpl"
+        func canFulfill(_ file: FileURL) -> Bool {
+            file.pathExtension?.lowercased() == "lcpl"
         }
 
-        func fulfill(_ file: URL) async throws -> DRMFulfilledPublication? {
-            try await withCheckedThrowingContinuation { cont in
-                lcpService.acquirePublication(from: FileURL(url: file)!) { result in
-                    // Removes the license file, but only if it's in the App directory (e.g. Inbox/).
-                    // Otherwise we might delete something from a shared location (e.g. iCloud).
-                    if Paths.isAppFile(at: file) {
-                        try? FileManager.default.removeItem(at: file)
-                    }
-
-                    switch result {
-                    case let .success(pub):
-                        cont.resume(returning: DRMFulfilledPublication(
-                            localURL: pub.localURL.url,
-                            suggestedFilename: pub.suggestedFilename
-                        ))
-                    case let .failure(error):
-                        cont.resume(throwing: error)
-                    case .cancelled:
-                        cont.resume(returning: nil)
-                    }
-                }
+        func fulfill(_ file: FileURL) async throws -> DRMFulfilledPublication? {
+            let pub = try await lcpService.acquirePublication(from: file).get()
+            // Removes the license file, but only if it's in the App directory (e.g. Inbox/).
+            // Otherwise we might delete something from a shared location (e.g. iCloud).
+            if Paths.isAppFile(at: file) {
+                try? FileManager.default.removeItem(at: file.url)
             }
+
+            return DRMFulfilledPublication(
+                localURL: pub.localURL,
+                suggestedFilename: pub.suggestedFilename
+            )
         }
     }
 
     /// Facade to the private R2LCPClient.framework.
     class LCPClient: ReadiumLCP.LCPClient {
-        func createContext(jsonLicense: String, hashedPassphrase: String, pemCrl: String) throws -> LCPClientContext {
+        func createContext(jsonLicense: String, hashedPassphrase: LCPPassphraseHash, pemCrl: String) throws -> LCPClientContext {
             try R2LCPClient.createContext(jsonLicense: jsonLicense, hashedPassphrase: hashedPassphrase, pemCrl: pemCrl)
         }
 
@@ -57,7 +52,7 @@
             R2LCPClient.decrypt(data: data, using: context as! DRMContext)
         }
 
-        func findOneValidPassphrase(jsonLicense: String, hashedPassphrases: [String]) -> String? {
+        func findOneValidPassphrase(jsonLicense: String, hashedPassphrases: [LCPPassphraseHash]) -> LCPPassphraseHash? {
             R2LCPClient.findOneValidPassphrase(jsonLicense: jsonLicense, hashedPassphrases: hashedPassphrases)
         }
     }

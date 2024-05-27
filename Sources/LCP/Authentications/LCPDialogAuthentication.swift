@@ -24,21 +24,29 @@ public class LCPDialogAuthentication: LCPAuthenticating, Loggable {
         self.modalTransitionStyle = modalTransitionStyle
     }
 
-    public func retrievePassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, allowUserInteraction: Bool, sender: Any?, completion: @escaping (String?) -> Void) {
+    public func retrievePassphrase(
+        for license: LCPAuthenticatedLicense,
+        reason: LCPAuthenticationReason,
+        allowUserInteraction: Bool,
+        sender: Any?
+    ) async -> String? {
         guard allowUserInteraction, let viewController = sender as? UIViewController else {
             if !(sender is UIViewController) {
                 log(.error, "Tried to present the LCP dialog without providing a `UIViewController` as `sender`")
             }
-            completion(nil)
-            return
+            return nil
         }
 
-        let dialogViewController = LCPDialogViewController(license: license, reason: reason, completion: completion)
+        return await withCheckedContinuation { continuation in
+            let dialogViewController = LCPDialogViewController(license: license, reason: reason) { passphrase in
+                continuation.resume(returning: passphrase)
+            }
 
-        let navController = UINavigationController(rootViewController: dialogViewController)
-        navController.modalPresentationStyle = modalPresentationStyle
-        navController.modalTransitionStyle = modalTransitionStyle
+            let navController = UINavigationController(rootViewController: dialogViewController)
+            navController.modalPresentationStyle = modalPresentationStyle
+            navController.modalTransitionStyle = modalTransitionStyle
 
-        viewController.present(navController, animated: animated)
+            viewController.present(navController, animated: animated)
+        }
     }
 }

@@ -8,11 +8,11 @@ import ReadiumNavigator
 import ReadiumShared
 import UIKit
 
-protocol DRMManagementTableViewControllerFactory {
-    func make(publication: Publication, delegate: ReaderModuleDelegate?) -> DRMManagementTableViewController
+protocol LCPManagementTableViewControllerFactory {
+    func make(publication: Publication, delegate: ReaderModuleDelegate?) -> LCPManagementTableViewController?
 }
 
-class DRMManagementTableViewController: UITableViewController {
+class LCPManagementTableViewController: UITableViewController {
     @IBOutlet var stateLabel: UILabel!
     @IBOutlet var typeLabel: UILabel!
     @IBOutlet var providerLabel: UILabel!
@@ -27,7 +27,7 @@ class DRMManagementTableViewController: UITableViewController {
     @IBOutlet var renewButton: UIButton!
     @IBOutlet var returnButton: UIButton!
 
-    public var viewModel: DRMViewModel!
+    public var viewModel: LCPViewModel!
 
     weak var moduleDelegate: ReaderModuleDelegate?
 
@@ -43,16 +43,18 @@ class DRMManagementTableViewController: UITableViewController {
             preferredStyle: .alert
         )
         let confirmButton = UIAlertAction(title: NSLocalizedString("confirm_button", comment: "Confirmation button to renew a publication"), style: .default, handler: { _ in
-            self.viewModel.renewLoan { error in
-                if let error = error {
-                    self.moduleDelegate?.presentError(error, from: self)
-                } else {
+            Task {
+                do {
+                    try await self.viewModel.renewLoan()
                     self.reload()
                     self.moduleDelegate?.presentAlert(
                         NSLocalizedString("success_title", comment: "Title for the success message after renewing a publication"),
                         message: NSLocalizedString("reader_drm_renew_success_message", comment: "Success message after renewing a publication"),
                         from: self
                     )
+
+                } catch {
+                    self.moduleDelegate?.presentError(error, from: self)
                 }
             }
         })
@@ -71,16 +73,19 @@ class DRMManagementTableViewController: UITableViewController {
             preferredStyle: .alert
         )
         let confirmButton = UIAlertAction(title: NSLocalizedString("confirm_button", comment: "Confirmation button to return a publication"), style: .destructive, handler: { _ in
-            self.viewModel.returnPublication { error in
-                if let error = error {
-                    self.moduleDelegate?.presentError(error, from: self)
-                } else {
+            Task {
+                do {
+                    try await self.viewModel.returnPublication()
+
                     self.navigationController?.popToRootViewController(animated: true)
                     self.moduleDelegate?.presentAlert(
                         NSLocalizedString("success_title", comment: "Title for the success message after returning a publication"),
                         message: NSLocalizedString("reader_drm_return_success_message", comment: "Success message after returning a publication"),
                         from: self
                     )
+
+                } catch {
+                    self.moduleDelegate?.presentError(error, from: self)
                 }
             }
         })
@@ -93,16 +98,19 @@ class DRMManagementTableViewController: UITableViewController {
     }
 
     internal func reload() {
-        typeLabel.text = viewModel.name
+        typeLabel.text = "Readium LCP"
         stateLabel.text = viewModel.state
         providerLabel.text = viewModel.provider
         issuedLabel.text = viewModel.issued?.description
         updatedLabel.text = viewModel.updated?.description
         startLabel.text = viewModel.start?.description ?? "-"
         endLabel.text = viewModel.end?.description ?? "-"
-        printsLeftLabel.text = viewModel.printsLeft
-        copiesLeftLabel.text = viewModel.copiesLeft
         renewButton.isEnabled = viewModel.canRenewLoan
         returnButton.isEnabled = viewModel.canReturnPublication
+
+        Task {
+            printsLeftLabel.text = await viewModel.printsLeft()
+            copiesLeftLabel.text = await viewModel.copiesLeft()
+        }
     }
 }

@@ -14,7 +14,8 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Changed
 
-The Readium Swift toolkit now requires a minimum of iOS 13.
+* The Readium Swift toolkit now requires a minimum of iOS 13.
+* Plenty of completion-based APIs were changed to use `async` functions instead.
 
 #### Shared
 

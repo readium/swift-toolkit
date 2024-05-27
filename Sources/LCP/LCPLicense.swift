@@ -19,11 +19,11 @@ public protocol LCPLicense: UserRights {
 
     /// Number of remaining characters allowed to be copied by the user.
     /// If nil, there's no limit.
-    var charactersToCopyLeft: Int? { get }
+    func charactersToCopyLeft() async -> Int?
 
     /// Number of pages allowed to be printed by the user.
     /// If nil, there's no limit.
-    var pagesToPrintLeft: Int? { get }
+    func pagesToPrintLeft() async -> Int?
 
     /// Can the user renew the loaned publication?
     var canRenewLoan: Bool { get }
@@ -36,17 +36,20 @@ public protocol LCPLicense: UserRights {
     ///
     /// - Parameter prefersWebPage: Indicates whether the loan should be renewed through a web page if available,
     ///   instead of programmatically.
-    func renewLoan(with delegate: LCPRenewDelegate, prefersWebPage: Bool, completion: @escaping (CancellableResult<Void, LCPError>) -> Void)
+    func renewLoan(
+        with delegate: LCPRenewDelegate,
+        prefersWebPage: Bool
+    ) async -> Result<Void, LCPError>
 
     /// Can the user return the loaned publication?
     var canReturnPublication: Bool { get }
 
     /// Returns the publication to its provider.
-    func returnPublication(completion: @escaping (LCPError?) -> Void)
+    func returnPublication() async -> Result<Void, LCPError>
 }
 
 public extension LCPLicense {
-    func renewLoan(with delegate: LCPRenewDelegate, completion: @escaping (CancellableResult<Void, LCPError>) -> Void) {
-        renewLoan(with: delegate, prefersWebPage: false, completion: completion)
+    func renewLoan(with delegate: LCPRenewDelegate) async -> Result<Void, LCPError> {
+        await renewLoan(with: delegate, prefersWebPage: false)
     }
 }

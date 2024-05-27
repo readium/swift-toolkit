@@ -31,13 +31,13 @@ import Foundation
 ///      }
 public protocol LCPClient {
     /// Create a context for a given license/passphrase tuple.
-    func createContext(jsonLicense: String, hashedPassphrase: String, pemCrl: String) throws -> LCPClientContext
+    func createContext(jsonLicense: String, hashedPassphrase: LCPPassphraseHash, pemCrl: String) throws -> LCPClientContext
 
     /// Decrypt provided content, given a valid context is provided.
     func decrypt(data: Data, using context: LCPClientContext) -> Data?
 
     /// Given an array of possible password hashes, return a valid password hash for the lcpl licence.
-    func findOneValidPassphrase(jsonLicense: String, hashedPassphrases: [String]) -> String?
+    func findOneValidPassphrase(jsonLicense: String, hashedPassphrases: [LCPPassphraseHash]) -> LCPPassphraseHash?
 }
 
 public typealias LCPClientContext = Any
