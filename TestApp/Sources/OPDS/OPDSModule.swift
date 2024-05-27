@@ -9,6 +9,10 @@ import Foundation
 import ReadiumShared
 import UIKit
 
+enum OPDSError: Error {
+    case invalidURL(String)
+}
+
 /// The OPDS module handles the presentation of OPDS catalogs.
 protocol OPDSModuleAPI {
     var delegate: OPDSModuleDelegate? { get }

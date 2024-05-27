@@ -9,7 +9,7 @@ import Foundation
 import ReadiumShared
 
 struct DRMFulfilledPublication {
-    let localURL: URL
+    let localURL: FileURL
     let suggestedFilename: String
 }
 
@@ -19,8 +19,8 @@ protocol DRMLibraryService {
     var contentProtection: ContentProtection? { get }
 
     /// Returns whether this DRM can fulfill the given file into a protected publication.
-    func canFulfill(_ file: URL) -> Bool
+    func canFulfill(_ file: FileURL) -> Bool
 
     /// Fulfills the given file to the fully protected publication.
-    func fulfill(_ file: URL) async throws -> DRMFulfilledPublication?
+    func fulfill(_ file: FileURL) async throws -> DRMFulfilledPublication?
 }

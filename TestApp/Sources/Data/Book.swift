@@ -65,8 +65,8 @@ struct Book: Codable {
         self.preferencesJSON = preferencesJSON
     }
 
-    var cover: URL? {
-        coverPath.map { Paths.covers.appendingPathComponent($0) }
+    var cover: FileURL? {
+        coverPath.map { Paths.covers.appendingPath($0, isDirectory: false) }
     }
 
     func preferences<P: Decodable>() throws -> P? {
