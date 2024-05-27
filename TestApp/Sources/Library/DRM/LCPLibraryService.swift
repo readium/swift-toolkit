@@ -44,7 +44,7 @@
 
     /// Facade to the private R2LCPClient.framework.
     class LCPClient: ReadiumLCP.LCPClient {
-        func createContext(jsonLicense: String, hashedPassphrase: String, pemCrl: String) throws -> LCPClientContext {
+        func createContext(jsonLicense: String, hashedPassphrase: LCPPassphraseHash, pemCrl: String) throws -> LCPClientContext {
             try R2LCPClient.createContext(jsonLicense: jsonLicense, hashedPassphrase: hashedPassphrase, pemCrl: pemCrl)
         }
 
@@ -52,7 +52,7 @@
             R2LCPClient.decrypt(data: data, using: context as! DRMContext)
         }
 
-        func findOneValidPassphrase(jsonLicense: String, hashedPassphrases: [String]) -> String? {
+        func findOneValidPassphrase(jsonLicense: String, hashedPassphrases: [LCPPassphraseHash]) -> LCPPassphraseHash? {
             R2LCPClient.findOneValidPassphrase(jsonLicense: jsonLicense, hashedPassphrases: hashedPassphrases)
         }
     }

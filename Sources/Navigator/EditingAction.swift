@@ -186,17 +186,16 @@ final class EditingActionsController {
     }
 
     /// Copies the authorized portion of the selection text into the pasteboard.
-    func copy() {
-        Task {
-            guard let text = selection?.locator.text.highlight else {
-                return
-            }
-            guard await rights.copy(text: text) else {
-                delegate?.editingActionsDidPreventCopy(self)
-                return
-            }
-
-            UIPasteboard.general.string = text
+    @MainActor
+    func copy() async {
+        guard let text = selection?.locator.text.highlight else {
+            return
         }
+        guard await rights.copy(text: text) else {
+            delegate?.editingActionsDidPreventCopy(self)
+            return
+        }
+
+        UIPasteboard.general.string = text
     }
 }

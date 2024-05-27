@@ -10,6 +10,7 @@ import ReadiumShared
 /// Represents an on-going LCP acquisition task.
 ///
 /// You can cancel the on-going download with `acquisition.cancel()`.
+@available(*, deprecated)
 public final class LCPAcquisition: Loggable {
     /// Informations about an acquired publication protected with LCP.
     @available(*, unavailable, renamed: "LCPAcquiredPublication")

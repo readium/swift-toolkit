@@ -19,7 +19,7 @@ public protocol HTTPClient: Loggable {
     ///   - consume: Callback called for each chunk of data received. Callers are responsible to accumulate the data
     ///     if needed.
     func stream(
-        _ request: HTTPRequestConvertible,
+        request: HTTPRequestConvertible,
         consume: @escaping (_ chunk: Data, _ progress: Double?) -> Void
     ) async -> HTTPResult<HTTPResponse>
 }
@@ -28,8 +28,10 @@ public extension HTTPClient {
     /// Fetches the resource from the given `request`.
     func fetch(_ request: HTTPRequestConvertible) async -> HTTPResult<HTTPResponse> {
         var data = Data()
-        let response = await stream(request,
-                                    consume: { chunk, _ in data.append(chunk) })
+        let response = await stream(
+            request: request,
+            consume: { chunk, _ in data.append(chunk) }
+        )
 
         return response
             .map {
@@ -108,7 +110,7 @@ public extension HTTPClient {
         }
 
         let result = await stream(
-            request,
+            request: request,
             consume: { data, progression in
                 fileHandle.seekToEndOfFile()
                 fileHandle.write(data)
@@ -146,14 +148,14 @@ public extension HTTPClient {
     @available(*, deprecated, message: "Use the async variant.")
     func stream(_ request: HTTPRequestConvertible, receiveResponse: ((HTTPResponse) -> Void)?, consume: @escaping (_ chunk: Data, _ progress: Double?) -> Void, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
         CancellableTask(task: Task {
-            await completion(stream(request, consume: consume))
+            await completion(stream(request: request, consume: consume))
         })
     }
 
     @available(*, deprecated, message: "Use the async variant.")
     func stream(_ request: HTTPRequestConvertible, consume: @escaping (Data, Double?) -> Void, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
         CancellableTask(task: Task {
-            await completion(stream(request, consume: consume))
+            await completion(stream(request: request, consume: consume))
         })
     }
 

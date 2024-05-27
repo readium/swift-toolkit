@@ -9,11 +9,11 @@ import Foundation
 public extension Result {
     /// Asynchronous variant of `map`.
     @inlinable func map<NewSuccess>(
-        _ transform: (Success) async -> NewSuccess
-    ) async -> Result<NewSuccess, Failure> {
+        _ transform: (Success) async throws -> NewSuccess
+    ) async rethrows -> Result<NewSuccess, Failure> {
         switch self {
         case let .success(success):
-            return await .success(transform(success))
+            return try await .success(transform(success))
         case let .failure(error):
             return .failure(error)
         }
@@ -21,24 +21,24 @@ public extension Result {
 
     /// Asynchronous variant of `flatMap`.
     @inlinable func flatMap<NewSuccess>(
-        _ transform: (Success) async -> Result<NewSuccess, Failure>
-    ) async -> Result<NewSuccess, Failure> {
+        _ transform: (Success) async throws -> Result<NewSuccess, Failure>
+    ) async rethrows -> Result<NewSuccess, Failure> {
         switch self {
         case let .success(success):
-            return await transform(success)
+            return try await transform(success)
         case let .failure(error):
             return .failure(error)
         }
     }
 
     @inlinable func recover(
-        _ catching: (Failure) async -> Self
-    ) async -> Self {
+        _ catching: (Failure) async throws -> Self
+    ) async rethrows -> Self {
         switch self {
         case let .success(success):
             return .success(success)
         case let .failure(error):
-            return await catching(error)
+            return try await catching(error)
         }
     }
 }

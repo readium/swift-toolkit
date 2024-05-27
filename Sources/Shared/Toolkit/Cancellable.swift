@@ -12,6 +12,7 @@ public protocol Cancellable {
     func cancel()
 }
 
+// FIXME: Remove eventually
 public struct CancellableTask<Success, Failure: Error>: Cancellable {
     let task: Task<Success, Failure>
 

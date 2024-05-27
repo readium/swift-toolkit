@@ -51,7 +51,7 @@ struct ValidatedDocuments {
 ///
 /// Use `validate` to start the validation of a Document.
 /// Use `observe` to be notified when any validation is done or if an error occurs.
-final class LicenseValidation: Loggable {
+final actor LicenseValidation: Loggable {
     // Dependencies for the State's handlers
     fileprivate let isProduction: Bool
     fileprivate let client: LCPClient
@@ -268,7 +268,6 @@ extension LicenseValidation {
     }
 
     /// Should be called by the state handlers once they're done, to go to the next State.
-    @MainActor
     private func raise(_ event: Event) async throws {
         log(.debug, "-> on \(event)")
         try state.transition(event)
@@ -436,21 +435,27 @@ extension LicenseValidation {
         case always
     }
 
-    func observe(_ policy: ObserverPolicy = .always, _ observer: @escaping Observer) {
-        // If the state is already valid or a failure, we notify it to the observer right away.
-        var notified = true
-        switch state {
-        case let .valid(documents):
-            observer(.success(documents))
-        case let .failure(error):
-            observer(.failure(error))
-        default:
-            notified = false
-        }
+    nonisolated func observe(_ policy: ObserverPolicy = .always, _ observer: @escaping Observer) {
+        Task {
+            // If the state is already valid or a failure, we notify it to the observer right away.
+            var notified = true
+            switch await state {
+            case let .valid(documents):
+                observer(.success(documents))
+            case let .failure(error):
+                observer(.failure(error))
+            default:
+                notified = false
+            }
 
-        guard !notified || policy == .always else {
-            return
+            guard !notified || policy == .always else {
+                return
+            }
+            await addObserver(observer, policy: policy)
         }
+    }
+
+    private func addObserver(_ observer: @escaping Observer, policy: ObserverPolicy) {
         observers.append((observer, policy))
     }
 

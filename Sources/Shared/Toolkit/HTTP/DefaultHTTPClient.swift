@@ -181,90 +181,70 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
     }
 
     public func stream(
-        _ request: any HTTPRequestConvertible,
+        request: any HTTPRequestConvertible,
         consume: @escaping (Data, Double?) -> Void
     ) async -> HTTPResult<HTTPResponse> {
-//        let mediator = MediatorCancellable()
-//
-//        return await withTaskCancellationHandler {
-//            await withCheckedContinuation { continuation in
-//                stream(request, consume: consume, cancellable: mediator, continuation: continuation)
-//            }
-//        } onCancel: {
-//            mediator.cancel()
-//        }
+        await request.httpRequest()
+            .flatMap(willStartRequest)
+            .flatMap { request in
+                await startTask(for: request, consume: consume)
+                    .recover { error in
+                        await recover(request, from: error)
+                            .flatMap { newRequest in
+                                await stream(request: newRequest, consume: consume)
+                            }
+                    }
+            }
+    }
 
-        /// Attempts to start a `request`.
-        /// Will try to recover from errors using the `delegate` and calling itself again.
-        func tryStart(_ request: HTTPRequestConvertible) async -> HTTPResult<HTTPResponse> {
-            await request.httpRequest()
-                .flatMap(willStartRequest)
-                .flatMap { request in
-//                    try Task.checkCancellation()
+    /// Creates and starts a new task for the `request`, whose cancellable will be exposed through `mediator`.
+    private func startTask(for request: HTTPRequest, consume: @escaping HTTPTask.Consume) async -> HTTPResult<HTTPResponse> {
+        var request = request
+        if request.userAgent == nil {
+            request.userAgent = userAgent
+        }
 
-                    await startTask(for: request)
-                        .recover { error in
-//                            try Task.checkCancellation()
-
-                            await recoverRequest(request, fromError: error)
-                                .flatMap { newRequest in
-                                    await tryStart(newRequest)
-                                }
-                        }
+        let result = await tasks.start(
+            request: request,
+            task: session.dataTask(with: request.urlRequest),
+            receiveResponse: { [weak self] response in
+                if let self = self {
+                    self.delegate?.httpClient(self, request: request, didReceiveResponse: response)
                 }
+            },
+            receiveChallenge: { [weak self] challenge in
+                if let self = self, let delegate = self.delegate {
+                    return await delegate.httpClient(self, request: request, didReceive: challenge)
+                } else {
+                    return .performDefaultHandling
+                }
+            },
+            consume: consume
+        )
+
+        if let delegate = delegate, case let .failure(error) = result {
+            delegate.httpClient(self, request: request, didFailWithError: error)
         }
 
-        /// Creates and starts a new task for the `request`, whose cancellable will be exposed through `mediator`.
-        func startTask(for request: HTTPRequest) async -> HTTPResult<HTTPResponse> {
-            var request = request
-            if request.userAgent == nil {
-                request.userAgent = userAgent
-            }
+        return result
+    }
 
-            let result = await tasks.start(
-                request: request,
-                task: session.dataTask(with: request.urlRequest),
-                receiveResponse: { [weak self] response in
-                    if let self = self {
-                        self.delegate?.httpClient(self, request: request, didReceiveResponse: response)
-                    }
-                },
-                receiveChallenge: { [weak self] challenge in
-                    if let self = self, let delegate = self.delegate {
-                        return await delegate.httpClient(self, request: request, didReceive: challenge)
-                    } else {
-                        return .performDefaultHandling
-                    }
-                },
-                consume: consume
-            )
-
-            if let delegate = delegate, case let .failure(error) = result {
-                delegate.httpClient(self, request: request, didFailWithError: error)
-            }
-
-            return result
+    /// Lets the `delegate` customize the `request` if needed, before actually starting it.
+    private func willStartRequest(_ request: HTTPRequest) async -> HTTPResult<HTTPRequest> {
+        guard let delegate = delegate else {
+            return .success(request)
         }
+        return await delegate.httpClient(self, willStartRequest: request)
+            .flatMap { $0.httpRequest() }
+    }
 
-        /// Lets the `delegate` customize the `request` if needed, before actually starting it.
-        func willStartRequest(_ request: HTTPRequest) async -> HTTPResult<HTTPRequest> {
-            guard let delegate = delegate else {
-                return .success(request)
-            }
-            return await delegate.httpClient(self, willStartRequest: request)
-                .flatMap { $0.httpRequest() }
+    /// Attempts to recover from a `error` by asking the `delegate` for a new request.
+    private func recover(_ request: HTTPRequest, from error: HTTPError) async -> HTTPResult<HTTPRequestConvertible> {
+        if let delegate = delegate {
+            return await delegate.httpClient(self, recoverRequest: request, fromError: error)
+        } else {
+            return .failure(error)
         }
-
-        /// Attempts to recover from a `error` by asking the `delegate` for a new request.
-        func recoverRequest(_ request: HTTPRequest, fromError error: HTTPError) async -> HTTPResult<HTTPRequestConvertible> {
-            if let delegate = delegate {
-                return await delegate.httpClient(self, recoverRequest: request, fromError: error)
-            } else {
-                return .failure(error)
-            }
-        }
-
-        return await tryStart(request)
     }
 
     private class HTTPTaskManager: NSObject, URLSessionDataDelegate {
