@@ -77,13 +77,15 @@ final class ReaderModule: ReaderModuleAPI {
 
 extension ReaderModule: ReaderFormatModuleDelegate {
     func presentDRM(for publication: Publication, from viewController: UIViewController) {
-        guard let drmViewController: LCPManagementTableViewController = factory.make(publication: publication, delegate: delegate) else {
-            return
-        }
-        let backItem = UIBarButtonItem()
-        backItem.title = ""
-        drmViewController.navigationItem.backBarButtonItem = backItem
-        viewController.navigationController?.pushViewController(drmViewController, animated: true)
+        #if LCP
+            guard let drmViewController: LCPManagementTableViewController = factory.make(publication: publication, delegate: delegate) else {
+                return
+            }
+            let backItem = UIBarButtonItem()
+            backItem.title = ""
+            drmViewController.navigationItem.backBarButtonItem = backItem
+            viewController.navigationController?.pushViewController(drmViewController, animated: true)
+        #endif
     }
 
     func presentOutline(of publication: Publication, bookId: Book.Id, from viewController: UIViewController) -> AnyPublisher<Locator, Never> {
