@@ -18,6 +18,6 @@ Pod::Spec.new do |s|
 
   s.dependency 'ReadiumShared'
   s.dependency 'ReadiumInternal'
-  s.dependency 'Fuzi', '~> 3.0'
+  s.dependency 'Fuzi', '~> 3.1.0'
 
 end
