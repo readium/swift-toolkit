@@ -20,6 +20,7 @@ let package = Package(
 
         // Adapters to third-party dependencies.
         .library(name: "ReadiumAdapterGCDWebServer", targets: ["ReadiumAdapterGCDWebServer"]),
+        .library(name: "ReadiumAdapterLCPSQLite", targets: ["ReadiumAdapterLCPSQLite"]),
     ],
     dependencies: [
         .package(url: "https://github.com/cezheng/Fuzi.git", from: "3.1.3"),
@@ -129,8 +130,7 @@ let package = Package(
             dependencies: [
                 "CryptoSwift",
                 "ZIPFoundation",
-                "ReadiumShared",
-                .product(name: "SQLite", package: "SQLite.swift"),
+                "ReadiumShared"
             ],
             path: "Sources/LCP",
             resources: [
@@ -155,6 +155,15 @@ let package = Package(
                 "ReadiumShared",
             ],
             path: "Sources/Adapters/GCDWebServer"
+        ),
+
+        .target(
+            name: "ReadiumAdapterLCPSQLite",
+            dependencies: [
+                .product(name: "SQLite", package: "SQLite.swift"),
+                "ReadiumLCP",
+            ],
+            path: "Sources/Adapters/LCPSQLite"
         ),
 
         .target(

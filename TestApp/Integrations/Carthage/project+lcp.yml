@@ -32,6 +32,7 @@ targets:
       - framework: Carthage/Build/ReadiumShared.xcframework
       - framework: Carthage/Build/ReadiumStreamer.xcframework
       - framework: Carthage/Build/ReadiumAdapterGCDWebServer.xcframework
+      - framework: Carthage/Build/ReadiumAdapterLCPSQLite.xcframework
       - framework: Carthage/Build/ReadiumGCDWebServer.xcframework
       - framework: Carthage/Build/ReadiumInternal.xcframework
       - framework: Carthage/Build/ReadiumLCP.xcframework
