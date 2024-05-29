@@ -23,7 +23,7 @@ final class ExplodedArchive: Archive, Loggable {
     }
 
     private init(file: FileURL) {
-        root = file
+        root = file.resolvingSymlinks()
     }
 
     lazy var entries: [ArchiveEntry] = {
@@ -52,7 +52,6 @@ final class ExplodedArchive: Archive, Loggable {
 
     private func makeEntry(at url: FileURL) -> ArchiveEntry? {
         guard
-            root.isParent(of: url),
             let values = try? url.url.resourceValues(forKeys: [.fileSizeKey, .isDirectoryKey]),
             let length = values.fileSize,
             values.isDirectory != true
@@ -68,7 +67,7 @@ final class ExplodedArchive: Archive, Loggable {
     }
 
     private func entryURL(fromPath path: String) -> FileURL? {
-        let url = root.appendingPath(path, isDirectory: false)
+        let url = root.appendingPath(path, isDirectory: false).resolvingSymlinks()
         guard
             root.isParent(of: url)
         else {

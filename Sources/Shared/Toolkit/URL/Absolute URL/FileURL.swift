@@ -44,6 +44,12 @@ public struct FileURL: AbsoluteURL, Hashable {
         url.lastPathComponent
     }
 
+    /// Returns new `FileURL` with symlinks resolved
+    // FIXME: Async
+    public func resolvingSymlinks() -> Self {
+        Self(url: url.resolvingSymlinksInPath())!
+    }
+
     /// Returns whether the given `url` is `self` or one of its descendants.
     public func isParent(of other: FileURL) -> Bool {
         path == other.path || other.path.hasPrefix(path.addingSuffix("/"))
