@@ -130,7 +130,7 @@ let package = Package(
             dependencies: [
                 "CryptoSwift",
                 "ZIPFoundation",
-                "ReadiumShared"
+                "ReadiumShared",
             ],
             path: "Sources/LCP",
             resources: [

@@ -5,9 +5,10 @@
 //
 
 import Foundation
+import ReadiumLCP
 import SQLite
 
-public class SQLiteLCPLicenseRepository: LCPLicenseRepository {
+public class LCPSQLiteLicenseRepository: LCPLicenseRepository {
     let licenses = Table("Licenses")
     let id = Expression<String>("id")
     let printsLeft = Expression<Int?>("printsLeft")
