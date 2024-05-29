@@ -14,6 +14,6 @@ Pod::Spec.new do |s|
   s.xcconfig      = { 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2' }
 
   s.dependency 'ReadiumShared'
-  s.dependency 'SQLite.swift', '<= 0.13.3' # 0.14 introduces breaking changes
+  s.dependency 'SQLite.swift', '~> 0.15.3'
 
 end

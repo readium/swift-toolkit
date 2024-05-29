@@ -31,8 +31,7 @@ let package = Package(
         .package(url: "https://github.com/readium/GCDWebServer.git", from: "4.0.0"),
         // From 2.6.0, Xcode 14 is required
         .package(url: "https://github.com/scinfu/SwiftSoup.git", "2.5.3" ..< "2.6.0"),
-        // 0.14 introduced a breaking change
-        .package(url: "https://github.com/stephencelis/SQLite.swift.git", "0.12.0" ..< "0.13.3"),
+        .package(url: "https://github.com/stephencelis/SQLite.swift.git", from: "0.15.3"),
         // 0.9.12 requires iOS 12+
         .package(url: "https://github.com/weichsel/ZIPFoundation.git", "0.9.0" ..< "0.9.12"),
     ],

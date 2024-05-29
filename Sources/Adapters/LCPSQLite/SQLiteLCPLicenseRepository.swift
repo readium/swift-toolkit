@@ -56,8 +56,7 @@ public class LCPSQLiteLicenseRepository: LCPLicenseRepository {
 
     public func isDeviceRegistered(for id: LicenseDocument.ID) async throws -> Bool {
         try checkExists(id)
-        let query = licenses.filter(self.id == id && registered == true)
-        let count = try db.count(query)
+        let count = try db.scalar(licenses.filter(self.id == id && registered == true).count)
         return count != 0
     }
 
@@ -95,7 +94,7 @@ public class LCPSQLiteLicenseRepository: LCPLicenseRepository {
     }
 
     private func exists(_ licenseID: LicenseDocument.ID) -> Bool {
-        ((try? db.count(licenses.filter(id == licenseID))) ?? 0) != 0
+        ((try? db.scalar(licenses.filter(id == licenseID).count)) ?? 0) != 0
     }
 
     private func get(_ column: Expression<Int?>, for licenseId: String) throws -> Int? {
