@@ -5,9 +5,10 @@
 //
 
 import Foundation
+import ReadiumLCP
 import SQLite
 
-public class SQLiteLCPLicenseRepository: LCPLicenseRepository {
+public class LCPSQLiteLicenseRepository: LCPLicenseRepository {
     let licenses = Table("Licenses")
     let id = Expression<String>("id")
     let printsLeft = Expression<Int?>("printsLeft")
@@ -55,8 +56,7 @@ public class SQLiteLCPLicenseRepository: LCPLicenseRepository {
 
     public func isDeviceRegistered(for id: LicenseDocument.ID) async throws -> Bool {
         try checkExists(id)
-        let query = licenses.filter(self.id == id && registered == true)
-        let count = try db.count(query)
+        let count = try db.scalar(licenses.filter(self.id == id && registered == true).count)
         return count != 0
     }
 
@@ -94,7 +94,7 @@ public class SQLiteLCPLicenseRepository: LCPLicenseRepository {
     }
 
     private func exists(_ licenseID: LicenseDocument.ID) -> Bool {
-        ((try? db.count(licenses.filter(id == licenseID))) ?? 0) != 0
+        ((try? db.scalar(licenses.filter(id == licenseID).count)) ?? 0) != 0
     }
 
     private func get(_ column: Expression<Int?>, for licenseId: String) throws -> Int? {

@@ -92,7 +92,6 @@ targets:
       - framework: ../../Carthage/Build/CryptoSwift.xcframework
       - framework: ../../Carthage/Build/Fuzi.xcframework
       - framework: ../../Carthage/Build/Minizip.xcframework
-      - framework: ../../Carthage/Build/SQLite.xcframework
       - framework: ../../Carthage/Build/ZIPFoundation.xcframework
       - target: ReadiumShared
       - target: ReadiumInternal
@@ -112,6 +111,20 @@ targets:
       - target: ReadiumInternal
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.adapter.gcdwebserver
+      INFOPLIST_FILE: Info.plist
+
+  ReadiumAdapterLCPSQLite:
+    type: framework
+    platform: iOS
+    deploymentTarget: "13.0"
+    sources: 
+      - path: ../../Sources/Adapters/LCPSQLite
+    dependencies:
+      - framework: ../../Carthage/Build/SQLite.xcframework
+      - target: ReadiumShared
+      - target: ReadiumLCP
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.adapter.lcpsqlite
       INFOPLIST_FILE: Info.plist
 
   ReadiumInternal:
@@ -149,6 +162,10 @@ schemes:
     build:
       targets:
         ReadiumAdapterGCDWebServer: all
+  ReadiumAdapterLCPSQLite:
+    build:
+      targets:
+        ReadiumAdapterLCPSQLite: all
   ReadiumInternal:
     build:
       targets:

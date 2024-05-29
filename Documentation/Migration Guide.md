@@ -8,6 +8,36 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 Plenty of completion-based APIs were changed to use `async` functions instead. Follow the deprecation warnings to update your codebase.
 
+### Readium LCP SQLite adapter
+
+The Readium LCP persistence layer was extracted to allow applications to provide their own implementations. The previous implementation is now part of a new package, `ReadiumAdapterLCPSQLite`, which you need to use to maintain the same behavior as before.
+
+To use `ReadiumAdapterLCPSQLite`, you must update your imports and the dependencies included in your project:
+
+* Swift Package Manager:
+    * Add the `ReadiumAdapterLCPSQLite` package to your project dependencies.
+* Carthage:
+    * Update the Carthage dependencies and make sure the new `ReadiumAdapterLCPSQLite.xcframework` was built.
+    * Add this new framework to your project dependencies.
+* CocoaPods:
+    * Update the `pod` statements in your `Podfile` with the following, before running `pod install`:
+        ```
+        pod 'ReadiumAdapterLCPSQLite', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/3.0.0/Support/CocoaPods/ReadiumAdapterLCPSQLite.podspec'
+        ```
+Then, provide the adapters when initializing the `LCPService`.
+
+```swift
+import ReadiumAdapterLCPSQLite
+import ReadiumLCP
+
+let lcpService = LCPService(
+    client: LCPClient(),
+    licenseRepository: LCPSQLiteLicenseRepository(),
+    passphraseRepository: LCPSQLitePassphraseRepository(),
+    httpClient: DefaultHTTPClient()
+)
+```
+
 
 ## 3.0.0-alpha.1
 

@@ -54,18 +54,18 @@ Note that Carthage will build all Readium modules and their dependencies, but yo
 
 Refer to the following table to know which dependencies are required for each Readium library.
 
-|                       |   `ReadiumShared`  |  `ReadiumStreamer` | `ReadiumNavigator` |    `ReadiumOPDS`   |    `ReadiumLCP`    |
-|-----------------------|:------------------:|:------------------:|:------------------:|:------------------:|:------------------:|
-| **`ReadiumShared`**   |                    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| **`ReadiumInternal`** | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| `CryptoSwift`         |                    | :heavy_check_mark: |                    |                    | :heavy_check_mark: |
-| `DifferenceKit`       |                    |                    | :heavy_check_mark: |                    |                    |
-| `Fuzi`                | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| `Minizip`             | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| `ReadiumGCDWebServer` |                    | :heavy_check_mark: |                    |                    |                    |
-| `SQLite.swift`        |                    |                    |                    |                    | :heavy_check_mark: |
-| `SwiftSoup`           | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| `ZIPFoundation`       |                    |                    |                    |                    | :heavy_check_mark: |
+|                       |   `ReadiumShared`  |  `ReadiumStreamer` | `ReadiumNavigator` |    `ReadiumOPDS`   |    `ReadiumLCP`    | `ReadiumAdapterGCDWebServer` | `ReadiumAdapterLCPSQLite` |
+|-----------------------|:------------------:|:------------------:|:------------------:|:------------------:|:------------------:|------------------------------|---------------------------|
+| **`ReadiumShared`**   |                    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:           | :heavy_check_mark:        |
+| **`ReadiumInternal`** | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |                              |                           |
+| `CryptoSwift`         |                    | :heavy_check_mark: |                    |                    | :heavy_check_mark: |                              |                           |
+| `DifferenceKit`       |                    |                    | :heavy_check_mark: |                    |                    |                              |                           |
+| `Fuzi`                | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |                              |                           |
+| `Minizip`             | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |                              |                           |
+| `ReadiumGCDWebServer` |                    |                    |                    |                    |                    | :heavy_check_mark:           |                           |
+| `SQLite.swift`        |                    |                    |                    |                    |                    |                              | :heavy_check_mark:        |
+| `SwiftSoup`           | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |                              |                           |
+| `ZIPFoundation`       |                    |                    |                    |                    | :heavy_check_mark: |                              |                           |
 
 ### CocoaPods
 
@@ -79,7 +79,7 @@ pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-too
 pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/3.0.0-alpha.1/Support/CocoaPods/ReadiumLCP.podspec'
 pod 'ReadiumInternal', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/3.0.0-alpha.1/Support/CocoaPods/ReadiumInternal.podspec'
 
-# Required if you use ReadiumStreamer.
+# Required if you use ReadiumAdapterGCDWebServer.
 pod 'ReadiumGCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/4.0.0/GCDWebServer.podspec'
 ```
 
@@ -102,3 +102,4 @@ Finally, add the Readium libraries you want to use to your app target from the *
 ### Building with Readium LCP
 
 Using the toolkit with Readium LCP requires additional dependencies, including the framework `R2LCPClient.framework` provided by EDRLab. [Contact EDRLab](mailto:contact@edrlab.org) to request your private `R2LCPClient.framework` and the setup instructions.
+
