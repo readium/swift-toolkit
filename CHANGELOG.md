@@ -26,6 +26,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 * EPUB: The `scroll` preference is now forced to `true` when rendering vertical text (e.g. CJK vertical). [See this discussion for the rationale](https://github.com/readium/swift-toolkit/discussions/370).
 
+#### LCP
+
+* The Readium LCP persistence layer was extracted to allow applications to provide their own implementations. Take a look at [the migration guide](Documentation/Migration%20Guide.md) for guidance.
+
 ### Fixed
 
 #### Navigator

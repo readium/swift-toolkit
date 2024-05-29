@@ -9,6 +9,7 @@
     import Combine
     import Foundation
     import R2LCPClient
+    import ReadiumAdapterLCPSQLite
     import ReadiumLCP
     import ReadiumShared
     import UIKit
@@ -16,8 +17,8 @@
     class LCPLibraryService: DRMLibraryService {
         private var lcpService = LCPService(
             client: LCPClient(),
-            licenseRepository: SQLiteLCPLicenseRepository(),
-            passphraseRepository: SQLiteLCPPassphraseRepository(),
+            licenseRepository: LCPSQLiteLicenseRepository(),
+            passphraseRepository: LCPSQLitePassphraseRepository(),
             httpClient: DefaultHTTPClient()
         )
 

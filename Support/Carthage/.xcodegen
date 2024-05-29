@@ -18,6 +18,13 @@
         }
       }
     },
+    "ReadiumAdapterLCPSQLite" : {
+      "build" : {
+        "targets" : {
+          "ReadiumAdapterLCPSQLite" : "all"
+        }
+      }
+    },
     "ReadiumInternal" : {
       "build" : {
         "targets" : {
@@ -87,6 +94,31 @@
       ],
       "type" : "framework"
     },
+    "ReadiumAdapterLCPSQLite" : {
+      "dependencies" : [
+        {
+          "framework" : "..\/..\/Carthage\/Build\/SQLite.xcframework"
+        },
+        {
+          "target" : "ReadiumShared"
+        },
+        {
+          "target" : "ReadiumLCP"
+        }
+      ],
+      "deploymentTarget" : "13.0",
+      "platform" : "iOS",
+      "settings" : {
+        "INFOPLIST_FILE" : "Info.plist",
+        "PRODUCT_BUNDLE_IDENTIFIER" : "org.readium.swift-toolkit.adapter.lcpsqlite"
+      },
+      "sources" : [
+        {
+          "path" : "..\/..\/Sources\/Adapters\/LCPSQLite"
+        }
+      ],
+      "type" : "framework"
+    },
     "ReadiumInternal" : {
       "deploymentTarget" : "13.0",
       "platform" : "iOS",
@@ -111,9 +143,6 @@
         },
         {
           "framework" : "..\/..\/Carthage\/Build\/Minizip.xcframework"
-        },
-        {
-          "framework" : "..\/..\/Carthage\/Build\/SQLite.xcframework"
         },
         {
           "framework" : "..\/..\/Carthage\/Build\/ZIPFoundation.xcframework"
@@ -290,6 +319,10 @@
 ../../Sources/Adapters/GCDWebServer
 ../../Sources/Adapters/GCDWebServer/GCDHTTPServer.swift
 ../../Sources/Adapters/GCDWebServer/ResourceResponse.swift
+../../Sources/Adapters/LCPSQLite
+../../Sources/Adapters/LCPSQLite/Database.swift
+../../Sources/Adapters/LCPSQLite/SQLiteLCPLicenseRepository.swift
+../../Sources/Adapters/LCPSQLite/SQLiteLCPPassphraseRepository.swift
 ../../Sources/Internal
 ../../Sources/Internal/Extensions
 ../../Sources/Internal/Extensions/Array.swift
@@ -349,11 +382,6 @@
 ../../Sources/LCP/License/Model/Components/LSD/PotentialRights.swift
 ../../Sources/LCP/License/Model/LicenseDocument.swift
 ../../Sources/LCP/License/Model/StatusDocument.swift
-../../Sources/LCP/Persistence
-../../Sources/LCP/Persistence/Connection.swift
-../../Sources/LCP/Persistence/Database.swift
-../../Sources/LCP/Persistence/SQLiteLCPLicenseRepository.swift
-../../Sources/LCP/Persistence/SQLiteLCPPassphraseRepository.swift
 ../../Sources/LCP/Resources
 ../../Sources/LCP/Resources/en.lproj
 ../../Sources/LCP/Resources/en.lproj/Localizable.strings

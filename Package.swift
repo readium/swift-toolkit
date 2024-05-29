@@ -20,6 +20,7 @@ let package = Package(
 
         // Adapters to third-party dependencies.
         .library(name: "ReadiumAdapterGCDWebServer", targets: ["ReadiumAdapterGCDWebServer"]),
+        .library(name: "ReadiumAdapterLCPSQLite", targets: ["ReadiumAdapterLCPSQLite"]),
     ],
     dependencies: [
         .package(url: "https://github.com/cezheng/Fuzi.git", from: "3.1.3"),
@@ -30,8 +31,7 @@ let package = Package(
         .package(url: "https://github.com/readium/GCDWebServer.git", from: "4.0.0"),
         // From 2.6.0, Xcode 14 is required
         .package(url: "https://github.com/scinfu/SwiftSoup.git", "2.5.3" ..< "2.6.0"),
-        // 0.14 introduced a breaking change
-        .package(url: "https://github.com/stephencelis/SQLite.swift.git", "0.12.0" ..< "0.13.3"),
+        .package(url: "https://github.com/stephencelis/SQLite.swift.git", from: "0.15.3"),
         // 0.9.12 requires iOS 12+
         .package(url: "https://github.com/weichsel/ZIPFoundation.git", "0.9.0" ..< "0.9.12"),
     ],
@@ -130,7 +130,6 @@ let package = Package(
                 "CryptoSwift",
                 "ZIPFoundation",
                 "ReadiumShared",
-                .product(name: "SQLite", package: "SQLite.swift"),
             ],
             path: "Sources/LCP",
             resources: [
@@ -155,6 +154,15 @@ let package = Package(
                 "ReadiumShared",
             ],
             path: "Sources/Adapters/GCDWebServer"
+        ),
+
+        .target(
+            name: "ReadiumAdapterLCPSQLite",
+            dependencies: [
+                .product(name: "SQLite", package: "SQLite.swift"),
+                "ReadiumLCP",
+            ],
+            path: "Sources/Adapters/LCPSQLite"
         ),
 
         .target(

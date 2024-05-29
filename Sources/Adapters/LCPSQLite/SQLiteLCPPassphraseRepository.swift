@@ -5,10 +5,11 @@
 //
 
 import Foundation
+import ReadiumLCP
 import ReadiumShared
 import SQLite
 
-public class SQLiteLCPPassphraseRepository: LCPPassphraseRepository, Loggable {
+public class LCPSQLitePassphraseRepository: LCPPassphraseRepository, Loggable {
     let transactions = Table("Transactions")
     let licenseId = Expression<String>("licenseId")
     let provider = Expression<String>("origin")
