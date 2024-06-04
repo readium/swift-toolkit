@@ -19,29 +19,26 @@ import UIKit
 public struct EditingAction: Hashable {
     /// Default editing actions enabled in the navigator.
     public static var defaultActions: [EditingAction] {
-        [copy, share, define, lookup, translate]
+        [copy, share, lookup, translate]
     }
 
     /// Copy the text selection.
-    public static let copy = EditingAction(kind: .native("copy:"))
+    public static let copy = EditingAction(kind: .native(["copy:"]))
 
     /// Look up the text selection in the dictionary and other sources.
     ///
-    /// Not available on iOS 16+
-    public static let lookup = EditingAction(kind: .native("_lookup:"))
-
-    /// Look up the text selection in the dictionary (and other sources on
-    /// iOS 16+).
-    ///
     /// On iOS 16+, enabling this action will show two items: Look Up and
     /// Search Web.
-    public static let define = EditingAction(kind: .native("_define:"))
+    public static let lookup = EditingAction(kind: .native(["lookup", "_lookup:", "define:", "_define:"]))
+
+    @available(*, deprecated, message: "lookup and define were merged", renamed: "lookup")
+    public static let define = lookup
 
     /// Translate the text selection.
-    public static let translate = EditingAction(kind: .native("_translate:"))
+    public static let translate = EditingAction(kind: .native(["translate:", "_translate:"]))
 
     /// Share the text selection.
-    public static let share = EditingAction(kind: .native("_share:"))
+    public static let share = EditingAction(kind: .native(["share:", "_share:"]))
 
     /// Create a custom editing action.
     ///
@@ -53,7 +50,7 @@ public struct EditingAction: Hashable {
     }
 
     enum Kind: Hashable {
-        case native(String)
+        case native([String])
         case custom(UIMenuItem)
     }
 
@@ -63,12 +60,12 @@ public struct EditingAction: Hashable {
         self.kind = kind
     }
 
-    var action: Selector {
+    var actions: [Selector] {
         switch kind {
-        case let .native(action):
-            return Selector(action)
+        case let .native(actions):
+            return actions.map { Selector($0) }
         case let .custom(item):
-            return item.action
+            return [item.action]
         }
     }
 
@@ -119,14 +116,14 @@ final class EditingActionsController {
     }
 
     func canPerformAction(_ action: EditingAction) -> Bool {
-        canPerformAction(action.action)
+        action.actions.contains { canPerformAction($0) }
     }
 
     func canPerformAction(_ selector: Selector) -> Bool {
         guard
             isEnabled,
             let selection = selection,
-            let action = actions.first(where: { $0.action == selector }),
+            let action = actions.first(where: { $0.actions.contains(selector) }),
             isActionAllowed(action)
         else {
             return false
@@ -149,11 +146,6 @@ final class EditingActionsController {
 
     @available(iOS 13.0, *)
     func buildMenu(with builder: UIMenuBuilder) {
-        // On iOS 16, there's a new "Search Web" menu item which is required
-        // to enable the define action.
-        if #available(iOS 16.0, *), !canPerformAction(.define) {
-            builder.remove(menu: .lookup)
-        }
         if !canPerformAction(.lookup) {
             builder.remove(menu: .lookup)
         }
