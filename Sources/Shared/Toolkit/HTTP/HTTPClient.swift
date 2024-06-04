@@ -16,8 +16,8 @@ public protocol HTTPClient: Loggable {
     /// - Parameters:
     ///   - request: Request to the streamed resource.
     ///     also access it in the completion block after consuming the data.
-    ///   - consume: Callback called for each chunk of data received. Callers are responsible to accumulate the data
-    ///     if needed.
+    ///   - consume: Callback called for each chunk of data received. Callers
+    ///     are responsible to accumulate the data if needed.
     func stream(
         request: HTTPRequestConvertible,
         consume: @escaping (_ chunk: Data, _ progress: Double?) -> Void

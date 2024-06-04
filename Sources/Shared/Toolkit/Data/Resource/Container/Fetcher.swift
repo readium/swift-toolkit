@@ -7,6 +7,7 @@
 import Foundation
 
 /// Provides access to a `Resource` from a `Link`.
+@available(*, unavailable, message: "Use a `Container` instead")
 public protocol Fetcher {
     /// Known resources available in the medium, such as file paths on the file system
     /// or entries in a ZIP archive. This list is not exhaustive, and additional
@@ -26,25 +27,15 @@ public protocol Fetcher {
     func close()
 }
 
-public extension Fetcher {
-    /// Returns the `Resource` at the given `href`.
-    ///
-    /// A `Resource` is always returned, since for some cases we can't know if it exists before
-    /// actually fetching it, such as HTTP. Therefore, errors are handled at the Resource level.
-    func get<T: URLConvertible>(_ href: T) -> Resource {
-        get(Link(href: href.anyURL.string))
-    }
-}
-
 /// A `Fetcher` providing no resources at all.
-public final class EmptyFetcher: Fetcher {
-    public init() {}
+@available(*, unavailable, message: "Use an `EmptyContainer` instead")
+public final class EmptyFetcher {}
 
-    public var links: [Link] { [] }
+@available(*, unavailable, message: "Use a `TransformingContainer` instead")
+public final class TransformingFetcher {}
 
-    public func get(_ link: Link) -> Resource {
-        FailureResource(link: link, error: .notFound(nil))
-    }
+@available(*, unavailable, message: "Not available anymore")
+public final class RoutingFetcher {}
 
-    public func close() {}
-}
+@available(*, unavailable, message: "Use an `HTTPContainer` instead")
+public final class HTTPFetcher {}

@@ -13,13 +13,7 @@ import SwiftSoup
 /// notice. Use with caution.
 public protocol _ResourceContentExtractor {
     /// Extracts the text content of the given `resource`.
-    func extractText(of resource: Resource) -> ResourceResult<String>
-}
-
-public extension _ResourceContentExtractor {
-    func extractText(of resource: Resource) -> ResourceResult<String> {
-        .success("")
-    }
+    func extractText(of resource: Resource) async -> ReadResult<String>
 }
 
 /// **WARNING:** This API is experimental and may change or be removed in a future release without
@@ -27,7 +21,7 @@ public extension _ResourceContentExtractor {
 public protocol _ResourceContentExtractorFactory {
     /// Creates a `ResourceContentExtractor` instance for the given `resource`.
     /// Returns null if the resource format is not supported.
-    func makeExtractor(for resource: Resource) -> _ResourceContentExtractor?
+    func makeExtractor(for resource: Resource, format: Format) -> _ResourceContentExtractor?
 }
 
 /// **WARNING:** This API is experimental and may change or be removed in a future release without
@@ -35,11 +29,10 @@ public protocol _ResourceContentExtractorFactory {
 public class _DefaultResourceContentExtractorFactory: _ResourceContentExtractorFactory {
     public init() {}
 
-    public func makeExtractor(for resource: Resource) -> _ResourceContentExtractor? {
-        switch resource.link.mediaType {
-        case .html, .xhtml:
+    public func makeExtractor(for resource: Resource, format: Format) -> _ResourceContentExtractor? {
+        if format.conformsTo(.html) {
             return _HTMLResourceContentExtractor()
-        default:
+        } else {
             return nil
         }
     }
@@ -52,8 +45,8 @@ public class _DefaultResourceContentExtractorFactory: _ResourceContentExtractorF
 class _HTMLResourceContentExtractor: _ResourceContentExtractor {
     private let xmlFactory = DefaultXMLDocumentFactory()
 
-    func extractText(of resource: Resource) -> ResourceResult<String> {
-        resource.readAsString()
+    func extractText(of resource: Resource) async -> ReadResult<String> {
+        await resource.readAsString()
             .flatMap { content in
                 do {
                     // First try to parse a valid XML document, then fallback on SwiftSoup, which is slower.
@@ -67,7 +60,7 @@ class _HTMLResourceContentExtractor: _ResourceContentExtractor {
                     return .success(text)
 
                 } catch {
-                    return .failure(.wrap(error))
+                    return .failure(.decoding(error))
                 }
             }
     }
