@@ -67,7 +67,7 @@ public extension String {
         guard let range = range(of: delimiter, options: [.backwards, .literal]) else {
             return self
         }
-        return String(self[...range.lowerBound])
+        return String(self[..<range.lowerBound])
     }
 
     /// Replaces multiple whitespaces by a single space.
