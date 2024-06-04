@@ -11,7 +11,7 @@ import ReadiumInternal
 ///
 /// https://www.w3.org/2021/a11y-discov-vocab/latest/
 /// https://readium.org/webpub-manifest/schema/a11y.schema.json
-public struct Accessibility: Hashable {
+public struct Accessibility: Hashable, Sendable {
     /// An established standard to which the described resource conforms.
     public var conformsTo: [Profile]
 
@@ -49,7 +49,7 @@ public struct Accessibility: Hashable {
     public var hazards: [Hazard]
 
     /// Accessibility profile.
-    public struct Profile: Hashable {
+    public struct Profile: Hashable, Sendable {
         public let uri: String
 
         public init(_ uri: String) {
@@ -64,7 +64,7 @@ public struct Accessibility: Hashable {
         public static let epubA11y10WCAG20AAA = Profile("http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa")
     }
 
-    public struct Certification: Hashable {
+    public struct Certification: Hashable, Sendable {
         /// Identifies a party responsible for the testing and certification of the accessibility of a Publication.
         ///
         /// https://www.w3.org/TR/epub-a11y/#certifiedBy
@@ -89,7 +89,7 @@ public struct Accessibility: Hashable {
         }
     }
 
-    public struct AccessMode: Hashable {
+    public struct AccessMode: Hashable, Sendable {
         public let id: String
 
         public init(_ id: String) {
@@ -134,7 +134,7 @@ public struct Accessibility: Hashable {
         public static let visual = AccessMode("visual")
     }
 
-    public enum PrimaryAccessMode: String, Hashable {
+    public enum PrimaryAccessMode: String, Hashable, Sendable {
         /// Indicates that auditory perception is necessary to consume the information.
         case auditory
 
@@ -151,7 +151,7 @@ public struct Accessibility: Hashable {
         case visual
     }
 
-    public struct Feature: Hashable {
+    public struct Feature: Hashable, Sendable {
         public let id: String
 
         public init(_ id: String) {
@@ -306,7 +306,7 @@ public struct Accessibility: Hashable {
         public static let none = Feature("none")
     }
 
-    public struct Hazard: Hashable {
+    public struct Hazard: Hashable, Sendable {
         public let id: String
 
         public init(_ id: String) {

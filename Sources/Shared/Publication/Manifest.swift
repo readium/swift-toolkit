@@ -11,7 +11,7 @@ import ReadiumInternal
 /// Manifest.
 ///
 /// See. https://readium.org/webpub-manifest/
-public struct Manifest: JSONEquatable, Hashable {
+public struct Manifest: JSONEquatable, Hashable, Sendable {
     public var context: [String] // @context
 
     public var metadata: Metadata

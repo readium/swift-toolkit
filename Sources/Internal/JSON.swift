@@ -8,7 +8,7 @@ import Foundation
 
 /// Wraps a dictionary parsed from a JSON string.
 /// This is a trick to keep the Web Publication structs equatable without having to override `==` and compare all the other properties.
-public struct JSONDictionary {
+public struct JSONDictionary: @unchecked Sendable {
     public var json: [String: Any]
 
     public init() {

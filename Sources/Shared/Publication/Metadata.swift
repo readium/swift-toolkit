@@ -8,7 +8,7 @@ import Foundation
 import ReadiumInternal
 
 /// https://readium.org/webpub-manifest/schema/metadata.schema.json
-public struct Metadata: Hashable, Loggable, WarningLogger {
+public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
     /// Collection type used for collection/series metadata.
     /// For convenience, the JSON schema reuse the Contributor's definition.
     public typealias Collection = Contributor

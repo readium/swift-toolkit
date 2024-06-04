@@ -14,7 +14,7 @@ public enum LinkError: Error, Equatable {
 
 /// Link Object for the Readium Web Publication Manifest.
 /// https://readium.org/webpub-manifest/schema/link.schema.json
-public struct Link: JSONEquatable, Hashable {
+public struct Link: JSONEquatable, Hashable, Sendable {
     /// URI or URI template of the linked resource.
     /// Note: a String because templates are lost with URL.
     public var href: String // URI

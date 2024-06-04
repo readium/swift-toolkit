@@ -10,7 +10,7 @@ import ReadiumInternal
 /// Core Collection Model
 /// https://readium.org/webpub-manifest/schema/subcollection.schema.json
 /// Can be used as extension point in the Readium Web Publication Manifest.
-public struct PublicationCollection: JSONEquatable, Hashable {
+public struct PublicationCollection: JSONEquatable, Hashable, Sendable {
     public var metadata: [String: Any] {
         get { metadataJSON.json }
         set { metadataJSON = JSONDictionary(newValue) ?? JSONDictionary() }

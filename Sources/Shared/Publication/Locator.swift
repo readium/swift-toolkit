@@ -8,7 +8,7 @@ import Foundation
 import ReadiumInternal
 
 /// https://github.com/readium/architecture/tree/master/locators
-public struct Locator: Hashable, CustomStringConvertible, Loggable {
+public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
     /// The URI of the resource that the Locator Object points to.
     public var href: String // URI
 
@@ -120,7 +120,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
     ///
     /// Properties are mutable for convenience when making a copy, but the `locations` property
     /// is immutable in `Locator`, for safety.
-    public struct Locations: Hashable, Loggable, WarningLogger {
+    public struct Locations: Hashable, Loggable, WarningLogger, Sendable {
         /// Contains one or more fragment in the resource referenced by the `Locator`.
         public var fragments: [String]
         /// Progression in the resource expressed as a percentage (between 0 and 1).
@@ -197,7 +197,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
         public subscript(key: String) -> Any? { otherLocations[key] }
     }
 
-    public struct Text: Hashable, Loggable {
+    public struct Text: Hashable, Loggable, Sendable {
         public var after: String?
         public var before: String?
         public var highlight: String?

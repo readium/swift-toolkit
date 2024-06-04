@@ -8,7 +8,7 @@ import Foundation
 import ReadiumInternal
 
 // https://github.com/readium/webpub-manifest/tree/master/contexts/default#subjects
-public struct Subject: Hashable {
+public struct Subject: Hashable, Sendable {
     public var localizedName: LocalizedString
     public var name: String { localizedName.string }
     public var sortAs: String?
