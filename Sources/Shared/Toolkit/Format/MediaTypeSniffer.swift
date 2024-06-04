@@ -461,14 +461,14 @@ public extension MediaType {
     /// Sniffs the Uniform Type Identifiers registered on the system.
     private static func sniffUTIs(_ context: MediaTypeSnifferContext) -> MediaType? {
         guard let uti = UTI.findFrom(mediaTypes: context.mediaTypes, fileExtensions: context.fileExtensions),
-              let name = uti.name,
               let mediaType = uti.preferredTag(withClass: .mediaType),
+              let name = uti.name,
               let fileExtension = uti.preferredTag(withClass: .fileExtension)
         else {
             return nil
         }
 
-        return MediaType(mediaType, name: name, fileExtension: fileExtension)
+        return MediaType(mediaType)
     }
 }
 
