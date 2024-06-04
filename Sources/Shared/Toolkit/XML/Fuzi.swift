@@ -9,10 +9,18 @@ import Fuzi
 
 final class FuziXMLDocument: XMLDocument, Loggable {
     fileprivate let document: Fuzi.XMLDocument
+    
+    convenience init(data: Data, namespaces: [XMLNamespace]) throws {
+        self.init(document: try Fuzi.XMLDocument(data: data), namespaces: namespaces)
+    }
 
-    init(string: String, namespaces: [XMLNamespace]) throws {
-        document = try Fuzi.XMLDocument(string: string)
+    convenience init(string: String, namespaces: [XMLNamespace]) throws {
+        self.init(document: try Fuzi.XMLDocument(string: string), namespaces: namespaces)
+    }
+    
+    init(document: Fuzi.XMLDocument, namespaces: [XMLNamespace]) {
         document.definePrefixes(namespaces)
+        self.document = document
     }
 
     lazy var documentElement: XMLElement? =

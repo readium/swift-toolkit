@@ -52,6 +52,11 @@ protocol XMLDocumentFactory {
     ///
     /// - Parameter namespaces: List of namespace prefixes to declare in the document.
     func open(file: FileURL, namespaces: [XMLNamespace]) throws -> XMLDocument
+    
+    /// Opens an XML document from its raw data content.
+    ///
+    /// - Parameter namespaces: List of namespace prefixes to declare in the document.
+    func open(data: Data, namespaces: [XMLNamespace]) throws -> XMLDocument
 
     /// Opens an XML document from its raw string content.
     ///
@@ -69,5 +74,9 @@ class DefaultXMLDocumentFactory: XMLDocumentFactory, Loggable {
 
     func open(string: String, namespaces: [XMLNamespace]) throws -> XMLDocument {
         try FuziXMLDocument(string: string, namespaces: namespaces)
+    }
+    
+    func open(data: Data, namespaces: [XMLNamespace]) throws -> XMLDocument {
+        try FuziXMLDocument(data: data, namespaces: namespaces)
     }
 }
