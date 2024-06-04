@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Fixed
+
+#### Shared
+
+* [#444](https://github.com/readium/swift-toolkit/issues/444) Fixed resolving titles of search results when the table of contents items contain fragment identifiers.
+
 
 ## [2.7.1]
 
