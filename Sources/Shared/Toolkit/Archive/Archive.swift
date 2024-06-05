@@ -6,6 +6,8 @@
 
 import Foundation
 
+// FIXME:
+
 public enum ArchiveError: Error {
     /// The provided password was incorrect.
     case invalidPassword(archive: String)

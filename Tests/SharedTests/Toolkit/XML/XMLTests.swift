@@ -9,22 +9,22 @@ import XCTest
 
 struct XMLTester {
     let _make: (String, [XMLNamespace]) throws -> XMLDocument
-    
+
     private let doc1 = """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <menu>
-          <food id="a">
-            <name>Belgian Waffles</name>
-          </food>
-          <food id="b">
-            <name>French Toast</name>
-          </food>
-          <food id="c">
-            <name>Homestyle Breakfast</name>
-          </food>
-        </menu>
-        """
-    
+    <?xml version="1.0" encoding="UTF-8"?>
+    <menu>
+      <food id="a">
+        <name>Belgian Waffles</name>
+      </food>
+      <food id="b">
+        <name>French Toast</name>
+      </food>
+      <food id="c">
+        <name>Homestyle Breakfast</name>
+      </food>
+    </menu>
+    """
+
     private func make(_ content: String, namespaces: [XMLNamespace] = []) throws -> XMLDocument {
         try _make(content, namespaces)
     }
@@ -35,21 +35,21 @@ struct XMLTester {
 
     func testParseValidXML() {
         XCTAssertNoThrow(try make("""
-            <?xml version="1.0" encoding="UTF-8"?>
-            <root></root>
-            """))
+        <?xml version="1.0" encoding="UTF-8"?>
+        <root></root>
+        """))
     }
 
     func testParseHTML5() {
         XCTAssertNoThrow(try make("""
-            <!DOCTYPE html>
-            <html lang='en'>
-             <head></head>
-             <body></body>
-            </html>
-            """))
+        <!DOCTYPE html>
+        <html lang='en'>
+         <head></head>
+         <body></body>
+        </html>
+        """))
     }
-    
+
     func testDocumentElement() throws {
         let document = try make(doc1)
         XCTAssertEqual(
@@ -57,7 +57,7 @@ struct XMLTester {
             "menu"
         )
     }
-    
+
     func testFirstElement() throws {
         let document = try make(doc1)
         XCTAssertEqual(
@@ -65,7 +65,7 @@ struct XMLTester {
             "a"
         )
     }
-    
+
     func testAllElements() throws {
         let document = try make(doc1)
         XCTAssertEqual(
@@ -73,7 +73,7 @@ struct XMLTester {
             ["a", "b", "c"]
         )
     }
-    
+
     func testLocalName() throws {
         let document = try make(doc1)
         XCTAssertEqual(
@@ -81,7 +81,7 @@ struct XMLTester {
             "food"
         )
     }
-    
+
     func testAttribute() throws {
         let document = try make(doc1)
         XCTAssertEqual(

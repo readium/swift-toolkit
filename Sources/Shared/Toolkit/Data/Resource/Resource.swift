@@ -8,7 +8,6 @@ import Foundation
 
 /// Acts as a proxy to an actual resource by handling read access.
 public protocol Resource: Streamable {
-    
     /// URL locating this resource, if any.
     var sourceURL: AbsoluteURL? { get }
 
@@ -21,11 +20,11 @@ public protocol Resource: Streamable {
 /// Properties associated to a resource.
 public struct ResourceProperties {
     public var properties: [String: Any]
-    
-    public init(_ properties: [String : Any] = [:]) {
+
+    public init(_ properties: [String: Any] = [:]) {
         self.properties = properties
     }
-    
+
     public subscript<T>(_ key: String) -> T? {
         get { properties[key] as? T }
         set {
@@ -56,7 +55,6 @@ public extension Resource {
         fatalError()
     }
 }
-
 
 /// Errors occurring while accessing a resource.
 @available(*, deprecated, message: "Not used anymore")

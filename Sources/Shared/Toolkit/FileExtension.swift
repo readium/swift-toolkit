@@ -8,18 +8,17 @@ import Foundation
 
 /// Represents a file extension.
 public struct FileExtension: Hashable, RawRepresentable, ExpressibleByStringLiteral {
-    
     public let rawValue: String
 
     public init(rawValue: String) {
         precondition(!rawValue.isEmpty && rawValue.hasPrefix("."))
         self.rawValue = rawValue.lowercased()
     }
-    
+
     public init(stringLiteral value: StringLiteralType) {
         self.init(rawValue: value)
     }
-    
+
     /// Appends this file extension to `filename`.
     public func appendToFilename(_ filename: String) -> String {
         "\(filename).\(rawValue)"

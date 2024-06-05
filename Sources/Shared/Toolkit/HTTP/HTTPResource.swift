@@ -8,7 +8,6 @@ import Foundation
 
 /// ``HTTPResource`` provides access to an external URL through HTTP.
 public actor HTTPResource: Resource {
-
     public let url: HTTPURL
 
     private let client: HTTPClient
@@ -17,11 +16,11 @@ public actor HTTPResource: Resource {
         self.url = url
         self.client = client
     }
-    
-    public func close() async { }
+
+    public func close() async {}
 
     public nonisolated var sourceURL: AbsoluteURL? { url }
-    
+
     public func properties() async -> ReadResult<ResourceProperties> {
         .success(ResourceProperties())
     }
@@ -38,7 +37,8 @@ public actor HTTPResource: Resource {
 
     private var _headResponse: ReadResult<HTTPResponse>?
 
-    /// Cached HEAD response to get the expected content length and other metadata.
+    /// Cached HEAD response to get the expected content length and other
+    /// metadata.
     private func headResponse() async -> ReadResult<HTTPResponse> {
         if _headResponse == nil {
             _headResponse = await client.fetch(HTTPRequest(url: url, method: .head))

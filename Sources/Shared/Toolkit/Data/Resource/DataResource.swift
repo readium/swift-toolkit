@@ -8,7 +8,6 @@ import Foundation
 
 /// Creates a `Resource` serving raw data.
 public actor DataResource: Resource {
-    
     public let sourceURL: AbsoluteURL?
 
     private let makeData: () async -> ReadResult<Data>
@@ -69,10 +68,10 @@ public actor DataResource: Resource {
             } else {
                 consume(data)
             }
-            
+
             return ()
         }
     }
 
-    public func close() async { }
+    public func close() async {}
 }

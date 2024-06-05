@@ -6,14 +6,12 @@
 
 import Foundation
 
-
 public protocol HintsFormatSniffer {
     /// Tries to guess a `Format` from media type and file extension hints.
     func sniffHints(_ hints: FormatHints) -> Format?
 }
 
 public protocol ContentFormatSniffer {
-    
     /// Tries to refine the given `format` by sniffing a `blob`.
     func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format>
 
@@ -24,7 +22,6 @@ public protocol ContentFormatSniffer {
 public protocol FormatSniffer: HintsFormatSniffer, ContentFormatSniffer {}
 
 public extension FormatSniffer {
-    
     func sniffHints(_ hints: FormatHints) -> Format? {
         nil
     }
@@ -32,7 +29,7 @@ public extension FormatSniffer {
     func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format> {
         .success(format)
     }
-    
+
     func sniffContainer<C: Container>(_ container: C, refining format: Format) async -> ReadResult<Format> {
         .success(format)
     }
@@ -40,31 +37,31 @@ public extension FormatSniffer {
 
 public struct CompositeFormatSniffer: FormatSniffer {
     private let sniffers: [FormatSniffer]
-    
+
     public init(_ sniffers: [FormatSniffer]) {
         self.sniffers = sniffers
     }
-    
+
     public init(_ sniffers: FormatSniffer...) {
         self.init(sniffers)
     }
-    
+
     public func sniffHints(_ hints: FormatHints) -> Format? {
         sniffers.first { $0.sniffHints(hints) }
     }
-    
+
     public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format> {
         await refine(format: format) { sniffer, format in
             await sniffer.sniffBlob(blob, refining: format)
         }
     }
-    
+
     public func sniffContainer<C: Container>(_ container: C, refining format: Format) async -> ReadResult<Format> {
         await refine(format: format) { sniffer, format in
             await sniffer.sniffContainer(container, refining: format)
         }
     }
-    
+
     private func refine(
         format: Format,
         with sniffing: (FormatSniffer, Format) async -> ReadResult<Format>
@@ -72,13 +69,13 @@ public struct CompositeFormatSniffer: FormatSniffer {
         for sniffer in sniffers {
             let result = await sniffing(sniffer, format)
             switch result {
-            case .success(let newFormat):
+            case let .success(newFormat):
                 guard newFormat.refines(format) else {
                     continue
                 }
                 return await refine(format: newFormat, with: sniffing)
-                
-            case .failure(let error):
+
+            case let .failure(error):
                 return .failure(error)
             }
         }
@@ -91,17 +88,17 @@ public struct CompositeFormatSniffer: FormatSniffer {
 public struct FormatHints {
     public var mediaTypes: [MediaType]
     public var fileExtensions: [FileExtension]
-    
+
     public init(mediaTypes: [MediaType] = [], fileExtensions: [FileExtension] = []) {
         self.mediaTypes = mediaTypes
         self.fileExtensions = fileExtensions
     }
-    
+
     public init(mediaType: MediaType? = nil, fileExtension: FileExtension? = nil) {
-        self.mediaTypes = Array(ofNotNil: mediaType)
-        self.fileExtensions = Array(ofNotNil: fileExtension)
+        mediaTypes = Array(ofNotNil: mediaType)
+        fileExtensions = Array(ofNotNil: fileExtension)
     }
-    
+
     /// Returns whether this context has any of the given file extensions,
     /// ignoring case.
     public func hasFileExtension(_ candidates: String...) -> Bool {
@@ -110,7 +107,7 @@ public struct FormatHints {
             candidates.contains(hints.rawValue)
         }
     }
-    
+
     /// Returns whether this context has any of the given media type, ignoring
     /// case and extra parameters.
     ///

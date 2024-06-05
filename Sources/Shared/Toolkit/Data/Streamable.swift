@@ -8,7 +8,6 @@ import Foundation
 
 /// Acts as a proxy to an actual data source by handling read access.
 public protocol Streamable: AsyncCloseable {
-
     /// Returns data length from metadata if available.
     ///
     /// This value must be treated as a hint, as it might not reflect the
@@ -30,7 +29,6 @@ public protocol Streamable: AsyncCloseable {
 }
 
 public extension Streamable {
-
     /// Reads the whole bytes at the given range in a streaming fashion.
     ///
     /// - Parameters:
@@ -44,7 +42,7 @@ public extension Streamable {
     func read() async -> ReadResult<Data> {
         await read(range: nil)
     }
-    
+
     /// Reads the bytes at the given range.
     ///
     /// When `range` is null, the whole content is returned. Out-of-range
@@ -56,7 +54,7 @@ public extension Streamable {
         }
         return result.map { data }
     }
-    
+
     /// Reads the whole content as a `String`.
     func readAsString(encoding: String.Encoding = .utf8) async -> ReadResult<String> {
         await read().flatMap {
@@ -66,7 +64,7 @@ public extension Streamable {
             return .success(string)
         }
     }
-    
+
     /// Reads the whole content as a JSON object.
     func readAsJSON<T: Any>(options: JSONSerialization.ReadingOptions = []) async -> ReadResult<T> {
         await read().flatMap {

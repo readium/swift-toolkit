@@ -7,6 +7,7 @@
 import Foundation
 
 /// An archive exploded on the file system as a directory.
+@available(*, deprecated, renamed: "DirectoryContainer", message: "Use `DirectoryContainer` instead")
 final class ExplodedArchive: Archive, Loggable {
     enum ExplodedArchiveError: Error {
         case notADirectory(FileURL)

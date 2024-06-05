@@ -15,13 +15,13 @@ public enum ReadError: Error {
     /// At the moment, `AccessError`s constructed by the toolkit can be either a `FileSystemError`
     /// or an `HttpError`.
     case access(AccessError)
-    
+
     /// Content doesn't match what was expected and cannot be interpreted.
     ///
     /// For instance, this error can be reported if a ZIP archive looks invalid,
     /// a publication doesn't conform to its format, or a JSON resource cannot be decoded.
     case decoding(Error)
-    
+
     /// An operation could not be performed at some point.
     ///
     /// For instance, this error can occur no matter the level of indirection when trying
@@ -34,3 +34,4 @@ public enum ReadError: Error {
 public protocol AccessError: Error {}
 
 extension HTTPError: AccessError {}
+extension FileSystemError: AccessError {}

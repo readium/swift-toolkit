@@ -18,7 +18,6 @@ import Foundation
 ///
 /// Specification: https://tools.ietf.org/html/rfc6838
 public struct MediaType: Hashable, Loggable {
-    
     /// The string representation of this media type.
     public var string: String {
         let params = parameters
@@ -312,11 +311,9 @@ public struct MediaType: Hashable, Loggable {
     }
 }
 
-
 extension MediaType: RawRepresentable {
-    
     public var rawValue: String { string }
-    
+
     public init?(rawValue: String) {
         self.init(rawValue)
     }

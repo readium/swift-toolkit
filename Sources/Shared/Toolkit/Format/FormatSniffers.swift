@@ -22,15 +22,15 @@ public struct HTMLSniffer: FormatSniffer {
         {
             return xhtml
         }
-        
+
         return nil
     }
-    
+
     public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format> {
         guard format.conformsTo(.xml), !format.conformsTo(.html) else {
             return .success(format)
         }
-        
+
         return await blob.readAsXML()
             .map { document in
                 if let format = sniffDocument(document) {
@@ -42,7 +42,7 @@ public struct HTMLSniffer: FormatSniffer {
                 }
             }
     }
-    
+
     private func sniffDocument(_ document: XMLDocument?) -> Format? {
         guard
             let element = document?.documentElement,
@@ -52,7 +52,7 @@ public struct HTMLSniffer: FormatSniffer {
         }
         return html
     }
-    
+
     private func sniffString(_ blob: FormatSnifferBlob) async -> Format? {
         guard
             let string = await blob.readAsString().getOrNil(),
@@ -77,7 +77,6 @@ public struct HTMLSniffer: FormatSniffer {
 }
 
 private extension Format {
-    
     mutating func addSpecifications(_ specifications: FormatSpecification...) {
         for spec in specifications {
             self.specifications.specifications.insert(spec)

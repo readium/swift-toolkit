@@ -39,3 +39,6 @@ public final class RoutingFetcher {}
 
 @available(*, unavailable, message: "Use an `HTTPContainer` instead")
 public final class HTTPFetcher {}
+
+@available(*, unavailable, message: "Use an `FileContainer` instead")
+public final class FileFetcher {}

@@ -8,8 +8,6 @@ import Foundation
 
 /// Errors produced when trying to decode content.
 public enum DecodeError: Error {
-    
     /// Content could not be successfully decoded because it doesn't match what was expected.
     case Decoding(Error)
 }
-

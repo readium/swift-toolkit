@@ -21,63 +21,63 @@ public struct Format: Hashable {
         self.mediaType = mediaType
         self.fileExtension = fileExtension
     }
-    
+
     public var hasSpecification: Bool {
         !specifications.specifications.isEmpty
     }
 
     public func conformsTo(_ specification: FormatSpecification) -> Bool {
-        self.specifications.conformsTo(specification)
+        specifications.conformsTo(specification)
     }
-    
+
     public func conformsToAny(_ specifications: FormatSpecification...) -> Bool {
         self.specifications.conformsToAny(Set(specifications))
     }
-    
+
     public func conformsToAny(_ specifications: Set<FormatSpecification>) -> Bool {
         self.specifications.conformsToAny(specifications)
     }
-    
+
     public func conformsToAll(_ specifications: FormatSpecification...) -> Bool {
         self.specifications.conformsToAll(Set(specifications))
     }
-    
+
     public func conformsToAll(_ specifications: Set<FormatSpecification>) -> Bool {
         self.specifications.conformsToAll(specifications)
     }
-    
+
     public func refines(_ format: Format) -> Bool {
-        self.specifications.refines(format.specifications)
+        specifications.refines(format.specifications)
     }
 }
 
 public struct FormatSpecifications: Hashable {
     public var specifications: Set<FormatSpecification>
-    
+
     public init(specifications: Set<FormatSpecification>) {
         self.specifications = specifications
     }
-    
+
     public func conformsTo(_ specification: FormatSpecification) -> Bool {
         specifications.contains(specification)
     }
-    
+
     public func conformsToAny(_ specifications: FormatSpecification...) -> Bool {
         conformsToAny(Set(specifications))
     }
-    
+
     public func conformsToAny(_ specifications: Set<FormatSpecification>) -> Bool {
         specifications.contains { conformsTo($0) }
     }
-    
+
     public func conformsToAll(_ specifications: FormatSpecification...) -> Bool {
         conformsToAll(Set(specifications))
     }
-    
+
     public func conformsToAll(_ specifications: Set<FormatSpecification>) -> Bool {
         specifications.allSatisfy { conformsTo($0) }
     }
-    
+
     public func refines(_ specifications: FormatSpecifications) -> Bool {
         self != specifications && conformsToAll(specifications.specifications)
     }
@@ -89,7 +89,7 @@ public struct FormatSpecification: RawRepresentable, Hashable {
     public init(rawValue: String) {
         self.rawValue = rawValue
     }
-    
+
     // Archive specifications
 
     public static let rar = FormatSpecification(rawValue: "rar")
@@ -99,16 +99,16 @@ public struct FormatSpecification: RawRepresentable, Hashable {
 
     public static let json = FormatSpecification(rawValue: "json")
     public static let xml = FormatSpecification(rawValue: "xml")
-    
+
     // Publication manifest specifications
 
     public static let w3cPubManifest = FormatSpecification(rawValue: "w3c-pub-manifest")
     public static let rwpm = FormatSpecification(rawValue: "rwpm")
-    
+
     // Technical document specifications
 
     public static let problemDetails = FormatSpecification(rawValue: "problem-details")
-    
+
     // Media format specifications
 
     public static let pdf = FormatSpecification(rawValue: "pdf")
@@ -119,7 +119,7 @@ public struct FormatSpecification: RawRepresentable, Hashable {
     public static let adept = FormatSpecification(rawValue: "adept")
     public static let lcp = FormatSpecification(rawValue: "lcp")
     public static let lcpLicense = FormatSpecification(rawValue: "lcp-license")
-    
+
     // Bitmap specifications
 
     public static let avif = FormatSpecification(rawValue: "avif")

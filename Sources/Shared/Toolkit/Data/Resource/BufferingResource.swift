@@ -19,7 +19,6 @@ import Foundation
 /// resource by chunks. The buffer is ignored when reading backward or far
 /// ahead.
 public actor BufferingResource: Resource {
-
     private let resource: Resource
     private let bufferSize: UInt64
 
@@ -31,16 +30,15 @@ public actor BufferingResource: Resource {
     }
 
     public nonisolated var sourceURL: AbsoluteURL? { resource.sourceURL }
-    
+
     public func properties() async -> ReadResult<ResourceProperties> {
         await resource.properties()
     }
-    
+
     public func close() async {
         buffer = nil
         await resource.close()
     }
-    
 
     /// The buffer containing the current bytes read from the wrapped `Resource`, with the range it covers.
     private var buffer: (data: Data, range: Range<UInt64>)? = nil
@@ -66,18 +64,18 @@ public actor BufferingResource: Resource {
         else {
             return await resource.stream(range: range, consume: consume)
         }
-        
+
         requestedRange = requestedRange.clamped(to: 0 ..< length)
         guard !requestedRange.isEmpty else {
             consume(Data())
             return .success(())
         }
-        
+
         // Round up the range to be read to the next `bufferSize`, because we
         // will buffer the excess.
         let readUpperBound = min(requestedRange.upperBound.ceilMultiple(of: bufferSize), length)
         var readRange: Range<UInt64> = requestedRange.lowerBound ..< readUpperBound
-        
+
         // Attempt to serve parts or all of the request using the buffer.
         if let buffer = buffer {
             // Everything already buffered?
@@ -85,13 +83,13 @@ public actor BufferingResource: Resource {
                 let data = extractRange(requestedRange, in: buffer.data, startingAt: buffer.range.lowerBound)
                 consume(data)
                 return .success(())
-                
+
                 // Beginning of requested data is buffered?
             } else if buffer.range.contains(requestedRange.lowerBound) {
                 var data = buffer.data
                 let bufferStart = buffer.range.lowerBound
                 readRange = buffer.range.upperBound ..< readRange.upperBound
-                
+
                 return await resource.read(range: readRange)
                     .map { readData in
                         data += readData
@@ -102,7 +100,7 @@ public actor BufferingResource: Resource {
                     }
             }
         }
-        
+
         // Fallback on reading the requested range from the original resource.
         return await resource.read(range: readRange)
             .map { data in

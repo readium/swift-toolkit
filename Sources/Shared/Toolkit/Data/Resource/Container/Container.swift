@@ -8,13 +8,12 @@ import Foundation
 
 /// A container provides access to a list of `Resource` entries.
 public protocol Container: AsyncCloseable {
-
     /// Direct source to this container, when available.
     var sourceURL: AbsoluteURL? { get }
-    
+
     /// List of all the container entries.
     var entries: Set<AnyURL> { get }
-    
+
     /// Returns the entry at the given `url` or nil if there is none.
     subscript(url: any URLConvertible) -> Resource? { get }
 }
@@ -25,11 +24,10 @@ public extension Container {
 
 /// A `Container` providing no entries at all.
 public struct EmptyContainer: Container {
-
     public let entries: Set<AnyURL> = Set()
-    
+
     public subscript(url: any URLConvertible) -> Resource? { nil }
-    
+
     public func close() async {}
 }
 
@@ -41,7 +39,6 @@ public struct EmptyContainer: Container {
 ///
 /// The `containers` will be tested in the given order.
 public struct CompositeContainer: Container {
-
     private let containers: [Container]
 
     public var entries: Set<AnyURL> {

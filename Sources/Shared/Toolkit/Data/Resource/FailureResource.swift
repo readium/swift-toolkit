@@ -8,7 +8,6 @@ import Foundation
 
 /// Creates a Resource that will always return the given `error`.
 public final class FailureResource: Resource {
-
     private let error: ReadError
 
     public let sourceURL: AbsoluteURL?
@@ -21,20 +20,19 @@ public final class FailureResource: Resource {
     public func estimatedLength() async -> ReadResult<UInt64?> {
         .failure(error)
     }
-    
+
     public func properties() async -> ReadResult<ResourceProperties> {
         .failure(error)
     }
-    
+
     public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
         .failure(error)
     }
 
-    public func close() async { }
+    public func close() async {}
 }
 
 public extension Resource where Self == FailureResource {
-
     static func failure(_ error: ReadError, sourceURL: AbsoluteURL? = nil) -> FailureResource {
         FailureResource(error: error)
     }

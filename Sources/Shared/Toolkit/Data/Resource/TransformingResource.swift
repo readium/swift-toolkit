@@ -28,11 +28,11 @@ open class TransformingResource: Resource {
     open func transform(data: ReadResult<Data>) async -> ReadResult<Data> {
         await _transform!(data)
     }
-    
+
     public func close() async {
         await resource.close()
     }
-    
+
     public var sourceURL: AbsoluteURL? { resource.sourceURL }
 
     public func estimatedLength() async -> ReadResult<UInt64?> {
@@ -40,7 +40,7 @@ open class TransformingResource: Resource {
         // length from the upstream resource.
         .success(nil)
     }
-    
+
     public func properties() async -> ReadResult<ResourceProperties> {
         await resource.properties()
     }
@@ -55,9 +55,9 @@ open class TransformingResource: Resource {
             return ()
         }
     }
-    
+
     private var _data: ReadResult<Data>?
-    
+
     private func data() async -> ReadResult<Data> {
         if _data == nil {
             _data = await transform(data: resource.read())
