@@ -42,3 +42,6 @@ public final class HTTPFetcher {}
 
 @available(*, unavailable, message: "Use an `FileContainer` instead")
 public final class FileFetcher {}
+
+@available(*, unavailable, message: "Use an `ArchiveOpener` instead")
+public final class ArchiveFetcher {}

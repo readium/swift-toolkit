@@ -7,124 +7,184 @@
 import Foundation
 import Minizip
 
-enum MinizipArchiveError: Error {
-    case fileNotReachable(FileURL)
-    case notAValidZIP(FileURL)
-    case entryAlreadyClosed(ArchivePath)
+final class MinizipArchiveOpener: ArchiveOpener {
+    func open(format: Format, resource: any Resource) async -> Result<ContainerAsset, ArchiveOpenError> {
+        guard
+            format.conformsTo(.zip),
+            let file = resource.sourceURL?.fileURL
+        else {
+            return .failure(.formatNotSupported(format))
+        }
+
+        return await MinizipContainer.make(file: file)
+            .mapError {
+                switch $0 {
+                case .notAZIP:
+                    return .formatNotSupported(format)
+                case .reading(let error):
+                    return .reading(error)
+                }
+            }
+            .map { ContainerAsset(container: $0, format: format) }
+    }
+    
+    func sniffOpen(resource: any Resource) async -> Result<ContainerAsset, ArchiveSniffOpenError> {
+        guard let file = resource.sourceURL?.fileURL else {
+            return .failure(.formatNotRecognized)
+        }
+
+        return await MinizipContainer.make(file: file)
+            .mapError {
+                switch $0 {
+                case .notAZIP:
+                    return .formatNotRecognized
+                case .reading(let error):
+                    return .reading(error)
+                }
+            }
+            .map {
+                ContainerAsset(
+                    container: $0,
+                    format: Format(
+                        specifications: .zip,
+                        mediaType: .zip,
+                        fileExtension: "zip"
+                    )
+                )
+            }
+    }
 }
 
-/// A ZIP `Archive` using the Minizip library.
-final class MinizipArchive: Archive, Loggable {
-    static func make(url: FileURL) -> ArchiveResult<MinizipArchive> {
-        guard (try? url.exists()) ?? false else {
-            return .failure(.openFailed(archive: url.string, cause: MinizipArchiveError.fileNotReachable(url)))
+/// A ZIP ``Container`` using the Minizip library.
+final class MinizipContainer: Container, Loggable {
+
+    enum MakeError: Error {
+        case notAZIP
+        case reading(ReadError)
+    }
+        
+    static func make(file: FileURL) async -> Result<MinizipContainer, MakeError> {
+        guard (try? file.exists()) ?? false else {
+            return .failure(.reading(.access(FileSystemError.fileNotFound(nil))))
         }
-        guard let file = MinizipFile(url: url.url) else {
-            return .failure(.openFailed(archive: url.string, cause: MinizipArchiveError.notAValidZIP(url)))
+        guard let zipFile = MinizipFile(url: file.url) else {
+            return .failure(.notAZIP)
         }
-        defer { try? file.close() }
+        defer { try? zipFile.close() }
 
         do {
-            var entries: [ArchiveEntry] = []
+            var entries = [RelativeURL: MinizipEntryMetadata]()
 
-            try file.goToFirstEntry()
+            try zipFile.goToFirstEntry()
             repeat {
-                switch try file.entryMetadataAtCurrentOffset() {
+                switch try zipFile.entryMetadataAtCurrentOffset() {
                 case let .file(path, length: length, compressedLength: compressedLength):
-                    entries.append(ArchiveEntry(path: path, length: length, compressedLength: compressedLength))
+                    if let url = RelativeURL(path: path) {
+                        entries[url] = MinizipEntryMetadata(length: length, compressedLength: compressedLength)
+                    }
                 case .directory:
                     // Directories are ignored
                     break
                 }
-            } while try file.goToNextEntry()
+            } while try zipFile.goToNextEntry()
 
-            return try .success(Self(url: url, entries: entries))
+            return .success(Self(file: file, entries: entries))
 
         } catch {
-            return .failure(.openFailed(archive: url.string, cause: error))
+            return .failure(.reading(.decoding(error)))
         }
     }
 
-    let entries: [ArchiveEntry]
+    private let file: FileURL
+    private let entriesMetadata: [RelativeURL: MinizipEntryMetadata]
+    
+    public let entries: Set<AnyURL>
 
-    private let url: FileURL
-
-    private init(url: FileURL, entries: [ArchiveEntry]) throws {
-        self.url = url
-        self.entries = entries
+    private init(file: FileURL, entries: [RelativeURL: MinizipEntryMetadata]) {
+        self.file = file
+        self.entriesMetadata = entries
+        self.entries = Set(entries.keys.map(\.anyURL))
     }
+    
+    func close() async { }
 
-    func readEntry(at path: ArchivePath) -> ArchiveEntryReader? {
-        guard let entry = entry(at: path) else {
+    subscript(url: any URLConvertible) -> (any Resource)? {
+        guard
+            let url = url.relativeURL,
+            let metadata = entriesMetadata[url]
+        else {
             return nil
         }
-        return MinizipEntryReader(archive: url, entry: entry)
+        return MinizipResource(file: file, entryPath: url.path, metadata: metadata)
     }
-
-    func close() {}
 }
 
-private final class MinizipEntryReader: ArchiveEntryReader, Loggable {
-    private let archive: FileURL
-    private let entry: ArchiveEntry
-    private var isClosed = false
+private struct MinizipEntryMetadata {
+    let length: UInt64
+    let compressedLength: UInt64?
+}
 
-    init(archive: FileURL, entry: ArchiveEntry) {
-        self.archive = archive
-        self.entry = entry
+private actor MinizipResource: Resource, Loggable {
+    
+    private let file: FileURL
+    private let entryPath: String
+    private let metadata: MinizipEntryMetadata
+
+    init(file: FileURL, entryPath: String, metadata: MinizipEntryMetadata) {
+        self.file = file
+        self.entryPath = entryPath
+        self.metadata = metadata
     }
 
-    func close() {
-        transaction {
+    func close() async {
+        do {
+            try _zipFile?.getOrNil()?.close()
+            _zipFile = .failure(.unsupportedOperation(DebugError("The Minizip resource is already closed")))
+        } catch {
+            log(.error, error)
+        }
+    }
+
+    public let sourceURL: AbsoluteURL? = nil
+    
+    func estimatedLength() async -> ReadResult<UInt64?> {
+        .success(metadata.length)
+    }
+
+    func properties() async -> ReadResult<ResourceProperties> {
+        .success(ResourceProperties {
+            $0.archive = ArchiveProperties(
+                entryLength: metadata.compressedLength ?? metadata.length,
+                isEntryCompressed: metadata.compressedLength != nil
+            )
+        })
+    }
+
+    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+        let range = range ?? 0 ..< metadata.length
+
+        return await zipFile().flatMap { zipFile in
             do {
-                try _file?.close()
-                isClosed = true
+                try zipFile.openEntry(at: entryPath, offset: range.lowerBound)
+                try consume(zipFile.readFromCurrentOffset(length: UInt64(range.count)))
+                return .success(())
             } catch {
-                log(.error, error)
+                return .failure(.decoding(error))
             }
         }
     }
 
-    func read(range: Range<UInt64>?) -> ArchiveResult<Data> {
-        transaction {
-            let range = range ?? 0 ..< entry.length
-
-            do {
-                let file = try self.file()
-                try file.openEntry(at: entry.path, offset: range.lowerBound)
-                return try .success(file.readFromCurrentOffset(length: UInt64(range.count)))
-
-            } catch {
-                return .failure(.readFailed(entry: entry.path, archive: archive.string, cause: error))
+    private var _zipFile: ReadResult<MinizipFile>?
+    private func zipFile() async -> ReadResult<MinizipFile> {
+        if _zipFile == nil {
+            if let zipFile = MinizipFile(url: file.url) {
+                _zipFile = .success(zipFile)
+            } else {
+                _zipFile = .failure(.decoding(DebugError("Failed to open the ZIP file with Minizip")))
             }
         }
+        return _zipFile!
     }
-
-    private var _file: MinizipFile?
-    private func file() throws -> MinizipFile {
-        if let file = _file {
-            return file
-        } else if let file = MinizipFile(url: archive.url) {
-            _file = file
-            return file
-        } else {
-            throw MinizipArchiveError.notAValidZIP(archive)
-        }
-    }
-
-    /// Makes the access to the Minizip file thread-safe.
-    @discardableResult
-    private func transaction<T>(_ block: () throws -> T) rethrows -> T {
-        try queue.sync {
-            guard !isClosed else {
-                throw MinizipArchiveError.entryAlreadyClosed(entry.path)
-            }
-
-            return try block()
-        }
-    }
-
-    private let queue = DispatchQueue(label: "org.readium.swift-toolkit.shared.MinizipFile")
 }
 
 /// Holds an opened Minizip file and provide a bridge to its C++ API.

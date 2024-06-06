@@ -11,6 +11,7 @@ import ZIPFoundation
 ///
 /// Note: At the moment, the Minizip version is used. Keeping this in case we migrate to
 /// ZIPFoundation.
+/*
 final class ZIPFoundationArchive: Archive, Loggable {
     fileprivate let archive: ZIPFoundation.Archive
 
@@ -136,3 +137,4 @@ private extension ArchiveEntry {
         )
     }
 }
+*/

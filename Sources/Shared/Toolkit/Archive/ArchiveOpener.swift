@@ -5,3 +5,31 @@
 //
 
 import Foundation
+
+/// A factory to create ``Container``s from archive ``Resource``s.
+public protocol ArchiveOpener {
+
+    /// Creates a new ``ContainerAsset`` to access the entries of an archive
+    /// with a known `format`.
+    func open(format: Format, resource: Resource) async -> Result<ContainerAsset, ArchiveOpenError>
+    
+    /// Creates a new ``ContainerAsset`` to access the entries of an archive
+    /// after sniffing its format.
+    func sniffOpen(resource: Resource) async -> Result<ContainerAsset, ArchiveSniffOpenError>
+}
+
+public enum ArchiveOpenError: Error {
+    /// Archive format not supported.
+    case formatNotSupported(Format)
+    
+    /// An error occurred while attempting to read a resource.
+    case reading(ReadError)
+}
+
+public enum ArchiveSniffOpenError: Error {
+    /// The format of the resource could not be inferred.
+    case formatNotRecognized
+    
+    /// An error occurred while attempting to read a resource.
+    case reading(ReadError)
+}
