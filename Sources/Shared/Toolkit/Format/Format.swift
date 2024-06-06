@@ -49,6 +49,12 @@ public struct Format: Hashable {
     public func refines(_ format: Format) -> Bool {
         specifications.refines(format.specifications)
     }
+
+    public mutating func addSpecifications(_ specifications: FormatSpecification...) {
+        for spec in specifications {
+            self.specifications.specifications.insert(spec)
+        }
+    }
 }
 
 public struct FormatSpecifications: Hashable {

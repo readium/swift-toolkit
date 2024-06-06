@@ -7,7 +7,7 @@
 import Foundation
 
 /// Sniffs an HTML or XHTML document.
-public struct HTMLSniffer: FormatSniffer {
+public struct HTMLFormatSniffer: FormatSniffer {
     public func sniffHints(_ hints: FormatHints) -> Format? {
         if
             hints.hasFileExtension("htm", "html") ||
@@ -74,12 +74,4 @@ public struct HTMLSniffer: FormatSniffer {
         mediaType: .xhtml,
         fileExtension: "xhtml"
     )
-}
-
-private extension Format {
-    mutating func addSpecifications(_ specifications: FormatSpecification...) {
-        for spec in specifications {
-            self.specifications.specifications.insert(spec)
-        }
-    }
 }
