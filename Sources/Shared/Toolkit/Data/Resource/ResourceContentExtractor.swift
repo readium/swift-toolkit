@@ -21,7 +21,7 @@ public protocol _ResourceContentExtractor {
 public protocol _ResourceContentExtractorFactory {
     /// Creates a `ResourceContentExtractor` instance for the given `resource`.
     /// Returns null if the resource format is not supported.
-    func makeExtractor(for resource: Resource, format: Format) -> _ResourceContentExtractor?
+    func makeExtractor(for resource: Resource, mediaType: MediaType) -> _ResourceContentExtractor?
 }
 
 /// **WARNING:** This API is experimental and may change or be removed in a future release without
@@ -29,8 +29,8 @@ public protocol _ResourceContentExtractorFactory {
 public class _DefaultResourceContentExtractorFactory: _ResourceContentExtractorFactory {
     public init() {}
 
-    public func makeExtractor(for resource: Resource, format: Format) -> _ResourceContentExtractor? {
-        if format.conformsTo(.html) {
+    public func makeExtractor(for resource: Resource, mediaType: MediaType) -> _ResourceContentExtractor? {
+        if mediaType.isHTML {
             return _HTMLResourceContentExtractor()
         } else {
             return nil

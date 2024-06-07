@@ -24,6 +24,9 @@ public extension Container {
 
 /// A `Container` providing no entries at all.
 public struct EmptyContainer: Container {
+    
+    public init() {}
+
     public let entries: Set<AnyURL> = Set()
 
     public subscript(url: any URLConvertible) -> Resource? { nil }
@@ -38,8 +41,12 @@ public struct EmptyContainer: Container {
 /// sources.
 ///
 /// The `containers` will be tested in the given order.
-public struct CompositeContainer: Container {
+public class CompositeContainer: Container {
     private let containers: [Container]
+    
+    public init(_ containers: [Container]) {
+        self.containers = containers
+    }
 
     public var entries: Set<AnyURL> {
         containers.reduce([]) { acc, container in

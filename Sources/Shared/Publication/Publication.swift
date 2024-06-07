@@ -8,9 +8,9 @@ import CoreServices
 import Foundation
 
 /// Shared model for a Readium Publication.
-public class Publication: Loggable {
+public class Publication: AsyncCloseable, Loggable {
     private var manifest: Manifest
-    private let fetcher: Fetcher
+    private let container: Container
     private let services: [PublicationService]
 
     public var context: [String] { manifest.context }
@@ -36,7 +36,7 @@ public class Publication: Loggable {
 
     public init(
         manifest: Manifest,
-        fetcher: Fetcher = EmptyFetcher(),
+        container: Container = EmptyContainer(),
         servicesBuilder: PublicationServicesBuilder = .init()
     ) {
         let weakPublication = Weak<Publication>()
@@ -46,13 +46,13 @@ public class Publication: Loggable {
             context: PublicationServiceContext(
                 publication: weakPublication,
                 manifest: manifest,
-                fetcher: fetcher
+                container: container
             )
         )
         manifest.links.append(contentsOf: services.flatMap(\.links))
 
         self.manifest = manifest
-        self.fetcher = fetcher
+        self.container = container
         self.services = services
 
         weakPublication.ref = self
@@ -99,26 +99,25 @@ public class Publication: Loggable {
     }
 
     /// Returns the resource targeted by the given `link`.
-    public func get(_ link: Link) -> Resource {
+    public func get(_ link: Link) -> Resource? {
         assert(!link.templated, "You must expand templated links before calling `Publication.get`")
-
-        return services.first { $0.get(link: link) }
-            ?? fetcher.get(link)
+        return (try? link.url()).flatMap { get($0) }
     }
 
     /// Returns the resource targeted by the given `href`.
-    public func get(_ href: String) -> Resource {
-        var link = link(withHREF: href) ?? Link(href: href)
-        // Uses the original href to keep the query parameters
-        link.href = href
-        link.templated = false
-        return get(link)
+    public func get(_ href: any URLConvertible) -> Resource? {
+        // Try first the original href and falls back to href without query and fragment.
+        let url = href.anyURL
+        return container[url] ?? container[url.removingQuery().removingFragment()]
     }
 
     /// Closes any opened resource associated with the `Publication`, including `services`.
-    public func close() {
-        fetcher.close()
-        services.forEach { $0.close() }
+    public func close() async {
+        await container.close()
+
+        for service in services {
+            await service.close()
+        }
     }
 
     /// Finds the first `Publication.Service` implementing the given service type.
@@ -195,33 +194,42 @@ public class Publication: Loggable {
 
     /// Holds the components of a `Publication` to build it.
     ///
-    /// A `Publication`'s construction is distributed over the Streamer and its parsers, and since
-    /// `Publication` is immutable, it's useful to pass the parts around before actually building
-    /// it.
+    /// A `Publication`'s construction is distributed over the Streamer and its
+    /// parsers, and since `Publication` is immutable, it's useful to pass the
+    /// parts around before actually building it.
     public struct Builder {
-        /// Transform which can be used to modify a `Publication`'s components before building it.
-        /// For example, to add Publication Services or wrap the root Fetcher.
-        public typealias Transform = (_ mediaType: MediaType, _ manifest: inout Manifest, _ fetcher: inout Fetcher, _ services: inout PublicationServicesBuilder) -> Void
+        /// Transform which can be used to modify a `Publication`'s components
+        /// before building it. For example, to add Publication Services or
+        /// wrap the root Container.
+        public typealias Transform = (
+            _ mediaType: MediaType,
+            _ manifest: inout Manifest,
+            _ container: inout Container,
+            _ services: inout PublicationServicesBuilder
+        ) -> Void
 
         private let mediaType: MediaType
         private var manifest: Manifest
-        private var fetcher: Fetcher
+        private var container: Container
         private var servicesBuilder: PublicationServicesBuilder
 
         /// Closure which will be called once the `Publication` is built.
-        /// This is used for backwrad compatibility, until `Publication` is purely immutable.
+        ///
+        /// This is used for backwrad compatibility, until `Publication` is
+        /// purely immutable.
+        // FIXME: Deprecate
         private let setupPublication: ((Publication) -> Void)?
 
         public init(
             mediaType: MediaType,
             manifest: Manifest,
-            fetcher: Fetcher,
+            container: Container,
             servicesBuilder: PublicationServicesBuilder = .init(),
             setupPublication: ((Publication) -> Void)? = nil
         ) {
             self.mediaType = mediaType
             self.manifest = manifest
-            self.fetcher = fetcher
+            self.container = container
             self.servicesBuilder = servicesBuilder
             self.setupPublication = setupPublication
         }
@@ -231,14 +239,14 @@ public class Publication: Loggable {
                 return
             }
 
-            transform(mediaType, &manifest, &fetcher, &servicesBuilder)
+            transform(mediaType, &manifest, &container, &servicesBuilder)
         }
 
         /// Builds the `Publication` from its parts.
         public func build() -> Publication {
             let publication = Publication(
                 manifest: manifest,
-                fetcher: fetcher,
+                container: container,
                 servicesBuilder: servicesBuilder
             )
             setupPublication?(publication)

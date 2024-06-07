@@ -128,26 +128,30 @@ public class _StringSearchService: _SearchService {
             index += 1
 
             let link = publication.readingOrder[index]
-            let resource = publication.get(link)
 
-            do {
-                guard let extractor = extractorFactory.makeExtractor(for: resource) else {
-                    log(.warning, "Cannot extract text from resource: \(link.href)")
-                    return findNext(cancellable, completion)
+            Task {
+                do {
+                    guard
+                        let resource = publication.get(link),
+                        let extractor = extractorFactory.makeExtractor(for: resource, mediaType: link.mediaType)
+                    else {
+                        log(.warning, "Cannot extract text from resource: \(link.href)")
+                        return findNext(cancellable, completion)
+                    }
+                    let text = try await extractor.extractText(of: resource).get()
+                    
+                    let locators = findLocators(in: link, resourceIndex: index, text: text, cancellable: cancellable)
+                    // If no occurrences were found in the current resource, skip to the next one automatically.
+                    guard !locators.isEmpty else {
+                        return findNext(cancellable, completion)
+                    }
+                    
+                    resultCount = (resultCount ?? 0) + locators.count
+                    completion(.success(_LocatorCollection(locators: locators)))
+                    
+                } catch {
+                    completion(.failure(.wrap(error)))
                 }
-                let text = try extractor.extractText(of: resource).get()
-
-                let locators = findLocators(in: link, resourceIndex: index, text: text, cancellable: cancellable)
-                // If no occurrences were found in the current resource, skip to the next one automatically.
-                guard !locators.isEmpty else {
-                    return findNext(cancellable, completion)
-                }
-
-                resultCount = (resultCount ?? 0) + locators.count
-                completion(.success(_LocatorCollection(locators: locators)))
-
-            } catch {
-                completion(.failure(.wrap(error)))
             }
         }
 

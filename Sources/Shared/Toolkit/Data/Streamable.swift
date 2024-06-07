@@ -65,7 +65,7 @@ public extension Streamable {
         }
     }
 
-    /// Reads the whole content as a JSON object.
+    /// Reads the whole content as a JSON value.
     func readAsJSON<T: Any>(options: JSONSerialization.ReadingOptions = []) async -> ReadResult<T> {
         await read().flatMap {
             do {
@@ -77,5 +77,10 @@ public extension Streamable {
                 return .failure(.decoding(error))
             }
         }
+    }
+
+    /// Reads the whole content as a JSON object.
+    func readAsJSONObject(options: JSONSerialization.ReadingOptions = []) async -> ReadResult<[String: Any]> {
+        await readAsJSON()
     }
 }
