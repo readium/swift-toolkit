@@ -14,6 +14,10 @@ public protocol AsyncCloseable {
 }
 
 public extension AsyncCloseable {
+    func close() async {}
+}
+
+public extension AsyncCloseable {
     /// Executes the given block function on this resource and then closes it down correctly whether
     /// an error is thrown or not.
     func use<T>(_ block: (Self) async throws -> T) async rethrows -> T {

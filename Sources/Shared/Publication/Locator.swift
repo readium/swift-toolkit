@@ -299,13 +299,13 @@ public extension Array where Element == Locator {
     }
 }
 
+@available(*, unavailable, renamed: "LocatorCollection")
+public typealias _LocatorCollection = LocatorCollection
+
 /// Represents a sequential list of `Locator` objects.
 ///
 /// For example, a search result or a list of positions.
-///
-/// **WARNING:** This API is experimental and may change or be removed in a future release without
-/// notice. Use with caution.
-public struct _LocatorCollection: Hashable {
+public struct LocatorCollection: Hashable {
     public var metadata: Metadata
     public var links: [Link]
     public var locators: [Locator]

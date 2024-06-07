@@ -94,11 +94,11 @@ struct TestContentProtectionService: ContentProtectionService {
     var name: LocalizedString? = nil
 
     func getCopy(text: String, peek: Bool) throws -> Resource {
-        try XCTUnwrap(get(link: Link(href: "/~readium/rights/copy?text=\(text)&peek=\(peek)")))
+        try XCTUnwrap(get(link: Link(href: "~readium/rights/copy?text=\(text)&peek=\(peek)")))
     }
 
     func getPrint(pageCount: Int, peek: Bool) throws -> Resource {
-        try XCTUnwrap(get(link: Link(href: "/~readium/rights/print?pageCount=\(pageCount)&peek=\(peek)")))
+        try XCTUnwrap(get(link: Link(href: "~readium/rights/print?pageCount=\(pageCount)&peek=\(peek)")))
     }
 }
 

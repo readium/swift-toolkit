@@ -18,7 +18,7 @@ class GeneratedCoverServiceTests: XCTestCase {
 
     /// `GeneratedCoverService` adds a custom `Link` with `cover` rel in `links`.
     func testLinks() {
-        let expectedLinks = [Link(href: "/~readium/cover", type: "image/png", rels: [.cover])]
+        let expectedLinks = [Link(href: "~readium/cover", type: "image/png", rels: [.cover])]
         XCTAssertEqual(GeneratedCoverService(cover: cover).links, expectedLinks)
         XCTAssertEqual(GeneratedCoverService(makeCover: { self.cover }).links, expectedLinks)
     }
@@ -29,8 +29,8 @@ class GeneratedCoverServiceTests: XCTestCase {
             GeneratedCoverService(cover: cover),
             GeneratedCoverService(makeCover: { self.cover }),
         ] {
-            let resource = try XCTUnwrap(service.get(link: Link(href: "/~readium/cover")))
-            XCTAssertEqual(resource.link, Link(href: "/~readium/cover", type: "image/png", rels: [.cover], height: 800, width: 598))
+            let resource = try XCTUnwrap(service.get(link: Link(href: "~readium/cover")))
+            XCTAssertEqual(resource.link, Link(href: "~readium/cover", type: "image/png", rels: [.cover], height: 800, width: 598))
             try AssertImageEqual(resource.read().map(UIImage.init).get(), cover)
         }
     }

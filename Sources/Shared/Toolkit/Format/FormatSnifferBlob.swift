@@ -7,17 +7,17 @@
 import Foundation
 
 public actor FormatSnifferBlob {
-    private let source: Readable
+    private let source: Streamable
     private let xmlDocumentFactory: XMLDocumentFactory
 
     // Caches
-    private var length: ReadResult<UInt64>?
+    private var length: ReadResult<UInt64?>?
     private var bytes: ReadResult<Data?>?
     private var string: ReadResult<String?>?
     private var json: ReadResult<Any?>?
     private var xml: ReadResult<XMLDocument?>?
 
-    public init(source: Readable) {
+    public init(source: Streamable) {
         self.source = source
         xmlDocumentFactory = DefaultXMLDocumentFactory()
     }
@@ -36,7 +36,7 @@ public actor FormatSnifferBlob {
         if bytes == nil {
             bytes = await length()
                 .flatMap { length in
-                    guard length < 5 * 1000 * 1000 else {
+                    guard let length = length, length < 5 * 1000 * 1000 else {
                         return .success(nil)
                     }
 
@@ -81,9 +81,9 @@ public actor FormatSnifferBlob {
         return xml!
     }
 
-    private func length() async -> ReadResult<UInt64> {
+    private func length() async -> ReadResult<UInt64?> {
         if length == nil {
-            length = await source.length()
+            length = await source.estimatedLength()
         }
         return length!
     }

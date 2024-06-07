@@ -40,8 +40,6 @@ public extension PublicationService {
     var links: [Link] { [] }
 
     func get(link: Link) -> Resource? { nil }
-
-    func close() {}
 }
 
 /// Factory used to create a `PublicationService`.

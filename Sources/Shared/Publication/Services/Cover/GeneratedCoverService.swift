@@ -66,8 +66,6 @@ public final class GeneratedCoverService: CoverService {
             self.cover = cover
         }
         
-        func close() async { }
-        
         let sourceURL: AbsoluteURL? = nil
         
         func estimatedLength() async -> ReadResult<UInt64?> {

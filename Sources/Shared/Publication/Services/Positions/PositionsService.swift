@@ -48,8 +48,6 @@ private class PositionsResource: Resource {
         self.positions = positions
     }
     
-    func close() async { }
-    
     let sourceURL: AbsoluteURL? = nil
     
     func estimatedLength() async -> ReadResult<UInt64?> {

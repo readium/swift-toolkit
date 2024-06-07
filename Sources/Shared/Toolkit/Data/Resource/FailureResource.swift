@@ -28,8 +28,6 @@ public final class FailureResource: Resource {
     public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
         .failure(error)
     }
-
-    public func close() async {}
 }
 
 public extension Resource where Self == FailureResource {

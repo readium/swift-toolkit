@@ -106,8 +106,6 @@ final class MinizipContainer: Container, Loggable {
         self.entries = Set(entries.keys.map(\.anyURL))
     }
     
-    func close() async { }
-
     subscript(url: any URLConvertible) -> (any Resource)? {
         guard
             let url = url.relativeURL,
@@ -197,14 +195,14 @@ private final class MinizipFile {
 
     // Holds an entry's metadata.
     enum Entry {
-        case file(ArchivePath, length: UInt64, compressedLength: UInt64?)
-        case directory(ArchivePath)
+        case file(String, length: UInt64, compressedLength: UInt64?)
+        case directory(String)
     }
 
     private let file: unzFile
     private var isClosed = false
     /// Information about the currently opened entry.
-    private(set) var openedEntry: (path: ArchivePath, offset: UInt64)?
+    private(set) var openedEntry: (path: String, offset: UInt64)?
     /// Length of the buffer used when reading an entry's data.
     private var bufferLength: Int { 1024 * 32 }
 
@@ -252,7 +250,7 @@ private final class MinizipFile {
     }
 
     /// Moves the offset to the entry at `path`.
-    func goToEntry(at path: ArchivePath) throws {
+    func goToEntry(at path: String) throws {
         try closeEntry()
         try execute { unzLocateFile(file, path.removingPrefix("/"), nil) }
     }
@@ -280,7 +278,7 @@ private final class MinizipFile {
     }
 
     /// Opens the entry at the given `path` and file `offset`, to read its content.
-    func openEntry(at path: ArchivePath, offset: UInt64 = 0) throws {
+    func openEntry(at path: String, offset: UInt64 = 0) throws {
         if let entry = openedEntry, entry.path == path, entry.offset <= offset {
             if entry.offset < offset {
                 try seek(by: offset - entry.offset)

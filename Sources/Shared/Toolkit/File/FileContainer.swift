@@ -22,8 +22,6 @@ public final class FileContainer: Container, Loggable {
         self.init(files: [href: file])
     }
 
-    public func close() async {}
-
     public subscript(url: any URLConvertible) -> Resource? {
         guard
             let url = url.relativeURL,

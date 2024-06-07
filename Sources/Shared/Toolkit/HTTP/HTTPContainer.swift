@@ -27,6 +27,4 @@ public final class HTTPContainer: Container {
         }
         return HTTPResource(url: url, client: client)
     }
-
-    public func close() async {}
 }

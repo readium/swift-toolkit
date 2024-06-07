@@ -65,7 +65,7 @@ class PositionsServiceTests: XCTestCase {
         XCTAssertEqual(
             service.links,
             [Link(
-                href: "/~readium/positions",
+                href: "~readium/positions",
                 type: "application/vnd.readium.position-list+json"
             )]
         )
@@ -118,7 +118,7 @@ class PositionsServiceTests: XCTestCase {
     func testGetPositions() {
         let service = TestPositionsService(positions)
 
-        let resource = service.get(link: Link(href: "/~readium/positions"))
+        let resource = service.get(link: Link(href: "~readium/positions"))
 
         XCTAssertEqual(
             try resource?.readAsString().get(),

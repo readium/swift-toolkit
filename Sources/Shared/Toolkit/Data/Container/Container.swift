@@ -30,8 +30,6 @@ public struct EmptyContainer: Container {
     public let entries: Set<AnyURL> = Set()
 
     public subscript(url: any URLConvertible) -> Resource? { nil }
-
-    public func close() async {}
 }
 
 /// Concatenates several containers.

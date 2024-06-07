@@ -72,6 +72,4 @@ public actor DataResource: Resource {
             return ()
         }
     }
-
-    public func close() async {}
 }

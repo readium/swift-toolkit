@@ -46,8 +46,6 @@ public struct DirectoryContainer: Container, Loggable {
         self.init(directory: directory, entries: entries)
     }
 
-    public func close() async {}
-
     public subscript(url: any URLConvertible) -> Resource? {
         guard
             entries.contains(url.anyURL),
