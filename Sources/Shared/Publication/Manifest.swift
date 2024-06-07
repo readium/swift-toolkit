@@ -85,7 +85,7 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
         subcollections = PublicationCollection.makeCollections(json: json.json, warnings: warnings)
     }
 
-    public var json: [String: Any] {
+    public var json: JSONDictionary.Wrapped {
         makeJSON([
             "@context": encodeIfNotEmpty(context),
             "metadata": metadata.json,

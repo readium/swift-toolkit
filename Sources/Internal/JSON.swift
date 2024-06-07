@@ -8,28 +8,32 @@ import Foundation
 
 /// Wraps a dictionary parsed from a JSON string.
 /// This is a trick to keep the Web Publication structs equatable without having to override `==` and compare all the other properties.
-public struct JSONDictionary: @unchecked Sendable {
-    public var json: [String: Any]
+public struct JSONDictionary: Sendable {
+    public typealias Key = String
+    public typealias Value = Sendable
+    public typealias Wrapped = [Key: Value]
+
+    public var json: Wrapped
 
     public init() {
         json = [:]
     }
 
     public init?(_ json: Any?) {
-        guard let json = json as? [String: Any] else {
+        guard let json = json as? Wrapped else {
             return nil
         }
         self.json = json
     }
 
-    public mutating func pop(_ key: String) -> Any? {
+    public mutating func pop(_ key: Key) -> Value? {
         json.removeValue(forKey: key)
     }
 }
 
 extension JSONDictionary: Collection {
-    public typealias Index = DictionaryIndex<String, Any>
-    public typealias Element = (key: String, value: Any)
+    public typealias Index = DictionaryIndex<Key, Value>
+    public typealias Element = (key: Key, value: Value)
 
     public var startIndex: Index {
         json.startIndex
@@ -122,7 +126,7 @@ public func parseDate(_ json: Any?) -> Date? {
 
 /// Returns the given JSON object after removing any key with NSNull value.
 /// To be used with `encodeIfX` functions for more compact serialization code.
-public func makeJSON(_ object: [String: Any], additional: [String: Any] = [:]) -> [String: Any] {
+public func makeJSON(_ object: JSONDictionary.Wrapped, additional: JSONDictionary.Wrapped = [:]) -> JSONDictionary.Wrapped {
     object.filter { _, value in
         !(value is NSNull)
     }.merging(additional, uniquingKeysWith: { current, _ in current })
