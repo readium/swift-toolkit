@@ -14,26 +14,28 @@ import PDFKit
 ///
 /// Use `PDFKitPDFDocumentFactory` to create a `PDFDocument` from a `Resource`.
 extension PDFKit.PDFDocument: PDFDocument {
-    public var identifier: String? { documentRef?.identifier }
+    public func pageCount() async throws -> Int { self.pageCount }
+    
+    public func identifier() async throws -> String? { try await documentRef?.identifier() }
 
-    public var cover: UIImage? { documentRef?.cover }
+    public func cover() async throws -> UIImage? { try await documentRef?.cover() }
 
-    public var readingProgression: ReadingProgression? { documentRef?.readingProgression }
+    public func readingProgression() async throws -> ReadingProgression? { try await documentRef?.readingProgression() }
 
-    public var title: String? { documentRef?.title }
+    public func title() async throws -> String? { try await documentRef?.title() }
 
-    public var author: String? { documentRef?.author }
+    public func author() async throws -> String? { try await documentRef?.author() }
 
-    public var subject: String? { documentRef?.subject }
+    public func subject() async throws -> String? { try await documentRef?.subject() }
 
-    public var keywords: [String] { documentRef?.keywords ?? [] }
+    public func keywords() async throws -> [String] { try await documentRef?.keywords() ?? [] }
 
-    public var tableOfContents: [PDFOutlineNode] { documentRef?.tableOfContents ?? [] }
+    public func tableOfContents() async throws -> [PDFOutlineNode] { try await documentRef?.tableOfContents() ?? [] }
 }
 
 /// Creates a `PDFDocument` using PDFKit.
 public class PDFKitPDFDocumentFactory: PDFDocumentFactory {
-    public func open(file: FileURL, password: String?) throws -> PDFDocument {
+    public func open(file: FileURL, password: String?) async throws -> PDFDocument {
         guard let document = PDFKit.PDFDocument(url: file.url) else {
             throw PDFDocumentError.openFailed
         }
@@ -41,15 +43,15 @@ public class PDFKitPDFDocumentFactory: PDFDocumentFactory {
         return try open(document: document, password: password)
     }
 
-    public func open(resource: Resource, password: String?) throws -> PDFDocument {
-        if let file = resource.file {
-            return try open(file: file, password: password)
+    public func open(resource: Resource, password: String?) async throws -> PDFDocument {
+        if let file = resource.sourceURL?.fileURL {
+            return try await open(file: file, password: password)
         }
 
         // Unfortunately, PDFKit doesn't support streams, so we need to load the full document in
         // memory. If this is an issue for you, use `CPDFDocumentFactory` instead.
         guard
-            let data = try? resource.read().get(),
+            let data = try? await resource.read().get(),
             let document = PDFKit.PDFDocument(data: data)
         else {
             throw PDFDocumentError.openFailed

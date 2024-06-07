@@ -26,41 +26,34 @@ public protocol ContentProtection {
     ///   technology or a `Publication.OpeningError` if the asset can't be successfully opened, even
     ///   in restricted mode.
     func open(
-        asset: PublicationAsset,
-        fetcher: Fetcher,
+        asset: Asset,
         credentials: String?,
         allowUserInteraction: Bool,
-        sender: Any?,
-        completion: @escaping (CancellableResult<ProtectedAsset?, Publication.OpeningError>) -> Void
-    )
+        sender: Any?
+    ) async -> Result<ContentProtectionAsset, ContentProtectionOpenError>
 }
 
-/// Holds the result of opening a `PublicationAsset` with a `ContentProtection`.
-public typealias ProtectedAsset = (
-    /// Publication asset which will be provided to the parsers.
-    ///
-    /// In most cases, this will be the asset provided to `ContentProtection.open()`, but a Content
-    /// Protection might modify it in some cases:
-    /// - If the original asset has a media type that can't be recognized by parsers,
-    ///   the Content Protection must return an asset with the matching unprotected media type.
-    /// - If the Content Protection technology needs to redirect the Streamer to a different asset.
-    ///   For example, this could be used to decrypt a publication to a temporary secure location.
-    asset: PublicationAsset,
+public enum ContentProtectionOpenError: Error {
+    /// The asset is not supported by this ``ContentProtection``
+    case assetNotSupported
+    
+    /// An error occurred while reading the asset.
+    case reading(ReadError)
+}
 
-    /// Primary leaf fetcher to be used by parsers.
-    ///
-    /// The Content Protection can unlock resources by modifying the Fetcher provided to
-    /// `ContentProtection.open()`, for example by:
-    /// - Wrapping the given fetcher in a `TransformingFetcher` with a decryption
-    ///   `ResourceTransformer` function.
-    /// - Discarding the provided fetcher altogether and creating a new one to handle access
-    ///   restrictions. For example, by creating an `HTTPFetcher` which will inject a Bearer Token
-    ///   in requests.
-    fetcher: Fetcher,
-
+/// Holds the result of opening an ``Asset`` with a ``ContentProtection``.
+public struct ContentProtectionAsset {
+    /// Asset granting access to the decrypted content.
+    let asset: Asset
+    
     /// Transform which will be applied on the Publication Builder before creating the Publication.
     ///
     /// Can be used to add a Content Protection Service to the Publication that will be created by
     /// the Streamer.
-    onCreatePublication: Publication.Builder.Transform?
-)
+    let onCreatePublication: Publication.Builder.Transform?
+    
+    public init(asset: Asset, onCreatePublication: Publication.Builder.Transform? = nil) {
+        self.asset = asset
+        self.onCreatePublication = onCreatePublication
+    }
+}

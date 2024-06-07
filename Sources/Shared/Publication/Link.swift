@@ -78,6 +78,7 @@ public struct Link: JSONEquatable, Hashable {
         }
         self.href = href
         self.type = type
+        self.mediaType = type.flatMap { MediaType($0) }
         self.templated = templated
         self.title = title
         self.rels = rels
@@ -151,14 +152,7 @@ public struct Link: JSONEquatable, Hashable {
     }
 
     /// Media type of the linked resource.
-    public var mediaType: MediaType {
-        MediaType.of(
-            mediaType: type,
-            fileExtension: href
-                .components(separatedBy: ".")
-                .last
-        ) ?? .binary
-    }
+    public let mediaType: MediaType?
 
     /// Returns the URL represented by this link's HREF.
     ///
@@ -326,22 +320,22 @@ public extension Array where Element == Link {
 
     /// Returns whether all the resources in the collection are bitmaps.
     var allAreBitmap: Bool {
-        allSatisfy(\.mediaType.isBitmap)
+        allSatisfy { $0.mediaType?.isBitmap == true }
     }
 
     /// Returns whether all the resources in the collection are audio clips.
     var allAreAudio: Bool {
-        allSatisfy(\.mediaType.isAudio)
+        allSatisfy { $0.mediaType?.isAudio == true }
     }
 
     /// Returns whether all the resources in the collection are video clips.
     var allAreVideo: Bool {
-        allSatisfy(\.mediaType.isVideo)
+        allSatisfy { $0.mediaType?.isVideo == true }
     }
 
     /// Returns whether all the resources in the collection are HTML documents.
     var allAreHTML: Bool {
-        allSatisfy(\.mediaType.isHTML)
+        allSatisfy { $0.mediaType?.isHTML == true }
     }
 
     /// Returns whether all the resources in the collection are matching the given media type.

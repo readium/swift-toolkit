@@ -29,7 +29,7 @@ public class HTMLResourceContentIterator: ContentIterator {
             resource: Resource,
             locator: Locator
         ) -> ContentIterator? {
-            guard publication.readingOrder.getOrNil(readingOrderIndex)?.mediaType.isHTML == true else {
+            guard publication.readingOrder.getOrNil(readingOrderIndex)?.mediaType?.isHTML == true else {
                 return nil
             }
 

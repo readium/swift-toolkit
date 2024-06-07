@@ -66,7 +66,7 @@ public actor FileResource: Resource, Loggable {
         if _handle == nil {
             do {
                 let values = try fileURL.url.resourceValues(forKeys: [.isReadableKey, .isDirectoryKey])
-                if let isReadable = values.isReadable, values.isDirectory != true {
+                if let isReadable = values.isReadable, isReadable, values.isDirectory != true {
                     _handle = try .success(FileHandle(forReadingFrom: fileURL.url))
                 } else {
                     _handle = .failure(.access(FileSystemError.fileNotFound(nil)))

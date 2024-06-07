@@ -39,7 +39,7 @@ let package = Package(
             path: "Sources/Shared",
             exclude: [
                 // Support for ZIPFoundation is not yet achieved.
-                "Toolkit/Archive/ZIPFoundation.swift",
+                "Toolkit/ZIP/ZIPFoundation.swift",
             ],
             resources: [
                 .process("Resources"),

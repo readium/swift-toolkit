@@ -9,47 +9,49 @@ import Foundation
 import Fuzi
 
 public extension MediaType {
-    /// Determines if the provided content matches a known media type.
-    ///
-    /// - Parameter context: Holds the file metadata and cached content, which are shared among the
-    ///   sniffers.
-    typealias Sniffer = (_ context: MediaTypeSnifferContext) -> MediaType?
+    @available(*, unavailable, message: "Use an `AssetRetriever` to sniff a `Format` instead")
+    typealias Sniffer = (_ context: Any) -> MediaType?
 
     /// resolves a media type from a single file extension and media type hint, without checking the
     /// actual content.
-    static func of(mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = sniffers) -> MediaType? {
-        of(content: nil, mediaTypes: Array(ofNotNil: mediaType), fileExtensions: Array(ofNotNil: fileExtension), sniffers: sniffers)
+    @available(*, unavailable, message: "Use an `AssetRetriever` to sniff a `Format` instead")
+    static func of(mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = []) -> MediaType? {
+        fatalError()
     }
 
     /// Resolves a media type from file extension and media type hints, without checking the actual
     /// content.
-    static func of(mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = sniffers) -> MediaType? {
-        of(content: nil, mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
+    @available(*, unavailable, message: "Use an `AssetRetriever` to sniff a `Format` instead")
+    static func of(mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = []) -> MediaType? {
+        fatalError()
     }
 
     /// Resolves a media type from a local file path.
     /// **Warning**: This API should never be called from the UI thread.
-    static func of(_ file: FileURL, mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = sniffers) -> MediaType? {
-        of(file, mediaTypes: Array(ofNotNil: mediaType), fileExtensions: Array(ofNotNil: fileExtension), sniffers: sniffers)
+    @available(*, unavailable, message: "Use an `AssetRetriever` to sniff a `Format` instead")
+    static func of(_ file: FileURL, mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = []) -> MediaType? {
+        fatalError()
     }
 
     /// Resolves a media type from a local file path.
     /// **Warning**: This API should never be called from the UI thread.
-    static func of(_ file: FileURL, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = sniffers) -> MediaType? {
-        let fileExtensions = Array(ofNotNil: file.pathExtension) + fileExtensions
-        return of(content: FileMediaTypeSnifferContent(file: file), mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
+    @available(*, unavailable, message: "Use an `AssetRetriever` to sniff a `Format` instead")
+    static func of(_ file: FileURL, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = []) -> MediaType? {
+        fatalError()
     }
 
     /// Resolves a media type from bytes, e.g. from an HTTP response.
     /// **Warning**: This API should never be called from the UI thread.
-    static func of(_ data: @escaping () -> Data, mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = sniffers) -> MediaType? {
-        of(data, mediaTypes: Array(ofNotNil: mediaType), fileExtensions: Array(ofNotNil: fileExtension), sniffers: sniffers)
+    @available(*, unavailable, message: "Use an `AssetRetriever` to sniff a `Format` instead")
+    static func of(_ data: @escaping () -> Data, mediaType: String? = nil, fileExtension: String? = nil, sniffers: [Sniffer] = []) -> MediaType? {
+        fatalError()
     }
 
     /// Resolves a media type from bytes, e.g. from an HTTP response.
     /// **Warning**: This API should never be called from the UI thread.
-    static func of(_ data: @escaping () -> Data, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = sniffers) -> MediaType? {
-        of(content: DataMediaTypeSnifferContent(data: data), mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
+    @available(*, unavailable, message: "Use an `AssetRetriever` to sniff a `Format` instead")
+    static func of(_ data: @escaping () -> Data, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer] = []) -> MediaType? {
+        fatalError()
     }
 
     /// Resolves a media type from a sniffer context.
@@ -58,7 +60,10 @@ public extension MediaType {
     /// sniffers to return a `MediaType` quickly before inspecting the content itself:
     /// * *Light Sniffing* checks only the provided file extension or media type hints.
     /// * *Heavy Sniffing* reads the bytes to perform more advanced sniffing.
-    private static func of(content: MediaTypeSnifferContent?, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer]) -> MediaType? {
+    @available(*, unavailable, message: "Use an `AssetRetriever` to sniff a `Format` instead")
+    private static func of(content: Any, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer]) -> MediaType? {
+        return nil
+        /*
         if content != nil {
             warnIfMainThread()
         }
@@ -93,7 +98,10 @@ public extension MediaType {
         return sniffDocumentTypes(context)
             ?? sniffUTIs(context)
             ?? mediaTypes.first { MediaType($0) }
+        */
     }
+    
+    /*
 
     // MARK: Sniffers
 
@@ -470,6 +478,7 @@ public extension MediaType {
 
         return MediaType(mediaType)
     }
+    */
 }
 
 public extension URLResponse {
@@ -480,7 +489,8 @@ public extension URLResponse {
 
     /// Resolves the media type for this `URLResponse`, with optional extra file extension and media
     /// type hints.
-    func sniffMediaType(data: (() -> Data)? = nil, mediaTypes: [String] = [], fileExtensions: [String] = [], sniffers: [MediaType.Sniffer] = MediaType.sniffers) -> MediaType? {
+    // FIXME:
+    func sniffMediaType(data: (() -> Data)? = nil, mediaTypes: [String] = [], fileExtensions: [String] = []) -> MediaType? {
         var mediaTypes = mediaTypes
         // The value of the `Content-Type` HTTP header.
         if let mimeType = mimeType {
@@ -497,11 +507,12 @@ public extension URLResponse {
             fileExtensions.insert(suggestedFileExtension, at: 0)
         }
 
-        if let data = data {
-            return MediaType.of({ data() }, mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
-        } else {
-            return MediaType.of(mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
-        }
+        return nil
+        // if let data = data {
+        //     return MediaType.of({ data() }, mediaTypes: mediaTypes, fileExtensions: fileExtensions)
+        // } else {
+        //     return MediaType.of(mediaTypes: mediaTypes, fileExtensions: fileExtensions, sniffers: sniffers)
+        // }
     }
 }
 

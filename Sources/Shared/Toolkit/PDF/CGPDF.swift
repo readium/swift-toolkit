@@ -16,7 +16,7 @@ import UIKit
 ///
 /// Use `CGPDFDocumentFactory` to create a `CGPDFDocument` from a `Resource`.
 extension CGPDFDocument: PDFDocument {
-    public var identifier: String? {
+    public func identifier() async throws -> String? {
         guard
             let identifierArray = fileIdentifier,
             CGPDFArrayGetCount(identifierArray) > 0
@@ -34,13 +34,13 @@ extension CGPDFDocument: PDFDocument {
         return identifierData.reduce("") { $0 + String(format: "%02x", $1) }
     }
 
-    public var pageCount: Int {
+    public func pageCount() async throws -> Int {
         numberOfPages
     }
 
     /// The reading progression can be derived from the `Direction` Name object under the
     /// `/Catalog/ViewerPreferences` dictionary.
-    public var readingProgression: ReadingProgression? {
+    public func readingProgression() async throws -> ReadingProgression? {
         guard
             let viewerPreferences = dict(forKey: "ViewerPreferences", in: catalog),
             let direction = object(forKey: "Direction", in: viewerPreferences)
@@ -57,23 +57,23 @@ extension CGPDFDocument: PDFDocument {
         }
     }
 
-    public var title: String? {
+    public func title() async throws -> String? {
         string(forKey: "Title", in: info)
     }
 
-    public var author: String? {
+    public func author() async throws -> String? {
         string(forKey: "Author", in: info)
     }
 
-    public var subject: String? {
+    public func subject() async throws -> String? {
         string(forKey: "Subject", in: info)
     }
 
-    public var keywords: [String] {
+    public func keywords() async throws -> [String] {
         stringList(forKey: "Keywords", in: info)
     }
 
-    public var cover: UIImage? {
+    public func cover() async throws -> UIImage? {
         guard let page = page(at: 1) else {
             return nil
         }
@@ -120,7 +120,7 @@ extension CGPDFDocument: PDFDocument {
         return UIImage(cgImage: cgImage)
     }
 
-    public var tableOfContents: [PDFOutlineNode] {
+    public func tableOfContents() async throws -> [PDFOutlineNode] {
         guard let outline = outline as? [String: Any] else {
             return []
         }
@@ -227,17 +227,21 @@ extension CGPDFDocument: PDFDocument {
 
 /// Creates a `PDFDocument` using Core Graphics.
 public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
-    public func open(file: FileURL, password: String?) throws -> PDFDocument {
+    public func open(file: FileURL, password: String?) async throws -> PDFDocument {
         guard let document = CGPDFDocument(file.url as CFURL) else {
             throw PDFDocumentError.openFailed
         }
 
         return try open(document: document, password: password)
     }
+    
+    private class DataHolder {
+        var data: Data = Data()
+    }
 
-    public func open(resource: Resource, password: String?) throws -> PDFDocument {
-        if let file = resource.file {
-            return try open(file: file, password: password)
+    public func open(resource: Resource, password: String?) async throws -> PDFDocument {
+        if let file = resource.sourceURL?.fileURL {
+            return try await open(file: file, password: password)
         }
 
         var callbacks = CGDataProviderSequentialCallbacks(
@@ -253,16 +257,26 @@ public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
                     return 0
                 }
 
-                let result = context.resource.read(range: context.offset ..< end)
-                switch result {
-                case let .success(data):
+                let semaphore = DispatchSemaphore(value: 0)
+                let holder = DataHolder()
+                Task {
+                    switch await context.resource.read(range: context.offset ..< end) {
+                    case let .success(result):
+                        holder.data = result
+                    case let .failure(error):
+                        CGPDFDocumentFactory.log(.error, error)
+                    }
+                    semaphore.signal()
+                }
+                
+                _ = semaphore.wait(timeout: .distantFuture)
+
+                let data = holder.data
+                if !data.isEmpty {
                     data.copyBytes(to: buffer.assumingMemoryBound(to: UInt8.self), count: data.count)
                     context.offset += UInt64(data.count)
-                    return data.count
-                case let .failure(error):
-                    CGPDFDocumentFactory.log(.error, error)
-                    return 0
                 }
+                return data.count
             },
 
             skipForward: { info, count -> off_t in
@@ -286,14 +300,17 @@ public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
                 guard let context = CGPDFDocumentFactory.context(from: info) else {
                     return
                 }
-                context.resource.close()
+                let resource = context.resource
+                Task {
+                    await resource.close()
+                }
                 let info = info?.assumingMemoryBound(to: ResourceContext.self)
                 info?.deinitialize(count: 1)
                 info?.deallocate()
             }
         )
 
-        let context = ResourceContext(resource: resource)
+        let context = await ResourceContext(resource: resource)
         let contextRef = UnsafeMutablePointer<ResourceContext>.allocate(capacity: 1)
         contextRef.initialize(to: context)
 
@@ -323,11 +340,11 @@ public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
     private class ResourceContext {
         let resource: Resource
         var offset: UInt64 = 0
+        let length: UInt64
 
-        lazy var length: UInt64 = resource.length.getOrNil() ?? 0
-
-        init(resource: Resource) {
+        init(resource: Resource) async {
             self.resource = resource
+            self.length = (await resource.estimatedLength().getOrNil() ?? 0) ?? 0
         }
     }
 

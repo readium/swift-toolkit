@@ -112,7 +112,8 @@ public class StringSearchService: SearchService {
 
             guard
                 let resource = publication.get(link),
-                let extractor = extractorFactory.makeExtractor(for: resource, mediaType: link.mediaType)
+                let mediaType = link.mediaType,
+                let extractor = extractorFactory.makeExtractor(for: resource, mediaType: mediaType)
             else {
                 log(.warning, "Cannot extract text from resource: \(link.href)")
                 return await next()

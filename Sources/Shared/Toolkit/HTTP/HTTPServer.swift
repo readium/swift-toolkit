@@ -51,13 +51,7 @@ public extension HTTPServer {
             let file = request.href.flatMap { url.resolve($0) }
                 ?? url
 
-            return FileResource(
-                link: Link(
-                    href: request.url.string,
-                    type: MediaType.of(file)?.string
-                ),
-                file: file
-            )
+            return FileResource(file: file)
         }
 
         return try serve(
@@ -82,16 +76,16 @@ public extension HTTPServer {
         onFailure: HTTPRequestHandler.OnFailure? = nil
     ) throws -> HTTPURL {
         func onRequest(request: HTTPServerRequest) -> Resource {
-            guard let href = request.href else {
-                onFailure?(request, .notFound(nil))
+            guard
+                let href = request.href,
+                let resource = publication.get(href)
+            else {
+                onFailure?(request, .access(HTTPError(kind: .notFound)))
 
-                return FailureResource(
-                    link: Link(href: request.url.string),
-                    error: .notFound(nil)
-                )
+                return FailureResource(error: .access(HTTPError(kind: .notFound)))
             }
 
-            return publication.get(href.string)
+            return resource
         }
 
         return try serve(
@@ -126,7 +120,7 @@ public struct HTTPServerRequest {
 /// If the resource cannot be served, the `onFailure` callback is called.
 public struct HTTPRequestHandler {
     public typealias OnRequest = (_ request: HTTPServerRequest) -> Resource
-    public typealias OnFailure = (_ request: HTTPServerRequest, _ error: ResourceError) -> Void
+    public typealias OnFailure = (_ request: HTTPServerRequest, _ error: ReadError) -> Void
 
     public let onRequest: OnRequest
     public let onFailure: OnFailure?

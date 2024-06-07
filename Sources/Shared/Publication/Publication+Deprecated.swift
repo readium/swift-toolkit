@@ -8,7 +8,7 @@ import Foundation
 
 public extension Publication {
     @available(*, unavailable, message: "format and formatVersion are deprecated", renamed: "init(manifest:fetcher:servicesBuilder:)")
-    convenience init(manifest: Manifest, fetcher: Fetcher = EmptyFetcher(), servicesBuilder: PublicationServicesBuilder = .init(), format: Format = .unknown, formatVersion: String? = nil) {
+    convenience init(manifest: Manifest, fetcher: Fetcher, servicesBuilder: PublicationServicesBuilder = .init(), format: Format = .unknown, formatVersion: String? = nil) {
         fatalError()
     }
 }
