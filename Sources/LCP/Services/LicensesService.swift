@@ -126,11 +126,25 @@ final class LicensesService: Loggable {
             url,
             onProgress: { onProgress(.percent(Float($0))) }
         ).get()
+        
+        var hints = FormatHints()
+        if let type = license.link(for: .publication)?.mediaType {
+            hints.mediaTypes.append(type)
+        }
+        if let type = download.mediaType {
+            hints.mediaTypes.append(type)
+        }
 
-        let file = try await injectLicense(license, in: download)
+        let asset = try await assetRetriever.retrieve(url: download.location, hints: hints)
+            .mapError { LCPError.licenseContainer(ContainerError.openFailed($0)) }
+            .get()
+
+        try await injectLicense(license, in: asset)
+
         return LCPAcquiredPublication(
-            localURL: file,
-            suggestedFilename: suggestedFilename(for: file, license: license),
+            localURL: download.location,
+            format: asset.format,
+            suggestedFilename: asset.format.fileExtension.appendToFilename(license.id),
             licenseDocument: license
         )
     }
@@ -154,39 +168,8 @@ final class LicensesService: Loggable {
     }
 
     /// Injects the given License Document into the `file` acquired using `downloadTask`.
-    private func injectLicense(_ license: LicenseDocument, in download: HTTPDownload) async throws -> FileURL {
-        var hints = FormatHints()
-        if let type = license.link(for: .publication)?.mediaType {
-            hints.mediaTypes.append(type)
-        }
-        if let type = download.mediaType {
-            hints.mediaTypes.append(type)
-        }
-
-        let asset = try await assetRetriever.retrieve(url: download.location, hints: hints)
-            .mapError { LCPError.licenseContainer(ContainerError.openFailed($0)) }
-            .get()
-
+    private func injectLicense(_ license: LicenseDocument, in asset: Asset) async throws {
         let container = try makeLicenseContainer(for: asset)
         try await container.write(license)
-
-        return download.location
-    }
-
-    /// Returns the suggested filename to be used when importing a publication.
-    private func suggestedFilename(for file: FileURL, license: LicenseDocument) -> String {
-        let fileExtension: String? = {
-            let publicationLink = license.link(for: .publication)
-            // FIXME:
-//            if var mediaType = MediaType.of(file, mediaType: publicationLink?.type) {
-//                mediaType = mediaTypesMapping[mediaType] ?? mediaType
-//                return mediaType.fileExtension ?? file.pathExtension
-//            } else {
-            return file.pathExtension
-            // }
-        }()
-        let suffix = fileExtension?.addingPrefix(".") ?? ""
-
-        return "\(license.id)\(suffix)"
     }
 }

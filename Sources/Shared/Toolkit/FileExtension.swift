@@ -24,3 +24,16 @@ public struct FileExtension: Hashable, RawRepresentable, ExpressibleByStringLite
         "\(filename).\(rawValue)"
     }
 }
+
+public extension Optional where Wrapped == FileExtension {
+
+    /// Appends this file extension to `filename`.
+    func appendToFilename(_ filename: String) -> String {
+        switch self {
+        case .some(let ext):
+            return ext.appendToFilename(filename)
+        case .none:
+            return filename
+        }
+    }
+}
