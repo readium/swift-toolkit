@@ -34,6 +34,7 @@ public final class LCPService: Loggable {
         client: LCPClient,
         licenseRepository: LCPLicenseRepository,
         passphraseRepository: LCPPassphraseRepository,
+        assetRetriever: AssetRetriever,
         httpClient: HTTPClient,
         deviceName: String? = nil
     ) {
@@ -59,6 +60,7 @@ public final class LCPService: Loggable {
                 repository: licenseRepository,
                 httpClient: httpClient
             ),
+            assetRetriever: assetRetriever,
             httpClient: httpClient,
             passphrases: PassphrasesService(
                 client: client,
@@ -67,16 +69,14 @@ public final class LCPService: Loggable {
         )
     }
 
-    /// Returns whether the given `file` is protected by LCP.
+    @available(*, unavailable, message: "Check the conformance of the file `Format` to the `lcp` specification instead.")
     public func isLCPProtected(_ file: FileURL) async -> Bool {
-        await (try? makeLicenseContainer(for: file)?.containsLicense()) == true
+        fatalError()
     }
 
-    /// Acquires a protected publication from a standalone LCPL file.
-    ///
-    /// You can cancel the on-going download with `acquisition.cancel()`.
+    /// Acquires a protected publication from an LCPL.
     public func acquirePublication(
-        from lcpl: FileURL,
+        from lcpl: LicenseDocumentSource,
         onProgress: @escaping (LCPProgress) -> Void = { _ in }
     ) async -> Result<LCPAcquiredPublication, LCPError> {
         await wrap {
@@ -84,26 +84,39 @@ public final class LCPService: Loggable {
         }
     }
 
-    /// Opens the LCP license of a protected publication, to access its DRM metadata and decipher
-    /// its content.
+    /// Opens the LCP license of a protected publication, to access its DRM
+    /// metadata and decipher its content. If the updated license cannot be
+    /// stored into the ``Asset``, you'll get an exception if the license
+    /// points to a LSD server that cannot be reached, for instance because no
+    /// Internet gateway is available.
     ///
-    /// Returns `nil` if the publication is not protected with LCP.
+    /// Updated licenses can currently be stored only into ``Asset``s whose
+    /// source property points to a `file://` URL. Opens the LCP license of a
+    /// protected publication, to access its DRM metadata and decipher its
+    /// content.
     ///
     /// - Parameters:
-    ///   - authentication: Used to retrieve the user passphrase if it is not already known.
-    ///     The request will be cancelled if no passphrase is found in the LCP passphrase storage
-    ///     and in the given `authentication`.
-    ///   - allowUserInteraction: Indicates whether the user can be prompted for their passphrase.
-    ///   - sender: Free object that can be used by reading apps to give some UX context when
-    ///     presenting dialogs with `LCPAuthenticating`.
+    ///   - authentication: Used to retrieve the user passphrase if it is not
+    ///     already known. The request will be cancelled if no passphrase is
+    ///     found in the LCP passphrase storage and in the given
+    ///     `authentication`.
+    ///   - allowUserInteraction: Indicates whether the user can be prompted
+    ///     for their passphrase.
+    ///   - sender: Free object that can be used by reading apps to give some
+    ///     UX context when presenting dialogs with ``LCPAuthenticating``.
     public func retrieveLicense(
-        from publication: FileURL,
-        authentication: LCPAuthenticating = LCPDialogAuthentication(),
-        allowUserInteraction: Bool = true,
-        sender: Any? = nil
+        from asset: Asset,
+        authentication: LCPAuthenticating,
+        allowUserInteraction: Bool,
+        sender: Any?
     ) async -> Result<LCPLicense?, LCPError> {
         await wrap {
-            try await licenses.retrieve(from: publication, authentication: authentication, allowUserInteraction: allowUserInteraction, sender: sender)
+            try await licenses.retrieve(
+                from: asset,
+                authentication: authentication,
+                allowUserInteraction: allowUserInteraction,
+                sender: sender
+            )
         }
     }
 
@@ -113,7 +126,7 @@ public final class LCPService: Loggable {
     /// The provided `authentication` will be used to retrieve the user passphrase when opening an
     /// LCP license. The default implementation `LCPDialogAuthentication` presents a dialog to the
     /// user to enter their passphrase.
-    public func contentProtection(with authentication: LCPAuthenticating = LCPDialogAuthentication()) -> ContentProtection {
+    public func contentProtection(with authentication: LCPAuthenticating) -> ContentProtection {
         LCPContentProtection(service: self, authentication: authentication)
     }
 
@@ -131,7 +144,7 @@ public final class LCPService: Loggable {
         fatalError()
     }
 
-    @available(*, unavailable, message: "Use the async variant.")
+    @available(*, unavailable, message: "Use the async variant using an `Asset`.")
     public func retrieveLicense(
         from publication: FileURL,
         authentication: LCPAuthenticating = LCPDialogAuthentication(),
@@ -141,4 +154,22 @@ public final class LCPService: Loggable {
     ) {
         fatalError()
     }
+
+    @available(*, unavailable, message: "Pass explicitly a `LCPDialogAuthentication()` for the same behavior as before")
+    public func contentProtection() -> ContentProtection {
+        contentProtection(with: LCPDialogAuthentication())
+    }
+}
+
+/// Source of an LCP License Document (LCPL) file.
+public enum LicenseDocumentSource {
+
+    /// Raw bytes of the LCPL.
+    case data(Data)
+
+    /// LCPL or LCP protected package stored on the file system.
+    case file(FileURL)
+
+    /// LCPL already parsed to a ``LicenseDocument``.
+    case licenseDocument(LicenseDocument)
 }

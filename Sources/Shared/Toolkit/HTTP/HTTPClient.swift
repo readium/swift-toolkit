@@ -75,7 +75,7 @@ public extension HTTPClient {
     /// Fetches the resource as a `String`.
     func fetchString(_ request: HTTPRequestConvertible) async -> HTTPResult<String> {
         await fetch(request) { response, body in
-            let encoding = response.mediaType.encoding ?? .utf8
+            let encoding = response.mediaType?.encoding ?? .utf8
             return String(data: body, encoding: encoding)
         }
     }
@@ -220,13 +220,12 @@ public struct HTTPResponse: Equatable {
     public let headers: [String: String]
 
     /// Media type sniffed from the `Content-Type` header and response body.
-    /// Falls back on `application/octet-stream`.
-    public let mediaType: MediaType
+    public let mediaType: MediaType?
 
     /// Response body content, when available.
     public var body: Data?
 
-    public init(request: HTTPRequest, url: HTTPURL, statusCode: Int, headers: [String: String], mediaType: MediaType, body: Data?) {
+    public init(request: HTTPRequest, url: HTTPURL, statusCode: Int, headers: [String: String], mediaType: MediaType?, body: Data?) {
         self.request = request
         self.url = url
         self.statusCode = statusCode
@@ -248,7 +247,7 @@ public struct HTTPResponse: Equatable {
             url: url,
             statusCode: response.statusCode,
             headers: headers,
-            mediaType: response.sniffMediaType { body ?? Data() } ?? .binary,
+            mediaType: response.sniffMediaType { body ?? Data() },
             body: body
         )
     }
@@ -314,9 +313,9 @@ public struct HTTPDownload {
     public let suggestedFilename: String?
 
     /// Media type sniffed from the `Content-Type` header and response body.
-    public let mediaType: MediaType
+    public let mediaType: MediaType?
 
-    public init(location: FileURL, suggestedFilename: String? = nil, mediaType: MediaType) {
+    public init(location: FileURL, suggestedFilename: String? = nil, mediaType: MediaType?) {
         self.location = location
         self.suggestedFilename = suggestedFilename
         self.mediaType = mediaType

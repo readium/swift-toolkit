@@ -18,19 +18,29 @@ protocol LicenseContainer {
     func write(_ license: LicenseDocument) async throws
 }
 
-func makeLicenseContainer(for file: FileURL, mimetypes: [String] = []) -> LicenseContainer? {
-    guard let mediaType = MediaType.of(file, mediaTypes: mimetypes, fileExtensions: []) else {
-        return nil
-    }
-
-    switch mediaType {
-    case .lcpLicenseDocument:
+func makeLicenseContainer(for asset: Asset) throws -> LicenseContainer {
+    switch asset {
+    case .resource(let asset):
+        guard
+            asset.format.conformsTo(.lcpLicense),
+            let file = asset.resource.sourceURL?.fileURL
+        else {
+            throw LCPError.licenseContainer(ContainerError.openFailed(nil))
+        }
         return LCPLLicenseContainer(lcpl: file)
-    case .lcpProtectedPDF, .lcpProtectedAudiobook, .readiumAudiobook, .readiumWebPub, .divina:
-        return ReadiumLicenseContainer(path: file)
-    case .epub:
-        return EPUBLicenseContainer(epub: file)
-    default:
-        return nil
+        
+    case .container(let asset):
+        guard
+            asset.format.conformsTo(.zip),
+            let file = asset.container.sourceURL?.fileURL
+        else {
+            throw LCPError.licenseContainer(ContainerError.openFailed(nil))
+        }
+
+        if asset.format.conformsTo(.epub) {
+            return EPUBLicenseContainer(epub: file)
+        } else {
+            return ReadiumLicenseContainer(path: file)
+        }
     }
 }

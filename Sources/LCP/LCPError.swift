@@ -12,7 +12,7 @@ public enum LCPError: LocalizedError {
     case missingPassphrase
 
     /// The given file is not an LCP License Document (LCPL).
-    case notALicenseDocument(FileURL)
+    case notALicenseDocument(LicenseDocumentSource)
 
     /// The operation can't be done right now because another License operation is running.
     case licenseIsBusy
@@ -207,7 +207,7 @@ public enum ParsingError: Error {
 /// Errors while reading or writing a LCP container (LCPL, EPUB, LCPDF, etc.)
 public enum ContainerError: Error {
     // Can't access the container, it's format is wrong.
-    case openFailed
+    case openFailed(Error?)
     // The file at given relative path is not found in the Container.
     case fileNotFound(String)
     // Can't read the file at given relative path in the Container.

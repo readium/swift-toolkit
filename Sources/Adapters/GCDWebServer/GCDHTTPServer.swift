@@ -143,7 +143,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
                 }
                 var resource = resource
                 for transformer in transformers {
-                    resource = transformer(resource)
+                    resource = transformer(url.anyURL, resource)
                 }
                 return resource
             }

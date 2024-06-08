@@ -19,42 +19,45 @@ final class LicensesService: Loggable {
     private let licenses: LCPLicenseRepository
     private let crl: CRLService
     private let device: DeviceService
+    private let assetRetriever: AssetRetriever
     private let httpClient: HTTPClient
     private let passphrases: PassphrasesService
 
-    init(isProduction: Bool, client: LCPClient, licenses: LCPLicenseRepository, crl: CRLService, device: DeviceService, httpClient: HTTPClient, passphrases: PassphrasesService) {
+    init(
+        isProduction: Bool,
+        client: LCPClient,
+        licenses: LCPLicenseRepository,
+        crl: CRLService,
+        device: DeviceService,
+        assetRetriever: AssetRetriever,
+        httpClient: HTTPClient,
+        passphrases: PassphrasesService
+    ) {
         self.isProduction = isProduction
         self.client = client
         self.licenses = licenses
         self.crl = crl
         self.device = device
+        self.assetRetriever = assetRetriever
         self.httpClient = httpClient
         self.passphrases = passphrases
     }
 
     func retrieve(
-        from publication: FileURL,
+        from asset: Asset,
         authentication: LCPAuthenticating?,
         allowUserInteraction: Bool,
         sender: Any?
-    ) async throws -> LCPLicense? {
-        guard
-            let container = makeLicenseContainer(for: publication),
-            try await container.containsLicense()
-        else {
-            // Not protected with LCP
-            return nil
-        }
-
-        return try await retrieve(
-            from: container,
+    ) async throws -> LCPLicense {
+        try await retrieve(
+            from: try makeLicenseContainer(for: asset),
             authentication: authentication,
             allowUserInteraction: allowUserInteraction,
             sender: sender
         )
     }
 
-    fileprivate func retrieve(
+    private func retrieve(
         from container: LicenseContainer,
         authentication: LCPAuthenticating?,
         allowUserInteraction: Bool,
@@ -108,7 +111,7 @@ final class LicensesService: Loggable {
     }
 
     func acquirePublication(
-        from lcpl: FileURL,
+        from lcpl: LicenseDocumentSource,
         onProgress: @escaping (LCPProgress) -> Void
     ) async throws -> LCPAcquiredPublication {
         guard let license = try await readLicense(from: lcpl) else {
@@ -132,31 +135,41 @@ final class LicensesService: Loggable {
         )
     }
 
-    private func readLicense(from lcpl: FileURL) async throws -> LicenseDocument? {
-        guard
-            let container = makeLicenseContainer(for: lcpl),
-            try await container.containsLicense()
-        else {
-            return nil
+    private func readLicense(from lcpl: LicenseDocumentSource) async throws -> LicenseDocument? {
+        switch lcpl {
+        case .data(let data):
+            return try LicenseDocument(data: data)
+        case .file(let file):
+            let asset = try await assetRetriever.retrieve(url: file)
+                .mapError { LCPError.licenseContainer(ContainerError.openFailed($0)) }
+                .get()
+            let container = try makeLicenseContainer(for: asset)
+            guard try await container.containsLicense() else {
+                return nil
+            }
+            return try await LicenseDocument(data: container.read())
+        case .licenseDocument(let license):
+            return license
         }
-
-        return try await LicenseDocument(data: container.read())
     }
 
     /// Injects the given License Document into the `file` acquired using `downloadTask`.
     private func injectLicense(_ license: LicenseDocument, in download: HTTPDownload) async throws -> FileURL {
-        var mimetypes: [String] = [
-            download.mediaType.string,
-        ]
-        if let linkType = license.link(for: .publication)?.type {
-            mimetypes.append(linkType)
+        var hints = FormatHints()
+        if let type = license.link(for: .publication)?.mediaType {
+            hints.mediaTypes.append(type)
+        }
+        if let type = download.mediaType {
+            hints.mediaTypes.append(type)
         }
 
-        guard let container = makeLicenseContainer(for: download.location, mimetypes: mimetypes) else {
-            throw LCPError.licenseContainer(.openFailed)
-        }
+        let asset = try await assetRetriever.retrieve(url: download.location, hints: hints)
+            .mapError { LCPError.licenseContainer(ContainerError.openFailed($0)) }
+            .get()
 
+        let container = try makeLicenseContainer(for: asset)
         try await container.write(license)
+
         return download.location
     }
 
@@ -164,12 +177,13 @@ final class LicensesService: Loggable {
     private func suggestedFilename(for file: FileURL, license: LicenseDocument) -> String {
         let fileExtension: String? = {
             let publicationLink = license.link(for: .publication)
-            if var mediaType = MediaType.of(file, mediaType: publicationLink?.type) {
-                mediaType = mediaTypesMapping[mediaType] ?? mediaType
-                return mediaType.fileExtension ?? file.pathExtension
-            } else {
-                return file.pathExtension
-            }
+            // FIXME:
+//            if var mediaType = MediaType.of(file, mediaType: publicationLink?.type) {
+//                mediaType = mediaTypesMapping[mediaType] ?? mediaType
+//                return mediaType.fileExtension ?? file.pathExtension
+//            } else {
+            return file.pathExtension
+            // }
         }()
         let suffix = fileExtension?.addingPrefix(".") ?? ""
 

@@ -45,7 +45,7 @@ public struct FormatHints {
         self.fileExtensions = fileExtensions
     }
 
-    public init(mediaType: MediaType? = nil, fileExtension: FileExtension? = nil) {
+    public init(mediaType: MediaType?, fileExtension: FileExtension? = nil) {
         mediaTypes = Array(ofNotNil: mediaType)
         fileExtensions = Array(ofNotNil: fileExtension)
     }

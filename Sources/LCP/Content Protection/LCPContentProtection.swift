@@ -26,7 +26,7 @@ final class LCPContentProtection: ContentProtection, Loggable {
         }
         guard
             case .container(var asset) = asset,
-            let file = asset.container.sourceURL?.fileURL
+            asset.container.sourceURL?.scheme == .file
         else {
             return .failure(.assetNotSupported(DebugError("Only container asset of local files are currently supported with LCP.")))
         }
@@ -38,7 +38,7 @@ final class LCPContentProtection: ContentProtection, Loggable {
                 ?? self.authentication
                 
                 let license = await service.retrieveLicense(
-                    from: file,
+                    from: .container(asset),
                     authentication: authentication,
                     allowUserInteraction: allowUserInteraction,
                     sender: sender
