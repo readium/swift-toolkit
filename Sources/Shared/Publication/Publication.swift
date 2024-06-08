@@ -88,6 +88,11 @@ public class Publication: AsyncCloseable, Loggable {
         manifest.link(withHREF: href)
     }
 
+    /// Finds the first Link having the given `href` in the publication's links.
+    public func link(withHREF href: URLConvertible) -> Link? {
+        manifest.link(withHREF: href.anyURL.string)
+    }
+
     /// Finds the first link with the given relation in the publication's links.
     public func link(withRel rel: LinkRelation) -> Link? {
         manifest.link(withRel: rel)

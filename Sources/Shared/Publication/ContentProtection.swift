@@ -35,7 +35,7 @@ public protocol ContentProtection {
 
 public enum ContentProtectionOpenError: Error {
     /// The asset is not supported by this ``ContentProtection``
-    case assetNotSupported
+    case assetNotSupported(Error?)
     
     /// An error occurred while reading the asset.
     case reading(ReadError)

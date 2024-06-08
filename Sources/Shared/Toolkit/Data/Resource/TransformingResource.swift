@@ -29,19 +29,21 @@ open class TransformingResource: Resource {
         await _transform!(data)
     }
 
-    public func close() async {
+    open func close() async {
         await resource.close()
     }
 
-    public var sourceURL: AbsoluteURL? { resource.sourceURL }
+    // As the resource is transformed, we can't use the original source URL
+    // as reference.
+    public let sourceURL: AbsoluteURL? = nil
 
-    public func estimatedLength() async -> ReadResult<UInt64?> {
+    open func estimatedLength() async -> ReadResult<UInt64?> {
         // As the content will be transformed, we can't rely on the estimated
         // length from the upstream resource.
         .success(nil)
     }
 
-    public func properties() async -> ReadResult<ResourceProperties> {
+    open func properties() async -> ReadResult<ResourceProperties> {
         await resource.properties()
     }
 

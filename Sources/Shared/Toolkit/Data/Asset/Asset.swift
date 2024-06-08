@@ -40,8 +40,8 @@ public enum Asset: AssetProtocol {
 
 /// A single resource asset.
 public struct ResourceAsset: AssetProtocol {
-    public let resource: Resource
-    public let format: Format
+    public var resource: Resource
+    public var format: Format
     
     public func close() async {
         await resource.close()
@@ -50,8 +50,8 @@ public struct ResourceAsset: AssetProtocol {
 
 /// A container asset providing access to several resources.
 public struct ContainerAsset: AssetProtocol {
-    public let container: Container
-    public let format: Format
+    public var container: Container
+    public var format: Format
     
     public init(container: Container, format: Format) {
         self.container = container

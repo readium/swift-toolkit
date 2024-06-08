@@ -85,31 +85,44 @@ public class GCDHTTPServer: HTTPServer, Loggable {
     }
 
     private func handle(request: ReadiumGCDWebServerRequest, completion: @escaping ReadiumGCDWebServerCompletionBlock) {
-        responseResource(for: request) { httpServerRequest, resource, failureHandler in
-            let response: ReadiumGCDWebServerResponse
-            switch resource.length {
-            case let .success(length):
-                response = ResourceResponse(
-                    resource: resource,
-                    length: length,
-                    range: request.hasByteRange() ? request.byteRange : nil
-                )
-            case let .failure(error):
-                self.log(.error, error)
-                failureHandler?(httpServerRequest, error)
-                response = ReadiumGCDWebServerErrorResponse(
-                    statusCode: error.httpStatusCode,
-                    error: error
-                )
-            }
+        responseResource(for: request) { httpServerRequest, httpServerResponse, failureHandler in
+            Task {
+                let response: ReadiumGCDWebServerResponse
+                let resource = httpServerResponse.resource
+                
+                func fail(_ error: ReadError) -> ReadiumGCDWebServerResponse {
+                    self.log(.error, error)
+                    failureHandler?(httpServerRequest, error)
+                    return ReadiumGCDWebServerErrorResponse(
+                        statusCode: 500,
+                        error: error
+                    )
+                }
 
-            completion(response) // goes back to ReadiumGCDWebServerConnection.m
+                switch await resource.estimatedLength() {
+                case let .success(length):
+                    if let length = length {
+                        response = ResourceResponse(
+                            resource: httpServerResponse.resource,
+                            length: length,
+                            range: request.hasByteRange() ? request.byteRange : nil,
+                            mediaType: httpServerResponse.mediaType
+                        )
+                    } else {
+                        response = fail(.unsupportedOperation(DebugError("Expected estimatedLength from Resource")))
+                    }
+                case let .failure(error):
+                    response = fail(error)
+                }
+                
+                completion(response) // goes back to ReadiumGCDWebServerConnection.m
+            }
         }
     }
 
     private func responseResource(
         for request: ReadiumGCDWebServerRequest,
-        completion: @escaping (HTTPServerRequest, Resource, HTTPRequestHandler.OnFailure?) -> Void
+        completion: @escaping (HTTPServerRequest, HTTPServerResponse, HTTPRequestHandler.OnFailure?) -> Void
     ) {
         let completion = { request, resource, failureHandler in
             // Escape the queue to avoid deadlocks if something is using the
@@ -138,38 +151,25 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             let pathWithoutAnchor = url.removingQuery().removingFragment()
 
             for (endpoint, handler) in handlers {
+                let request: HTTPServerRequest
                 if endpoint == pathWithoutAnchor {
-                    let request = HTTPServerRequest(url: url, href: nil)
-                    let resource = handler.onRequest(request)
-                    completion(
-                        request,
-                        transform(resource: resource, at: endpoint),
-                        handler.onFailure
-                    )
-                    return
-
+                    request = HTTPServerRequest(url: url, href: nil)
                 } else if let href = endpoint.relativize(url) {
-                    let request = HTTPServerRequest(
-                        url: url,
-                        href: href
-                    )
-                    let resource = handler.onRequest(request)
-                    completion(
-                        request,
-                        transform(resource: resource, at: endpoint),
-                        handler.onFailure
-                    )
-                    return
+                    request = HTTPServerRequest(url: url, href: href)
+                } else {
+                    continue
                 }
+
+                var response = handler.onRequest(request)
+                response.resource = transform(resource: response.resource, at: endpoint)
+                completion(request, response, handler.onFailure)
+                return
             }
 
             log(.warning, "Resource not found for request \(request)")
             completion(
                 HTTPServerRequest(url: url, href: nil),
-                FailureResource(
-                    link: Link(href: request.url.absoluteString),
-                    error: .notFound(nil)
-                ),
+                HTTPServerResponse(error: .notFound),
                 nil
             )
         }

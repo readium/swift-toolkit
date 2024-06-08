@@ -8,9 +8,11 @@ import Foundation
 
 public struct DebugError: Error, CustomStringConvertible {
     public let message: String
+    public let cause: Error?
 
-    public init(_ message: String) {
+    public init(_ message: String, cause: Error? = nil) {
         self.message = message
+        self.cause = cause
     }
 
     public var description: String {

@@ -26,16 +26,10 @@ class ResourceResponse: ReadiumGCDWebServerFileResponse, Loggable {
     private var range: Range<UInt64>
     private let length: UInt64
     private var offset: UInt64 = 0
+    private var lastReadData: ReadResult<Data>?
     private lazy var totalNumberOfBytesRead = UInt64(0)
 
-    /// Initialise the WebServerRessourceResponse object, defining what will be
-    /// served.
-    ///
-    /// - Parameters:
-    ///   - resource: The publication resource to be served.
-    ///   - range: The range of resource's data served previously, if any.
-    ///   - contentType: The content-type of the response's ressource.
-    init(resource: Resource, length: UInt64, range: NSRange?) {
+    init(resource: Resource, length: UInt64, range: NSRange?, mediaType: MediaType?) {
         self.resource = resource
         self.length = length
 
@@ -77,7 +71,9 @@ class ResourceResponse: ReadiumGCDWebServerFileResponse, Loggable {
 
         super.init()
 
-        contentType = resource.link.type ?? ""
+        if let type = mediaType?.string {
+            contentType = type
+        }
 
         // Disable HTTP caching for publication resources, because it poses a security threat for protected
         // publications.
@@ -103,19 +99,32 @@ class ResourceResponse: ReadiumGCDWebServerFileResponse, Loggable {
 
     /// Read a new chunk of data.
     override open func readData() throws -> Data {
-        let len = min(bufferSize, range.count - Int(totalNumberOfBytesRead))
-        // If nothing to read, return
-        guard len > 0, offset < length else {
-            return Data()
+        let semaphore = DispatchSemaphore(value: 0)
+        Task {
+            let len = min(bufferSize, range.count - Int(totalNumberOfBytesRead))
+            // If nothing to read, return
+            guard len > 0, offset < length else {
+                lastReadData = .success(Data())
+                return
+            }
+            // Read
+            lastReadData = await resource.read(range: offset ..< (offset + UInt64(len)))
+            if case let .success(data) = lastReadData {
+                totalNumberOfBytesRead += UInt64(data.count)
+                offset += UInt64(data.count)
+            }
+            
+            semaphore.signal()
         }
-        // Read
-        let data = try resource.read(range: offset ..< (offset + UInt64(len))).get()
-        totalNumberOfBytesRead += UInt64(data.count)
-        offset += UInt64(data.count)
-        return data
+
+        _ = semaphore.wait(timeout: .distantFuture)
+
+        return (try? lastReadData?.get()) ?? Data()
     }
 
     override open func close() {
-        resource.close()
+        Task {
+            await resource.close()
+        }
     }
 }

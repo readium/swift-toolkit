@@ -11,7 +11,7 @@ import Foundation
 /// an HTML document, pre-process – e.g. before indexing a publication's content, etc.
 ///
 /// If the transformation doesn't apply, simply return resource unchanged.
-public typealias ResourceTransformer = (Resource) -> Resource
+public typealias ResourceTransformer = (_ href: AnyURL, _ resource: Resource) -> Resource
 
 /// Transforms the resources' content of a child fetcher using a list of `ResourceTransformer`
 /// functions.
@@ -31,11 +31,12 @@ public final class TransformingContainer: Container {
     public var entries: Set<AnyURL> { container.entries }
 
     public subscript(url: any URLConvertible) -> Resource? {
+        let url = url.anyURL
         guard let resource = container[url] else {
             return nil
         }
         return transformers.reduce(resource) { resource, transformer in
-            transformer(resource)
+            transformer(url, resource)
         }
     }
 
@@ -46,7 +47,7 @@ public final class TransformingContainer: Container {
 
 /// Convenient shortcuts to create a `TransformingContainer`.
 public extension Container {
-    func map(transform: @escaping (Resource) -> Resource) -> Container {
-        TransformingContainer(container: self, transformer: { transform($0) })
+    func map(transform: @escaping (_ href: AnyURL, _ resource: Resource) -> Resource) -> Container {
+        TransformingContainer(container: self, transformer: { transform($0, $1) })
     }
 }

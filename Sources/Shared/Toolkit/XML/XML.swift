@@ -6,9 +6,9 @@
 
 import Foundation
 
-typealias XMLNamespace = (prefix: String, uri: String)
+public typealias XMLNamespace = (prefix: String, uri: String)
 
-protocol XMLNode {
+public protocol XMLNode {
     /// Concatenated string content of all descendants.
     var textContent: String? { get }
 
@@ -19,7 +19,7 @@ protocol XMLNode {
     func all(_ xpath: String, with namespaces: [XMLNamespace]) -> [XMLElement]
 }
 
-extension XMLNode {
+public extension XMLNode {
     func first(_ xpath: String) -> XMLElement? {
         first(xpath, with: [])
     }
@@ -29,12 +29,12 @@ extension XMLNode {
     }
 }
 
-protocol XMLDocument: XMLNode {
+public protocol XMLDocument: XMLNode {
     /// Root element in the XML document.
     var documentElement: XMLElement? { get }
 }
 
-protocol XMLElement: XMLNode {
+public protocol XMLElement: XMLNode {
     /// Returns the element tag name without its prefix, and with the original case.
     /// You should uppercase/lowercase it to perform comparisons.
     var localName: String { get }
@@ -47,36 +47,36 @@ protocol XMLElement: XMLNode {
     func attribute(named localName: String, namespace: String?) -> String?
 }
 
-protocol XMLDocumentFactory {
+public protocol XMLDocumentFactory {
     /// Opens an XML document from a local file path.
     ///
     /// - Parameter namespaces: List of namespace prefixes to declare in the document.
-    func open(file: FileURL, namespaces: [XMLNamespace]) throws -> XMLDocument
+    func open(file: FileURL, namespaces: [XMLNamespace]) async throws -> XMLDocument
 
     /// Opens an XML document from its raw data content.
     ///
     /// - Parameter namespaces: List of namespace prefixes to declare in the document.
-    func open(data: Data, namespaces: [XMLNamespace]) throws -> XMLDocument
+    func open(data: Data, namespaces: [XMLNamespace]) async throws -> XMLDocument
 
     /// Opens an XML document from its raw string content.
     ///
     /// - Parameter namespaces: List of namespace prefixes to declare in the document.
-    func open(string: String, namespaces: [XMLNamespace]) throws -> XMLDocument
+    func open(string: String, namespaces: [XMLNamespace]) async throws -> XMLDocument
 }
 
-class DefaultXMLDocumentFactory: XMLDocumentFactory, Loggable {
-    init() {}
+public class DefaultXMLDocumentFactory: XMLDocumentFactory, Loggable {
+    public init() {}
 
-    func open(file: FileURL, namespaces: [XMLNamespace]) throws -> XMLDocument {
+    public func open(file: FileURL, namespaces: [XMLNamespace]) async throws -> XMLDocument {
         warnIfMainThread()
-        return try open(string: String(contentsOf: file.url), namespaces: namespaces)
+        return try await open(string: String(contentsOf: file.url), namespaces: namespaces)
     }
 
-    func open(string: String, namespaces: [XMLNamespace]) throws -> XMLDocument {
+    public func open(string: String, namespaces: [XMLNamespace]) async throws -> XMLDocument {
         try FuziXMLDocument(string: string, namespaces: namespaces)
     }
 
-    func open(data: Data, namespaces: [XMLNamespace]) throws -> XMLDocument {
+    public func open(data: Data, namespaces: [XMLNamespace]) async throws -> XMLDocument {
         try FuziXMLDocument(data: data, namespaces: namespaces)
     }
 }
