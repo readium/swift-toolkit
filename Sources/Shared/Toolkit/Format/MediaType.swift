@@ -65,10 +65,8 @@ public struct MediaType: Hashable, Loggable {
     }
 
     /// Returns the UTI (Uniform Type Identifier) matching this media type, if any.
-    // FIXME: Deprecate
-    @available(*, unavailable)
     public var uti: String? {
-        fatalError()
+        UTI.findFrom(mediaTypes: [self], fileExtensions: [])?.string
     }
 
     public init?(_ string: String) {

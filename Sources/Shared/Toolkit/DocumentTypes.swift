@@ -144,12 +144,8 @@ public struct DocumentType: Equatable, Loggable {
 
         self.mediaTypes = mediaTypes
 
-        let preferredFileExtension =
-            utis.preferredTag(withClass: .fileExtension)
-                ?? fileExtensions.first
-
         preferredMediaType = utis.preferredTag(withClass: .mediaType)
-            .flatMap { MediaType($0, name: name, fileExtension: preferredFileExtension?.lowercased()) }
+            .flatMap { MediaType($0) }
             ?? mediaTypes.first
     }
 }

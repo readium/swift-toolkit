@@ -12,6 +12,11 @@ public struct Format: Hashable {
     public var mediaType: MediaType
     public var fileExtension: FileExtension?
 
+    /// Returns the UTI (Uniform Type Identifier) matching this format, if any.
+    public var uti: String? {
+        UTI.findFrom(mediaTypes: [mediaType], fileExtensions: Array(ofNotNil: fileExtension?.rawValue))?.string
+    }
+
     public init(
         specifications: FormatSpecification...,
         mediaType: MediaType,
