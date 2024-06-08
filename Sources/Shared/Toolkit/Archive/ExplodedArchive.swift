@@ -35,7 +35,7 @@ final class ExplodedArchive: Archive, Loggable {
                 }
             }
         }
-        return entries.sorted { $0.path.localizedCaseInsensitiveCompare($1.path) == .orderedAscending }
+        return entries.sorted { $0.path.localizedStandardCompare($1.path) == .orderedAscending }
     }()
 
     func readEntry(at path: ArchivePath) -> ArchiveEntryReader? {
