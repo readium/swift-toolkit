@@ -8,7 +8,7 @@ import Foundation
 import ReadiumInternal
 
 /// https://readium.org/webpub-manifest/schema/metadata.schema.json
-public struct Metadata: Hashable, Loggable, WarningLogger {
+public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
     /// Collection type used for collection/series metadata.
     /// For convenience, the JSON schema reuse the Contributor's definition.
     public typealias Collection = Contributor
@@ -56,7 +56,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
     public var readingProgression: ReadingProgression
 
     /// Additional properties for extensions.
-    public var otherMetadata: [String: Any] {
+    public var otherMetadata: JSONDictionary.Wrapped {
         get { otherMetadataJSON.json }
         set { otherMetadataJSON = JSONDictionary(newValue) ?? JSONDictionary() }
     }
@@ -96,7 +96,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         belongsTo: [String: [Collection]] = [:],
         belongsToCollections: [Collection] = [],
         belongsToSeries: [Collection] = [],
-        otherMetadata: [String: Any] = [:]
+        otherMetadata: JSONDictionary.Wrapped = [:]
     ) {
         self.identifier = identifier
         self.type = type
@@ -180,13 +180,13 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         description = json.pop("description") as? String
         duration = parsePositiveDouble(json.pop("duration"))
         numberOfPages = parsePositive(json.pop("numberOfPages"))
-        belongsTo = (json.pop("belongsTo") as? [String: Any])?
+        belongsTo = (json.pop("belongsTo") as? JSONDictionary.Wrapped)?
             .compactMapValues { item in [Collection](json: item, warnings: warnings) }
             ?? [:]
         otherMetadataJSON = json
     }
 
-    public var json: [String: Any] {
+    public var json: JSONDictionary.Wrapped {
         makeJSON([
             "identifier": encodeIfNotNil(identifier),
             "@type": encodeIfNotNil(type),
@@ -289,7 +289,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger {
         belongsTo: [String: [Collection]]? = nil,
         belongsToCollections: [Collection]? = nil,
         belongsToSeries: [Collection]? = nil,
-        otherMetadata: [String: Any]? = nil
+        otherMetadata: JSONDictionary.Wrapped? = nil
     ) -> Metadata {
         Metadata(
             identifier: identifier ?? self.identifier,

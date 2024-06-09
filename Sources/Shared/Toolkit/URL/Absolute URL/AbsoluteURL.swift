@@ -88,7 +88,7 @@ public extension AbsoluteURL {
 }
 
 /// A URL scheme, e.g. http or file.
-public struct URLScheme: RawRepresentable, CustomStringConvertible, Hashable {
+public struct URLScheme: RawRepresentable, CustomStringConvertible, Hashable, Sendable {
     public static let data = URLScheme(rawValue: "data")
     public static let file = URLScheme(rawValue: "file")
     public static let ftp = URLScheme(rawValue: "ftp")

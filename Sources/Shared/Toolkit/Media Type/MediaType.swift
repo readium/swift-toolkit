@@ -27,7 +27,7 @@ import Foundation
 ///     }
 /// }
 /// ```
-public struct MediaType: Hashable, Loggable {
+public struct MediaType: Hashable, Loggable, Sendable {
     /// The string representation of this media type.
     public var string: String {
         let params = parameters

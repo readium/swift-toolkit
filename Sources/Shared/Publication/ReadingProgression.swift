@@ -6,7 +6,7 @@
 
 import Foundation
 
-public enum ReadingProgression: String {
+public enum ReadingProgression: String, Sendable {
     /// Left to right
     case ltr
     /// Right to left

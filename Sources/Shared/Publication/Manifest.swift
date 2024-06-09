@@ -11,7 +11,7 @@ import ReadiumInternal
 /// Manifest.
 ///
 /// See. https://readium.org/webpub-manifest/
-public struct Manifest: JSONEquatable, Hashable {
+public struct Manifest: JSONEquatable, Hashable, Sendable {
     public var context: [String] // @context
 
     public var metadata: Metadata
@@ -85,7 +85,7 @@ public struct Manifest: JSONEquatable, Hashable {
         subcollections = PublicationCollection.makeCollections(json: json.json, warnings: warnings)
     }
 
-    public var json: [String: Any] {
+    public var json: JSONDictionary.Wrapped {
         makeJSON([
             "@context": encodeIfNotEmpty(context),
             "metadata": metadata.json,

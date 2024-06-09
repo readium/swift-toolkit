@@ -9,7 +9,7 @@ import Foundation
 /// Represents an absolute URL with the special scheme `file`.
 ///
 /// See https://url.spec.whatwg.org/#special-scheme
-public struct FileURL: AbsoluteURL, Hashable {
+public struct FileURL: AbsoluteURL, Hashable, Sendable {
     public init?(url: URL) {
         let url = url.standardizedFileURL
         guard
