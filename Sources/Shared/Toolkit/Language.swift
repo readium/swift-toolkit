@@ -6,7 +6,7 @@
 
 import Foundation
 
-public struct Language: Hashable {
+public struct Language: Hashable, Sendable {
     public static var current: Language {
         Language(locale: Locale.current)
     }
@@ -16,7 +16,7 @@ public struct Language: Hashable {
         Locale.availableIdentifiers
             .map { Language(code: .bcp47($0)) }
 
-    public enum Code: Hashable {
+    public enum Code: Hashable, Sendable {
         case bcp47(String)
 
         public var bcp47: String {

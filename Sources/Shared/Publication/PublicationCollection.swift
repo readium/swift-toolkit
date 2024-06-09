@@ -10,7 +10,7 @@ import ReadiumInternal
 /// Core Collection Model
 /// https://readium.org/webpub-manifest/schema/subcollection.schema.json
 /// Can be used as extension point in the Readium Web Publication Manifest.
-public struct PublicationCollection: JSONEquatable, Hashable {
+public struct PublicationCollection: JSONEquatable, Hashable, Sendable {
     public var metadata: [String: Any] {
         get { metadataJSON.json }
         set { metadataJSON = JSONDictionary(newValue) ?? JSONDictionary() }
@@ -35,13 +35,13 @@ public struct PublicationCollection: JSONEquatable, Hashable {
         warnings: WarningLogger? = nil
     ) throws {
         // Parses a list of links.
-        if let json = json as? [[String: Any]] {
+        if let json = json as? [JSONDictionary.Wrapped] {
             self.init(links: .init(json: json, warnings: warnings))
 
             // Parses a Collection object.
         } else if var json = JSONDictionary(json) {
             self.init(
-                metadata: json.pop("metadata") as? [String: Any] ?? [:],
+                metadata: json.pop("metadata") as? JSONDictionary.Wrapped ?? [:],
                 links: .init(json: json.pop("links")),
                 subcollections: Self.makeCollections(json: json.json)
             )
@@ -56,7 +56,7 @@ public struct PublicationCollection: JSONEquatable, Hashable {
         }
     }
 
-    public var json: [String: Any] {
+    public var json: JSONDictionary.Wrapped {
         makeJSON([
             "metadata": encodeIfNotEmpty(metadata),
             "links": links.json,
@@ -82,7 +82,7 @@ public struct PublicationCollection: JSONEquatable, Hashable {
                 return [collection]
 
                 // Parses list of collection objects.
-            } else if let collections = json as? [[String: Any]] {
+            } else if let collections = json as? [JSONDictionary.Wrapped] {
                 return collections.compactMap {
                     try? PublicationCollection(json: $0, warnings: warnings)
                 }
@@ -93,7 +93,7 @@ public struct PublicationCollection: JSONEquatable, Hashable {
         }
     }
 
-    static func serializeCollections(_ collections: [String: [PublicationCollection]]) -> [String: Any] {
+    static func serializeCollections(_ collections: [String: [PublicationCollection]]) -> JSONDictionary.Wrapped {
         collections.compactMapValues { collections in
             if collections.isEmpty {
                 return nil

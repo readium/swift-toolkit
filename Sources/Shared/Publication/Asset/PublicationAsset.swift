@@ -7,7 +7,7 @@
 import Foundation
 
 /// Represents a digital medium (e.g. a file) offering access to a publication.
-public protocol PublicationAsset {
+public protocol PublicationAsset: Sendable {
     /// Name of the asset, e.g. a filename.
     var name: String { get }
 

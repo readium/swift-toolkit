@@ -14,7 +14,7 @@ public enum LinkError: Error, Equatable {
 
 /// Link Object for the Readium Web Publication Manifest.
 /// https://readium.org/webpub-manifest/schema/link.schema.json
-public struct Link: JSONEquatable, Hashable {
+public struct Link: JSONEquatable, Hashable, Sendable {
     /// URI or URI template of the linked resource.
     /// Note: a String because templates are lost with URL.
     public var href: String // URI
@@ -95,7 +95,7 @@ public struct Link: JSONEquatable, Hashable {
         json: Any,
         warnings: WarningLogger? = nil
     ) throws {
-        guard let jsonObject = json as? [String: Any],
+        guard let jsonObject = json as? JSONDictionary.Wrapped,
               var href = jsonObject["href"] as? String
         else {
             warnings?.log("`href` is required", model: Self.self, source: json)
@@ -132,7 +132,7 @@ public struct Link: JSONEquatable, Hashable {
         )
     }
 
-    public var json: [String: Any] {
+    public var json: JSONDictionary.Wrapped {
         makeJSON([
             "href": href,
             "type": encodeIfNotNil(type),
@@ -252,7 +252,7 @@ public struct Link: JSONEquatable, Hashable {
     }
 
     ///  Merges in the given additional other `properties`.
-    public mutating func addProperties(_ properties: [String: Any]) {
+    public mutating func addProperties(_ properties: JSONDictionary.Wrapped) {
         self.properties.add(properties)
     }
 
@@ -281,7 +281,7 @@ public extension Array where Element == Link {
         append(contentsOf: links)
     }
 
-    var json: [[String: Any]] {
+    var json: [JSONDictionary.Wrapped] {
         map(\.json)
     }
 

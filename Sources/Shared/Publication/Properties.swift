@@ -9,17 +9,17 @@ import ReadiumInternal
 
 /// Link Properties
 /// https://readium.org/webpub-manifest/schema/properties.schema.json
-public struct Properties: Hashable, Loggable, WarningLogger {
+public struct Properties: Hashable, Loggable, WarningLogger, Sendable {
     /// Additional properties for extensions.
-    public var otherProperties: [String: Any] {
+    public var otherProperties: JSONDictionary.Wrapped {
         get { otherPropertiesJSON.json }
         set { otherPropertiesJSON = JSONDictionary(newValue) ?? JSONDictionary() }
     }
 
-    // Trick to keep the struct equatable despite [String: Any]
+    // Trick to keep the struct equatable despite JSONDictionary.Wrapped
     private var otherPropertiesJSON: JSONDictionary
 
-    public init(_ otherProperties: [String: Any] = [:]) {
+    public init(_ otherProperties: JSONDictionary.Wrapped = [:]) {
         otherPropertiesJSON = JSONDictionary(otherProperties) ?? JSONDictionary()
     }
 
@@ -34,8 +34,8 @@ public struct Properties: Hashable, Loggable, WarningLogger {
         otherPropertiesJSON = jsonDictionary
     }
 
-    public var json: [String: Any] {
-        makeJSON(otherProperties)
+    public var json: JSONDictionary.Wrapped {
+        makeJSON(otherProperties as [String: Any])
     }
 
     /// Syntactic sugar to access the `otherProperties` values by subscripting `Properties` directly.
@@ -45,13 +45,13 @@ public struct Properties: Hashable, Loggable, WarningLogger {
     }
 
     /// Merges in the given additional other `properties`.
-    public mutating func add(_ properties: [String: Any]) {
+    public mutating func add(_ properties: JSONDictionary.Wrapped) {
         otherPropertiesJSON.json.merge(properties, uniquingKeysWith: { _, second in second })
     }
 
     /// Makes a copy of this `Properties` after merging in the given additional other `properties`.
     @available(*, deprecated, message: "Use `add` on a mutable copy")
-    public func adding(_ properties: [String: Any]) -> Properties {
+    public func adding(_ properties: JSONDictionary.Wrapped) -> Properties {
         var copy = self
         copy.add(properties)
         return copy
