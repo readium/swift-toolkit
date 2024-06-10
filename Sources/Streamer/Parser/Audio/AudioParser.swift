@@ -25,7 +25,7 @@ public final class AudioParser: PublicationParser {
 
         let defaultReadingOrder = fetcher.links
             .filter { !ignores($0) && $0.mediaType.isAudio }
-            .sorted { $0.href.localizedCaseInsensitiveCompare($1.href) == .orderedAscending }
+            .sorted { $0.href.localizedStandardCompare($1.href) == .orderedAscending }
 
         guard !defaultReadingOrder.isEmpty else {
             return nil

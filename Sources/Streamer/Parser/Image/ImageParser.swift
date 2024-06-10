@@ -21,7 +21,7 @@ public final class ImageParser: PublicationParser {
 
         var readingOrder = fetcher.links
             .filter { !ignores($0) && $0.mediaType.isBitmap }
-            .sorted { $0.href.localizedCaseInsensitiveCompare($1.href) == .orderedAscending }
+            .sorted { $0.href.localizedStandardCompare($1.href) == .orderedAscending }
 
         guard !readingOrder.isEmpty else {
             return nil
