@@ -8,7 +8,7 @@ import CoreServices
 import Foundation
 
 /// Shared model for a Readium Publication.
-public class Publication: AsyncCloseable, Loggable {
+public class Publication: Closeable, Loggable {
     private var manifest: Manifest
     private let container: Container
     private let services: [PublicationService]
@@ -117,11 +117,11 @@ public class Publication: AsyncCloseable, Loggable {
     }
 
     /// Closes any opened resource associated with the `Publication`, including `services`.
-    public func close() async {
-        await container.close()
+    public func close() {
+        container.close()
 
         for service in services {
-            await service.close()
+            service.close()
         }
     }
 

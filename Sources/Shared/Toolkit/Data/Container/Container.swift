@@ -7,7 +7,7 @@
 import Foundation
 
 /// A container provides access to a list of `Resource` entries.
-public protocol Container: AsyncCloseable {
+public protocol Container: Closeable {
     /// Direct source to this container, when available.
     var sourceURL: AbsoluteURL? { get }
 
@@ -58,9 +58,9 @@ public class CompositeContainer: Container {
         }
     }
 
-    public func close() async {
+    public func close() {
         for container in containers {
-            await container.close()
+            container.close()
         }
     }
 }

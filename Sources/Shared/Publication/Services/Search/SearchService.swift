@@ -22,7 +22,7 @@ public protocol SearchService: PublicationService {
 }
 
 /// Iterates through search results.
-public protocol SearchIterator: AnyObject, AsyncCloseable {
+public protocol SearchIterator: AnyObject, Closeable {
     /// Number of matches for this search, if known.
     ///
     /// Depending on the search algorithm, it may not be possible to know the result count until reaching the end of the

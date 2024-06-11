@@ -134,7 +134,11 @@ private actor MinizipResource: Resource, Loggable {
         self.metadata = metadata
     }
 
-    func close() async {
+    nonisolated func close() {
+        Task { await doClose() }
+    }
+
+    func doClose() async {
         do {
             try _zipFile?.getOrNil()?.close()
             _zipFile = .failure(.unsupportedOperation(DebugError("The Minizip resource is already closed")))

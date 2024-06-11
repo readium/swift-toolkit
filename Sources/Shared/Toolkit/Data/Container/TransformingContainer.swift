@@ -40,8 +40,8 @@ public final class TransformingContainer: Container {
         }
     }
 
-    public func close() async {
-        await container.close()
+    public func close() {
+        container.close()
     }
 }
 

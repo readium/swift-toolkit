@@ -14,7 +14,11 @@ public actor FileResource: Resource, Loggable {
         fileURL = file
     }
 
-    public func close() async {
+    public nonisolated func close() {
+        Task { await doClose() }
+    }
+    
+    private func doClose() async {
         do {
             try _handle?.getOrNil()?.close()
         } catch {

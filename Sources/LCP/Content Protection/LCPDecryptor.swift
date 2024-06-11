@@ -101,8 +101,8 @@ final class LCPDecryptor {
             self.encryption = encryption
         }
         
-        func close() async {
-            await resource.close()
+        func close() {
+            resource.close()
         }
 
         let sourceURL: AbsoluteURL? = nil

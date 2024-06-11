@@ -35,9 +35,8 @@ public actor BufferingResource: Resource {
         await resource.properties()
     }
 
-    public func close() async {
-        buffer = nil
-        await resource.close()
+    public nonisolated func close() {
+        resource.close()
     }
 
     /// The buffer containing the current bytes read from the wrapped `Resource`, with the range it covers.

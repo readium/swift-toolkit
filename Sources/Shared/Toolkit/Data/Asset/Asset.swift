@@ -6,7 +6,7 @@
 
 import Foundation
 
-public protocol AssetProtocol: AsyncCloseable {
+public protocol AssetProtocol: Closeable {
 
     /// Format of the asset.
     var format: Format { get }
@@ -28,12 +28,12 @@ public enum Asset: AssetProtocol {
         }
     }
     
-    public func close() async {
+    public func close() {
         switch self {
         case .resource(let asset):
-            await asset.close()
+            asset.close()
         case .container(let asset):
-            await asset.close()
+            asset.close()
         }
     }
 }
@@ -43,8 +43,8 @@ public struct ResourceAsset: AssetProtocol {
     public var resource: Resource
     public var format: Format
     
-    public func close() async {
-        await resource.close()
+    public func close() {
+        resource.close()
     }
 }
 
@@ -58,7 +58,7 @@ public struct ContainerAsset: AssetProtocol {
         self.format = format
     }
     
-    public func close() async {
-        await container.close()
+    public func close() {
+        container.close()
     }
 }

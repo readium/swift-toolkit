@@ -29,8 +29,8 @@ open class TransformingResource: Resource {
         await _transform!(data)
     }
 
-    open func close() async {
-        await resource.close()
+    open func close() {
+        resource.close()
     }
 
     // As the resource is transformed, we can't use the original source URL

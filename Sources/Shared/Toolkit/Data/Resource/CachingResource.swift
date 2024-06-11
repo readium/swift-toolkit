@@ -53,8 +53,8 @@ public actor CachingResource: Resource {
         }
     }
 
-    public func close() async {
-        await resource.close()
+    public nonisolated func close() {
+        resource.close()
     }
 }
 

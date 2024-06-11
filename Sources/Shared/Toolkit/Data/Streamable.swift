@@ -7,7 +7,7 @@
 import Foundation
 
 /// Acts as a proxy to an actual data source by handling read access.
-public protocol Streamable: AsyncCloseable {
+public protocol Streamable: Closeable {
     /// Returns data length from metadata if available.
     ///
     /// This value must be treated as a hint, as it might not reflect the
