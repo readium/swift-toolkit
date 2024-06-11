@@ -67,9 +67,13 @@ public struct FileURL: AbsoluteURL, Hashable, Sendable {
         try (url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
     }
 
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(path)
+        hasher.combine(url.user)
+    }
+
     public static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.origin == rhs.origin
-            && lhs.path == rhs.path
+        lhs.path == rhs.path
             && lhs.url.user == rhs.url.user
     }
 }

@@ -36,6 +36,14 @@ public struct HTTPURL: AbsoluteURL, Hashable, Sendable {
         return o
     }
 
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(origin)
+        hasher.combine(path)
+        hasher.combine(query)
+        hasher.combine(fragment)
+        hasher.combine(url.user)
+    }
+
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.origin == rhs.origin
             && lhs.path == rhs.path

@@ -97,6 +97,12 @@ public struct RelativeURL: URLProtocol, Hashable {
         )
     }
 
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(path)
+        hasher.combine(query)
+        hasher.combine(fragment)
+    }
+
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.path == rhs.path
             && lhs.query == rhs.query
