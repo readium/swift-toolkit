@@ -23,4 +23,24 @@ struct UnknownAbsoluteURL: AbsoluteURL, Hashable {
     let url: URL
     let scheme: URLScheme
     let origin: String? = nil
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(scheme)
+        hasher.combine(host)
+        hasher.combine(url.port)
+        hasher.combine(path)
+        hasher.combine(query)
+        hasher.combine(fragment)
+        hasher.combine(url.user)
+    }
+
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.scheme == rhs.scheme
+            && lhs.host == rhs.host
+            && lhs.url.port == rhs.url.port
+            && lhs.path == rhs.path
+            && lhs.query == rhs.query
+            && lhs.fragment == rhs.fragment
+            && lhs.url.user == rhs.url.user
+    }
 }

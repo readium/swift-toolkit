@@ -10,13 +10,86 @@ import XCTest
 
 class UnknownAbsoluteURLTests: XCTestCase {
     func testEquality() {
+        // Paths must be equal.
         XCTAssertEqual(
-            UnknownAbsoluteURL(string: "opds://domain.com")!,
-            UnknownAbsoluteURL(string: "opds://domain.com")!
+            UnknownAbsoluteURL(string: "opds://example.com/foo/bar")!,
+            UnknownAbsoluteURL(string: "opds://example.com/foo/bar")
         )
         XCTAssertNotEqual(
-            UnknownAbsoluteURL(string: "opds://domain.com")!,
-            UnknownAbsoluteURL(string: "opds://domain.com#fragment")!
+            UnknownAbsoluteURL(string: "opds://example.com/foo/baz")!,
+            UnknownAbsoluteURL(string: "opds://example.com/foo/bar")
+        )
+
+        // Paths is compared percent and entity-decoded.
+        XCTAssertEqual(
+            UnknownAbsoluteURL(string: "opds://example.com/c%27est%20valide")!,
+            UnknownAbsoluteURL(string: "opds://example.com/c%27est%20valide")
+        )
+        XCTAssertEqual(
+            UnknownAbsoluteURL(string: "opds://example.com/c'est%20valide")!,
+            UnknownAbsoluteURL(string: "opds://example.com/c%27est%20valide")
+        )
+
+        // Authority must be equal.
+        XCTAssertEqual(
+            UnknownAbsoluteURL(string: "opds://example.com/foo")!,
+            UnknownAbsoluteURL(string: "opds://example.com/foo")
+        )
+        XCTAssertNotEqual(
+            UnknownAbsoluteURL(string: "opds://example.com:80/foo")!,
+            UnknownAbsoluteURL(string: "opds://example.com/foo")
+        )
+        XCTAssertNotEqual(
+            UnknownAbsoluteURL(string: "opds://example.com:80/foo")!,
+            UnknownAbsoluteURL(string: "opds://example.com:443/foo")
+        )
+        XCTAssertNotEqual(
+            UnknownAbsoluteURL(string: "opds://example.com:80/foo")!,
+            UnknownAbsoluteURL(string: "opds://example.com/foo")
+        )
+        XCTAssertNotEqual(
+            UnknownAbsoluteURL(string: "opds://domain.com/foo")!,
+            UnknownAbsoluteURL(string: "opds://example.com/foo")
+        )
+        XCTAssertNotEqual(
+            UnknownAbsoluteURL(string: "opds://user:password@example.com/foo")!,
+            UnknownAbsoluteURL(string: "opds://example.com/foo")
+        )
+        XCTAssertNotEqual(
+            UnknownAbsoluteURL(string: "opds://user:password@example.com/foo")!,
+            UnknownAbsoluteURL(string: "opds://other:password@example.com/foo")
+        )
+
+        // Order of query parameters is important.
+        XCTAssertNotEqual(
+            UnknownAbsoluteURL(string: "opds://example.com/foo/bar?b=b&a=a")!,
+            UnknownAbsoluteURL(string: "opds://example.com/foo/bar?a=a&b=b")
+        )
+
+        // Content of parameters is important.
+        XCTAssertEqual(
+            UnknownAbsoluteURL(string: "opds://example.com/foo/bar?a=a&b=b")!,
+            UnknownAbsoluteURL(string: "opds://example.com/foo/bar?a=a&b=b")
+        )
+        XCTAssertNotEqual(
+            UnknownAbsoluteURL(string: "opds://example.com/foo/bar?b=b")!,
+            UnknownAbsoluteURL(string: "opds://example.com/foo/bar?a=a")
+        )
+
+        // Scheme is case insensitive.
+        XCTAssertEqual(
+            UnknownAbsoluteURL(string: "OPDS://example.com/foo")!,
+            UnknownAbsoluteURL(string: "opds://example.com/foo")
+        )
+
+        // Fragment is relevant.
+        XCTAssertEqual(
+            UnknownAbsoluteURL(string: "opds://example.com/foo#fragment")!,
+            UnknownAbsoluteURL(string: "opds://example.com/foo#fragment")
+        )
+        XCTAssertNotEqual(
+            UnknownAbsoluteURL(string: "opds://example.com/foo#other")!,
+            UnknownAbsoluteURL(string: "opds://example.com/foo#fragment")
         )
     }
 

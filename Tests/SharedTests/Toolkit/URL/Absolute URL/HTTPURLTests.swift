@@ -10,13 +10,90 @@ import XCTest
 
 class HTTPURLTests: XCTestCase {
     func testEquality() {
+        // Paths must be equal.
         XCTAssertEqual(
-            HTTPURL(string: "http://domain.com")!,
-            HTTPURL(string: "http://domain.com")!
+            HTTPURL(string: "http://example.com/foo/bar")!,
+            HTTPURL(string: "http://example.com/foo/bar")
         )
         XCTAssertNotEqual(
-            HTTPURL(string: "http://domain.com")!,
-            HTTPURL(string: "http://domain.com#fragment")!
+            HTTPURL(string: "http://example.com/foo/baz")!,
+            HTTPURL(string: "http://example.com/foo/bar")
+        )
+
+        // Paths is compared percent and entity-decoded.
+        XCTAssertEqual(
+            HTTPURL(string: "http://example.com/c%27est%20valide")!,
+            HTTPURL(string: "http://example.com/c%27est%20valide")
+        )
+        XCTAssertEqual(
+            HTTPURL(string: "http://example.com/c'est%20valide")!,
+            HTTPURL(string: "http://example.com/c%27est%20valide")
+        )
+
+        // Authority must be equal.
+        XCTAssertEqual(
+            HTTPURL(string: "http://example.com/foo")!,
+            HTTPURL(string: "http://example.com/foo")
+        )
+        XCTAssertNotEqual(
+            HTTPURL(string: "http://example.com:80/foo")!,
+            HTTPURL(string: "http://example.com/foo")
+        )
+        XCTAssertNotEqual(
+            HTTPURL(string: "http://example.com:80/foo")!,
+            HTTPURL(string: "http://example.com:443/foo")
+        )
+        XCTAssertNotEqual(
+            HTTPURL(string: "http://example.com:80/foo")!,
+            HTTPURL(string: "http://example.com/foo")
+        )
+        XCTAssertNotEqual(
+            HTTPURL(string: "http://domain.com/foo")!,
+            HTTPURL(string: "http://example.com/foo")
+        )
+        XCTAssertNotEqual(
+            HTTPURL(string: "http://user:password@example.com/foo")!,
+            HTTPURL(string: "http://example.com/foo")
+        )
+        XCTAssertNotEqual(
+            HTTPURL(string: "http://user:password@example.com/foo")!,
+            HTTPURL(string: "http://other:password@example.com/foo")
+        )
+
+        // Order of query parameters is important.
+        XCTAssertNotEqual(
+            HTTPURL(string: "http://example.com/foo/bar?b=b&a=a")!,
+            HTTPURL(string: "http://example.com/foo/bar?a=a&b=b")
+        )
+
+        // Content of parameters is important.
+        XCTAssertEqual(
+            HTTPURL(string: "http://example.com/foo/bar?a=a&b=b")!,
+            HTTPURL(string: "http://example.com/foo/bar?a=a&b=b")
+        )
+        XCTAssertNotEqual(
+            HTTPURL(string: "http://example.com/foo/bar?b=b")!,
+            HTTPURL(string: "http://example.com/foo/bar?a=a")
+        )
+
+        // Scheme is case insensitive.
+        XCTAssertEqual(
+            HTTPURL(string: "HTTP://example.com/foo")!,
+            HTTPURL(string: "http://example.com/foo")
+        )
+        XCTAssertNotEqual(
+            HTTPURL(string: "https://example.com/foo")!,
+            HTTPURL(string: "http://example.com/foo")
+        )
+
+        // Fragment is relevant.
+        XCTAssertEqual(
+            HTTPURL(string: "http://example.com/foo#fragment")!,
+            HTTPURL(string: "http://example.com/foo#fragment")
+        )
+        XCTAssertNotEqual(
+            HTTPURL(string: "http://example.com/foo#other")!,
+            HTTPURL(string: "http://example.com/foo#fragment")
         )
     }
 

@@ -10,22 +10,60 @@ import XCTest
 
 class FileURLTests: XCTestCase {
     func testEquality() {
+        // Paths must be equal.
         XCTAssertEqual(
             FileURL(string: "file:///foo/bar")!,
-            FileURL(string: "file:///foo/bar")!
+            FileURL(string: "file:///foo/bar")
         )
-        // Fragments are ignored.
+        XCTAssertNotEqual(
+            FileURL(string: "file:///foo/baz")!,
+            FileURL(string: "file:///foo/bar")
+        )
+
+        // Paths is compared percent and entity-decoded.
         XCTAssertEqual(
-            FileURL(string: "file:///foo/bar")!,
-            FileURL(string: "file:///foo/bar#fragment")!
+            FileURL(string: "file:///c%27est%20valide")!,
+            FileURL(string: "file:///c%27est%20valide")
+        )
+        XCTAssertEqual(
+            FileURL(string: "file:///c'est%20valide")!,
+            FileURL(string: "file:///c%27est%20valide")
+        )
+
+        // Authority must be equal.
+        XCTAssertEqual(
+            FileURL(string: "file://user:password@host/foo")!,
+            FileURL(string: "file://user:password@host/foo")
         )
         XCTAssertNotEqual(
-            FileURL(string: "file:///foo/bar")!,
-            FileURL(string: "file:///foo/baz")!
+            FileURL(string: "file://foo"),
+            FileURL(string: "file://host/foo")
         )
-        XCTAssertNotEqual(
-            FileURL(string: "file:///foo/bar")!,
-            FileURL(string: "file:///foo/bar/")!
+
+        // Query parameters are ignored.
+        XCTAssertEqual(
+            FileURL(string: "file:///foo/bar?b=b&a=a")!,
+            FileURL(string: "file:///foo/bar?a=a&b=b")
+        )
+        XCTAssertEqual(
+            FileURL(string: "file:///foo/bar?b=b")!,
+            FileURL(string: "file:///foo/bar?a=a")
+        )
+
+        // Scheme is case insensitive.
+        XCTAssertEqual(
+            FileURL(string: "FILE:///foo")!,
+            FileURL(string: "file:///foo")
+        )
+
+        // Fragment is ignored.
+        XCTAssertEqual(
+            FileURL(string: "file:///foo")!,
+            FileURL(string: "file:///foo#fragment")
+        )
+        XCTAssertEqual(
+            FileURL(string: "file:///foo#other")!,
+            FileURL(string: "file:///foo#fragment")
         )
     }
 
