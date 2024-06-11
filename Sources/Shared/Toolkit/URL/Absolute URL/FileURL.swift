@@ -66,6 +66,12 @@ public struct FileURL: AbsoluteURL, Hashable, Sendable {
     public func isDirectory() throws -> Bool {
         try (url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
     }
+
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.origin == rhs.origin
+            && lhs.path == rhs.path
+            && lhs.url.user == rhs.url.user
+    }
 }
 
 public extension URLConvertible {

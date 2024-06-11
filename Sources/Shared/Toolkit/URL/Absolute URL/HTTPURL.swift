@@ -35,6 +35,14 @@ public struct HTTPURL: AbsoluteURL, Hashable, Sendable {
         }
         return o
     }
+
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.origin == rhs.origin
+            && lhs.path == rhs.path
+            && lhs.query == rhs.query
+            && lhs.fragment == rhs.fragment
+            && lhs.url.user == rhs.url.user
+    }
 }
 
 public extension URLConvertible {

@@ -96,6 +96,12 @@ public struct RelativeURL: URLProtocol, Hashable {
                 .removingPrefix("/")
         )
     }
+
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.path == rhs.path
+            && lhs.query == rhs.query
+            && lhs.fragment == rhs.fragment
+    }
 }
 
 /// Implements `URLConvertible`.

@@ -12,18 +12,25 @@ import XCTest
 
 class RelativeURLTests: XCTestCase {
     func testEquality() {
-        XCTAssertEqual(
-            RelativeURL(string: "dir/file")!,
-            RelativeURL(string: "dir/file")!
-        )
-        XCTAssertNotEqual(
-            RelativeURL(string: "dir/file/")!,
-            RelativeURL(string: "dir/file")!
-        )
-        XCTAssertNotEqual(
-            RelativeURL(string: "dir")!,
-            RelativeURL(string: "dir/file")!
-        )
+        // Paths must be equal.
+        XCTAssertEqual(RelativeURL(string: "foo/bar")!, RelativeURL(string: "foo/bar"))
+        XCTAssertNotEqual(RelativeURL(string: "foo/bar")!, RelativeURL(string: "foo/bar/"))
+        XCTAssertNotEqual(RelativeURL(string: "foo/baz")!, RelativeURL(string: "foo/bar"))
+
+        // Paths is compared percent and entity-decoded.
+        XCTAssertEqual(RelativeURL(string: "c%27est%20valide")!, RelativeURL(string: "c%27est%20valide"))
+        XCTAssertEqual(RelativeURL(string: "c'est%20valide")!, RelativeURL(string: "c%27est%20valide"))
+
+        // Order of query parameters is important.
+        XCTAssertNotEqual(RelativeURL(string: "foo/bar?b=b&a=a")!, RelativeURL(string: "foo/bar?a=a&b=b"))
+
+        // Content of parameters is important.
+        XCTAssertEqual(RelativeURL(string: "foo/bar?a=a&b=b")!, RelativeURL(string: "foo/bar?a=a&b=b"))
+        XCTAssertNotEqual(RelativeURL(string: "foo/bar?b=b")!, RelativeURL(string: "foo/bar?a=a"))
+
+        // Fragment is relevant.
+        XCTAssertEqual(RelativeURL(string: "foo/bar#fragment")!, RelativeURL(string: "foo/bar#fragment"))
+        XCTAssertNotEqual(RelativeURL(string: "foo/bar#other")!, RelativeURL(string: "foo/bar#fragment"))
     }
 
     // MARK: - URLProtocol
