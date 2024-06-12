@@ -56,101 +56,14 @@ public extension Resource {
     func read(range: Range<UInt64>?) -> ResourceResult<Data> { fatalError() }
 
     @available(*, deprecated, message: "Use the async variant")
-    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void, completion: @escaping (ResourceResult<Void>) -> Void) -> Cancellable {
+    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void, completion: @escaping (ReadResult<Void>) -> Void) -> Cancellable {
         fatalError()
     }
 }
 
 /// Errors occurring while accessing a resource.
-@available(*, deprecated, message: "Not used anymore")
-public enum ResourceError: LocalizedError {
-    /// Equivalent to a 400 HTTP error.
-    ///
-    /// This can be used for templated HREFs, when the provided arguments are invalid.
-    case badRequest(Error)
+@available(*, unavailable, renamed: "ReadError")
+public typealias ResourceError = ReadError
 
-    /// Equivalent to a 404 HTTP error.
-    case notFound(Error?)
-
-    /// Equivalent to a 403 HTTP error.
-    ///
-    /// This can be returned when trying to read a resource protected with a DRM that is not
-    /// unlocked.
-    case forbidden(Error?)
-
-    /// Equivalent to a 503 HTTP error.
-    ///
-    /// Used when the source can't be reached, e.g. no Internet connection, or an issue with the
-    /// file system. Usually this is a temporary error.
-    case unavailable(Error?)
-
-    /// The request was cancelled.
-    ///
-    /// For example, an HTTP request was cancelled by the caller.
-    case cancelled
-
-    /// For any other error, such as HTTP 500.
-    case other(Error)
-
-    /// HTTP status code for this `ResourceError`.
-    public var httpStatusCode: Int {
-        switch self {
-        case .badRequest:
-            return 400
-        case .notFound:
-            return 404
-        case .forbidden:
-            return 403
-        case .unavailable:
-            return 503
-        case .cancelled:
-            return 499 // nginx's Client Closed Request
-        case .other:
-            return 500
-        }
-    }
-
-    public static func wrap(_ error: Error) -> ResourceError {
-        switch error {
-        case let error as ResourceError:
-            return error
-        case let error as HTTPError:
-            switch error.kind {
-            case .malformedRequest, .badRequest:
-                return .badRequest(error)
-            case .timeout, .offline, .serverUnreachable:
-                return .unavailable(error)
-            case .unauthorized, .forbidden:
-                return .forbidden(error)
-            case .notFound:
-                return .notFound(error)
-            case .cancelled:
-                return .cancelled
-            case .malformedResponse, .clientError, .serverError, .ioError, .other:
-                return .other(error)
-            }
-        default:
-            return .other(error)
-        }
-    }
-
-    public var errorDescription: String? {
-        switch self {
-        case .badRequest:
-            return ReadiumSharedLocalizedString("Publication.ResourceError.badRequest")
-        case .notFound:
-            return ReadiumSharedLocalizedString("Publication.ResourceError.notFound")
-        case .forbidden:
-            return ReadiumSharedLocalizedString("Publication.ResourceError.forbidden")
-        case .unavailable:
-            return ReadiumSharedLocalizedString("Publication.ResourceError.unavailable")
-        case .cancelled:
-            return ReadiumSharedLocalizedString("Publication.ResourceError.cancelled")
-        case .other:
-            return ReadiumSharedLocalizedString("Publication.ResourceError.other")
-        }
-    }
-}
-
-@available(*, deprecated, message: "Not used anymore")
-public typealias ResourceResult<Success> = Result<Success, ResourceError>
+@available(*, unavailable, renamed: "ReadResult")
+public typealias ResourceResult<Success> = ReadResult<Success>

@@ -301,9 +301,7 @@ public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
                     return
                 }
                 let resource = context.resource
-                Task {
-                    await resource.close()
-                }
+                resource.close()
                 let info = info?.assumingMemoryBound(to: ResourceContext.self)
                 info?.deinitialize(count: 1)
                 info?.deallocate()

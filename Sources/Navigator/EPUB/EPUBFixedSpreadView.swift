@@ -95,18 +95,23 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         guard isWrapperLoaded else {
             return
         }
-        super.evaluateScript("spread.load(\(spread.jsonString(forBaseURL: viewModel.publicationBaseURL)));")
+        Task {
+            await super.evaluateScript("spread.load(\(spread.jsonString(forBaseURL: viewModel.publicationBaseURL)));")
+        }
     }
 
     override func spreadDidLoad() {
         super.spreadDidLoad()
-        goToCompletions.complete()
+
+        for continuation in goToContinuations {
+            continuation.resume()
+        }
     }
 
-    override func evaluateScript(_ script: String, inHREF href: String?, completion: ((Result<Any, Error>) -> Void)?) {
+    override func evaluateScript(_ script: String, inHREF href: String? = nil) async -> Result<Any, any Error> {
         let href = href ?? ""
         let script = "spread.eval('\(href)', `\(script.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "`", with: "\\`"))`);"
-        super.evaluateScript(script, completion: completion)
+        return await super.evaluateScript(script)
     }
 
     override func convertPointToNavigatorSpace(_ point: CGPoint) -> CGPoint {
@@ -138,18 +143,18 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
 
     // MARK: - Location and progression
 
-    private let goToCompletions = CompletionList()
+    private var goToContinuations: [CheckedContinuation<Void, Never>] = []
 
-    override func go(to location: PageLocation, completion: (() -> Void)?) {
-        // Fixed layout resources are always fully visible so we don't use the location.
-        guard let completion = completion else {
-            return
-        }
+    override func go(to location: PageLocation) async {
+        // Fixed layout resources are always fully visible so we don't use the
+        // location.
 
         if spreadLoaded {
-            DispatchQueue.main.async(execute: completion)
+            return
         } else {
-            goToCompletions.add(completion)
+            await withCheckedContinuation { continuation in
+                goToContinuations.append(continuation)
+            }
         }
     }
 }

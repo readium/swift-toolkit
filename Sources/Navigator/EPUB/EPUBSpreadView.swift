@@ -148,14 +148,17 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     /// Evaluates the given JavaScript into the resource's HTML page.
-    func evaluateScript(_ script: String, inHREF href: String? = nil, completion: ((Result<Any, Error>) -> Void)? = nil) {
+    @discardableResult
+    func evaluateScript(_ script: String, inHREF href: String? = nil) async -> Result<Any, Error> {
         log(.debug, "Evaluate script: \(script)")
-        webView.evaluateJavaScript(script) { res, error in
-            if let error = error {
-                self.log(.error, error)
-                completion?(.failure(error))
-            } else {
-                completion?(.success(res ?? ()))
+        return await withCheckedContinuation { continuation in
+            webView.evaluateJavaScript(script) { res, error in
+                if let error = error {
+                    self.log(.error, error)
+                    continuation.resume(returning: .failure(error))
+                } else {
+                    continuation.resume(returning: .success(res ?? ()))
+                }
             }
         }
     }
@@ -286,8 +289,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         0
     }
 
-    func go(to location: PageLocation, completion: (() -> Void)?) {
-        fatalError("go(to:completion:) must be implemented in subclasses")
+    func go(to location: PageLocation) async {
+        fatalError("go(to:) must be implemented in subclasses")
     }
 
     enum Direction: CustomStringConvertible {
@@ -302,24 +305,21 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
-    func go(to direction: Direction, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+    func go(to direction: Direction, options: NavigatorGoOptions) async -> Bool {
         // The default implementation of a spread view considers that its content is entirely visible on screen.
         false
     }
 
-    func findFirstVisibleElementLocator(completion: @escaping (Locator?) -> Void) {
-        evaluateScript("readium.findFirstVisibleLocator()") { result in
-            DispatchQueue.main.async {
-                do {
-                    let resource = self.spread.leading
-                    let locator = try Locator(json: result.get())?
-                        .copy(href: resource.href, type: resource.type ?? MediaType.xhtml.string)
-                    completion(locator)
-                } catch {
-                    self.log(.error, error)
-                    completion(nil)
-                }
-            }
+    func findFirstVisibleElementLocator() async -> Locator? {
+        let result = await evaluateScript("readium.findFirstVisibleLocator()")
+        do {
+            let resource = self.spread.leading
+            let locator = try Locator(json: result.get())?
+                .copy(href: resource.href, type: resource.type ?? MediaType.xhtml.string)
+            return locator
+        } catch {
+            self.log(.error, error)
+            return nil
         }
     }
 

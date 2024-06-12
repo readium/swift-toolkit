@@ -11,7 +11,7 @@ import UIKit
 protocol EPUBNavigatorViewModelDelegate: AnyObject {
     func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel, runScript script: String, in scope: EPUBScriptScope)
     func epubNavigatorViewModelInvalidatePaginationView(_ viewModel: EPUBNavigatorViewModel)
-    func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel, didFailToLoadResourceAt href: RelativeURL, withError error: ResourceError)
+    func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel, didFailToLoadResourceAt href: RelativeURL, withError error: ReadError)
 }
 
 enum EPUBScriptScope {
@@ -351,7 +351,7 @@ final class EPUBNavigatorViewModel: Loggable {
     func injectReadiumCSS(in resource: Resource) -> Resource {
         let link = resource.link
         guard
-            link.mediaType.isHTML,
+            link.mediaType?.isHTML == true,
             publication.metadata.presentation.layout(of: link) == .reflowable
         else {
             return resource
