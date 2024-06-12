@@ -136,6 +136,37 @@ public class Publication: Loggable {
     /// Sets the URL where this `Publication`'s RWPM manifest is served.
     @available(*, unavailable, message: "Not used anymore")
     public func setSelfLink(href: String?) { fatalError() }
+    
+    /// Historically, we used to have "absolute" HREFs in the manifest:
+    ///  - starting with a `/` for packaged publications.
+    ///  - resolved to the `self` link for remote publications.
+    ///
+    /// We removed the normalization and now use relative HREFs everywhere, but
+    /// we still need to support the locators created with the old absolute
+    /// HREFs.
+    public func normalizeLocator(_ locator: Locator) -> Locator {
+        guard let href = AnyURL(string: locator.href) else {
+            return locator
+        }
+
+        var locator = locator
+
+        if let baseURL = baseURL { // Remote publication
+            // Check that the locator HREF relative to `baseURL` exists in the manifest.
+            if
+                let relativeHREF = baseURL.relativize(href)?.normalized,
+                let newHREF = try? link(withHREF: relativeHREF.string)?.url()
+            {
+                locator.href = newHREF.string
+            }
+
+        } else { // Packaged publication
+            locator.href = href.normalized.string.removingPrefix("/")
+        }
+        
+        return locator
+    }
+
 
     /// Represents a Readium Web Publication Profile a `Publication` can conform to.
     ///

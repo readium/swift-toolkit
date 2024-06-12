@@ -23,6 +23,15 @@ public extension URLProtocol {
         }
         self.init(url: url)
     }
+    
+    /// Normalizes the URL using a subset of the RFC-3986 rules.
+    /// https://datatracker.ietf.org/doc/html/rfc3986#section-6
+    var normalized: Self {
+        Self(url: url.copy {
+            $0.scheme = $0.scheme?.lowercased()
+            $0.path = path
+        }!.standardized)!
+    }
 
     /// Returns the string representation for this URL.
     var string: String { url.absoluteString }

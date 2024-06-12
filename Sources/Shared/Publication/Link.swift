@@ -178,7 +178,7 @@ public struct Link: JSONEquatable, Hashable, Sendable {
         guard let url = AnyURL(string: href) else {
             throw LinkError.invalidHREF(href)
         }
-        return url
+        return url.normalized
     }
 
     /// Returns the URL represented by this link's HREF, resolved to the given
