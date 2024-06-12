@@ -9,7 +9,8 @@ import ReadiumShared
 
 /// A text-to-speech engine synthesizes text utterances (e.g. sentence).
 ///
-/// Implement this interface to support third-party engines with `PublicationSpeechSynthesizer`.
+/// Implement this interface to support third-party engines with
+/// ``PublicationSpeechSynthesizer``.
 public protocol TTSEngine: AnyObject {
     /// List of available synthesizer voices.
     var availableVoices: [TTSVoice] { get }
@@ -22,14 +23,22 @@ public protocol TTSEngine: AnyObject {
     /// `onSpeakRange` is called repeatedly while the engine plays portions (e.g. words) of the utterance.
     func speak(
         _ utterance: TTSUtterance,
-        onSpeakRange: @escaping (Range<String.Index>) -> Void,
-        completion: @escaping (Result<Void, TTSError>) -> Void
-    ) -> Cancellable
+        onSpeakRange: @escaping (Range<String.Index>) -> Void
+    ) async -> Result<Void, TTSError>
 }
 
 public extension TTSEngine {
     func voiceWithIdentifier(_ identifier: String) -> TTSVoice? {
         availableVoices.first { $0.identifier == identifier }
+    }
+
+    @available(*, unavailable, message: "Use the async variant")
+    func speak(
+        _ utterance: TTSUtterance,
+        onSpeakRange: @escaping (Range<String.Index>) -> Void,
+        completion: @escaping (Result<Void, TTSError>) -> Void
+    ) -> Cancellable {
+        fatalError()
     }
 }
 

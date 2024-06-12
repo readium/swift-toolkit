@@ -7,6 +7,7 @@
 import CryptoSwift
 import Foundation
 import ReadiumShared
+import ReadiumInternal
 
 final class PassphrasesService {
     private let client: LCPClient
@@ -101,7 +102,7 @@ final class PassphrasesService {
             hashedPassphrases: passphrases
         ) else {
             // Delays a bit to make sure any dialog was dismissed.
-            try await Task.sleep(nanoseconds: 300_000_000)
+            try await Task.sleep(seconds: 0.3)
 
             // Tries again if the passphrase is invalid, until cancelled
             return try await authenticate(

@@ -55,29 +55,34 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
 
     // MARK: - Resource Management
 
-    private var resources: [HREF: Resource] = [:]
+    private var resources: [HREF: (Link, Resource)] = [:]
 
-    private func resource(forHREF href: HREF) -> Resource {
+    private func resource(forHREF href: HREF) -> (Link, Resource)? {
         if let res = resources[href] {
             return res
         }
 
-        let res = publication.get(href)
-        resources[href] = res
-        return res
+        guard
+            let link = publication.link(withHREF: href),
+            let resource = publication.get(link)
+        else {
+            return nil
+        }
+        resources[href] = (link, resource)
+        return (link, resource)
     }
 
     // MARK: - Requests Management
 
-    private typealias CancellableRequest = (request: AVAssetResourceLoadingRequest, cancellable: Cancellable)
+    private typealias CancellableRequest = (request: AVAssetResourceLoadingRequest, task: Task<Void, Never>)
 
     /// List of on-going loading requests.
     private var requests: [HREF: [CancellableRequest]] = [:]
 
     /// Adds a new loading request.
-    private func registerRequest(_ request: AVAssetResourceLoadingRequest, cancellable: Cancellable, for href: HREF) {
+    private func registerRequest(_ request: AVAssetResourceLoadingRequest, task: Task<Void, Never>, for href: HREF) {
         var reqs: [CancellableRequest] = requests[href] ?? []
-        reqs.append((request, cancellable))
+        reqs.append((request, task))
         requests[href] = reqs
     }
 
@@ -92,11 +97,14 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
         }
 
         let req = reqs.remove(at: index)
-        req.cancellable.cancel()
+        req.task.cancel()
 
         if reqs.isEmpty {
-            let res = resources.removeValue(forKey: href)
-            res?.close()
+            if let (_, res) = resources.removeValue(forKey: href) {
+                Task {
+                    await res.close()
+                }
+            }
             requests.removeValue(forKey: href)
         } else {
             requests[href] = reqs
@@ -106,11 +114,12 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
     // MARK: - AVAssetResourceLoaderDelegate
 
     func resourceLoader(_ resourceLoader: AVAssetResourceLoader, shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest) -> Bool {
-        guard let href = loadingRequest.request.url?.audioHREF else {
+        guard
+            let href = loadingRequest.request.url?.audioHREF,
+            let (link, res) = resource(forHREF: href)
+        else {
             return false
         }
-
-        let res = resource(forHREF: href)
 
         // According to https://jaredsinclair.com/2016/09/03/implementing-avassetresourceload.html, we should not
         // honor the `dataRequest` if there is a `contentInformationRequest`.
@@ -119,41 +128,42 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
         // > lead to an undocumented bug where no further loading requests will be made, stalling playback
         // > indefinitely.
         if let infoRequest = loadingRequest.contentInformationRequest {
-            fillInfo(infoRequest, of: loadingRequest, using: res)
+            fillInfo(infoRequest, of: loadingRequest, using: res, link: link)
         } else if let dataRequest = loadingRequest.dataRequest {
-            fillData(dataRequest, of: loadingRequest, using: res)
+            fillData(dataRequest, of: loadingRequest, using: res, link: link)
         }
 
         return true
     }
 
-    private func fillInfo(_ infoRequest: AVAssetResourceLoadingContentInformationRequest, of request: AVAssetResourceLoadingRequest, using resource: Resource) {
+    private func fillInfo(_ infoRequest: AVAssetResourceLoadingContentInformationRequest, of request: AVAssetResourceLoadingRequest, using resource: Resource, link: Link) {
         infoRequest.isByteRangeAccessSupported = true
-        infoRequest.contentType = resource.link.mediaType.uti
-        if case let .success(length) = resource.length {
-            infoRequest.contentLength = Int64(length)
-        }
+        infoRequest.contentType = link.mediaType?.uti
+        // FIXME:
+        // if case let .success(length) = resource.length {
+        //     infoRequest.contentLength = Int64(length)
+        // }
         request.finishLoading()
     }
 
-    private func fillData(_ dataRequest: AVAssetResourceLoadingDataRequest, of request: AVAssetResourceLoadingRequest, using resource: Resource) {
+    private func fillData(_ dataRequest: AVAssetResourceLoadingDataRequest, of request: AVAssetResourceLoadingRequest, using resource: Resource, link: Link) {
         let range: Range<UInt64> = UInt64(dataRequest.currentOffset) ..< (UInt64(dataRequest.currentOffset) + UInt64(dataRequest.requestedLength))
 
-        let cancellable = resource.stream(
-            range: range,
-            consume: { dataRequest.respond(with: $0) },
-            completion: { result in
-                switch result {
-                case .success:
-                    request.finishLoading()
-                case let .failure(error):
-                    request.finishLoading(with: error)
-                }
-                self.finishRequest(request)
+        let task = Task {
+            let result = await resource.stream(
+                range: range,
+                consume: { dataRequest.respond(with: $0) }
+            )
+            switch result {
+            case .success:
+                request.finishLoading()
+            case let .failure(error):
+                request.finishLoading(with: error)
             }
-        )
+            self.finishRequest(request)
+        }
 
-        registerRequest(request, cancellable: cancellable, for: resource.link.href)
+        registerRequest(request, task: task, for: link.href)
     }
 
     func resourceLoader(_ resourceLoader: AVAssetResourceLoader, didCancel loadingRequest: AVAssetResourceLoadingRequest) {
