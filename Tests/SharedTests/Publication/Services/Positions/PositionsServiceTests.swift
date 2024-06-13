@@ -253,7 +253,7 @@ class PositionsServiceTests: XCTestCase {
             manifest: Manifest(
                 metadata: Metadata(title: ""),
                 links: [
-                    Link(href: positionsHref, mediaType: .readiumPositions)
+                    Link(href: positionsHref, mediaType: .readiumPositions),
                 ],
                 readingOrder: [
                     Link(href: "chap1", mediaType: .html),

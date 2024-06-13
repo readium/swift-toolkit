@@ -147,7 +147,7 @@ class AnyURLTests: XCTestCase {
         XCTAssertEqual(base.relativize(AnyURL(string: "/foo/quz/baz")!)!.string, "quz/baz")
         XCTAssertNil(base.relativize(AnyURL(string: "/quz/baz")!))
     }
-    
+
     func testNormalized() {
         // Scheme is lower case.
         XCTAssertEqual(
@@ -178,7 +178,7 @@ class AnyURLTests: XCTestCase {
             AnyURL(string: "foo/./bar/../../../baz")!.normalized.string,
             "../baz"
         )
-        
+
         // Trailing slash is kept.
         XCTAssertEqual(
             AnyURL(string: "http://example.com/foo/")!.normalized.string,

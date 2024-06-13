@@ -339,7 +339,7 @@ class PublicationTests: XCTestCase {
             ),
             Locator(href: "https://other.com/chap1.html", mediaType: .html)
         )
-        
+
         // The HREF is normalized
         XCTAssertEqual(
             publication.normalizeLocator(
@@ -378,7 +378,7 @@ class PublicationTests: XCTestCase {
             ),
             Locator(href: "invalid", mediaType: .html)
         )
-        
+
         // Leading slashes are removed
         XCTAssertEqual(
             publication.normalizeLocator(

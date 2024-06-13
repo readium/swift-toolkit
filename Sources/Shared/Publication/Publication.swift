@@ -151,7 +151,7 @@ public class Publication: Loggable {
     /// Sets the URL where this `Publication`'s RWPM manifest is served.
     @available(*, unavailable, message: "Not used anymore")
     public func setSelfLink(href: String?) { fatalError() }
-    
+
     /// Historically, we used to have "absolute" HREFs in the manifest:
     ///  - starting with a `/` for packaged publications.
     ///  - resolved to the `self` link for remote publications.
@@ -176,11 +176,10 @@ public class Publication: Loggable {
                 locator.href = href
             }
         }
-        
+
         locator.href = locator.href.normalized
         return locator
     }
-
 
     /// Represents a Readium Web Publication Profile a `Publication` can conform to.
     ///

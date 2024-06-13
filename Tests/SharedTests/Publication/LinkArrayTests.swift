@@ -162,7 +162,7 @@ class LinkArrayTests: XCTestCase {
     func testAllAreBitmap() {
         let links = [
             Link(href: "l1", mediaType: .png),
-            Link(href: "l2", mediaType: .gif)
+            Link(href: "l2", mediaType: .gif),
         ]
 
         XCTAssertTrue(links.allAreBitmap)

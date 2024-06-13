@@ -23,7 +23,7 @@ public extension URLProtocol {
         }
         self.init(url: url)
     }
-    
+
     /// Normalizes the URL using a subset of the RFC-3986 rules.
     /// https://datatracker.ietf.org/doc/html/rfc3986#section-6
     var normalized: Self {
@@ -136,7 +136,6 @@ public extension URLProtocol {
     var description: String { string }
 }
 
-
 private extension String {
     var normalizedPath: String {
         guard !isEmpty else {
@@ -145,7 +144,7 @@ private extension String {
 
         var segments = [String]()
         let pathComponents = split(separator: "/", omittingEmptySubsequences: false)
-        
+
         for component in pathComponents {
             let segment = String(component)
             if segment == ".." {
@@ -160,7 +159,7 @@ private extension String {
                 segments.append(segment)
             }
         }
-        
+
         return segments.joined(separator: "/")
     }
 }

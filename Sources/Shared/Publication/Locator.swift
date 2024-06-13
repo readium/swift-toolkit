@@ -75,12 +75,12 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
             warnings?.log("`href` and `type` required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
-        
+
         guard let type = MediaType(typeString) else {
             warnings?.log("`type` is not a valid media type", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
-        
+
         guard let href = legacyHREF ? AnyURL(legacyHREF: hrefString) : AnyURL(string: hrefString) else {
             warnings?.log("`href` is not a valid URL", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)

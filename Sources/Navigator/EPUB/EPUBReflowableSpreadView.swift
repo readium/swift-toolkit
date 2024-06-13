@@ -169,7 +169,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     // MARK: - Location and progression
 
-    override func progression<T>(in href: T) -> Double where T : URLConvertible {
+    override func progression<T>(in href: T) -> Double where T: URLConvertible {
         guard spread.leading.url() == href.anyURL, let progression = progression else {
             return 0
         }
