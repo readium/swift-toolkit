@@ -375,7 +375,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         if isPDFFile {
             return publication.readingOrder.first
         } else {
-            return publication.readingOrder.first(withHREF: locator.href)
+            return publication.readingOrder.firstWithHREF(locator.href)
         }
     }
 
@@ -397,10 +397,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         }
 
         if currentResourceIndex != index {
-            guard
-                let url = try? link.url(relativeTo: publicationBaseURL),
-                let document = PDFDocument(url: url.url)
-            else {
+            let url = link.url(relativeTo: publicationBaseURL)
+            guard let document = PDFDocument(url: url.url) else {
                 log(.error, "Can't open PDF document at \(link)")
                 return false
             }
@@ -455,7 +453,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
         if
             publication.readingOrder.count > 1,
-            let index = publication.readingOrder.firstIndex(withHREF: locator.href),
+            let index = publication.readingOrder.firstIndexWithHREF(locator.href),
             let firstPosition = publication.positionsByReadingOrder[index].first?.locations.position
         {
             position = position - firstPosition + 1

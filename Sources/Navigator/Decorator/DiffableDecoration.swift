@@ -20,10 +20,10 @@ enum DecorationChange {
 }
 
 extension Array where Element == DiffableDecoration {
-    func changesByHREF(from source: [DiffableDecoration]) -> [String: [DecorationChange]] {
+    func changesByHREF(from source: [DiffableDecoration]) -> [AnyURL: [DecorationChange]] {
         let changeset = StagedChangeset(source: source, target: self)
 
-        var changes: [String: [DecorationChange]] = [:]
+        var changes: [AnyURL: [DecorationChange]] = [:]
 
         func register(_ change: DecorationChange, at locator: Locator) {
             var resourceChanges: [DecorationChange] = changes[locator.href] ?? []
