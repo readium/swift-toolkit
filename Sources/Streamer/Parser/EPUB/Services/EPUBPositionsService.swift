@@ -134,8 +134,8 @@ public final class EPUBPositionsService: PositionsService {
 
     private func makeLocator(for link: Link, progression: Double, position: Int) -> Locator {
         Locator(
-            href: link.href,
-            type: link.type ?? MediaType.html.string,
+            href: link.url(),
+            mediaType: link.mediaType ?? .html,
             title: link.title,
             locations: .init(
                 progression: progression,

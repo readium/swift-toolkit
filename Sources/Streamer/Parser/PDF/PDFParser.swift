@@ -36,7 +36,7 @@ public final class PDFParser: PublicationParser, Loggable {
             return nil
         }
 
-        let readingOrder = fetcher.links.filter(byMediaType: .pdf)
+        let readingOrder = fetcher.links.filterByMediaType(.pdf)
         guard let firstLink = readingOrder.first else {
             throw PDFDocumentError.openFailed
         }

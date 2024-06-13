@@ -59,7 +59,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         // used to read the manifest file. We use an `HTTPFetcher` instead to serve the remote
         // resources.
         if !isPackage {
-            let baseURL = try manifest.link(withRel: .`self`)?.url().httpURL
+            let baseURL = manifest.linkWithRel(.`self`)?.url().httpURL
             fetcher = HTTPFetcher(client: httpClient, baseURL: baseURL)
         }
 
@@ -74,7 +74,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             // Checks the requirements from the spec, see. https://readium.org/lcp-specs/drafts/lcpdf
             guard
                 !manifest.readingOrder.isEmpty,
-                manifest.readingOrder.all(matchMediaType: .pdf)
+                manifest.readingOrder.allMatchingMediaType(.pdf)
             else {
                 throw Error.invalidManifest
             }
@@ -89,7 +89,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
                     $0.setPositionsServiceFactory(EPUBPositionsService.makeFactory(reflowableStrategy: epubReflowablePositionsStrategy))
 
                 } else if manifest.conforms(to: .divina) {
-                    $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: "image/*"))
+                    $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: MediaType("image/*")!))
 
                 } else if manifest.conforms(to: .audiobook) {
                     $0.setLocatorServiceFactory(AudioLocatorService.makeFactory())

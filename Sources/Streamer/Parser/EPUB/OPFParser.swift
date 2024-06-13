@@ -186,7 +186,7 @@ final class OPFParser: Loggable {
 
         return Link(
             href: href.string,
-            type: type,
+            mediaType: type.flatMap { MediaType($0) },
             rels: rels,
             properties: Properties(properties)
         )

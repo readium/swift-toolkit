@@ -36,8 +36,8 @@ extension Fetcher {
             guard !ignoring(link) else {
                 continue
             }
+            let components = link.url().pathSegments
             guard
-                let components = try? link.url().pathSegments,
                 components.count > 1,
                 title == nil || title == components.first
             else {

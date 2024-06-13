@@ -24,7 +24,7 @@ public final class AudioParser: PublicationParser {
         }
 
         let defaultReadingOrder = fetcher.links
-            .filter { !ignores($0) && $0.mediaType.isAudio }
+            .filter { !ignores($0) && $0.mediaType?.isAudio == true }
             .sorted { $0.href.localizedStandardCompare($1.href) == .orderedAscending }
 
         guard !defaultReadingOrder.isEmpty else {
@@ -59,7 +59,7 @@ public final class AudioParser: PublicationParser {
 
         // Checks if the fetcher contains only bitmap-based resources.
         return !fetcher.links.isEmpty
-            && fetcher.links.allSatisfy { ignores($0) || $0.mediaType.isAudio }
+            && fetcher.links.allSatisfy { ignores($0) || $0.mediaType?.isAudio == true }
     }
 
     private func ignores(_ link: Link) -> Bool {

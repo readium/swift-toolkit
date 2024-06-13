@@ -79,7 +79,7 @@ class ImageParserTests: XCTestCase {
         XCTAssertEqual(publication.positions, [
             Locator(
                 href: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/a-fc.jpg",
-                type: "image/jpeg",
+                mediaType: .jpeg,
                 locations: .init(
                     totalProgression: 0,
                     position: 1
@@ -87,7 +87,7 @@ class ImageParserTests: XCTestCase {
             ),
             Locator(
                 href: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-002.jpg",
-                type: "image/jpeg",
+                mediaType: .jpeg,
                 locations: .init(
                     totalProgression: 1 / 5.0,
                     position: 2
@@ -95,7 +95,7 @@ class ImageParserTests: XCTestCase {
             ),
             Locator(
                 href: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-003.jpg",
-                type: "image/jpeg",
+                mediaType: .jpeg,
                 locations: .init(
                     totalProgression: 2 / 5.0,
                     position: 3
@@ -103,7 +103,7 @@ class ImageParserTests: XCTestCase {
             ),
             Locator(
                 href: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-153.jpg",
-                type: "image/jpeg",
+                mediaType: .jpeg,
                 locations: .init(
                     totalProgression: 3 / 5.0,
                     position: 4
@@ -111,7 +111,7 @@ class ImageParserTests: XCTestCase {
             ),
             Locator(
                 href: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/z-bc.jpg",
-                type: "image/jpeg",
+                mediaType: .jpeg,
                 locations: .init(
                     totalProgression: 4 / 5.0,
                     position: 5

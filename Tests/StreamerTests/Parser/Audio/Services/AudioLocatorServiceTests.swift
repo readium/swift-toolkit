@@ -74,7 +74,7 @@ class AudioLocatorServiceTests: XCTestCase {
             service.locate(
                 Locator(
                     href: "wrong",
-                    type: "wrong-type",
+                    mediaType: MediaType("text/plain")!,
                     title: "Title",
                     locations: .init(
                         fragments: ["ignored"],

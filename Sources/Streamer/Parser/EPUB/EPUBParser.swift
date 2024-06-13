@@ -102,7 +102,7 @@ public final class EPUBParser: PublicationParser {
     private func parseNavigationDocument(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
         // Get the link in the readingOrder pointing to the Navigation Document.
         guard
-            let navLink = links.first(withRel: .contents),
+            let navLink = links.firstWithRel(.contents),
             let navURI = RelativeURL(string: navLink.href),
             let navDocumentData = try? fetcher.readData(at: navURI)
         else {
@@ -137,7 +137,7 @@ public final class EPUBParser: PublicationParser {
     private func parseNCXDocument(in fetcher: Fetcher, links: [Link]) -> [String: [PublicationCollection]] {
         // Get the link in the readingOrder pointing to the NCX document.
         guard
-            let ncxLink = links.first(withMediaType: .ncx),
+            let ncxLink = links.firstWithMediaType(.ncx),
             let ncxURI = RelativeURL(string: ncxLink.href),
             let ncxDocumentData = try? fetcher.readData(at: ncxURI)
         else {
