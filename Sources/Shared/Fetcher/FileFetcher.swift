@@ -23,7 +23,7 @@ public final class FileFetcher: Fetcher, Loggable {
     }
 
     public func get(_ link: Link) -> Resource {
-        if let linkHREF = try? link.url().relativeURL {
+        if let linkHREF = link.url().relativeURL {
             for (href, url) in paths {
                 if linkHREF == href {
                     return FileResource(link: link, file: url)
@@ -67,7 +67,7 @@ public final class FileFetcher: Fetcher, Loggable {
             let subPath = url.standardizedFileURL.path.removingPrefix(path.path)
             return Link(
                 href: href.appendingPath(subPath, isDirectory: false).string,
-                type: FileURL(url: url).flatMap { MediaType.of($0)?.string }
+                mediaType: FileURL(url: url).flatMap { MediaType.of($0) }
             )
         }
     }

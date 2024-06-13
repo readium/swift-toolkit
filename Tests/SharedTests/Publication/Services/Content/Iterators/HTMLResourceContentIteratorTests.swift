@@ -9,7 +9,7 @@ import XCTest
 
 class HTMLResourceContentIteratorTest: XCTestCase {
     private let link = Link(href: "dir/res.xhtml", type: "application/xhtml+xml")
-    private let locator = Locator(href: "dir/res.xhtml", type: "application/xhtml+xml")
+    private let locator = Locator(href: "dir/res.xhtml", mediaType: .xhtml)
 
     private let html = """
     <?xml version="1.0" encoding="UTF-8"?>

@@ -146,7 +146,7 @@ public extension MediaType {
             return .opds2Publication
         }
         if let rwpm = context.contentAsRWPM {
-            if rwpm.link(withRel: .`self`)?.type == "application/opds+json" {
+            if rwpm.linkWithRel(.`self`)?.mediaType?.matches(.opds2) == true {
                 return .opds2
             }
             if rwpm.link(withRelMatching: { $0.hasPrefix("http://opds-spec.org/acquisition") }) != nil {
@@ -238,7 +238,7 @@ public extension MediaType {
             if isLCPProtected, rwpm.conforms(to: .pdf) {
                 return .lcpProtectedPDF
             }
-            if rwpm.link(withRel: .`self`)?.type == "application/webpub+json" {
+            if rwpm.linkWithRel(.`self`)?.mediaType?.matches(.readiumWebPubManifest) == true {
                 return isManifest ? .readiumWebPubManifest : .readiumWebPub
             }
         }

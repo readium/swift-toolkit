@@ -8,7 +8,7 @@ import Foundation
 import ReadiumInternal
 
 /// A type that can represent a URL.
-public protocol URLProtocol: CustomStringConvertible, URLConvertible {
+public protocol URLProtocol: URLConvertible, Sendable, CustomStringConvertible {
     /// Creates a new instance of this type from a Foundation ``URL``.
     init?(url: URL)
 
