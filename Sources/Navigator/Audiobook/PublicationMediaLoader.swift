@@ -55,7 +55,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
 
     private func resource<T: URLConvertible>(forHREF href: T) -> Resource {
         let href = href.anyURL
-        if let res = resources[href] {
+        if let res = resources[equivalent: href] {
             return res
         }
 

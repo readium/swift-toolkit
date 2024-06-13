@@ -138,7 +138,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             let pathWithoutAnchor = url.removingQuery().removingFragment()
 
             for (endpoint, handler) in handlers {
-                if endpoint == pathWithoutAnchor {
+                if endpoint.isEquivalentTo(pathWithoutAnchor) {
                     let request = HTTPServerRequest(url: url, href: nil)
                     let resource = handler.onRequest(request)
                     completion(

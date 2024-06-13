@@ -167,7 +167,7 @@ public struct Link: JSONEquatable, Hashable, Sendable {
         if href.isEmpty {
             href = "#"
         }
-        return (AnyURL(string: href) ?? AnyURL(legacyHREF: href))!.normalized
+        return (AnyURL(string: href) ?? AnyURL(legacyHREF: href))!
     }
 
     /// Returns the URL represented by this link's HREF, resolved to the given
@@ -286,12 +286,14 @@ public extension Array where Element == Link {
 
     /// Finds the first link matching the given HREF.
     func firstWithHREF<T: URLConvertible>(_ href: T) -> Link? {
-        first { $0.url() == href.anyURL }
+        let href = href.anyURL.normalized.string
+        return first { $0.url().normalized.string == href }
     }
 
     /// Finds the index of the first link matching the given HREF.
     func firstIndexWithHREF<T: URLConvertible>(_ href: T) -> Int? {
-        firstIndex { $0.url() == href.anyURL }
+        let href = href.anyURL.normalized.string
+        return firstIndex { $0.url().normalized.string == href }
     }
 
     /// Finds the first link matching the given media type.

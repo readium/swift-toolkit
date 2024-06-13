@@ -169,15 +169,12 @@ public class Publication: Loggable {
                     ?? relativeHREF.anyURL
             }
 
-            locator.href = locator.href.normalized
-
         } else { // Packaged publication
             if let href = AnyURL(string: locator.href.string.removingPrefix("/")) {
                 locator.href = href
             }
         }
 
-        locator.href = locator.href.normalized
         return locator
     }
 

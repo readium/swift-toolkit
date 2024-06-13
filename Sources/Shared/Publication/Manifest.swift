@@ -125,7 +125,7 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
         func deepFind(href: AnyURL, in linkLists: [[Link]]) -> Link? {
             for links in linkLists {
                 for link in links {
-                    if link.url() == href {
+                    if link.url().normalized.string == href.string {
                         return link
                     } else if let child = deepFind(href: href, in: [link.alternates, link.children]) {
                         return child

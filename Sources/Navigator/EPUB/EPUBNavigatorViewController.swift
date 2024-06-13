@@ -685,7 +685,7 @@ open class EPUBNavigatorViewController: UIViewController,
             // Gets the current locator from the positionList, and fill its missing data.
             let positionIndex = Int(ceil(progression * Double(positionList.count - 1)))
             return positionList[positionIndex].copy(
-                title: tableOfContentsTitleByHref[href],
+                title: tableOfContentsTitleByHref[equivalent: href],
                 locations: { $0.progression = progression }
             )
         } else {
@@ -975,7 +975,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
                 let href = link.url()
                 for (group, decorations) in self.decorations {
                     let decorations = decorations
-                        .filter { $0.decoration.locator.href == href }
+                        .filter { $0.decoration.locator.href.isEquivalentTo(href) }
                         .map { DecorationChange.add($0.decoration) }
 
                     guard let script = decorations.javascript(forGroup: group, styles: self.config.decorationTemplates) else {

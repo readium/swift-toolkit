@@ -201,9 +201,9 @@ struct EPUBSpread: Loggable {
 extension Array where Element == EPUBSpread {
     /// Returns the index of the first spread containing a resource with the given `href`.
     func firstIndexWithHREF<T: URLConvertible>(_ href: T) -> Int? {
-        let href = href.anyURL
+        let href = href.anyURL.normalized
         return firstIndex { spread in
-            spread.links.contains { $0.url() == href }
+            spread.links.contains { $0.url().normalized.string == href.string }
         }
     }
 }

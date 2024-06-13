@@ -174,7 +174,7 @@ final class OPFParser: Loggable {
 
         var properties = parseStringProperties(stringProperties)
 
-        if let encryption = encryptions[href]?.json, !encryption.isEmpty {
+        if let encryption = encryptions[equivalent: href]?.json, !encryption.isEmpty {
             properties["encrypted"] = encryption
         }
 

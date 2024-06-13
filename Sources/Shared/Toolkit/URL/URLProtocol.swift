@@ -24,6 +24,9 @@ public extension URLProtocol {
         self.init(url: url)
     }
 
+    /// Returns the string representation for this URL.
+    var string: String { url.absoluteString }
+
     /// Normalizes the URL using a subset of the RFC-3986 rules.
     /// https://datatracker.ietf.org/doc/html/rfc3986#section-6
     var normalized: Self {
@@ -33,8 +36,10 @@ public extension URLProtocol {
         }!)!
     }
 
-    /// Returns the string representation for this URL.
-    var string: String { url.absoluteString }
+    /// Returns whether the two URLs are equivalent after normalization.
+    func isEquivalentTo<T: URLConvertible>(_ url: T) -> Bool {
+        normalized.string == url.anyURL.normalized.string
+    }
 
     /// Decoded path segments identifying a location.
     var path: String {
@@ -161,5 +166,17 @@ private extension String {
         }
 
         return segments.joined(separator: "/")
+    }
+}
+
+public extension Dictionary where Key: URLProtocol {
+    /// Returns the value of the first key matching `key` after normalization.
+    subscript<T: URLConvertible>(equivalent key: T) -> Value? {
+        for (k, v) in self {
+            if k.isEquivalentTo(key) {
+                return v
+            }
+        }
+        return nil
     }
 }
