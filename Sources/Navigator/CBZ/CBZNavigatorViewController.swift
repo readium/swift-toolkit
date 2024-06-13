@@ -209,6 +209,8 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
 
     public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
+        let locator = publication.normalizeLocator(locator)
+
         guard let index = publication.readingOrder.firstIndex(withHREF: locator.href) else {
             return false
         }

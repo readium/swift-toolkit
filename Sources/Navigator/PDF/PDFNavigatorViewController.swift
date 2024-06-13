@@ -357,6 +357,8 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
 
     @discardableResult
     private func go(to locator: Locator, isJump: Bool, completion: @escaping () -> Void = {}) -> Bool {
+        let locator = publication.normalizeLocator(locator)
+
         guard let link = findLink(at: locator) else {
             return false
         }

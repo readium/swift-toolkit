@@ -726,6 +726,8 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
+        let locator = publication.normalizeLocator(locator)
+
         guard
             let spreadIndex = spreads.firstIndex(withHref: locator.href),
             on(.jump(locator))
@@ -796,7 +798,11 @@ open class EPUBNavigatorViewController: UIViewController,
 
     public func apply(decorations: [Decoration], in group: String) {
         let source = self.decorations[group] ?? []
-        let target = decorations.map { DiffableDecoration(decoration: $0) }
+        let target = decorations.map { d in
+            var d = d
+            d.locator = publication.normalizeLocator(d.locator)
+            return DiffableDecoration(decoration: d)
+        }
 
         self.decorations[group] = target
 

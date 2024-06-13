@@ -80,7 +80,7 @@ public class Publication: Loggable {
     public var baseURL: HTTPURL? {
         links.first(withRel: .`self`)
             .takeIf { !$0.templated }
-            .flatMap { HTTPURL(string: $0.href) }
+            .flatMap { HTTPURL(string: $0.href)?.removingLastPathSegment() }
     }
 
     /// Finds the first Link having the given `href` in the publication's links.
@@ -145,7 +145,7 @@ public class Publication: Loggable {
     /// we still need to support the locators created with the old absolute
     /// HREFs.
     public func normalizeLocator(_ locator: Locator) -> Locator {
-        guard let href = AnyURL(string: locator.href) else {
+        guard var href = AnyURL(string: locator.href) else {
             return locator
         }
 
@@ -153,12 +153,12 @@ public class Publication: Loggable {
 
         if let baseURL = baseURL { // Remote publication
             // Check that the locator HREF relative to `baseURL` exists in the manifest.
-            if
-                let relativeHREF = baseURL.relativize(href)?.normalized,
-                let newHREF = try? link(withHREF: relativeHREF.string)?.url()
-            {
-                locator.href = newHREF.string
+            if let relativeHREF = baseURL.relativize(href) {
+                href = (try? link(withHREF: relativeHREF.string)?.url())
+                    ?? relativeHREF.anyURL
             }
+
+            locator.href = href.normalized.string
 
         } else { // Packaged publication
             locator.href = href.normalized.string.removingPrefix("/")

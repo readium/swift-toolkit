@@ -382,6 +382,8 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
 
     @discardableResult
     public func go(to locator: Locator, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+        let locator = publication.normalizeLocator(locator)
+
         guard let newResourceIndex = publication.readingOrder.firstIndex(withHREF: locator.href) else {
             return false
         }

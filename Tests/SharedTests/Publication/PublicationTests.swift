@@ -73,7 +73,7 @@ class PublicationTests: XCTestCase {
             makePublication(links: [
                 Link(href: "http://host/folder/manifest.json", rel: .`self`),
             ]).baseURL?.string,
-            "http://host/folder/manifest.json"
+            "http://host/folder/"
         )
     }
 
@@ -90,7 +90,7 @@ class PublicationTests: XCTestCase {
             makePublication(links: [
                 Link(href: "http://host/manifest.json", rel: .`self`),
             ]).baseURL?.string,
-            "http://host/manifest.json"
+            "http://host/"
         )
     }
 
@@ -307,6 +307,101 @@ class PublicationTests: XCTestCase {
             ),
             fetcher: fetcher ?? EmptyFetcher(),
             servicesBuilder: services
+        )
+    }
+
+    func testNormalizeLocatorRemotePublication() {
+        let publication = Publication(
+            manifest: Manifest(
+                links: [Link(href: "https://example.com/foo/manifest.json", rels: [.`self`])],
+                readingOrder: [
+                    Link(href: "chap1.html", type: "text/html"),
+                    Link(href: "bar/c'est%20valide.html", type: "text/html"),
+                ]
+            )
+        )
+
+        // Passthrough for invalid locators.
+        XCTAssertEqual(
+            publication.normalizeLocator(
+                Locator(href: "invalid", type: "text/html")
+            ),
+            Locator(href: "invalid", type: "text/html")
+        )
+
+        // Absolute URLs relative to self are made relative.
+        XCTAssertEqual(
+            publication.normalizeLocator(
+                Locator(href: "https://example.com/foo/chap1.html", type: "text/html")
+            ),
+            Locator(href: "chap1.html", type: "text/html")
+        )
+        XCTAssertEqual(
+            publication.normalizeLocator(
+                Locator(href: "https://other.com/chap1.html", type: "text/html")
+            ),
+            Locator(href: "https://other.com/chap1.html", type: "text/html")
+        )
+        
+        // The HREF is normalized
+        XCTAssertEqual(
+            publication.normalizeLocator(
+                Locator(href: "https://example.com/foo/bar/c%27est%20valide.html", type: "text/html")
+            ),
+            Locator(href: "bar/c'est%20valide.html", type: "text/html")
+        )
+        XCTAssertEqual(
+            publication.normalizeLocator(
+                Locator(href: "bar/c%27est%20valide.html", type: "text/html")
+            ),
+            Locator(href: "bar/c'est%20valide.html", type: "text/html")
+        )
+        XCTAssertEqual(
+            publication.normalizeLocator(
+                Locator(href: "https://other.com/c%27est%20valide.html", type: "text/html")
+            ),
+            Locator(href: "https://other.com/c'est%20valide.html", type: "text/html")
+        )
+    }
+
+    func testNormalizeLocatorPackagedPublication() {
+        let publication = Publication(
+            manifest: Manifest(
+                readingOrder: [
+                    Link(href: "foo/chap1.html", type: "text/html"),
+                    Link(href: "bar/c'est%20valide.html", type: "text/html"),
+                ]
+            )
+        )
+
+        // Passthrough for invalid locators.
+        XCTAssertEqual(
+            publication.normalizeLocator(
+                Locator(href: "invalid", type: "text/html")
+            ),
+            Locator(href: "invalid", type: "text/html")
+        )
+        
+        // Leading slashes are removed
+        XCTAssertEqual(
+            publication.normalizeLocator(
+                Locator(href: "foo/chap1.html", type: "text/html")
+            ),
+            Locator(href: "foo/chap1.html", type: "text/html")
+        )
+
+        // The HREF is normalized
+        XCTAssertEqual(
+            publication.normalizeLocator(
+                Locator(href: "bar/c%27est%20valide.html", type: "text/html")
+            ),
+            Locator(href: "bar/c'est%20valide.html", type: "text/html")
+        )
+        XCTAssertEqual(
+            publication.normalizeLocator(
+                Locator(href: "c%27est%20valide.html", type: "text/html")
+            ),
+            Locator(href: "c'est%20valide.html", type: "text/html")
         )
     }
 }
