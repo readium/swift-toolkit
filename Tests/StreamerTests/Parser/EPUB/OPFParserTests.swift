@@ -54,17 +54,17 @@ class OPFParserTests: XCTestCase {
 
         XCTAssertEqual(sut.links, [])
         XCTAssertEqual(sut.readingOrder, [
-            link(id: "titlepage", href: "titlepage.xhtml", type: "application/xhtml+xml"),
-            link(id: "chapter01", href: "EPUB/chapter01.xhtml", type: "application/xhtml+xml"),
+            link(id: "titlepage", href: "titlepage.xhtml", mediaType: .xhtml),
+            link(id: "chapter01", href: "EPUB/chapter01.xhtml", mediaType: .xhtml),
         ])
         XCTAssertEqual(sut.resources, [
             link(id: "font0", href: "EPUB/fonts/MinionPro.otf", type: "application/vnd.ms-opentype"),
-            link(id: "nav", href: "EPUB/nav.xhtml", type: "application/xhtml+xml", rels: [.contents]),
-            link(id: "css", href: "style.css", type: "text/css"),
-            link(id: "chapter02", href: "EPUB/chapter02.xhtml", type: "application/xhtml+xml"),
+            link(id: "nav", href: "EPUB/nav.xhtml", mediaType: .xhtml, rels: [.contents]),
+            link(id: "css", href: "style.css", mediaType: .css),
+            link(id: "chapter02", href: "EPUB/chapter02.xhtml", mediaType: .xhtml),
             link(id: "chapter01_smil", href: "EPUB/chapter01.smil", type: "application/smil+xml"),
             link(id: "chapter02_smil", href: "EPUB/chapter02.smil", type: "application/smil+xml"),
-            link(id: "img01a", href: "EPUB/images/alice01a.png", type: "image/png", rels: [.cover]),
+            link(id: "img01a", href: "EPUB/images/alice01a.png", mediaType: .png, rels: [.cover]),
             link(id: "img02a", href: "EPUB/images/alice02a.gif", type: "image/gif"),
             link(id: "nomediatype", href: "EPUB/nomediatype.txt"),
         ])

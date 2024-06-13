@@ -78,7 +78,7 @@ class ContentProtectionServiceTests: XCTestCase {
             manifest: Manifest(
                 metadata: Metadata(title: ""),
                 readingOrder: [
-                    Link(href: "chap1", type: "text/html"),
+                    Link(href: "chap1", mediaType: .html),
                 ]
             ),
             servicesBuilder: PublicationServicesBuilder(contentProtection: service)

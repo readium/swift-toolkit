@@ -8,7 +8,7 @@
 import XCTest
 
 class HTMLResourceContentIteratorTest: XCTestCase {
-    private let link = Link(href: "dir/res.xhtml", type: "application/xhtml+xml")
+    private let link = Link(href: "dir/res.xhtml", mediaType: .xhtml)
     private let locator = Locator(href: "dir/res.xhtml", mediaType: .xhtml)
 
     private let html = """
@@ -336,7 +336,7 @@ class HTMLResourceContentIteratorTest: XCTestCase {
         <body>
             <audio src="audio.mp3" />
             <audio>
-                <source src="audio.mp3" type="audio/mp3" />
+                <source src="audio.mp3" type="audio/mpeg" />
                 <source src="audio.ogg" type="audio/ogg" />
             </audio>
         </body>
@@ -353,8 +353,8 @@ class HTMLResourceContentIteratorTest: XCTestCase {
                 locator: locator(progression: 0.5, selector: "html > body > audio:nth-child(2)"),
                 embeddedLink: Link(
                     href: "dir/audio.mp3",
-                    type: "audio/mp3",
-                    alternates: [Link(href: "dir/audio.ogg", type: "audio/ogg")]
+                    mediaType: .mp3,
+                    alternates: [Link(href: "dir/audio.ogg", mediaType: .ogg)]
                 ),
                 attributes: []
             ).equatable(),
@@ -390,8 +390,8 @@ class HTMLResourceContentIteratorTest: XCTestCase {
                 locator: locator(progression: 0.5, selector: "html > body > video:nth-child(2)"),
                 embeddedLink: Link(
                     href: "dir/video.mp4",
-                    type: "video/mp4",
-                    alternates: [Link(href: "dir/video.m4v", type: "video/x-m4v")]
+                    mediaType: MediaType("video/mp4")!,
+                    alternates: [Link(href: "dir/video.m4v", mediaType: MediaType("video/x-m4v")!)]
                 ),
                 attributes: []
             ).equatable(),

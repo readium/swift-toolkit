@@ -20,7 +20,7 @@ class PositionsServiceTests: XCTestCase {
         [
             Locator(
                 href: "res",
-                type: "application/xml",
+                mediaType: .xml,
                 locations: .init(
                     totalProgression: 0.0,
                     position: 1
@@ -30,7 +30,7 @@ class PositionsServiceTests: XCTestCase {
         [
             Locator(
                 href: "chap1",
-                type: "image/png",
+                mediaType: .png,
                 locations: .init(
                     totalProgression: 1.0 / 4.0,
                     position: 2
@@ -40,7 +40,7 @@ class PositionsServiceTests: XCTestCase {
         [
             Locator(
                 href: "chap2",
-                type: "image/png",
+                mediaType: .png,
                 title: "Chapter 2",
                 locations: .init(
                     totalProgression: 3.0 / 4.0,
@@ -49,7 +49,7 @@ class PositionsServiceTests: XCTestCase {
             ),
             Locator(
                 href: "chap2",
-                type: "image/png",
+                mediaType: .png,
                 title: "Chapter 2.5",
                 locations: .init(
                     totalProgression: 3.0 / 4.0,
@@ -66,7 +66,7 @@ class PositionsServiceTests: XCTestCase {
             service.links,
             [Link(
                 href: "/~readium/positions",
-                type: "application/vnd.readium.position-list+json"
+                mediaType: .readiumPositions
             )]
         )
     }
@@ -79,7 +79,7 @@ class PositionsServiceTests: XCTestCase {
             [
                 Locator(
                     href: "res",
-                    type: "application/xml",
+                    mediaType: .xml,
                     locations: .init(
                         totalProgression: 0.0,
                         position: 1
@@ -87,7 +87,7 @@ class PositionsServiceTests: XCTestCase {
                 ),
                 Locator(
                     href: "chap1",
-                    type: "image/png",
+                    mediaType: .png,
                     locations: .init(
                         totalProgression: 1.0 / 4.0,
                         position: 2
@@ -95,7 +95,7 @@ class PositionsServiceTests: XCTestCase {
                 ),
                 Locator(
                     href: "chap2",
-                    type: "image/png",
+                    mediaType: .png,
                     title: "Chapter 2",
                     locations: .init(
                         totalProgression: 3.0 / 4.0,
@@ -104,7 +104,7 @@ class PositionsServiceTests: XCTestCase {
                 ),
                 Locator(
                     href: "chap2",
-                    type: "image/png",
+                    mediaType: .png,
                     title: "Chapter 2.5",
                     locations: .init(
                         totalProgression: 3.0 / 4.0,
@@ -149,7 +149,7 @@ class PositionsServiceTests: XCTestCase {
                 [
                     Locator(
                         href: "res",
-                        type: "application/xml",
+                        mediaType: .xml,
                         locations: .init(
                             totalProgression: 0.0,
                             position: 1
@@ -159,7 +159,7 @@ class PositionsServiceTests: XCTestCase {
                 [
                     Locator(
                         href: "chap1",
-                        type: "image/png",
+                        mediaType: .png,
                         locations: .init(
                             totalProgression: 1.0 / 4.0,
                             position: 2
@@ -169,7 +169,7 @@ class PositionsServiceTests: XCTestCase {
                 [
                     Locator(
                         href: "chap2",
-                        type: "image/png",
+                        mediaType: .png,
                         title: "Chapter 2",
                         locations: .init(
                             totalProgression: 3.0 / 4.0,
@@ -178,7 +178,7 @@ class PositionsServiceTests: XCTestCase {
                     ),
                     Locator(
                         href: "chap2",
-                        type: "image/png",
+                        mediaType: .png,
                         title: "Chapter 2.5",
                         locations: .init(
                             totalProgression: 3.0 / 4.0,
@@ -196,17 +196,17 @@ class PositionsServiceTests: XCTestCase {
         let publication = makePublication(positions: nil)
 
         XCTAssertEqual(publication.positions, [
-            Locator(href: "chap1", type: "text/html", locations: .init(position: 1)),
-            Locator(href: "chap1", type: "text/html", locations: .init(position: 2)),
-            Locator(href: "chap2", type: "text/html", locations: .init(position: 3)),
+            Locator(href: "chap1", mediaType: .html, locations: .init(position: 1)),
+            Locator(href: "chap1", mediaType: .html, locations: .init(position: 2)),
+            Locator(href: "chap2", mediaType: .html, locations: .init(position: 3)),
         ])
         XCTAssertEqual(publication.positionsByReadingOrder, [
             [
-                Locator(href: "chap1", type: "text/html", locations: .init(position: 1)),
-                Locator(href: "chap1", type: "text/html", locations: .init(position: 2)),
+                Locator(href: "chap1", mediaType: .html, locations: .init(position: 1)),
+                Locator(href: "chap1", mediaType: .html, locations: .init(position: 2)),
             ],
             [
-                Locator(href: "chap2", type: "text/html", locations: .init(position: 3)),
+                Locator(href: "chap2", mediaType: .html, locations: .init(position: 3)),
             ],
         ])
     }
@@ -253,11 +253,11 @@ class PositionsServiceTests: XCTestCase {
             manifest: Manifest(
                 metadata: Metadata(title: ""),
                 links: [
-                    Link(href: positionsHref, type: "application/vnd.readium.position-list+json"),
+                    Link(href: positionsHref, mediaType: .readiumPositions)
                 ],
                 readingOrder: [
-                    Link(href: "chap1", type: "text/html"),
-                    Link(href: "chap2", type: "text/html"),
+                    Link(href: "chap1", mediaType: .html),
+                    Link(href: "chap2", mediaType: .html),
                 ]
             ),
             fetcher: fetcher,

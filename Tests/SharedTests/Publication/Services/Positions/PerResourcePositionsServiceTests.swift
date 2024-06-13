@@ -9,19 +9,19 @@ import XCTest
 
 class PerResourcePositionsServiceTests: XCTestCase {
     func testFromAnEmptyReadingOrder() {
-        let service = PerResourcePositionsService(readingOrder: [], fallbackMediaType: "")
+        let service = PerResourcePositionsService(readingOrder: [], fallbackMediaType: .text)
         XCTAssertEqual(service.positionsByReadingOrder, [])
     }
 
     func testFromReadingOrderWithOneResource() {
         let service = PerResourcePositionsService(readingOrder: [
-            Link(href: "res", type: "image/png"),
-        ], fallbackMediaType: "")
+            Link(href: "res", mediaType: .png),
+        ], fallbackMediaType: .text)
 
         XCTAssertEqual(service.positionsByReadingOrder, [
             [Locator(
                 href: "res",
-                type: "image/png",
+                mediaType: .png,
                 locations: Locator.Locations(
                     totalProgression: 0.0,
                     position: 1
@@ -34,16 +34,16 @@ class PerResourcePositionsServiceTests: XCTestCase {
         let service = PerResourcePositionsService(
             readingOrder: [
                 Link(href: "res"),
-                Link(href: "chap1", type: "image/png"),
-                Link(href: "chap2", type: "image/png", title: "Chapter 2"),
+                Link(href: "chap1", mediaType: .png),
+                Link(href: "chap2", mediaType: .png, title: "Chapter 2"),
             ],
-            fallbackMediaType: ""
+            fallbackMediaType: .text
         )
 
         XCTAssertEqual(service.positionsByReadingOrder, [
             [Locator(
                 href: "res",
-                type: "",
+                mediaType: .text,
                 locations: Locator.Locations(
                     totalProgression: 0.0,
                     position: 1
@@ -51,7 +51,7 @@ class PerResourcePositionsServiceTests: XCTestCase {
             )],
             [Locator(
                 href: "chap1",
-                type: "image/png",
+                mediaType: .png,
                 locations: Locator.Locations(
                     totalProgression: 1.0 / 3.0,
                     position: 2
@@ -59,7 +59,7 @@ class PerResourcePositionsServiceTests: XCTestCase {
             )],
             [Locator(
                 href: "chap2",
-                type: "image/png",
+                mediaType: .png,
                 title: "Chapter 2",
                 locations: Locator.Locations(
                     totalProgression: 2.0 / 3.0,
@@ -72,13 +72,13 @@ class PerResourcePositionsServiceTests: XCTestCase {
     func testFallsBackOnGivenMediaType() {
         let services = PerResourcePositionsService(
             readingOrder: [Link(href: "res")],
-            fallbackMediaType: "image/*"
+            fallbackMediaType: MediaType("image/*")!
         )
 
         XCTAssertEqual(services.positionsByReadingOrder, [[
             Locator(
                 href: "res",
-                type: "image/*",
+                mediaType: MediaType("image/*")!,
                 locations: Locator.Locations(
                     totalProgression: 0.0,
                     position: 1

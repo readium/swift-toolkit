@@ -64,7 +64,7 @@ class ImageParserTests: XCTestCase {
 
     func testFirstReadingOrderItemIsCover() throws {
         let publication = try XCTUnwrap(parser.parse(asset: cbzAsset, fetcher: cbzFetcher, warnings: nil)?.build())
-        let cover = try XCTUnwrap(publication.link(withRel: .cover))
+        let cover = try XCTUnwrap(publication.linkWithRel(.cover))
         XCTAssertEqual(publication.readingOrder.first, cover)
     }
 

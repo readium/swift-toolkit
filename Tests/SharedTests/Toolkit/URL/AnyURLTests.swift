@@ -175,8 +175,8 @@ class AnyURLTests: XCTestCase {
             "foo/baz"
         )
         XCTAssertEqual(
-            AnyURL(string: "foo/./bar/../../../../../baz")!.normalized.string,
-            "baz"
+            AnyURL(string: "foo/./bar/../../../baz")!.normalized.string,
+            "../baz"
         )
         
         // Trailing slash is kept.
@@ -194,6 +194,5 @@ class AnyURLTests: XCTestCase {
             AnyURL(string: "http://user:password@example.com:443/foo?b=b&a=a#fragment")!.normalized.string,
             "http://user:password@example.com:443/foo?b=b&a=a#fragment"
         )
-
     }
 }

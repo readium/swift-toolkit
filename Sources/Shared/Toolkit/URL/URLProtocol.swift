@@ -29,8 +29,8 @@ public extension URLProtocol {
     var normalized: Self {
         Self(url: url.copy {
             $0.scheme = $0.scheme?.lowercased()
-            $0.path = path
-        }!.standardized)!
+            $0.path = path.normalizedPath
+        }!)!
     }
 
     /// Returns the string representation for this URL.
@@ -134,4 +134,33 @@ public extension URLProtocol {
 /// Implements `CustomStringConvertible`
 public extension URLProtocol {
     var description: String { string }
+}
+
+
+private extension String {
+    var normalizedPath: String {
+        guard !isEmpty else {
+            return ""
+        }
+
+        var segments = [String]()
+        let pathComponents = split(separator: "/", omittingEmptySubsequences: false)
+        
+        for component in pathComponents {
+            let segment = String(component)
+            if segment == ".." {
+                if !segments.isEmpty {
+                    // Remove last added directory
+                    segments.removeLast()
+                } else {
+                    // Add ".." to the beginning
+                    segments.append(segment)
+                }
+            } else if segment != "." {
+                segments.append(segment)
+            }
+        }
+        
+        return segments.joined(separator: "/")
+    }
 }

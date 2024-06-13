@@ -167,7 +167,7 @@ public struct Link: JSONEquatable, Hashable, Sendable {
         if href.isEmpty {
             href = "#"
         }
-        return AnyURL(string: href)!.normalized
+        return (AnyURL(string: href) ?? AnyURL(legacyHREF: href))!.normalized
     }
 
     /// Returns the URL represented by this link's HREF, resolved to the given
