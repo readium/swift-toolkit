@@ -12,8 +12,8 @@ extension Publication {
     /// Finds all the downloadable links for this publication.
     var downloadLinks: [Link] {
         links.filter {
-            DocumentTypes.main.supportsMediaType($0.type)
-                || DocumentTypes.main.supportsFileExtension(try? $0.url().url.pathExtension)
+            ($0.mediaType.map { DocumentTypes.main.supportsMediaType($0.string) } == true)
+                || DocumentTypes.main.supportsFileExtension($0.url().pathExtension)
         }
     }
 }

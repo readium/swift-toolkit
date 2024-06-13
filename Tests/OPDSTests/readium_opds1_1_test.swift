@@ -53,7 +53,7 @@ class readium_opds1_1_test: XCTestCase {
     func testLinks() {
         XCTAssertEqual(feed.links.count, 4)
         XCTAssertEqual(feed.links[0].rels, ["related"])
-        XCTAssertEqual(feed.links[1].type, "application/atom+xml;profile=opds-catalog;kind=acquisition")
+        XCTAssertEqual(feed.links[1].mediaType, MediaType("application/atom+xml;profile=opds-catalog;kind=acquisition")!)
         XCTAssertEqual(feed.links[2].href, "http://test.com/opds-catalogs/root.xml")
         // TODO: add more tests...
     }
