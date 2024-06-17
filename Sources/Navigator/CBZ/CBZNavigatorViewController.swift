@@ -87,7 +87,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         self.publicationEndpoint = publicationEndpoint
 
         initialIndex = {
-            guard let initialLocation = initialLocation, let initialIndex = publication.readingOrder.firstIndex(withHREF: initialLocation.href) else {
+            guard let initialLocation = initialLocation, let initialIndex = publication.readingOrder.firstIndexWithHREF(initialLocation.href) else {
                 return 0
             }
             return initialIndex
@@ -180,13 +180,10 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
 
     private func imageViewController(at index: Int) -> ImageViewController? {
-        guard
-            publication.readingOrder.indices.contains(index),
-            let url = try? publication.readingOrder[index].url(relativeTo: publicationBaseURL)
-        else {
+        guard publication.readingOrder.indices.contains(index) else {
             return nil
         }
-
+        let url = publication.readingOrder[index].url(relativeTo: publicationBaseURL)
         return ImageViewController(index: index, url: url.url)
     }
 
@@ -209,14 +206,16 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
 
     public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        guard let index = publication.readingOrder.firstIndex(withHREF: locator.href) else {
+        let locator = publication.normalizeLocator(locator)
+
+        guard let index = publication.readingOrder.firstIndexWithHREF(locator.href) else {
             return false
         }
         return goToResourceAtIndex(index, animated: animated, isJump: true, completion: completion)
     }
 
     public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        guard let index = publication.readingOrder.firstIndex(withHREF: link.href) else {
+        guard let index = publication.readingOrder.firstIndexWithHREF(link.url()) else {
             return false
         }
         return goToResourceAtIndex(index, animated: animated, isJump: true, completion: completion)

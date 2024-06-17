@@ -54,18 +54,18 @@ class OPFParserTests: XCTestCase {
 
         XCTAssertEqual(sut.links, [])
         XCTAssertEqual(sut.readingOrder, [
-            link(id: "titlepage", href: "titlepage.xhtml", type: "application/xhtml+xml"),
-            link(id: "chapter01", href: "EPUB/chapter01.xhtml", type: "application/xhtml+xml"),
+            link(id: "titlepage", href: "titlepage.xhtml", mediaType: .xhtml),
+            link(id: "chapter01", href: "EPUB/chapter01.xhtml", mediaType: .xhtml),
         ])
         XCTAssertEqual(sut.resources, [
-            link(id: "font0", href: "EPUB/fonts/MinionPro.otf", type: "application/vnd.ms-opentype"),
-            link(id: "nav", href: "EPUB/nav.xhtml", type: "application/xhtml+xml", rels: [.contents]),
-            link(id: "css", href: "style.css", type: "text/css"),
-            link(id: "chapter02", href: "EPUB/chapter02.xhtml", type: "application/xhtml+xml"),
-            link(id: "chapter01_smil", href: "EPUB/chapter01.smil", type: "application/smil+xml"),
-            link(id: "chapter02_smil", href: "EPUB/chapter02.smil", type: "application/smil+xml"),
-            link(id: "img01a", href: "EPUB/images/alice01a.png", type: "image/png", rels: [.cover]),
-            link(id: "img02a", href: "EPUB/images/alice02a.gif", type: "image/gif"),
+            link(id: "font0", href: "EPUB/fonts/MinionPro.otf", mediaType: MediaType("application/vnd.ms-opentype")!),
+            link(id: "nav", href: "EPUB/nav.xhtml", mediaType: .xhtml, rels: [.contents]),
+            link(id: "css", href: "style.css", mediaType: .css),
+            link(id: "chapter02", href: "EPUB/chapter02.xhtml", mediaType: .xhtml),
+            link(id: "chapter01_smil", href: "EPUB/chapter01.smil", mediaType: .smil),
+            link(id: "chapter02_smil", href: "EPUB/chapter02.smil", mediaType: .smil),
+            link(id: "img01a", href: "EPUB/images/alice01a.png", mediaType: .png, rels: [.cover]),
+            link(id: "img02a", href: "EPUB/images/alice02a.gif", mediaType: .gif),
             link(id: "nomediatype", href: "EPUB/nomediatype.txt"),
         ])
     }
@@ -125,7 +125,7 @@ class OPFParserTests: XCTestCase {
         let sut = try parseManifest("cover-epub2", at: "EPUB/content.opf").manifest
 
         XCTAssertEqual(sut.resources, [
-            link(id: "my-cover", href: "EPUB/cover.jpg", type: "image/jpeg", rels: [.cover]),
+            link(id: "my-cover", href: "EPUB/cover.jpg", mediaType: .jpeg, rels: [.cover]),
         ])
     }
 
@@ -133,7 +133,7 @@ class OPFParserTests: XCTestCase {
         let sut = try parseManifest("cover-epub3", at: "EPUB/content.opf").manifest
 
         XCTAssertEqual(sut.resources, [
-            link(id: "my-cover", href: "EPUB/cover.jpg", type: "image/jpeg", rels: [.cover]),
+            link(id: "my-cover", href: "EPUB/cover.jpg", mediaType: .jpeg, rels: [.cover]),
         ])
     }
 
@@ -154,11 +154,11 @@ class OPFParserTests: XCTestCase {
         ), parts.version)
     }
 
-    func link(id: String? = nil, href: String, type: String? = nil, templated: Bool = false, title: String? = nil, rels: [LinkRelation] = [], properties: Properties = .init(), children: [Link] = []) -> Link {
+    func link(id: String? = nil, href: String, mediaType: MediaType? = nil, templated: Bool = false, title: String? = nil, rels: [LinkRelation] = [], properties: Properties = .init(), children: [Link] = []) -> Link {
         var properties = properties.otherProperties
         if let id = id {
             properties["id"] = id
         }
-        return Link(href: href, type: type, templated: templated, title: title, rels: rels, properties: Properties(properties), children: children)
+        return Link(href: href, mediaType: mediaType, templated: templated, title: title, rels: rels, properties: Properties(properties), children: children)
     }
 }

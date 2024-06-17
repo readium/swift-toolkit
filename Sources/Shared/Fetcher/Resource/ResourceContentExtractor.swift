@@ -37,7 +37,7 @@ public class _DefaultResourceContentExtractorFactory: _ResourceContentExtractorF
 
     public func makeExtractor(for resource: Resource) -> _ResourceContentExtractor? {
         switch resource.link.mediaType {
-        case .html, .xhtml:
+        case MediaType.html, MediaType.xhtml:
             return _HTMLResourceContentExtractor()
         default:
             return nil

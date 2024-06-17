@@ -28,7 +28,7 @@ public class HTMLResourceContentIterator: ContentIterator {
             resource: Resource,
             locator: Locator
         ) -> ContentIterator? {
-            guard resource.link.mediaType.isHTML else {
+            guard resource.link.mediaType?.isHTML == true else {
                 return nil
             }
 
@@ -158,7 +158,7 @@ public class HTMLResourceContentIterator: ContentIterator {
 
         init(baseLocator: Locator, startElement: Element?, beforeMaxLength: Int) {
             self.baseLocator = baseLocator
-            baseHREF = AnyURL(string: baseLocator.href)
+            baseHREF = baseLocator.href
             self.startElement = startElement
             self.beforeMaxLength = beforeMaxLength
         }
@@ -257,7 +257,12 @@ public class HTMLResourceContentIterator: ContentIterator {
                             let sources = try node.select("source")
                                 .compactMap { source in
                                     try source.srcRelativeToHREF(baseHREF).map { href in
-                                        try Link(href: href.string, type: source.attr("type").takeUnlessBlank())
+                                        try Link(
+                                            href: href.string,
+                                            mediaType: source.attr("type")
+                                                .takeUnlessBlank()
+                                                .flatMap { MediaType($0) }
+                                        )
                                     }
                                 }
 

@@ -103,7 +103,7 @@ class PropertiesOPDSTests: XCTestCase {
         ]])
         XCTAssertEqual(sut.authenticate, Link(
             href: "https://example.com/authentication.json",
-            type: "application/opds-authentication+json"
+            mediaType: .opdsAuthentication
         ))
     }
 

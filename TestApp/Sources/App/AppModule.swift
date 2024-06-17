@@ -86,7 +86,7 @@ extension AppModule: ReaderModuleDelegate {}
 
 extension AppModule: OPDSModuleDelegate {
     func opdsDownloadPublication(_ publication: Publication?, at link: Link, sender: UIViewController) async throws -> Book {
-        guard let url = try link.url(relativeTo: publication?.baseURL).absoluteURL else {
+        guard let url = link.url(relativeTo: publication?.baseURL).absoluteURL else {
             throw OPDSError.invalidURL(link.href)
         }
         return try await library.importPublication(from: url, sender: sender)

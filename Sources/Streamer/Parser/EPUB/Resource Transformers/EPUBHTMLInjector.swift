@@ -25,7 +25,7 @@ final class EPUBHTMLInjector {
             // Will be empty when the new Settings API is in use.
             !userProperties.properties.isEmpty,
             // We only transform HTML resources.
-            resource.link.mediaType.isHTML
+            resource.link.mediaType?.isHTML == true
         else {
             return resource
         }

@@ -24,7 +24,7 @@ class ManifestTests: XCTestCase {
             Manifest(
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "manifest.json", rels: [.self])],
-                readingOrder: [Link(href: "chap1.html", type: "text/html")]
+                readingOrder: [Link(href: "chap1.html", mediaType: .html)]
             )
         )
     }
@@ -57,8 +57,8 @@ class ManifestTests: XCTestCase {
                 context: ["https://readium.org/webpub-manifest/context.jsonld"],
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "manifest.json", rels: [.self])],
-                readingOrder: [Link(href: "chap1.html", type: "text/html")],
-                resources: [Link(href: "image.png", type: "image/png")],
+                readingOrder: [Link(href: "chap1.html", mediaType: .html)],
+                resources: [Link(href: "image.png", mediaType: .png)],
                 tableOfContents: [Link(href: "cover.html"), Link(href: "chap1.html")],
                 subcollections: ["sub": [PublicationCollection(links: [Link(href: "sublink")])]]
             )
@@ -81,7 +81,7 @@ class ManifestTests: XCTestCase {
                 context: ["context1", "context2"],
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "manifest.json", rels: [.self])],
-                readingOrder: [Link(href: "chap1.html", type: "text/html")]
+                readingOrder: [Link(href: "chap1.html", mediaType: .html)]
             )
         )
     }
@@ -116,7 +116,7 @@ class ManifestTests: XCTestCase {
             Manifest(
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "manifest.json", rels: [.self])],
-                readingOrder: [Link(href: "chap1.html", type: "text/html")]
+                readingOrder: [Link(href: "chap1.html", mediaType: .html)]
             )
         )
     }
@@ -138,7 +138,7 @@ class ManifestTests: XCTestCase {
                 links: [
                     Link(href: "manifest.json", rels: [.self]),
                 ],
-                readingOrder: [Link(href: "chap1.html", type: "text/html")]
+                readingOrder: [Link(href: "chap1.html", mediaType: .html)]
             )
         )
     }
@@ -163,8 +163,8 @@ class ManifestTests: XCTestCase {
                 links: [
                     Link(href: "manifest.json", rels: [.self]),
                 ],
-                readingOrder: [Link(href: "chap1.html", type: "text/html")],
-                resources: [Link(href: "withtype", type: "text/html")]
+                readingOrder: [Link(href: "chap1.html", mediaType: .html)],
+                resources: [Link(href: "withtype", mediaType: .html)]
             )
         )
     }
@@ -174,7 +174,7 @@ class ManifestTests: XCTestCase {
             Manifest(
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "manifest.json", rels: [.self])],
-                readingOrder: [Link(href: "chap1.html", type: "text/html")]
+                readingOrder: [Link(href: "chap1.html", mediaType: .html)]
             ).json,
             [
                 "metadata": ["title": "Title", "readingProgression": "auto"],
@@ -194,8 +194,8 @@ class ManifestTests: XCTestCase {
                 context: ["https://readium.org/webpub-manifest/context.jsonld"],
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "manifest.json", rels: [.self])],
-                readingOrder: [Link(href: "chap1.html", type: "text/html")],
-                resources: [Link(href: "image.png", type: "image/png")],
+                readingOrder: [Link(href: "chap1.html", mediaType: .html)],
+                resources: [Link(href: "image.png", mediaType: .png)],
                 tableOfContents: [Link(href: "cover.html"), Link(href: "chap1.html")],
                 subcollections: ["sub": [PublicationCollection(links: [Link(href: "sublink")])]]
             ).json,
@@ -229,7 +229,7 @@ class ManifestTests: XCTestCase {
             makeManifest(readingOrder: [
                 Link(href: "l1"),
                 Link(href: "l2", rel: "rel1"),
-            ]).link(withRel: "rel1")?.href,
+            ]).linkWithRel("rel1")?.href,
             "l2"
         )
     }
@@ -239,7 +239,7 @@ class ManifestTests: XCTestCase {
             makeManifest(links: [
                 Link(href: "l1"),
                 Link(href: "l2", rel: "rel1"),
-            ]).link(withRel: "rel1")?.href,
+            ]).linkWithRel("rel1")?.href,
             "l2"
         )
     }
@@ -249,7 +249,7 @@ class ManifestTests: XCTestCase {
             makeManifest(resources: [
                 Link(href: "l1"),
                 Link(href: "l2", rel: "rel1"),
-            ]).link(withRel: "rel1")?.href,
+            ]).linkWithRel("rel1")?.href,
             "l2"
         )
     }
@@ -271,7 +271,7 @@ class ManifestTests: XCTestCase {
                     ]),
                     Link(href: "l6", rel: "rel1"),
                 ]
-            ).links(withRel: "rel1"),
+            ).linksWithRel("rel1"),
             [
                 Link(href: "l4", rel: "rel1"),
                 Link(href: "l6", rel: "rel1"),
@@ -285,7 +285,7 @@ class ManifestTests: XCTestCase {
             makeManifest(resources: [
                 Link(href: "l1"),
                 Link(href: "l2"),
-            ]).links(withRel: "rel1"),
+            ]).linksWithRel("rel1"),
             []
         )
     }

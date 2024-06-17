@@ -77,10 +77,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return
         }
         let link = spread.leading
-        guard let url = viewModel.url(to: link) else {
-            log(.error, "Can't get URL for link \(link.href)")
-            return
-        }
+        let url = viewModel.url(to: link)
         webView.load(URLRequest(url: url.url))
     }
 
@@ -172,8 +169,11 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     // MARK: - Location and progression
 
-    override func progression(in href: String) -> Double {
-        guard spread.leading.href == href, let progression = progression else {
+    override func progression<T>(in href: T) -> Double where T: URLConvertible {
+        guard
+            spread.leading.url().isEquivalentTo(href),
+            let progression = progression
+        else {
             return 0
         }
         return progression
@@ -261,7 +261,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
 
     private func go(to locator: Locator, completion: @escaping (Bool) -> Void) {
-        guard ["", "#"].contains(locator.href) || spread.contains(href: locator.href) else {
+        guard ["", "#"].contains(locator.href.string) || spread.contains(href: locator.href) else {
             log(.warning, "The locator's href is not in the spread")
             completion(false)
             return

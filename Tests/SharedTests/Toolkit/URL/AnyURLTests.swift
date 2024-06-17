@@ -147,4 +147,52 @@ class AnyURLTests: XCTestCase {
         XCTAssertEqual(base.relativize(AnyURL(string: "/foo/quz/baz")!)!.string, "quz/baz")
         XCTAssertNil(base.relativize(AnyURL(string: "/quz/baz")!))
     }
+
+    func testNormalized() {
+        // Scheme is lower case.
+        XCTAssertEqual(
+            AnyURL(string: "HTTP://example.com")!.normalized.string,
+            "http://example.com"
+        )
+
+        // Path is percent-decoded.
+        XCTAssertEqual(
+            AnyURL(string: "HTTP://example.com/c%27est%20valide")!.normalized.string,
+            "http://example.com/c'est%20valide"
+        )
+        XCTAssertEqual(
+            AnyURL(string: "c%27est%20valide")!.normalized.string,
+            "c'est%20valide"
+        )
+
+        // Relative paths are resolved.
+        XCTAssertEqual(
+            AnyURL(string: "http://example.com/foo/./bar/../baz")!.normalized.string,
+            "http://example.com/foo/baz"
+        )
+        XCTAssertEqual(
+            AnyURL(string: "foo/./bar/../baz")!.normalized.string,
+            "foo/baz"
+        )
+        XCTAssertEqual(
+            AnyURL(string: "foo/./bar/../../../baz")!.normalized.string,
+            "../baz"
+        )
+
+        // Trailing slash is kept.
+        XCTAssertEqual(
+            AnyURL(string: "http://example.com/foo/")!.normalized.string,
+            "http://example.com/foo/"
+        )
+        XCTAssertEqual(
+            AnyURL(string: "foo/")!.normalized.string,
+            "foo/"
+        )
+
+        // The other components are left as-is.
+        XCTAssertEqual(
+            AnyURL(string: "http://user:password@example.com:443/foo?b=b&a=a#fragment")!.normalized.string,
+            "http://user:password@example.com:443/foo?b=b&a=a#fragment"
+        )
+    }
 }

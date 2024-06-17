@@ -67,14 +67,15 @@ public struct FileURL: AbsoluteURL, Hashable, Sendable {
         try (url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
     }
 
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(path)
-        hasher.combine(url.user)
-    }
-
-    public static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.path == rhs.path
-            && lhs.url.user == rhs.url.user
+    /// Strict URL comparisons can be a source of bug, if the URLs are not
+    /// normalized. In most cases, you should compare using
+    /// `isEquivalent()`.
+    ///
+    /// To ignore this warning, compare `FileURL.string` instead of
+    /// `FileURL` itself.
+    @available(*, deprecated, message: "Strict URL comparisons can be a source of bug. Use isEquivalent() instead.")
+    public static func == (lhs: FileURL, rhs: FileURL) -> Bool {
+        lhs.string == rhs.string
     }
 }
 

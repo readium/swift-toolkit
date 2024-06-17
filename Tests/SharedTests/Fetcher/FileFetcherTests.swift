@@ -20,10 +20,10 @@ class FileFetcherTests: XCTestCase {
 
     func testLinks() {
         XCTAssertEqual(fetcher.links, [
-            Link(href: "dir_href/subdirectory/hello.mp3", type: "audio/mpeg"),
-            Link(href: "dir_href/subdirectory/text2.txt", type: "text/plain"),
-            Link(href: "dir_href/text1.txt", type: "text/plain"),
-            Link(href: "file_href", type: "text/plain"),
+            Link(href: "dir_href/subdirectory/hello.mp3", mediaType: .mp3),
+            Link(href: "dir_href/subdirectory/text2.txt", mediaType: .text),
+            Link(href: "dir_href/text1.txt", mediaType: .text),
+            Link(href: "file_href", mediaType: .text),
         ])
     }
 

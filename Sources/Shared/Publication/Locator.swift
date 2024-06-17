@@ -10,10 +10,10 @@ import ReadiumInternal
 /// https://github.com/readium/architecture/tree/master/locators
 public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
     /// The URI of the resource that the Locator Object points to.
-    public var href: String // URI
+    public var href: AnyURL
 
     /// The media type of the resource that the Locator Object points to.
-    public var type: String
+    public var mediaType: MediaType
 
     /// The title of the chapter or section which is more relevant in the context of this locator.
     public var title: String?
@@ -24,45 +24,23 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
     /// Textual context of the locator.
     public var text: Text
 
-    public init(href: String, type: String, title: String? = nil, locations: Locations = .init(), text: Text = .init()) {
-        self.href = href
-        self.type = type
+    @available(*, unavailable, renamed: "mediaType")
+    public var type: String { mediaType.string }
+
+    public init<T: URLConvertible>(href: T, mediaType: MediaType, title: String? = nil, locations: Locations = .init(), text: Text = .init()) {
+        self.href = href.anyURL
+        self.mediaType = mediaType
         self.title = title
         self.locations = locations
         self.text = text
     }
 
     public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        if json == nil {
-            return nil
-        }
-        guard let jsonObject = json as? JSONDictionary.Wrapped,
-              let href = jsonObject["href"] as? String,
-              let type = jsonObject["type"] as? String
-        else {
-            warnings?.log("`href` and `type` required", model: Self.self, source: json)
-            throw JSONError.parsing(Self.self)
-        }
-
-        try self.init(
-            href: href,
-            type: type,
-            title: jsonObject["title"] as? String,
-            locations: Locations(json: jsonObject["locations"], warnings: warnings),
-            text: Text(json: jsonObject["text"], warnings: warnings)
-        )
+        try self.init(json: json, warnings: warnings, legacyHREF: false)
     }
 
     public init?(jsonString: String, warnings: WarningLogger? = nil) throws {
-        let json: Any
-        do {
-            json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
-        } catch {
-            warnings?.log("Invalid Locator object: \(error)", model: Self.self)
-            throw JSONError.parsing(Self.self)
-        }
-
-        try self.init(json: json, warnings: warnings)
+        try self.init(jsonString: jsonString, warnings: warnings, legacyHREF: false)
     }
 
     /// Creates a ``Locator`` from its legacy JSON representation.
@@ -71,12 +49,50 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
     /// the ``Locator`` objects stored in your database. See the migration guide
     /// for more information.
     public init?(legacyJSONString: String, warnings: WarningLogger? = nil) throws {
-        try self.init(jsonString: legacyJSONString, warnings: warnings)
+        try self.init(jsonString: legacyJSONString, warnings: warnings, legacyHREF: true)
+    }
 
-        guard let url = AnyURL(legacyHREF: href) else {
+    private init?(jsonString: String, warnings: WarningLogger?, legacyHREF: Bool) throws {
+        let json: Any
+        do {
+            json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
+        } catch {
+            warnings?.log("Invalid Locator object: \(error)", model: Self.self)
+            throw JSONError.parsing(Self.self)
+        }
+
+        try self.init(json: json, warnings: warnings, legacyHREF: legacyHREF)
+    }
+
+    private init?(json: Any?, warnings: WarningLogger?, legacyHREF: Bool) throws {
+        if json == nil {
             return nil
         }
-        href = url.string
+        guard let jsonObject = json as? JSONDictionary.Wrapped,
+              let hrefString = jsonObject["href"] as? String,
+              let typeString = jsonObject["type"] as? String
+        else {
+            warnings?.log("`href` and `type` required", model: Self.self, source: json)
+            throw JSONError.parsing(Self.self)
+        }
+
+        guard let type = MediaType(typeString) else {
+            warnings?.log("`type` is not a valid media type", model: Self.self, source: json)
+            throw JSONError.parsing(Self.self)
+        }
+
+        guard let href = legacyHREF ? AnyURL(legacyHREF: hrefString) : AnyURL(string: hrefString) else {
+            warnings?.log("`href` is not a valid URL", model: Self.self, source: json)
+            throw JSONError.parsing(Self.self)
+        }
+
+        try self.init(
+            href: href,
+            mediaType: type,
+            title: jsonObject["title"] as? String,
+            locations: Locations(json: jsonObject["locations"], warnings: warnings),
+            text: Text(json: jsonObject["text"], warnings: warnings)
+        )
     }
 
     @available(*, unavailable, message: "This may create an incorrect `Locator` if the link `type` is missing. Use `publication.locate(Link)` instead.")
@@ -84,8 +100,8 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
 
     public var json: JSONDictionary.Wrapped {
         makeJSON([
-            "href": href,
-            "type": type,
+            "href": href.string,
+            "type": mediaType.string,
             "title": encodeIfNotNil(title),
             "locations": encodeIfNotEmpty(locations.json),
             "text": encodeIfNotEmpty(text.json),
@@ -101,15 +117,38 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
     }
 
     /// Makes a copy of the `Locator`, after modifying some of its components.
-    public func copy(href: String? = nil, type: String? = nil, title: String?? = nil, locations transformLocations: ((inout Locations) -> Void)? = nil, text transformText: ((inout Text) -> Void)? = nil) -> Locator {
+    public func copy(
+        href: AnyURL? = nil,
+        mediaType: MediaType? = nil,
+        title: String?? = nil,
+        locations transformLocations: ((inout Locations) -> Void)? = nil,
+        text transformText: ((inout Text) -> Void)? = nil
+    ) -> Locator {
         var locations = locations
         var text = text
         transformLocations?(&locations)
         transformText?(&text)
         return Locator(
             href: href ?? self.href,
-            type: type ?? self.type,
+            mediaType: mediaType ?? self.mediaType,
             title: title ?? self.title,
+            locations: locations,
+            text: text
+        )
+    }
+
+    /// Makes a copy of the `Locator`, after modifying some of its components.
+    public func copy<T: URLConvertible>(
+        href: T?,
+        mediaType: MediaType? = nil,
+        title: String?? = nil,
+        locations: ((inout Locations) -> Void)? = nil,
+        text: ((inout Text) -> Void)? = nil
+    ) -> Locator {
+        copy(
+            href: href?.anyURL,
+            mediaType: mediaType,
+            title: title,
             locations: locations,
             text: text
         )

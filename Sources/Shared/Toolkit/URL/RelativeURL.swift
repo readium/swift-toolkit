@@ -97,16 +97,15 @@ public struct RelativeURL: URLProtocol, Hashable {
         )
     }
 
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(path)
-        hasher.combine(query)
-        hasher.combine(fragment)
-    }
-
-    public static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.path == rhs.path
-            && lhs.query == rhs.query
-            && lhs.fragment == rhs.fragment
+    /// Strict URL comparisons can be a source of bug, if the URLs are not
+    /// normalized. In most cases, you should compare using
+    /// `isEquivalent()`.
+    ///
+    /// To ignore this warning, compare `RelativeURL.string` instead of
+    /// `RelativeURL` itself.
+    @available(*, deprecated, message: "Strict URL comparisons can be a source of bug. Use isEquivalent() instead.")
+    public static func == (lhs: RelativeURL, rhs: RelativeURL) -> Bool {
+        lhs.string == rhs.string
     }
 }
 

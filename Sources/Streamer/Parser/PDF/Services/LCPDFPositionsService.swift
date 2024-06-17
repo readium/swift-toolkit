@@ -50,8 +50,8 @@ final class LCPDFPositionsService: PositionsService, PDFPublicationService, Logg
             let progression = Double(position - 1) / Double(pageCount)
             let totalProgression = Double(startPosition + position - 1) / Double(totalPageCount)
             return Locator(
-                href: link.href,
-                type: link.type ?? MediaType.pdf.string,
+                href: link.url(),
+                mediaType: link.mediaType ?? .pdf,
                 locations: .init(
                     fragments: ["page=\(position)"],
                     progression: progression,

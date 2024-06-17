@@ -78,24 +78,39 @@ public class Publication: Loggable {
     ///
     /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
     public var baseURL: HTTPURL? {
-        links.first(withRel: .`self`)
+        links.firstWithRel(.`self`)
             .takeIf { !$0.templated }
-            .flatMap { HTTPURL(string: $0.href) }
+            .flatMap { HTTPURL(string: $0.href)?.removingLastPathSegment() }
     }
 
     /// Finds the first Link having the given `href` in the publication's links.
-    public func link(withHREF href: String) -> Link? {
-        manifest.link(withHREF: href)
+    public func linkWithHREF<T: URLConvertible>(_ href: T) -> Link? {
+        manifest.linkWithHREF(href)
     }
 
     /// Finds the first link with the given relation in the publication's links.
-    public func link(withRel rel: LinkRelation) -> Link? {
-        manifest.link(withRel: rel)
+    public func linkWithRel(_ rel: LinkRelation) -> Link? {
+        manifest.linkWithRel(rel)
     }
 
     /// Finds all the links with the given relation in the publication's links.
+    public func linksWithRel(_ rel: LinkRelation) -> [Link] {
+        manifest.linksWithRel(rel)
+    }
+
+    @available(*, unavailable, renamed: "linkWithHREF")
+    public func link(withHREF href: String) -> Link? {
+        fatalError()
+    }
+
+    @available(*, unavailable, renamed: "linkWithRel")
+    public func link(withRel rel: LinkRelation) -> Link? {
+        fatalError()
+    }
+
+    @available(*, unavailable, renamed: "linksWithRel")
     public func links(withRel rel: LinkRelation) -> [Link] {
-        manifest.links(withRel: rel)
+        fatalError()
     }
 
     /// Returns the resource targeted by the given `link`.
@@ -107,10 +122,10 @@ public class Publication: Loggable {
     }
 
     /// Returns the resource targeted by the given `href`.
-    public func get(_ href: String) -> Resource {
-        var link = link(withHREF: href) ?? Link(href: href)
+    public func get<T: URLConvertible>(_ href: T) -> Resource {
+        var link = linkWithHREF(href) ?? Link(href: href.anyURL.string)
         // Uses the original href to keep the query parameters
-        link.href = href
+        link.href = href.anyURL.string
         link.templated = false
         return get(link)
     }
@@ -136,6 +151,32 @@ public class Publication: Loggable {
     /// Sets the URL where this `Publication`'s RWPM manifest is served.
     @available(*, unavailable, message: "Not used anymore")
     public func setSelfLink(href: String?) { fatalError() }
+
+    /// Historically, we used to have "absolute" HREFs in the manifest:
+    ///  - starting with a `/` for packaged publications.
+    ///  - resolved to the `self` link for remote publications.
+    ///
+    /// We removed the normalization and now use relative HREFs everywhere, but
+    /// we still need to support the locators created with the old absolute
+    /// HREFs.
+    public func normalizeLocator(_ locator: Locator) -> Locator {
+        var locator = locator
+
+        if let baseURL = baseURL { // Remote publication
+            // Check that the locator HREF relative to `baseURL` exists in the manifest.
+            if let relativeHREF = baseURL.relativize(locator.href) {
+                locator.href = linkWithHREF(relativeHREF)?.url()
+                    ?? relativeHREF.anyURL
+            }
+
+        } else { // Packaged publication
+            if let href = AnyURL(string: locator.href.string.removingPrefix("/")) {
+                locator.href = href
+            }
+        }
+
+        return locator
+    }
 
     /// Represents a Readium Web Publication Profile a `Publication` can conform to.
     ///

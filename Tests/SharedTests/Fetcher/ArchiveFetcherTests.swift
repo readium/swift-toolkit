@@ -21,17 +21,17 @@ class ArchiveFetcherTests: XCTestCase {
             fetcher.links,
             [
                 ("mimetype", nil, 20, false),
-                ("EPUB/cover.xhtml", "text/html", 259, true),
-                ("EPUB/css/epub.css", "text/css", 595, true),
-                ("EPUB/css/nav.css", "text/css", 306, true),
-                ("EPUB/images/cover.png", "image/png", 35809, true),
-                ("EPUB/nav.xhtml", "text/html", 2293, true),
+                ("EPUB/cover.xhtml", .html, 259, true),
+                ("EPUB/css/epub.css", .css, 595, true),
+                ("EPUB/css/nav.css", .css, 306, true),
+                ("EPUB/images/cover.png", .png, 35809, true),
+                ("EPUB/nav.xhtml", .html, 2293, true),
                 ("EPUB/package.opf", nil, 773, true),
-                ("EPUB/s04.xhtml", "text/html", 118_269, true),
+                ("EPUB/s04.xhtml", .html, 118_269, true),
                 ("EPUB/toc.ncx", nil, 1697, true),
-                ("META-INF/container.xml", "application/xml", 176, true),
+                ("META-INF/container.xml", .xml, 176, true),
             ].map { href, type, entryLength, isCompressed in
-                Link(href: href, type: type, properties: .init([
+                Link(href: href, mediaType: type, properties: .init([
                     "https://readium.org/webpub-manifest/properties#archive": [
                         "entryLength": entryLength,
                         "isEntryCompressed": isCompressed,

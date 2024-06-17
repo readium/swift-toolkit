@@ -103,8 +103,8 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         goToCompletions.complete()
     }
 
-    override func evaluateScript(_ script: String, inHREF href: String?, completion: ((Result<Any, Error>) -> Void)?) {
-        let href = href ?? ""
+    override func evaluateScript(_ script: String, inHREF href: AnyURL? = nil, completion: ((Result<Any, any Error>) -> Void)? = nil) {
+        let href = href?.string ?? ""
         let script = "spread.eval('\(href)', `\(script.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "`", with: "\\`"))`);"
         super.evaluateScript(script, completion: completion)
     }

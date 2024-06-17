@@ -36,20 +36,15 @@ public struct HTTPURL: AbsoluteURL, Hashable, Sendable {
         return o
     }
 
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(origin)
-        hasher.combine(path)
-        hasher.combine(query)
-        hasher.combine(fragment)
-        hasher.combine(url.user)
-    }
-
-    public static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.origin == rhs.origin
-            && lhs.path == rhs.path
-            && lhs.query == rhs.query
-            && lhs.fragment == rhs.fragment
-            && lhs.url.user == rhs.url.user
+    /// Strict URL comparisons can be a source of bug, if the URLs are not
+    /// normalized. In most cases, you should compare using
+    /// `isEquivalent()`.
+    ///
+    /// To ignore this warning, compare `HTTPURL.string` instead of
+    /// `HTTPURL` itself.
+    @available(*, deprecated, message: "Strict URL comparisons can be a source of bug. Use isEquivalent() instead.")
+    public static func == (lhs: HTTPURL, rhs: HTTPURL) -> Bool {
+        lhs.string == rhs.string
     }
 }
 

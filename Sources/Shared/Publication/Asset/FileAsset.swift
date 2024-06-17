@@ -7,7 +7,7 @@
 import Foundation
 
 /// Represents a publication stored as a file on the local file system.
-public final class FileAsset: PublicationAsset, Loggable, Sendable {
+public final class FileAsset: PublicationAsset, Loggable {
     /// File URL on the file system.
     public let file: FileURL
 

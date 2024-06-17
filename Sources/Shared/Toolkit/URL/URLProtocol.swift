@@ -8,7 +8,7 @@ import Foundation
 import ReadiumInternal
 
 /// A type that can represent a URL.
-public protocol URLProtocol: CustomStringConvertible, URLConvertible {
+public protocol URLProtocol: URLConvertible, Sendable, CustomStringConvertible {
     /// Creates a new instance of this type from a Foundation ``URL``.
     init?(url: URL)
 
@@ -26,6 +26,20 @@ public extension URLProtocol {
 
     /// Returns the string representation for this URL.
     var string: String { url.absoluteString }
+
+    /// Normalizes the URL using a subset of the RFC-3986 rules.
+    /// https://datatracker.ietf.org/doc/html/rfc3986#section-6
+    var normalized: Self {
+        Self(url: url.copy {
+            $0.scheme = $0.scheme?.lowercased()
+            $0.path = path.normalizedPath
+        }!)!
+    }
+
+    /// Returns whether the two URLs are equivalent after normalization.
+    func isEquivalentTo<T: URLConvertible>(_ url: T) -> Bool {
+        normalized.string == url.anyURL.normalized.string
+    }
 
     /// Decoded path segments identifying a location.
     var path: String {
@@ -125,4 +139,44 @@ public extension URLProtocol {
 /// Implements `CustomStringConvertible`
 public extension URLProtocol {
     var description: String { string }
+}
+
+private extension String {
+    var normalizedPath: String {
+        guard !isEmpty else {
+            return ""
+        }
+
+        var segments = [String]()
+        let pathComponents = split(separator: "/", omittingEmptySubsequences: false)
+
+        for component in pathComponents {
+            let segment = String(component)
+            if segment == ".." {
+                if !segments.isEmpty {
+                    // Remove last added directory
+                    segments.removeLast()
+                } else {
+                    // Add ".." to the beginning
+                    segments.append(segment)
+                }
+            } else if segment != "." {
+                segments.append(segment)
+            }
+        }
+
+        return segments.joined(separator: "/")
+    }
+}
+
+public extension Dictionary where Key: URLProtocol {
+    /// Returns the value of the first key matching `key` after normalization.
+    subscript<T: URLConvertible>(equivalent key: T) -> Value? {
+        for (k, v) in self {
+            if k.isEquivalentTo(key) {
+                return v
+            }
+        }
+        return nil
+    }
 }
