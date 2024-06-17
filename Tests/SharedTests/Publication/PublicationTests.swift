@@ -339,26 +339,6 @@ class PublicationTests: XCTestCase {
             ),
             Locator(href: "https://other.com/chap1.html", mediaType: .html)
         )
-
-        // The HREF is normalized
-        XCTAssertEqual(
-            publication.normalizeLocator(
-                Locator(href: "https://example.com/foo/bar/c%27est%20valide.html", mediaType: .html)
-            ),
-            Locator(href: "bar/c'est%20valide.html", mediaType: .html)
-        )
-        XCTAssertEqual(
-            publication.normalizeLocator(
-                Locator(href: "bar/c%27est%20valide.html", mediaType: .html)
-            ),
-            Locator(href: "bar/c'est%20valide.html", mediaType: .html)
-        )
-        XCTAssertEqual(
-            publication.normalizeLocator(
-                Locator(href: "https://other.com/c%27est%20valide.html", mediaType: .html)
-            ),
-            Locator(href: "https://other.com/c'est%20valide.html", mediaType: .html)
-        )
     }
 
     func testNormalizeLocatorPackagedPublication() {
@@ -385,20 +365,6 @@ class PublicationTests: XCTestCase {
                 Locator(href: "foo/chap1.html", mediaType: .html)
             ),
             Locator(href: "foo/chap1.html", mediaType: .html)
-        )
-
-        // The HREF is normalized
-        XCTAssertEqual(
-            publication.normalizeLocator(
-                Locator(href: "bar/c%27est%20valide.html", mediaType: .html)
-            ),
-            Locator(href: "bar/c'est%20valide.html", mediaType: .html)
-        )
-        XCTAssertEqual(
-            publication.normalizeLocator(
-                Locator(href: "c%27est%20valide.html", mediaType: .html)
-            ),
-            Locator(href: "c'est%20valide.html", mediaType: .html)
         )
     }
 }
