@@ -234,12 +234,12 @@ public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
 
         return try open(document: document, password: password)
     }
-    
+
     private class DataHolder {
-        var data: Data = Data()
+        var data: Data = .init()
     }
 
-    public func open(resource: Resource, password: String?) async throws -> PDFDocument {
+    public func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument {
         if let file = resource.sourceURL?.fileURL {
             return try await open(file: file, password: password)
         }
@@ -268,7 +268,7 @@ public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
                     }
                     semaphore.signal()
                 }
-                
+
                 _ = semaphore.wait(timeout: .distantFuture)
 
                 let data = holder.data
@@ -342,7 +342,7 @@ public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
 
         init(resource: Resource) async {
             self.resource = resource
-            self.length = (await resource.estimatedLength().getOrNil() ?? 0) ?? 0
+            length = await (resource.estimatedLength().getOrNil() ?? 0) ?? 0
         }
     }
 

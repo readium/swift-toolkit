@@ -78,7 +78,7 @@ public struct Link: JSONEquatable, Hashable {
         }
         self.href = href
         self.type = type
-        self.mediaType = type.flatMap { MediaType($0) }
+        mediaType = type.flatMap { MediaType($0) }
         self.templated = templated
         self.title = title
         self.rels = rels

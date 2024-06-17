@@ -58,13 +58,13 @@ public struct PublicationServiceContext {
 
     public let manifest: Manifest
     public let container: Container
-    
+
     public init(publication: Weak<Publication>, manifest: Manifest, container: Container) {
         self.publication = publication
         self.manifest = manifest
         self.container = container
     }
-    
+
     @available(*, unavailable, renamed: "container")
     public var fetcher: Fetcher { fatalError() }
 }

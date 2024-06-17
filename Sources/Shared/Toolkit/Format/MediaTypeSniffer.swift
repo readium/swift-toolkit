@@ -62,423 +62,423 @@ public extension MediaType {
     /// * *Heavy Sniffing* reads the bytes to perform more advanced sniffing.
     @available(*, unavailable, message: "Use an `AssetRetriever` to sniff a `Format` instead")
     private static func of(content: Any, mediaTypes: [String], fileExtensions: [String], sniffers: [Sniffer]) -> MediaType? {
-        return nil
+        nil
         /*
-        if content != nil {
-            warnIfMainThread()
-        }
+         if content != nil {
+             warnIfMainThread()
+         }
 
-        // Light sniffing
-        let context = MediaTypeSnifferContext(mediaTypes: mediaTypes, fileExtensions: fileExtensions)
-        for sniffer in sniffers {
-            if let mediaType = sniffer(context) {
-                return mediaType
-            }
-        }
+         // Light sniffing
+         let context = MediaTypeSnifferContext(mediaTypes: mediaTypes, fileExtensions: fileExtensions)
+         for sniffer in sniffers {
+             if let mediaType = sniffer(context) {
+                 return mediaType
+             }
+         }
 
-        // Heavy sniffing
-        if let content = content {
-            let context = MediaTypeSnifferContext(content: content, mediaTypes: mediaTypes, fileExtensions: fileExtensions)
-            for sniffer in sniffers {
-                if let mediaType = sniffer(context) {
-                    return mediaType
-                }
-            }
-        }
+         // Heavy sniffing
+         if let content = content {
+             let context = MediaTypeSnifferContext(content: content, mediaTypes: mediaTypes, fileExtensions: fileExtensions)
+             for sniffer in sniffers {
+                 if let mediaType = sniffer(context) {
+                     return mediaType
+                 }
+             }
+         }
 
-        // Falls back on either:
-        //
-        // - the Document Types registered in the reading app
-        // - system-wide UTIs
-        // - the first valid media type hint provided
-        //
-        // Note: This is done after the heavy sniffing of the provided `sniffers`, because otherwise
-        // the Document Types or system UTI will detect JSON, XML or ZIP media types before we have a
-        // chance of sniffing their content (for example, for RWPM).
-        return sniffDocumentTypes(context)
-            ?? sniffUTIs(context)
-            ?? mediaTypes.first { MediaType($0) }
-        */
+         // Falls back on either:
+         //
+         // - the Document Types registered in the reading app
+         // - system-wide UTIs
+         // - the first valid media type hint provided
+         //
+         // Note: This is done after the heavy sniffing of the provided `sniffers`, because otherwise
+         // the Document Types or system UTI will detect JSON, XML or ZIP media types before we have a
+         // chance of sniffing their content (for example, for RWPM).
+         return sniffDocumentTypes(context)
+             ?? sniffUTIs(context)
+             ?? mediaTypes.first { MediaType($0) }
+         */
     }
-    
+
     /*
 
-    // MARK: Sniffers
+     // MARK: Sniffers
 
-    /// The default sniffers provided by Readium 2 to resolve a `MediaType`.
-    ///
-    /// You can register additional sniffers globally by modifying this list.
-    /// The sniffers order is important, because some media types are subsets of other media types.
-    static var sniffers: [Sniffer] = [
-        sniffHTML, sniffOPDS, sniffLCPLicense, sniffBitmap, sniffAudio,
-        sniffWebPub, sniffW3CWPUB, sniffEPUB, sniffLPF, sniffArchive, sniffPDF,
-    ]
+     /// The default sniffers provided by Readium 2 to resolve a `MediaType`.
+     ///
+     /// You can register additional sniffers globally by modifying this list.
+     /// The sniffers order is important, because some media types are subsets of other media types.
+     static var sniffers: [Sniffer] = [
+         sniffHTML, sniffOPDS, sniffLCPLicense, sniffBitmap, sniffAudio,
+         sniffWebPub, sniffW3CWPUB, sniffEPUB, sniffLPF, sniffArchive, sniffPDF,
+     ]
 
-    /// Sniffs an HTML document.
-    private static func sniffHTML(context: MediaTypeSnifferContext) -> MediaType? {
-        if context.hasFileExtension("htm", "html", "xht", "xhtml") || context.hasMediaType("text/html", "application/xhtml+xml") {
-            return .html
-        }
-        if
-            context.contentAsXML?.documentElement?.localName.lowercased() == "html" ||
-            context.contentAsString?.trimmingCharacters(in: .whitespacesAndNewlines).prefix(15).lowercased() == "<!doctype html>"
-        {
-            return .html
-        }
-        return nil
-    }
+     /// Sniffs an HTML document.
+     private static func sniffHTML(context: MediaTypeSnifferContext) -> MediaType? {
+         if context.hasFileExtension("htm", "html", "xht", "xhtml") || context.hasMediaType("text/html", "application/xhtml+xml") {
+             return .html
+         }
+         if
+             context.contentAsXML?.documentElement?.localName.lowercased() == "html" ||
+             context.contentAsString?.trimmingCharacters(in: .whitespacesAndNewlines).prefix(15).lowercased() == "<!doctype html>"
+         {
+             return .html
+         }
+         return nil
+     }
 
-    /// Sniffs an OPDS document.
-    private static func sniffOPDS(context: MediaTypeSnifferContext) -> MediaType? {
-        // OPDS 1
-        if context.hasMediaType("application/atom+xml;type=entry;profile=opds-catalog") {
-            return .opds1Entry
-        }
-        if context.hasMediaType("application/atom+xml;profile=opds-catalog") {
-            return .opds1
-        }
-        if let xml = context.contentAsXML {
-            let namespaces = [(prefix: "atom", uri: "http://www.w3.org/2005/Atom")]
-            if xml.first("/atom:feed", with: namespaces) != nil {
-                return .opds1
-            } else if xml.first("/atom:entry", with: namespaces) != nil {
-                return .opds1Entry
-            }
-        }
+     /// Sniffs an OPDS document.
+     private static func sniffOPDS(context: MediaTypeSnifferContext) -> MediaType? {
+         // OPDS 1
+         if context.hasMediaType("application/atom+xml;type=entry;profile=opds-catalog") {
+             return .opds1Entry
+         }
+         if context.hasMediaType("application/atom+xml;profile=opds-catalog") {
+             return .opds1
+         }
+         if let xml = context.contentAsXML {
+             let namespaces = [(prefix: "atom", uri: "http://www.w3.org/2005/Atom")]
+             if xml.first("/atom:feed", with: namespaces) != nil {
+                 return .opds1
+             } else if xml.first("/atom:entry", with: namespaces) != nil {
+                 return .opds1Entry
+             }
+         }
 
-        // OPDS 2
-        if context.hasMediaType("application/opds+json") {
-            return .opds2
-        }
-        if context.hasMediaType("application/opds-publication+json") {
-            return .opds2Publication
-        }
-        if let rwpm = context.contentAsRWPM {
-            if rwpm.link(withRel: .`self`)?.type == "application/opds+json" {
-                return .opds2
-            }
-            if rwpm.link(withRelMatching: { $0.hasPrefix("http://opds-spec.org/acquisition") }) != nil {
-                return .opds2Publication
-            }
-        }
+         // OPDS 2
+         if context.hasMediaType("application/opds+json") {
+             return .opds2
+         }
+         if context.hasMediaType("application/opds-publication+json") {
+             return .opds2Publication
+         }
+         if let rwpm = context.contentAsRWPM {
+             if rwpm.link(withRel: .`self`)?.type == "application/opds+json" {
+                 return .opds2
+             }
+             if rwpm.link(withRelMatching: { $0.hasPrefix("http://opds-spec.org/acquisition") }) != nil {
+                 return .opds2Publication
+             }
+         }
 
-        // OPDS Authentication Document.
-        if context.hasMediaType("application/opds-authentication+json") || context.hasMediaType("application/vnd.opds.authentication.v1.0+json") {
-            return .opdsAuthentication
-        }
-        if let json = context.contentAsJSON as? [String: Any] {
-            if Set(json.keys).isSuperset(of: ["id", "title", "authentication"]) {
-                return .opdsAuthentication
-            }
-        }
+         // OPDS Authentication Document.
+         if context.hasMediaType("application/opds-authentication+json") || context.hasMediaType("application/vnd.opds.authentication.v1.0+json") {
+             return .opdsAuthentication
+         }
+         if let json = context.contentAsJSON as? [String: Any] {
+             if Set(json.keys).isSuperset(of: ["id", "title", "authentication"]) {
+                 return .opdsAuthentication
+             }
+         }
 
-        return nil
-    }
+         return nil
+     }
 
-    /// Sniffs an LCP License Document.
-    private static func sniffLCPLicense(context: MediaTypeSnifferContext) -> MediaType? {
-        if context.hasFileExtension("lcpl") || context.hasMediaType("application/vnd.readium.lcp.license.v1.0+json") {
-            return .lcpLicenseDocument
-        }
-        if let json = context.contentAsJSON as? [String: Any] {
-            if Set(json.keys).isSuperset(of: ["id", "issued", "provider", "encryption"]) {
-                return .lcpLicenseDocument
-            }
-        }
-        return nil
-    }
+     /// Sniffs an LCP License Document.
+     private static func sniffLCPLicense(context: MediaTypeSnifferContext) -> MediaType? {
+         if context.hasFileExtension("lcpl") || context.hasMediaType("application/vnd.readium.lcp.license.v1.0+json") {
+             return .lcpLicenseDocument
+         }
+         if let json = context.contentAsJSON as? [String: Any] {
+             if Set(json.keys).isSuperset(of: ["id", "issued", "provider", "encryption"]) {
+                 return .lcpLicenseDocument
+             }
+         }
+         return nil
+     }
 
-    /// Sniffs a Readium Web Publication, protected or not by LCP.
-    private static func sniffWebPub(context: MediaTypeSnifferContext) -> MediaType? {
-        if context.hasFileExtension("audiobook") || context.hasMediaType("application/audiobook+zip") {
-            return .readiumAudiobook
-        }
-        if context.hasMediaType("application/audiobook+json") {
-            return .readiumAudiobookManifest
-        }
+     /// Sniffs a Readium Web Publication, protected or not by LCP.
+     private static func sniffWebPub(context: MediaTypeSnifferContext) -> MediaType? {
+         if context.hasFileExtension("audiobook") || context.hasMediaType("application/audiobook+zip") {
+             return .readiumAudiobook
+         }
+         if context.hasMediaType("application/audiobook+json") {
+             return .readiumAudiobookManifest
+         }
 
-        if context.hasFileExtension("divina") || context.hasMediaType("application/divina+zip") {
-            return .divina
-        }
-        if context.hasMediaType("application/divina+json") {
-            return .divinaManifest
-        }
+         if context.hasFileExtension("divina") || context.hasMediaType("application/divina+zip") {
+             return .divina
+         }
+         if context.hasMediaType("application/divina+json") {
+             return .divinaManifest
+         }
 
-        if context.hasFileExtension("webpub") || context.hasMediaType("application/webpub+zip") {
-            return .readiumWebPub
-        }
-        if context.hasMediaType("application/webpub+json") {
-            return .readiumWebPubManifest
-        }
+         if context.hasFileExtension("webpub") || context.hasMediaType("application/webpub+zip") {
+             return .readiumWebPub
+         }
+         if context.hasMediaType("application/webpub+json") {
+             return .readiumWebPubManifest
+         }
 
-        if context.hasFileExtension("lcpa") || context.hasMediaType("application/audiobook+lcp") {
-            return .lcpProtectedAudiobook
-        }
-        if context.hasFileExtension("lcpdf") || context.hasMediaType("application/pdf+lcp") {
-            return .lcpProtectedPDF
-        }
+         if context.hasFileExtension("lcpa") || context.hasMediaType("application/audiobook+lcp") {
+             return .lcpProtectedAudiobook
+         }
+         if context.hasFileExtension("lcpdf") || context.hasMediaType("application/pdf+lcp") {
+             return .lcpProtectedPDF
+         }
 
-        /// Reads a RWPM, either from a manifest.json file, or from a manifest.json Archive entry,
-        /// if the file is an archive.
-        func readRWPM() -> (isManifest: Bool, Manifest)? {
-            if let rwpm = context.contentAsRWPM {
-                return (isManifest: true, rwpm)
-            } else if let manifestData = context.readArchiveEntry(at: "manifest.json"),
-                      let manifestJSON = try? JSONSerialization.jsonObject(with: manifestData),
-                      let rwpm = try? Manifest(json: manifestJSON)
-            {
-                return (isManifest: false, rwpm)
-            } else {
-                return nil
-            }
-        }
+         /// Reads a RWPM, either from a manifest.json file, or from a manifest.json Archive entry,
+         /// if the file is an archive.
+         func readRWPM() -> (isManifest: Bool, Manifest)? {
+             if let rwpm = context.contentAsRWPM {
+                 return (isManifest: true, rwpm)
+             } else if let manifestData = context.readArchiveEntry(at: "manifest.json"),
+                       let manifestJSON = try? JSONSerialization.jsonObject(with: manifestData),
+                       let rwpm = try? Manifest(json: manifestJSON)
+             {
+                 return (isManifest: false, rwpm)
+             } else {
+                 return nil
+             }
+         }
 
-        if let (isManifest, rwpm) = readRWPM() {
-            let isLCPProtected = context.containsArchiveEntry(at: "license.lcpl")
+         if let (isManifest, rwpm) = readRWPM() {
+             let isLCPProtected = context.containsArchiveEntry(at: "license.lcpl")
 
-            if rwpm.conforms(to: .audiobook) {
-                return isManifest ? .readiumAudiobookManifest :
-                    isLCPProtected ? .lcpProtectedAudiobook : .readiumAudiobook
-            }
-            if rwpm.conforms(to: .divina) {
-                return isManifest ? .divinaManifest : .divina
-            }
-            if isLCPProtected, rwpm.conforms(to: .pdf) {
-                return .lcpProtectedPDF
-            }
-            if rwpm.link(withRel: .`self`)?.type == "application/webpub+json" {
-                return isManifest ? .readiumWebPubManifest : .readiumWebPub
-            }
-        }
+             if rwpm.conforms(to: .audiobook) {
+                 return isManifest ? .readiumAudiobookManifest :
+                     isLCPProtected ? .lcpProtectedAudiobook : .readiumAudiobook
+             }
+             if rwpm.conforms(to: .divina) {
+                 return isManifest ? .divinaManifest : .divina
+             }
+             if isLCPProtected, rwpm.conforms(to: .pdf) {
+                 return .lcpProtectedPDF
+             }
+             if rwpm.link(withRel: .`self`)?.type == "application/webpub+json" {
+                 return isManifest ? .readiumWebPubManifest : .readiumWebPub
+             }
+         }
 
-        return nil
-    }
+         return nil
+     }
 
-    /// Sniffs a W3C Web Publication Manifest.
-    private static func sniffW3CWPUB(context: MediaTypeSnifferContext) -> MediaType? {
-        if let json = context.contentAsJSON as? [String: Any],
-           let context = json["@context"] as? [Any],
-           context.contains(where: { ($0 as? String) == "https://www.w3.org/ns/wp-context" })
-        {
-            return .w3cWPUBManifest
-        }
-        return nil
-    }
+     /// Sniffs a W3C Web Publication Manifest.
+     private static func sniffW3CWPUB(context: MediaTypeSnifferContext) -> MediaType? {
+         if let json = context.contentAsJSON as? [String: Any],
+            let context = json["@context"] as? [Any],
+            context.contains(where: { ($0 as? String) == "https://www.w3.org/ns/wp-context" })
+         {
+             return .w3cWPUBManifest
+         }
+         return nil
+     }
 
-    /// Sniffs an EPUB publication.
-    /// Reference: https://www.w3.org/publishing/epub3/epub-ocf.html#sec-zip-container-mime
-    private static func sniffEPUB(context: MediaTypeSnifferContext) -> MediaType? {
-        if context.hasFileExtension("epub") || context.hasMediaType("application/epub+zip") {
-            return .epub
-        }
-        if let mimetypeData = context.readArchiveEntry(at: "mimetype"),
-           let mimetype = String(data: mimetypeData, encoding: .ascii)?.trimmingCharacters(in: .whitespacesAndNewlines),
-           mimetype == "application/epub+zip"
-        {
-            return .epub
-        }
-        return nil
-    }
+     /// Sniffs an EPUB publication.
+     /// Reference: https://www.w3.org/publishing/epub3/epub-ocf.html#sec-zip-container-mime
+     private static func sniffEPUB(context: MediaTypeSnifferContext) -> MediaType? {
+         if context.hasFileExtension("epub") || context.hasMediaType("application/epub+zip") {
+             return .epub
+         }
+         if let mimetypeData = context.readArchiveEntry(at: "mimetype"),
+            let mimetype = String(data: mimetypeData, encoding: .ascii)?.trimmingCharacters(in: .whitespacesAndNewlines),
+            mimetype == "application/epub+zip"
+         {
+             return .epub
+         }
+         return nil
+     }
 
-    /// Sniffs a Lightweight Packaging Format (LPF).
-    /// References:
-    /// * https://www.w3.org/TR/lpf/
-    /// * https://www.w3.org/TR/pub-manifest/
-    private static func sniffLPF(context: MediaTypeSnifferContext) -> MediaType? {
-        if context.hasFileExtension("lpf") || context.hasMediaType("application/lpf+zip") {
-            return .lpf
-        }
-        if context.containsArchiveEntry(at: "index.html") {
-            return .lpf
-        }
-        if let data = context.readArchiveEntry(at: "publication.json"),
-           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-           let contexts = json["@context"] as? [Any],
-           contexts.contains(where: { ($0 as? String) == "https://www.w3.org/ns/pub-context" })
-        {
-            return .lpf
-        }
-        return nil
-    }
+     /// Sniffs a Lightweight Packaging Format (LPF).
+     /// References:
+     /// * https://www.w3.org/TR/lpf/
+     /// * https://www.w3.org/TR/pub-manifest/
+     private static func sniffLPF(context: MediaTypeSnifferContext) -> MediaType? {
+         if context.hasFileExtension("lpf") || context.hasMediaType("application/lpf+zip") {
+             return .lpf
+         }
+         if context.containsArchiveEntry(at: "index.html") {
+             return .lpf
+         }
+         if let data = context.readArchiveEntry(at: "publication.json"),
+            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let contexts = json["@context"] as? [Any],
+            contexts.contains(where: { ($0 as? String) == "https://www.w3.org/ns/pub-context" })
+         {
+             return .lpf
+         }
+         return nil
+     }
 
-    private static let bitmapExtensions = [
-        "bmp", "dib", "gif", "jif", "jfi", "jfif", "jpg", "jpeg", "png", "tif",
-        "tiff", "webp",
-    ]
+     private static let bitmapExtensions = [
+         "bmp", "dib", "gif", "jif", "jfi", "jfif", "jpg", "jpeg", "png", "tif",
+         "tiff", "webp",
+     ]
 
-    private static let audioExtensions = [
-        "aac", "aiff", "alac", "flac", "m4a", "m4b", "mp3", "ogg", "oga",
-        "mogg", "opus", "wav", "webm",
-    ]
+     private static let audioExtensions = [
+         "aac", "aiff", "alac", "flac", "m4a", "m4b", "mp3", "ogg", "oga",
+         "mogg", "opus", "wav", "webm",
+     ]
 
-    /// Required extensions for an archive to be considered a CBZ.
-    /// Reference: https://wiki.mobileread.com/wiki/CBR_and_CBZ
-    private static let cbzRequiredExtensions = bitmapExtensions
+     /// Required extensions for an archive to be considered a CBZ.
+     /// Reference: https://wiki.mobileread.com/wiki/CBR_and_CBZ
+     private static let cbzRequiredExtensions = bitmapExtensions
 
-    /// Additional extensions authorized in a CBZ archive.
-    private static let cbzAllowedExtensions = [
-        // metadata
-        "acbf", "xml",
-    ]
+     /// Additional extensions authorized in a CBZ archive.
+     private static let cbzAllowedExtensions = [
+         // metadata
+         "acbf", "xml",
+     ]
 
-    /// Required extensions for an archive to be considered a ZAB (Zipped Audio Book).
-    private static let zabRequiredExtensions = audioExtensions
+     /// Required extensions for an archive to be considered a ZAB (Zipped Audio Book).
+     private static let zabRequiredExtensions = audioExtensions
 
-    /// Additional extensions authorized in a ZAB archive.
-    private static let zabAllowedExtensions = [
-        bitmapExtensions, // For covers
-        // playlist
-        [
-            "asx", "bio", "m3u", "m3u8", "pla", "pls", "smil", "vlc", "wpl",
-            "xspf", "zpl",
-        ],
-    ].flatMap { $0 }
+     /// Additional extensions authorized in a ZAB archive.
+     private static let zabAllowedExtensions = [
+         bitmapExtensions, // For covers
+         // playlist
+         [
+             "asx", "bio", "m3u", "m3u8", "pla", "pls", "smil", "vlc", "wpl",
+             "xspf", "zpl",
+         ],
+     ].flatMap { $0 }
 
-    /// Sniffs a simple archive-based format, like Comic Book Archive or Zipped
-    /// Audio Book.
-    ///
-    /// Reference: https://wiki.mobileread.com/wiki/CBR_and_CBZ
-    private static func sniffArchive(context: MediaTypeSnifferContext) -> MediaType? {
-        if context.hasFileExtension("cbz") || context.hasMediaType("application/vnd.comicbook+zip", "application/x-cbz", "application/x-cbr") {
-            return .cbz
-        }
-        if context.hasFileExtension("zab") {
-            return .zab
-        }
+     /// Sniffs a simple archive-based format, like Comic Book Archive or Zipped
+     /// Audio Book.
+     ///
+     /// Reference: https://wiki.mobileread.com/wiki/CBR_and_CBZ
+     private static func sniffArchive(context: MediaTypeSnifferContext) -> MediaType? {
+         if context.hasFileExtension("cbz") || context.hasMediaType("application/vnd.comicbook+zip", "application/x-cbz", "application/x-cbr") {
+             return .cbz
+         }
+         if context.hasFileExtension("zab") {
+             return .zab
+         }
 
-        if context.contentAsArchive != nil {
-            if context.archiveEntriesContains(
-                requiredExtensions: cbzRequiredExtensions,
-                allowedExtensions: cbzAllowedExtensions
-            ) {
-                return .cbz
-            }
+         if context.contentAsArchive != nil {
+             if context.archiveEntriesContains(
+                 requiredExtensions: cbzRequiredExtensions,
+                 allowedExtensions: cbzAllowedExtensions
+             ) {
+                 return .cbz
+             }
 
-            if context.archiveEntriesContains(
-                requiredExtensions: zabRequiredExtensions,
-                allowedExtensions: zabAllowedExtensions
-            ) {
-                return .zab
-            }
-        }
+             if context.archiveEntriesContains(
+                 requiredExtensions: zabRequiredExtensions,
+                 allowedExtensions: zabAllowedExtensions
+             ) {
+                 return .zab
+             }
+         }
 
-        return nil
-    }
+         return nil
+     }
 
-    /// Sniffs a PDF document.
-    /// Reference: https://www.loc.gov/preservation/digital/formats/fdd/fdd000123.shtml
-    private static func sniffPDF(context: MediaTypeSnifferContext) -> MediaType? {
-        if context.hasFileExtension("pdf") || context.hasMediaType("application/pdf") {
-            return .pdf
-        }
-        if context.read(length: 5).flatMap({ String(data: $0, encoding: .utf8) }) == "%PDF-" {
-            return .pdf
-        }
-        return nil
-    }
+     /// Sniffs a PDF document.
+     /// Reference: https://www.loc.gov/preservation/digital/formats/fdd/fdd000123.shtml
+     private static func sniffPDF(context: MediaTypeSnifferContext) -> MediaType? {
+         if context.hasFileExtension("pdf") || context.hasMediaType("application/pdf") {
+             return .pdf
+         }
+         if context.read(length: 5).flatMap({ String(data: $0, encoding: .utf8) }) == "%PDF-" {
+             return .pdf
+         }
+         return nil
+     }
 
-    /// Sniffs a bitmap image.
-    private static func sniffBitmap(context: MediaTypeSnifferContext) -> MediaType? {
-        if context.hasFileExtension("bmp", "dib") || context.hasMediaType("image/bmp", "image/x-bmp") {
-            return .bmp
-        }
-        if context.hasFileExtension("gif") || context.hasMediaType("image/gif") {
-            return .gif
-        }
-        if context.hasFileExtension("jpg", "jpeg", "jpe", "jif", "jfif", "jfi") || context.hasMediaType("image/jpeg") {
-            return .jpeg
-        }
-        if context.hasFileExtension("png") || context.hasMediaType("image/png") {
-            return .png
-        }
-        if context.hasFileExtension("tiff", "tif") || context.hasMediaType("image/tiff", "image/tiff-fx") {
-            return .tiff
-        }
-        if context.hasFileExtension("webp") || context.hasMediaType("image/webp") {
-            return .webp
-        }
-        return nil
-    }
+     /// Sniffs a bitmap image.
+     private static func sniffBitmap(context: MediaTypeSnifferContext) -> MediaType? {
+         if context.hasFileExtension("bmp", "dib") || context.hasMediaType("image/bmp", "image/x-bmp") {
+             return .bmp
+         }
+         if context.hasFileExtension("gif") || context.hasMediaType("image/gif") {
+             return .gif
+         }
+         if context.hasFileExtension("jpg", "jpeg", "jpe", "jif", "jfif", "jfi") || context.hasMediaType("image/jpeg") {
+             return .jpeg
+         }
+         if context.hasFileExtension("png") || context.hasMediaType("image/png") {
+             return .png
+         }
+         if context.hasFileExtension("tiff", "tif") || context.hasMediaType("image/tiff", "image/tiff-fx") {
+             return .tiff
+         }
+         if context.hasFileExtension("webp") || context.hasMediaType("image/webp") {
+             return .webp
+         }
+         return nil
+     }
 
-    /// Sniffs an audio clip.
-    private static func sniffAudio(context: MediaTypeSnifferContext) -> MediaType? {
-        if context.hasFileExtension("aac") || context.hasMediaType("audio/aac") {
-            return .aac
-        }
-        if context.hasFileExtension("aiff", "aif", "aifc") || context.hasMediaType("audio/aiff", "audio/x-aiff") {
-            return .aiff
-        }
-        if context.hasFileExtension("flac") || context.hasMediaType("audio/flac") {
-            return .flac
-        }
-        if context.hasFileExtension("mp3") {
-            return .mp3
-        }
-        if context.hasFileExtension("mp4", "m4a", "m4b", "m4p", "m4r", "alac") || context.hasMediaType("audio/mp4") {
-            return .mp4
-        }
-        if context.hasMediaType("audio/mpeg") {
-            return .mpegAudio
-        }
-        if context.hasFileExtension("ogg", "oga", "mogg") || context.hasMediaType("audio/ogg") {
-            return .ogg
-        }
-        if context.hasFileExtension("opus") || context.hasMediaType("audio/opus") {
-            return .opus
-        }
-        if context.hasFileExtension("wav", "wave") || context.hasMediaType("audio/wav", "audio/x-wav", "audio/wave") {
-            return .wav
-        }
-        if context.hasFileExtension("webm") || context.hasMediaType("audio/webm") {
-            return .webmAudio
-        }
-        return nil
-    }
+     /// Sniffs an audio clip.
+     private static func sniffAudio(context: MediaTypeSnifferContext) -> MediaType? {
+         if context.hasFileExtension("aac") || context.hasMediaType("audio/aac") {
+             return .aac
+         }
+         if context.hasFileExtension("aiff", "aif", "aifc") || context.hasMediaType("audio/aiff", "audio/x-aiff") {
+             return .aiff
+         }
+         if context.hasFileExtension("flac") || context.hasMediaType("audio/flac") {
+             return .flac
+         }
+         if context.hasFileExtension("mp3") {
+             return .mp3
+         }
+         if context.hasFileExtension("mp4", "m4a", "m4b", "m4p", "m4r", "alac") || context.hasMediaType("audio/mp4") {
+             return .mp4
+         }
+         if context.hasMediaType("audio/mpeg") {
+             return .mpegAudio
+         }
+         if context.hasFileExtension("ogg", "oga", "mogg") || context.hasMediaType("audio/ogg") {
+             return .ogg
+         }
+         if context.hasFileExtension("opus") || context.hasMediaType("audio/opus") {
+             return .opus
+         }
+         if context.hasFileExtension("wav", "wave") || context.hasMediaType("audio/wav", "audio/x-wav", "audio/wave") {
+             return .wav
+         }
+         if context.hasFileExtension("webm") || context.hasMediaType("audio/webm") {
+             return .webmAudio
+         }
+         return nil
+     }
 
-    /// Sniffs the media types declared in the Document Types section of the app's `Info.plist`.
-    private static func sniffDocumentTypes(_ context: MediaTypeSnifferContext) -> MediaType? {
-        func sniff(_ documentType: DocumentType) -> MediaType? {
-            guard let mediaType = documentType.preferredMediaType else {
-                return nil
-            }
+     /// Sniffs the media types declared in the Document Types section of the app's `Info.plist`.
+     private static func sniffDocumentTypes(_ context: MediaTypeSnifferContext) -> MediaType? {
+         func sniff(_ documentType: DocumentType) -> MediaType? {
+             guard let mediaType = documentType.preferredMediaType else {
+                 return nil
+             }
 
-            for mediaType in documentType.mediaTypes {
-                if context.hasMediaType(mediaType.string) {
-                    return mediaType
-                }
-            }
+             for mediaType in documentType.mediaTypes {
+                 if context.hasMediaType(mediaType.string) {
+                     return mediaType
+                 }
+             }
 
-            for fileExtension in documentType.fileExtensions {
-                if context.hasFileExtension(fileExtension) {
-                    return mediaType
-                }
-            }
+             for fileExtension in documentType.fileExtensions {
+                 if context.hasFileExtension(fileExtension) {
+                     return mediaType
+                 }
+             }
 
-            return nil
-        }
+             return nil
+         }
 
-        for type in DocumentTypes.main.all {
-            if let mediaType = sniff(type) {
-                return mediaType
-            }
-        }
+         for type in DocumentTypes.main.all {
+             if let mediaType = sniff(type) {
+                 return mediaType
+             }
+         }
 
-        return nil
-    }
+         return nil
+     }
 
-    /// Sniffs the Uniform Type Identifiers registered on the system.
-    private static func sniffUTIs(_ context: MediaTypeSnifferContext) -> MediaType? {
-        guard let uti = UTI.findFrom(mediaTypes: context.mediaTypes, fileExtensions: context.fileExtensions),
-              let mediaType = uti.preferredTag(withClass: .mediaType),
-              let name = uti.name,
-              let fileExtension = uti.preferredTag(withClass: .fileExtension)
-        else {
-            return nil
-        }
+     /// Sniffs the Uniform Type Identifiers registered on the system.
+     private static func sniffUTIs(_ context: MediaTypeSnifferContext) -> MediaType? {
+         guard let uti = UTI.findFrom(mediaTypes: context.mediaTypes, fileExtensions: context.fileExtensions),
+               let mediaType = uti.preferredTag(withClass: .mediaType),
+               let name = uti.name,
+               let fileExtension = uti.preferredTag(withClass: .fileExtension)
+         else {
+             return nil
+         }
 
-        return MediaType(mediaType)
-    }
-    */
+         return MediaType(mediaType)
+     }
+     */
 }
 
 public extension URLResponse {

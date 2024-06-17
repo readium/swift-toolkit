@@ -6,21 +6,26 @@
 
 import Foundation
 
+@MainActor
 public final class CancellableTasks {
-    fileprivate var tasks: Set<Task<Void, Never>> = []
+    private var tasks: Set<Task<Void, Never>> = []
 
     public init() {}
-    
+
+    public func add(@_implicitSelfCapture _ task: @Sendable @escaping () async -> Void) {
+        let task = Task(operation: task)
+        tasks.insert(task)
+
+        Task {
+            _ = await task.value
+            tasks.remove(task)
+        }
+    }
+
     deinit {
         for task in tasks {
             task.cancel()
         }
-    }
-}
-
-public extension Task where Success == Void, Failure == Never {
-    func store(in set: CancellableTasks) {
-        set.tasks.insert(self)
     }
 }
 

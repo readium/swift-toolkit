@@ -50,7 +50,7 @@ final class LicensesService: Loggable {
         sender: Any?
     ) async throws -> LCPLicense {
         try await retrieve(
-            from: try makeLicenseContainer(for: asset),
+            from: makeLicenseContainer(for: asset),
             authentication: authentication,
             allowUserInteraction: allowUserInteraction,
             sender: sender
@@ -126,7 +126,7 @@ final class LicensesService: Loggable {
             url,
             onProgress: { onProgress(.percent(Float($0))) }
         ).get()
-        
+
         var hints = FormatHints()
         if let type = license.link(for: .publication)?.mediaType {
             hints.mediaTypes.append(type)
@@ -151,9 +151,9 @@ final class LicensesService: Loggable {
 
     private func readLicense(from lcpl: LicenseDocumentSource) async throws -> LicenseDocument? {
         switch lcpl {
-        case .data(let data):
+        case let .data(data):
             return try LicenseDocument(data: data)
-        case .file(let file):
+        case let .file(file):
             let asset = try await assetRetriever.retrieve(url: file)
                 .mapError { LCPError.licenseContainer(ContainerError.openFailed($0)) }
                 .get()
@@ -162,7 +162,7 @@ final class LicensesService: Loggable {
                 return nil
             }
             return try await LicenseDocument(data: container.read())
-        case .licenseDocument(let license):
+        case let .licenseDocument(license):
             return license
         }
     }

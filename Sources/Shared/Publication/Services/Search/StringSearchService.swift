@@ -57,7 +57,7 @@ public class StringSearchService: SearchService {
         guard let publication = publication() else {
             return .failure(.publicationNotSearchable)
         }
-        
+
         return .success(Iterator(
             publication: publication,
             language: language,
@@ -97,7 +97,7 @@ public class StringSearchService: SearchService {
             self.query = query
             self.options = options ?? SearchOptions()
         }
-        
+
         /// Index of the last reading order resource searched in.
         private var index = -1
 
@@ -120,17 +120,17 @@ public class StringSearchService: SearchService {
             }
 
             switch await extractor.extractText(of: resource) {
-            case .success(let text):
+            case let .success(text):
                 let locators = await findLocators(in: link, resourceIndex: index, text: text)
                 // If no occurrences were found in the current resource, skip to the next one automatically.
                 guard !locators.isEmpty else {
                     return await next()
                 }
-                
+
                 resultCount = (resultCount ?? 0) + locators.count
                 return .success(LocatorCollection(locators: locators))
 
-            case .failure(let error):
+            case let .failure(error):
                 return .failure(.reading(error))
             }
         }
@@ -157,7 +157,7 @@ public class StringSearchService: SearchService {
                     return locators
                 }
 
-                locators.append(await makeLocator(resourceIndex: index, resourceLocator: resourceLocator, text: text, range: range))
+                await locators.append(makeLocator(resourceIndex: index, resourceLocator: resourceLocator, text: text, range: range))
             }
 
             return locators

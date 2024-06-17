@@ -8,7 +8,7 @@ import Foundation
 
 /// Represents a digital medium (e.g. a file) offering access to a publication.
 @available(*, unavailable, message: "Use an `AssetRetriever` instead. See the migration guide.")
-public protocol PublicationAsset { }
+public protocol PublicationAsset {}
 
 @available(*, unavailable, message: "Use an `AssetRetriever` instead. See the migration guide.")
-public struct PublicationAssetDependencies { }
+public struct PublicationAssetDependencies {}

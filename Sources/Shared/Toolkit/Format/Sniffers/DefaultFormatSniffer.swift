@@ -9,12 +9,11 @@ import Foundation
 /// Default implementation of ``FormatSniffer`` guessing as well as possible all
 /// formats known by Readium.
 public final class DefaultFormatSniffer: CompositeFormatSniffer {
-
     /// - Parameter additionalSniffers: Additional sniffers to be used to guess
     ///   content format.
     public init(additionalSniffers: [FormatSniffer] = []) {
         super.init(additionalSniffers + [
-            HTMLFormatSniffer()
+            HTMLFormatSniffer(),
         ])
     }
 }

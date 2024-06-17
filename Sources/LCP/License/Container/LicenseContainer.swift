@@ -20,7 +20,7 @@ protocol LicenseContainer {
 
 func makeLicenseContainer(for asset: Asset) throws -> LicenseContainer {
     switch asset {
-    case .resource(let asset):
+    case let .resource(asset):
         guard
             asset.format.conformsTo(.lcpLicense),
             let file = asset.resource.sourceURL?.fileURL
@@ -28,8 +28,8 @@ func makeLicenseContainer(for asset: Asset) throws -> LicenseContainer {
             throw LCPError.licenseContainer(ContainerError.openFailed(nil))
         }
         return LCPLLicenseContainer(lcpl: file)
-        
-    case .container(let asset):
+
+    case let .container(asset):
         guard
             asset.format.conformsTo(.zip),
             let file = asset.container.sourceURL?.fileURL

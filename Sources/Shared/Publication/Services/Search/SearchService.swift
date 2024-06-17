@@ -61,8 +61,7 @@ public extension SearchIterator {
     func forEach(_ block: @escaping (LocatorCollection) throws -> Void, completion: @escaping (SearchResult<Void>) -> Void) -> Cancellable {
         fatalError()
     }
-    
-    
+
     @available(*, unavailable, message: "Use the async variant")
     @discardableResult
     func next(completion: @escaping (SearchResult<LocatorCollection?>) -> Void) -> Cancellable {

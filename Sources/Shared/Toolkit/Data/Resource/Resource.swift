@@ -24,7 +24,7 @@ public struct ResourceProperties {
     public init(_ properties: [String: Any] = [:]) {
         self.properties = properties
     }
-    
+
     public init(_ builder: (inout ResourceProperties) -> Void) {
         self.init()
         builder(&self)

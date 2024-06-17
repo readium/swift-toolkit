@@ -53,8 +53,8 @@ public protocol PDFDocumentFactory {
     /// Opens a PDF from a local file path.
     func open(file: FileURL, password: String?) async throws -> PDFDocument
 
-    /// Opens a PDF from a `Fetcher`'s resource.
-    func open(resource: Resource, password: String?) async throws -> PDFDocument
+    /// Opens a PDF from a `Resource` located at the given `href`.
+    func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument
 }
 
 public class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable {
@@ -67,8 +67,8 @@ public class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable {
         try await factory.open(file: file, password: password)
     }
 
-    public func open(resource: Resource, password: String?) async throws -> PDFDocument {
-        try await factory.open(resource: resource, password: password)
+    public func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument {
+        try await factory.open(resource: resource, at: href, password: password)
     }
 }
 
@@ -84,8 +84,8 @@ public class CompositePDFDocumentFactory: PDFDocumentFactory, Loggable {
         try await eachFactory { try await $0.open(file: file, password: password) }
     }
 
-    public func open(resource: Resource, password: String?) async throws -> PDFDocument {
-        try await eachFactory { try await $0.open(resource: resource, password: password) }
+    public func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument {
+        try await eachFactory { try await $0.open(resource: resource, at: href, password: password) }
     }
 
     private func eachFactory(tryOpen: (PDFDocumentFactory) async throws -> PDFDocument) async throws -> PDFDocument {

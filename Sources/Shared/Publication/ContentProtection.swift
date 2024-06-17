@@ -36,7 +36,7 @@ public protocol ContentProtection {
 public enum ContentProtectionOpenError: Error {
     /// The asset is not supported by this ``ContentProtection``
     case assetNotSupported(Error?)
-    
+
     /// An error occurred while reading the asset.
     case reading(ReadError)
 }
@@ -45,13 +45,13 @@ public enum ContentProtectionOpenError: Error {
 public struct ContentProtectionAsset {
     /// Asset granting access to the decrypted content.
     let asset: Asset
-    
+
     /// Transform which will be applied on the Publication Builder before creating the Publication.
     ///
     /// Can be used to add a Content Protection Service to the Publication that will be created by
     /// the Streamer.
     let onCreatePublication: Publication.Builder.Transform?
-    
+
     public init(asset: Asset, onCreatePublication: Publication.Builder.Transform? = nil) {
         self.asset = asset
         self.onCreatePublication = onCreatePublication

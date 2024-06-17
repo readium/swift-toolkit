@@ -7,8 +7,7 @@
 import Foundation
 
 /// Holds information about how the resource is stored in the archive.
-public struct ArchiveProperties: Equatable{
-
+public struct ArchiveProperties: Equatable {
     /// The length of the entry stored in the archive. It might be a compressed
     /// length if the entry is deflated.
     public let entryLength: UInt64
@@ -16,12 +15,12 @@ public struct ArchiveProperties: Equatable{
     /// Indicates whether the entry was compressed before being stored in the
     /// archive.
     public let isEntryCompressed: Bool
-    
+
     public init(entryLength: UInt64, isEntryCompressed: Bool) {
         self.entryLength = entryLength
         self.isEntryCompressed = isEntryCompressed
     }
-    
+
     init?(json: Any?) throws {
         if json == nil {
             return nil
@@ -52,7 +51,6 @@ public struct ArchiveProperties: Equatable{
 private let archiveKey = "https://readium.org/webpub-manifest/properties#archive"
 
 extension ResourceProperties {
-    
     /// Provides information about how the resource is stored in the publication archive.
     var archive: ArchiveProperties? {
         get {

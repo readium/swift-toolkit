@@ -273,7 +273,7 @@ public class PublicationSpeechSynthesizer: Loggable {
                 guard let self = self else {
                     return
                 }
-                
+
                 self.state = .playing(
                     utterance,
                     range: utterance.locator.copy(
@@ -290,7 +290,7 @@ public class PublicationSpeechSynthesizer: Loggable {
                 )
             }
         )
-        
+
         switch result {
         case .success:
             await playNextUtterance(.forward)

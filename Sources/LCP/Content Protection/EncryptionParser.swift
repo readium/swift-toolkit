@@ -19,12 +19,12 @@ private func parseRPFEncryptionData(in container: Container) async -> ReadResult
     guard let manifestResource = container[RelativeURL(path: "manifest.json")!] else {
         return .failure(.decoding(DebugError("Missing RWPM manifest")))
     }
-    
+
     return await manifestResource
         .readAsJSONObject()
         .flatMap { json in
             do {
-                return .success(try Manifest(json: json))
+                return try .success(Manifest(json: json))
             } catch {
                 return .failure(.decoding(error))
             }
@@ -45,7 +45,7 @@ private func parseEPUBEncryptionData(in container: Container) async -> ReadResul
     guard let encryptionResource = container[RelativeURL(path: "META-INF/encryption.xml")!] else {
         return .failure(.decoding(DebugError("Missing META-INF/encryption.xml")))
     }
-    
+
     return await encryptionResource.read()
         .flatMap { data -> ReadResult<XMLDocument> in
             do {
@@ -54,7 +54,7 @@ private func parseEPUBEncryptionData(in container: Container) async -> ReadResul
                     namespaces: [
                         (prefix: "enc", uri: "http://www.w3.org/2001/04/xmlenc#"),
                         (prefix: "ds", uri: "http://www.w3.org/2000/09/xmldsig#"),
-                        (prefix: "comp", uri: "http://www.idpf.org/2016/encryption#compression")
+                        (prefix: "comp", uri: "http://www.idpf.org/2016/encryption#compression"),
                     ]
                 )
                 return .success(doc)
@@ -69,10 +69,10 @@ private func parseEPUBEncryptionData(in container: Container) async -> ReadResul
             for encryptedDataElement in document.all("./enc:EncryptedData") {
                 guard
                     let algorithm = encryptedDataElement.first("enc:EncryptionMethod")?
-                        .attribute(named: "Algorithm"),
+                    .attribute(named: "Algorithm"),
                     let resourceURI = encryptedDataElement.first("enc:CipherData/enc:CipherReference")?
-                        .attribute(named: "URI")
-                        .flatMap({ RelativeURL(epubHREF: $0)?.anyURL })
+                    .attribute(named: "URI")
+                    .flatMap({ RelativeURL(epubHREF: $0)?.anyURL })
                 else {
                     continue
                 }

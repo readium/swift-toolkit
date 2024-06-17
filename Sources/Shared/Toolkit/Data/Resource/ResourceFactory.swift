@@ -20,7 +20,6 @@ public enum ResourceMakeError: Error {
 /// Default implementation of ``ResourceFactory`` supporting file and http
 /// schemes.
 public final class DefaultResourceFactory: CompositeResourceFactory {
-    
     /// - Parameters:
     ///   - httpClient: HTTP client used to support HTTP schemes.
     ///   - additionalFactories: Additional ``ResourceFactory`` to support more
@@ -31,7 +30,7 @@ public final class DefaultResourceFactory: CompositeResourceFactory {
     ) {
         super.init(additionalFactories + [
             FileResourceFactory(),
-            HTTPResourceFactory(client: httpClient)
+            HTTPResourceFactory(client: httpClient),
         ])
     }
 }
@@ -40,17 +39,17 @@ public final class DefaultResourceFactory: CompositeResourceFactory {
 /// finds one which supports the URL scheme.
 public class CompositeResourceFactory: ResourceFactory {
     private let factories: [ResourceFactory]
-    
+
     public init(_ factories: [ResourceFactory]) {
         self.factories = factories
     }
-    
+
     public func make(url: any AbsoluteURL) async -> Result<any Resource, ResourceMakeError> {
         for factory in factories {
             switch await factory.make(url: url) {
-            case .success(let resource):
+            case let .success(resource):
                 return .success(resource)
-            case .failure(let error):
+            case let .failure(error):
                 switch error {
                 case .schemeNotSupported:
                     continue

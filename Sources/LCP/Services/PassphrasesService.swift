@@ -6,8 +6,8 @@
 
 import CryptoSwift
 import Foundation
-import ReadiumShared
 import ReadiumInternal
+import ReadiumShared
 
 final class PassphrasesService {
     private let client: LCPClient

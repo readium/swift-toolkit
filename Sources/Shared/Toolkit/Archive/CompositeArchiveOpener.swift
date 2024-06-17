@@ -10,17 +10,17 @@ import Foundation
 /// one which supports the format.
 public class CompositeArchiveOpener: ArchiveOpener {
     private let archiveOpeners: [ArchiveOpener]
-    
+
     public init(_ archiveOpeners: [ArchiveOpener]) {
         self.archiveOpeners = archiveOpeners
     }
-    
+
     public func open(format: Format, resource: any Resource) async -> Result<ContainerAsset, ArchiveOpenError> {
         for opener in archiveOpeners {
             switch await opener.open(format: format, resource: resource) {
-            case .success(let asset):
+            case let .success(asset):
                 return .success(asset)
-            case .failure(let error):
+            case let .failure(error):
                 switch error {
                 case .formatNotSupported:
                     continue
@@ -29,16 +29,16 @@ public class CompositeArchiveOpener: ArchiveOpener {
                 }
             }
         }
-        
+
         return .failure(.formatNotSupported(format))
     }
-    
+
     public func sniffOpen(resource: any Resource) async -> Result<ContainerAsset, ArchiveSniffOpenError> {
         for opener in archiveOpeners {
             switch await opener.sniffOpen(resource: resource) {
-            case .success(let asset):
+            case let .success(asset):
                 return .success(asset)
-            case .failure(let error):
+            case let .failure(error):
                 switch error {
                 case .formatNotRecognized:
                     continue
@@ -47,7 +47,7 @@ public class CompositeArchiveOpener: ArchiveOpener {
                 }
             }
         }
-        
+
         return .failure(.formatNotRecognized)
     }
 }

@@ -10,12 +10,12 @@ import ReadiumShared
 final class LCPContentProtection: ContentProtection, Loggable {
     private let service: LCPService
     private let authentication: LCPAuthenticating
-    
+
     init(service: LCPService, authentication: LCPAuthenticating) {
         self.service = service
         self.authentication = authentication
     }
-    
+
     func open(
         asset: Asset,
         credentials: String?,
@@ -25,31 +25,31 @@ final class LCPContentProtection: ContentProtection, Loggable {
             return .failure(.assetNotSupported(DebugError("The asset does not appear to be protected with LCP")))
         }
         guard
-            case .container(var asset) = asset,
+            case var .container(asset) = asset,
             asset.container.sourceURL?.scheme == .file
         else {
             return .failure(.assetNotSupported(DebugError("Only container asset of local files are currently supported with LCP.")))
         }
-        
+
         return await parseEncryptionData(in: asset)
             .mapError { ContentProtectionOpenError.reading(.decoding($0)) }
             .flatMap { encryptionData in
                 let authentication = credentials.map { LCPPassphraseAuthentication($0, fallback: self.authentication) }
-                ?? self.authentication
-                
+                    ?? self.authentication
+
                 let license = await service.retrieveLicense(
                     from: .container(asset),
                     authentication: authentication,
                     allowUserInteraction: allowUserInteraction,
                     sender: sender
                 )
-                
+
                 if let license = try? license.get() {
                     let decryptor = LCPDecryptor(license: license, encryptionData: encryptionData)
                     asset.container = asset.container
                         .map(transform: decryptor.decrypt(at:resource:))
                 }
-                
+
                 let cpAsset = ContentProtectionAsset(
                     asset: .container(asset),
                     onCreatePublication: { _, _, _, services in
@@ -58,7 +58,7 @@ final class LCPContentProtection: ContentProtection, Loggable {
                         }
                     }
                 )
-                
+
                 return .success(cpAsset)
             }
     }

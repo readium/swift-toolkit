@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import ReadiumShared
 import ReadiumInternal
+import ReadiumShared
 import SafariServices
 
 public protocol Navigator: AnyObject {
@@ -50,10 +50,9 @@ public protocol Navigator: AnyObject {
 }
 
 public struct NavigatorGoOptions {
-
     /// Indicates whether the move should be animated when possible.
     public var animated: Bool = false
-    
+
     /// Extension point for navigator implementations.
     public var otherOptions: [String: Any] {
         get { otherOptionsJSON.json }
@@ -65,7 +64,7 @@ public struct NavigatorGoOptions {
 
     public init(animated: Bool = false, otherOptions: [String: Any] = [:]) {
         self.animated = animated
-        self.otherOptionsJSON = JSONDictionary(otherOptions) ?? JSONDictionary()
+        otherOptionsJSON = JSONDictionary(otherOptions) ?? JSONDictionary()
     }
 }
 

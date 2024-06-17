@@ -302,7 +302,7 @@ final class PaginationView: UIView, Loggable {
                 self.alpha = alpha
             }
         }
-        
+
         await fade(to: 0)
         await scrollToView(at: index, location: location)
         await fade(to: 1)

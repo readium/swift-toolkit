@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import ReadiumShared
 import ReadiumInternal
+import ReadiumShared
 
 private let lcpScheme = "http://readium.org/2014/01/lcp"
 private let AESBlockSize: UInt64 = 16 // bytes
@@ -25,7 +25,7 @@ final class LCPDecryptor {
     private let license: LCPLicense?
     private let encryptionData: [AnyURL: ReadiumShared.Encryption]
 
-    init(license: LCPLicense?, encryptionData: [AnyURL : ReadiumShared.Encryption]) {
+    init(license: LCPLicense?, encryptionData: [AnyURL: ReadiumShared.Encryption]) {
         self.license = license
         self.encryptionData = encryptionData
     }
@@ -79,7 +79,7 @@ final class LCPDecryptor {
         override func transform(data: ReadResult<Data>) async -> ReadResult<Data> {
             await license.decryptFully(data: data, isDeflated: encryption.isDeflated)
         }
-        
+
         override func estimatedLength() async -> ReadResult<UInt64?> {
             .success(encryption.originalLength.map { UInt64($0) })
         }
@@ -100,23 +100,23 @@ final class LCPDecryptor {
             self.license = license
             self.encryption = encryption
         }
-        
+
         func close() {
             resource.close()
         }
 
         let sourceURL: AbsoluteURL? = nil
-        
+
         func properties() async -> ReadResult<ResourceProperties> {
             .success(ResourceProperties())
         }
-        
+
         func estimatedLength() async -> ReadResult<UInt64?> {
             await plainTextSize()
         }
 
         private lazy var plainTextSize = memoize(_plainTextSize)
-        
+
         private func _plainTextSize() async -> ReadResult<UInt64?> {
             await resource.estimatedLength().flatMap { length in
                 guard let length = length else {
@@ -125,7 +125,7 @@ final class LCPDecryptor {
                 guard length >= 2 * AESBlockSize else {
                     return failure(.invalidCBCData)
                 }
-                
+
                 let readPosition = length - 2 * AESBlockSize
                 return await resource.read(range: readPosition ..< length)
                     .flatMap { encryptedData in
@@ -133,12 +133,12 @@ final class LCPDecryptor {
                             guard let data = try license.decipher(encryptedData) else {
                                 return failure(.emptyDecryptedData)
                             }
-                            
+
                             let paddingSize = UInt64(data.last ?? 0)
-                            
+
                             let result = length
-                            - AESBlockSize // Minus IV or previous block
-                            - paddingSize // Minus padding part
+                                - AESBlockSize // Minus IV or previous block
+                                - paddingSize // Minus padding part
                             return .success(result)
                         } catch {
                             return .failure(.decoding(error))
@@ -146,7 +146,7 @@ final class LCPDecryptor {
                     }
             }
         }
-        
+
         func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
             guard let range = range else {
                 return await license.decryptFully(data: resource.read(), isDeflated: encryption.isDeflated)
@@ -170,8 +170,8 @@ final class LCPDecryptor {
                 let encryptedEndExclusive = (rangeLast + 1).ceilMultiple(of: AESBlockSize) + AESBlockSize
 
                 return await resource.read(range: encryptedStart ..< encryptedEndExclusive)
-                    .combine(await plainTextSize())
-                    .flatMap { (encryptedData, plainTextSize) in
+                    .combine(plainTextSize())
+                    .flatMap { encryptedData, plainTextSize in
                         do {
                             guard let plainTextSize = plainTextSize else {
                                 return failure(.noPlainTextSize)
@@ -179,21 +179,21 @@ final class LCPDecryptor {
                             guard let bytes = try license.decipher(encryptedData) else {
                                 return failure(.emptyDecryptedData)
                             }
-                            
+
                             // Exclude the bytes added to match a multiple of AESBlockSize.
                             let sliceStart = (rangeFirst - encryptedStart)
-                            
+
                             let isLastBlockRead = encryptedLength - encryptedEndExclusive <= AESBlockSize
                             let rangeLength = isLastBlockRead
-                            // Use decrypted length to ensure `rangeLast` doesn't exceed decrypted length - 1.
-                            ? min(rangeLast, plainTextSize - 1) - rangeFirst + 1
-                            // The last block won't be read, so there's no need to compute the length
-                            : rangeLast - rangeFirst + 1
-                        
+                                // Use decrypted length to ensure `rangeLast` doesn't exceed decrypted length - 1.
+                                ? min(rangeLast, plainTextSize - 1) - rangeFirst + 1
+                                // The last block won't be read, so there's no need to compute the length
+                                : rangeLast - rangeFirst + 1
+
                             // Keep only enough bytes to fit the length-corrected request in order to never
                             // include padding.
                             let sliceEnd = sliceStart + rangeLength
-                            
+
                             consume(bytes[sliceStart ..< sliceEnd])
                             return .success(())
                         } catch {
@@ -217,11 +217,11 @@ private extension LCPLicense {
                 guard var data = try self.decipher($0) else {
                     return .failure(.decoding(LCPDecryptor.Error.emptyDecryptedData))
                 }
-                
+
                 // Removes the padding.
                 let padding = Int(data[data.count - 1])
                 data = data[0 ..< (data.count - padding)]
-                
+
                 // If the ressource was compressed using deflate, inflate it.
                 if isDeflated {
                     guard let inflatedData = data.inflate() else {
@@ -229,7 +229,7 @@ private extension LCPLicense {
                     }
                     data = inflatedData
                 }
-                
+
                 return .success(data)
             } catch {
                 return .failure(.decoding(error))

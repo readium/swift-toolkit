@@ -313,12 +313,12 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     func findFirstVisibleElementLocator() async -> Locator? {
         let result = await evaluateScript("readium.findFirstVisibleLocator()")
         do {
-            let resource = self.spread.leading
+            let resource = spread.leading
             let locator = try Locator(json: result.get())?
                 .copy(href: resource.href, type: resource.type ?? MediaType.xhtml.string)
             return locator
         } catch {
-            self.log(.error, error)
+            log(.error, error)
             return nil
         }
     }

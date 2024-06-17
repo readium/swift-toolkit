@@ -13,7 +13,7 @@ public class InMemoryPositionsService: PositionsService {
     public init(positionsByReadingOrder: [[Locator]]) {
         _positions = positionsByReadingOrder
     }
-    
+
     public func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
         .success(_positions)
     }

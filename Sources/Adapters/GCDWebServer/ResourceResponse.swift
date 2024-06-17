@@ -113,7 +113,7 @@ class ResourceResponse: ReadiumGCDWebServerFileResponse, Loggable {
                 totalNumberOfBytesRead += UInt64(data.count)
                 offset += UInt64(data.count)
             }
-            
+
             semaphore.signal()
         }
 

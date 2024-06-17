@@ -47,28 +47,28 @@ private class PositionsResource: Resource {
     init(positions: @escaping () async -> ReadResult<[Locator]>) {
         self.positions = positions
     }
-    
+
     let sourceURL: AbsoluteURL? = nil
-    
+
     func estimatedLength() async -> ReadResult<UInt64?> {
         .success(nil)
     }
-    
+
     func properties() async -> ReadResult<ResourceProperties> {
         .success(ResourceProperties())
     }
-    
+
     func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
         await positions().flatMap { positions in
             let response: [String: Any] = [
                 "total": positions.count,
                 "positions": positions.json,
             ]
-            
+
             guard let jsonResponse = serializeJSONData(response) else {
                 return .failure(.decoding(JSONError.serializing(PositionsService.self)))
             }
-            
+
             consume(jsonResponse)
             return .success(())
         }

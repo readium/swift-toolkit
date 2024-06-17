@@ -163,7 +163,6 @@ public final class LCPService: Loggable {
 
 /// Source of an LCP License Document (LCPL) file.
 public enum LicenseDocumentSource {
-
     /// Raw bytes of the LCPL.
     case data(Data)
 

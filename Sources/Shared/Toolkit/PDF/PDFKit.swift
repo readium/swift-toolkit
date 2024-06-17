@@ -14,8 +14,8 @@ import PDFKit
 ///
 /// Use `PDFKitPDFDocumentFactory` to create a `PDFDocument` from a `Resource`.
 extension PDFKit.PDFDocument: PDFDocument {
-    public func pageCount() async throws -> Int { self.pageCount }
-    
+    public func pageCount() async throws -> Int { pageCount }
+
     public func identifier() async throws -> String? { try await documentRef?.identifier() }
 
     public func cover() async throws -> UIImage? { try await documentRef?.cover() }
@@ -43,7 +43,7 @@ public class PDFKitPDFDocumentFactory: PDFDocumentFactory {
         return try open(document: document, password: password)
     }
 
-    public func open(resource: Resource, password: String?) async throws -> PDFDocument {
+    public func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument {
         if let file = resource.sourceURL?.fileURL {
             return try await open(file: file, password: password)
         }

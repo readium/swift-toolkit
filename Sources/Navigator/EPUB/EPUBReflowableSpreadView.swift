@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import ReadiumShared
 import ReadiumInternal
+import ReadiumShared
 import UIKit
 import WebKit
 
@@ -186,7 +186,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             if let linkJSON = serializeJSONString(spread.leading.json) {
                 await evaluateScript("readium.link = \(linkJSON);")
             }
-            
+
             // FIXME: Better solution for delaying scrolling to pending location
             // This delay is used to wait for the web view pagination to settle and give the CSS and webview time to layout
             // correctly before attempting to scroll to the target progression, otherwise we might end up at the wrong spot.
@@ -204,6 +204,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             self.showSpread()
         }
     }
+
     override func go(to direction: EPUBSpreadView.Direction, options: NavigatorGoOptions) async -> Bool {
         guard !viewModel.scroll else {
             return await super.go(to: direction, options: options)
@@ -307,7 +308,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         case let .success(value):
             return (value as? Bool) ?? false
         case let .failure(error):
-            self.log(.error, error)
+            log(.error, error)
             return false
         }
     }
@@ -323,7 +324,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         case let .success(value):
             return (value as? Bool) ?? false
         case let .failure(error):
-            self.log(.error, error)
+            log(.error, error)
             return false
         }
     }

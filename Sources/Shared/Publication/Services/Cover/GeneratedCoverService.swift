@@ -58,24 +58,24 @@ public final class GeneratedCoverService: CoverService {
     public static func makeFactory(cover: UIImage) -> (PublicationServiceContext) -> GeneratedCoverService? {
         { _ in GeneratedCoverService(cover: cover) }
     }
-    
+
     private class CoverResource: Resource {
         private let cover: () async -> ReadResult<UIImage>
 
         public init(cover: @escaping () async -> ReadResult<UIImage>) {
             self.cover = cover
         }
-        
+
         let sourceURL: AbsoluteURL? = nil
-        
+
         func estimatedLength() async -> ReadResult<UInt64?> {
             .success(nil)
         }
-        
+
         func properties() async -> ReadResult<ResourceProperties> {
             .success(ResourceProperties())
         }
-        
+
         func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
             await cover().flatMap {
                 guard let data = $0.pngData() else {

@@ -273,7 +273,6 @@ public protocol ContentIterator: AnyObject {
 
 /// Helper class to treat a `Content` as a `Sequence`.
 public class ContentSequence: AsyncSequence {
-
     public typealias Element = ContentElement
 
     private let content: Content
@@ -281,7 +280,7 @@ public class ContentSequence: AsyncSequence {
     init(content: Content) {
         self.content = content
     }
-    
+
     public func makeAsyncIterator() -> ContentSequence.Iterator {
         Iterator(iterator: content.iterator())
     }

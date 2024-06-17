@@ -89,7 +89,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             Task {
                 let response: ReadiumGCDWebServerResponse
                 let resource = httpServerResponse.resource
-                
+
                 func fail(_ error: ReadError) -> ReadiumGCDWebServerResponse {
                     self.log(.error, error)
                     failureHandler?(httpServerRequest, error)
@@ -114,7 +114,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
                 case let .failure(error):
                     response = fail(error)
                 }
-                
+
                 completion(response) // goes back to ReadiumGCDWebServerConnection.m
             }
         }

@@ -8,15 +8,14 @@ import Foundation
 
 /// An ``ArchiveOpener`` for ZIP resources.
 public class ZIPArchiveOpener: ArchiveOpener {
-
     private let opener = MinizipArchiveOpener()
-    
+
     public init() {}
 
     public func open(format: Format, resource: any Resource) async -> Result<ContainerAsset, ArchiveOpenError> {
         await opener.open(format: format, resource: resource)
     }
-    
+
     public func sniffOpen(resource: any Resource) async -> Result<ContainerAsset, ArchiveSniffOpenError> {
         await opener.sniffOpen(resource: resource)
     }

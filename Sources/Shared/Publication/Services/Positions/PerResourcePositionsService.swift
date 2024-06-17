@@ -18,7 +18,7 @@ public final class PerResourcePositionsService: PositionsService {
         self.readingOrder = readingOrder
         self.fallbackMediaType = fallbackMediaType
     }
-    
+
     public func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
         .success(positions)
     }

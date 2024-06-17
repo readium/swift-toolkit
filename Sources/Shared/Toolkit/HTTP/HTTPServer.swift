@@ -45,7 +45,6 @@ public extension HTTPServer {
     func serve(
         at endpoint: HTTPServerEndpoint,
         contentsOf url: FileURL,
-        mediaType: MediaType?,
         onFailure: HTTPRequestHandler.OnFailure? = nil
     ) throws -> HTTPURL {
         func onRequest(request: HTTPServerRequest) -> HTTPServerResponse {
@@ -54,7 +53,8 @@ public extension HTTPServer {
 
             return HTTPServerResponse(
                 resource: FileResource(file: file),
-                mediaType: mediaType
+                // FIXME: See if the media type is necessary
+                mediaType: nil
             )
         }
 
@@ -127,12 +127,12 @@ public struct HTTPServerRequest {
 public struct HTTPServerResponse {
     public var resource: Resource
     public var mediaType: MediaType?
-    
+
     public init(resource: Resource, mediaType: MediaType?) {
         self.resource = resource
         self.mediaType = mediaType
     }
-    
+
     public init(error: HTTPError.Kind) {
         self.init(
             resource: FailureResource(error: .access(HTTPError(kind: error))),

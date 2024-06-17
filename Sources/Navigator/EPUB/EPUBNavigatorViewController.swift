@@ -4,8 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import ReadiumShared
 import ReadiumInternal
+import ReadiumShared
 import SafariServices
 import SwiftSoup
 import UIKit
@@ -288,11 +288,11 @@ open class EPUBNavigatorViewController: UIViewController,
             initialLocation: initialLocation,
             readingOrder: readingOrder ?? publication.readingOrder,
             positionsByReadingOrder:
-                // Positions and total progression only make sense in the context
-                // of the publication's actual reading order. Therefore when
-                // provided with a different reading order, we should assume the
-                // positions list is empty, and also not compute the
-                // totalProgression when calculating the current locator.
+            // Positions and total progression only make sense in the context
+            // of the publication's actual reading order. Therefore when
+            // provided with a different reading order, we should assume the
+            // positions list is empty, and also not compute the
+            // totalProgression when calculating the current locator.
             (readingOrder != nil) ? { .success([]) } : publication.positionsByReadingOrder
         )
     }
@@ -314,9 +314,9 @@ open class EPUBNavigatorViewController: UIViewController,
         positionsByReadingOrder: @escaping () async -> ReadResult<[[Locator]]>
     ) {
         self.viewModel = viewModel
-        self.currentLocation = initialLocation
+        currentLocation = initialLocation
         self.readingOrder = readingOrder
-        self.loadPositionsByReadingOrder = positionsByReadingOrder
+        loadPositionsByReadingOrder = positionsByReadingOrder
 
         super.init(nibName: nil, bundle: nil)
 
@@ -338,10 +338,11 @@ open class EPUBNavigatorViewController: UIViewController,
 
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapBackground)))
 
-        Task { await initialize() }
-            .store(in: tasks)
+        tasks.add {
+            await initialize()
+        }
     }
-    
+
     private func initialize() async {
         do {
             positionsByReadingOrder = try await loadPositionsByReadingOrder().get()
@@ -520,12 +521,12 @@ open class EPUBNavigatorViewController: UIViewController,
 
         Task {
             await self.reloadSpreads(force: false)
-            
+
             let location = self.currentLocation
             for (_, view) in self.paginationView.loadedViews {
                 (view as? EPUBSpreadView)?.applySettings()
             }
-            
+
             // Re-positions the navigator to the location before applying the settings
             if let location = location {
                 await self.go(to: location)
@@ -558,7 +559,7 @@ open class EPUBNavigatorViewController: UIViewController,
     // MARK: - Pagination and spreads
 
     private var paginationView: PaginationView!
-    
+
     private func makePaginationView(hasPositions: Bool) -> PaginationView {
         let view = PaginationView(
             frame: .zero,
@@ -600,7 +601,7 @@ open class EPUBNavigatorViewController: UIViewController,
             }
             return
         }
-        
+
         needsReloadSpreads = true
 
         await _reloadSpreads(at: locator, force: force)
@@ -673,7 +674,7 @@ open class EPUBNavigatorViewController: UIViewController,
             updateUserSettingStyle()
         }
     }
-    
+
     private func updateCurrentLocation() async -> Locator? {
         if case .initializing = state {
             assertionFailure("Cannot update current location when initializing the navigator")
@@ -753,9 +754,9 @@ open class EPUBNavigatorViewController: UIViewController,
         }
 
         let success = await paginationView.goToIndex(spreadIndex, location: .locator(locator), options: options)
-        self.on(.jumped)
+        on(.jumped)
         if success {
-            self.delegate?.navigator(self, didJumpTo: locator)
+            delegate?.navigator(self, didJumpTo: locator)
         }
         return success
     }
@@ -766,7 +767,7 @@ open class EPUBNavigatorViewController: UIViewController,
         }
         return await go(to: locator, options: options)
     }
-    
+
     @discardableResult
     public func goForward(options: NavigatorGoOptions) async -> Bool {
         let direction: EPUBSpreadView.Direction = {
@@ -821,9 +822,9 @@ open class EPUBNavigatorViewController: UIViewController,
             await withTaskGroup(of: Void.self) { tasks in
                 let source = self.decorations[group] ?? []
                 let target = decorations.map { DiffableDecoration(decoration: $0) }
-                
+
                 self.decorations[group] = target
-                
+
                 if decorations.isEmpty {
                     for (_, pageView) in paginationView.loadedViews {
                         tasks.addTask {
@@ -958,7 +959,7 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
             switch scope {
             case .currentResource:
                 await (paginationView.currentView as? EPUBSpreadView)?.evaluateScript(script)
-                
+
             case .loadedResources:
                 await withTaskGroup(of: Void.self) { tasks in
                     for (_, view) in paginationView.loadedViews {
@@ -1000,13 +1001,13 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             let templates = config.decorationTemplates.reduce(into: [:]) { styles, item in
                 styles[item.key.rawValue] = item.value.json
             }
-            
+
             guard let stylesJSON = serializeJSONString(templates) else {
                 log(.error, "Can't serialize decoration styles to JSON")
                 return
             }
             var script = "readium.registerDecorationTemplates(\(stylesJSON.replacingOccurrences(of: "\\n", with: " ")));\n"
-            
+
             script += decorationCallbacks
                 .compactMap { group, callbacks in
                     guard !callbacks.isEmpty else {
@@ -1015,9 +1016,9 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
                     return "readium.getDecorations('\(group)').setActivable();"
                 }
                 .joined(separator: "\n")
-            
+
             await spreadView.evaluateScript("(function() {\n\(script)\n})();")
-            
+
             await withTaskGroup(of: Void.self) { tasks in
                 for link in spreadView.spread.links {
                     let href = link.href
@@ -1025,7 +1026,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
                         let decorations = decorations
                             .filter { $0.decoration.locator.href == href }
                             .map { DecorationChange.add($0.decoration) }
-                        
+
                         guard let script = decorations.javascript(forGroup: group, styles: self.config.decorationTemplates) else {
                             continue
                         }

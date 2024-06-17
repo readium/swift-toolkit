@@ -14,7 +14,7 @@ public struct LCPAcquiredPublication {
     ///
     /// You must move this file to the user library's folder.
     public let localURL: FileURL
-    
+
     /// Format of the downloaded file.
     public let format: Format
 

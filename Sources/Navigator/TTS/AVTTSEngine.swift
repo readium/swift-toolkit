@@ -63,7 +63,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         AVSpeechSynthesisVoice(identifier: id)
             .map { TTSVoice(voice: $0) }
     }
-    
+
     public func speak(
         _ utterance: TTSUtterance,
         onSpeakRange: @escaping (Range<String.Index>) -> Void
@@ -102,18 +102,18 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         static func == (lhs: Task, rhs: Task) -> Bool {
             ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
         }
-        
+
         func onSpeakRange(_ range: Range<String.Index>) {
             guard !isCancelled else {
                 return
             }
             onSpeakRange(range)
         }
-        
+
         func finish() {
             continuation.resume(returning: .success(()))
         }
-        
+
         func cancel() {
             isCancelled = true
         }

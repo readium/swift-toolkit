@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import SwiftSoup
 import ReadiumInternal
+import SwiftSoup
 
 /// Iterates an HTML `resource`, starting from the given `locator`.
 ///
@@ -42,8 +42,8 @@ public class HTMLResourceContentIterator: ContentIterator {
                         .map { start in
                             let end = positions.getOrNil(readingOrderIndex + 1)?
                                 .first?.locations.totalProgression
-                            ?? 1.0
-                            
+                                ?? 1.0
+
                             return start ... end
                         }
                 },
@@ -133,9 +133,9 @@ public class HTMLResourceContentIterator: ContentIterator {
         var elements = elements
         elements.elements = await elements.elements.enumerated().map { index, element in
             let progression = Double(index) / count
-            return element.copy(
+            return await element.copy(
                 progression: progression,
-                totalProgression: await totalProgressionRange().map { range in
+                totalProgression: totalProgressionRange().map { range in
                     range.lowerBound + progression * (range.upperBound - range.lowerBound)
                 }
             )

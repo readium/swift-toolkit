@@ -88,8 +88,8 @@ public class PublicationContentIterator: ContentIterator, Loggable {
     private func initialIterator() async -> IndexedIterator? {
         let index = startLocator.flatMap { publication.readingOrder.firstIndex(withHREF: $0.href) } ?? 0
         let location = startLocator.orProgression(0.0)
-        
-        if let iterator = await loadIterator(at: index, location: location)  {
+
+        if let iterator = await loadIterator(at: index, location: location) {
             return iterator
         } else {
             return await nextIterator(.forward, fromIndex: index)

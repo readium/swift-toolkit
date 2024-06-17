@@ -82,8 +82,8 @@ final class EPUBNavigatorViewModel: Loggable {
         }
 
         if let endpoint = publicationEndpoint {
-            try httpServer.transformResources(at: endpoint) { [weak self] in
-                self?.injectReadiumCSS(in: $0) ?? $0
+            try httpServer.transformResources(at: endpoint) { [weak self] href, resource in
+                self?.injectReadiumCSS(in: resource, at: href) ?? resource
             }
         }
     }
@@ -348,9 +348,9 @@ final class EPUBNavigatorViewModel: Loggable {
         try serveFile(at: file, baseEndpoint: "custom-fonts/\(UUID().uuidString)")
     }
 
-    func injectReadiumCSS(in resource: Resource) -> Resource {
-        let link = resource.link
+    func injectReadiumCSS<HREF: URLConvertible>(in resource: Resource, at href: HREF) -> Resource {
         guard
+            let link = publication.link(withHREF: href),
             link.mediaType?.isHTML == true,
             publication.metadata.presentation.layout(of: link) == .reflowable
         else {

@@ -7,7 +7,6 @@
 import Foundation
 
 public protocol AssetProtocol: Closeable {
-
     /// Format of the asset.
     var format: Format { get }
 }
@@ -21,18 +20,18 @@ public enum Asset: AssetProtocol {
     /// Format of the asset.
     public var format: Format {
         switch self {
-        case .resource(let asset):
+        case let .resource(asset):
             return asset.format
-        case .container(let asset):
+        case let .container(asset):
             return asset.format
         }
     }
-    
+
     public func close() {
         switch self {
-        case .resource(let asset):
+        case let .resource(asset):
             asset.close()
-        case .container(let asset):
+        case let .container(asset):
             asset.close()
         }
     }
@@ -42,7 +41,7 @@ public enum Asset: AssetProtocol {
 public struct ResourceAsset: AssetProtocol {
     public var resource: Resource
     public var format: Format
-    
+
     public func close() {
         resource.close()
     }
@@ -52,12 +51,12 @@ public struct ResourceAsset: AssetProtocol {
 public struct ContainerAsset: AssetProtocol {
     public var container: Container
     public var format: Format
-    
+
     public init(container: Container, format: Format) {
         self.container = container
         self.format = format
     }
-    
+
     public func close() {
         container.close()
     }

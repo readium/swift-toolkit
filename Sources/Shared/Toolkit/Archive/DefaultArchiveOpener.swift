@@ -8,7 +8,6 @@ import Foundation
 
 /// Default implementation of ``ArchiveOpener`` supporting ZIP archives.
 public class DefaultArchiveOpener: CompositeArchiveOpener {
-
     /// - Parameter additionalArchiveOpeners: Additional archive openers to use.
     public init(additionalArchiveOpeners: [any ArchiveOpener]) {
         super.init(additionalArchiveOpeners + [ZIPArchiveOpener()])

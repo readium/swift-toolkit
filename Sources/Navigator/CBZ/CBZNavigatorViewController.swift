@@ -4,6 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import ReadiumInternal
 import ReadiumShared
 import UIKit
 
@@ -21,6 +22,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
     public let publication: Publication
     private let initialIndex: Int
+    private var positions: [Locator]?
 
     private let pageViewController: UIPageViewController
 
@@ -76,6 +78,8 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         fatalError()
     }
 
+    private let tasks = CancellableTasks()
+
     private init(
         publication: Publication,
         initialLocation: Locator?,
@@ -99,6 +103,10 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         )
 
         super.init(nibName: nil, bundle: nil)
+    }
+
+    private func didLoadPositions(_ positions: [Locator]?) {
+        self.positions = positions ?? []
     }
 
     @available(*, unavailable)
@@ -126,27 +134,28 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap)))
 
-        goToResourceAtIndex(initialIndex, animated: false, isJump: false)
+        tasks.add {
+            try? await didLoadPositions(publication.positions().get())
+            await goToResourceAtIndex(initialIndex, options: NavigatorGoOptions(animated: false), isJump: false)
+        }
     }
 
     private var currentResourceIndex: Int {
-        guard let imageViewController = pageViewController.viewControllers?.first as? ImageViewController,
-              publication.positions.indices.contains(imageViewController.index)
+        guard
+            let positions = positions,
+            let imageViewController = pageViewController.viewControllers?.first as? ImageViewController,
+            positions.indices.contains(imageViewController.index)
         else {
             return initialIndex
         }
         return imageViewController.index
     }
 
-    public var currentPosition: Locator? {
-        guard publication.positions.indices.contains(currentResourceIndex) else {
-            return nil
-        }
-        return publication.positions[currentResourceIndex]
-    }
+    @available(*, unavailable, renamed: "currentLocation")
+    public var currentPosition: Locator? { fatalError() }
 
     @discardableResult
-    private func goToResourceAtIndex(_ index: Int, animated: Bool, isJump: Bool, completion: @escaping () -> Void = {}) -> Bool {
+    private func goToResourceAtIndex(_ index: Int, options: NavigatorGoOptions, isJump: Bool) async -> Bool {
         guard let imageViewController = imageViewController(at: index) else {
             return false
         }
@@ -161,16 +170,20 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
             }()
             return forward ? .forward : .reverse
         }()
-        pageViewController.setViewControllers([imageViewController], direction: direction, animated: animated) { [weak self] _ in
-            guard let self = self, let position = self.currentPosition else {
-                return
+
+        await withCheckedContinuation { continuation in
+            pageViewController.setViewControllers([imageViewController], direction: direction, animated: options.animated) { [weak self] _ in
+                guard let self = self, let position = self.currentLocation else {
+                    return
+                }
+                self.delegate?.navigator(self, locationDidChange: position)
+                if isJump {
+                    self.delegate?.navigator(self, didJumpTo: position)
+                }
+                continuation.resume()
             }
-            self.delegate?.navigator(self, locationDidChange: position)
-            if isJump {
-                self.delegate?.navigator(self, didJumpTo: position)
-            }
-            completion()
         }
+
         return true
     }
 
@@ -205,29 +218,35 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
 
     public var currentLocation: Locator? {
-        currentPosition
+        guard
+            let positions = positions,
+            positions.indices.contains(currentResourceIndex)
+        else {
+            return nil
+        }
+        return positions[currentResourceIndex]
     }
 
-    public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
+    public func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool {
         guard let index = publication.readingOrder.firstIndex(withHREF: locator.href) else {
             return false
         }
-        return goToResourceAtIndex(index, animated: animated, isJump: true, completion: completion)
+        return await goToResourceAtIndex(index, options: options, isJump: true)
     }
 
-    public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
+    public func go(to link: Link, options: NavigatorGoOptions) async -> Bool {
         guard let index = publication.readingOrder.firstIndex(withHREF: link.href) else {
             return false
         }
-        return goToResourceAtIndex(index, animated: animated, isJump: true, completion: completion)
+        return await goToResourceAtIndex(index, options: options, isJump: true)
     }
 
-    public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        goToResourceAtIndex(currentResourceIndex + 1, animated: animated, isJump: false, completion: completion)
+    public func goForward(options: NavigatorGoOptions) async -> Bool {
+        await goToResourceAtIndex(currentResourceIndex + 1, options: options, isJump: false)
     }
 
-    public func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        goToResourceAtIndex(currentResourceIndex - 1, animated: animated, isJump: false, completion: completion)
+    public func goBackward(options: NavigatorGoOptions) async -> Bool {
+        await goToResourceAtIndex(currentResourceIndex - 1, options: options, isJump: false)
     }
 }
 
@@ -263,7 +282,7 @@ extension CBZNavigatorViewController: UIPageViewControllerDataSource {
 
 extension CBZNavigatorViewController: UIPageViewControllerDelegate {
     public func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
-        if completed, let position = currentPosition {
+        if completed, let position = currentLocation {
             delegate?.navigator(self, locationDidChange: position)
         }
     }

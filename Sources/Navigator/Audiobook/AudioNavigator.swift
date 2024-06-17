@@ -121,7 +121,6 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
     ) {
         self.publication = publication
         self.initialLocation = initialLocation
-            ?? publication.readingOrder.first.flatMap { publication.locate($0) }
         self.config = config
 
         let durations = publication.readingOrder.map { $0.duration ?? 0 }
@@ -137,6 +136,7 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
     }
 
     deinit {
+        playTask?.cancel()
         AudioSession.shared.end(for: self)
     }
 
@@ -182,14 +182,26 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
         player.currentTime().secondsOrZero
     }
 
+    private var playTask: Task<Void, Never>? {
+        willSet {
+            playTask?.cancel()
+        }
+    }
+
     /// Resumes or start the playback.
     public func play() {
-        AudioSession.shared.start(with: self, isPlaying: false)
+        playTask = Task {
+            AudioSession.shared.start(with: self, isPlaying: false)
 
-        if player.currentItem == nil, let location = initialLocation {
-            go(to: location)
+            if player.currentItem == nil {
+                if let location = initialLocation {
+                    await go(to: location)
+                } else if let link = publication.readingOrder.first {
+                    await go(to: link)
+                }
+            }
+            await player.playImmediately(atRate: Float(settings.speed))
         }
-        player.playImmediately(atRate: Float(settings.speed))
     }
 
     /// Pauses the playback.
@@ -276,8 +288,10 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
             }
 
             self.shouldPlayNextResource { playNext in
-                if playNext, self.goForward() {
-                    self.play()
+                Task {
+                    if playNext, await self.goForward() {
+                        self.play()
+                    }
                 }
             }
         }
@@ -380,8 +394,7 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
 
     public private(set) var currentLocation: Locator?
 
-    @discardableResult
-    public func go(to locator: Locator, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+    public func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool {
         guard let newResourceIndex = publication.readingOrder.firstIndex(withHREF: locator.href) else {
             return false
         }
@@ -401,25 +414,29 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
 
             // Seeks to time
             let time = locator.locations.time?.begin ?? ((resourceDuration ?? 0) * (locator.locations.progression ?? 0))
-            player.seek(to: CMTime(seconds: time, preferredTimescale: 1000)) { [weak self] finished in
-                if let self = self, finished {
-                    self.delegate?.navigator(self, didJumpTo: locator)
+
+            await withCheckedContinuation { continuation in
+                player.seek(to: CMTime(seconds: time, preferredTimescale: 1000)) { [weak self] finished in
+                    if let self = self, finished {
+                        self.delegate?.navigator(self, didJumpTo: locator)
+                    }
+                    continuation.resume()
                 }
-                DispatchQueue.main.async(execute: completion)
             }
+
             return true
+
         } catch {
             log(.error, error)
             return false
         }
     }
 
-    @discardableResult
-    public func go(to link: Link, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        guard let locator = publication.locate(link) else {
+    public func go(to link: Link, options: NavigatorGoOptions) async -> Bool {
+        guard let locator = await publication.locate(link) else {
             return false
         }
-        return go(to: locator, animated: animated, completion: completion)
+        return await go(to: locator, options: options)
     }
 
     /// Indicates whether the navigator can go to the next content portion
@@ -434,22 +451,20 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
         publication.readingOrder.indices.contains(resourceIndex - 1)
     }
 
-    @discardableResult
-    public func goForward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        goToResourceIndex(resourceIndex + 1, animated: animated, completion: completion)
+    public func goForward(options: NavigatorGoOptions) async -> Bool {
+        await goToResourceIndex(resourceIndex + 1, options: options)
+    }
+
+    public func goBackward(options: NavigatorGoOptions) async -> Bool {
+        await goToResourceIndex(resourceIndex - 1, options: options)
     }
 
     @discardableResult
-    public func goBackward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        goToResourceIndex(resourceIndex - 1, animated: animated, completion: completion)
-    }
-
-    @discardableResult
-    private func goToResourceIndex(_ index: Int, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+    private func goToResourceIndex(_ index: Int, options: NavigatorGoOptions) async -> Bool {
         guard publication.readingOrder.indices ~= index else {
             return false
         }
-        return go(to: publication.readingOrder[index], animated: animated, completion: completion)
+        return await go(to: publication.readingOrder[index], options: options)
     }
 
     // MARK: - Configurable

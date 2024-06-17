@@ -164,7 +164,16 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     override open func viewDidLoad() {
         super.viewDidLoad()
 
-        resetPDFView(at: initialLocation)
+        Task {
+            try? await didLoadPositions(publication.positionsByReadingOrder().get())
+            resetPDFView(at: initialLocation)
+        }
+    }
+
+    private var positionsByReadingOrder: [[Locator]]?
+
+    private func didLoadPositions(_ positions: [[Locator]]?) {
+        positionsByReadingOrder = positions ?? []
     }
 
     override open func viewWillAppear(_ animated: Bool) {
@@ -245,7 +254,23 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         super.buildMenu(with: builder)
     }
 
+    private var resetTask: Task<Void, Never>? {
+        willSet {
+            resetTask?.cancel()
+        }
+    }
+
     private func resetPDFView(at locator: Locator?) {
+        guard isViewLoaded else {
+            return
+        }
+
+        resetTask = Task {
+            await _resetPDFView(at: locator)
+        }
+    }
+
+    private func _resetPDFView(at locator: Locator?) async {
         if let pdfView = pdfView {
             pdfView.removeFromSuperview()
             NotificationCenter.default.removeObserver(self)
@@ -267,9 +292,9 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         NotificationCenter.default.addObserver(self, selector: #selector(selectionDidChange), name: .PDFViewSelectionChanged, object: pdfView)
 
         if let locator = locator {
-            go(to: locator, isJump: false)
+            await go(to: locator, isJump: false)
         } else if let link = publication.readingOrder.first {
-            go(to: link, pageNumber: 0, isJump: false)
+            await go(to: link, pageNumber: 0, isJump: false)
         } else {
             log(.error, "No initial location and empty reading order")
         }
@@ -356,16 +381,15 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     }
 
     @discardableResult
-    private func go(to locator: Locator, isJump: Bool, completion: @escaping () -> Void = {}) -> Bool {
+    private func go(to locator: Locator, isJump: Bool) async -> Bool {
         guard let link = findLink(at: locator) else {
             return false
         }
 
-        return go(
+        return await go(
             to: link,
             pageNumber: pageNumber(for: locator),
-            isJump: isJump,
-            completion: completion
+            isJump: isJump
         )
     }
 
@@ -389,7 +413,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         publication.readingOrder.count == 1 && publication.readingOrder[0].href == "publication.pdf"
 
     @discardableResult
-    private func go(to link: Link, pageNumber: Int?, isJump: Bool, completion: @escaping () -> Void = {}) -> Bool {
+    private func go(to link: Link, pageNumber: Int?, isJump: Bool) async -> Bool {
         guard let pdfView = pdfView, let index = publication.readingOrder.firstIndex(of: link) else {
             return false
         }
@@ -404,7 +428,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
             }
 
             currentResourceIndex = index
-            documentHolder.set(document, at: link.href)
+            documentHolder.set(document, at: try! link.url())
             pdfView.document = document
             updateScaleFactors()
         }
@@ -423,7 +447,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
             delegate.navigator(self, didJumpTo: location)
         }
 
-        DispatchQueue.main.async(execute: completion)
         return true
     }
 
@@ -447,14 +470,17 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
             }
         }
 
-        guard var position = locator.locations.position else {
+        guard
+            let positions = positionsByReadingOrder,
+            var position = locator.locations.position
+        else {
             return nil
         }
 
         if
             publication.readingOrder.count > 1,
             let index = publication.readingOrder.firstIndex(withHREF: locator.href),
-            let firstPosition = publication.positionsByReadingOrder[index].first?.locations.position
+            let firstPosition = positions[index].first?.locations.position
         {
             position = position - firstPosition + 1
         }
@@ -468,11 +494,12 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
             let pdfView = pdfView,
             let currentResourceIndex = currentResourceIndex,
             let pageNumber = pdfView.currentPage?.pageRef?.pageNumber,
-            publication.readingOrder.indices.contains(currentResourceIndex)
+            publication.readingOrder.indices.contains(currentResourceIndex),
+            let positionsByReadingOrder = positionsByReadingOrder
         else {
             return nil
         }
-        let positions = publication.positionsByReadingOrder[currentResourceIndex]
+        let positions = positionsByReadingOrder[currentResourceIndex]
         guard positions.count > 0, 1 ... positions.count ~= pageNumber else {
             return nil
         }
@@ -490,9 +517,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
             defaults: config.defaults,
             metadata: publication.metadata
         )
-        if isViewLoaded {
-            resetPDFView(at: currentLocation)
-        }
+        resetPDFView(at: currentLocation)
 
         delegate?.navigator(self, presentationDidChange: presentation)
     }
@@ -583,44 +608,45 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         })
     }
 
-    public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        go(to: locator, isJump: true, completion: completion)
+    public func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool {
+        await go(to: locator, isJump: true)
     }
 
-    public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        go(to: link, pageNumber: nil, isJump: true, completion: completion)
+    public func go(to link: Link, options: NavigatorGoOptions) async -> Bool {
+        await go(to: link, pageNumber: nil, isJump: true)
     }
 
-    public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
+    public func goForward(options: NavigatorGoOptions) async -> Bool {
         if let pdfView = pdfView, pdfView.canGoToNextPage {
             pdfView.goToNextPage(nil)
-            DispatchQueue.main.async(execute: completion)
             return true
         }
 
         let nextIndex = (currentResourceIndex ?? -1) + 1
-        guard publication.readingOrder.indices.contains(nextIndex),
-              let nextPosition = publication.positionsByReadingOrder[nextIndex].first
+        guard
+            publication.readingOrder.indices.contains(nextIndex),
+            let nextPosition = positionsByReadingOrder?.getOrNil(nextIndex)?.first
         else {
             return false
         }
-        return go(to: nextPosition, animated: animated, completion: completion)
+
+        return await go(to: nextPosition, options: options)
     }
 
-    public func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool {
+    public func goBackward(options: NavigatorGoOptions) async -> Bool {
         if let pdfView = pdfView, pdfView.canGoToPreviousPage {
             pdfView.goToPreviousPage(nil)
-            DispatchQueue.main.async(execute: completion)
             return true
         }
 
         let previousIndex = (currentResourceIndex ?? 0) - 1
-        guard publication.readingOrder.indices.contains(previousIndex),
-              let previousPosition = publication.positionsByReadingOrder[previousIndex].first
+        guard
+            publication.readingOrder.indices.contains(previousIndex),
+            let previousPosition = positionsByReadingOrder?.getOrNil(previousIndex)?.first
         else {
             return false
         }
-        return go(to: previousPosition, animated: animated, completion: completion)
+        return await go(to: previousPosition, options: options)
     }
 }
 

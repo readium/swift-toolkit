@@ -46,7 +46,6 @@ public protocol VisualNavigator: Navigator {
 }
 
 public extension VisualNavigator {
-
     func firstVisibleElementLocator() async -> Locator? {
         currentLocation
     }
@@ -81,7 +80,7 @@ public extension VisualNavigator {
         fatalError()
     }
 
-    @discardableResult
+    @available(*, unavailable, message: "Use the async variant")
     func goRight(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
         fatalError()
     }

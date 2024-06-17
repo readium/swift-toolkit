@@ -21,13 +21,13 @@ final class MinizipArchiveOpener: ArchiveOpener {
                 switch $0 {
                 case .notAZIP:
                     return .formatNotSupported(format)
-                case .reading(let error):
+                case let .reading(error):
                     return .reading(error)
                 }
             }
             .map { ContainerAsset(container: $0, format: format) }
     }
-    
+
     func sniffOpen(resource: any Resource) async -> Result<ContainerAsset, ArchiveSniffOpenError> {
         guard let file = resource.sourceURL?.fileURL else {
             return .failure(.formatNotRecognized)
@@ -38,7 +38,7 @@ final class MinizipArchiveOpener: ArchiveOpener {
                 switch $0 {
                 case .notAZIP:
                     return .formatNotRecognized
-                case .reading(let error):
+                case let .reading(error):
                     return .reading(error)
                 }
             }
@@ -57,12 +57,11 @@ final class MinizipArchiveOpener: ArchiveOpener {
 
 /// A ZIP ``Container`` using the Minizip library.
 final class MinizipContainer: Container, Loggable {
-
     enum MakeError: Error {
         case notAZIP
         case reading(ReadError)
     }
-        
+
     static func make(file: FileURL) async -> Result<MinizipContainer, MakeError> {
         guard (try? file.exists()) ?? false else {
             return .failure(.reading(.access(FileSystemError.fileNotFound(nil))))
@@ -97,15 +96,15 @@ final class MinizipContainer: Container, Loggable {
 
     private let file: FileURL
     private let entriesMetadata: [RelativeURL: MinizipEntryMetadata]
-    
+
     public let entries: Set<AnyURL>
 
     private init(file: FileURL, entries: [RelativeURL: MinizipEntryMetadata]) {
         self.file = file
-        self.entriesMetadata = entries
+        entriesMetadata = entries
         self.entries = Set(entries.keys.map(\.anyURL))
     }
-    
+
     subscript(url: any URLConvertible) -> (any Resource)? {
         guard
             let url = url.relativeURL,
@@ -123,7 +122,6 @@ private struct MinizipEntryMetadata {
 }
 
 private actor MinizipResource: Resource, Loggable {
-    
     private let file: FileURL
     private let entryPath: String
     private let metadata: MinizipEntryMetadata
@@ -148,7 +146,7 @@ private actor MinizipResource: Resource, Loggable {
     }
 
     public let sourceURL: AbsoluteURL? = nil
-    
+
     func estimatedLength() async -> ReadResult<UInt64?> {
         .success(metadata.length)
     }
