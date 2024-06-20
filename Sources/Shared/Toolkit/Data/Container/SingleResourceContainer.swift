@@ -8,19 +8,18 @@ import Foundation
 
 /// Encapsulates a single ``Resource`` into a ``Container``.
 public class SingleResourceContainer: Container {
+    public let entry: AnyURL
     private let resource: Resource
-    private let entryURL: AnyURL
 
-    public let entries: Set<AnyURL>
+    public var entries: Set<AnyURL> { [entry] }
 
-    public init(resource: Resource, at entryURL: AnyURL) {
+    public init(resource: Resource, at entry: AnyURL) {
         self.resource = resource
-        self.entryURL = entryURL
-        entries = [entryURL]
+        self.entry = entry
     }
 
     public subscript(url: any URLConvertible) -> (any Resource)? {
-        guard url.anyURL.removingQuery().removingFragment().isEquivalentTo(entryURL) else {
+        guard url.anyURL.removingQuery().removingFragment().isEquivalentTo(entry) else {
             return nil
         }
 

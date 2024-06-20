@@ -123,8 +123,6 @@ class ResourceResponse: ReadiumGCDWebServerFileResponse, Loggable {
     }
 
     override open func close() {
-        Task {
-            await resource.close()
-        }
+        resource.close()
     }
 }

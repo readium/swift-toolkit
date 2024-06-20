@@ -34,6 +34,7 @@ public protocol Seekable {
 }
 
 /// Base (abstract) class for seekable input streams
+// FIXME: Used?
 open class SeekableInputStream: InputStream, Seekable {
     public var length: UInt64 { fatalError("This getter must be overriden") }
 

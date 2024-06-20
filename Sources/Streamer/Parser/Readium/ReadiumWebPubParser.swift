@@ -68,7 +68,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
                         baseURL: baseURL,
                         entries: Set(
                             (manifest.readingOrder + manifest.resources)
-                                .compactMap { try? $0.url() }
+                                .map { $0.url() }
                         )
                     )
                 ))
@@ -107,7 +107,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
                             $0.setPositionsServiceFactory(EPUBPositionsService.makeFactory(reflowableStrategy: epubReflowablePositionsStrategy))
 
                         } else if manifest.conforms(to: .divina) {
-                            $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: "image/*"))
+                            $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: MediaType("image/*")!))
 
                         } else if manifest.conforms(to: .audiobook) {
                             $0.setLocatorServiceFactory(AudioLocatorService.makeFactory())

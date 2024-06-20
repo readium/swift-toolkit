@@ -58,7 +58,7 @@ public final class AudioParser: PublicationParser {
         let container = SingleResourceContainer(publication: asset)
         return makeBuilder(
             container: container,
-            readingOrder: [(container.entries.first!, asset.format)],
+            readingOrder: [(container.entry, asset.format)],
             title: nil
         )
     }

@@ -12,57 +12,135 @@ import ReadiumShared
 ///
 /// It can also work for a standalone bitmap file.
 public final class ImageParser: PublicationParser {
-    public init() {}
+    private let assetRetriever: AssetRetriever
 
-    public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
-        guard accepts(asset, fetcher) else {
-            return nil
+    public init(
+        assetRetriever: AssetRetriever
+    ) {
+        self.assetRetriever = assetRetriever
+    }
+
+    private let bitmapSpecifications: Set<FormatSpecification> = [
+        .avif,
+        .bmp,
+        .gif,
+        .jpeg,
+        .jxl,
+        .png,
+        .tiff,
+        .webp,
+    ]
+
+    public func parse(
+        asset: Asset,
+        warnings: WarningLogger?
+    ) async -> Result<Publication.Builder, PublicationParseError> {
+        switch asset {
+        case let .resource(asset):
+            return await parse(resource: asset, warnings: warnings)
+        case let .container(asset):
+            return await parse(container: asset, warnings: warnings)
+        }
+    }
+
+    private func parse(
+        resource asset: ResourceAsset,
+        warnings: WarningLogger?
+    ) async -> Result<Publication.Builder, PublicationParseError> {
+        guard asset.format.conformsToAny(bitmapSpecifications) else {
+            return .failure(.formatNotSupported)
         }
 
-        var readingOrder = fetcher.links
-            .filter { !ignores($0) && $0.mediaType?.isBitmap == true }
-            .sorted { $0.href.localizedStandardCompare($1.href) == .orderedAscending }
+        let container = SingleResourceContainer(publication: asset)
+        return makeBuilder(
+            container: container,
+            readingOrder: [(container.entry, asset.format)],
+            title: nil
+        )
+    }
 
+    private func parse(
+        container asset: ContainerAsset,
+        warnings: WarningLogger?
+    ) async -> Result<Publication.Builder, PublicationParseError> {
+        guard asset.format.conformsTo(.informalComic) else {
+            return .failure(.formatNotSupported)
+        }
+
+        return await makeReadingOrder(for: asset.container)
+            .flatMap { readingOrder in
+                makeBuilder(
+                    container: asset.container,
+                    readingOrder: readingOrder,
+                    title: asset.container.entries.guessTitle()
+                )
+            }
+    }
+
+    private func makeReadingOrder(for container: Container) async -> Result<[(AnyURL, Format)], PublicationParseError> {
+        await assetRetriever
+            .sniffContainerEntries(
+                container: container,
+                ignoring: ignores
+            )
+            .map { formats in
+                container.entries
+                    .compactMap { url -> (AnyURL, Format)? in
+                        guard
+                            let format = formats[url],
+                            format.conformsToAny(bitmapSpecifications)
+                        else {
+                            return nil
+                        }
+                        return (url, format)
+                    }
+                    .sorted { $0.0.string.localizedStandardCompare($1.0.string) == .orderedAscending }
+            }
+            .mapError { .reading($0) }
+    }
+
+    private func ignores(_ url: AnyURL) -> Bool {
+        guard let filename = url.lastPathSegment else {
+            return true
+        }
+        let ignoredExtensions = ["acbf", "txt", "xml"]
+
+        return ignoredExtensions.contains(url.pathExtension ?? "")
+            || filename.hasPrefix(".")
+            || filename == "Thumbs.db"
+    }
+
+    private func makeBuilder(
+        container: Container,
+        readingOrder: [(AnyURL, Format)],
+        title: String?
+    ) -> Result<Publication.Builder, PublicationParseError> {
         guard !readingOrder.isEmpty else {
-            return nil
+            return .failure(.reading(.decoding("No bitmap resources found in the publication")))
+        }
+
+        let readingOrder = readingOrder.map { url, format in
+            Link(
+                href: url.string,
+                mediaType: format.mediaType
+            )
         }
 
         // First valid resource is the cover.
         readingOrder[0].rels = [.cover]
 
-        return Publication.Builder(
-            mediaType: .cbz,
+        return .success(Publication.Builder(
             manifest: Manifest(
                 metadata: Metadata(
                     conformsTo: [.divina],
-                    title: fetcher.guessTitle(ignoring: ignores)
+                    title: title
                 ),
                 readingOrder: readingOrder
             ),
-            fetcher: fetcher,
+            container: container,
             servicesBuilder: .init(
                 positions: PerResourcePositionsService.makeFactory(fallbackMediaType: MediaType("image/*")!)
             )
-        )
-    }
-
-    private func accepts(_ asset: PublicationAsset, _ fetcher: Fetcher) -> Bool {
-        if asset.mediaType() == .cbz {
-            return true
-        }
-
-        // Checks if the fetcher contains only bitmap-based resources.
-        return !fetcher.links.isEmpty
-            && fetcher.links.allSatisfy { ignores($0) || $0.mediaType?.isBitmap == true }
-    }
-
-    private func ignores(_ link: Link) -> Bool {
-        let url = URL(fileURLWithPath: link.href)
-        let filename = url.lastPathComponent
-        let allowedExtensions = ["acbf", "txt", "xml"]
-
-        return allowedExtensions.contains(url.pathExtension.lowercased())
-            || filename.hasPrefix(".")
-            || filename == "Thumbs.db"
+        ))
     }
 }

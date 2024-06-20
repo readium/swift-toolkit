@@ -22,20 +22,29 @@ extension SingleResourceContainer {
     }
 }
 
-extension AssetRetriever {
-    func sniffContainerEntries(
-        container: Container,
+extension Container {
+    /// Returns the data of a resource at given `href`.
+    func readData<T: URLConvertible>(at href: T) async throws -> Data? {
+        guard let resource = self[href] else {
+            return nil
+        }
+        defer { resource.close() }
+        return try await resource.read().get()
+    }
+
+    func sniffFormats(
+        using assetRetriever: AssetRetriever,
         ignoring: (AnyURL) -> Bool
     ) async -> Result<[AnyURL: Format], ReadError> {
-        let urls = container.entries.filter { !ignoring($0) }
+        let urls = entries.filter { !ignoring($0) }
         var entries = [AnyURL: Format]()
         for url in urls {
-            guard let resource = container[url] else {
+            guard let resource = self[url] else {
                 continue
             }
             defer { resource.close() }
 
-            switch await sniffFormat(of: resource) {
+            switch await assetRetriever.sniffFormat(of: resource) {
             case let .success(format):
                 entries[url] = format
             case let .failure(error):
@@ -47,5 +56,28 @@ extension AssetRetriever {
                 }
             }
         }
+
+        return .success(entries)
+    }
+
+    /// Guesses a publication title from a list of resource HREFs.
+    ///
+    /// If the HREFs contain a single root directory, we assume it is the
+    /// title. This is often the case for example with CBZ files.
+    func guessTitle() -> String? {
+        var title: String?
+
+        for url in entries {
+            let segments = url.pathSegments
+            guard
+                segments.count > 1,
+                title == nil || title == segments.first
+            else {
+                return nil
+            }
+            title = segments.first
+        }
+
+        return title
     }
 }

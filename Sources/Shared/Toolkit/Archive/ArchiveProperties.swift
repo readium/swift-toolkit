@@ -50,7 +50,7 @@ public struct ArchiveProperties: Equatable {
 
 private let archiveKey = "https://readium.org/webpub-manifest/properties#archive"
 
-extension ResourceProperties {
+public extension ResourceProperties {
     /// Provides information about how the resource is stored in the publication archive.
     var archive: ArchiveProperties? {
         get {

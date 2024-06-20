@@ -28,7 +28,7 @@ final class LCPDFPositionsService: PositionsService, PDFPublicationService, Logg
     private func computePositionsByReadingOrder() async -> ReadResult<[[Locator]]> {
         // Calculates the page count of each resource from the reading order.
         let resources = await readingOrder.map { link -> (Int, Link) in
-            let href = try! link.url()
+            let href = link.url()
             guard
                 let resource = container[href],
                 let document = try? await pdfFactory.open(resource: resource, at: href, password: nil),

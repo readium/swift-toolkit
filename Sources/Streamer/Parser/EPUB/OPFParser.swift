@@ -54,16 +54,24 @@ final class OPFParser: Loggable {
         self.encryptions = encryptions
     }
 
-    convenience init(fetcher: Fetcher, opfHREF: RelativeURL, encryptions: [RelativeURL: Encryption] = [:]) throws {
-        try self.init(
+    convenience init(container: Container, opfHREF: RelativeURL, encryptions: [RelativeURL: Encryption] = [:]) async throws {
+        guard let data = try? await container.readData(at: opfHREF) else {
+            throw EPUBParserError.missingFile(path: opfHREF.string)
+        }
+
+        try await self.init(
             baseURL: opfHREF,
-            data: fetcher.readData(at: opfHREF),
+            data: data,
             displayOptionsData: {
                 let iBooksHREF = AnyURL(string: "META-INF/com.apple.ibooks.display-options.xml")!
                 let koboHREF = AnyURL(string: "META-INF/com.kobobooks.display-options.xml")!
-                return (try? fetcher.readData(at: iBooksHREF))
-                    ?? (try? fetcher.readData(at: koboHREF))
-                    ?? nil
+                if let data = try? await container.readData(at: iBooksHREF) {
+                    return data
+                } else if let data = try? await container.readData(at: koboHREF) {
+                    return data
+                } else {
+                    return nil
+                }
             }(),
             encryptions: encryptions
         )
