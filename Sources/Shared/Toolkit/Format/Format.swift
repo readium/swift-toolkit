@@ -65,6 +65,10 @@ public struct Format: Hashable {
 public struct FormatSpecifications: Hashable {
     public var specifications: Set<FormatSpecification>
 
+    public init(_ specifications: FormatSpecification...) {
+        self.init(specifications: Set(specifications))
+    }
+
     public init(specifications: Set<FormatSpecification>) {
         self.specifications = specifications
     }

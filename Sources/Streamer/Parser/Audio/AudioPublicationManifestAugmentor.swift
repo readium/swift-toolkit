@@ -12,7 +12,7 @@ import UIKit
 /// Implements a strategy to augment a `Manifest` of an audio publication with additional metadata and
 /// cover, for example by looking into the audio files metadata.
 public protocol AudioPublicationManifestAugmentor {
-    func augment(_ baseManifest: Manifest, using fetcher: Fetcher) -> AudioPublicationAugmentedManifest
+    func augment(_ baseManifest: Manifest, using container: Container) -> AudioPublicationAugmentedManifest
 }
 
 public struct AudioPublicationAugmentedManifest {
@@ -26,9 +26,9 @@ public struct AudioPublicationAugmentedManifest {
 public final class AVAudioPublicationManifestAugmentor: AudioPublicationManifestAugmentor {
     public init() {}
 
-    public func augment(_ manifest: Manifest, using fetcher: Fetcher) -> AudioPublicationAugmentedManifest {
+    public func augment(_ manifest: Manifest, using container: Container) -> AudioPublicationAugmentedManifest {
         let avAssets = manifest.readingOrder.map { link in
-            fetcher.get(link).file
+            try? container[link.url()]?.sourceURL?.fileURL
                 .map { AVURLAsset(url: $0.url, options: [AVURLAssetPreferPreciseDurationAndTimingKey: true]) }
         }
         var manifest = manifest

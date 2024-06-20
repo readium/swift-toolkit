@@ -28,7 +28,7 @@ final class LCPContentProtection: ContentProtection, Loggable {
             case var .container(asset) = asset,
             asset.container.sourceURL?.scheme == .file
         else {
-            return .failure(.assetNotSupported(DebugError("Only container asset of local files are currently supported with LCP.")))
+            return .failure(.assetNotSupported(DebugError("Only container asset of local files are currently supported with LCP")))
         }
 
         return await parseEncryptionData(in: asset)

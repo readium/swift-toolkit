@@ -41,6 +41,10 @@ public struct EmptyContainer: Container {
 public class CompositeContainer: Container {
     private let containers: [Container]
 
+    public convenience init(_ containers: Container...) {
+        self.init(containers)
+    }
+
     public init(_ containers: [Container]) {
         self.containers = containers
     }

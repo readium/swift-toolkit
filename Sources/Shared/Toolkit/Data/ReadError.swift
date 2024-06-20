@@ -29,6 +29,10 @@ public enum ReadError: Error {
     /// when trying to read ranges or getting length if any component the data
     /// has to pass through doesn't support that.
     case unsupportedOperation(Error)
+
+    public static func decoding(_ message: String, cause: Error? = nil) -> ReadError {
+        .decoding(DebugError(message, cause: cause))
+    }
 }
 
 /// Marker interface for source-specific access errors.

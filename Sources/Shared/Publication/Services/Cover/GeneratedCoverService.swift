@@ -79,7 +79,7 @@ public final class GeneratedCoverService: CoverService {
         func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
             await cover().flatMap {
                 guard let data = $0.pngData() else {
-                    return .failure(.decoding(DebugError("Failed to convert the cover bitmap to PNG data")))
+                    return .failure(.decoding("Failed to convert the cover bitmap to PNG data"))
                 }
                 consume(data)
                 return .success(())

@@ -59,7 +59,7 @@ public extension Streamable {
     func readAsString(encoding: String.Encoding = .utf8) async -> ReadResult<String> {
         await read().flatMap {
             guard let string = String(data: $0, encoding: encoding) else {
-                return .failure(.decoding(DebugError("Not a valid \(encoding) string")))
+                return .failure(.decoding("Not a valid \(encoding) string"))
             }
             return .success(string)
         }

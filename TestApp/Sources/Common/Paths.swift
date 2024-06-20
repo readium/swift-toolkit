@@ -35,7 +35,9 @@ final class Paths {
             return source
         } else {
             let title = title.takeIf { !$0.isEmpty } ?? UUID().uuidString
-            let ext = mediaType.fileExtension?.addingPrefix(".") ?? ""
+            // FIXME:
+            // let ext = mediaType.fileExtension?.addingPrefix(".") ?? ""
+            let ext = ""
             let filename = "\(title)\(ext)".sanitizedPathComponent
             return documents.appendingUniquePathComponent(filename)
         }

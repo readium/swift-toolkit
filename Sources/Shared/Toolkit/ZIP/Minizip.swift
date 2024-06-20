@@ -180,7 +180,7 @@ private actor MinizipResource: Resource, Loggable {
             if let zipFile = MinizipFile(url: file.url) {
                 _zipFile = .success(zipFile)
             } else {
-                _zipFile = .failure(.decoding(DebugError("Failed to open the ZIP file with Minizip")))
+                _zipFile = .failure(.decoding("Failed to open the ZIP file with Minizip"))
             }
         }
         return _zipFile!

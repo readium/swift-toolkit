@@ -26,7 +26,7 @@ final class AudioLocatorService: DefaultLocatorService {
         return (totalDuration > 0) ? totalDuration : nil
     }()
 
-    override func locate(progression: Double) -> Locator? {
+    override func locate(progression: Double) async -> Locator? {
         guard let totalDuration = totalDuration else {
             return nil
         }

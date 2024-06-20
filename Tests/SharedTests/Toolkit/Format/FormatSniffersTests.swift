@@ -4,4 +4,13 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import Foundation
+@testable import ReadiumShared
+import XCTest
+
+class FormatSniffersTests: XCTestCase {
+    let fixtures = Fixtures(path: "Format")
+
+    func testSniffIgnoresExtensionCase() {
+        XCTAssertEqual(MediaType.of(fileExtension: "EPUB"), .epub)
+    }
+}

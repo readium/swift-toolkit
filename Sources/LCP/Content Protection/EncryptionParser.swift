@@ -17,7 +17,7 @@ func parseEncryptionData(in asset: ContainerAsset) async -> ReadResult<[AnyURL: 
 
 private func parseRPFEncryptionData(in container: Container) async -> ReadResult<[AnyURL: ReadiumShared.Encryption]> {
     guard let manifestResource = container[RelativeURL(path: "manifest.json")!] else {
-        return .failure(.decoding(DebugError("Missing RWPM manifest")))
+        return .failure(.decoding("Missing RWPM manifest"))
     }
 
     return await manifestResource
@@ -43,7 +43,7 @@ private func parseRPFEncryptionData(in container: Container) async -> ReadResult
 
 private func parseEPUBEncryptionData(in container: Container) async -> ReadResult<[AnyURL: ReadiumShared.Encryption]> {
     guard let encryptionResource = container[RelativeURL(path: "META-INF/encryption.xml")!] else {
-        return .failure(.decoding(DebugError("Missing META-INF/encryption.xml")))
+        return .failure(.decoding("Missing META-INF/encryption.xml"))
     }
 
     return await encryptionResource.read()

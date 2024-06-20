@@ -281,15 +281,11 @@ class MediaTypeSnifferTests: XCTestCase {
     }
 
     func testSniffSystemUTI() {
-        let css = MediaType("text/css", name: "CSS", fileExtension: "css")
+        let css = MediaType("text/css")
         XCTAssertEqual(MediaType.of(fileExtension: "css"), css)
         XCTAssertEqual(MediaType.of(mediaType: "text/css"), css)
 
-        let xlsx = MediaType(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            name: "Office Open XML spreadsheet",
-            fileExtension: "xlsx"
-        )
+        let xlsx = MediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         XCTAssertEqual(MediaType.of(fileExtension: "xlsx"), xlsx)
         XCTAssertEqual(MediaType.of(mediaType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"), xlsx)
     }

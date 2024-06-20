@@ -37,7 +37,7 @@ final class LCPDecryptor {
             return resource
         }
         guard let license = license else {
-            return FailureResource(error: .decoding(DebugError("Cannot decipher content because the publication is locked.")))
+            return FailureResource(error: .decoding("Cannot decipher content because the publication is locked."))
         }
 
         if encryption.isDeflated || !encryption.isCbcEncrypted {

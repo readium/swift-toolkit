@@ -85,6 +85,16 @@ public struct Manifest: JSONEquatable, Hashable {
         subcollections = PublicationCollection.makeCollections(json: json.json, warnings: warnings)
     }
 
+    /// The URL where this publication is served, computed from the `Link` with
+    /// `self` relation.
+    ///
+    /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
+    public var baseURL: HTTPURL? {
+        links.first(withRel: .`self`)
+            .takeIf { !$0.templated }
+            .flatMap { HTTPURL(string: $0.href) }
+    }
+
     public var json: [String: Any] {
         makeJSON([
             "@context": encodeIfNotEmpty(context),

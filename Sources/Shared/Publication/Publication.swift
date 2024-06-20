@@ -77,11 +77,7 @@ public class Publication: Closeable, Loggable {
     /// The URL where this publication is served, computed from the `Link` with `self` relation.
     ///
     /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
-    public var baseURL: HTTPURL? {
-        links.first(withRel: .`self`)
-            .takeIf { !$0.templated }
-            .flatMap { HTTPURL(string: $0.href) }
-    }
+    public var baseURL: HTTPURL? { manifest.baseURL }
 
     /// Finds the first Link having the given `href` in the publication's links.
     public func link(withHREF href: String) -> Link? {
@@ -111,8 +107,8 @@ public class Publication: Closeable, Loggable {
 
     /// Returns the resource targeted by the given `href`.
     public func get(_ href: any URLConvertible) -> Resource? {
+        let url = baseURL?.resolve(href)?.anyURL ?? href.anyURL
         // Try first the original href and falls back to href without query and fragment.
-        let url = href.anyURL
         return container[url] ?? container[url.removingQuery().removingFragment()]
     }
 
@@ -207,36 +203,24 @@ public class Publication: Closeable, Loggable {
         /// before building it. For example, to add Publication Services or
         /// wrap the root Container.
         public typealias Transform = (
-            _ mediaType: MediaType,
             _ manifest: inout Manifest,
             _ container: inout Container,
             _ services: inout PublicationServicesBuilder
         ) -> Void
 
-        private let mediaType: MediaType
         private var manifest: Manifest
         private var container: Container
         private var servicesBuilder: PublicationServicesBuilder
 
-        /// Closure which will be called once the `Publication` is built.
-        ///
-        /// This is used for backwrad compatibility, until `Publication` is
-        /// purely immutable.
-        // FIXME: Deprecate
-        private let setupPublication: ((Publication) -> Void)?
-
         public init(
-            mediaType: MediaType,
             manifest: Manifest,
             container: Container,
             servicesBuilder: PublicationServicesBuilder = .init(),
             setupPublication: ((Publication) -> Void)? = nil
         ) {
-            self.mediaType = mediaType
             self.manifest = manifest
             self.container = container
             self.servicesBuilder = servicesBuilder
-            self.setupPublication = setupPublication
         }
 
         public mutating func apply(_ transform: Transform?) {
@@ -244,18 +228,16 @@ public class Publication: Closeable, Loggable {
                 return
             }
 
-            transform(mediaType, &manifest, &container, &servicesBuilder)
+            transform(&manifest, &container, &servicesBuilder)
         }
 
         /// Builds the `Publication` from its parts.
         public func build() -> Publication {
-            let publication = Publication(
+            Publication(
                 manifest: manifest,
                 container: container,
                 servicesBuilder: servicesBuilder
             )
-            setupPublication?(publication)
-            return publication
         }
     }
 

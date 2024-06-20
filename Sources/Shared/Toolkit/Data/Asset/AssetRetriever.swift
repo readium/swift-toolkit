@@ -36,19 +36,19 @@ public final class AssetRetriever {
     }
 
     /// Sniffs the format of the content available at `url`.
-    public func sniffFormat(url: AbsoluteURL, hints: FormatHints = FormatHints()) async -> Result<Format, AssetRetrieveURLError> {
+    public func sniffFormat(of url: AbsoluteURL, hints: FormatHints = FormatHints()) async -> Result<Format, AssetRetrieveURLError> {
         await retrieve(url: url, hints: hints)
             .map(\.format)
     }
 
     /// Sniffs the format of a `Resource`.
-    public func sniffFormat(resource: Resource, hints: FormatHints = FormatHints()) async -> Result<Format, AssetRetrieveError> {
+    public func sniffFormat(of resource: Resource, hints: FormatHints = FormatHints()) async -> Result<Format, AssetRetrieveError> {
         await retrieve(resource: resource, hints: hints)
             .map(\.format)
     }
 
     /// Sniffs the format of a `Container`.
-    public func sniffFormat(container: Container, hints: FormatHints = FormatHints()) async -> Result<Format, AssetRetrieveError> {
+    public func sniffFormat(of container: Container, hints: FormatHints = FormatHints()) async -> Result<Format, AssetRetrieveError> {
         await retrieve(container: container, hints: hints)
             .map(\.format)
     }

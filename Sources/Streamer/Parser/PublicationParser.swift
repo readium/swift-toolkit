@@ -9,17 +9,21 @@ import ReadiumShared
 
 /// Parses a Publication from an asset.
 public protocol PublicationParser {
-    /// Constructs a `Publication.Builder` to build a `Publication` from a publication asset.
+    /// Constructs a ``Publication.Builder`` to build a ``Publication`` from a
+    /// publication asset.
     ///
     /// - Parameters:
-    ///   - asset: Digital medium (e.g. a file) used to access the publication.
-    ///   - fetcher: Initial leaf fetcher which should be used to read the publication's resources.
-    ///     This can be used to:
-    ///       - support content protection technologies
-    ///       - parse exploded archives or in archiving formats unknown to the parser, e.g. RAR
-    ///     If the asset is not an archive, it will be reachable at the HREF `publication.<asset extension>`.
-    ///   - warnings: Used to report non-fatal parsing warnings, such as publication authoring
-    ///     mistakes. This is useful to warn users of potential rendering issues or help authors
-    ///     debug their publications.
-    func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder?
+    ///   - asset: Publication asset.
+    ///   - warnings: Used to report non-fatal parsing warnings, such as
+    ///   publication authoring mistakes. This is useful to warn users of
+    ///   potential rendering issues or help authors debug their publications.
+    func parse(asset: Asset, warnings: WarningLogger?) async -> Result<Publication.Builder, PublicationParseError>
+}
+
+public enum PublicationParseError: Error {
+    /// Asset format not supported.
+    case formatNotSupported
+
+    /// An error occurred while trying to read the asset.
+    case reading(ReadError)
 }
