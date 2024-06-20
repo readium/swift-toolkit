@@ -38,7 +38,6 @@ targets:
       - framework: ../../Carthage/Build/CryptoSwift.xcframework
       - framework: ../../Carthage/Build/Fuzi.xcframework
       - framework: ../../Carthage/Build/Minizip.xcframework
-      - framework: ../../Carthage/Build/ReadiumGCDWebServer.xcframework
       - target: ReadiumShared
       - target: ReadiumInternal
     settings:

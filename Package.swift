@@ -63,7 +63,6 @@ let package = Package(
             dependencies: [
                 "CryptoSwift",
                 "Fuzi",
-                .product(name: "ReadiumGCDWebServer", package: "GCDWebServer"),
                 "Zip",
                 "ReadiumShared",
             ],
