@@ -86,7 +86,7 @@ public class PublicationContentIterator: ContentIterator, Loggable {
 
     /// Returns the first iterator starting at `startLocator` or the beginning of the publication.
     private func initialIterator() async -> IndexedIterator? {
-        let index = startLocator.flatMap { publication.readingOrder.firstIndex(withHREF: $0.href) } ?? 0
+        let index = startLocator.flatMap { publication.readingOrder.firstIndexWithHREF($0.href) } ?? 0
         let location = startLocator.orProgression(0.0)
 
         if let iterator = await loadIterator(at: index, location: location) {

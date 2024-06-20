@@ -96,6 +96,17 @@ public struct RelativeURL: URLProtocol, Hashable {
                 .removingPrefix("/")
         )
     }
+
+    /// Strict URL comparisons can be a source of bug, if the URLs are not
+    /// normalized. In most cases, you should compare using
+    /// `isEquivalent()`.
+    ///
+    /// To ignore this warning, compare `RelativeURL.string` instead of
+    /// `RelativeURL` itself.
+    @available(*, deprecated, message: "Strict URL comparisons can be a source of bug. Use isEquivalent() instead.")
+    public static func == (lhs: RelativeURL, rhs: RelativeURL) -> Bool {
+        lhs.string == rhs.string
+    }
 }
 
 /// Implements `URLConvertible`.

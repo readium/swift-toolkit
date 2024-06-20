@@ -9,7 +9,7 @@ import Foundation
 public extension Manifest {
     /// Resolves the HREFs in the ``Manifest`` to the link with `rel="self"`.
     mutating func normalizeHREFsToSelf() throws {
-        guard let base = try link(withRel: .self)?.url() else {
+        guard let base = linkWithRel(.self)?.url() else {
             return
         }
 
@@ -45,6 +45,6 @@ private struct HREFNormalizer: ManifestTransformer, Loggable {
             return
         }
 
-        link.href = try link.url(relativeTo: baseURL).string
+        link.href = link.url(relativeTo: baseURL).string
     }
 }

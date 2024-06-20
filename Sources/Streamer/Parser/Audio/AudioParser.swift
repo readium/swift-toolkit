@@ -131,7 +131,7 @@ public final class AudioParser: PublicationParser {
             readingOrder: readingOrder.map { url, format in
                 Link(
                     href: url.string,
-                    type: format.mediaType.string
+                    mediaType: format.mediaType
                 )
             }
         )

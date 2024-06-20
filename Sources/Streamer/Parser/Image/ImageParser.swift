@@ -20,8 +20,8 @@ public final class ImageParser: PublicationParser {
         }
 
         var readingOrder = fetcher.links
-            .filter { !ignores($0) && $0.mediaType.isBitmap }
-            .sorted { $0.href.localizedCaseInsensitiveCompare($1.href) == .orderedAscending }
+            .filter { !ignores($0) && $0.mediaType?.isBitmap == true }
+            .sorted { $0.href.localizedStandardCompare($1.href) == .orderedAscending }
 
         guard !readingOrder.isEmpty else {
             return nil
@@ -41,7 +41,7 @@ public final class ImageParser: PublicationParser {
             ),
             fetcher: fetcher,
             servicesBuilder: .init(
-                positions: PerResourcePositionsService.makeFactory(fallbackMediaType: "image/*")
+                positions: PerResourcePositionsService.makeFactory(fallbackMediaType: MediaType("image/*")!)
             )
         )
     }
@@ -53,7 +53,7 @@ public final class ImageParser: PublicationParser {
 
         // Checks if the fetcher contains only bitmap-based resources.
         return !fetcher.links.isEmpty
-            && fetcher.links.allSatisfy { ignores($0) || $0.mediaType.isBitmap }
+            && fetcher.links.allSatisfy { ignores($0) || $0.mediaType?.isBitmap == true }
     }
 
     private func ignores(_ link: Link) -> Bool {

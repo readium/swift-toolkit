@@ -454,13 +454,13 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     /// Mapping between reading order hrefs and the table of contents title.
-    private lazy var tableOfContentsTitleByHref: [String: String] = {
-        func fulfill(linkList: [Link]) -> [String: String] {
-            var result = [String: String]()
+    private lazy var tableOfContentsTitleByHref: [AnyURL: String] = {
+        func fulfill(linkList: [Link]) -> [AnyURL: String] {
+            var result = [AnyURL: String]()
 
             for link in linkList {
                 if let title = link.title {
-                    result[link.href] = title
+                    result[link.url()] = title
                 }
                 let subResult = fulfill(linkList: link.children)
                 result.merge(subResult) { current, _ -> String in
@@ -584,7 +584,7 @@ open class EPUBNavigatorViewController: UIViewController,
             return nil
         }
 
-        return readingOrder.firstIndex(withHREF: spreads[currentSpreadIndex].left.href)
+        return readingOrder.firstIndexWithHREF(spreads[currentSpreadIndex].left.url())
     }
 
     private var reloadSpreadsContinuations = [CheckedContinuation<Void, Never>]()
@@ -632,7 +632,7 @@ open class EPUBNavigatorViewController: UIViewController,
         )
 
         let initialIndex: Int = {
-            if let href = locator?.href, let foundIndex = self.spreads.firstIndex(withHref: href) {
+            if let href = locator?.href, let foundIndex = self.spreads.firstIndexWithHREF(href) {
                 return foundIndex
             } else {
                 return 0
@@ -648,10 +648,10 @@ open class EPUBNavigatorViewController: UIViewController,
         on(.loaded)
     }
 
-    private func loadedSpreadView(forHREF href: String) -> EPUBSpreadView? {
+    private func loadedSpreadViewForHREF<T: URLConvertible>(_ href: T) -> EPUBSpreadView? {
         paginationView.loadedViews
             .compactMap { _, view in view as? EPUBSpreadView }
-            .first { $0.spread.links.first(withHREF: href) != nil }
+            .first { $0.spread.links.firstWithHREF(href) != nil }
     }
 
     // MARK: - Navigator
@@ -692,21 +692,21 @@ open class EPUBNavigatorViewController: UIViewController,
         }
 
         let link = spreadView.focusedResource ?? spreadView.spread.leading
-        let href = link.href
+        let href = link.url()
         let progression = min(max(spreadView.progression(in: href), 0.0), 1.0)
 
         if
             // The positions are not always available, for example a Readium
             // WebPub doesn't have any unless a Publication Positions Web
             // Service is provided
-            let index = readingOrder.firstIndex(withHREF: href),
+            let index = readingOrder.firstIndexWithHREF(href),
             let positionList = positionsByReadingOrder.getOrNil(index),
             positionList.count > 0
         {
             // Gets the current locator from the positionList, and fill its missing data.
             let positionIndex = Int(ceil(progression * Double(positionList.count - 1)))
             return positionList[positionIndex].copy(
-                title: tableOfContentsTitleByHref[href],
+                title: tableOfContentsTitleByHref[equivalent: href],
                 locations: { $0.progression = progression }
             )
         } else {
@@ -746,8 +746,10 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     public func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool {
+        let locator = publication.normalizeLocator(locator)
+
         guard
-            let spreadIndex = spreads.firstIndex(withHref: locator.href),
+            let spreadIndex = spreads.firstIndexWithHREF(locator.href),
             on(.jump(locator))
         else {
             return false
@@ -821,7 +823,11 @@ open class EPUBNavigatorViewController: UIViewController,
         Task {
             await withTaskGroup(of: Void.self) { tasks in
                 let source = self.decorations[group] ?? []
-                let target = decorations.map { DiffableDecoration(decoration: $0) }
+                let target = decorations.map { d in
+                    var d = d
+                    d.locator = publication.normalizeLocator(d.locator)
+                    return DiffableDecoration(decoration: d)
+                }
 
                 self.decorations[group] = target
 
@@ -842,7 +848,7 @@ open class EPUBNavigatorViewController: UIViewController,
                             continue
                         }
                         tasks.addTask { [weak self] in
-                            await self?.loadedSpreadView(forHREF: href)?.evaluateScript(script, inHREF: href)
+                            await self?.loadedSpreadViewForHREF(href)?.evaluateScript(script, inHREF: href)
                         }
                     }
                 }
@@ -973,7 +979,7 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
                 for (_, view) in paginationView.loadedViews {
                     guard
                         let view = view as? EPUBSpreadView,
-                        view.spread.links.first(withHREF: href) != nil
+                        view.spread.links.firstWithHREF(href) != nil
                     else {
                         continue
                     }
@@ -1021,10 +1027,10 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
 
             await withTaskGroup(of: Void.self) { tasks in
                 for link in spreadView.spread.links {
-                    let href = link.href
+                    let href = link.url()
                     for (group, decorations) in self.decorations {
                         let decorations = decorations
-                            .filter { $0.decoration.locator.href == href }
+                            .filter { $0.decoration.locator.href.isEquivalentTo(href) }
                             .map { DecorationChange.add($0.decoration) }
 
                         guard let script = decorations.javascript(forGroup: group, styles: self.config.decorationTemplates) else {
@@ -1076,7 +1082,10 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     }
 
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, clickEvent: ClickEvent?) {
-        guard var link = publication.link(withHREF: href) else {
+        guard
+            let url = AnyURL(string: href),
+            var link = publication.linkWithHREF(url)
+        else {
             log(.warning, "Cannot find link with HREF: \(href)")
             return
         }

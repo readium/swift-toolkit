@@ -11,25 +11,25 @@ class DefaultLocatorServiceTests: XCTestCase {
     // locate(Locator) checks that the href exists.
     func testFromLocator() {
         let service = makeService(readingOrder: [
-            Link(href: "chap1", type: "application/xml"),
-            Link(href: "chap2", type: "application/xml"),
-            Link(href: "chap3", type: "application/xml"),
+            Link(href: "chap1", mediaType: .xml),
+            Link(href: "chap2", mediaType: .xml),
+            Link(href: "chap3", mediaType: .xml),
         ])
-        let locator = Locator(href: "chap2", type: "text/html", text: .init(highlight: "Highlight"))
+        let locator = Locator(href: "chap2", mediaType: .html, text: .init(highlight: "Highlight"))
         XCTAssertEqual(service.locate(locator), locator)
     }
 
     func testFromLocatorEmptyReadingOrder() {
         let service = makeService(readingOrder: [])
-        XCTAssertNil(service.locate(Locator(href: "href", type: "text/html")))
+        XCTAssertNil(service.locate(Locator(href: "href", mediaType: .html)))
     }
 
     func testFromLocatorNotFound() {
         let service = makeService(readingOrder: [
-            Link(href: "chap1", type: "application/xml"),
-            Link(href: "chap3", type: "application/xml"),
+            Link(href: "chap1", mediaType: .xml),
+            Link(href: "chap3", mediaType: .xml),
         ])
-        let locator = Locator(href: "chap2", type: "text/html", text: .init(highlight: "Highlight"))
+        let locator = Locator(href: "chap2", mediaType: .html, text: .init(highlight: "Highlight"))
         XCTAssertNil(service.locate(locator))
     }
 
@@ -38,7 +38,7 @@ class DefaultLocatorServiceTests: XCTestCase {
 
         XCTAssertEqual(service.locate(progression: 0.0), Locator(
             href: "chap1",
-            type: "text/html",
+            mediaType: .html,
             locations: Locator.Locations(
                 progression: 0.0,
                 totalProgression: 0.0,
@@ -48,7 +48,7 @@ class DefaultLocatorServiceTests: XCTestCase {
 
         XCTAssertEqual(service.locate(progression: 0.25), Locator(
             href: "chap3",
-            type: "text/html",
+            mediaType: .html,
             title: "Chapter 3",
             locations: Locator.Locations(
                 progression: 0.0,
@@ -62,7 +62,7 @@ class DefaultLocatorServiceTests: XCTestCase {
 
         XCTAssertEqual(service.locate(progression: 0.4), Locator(
             href: "chap4",
-            type: "text/html",
+            mediaType: .html,
             locations: Locator.Locations(
                 progression: (0.4 - chap4FirstTotalProg) / (chap5FirstTotalProg - chap4FirstTotalProg),
                 totalProgression: 0.4,
@@ -72,7 +72,7 @@ class DefaultLocatorServiceTests: XCTestCase {
 
         XCTAssertEqual(service.locate(progression: 0.55), Locator(
             href: "chap4",
-            type: "text/html",
+            mediaType: .html,
             locations: Locator.Locations(
                 progression: (0.55 - chap4FirstTotalProg) / (chap5FirstTotalProg - chap4FirstTotalProg),
                 totalProgression: 0.55,
@@ -82,7 +82,7 @@ class DefaultLocatorServiceTests: XCTestCase {
 
         XCTAssertEqual(service.locate(progression: 0.9), Locator(
             href: "chap5",
-            type: "text/html",
+            mediaType: .html,
             locations: Locator.Locations(
                 progression: (0.9 - chap5FirstTotalProg) / (1.0 - chap5FirstTotalProg),
                 totalProgression: 0.9,
@@ -92,7 +92,7 @@ class DefaultLocatorServiceTests: XCTestCase {
 
         XCTAssertEqual(service.locate(progression: 1.0), Locator(
             href: "chap5",
-            type: "text/html",
+            mediaType: .html,
             locations: Locator.Locations(
                 progression: 1.0,
                 totalProgression: 1.0,
@@ -114,63 +114,63 @@ class DefaultLocatorServiceTests: XCTestCase {
 
     func testFromMinimalLink() {
         let service = makeService(readingOrder: [
-            Link(href: "/href", type: "text/html", title: "Resource"),
+            Link(href: "/href", mediaType: .html, title: "Resource"),
         ])
 
         XCTAssertEqual(
             service.locate(Link(href: "/href")),
-            Locator(href: "/href", type: "text/html", title: "Resource", locations: Locator.Locations(progression: 0.0))
+            Locator(href: "/href", mediaType: .html, title: "Resource", locations: Locator.Locations(progression: 0.0))
         )
     }
 
     func testFromLinkInReadingOrderResourcesOrLinks() {
         let service = makeService(
-            links: [Link(href: "/href3", type: "text/html")],
-            readingOrder: [Link(href: "/href1", type: "text/html")],
-            resources: [Link(href: "/href2", type: "text/html")]
+            links: [Link(href: "/href3", mediaType: .html)],
+            readingOrder: [Link(href: "/href1", mediaType: .html)],
+            resources: [Link(href: "/href2", mediaType: .html)]
         )
 
         XCTAssertEqual(
             service.locate(Link(href: "/href1")),
-            Locator(href: "/href1", type: "text/html", locations: Locator.Locations(progression: 0.0))
+            Locator(href: "/href1", mediaType: .html, locations: Locator.Locations(progression: 0.0))
         )
 
         XCTAssertEqual(
             service.locate(Link(href: "/href2")),
-            Locator(href: "/href2", type: "text/html", locations: Locator.Locations(progression: 0.0))
+            Locator(href: "/href2", mediaType: .html, locations: Locator.Locations(progression: 0.0))
         )
 
         XCTAssertEqual(
             service.locate(Link(href: "/href3")),
-            Locator(href: "/href3", type: "text/html", locations: Locator.Locations(progression: 0.0))
+            Locator(href: "/href3", mediaType: .html, locations: Locator.Locations(progression: 0.0))
         )
     }
 
     func testFromLinkWithFragment() {
         let service = makeService(readingOrder: [
-            Link(href: "/href", type: "text/html", title: "Resource"),
+            Link(href: "/href", mediaType: .html, title: "Resource"),
         ])
 
         XCTAssertEqual(
-            service.locate(Link(href: "/href#page=42", type: "text/xml", title: "My link")),
-            Locator(href: "/href", type: "text/html", title: "Resource", locations: Locator.Locations(fragments: ["page=42"]))
+            service.locate(Link(href: "/href#page=42", mediaType: MediaType("text/xml")!, title: "My link")),
+            Locator(href: "/href", mediaType: .html, title: "Resource", locations: Locator.Locations(fragments: ["page=42"]))
         )
     }
 
     func testTitleFallbackFromLink() {
         let service = makeService(readingOrder: [
-            Link(href: "/href", type: "text/html"),
+            Link(href: "/href", mediaType: .html),
         ])
 
         XCTAssertEqual(
             service.locate(Link(href: "/href", title: "My link")),
-            Locator(href: "/href", type: "text/html", title: "My link", locations: Locator.Locations(progression: 0.0))
+            Locator(href: "/href", mediaType: .html, title: "My link", locations: Locator.Locations(progression: 0.0))
         )
     }
 
     func testFromLinkNotFound() {
         let service = makeService(readingOrder: [
-            Link(href: "/href", type: "text/html"),
+            Link(href: "/href", mediaType: .html),
         ])
 
         XCTAssertNil(service.locate(Link(href: "notfound")))
@@ -200,7 +200,7 @@ private let positionsFixture: [[Locator]] = [
     [
         Locator(
             href: "chap1",
-            type: "text/html",
+            mediaType: .html,
             locations: Locator.Locations(
                 progression: 0.0,
                 totalProgression: 0.0,
@@ -211,7 +211,7 @@ private let positionsFixture: [[Locator]] = [
     [
         Locator(
             href: "chap2",
-            type: "application/xml",
+            mediaType: .xml,
             locations: Locator.Locations(
                 progression: 0.0,
                 totalProgression: 1.0 / 8.0,
@@ -222,7 +222,7 @@ private let positionsFixture: [[Locator]] = [
     [
         Locator(
             href: "chap3",
-            type: "text/html",
+            mediaType: .html,
             title: "Chapter 3",
             locations: Locator.Locations(
                 progression: 0.0,
@@ -234,7 +234,7 @@ private let positionsFixture: [[Locator]] = [
     [
         Locator(
             href: "chap4",
-            type: "text/html",
+            mediaType: .html,
             locations: Locator.Locations(
                 progression: 0.0,
                 totalProgression: 3.0 / 8.0,
@@ -243,7 +243,7 @@ private let positionsFixture: [[Locator]] = [
         ),
         Locator(
             href: "chap4",
-            type: "text/html",
+            mediaType: .html,
             locations: Locator.Locations(
                 progression: 0.5,
                 totalProgression: 4.0 / 8.0,
@@ -254,7 +254,7 @@ private let positionsFixture: [[Locator]] = [
     [
         Locator(
             href: "chap5",
-            type: "text/html",
+            mediaType: .html,
             locations: Locator.Locations(
                 progression: 0.0,
                 totalProgression: 5.0 / 8.0,
@@ -263,7 +263,7 @@ private let positionsFixture: [[Locator]] = [
         ),
         Locator(
             href: "chap5",
-            type: "text/html",
+            mediaType: .html,
             locations: Locator.Locations(
                 progression: 1.0 / 3.0,
                 totalProgression: 6.0 / 8.0,
@@ -272,7 +272,7 @@ private let positionsFixture: [[Locator]] = [
         ),
         Locator(
             href: "chap5",
-            type: "text/html",
+            mediaType: .html,
             locations: Locator.Locations(
                 progression: 2.0 / 3.0,
                 totalProgression: 7.0 / 8.0,

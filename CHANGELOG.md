@@ -54,6 +54,20 @@ All notable changes to this project will be documented in this file. Take a look
 * `Publication.localizedTitle` is now optional, as we cannot guarantee a publication will always have a title.
 
 
+## [2.7.2]
+
+### Fixed
+
+#### Shared
+
+* [#444](https://github.com/readium/swift-toolkit/issues/444) Fixed resolving titles of search results when the table of contents items contain fragment identifiers.
+
+#### Navigator
+
+* [#428](https://github.com/readium/swift-toolkit/issues/428) Fixed crash with the `share` editing action on iOS 17.
+* [#428](https://github.com/readium/swift-toolkit/issues/428) Fixed showing look up and translate editing actions on iOS 17.
+
+
 ## [2.7.1]
 
 ### Added
@@ -720,4 +734,5 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [2.6.1]: https://github.com/readium/swift-toolkit/compare/2.6.0...2.6.1
 [2.7.0]: https://github.com/readium/swift-toolkit/compare/2.6.1...2.7.0
 [2.7.1]: https://github.com/readium/swift-toolkit/compare/2.7.0...2.7.1
+[2.7.2]: https://github.com/readium/swift-toolkit/compare/2.7.1...2.7.2
 [3.0.0-alpha.1]: https://github.com/readium/swift-toolkit/compare/2.7.1...3.0.0-alpha.1

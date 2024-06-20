@@ -149,7 +149,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     /// Evaluates the given JavaScript into the resource's HTML page.
     @discardableResult
-    func evaluateScript(_ script: String, inHREF href: String? = nil) async -> Result<Any, Error> {
+    func evaluateScript(_ script: String, inHREF href: AnyURL? = nil) async -> Result<Any, Error> {
         log(.debug, "Evaluate script: \(script)")
         return await withCheckedContinuation { continuation in
             webView.evaluateJavaScript(script) { res, error in
@@ -260,7 +260,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
         guard
             let selection = body as? [String: Any],
-            let href = selection["href"] as? String,
+            let hrefString = selection["href"] as? String,
+            let href = AnyURL(string: hrefString),
             let text = try? Locator.Text(json: selection["text"]),
             var frame = CGRect(json: selection["rect"])
         else {
@@ -270,7 +271,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             return
         }
 
-        focusedResource = spread.links.first(withHREF: href)
+        focusedResource = spread.links.firstWithHREF(href)
         frame.origin = convertPointToNavigatorSpace(frame.origin)
         delegate?.spreadView(self, selectionDidChange: text, frame: frame)
     }
@@ -284,7 +285,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     // MARK: - Location and progression.
 
     /// Current progression in the resource with given href.
-    func progression(in href: String) -> Double {
+    func progression<T: URLConvertible>(in href: T) -> Double {
         // To be overridden in subclasses if the resource supports a progression.
         0
     }
@@ -315,7 +316,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         do {
             let resource = spread.leading
             let locator = try Locator(json: result.get())?
-                .copy(href: resource.href, type: resource.type ?? MediaType.xhtml.string)
+                .copy(href: resource.url(), mediaType: resource.mediaType ?? .xhtml)
             return locator
         } catch {
             log(.error, error)

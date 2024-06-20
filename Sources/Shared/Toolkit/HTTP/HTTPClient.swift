@@ -206,7 +206,7 @@ public extension HTTPClient {
 }
 
 /// Represents a successful HTTP response received from a server.
-public struct HTTPResponse: Equatable {
+public struct HTTPResponse: Equatable, Sendable {
     /// Request associated with the response.
     public let request: HTTPRequest
 

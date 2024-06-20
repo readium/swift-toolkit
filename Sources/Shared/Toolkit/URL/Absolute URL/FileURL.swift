@@ -9,7 +9,7 @@ import Foundation
 /// Represents an absolute URL with the special scheme `file`.
 ///
 /// See https://url.spec.whatwg.org/#special-scheme
-public struct FileURL: AbsoluteURL, Hashable {
+public struct FileURL: AbsoluteURL, Hashable, Sendable {
     public init?(url: URL) {
         let url = url.standardizedFileURL
         guard
@@ -65,6 +65,17 @@ public struct FileURL: AbsoluteURL, Hashable {
     // FIXME: Async
     public func isDirectory() throws -> Bool {
         try (url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
+    }
+
+    /// Strict URL comparisons can be a source of bug, if the URLs are not
+    /// normalized. In most cases, you should compare using
+    /// `isEquivalent()`.
+    ///
+    /// To ignore this warning, compare `FileURL.string` instead of
+    /// `FileURL` itself.
+    @available(*, deprecated, message: "Strict URL comparisons can be a source of bug. Use isEquivalent() instead.")
+    public static func == (lhs: FileURL, rhs: FileURL) -> Bool {
+        lhs.string == rhs.string
     }
 }
 

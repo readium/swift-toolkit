@@ -10,7 +10,7 @@ import XCTest
 class LinkTests: XCTestCase {
     let fullLink = Link(
         href: "http://href",
-        type: "application/pdf",
+        mediaType: .pdf,
         templated: true,
         title: "Link Title",
         rels: [.publication, .cover],
@@ -73,7 +73,7 @@ class LinkTests: XCTestCase {
     func testParseInvalidHREFWithDecodedPathInJSON() throws {
         let link = try Link(json: ["href": "01_Note de l editeur audio.mp3"])
         XCTAssertEqual(link, Link(href: "01_Note%20de%20l%20editeur%20audio.mp3"))
-        XCTAssertEqual(try link.url(), AnyURL(string: "01_Note%20de%20l%20editeur%20audio.mp3"))
+        XCTAssertEqual(link.url(), AnyURL(string: "01_Note%20de%20l%20editeur%20audio.mp3"))
     }
 
     func testParseJSONRelAsSingleString() {
@@ -222,56 +222,43 @@ class LinkTests: XCTestCase {
         )
     }
 
-    func testUnknownMediaType() {
-        XCTAssertEqual(Link(href: "file").mediaType, .binary)
-    }
-
-    func testMediaTypeFromType() {
-        XCTAssertEqual(Link(href: "file", type: "application/epub+zip").mediaType, .epub)
-        XCTAssertEqual(Link(href: "file", type: "application/pdf").mediaType, .pdf)
-    }
-
-    func testMediaTypeFromExtension() {
-        XCTAssertEqual(Link(href: "file.epub").mediaType, .epub)
-        XCTAssertEqual(Link(href: "file.pdf").mediaType, .pdf)
-    }
-
     func testURLRelativeToBaseURL() throws {
         XCTAssertEqual(
-            try Link(href: "folder/file.html").url(relativeTo: AnyURL(string: "http://host/")!),
+            Link(href: "folder/file.html").url(relativeTo: AnyURL(string: "http://host/")!),
             AnyURL(string: "http://host/folder/file.html")!
         )
     }
 
     func testURLRelativeToBaseURLWithRootPrefix() throws {
         XCTAssertEqual(
-            try Link(href: "file.html").url(relativeTo: AnyURL(string: "http://host/folder/")!),
+            Link(href: "file.html").url(relativeTo: AnyURL(string: "http://host/folder/")!),
             AnyURL(string: "http://host/folder/file.html")!
         )
     }
 
     func testURLRelativeToNil() throws {
         XCTAssertEqual(
-            try Link(href: "http://example.com/folder/file.html").url(),
+            Link(href: "http://example.com/folder/file.html").url(),
             AnyURL(string: "http://example.com/folder/file.html")!
         )
         XCTAssertEqual(
-            try Link(href: "folder/file.html").url(),
+            Link(href: "folder/file.html").url(),
             AnyURL(string: "folder/file.html")!
         )
     }
 
     func testURLWithAbsoluteHREF() throws {
         XCTAssertEqual(
-            try Link(href: "http://test.com/folder/file.html").url(relativeTo: AnyURL(string: "http://host/")!),
+            Link(href: "http://test.com/folder/file.html").url(relativeTo: AnyURL(string: "http://host/")!),
             AnyURL(string: "http://test.com/folder/file.html")!
         )
     }
 
     func testURLWithInvalidHREF() {
-        XCTAssertThrowsError(try Link(href: "01_Note de l editeur audio.mp3").url()) { error in
-            XCTAssertEqual(LinkError.invalidHREF("01_Note de l editeur audio.mp3"), error as? LinkError)
-        }
+        XCTAssertEqual(
+            Link(href: "01_Note de l editeur audio.mp3").url(),
+            AnyURL(string: "01_Note%20de%20l%20editeur%20audio.mp3")
+        )
     }
 
     func testTemplateParameters() {

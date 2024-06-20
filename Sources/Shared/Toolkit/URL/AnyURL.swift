@@ -114,6 +114,13 @@ extension AnyURL: URLConvertible {
 
 /// Implements `Hashable` and `Equatable`.
 extension AnyURL: Hashable {
+    /// Strict URL comparisons can be a source of bug, if the URLs are not
+    /// normalized. In most cases, you should compare using
+    /// `isEquivalent()`.
+    ///
+    /// To ignore this warning, compare `AnyURL.string` instead of
+    /// `AnyURL` itself.
+    @available(*, deprecated, message: "Strict URL comparisons can be a source of bug. Use isEquivalent() instead.")
     public static func == (lhs: AnyURL, rhs: AnyURL) -> Bool {
         lhs.string == rhs.string
     }

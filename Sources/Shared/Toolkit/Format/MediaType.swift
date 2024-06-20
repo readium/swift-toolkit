@@ -17,7 +17,7 @@ import Foundation
 /// media type, for example `application/atom+xml;profile=opds-catalog` for an OPDS 1 catalog.
 ///
 /// Specification: https://tools.ietf.org/html/rfc6838
-public struct MediaType: Hashable, Loggable {
+public struct MediaType: Hashable, Loggable, Sendable {
     /// The string representation of this media type.
     public var string: String {
         let params = parameters

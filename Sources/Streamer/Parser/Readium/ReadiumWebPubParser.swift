@@ -138,7 +138,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         }
 
         if manifest.conforms(to: .pdf) {
-            guard manifest.readingOrder.all(matchMediaType: .pdf) else {
+            guard manifest.readingOrder.allMatchingMediaType(.pdf) else {
                 return .failure(.decoding("The publication does not conform to the PDF profile specification"))
             }
         } else if manifest.conforms(to: .audiobook) {

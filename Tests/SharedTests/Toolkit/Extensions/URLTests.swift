@@ -29,7 +29,7 @@ class URLTests: XCTestCase {
     }
 
     func testIsParentOfSiblingIsFalse() {
-        let folder = URL(fileURLWithPath: "/root/folder")
+        let folder = URL(fileURLWithPath: "/root/foldser")
         XCTAssertFalse(folder.isParentOf(URL(fileURLWithPath: "/root/sibling")))
     }
 

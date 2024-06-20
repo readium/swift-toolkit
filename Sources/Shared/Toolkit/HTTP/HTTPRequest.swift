@@ -7,7 +7,7 @@
 import Foundation
 
 /// Holds the information about an HTTP request performed by an `HTTPClient`.
-public struct HTTPRequest: Equatable {
+public struct HTTPRequest: Equatable, Sendable {
     /// Address of the remote resource to request.
     public var url: HTTPURL
 
@@ -15,7 +15,7 @@ public struct HTTPRequest: Equatable {
     public var method: Method
 
     /// Supported HTTP methods.
-    public enum Method: String, Equatable {
+    public enum Method: String, Equatable, Sendable {
         case delete = "DELETE"
         case get = "GET"
         case head = "HEAD"
@@ -32,7 +32,7 @@ public struct HTTPRequest: Equatable {
     public var body: Body?
 
     /// Supported body values.
-    public enum Body: Equatable {
+    public enum Body: Equatable, Sendable {
         case data(Data)
         case file(URL)
     }
@@ -130,7 +130,7 @@ public protocol HTTPRequestConvertible {
 }
 
 public enum HTTPRequestError: Error {
-    case invalidURL(CustomStringConvertible)
+    case invalidURL(CustomStringConvertible & Sendable)
 }
 
 extension HTTPRequest: HTTPRequestConvertible {
@@ -180,7 +180,7 @@ extension String: HTTPRequestConvertible {
 
 extension Link: HTTPRequestConvertible {
     public func httpRequest() -> HTTPResult<HTTPRequest> {
-        guard let url = try? url().httpURL else {
+        guard let url = url().httpURL else {
             return .failure(HTTPError(kind: .malformedRequest(url: href)))
         }
         return url.httpRequest()

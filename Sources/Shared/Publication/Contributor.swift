@@ -8,7 +8,7 @@ import Foundation
 import ReadiumInternal
 
 /// https://readium.org/webpub-manifest/schema/contributor-object.schema.json
-public struct Contributor: Hashable {
+public struct Contributor: Hashable, Sendable {
     /// The name of the contributor.
     public var localizedName: LocalizedString
     public var name: String { localizedName.string }

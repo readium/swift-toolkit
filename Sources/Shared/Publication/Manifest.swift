@@ -11,7 +11,7 @@ import ReadiumInternal
 /// Manifest.
 ///
 /// See. https://readium.org/webpub-manifest/
-public struct Manifest: JSONEquatable, Hashable {
+public struct Manifest: JSONEquatable, Hashable, Sendable {
     public var context: [String] // @context
 
     public var metadata: Metadata
@@ -77,9 +77,9 @@ public struct Manifest: JSONEquatable, Hashable {
 
         // `readingOrder` used to be `spine`, so we parse `spine` as a fallback.
         readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"), warnings: warnings)
-            .filter { $0.type != nil }
+            .filter { $0.mediaType != nil }
         resources = [Link](json: json.pop("resources"), warnings: warnings)
-            .filter { $0.type != nil }
+            .filter { $0.mediaType != nil }
 
         // Parses sub-collections from remaining JSON properties.
         subcollections = PublicationCollection.makeCollections(json: json.json, warnings: warnings)
@@ -90,12 +90,12 @@ public struct Manifest: JSONEquatable, Hashable {
     ///
     /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
     public var baseURL: HTTPURL? {
-        links.first(withRel: .`self`)
+        links.firstWithRel(.`self`)
             .takeIf { !$0.templated }
-            .flatMap { HTTPURL(string: $0.href) }
+            .flatMap { HTTPURL(string: $0.href)?.removingLastPathSegment() }
     }
 
-    public var json: [String: Any] {
+    public var json: JSONDictionary.Wrapped {
         makeJSON([
             "@context": encodeIfNotEmpty(context),
             "metadata": metadata.json,
@@ -122,7 +122,7 @@ public struct Manifest: JSONEquatable, Hashable {
             // it could be a regular Web Publication.
             return readingOrder.allAreHTML && metadata.conformsTo.contains(.epub)
         case .pdf:
-            return readingOrder.all(matchMediaType: .pdf)
+            return readingOrder.allMatchingMediaType(.pdf)
         default:
             break
         }
@@ -131,13 +131,13 @@ public struct Manifest: JSONEquatable, Hashable {
     }
 
     /// Finds the first Link having the given `href` in the manifest's links.
-    public func link(withHREF href: String) -> Link? {
-        func deepFind(in linkLists: [Link]...) -> Link? {
+    public func linkWithHREF<T: URLConvertible>(_ href: T) -> Link? {
+        func deepFind(href: AnyURL, in linkLists: [[Link]]) -> Link? {
             for links in linkLists {
                 for link in links {
-                    if link.href == href {
+                    if link.url().normalized.string == href.string {
                         return link
-                    } else if let child = deepFind(in: link.alternates, link.children) {
+                    } else if let child = deepFind(href: href, in: [link.alternates, link.children]) {
                         return child
                     }
                 }
@@ -146,29 +146,38 @@ public struct Manifest: JSONEquatable, Hashable {
             return nil
         }
 
-        var link = deepFind(in: readingOrder, resources, links)
-        if
-            link == nil,
-            let shortHREF = href.components(separatedBy: .init(charactersIn: "#?")).first,
-            shortHREF != href
-        {
-            // Tries again, but without the anchor and query parameters.
-            link = self.link(withHREF: shortHREF)
-        }
+        let href = href.anyURL.normalized
+        let links = [readingOrder, resources, links]
 
-        return link
+        return deepFind(href: href, in: links)
+            ?? deepFind(href: href.removingQuery().removingFragment(), in: links)
     }
 
     /// Finds the first link with the given relation in the manifest's links.
-    public func link(withRel rel: LinkRelation) -> Link? {
-        readingOrder.first(withRel: rel)
-            ?? resources.first(withRel: rel)
-            ?? links.first(withRel: rel)
+    public func linkWithRel(_ rel: LinkRelation) -> Link? {
+        readingOrder.firstWithRel(rel)
+            ?? resources.firstWithRel(rel)
+            ?? links.firstWithRel(rel)
     }
 
     /// Finds all the links with the given relation in the manifest's links.
+    public func linksWithRel(_ rel: LinkRelation) -> [Link] {
+        (readingOrder + resources + links).filterByRel(rel)
+    }
+
+    @available(*, unavailable, renamed: "linkWithHREF")
+    public func link(withHREF href: String) -> Link? {
+        fatalError()
+    }
+
+    @available(*, unavailable, renamed: "linkWithRel")
+    public func link(withRel rel: LinkRelation) -> Link? {
+        fatalError()
+    }
+
+    @available(*, unavailable, renamed: "linksWithRel")
     public func links(withRel rel: LinkRelation) -> [Link] {
-        (readingOrder + resources + links).filter(byRel: rel)
+        fatalError()
     }
 
     /// Makes a copy of the `Manifest`, after modifying some of its properties.

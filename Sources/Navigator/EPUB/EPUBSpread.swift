@@ -58,15 +58,15 @@ struct EPUBSpread: Loggable {
     }
 
     /// Returns whether the spread contains a resource with the given href.
-    func contains(href: String) -> Bool {
-        links.first(withHREF: href) != nil
+    func contains<T: URLConvertible>(href: T) -> Bool {
+        links.firstWithHREF(href) != nil
     }
 
     /// Return the number of positions (as in `Publication.positionList`) contained in the spread.
     func positionCount(in readingOrder: [Link], positionsByReadingOrder: [[Locator]]) -> Int {
         links
             .map {
-                if let index = readingOrder.firstIndex(withHREF: $0.href) {
+                if let index = readingOrder.firstIndexWithHREF($0.url()) {
                     return positionsByReadingOrder[index].count
                 } else {
                     return 0
@@ -83,14 +83,10 @@ struct EPUBSpread: Loggable {
     ///   - page [left|center|right]: (optional) Page position of the linked resource in the spread.
     func json(forBaseURL baseURL: HTTPURL) -> [[String: Any]] {
         func makeLinkJSON(_ link: Link, page: Presentation.Page? = nil) -> [String: Any]? {
-            guard let url = try? link.url(relativeTo: baseURL) else {
-                return nil
-            }
-
             let page = page ?? link.properties.page ?? readingProgression.leadingPage
             return [
                 "link": link.json,
-                "url": url.string,
+                "url": link.url(relativeTo: baseURL).string,
                 "page": page.rawValue,
             ]
         }
@@ -204,9 +200,10 @@ struct EPUBSpread: Loggable {
 
 extension Array where Element == EPUBSpread {
     /// Returns the index of the first spread containing a resource with the given `href`.
-    func firstIndex(withHref href: String) -> Int? {
-        firstIndex { spread in
-            spread.links.contains { $0.href == href }
+    func firstIndexWithHREF<T: URLConvertible>(_ href: T) -> Int? {
+        let href = href.anyURL.normalized
+        return firstIndex { spread in
+            spread.links.contains { $0.url().normalized.string == href.string }
         }
     }
 }

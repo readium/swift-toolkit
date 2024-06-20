@@ -24,7 +24,7 @@ open class DefaultLocatorService: LocatorService, Loggable {
             return nil
         }
 
-        if publication.link(withHREF: locator.href) != nil {
+        if publication.linkWithHREF(locator.href) != nil {
             return locator
         }
 
@@ -42,20 +42,20 @@ open class DefaultLocatorService: LocatorService, Loggable {
     }
 
     open func locate(_ link: Link) async -> Locator? {
-        let components = link.href.split(separator: "#", maxSplits: 1).map(String.init)
-        let href = components.first ?? link.href
-        let fragment = components.getOrNil(1)
+        let originalHREF = link.url()
+        let fragment = originalHREF.fragment
+        let href = originalHREF.removingFragment()
 
         guard
-            let resourceLink = publication()?.link(withHREF: href),
-            let type = resourceLink.type
+            let resourceLink = publication()?.linkWithHREF(href),
+            let type = resourceLink.mediaType
         else {
             return nil
         }
 
         return Locator(
             href: href,
-            type: type,
+            mediaType: type,
             title: resourceLink.title ?? link.title,
             locations: Locator.Locations(
                 fragments: Array(ofNotNil: fragment),

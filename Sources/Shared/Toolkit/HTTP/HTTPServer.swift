@@ -82,7 +82,7 @@ public extension HTTPServer {
         func onRequest(request: HTTPServerRequest) -> HTTPServerResponse {
             guard
                 let href = request.href,
-                let link = publication.link(withHREF: href),
+                let link = publication.linkWithHREF(href),
                 let resource = publication.get(href)
             else {
                 onFailure?(request, .access(HTTPError(kind: .notFound)))

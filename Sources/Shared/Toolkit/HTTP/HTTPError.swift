@@ -11,7 +11,7 @@ public typealias HTTPDeferred<Success> = Deferred<Success, HTTPError>
 
 /// Represents an error occurring during an `HTTPClient` activity.
 public struct HTTPError: LocalizedError, Equatable, Loggable {
-    public enum Kind: Equatable {
+    public enum Kind: Equatable, Sendable {
         /// The provided request was not valid.
         case malformedRequest(url: String?)
         /// The received response couldn't be decoded.

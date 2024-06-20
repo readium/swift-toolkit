@@ -20,7 +20,7 @@ public class SingleResourceContainer: Container {
     }
 
     public subscript(url: any URLConvertible) -> (any Resource)? {
-        guard url.anyURL.removingQuery().removingFragment() == entryURL else {
+        guard url.anyURL.removingQuery().removingFragment().isEquivalentTo(entryURL) else {
             return nil
         }
 

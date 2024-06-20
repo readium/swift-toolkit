@@ -17,7 +17,7 @@ protocol EPUBNavigatorViewModelDelegate: AnyObject {
 enum EPUBScriptScope {
     case currentResource
     case loadedResources
-    case resource(href: String)
+    case resource(href: AnyURL)
 }
 
 final class EPUBNavigatorViewModel: Loggable {
@@ -173,8 +173,8 @@ final class EPUBNavigatorViewModel: Loggable {
         }
     }
 
-    func url(to link: Link) -> AnyURL? {
-        try? link.url(relativeTo: publicationBaseURL)
+    func url(to link: Link) -> AnyURL {
+        link.url(relativeTo: publicationBaseURL)
     }
 
     private func serveFile(at file: FileURL, baseEndpoint: HTTPServerEndpoint) throws -> HTTPURL {
@@ -350,7 +350,7 @@ final class EPUBNavigatorViewModel: Loggable {
 
     func injectReadiumCSS<HREF: URLConvertible>(in resource: Resource, at href: HREF) -> Resource {
         guard
-            let link = publication.link(withHREF: href),
+            let link = publication.linkWithHREF(href),
             link.mediaType?.isHTML == true,
             publication.metadata.presentation.layout(of: link) == .reflowable
         else {

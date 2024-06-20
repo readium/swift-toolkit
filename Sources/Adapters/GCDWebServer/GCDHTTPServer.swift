@@ -152,7 +152,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
             for (endpoint, handler) in handlers {
                 let request: HTTPServerRequest
-                if endpoint == pathWithoutAnchor {
+                if endpoint.isEquivalentTo(pathWithoutAnchor) {
                     request = HTTPServerRequest(url: url, href: nil)
                 } else if let href = endpoint.relativize(url) {
                     request = HTTPServerRequest(url: url, href: href)

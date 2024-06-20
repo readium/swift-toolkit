@@ -23,4 +23,15 @@ struct UnknownAbsoluteURL: AbsoluteURL, Hashable {
     let url: URL
     let scheme: URLScheme
     let origin: String? = nil
+
+    /// Strict URL comparisons can be a source of bug, if the URLs are not
+    /// normalized. In most cases, you should compare using
+    /// `isEquivalent()`.
+    ///
+    /// To ignore this warning, compare `UnknownAbsoluteURL.string` instead of
+    /// `UnknownAbsoluteURL` itself.
+    @available(*, deprecated, message: "Strict URL comparisons can be a source of bug. Use isEquivalent() instead.")
+    public static func == (lhs: UnknownAbsoluteURL, rhs: UnknownAbsoluteURL) -> Bool {
+        lhs.string == rhs.string
+    }
 }

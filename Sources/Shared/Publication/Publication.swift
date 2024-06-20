@@ -80,33 +80,43 @@ public class Publication: Closeable, Loggable {
     public var baseURL: HTTPURL? { manifest.baseURL }
 
     /// Finds the first Link having the given `href` in the publication's links.
-    public func link(withHREF href: String) -> Link? {
-        manifest.link(withHREF: href)
-    }
-
-    /// Finds the first Link having the given `href` in the publication's links.
-    public func link(withHREF href: URLConvertible) -> Link? {
-        manifest.link(withHREF: href.anyURL.string)
+    public func linkWithHREF<T: URLConvertible>(_ href: T) -> Link? {
+        manifest.linkWithHREF(href)
     }
 
     /// Finds the first link with the given relation in the publication's links.
-    public func link(withRel rel: LinkRelation) -> Link? {
-        manifest.link(withRel: rel)
+    public func linkWithRel(_ rel: LinkRelation) -> Link? {
+        manifest.linkWithRel(rel)
     }
 
     /// Finds all the links with the given relation in the publication's links.
+    public func linksWithRel(_ rel: LinkRelation) -> [Link] {
+        manifest.linksWithRel(rel)
+    }
+
+    @available(*, unavailable, renamed: "linkWithHREF")
+    public func link(withHREF href: String) -> Link? {
+        fatalError()
+    }
+
+    @available(*, unavailable, renamed: "linkWithRel")
+    public func link(withRel rel: LinkRelation) -> Link? {
+        fatalError()
+    }
+
+    @available(*, unavailable, renamed: "linksWithRel")
     public func links(withRel rel: LinkRelation) -> [Link] {
-        manifest.links(withRel: rel)
+        fatalError()
     }
 
     /// Returns the resource targeted by the given `link`.
     public func get(_ link: Link) -> Resource? {
         assert(!link.templated, "You must expand templated links before calling `Publication.get`")
-        return (try? link.url()).flatMap { get($0) }
+        return get(link.url())
     }
 
     /// Returns the resource targeted by the given `href`.
-    public func get(_ href: any URLConvertible) -> Resource? {
+    public func get<T: URLConvertible>(_ href: T) -> Resource? {
         let url = baseURL?.resolve(href)?.anyURL ?? href.anyURL
         // Try first the original href and falls back to href without query and fragment.
         return container[url] ?? container[url.removingQuery().removingFragment()]
@@ -137,11 +147,37 @@ public class Publication: Closeable, Loggable {
     @available(*, unavailable, message: "Not used anymore")
     public func setSelfLink(href: String?) { fatalError() }
 
+    /// Historically, we used to have "absolute" HREFs in the manifest:
+    ///  - starting with a `/` for packaged publications.
+    ///  - resolved to the `self` link for remote publications.
+    ///
+    /// We removed the normalization and now use relative HREFs everywhere, but
+    /// we still need to support the locators created with the old absolute
+    /// HREFs.
+    public func normalizeLocator(_ locator: Locator) -> Locator {
+        var locator = locator
+
+        if let baseURL = baseURL { // Remote publication
+            // Check that the locator HREF relative to `baseURL` exists in the manifest.
+            if let relativeHREF = baseURL.relativize(locator.href) {
+                locator.href = linkWithHREF(relativeHREF)?.url()
+                    ?? relativeHREF.anyURL
+            }
+
+        } else { // Packaged publication
+            if let href = AnyURL(string: locator.href.string.removingPrefix("/")) {
+                locator.href = href
+            }
+        }
+
+        return locator
+    }
+
     /// Represents a Readium Web Publication Profile a `Publication` can conform to.
     ///
     /// For a list of supported profiles, see the registry:
     /// https://readium.org/webpub-manifest/profiles/
-    public struct Profile: Hashable {
+    public struct Profile: Hashable, Sendable {
         public let uri: String
 
         public init(_ uri: String) {
