@@ -72,15 +72,15 @@ public final class ImageParser: PublicationParser {
                 makeBuilder(
                     container: asset.container,
                     readingOrder: readingOrder,
-                    title: asset.container.entries.guessTitle()
+                    title: asset.container.guessTitle()
                 )
             }
     }
 
     private func makeReadingOrder(for container: Container) async -> Result<[(AnyURL, Format)], PublicationParseError> {
-        await assetRetriever
-            .sniffContainerEntries(
-                container: container,
+        await container
+            .sniffFormats(
+                using: assetRetriever,
                 ignoring: ignores
             )
             .map { formats in
@@ -119,7 +119,7 @@ public final class ImageParser: PublicationParser {
             return .failure(.reading(.decoding("No bitmap resources found in the publication")))
         }
 
-        let readingOrder = readingOrder.map { url, format in
+        var readingOrder = readingOrder.map { url, format in
             Link(
                 href: url.string,
                 mediaType: format.mediaType

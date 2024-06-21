@@ -41,16 +41,40 @@ public enum ContentProtectionOpenError: Error {
     case reading(ReadError)
 }
 
+/// Represents a specific Content Protection technology, uniquely identified
+/// with an HTTP URL.
+public struct ContentProtectionScheme: RawRepresentable {
+    public let rawValue: HTTPURL
+
+    public init(rawValue: HTTPURL) {
+        self.rawValue = rawValue
+    }
+
+    /// Readium LCP DRM scheme.
+    public static let lcp = ContentProtectionScheme(rawValue: HTTPURL(string: "http://readium.org/2014/01/lcp")!)
+
+    /// Adobe ADEPT DRM scheme.
+    public static let adept = ContentProtectionScheme(rawValue: HTTPURL(string: "http://ns.adobe.com/adept")!)
+}
+
+public struct ContentProtectionSchemeNotSupportedError: Error {
+    public let scheme: ContentProtectionScheme
+
+    public init(scheme: ContentProtectionScheme) {
+        self.scheme = scheme
+    }
+}
+
 /// Holds the result of opening an ``Asset`` with a ``ContentProtection``.
 public struct ContentProtectionAsset {
     /// Asset granting access to the decrypted content.
-    let asset: Asset
+    public let asset: Asset
 
     /// Transform which will be applied on the Publication Builder before creating the Publication.
     ///
     /// Can be used to add a Content Protection Service to the Publication that will be created by
     /// the Streamer.
-    let onCreatePublication: Publication.Builder.Transform?
+    public let onCreatePublication: Publication.Builder.Transform?
 
     public init(asset: Asset, onCreatePublication: Publication.Builder.Transform? = nil) {
         self.asset = asset

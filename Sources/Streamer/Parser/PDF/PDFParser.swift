@@ -27,7 +27,7 @@ public final class PDFParser: PublicationParser, Loggable {
 
     private let pdfFactory: PDFDocumentFactory
 
-    public init(pdfFactory: PDFDocumentFactory = DefaultPDFDocumentFactory()) {
+    public init(pdfFactory: PDFDocumentFactory) {
         self.pdfFactory = pdfFactory
     }
 
@@ -48,7 +48,7 @@ public final class PDFParser: PublicationParser, Loggable {
             let document = try await pdfFactory.open(resource: resource, at: container.entry, password: nil)
             let authors = try await Array(ofNotNil: document.author().map { Contributor(name: $0) })
 
-            return try await try await try await try await try await try await .success(Publication.Builder(
+            return try await .success(Publication.Builder(
                 manifest: Manifest(
                     metadata: Metadata(
                         identifier: document.identifier(),

@@ -19,13 +19,14 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         case invalidManifest
     }
 
-    private let pdfFactory: PDFDocumentFactory
+    private let pdfFactory: PDFDocumentFactory?
     private let httpClient: HTTPClient
     private let epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy
 
-    /// - Parameter epubReflowablePositionsStrategy: Strategy used to calculate the
-    ///   number of positions in a reflowable resource of a web publication conforming to the EPUB profile.
-    public init(pdfFactory: PDFDocumentFactory, httpClient: HTTPClient, epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy = .recommended) {
+    /// - Parameter epubReflowablePositionsStrategy: Strategy used to calculate
+    ///   the number of positions in a reflowable resource of a web publication
+    ///   conforming to the EPUB profile.
+    public init(pdfFactory: PDFDocumentFactory?, httpClient: HTTPClient, epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy = .recommended) {
         self.pdfFactory = pdfFactory
         self.httpClient = httpClient
         self.epubReflowablePositionsStrategy = epubReflowablePositionsStrategy
@@ -112,8 +113,8 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
                         } else if manifest.conforms(to: .audiobook) {
                             $0.setLocatorServiceFactory(AudioLocatorService.makeFactory())
 
-                        } else if manifest.conforms(to: .pdf), format.conformsTo(.lcp) {
-                            $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory(pdfFactory: self.pdfFactory))
+                        } else if manifest.conforms(to: .pdf), format.conformsTo(.lcp), let pdfFactory = pdfFactory {
+                            $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory(pdfFactory: pdfFactory))
                         }
 
                         // FIXME: WebPositionsService from Kotlin?
