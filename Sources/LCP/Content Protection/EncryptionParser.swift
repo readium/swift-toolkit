@@ -33,8 +33,8 @@ private func parseRPFEncryptionData(in container: Container) async -> ReadResult
             (manifest.readingOrder + manifest.resources)
                 .reduce([:]) { data, link in
                     var data = data
-                    if let url = try? link.url(), let encryption = link.properties.encryption {
-                        data[url] = encryption
+                    if let encryption = link.properties.encryption {
+                        data[link.url()] = encryption
                     }
                     return data
                 }

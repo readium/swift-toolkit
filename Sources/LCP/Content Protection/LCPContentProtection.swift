@@ -37,7 +37,7 @@ final class LCPContentProtection: ContentProtection, Loggable {
                 let authentication = credentials.map { LCPPassphraseAuthentication($0, fallback: self.authentication) }
                     ?? self.authentication
 
-                let license = await service.retrieveLicense(
+                let license = await self.service.retrieveLicense(
                     from: .container(asset),
                     authentication: authentication,
                     allowUserInteraction: allowUserInteraction,
@@ -52,7 +52,7 @@ final class LCPContentProtection: ContentProtection, Loggable {
 
                 let cpAsset = ContentProtectionAsset(
                     asset: .container(asset),
-                    onCreatePublication: { _, _, _, services in
+                    onCreatePublication: { _, _, services in
                         services.setContentProtectionServiceFactory { _ in
                             LCPContentProtectionService(result: license)
                         }
@@ -94,6 +94,8 @@ private final class LCPContentProtectionService: ContentProtectionService {
             self.init(error: error)
         }
     }
+
+    let scheme: ContentProtectionScheme = .lcp
 
     var isRestricted: Bool {
         license == nil
