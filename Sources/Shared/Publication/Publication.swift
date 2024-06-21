@@ -117,9 +117,8 @@ public class Publication: Closeable, Loggable {
 
     /// Returns the resource targeted by the given `href`.
     public func get<T: URLConvertible>(_ href: T) -> Resource? {
-        let url = baseURL?.resolve(href)?.anyURL ?? href.anyURL
         // Try first the original href and falls back to href without query and fragment.
-        return container[url] ?? container[url.removingQuery().removingFragment()]
+        container[href] ?? container[href.anyURL.removingQuery().removingFragment()]
     }
 
     /// Closes any opened resource associated with the `Publication`, including `services`.

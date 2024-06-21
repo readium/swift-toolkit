@@ -8,6 +8,8 @@ import Foundation
 
 /// A file system directory as a ``Container``.
 public struct DirectoryContainer: Container, Loggable {
+    public struct NotADirectoryError: Error {}
+
     private let directoryURL: FileURL
     public let entries: Set<AnyURL>
 
@@ -23,8 +25,16 @@ public struct DirectoryContainer: Container, Loggable {
     public init(
         directory: FileURL,
         options: FileManager.DirectoryEnumerationOptions = [.skipsHiddenFiles]
-    ) async {
+    ) async throws {
         var entries = Set<RelativeURL>()
+
+        var isDirectory: ObjCBool = false
+        guard
+            FileManager.default.fileExists(atPath: directory.path, isDirectory: &isDirectory),
+            isDirectory.boolValue
+        else {
+            throw NotADirectoryError()
+        }
 
         if let enumerator = FileManager.default.enumerator(
             at: directory.url,

@@ -32,6 +32,14 @@ public enum AnyURL: URLProtocol {
         }
     }
 
+    /// Creates an ``AnyURL`` from a decoded relative `path`.
+    public init?(path: String) {
+        guard let url = RelativeURL(path: path) else {
+            return nil
+        }
+        self = .relative(url)
+    }
+
     /// Creates an `AnyURL` from a legacy HREF.
     ///
     /// For example, if it is a relative path such as `/dir/my chapter.html`,

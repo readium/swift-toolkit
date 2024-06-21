@@ -43,7 +43,7 @@ public enum ContentProtectionOpenError: Error {
 
 /// Represents a specific Content Protection technology, uniquely identified
 /// with an HTTP URL.
-public struct ContentProtectionScheme: RawRepresentable {
+public struct ContentProtectionScheme: RawRepresentable, Equatable, Sendable {
     public let rawValue: HTTPURL
 
     public init(rawValue: HTTPURL) {

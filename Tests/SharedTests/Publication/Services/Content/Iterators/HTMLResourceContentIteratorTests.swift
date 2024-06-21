@@ -168,59 +168,90 @@ class HTMLResourceContentIteratorTest: XCTestCase {
         totalProgressionRange: ClosedRange<Double>? = nil
     ) -> HTMLResourceContentIterator {
         HTMLResourceContentIterator(
-            resource: DataResource(link: link, string: html),
-            totalProgressionRange: totalProgressionRange,
+            resource: DataResource(string: html),
+            totalProgressionRange: { totalProgressionRange },
             locator: startLocator ?? locator()
         )
     }
 
-    func testIterateFromStartToFinish() throws {
+    func testIterateFromStartToFinish() async throws {
         let iter = iterator(html)
-        XCTAssertEqual(elements[0], try iter.next()?.equatable())
-        XCTAssertEqual(elements[1], try iter.next()?.equatable())
-        XCTAssertEqual(elements[2], try iter.next()?.equatable())
-        XCTAssertEqual(elements[3], try iter.next()?.equatable())
-        XCTAssertEqual(elements[4], try iter.next()?.equatable())
-        XCTAssertNil(try iter.next())
+
+        var result: AnyEquatableContentElement? = try await iter.next()?.equatable()
+        XCTAssertEqual(elements[0], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertEqual(elements[1], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertEqual(elements[2], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertEqual(elements[3], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertEqual(elements[4], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertNil(result)
     }
 
-    func testPreviousIsNullFromTheBeginning() {
+    func testPreviousIsNullFromTheBeginning() async throws {
         let iter = iterator(html)
-        XCTAssertNil(try iter.previous())
+        let result = try await iter.previous()
+        XCTAssertNil(result)
     }
 
-    func testNextReturnsTheFirstElementFromTheBeginning() {
+    func testNextReturnsTheFirstElementFromTheBeginning() async throws {
         let iter = iterator(html)
-        XCTAssertEqual(elements[0], try iter.next()?.equatable())
+        let result = try await iter.next()?.equatable()
+        XCTAssertEqual(elements[0], result)
     }
 
-    func testNextThenPreviousReturnsNull() {
+    func testNextThenPreviousReturnsNull() async throws {
         let iter = iterator(html)
-        XCTAssertEqual(elements[0], try iter.next()?.equatable())
-        XCTAssertNil(try iter.previous())
+        var result: AnyEquatableContentElement? = try await iter.next()?.equatable()
+        XCTAssertEqual(elements[0], result)
+        result = try await iter.previous()?.equatable()
+        XCTAssertNil(result)
     }
 
-    func testNextTwiceThenPreviousReturnsTheFirstElement() {
+    func testNextTwiceThenPreviousReturnsTheFirstElement() async throws {
         let iter = iterator(html)
-        XCTAssertEqual(elements[0], try iter.next()?.equatable())
-        XCTAssertEqual(elements[1], try iter.next()?.equatable())
-        XCTAssertEqual(elements[0], try iter.previous()?.equatable())
+
+        var result: AnyEquatableContentElement? = try await iter.next()?.equatable()
+        XCTAssertEqual(elements[0], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertEqual(elements[1], result)
+
+        result = try await iter.previous()?.equatable()
+        XCTAssertEqual(elements[0], result)
     }
 
-    func testStartingFromCSSSelector() {
+    func testStartingFromCSSSelector() async throws {
         let iter = iterator(html, start: locator(selector: "#pgepubid00498 > p:nth-child(3)"))
-        XCTAssertEqual(elements[2], try iter.next()?.equatable())
-        XCTAssertEqual(elements[3], try iter.next()?.equatable())
-        XCTAssertEqual(elements[4], try iter.next()?.equatable())
-        XCTAssertNil(try iter.next())
+
+        var result: AnyEquatableContentElement? = try await iter.next()?.equatable()
+        XCTAssertEqual(elements[2], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertEqual(elements[3], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertEqual(elements[4], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertNil(result)
     }
 
-    func testCallingPreviousWhenStartingFromCSSSelector() {
+    func testCallingPreviousWhenStartingFromCSSSelector() async throws {
         let iter = iterator(html, start: locator(selector: "#pgepubid00498 > p:nth-child(3)"))
-        XCTAssertEqual(elements[1], try iter.previous()?.equatable())
+        let result = try await iter.previous()?.equatable()
+        XCTAssertEqual(elements[1], result)
     }
 
-    func testStartingFromCSSSelectorToBlockElementContainingInlineElement() {
+    func testStartingFromCSSSelectorToBlockElementContainingInlineElement() async throws {
         let nbspHtml = """
         <?xml version="1.0" encoding="UTF-8"?>
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr">
@@ -255,10 +286,11 @@ class HTMLResourceContentIteratorTest: XCTestCase {
             ]
         )
 
-        XCTAssertEqual(expectedElement.equatable(), try iter.next()?.equatable())
+        let result = try await iter.next()?.equatable()
+        XCTAssertEqual(expectedElement.equatable(), result)
     }
 
-    func testStartingFromCSSSelectorUsingRootSelector() {
+    func testStartingFromCSSSelectorUsingRootSelector() async throws {
         let nbspHtml = """
         <?xml version="1.0" encoding="UTF-8"?>
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr">
@@ -294,10 +326,11 @@ class HTMLResourceContentIteratorTest: XCTestCase {
             ]
         )
 
-        XCTAssertEqual(expectedElement.equatable(), try iter.next()?.equatable())
+        let result = try await iter.next()?.equatable()
+        XCTAssertEqual(expectedElement.equatable(), result)
     }
 
-    func testIteratingOverImageElements() {
+    func testIteratingOverImageElements() async throws {
         let html = """
             <?xml version="1.0" encoding="UTF-8"?>
             <html xmlns="http://www.w3.org/1999/xhtml">
@@ -324,12 +357,18 @@ class HTMLResourceContentIteratorTest: XCTestCase {
         ]
 
         let iter = iterator(html)
-        XCTAssertEqual(expectedElements[0], try iter.next()?.equatable())
-        XCTAssertEqual(expectedElements[1], try iter.next()?.equatable())
-        XCTAssertNil(try iter.next())
+
+        var result: AnyEquatableContentElement? = try await iter.next()?.equatable()
+        XCTAssertEqual(expectedElements[0], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertEqual(expectedElements[1], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertNil(result)
     }
 
-    func testIteratingOverAudioElements() {
+    func testIteratingOverAudioElements() async throws {
         let html = """
         <?xml version="1.0" encoding="UTF-8"?>
         <html xmlns="http://www.w3.org/1999/xhtml">
@@ -361,12 +400,18 @@ class HTMLResourceContentIteratorTest: XCTestCase {
         ]
 
         let iter = iterator(html)
-        XCTAssertEqual(expectedElements[0], try iter.next()?.equatable())
-        XCTAssertEqual(expectedElements[1], try iter.next()?.equatable())
-        XCTAssertNil(try iter.next())
+
+        var result: AnyEquatableContentElement? = try await iter.next()?.equatable()
+        XCTAssertEqual(expectedElements[0], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertEqual(expectedElements[1], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertNil(result)
     }
 
-    func testIteratingOverVideoElements() {
+    func testIteratingOverVideoElements() async throws {
         let html = """
         <?xml version="1.0" encoding="UTF-8"?>
         <html xmlns="http://www.w3.org/1999/xhtml">
@@ -398,12 +443,18 @@ class HTMLResourceContentIteratorTest: XCTestCase {
         ]
 
         let iter = iterator(html)
-        XCTAssertEqual(expectedElements[0], try iter.next()?.equatable())
-        XCTAssertEqual(expectedElements[1], try iter.next()?.equatable())
-        XCTAssertNil(try iter.next())
+
+        var result: AnyEquatableContentElement? = try await iter.next()?.equatable()
+        XCTAssertEqual(expectedElements[0], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertEqual(expectedElements[1], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertNil(result)
     }
 
-    func testIteratingOverElementContainingBothATextNodeAndChildElements() {
+    func testIteratingOverElementContainingBothATextNodeAndChildElements() async throws {
         let html = """
         <?xml version="1.0" encoding="UTF-8"?>
         <html xmlns="http://www.w3.org/1999/xhtml">
@@ -489,13 +540,21 @@ class HTMLResourceContentIteratorTest: XCTestCase {
         ]
 
         let iter = iterator(html)
-        XCTAssertEqual(expectedElements[0], try iter.next()?.equatable())
-        XCTAssertEqual(expectedElements[1], try iter.next()?.equatable())
-        XCTAssertEqual(expectedElements[2], try iter.next()?.equatable())
-        XCTAssertNil(try iter.next())
+
+        var result: AnyEquatableContentElement? = try await iter.next()?.equatable()
+        XCTAssertEqual(expectedElements[0], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertEqual(expectedElements[1], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertEqual(expectedElements[2], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertNil(result)
     }
 
-    func testIteratingOverTextNodesLocatedAroundANestedBlockElement() {
+    func testIteratingOverTextNodesLocatedAroundANestedBlockElement() async throws {
         let html = """
         <?xml version="1.0" encoding="UTF-8"?>
         <html xmlns="http://www.w3.org/1999/xhtml">
@@ -595,11 +654,21 @@ class HTMLResourceContentIteratorTest: XCTestCase {
         ]
 
         let iter = iterator(html)
-        XCTAssertEqual(expectedElements[0], try iter.next()?.equatable())
-        XCTAssertEqual(expectedElements[1], try iter.next()?.equatable())
-        XCTAssertEqual(expectedElements[2], try iter.next()?.equatable())
-        XCTAssertEqual(expectedElements[3], try iter.next()?.equatable())
-        XCTAssertNil(try iter.next())
+
+        var result: AnyEquatableContentElement? = try await iter.next()?.equatable()
+        XCTAssertEqual(expectedElements[0], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertEqual(expectedElements[1], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertEqual(expectedElements[2], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertEqual(expectedElements[3], result)
+
+        result = try await iter.next()?.equatable()
+        XCTAssertNil(result)
     }
 }
 

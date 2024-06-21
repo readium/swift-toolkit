@@ -18,8 +18,10 @@ class ContentProtectionServiceTests: XCTestCase {
 
     /// The Publication helpers will use the `ContentProtectionService` if there's one.
     func testPublicationHelpers() async {
+        let scheme = ContentProtectionScheme(rawValue: HTTPURL(string: "https://domain.com/drm")!)
         let publication = makePublication(service: { _ in
             TestContentProtectionService(
+                scheme: scheme,
                 isRestricted: true,
                 error: Publication.OpeningError.notFound,
                 credentials: "open sesame",
@@ -28,6 +30,7 @@ class ContentProtectionServiceTests: XCTestCase {
             )
         })
 
+        XCTAssertEqual(publication.protectionScheme, scheme)
         XCTAssertTrue(publication.isProtected)
         XCTAssertTrue(publication.isRestricted)
         XCTAssertNotNil(publication.protectionError)
@@ -44,14 +47,12 @@ class ContentProtectionServiceTests: XCTestCase {
 
         let r4 = await publication.rights.print(pageCount: 99999)
         XCTAssertFalse(r4)
-
-        XCTAssertEqual(publication.protectionLocalizedName, .localized(["en": "DRM", "fr": "GDN"]))
-        XCTAssertEqual(publication.protectionName, "DRM")
     }
 
     func testPublicationHelpersFallbacks() async {
         let publication = makePublication(service: nil)
 
+        XCTAssertNil(publication.protectionScheme)
         XCTAssertFalse(publication.isProtected)
         XCTAssertFalse(publication.isRestricted)
         XCTAssertNil(publication.protectionError)
@@ -68,9 +69,6 @@ class ContentProtectionServiceTests: XCTestCase {
 
         let r4 = await publication.rights.print(pageCount: 99999)
         XCTAssertTrue(r4)
-
-        XCTAssertNil(publication.protectionLocalizedName)
-        XCTAssertNil(publication.protectionName)
     }
 
     private func makePublication(service: ContentProtectionServiceFactory? = nil) -> Publication {
@@ -87,6 +85,7 @@ class ContentProtectionServiceTests: XCTestCase {
 }
 
 struct TestContentProtectionService: ContentProtectionService {
+    var scheme: ContentProtectionScheme = .init(rawValue: HTTPURL(string: "https://domain.com/drm")!)
     var isRestricted: Bool = false
     var error: Error? = nil
     var credentials: String? = nil

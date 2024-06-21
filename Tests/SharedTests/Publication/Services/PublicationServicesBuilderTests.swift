@@ -19,7 +19,7 @@ class PublicationServicesBuilderTests: XCTestCase {
     private let context = PublicationServiceContext(
         publication: Weak<Publication>(),
         manifest: Manifest(metadata: Metadata(title: "")),
-        fetcher: EmptyFetcher()
+        container: EmptyContainer()
     )
 
     func testInitWithCustomFactories() {
