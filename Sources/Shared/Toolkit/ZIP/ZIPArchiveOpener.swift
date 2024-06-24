@@ -12,8 +12,8 @@ public class ZIPArchiveOpener: ArchiveOpener {
 
     public init() {}
 
-    public func open(format: Format, resource: any Resource) async -> Result<ContainerAsset, ArchiveOpenError> {
-        await opener.open(format: format, resource: resource)
+    public func open(resource: any Resource, format: Format) async -> Result<ContainerAsset, ArchiveOpenError> {
+        await opener.open(resource: resource, format: format)
     }
 
     public func sniffOpen(resource: any Resource) async -> Result<ContainerAsset, ArchiveSniffOpenError> {

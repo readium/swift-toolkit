@@ -28,7 +28,7 @@ public final class AVAudioPublicationManifestAugmentor: AudioPublicationManifest
 
     public func augment(_ manifest: Manifest, using container: Container) -> AudioPublicationAugmentedManifest {
         let avAssets = manifest.readingOrder.map { link in
-            try? container[link.url()]?.sourceURL?.fileURL
+            container[link.url()]?.sourceURL?.fileURL
                 .map { AVURLAsset(url: $0.url, options: [AVURLAssetPreferPreciseDurationAndTimingKey: true]) }
         }
         var manifest = manifest

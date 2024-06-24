@@ -42,6 +42,11 @@ public struct ResourceAsset: AssetProtocol {
     public var resource: Resource
     public var format: Format
 
+    public init(resource: Resource, format: Format) {
+        self.resource = resource
+        self.format = format
+    }
+
     public func close() {
         resource.close()
     }

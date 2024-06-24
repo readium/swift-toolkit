@@ -8,7 +8,7 @@ import Foundation
 import Minizip
 
 final class MinizipArchiveOpener: ArchiveOpener {
-    func open(format: Format, resource: any Resource) async -> Result<ContainerAsset, ArchiveOpenError> {
+    func open(resource: any Resource, format: Format) async -> Result<ContainerAsset, ArchiveOpenError> {
         guard
             format.conformsTo(.zip),
             let file = resource.sourceURL?.fileURL

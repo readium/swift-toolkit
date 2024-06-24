@@ -86,7 +86,7 @@ public actor EPUBPositionsService: PositionsService {
 
     private func computePositionsByReadingOrder() async -> [[Locator]] {
         var lastPositionOfPreviousResource = 0
-        var positions = await readingOrder.map { link -> [Locator] in
+        var positions = await readingOrder.asyncmap { link -> [Locator] in
             let (lastPosition, positions): (Int, [Locator]) = await {
                 if presentation.layout(of: link) == .fixed {
                     return makePositions(ofFixedResource: link, from: lastPositionOfPreviousResource)
@@ -99,7 +99,7 @@ public actor EPUBPositionsService: PositionsService {
         }
 
         // Calculates totalProgression
-        let totalPageCount = await positions.map(\.count).reduce(0, +)
+        let totalPageCount = await positions.asyncmap(\.count).reduce(0, +)
         if totalPageCount > 0 {
             positions = positions.map { locators in
                 locators.map { locator in

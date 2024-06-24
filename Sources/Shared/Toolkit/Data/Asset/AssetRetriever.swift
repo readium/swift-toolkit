@@ -10,6 +10,8 @@ import Foundation
 /// resource(s) of an asset stored at a given ``AbsoluteURL`` and its
 /// ``Format``.
 public final class AssetRetriever {
+    public init() {}
+
     /// Retrieves an asset from a URL and a known format.
     public func retrieve(url: AbsoluteURL, format: Format) async -> Result<Asset, AssetRetrieveURLError> {
         fatalError()

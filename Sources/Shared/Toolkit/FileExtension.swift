@@ -11,7 +11,7 @@ public struct FileExtension: Hashable, RawRepresentable, ExpressibleByStringLite
     public let rawValue: String
 
     public init(rawValue: String) {
-        precondition(!rawValue.isEmpty && rawValue.hasPrefix("."))
+        precondition(!rawValue.isEmpty && !rawValue.hasPrefix("."))
         self.rawValue = rawValue.lowercased()
     }
 

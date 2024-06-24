@@ -15,9 +15,9 @@ public class CompositeArchiveOpener: ArchiveOpener {
         self.archiveOpeners = archiveOpeners
     }
 
-    public func open(format: Format, resource: any Resource) async -> Result<ContainerAsset, ArchiveOpenError> {
+    public func open(resource: any Resource, format: Format) async -> Result<ContainerAsset, ArchiveOpenError> {
         for opener in archiveOpeners {
-            switch await opener.open(format: format, resource: resource) {
+            switch await opener.open(resource: resource, format: format) {
             case let .success(asset):
                 return .success(asset)
             case let .failure(error):

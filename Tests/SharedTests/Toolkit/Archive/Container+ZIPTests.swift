@@ -182,7 +182,7 @@ class ZIPBenchmarkingTests: XCTestCase {
                 let lower = UInt64.random(in: 0 ..< length - 100)
                 let upper = UInt64.random(in: lower ..< length)
                 let range = lower ..< upper
-                let datas = await entries.map { await $0.read(range: range).getOrNil() }
+                let datas = await entries.asyncmap { await $0.read(range: range).getOrNil() }
                 let data = datas[0]
                 XCTAssertTrue(datas.allSatisfy { $0 == data })
                 exp.fulfill()
