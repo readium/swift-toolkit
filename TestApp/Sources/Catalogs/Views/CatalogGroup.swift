@@ -4,11 +4,11 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
+import ReadiumShared
 import SwiftUI
 
 struct CatalogGroup: View {
-    var group: R2Shared.Group
+    var group: ReadiumShared.Group
     let publicationDetail: (Publication) -> PublicationDetail
     let catalogFeed: (Catalog) -> CatalogFeed
 

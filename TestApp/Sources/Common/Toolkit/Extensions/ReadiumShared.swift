@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
+import ReadiumShared
 
-extension R2Shared.Publication: Identifiable {}
-extension R2Shared.Group: Identifiable {}
+extension ReadiumShared.Publication: Identifiable {}
+extension ReadiumShared.Group: Identifiable {}

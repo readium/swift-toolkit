@@ -5,14 +5,14 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 class Container {
     private let db: Database
 
     init() throws {
         db = try Database(
-            file: Paths.library.appendingPathComponent("database.db"),
+            file: Paths.library.appendingPath("database.db", isDirectory: false).url,
             migrations: [InitialMigration()]
         )
     }

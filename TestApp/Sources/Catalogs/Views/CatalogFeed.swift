@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
+import ReadiumShared
 import ReadiumOPDS
 import SwiftUI
 
@@ -52,7 +52,7 @@ struct CatalogFeed: View {
                     }
 
                     if !feed.groups.isEmpty {
-                        ForEach(feed.groups as [R2Shared.Group]) { group in
+                        ForEach(feed.groups as [ReadiumShared.Group]) { group in
                             CatalogGroup(group: group, publicationDetail: publicationDetail, catalogFeed: catalogFeed)
                                 .padding([.bottom], 25)
                         }

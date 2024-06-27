@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
+import ReadiumShared
 import SwiftUI
 
 struct PublicationDetail: View {
@@ -26,7 +26,7 @@ struct PublicationDetail: View {
                     },
                     placeholder: { ProgressView() }
                 )
-                Text(publication.metadata.title).font(.largeTitle)
+                Text(publication.metadata.title ?? "").font(.largeTitle)
                 Text(authors).font(.title2)
                 Text(publication.metadata.description ?? "")
                     .padding([.top, .bottom], 20)
