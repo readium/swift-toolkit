@@ -14,6 +14,8 @@ public final class DefaultFormatSniffer: CompositeFormatSniffer {
     public init(additionalSniffers: [FormatSniffer] = []) {
         super.init(additionalSniffers + [
             HTMLFormatSniffer(),
+            ZIPFormatSniffer(),
+            EPUBFormatSniffer()
         ])
     }
 }

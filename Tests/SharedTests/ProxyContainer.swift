@@ -8,16 +8,16 @@ import Foundation
 import ReadiumShared
 
 final class ProxyContainer: Container {
-    private let get: (AnyURL) -> Resource?
+    private let retrieve: (AnyURL) -> Resource?
 
-    init(entries: Set<AnyURL> = [], _ get: @escaping (AnyURL) -> Resource?) {
+    init(entries: Set<AnyURL> = [], _ retrieve: @escaping (AnyURL) -> Resource?) {
         self.entries = entries
-        self.get = get
+        self.retrieve = retrieve
     }
 
     let entries: Set<AnyURL>
 
     subscript(url: any URLConvertible) -> (any Resource)? {
-        get(url.anyURL)
+        retrieve(url.anyURL)
     }
 }

@@ -16,7 +16,7 @@ class ImageParserTests: XCTestCase {
     var jpgAsset: Asset!
 
     override func setUp() async throws {
-        parser = ImageParser(assetRetriever: AssetRetriever())
+        parser = ImageParser(assetRetriever: AssetRetriever(httpClient: DefaultHTTPClient()))
 
         cbzAsset = try await .container(ZIPArchiveOpener().open(
             resource: FileResource(file: fixtures.url(for: "futuristic_tales.cbz")),

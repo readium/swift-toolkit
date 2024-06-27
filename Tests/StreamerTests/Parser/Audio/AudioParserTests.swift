@@ -17,7 +17,7 @@ class AudioParserTests: XCTestCase {
     var mp3Asset: Asset!
 
     override func setUp() async throws {
-        parser = AudioParser(assetRetriever: AssetRetriever())
+        parser = AudioParser(assetRetriever: AssetRetriever(httpClient: DefaultHTTPClient()))
 
         zabAsset = try await .container(ZIPArchiveOpener().open(
             resource: FileResource(file: fixtures.url(for: "audiotest.zab")),

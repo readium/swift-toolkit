@@ -19,6 +19,25 @@ public protocol ContentFormatSniffer {
     func sniffContainer<C: Container>(_ container: C, refining format: Format) async -> ReadResult<Format>
 }
 
+public extension ContentFormatSniffer {
+    /// Tries to sniff the format of `source`.
+    func sniffBlob(_ source: Streamable) async -> ReadResult<Format?> {
+        await sniffBlob(FormatSnifferBlob(source: source))
+    }
+
+    /// Tries to sniff the format of `blob`.
+    func sniffBlob(_ blob: FormatSnifferBlob) async -> ReadResult<Format?> {
+        await sniffBlob(blob, refining: .null)
+            .map { Optional($0).takeIf { $0.hasSpecification } }
+    }
+
+    /// Tries to sniff the format of `container`.
+    func sniffContainer<C: Container>(_ container: C) async -> ReadResult<Format?> {
+        await sniffContainer(container, refining: .null)
+            .map { Optional($0).takeIf { $0.hasSpecification } }
+    }
+}
+
 public protocol FormatSniffer: HintsFormatSniffer, ContentFormatSniffer {}
 
 public extension FormatSniffer {
