@@ -29,7 +29,7 @@ public struct PDFOutlineNode {
     public func link(withDocumentHREF documentHREF: String) -> Link {
         Link(
             href: "\(documentHREF)#page=\(pageNumber)",
-            type: MediaType.pdf.string,
+            mediaType: .pdf,
             title: title,
             children: children.links(withDocumentHREF: documentHREF)
         )

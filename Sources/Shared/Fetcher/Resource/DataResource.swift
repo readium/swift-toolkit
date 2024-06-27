@@ -26,7 +26,7 @@ public final class DataResource: Resource {
 
     public let link: Link
 
-    public let file: URL? = nil
+    public let file: FileURL? = nil
 
     public var length: ResourceResult<UInt64> { data.map { UInt64($0.count) } }
 

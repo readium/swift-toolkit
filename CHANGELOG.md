@@ -8,6 +8,81 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Added
 
+#### Streamer
+
+* Support for standalone audio files and their metadata (contributed by [@domkm](https://github.com/readium/swift-toolkit/pull/414)).
+
+### Changed
+
+* The Readium Swift toolkit now requires a minimum of iOS 13.
+* Plenty of completion-based APIs were changed to use `async` functions instead.
+
+#### Shared
+
+* The `Link` property key for archive-based publication assets (e.g. an EPUB/ZIP) is now `https://readium.org/webpub-manifest/properties#archive` instead of `archive`.
+* The API of `HTTPServer` slightly changed to be more future-proof.
+
+#### Navigator
+
+* EPUB: The `scroll` preference is now forced to `true` when rendering vertical text (e.g. CJK vertical). [See this discussion for the rationale](https://github.com/readium/swift-toolkit/discussions/370).
+
+#### LCP
+
+* The Readium LCP persistence layer was extracted to allow applications to provide their own implementations. Take a look at [the migration guide](Documentation/Migration%20Guide.md) for guidance.
+
+### Fixed
+
+#### Navigator
+
+* Optimized scrolling to an EPUB text-based locator if it contains a CSS selector.
+
+
+## [3.0.0-alpha.1]
+
+### Changed
+
+* The `R2Shared`, `R2Streamer` and `R2Navigator` packages are now called `ReadiumShared`, `ReadiumStreamer` and `ReadiumNavigator`.
+* Many APIs now expect one of the new URL types (`RelativeURL`, `AbsoluteURL`, `HTTPURL` and `FileURL`). This is helpful because:
+    * It validates at compile time that we provide a URL that is supported.
+    * The API's capabilities are better documented, e.g. a download API could look like this : `download(url: HTTPURL) -> FileURL`. 
+
+#### Shared
+
+* `Link` and `Locator`'s `href` are normalized as valid URLs to improve interoperability with the Readium Web toolkits.
+   * **You MUST migrate your database if you were persisting HREFs and Locators**. Take a look at [the migration guide](Documentation/Migration%20Guide.md) for guidance.
+* Links are not resolved to the `self` URL of a manifest anymore. However, you can still normalize the HREFs yourselves by calling `Manifest.normalizeHREFsToSelf()`.
+* `Publication.localizedTitle` is now optional, as we cannot guarantee a publication will always have a title.
+
+
+## [2.7.2]
+
+### Fixed
+
+#### Shared
+
+* [#444](https://github.com/readium/swift-toolkit/issues/444) Fixed resolving titles of search results when the table of contents items contain fragment identifiers.
+
+#### Navigator
+
+* [#428](https://github.com/readium/swift-toolkit/issues/428) Fixed crash with the `share` editing action on iOS 17.
+* [#428](https://github.com/readium/swift-toolkit/issues/428) Fixed showing look up and translate editing actions on iOS 17.
+
+
+## [2.7.1]
+
+### Added
+
+* [#417](https://github.com/readium/swift-toolkit/issues/417) Support for the new 2.x LCP Profiles.
+
+
+## [2.7.0]
+
+### Added
+
+#### Shared
+
+* You can now use `DefaultHTTPClientDelegate.httpClient(_:request:didReceive:completion:)` to handle authentication challenges (e.g. Basic) with `DefaultHTTPClient`.
+
 #### Navigator
 
 * The `AudioNavigator` API has been promoted to stable and ships with a new Preferences API.
@@ -657,3 +732,7 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [2.5.1]: https://github.com/readium/swift-toolkit/compare/2.5.0...2.5.1
 [2.6.0]: https://github.com/readium/swift-toolkit/compare/2.5.1...2.6.0
 [2.6.1]: https://github.com/readium/swift-toolkit/compare/2.6.0...2.6.1
+[2.7.0]: https://github.com/readium/swift-toolkit/compare/2.6.1...2.7.0
+[2.7.1]: https://github.com/readium/swift-toolkit/compare/2.7.0...2.7.1
+[2.7.2]: https://github.com/readium/swift-toolkit/compare/2.7.1...2.7.2
+[3.0.0-alpha.1]: https://github.com/readium/swift-toolkit/compare/2.7.1...3.0.0-alpha.1

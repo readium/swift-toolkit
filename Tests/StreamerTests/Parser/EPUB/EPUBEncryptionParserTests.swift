@@ -4,8 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
-@testable import R2Streamer
+import ReadiumShared
+@testable import ReadiumStreamer
 import XCTest
 
 class EPUBEncryptionParserTests: XCTestCase {
@@ -15,14 +15,14 @@ class EPUBEncryptionParserTests: XCTestCase {
         let sut = parseEncryptions("encryption-lcp")
 
         XCTAssertEqual(sut, [
-            "/chapter01.xhtml": Encryption(
+            RelativeURL(path: "chapter01.xhtml")!: Encryption(
                 algorithm: "http://www.w3.org/2001/04/xmlenc#aes256-cbc",
                 compression: "deflate",
                 originalLength: 13291,
                 profile: nil,
                 scheme: "http://readium.org/2014/01/lcp"
             ),
-            "/dir/chapter02.xhtml": Encryption(
+            RelativeURL(path: "dir/chapter02.xhtml")!: Encryption(
                 algorithm: "http://www.w3.org/2001/04/xmlenc#aes256-cbc",
                 compression: "none",
                 originalLength: 12914,
@@ -36,14 +36,14 @@ class EPUBEncryptionParserTests: XCTestCase {
         let sut = parseEncryptions("encryption-lcp-namespaces")
 
         XCTAssertEqual(sut, [
-            "/chapter01.xhtml": Encryption(
+            RelativeURL(path: "chapter01.xhtml")!: Encryption(
                 algorithm: "http://www.w3.org/2001/04/xmlenc#aes256-cbc",
                 compression: "deflate",
                 originalLength: 13291,
                 profile: nil,
                 scheme: "http://readium.org/2014/01/lcp"
             ),
-            "/dir/chapter02.xhtml": Encryption(
+            RelativeURL(path: "dir/chapter02.xhtml")!: Encryption(
                 algorithm: "http://www.w3.org/2001/04/xmlenc#aes256-cbc",
                 compression: "none",
                 originalLength: 12914,
@@ -57,14 +57,14 @@ class EPUBEncryptionParserTests: XCTestCase {
         let sut = parseEncryptions("encryption-unknown-drm")
 
         XCTAssertEqual(sut, [
-            "/html/chapter.html": Encryption(
+            RelativeURL(path: "html/chapter.html"): Encryption(
                 algorithm: "http://www.w3.org/2001/04/xmlenc#kw-aes128",
                 compression: "deflate",
                 originalLength: 12914,
                 profile: nil,
                 scheme: nil
             ),
-            "/images/image.jpeg": Encryption(
+            RelativeURL(path: "images/image.jpeg"): Encryption(
                 algorithm: "http://www.w3.org/2001/04/xmlenc#kw-aes128",
                 compression: nil,
                 originalLength: nil,
@@ -76,7 +76,7 @@ class EPUBEncryptionParserTests: XCTestCase {
 
     // MARK: - Toolkit
 
-    func parseEncryptions(_ name: String) -> [String: Encryption] {
+    func parseEncryptions(_ name: String) -> [RelativeURL: Encryption] {
         let data = fixtures.data(at: "\(name).xml")
         return EPUBEncryptionParser(fetcher: EmptyFetcher(), data: data).parseEncryptions()
     }

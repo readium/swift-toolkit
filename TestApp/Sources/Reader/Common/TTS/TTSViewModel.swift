@@ -7,8 +7,8 @@
 import Combine
 import Foundation
 import MediaPlayer
-import R2Navigator
-import R2Shared
+import ReadiumNavigator
+import ReadiumShared
 
 final class TTSViewModel: ObservableObject, Loggable {
     struct State: Equatable {
@@ -144,7 +144,7 @@ final class TTSViewModel: ObservableObject, Loggable {
 
     private func setupNowPlaying() {
         NowPlayingInfo.shared.media = .init(
-            title: publication.metadata.title,
+            title: publication.metadata.title ?? "",
             artist: publication.metadata.authors.map(\.name).joined(separator: ", "),
             artwork: publication.cover
         )

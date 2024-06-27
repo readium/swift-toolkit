@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 final class LCPContentProtection: ContentProtection, Loggable {
     private let service: LCPService
@@ -33,12 +33,13 @@ final class LCPContentProtection: ContentProtection, Loggable {
         let authentication = credentials.map { LCPPassphraseAuthentication($0, fallback: self.authentication) }
             ?? self.authentication
 
-        service.retrieveLicense(
-            from: file.url,
-            authentication: authentication,
-            allowUserInteraction: allowUserInteraction,
-            sender: sender
-        ) { result in
+        Task {
+            let result = await service.retrieveLicense(
+                from: file.file,
+                authentication: authentication,
+                allowUserInteraction: allowUserInteraction,
+                sender: sender
+            )
             if case let .success(license) = result, license == nil {
                 // Not protected with LCP.
                 completion(.success(nil))
@@ -86,14 +87,12 @@ private final class LCPContentProtectionService: ContentProtectionService {
         self.error = error
     }
 
-    convenience init(result: CancellableResult<LCPLicense?, LCPError>) {
+    convenience init(result: Result<LCPLicense?, LCPError>) {
         switch result {
         case let .success(license):
             self.init(license: license)
         case let .failure(error):
             self.init(error: error)
-        case .cancelled:
-            self.init()
         }
     }
 

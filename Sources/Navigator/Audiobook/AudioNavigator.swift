@@ -6,7 +6,7 @@
 
 import AVFoundation
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Status of a played media resource.
 public enum MediaPlaybackState {
@@ -339,8 +339,8 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
         }
 
         return Locator(
-            href: link.href,
-            type: link.type ?? "audio/*",
+            href: link.url(),
+            mediaType: link.mediaType ?? MediaType("audio/*")!,
             title: link.title,
             locations: Locator.Locations(
                 fragments: ["t=\(time)"],
@@ -382,7 +382,9 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
 
     @discardableResult
     public func go(to locator: Locator, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        guard let newResourceIndex = publication.readingOrder.firstIndex(withHREF: locator.href) else {
+        let locator = publication.normalizeLocator(locator)
+
+        guard let newResourceIndex = publication.readingOrder.firstIndexWithHREF(locator.href) else {
             return false
         }
         let link = publication.readingOrder[newResourceIndex]

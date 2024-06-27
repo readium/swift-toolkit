@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import R2Shared
 import ReadiumGCDWebServer
+import ReadiumShared
 
 /// Errors thrown by the `WebServerResourceResponse`
 ///
@@ -77,7 +77,7 @@ class ResourceResponse: ReadiumGCDWebServerFileResponse, Loggable {
 
         super.init()
 
-        contentType = resource.link.type ?? ""
+        contentType = resource.link.mediaType?.string ?? ""
 
         // Disable HTTP caching for publication resources, because it poses a security threat for protected
         // publications.

@@ -1,5 +1,6 @@
 TestApp.xcodeproj
 TestApp.xcworkspace
+TestApp.xctestplan
 project.yml
 # IntelliJ AppCode
 .idea

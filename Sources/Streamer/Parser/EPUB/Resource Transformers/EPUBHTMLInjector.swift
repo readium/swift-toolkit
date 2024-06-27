@@ -6,7 +6,7 @@
 
 import Foundation
 import Fuzi
-import R2Shared
+import ReadiumShared
 
 // FIXME: To remove in Readium 3.0. This was replaced by `ReadiumCSS` in the Navigator.
 
@@ -25,7 +25,7 @@ final class EPUBHTMLInjector {
             // Will be empty when the new Settings API is in use.
             !userProperties.properties.isEmpty,
             // We only transform HTML resources.
-            resource.link.mediaType.isHTML
+            resource.link.mediaType?.isHTML == true
         else {
             return resource
         }

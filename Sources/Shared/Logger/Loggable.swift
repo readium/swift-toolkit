@@ -70,6 +70,15 @@ public extension Loggable {
         Logger.sharedInstance.log(value, at: level, file: defaultFile, line: defaultLine)
     }
 
+    @discardableResult func logAndRethrow<T>(_ block: () throws -> T) rethrows -> T {
+        do {
+            return try block()
+        } catch {
+            log(.error, error)
+            throw error
+        }
+    }
+
     static func log(_ level: SeverityLevel, _ value: Any?, file: String, line: Int) {
         Logger.sharedInstance.log(value, at: level, file: file, line: line)
     }

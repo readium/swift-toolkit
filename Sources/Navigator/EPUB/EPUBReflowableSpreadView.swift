@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 import WebKit
 
@@ -27,7 +27,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         if viewModel.useLegacySettings {
             let layout = ReadiumCSSLayout(languages: viewModel.publication.metadata.languages, readingProgression: viewModel.readingProgression)
             scripts.append(WKUserScript(
-                source: "window.readiumCSSBaseURL = '\(viewModel.assetsURL.appendingPathComponent(layout.readiumCSSBasePath))'",
+                source: "window.readiumCSSBaseURL = '\(viewModel.assetsURL.resolve(layout.readiumCSSBasePath)!)'",
                 injectionTime: .atDocumentStart,
                 forMainFrameOnly: false
             ))
@@ -77,11 +77,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return
         }
         let link = spread.leading
-        guard let url = viewModel.url(to: link) else {
-            log(.error, "Can't get URL for link \(link.href)")
-            return
-        }
-        webView.load(URLRequest(url: url))
+        let url = viewModel.url(to: link)
+        webView.load(URLRequest(url: url.url))
     }
 
     override func applySettings() {
@@ -172,8 +169,11 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     // MARK: - Location and progression
 
-    override func progression(in href: String) -> Double {
-        guard spread.leading.href == href, let progression = progression else {
+    override func progression<T>(in href: T) -> Double where T: URLConvertible {
+        guard
+            spread.leading.url().isEquivalentTo(href),
+            let progression = progression
+        else {
             return 0
         }
         return progression
@@ -254,32 +254,32 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         case let .locator(locator):
             go(to: locator) { _ in completion() }
         case .start:
-            go(toProgression: 0) { _ in completion() }
+            scroll(toProgression: 0) { _ in completion() }
         case .end:
-            go(toProgression: 1) { _ in completion() }
+            scroll(toProgression: 1) { _ in completion() }
         }
     }
 
     private func go(to locator: Locator, completion: @escaping (Bool) -> Void) {
-        guard ["", "#"].contains(locator.href) || spread.contains(href: locator.href) else {
+        guard ["", "#"].contains(locator.href.string) || spread.contains(href: locator.href) else {
             log(.warning, "The locator's href is not in the spread")
             completion(false)
             return
         }
 
         if locator.text.highlight != nil {
-            go(toText: locator.text, completion: completion)
+            scroll(toLocator: locator, completion: completion)
             // FIXME: find the first fragment matching a tag ID (need a regex)
         } else if let id = locator.locations.fragments.first, !id.isEmpty {
-            go(toTagID: id, completion: completion)
+            scroll(toTagID: id, completion: completion)
         } else {
             let progression = locator.locations.progression ?? 0
-            go(toProgression: progression, completion: completion)
+            scroll(toProgression: progression, completion: completion)
         }
     }
 
     /// Scrolls at given progression (from 0.0 to 1.0)
-    private func go(toProgression progression: Double, completion: @escaping (Bool) -> Void) {
+    private func scroll(toProgression progression: Double, completion: @escaping (Bool) -> Void) {
         guard progression >= 0, progression <= 1 else {
             log(.warning, "Scrolling to invalid progression \(progression)")
             completion(false)
@@ -301,7 +301,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
 
     /// Scrolls at the tag with ID `tagID`.
-    private func go(toTagID tagID: String, completion: @escaping (Bool) -> Void) {
+    private func scroll(toTagID tagID: String, completion: @escaping (Bool) -> Void) {
         evaluateScript("readium.scrollToId(\'\(tagID)\');") { result in
             switch result {
             case let .success(value):
@@ -314,12 +314,12 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
 
     /// Scrolls at the snippet matching the given text context.
-    private func go(toText text: Locator.Text, completion: @escaping (Bool) -> Void) {
-        guard let json = text.jsonString else {
+    private func scroll(toLocator locator: Locator, completion: @escaping (Bool) -> Void) {
+        guard let json = locator.jsonString else {
             completion(false)
             return
         }
-        evaluateScript("readium.scrollToText(\(json));") { result in
+        evaluateScript("readium.scrollToLocator(\(json));") { result in
             switch result {
             case let .success(value):
                 completion((value as? Bool) ?? false)
@@ -418,7 +418,7 @@ private enum ReadiumCSSLayout: String {
         }
     }
 
-    var readiumCSSBasePath: String {
+    var readiumCSSBasePath: RelativeURL {
         let folder: String = {
             switch self {
             case .ltr:
@@ -431,10 +431,10 @@ private enum ReadiumCSSLayout: String {
                 return "cjk-horizontal/"
             }
         }()
-        return "readium-css/\(folder)"
+        return RelativeURL(string: "readium-css/\(folder)")!
     }
 
-    func readiumCSSPath(for name: String) -> String {
-        "\(readiumCSSBasePath)ReadiumCSS-\(name).css"
+    func readiumCSSPath(for name: String) -> RelativeURL {
+        readiumCSSBasePath.appendingPath("ReadiumCSS-\(name).css", isDirectory: false)
     }
 }

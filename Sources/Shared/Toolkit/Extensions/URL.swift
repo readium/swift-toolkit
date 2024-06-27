@@ -63,6 +63,7 @@ extension URL: Loggable {
     /// Returns the first available URL by appending the given `pathComponent`.
     ///
     /// If `pathComponent` is already taken, then it appends a number to it.
+    // FIXME: Move to Internal
     public func appendingUniquePathComponent(_ pathComponent: String? = nil) -> URL {
         /// Returns the first path component matching the given `validation` closure.
         /// Numbers are appended to the path component until a valid candidate is found.

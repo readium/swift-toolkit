@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import R2Shared
+@testable import ReadiumShared
 import XCTest
 
 class PropertiesOPDSTests: XCTestCase {
@@ -103,7 +103,7 @@ class PropertiesOPDSTests: XCTestCase {
         ]])
         XCTAssertEqual(sut.authenticate, Link(
             href: "https://example.com/authentication.json",
-            type: "application/opds-authentication+json"
+            mediaType: .opdsAuthentication
         ))
     }
 

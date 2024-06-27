@@ -5,29 +5,30 @@
 //
 
 import Foundation
+import ReadiumShared
 
 /// Access to a License Document packaged as a standalone LCPL file.
 final class LCPLLicenseContainer: LicenseContainer {
-    private let lcpl: URL
+    private let lcpl: FileURL
 
-    init(lcpl: URL) {
+    init(lcpl: FileURL) {
         self.lcpl = lcpl
     }
 
-    func containsLicense() -> Bool {
+    func containsLicense() async throws -> Bool {
         true
     }
 
-    func read() throws -> Data {
-        guard let data = try? Data(contentsOf: lcpl) else {
+    func read() async throws -> Data {
+        guard let data = try? Data(contentsOf: lcpl.url) else {
             throw LCPError.licenseContainer(.readFailed(path: "."))
         }
         return data
     }
 
-    func write(_ license: LicenseDocument) throws {
+    func write(_ license: LicenseDocument) async throws {
         do {
-            try license.data.write(to: lcpl, options: .atomic)
+            try license.jsonData.write(to: lcpl.url, options: .atomic)
         } catch {
             throw LCPError.licenseContainer(.writeFailed(path: "."))
         }

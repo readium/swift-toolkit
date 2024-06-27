@@ -4,8 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
-@testable import R2Streamer
+import ReadiumShared
+@testable import ReadiumStreamer
 import XCTest
 
 class ImageParserTests: XCTestCase {
@@ -21,16 +21,16 @@ class ImageParserTests: XCTestCase {
     override func setUpWithError() throws {
         parser = ImageParser()
 
-        cbzAsset = FileAsset(url: fixtures.url(for: "futuristic_tales.cbz"))
-        cbzFetcher = try ArchiveFetcher(url: cbzAsset.url)
+        cbzAsset = FileAsset(file: fixtures.url(for: "futuristic_tales.cbz"))
+        cbzFetcher = try ArchiveFetcher(file: cbzAsset.file)
 
-        jpgAsset = FileAsset(url: fixtures.url(for: "futuristic_tales/Cory Doctorow's Futuristic Tales of the Here and Now/a-fc.jpg"))
-        jpgFetcher = FileFetcher(href: "/a-fc.jpg", path: jpgAsset.url)
+        jpgAsset = FileAsset(file: fixtures.url(for: "futuristic_tales/Cory Doctorow's Futuristic Tales of the Here and Now/a-fc.jpg"))
+        jpgFetcher = FileFetcher(href: RelativeURL(path: "a-fc.jpg")!, file: jpgAsset.file)
     }
 
     func testRefusesNonBitmapBased() throws {
-        let asset = FileAsset(url: fixtures.url(for: "audiotest.zab"))
-        let fetcher = try ArchiveFetcher(url: asset.url)
+        let asset = FileAsset(file: fixtures.url(for: "audiotest.zab"))
+        let fetcher = try ArchiveFetcher(file: asset.file)
         XCTAssertNil(try parser.parse(asset: asset, fetcher: fetcher, warnings: nil))
     }
 
@@ -54,17 +54,17 @@ class ImageParserTests: XCTestCase {
         let publication = try XCTUnwrap(parser.parse(asset: cbzAsset, fetcher: cbzFetcher, warnings: nil)?.build())
 
         XCTAssertEqual(publication.readingOrder.map(\.href), [
-            "/Cory Doctorow's Futuristic Tales of the Here and Now/a-fc.jpg",
-            "/Cory Doctorow's Futuristic Tales of the Here and Now/x-002.jpg",
-            "/Cory Doctorow's Futuristic Tales of the Here and Now/x-003.jpg",
-            "/Cory Doctorow's Futuristic Tales of the Here and Now/x-153.jpg",
-            "/Cory Doctorow's Futuristic Tales of the Here and Now/z-bc.jpg",
+            "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/a-fc.jpg",
+            "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-002.jpg",
+            "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-003.jpg",
+            "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-153.jpg",
+            "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/z-bc.jpg",
         ])
     }
 
     func testFirstReadingOrderItemIsCover() throws {
         let publication = try XCTUnwrap(parser.parse(asset: cbzAsset, fetcher: cbzFetcher, warnings: nil)?.build())
-        let cover = try XCTUnwrap(publication.link(withRel: .cover))
+        let cover = try XCTUnwrap(publication.linkWithRel(.cover))
         XCTAssertEqual(publication.readingOrder.first, cover)
     }
 
@@ -78,40 +78,40 @@ class ImageParserTests: XCTestCase {
 
         XCTAssertEqual(publication.positions, [
             Locator(
-                href: "/Cory Doctorow's Futuristic Tales of the Here and Now/a-fc.jpg",
-                type: "image/jpeg",
+                href: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/a-fc.jpg",
+                mediaType: .jpeg,
                 locations: .init(
                     totalProgression: 0,
                     position: 1
                 )
             ),
             Locator(
-                href: "/Cory Doctorow's Futuristic Tales of the Here and Now/x-002.jpg",
-                type: "image/jpeg",
+                href: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-002.jpg",
+                mediaType: .jpeg,
                 locations: .init(
                     totalProgression: 1 / 5.0,
                     position: 2
                 )
             ),
             Locator(
-                href: "/Cory Doctorow's Futuristic Tales of the Here and Now/x-003.jpg",
-                type: "image/jpeg",
+                href: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-003.jpg",
+                mediaType: .jpeg,
                 locations: .init(
                     totalProgression: 2 / 5.0,
                     position: 3
                 )
             ),
             Locator(
-                href: "/Cory Doctorow's Futuristic Tales of the Here and Now/x-153.jpg",
-                type: "image/jpeg",
+                href: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-153.jpg",
+                mediaType: .jpeg,
                 locations: .init(
                     totalProgression: 3 / 5.0,
                     position: 4
                 )
             ),
             Locator(
-                href: "/Cory Doctorow's Futuristic Tales of the Here and Now/z-bc.jpg",
-                type: "image/jpeg",
+                href: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/z-bc.jpg",
+                mediaType: .jpeg,
                 locations: .init(
                     totalProgression: 4 / 5.0,
                     position: 5

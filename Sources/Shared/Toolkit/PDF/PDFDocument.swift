@@ -51,7 +51,7 @@ public protocol PDFDocument {
 
 public protocol PDFDocumentFactory {
     /// Opens a PDF from a local file path.
-    func open(url: URL, password: String?) throws -> PDFDocument
+    func open(file: FileURL, password: String?) throws -> PDFDocument
 
     /// Opens a PDF from a `Fetcher`'s resource.
     func open(resource: Resource, password: String?) throws -> PDFDocument
@@ -63,8 +63,8 @@ public class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable {
 
     public init() {}
 
-    public func open(url: URL, password: String?) throws -> PDFDocument {
-        try factory.open(url: url, password: password)
+    public func open(file: FileURL, password: String?) throws -> PDFDocument {
+        try factory.open(file: file, password: password)
     }
 
     public func open(resource: Resource, password: String?) throws -> PDFDocument {
@@ -80,8 +80,8 @@ public class CompositePDFDocumentFactory: PDFDocumentFactory, Loggable {
         self.factories = factories
     }
 
-    public func open(url: URL, password: String?) throws -> PDFDocument {
-        try eachFactory { try $0.open(url: url, password: password) }
+    public func open(file: FileURL, password: String?) throws -> PDFDocument {
+        try eachFactory { try $0.open(file: file, password: password) }
     }
 
     public func open(resource: Resource, password: String?) throws -> PDFDocument {

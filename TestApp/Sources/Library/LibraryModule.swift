@@ -6,8 +6,8 @@
 
 import Combine
 import Foundation
-import R2Shared
-import R2Streamer
+import ReadiumShared
+import ReadiumStreamer
 import UIKit
 
 /// The Library module handles the presentation of the bookshelf, and the publications' management.
@@ -21,7 +21,7 @@ protocol LibraryModuleAPI {
     /// Imports a new publication to the library, either from:
     /// - a local file URL
     /// - a remote URL which will be downloaded
-    func importPublication(from url: URL, sender: UIViewController) async throws -> Book
+    func importPublication(from url: AbsoluteURL, sender: UIViewController) async throws -> Book
 }
 
 protocol LibraryModuleDelegate: ModuleDelegate {
@@ -50,7 +50,7 @@ final class LibraryModule: LibraryModuleAPI {
         return library
     }()
 
-    func importPublication(from url: URL, sender: UIViewController) async throws -> Book {
+    func importPublication(from url: AbsoluteURL, sender: UIViewController) async throws -> Book {
         try await library.importPublication(from: url, sender: sender)
     }
 }

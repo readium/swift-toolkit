@@ -5,6 +5,7 @@
 //
 
 import Combine
+import ReadiumShared
 import UIKit
 
 // @UIApplicationMain
@@ -52,9 +53,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+        guard let url = url.absoluteURL else {
+            return false
+        }
+
         Task {
             try! await app.library.importPublication(from: url, sender: window!.rootViewController!)
         }
+
         return true
     }
 }

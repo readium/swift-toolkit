@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
+import ReadiumShared
 import SwiftSoup
 import WebKit
 
@@ -148,7 +148,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     /// Evaluates the given JavaScript into the resource's HTML page.
-    func evaluateScript(_ script: String, inHREF href: String? = nil, completion: ((Result<Any, Error>) -> Void)? = nil) {
+    func evaluateScript(_ script: String, inHREF href: AnyURL? = nil, completion: ((Result<Any, Error>) -> Void)? = nil) {
         log(.debug, "Evaluate script: \(script)")
         webView.evaluateJavaScript(script) { res, error in
             if let error = error {
@@ -257,7 +257,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
         guard
             let selection = body as? [String: Any],
-            let href = selection["href"] as? String,
+            let hrefString = selection["href"] as? String,
+            let href = AnyURL(string: hrefString),
             let text = try? Locator.Text(json: selection["text"]),
             var frame = CGRect(json: selection["rect"])
         else {
@@ -267,7 +268,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             return
         }
 
-        focusedResource = spread.links.first(withHREF: href)
+        focusedResource = spread.links.firstWithHREF(href)
         frame.origin = convertPointToNavigatorSpace(frame.origin)
         delegate?.spreadView(self, selectionDidChange: text, frame: frame)
     }
@@ -281,7 +282,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     // MARK: - Location and progression.
 
     /// Current progression in the resource with given href.
-    func progression(in href: String) -> Double {
+    func progression<T: URLConvertible>(in href: T) -> Double {
         // To be overridden in subclasses if the resource supports a progression.
         0
     }
@@ -313,7 +314,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
                 do {
                     let resource = self.spread.leading
                     let locator = try Locator(json: result.get())?
-                        .copy(href: resource.href, type: resource.type ?? MediaType.xhtml.string)
+                        .copy(href: resource.url(), mediaType: resource.mediaType ?? .xhtml)
                     completion(locator)
                 } catch {
                     self.log(.error, error)
@@ -460,13 +461,12 @@ extension EPUBSpreadView: WKNavigationDelegate {
         var policy: WKNavigationActionPolicy = .allow
 
         if navigationAction.navigationType == .linkActivated {
-            if let url = navigationAction.request.url {
+            if let url = navigationAction.request.url?.httpURL {
                 // Check if url is internal or external
-                if let baseURL = viewModel.publicationBaseURL, url.host == baseURL.host {
-                    let href = url.absoluteString.replacingOccurrences(of: baseURL.absoluteString, with: "/")
-                    delegate?.spreadView(self, didTapOnInternalLink: href, clickEvent: lastClick)
+                if let relativeURL = viewModel.publicationBaseURL.relativize(url) {
+                    delegate?.spreadView(self, didTapOnInternalLink: relativeURL.string, clickEvent: lastClick)
                 } else {
-                    delegate?.spreadView(self, didTapOnExternalURL: url)
+                    delegate?.spreadView(self, didTapOnExternalURL: url.url)
                 }
 
                 policy = .cancel
@@ -498,7 +498,10 @@ extension EPUBSpreadView: UIScrollViewDelegate {
 extension EPUBSpreadView: WKUIDelegate {
     func webView(_ webView: WKWebView, shouldPreviewElement elementInfo: WKPreviewElementInfo) -> Bool {
         // Preview allowed only if the link is not internal
-        elementInfo.linkURL?.host != viewModel.publicationBaseURL.host
+        guard let url = elementInfo.linkURL?.httpURL else {
+            return true
+        }
+        return url.isRelative(to: viewModel.publicationBaseURL)
     }
 }
 

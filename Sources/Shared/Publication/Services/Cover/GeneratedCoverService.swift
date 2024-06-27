@@ -26,7 +26,7 @@ public final class GeneratedCoverService: CoverService {
 
     private let coverLink = Link(
         href: "/~readium/cover",
-        type: "image/png",
+        mediaType: .png,
         rel: .cover
     )
 
@@ -42,11 +42,13 @@ public final class GeneratedCoverService: CoverService {
         return LazyResource {
             do {
                 let cover = try self.generatedCover.get()
+
+                var link = self.coverLink
+                link.height = Int(cover.size.height)
+                link.width = Int(cover.size.width)
+
                 return try DataResource(
-                    link: self.coverLink.copy(
-                        height: Int(cover.size.height),
-                        width: Int(cover.size.width)
-                    ),
+                    link: link,
                     data: cover.pngData().orThrow(Error.generationFailed)
                 )
             } catch {

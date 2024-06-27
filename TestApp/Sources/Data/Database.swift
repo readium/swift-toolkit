@@ -7,6 +7,7 @@
 import Combine
 import Foundation
 import GRDB
+import ReadiumShared
 import SwiftUI
 
 /// Database migration to be performed when updating the app.

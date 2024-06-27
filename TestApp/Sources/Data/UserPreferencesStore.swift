@@ -6,7 +6,7 @@
 
 import Combine
 import Foundation
-import R2Navigator
+import ReadiumNavigator
 
 /// A persistent store for a set of user preferences of type `Preferences`.
 protocol UserPreferencesStore {

@@ -11,8 +11,6 @@ import Foundation
 /// This is required by some Navigators to access a local publication's
 /// resources.
 public protocol HTTPServer {
-    typealias FailureHandler = (_ request: HTTPServerRequest, _ error: ResourceError) -> Void
-
     /// Serves resources at the given `endpoint`.
     ///
     /// Subsequent calls with the same `endpoint` overwrite each other.
@@ -21,42 +19,19 @@ public protocol HTTPServer {
     @discardableResult
     func serve(
         at endpoint: HTTPServerEndpoint,
-        handler: @escaping (HTTPServerRequest) -> Resource
-    ) throws -> URL
-
-    /// Serves resources at the given `endpoint`.
-    ///
-    /// Subsequent calls with the same `endpoint` overwrite each other.
-    ///
-    /// If the resource cannot be served, the `failureHandler` is called.
-    ///
-    /// - Returns the base URL for this endpoint.
-    @discardableResult
-    func serve(
-        at endpoint: HTTPServerEndpoint,
-        handler: @escaping (HTTPServerRequest) -> Resource,
-        failureHandler: FailureHandler?
-    ) throws -> URL
+        handler: HTTPRequestHandler
+    ) throws -> HTTPURL
 
     /// Registers a `Resource` transformer that will be run on all responses
     /// matching the given `endpoint`.
-    func transformResources(at endpoint: HTTPServerEndpoint, with transformer: @escaping ResourceTransformer)
+    func transformResources(at endpoint: HTTPServerEndpoint, with transformer: @escaping ResourceTransformer) throws
 
     /// Removes a handler serving resources at `endpoint`, as well as the
     /// resource transformers.
-    func remove(at endpoint: HTTPServerEndpoint)
+    func remove(at endpoint: HTTPServerEndpoint) throws
 }
 
 public extension HTTPServer {
-    @discardableResult
-    func serve(
-        at endpoint: HTTPServerEndpoint,
-        handler: @escaping (HTTPServerRequest) -> Resource,
-        failureHandler: FailureHandler?
-    ) throws -> URL {
-        try serve(at: endpoint, handler: handler)
-    }
-
     /// Serves the local file `url` at the given `endpoint`.
     ///
     /// If the provided `url` is a directory, then all the files in the
@@ -69,16 +44,17 @@ public extension HTTPServer {
     @discardableResult
     func serve(
         at endpoint: HTTPServerEndpoint,
-        contentsOf url: URL,
-        failureHandler: FailureHandler? = nil
-    ) throws -> URL {
-        func handler(request: HTTPServerRequest) -> Resource {
-            let file = url.appendingPathComponent(request.href ?? "")
+        contentsOf url: FileURL,
+        onFailure: HTTPRequestHandler.OnFailure? = nil
+    ) throws -> HTTPURL {
+        func onRequest(request: HTTPServerRequest) -> Resource {
+            let file = request.href.flatMap { url.resolve($0) }
+                ?? url
 
             return FileResource(
                 link: Link(
-                    href: request.url.absoluteString,
-                    type: MediaType.of(file)?.string
+                    href: request.url.string,
+                    mediaType: MediaType.of(file)
                 ),
                 file: file
             )
@@ -86,8 +62,10 @@ public extension HTTPServer {
 
         return try serve(
             at: endpoint,
-            handler: handler(request:),
-            failureHandler: failureHandler
+            handler: HTTPRequestHandler(
+                onRequest: onRequest,
+                onFailure: onFailure
+            )
         )
     }
 
@@ -101,14 +79,14 @@ public extension HTTPServer {
     func serve(
         at endpoint: HTTPServerEndpoint,
         publication: Publication,
-        failureHandler: FailureHandler? = nil
-    ) throws -> URL {
-        func handler(request: HTTPServerRequest) -> Resource {
+        onFailure: HTTPRequestHandler.OnFailure? = nil
+    ) throws -> HTTPURL {
+        func onRequest(request: HTTPServerRequest) -> Resource {
             guard let href = request.href else {
-                failureHandler?(request, .notFound(nil))
+                onFailure?(request, .notFound(nil))
 
                 return FailureResource(
-                    link: Link(href: request.url.absoluteString),
+                    link: Link(href: request.url.string),
                     error: .notFound(nil)
                 )
             }
@@ -118,8 +96,10 @@ public extension HTTPServer {
 
         return try serve(
             at: endpoint,
-            handler: handler(request:),
-            failureHandler: failureHandler
+            handler: HTTPRequestHandler(
+                onRequest: onRequest,
+                onFailure: onFailure
+            )
         )
     }
 }
@@ -130,13 +110,29 @@ public typealias HTTPServerEndpoint = String
 /// Request made to an `HTTPServer`.
 public struct HTTPServerRequest {
     /// Absolute URL on the server.
-    public let url: URL
+    public let url: HTTPURL
 
     /// HREF for the resource, relative to the server endpoint.
-    public let href: String?
+    public let href: RelativeURL?
 
-    public init(url: URL, href: String?) {
+    public init(url: HTTPURL, href: RelativeURL?) {
         self.url = url
         self.href = href
+    }
+}
+
+/// Callbacks handling a request.
+///
+/// If the resource cannot be served, the `onFailure` callback is called.
+public struct HTTPRequestHandler {
+    public typealias OnRequest = (_ request: HTTPServerRequest) -> Resource
+    public typealias OnFailure = (_ request: HTTPServerRequest, _ error: ResourceError) -> Void
+
+    public let onRequest: OnRequest
+    public let onFailure: OnFailure?
+
+    public init(onRequest: @escaping OnRequest, onFailure: OnFailure? = nil) {
+        self.onRequest = onRequest
+        self.onFailure = onFailure
     }
 }

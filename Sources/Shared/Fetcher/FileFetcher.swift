@@ -9,27 +9,31 @@ import Foundation
 /// Provides access to resources on the local file system.
 public final class FileFetcher: Fetcher, Loggable {
     /// Reachable local paths, indexed by the exposed HREF.
-    /// Sub-paths are reachable as well, to be able to access a whole directory.
-    private let paths: [String: URL]
+    /// Sub-files are reachable as well, to be able to access a whole directory.
+    private let paths: [RelativeURL: FileURL]
 
     /// Provides access to a collection of local paths.
-    public init(paths: [String: URL]) {
-        self.paths = paths.mapValues { $0.standardizedFileURL }
+    public init(paths: [RelativeURL: FileURL]) {
+        self.paths = paths
     }
 
-    /// Provides access to the given local `path` at `href`.
-    public convenience init(href: String, path: URL) {
-        self.init(paths: [href: path])
+    /// Provides access to the given local `file` at `href`.
+    public convenience init(href: RelativeURL, file: FileURL) {
+        self.init(paths: [href: file])
     }
 
     public func get(_ link: Link) -> Resource {
-        let linkHREF = link.href.addingPrefix("/")
-        for (href, url) in paths {
-            if linkHREF.hasPrefix(href) {
-                let resourceURL = url.appendingPathComponent(linkHREF.removingPrefix(href)).standardizedFileURL
-                // Makes sure that the requested resource is `url` or one of its descendant.
-                if url.isParentOf(resourceURL) {
-                    return FileResource(link: link, file: resourceURL)
+        if let linkHREF = link.url().relativeURL {
+            for (href, url) in paths {
+                if linkHREF.isEquivalentTo(href) {
+                    return FileResource(link: link, file: url)
+
+                } else if let relativeHREF = href.relativize(linkHREF)?.path {
+                    let resourceURL = url.appendingPath(relativeHREF, isDirectory: false)
+                    // Makes sure that the requested resource is `url` or one of its descendant.
+                    if url.isParent(of: resourceURL) {
+                        return FileResource(link: link, file: resourceURL)
+                    }
                 }
             }
         }
@@ -39,32 +43,34 @@ public final class FileFetcher: Fetcher, Loggable {
     }
 
     public lazy var links: [Link] =
-        paths.keys.sorted().flatMap { href -> [Link] in
-            guard
-                let path = paths[href],
-                let enumerator = FileManager.default.enumerator(at: path, includingPropertiesForKeys: [.isDirectoryKey])
-            else {
-                return []
-            }
+        paths.keys
+            .sorted { $0.string < $1.string }
+            .flatMap { links(at: $0) }
 
-            let hrefURL = URL(fileURLWithPath: href)
-
-            return ([path] + enumerator).compactMap {
-                guard
-                    let url = $0 as? URL,
-                    let values = try? url.resourceValues(forKeys: [.isDirectoryKey]),
-                    values.isDirectory == false
-                else {
-                    return nil
-                }
-
-                let subPath = url.standardizedFileURL.path.removingPrefix(path.standardizedFileURL.path)
-                return Link(
-                    href: hrefURL.appendingPathComponent(subPath).standardizedFileURL.path,
-                    type: MediaType.of(url)?.string
-                )
-            }
+    private func links(at href: RelativeURL) -> [Link] {
+        guard
+            let path = paths[href],
+            let enumerator = FileManager.default.enumerator(at: path.url, includingPropertiesForKeys: [.isDirectoryKey])
+        else {
+            return []
         }
+
+        return ([path.url] + enumerator).compactMap {
+            guard
+                let url = $0 as? URL,
+                let values = try? url.resourceValues(forKeys: [.isDirectoryKey]),
+                values.isDirectory == false
+            else {
+                return nil
+            }
+
+            let subPath = url.standardizedFileURL.path.removingPrefix(path.path)
+            return Link(
+                href: href.appendingPath(subPath, isDirectory: false).string,
+                mediaType: FileURL(url: url).flatMap { MediaType.of($0) }
+            )
+        }
+    }
 
     public func close() {}
 }

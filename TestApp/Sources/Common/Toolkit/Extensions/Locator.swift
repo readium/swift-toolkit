@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 extension Locator: Codable {
     public init(from decoder: Decoder) throws {

@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
+import ReadiumShared
 import SafariServices
 import SwiftSoup
 import UIKit
@@ -292,27 +292,14 @@ open class EPUBNavigatorViewController: UIViewController,
         )
     }
 
-    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server and settings API")
+    @available(*, unavailable, message: "See the 2.5.0 migration guide to migrate the HTTP server and settings API")
     public convenience init(
         publication: Publication,
         initialLocation: Locator? = nil,
         resourcesServer: ResourcesServer,
         config: Configuration = .init()
     ) {
-        precondition(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
-
-        self.init(
-            viewModel: EPUBNavigatorViewModel(
-                publication: publication,
-                config: config,
-                resourcesServer: resourcesServer
-            ),
-            initialLocation: initialLocation,
-            readingOrder: publication.readingOrder,
-            positionsByReadingOrder: publication.positionsByReadingOrder
-        )
-
-        userSettings = config.userSettings
+        fatalError()
     }
 
     private init(
@@ -444,13 +431,13 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     /// Mapping between reading order hrefs and the table of contents title.
-    private lazy var tableOfContentsTitleByHref: [String: String] = {
-        func fulfill(linkList: [Link]) -> [String: String] {
-            var result = [String: String]()
+    private lazy var tableOfContentsTitleByHref: [AnyURL: String] = {
+        func fulfill(linkList: [Link]) -> [AnyURL: String] {
+            var result = [AnyURL: String]()
 
             for link in linkList {
                 if let title = link.title {
-                    result[link.href] = title
+                    result[link.url()] = title
                 }
                 let subResult = fulfill(linkList: link.children)
                 result.merge(subResult) { current, _ -> String in
@@ -578,7 +565,7 @@ open class EPUBNavigatorViewController: UIViewController,
             return nil
         }
 
-        return readingOrder.firstIndex(withHREF: spreads[currentSpreadIndex].left.href)
+        return readingOrder.firstIndexWithHREF(spreads[currentSpreadIndex].left.url())
     }
 
     private let reloadSpreadsCompletions = CompletionList()
@@ -628,7 +615,7 @@ open class EPUBNavigatorViewController: UIViewController,
         )
 
         let initialIndex: Int = {
-            if let href = locator?.href, let foundIndex = self.spreads.firstIndex(withHref: href) {
+            if let href = locator?.href, let foundIndex = self.spreads.firstIndexWithHREF(href) {
                 return foundIndex
             } else {
                 return 0
@@ -646,10 +633,10 @@ open class EPUBNavigatorViewController: UIViewController,
         }
     }
 
-    private func loadedSpreadView(forHREF href: String) -> EPUBSpreadView? {
+    private func loadedSpreadViewForHREF<T: URLConvertible>(_ href: T) -> EPUBSpreadView? {
         paginationView.loadedViews
             .compactMap { _, view in view as? EPUBSpreadView }
-            .first { $0.spread.links.first(withHREF: href) != nil }
+            .first { $0.spread.links.firstWithHREF(href) != nil }
     }
 
     // MARK: - Navigator
@@ -665,7 +652,7 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
-    public var readingProgression: R2Shared.ReadingProgression {
+    public var readingProgression: ReadiumShared.ReadingProgression {
         get { viewModel.legacyReadingProgression }
         set {
             viewModel.legacyReadingProgression = newValue
@@ -684,21 +671,21 @@ open class EPUBNavigatorViewController: UIViewController,
         }
 
         let link = spreadView.focusedResource ?? spreadView.spread.leading
-        let href = link.href
+        let href = link.url()
         let progression = min(max(spreadView.progression(in: href), 0.0), 1.0)
 
         if
             // The positions are not always available, for example a Readium
             // WebPub doesn't have any unless a Publication Positions Web
             // Service is provided
-            let index = readingOrder.firstIndex(withHREF: href),
+            let index = readingOrder.firstIndexWithHREF(href),
             let positionList = positionsByReadingOrder.getOrNil(index),
             positionList.count > 0
         {
             // Gets the current locator from the positionList, and fill its missing data.
             let positionIndex = Int(ceil(progression * Double(positionList.count - 1)))
             return positionList[positionIndex].copy(
-                title: tableOfContentsTitleByHref[href],
+                title: tableOfContentsTitleByHref[equivalent: href],
                 locations: { $0.progression = progression }
             )
         } else {
@@ -739,8 +726,10 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
+        let locator = publication.normalizeLocator(locator)
+
         guard
-            let spreadIndex = spreads.firstIndex(withHref: locator.href),
+            let spreadIndex = spreads.firstIndexWithHREF(locator.href),
             on(.jump(locator))
         else {
             return false
@@ -809,7 +798,11 @@ open class EPUBNavigatorViewController: UIViewController,
 
     public func apply(decorations: [Decoration], in group: String) {
         let source = self.decorations[group] ?? []
-        let target = decorations.map { DiffableDecoration(decoration: $0) }
+        let target = decorations.map { d in
+            var d = d
+            d.locator = publication.normalizeLocator(d.locator)
+            return DiffableDecoration(decoration: d)
+        }
 
         self.decorations[group] = target
 
@@ -828,7 +821,7 @@ open class EPUBNavigatorViewController: UIViewController,
                 guard let script = changes.javascript(forGroup: group, styles: config.decorationTemplates) else {
                     continue
                 }
-                loadedSpreadView(forHREF: href)?.evaluateScript(script, inHREF: href)
+                loadedSpreadViewForHREF(href)?.evaluateScript(script, inHREF: href)
             }
         }
     }
@@ -935,7 +928,7 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
             for (_, view) in paginationView.loadedViews {
                 guard
                     let view = view as? EPUBSpreadView,
-                    view.spread.links.first(withHREF: href) != nil
+                    view.spread.links.firstWithHREF(href) != nil
                 else {
                     continue
                 }
@@ -947,7 +940,7 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
 
     func epubNavigatorViewModel(
         _ viewModel: EPUBNavigatorViewModel,
-        didFailToLoadResourceAt href: String,
+        didFailToLoadResourceAt href: RelativeURL,
         withError error: ResourceError
     ) {
         DispatchQueue.main.async {
@@ -979,10 +972,10 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
 
         spreadView.evaluateScript("(function() {\n\(script)\n})();") { _ in
             for link in spreadView.spread.links {
-                let href = link.href
+                let href = link.url()
                 for (group, decorations) in self.decorations {
                     let decorations = decorations
-                        .filter { $0.decoration.locator.href == href }
+                        .filter { $0.decoration.locator.href.isEquivalentTo(href) }
                         .map { DecorationChange.add($0.decoration) }
 
                     guard let script = decorations.javascript(forGroup: group, styles: self.config.decorationTemplates) else {
@@ -1031,10 +1024,14 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     }
 
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, clickEvent: ClickEvent?) {
-        guard let link = publication.link(withHREF: href)?.copy(href: href) else {
+        guard
+            let url = AnyURL(string: href),
+            var link = publication.linkWithHREF(url)
+        else {
             log(.warning, "Cannot find link with HREF: \(href)")
             return
         }
+        link.href = href
 
         // Check to see if this was a noteref link and give delegate the opportunity to display it.
         if
@@ -1080,7 +1077,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
 
             let hashParts = href.split(separator: "#")
             guard hashParts.count == 2 else {
-                log(.error, "Could not find hash in link \(href)")
+                log(.warning, "Could not find hash in link \(href)")
                 return nil
             }
             let id = String(hashParts[1])
@@ -1089,21 +1086,27 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
                 withoutFragment = String(withoutFragment.dropFirst())
             }
 
-            let absolute = viewModel.publicationBaseURL.appendingPathComponent(withoutFragment)
+            guard
+                let url = RelativeURL(string: withoutFragment),
+                let absolute = viewModel.publicationBaseURL.resolve(url)
+            else {
+                log(.warning, "Invalid URL: \(withoutFragment)")
+                return nil
+            }
 
-            log(.debug, "Fetching note contents from \(absolute.absoluteString)")
-            let contents = try String(contentsOf: absolute)
+            log(.debug, "Fetching note contents from \(absolute.string)")
+            let contents = try String(contentsOf: absolute.url)
             let document = try parse(contents)
 
             guard let aside = try document.select("#\(id)").first() else {
-                log(.error, "Could not find the element '#\(id)' in document \(absolute)")
+                log(.warning, "Could not find the element '#\(id)' in document \(absolute)")
                 return nil
             }
 
             return try (aside.html(), link.html())
 
         } catch {
-            log(.error, "Caught error while getting note content: \(error)")
+            log(.warning, "Caught error while getting note content: \(error)")
             return nil
         }
     }

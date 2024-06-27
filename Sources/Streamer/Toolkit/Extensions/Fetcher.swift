@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 extension Fetcher {
     /// Returns the data of a file at given `link`.
@@ -19,7 +19,7 @@ extension Fetcher {
     }
 
     /// Returns the data of a file at given `href`.
-    func readData(at href: String) throws -> Data {
+    func readData<T: URLConvertible>(at href: T) throws -> Data {
         let resource = get(href)
         defer { resource.close() }
         return try resource.read().get()
@@ -27,42 +27,25 @@ extension Fetcher {
 
     /// Guesses a fetcher's archive title from its contents.
     ///
-    /// If the `Fetcher` contains a single root directory, we assume it is the title. This is
-    /// often the case for example with CBZ files.
+    /// If the `Fetcher` contains a single root directory, we assume it is the
+    /// title. This is often the case for example with CBZ files.
     func guessTitle(ignoring: (Link) -> Bool = { _ in false }) -> String? {
-        let firstLink = links.first
+        var title: String?
 
-        let directories = links
-            .filter { !ignoring($0) }
-            .compactMap { $0.href.removingPrefix("/").split(separator: "/", maxSplits: 1).first }
-            .removingDuplicates()
-
-        guard
-            directories.count == 1,
-            let title = directories.first.map(String.init),
-            title != firstLink?.href.removingPrefix("/")
-        else {
-            return nil
+        for link in links {
+            guard !ignoring(link) else {
+                continue
+            }
+            let components = link.url().pathSegments
+            guard
+                components.count > 1,
+                title == nil || title == components.first
+            else {
+                return nil
+            }
+            title = components.first
         }
 
         return title
-    }
-}
-
-/// Creates a `Fetcher` from an archive or a single file.
-///
-/// This is used as a support for backward compatibility in the old parser APIs, the `Streamer`
-/// implements its own algorithm for creating the leaf fetcher, with a recovery mechanism
-/// to handle user password.
-@available(*, unavailable)
-func makeFetcher(for url: URL) throws -> Fetcher {
-    guard (try? url.checkResourceIsReachable()) == true else {
-        throw Publication.OpeningError.notFound
-    }
-
-    do {
-        return try ArchiveFetcher(archive: DefaultArchiveFactory().open(url: url, password: nil).get())
-    } catch {
-        return FileFetcher(href: "/\(url.lastPathComponent)", path: url)
     }
 }

@@ -6,7 +6,7 @@
 
 import Foundation
 import Fuzi
-import R2Shared
+import ReadiumShared
 
 public enum OPDS1ParserError: Error {
     // The title is missing from the feed.
@@ -156,7 +156,7 @@ public class OPDS1Parser: Loggable {
 
                 let newLink = Link(
                     href: absoluteHref,
-                    type: link.attr("type"),
+                    mediaType: link.attr("type").flatMap { MediaType($0) },
                     title: entry.firstChild(tag: "title")?.stringValue,
                     rel: link.attr("rel").map { LinkRelation($0) },
                     properties: .init(properties)
@@ -196,7 +196,7 @@ public class OPDS1Parser: Loggable {
 
             let newLink = Link(
                 href: absoluteHref,
-                type: link.attributes["type"],
+                mediaType: link.attributes["type"].flatMap { MediaType($0) },
                 title: link.attributes["title"],
                 rels: rels,
                 properties: .init(properties)
@@ -228,7 +228,7 @@ public class OPDS1Parser: Loggable {
     /// Fetch an Open Search template from an OPDS feed.
     /// - parameter feed: The OPDS feed
     public static func fetchOpenSearchTemplate(feed: Feed, completion: @escaping (String?, Error?) -> Void) {
-        guard let openSearchHref = feed.links.first(withRel: .search)?.href,
+        guard let openSearchHref = feed.links.firstWithRel(.search)?.href,
               let openSearchURL = URL(string: openSearchHref)
         else {
             completion(nil, OPDSParserOpenSearchHelperError.searchLinkNotFound)
@@ -256,8 +256,8 @@ public class OPDS1Parser: Loggable {
             // We match by mimetype and profile; if that fails, by mimetype; and if that fails, the first url is returned
             var typeAndProfileMatch: Fuzi.XMLElement? = nil
             var typeMatch: Fuzi.XMLElement? = nil
-            if let selfMimeType = feed.links.first(withRel: .self)?.type {
-                let selfMimeParams = parseMimeType(mimeTypeString: selfMimeType)
+            if let selfMimeType = feed.links.firstWithRel(.self)?.mediaType {
+                let selfMimeParams = parseMimeType(mimeTypeString: selfMimeType.string)
                 for url in urls {
                     guard let urlMimeType = url.attributes["type"] else {
                         continue
@@ -365,7 +365,7 @@ public class OPDS1Parser: Loggable {
 
             let link = Link(
                 href: absoluteHref,
-                type: linkElement.attributes["type"],
+                mediaType: linkElement.attributes["type"].flatMap { MediaType($0) },
                 title: linkElement.attributes["title"],
                 rel: linkElement.attributes["rel"].map { LinkRelation($0) },
                 properties: .init(properties)

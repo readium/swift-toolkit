@@ -5,40 +5,48 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Parses an audiobook Publication from an unstructured archive format containing audio files,
 /// such as ZAB (Zipped Audio Book) or a simple ZIP.
 ///
 /// It can also work for a standalone audio file.
 public final class AudioParser: PublicationParser {
-    public init() {}
+    public init(manifestAugmentor: AudioPublicationManifestAugmentor = AVAudioPublicationManifestAugmentor()) {
+        self.manifestAugmentor = manifestAugmentor
+    }
+
+    private let manifestAugmentor: AudioPublicationManifestAugmentor
 
     public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
         guard accepts(asset, fetcher) else {
             return nil
         }
 
-        let readingOrder = fetcher.links
-            .filter { !ignores($0) && $0.mediaType.isAudio }
-            .sorted { $0.href.localizedCaseInsensitiveCompare($1.href) == .orderedAscending }
+        let defaultReadingOrder = fetcher.links
+            .filter { !ignores($0) && $0.mediaType?.isAudio == true }
+            .sorted { $0.href.localizedStandardCompare($1.href) == .orderedAscending }
 
-        guard !readingOrder.isEmpty else {
+        guard !defaultReadingOrder.isEmpty else {
             return nil
         }
 
+        let defaultManifest = Manifest(
+            metadata: Metadata(
+                conformsTo: [.audiobook],
+                title: fetcher.guessTitle(ignoring: ignores) ?? asset.name
+            ),
+            readingOrder: defaultReadingOrder
+        )
+
+        let augmented = manifestAugmentor.augment(defaultManifest, using: fetcher)
+
         return Publication.Builder(
             mediaType: .zab,
-            format: .cbz,
-            manifest: Manifest(
-                metadata: Metadata(
-                    conformsTo: [.audiobook],
-                    title: fetcher.guessTitle(ignoring: ignores) ?? asset.name
-                ),
-                readingOrder: readingOrder
-            ),
+            manifest: augmented.manifest,
             fetcher: fetcher,
             servicesBuilder: .init(
+                cover: augmented.cover.map(GeneratedCoverService.makeFactory(cover:)),
                 locator: AudioLocatorService.makeFactory()
             )
         )
@@ -51,7 +59,7 @@ public final class AudioParser: PublicationParser {
 
         // Checks if the fetcher contains only bitmap-based resources.
         return !fetcher.links.isEmpty
-            && fetcher.links.allSatisfy { ignores($0) || $0.mediaType.isAudio }
+            && fetcher.links.allSatisfy { ignores($0) || $0.mediaType?.isAudio == true }
     }
 
     private func ignores(_ link: Link) -> Bool {
@@ -62,10 +70,5 @@ public final class AudioParser: PublicationParser {
         return allowedExtensions.contains(url.pathExtension.lowercased())
             || filename.hasPrefix(".")
             || filename == "Thumbs.db"
-    }
-
-    @available(*, unavailable, message: "Not supported for `AudioParser`")
-    public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        fatalError("Not supported for `AudioParser`")
     }
 }

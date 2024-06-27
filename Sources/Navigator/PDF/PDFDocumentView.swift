@@ -50,7 +50,9 @@ public final class PDFDocumentView: PDFView {
     }
 
     override public func copy(_ sender: Any?) {
-        editingActions.copy()
+        Task {
+            await editingActions.copy()
+        }
     }
 
     @available(iOS 13.0, *)

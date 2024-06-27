@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import R2Shared
+@testable import ReadiumShared
 import XCTest
 
 class URLTests: XCTestCase {
@@ -29,7 +29,7 @@ class URLTests: XCTestCase {
     }
 
     func testIsParentOfSiblingIsFalse() {
-        let folder = URL(fileURLWithPath: "/root/folder")
+        let folder = URL(fileURLWithPath: "/root/foldser")
         XCTAssertFalse(folder.isParentOf(URL(fileURLWithPath: "/root/sibling")))
     }
 

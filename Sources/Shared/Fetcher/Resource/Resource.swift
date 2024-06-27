@@ -14,7 +14,7 @@ public protocol Resource {
     /// with streams. However, `file` is not guaranteed to be set, for example if the resource
     /// underwent transformations or is being read from an archive. Therefore, consumers should
     /// always fallback on regular stream reading, using `read` or `ResourceInputStream`.
-    var file: URL? { get }
+    var file: FileURL? { get }
 
     /// The link from which the resource was retrieved.
     ///
@@ -100,7 +100,7 @@ public extension Resource {
     /// falls back on UTF-8.
     func readAsString(encoding: String.Encoding? = nil) -> ResourceResult<String> {
         read().map {
-            let encoding = encoding ?? link.mediaType.encoding ?? .utf8
+            let encoding = encoding ?? link.mediaType?.encoding ?? .utf8
             return String(data: $0, encoding: encoding) ?? ""
         }
     }
@@ -191,17 +191,17 @@ public enum ResourceError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .badRequest:
-            return R2SharedLocalizedString("Publication.ResourceError.badRequest")
+            return ReadiumSharedLocalizedString("Publication.ResourceError.badRequest")
         case .notFound:
-            return R2SharedLocalizedString("Publication.ResourceError.notFound")
+            return ReadiumSharedLocalizedString("Publication.ResourceError.notFound")
         case .forbidden:
-            return R2SharedLocalizedString("Publication.ResourceError.forbidden")
+            return ReadiumSharedLocalizedString("Publication.ResourceError.forbidden")
         case .unavailable:
-            return R2SharedLocalizedString("Publication.ResourceError.unavailable")
+            return ReadiumSharedLocalizedString("Publication.ResourceError.unavailable")
         case .cancelled:
-            return R2SharedLocalizedString("Publication.ResourceError.cancelled")
+            return ReadiumSharedLocalizedString("Publication.ResourceError.cancelled")
         case .other:
-            return R2SharedLocalizedString("Publication.ResourceError.other")
+            return ReadiumSharedLocalizedString("Publication.ResourceError.other")
         }
     }
 }

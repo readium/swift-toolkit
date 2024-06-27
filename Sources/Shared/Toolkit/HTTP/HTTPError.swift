@@ -11,7 +11,7 @@ public typealias HTTPDeferred<Success> = Deferred<Success, HTTPError>
 
 /// Represents an error occurring during an `HTTPClient` activity.
 public struct HTTPError: LocalizedError, Equatable, Loggable {
-    public enum Kind: Equatable {
+    public enum Kind: Equatable, Sendable {
         /// The provided request was not valid.
         case malformedRequest(url: String?)
         /// The received response couldn't be decoded.
@@ -155,31 +155,31 @@ public struct HTTPError: LocalizedError, Equatable, Loggable {
 
         switch kind {
         case .malformedRequest:
-            return R2SharedLocalizedString("HTTPError.malformedRequest")
+            return ReadiumSharedLocalizedString("HTTPError.malformedRequest")
         case .malformedResponse:
-            return R2SharedLocalizedString("HTTPError.malformedResponse")
+            return ReadiumSharedLocalizedString("HTTPError.malformedResponse")
         case .timeout:
-            return R2SharedLocalizedString("HTTPError.timeout")
+            return ReadiumSharedLocalizedString("HTTPError.timeout")
         case .badRequest:
-            return R2SharedLocalizedString("HTTPError.badRequest")
+            return ReadiumSharedLocalizedString("HTTPError.badRequest")
         case .unauthorized:
-            return R2SharedLocalizedString("HTTPError.unauthorized")
+            return ReadiumSharedLocalizedString("HTTPError.unauthorized")
         case .forbidden:
-            return R2SharedLocalizedString("HTTPError.forbidden")
+            return ReadiumSharedLocalizedString("HTTPError.forbidden")
         case .notFound:
-            return R2SharedLocalizedString("HTTPError.notFound")
+            return ReadiumSharedLocalizedString("HTTPError.notFound")
         case .clientError:
-            return R2SharedLocalizedString("HTTPError.clientError")
+            return ReadiumSharedLocalizedString("HTTPError.clientError")
         case .serverError:
-            return R2SharedLocalizedString("HTTPError.serverError")
+            return ReadiumSharedLocalizedString("HTTPError.serverError")
         case .serverUnreachable:
-            return R2SharedLocalizedString("HTTPError.serverUnreachable")
+            return ReadiumSharedLocalizedString("HTTPError.serverUnreachable")
         case .cancelled:
-            return R2SharedLocalizedString("HTTPError.cancelled")
+            return ReadiumSharedLocalizedString("HTTPError.cancelled")
         case .offline:
-            return R2SharedLocalizedString("HTTPError.offline")
+            return ReadiumSharedLocalizedString("HTTPError.offline")
         case .ioError:
-            return R2SharedLocalizedString("HTTPError.ioError")
+            return ReadiumSharedLocalizedString("HTTPError.ioError")
         case .other:
             return (cause as? LocalizedError)?.errorDescription
         }

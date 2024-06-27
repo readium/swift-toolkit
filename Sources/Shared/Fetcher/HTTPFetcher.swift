@@ -11,9 +11,9 @@ public final class HTTPFetcher: Fetcher, Loggable {
     /// HTTP client used to perform HTTP requests.
     private let client: HTTPClient
     /// Base URL from which relative HREF are served.
-    private let baseURL: URL?
+    private let baseURL: HTTPURL?
 
-    public init(client: HTTPClient, baseURL: URL? = nil) {
+    public init(client: HTTPClient, baseURL: HTTPURL? = nil) {
         self.client = client
         self.baseURL = baseURL
     }
@@ -21,10 +21,7 @@ public final class HTTPFetcher: Fetcher, Loggable {
     public let links: [Link] = []
 
     public func get(_ link: Link) -> Resource {
-        guard
-            let url = link.url(relativeTo: baseURL),
-            url.isHTTP
-        else {
+        guard let url = link.url(relativeTo: baseURL).httpURL else {
             log(.error, "Not a valid HTTP URL: \(link.href)")
             return FailureResource(link: link, error: .badRequest(HTTPError(kind: .malformedRequest(url: link.href))))
         }
@@ -36,11 +33,11 @@ public final class HTTPFetcher: Fetcher, Loggable {
     /// HTTPResource provides access to an external URL.
     final class HTTPResource: NSObject, Resource, Loggable, URLSessionDataDelegate {
         let link: Link
-        let url: URL
+        let url: HTTPURL
 
         private let client: HTTPClient
 
-        init(client: HTTPClient, link: Link, url: URL) {
+        init(client: HTTPClient, link: Link, url: HTTPURL) {
             self.client = client
             self.link = link
             self.url = url
@@ -57,26 +54,52 @@ public final class HTTPFetcher: Fetcher, Loggable {
         }
 
         /// Cached HEAD response to get the expected content length and other metadata.
-        private lazy var headResponse: ResourceResult<HTTPResponse> = client.fetchSync(HTTPRequest(url: url, method: .head))
+        private lazy var headResponse: ResourceResult<HTTPResponse> = client.fetchWait(HTTPRequest(url: url, method: .head))
             .mapError { ResourceError.wrap($0) }
 
         /// An HTTP resource is always remote.
-        var file: URL? { nil }
+        var file: FileURL? { nil }
 
         func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void, completion: @escaping (ResourceResult<Void>) -> Void) -> Cancellable {
-            var request = HTTPRequest(url: url)
-            if let range = range {
-                request.setRange(range)
-            }
+            let request = {
+                var request = HTTPRequest(url: url)
+                if let range = range {
+                    request.setRange(range)
+                }
+                return request
+            }()
 
-            return client.stream(request,
-                                 receiveResponse: nil,
-                                 consume: { data, _ in consume(data) },
-                                 completion: { result in
-                                     completion(result.map { _ in }.mapError { ResourceError.wrap($0) })
-                                 })
+            return CancellableTask(task: Task {
+                let result = await client.stream(
+                    request: request,
+                    consume: { data, _ in consume(data) }
+                )
+                completion(result.map { _ in }.mapError { ResourceError.wrap($0) })
+            })
         }
 
         func close() {}
     }
+}
+
+private extension HTTPClient {
+    // FIXME: Get rid of this hack.
+    func fetchWait(_ request: HTTPRequestConvertible) -> HTTPResult<HTTPResponse> {
+        warnIfMainThread()
+
+        let enclosure = Enclosure()
+        let semaphore = DispatchSemaphore(value: 0)
+
+        Task {
+            enclosure.value = await fetch(request)
+            semaphore.signal()
+        }
+        _ = semaphore.wait(timeout: .distantFuture)
+
+        return enclosure.value
+    }
+}
+
+class Enclosure {
+    var value: HTTPResult<HTTPResponse>!
 }

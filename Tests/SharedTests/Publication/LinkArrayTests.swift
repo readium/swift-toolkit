@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import R2Shared
+@testable import ReadiumShared
 import XCTest
 
 class LinkArrayTests: XCTestCase {
@@ -16,13 +16,13 @@ class LinkArrayTests: XCTestCase {
             Link(href: "l3", rel: "test"),
         ]
 
-        XCTAssertEqual(links.first(withRel: "test")?.href, "l2")
+        XCTAssertEqual(links.firstWithRel("test")?.href, "l2")
     }
 
     /// Finds the first `Link` with given `rel` when none is found.
     func testFirstWithRelNotFound() {
         let links = [Link(href: "l1", rel: "other")]
-        XCTAssertNil(links.first(withRel: "strawberry"))
+        XCTAssertNil(links.firstWithRel("strawberry"))
     }
 
     /// Finds all the `Link` with given `rel`.
@@ -34,7 +34,7 @@ class LinkArrayTests: XCTestCase {
         ]
 
         XCTAssertEqual(
-            links.filter(byRel: "test"),
+            links.filterByRel("test"),
             [
                 Link(href: "l2", rels: ["test", "other"]),
                 Link(href: "l3", rel: "test"),
@@ -45,7 +45,7 @@ class LinkArrayTests: XCTestCase {
     /// Finds all the `Link` with given `rel` when none is found.
     func testFilterByRelNotFound() {
         let links = [Link(href: "l1", rel: "other")]
-        XCTAssertEqual(links.filter(byRel: "strawberry").count, 0)
+        XCTAssertEqual(links.filterByRel("strawberry").count, 0)
     }
 
     /// Finds the first `Link` with given `href`.
@@ -56,13 +56,13 @@ class LinkArrayTests: XCTestCase {
             Link(href: "l2", rel: "test"),
         ]
 
-        XCTAssertEqual(links.first(withHREF: "l2"), Link(href: "l2"))
+        XCTAssertEqual(links.firstWithHREF(AnyURL(string: "l2")!), Link(href: "l2"))
     }
 
     /// Finds the first `Link` with given `href` when none is found.
     func testFirstWithHREFNotFound() {
         let links = [Link(href: "l1")]
-        XCTAssertNil(links.first(withHREF: "unknown"))
+        XCTAssertNil(links.firstWithHREF(AnyURL(string: "unknown")!))
     }
 
     /// Finds the index of the first `Link` with given `href`.
@@ -73,53 +73,53 @@ class LinkArrayTests: XCTestCase {
             Link(href: "l2", rel: "test"),
         ]
 
-        XCTAssertEqual(links.firstIndex(withHREF: "l2"), 1)
+        XCTAssertEqual(links.firstIndexWithHREF(AnyURL(string: "l2")!), 1)
     }
 
     /// Finds the index of the first `Link` with given `href` when none is found.
     func testFirstIndexWithHREFNotFound() {
         let links = [Link(href: "l1")]
-        XCTAssertNil(links.firstIndex(withHREF: "unknown"))
+        XCTAssertNil(links.firstIndexWithHREF(AnyURL(string: "unknown")!))
     }
 
     /// Finds the first `Link` with a `type` matching the given `mediaType`.
     func testFirstWithMediaType() {
         let links = [
-            Link(href: "l1", type: "text/css"),
-            Link(href: "l2", type: "text/html"),
-            Link(href: "l3", type: "text/html"),
+            Link(href: "l1", mediaType: .css),
+            Link(href: "l2", mediaType: .html),
+            Link(href: "l3", mediaType: .html),
         ]
 
-        XCTAssertEqual(links.first(withMediaType: .html)?.href, "l2")
+        XCTAssertEqual(links.firstWithMediaType(.html)?.href, "l2")
     }
 
     /// Finds the first `Link` with a `type` matching the given `mediaType`, even if the `type` has
     /// extra parameters.
     func testFirstWithMediaTypeWithExtraParameter() {
         let links = [
-            Link(href: "l1", type: "text/html;charset=utf-8"),
+            Link(href: "l1", mediaType: MediaType("text/html;charset=utf-8")!),
         ]
 
-        XCTAssertEqual(links.first(withMediaType: .html)?.href, "l1")
+        XCTAssertEqual(links.firstWithMediaType(.html)?.href, "l1")
     }
 
     /// Finds the first `Link` with a `type` matching the given `mediaType`.
     func testFirstWithMediaTypeNotFound() {
-        let links = [Link(href: "l1", type: "text/css")]
-        XCTAssertNil(links.first(withMediaType: .html))
+        let links = [Link(href: "l1", mediaType: .css)]
+        XCTAssertNil(links.firstWithMediaType(.html))
     }
 
     /// Finds all the `Link` with a `type` matching the given `mediaType`.
     func testFilterByMediaType() {
         let links = [
-            Link(href: "l1", type: "text/css"),
-            Link(href: "l2", type: "text/html"),
-            Link(href: "l3", type: "text/html"),
+            Link(href: "l1", mediaType: .css),
+            Link(href: "l2", mediaType: .html),
+            Link(href: "l3", mediaType: .html),
         ]
 
-        XCTAssertEqual(links.filter(byMediaType: .html), [
-            Link(href: "l2", type: "text/html"),
-            Link(href: "l3", type: "text/html"),
+        XCTAssertEqual(links.filterByMediaType(.html), [
+            Link(href: "l2", mediaType: .html),
+            Link(href: "l3", mediaType: .html),
         ])
     }
 
@@ -127,42 +127,42 @@ class LinkArrayTests: XCTestCase {
     /// extra parameters.
     func testFilterByMediaTypeWithExtraParameter() {
         let links = [
-            Link(href: "l1", type: "text/css"),
-            Link(href: "l2", type: "text/html"),
-            Link(href: "l1", type: "text/html;charset=utf-8"),
+            Link(href: "l1", mediaType: .css),
+            Link(href: "l2", mediaType: .html),
+            Link(href: "l1", mediaType: MediaType("text/html;charset=utf-8")!),
         ]
 
-        XCTAssertEqual(links.filter(byMediaType: .html), [
-            Link(href: "l2", type: "text/html"),
-            Link(href: "l1", type: "text/html;charset=utf-8"),
+        XCTAssertEqual(links.filterByMediaType(.html), [
+            Link(href: "l2", mediaType: .html),
+            Link(href: "l1", mediaType: MediaType("text/html;charset=utf-8")!),
         ])
     }
 
     /// Finds all the `Link` with a `type` matching the given `mediaType`, when none is found.
     func testFilterByMediaTypeNotFound() {
-        let links = [Link(href: "l1", type: "text/css")]
-        XCTAssertEqual(links.filter(byMediaType: .html).count, 0)
+        let links = [Link(href: "l1", mediaType: .css)]
+        XCTAssertEqual(links.filterByMediaType(.html).count, 0)
     }
 
     /// Finds all the `Link` with a `type` matching any of the given `mediaTypes`.
     func testFilterByMediaTypes() {
         let links = [
-            Link(href: "l1", type: "text/css"),
-            Link(href: "l2", type: "text/html;charset=utf-8"),
-            Link(href: "l3", type: "application/xml"),
+            Link(href: "l1", mediaType: .css),
+            Link(href: "l2", mediaType: MediaType("text/html;charset=utf-8")!),
+            Link(href: "l3", mediaType: .xml),
         ]
 
-        XCTAssertEqual(links.filter(byMediaTypes: [.html, .xml]), [
-            Link(href: "l2", type: "text/html;charset=utf-8"),
-            Link(href: "l3", type: "application/xml"),
+        XCTAssertEqual(links.filterByMediaTypes([.html, .xml]), [
+            Link(href: "l2", mediaType: MediaType("text/html;charset=utf-8")!),
+            Link(href: "l3", mediaType: .xml),
         ])
     }
 
     /// Checks if all the links are bitmaps.
     func testAllAreBitmap() {
         let links = [
-            Link(href: "l1", type: "image/png"),
-            Link(href: "l2", type: "image/gif"),
+            Link(href: "l1", mediaType: .png),
+            Link(href: "l2", mediaType: .gif),
         ]
 
         XCTAssertTrue(links.allAreBitmap)
@@ -171,8 +171,8 @@ class LinkArrayTests: XCTestCase {
     /// Checks if all the links are bitmaps, when it's not the case.
     func testAllAreBitmapFalse() {
         let links = [
-            Link(href: "l1", type: "image/png"),
-            Link(href: "l2", type: "text/css"),
+            Link(href: "l1", mediaType: .png),
+            Link(href: "l2", mediaType: .css),
         ]
 
         XCTAssertFalse(links.allAreBitmap)
@@ -181,8 +181,8 @@ class LinkArrayTests: XCTestCase {
     /// Checks if all the links are audio clips.
     func testAllAreAudio() {
         let links = [
-            Link(href: "l1", type: "audio/mpeg"),
-            Link(href: "l2", type: "audio/aac"),
+            Link(href: "l1", mediaType: .mp3),
+            Link(href: "l2", mediaType: .aac),
         ]
 
         XCTAssertTrue(links.allAreAudio)
@@ -191,8 +191,8 @@ class LinkArrayTests: XCTestCase {
     /// Checks if all the links are audio clips, when it's not the case.
     func testAllAreAudioFalse() {
         let links = [
-            Link(href: "l1", type: "audio/mpeg"),
-            Link(href: "l2", type: "text/css"),
+            Link(href: "l1", mediaType: .mp3),
+            Link(href: "l2", mediaType: .css),
         ]
 
         XCTAssertFalse(links.allAreAudio)
@@ -201,8 +201,8 @@ class LinkArrayTests: XCTestCase {
     /// Checks if all the links are video clips.
     func testAllAreVideo() {
         let links = [
-            Link(href: "l1", type: "video/mp4"),
-            Link(href: "l2", type: "video/webm"),
+            Link(href: "l1", mediaType: MediaType("video/mp4")!),
+            Link(href: "l2", mediaType: .webmVideo),
         ]
 
         XCTAssertTrue(links.allAreVideo)
@@ -211,8 +211,8 @@ class LinkArrayTests: XCTestCase {
     /// Checks if all the links are video clips, when it's not the case.
     func testAllAreVideoFalse() {
         let links = [
-            Link(href: "l1", type: "video/mp4"),
-            Link(href: "l2", type: "text/css"),
+            Link(href: "l1", mediaType: .mp4),
+            Link(href: "l2", mediaType: .css),
         ]
 
         XCTAssertFalse(links.allAreVideo)
@@ -221,8 +221,8 @@ class LinkArrayTests: XCTestCase {
     /// Checks if all the links are HTML documents.
     func testAllAreHTML() {
         let links = [
-            Link(href: "l1", type: "text/html"),
-            Link(href: "l2", type: "application/xhtml+xml"),
+            Link(href: "l1", mediaType: .html),
+            Link(href: "l2", mediaType: .xhtml),
         ]
 
         XCTAssertTrue(links.allAreHTML)
@@ -231,8 +231,8 @@ class LinkArrayTests: XCTestCase {
     /// Checks if all the links are HTML documents, when it's not the case.
     func testAllAreHTMLFalse() {
         let links = [
-            Link(href: "l1", type: "text/html"),
-            Link(href: "l2", type: "text/css"),
+            Link(href: "l1", mediaType: .html),
+            Link(href: "l2", mediaType: .css),
         ]
 
         XCTAssertFalse(links.allAreHTML)
@@ -241,40 +241,40 @@ class LinkArrayTests: XCTestCase {
     /// Checks if all the links match the given media type.
     func testAllMatchesMediaType() {
         let links = [
-            Link(href: "l1", type: "text/css"),
-            Link(href: "l2", type: "text/css;charset=utf-8"),
+            Link(href: "l1", mediaType: .css),
+            Link(href: "l2", mediaType: MediaType("text/css;charset=utf-8")!),
         ]
 
-        XCTAssertTrue(links.all(matchMediaType: .css))
+        XCTAssertTrue(links.allMatchingMediaType(.css))
     }
 
     /// Checks if all the links match the given media type when it's not the case.
     func testAllMatchesMediaTypeFalse() {
         let links = [
-            Link(href: "l1", type: "text/css"),
-            Link(href: "l2", type: "text/plain"),
+            Link(href: "l1", mediaType: .css),
+            Link(href: "l2", mediaType: .text),
         ]
 
-        XCTAssertFalse(links.all(matchMediaType: .css))
+        XCTAssertFalse(links.allMatchingMediaType(.css))
     }
 
     /// Checks if all the links match any of the given media types.
     func testAllMatchesMediaTypes() {
         let links = [
-            Link(href: "l1", type: "text/html"),
-            Link(href: "l2", type: "application/xml"),
+            Link(href: "l1", mediaType: .html),
+            Link(href: "l2", mediaType: .xml),
         ]
 
-        XCTAssertTrue(links.all(matchMediaTypes: [.html, .xml]))
+        XCTAssertTrue(links.allMatchingMediaTypes([.html, .xml]))
     }
 
     /// Checks if all the links match any of the given media types, when it's not the case.
     func testAllMatchesMediaTypesFalse() {
         let links = [
-            Link(href: "l1", type: "text/css"),
-            Link(href: "l2", type: "text/html"),
+            Link(href: "l1", mediaType: .css),
+            Link(href: "l2", mediaType: .html),
         ]
 
-        XCTAssertFalse(links.all(matchMediaTypes: [.html, .xml]))
+        XCTAssertFalse(links.allMatchingMediaTypes([.html, .xml]))
     }
 }

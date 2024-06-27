@@ -6,7 +6,7 @@
 
 import CoreGraphics
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Errors thrown during the parsing of the PDF.
 public enum PDFParserError: Error {
@@ -36,7 +36,7 @@ public final class PDFParser: PublicationParser, Loggable {
             return nil
         }
 
-        let readingOrder = fetcher.links.filter(byMediaType: .pdf)
+        let readingOrder = fetcher.links.filterByMediaType(.pdf)
         guard let firstLink = readingOrder.first else {
             throw PDFDocumentError.openFailed
         }
@@ -47,11 +47,10 @@ public final class PDFParser: PublicationParser, Loggable {
 
         return Publication.Builder(
             mediaType: .pdf,
-            format: .pdf,
             manifest: Manifest(
                 metadata: Metadata(
                     identifier: document.identifier,
-                    title: document.title ?? asset.name,
+                    title: document.title,
                     authors: authors,
                     readingProgression: document.readingProgression ?? .auto,
                     numberOfPages: document.pageCount
@@ -65,15 +64,5 @@ public final class PDFParser: PublicationParser, Loggable {
                 positions: PDFPositionsService.makeFactory()
             )
         )
-    }
-
-    @available(*, unavailable, message: "Use `init(pdfFactory:)` instead")
-    public convenience init(parserType: PDFFileParser.Type) {
-        self.init(pdfFactory: PDFFileParserFactory(parserType: parserType))
-    }
-
-    @available(*, unavailable, message: "Use an instance of `Streamer` to open a `Publication`")
-    public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        fatalError("Not available")
     }
 }

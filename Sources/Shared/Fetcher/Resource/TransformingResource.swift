@@ -51,7 +51,7 @@ public extension Resource {
     }
 
     func mapAsString(encoding: String.Encoding? = nil, transform: @escaping (String) -> String) -> Resource {
-        let encoding = encoding ?? link.mediaType.encoding ?? .utf8
+        let encoding = encoding ?? link.mediaType?.encoding ?? .utf8
         return TransformingResource(self) {
             $0.map { data in
                 let string = String(data: data, encoding: encoding) ?? ""

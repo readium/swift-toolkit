@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Locator service for audio publications.
 final class AudioLocatorService: DefaultLocatorService {
@@ -39,8 +39,8 @@ final class AudioLocatorService: DefaultLocatorService {
         let positionInResource = positionInPublication - resourcePosition
 
         return Locator(
-            href: link.href,
-            type: link.type ?? MediaType.binary.string,
+            href: link.url(),
+            mediaType: link.mediaType ?? .binary,
             locations: .init(
                 fragments: ["t=\(Int(positionInResource))"],
                 progression: link.duration.map { duration in

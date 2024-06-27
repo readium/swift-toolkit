@@ -7,7 +7,7 @@
 import Foundation
 
 /// Link relations as defined in https://readium.org/webpub-manifest/relationships.html
-public struct LinkRelation {
+public struct LinkRelation: Sendable {
     /// The string representation of this link relation.
     public let string: String
 

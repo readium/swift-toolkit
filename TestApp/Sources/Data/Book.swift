@@ -7,7 +7,7 @@
 import Combine
 import Foundation
 import GRDB
-import R2Shared
+import ReadiumShared
 
 struct Book: Codable, Hashable, Identifiable {
     struct Id: EntityId { let rawValue: Int64 }
@@ -65,8 +65,8 @@ struct Book: Codable, Hashable, Identifiable {
         self.preferencesJSON = preferencesJSON
     }
 
-    var cover: URL? {
-        coverPath.map { Paths.covers.appendingPathComponent($0) }
+    var cover: FileURL? {
+        coverPath.map { Paths.covers.appendingPath($0, isDirectory: false) }
     }
 
     func preferences<P: Decodable>() throws -> P? {

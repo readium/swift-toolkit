@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 enum LibraryError: LocalizedError {
     case publicationIsNotValid
@@ -13,7 +13,7 @@ enum LibraryError: LocalizedError {
     case bookDeletionFailed(Error?)
     case importFailed(Error)
     case openFailed(Error)
-    case downloadFailed(Error)
+    case downloadFailed(Error?)
     case cancelled
 
     var errorDescription: String? {
@@ -27,7 +27,7 @@ enum LibraryError: LocalizedError {
         case let .openFailed(error):
             return String(format: NSLocalizedString("library_error_openFailed", comment: "Error message used when a low-level error occured while opening a publication"), error.localizedDescription)
         case let .downloadFailed(error):
-            return String(format: NSLocalizedString("library_error_downloadFailed", comment: "Error message when the download of a publication failed"), error.localizedDescription)
+            return String(format: NSLocalizedString("library_error_downloadFailed", comment: "Error message when the download of a publication failed"), error?.localizedDescription ?? "None")
         default:
             return nil
         }

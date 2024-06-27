@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Opens a `Publication` using a list of parsers.
 public final class Streamer: Loggable {
@@ -173,9 +173,6 @@ public final class Streamer: Loggable {
             return .success(builder.build())
         }
     }
-
-    @available(*, unavailable, message: "Provide a `FileAsset` instead", renamed: "open(asset:credentials:allowUserInteraction:sender:warnings:onCreatePublication:completion:)")
-    public func open(file: File, credentials: String? = nil, allowUserInteraction: Bool, sender: Any? = nil, warnings: WarningLogger? = nil, onCreatePublication: Publication.Builder.Transform? = nil, completion: @escaping (CancellableResult<Publication, Publication.OpeningError>) -> Void) {}
 }
 
 private typealias OpenedAsset = (asset: PublicationAsset, fetcher: Fetcher, onCreatePublication: Publication.Builder.Transform?)

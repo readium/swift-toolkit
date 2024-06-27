@@ -4,8 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
 import ReadiumOPDS
+import ReadiumShared
 import UIKit
 
 enum FeedBrowsingState {
@@ -152,7 +152,7 @@ class OPDSRootTableViewController: UITableViewController {
     }
 
     func findNextPageURL(feed: Feed) -> URL? {
-        guard let href = feed.links.first(withRel: .next)?.href else {
+        guard let href = feed.links.firstWithRel(.next)?.href else {
             return nil
         }
         return URL(string: href)

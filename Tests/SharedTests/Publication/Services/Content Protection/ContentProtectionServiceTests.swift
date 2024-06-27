@@ -4,107 +4,10 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import R2Shared
+@testable import ReadiumShared
 import XCTest
 
 class ContentProtectionServiceTests: XCTestCase {
-    func testLinks() {
-        let service = TestContentProtectionService()
-
-        XCTAssertEqual(
-            service.links,
-            [
-                Link(
-                    href: "/~readium/content-protection",
-                    type: "application/vnd.readium.content-protection+json"
-                ),
-                Link(
-                    href: "/~readium/rights/copy{?text,peek}",
-                    type: "application/vnd.readium.rights.copy+json",
-                    templated: true
-                ),
-                Link(
-                    href: "/~readium/rights/print{?pageCount,peek}",
-                    type: "application/vnd.readium.rights.print+json",
-                    templated: true
-                ),
-            ]
-        )
-    }
-
-    func testGetContentProtection() throws {
-        let service = TestContentProtectionService(
-            isRestricted: true,
-            error: Publication.OpeningError.notFound,
-            credentials: "open sesame",
-            rights: AllRestrictedUserRights(),
-            name: .localized(["en": "DRM", "fr": "GDN"])
-        )
-
-        let resource = service.get(link: Link(href: "/~readium/content-protection"))
-
-        XCTAssertEqual(
-            try resource?.readAsString().get(),
-            """
-            {"error":"File not found","isRestricted":true,"name":{"en":"DRM","fr":"GDN"},"rights":{"canCopy":false,"canPrint":false}}
-            """
-        )
-    }
-
-    func testGetCopy() {
-        let rights = TestUserRights(copyCount: 10)
-        let service = TestContentProtectionService(rights: rights)
-
-        XCTAssertEqual(try service.getCopy(text: "banana", peek: false).readAsString().get(), "{}")
-        XCTAssertEqual(rights.copyCount, 4)
-        XCTAssertThrowsError(try service.getCopy(text: "banana", peek: false).readAsString().get())
-        XCTAssertEqual(rights.copyCount, 4)
-    }
-
-    func testGetPeekCopy() {
-        let rights = TestUserRights(copyCount: 10)
-        let service = TestContentProtectionService(rights: rights)
-
-        XCTAssertEqual(try service.getCopy(text: "banana", peek: true).readAsString().get(), "{}")
-        XCTAssertEqual(rights.copyCount, 10)
-        XCTAssertEqual(try service.getCopy(text: "banana", peek: true).readAsString().get(), "{}")
-        XCTAssertEqual(rights.copyCount, 10)
-    }
-
-    func testGetCopyBadRequest() {
-        let rights = TestUserRights(copyCount: 10)
-        let service = TestContentProtectionService(rights: rights)
-
-        XCTAssertThrowsError(try service.get(link: Link(href: "/~readium/rights/copy?peek=query"))?.read().get())
-    }
-
-    func testGetPrint() {
-        let rights = TestUserRights(printCount: 10)
-        let service = TestContentProtectionService(rights: rights)
-
-        XCTAssertEqual(try service.getPrint(pageCount: 6, peek: false).readAsString().get(), "{}")
-        XCTAssertEqual(rights.printCount, 4)
-        XCTAssertThrowsError(try service.getPrint(pageCount: 6, peek: false).readAsString().get())
-        XCTAssertEqual(rights.printCount, 4)
-    }
-
-    func testGetPeekPrint() {
-        let rights = TestUserRights(printCount: 10)
-        let service = TestContentProtectionService(rights: rights)
-
-        XCTAssertEqual(try service.getPrint(pageCount: 6, peek: true).readAsString().get(), "{}")
-        XCTAssertEqual(rights.printCount, 10)
-        XCTAssertEqual(try service.getPrint(pageCount: 6, peek: true).readAsString().get(), "{}")
-        XCTAssertEqual(rights.printCount, 10)
-    }
-
-    func testGetPrintBadRequest() {
-        let rights = TestUserRights(printCount: 10)
-        let service = TestContentProtectionService(rights: rights)
-
-        XCTAssertThrowsError(try service.get(link: Link(href: "/~readium/rights/print?peek=query"))?.read().get())
-    }
-
     func testGetUnknown() {
         let service = TestContentProtectionService()
 
@@ -114,7 +17,7 @@ class ContentProtectionServiceTests: XCTestCase {
     }
 
     /// The Publication helpers will use the `ContentProtectionService` if there's one.
-    func testPublicationHelpers() {
+    func testPublicationHelpers() async {
         let publication = makePublication(service: { _ in
             TestContentProtectionService(
                 isRestricted: true,
@@ -129,29 +32,43 @@ class ContentProtectionServiceTests: XCTestCase {
         XCTAssertTrue(publication.isRestricted)
         XCTAssertNotNil(publication.protectionError)
         XCTAssertEqual(publication.credentials, "open sesame")
-        XCTAssertFalse(publication.rights.canCopy)
-        XCTAssertFalse(publication.rights.canCopy(text: String(repeating: "word", count: 99999)))
-        XCTAssertFalse(publication.rights.copy(text: String(repeating: "word", count: 99999)))
-        XCTAssertFalse(publication.rights.canPrint)
-        XCTAssertFalse(publication.rights.canPrint(pageCount: 99999))
-        XCTAssertFalse(publication.rights.print(pageCount: 99999))
+
+        let r1 = await publication.rights.canCopy(text: String(repeating: "word", count: 99999))
+        XCTAssertFalse(r1)
+
+        let r2 = await publication.rights.copy(text: String(repeating: "word", count: 99999))
+        XCTAssertFalse(r2)
+
+        let r3 = await publication.rights.canPrint(pageCount: 99999)
+        XCTAssertFalse(r3)
+
+        let r4 = await publication.rights.print(pageCount: 99999)
+        XCTAssertFalse(r4)
+
         XCTAssertEqual(publication.protectionLocalizedName, .localized(["en": "DRM", "fr": "GDN"]))
         XCTAssertEqual(publication.protectionName, "DRM")
     }
 
-    func testPublicationHelpersFallbacks() {
+    func testPublicationHelpersFallbacks() async {
         let publication = makePublication(service: nil)
 
         XCTAssertFalse(publication.isProtected)
         XCTAssertFalse(publication.isRestricted)
         XCTAssertNil(publication.protectionError)
         XCTAssertNil(publication.credentials)
-        XCTAssertTrue(publication.rights.canCopy)
-        XCTAssertTrue(publication.rights.canCopy(text: String(repeating: "word", count: 99999)))
-        XCTAssertTrue(publication.rights.copy(text: String(repeating: "word", count: 99999)))
-        XCTAssertTrue(publication.rights.canPrint)
-        XCTAssertTrue(publication.rights.canPrint(pageCount: 99999))
-        XCTAssertTrue(publication.rights.print(pageCount: 99999))
+
+        let r1 = await publication.rights.canCopy(text: String(repeating: "word", count: 99999))
+        XCTAssertTrue(r1)
+
+        let r2 = await publication.rights.copy(text: String(repeating: "word", count: 99999))
+        XCTAssertTrue(r2)
+
+        let r3 = await publication.rights.canPrint(pageCount: 99999)
+        XCTAssertTrue(r3)
+
+        let r4 = await publication.rights.print(pageCount: 99999)
+        XCTAssertTrue(r4)
+
         XCTAssertNil(publication.protectionLocalizedName)
         XCTAssertNil(publication.protectionName)
     }
@@ -161,7 +78,7 @@ class ContentProtectionServiceTests: XCTestCase {
             manifest: Manifest(
                 metadata: Metadata(title: ""),
                 readingOrder: [
-                    Link(href: "chap1", type: "text/html"),
+                    Link(href: "chap1", mediaType: .html),
                 ]
             ),
             servicesBuilder: PublicationServicesBuilder(contentProtection: service)

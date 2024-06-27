@@ -5,10 +5,11 @@
 //
 
 import Foundation
+import ReadiumShared
 
 /// Access a License Document stored in an EPUB archive, under META-INF/license.lcpl.
 final class EPUBLicenseContainer: ZIPLicenseContainer {
-    init(epub: URL) {
+    init(epub: FileURL) {
         super.init(zip: epub, pathInZIP: "META-INF/license.lcpl")
     }
 }

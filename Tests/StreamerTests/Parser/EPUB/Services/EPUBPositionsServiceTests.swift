@@ -4,8 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
-@testable import R2Streamer
+import ReadiumShared
+@testable import ReadiumStreamer
 import XCTest
 
 class EPUBPositionsServiceTests: XCTestCase {
@@ -15,12 +15,12 @@ class EPUBPositionsServiceTests: XCTestCase {
     }
 
     func testFromReadingOrderWithOneResource() {
-        let service = makeService(readingOrder: [(1, Link(href: "res", type: "application/xml"))])
+        let service = makeService(readingOrder: [(1, Link(href: "res", mediaType: .xml))])
 
         XCTAssertEqual(service.positionsByReadingOrder, [[
             Locator(
                 href: "res",
-                type: "application/xml",
+                mediaType: .xml,
                 locations: Locator.Locations(
                     progression: 0,
                     totalProgression: 0,
@@ -33,14 +33,14 @@ class EPUBPositionsServiceTests: XCTestCase {
     func testFromReadingOrderWithFewResources() {
         let service = makeService(readingOrder: [
             (1, Link(href: "res")),
-            (2, Link(href: "chap1", type: "application/xml")),
-            (2, Link(href: "chap2", type: "text/html", title: "Chapter 2")),
+            (2, Link(href: "chap1", mediaType: .xml)),
+            (2, Link(href: "chap2", mediaType: .html, title: "Chapter 2")),
         ])
 
         XCTAssertEqual(service.positionsByReadingOrder, [
             [Locator(
                 href: "res",
-                type: "text/html",
+                mediaType: .html,
                 locations: Locator.Locations(
                     progression: 0.0,
                     totalProgression: 0.0,
@@ -49,7 +49,7 @@ class EPUBPositionsServiceTests: XCTestCase {
             )],
             [Locator(
                 href: "chap1",
-                type: "application/xml",
+                mediaType: .xml,
                 locations: Locator.Locations(
                     progression: 0.0,
                     totalProgression: 1.0 / 3.0,
@@ -58,7 +58,7 @@ class EPUBPositionsServiceTests: XCTestCase {
             )],
             [Locator(
                 href: "chap2",
-                type: "text/html",
+                mediaType: .html,
                 title: "Chapter 2",
                 locations: Locator.Locations(
                     progression: 0.0,
@@ -78,7 +78,7 @@ class EPUBPositionsServiceTests: XCTestCase {
         XCTAssertEqual(service.positionsByReadingOrder, [
             [Locator(
                 href: "chap1",
-                type: "text/html",
+                mediaType: .html,
                 locations: Locator.Locations(
                     progression: 0.0,
                     totalProgression: 0.0,
@@ -87,7 +87,7 @@ class EPUBPositionsServiceTests: XCTestCase {
             )],
             [Locator(
                 href: "chap2",
-                type: "text/html",
+                mediaType: .html,
                 locations: Locator.Locations(
                     progression: 0.0,
                     totalProgression: 0.5,
@@ -102,15 +102,15 @@ class EPUBPositionsServiceTests: XCTestCase {
             layout: .fixed,
             readingOrder: [
                 (10000, Link(href: "res")),
-                (20000, Link(href: "chap1", type: "application/xml")),
-                (40000, Link(href: "chap2", type: "text/html", title: "Chapter 2")),
+                (20000, Link(href: "chap1", mediaType: .xml)),
+                (40000, Link(href: "chap2", mediaType: .html, title: "Chapter 2")),
             ]
         )
 
         XCTAssertEqual(service.positionsByReadingOrder, [
             [Locator(
                 href: "res",
-                type: "text/html",
+                mediaType: .html,
                 locations: Locator.Locations(
                     progression: 0.0,
                     totalProgression: 0.0,
@@ -119,7 +119,7 @@ class EPUBPositionsServiceTests: XCTestCase {
             )],
             [Locator(
                 href: "chap1",
-                type: "application/xml",
+                mediaType: .xml,
                 locations: Locator.Locations(
                     progression: 0.0,
                     totalProgression: 1.0 / 3.0,
@@ -128,7 +128,7 @@ class EPUBPositionsServiceTests: XCTestCase {
             )],
             [Locator(
                 href: "chap2",
-                type: "text/html",
+                mediaType: .html,
                 title: "Chapter 2",
                 locations: Locator.Locations(
                     progression: 0.0,
@@ -144,8 +144,8 @@ class EPUBPositionsServiceTests: XCTestCase {
             layout: .reflowable,
             readingOrder: [
                 (0, Link(href: "chap1")),
-                (49, Link(href: "chap2", type: "application/xml")),
-                (50, Link(href: "chap3", type: "text/html", title: "Chapter 3")),
+                (49, Link(href: "chap2", mediaType: .xml)),
+                (50, Link(href: "chap3", mediaType: .html, title: "Chapter 3")),
                 (51, Link(href: "chap4")),
                 (120, Link(href: "chap5")),
             ],
@@ -156,7 +156,7 @@ class EPUBPositionsServiceTests: XCTestCase {
             [
                 Locator(
                     href: "chap1",
-                    type: "text/html",
+                    mediaType: .html,
                     locations: Locator.Locations(
                         progression: 0.0,
                         totalProgression: 0.0,
@@ -167,7 +167,7 @@ class EPUBPositionsServiceTests: XCTestCase {
             [
                 Locator(
                     href: "chap2",
-                    type: "application/xml",
+                    mediaType: .xml,
                     locations: Locator.Locations(
                         progression: 0.0,
                         totalProgression: 1.0 / 8.0,
@@ -178,7 +178,7 @@ class EPUBPositionsServiceTests: XCTestCase {
             [
                 Locator(
                     href: "chap3",
-                    type: "text/html",
+                    mediaType: .html,
                     title: "Chapter 3",
                     locations: Locator.Locations(
                         progression: 0.0,
@@ -190,7 +190,7 @@ class EPUBPositionsServiceTests: XCTestCase {
             [
                 Locator(
                     href: "chap4",
-                    type: "text/html",
+                    mediaType: .html,
                     locations: Locator.Locations(
                         progression: 0.0,
                         totalProgression: 3.0 / 8.0,
@@ -199,7 +199,7 @@ class EPUBPositionsServiceTests: XCTestCase {
                 ),
                 Locator(
                     href: "chap4",
-                    type: "text/html",
+                    mediaType: .html,
                     locations: Locator.Locations(
                         progression: 0.5,
                         totalProgression: 4.0 / 8.0,
@@ -210,7 +210,7 @@ class EPUBPositionsServiceTests: XCTestCase {
             [
                 Locator(
                     href: "chap5",
-                    type: "text/html",
+                    mediaType: .html,
                     locations: Locator.Locations(
                         progression: 0.0,
                         totalProgression: 5.0 / 8.0,
@@ -219,7 +219,7 @@ class EPUBPositionsServiceTests: XCTestCase {
                 ),
                 Locator(
                     href: "chap5",
-                    type: "text/html",
+                    mediaType: .html,
                     locations: Locator.Locations(
                         progression: 1.0 / 3.0,
                         totalProgression: 6.0 / 8.0,
@@ -228,7 +228,7 @@ class EPUBPositionsServiceTests: XCTestCase {
                 ),
                 Locator(
                     href: "chap5",
-                    type: "text/html",
+                    mediaType: .html,
                     locations: Locator.Locations(
                         progression: 2.0 / 3.0,
                         totalProgression: 7.0 / 8.0,
@@ -252,7 +252,7 @@ class EPUBPositionsServiceTests: XCTestCase {
         XCTAssertEqual(service.positionsByReadingOrder, [[
             Locator(
                 href: "chap1",
-                type: "text/html",
+                mediaType: .html,
                 locations: Locator.Locations(
                     progression: 0.0,
                     totalProgression: 0.0,
@@ -261,7 +261,7 @@ class EPUBPositionsServiceTests: XCTestCase {
             ),
             Locator(
                 href: "chap1",
-                type: "text/html",
+                mediaType: .html,
                 locations: Locator.Locations(
                     progression: 0.5,
                     totalProgression: 0.5,
@@ -286,7 +286,7 @@ class EPUBPositionsServiceTests: XCTestCase {
             [
                 Locator(
                     href: "chap1",
-                    type: "text/html",
+                    mediaType: .html,
                     locations: Locator.Locations(
                         progression: 0.0,
                         totalProgression: 0.0,
@@ -297,7 +297,7 @@ class EPUBPositionsServiceTests: XCTestCase {
             [
                 Locator(
                     href: "chap2",
-                    type: "text/html",
+                    mediaType: .html,
                     locations: Locator.Locations(
                         progression: 0.0,
                         totalProgression: 1.0 / 4.0,
@@ -306,7 +306,7 @@ class EPUBPositionsServiceTests: XCTestCase {
                 ),
                 Locator(
                     href: "chap2",
-                    type: "text/html",
+                    mediaType: .html,
                     locations: Locator.Locations(
                         progression: 0.5,
                         totalProgression: 2.0 / 4.0,
@@ -317,7 +317,7 @@ class EPUBPositionsServiceTests: XCTestCase {
             [
                 Locator(
                     href: "chap3",
-                    type: "text/html",
+                    mediaType: .html,
                     locations: Locator.Locations(
                         progression: 0.0,
                         totalProgression: 3.0 / 4.0,
@@ -342,7 +342,7 @@ class EPUBPositionsServiceTests: XCTestCase {
             [
                 Locator(
                     href: "chap1",
-                    type: "text/html",
+                    mediaType: .html,
                     locations: Locator.Locations(
                         progression: 0.0,
                         totalProgression: 0.0,
@@ -353,7 +353,7 @@ class EPUBPositionsServiceTests: XCTestCase {
             [
                 Locator(
                     href: "chap2",
-                    type: "text/html",
+                    mediaType: .html,
                     locations: Locator.Locations(
                         progression: 0.0,
                         totalProgression: 1.0 / 3.0,
@@ -362,7 +362,7 @@ class EPUBPositionsServiceTests: XCTestCase {
                 ),
                 Locator(
                     href: "chap2",
-                    type: "text/html",
+                    mediaType: .html,
                     locations: Locator.Locations(
                         progression: 0.5,
                         totalProgression: 2.0 / 3.0,
@@ -387,7 +387,7 @@ class EPUBPositionsServiceTests: XCTestCase {
             [
                 Locator(
                     href: "chap1",
-                    type: "text/html",
+                    mediaType: .html,
                     locations: Locator.Locations(
                         progression: 0.0,
                         totalProgression: 0.0,
@@ -398,7 +398,7 @@ class EPUBPositionsServiceTests: XCTestCase {
             [
                 Locator(
                     href: "chap2",
-                    type: "text/html",
+                    mediaType: .html,
                     locations: Locator.Locations(
                         progression: 0.0,
                         totalProgression: 1.0 / 3.0,
@@ -407,7 +407,7 @@ class EPUBPositionsServiceTests: XCTestCase {
                 ),
                 Locator(
                     href: "chap2",
-                    type: "text/html",
+                    mediaType: .html,
                     locations: Locator.Locations(
                         progression: 0.5,
                         totalProgression: 2.0 / 3.0,
@@ -440,7 +440,7 @@ private func makeProperties(layout: EPUBLayout? = nil, archiveEntryLength: UInt6
         ] as [String: Any]
     }
     if let archiveEntryLength = archiveEntryLength {
-        props["archive"] = [
+        props["https://readium.org/webpub-manifest/properties#archive"] = [
             "entryLength": archiveEntryLength as NSNumber,
             "isEntryCompressed": true,
         ]
@@ -468,7 +468,7 @@ private class MockFetcher: Fetcher {
 
     struct MockResource: Resource {
         let link: Link
-        let file: URL? = nil
+        let file: FileURL? = nil
         var length: ResourceResult<UInt64> { .success(_length) }
 
         private let _length: UInt64
