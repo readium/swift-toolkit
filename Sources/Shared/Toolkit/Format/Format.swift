@@ -22,7 +22,19 @@ public struct Format: Hashable {
         mediaType: MediaType,
         fileExtension: FileExtension? = nil
     ) {
-        self.specifications = FormatSpecifications(specifications: Set(specifications))
+        self.init(
+            specifications: Set(specifications),
+            mediaType: mediaType,
+            fileExtension: fileExtension
+        )
+    }
+
+    public init(
+        specifications: Set<FormatSpecification>,
+        mediaType: MediaType,
+        fileExtension: FileExtension? = nil
+    ) {
+        self.specifications = FormatSpecifications(specifications: specifications)
         self.mediaType = mediaType
         self.fileExtension = fileExtension
     }
@@ -60,6 +72,13 @@ public struct Format: Hashable {
             self.specifications.specifications.insert(spec)
         }
     }
+
+    /// Returns a null format, which has no information.
+    public static let null = Format(
+        specifications: Set(),
+        mediaType: .binary,
+        fileExtension: nil
+    )
 }
 
 public struct FormatSpecifications: Hashable {

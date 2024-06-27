@@ -17,31 +17,6 @@ public protocol Resource: Streamable {
     func properties() async -> ReadResult<ResourceProperties>
 }
 
-/// Properties associated to a resource.
-public struct ResourceProperties {
-    public var properties: [String: Any]
-
-    public init(_ properties: [String: Any] = [:]) {
-        self.properties = properties
-    }
-
-    public init(_ builder: (inout ResourceProperties) -> Void) {
-        self.init()
-        builder(&self)
-    }
-
-    public subscript<T>(_ key: String) -> T? {
-        get { properties[key] as? T }
-        set {
-            if let newValue = newValue {
-                properties[key] = newValue
-            } else {
-                properties.removeValue(forKey: key)
-            }
-        }
-    }
-}
-
 public extension Resource {
     @available(*, unavailable, message: "Not available anymore in a Resource")
     var link: Link { fatalError() }

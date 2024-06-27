@@ -19,11 +19,23 @@ public enum Asset: AssetProtocol {
 
     /// Format of the asset.
     public var format: Format {
-        switch self {
-        case let .resource(asset):
-            return asset.format
-        case let .container(asset):
-            return asset.format
+        get {
+            switch self {
+            case let .resource(asset):
+                return asset.format
+            case let .container(asset):
+                return asset.format
+            }
+        }
+        set {
+            switch self {
+            case var .resource(asset):
+                asset.format = newValue
+                self = .resource(asset)
+            case var .container(asset):
+                asset.format = newValue
+                self = .container(asset)
+            }
         }
     }
 
