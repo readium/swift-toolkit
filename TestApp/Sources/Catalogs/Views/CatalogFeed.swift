@@ -4,8 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import ReadiumShared
 import ReadiumOPDS
+import ReadiumShared
 import SwiftUI
 
 struct CatalogFeed: View {
