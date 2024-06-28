@@ -283,7 +283,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 
 extension Decoration {
     var highlightID: Highlight.Id {
-        Highlight.Id(string: id)
+        Highlight.Id(string: id)!
     }
 }
 

@@ -89,6 +89,19 @@ final class Database {
 protocol EntityId: Codable, Hashable, RawRepresentable, ExpressibleByIntegerLiteral, CustomStringConvertible, DatabaseValueConvertible where RawValue == Int64 {}
 
 extension EntityId {
+    var string: String {
+        String(rawValue)
+    }
+
+    init?(string: String) {
+        guard let rawValue = Int64(string) else {
+            return nil
+        }
+        self.init(rawValue: rawValue)
+    }
+}
+
+extension EntityId {
     // MARK: - ExpressibleByIntegerLiteral
 
     init(integerLiteral value: Int64) {

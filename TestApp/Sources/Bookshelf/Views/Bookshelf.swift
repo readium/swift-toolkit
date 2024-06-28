@@ -20,7 +20,7 @@ struct Bookshelf: View {
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 20) {
                         ForEach(books, id: \.self) { book in
-                            BookCover(title: book.title, authors: book.authors, url: book.cover)
+                            BookCover(title: book.title, authors: book.authors, url: book.cover?.url)
                         }
                     }
                     // TODO: handle error
