@@ -16,21 +16,25 @@ public final class DefaultFormatSniffer: CompositeFormatSniffer {
         additionalSniffers: [FormatSniffer] = []
     ) {
         super.init(additionalSniffers + [
-            AudioFormatSniffer(),
-            BitmapFormatSniffer(),
-            XMLFormatSniffer(),
-            HTMLFormatSniffer(),
-            PDFFormatSniffer(),
             JSONFormatSniffer(),
             OPDSFormatSniffer(),
-            LCPLicenseFormatSniffer(),
             RWPMFormatSniffer(),
+            LCPLicenseFormatSniffer(),
+
+            XMLFormatSniffer(),
+            HTMLFormatSniffer(),
+
             ZIPFormatSniffer(),
             RARFormatSniffer(),
-            ComicFormatSniffer(),
-            ZABFormatSniffer(),
-            EPUBFormatSniffer(xmlDocumentFactory: xmlDocumentFactory),
             RPFFormatSniffer(),
+            EPUBFormatSniffer(xmlDocumentFactory: xmlDocumentFactory),
+            ZABFormatSniffer(),
+            ComicFormatSniffer(),
+
+            LanguageFormatSniffer(),
+            PDFFormatSniffer(),
+            AudioFormatSniffer(),
+            BitmapFormatSniffer(),
         ])
     }
 }

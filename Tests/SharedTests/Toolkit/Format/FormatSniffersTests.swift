@@ -115,6 +115,19 @@ class FormatSniffersTests: XCTestCase {
         XCTAssertEqual(sut.sniffHints(mediaType: "audio/webm"), webm)
     }
 
+    func testSniffLanguage() {
+        // JavaScript
+        let js = Format(specifications: .javascript, mediaType: .javascript, fileExtension: "js")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "js"), js)
+        XCTAssertEqual(sut.sniffHints(mediaType: "text/javascript"), js)
+        XCTAssertEqual(sut.sniffHints(mediaType: "application/javascript"), js)
+
+        // CSS
+        let css = Format(specifications: .css, mediaType: .css, fileExtension: "css")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "css"), css)
+        XCTAssertEqual(sut.sniffHints(mediaType: "text/css"), css)
+    }
+
     func testSniffBitmap() {
         // AVIF
         let avif = Format(specifications: .avif, mediaType: .avif, fileExtension: "avif")

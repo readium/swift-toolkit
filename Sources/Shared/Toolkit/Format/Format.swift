@@ -197,6 +197,6 @@ public struct FormatSpecification: RawRepresentable, Hashable {
 
     // Language specifications
 
-    public static let javaScript = FormatSpecification(rawValue: "javascript")
+    public static let javascript = FormatSpecification(rawValue: "javascript")
     public static let css = FormatSpecification(rawValue: "css")
 }
