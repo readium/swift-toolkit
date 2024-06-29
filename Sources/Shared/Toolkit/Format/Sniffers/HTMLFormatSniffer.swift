@@ -68,7 +68,7 @@ public struct HTMLFormatSniffer: FormatSniffer {
     }
 
     private let html = Format(
-        specifications: .html,
+        specifications: .xml, .html,
         mediaType: .html,
         fileExtension: "html"
     )

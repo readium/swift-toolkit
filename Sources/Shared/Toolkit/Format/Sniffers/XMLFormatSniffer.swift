@@ -19,6 +19,16 @@ public struct XMLFormatSniffer: FormatSniffer {
         return nil
     }
 
+    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
+        await blob.readAsXML()
+            .map {
+                guard $0 != nil else {
+                    return nil
+                }
+                return xml
+            }
+    }
+
     private let xml = Format(
         specifications: .xml,
         mediaType: .xml,

@@ -22,6 +22,7 @@ public final class DefaultFormatSniffer: CompositeFormatSniffer {
             HTMLFormatSniffer(),
             PDFFormatSniffer(),
             JSONFormatSniffer(),
+            OPDSFormatSniffer(),
             LCPLicenseFormatSniffer(),
             RWPMFormatSniffer(),
             ZIPFormatSniffer(),

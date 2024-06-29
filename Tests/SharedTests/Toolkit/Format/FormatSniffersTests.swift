@@ -250,6 +250,72 @@ class FormatSniffersTests: XCTestCase {
         XCTAssertEqual(result, .success(.lcpdf))
     }
 
+    func testSniffOPDS1Feed() async {
+        let opds1 = Format(
+            specifications: .xml, .opds1Catalog,
+            mediaType: .opds1,
+            fileExtension: "xml"
+        )
+
+        XCTAssertEqual(sut.sniffHints(mediaType: "application/atom+xml;profile=opds-catalog"), opds1)
+
+        let result = await sut.sniffBlob(file("opds1-feed.unknown"))
+        XCTAssertEqual(result, .success(opds1))
+    }
+
+    func testSniffOPDS1Entry() async {
+        let opds1 = Format(
+            specifications: .xml, .opds1Entry,
+            mediaType: .opds1Entry,
+            fileExtension: "xml"
+        )
+
+        XCTAssertEqual(sut.sniffHints(mediaType: "application/atom+xml;type=entry;profile=opds-catalog"), opds1)
+
+        let result = await sut.sniffBlob(file("opds1-entry.unknown"))
+        XCTAssertEqual(result, .success(opds1))
+    }
+
+    func testSniffOPDS2Feed() async {
+        let opds2 = Format(
+            specifications: .json, .opds2Catalog,
+            mediaType: .opds2,
+            fileExtension: "json"
+        )
+
+        XCTAssertEqual(sut.sniffHints(mediaType: "application/opds+json"), opds2)
+
+        let result = await sut.sniffBlob(file("opds2-feed.json"))
+        XCTAssertEqual(result, .success(opds2))
+    }
+
+    func testSniffOPDS2Publication() async {
+        let opds2 = Format(
+            specifications: .json, .opds2Publication,
+            mediaType: .opds2Publication,
+            fileExtension: "json"
+        )
+
+        XCTAssertEqual(sut.sniffHints(mediaType: "application/opds-publication+json"), opds2)
+
+        let result = await sut.sniffBlob(file("opds2-publication.json"))
+        XCTAssertEqual(result, .success(opds2))
+    }
+
+    func testSniffOPDSAuthentication() async {
+        let opdsAuth = Format(
+            specifications: .json, .opdsAuthentication,
+            mediaType: .opdsAuthentication,
+            fileExtension: "json"
+        )
+
+        XCTAssertEqual(sut.sniffHints(mediaType: "application/opds-authentication+json"), opdsAuth)
+        XCTAssertEqual(sut.sniffHints(mediaType: "application/vnd.opds.authentication.v1.0+json"), opdsAuth)
+
+        let result = await sut.sniffBlob(file("opds-authentication.json"))
+        XCTAssertEqual(result, .success(opdsAuth))
+    }
+
     func testSniffPDF() async {
         XCTAssertEqual(sut.sniffHints(mediaType: .pdf), .pdf)
         XCTAssertEqual(sut.sniffHints(fileExtension: "pdf"), .pdf)
@@ -362,7 +428,7 @@ private extension FormatSniffer {
 
 extension Format {
     static let epub = Format(specifications: .zip, .epub, mediaType: .epub, fileExtension: "epub")
-    static let html = Format(specifications: .html, mediaType: .html, fileExtension: "html")
+    static let html = Format(specifications: .xml, .html, mediaType: .html, fileExtension: "html")
     static let json = Format(specifications: .json, mediaType: .json, fileExtension: "json")
     static let jsonProblemDetails = Format(specifications: .json, .problemDetails, mediaType: .json, fileExtension: "json")
     static let lcpLicense = Format(specifications: .json, .lcpLicense, mediaType: .lcpLicenseDocument, fileExtension: "lcpl")

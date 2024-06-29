@@ -165,6 +165,11 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
         (readingOrder + resources + links).filterByRel(rel)
     }
 
+    /// Finds all the links matching the given predicate in the manifest's links.
+    public func linksMatching(_ predicate: (Link) -> Bool) -> [Link] {
+        (readingOrder + resources + links).filter(predicate)
+    }
+
     @available(*, unavailable, renamed: "linkWithHREF")
     public func link(withHREF href: String) -> Link? {
         fatalError()
