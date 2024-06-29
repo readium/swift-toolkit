@@ -28,10 +28,10 @@ final class Database {
 
     private init(writer: DatabaseWriter = DatabaseQueue(), migrations: [DatabaseMigration]) throws {
         self.writer = writer
-        
+
         try run(migrations)
     }
-    
+
     /// Runs the database migrations on `Database` initialization.
     private func run(_ migrations: [DatabaseMigration]) throws {
         try writer.write { db in
@@ -43,7 +43,7 @@ final class Database {
                 .forEach { try run($0, on: db) }
         }
     }
-    
+
     private func run(_ migration: DatabaseMigration, on db: GRDB.Database) throws {
         try migration.run(on: db)
         try db.execute(sql: "PRAGMA user_version = \(migration.version)")
