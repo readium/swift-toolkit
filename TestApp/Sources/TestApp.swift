@@ -7,7 +7,7 @@
 import GRDB
 import SwiftUI
 
-@main
+//@main
 struct TestApp: App {
     let container = try! Container()
 

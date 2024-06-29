@@ -8,7 +8,7 @@ import Combine
 import ReadiumShared
 import UIKit
 
-//@UIApplicationMain
+@UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
