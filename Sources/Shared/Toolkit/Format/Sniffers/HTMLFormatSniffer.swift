@@ -26,19 +26,15 @@ public struct HTMLFormatSniffer: FormatSniffer {
         return nil
     }
 
-    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format> {
-        guard format.conformsTo(.xml), !format.conformsTo(.html) else {
-            return .success(format)
-        }
-
-        return await blob.readAsXML()
+    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
+        await blob.readAsXML()
             .map { document in
                 if let format = sniffDocument(document) {
                     return format
                 } else if let format = await sniffString(blob) {
                     return format
                 } else {
-                    return format
+                    return nil
                 }
             }
     }
@@ -50,7 +46,15 @@ public struct HTMLFormatSniffer: FormatSniffer {
         else {
             return nil
         }
-        return html
+
+        if element.first("xhtml:body|xhtml2:body", with: [
+            (prefix: "xhtml", uri: "http://www.w3.org/1999/xhtml"),
+            (prefix: "xhtml2", uri: "http://www.w3.org/2002/06/xhtml2"),
+        ]) != nil {
+            return xhtml
+        } else {
+            return html
+        }
     }
 
     private func sniffString(_ blob: FormatSnifferBlob) async -> Format? {

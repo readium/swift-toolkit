@@ -57,8 +57,8 @@ public actor FormatSnifferBlob {
         return string!
     }
 
-    /// Reads the whole content as a JSON object.
-    func readAsJSON<T: Any>() async -> ReadResult<T?> {
+    /// Reads the whole content as JSON.
+    func readAsJSON() async -> ReadResult<Any?> {
         if json == nil {
             json = await read().map {
                 $0.flatMap {
@@ -66,7 +66,7 @@ public actor FormatSnifferBlob {
                 }
             }
         }
-        return json!.map { $0 as? T }
+        return json!
     }
 
     /// Reads the whole content as an XML document.

@@ -268,6 +268,7 @@ public struct MediaType: Hashable, Loggable, Sendable {
     public static let otf = MediaType("font/otf")!
     public static let pdf = MediaType("application/pdf")!
     public static let png = MediaType("image/png")!
+    public static let rar = MediaType("application/vnd.rar")!
     public static let readiumAudiobook = MediaType("application/audiobook+zip")!
     public static let readiumAudiobookManifest = MediaType("application/audiobook+json")!
     public static let readiumWebPub = MediaType("application/webpub+zip")!

@@ -11,11 +11,21 @@ import Foundation
 public final class DefaultFormatSniffer: CompositeFormatSniffer {
     /// - Parameter additionalSniffers: Additional sniffers to be used to guess
     ///   content format.
-    public init(additionalSniffers: [FormatSniffer] = []) {
+    public init(
+        xmlDocumentFactory: XMLDocumentFactory = DefaultXMLDocumentFactory(),
+        additionalSniffers: [FormatSniffer] = []
+    ) {
         super.init(additionalSniffers + [
+            XMLFormatSniffer(),
             HTMLFormatSniffer(),
+            PDFFormatSniffer(),
+            JSONFormatSniffer(),
+            LCPLicenseFormatSniffer(),
+            RWPMFormatSniffer(),
             ZIPFormatSniffer(),
-            EPUBFormatSniffer()
+            RARFormatSniffer(),
+            EPUBFormatSniffer(xmlDocumentFactory: xmlDocumentFactory),
+            RPFFormatSniffer(),
         ])
     }
 }

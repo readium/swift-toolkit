@@ -6,14 +6,14 @@
 
 import Foundation
 
-/// Sniffs a ZIP file.
-public struct ZIPFormatSniffer: FormatSniffer {
+/// Sniffs a RAR file.
+public struct RARFormatSniffer: FormatSniffer {
     public func sniffHints(_ hints: FormatHints) -> Format? {
         if
-            hints.hasFileExtension("zip") ||
-            hints.hasMediaType("application/zip")
+            hints.hasFileExtension("rar") ||
+            hints.hasMediaType("application/vnd.rar", "application/x-rar", "application/x-rar-compressed")
         {
-            return zip
+            return rar
         }
 
         return nil
@@ -21,22 +21,21 @@ public struct ZIPFormatSniffer: FormatSniffer {
 
     public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
         // https://en.wikipedia.org/wiki/List_of_file_signatures
-        await blob.read(range: 0 ..< 4)
+        await blob.read(range: 0 ..< 8)
             .map { data in
                 guard
-                    data == Data([0x50, 0x4B, 0x03, 0x04]) ||
-                    data == Data([0x50, 0x4B, 0x05, 0x06]) ||
-                    data == Data([0x50, 0x4B, 0x07, 0x08])
+                    data[0 ..< 7] == Data([0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x00]) ||
+                    data == Data([0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x01, 0x00])
                 else {
                     return nil
                 }
-                return zip
+                return rar
             }
     }
 
-    private let zip = Format(
-        specifications: .zip,
-        mediaType: .zip,
-        fileExtension: "zip"
+    private let rar = Format(
+        specifications: .rar,
+        mediaType: .rar,
+        fileExtension: "rar"
     )
 }

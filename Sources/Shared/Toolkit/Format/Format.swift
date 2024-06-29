@@ -9,17 +9,17 @@ import Foundation
 /// Represents and holds information about the document format of an asset.
 public struct Format: Hashable {
     public var specifications: FormatSpecifications
-    public var mediaType: MediaType
+    public var mediaType: MediaType?
     public var fileExtension: FileExtension?
 
     /// Returns the UTI (Uniform Type Identifier) matching this format, if any.
     public var uti: String? {
-        UTI.findFrom(mediaTypes: [mediaType], fileExtensions: Array(ofNotNil: fileExtension?.rawValue))?.string
+        UTI.findFrom(mediaTypes: Array(ofNotNil: mediaType), fileExtensions: Array(ofNotNil: fileExtension?.rawValue))?.string
     }
 
     public init(
         specifications: FormatSpecification...,
-        mediaType: MediaType,
+        mediaType: MediaType? = nil,
         fileExtension: FileExtension? = nil
     ) {
         self.init(
@@ -31,7 +31,7 @@ public struct Format: Hashable {
 
     public init(
         specifications: Set<FormatSpecification>,
-        mediaType: MediaType,
+        mediaType: MediaType? = nil,
         fileExtension: FileExtension? = nil
     ) {
         self.specifications = FormatSpecifications(specifications: specifications)
@@ -64,7 +64,11 @@ public struct Format: Hashable {
     }
 
     public func refines(_ format: Format) -> Bool {
-        specifications.refines(format.specifications)
+        if !hasSpecification, format.hasSpecification {
+            return true
+        } else {
+            return specifications.refines(format.specifications)
+        }
     }
 
     public mutating func addSpecifications(_ specifications: FormatSpecification...) {
@@ -76,7 +80,7 @@ public struct Format: Hashable {
     /// Returns a null format, which has no information.
     public static let null = Format(
         specifications: Set(),
-        mediaType: .binary,
+        mediaType: nil,
         fileExtension: nil
     )
 }
@@ -136,7 +140,6 @@ public struct FormatSpecification: RawRepresentable, Hashable {
 
     // Publication manifest specifications
 
-    public static let w3cPubManifest = FormatSpecification(rawValue: "w3c-pub-manifest")
     public static let rwpm = FormatSpecification(rawValue: "rwpm")
 
     // Technical document specifications

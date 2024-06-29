@@ -13,10 +13,10 @@ public protocol HintsFormatSniffer {
 
 public protocol ContentFormatSniffer {
     /// Tries to refine the given `format` by sniffing a `blob`.
-    func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format>
+    func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?>
 
     /// Tries to refine the given `format` by sniffing a `container`.
-    func sniffContainer<C: Container>(_ container: C, refining format: Format) async -> ReadResult<Format>
+    func sniffContainer<C: Container>(_ container: C, refining format: Format) async -> ReadResult<Format?>
 }
 
 public extension ContentFormatSniffer {
@@ -28,13 +28,11 @@ public extension ContentFormatSniffer {
     /// Tries to sniff the format of `blob`.
     func sniffBlob(_ blob: FormatSnifferBlob) async -> ReadResult<Format?> {
         await sniffBlob(blob, refining: .null)
-            .map { Optional($0).takeIf { $0.hasSpecification } }
     }
 
     /// Tries to sniff the format of `container`.
     func sniffContainer<C: Container>(_ container: C) async -> ReadResult<Format?> {
         await sniffContainer(container, refining: .null)
-            .map { Optional($0).takeIf { $0.hasSpecification } }
     }
 }
 
@@ -45,12 +43,12 @@ public extension FormatSniffer {
         nil
     }
 
-    func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format> {
-        .success(format)
+    func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
+        .success(nil)
     }
 
-    func sniffContainer<C: Container>(_ container: C, refining format: Format) async -> ReadResult<Format> {
-        .success(format)
+    func sniffContainer<C: Container>(_ container: C, refining format: Format) async -> ReadResult<Format?> {
+        .success(nil)
     }
 }
 

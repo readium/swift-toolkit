@@ -6,14 +6,16 @@
 
 import Foundation
 
-/// Sniffs a ZIP file.
-public struct ZIPFormatSniffer: FormatSniffer {
+/// Sniffs a PDF document.
+///
+/// Reference: https://www.loc.gov/preservation/digital/formats/fdd/fdd000123.shtml
+public struct PDFFormatSniffer: FormatSniffer {
     public func sniffHints(_ hints: FormatHints) -> Format? {
         if
-            hints.hasFileExtension("zip") ||
-            hints.hasMediaType("application/zip")
+            hints.hasFileExtension("pdf") ||
+            hints.hasMediaType("application/pdf")
         {
-            return zip
+            return pdf
         }
 
         return nil
@@ -21,22 +23,18 @@ public struct ZIPFormatSniffer: FormatSniffer {
 
     public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
         // https://en.wikipedia.org/wiki/List_of_file_signatures
-        await blob.read(range: 0 ..< 4)
+        await blob.read(range: 0 ..< 5)
             .map { data in
-                guard
-                    data == Data([0x50, 0x4B, 0x03, 0x04]) ||
-                    data == Data([0x50, 0x4B, 0x05, 0x06]) ||
-                    data == Data([0x50, 0x4B, 0x07, 0x08])
-                else {
+                guard String(data: data, encoding: .utf8) == "%PDF-" else {
                     return nil
                 }
-                return zip
+                return pdf
             }
     }
 
-    private let zip = Format(
-        specifications: .zip,
-        mediaType: .zip,
-        fileExtension: "zip"
+    private let pdf = Format(
+        specifications: .pdf,
+        mediaType: .pdf,
+        fileExtension: "pdf"
     )
 }

@@ -146,7 +146,7 @@ public final class AssetRetriever {
     ) async -> Result<Asset, AssetRetrieveError> {
         switch await formatSniffer.sniffAsset(asset: asset, refining: format) {
         case let .success(refinedFormat):
-            if refinedFormat.refines(format) {
+            if let refinedFormat = refinedFormat, refinedFormat.refines(format) {
                 return await refine(format: refinedFormat, of: asset)
             }
         case let .failure(error):
@@ -225,7 +225,7 @@ private extension Resource {
 }
 
 private extension FormatSniffer {
-    func sniffAsset(asset: Asset, refining format: Format) async -> ReadResult<Format> {
+    func sniffAsset(asset: Asset, refining format: Format) async -> ReadResult<Format?> {
         switch asset {
         case let .resource(asset):
             return await sniffBlob(FormatSnifferBlob(source: asset.resource), refining: format)
