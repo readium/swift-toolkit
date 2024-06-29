@@ -16,6 +16,8 @@ public final class DefaultFormatSniffer: CompositeFormatSniffer {
         additionalSniffers: [FormatSniffer] = []
     ) {
         super.init(additionalSniffers + [
+            AudioFormatSniffer(),
+            BitmapFormatSniffer(),
             XMLFormatSniffer(),
             HTMLFormatSniffer(),
             PDFFormatSniffer(),
@@ -24,6 +26,8 @@ public final class DefaultFormatSniffer: CompositeFormatSniffer {
             RWPMFormatSniffer(),
             ZIPFormatSniffer(),
             RARFormatSniffer(),
+            ComicFormatSniffer(),
+            ZABFormatSniffer(),
             EPUBFormatSniffer(xmlDocumentFactory: xmlDocumentFactory),
             RPFFormatSniffer(),
         ])

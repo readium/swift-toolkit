@@ -67,6 +67,10 @@ public struct FormatHints {
         fileExtensions = Array(ofNotNil: fileExtension)
     }
 
+    public init(fileExtension: FileExtension?) {
+        self.init(mediaType: nil, fileExtension: fileExtension)
+    }
+
     /// Returns whether this context has any of the given file extensions,
     /// ignoring case.
     public func hasFileExtension(_ candidates: String...) -> Bool {

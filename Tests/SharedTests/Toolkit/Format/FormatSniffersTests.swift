@@ -12,27 +12,27 @@ class FormatSniffersTests: XCTestCase {
     let sut = DefaultFormatSniffer()
 
     func testSniffHintsUnknown() {
-        XCTAssertNil(sut.sniffHints(.init(mediaType: nil, fileExtension: "unknown")))
-        XCTAssertNil(sut.sniffHints(.init(mediaType: MediaType("application/unknown+zip")!)))
+        XCTAssertNil(sut.sniffHints(fileExtension: "unknown"))
+        XCTAssertNil(sut.sniffHints(mediaType: MediaType("application/unknown+zip")!))
     }
 
     func testSniffHintsIgnoresExtensionCase() {
         XCTAssertEqual(
-            sut.sniffHints(.init(mediaType: nil, fileExtension: "EPUB")),
+            sut.sniffHints(fileExtension: "EPUB"),
             .epub
         )
     }
 
     func testSniffHintsIgnoresMediaTypeCase() {
         XCTAssertEqual(
-            sut.sniffHints(.init(mediaType: MediaType("APPLICATION/EPUB+ZIP"))),
+            sut.sniffHints(mediaType: "APPLICATION/EPUB+ZIP"),
             .epub
         )
     }
 
     func testSniffHintsIgnoresMediaTypeExtraParameters() {
         XCTAssertEqual(
-            sut.sniffHints(.init(mediaType: MediaType("application/epub+zip;param=value"))),
+            sut.sniffHints(mediaType: "application/epub+zip;param=value"),
             .epub
         )
     }
@@ -55,9 +55,133 @@ class FormatSniffersTests: XCTestCase {
         XCTAssertEqual(result, .failure(error))
     }
 
+    func testSniffAudio() {
+        // AAC
+        let aac = Format(specifications: .aac, mediaType: .aac, fileExtension: "aac")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "aac"), aac)
+        XCTAssertEqual(sut.sniffHints(mediaType: "audio/aac"), aac)
+
+        // AIFF
+        let aiff = Format(specifications: .aiff, mediaType: .aiff, fileExtension: "aiff")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "aiff"), aiff)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "aif"), aiff)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "aifc"), aiff)
+        XCTAssertEqual(sut.sniffHints(mediaType: "audio/aiff"), aiff)
+        XCTAssertEqual(sut.sniffHints(mediaType: "audio/x-aiff"), aiff)
+
+        // FLAC
+        let flac = Format(specifications: .flac, mediaType: .flac, fileExtension: "flac")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "flac"), flac)
+        XCTAssertEqual(sut.sniffHints(mediaType: "audio/flac"), flac)
+
+        // MP3
+        let mp3 = Format(specifications: .mp3, mediaType: .mp3, fileExtension: "mp3")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "mp3"), mp3)
+        XCTAssertEqual(sut.sniffHints(mediaType: "audio/mpeg"), mp3)
+
+        // MP4
+        let mp4 = Format(specifications: .mp4, mediaType: .mp4, fileExtension: "mp4")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "mp4"), mp4)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "m4a"), mp4)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "m4b"), mp4)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "m4p"), mp4)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "m4r"), mp4)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "alac"), mp4)
+        XCTAssertEqual(sut.sniffHints(mediaType: "audio/mp4"), mp4)
+
+        // OGG
+        let ogg = Format(specifications: .ogg, mediaType: .ogg, fileExtension: "ogg")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "ogg"), ogg)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "oga"), ogg)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "mogg"), ogg)
+        XCTAssertEqual(sut.sniffHints(mediaType: "audio/ogg"), ogg)
+
+        // OPUS
+        let opus = Format(specifications: .opus, mediaType: .opus, fileExtension: "opus")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "opus"), opus)
+        XCTAssertEqual(sut.sniffHints(mediaType: "audio/opus"), opus)
+
+        // WAV
+        let wav = Format(specifications: .wav, mediaType: .wav, fileExtension: "wav")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "wav"), wav)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "wave"), wav)
+        XCTAssertEqual(sut.sniffHints(mediaType: "audio/wav"), wav)
+        XCTAssertEqual(sut.sniffHints(mediaType: "audio/x-wav"), wav)
+        XCTAssertEqual(sut.sniffHints(mediaType: "audio/wave"), wav)
+
+        // WebM
+        let webm = Format(specifications: .webm, mediaType: .webmAudio, fileExtension: "webm")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "webm"), webm)
+        XCTAssertEqual(sut.sniffHints(mediaType: "audio/webm"), webm)
+    }
+
+    func testSniffBitmap() {
+        // AVIF
+        let avif = Format(specifications: .avif, mediaType: .avif, fileExtension: "avif")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "avif"), avif)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "avifs"), avif)
+        XCTAssertEqual(sut.sniffHints(mediaType: "image/avif"), avif)
+
+        // BMP
+        let bmp = Format(specifications: .bmp, mediaType: .bmp, fileExtension: "bmp")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "bmp"), bmp)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "dib"), bmp)
+        XCTAssertEqual(sut.sniffHints(mediaType: "image/bmp"), bmp)
+        XCTAssertEqual(sut.sniffHints(mediaType: "image/x-bmp"), bmp)
+
+        // GIF
+        let gif = Format(specifications: .gif, mediaType: .gif, fileExtension: "gif")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "gif"), gif)
+        XCTAssertEqual(sut.sniffHints(mediaType: "image/gif"), gif)
+
+        // JPEG
+        let jpeg = Format(specifications: .jpeg, mediaType: .jpeg, fileExtension: "jpg")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "jpg"), jpeg)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "jpeg"), jpeg)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "jpe"), jpeg)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "jif"), jpeg)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "jfif"), jpeg)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "jfi"), jpeg)
+        XCTAssertEqual(sut.sniffHints(mediaType: "image/jpeg"), jpeg)
+
+        // PNG
+        let png = Format(specifications: .png, mediaType: .png, fileExtension: "png")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "png"), png)
+        XCTAssertEqual(sut.sniffHints(mediaType: "image/png"), png)
+
+        // TIFF
+        let tiff = Format(specifications: .tiff, mediaType: .tiff, fileExtension: "tiff")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "tiff"), tiff)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "tif"), tiff)
+        XCTAssertEqual(sut.sniffHints(mediaType: "image/tiff"), tiff)
+        XCTAssertEqual(sut.sniffHints(mediaType: "image/tiff-fx"), tiff)
+
+        // WebP
+        let webp = Format(specifications: .webp, mediaType: .webp, fileExtension: "webp")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "webp"), webp)
+        XCTAssertEqual(sut.sniffHints(mediaType: "image/webp"), webp)
+    }
+
+    func testSniffCBR() async {
+        let cbr = Format(specifications: .rar, .informalComic, mediaType: .cbr, fileExtension: "cbr")
+        XCTAssertEqual(sut.sniffHints(mediaType: "application/vnd.comicbook-rar"), cbr)
+        XCTAssertEqual(sut.sniffHints(mediaType: "application/x-cbr"), cbr)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "cbr"), cbr)
+    }
+
+    func testSniffCBZ() async {
+        let cbz = Format(specifications: .zip, .informalComic, mediaType: .cbz, fileExtension: "cbz")
+        XCTAssertEqual(sut.sniffHints(mediaType: "application/vnd.comicbook+zip"), cbz)
+        XCTAssertEqual(sut.sniffHints(mediaType: "application/x-cbz"), cbz)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "cbz"), cbz)
+
+        let result = await sut.sniffContainer(zip("cbz.unknown"), refining: .zip)
+        XCTAssertEqual(result, .success(cbz))
+    }
+
     func testSniffEPUB() async {
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: .epub)), .epub)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: nil, fileExtension: "epub")), .epub)
+        XCTAssertEqual(sut.sniffHints(mediaType: .epub), .epub)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "epub"), .epub)
 
         var result = await sut.sniffContainer(zip("epub.unknown"), refining: .zip)
         XCTAssertEqual(result, .success(.epub))
@@ -67,9 +191,9 @@ class FormatSniffersTests: XCTestCase {
     }
 
     func testSniffHTML() async {
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: .html)), .html)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: nil, fileExtension: "html")), .html)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: nil, fileExtension: "htm")), .html)
+        XCTAssertEqual(sut.sniffHints(mediaType: .html), .html)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "html"), .html)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "htm"), .html)
 
         var result = await sut.sniffBlob(file("html.unknown"))
         XCTAssertEqual(result, .success(.html))
@@ -79,25 +203,25 @@ class FormatSniffersTests: XCTestCase {
     }
 
     func testSniffJSON() async {
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: .json)), .json)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: .problemDetails)), .jsonProblemDetails)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: nil, fileExtension: "json")), .json)
+        XCTAssertEqual(sut.sniffHints(mediaType: .json), .json)
+        XCTAssertEqual(sut.sniffHints(mediaType: .problemDetails), .jsonProblemDetails)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "json"), .json)
 
         let result = await sut.sniffBlob(file("json.unknown"))
         XCTAssertEqual(result, .success(.json))
     }
 
     func testSniffLCPLicense() async {
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: .lcpLicenseDocument)), .lcpLicense)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: nil, fileExtension: "lcpl")), .lcpLicense)
+        XCTAssertEqual(sut.sniffHints(mediaType: .lcpLicenseDocument), .lcpLicense)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "lcpl"), .lcpLicense)
 
         let result = await sut.sniffBlob(file("lcpl.unknown"))
         XCTAssertEqual(result, .success(.lcpLicense))
     }
 
     func testSniffLCPProtectedAudiobook() async {
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: .lcpProtectedAudiobook)), .lcpa)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: nil, fileExtension: "lcpa")), .lcpa)
+        XCTAssertEqual(sut.sniffHints(mediaType: .lcpProtectedAudiobook), .lcpa)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "lcpa"), .lcpa)
 
         let result = await sut.sniffContainer(zip("audiobook-lcp.unknown"))
         XCTAssertEqual(result, .success(.lcpa))
@@ -119,27 +243,27 @@ class FormatSniffersTests: XCTestCase {
     }
 
     func testSniffLCPProtectedPDF() async {
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: .lcpProtectedPDF)), .lcpdf)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: nil, fileExtension: "lcpdf")), .lcpdf)
+        XCTAssertEqual(sut.sniffHints(mediaType: .lcpProtectedPDF), .lcpdf)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "lcpdf"), .lcpdf)
 
         let result = await sut.sniffContainer(zip("pdf-lcp.unknown"))
         XCTAssertEqual(result, .success(.lcpdf))
     }
 
     func testSniffPDF() async {
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: .pdf)), .pdf)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: nil, fileExtension: "pdf")), .pdf)
+        XCTAssertEqual(sut.sniffHints(mediaType: .pdf), .pdf)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "pdf"), .pdf)
 
         let result = await sut.sniffBlob(file("pdf.unknown"))
         XCTAssertEqual(result, .success(.pdf))
     }
 
     func testSniffRPF() async {
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: .readiumWebPub)), .rpfWebPub)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: .readiumAudiobook)), .rpfAudiobook)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: nil, fileExtension: "audiobook")), .rpfAudiobook)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: .divina)), .rpfDivina)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: nil, fileExtension: "divina")), .rpfDivina)
+        XCTAssertEqual(sut.sniffHints(mediaType: .readiumWebPub), .rpfWebPub)
+        XCTAssertEqual(sut.sniffHints(mediaType: .readiumAudiobook), .rpfAudiobook)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "audiobook"), .rpfAudiobook)
+        XCTAssertEqual(sut.sniffHints(mediaType: .divina), .rpfDivina)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "divina"), .rpfDivina)
 
         var result = await sut.sniffContainer(zip("webpub-package.unknown"))
         XCTAssertEqual(result, .success(.rpfWebPub))
@@ -152,9 +276,9 @@ class FormatSniffersTests: XCTestCase {
     }
 
     func testSniffRWPM() async {
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: .readiumWebPubManifest)), .rwpmWebPub)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: .readiumAudiobookManifest)), .rwpmAudiobook)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: .divinaManifest)), .rwpmDivina)
+        XCTAssertEqual(sut.sniffHints(mediaType: .readiumWebPubManifest), .rwpmWebPub)
+        XCTAssertEqual(sut.sniffHints(mediaType: .readiumAudiobookManifest), .rwpmAudiobook)
+        XCTAssertEqual(sut.sniffHints(mediaType: .divinaManifest), .rwpmDivina)
 
         var result = await sut.sniffBlob(file("webpub.json"))
         XCTAssertEqual(result, .success(.rwpmWebPub))
@@ -167,29 +291,40 @@ class FormatSniffersTests: XCTestCase {
     }
 
     func testSniffRAR() async {
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: .rar)), .rar)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: MediaType("application/x-rar")!)), .rar)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: MediaType("application/x-rar-compressed")!)), .rar)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: nil, fileExtension: "rar")), .rar)
+        let rar = Format(specifications: .rar, mediaType: .rar, fileExtension: "rar")
+
+        XCTAssertEqual(sut.sniffHints(mediaType: .rar), rar)
+        XCTAssertEqual(sut.sniffHints(mediaType: MediaType("application/x-rar")!), rar)
+        XCTAssertEqual(sut.sniffHints(mediaType: MediaType("application/x-rar-compressed")!), rar)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "rar"), rar)
     }
 
     func testSniffXHTML() async {
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: .xhtml)), .xhtml)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: nil, fileExtension: "xhtml")), .xhtml)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: nil, fileExtension: "xht")), .xhtml)
+        XCTAssertEqual(sut.sniffHints(mediaType: .xhtml), .xhtml)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "xhtml"), .xhtml)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "xht"), .xhtml)
 
         let result = await sut.sniffBlob(file("xhtml.unknown"))
         XCTAssertEqual(result, .success(.xhtml))
     }
 
     func testSniffXML() async {
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: .xml)), .xml)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: nil, fileExtension: "xml")), .xml)
+        XCTAssertEqual(sut.sniffHints(mediaType: .xml), .xml)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "xml"), .xml)
+    }
+
+    func testSniffZAB() async {
+        let zab = Format(specifications: .zip, .informalAudiobook, mediaType: .zab, fileExtension: "zab")
+        XCTAssertEqual(sut.sniffHints(mediaType: .zab), zab)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "zab"), zab)
+
+        let result = await sut.sniffContainer(zip("zab.unknown"), refining: .zip)
+        XCTAssertEqual(result, .success(zab))
     }
 
     func testSniffZIP() async {
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: .zip)), .zip)
-        XCTAssertEqual(sut.sniffHints(.init(mediaType: nil, fileExtension: "zip")), .zip)
+        XCTAssertEqual(sut.sniffHints(mediaType: .zip), .zip)
+        XCTAssertEqual(sut.sniffHints(fileExtension: "zip"), .zip)
 
         let result = await sut.sniffBlob(file("unknown.zip"))
         XCTAssertEqual(result, .success(.zip))
@@ -211,6 +346,20 @@ class FormatSniffersTests: XCTestCase {
     }
 }
 
+private extension FormatSniffer {
+    func sniffHints(fileExtension: String) -> Format? {
+        sniffHints(.init(fileExtension: FileExtension(rawValue: fileExtension)))
+    }
+
+    func sniffHints(mediaType: MediaType) -> Format? {
+        sniffHints(.init(mediaType: mediaType))
+    }
+
+    func sniffHints(mediaType: String) -> Format? {
+        sniffHints(.init(mediaType: MediaType(mediaType)!))
+    }
+}
+
 extension Format {
     static let epub = Format(specifications: .zip, .epub, mediaType: .epub, fileExtension: "epub")
     static let html = Format(specifications: .html, mediaType: .html, fileExtension: "html")
@@ -221,7 +370,6 @@ extension Format {
     static let lcpa = Format(specifications: .zip, .rpf, .lcp, mediaType: .lcpProtectedAudiobook, fileExtension: "lcpa")
     static let lcpDivina = Format(specifications: .zip, .rpf, .lcp, mediaType: .divina, fileExtension: "divina")
     static let pdf = Format(specifications: .pdf, mediaType: .pdf, fileExtension: "pdf")
-    static let rar = Format(specifications: .rar, mediaType: .rar, fileExtension: "rar")
     static let rpfWebPub = Format(specifications: .zip, .rpf, mediaType: .readiumWebPub, fileExtension: "webpub")
     static let rpfAudiobook = Format(specifications: .zip, .rpf, mediaType: .readiumAudiobook, fileExtension: "audiobook")
     static let rpfDivina = Format(specifications: .zip, .rpf, mediaType: .divina, fileExtension: "divina")

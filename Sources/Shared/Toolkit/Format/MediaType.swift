@@ -233,8 +233,10 @@ public struct MediaType: Hashable, Loggable, Sendable {
     public static let acsm = MediaType("application/vnd.adobe.adept+xml")!
     public static let aiff = MediaType("audio/aiff")!
     public static let avi = MediaType("video/x-msvideo")!
+    public static let avif = MediaType("image/avif")!
     public static let binary = MediaType("application/octet-stream")!
     public static let bmp = MediaType("image/bmp")!
+    public static let cbr = MediaType("application/vnd.comicbook-rar")!
     public static let cbz = MediaType("application/vnd.comicbook+zip")!
     public static let css = MediaType("text/css")!
     public static let divina = MediaType("application/divina+zip")!
