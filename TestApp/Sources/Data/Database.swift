@@ -8,56 +8,45 @@ import Combine
 import Foundation
 import GRDB
 import ReadiumShared
+import SwiftUI
+
+/// Database migration to be performed when updating the app.
+protocol DatabaseMigration {
+    /// Schema version for this migration.
+    var version: Int { get }
+
+    /// Applies the migration.
+    func run(on db: GRDB.Database) throws
+}
 
 final class Database {
-    convenience init(file: URL) throws {
-        try self.init(writer: DatabaseQueue(path: file.path))
+    convenience init(file: URL, migrations: [DatabaseMigration]) throws {
+        try self.init(writer: DatabaseQueue(path: file.path), migrations: migrations)
     }
 
     private let writer: DatabaseWriter
 
-    private init(writer: DatabaseWriter = DatabaseQueue()) throws {
+    private init(writer: DatabaseWriter = DatabaseQueue(), migrations: [DatabaseMigration]) throws {
         self.writer = writer
+        
+        try run(migrations)
+    }
+    
+    /// Runs the database migrations on `Database` initialization.
+    private func run(_ migrations: [DatabaseMigration]) throws {
+        try writer.write { db in
+            let currentVersion = try Int64.fetchOne(db, sql: "PRAGMA user_version") ?? 0
 
-        var migrator = DatabaseMigrator()
-        migrator.registerMigration("initial") { db in
-            try db.create(table: "book") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("identifier", .text)
-                t.column("title", .text).notNull()
-                t.column("authors", .text)
-                t.column("type", .text).notNull()
-                t.column("path", .text).notNull()
-                t.column("coverPath", .text)
-                t.column("locator", .text)
-                t.column("progression", .integer).notNull().defaults(to: 0)
-                t.column("created", .datetime).notNull()
-                t.column("preferencesJSON", .text)
-            }
-
-            try db.create(table: "bookmark") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("bookId", .integer).references("book", onDelete: .cascade).notNull()
-                t.column("locator", .text)
-                t.column("progression", .double).notNull()
-                t.column("created", .datetime).notNull()
-            }
-
-            try db.create(table: "highlight") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("bookId", .integer).references("book", onDelete: .cascade).notNull()
-                t.column("locator", .text)
-                t.column("progression", .double).notNull()
-                t.column("color", .integer).notNull()
-                t.column("created", .datetime).notNull()
-            }
-
-            // create an index to make sorting by progression faster
-            try db.create(index: "index_highlight_progression", on: "highlight", columns: ["bookId", "progression"], ifNotExists: true)
-            try db.create(index: "index_bookmark_progression", on: "bookmark", columns: ["bookId", "progression"], ifNotExists: true)
+            try migrations
+                .filter { $0.version > currentVersion }
+                .sorted { $0.version < $1.version }
+                .forEach { try run($0, on: db) }
         }
-
-        try migrator.migrate(writer)
+    }
+    
+    private func run(_ migration: DatabaseMigration, on db: GRDB.Database) throws {
+        try migration.run(on: db)
+        try db.execute(sql: "PRAGMA user_version = \(migration.version)")
     }
 
     func read<T>(_ query: @escaping (GRDB.Database) throws -> T) async throws -> T {
