@@ -9,7 +9,7 @@ import Foundation
 import GRDB
 import ReadiumShared
 
-struct Book: Codable {
+struct Book: Codable, Hashable, Identifiable {
     struct Id: EntityId { let rawValue: Int64 }
 
     let id: Id?
