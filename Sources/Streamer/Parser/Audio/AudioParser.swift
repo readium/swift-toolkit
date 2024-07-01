@@ -107,9 +107,23 @@ public final class AudioParser: PublicationParser {
         guard let filename = url.lastPathSegment else {
             return true
         }
-        let ignoredExtensions = ["asx", "bio", "m3u", "m3u8", "pla", "pls", "smil", "txt", "vlc", "wpl", "xspf", "zpl"]
+        let ignoredExtensions: [FileExtension] = [
+            "asx",
+            "bio",
+            "m3u",
+            "m3u8",
+            "pla",
+            "pls",
+            "smil",
+            "txt",
+            "vlc",
+            "wpl",
+            "xspf",
+            "zpl",
+        ]
 
-        return ignoredExtensions.contains(url.pathExtension ?? "")
+        return url.pathExtension == nil
+            || ignoredExtensions.contains(url.pathExtension!)
             || filename.hasPrefix(".")
             || filename == "Thumbs.db"
     }

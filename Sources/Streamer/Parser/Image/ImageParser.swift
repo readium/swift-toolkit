@@ -25,7 +25,6 @@ public final class ImageParser: PublicationParser {
         .bmp,
         .gif,
         .jpeg,
-        .jxl,
         .png,
         .tiff,
         .webp,
@@ -103,9 +102,10 @@ public final class ImageParser: PublicationParser {
         guard let filename = url.lastPathSegment else {
             return true
         }
-        let ignoredExtensions = ["acbf", "txt", "xml"]
+        let ignoredExtensions: [FileExtension] = ["acbf", "txt", "xml"]
 
-        return ignoredExtensions.contains(url.pathExtension ?? "")
+        return url.pathExtension == nil
+            || ignoredExtensions.contains(url.pathExtension!)
             || filename.hasPrefix(".")
             || filename == "Thumbs.db"
     }

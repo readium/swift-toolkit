@@ -20,7 +20,13 @@ public actor HTTPResource: Resource {
     public nonisolated var sourceURL: AbsoluteURL? { url }
 
     public func properties() async -> ReadResult<ResourceProperties> {
-        .success(ResourceProperties())
+        await headResponse()
+            .map { response in
+                ResourceProperties {
+                    $0.filename = response.filename ?? url.lastPathSegment
+                    $0.mediaType = response.mediaType
+                }
+            }
     }
 
     public func estimatedLength() async -> ReadResult<UInt64?> {

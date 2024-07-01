@@ -47,7 +47,9 @@ public actor FileResource: Resource, Loggable {
     }
 
     public func properties() async -> ReadResult<ResourceProperties> {
-        .success(ResourceProperties())
+        .success(ResourceProperties {
+            $0.filename = fileURL.lastPathSegment
+        })
     }
 
     public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {

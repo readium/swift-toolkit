@@ -153,6 +153,7 @@ private actor MinizipResource: Resource, Loggable {
 
     func properties() async -> ReadResult<ResourceProperties> {
         .success(ResourceProperties {
+            $0.filename = RelativeURL(path: entryPath)?.lastPathSegment
             $0.archive = ArchiveProperties(
                 entryLength: metadata.compressedLength ?? metadata.length,
                 isEntryCompressed: metadata.compressedLength != nil

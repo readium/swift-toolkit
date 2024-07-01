@@ -125,6 +125,7 @@ struct ZIPTester {
                 isEntryCompressed: isCompressed
             )
         )
+        XCTAssertEqual(properties.filename, RelativeURL(path: path)!.lastPathSegment)
     }
 }
 
