@@ -105,7 +105,24 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
 
     @objc func gptSelection() {
         if let selection = navigator.currentSelection {
-            print(selection)
+            let url = URL(string: "http://localhost:3000/openai/v1/chat/completions")!
+            var request = URLRequest(url: url)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpMethod = "POST"
+            let requestJSON: [String: String?] = ["highlight": selection.locator.text.highlight, "title": selection.locator.title]
+            let requestBody = try? JSONSerialization.data(withJSONObject: requestJSON)
+            request.httpBody = requestBody
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                guard let data = data, error == nil else {
+                    print(error?.localizedDescription ?? "Unknown error")
+                    return
+                }
+                let responseJSON = try? JSONSerialization.jsonObject(with: data, options: [])
+                if let responseJSON = responseJSON as? [String: Any] {
+                    print(responseJSON)
+                }
+            }
+            task.resume()
             navigator.clearSelection()
         }
     }
