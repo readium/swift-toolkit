@@ -8,7 +8,7 @@ import SwiftUI
 
 struct About: View {
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(alignment: .leading, spacing: 20) {
                 Text("Version")
                     .font(.title2)

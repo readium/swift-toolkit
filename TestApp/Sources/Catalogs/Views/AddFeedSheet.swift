@@ -17,7 +17,7 @@ struct AddFeedSheet: View {
     @State var url: String = ""
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section {
                     TextField("Feed Title", text: $title)

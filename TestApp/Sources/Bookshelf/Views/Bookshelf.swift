@@ -13,7 +13,7 @@ struct Bookshelf: View {
     @State private var books: [Book] = []
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 // TODO: figure out what the best column layout is for phones and tablets
                 let columns: [GridItem] = [GridItem(.adaptive(minimum: 150 + 8))]
@@ -34,7 +34,6 @@ struct Bookshelf: View {
             .navigationTitle("Bookshelf")
             .toolbar(content: toolbarContent)
         }
-        .navigationViewStyle(.stack)
         .sheet(isPresented: $showingSheet) {
             AddBookSheet(showingSheet: $showingSheet) { _ in
                 // TODO: validate the URL and import the book

@@ -14,13 +14,13 @@ struct AddBookSheet: View {
     @State var url: String = ""
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 TextField("URL", text: $url)
                     .keyboardType(.URL)
                     .autocapitalization(.none)
             }
-            .navigationBarTitle("Add a Book")
+            .navigationTitle("Add a Book")
             .toolbar(content: toolbarContent)
         }
     }
