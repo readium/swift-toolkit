@@ -7,8 +7,7 @@
 import SwiftUI
 
 struct AddBookSheet: View {
-    // For iOS 15, we can use @Environment(\.dismiss)
-    @Binding var showingSheet: Bool
+    @Environment(\.dismiss) private var dismiss
     var action: (String) -> Void
 
     @State var url: String = ""
@@ -29,13 +28,13 @@ struct AddBookSheet: View {
     private func toolbarContent() -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {
             Button(.cancel) {
-                showingSheet = false
+                dismiss()
             }
         }
         ToolbarItem(placement: .navigationBarTrailing) {
             Button(.save) {
                 action(url)
-                showingSheet = false
+                dismiss()
             }
             .disabled(url.isEmpty)
         }

@@ -9,8 +9,7 @@ import SwiftUI
 struct AddFeedSheet: View {
     typealias ActionCallback = ((title: String, url: String)) -> Void
 
-    // For iOS 15, we can use @Environment(\.dismiss)
-    @Binding var showingSheet: Bool
+    @Environment(\.dismiss) private var dismiss
     var action: ActionCallback
 
     @State var title: String = ""
@@ -35,13 +34,13 @@ struct AddFeedSheet: View {
     private func toolbarContent() -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {
             Button(.cancel) {
-                showingSheet = false
+                dismiss()
             }
         }
         ToolbarItem(placement: .navigationBarTrailing) {
             Button(.save) {
                 action((title: title, url: url))
-                showingSheet = false
+                dismiss()
             }
             .disabled(title.isEmpty || url.isEmpty)
         }

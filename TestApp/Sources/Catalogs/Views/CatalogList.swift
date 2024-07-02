@@ -53,7 +53,7 @@ struct CatalogList: View {
             .toolbar(content: toolbarContent)
         }
         .sheet(isPresented: $showingSheet) {
-            AddFeedSheet(showingSheet: $showingSheet) { title, url in
+            AddFeedSheet { title, url in
                 Task {
                     try await addCatalog(title: title, url: url)
                 }
@@ -69,9 +69,9 @@ struct CatalogList: View {
     @ToolbarContentBuilder
     private func toolbarContent() -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
-            Button(.add) {
+            Button(.add, action: {
                 showingSheet = true
-            }
+            })
         }
     }
 }

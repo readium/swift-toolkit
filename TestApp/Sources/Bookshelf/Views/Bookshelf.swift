@@ -35,8 +35,9 @@ struct Bookshelf: View {
             .toolbar(content: toolbarContent)
         }
         .sheet(isPresented: $showingSheet) {
-            AddBookSheet(showingSheet: $showingSheet) { _ in
+            AddBookSheet { url in
                 // TODO: validate the URL and import the book
+                print(url)
             }
         }
     }
@@ -46,9 +47,9 @@ extension Bookshelf {
     @ToolbarContentBuilder
     private func toolbarContent() -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
-            Button(.add) {
+            Button(.add, action: {
                 showingSheet = true
-            }
+            })
         }
     }
 }
