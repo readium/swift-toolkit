@@ -24,7 +24,7 @@ struct OPDSPublication: Hashable {
     let images: [Link]
     let description: String?
     let baseURL: HTTPURL?
-    
+
     init(from publication: Publication) {
         title = publication.metadata.title
         authors = publication.metadata.authors
