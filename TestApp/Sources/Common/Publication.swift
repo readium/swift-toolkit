@@ -17,3 +17,19 @@ extension Publication {
         }
     }
 }
+
+struct OPDSPublication: Hashable {
+    let title: String?
+    let authors: [Contributor]
+    let images: [Link]
+    let description: String?
+    let baseURL: HTTPURL?
+    
+    init(from publication: Publication) {
+        title = publication.metadata.title
+        authors = publication.metadata.authors
+        images = publication.images
+        description = publication.metadata.description
+        baseURL = publication.baseURL
+    }
+}

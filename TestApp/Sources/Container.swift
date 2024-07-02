@@ -32,18 +32,17 @@ class Container {
     func catalogs() -> CatalogList {
         CatalogList(
             catalogRepository: catalogRepository,
-            catalogFeed: catalogFeed(with:)
+            catalogFeed: catalogFeed(with:),
+            publicationDetail: publicationDetail(with:)
         )
     }
 
     func catalogFeed(with catalog: Catalog) -> CatalogFeed {
-        CatalogFeed(catalog: catalog,
-                    catalogFeed: catalogFeed(with:),
-                    publicationDetail: publicationDetail(with:))
+        CatalogFeed(catalog: catalog)
     }
 
-    func publicationDetail(with publication: Publication) -> PublicationDetail {
-        PublicationDetail(publication: publication)
+    func publicationDetail(with opdsPublication: OPDSPublication) -> PublicationDetail {
+        PublicationDetail(opdsPublication: opdsPublication)
     }
 
     // About

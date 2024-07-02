@@ -8,16 +8,16 @@ import ReadiumShared
 import SwiftUI
 
 struct PublicationDetail: View {
-    @State var publication: Publication
+    @State var opdsPublication: OPDSPublication
 
     var body: some View {
-        let authors = publication.metadata.authors
+        let authors = opdsPublication.authors
             .map(\.name)
             .joined(separator: ", ")
         ScrollView {
             VStack {
                 AsyncImage(
-                    url: publication.images.first
+                    url: opdsPublication.images.first
                         .map { URL(string: $0.href)! },
                     content: { $0
                         .resizable()
@@ -26,10 +26,12 @@ struct PublicationDetail: View {
                     },
                     placeholder: { ProgressView() }
                 )
-                Text(publication.metadata.title ?? "").font(.largeTitle)
-                Text(authors).font(.title2)
-                Text(publication.metadata.description ?? "")
+                Text(opdsPublication.title ?? "").font(.title)
+                Text(authors).font(.title3)
+                    .padding([.top], 5)
+                Text(opdsPublication.description ?? "")
                     .padding([.top, .bottom], 20)
+                    .frame(alignment: .leading)
             }
         }
         .padding()

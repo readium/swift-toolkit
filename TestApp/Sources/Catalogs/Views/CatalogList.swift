@@ -10,17 +10,18 @@ import SwiftUI
 struct CatalogList: View {
     let catalogRepository: CatalogRepository
     let catalogFeed: (Catalog) -> CatalogFeed
+    let publicationDetail: (OPDSPublication) -> PublicationDetail
 
     @State private var showingSheet = false
     @State private var showingAlert = false
     @State private var catalogs: [Catalog] = []
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 List {
                     ForEach(catalogs, id: \.id) { catalog in
-                        NavigationLink(destination: catalogFeed(catalog)) {
+                        NavigationLink(value: catalog) {
                             ListRowItem(title: catalog.title)
                         }
                     }
@@ -43,19 +44,18 @@ struct CatalogList: View {
                 .listStyle(DefaultListStyle())
             }
             .navigationTitle("Catalogs")
+            .navigationDestination(for: Catalog.self) { catalog in
+                catalogFeed(catalog)
+            }
+            .navigationDestination(for: OPDSPublication.self) { opdsPublication in
+                publicationDetail(opdsPublication)
+            }
             .toolbar(content: toolbarContent)
         }
-        .navigationViewStyle(.stack)
         .sheet(isPresented: $showingSheet) {
             AddFeedSheet(showingSheet: $showingSheet) { title, url in
                 Task {
-                    do {
-                        OPDSParser.parseURL(url: URL(string: url)!) { _, _ in
-                        }
-                        try await addCatalog(catalog: Catalog(title: title, url: url))
-                    } catch {
-                        showingAlert = true
-                    }
+                    try await addCatalog(title: title, url: url)
                 }
             }
         }
@@ -77,9 +77,18 @@ struct CatalogList: View {
 }
 
 extension CatalogList {
-    func addCatalog(catalog: Catalog) async throws {
-        var savedCatalog = catalog
-        try? await catalogRepository.save(&savedCatalog)
+    func addCatalog(title: String, url: String) async throws {
+        do {
+            guard let catalogURL = URL(string: url) else {
+                showingAlert = true
+                return
+            }
+            OPDSParser.parseURL(url: catalogURL) { _, _ in }
+            var savedCatalog = Catalog(title: title, url: url)
+            try await catalogRepository.save(&savedCatalog)
+        } catch {
+            showingAlert = true
+        }
     }
 
     func deleteCatalogs(ids: [Catalog.Id]) async throws {

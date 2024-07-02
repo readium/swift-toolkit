@@ -12,9 +12,6 @@ struct CatalogFeed: View {
     var catalog: Catalog
     @State private var parseData: ParseData?
 
-    let catalogFeed: (Catalog) -> CatalogFeed
-    let publicationDetail: (Publication) -> PublicationDetail
-
     var body: some View {
         ScrollView {
             VStack(alignment: .leading) {
@@ -22,7 +19,7 @@ struct CatalogFeed: View {
                     if !feed.navigation.isEmpty {
                         ForEach(feed.navigation, id: \.self) { link in
                             let navigationLink = Catalog(title: link.title ?? "Catalog", url: link.href)
-                            NavigationLink(destination: catalogFeed(navigationLink)) {
+                            NavigationLink(value: navigationLink) {
                                 ListRowItem(title: link.title!)
                             }
                         }
@@ -37,7 +34,7 @@ struct CatalogFeed: View {
                                 let authors = publication.metadata.authors
                                     .map(\.name)
                                     .joined(separator: ", ")
-                                NavigationLink(destination: publicationDetail(publication)) {
+                                NavigationLink(value: OPDSPublication(from: publication)) {
                                     BookCover(
                                         title: publication.metadata.title ?? "",
                                         authors: authors,
@@ -53,7 +50,7 @@ struct CatalogFeed: View {
 
                     if !feed.groups.isEmpty {
                         ForEach(feed.groups as [ReadiumShared.Group]) { group in
-                            CatalogGroup(group: group, publicationDetail: publicationDetail, catalogFeed: catalogFeed)
+                            CatalogGroup(group: group)
                                 .padding([.bottom], 25)
                         }
                     }
@@ -84,7 +81,6 @@ extension CatalogFeed {
 struct CatalogDetail_Previews: PreviewProvider {
     static var previews: some View {
         let catalog = Catalog(title: "Test", url: "https://www.test.com")
-        CatalogFeed(catalog: catalog, catalogFeed: { _ in fatalError() },
-                    publicationDetail: { _ in fatalError() })
+        CatalogFeed(catalog: catalog)
     }
 }
