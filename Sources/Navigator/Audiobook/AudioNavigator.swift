@@ -75,7 +75,7 @@ public extension AudioNavigatorDelegate {
 ///
 /// * Readium Audiobook
 /// * ZAB (Zipped Audio Book)
-open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
+public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
     public weak var delegate: AudioNavigatorDelegate?
 
     public struct Configuration {
@@ -220,13 +220,13 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
     }
 
     /// Seeks to the given time in the current resource.
-    public func seek(to time: Double) {
-        player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
+    public func seek(to time: Double) async {
+        await player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
     }
 
     /// Seeks relatively from the current time in the current resource.
-    public func seek(by delta: Double) {
-        seek(to: currentTime + delta)
+    public func seek(by delta: Double) async {
+        await seek(to: currentTime + delta)
     }
 
     private var rateObserver: NSKeyValueObservation?

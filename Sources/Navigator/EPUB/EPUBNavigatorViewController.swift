@@ -101,11 +101,7 @@ open class EPUBNavigatorViewController: UIViewController,
         /// Logs the state changes when true.
         public var debugState: Bool
 
-        /// Default user settings.
-        public var userSettings: UserSettings
-
         public init(
-            userSettings: UserSettings = UserSettings(),
             preferences: EPUBPreferences = .empty,
             defaults: EPUBDefaults = EPUBDefaults(),
             editingActions: [EditingAction] = EditingAction.defaultActions,
@@ -120,7 +116,6 @@ open class EPUBNavigatorViewController: UIViewController,
             readiumCSSRSProperties: CSSRSProperties = CSSRSProperties(),
             debugState: Bool = false
         ) {
-            self.userSettings = userSettings
             self.preferences = preferences
             self.defaults = defaults
             self.editingActions = editingActions
@@ -138,8 +133,8 @@ open class EPUBNavigatorViewController: UIViewController,
         didSet { notifyCurrentLocation() }
     }
 
-    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
-    public var userSettings: UserSettings = .init()
+    @available(*, unavailable, message: "See the 2.5.0 migration guide to migrate to the Preferences API")
+    public var userSettings: Any { fatalError() }
 
     /// Navigation state.
     private enum State: Equatable {
@@ -504,57 +499,8 @@ open class EPUBNavigatorViewController: UIViewController,
         return moved
     }
 
-    // MARK: - Legacy user settings
-
-    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
-    public func updateUserSettingStyle() {
-        precondition(viewModel.useLegacySettings, "updateUserSettingsStyle() is not available when using the new Settings API. See the 2.5.0 migration guide.")
-        precondition(Thread.isMainThread, "User settings must be updated from the main thread")
-        _updateUserSettingsStyle()
-    }
-
-    private lazy var _updateUserSettingsStyle = execute(
-        when: { [weak self] in self?.state == .idle && self?.paginationView.isEmpty == false },
-        pollingInterval: userSettingsStylePollingInterval
-    ) { [weak self] in
-        guard let self = self else { return }
-
-        Task {
-            await self.reloadSpreads(force: false)
-
-            let location = self.currentLocation
-            for (_, view) in self.paginationView.loadedViews {
-                (view as? EPUBSpreadView)?.applySettings()
-            }
-
-            // Re-positions the navigator to the location before applying the settings
-            if let location = location {
-                await self.go(to: location)
-            }
-        }
-    }
-
-    /// Polling interval to refresh user settings styles
-    ///
-    /// The polling that we perform to update the styles copes with the fact
-    /// that we cannot know when the web view has finished layout. From
-    /// empirical observations it appears that the completion speed of that
-    /// work is vastly dependent on the version of the OS, probably in
-    /// conjunction with performance-related variables such as the CPU load,
-    /// age of the device/battery, memory pressure.
-    ///
-    /// Having too small a value here may cause race conditions inside the
-    /// navigator code, causing for example failure to open the navigator to
-    /// the intended initial location.
-    private let userSettingsStylePollingInterval: TimeInterval = {
-        if #available(iOS 14, *) {
-            return 0.1
-        } else if #available(iOS 13, *) {
-            return 0.5
-        } else {
-            return 2.0
-        }
-    }()
+    @available(*, unavailable, message: "See the 2.5.0 migration guide to migrate to the Preferences API")
+    public func updateUserSettingStyle() {}
 
     // MARK: - Pagination and spreads
 
@@ -664,15 +610,6 @@ open class EPUBNavigatorViewController: UIViewController,
                 ? .vertical
                 : .horizontal
         )
-    }
-
-    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the Settings API")
-    public var readingProgression: ReadiumShared.ReadingProgression {
-        get { viewModel.legacyReadingProgression }
-        set {
-            viewModel.legacyReadingProgression = newValue
-            updateUserSettingStyle()
-        }
     }
 
     private func updateCurrentLocation() async -> Locator? {
@@ -893,7 +830,7 @@ open class EPUBNavigatorViewController: UIViewController,
     /// Applies user settings that require native configuration instead of
     /// CSS properties.
     private func applySettings() {
-        guard isViewLoaded, !viewModel.useLegacySettings else {
+        guard isViewLoaded else {
             return
         }
 

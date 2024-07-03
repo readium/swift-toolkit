@@ -23,6 +23,17 @@ public struct FileExtension: Hashable, RawRepresentable, ExpressibleByStringLite
     public func appendToFilename(_ filename: String) -> String {
         "\(filename).\(rawValue)"
     }
+
+    public static let audiobook = FileExtension(rawValue: "audiobook")
+    public static let cbz = FileExtension(rawValue: "cbz")
+    public static let divina = FileExtension(rawValue: "divina")
+    public static let epub = FileExtension(rawValue: "epub")
+    public static let json = FileExtension(rawValue: "json")
+    public static let lcpa = FileExtension(rawValue: "lcpa")
+    public static let lcpdf = FileExtension(rawValue: "lcpdf")
+    public static let lcpl = FileExtension(rawValue: "lcpl")
+    public static let pdf = FileExtension(rawValue: "pdf")
+    public static let webpub = FileExtension(rawValue: "webpub")
 }
 
 public extension Optional where Wrapped == FileExtension {

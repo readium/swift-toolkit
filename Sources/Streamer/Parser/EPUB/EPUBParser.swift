@@ -65,8 +65,6 @@ public final class EPUBParser: PublicationParser {
             let metadata = components.metadata
             let links = components.readingOrder + components.resources
 
-            let userProperties = UserProperties()
-
             let deobfuscator = EPUBDeobfuscator(publicationId: metadata.identifier ?? "", encryptions: encryptions)
 
             return await .success(Publication.Builder(

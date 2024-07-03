@@ -24,16 +24,6 @@ public class Publication: Closeable, Loggable {
     public var tableOfContents: [Link] { manifest.tableOfContents }
     public var subcollections: [String: [PublicationCollection]] { manifest.subcollections }
 
-    public var userProperties = UserProperties()
-
-    // The status of User Settings properties (enabled or disabled).
-    public var userSettingsUIPreset: [ReadiumCSSName: Bool]? {
-        didSet { userSettingsUIPresetUpdated?(userSettingsUIPreset) }
-    }
-
-    /// Called when the User Settings changed.
-    public var userSettingsUIPresetUpdated: (([ReadiumCSSName: Bool]?) -> Void)?
-
     public init(
         manifest: Manifest,
         container: Container = EmptyContainer(),
@@ -92,21 +82,6 @@ public class Publication: Closeable, Loggable {
     /// Finds all the links with the given relation in the publication's links.
     public func linksWithRel(_ rel: LinkRelation) -> [Link] {
         manifest.linksWithRel(rel)
-    }
-
-    @available(*, unavailable, renamed: "linkWithHREF")
-    public func link(withHREF href: String) -> Link? {
-        fatalError()
-    }
-
-    @available(*, unavailable, renamed: "linkWithRel")
-    public func link(withRel rel: LinkRelation) -> Link? {
-        fatalError()
-    }
-
-    @available(*, unavailable, renamed: "linksWithRel")
-    public func links(withRel rel: LinkRelation) -> [Link] {
-        fatalError()
     }
 
     /// Returns the resource targeted by the given `link`.
@@ -289,5 +264,33 @@ public class Publication: Closeable, Loggable {
         case cbz, epub, pdf, webpub
         /// Default value when the format is not specified.
         case unknown
+    }
+
+    @available(*, unavailable, message: "Take a look at the migration guide to migrate to the new Preferences API")
+    public var userProperties: UserProperties { fatalError() }
+
+    @available(*, unavailable, message: "Take a look at the migration guide to migrate to the new Preferences API")
+    public var userSettingsUIPreset: [AnyHashable: Bool]? {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Take a look at the migration guide to migrate to the new Preferences API")
+    public var userSettingsUIPresetUpdated: (([AnyHashable: Bool]?) -> Void)? {
+        fatalError()
+    }
+
+    @available(*, unavailable, renamed: "linkWithHREF")
+    public func link(withHREF href: String) -> Link? {
+        fatalError()
+    }
+
+    @available(*, unavailable, renamed: "linkWithRel")
+    public func link(withRel rel: LinkRelation) -> Link? {
+        fatalError()
+    }
+
+    @available(*, unavailable, renamed: "linksWithRel")
+    public func links(withRel rel: LinkRelation) -> [Link] {
+        fatalError()
     }
 }

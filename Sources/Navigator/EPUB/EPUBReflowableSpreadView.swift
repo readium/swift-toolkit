@@ -23,20 +23,14 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         scripts: [WKUserScript],
         animatedLoad: Bool
     ) {
-        var scripts = scripts
-
-        if viewModel.useLegacySettings {
-            let layout = ReadiumCSSLayout(languages: viewModel.publication.metadata.languages, readingProgression: viewModel.readingProgression)
-            scripts.append(WKUserScript(
-                source: "window.readiumCSSBaseURL = '\(viewModel.assetsURL.resolve(layout.readiumCSSBasePath)!)'",
-                injectionTime: .atDocumentStart,
-                forMainFrameOnly: false
-            ))
-        }
-
-        scripts.append(WKUserScript(source: Self.reflowableScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
-
-        super.init(viewModel: viewModel, spread: spread, scripts: scripts, animatedLoad: animatedLoad)
+        super.init(
+            viewModel: viewModel,
+            spread: spread,
+            scripts: [
+                WKUserScript(source: Self.reflowableScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
+            ],
+            animatedLoad: animatedLoad
+        )
     }
 
     override func setupWebView() {
@@ -85,38 +79,10 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     override func applySettings() {
         super.applySettings()
 
-        applyLegacyUserSettingsStyle()
-
         // Disables paginated mode if scroll is on.
         scrollView.isPagingEnabled = !viewModel.scroll
 
         updateContentInset()
-    }
-
-    private func applyLegacyUserSettingsStyle() {
-        guard viewModel.useLegacySettings else {
-            return
-        }
-
-        let properties = viewModel.config.userSettings.userProperties.properties
-        let propertiesScript = properties.reduce("") { script, property in
-            let value: String = {
-                // Scroll mode depends both on the user settings, and on the fact that VoiceOver is activated or not, so we need to generate the value dynamically.
-                // FIXME: This would be handled in a better way by decoupling the user settings from the actual ReadiumCSS properties sent to the WebView, which should be private details of the EPUBNavigator implementation and not shared with the host app.
-                if let switchable = property as? Switchable, property.name == ReadiumCSSName.scroll.rawValue {
-                    return switchable.values[viewModel.scroll]!
-                } else {
-                    return property.toString()
-                }
-            }()
-            return script + "readium.setProperty(\"\(property.name)\", \"\(value)\");\n"
-        }
-        Task {
-            let res = await evaluateScript(propertiesScript)
-            if case let .failure(error) = res {
-                self.log(.error, error)
-            }
-        }
     }
 
     private func updateContentInset() {

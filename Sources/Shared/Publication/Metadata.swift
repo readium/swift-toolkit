@@ -232,6 +232,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
     /// using the publication language.
     ///
     /// See this issue for more details: https://github.com/readium/architecture/issues/113
+    // FIXME:
     public var effectiveReadingProgression: ReadingProgression {
         guard readingProgression == .auto else {
             return readingProgression

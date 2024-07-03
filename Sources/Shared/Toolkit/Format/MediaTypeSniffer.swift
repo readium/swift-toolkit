@@ -12,6 +12,11 @@ public extension MediaType {
     @available(*, unavailable, message: "Use an `AssetRetriever` to sniff a `Format` instead")
     typealias Sniffer = (_ context: Any) -> MediaType?
 
+    @available(*, unavailable, renamed: "MediaType.init(_:)", message: "Create the MediaType directly with MediaType(type)")
+    static func of(mediaType: String?) -> MediaType? {
+        fatalError()
+    }
+
     /// resolves a media type from a single file extension and media type hint, without checking the
     /// actual content.
     @available(*, unavailable, message: "Use an `AssetRetriever` to sniff a `Format` instead")

@@ -54,9 +54,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         {
             wrapperPage = wrapperPage.replacingOccurrences(
                 of: "{{ASSETS_URL}}",
-                with: viewModel.useLegacySettings
-                    ? "/r2-navigator/epub"
-                    : viewModel.assetsURL.string
+                with: viewModel.assetsURL.string
             )
 
             // The publication's base URL is used to make sure we can access the resources through the iframe with JavaScript.

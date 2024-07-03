@@ -16,10 +16,6 @@ public protocol VisualNavigator: Navigator {
     /// Current presentation rendered by the navigator.
     var presentation: VisualNavigatorPresentation { get }
 
-    /// Current reading progression direction.
-    @available(*, deprecated, message: "Use `presentation.readingProgression` instead", renamed: "presentation.readingProgression")
-    var readingProgression: ReadiumShared.ReadingProgression { get }
-
     /// Moves to the left content portion (eg. page) relative to the reading
     /// progression direction.
     ///
@@ -43,6 +39,12 @@ public protocol VisualNavigator: Navigator {
     /// Returns the `Locator` to the first content element that begins on the
     /// current screen.
     func firstVisibleElementLocator() async -> Locator?
+}
+
+public extension VisualNavigator {
+    /// Current reading progression direction.
+    @available(*, unavailable, message: "Use `presentation.readingProgression` instead", renamed: "presentation.readingProgression")
+    var readingProgression: ReadiumShared.ReadingProgression { fatalError() }
 }
 
 public extension VisualNavigator {

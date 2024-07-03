@@ -34,8 +34,6 @@ final class EPUBNavigatorViewModel: Loggable {
     let assetsURL: HTTPURL
     weak var delegate: EPUBNavigatorViewModelDelegate?
 
-    let useLegacySettings: Bool
-
     /// Local file URL associated to the HTTP URL used to serve the file on the
     /// `httpServer`. This is used to serve custom font files, for example.
     @Atomic private var servedFiles: [FileURL: HTTPURL] = [:]
@@ -62,8 +60,7 @@ final class EPUBNavigatorViewModel: Loggable {
                 at: "readium",
                 contentsOf: Bundle.module.resourceURL!.fileURL!
                     .appendingPath("Assets/Static", isDirectory: true)
-            ),
-            useLegacySettings: false
+            )
         )
 
         if let url = publication.baseURL {
@@ -102,8 +99,7 @@ final class EPUBNavigatorViewModel: Loggable {
         config: EPUBNavigatorViewController.Configuration,
         httpServer: HTTPServer?,
         publicationEndpoint: HTTPServerEndpoint?,
-        assetsURL: HTTPURL,
-        useLegacySettings: Bool
+        assetsURL: HTTPURL
     ) {
         var config = config
 
@@ -142,8 +138,6 @@ final class EPUBNavigatorViewModel: Loggable {
         self.httpServer = httpServer
         self.publicationEndpoint = publicationEndpoint
         self.assetsURL = assetsURL
-        self.useLegacySettings = useLegacySettings
-        legacyReadingProgression = publication.metadata.effectiveReadingProgression
 
         preferences = config.preferences
         settings = EPUBSettings(publication: publication, config: config)
@@ -251,43 +245,10 @@ final class EPUBNavigatorViewModel: Loggable {
         )
     }
 
-    var readingProgression: ReadingProgression {
-        useLegacySettings
-            ? (ReadingProgression(legacyReadingProgression) ?? .ltr)
-            : settings.readingProgression
-    }
-
-    var legacyReadingProgression: ReadiumShared.ReadingProgression
-
-    var theme: Theme {
-        useLegacySettings ? legacyTheme : settings.theme
-    }
-
-    private var legacyTheme: Theme {
-        guard
-            let appearance = config.userSettings.userProperties.getProperty(reference: ReadiumCSSReference.appearance.rawValue) as? Enumerable,
-            appearance.values.count > appearance.index
-        else {
-            return .light
-        }
-        let value = appearance.values[appearance.index]
-        switch value {
-        case "readium-night-on":
-            return .dark
-        case "readium-sepia-on":
-            return .sepia
-        default:
-            return .light
-        }
-    }
-
-    var scroll: Bool {
-        useLegacySettings ? legacyScroll : settings.scroll
-    }
-
-    private var legacyScroll: Bool {
-        (config.userSettings.userProperties.getProperty(reference: ReadiumCSSReference.scroll.rawValue) as? Switchable)?.on ?? false
-    }
+    var readingProgression: ReadingProgression { settings.readingProgression }
+    var theme: Theme { settings.theme }
+    var scroll: Bool { settings.scroll }
+    var spread: Spread { settings.spread }
 
     // MARK: Spread
 
@@ -318,25 +279,6 @@ final class EPUBNavigatorViewModel: Loggable {
 
         if oldEnabled != spreadEnabled {
             setNeedsInvalidatePagination()
-        }
-    }
-
-    private var spread: Spread {
-        useLegacySettings ? legacySpread : settings.spread
-    }
-
-    private var legacySpread: Spread {
-        let columnCount = config.userSettings.userProperties.getProperty(reference: ReadiumCSSReference.columnCount.rawValue) as? Enumerable
-
-        switch columnCount?.index {
-        case 0:
-            return .auto
-        case 1:
-            return .never
-        case 2:
-            return .always
-        default:
-            return Spread(publication.metadata.presentation.spread) ?? .auto
         }
     }
 

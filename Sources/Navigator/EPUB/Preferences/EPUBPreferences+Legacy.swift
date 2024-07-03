@@ -8,6 +8,12 @@ import Foundation
 import ReadiumShared
 
 public extension EPUBPreferences {
+    // WARNING: String values must not contain any single or double quotes characters, otherwise it breaks the streamer's injection.
+    private static let defaultAppearanceValues = ["readium-default-on", "readium-sepia-on", "readium-night-on"]
+    private static let defaultFontFamilyValues = ["Original", "Helvetica Neue", "Iowan Old Style", "Athelas", "Seravek", "OpenDyslexic", "AccessibleDfA", "IA Writer Duospace"]
+    private static let defaultTextAlignmentValues = ["justify", "start"]
+    private static let defaultColumnCountValues = ["auto", "1", "2"]
+
     /// Loads the preferences from the legacy EPUB settings stored in the
     /// standard `UserDefaults`.
     ///
@@ -28,11 +34,11 @@ public extension EPUBPreferences {
             backgroundColor: defaults.optString(for: .backgroundColor)
                 .flatMap { Color(hex: $0) },
             columnCount: defaults.optInt(for: .columnCount)
-                .flatMap { (columnCountValues ?? UserSettings.columnCountValues).getOrNil($0) }
+                .flatMap { (columnCountValues ?? defaultColumnCountValues).getOrNil($0) }
                 .flatMap { ColumnCount(rawValue: $0) },
             fontFamily: defaults.optInt(for: .fontFamily)
                 .takeIf { $0 != 0 } // Original
-                .flatMap { (fontFamilyValues ?? UserSettings.fontFamilyValues).getOrNil($0) }
+                .flatMap { (fontFamilyValues ?? defaultFontFamilyValues).getOrNil($0) }
                 .map { FontFamily(rawValue: $0) },
             fontSize: defaults.optDouble(for: .fontSize)
                 .map { $0 / 100 },
@@ -45,7 +51,7 @@ public extension EPUBPreferences {
             scroll: defaults.optBool(for: .scroll),
             // Used to be merged with column-count
             spread: defaults.optInt(for: .columnCount)
-                .flatMap { (columnCountValues ?? UserSettings.columnCountValues).getOrNil($0) }
+                .flatMap { (columnCountValues ?? defaultColumnCountValues).getOrNil($0) }
                 .flatMap {
                     switch $0 {
                     case "auto":
@@ -59,12 +65,12 @@ public extension EPUBPreferences {
                     }
                 },
             textAlign: defaults.optInt(for: .textAlignment)
-                .flatMap { (textAlignmentValues ?? UserSettings.textAlignmentValues).getOrNil($0) }
+                .flatMap { (textAlignmentValues ?? defaultTextAlignmentValues).getOrNil($0) }
                 .flatMap { TextAlignment(rawValue: $0) },
             textColor: defaults.optString(for: .textColor)
                 .flatMap { Color(hex: $0) },
             theme: defaults.optInt(for: .appearance)
-                .flatMap { (appearanceValues ?? UserSettings.appearanceValues).getOrNil($0) }
+                .flatMap { (appearanceValues ?? defaultAppearanceValues).getOrNil($0) }
                 .flatMap {
                     switch $0 {
                     case "readium-default-on":
@@ -114,4 +120,26 @@ private extension UserDefaults {
         }
         return string(forKey: key.rawValue)
     }
+}
+
+/// List of strings that can identify the name of a CSS custom property
+private enum ReadiumCSSName: String {
+    case fontSize = "--USER__fontSize"
+    case fontFamily = "--USER__fontFamily"
+    case fontOverride = "--USER__fontOverride"
+    case appearance = "--USER__appearance"
+    case scroll = "--USER__scroll"
+    case publisherDefault = "--USER__advancedSettings"
+    case textAlignment = "--USER__textAlign"
+    case columnCount = "--USER__colCount"
+    case wordSpacing = "--USER__wordSpacing"
+    case letterSpacing = "--USER__letterSpacing"
+    case pageMargins = "--USER__pageMargins"
+    case lineHeight = "--USER__lineHeight"
+    case paraIndent = "--USER__paraIndent"
+    case hyphens = "--USER__bodyHyphens"
+    case ligatures = "--USER__ligatures"
+    case paragraphMargins = "--USER__paraSpacing"
+    case textColor = "--USER__textColor"
+    case backgroundColor = "--USER__backgroundColor"
 }
