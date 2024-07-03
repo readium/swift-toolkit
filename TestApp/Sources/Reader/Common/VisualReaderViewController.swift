@@ -17,6 +17,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 
     private let ttsViewModel: TTSViewModel?
     private let ttsControlsViewController: UIHostingController<TTSControls>?
+    private var positionCount: Int?
 
     init(
         navigator: N,
@@ -41,7 +42,12 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 
         addHighlightDecorationsObserverOnce()
         updateHighlightDecorations()
-        updatePageListDecorations()
+
+        Task {
+            self.positionCount = try? await publication.positions().get().count
+
+            await updatePageListDecorations()
+        }
     }
 
     @available(*, unavailable)
@@ -143,8 +149,8 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
         super.navigator(navigator, locationDidChange: locator)
 
         positionLabel.text = {
-            if let position = locator.locations.position {
-                return "\(position) / \(publication.positions.count)"
+            if let positionCount = positionCount, let position = locator.locations.position {
+                return "\(position) / \(positionCount)"
             } else if let progression = locator.locations.totalProgression {
                 return "\(progression)%"
             } else {
@@ -154,21 +160,25 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
     }
 
     func navigator(_ navigator: VisualNavigator, didTapAt point: CGPoint) {
-        // Turn pages when tapping the edge of the screen.
-        guard !DirectionalNavigationAdapter(navigator: navigator).didTap(at: point) else {
-            return
-        }
-        // clear a current search highlight
-        if let decorator = self.navigator as? DecorableNavigator {
-            decorator.apply(decorations: [], in: "search")
-        }
+        Task {
+            // Turn pages when tapping the edge of the screen.
+            guard await !DirectionalNavigationAdapter(navigator: navigator).didTap(at: point) else {
+                return
+            }
+            // clear a current search highlight
+            if let decorator = self.navigator as? DecorableNavigator {
+                decorator.apply(decorations: [], in: "search")
+            }
 
-        toggleNavigationBar()
+            toggleNavigationBar()
+        }
     }
 
     func navigator(_ navigator: VisualNavigator, didPressKey event: KeyEvent) {
-        // Turn pages when pressing the arrow keys.
-        DirectionalNavigationAdapter(navigator: navigator).didPressKey(event: event)
+        Task {
+            // Turn pages when pressing the arrow keys.
+            await DirectionalNavigationAdapter(navigator: navigator).didPressKey(event: event)
+        }
     }
 
     // MARK: - Highlights
@@ -298,26 +308,28 @@ extension Decoration {
 extension VisualReaderViewController {
     /// Will take the `publication.pageList` and create a `Decoration` for each
     /// label.
-    private func updatePageListDecorations() {
+    private func updatePageListDecorations() async {
         guard let navigator = navigator as? DecorableNavigator else {
             return
         }
 
-        let decorations: [Decoration] = publication.pageList.enumerated().compactMap { index, link in
-            guard let title = link.title,
-                  let locator = self.publication.locate(link)
+        var decorations: [Decoration] = []
+        for (index, link) in publication.pageList.enumerated() {
+            guard
+                let title = link.title,
+                let locator = await publication.locate(link)
             else {
-                return nil
+                continue
             }
 
-            return Decoration(
+            decorations.append(Decoration(
                 id: "page-list-\(index)",
                 locator: locator,
                 style: Decoration.Style(
                     id: .pageList,
                     config: PageListConfig(label: title)
                 )
-            )
+            ))
         }
         navigator.apply(decorations: decorations, in: "page-list")
     }

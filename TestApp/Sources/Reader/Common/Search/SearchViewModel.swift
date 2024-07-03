@@ -13,12 +13,12 @@ final class SearchViewModel: ObservableObject {
     enum State {
         // Empty state / waiting for a search query
         case empty
-        // Starting a new search, after calling `cancellable = publication.search(...)`
-        case starting(Cancellable)
+        // Starting a new search, after calling `publication.search(...)`
+        case starting
         // Waiting state after receiving a SearchIterator and waiting for a next() call
         case idle(SearchIterator)
         // Loading the next page of result
-        case loadingNext(SearchIterator, Cancellable)
+        case loadingNext(SearchIterator, Task<Void, Never>)
         // We reached the end of the search results
         case end
         // An error occurred, we need to show it to the user
@@ -42,13 +42,21 @@ final class SearchViewModel: ObservableObject {
         self.publication = publication
     }
 
+    var searchJob: Task<Void, Never>? {
+        didSet {
+            oldValue?.cancel()
+        }
+    }
+
     /// Starts a new search with the given query.
     func search(with query: String) {
         self.query = query
         cancelSearch()
 
-        let cancellable = publication._search(query: query) { result in
-            switch result {
+        state = .starting
+
+        searchJob = Task {
+            switch await publication.search(query: query) {
             case let .success(iterator):
                 self.state = .idle(iterator)
                 self.loadNextPage()
@@ -57,8 +65,6 @@ final class SearchViewModel: ObservableObject {
                 self.state = .failure(error)
             }
         }
-
-        state = .starting(cancellable)
     }
 
     /// Loads the next page of search results.
@@ -68,8 +74,8 @@ final class SearchViewModel: ObservableObject {
             return
         }
 
-        let cancellable = iterator.next { result in
-            switch result {
+        state = .loadingNext(iterator, Task {
+            switch await iterator.next() {
             case let .success(collection):
                 if let collection = collection {
                     self.results.append(contentsOf: collection.locators)
@@ -81,9 +87,7 @@ final class SearchViewModel: ObservableObject {
             case let .failure(error):
                 self.state = .failure(error)
             }
-        }
-
-        state = .loadingNext(iterator, cancellable)
+        })
     }
 
     /// Cancels any on-going search and clears the results.
@@ -92,9 +96,9 @@ final class SearchViewModel: ObservableObject {
         case let .idle(iterator):
             iterator.close()
 
-        case let .loadingNext(iterator, cancellable):
+        case let .loadingNext(iterator, task):
             iterator.close()
-            cancellable.cancel()
+            task.cancel()
 
         default:
             break

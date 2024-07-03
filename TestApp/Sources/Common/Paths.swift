@@ -29,16 +29,13 @@ final class Paths {
         return url
     }()
 
-    static func makeDocumentURL(for source: FileURL? = nil, title: String?, mediaType: MediaType) -> FileURL {
+    static func makeDocumentURL(for source: FileURL? = nil, title: String?, format: Format) -> FileURL {
         // Is the file already in Documents/?
         if let source = source, documents.isParent(of: source) {
             return source
         } else {
             let title = title.takeIf { !$0.isEmpty } ?? UUID().uuidString
-            // FIXME:
-            // let ext = mediaType.fileExtension?.addingPrefix(".") ?? ""
-            let ext = ""
-            let filename = "\(title)\(ext)".sanitizedPathComponent
+            let filename = format.fileExtension.appendToFilename(title.sanitizedPathComponent)
             return documents.appendingUniquePathComponent(filename)
         }
     }

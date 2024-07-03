@@ -27,8 +27,6 @@ final class AppModule {
     var opds: OPDSModuleAPI!
 
     init() throws {
-        let httpClient = DefaultHTTPClient()
-
         let file = Paths.library.appendingPath("database.db", isDirectory: false)
         let db = try Database(file: file.url)
         print("Created database at \(file.path)")
@@ -37,7 +35,9 @@ final class AppModule {
         let bookmarks = BookmarkRepository(db: db)
         let highlights = HighlightRepository(db: db)
 
-        library = LibraryModule(delegate: self, books: books, httpClient: httpClient)
+        let readium = Readium()
+
+        library = LibraryModule(delegate: self, books: books, readium: readium)
         reader = ReaderModule(delegate: self, books: books, bookmarks: bookmarks, highlights: highlights)
         opds = OPDSModule(delegate: self)
 

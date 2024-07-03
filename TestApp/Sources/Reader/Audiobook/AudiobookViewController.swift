@@ -107,11 +107,13 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
     // MARK: - Command Center controls
 
     private func setupCommandCenterControls() {
-        NowPlayingInfo.shared.media = .init(
-            title: publication.metadata.title ?? "",
-            artist: publication.metadata.authors.map(\.name).joined(separator: ", "),
-            artwork: publication.cover
-        )
+        Task {
+            NowPlayingInfo.shared.media = await .init(
+                title: publication.metadata.title ?? "",
+                artist: publication.metadata.authors.map(\.name).joined(separator: ", "),
+                artwork: try? publication.cover().get()
+            )
+        }
 
         let rcc = MPRemoteCommandCenter.shared()
 
@@ -138,28 +140,38 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
         }
 
         on(rcc.previousTrackCommand) { navigator, _ in
-            navigator.goBackward()
+            Task {
+                await navigator.goBackward()
+            }
         }
 
         on(rcc.nextTrackCommand) { navigator, _ in
-            navigator.goForward()
+            Task {
+                await navigator.goForward()
+            }
         }
 
         rcc.skipBackwardCommand.preferredIntervals = [10]
         on(rcc.skipBackwardCommand) { navigator, _ in
-            navigator.seek(by: -10)
+            Task {
+                await navigator.seek(by: -10)
+            }
         }
 
         rcc.skipForwardCommand.preferredIntervals = [30]
         on(rcc.skipForwardCommand) { navigator, _ in
-            navigator.seek(by: +30)
+            Task {
+                await navigator.seek(by: +30)
+            }
         }
 
         on(rcc.changePlaybackPositionCommand) { navigator, event in
             guard let event = event as? MPChangePlaybackPositionCommandEvent else {
                 return
             }
-            navigator.seek(to: event.positionTime)
+            Task {
+                await navigator.seek(to: event.positionTime)
+            }
         }
     }
 
@@ -216,7 +228,7 @@ class AudiobookViewModel: ObservableObject {
         self.navigator = navigator
 
         Task {
-            cover = navigator.publication.cover
+            cover = try? await navigator.publication.cover().get()
         }
     }
 
@@ -247,7 +259,11 @@ struct AudiobookReader: View {
                     TimeSlider(
                         time: Binding(
                             get: { model.playback.time },
-                            set: { model.navigator.seek(to: $0) }
+                            set: { value in
+                                Task {
+                                    await model.navigator.seek(to: value)
+                                }
+                            }
                         ),
                         duration: duration
                     )
@@ -258,12 +274,16 @@ struct AudiobookReader: View {
 
                     // Skip backward by 10 seconds.
                     IconButton(systemName: "gobackward.10") {
-                        model.navigator.seek(by: -10)
+                        Task {
+                            await model.navigator.seek(by: -10)
+                        }
                     }
 
                     // Play the previous resource
                     IconButton(systemName: "backward.fill") {
-                        model.navigator.goBackward()
+                        Task {
+                            await model.navigator.goBackward()
+                        }
                     }
                     .disabled(!model.navigator.canGoBackward)
 
@@ -278,13 +298,17 @@ struct AudiobookReader: View {
 
                     // Play the next resource.
                     IconButton(systemName: "forward.fill") {
-                        model.navigator.goForward()
+                        Task {
+                            await model.navigator.goForward()
+                        }
                     }
                     .disabled(!model.navigator.canGoForward)
 
                     // Skip forward by 30 seconds.
                     IconButton(systemName: "goforward.30") {
-                        model.navigator.seek(by: 30)
+                        Task {
+                            await model.navigator.seek(by: 30)
+                        }
                     }
 
                     Spacer()
