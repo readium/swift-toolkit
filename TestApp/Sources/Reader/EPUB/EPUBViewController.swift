@@ -105,7 +105,7 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
     
     @objc func gptSelection() {
         if let selection = navigator.currentSelection {
-            let url = URL(string: "http://localhost:3000/openai/v1/chat/completions")!
+            let url = URL(string: "https://ereader-backend-03c5888860b8.herokuapp.com/openai/v1/chat/completions")!
             var request = URLRequest(url: url)
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpMethod = "POST"
