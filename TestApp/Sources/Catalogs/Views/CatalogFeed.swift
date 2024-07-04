@@ -8,6 +8,7 @@ import ReadiumOPDS
 import ReadiumShared
 import SwiftUI
 
+/// Screen of an actual catalog feed, second to x number in the stack since it can keep going to another catalog
 struct CatalogFeed: View {
     var catalog: Catalog
     @State private var parseData: ParseData?
@@ -19,6 +20,7 @@ struct CatalogFeed: View {
                     if !feed.navigation.isEmpty {
                         ForEach(feed.navigation, id: \.self) { link in
                             let navigationLink = Catalog(title: link.title ?? "Catalog", url: link.href)
+                            /// We don't need to define the navigationDestination for this again because it will use the one in CatalogList
                             NavigationLink(value: navigationLink) {
                                 ListRowItem(title: link.title!)
                             }

@@ -37,7 +37,6 @@ struct Bookshelf: View {
         .sheet(isPresented: $showingSheet) {
             AddBookSheet { url in
                 // TODO: validate the URL and import the book
-                print(url)
             }
         }
     }

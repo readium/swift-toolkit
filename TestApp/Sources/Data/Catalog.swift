@@ -38,18 +38,21 @@ final class CatalogRepository {
         self.db = db
     }
 
+    /// Get all saved OPDS catalogs
     func all() -> AnyPublisher<[Catalog]?, Error> {
         db.observe {
             try Catalog.order(Catalog.Columns.title).fetchAll($0)
         }
     }
 
+    /// Save an OPDS catalog
     func save(_ catalog: inout Catalog) async throws {
         catalog = try await db.write { [catalog] db in
             try catalog.saved(db)
         }
     }
 
+    /// Delete an OPDS catalog
     func delete(ids: [Catalog.Id]) async throws {
         try await db.write { db in
             try Catalog.deleteAll(db, ids: ids)

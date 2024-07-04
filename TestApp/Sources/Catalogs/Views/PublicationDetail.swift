@@ -7,6 +7,7 @@
 import ReadiumShared
 import SwiftUI
 
+/// Screen of the publication detail, last in the stack
 struct PublicationDetail: View {
     @State var opdsPublication: OPDSPublication
 

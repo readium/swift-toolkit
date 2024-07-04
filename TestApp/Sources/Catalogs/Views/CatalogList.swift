@@ -7,6 +7,7 @@
 import ReadiumOPDS
 import SwiftUI
 
+/// Screen of list of catalog feeds, first in the stack
 struct CatalogList: View {
     let catalogRepository: CatalogRepository
     let catalogFeed: (Catalog) -> CatalogFeed
@@ -21,6 +22,8 @@ struct CatalogList: View {
             VStack {
                 List {
                     ForEach(catalogs, id: \.id) { catalog in
+                        /// Use the `value` argument for navigationDestination to use.
+                        /// In this case, it is a catalog of type `Catalog`. See below navigationDestination comment.
                         NavigationLink(value: catalog) {
                             ListRowItem(title: catalog.title)
                         }
@@ -44,6 +47,9 @@ struct CatalogList: View {
                 .listStyle(DefaultListStyle())
             }
             .navigationTitle("Catalogs")
+            /// We define the different destinations here, which are applicable to everywhere in the stack.
+            /// Use the `for` argument to pass the type of data. This should match what is being passed in NavigationLink.
+            /// In the first case below, it is of type `Catalog`, the same as NavigationLink above.
             .navigationDestination(for: Catalog.self) { catalog in
                 catalogFeed(catalog)
             }

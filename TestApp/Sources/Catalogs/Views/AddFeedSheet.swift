@@ -6,6 +6,7 @@
 
 import SwiftUI
 
+/// Sheet to add a new OPDS catalog via a URL
 struct AddFeedSheet: View {
     typealias ActionCallback = ((title: String, url: String)) -> Void
 

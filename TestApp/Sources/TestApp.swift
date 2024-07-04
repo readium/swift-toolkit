@@ -8,6 +8,7 @@ import GRDB
 import SwiftUI
 
 // @main
+/// The main function and serves as the app's entry
 struct TestApp: App {
     let container = try! Container()
 
