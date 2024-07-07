@@ -11,6 +11,7 @@ public class SingleResourceContainer: Container {
     public let entry: AnyURL
     private let resource: Resource
 
+    public var sourceURL: AbsoluteURL? { resource.sourceURL }
     public var entries: Set<AnyURL> { [entry] }
 
     public init(resource: Resource, at entry: AnyURL) {

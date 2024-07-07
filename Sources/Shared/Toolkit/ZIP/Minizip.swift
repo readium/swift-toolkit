@@ -97,6 +97,7 @@ final class MinizipContainer: Container, Loggable {
     private let file: FileURL
     private let entriesMetadata: [RelativeURL: MinizipEntryMetadata]
 
+    public var sourceURL: AbsoluteURL? { file }
     public let entries: Set<AnyURL>
 
     private init(file: FileURL, entries: [RelativeURL: MinizipEntryMetadata]) {

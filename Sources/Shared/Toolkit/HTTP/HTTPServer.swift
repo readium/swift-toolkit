@@ -53,7 +53,6 @@ public extension HTTPServer {
 
             return HTTPServerResponse(
                 resource: FileResource(file: file),
-                // FIXME: See if the media type is necessary
                 mediaType: nil
             )
         }

@@ -356,6 +356,25 @@ open class EPUBNavigatorViewController: UIViewController,
         applySettings()
 
         await reloadSpreads(at: currentLocation, force: false)
+
+        onInitializedCallbacks.complete()
+    }
+
+    private let onInitializedCallbacks = CompletionList()
+
+    private func initialized() async {
+        await withCheckedContinuation { continuation in
+            whenInitialized {
+                continuation.resume()
+            }
+        }
+    }
+
+    private func whenInitialized(_ callback: @escaping () -> Void) {
+        let callback = onInitializedCallbacks.add(callback)
+        if state != .initializing {
+            callback()
+        }
     }
 
     @available(iOS 13.0, *)
@@ -758,14 +777,15 @@ open class EPUBNavigatorViewController: UIViewController,
 
     public func apply(decorations: [Decoration], in group: String) {
         Task {
+            await initialized()
+
             await withTaskGroup(of: Void.self) { tasks in
                 let source = self.decorations[group] ?? []
-                let target = decorations.map { d in
-                    var d = d
+                let target = decorations.map {
+                    var d = $0
                     d.locator = publication.normalizeLocator(d.locator)
                     return DiffableDecoration(decoration: d)
                 }
-
                 self.decorations[group] = target
 
                 if decorations.isEmpty {
@@ -793,15 +813,14 @@ open class EPUBNavigatorViewController: UIViewController,
         }
     }
 
-    public func observeDecorationInteractions(inGroup group: String, onActivated: OnActivatedCallback?) {
-        guard let onActivated = onActivated else {
-            return
-        }
+    public func observeDecorationInteractions(inGroup group: String, onActivated: @escaping OnActivatedCallback) {
         var callbacks = decorationCallbacks[group] ?? []
         callbacks.append(onActivated)
         decorationCallbacks[group] = callbacks
 
         Task {
+            await initialized()
+
             await withTaskGroup(of: Void.self) { tasks in
                 for (_, view) in paginationView.loadedViews {
                     tasks.addTask {

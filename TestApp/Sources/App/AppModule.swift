@@ -37,8 +37,20 @@ final class AppModule {
 
         let readium = Readium()
 
-        library = LibraryModule(delegate: self, books: books, readium: readium)
-        reader = ReaderModule(delegate: self, books: books, bookmarks: bookmarks, highlights: highlights)
+        library = LibraryModule(
+            delegate: self,
+            books: books,
+            readium: readium
+        )
+
+        reader = ReaderModule(
+            delegate: self,
+            books: books,
+            bookmarks: bookmarks,
+            highlights: highlights,
+            readium: readium
+        )
+
         opds = OPDSModule(delegate: self)
 
         // Set Readium 2's logging minimum level.

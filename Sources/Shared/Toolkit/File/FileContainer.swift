@@ -9,6 +9,8 @@ import Foundation
 /// Provides access to individual file resources on the local file system.
 public final class FileContainer: Container, Loggable {
     private let files: [RelativeURL: FileURL]
+
+    public let sourceURL: AbsoluteURL? = nil
     public let entries: Set<AnyURL>
 
     /// Provides access to a collection of local files.

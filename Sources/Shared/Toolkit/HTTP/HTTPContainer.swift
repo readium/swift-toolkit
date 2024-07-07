@@ -24,6 +24,7 @@ public final class HTTPContainer: Container {
         self.entries = entries
     }
 
+    public let sourceURL: AbsoluteURL? = nil
     public let entries: Set<AnyURL>
 
     public subscript(url: any URLConvertible) -> (any Resource)? {

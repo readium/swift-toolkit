@@ -21,7 +21,15 @@ final class EPUBModule: ReaderFormatModule {
     }
 
     @MainActor
-    func makeReaderViewController(for publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) async throws -> UIViewController {
+    func makeReaderViewController(
+        for publication: Publication,
+        locator: Locator?,
+        bookId: Book.Id,
+        books: BookRepository,
+        bookmarks: BookmarkRepository,
+        highlights: HighlightRepository,
+        readium: Readium
+    ) async throws -> UIViewController {
         guard publication.metadata.identifier != nil else {
             throw ReaderError.epubNotValid
         }
@@ -35,7 +43,8 @@ final class EPUBModule: ReaderFormatModule {
             bookmarks: bookmarks,
             highlights: highlights,
             initialPreferences: preferencesStore.preferences(for: bookId),
-            preferencesStore: preferencesStore
+            preferencesStore: preferencesStore,
+            httpServer: readium.httpServer
         )
         epubViewController.moduleDelegate = delegate
         return epubViewController

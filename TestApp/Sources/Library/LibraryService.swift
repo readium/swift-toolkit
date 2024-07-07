@@ -68,6 +68,7 @@ final class LibraryService: Loggable {
     }
 
     /// Checks if the publication is not still locked by a DRM.
+    // FIXME: Better error
     private func checkIsReadable(publication: Publication) throws {
         guard !publication.isRestricted else {
             if let error = publication.protectionError {

@@ -27,7 +27,8 @@ final class AudiobookModule: ReaderFormatModule {
         bookId: Book.Id,
         books: BookRepository,
         bookmarks: BookmarkRepository,
-        highlights: HighlightRepository
+        highlights: HighlightRepository,
+        readium: Readium
     ) async throws -> UIViewController {
         let preferencesStore = makePreferencesStore(books: books)
         let viewController = try await AudiobookViewController(

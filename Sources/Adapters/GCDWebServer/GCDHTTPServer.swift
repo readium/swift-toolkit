@@ -19,7 +19,8 @@ public enum GCDHTTPServerError: Error {
 /// Implementation of `HTTPServer` using ReadiumGCDWebServer under the hood.
 public class GCDHTTPServer: HTTPServer, Loggable {
     /// Shared instance of the HTTP server.
-    public static let shared = GCDHTTPServer()
+    @available(*, unavailable, message: "Create your own shared instance")
+    public static var shared: GCDHTTPServer { fatalError() }
 
     /// The actual underlying HTTP server instance.
     private let server = ReadiumGCDWebServer()
@@ -29,6 +30,8 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
     /// Mapping between endpoints and resource transformers.
     private var transformers: [HTTPURL: [ResourceTransformer]] = [:]
+
+    private let assetRetriever: AssetRetriever
 
     private enum State {
         case stopped
@@ -47,7 +50,12 @@ public class GCDHTTPServer: HTTPServer, Loggable {
     /// Creates a new instance of the HTTP server.
     ///
     /// - Parameter logLevel: See `ReadiumGCDWebServer.setLogLevel`.
-    public init(logLevel: Int = 3) {
+    public init(
+        assetRetriever: AssetRetriever,
+        logLevel: Int = 3
+    ) {
+        self.assetRetriever = assetRetriever
+
         ReadiumGCDWebServer.setLogLevel(Int32(logLevel))
 
         NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
@@ -99,18 +107,14 @@ public class GCDHTTPServer: HTTPServer, Loggable {
                     )
                 }
 
-                switch await resource.estimatedLength() {
+                switch await resource.length() {
                 case let .success(length):
-                    if let length = length {
-                        response = ResourceResponse(
-                            resource: httpServerResponse.resource,
-                            length: length,
-                            range: request.hasByteRange() ? request.byteRange : nil,
-                            mediaType: httpServerResponse.mediaType
-                        )
-                    } else {
-                        response = fail(.unsupportedOperation(DebugError("Expected estimatedLength from Resource")))
-                    }
+                    response = await ResourceResponse(
+                        resource: httpServerResponse.resource,
+                        length: length,
+                        range: request.hasByteRange() ? request.byteRange : nil,
+                        mediaType: httpServerResponse.mediaType(using: self.assetRetriever)
+                    )
                 case let .failure(error):
                     response = fail(error)
                 }
@@ -137,13 +141,14 @@ public class GCDHTTPServer: HTTPServer, Loggable {
                 fatalError("Expected an HTTP URL")
             }
 
-            func transform(resource: Resource, at endpoint: HTTPURL) -> Resource {
+            func transform(resource: Resource, request: HTTPServerRequest, at endpoint: HTTPURL) -> Resource {
                 guard let transformers = transformers[endpoint], !transformers.isEmpty else {
                     return resource
                 }
+                let href = request.href?.anyURL ?? request.url.anyURL
                 var resource = resource
                 for transformer in transformers {
-                    resource = transformer(url.anyURL, resource)
+                    resource = transformer(href, resource)
                 }
                 return resource
             }
@@ -161,7 +166,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
                 }
 
                 var response = handler.onRequest(request)
-                response.resource = transform(resource: response.resource, at: endpoint)
+                response.resource = transform(resource: response.resource, request: request, at: endpoint)
                 completion(request, response, handler.onFailure)
                 return
             }
@@ -318,5 +323,28 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
         // It might not actually be free, but we'll try to restart the server.
         return true
+    }
+}
+
+private extension Resource {
+    func length() async -> ReadResult<UInt64> {
+        await estimatedLength()
+            .flatMap { length in
+                if let length = length {
+                    return .success(length)
+                } else {
+                    return await read().map { UInt64($0.count) }
+                }
+            }
+    }
+}
+
+private extension HTTPServerResponse {
+    func mediaType(using assetRetriever: AssetRetriever) async -> MediaType? {
+        if let mediaType = mediaType {
+            return mediaType
+        }
+
+        return try? await assetRetriever.sniffFormat(of: resource).get().mediaType
     }
 }

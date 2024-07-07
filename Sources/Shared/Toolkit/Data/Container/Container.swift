@@ -18,14 +18,11 @@ public protocol Container: Closeable {
     subscript(url: any URLConvertible) -> Resource? { get }
 }
 
-public extension Container {
-    var sourceURL: AbsoluteURL? { nil }
-}
-
 /// A `Container` providing no entries at all.
 public struct EmptyContainer: Container {
     public init() {}
 
+    public let sourceURL: AbsoluteURL? = nil
     public let entries: Set<AnyURL> = Set()
 
     public subscript(url: any URLConvertible) -> Resource? { nil }
@@ -48,6 +45,8 @@ public class CompositeContainer: Container {
     public init(_ containers: [Container]) {
         self.containers = containers
     }
+
+    public let sourceURL: AbsoluteURL? = nil
 
     public var entries: Set<AnyURL> {
         containers.reduce([]) { acc, container in

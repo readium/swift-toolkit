@@ -84,6 +84,7 @@ public final class DirectionalNavigationAdapter {
     ///
     /// - Parameter point: Tap point in the navigator bounds.
     /// - Returns: Whether the tap triggered a page turn.
+    @MainActor
     @discardableResult
     public func didTap(at point: CGPoint) async -> Bool {
         guard
@@ -93,7 +94,7 @@ public final class DirectionalNavigationAdapter {
             return false
         }
 
-        let bounds = await navigator.view.bounds
+        let bounds = navigator.view.bounds
         let options = NavigatorGoOptions(animated: animatedTransition)
 
         if tapEdges.contains(.horizontal) {
