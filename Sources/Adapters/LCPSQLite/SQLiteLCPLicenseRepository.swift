@@ -50,7 +50,8 @@ public class LCPSQLiteLicenseRepository: LCPLicenseRepository {
     }
 
     public func license(for id: LicenseDocument.ID) async throws -> LicenseDocument? {
-        // FIXME: Was not implemented for this repository
+        // Note: this was not implemented with the legacy SQLite repository, so
+        // we don't have the license in the database.
         nil
     }
 

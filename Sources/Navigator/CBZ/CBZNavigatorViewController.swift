@@ -204,7 +204,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
     public var presentation: VisualNavigatorPresentation {
         VisualNavigatorPresentation(
-            readingProgression: ReadingProgression(publication.metadata.effectiveReadingProgression) ?? .ltr,
+            readingProgression: ReadingProgression(publication.metadata.readingProgression) ?? .ltr,
             scroll: false,
             axis: .horizontal
         )

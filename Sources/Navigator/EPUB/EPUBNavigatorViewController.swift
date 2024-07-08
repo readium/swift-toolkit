@@ -15,28 +15,20 @@ public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate, SelectableNaviga
     // MARK: - WebView Customization
 
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController)
-
-    // MARK: - Deprecated
-
-    // Implement `NavigatorDelegate.navigator(didTapAt:)` instead.
-    func middleTapHandler()
-
-    // Implement `NavigatorDelegate.navigator(locationDidChange:)` instead, to save the last read location.
-    func willExitPublication(documentIndex: Int, progression: Double?)
-    func didChangedDocumentPage(currentDocumentIndex: Int)
-    func didNavigateViaInternalLinkTap(to documentIndex: Int)
-
-    /// Implement `NavigatorDelegate.navigator(presentError:)` instead.
-    func presentError(_ error: NavigatorError)
 }
 
 public extension EPUBNavigatorDelegate {
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController) {}
 
+    @available(*, unavailable, message: "Implement navigator(_:didTapAt:) instead.")
     func middleTapHandler() {}
+    @available(*, unavailable, message: "Implement navigator(_:locationDidChange:) instead, to save the last read location")
     func willExitPublication(documentIndex: Int, progression: Double?) {}
+    @available(*, unavailable, message: "Implement navigator(_:locationDidChange:) instead")
     func didChangedDocumentPage(currentDocumentIndex: Int) {}
+    @available(*, unavailable)
     func didNavigateViaInternalLinkTap(to documentIndex: Int) {}
+    @available(*, unavailable, message: "Implement navigator(_:presentError:) instead")
     func presentError(_ error: NavigatorError) {}
 }
 
@@ -387,16 +379,6 @@ open class EPUBNavigatorViewController: UIViewController,
     @objc private func didTapBackground(_ gesture: UITapGestureRecognizer) {
         guard case .loading = state else { return }
         didTap(at: gesture.location(in: view))
-    }
-
-    override open func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-
-        // FIXME: Deprecated, to be removed at some point.
-        if let currentResourceIndex = currentResourceIndex {
-            let progression = currentLocation?.locations.progression
-            delegate?.willExitPublication(documentIndex: currentResourceIndex, progression: progression)
-        }
     }
 
     override open func viewWillAppear(_ animated: Bool) {
@@ -1006,8 +988,6 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         // even while a locator is pending.
 
         didTap(at: view.convert(point, from: spreadView))
-        // FIXME: Deprecated, to be removed at some point.
-        delegate?.middleTapHandler()
 
         // Uncomment to debug the coordinates of the tap point.
 //        let tapView = UIView(frame: .init(x: 0, y: 0, width: 50, height: 50))
@@ -1176,8 +1156,6 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
 extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
     func editingActionsDidPreventCopy(_ editingActions: EditingActionsController) {
         delegate?.navigator(self, presentError: .copyForbidden)
-        // FIXME: Deprecated, to be removed at some point.
-        delegate?.presentError(.copyForbidden)
     }
 
     func editingActions(_ editingActions: EditingActionsController, shouldShowMenuForSelection selection: Selection) -> Bool {
@@ -1211,11 +1189,6 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
         // notice that you should set the delegate before you load views
         // otherwise, when open the publication, you may miss the first invocation
         notifyCurrentLocation()
-
-        // FIXME: Deprecated, to be removed at some point.
-        if let currentResourceIndex = currentResourceIndex {
-            delegate?.didChangedDocumentPage(currentDocumentIndex: currentResourceIndex)
-        }
     }
 
     func paginationView(_ paginationView: PaginationView, positionCountAtIndex index: Int) -> Int {

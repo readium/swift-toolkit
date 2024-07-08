@@ -245,7 +245,7 @@ public class HTMLResourceContentIterator: ContentIterator {
                         elements.append(ImageContentElement(
                             locator: elementLocator,
                             embeddedLink: Link(href: href.string),
-                            caption: nil, // FIXME: Get the caption from figcaption
+                            caption: nil, // TODO: Get the caption from figcaption
                             attributes: attributes
                         ))
                     }

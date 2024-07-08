@@ -133,9 +133,7 @@ export function getColumnCountPerScreen() {
 export function isScrollModeEnabled() {
   const style = document.documentElement.style;
   return (
-    style.getPropertyValue("--USER__view").trim() == "readium-scroll-on" ||
-    // FIXME: Will need to be removed in Readium 3.0, --USER__scroll was incorrect.
-    style.getPropertyValue("--USER__scroll").trim() == "readium-scroll-on"
+    style.getPropertyValue("--USER__view").trim() == "readium-scroll-on"
   );
 }
 

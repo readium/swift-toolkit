@@ -133,7 +133,7 @@ let package = Package(
             ]
         ),
         // These tests require a R2LCPClient.framework to run.
-        // FIXME: Find a solution to run the tests with GitHub action.
+        // TODO: Find a solution to run the tests with GitHub action.
         // .testTarget(
         //     name: "ReadiumLCPTests",
         //     dependencies: ["ReadiumLCP"],

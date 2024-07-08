@@ -49,10 +49,6 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
     public var numberOfPages: Int?
     public var belongsTo: [String: [Collection]]
 
-    /// WARNING: This contains the reading progression as declared in the
-    /// manifest, so it might be `auto`. To know the effective reading
-    /// progression used to lay out the content, use
-    /// `effectiveReadingProgression` instead.
     public var readingProgression: ReadingProgression
 
     /// Additional properties for extensions.
@@ -228,36 +224,11 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
         belongsTo["series"] ?? []
     }
 
-    /// Computes a `ReadingProgression` when the value of `readingProgression` is set to `auto`,
-    /// using the publication language.
-    ///
-    /// See this issue for more details: https://github.com/readium/architecture/issues/113
-    // FIXME:
-    public var effectiveReadingProgression: ReadingProgression {
-        guard readingProgression == .auto else {
-            return readingProgression
-        }
-
-        // https://github.com/readium/readium-css/blob/develop/docs/CSS16-internationalization.md#missing-page-progression-direction
-        guard languages.count == 1, var language = languages.first?.lowercased() else {
-            return .ltr
-        }
-
-        if ["zh-hant", "zh-tw"].contains(language) {
-            return .rtl
-        }
-
-        // The region is ignored for ar, fa and he.
-        language = language.split(separator: "-").first.map(String.init) ?? language
-        if ["ar", "fa", "he"].contains(language) {
-            return .rtl
-        }
-
-        return .ltr
-    }
+    @available(*, unavailable, renamed: "readingProgression")
+    public var effectiveReadingProgression: ReadingProgression { fatalError() }
 
     /// Makes a copy of the `Metadata`, after modifying some of its properties.
-    @available(*, deprecated, message: "Make a mutable copy of the struct instead")
+    @available(*, unavailable, message: "Make a mutable copy of the struct instead")
     public func copy(
         identifier: String?? = nil,
         type: String?? = nil,

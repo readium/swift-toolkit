@@ -153,7 +153,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
                 await evaluateScript("readium.link = \(linkJSON);")
             }
 
-            // FIXME: Better solution for delaying scrolling to pending location
+            // TODO: Better solution for delaying scrolling to pending location
             // This delay is used to wait for the web view pagination to settle and give the CSS and webview time to layout
             // correctly before attempting to scroll to the target progression, otherwise we might end up at the wrong spot.
             // 0.2 seconds seems like a good value for it to work on an iPhone 5s.
@@ -199,7 +199,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         // This delay is only used when turning pages in a single resource if
         // the page turn is animated. The delay is roughly the length of the
         // animation.
-        // FIXME: completion should be implemented using scroll view delegates
+        // TODO: completion should be implemented using scroll view delegates
         try? await Task.sleep(seconds: 0.3)
 
         return true
@@ -234,7 +234,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
         if locator.text.highlight != nil {
             return await scroll(toLocator: locator)
-            // FIXME: find the first fragment matching a tag ID (need a regex)
+            // TODO: find the first fragment matching a tag ID (need a regex)
         } else if let id = locator.locations.fragments.first, !id.isEmpty {
             return await scroll(toTagID: id)
         } else {
@@ -352,54 +352,5 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         // ie. https://stackoverflow.com/a/1857162/1474476
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(notifyPagesDidChange), object: nil)
         perform(#selector(notifyPagesDidChange), with: nil, afterDelay: 0.3)
-    }
-}
-
-/// Determines the Readium CSS stylesheets to use depending on the publication languages and
-/// reading progression.
-// FIXME: To move in a dedicated native Readium CSS module
-private enum ReadiumCSSLayout: String {
-    case ltr
-    case rtl
-    case cjkVertical
-    case cjkHorizontal
-
-    init(languages: [String], readingProgression: ReadingProgression) {
-        let isCJK: Bool = {
-            guard
-                languages.count == 1,
-                let language = languages.first?.split(separator: "-").first.map(String.init)?.lowercased()
-            else {
-                return false
-            }
-            return ["zh", "ja", "ko"].contains(language)
-        }()
-
-        switch readingProgression {
-        case .rtl:
-            self = isCJK ? .cjkVertical : .rtl
-        case .ltr:
-            self = isCJK ? .cjkHorizontal : .ltr
-        }
-    }
-
-    var readiumCSSBasePath: RelativeURL {
-        let folder: String = {
-            switch self {
-            case .ltr:
-                return ""
-            case .rtl:
-                return "rtl/"
-            case .cjkVertical:
-                return "cjk-vertical/"
-            case .cjkHorizontal:
-                return "cjk-horizontal/"
-            }
-        }()
-        return RelativeURL(string: "readium-css/\(folder)")!
-    }
-
-    func readiumCSSPath(for name: String) -> RelativeURL {
-        readiumCSSBasePath.appendingPath("ReadiumCSS-\(name).css", isDirectory: false)
     }
 }
