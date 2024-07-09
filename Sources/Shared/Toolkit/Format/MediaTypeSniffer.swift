@@ -488,13 +488,12 @@ public extension MediaType {
 
 public extension URLResponse {
     /// Sniffs the media type for this `URLResponse`, using the default media type sniffers.
-    var mediaType: MediaType? {
-        sniffMediaType()
-    }
+    @available(*, unavailable, message: "Use an AssetRetriever to retrieve the media type of an HTTP resource")
+    var mediaType: MediaType? { fatalError() }
 
     /// Resolves the media type for this `URLResponse`, with optional extra file extension and media
     /// type hints.
-    // FIXME:
+    @available(*, unavailable, message: "Use an AssetRetriever to retrieve the media type of an HTTP resource")
     func sniffMediaType(data: (() -> Data)? = nil, mediaTypes: [String] = [], fileExtensions: [String] = []) -> MediaType? {
         var mediaTypes = mediaTypes
         // The value of the `Content-Type` HTTP header.

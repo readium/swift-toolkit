@@ -68,11 +68,11 @@ extension Container {
         var title: String?
 
         for url in entries {
-            let segments = url.pathSegments
-            guard segments.count > 1 else {
+            if url.lastPathSegment?.hasPrefix(".") == true || url.lastPathSegment == "Thumbs.db" {
                 continue
             }
-            guard title == nil || title == segments.first else {
+            let segments = url.pathSegments
+            guard segments.count > 1, title == nil || title == segments.first else {
                 return nil
             }
             title = segments.first

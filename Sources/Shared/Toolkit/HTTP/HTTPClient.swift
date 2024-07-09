@@ -98,7 +98,7 @@ public extension HTTPClient {
             url: URL(
                 fileURLWithPath: NSTemporaryDirectory(),
                 isDirectory: true
-            ).appendingUniquePathComponent()
+            ).appendingUniquePathSegment()
         )!
 
         let fileHandle: FileHandle
@@ -219,7 +219,7 @@ public struct HTTPResponse: Equatable, Sendable {
     /// HTTP response headers, indexed by their name.
     public let headers: [String: String]
 
-    /// Media type sniffed from the `Content-Type` header and response body.
+    /// Media type provided in the `Content-Type` header.
     public let mediaType: MediaType?
 
     /// Response body content, when available.
@@ -232,24 +232,6 @@ public struct HTTPResponse: Equatable, Sendable {
         self.headers = headers
         self.mediaType = mediaType
         self.body = body
-    }
-
-    public init(request: HTTPRequest, response: HTTPURLResponse, url: HTTPURL, body: Data? = nil) {
-        var headers: [String: String] = [:]
-        for (k, v) in response.allHeaderFields {
-            if let ks = k as? String, let vs = v as? String {
-                headers[ks] = vs
-            }
-        }
-
-        self.init(
-            request: request,
-            url: url,
-            statusCode: response.statusCode,
-            headers: headers,
-            mediaType: response.sniffMediaType { body ?? Data() },
-            body: body
-        )
     }
 
     /// Finds the value of the first header matching the given name.

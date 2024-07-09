@@ -413,6 +413,8 @@ private class MockContainer: Container {
         self.readingOrder = readingOrder
     }
 
+    let sourceURL: AbsoluteURL? = nil
+
     var entries: Set<AnyURL> { Set(readingOrder.map { $0.1.url() }) }
 
     subscript(url: any URLConvertible) -> (any Resource)? {

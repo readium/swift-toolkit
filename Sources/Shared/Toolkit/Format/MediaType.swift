@@ -58,8 +58,7 @@ public struct MediaType: Hashable, Loggable, Sendable {
     /// from an alias. For example, `application/x-cbz` is an alias of the canonical `application/vnd.comicbook+zip`.
     ///
     /// Non-significant parameters are also discarded.
-    // FIXME: Deprecate
-    @available(*, unavailable)
+    @available(*, unavailable, message: "Use a FormatSniffer instead.")
     public var canonicalized: MediaType {
         fatalError()
     }
@@ -219,7 +218,6 @@ public struct MediaType: Hashable, Loggable, Sendable {
 
     /// Returns whether this media type is declared in the Document Types section of the app's main
     /// bundle.
-    // FIXME: Deprecate
     @available(*, unavailable)
     public var isSupportedDocumentType: Bool {
         fatalError()
