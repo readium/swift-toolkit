@@ -5,12 +5,12 @@
 //
 
 import Foundation
+import ReadiumShared
 
 #if LCP
     import R2LCPClient
     import ReadiumAdapterLCPSQLite
     import ReadiumLCP
-    import ReadiumShared
 #endif
 
 enum LCPModuleError: Error {

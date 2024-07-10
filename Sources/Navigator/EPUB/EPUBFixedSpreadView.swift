@@ -104,6 +104,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         for continuation in goToContinuations {
             continuation.resume()
         }
+        goToContinuations.removeAll()
     }
 
     override func evaluateScript(_ script: String, inHREF href: AnyURL? = nil) async -> Result<Any, any Error> {

@@ -87,9 +87,13 @@ final class TTSViewModel: ObservableObject, Loggable {
             .removeDuplicates()
             //  Improve performances by throttling the moves to maximum one per second.
             .throttle(for: 1, scheduler: RunLoop.main, latest: true)
-            .drop(while: { _ in self.isMoving })
-            .sink { locator in
-                self.isMoving = true
+            .drop(while: { [weak self] _ in self?.isMoving ?? true })
+            .sink { [weak self] locator in
+                guard let self = self else {
+                    return
+                }
+
+                isMoving = true
                 Task {
                     await navigator.go(to: locator)
                     self.isMoving = false

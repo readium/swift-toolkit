@@ -299,7 +299,11 @@ final class EPUBNavigatorViewModel: Loggable {
             return resource
         }
 
-        return resource.mapAsString { [self] content in
+        return resource.mapAsString { [weak self] content in
+            guard let self = self else {
+                return content
+            }
+
             do {
                 var content = try css.inject(in: content)
                 for ff in config.fontFamilyDeclarations {
