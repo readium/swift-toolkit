@@ -64,11 +64,11 @@ extension Container {
     ///
     /// If the HREFs contain a single root directory, we assume it is the
     /// title. This is often the case for example with CBZ files.
-    func guessTitle() -> String? {
+    func guessTitle(ignoring: (AnyURL) -> Bool = { _ in false }) -> String? {
         var title: String?
 
         for url in entries {
-            if url.lastPathSegment?.hasPrefix(".") == true || url.lastPathSegment == "Thumbs.db" {
+            if ignoring(url) {
                 continue
             }
             let segments = url.pathSegments

@@ -15,6 +15,7 @@ final class ProxyContainer: Container {
         self.retrieve = retrieve
     }
 
+    let sourceURL: AbsoluteURL? = nil
     let entries: Set<AnyURL>
 
     subscript(url: any URLConvertible) -> (any Resource)? {

@@ -16,7 +16,7 @@ public final class FileContainer: Container, Loggable {
     /// Provides access to a collection of local files.
     public init(files: [RelativeURL: FileURL]) {
         self.files = files
-        entries = Set(files.keys.map(\.anyURL))
+        entries = Set(files.keys.map(\.anyURL.normalized))
     }
 
     /// Provides access to the given local `file` at `href`.
@@ -26,7 +26,7 @@ public final class FileContainer: Container, Loggable {
 
     public subscript(url: any URLConvertible) -> Resource? {
         guard
-            let url = url.relativeURL,
+            let url = url.relativeURL?.normalized,
             let file = files[url]
         else {
             return nil

@@ -71,7 +71,7 @@ public final class ImageParser: PublicationParser {
                 makeBuilder(
                     container: asset.container,
                     readingOrder: readingOrder,
-                    title: asset.container.guessTitle()
+                    title: asset.container.guessTitle(ignoring: ignores)
                 )
             }
     }

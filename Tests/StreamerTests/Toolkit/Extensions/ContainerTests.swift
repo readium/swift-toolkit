@@ -24,9 +24,9 @@ class ContainerTests: XCTestCase {
         XCTAssertNil(container.guessTitle())
     }
 
-    func testGuessTitleWithOneRootDirectoryButRootFilesAreHiddenOrThumbDB() {
-        let container = TestContainer(hrefs: [".hidden", "Thumbs.db", "Root%20Directory/b.png", "Root%20Directory/dir/c.png"])
-        XCTAssertEqual(container.guessTitle(), "Root Directory")
+    func testGuessTitleWithOneRootDirectoryIgnoringRootFile() {
+        let container = TestContainer(hrefs: [".hidden", "Root%20Directory/b.png", "Root%20Directory/dir/c.png"])
+        XCTAssertEqual(container.guessTitle(ignoring: { url in url.lastPathSegment == ".hidden" }), "Root Directory")
     }
 
     func testGuessTitleWithSeveralDirectories() {
