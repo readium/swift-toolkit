@@ -10,16 +10,19 @@ import Foundation
 public final class CancellableTasks {
     private var tasks: Set<Task<Void, Never>> = []
 
-    public init() {}
+    public nonisolated init() {}
 
-    public func add(@_implicitSelfCapture _ task: @Sendable @escaping () async -> Void) {
+    public nonisolated func add(@_implicitSelfCapture _ task: @Sendable @escaping () async -> Void) {
+        Task {
+            await add(task)
+        }
+    }
+
+    public func add(@_implicitSelfCapture _ task: @Sendable @escaping () async -> Void) async {
         let task = Task(operation: task)
         tasks.insert(task)
-
-        Task {
-            _ = await task.value
-            tasks.remove(task)
-        }
+        _ = await task.value
+        tasks.remove(task)
     }
 
     deinit {

@@ -6,12 +6,13 @@
 
 import AVFoundation
 import Foundation
+import ReadiumInternal
 import ReadiumShared
 
 /// Serves `Publication`'s `Resource`s as an `AVURLAsset`.
 ///
 /// Useful for local resources or when you need to customize the way HTTP requests are sent.
-final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
+final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Loggable {
     public enum AssetError: LocalizedError {
         case invalidHREF(String)
 
@@ -24,6 +25,8 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
     }
 
     private let publication: Publication
+
+    private let tasks = CancellableTasks()
 
     init(publication: Publication) {
         self.publication = publication
@@ -132,14 +135,26 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
         return true
     }
 
-    private func fillInfo(_ infoRequest: AVAssetResourceLoadingContentInformationRequest, of request: AVAssetResourceLoadingRequest, using resource: Resource, link: Link) {
-        infoRequest.isByteRangeAccessSupported = true
-        infoRequest.contentType = link.mediaType?.uti
-        // FIXME:
-        // if case let .success(length) = resource.length {
-        //     infoRequest.contentLength = Int64(length)
-        // }
-        request.finishLoading()
+    private func fillInfo(
+        _ infoRequest: AVAssetResourceLoadingContentInformationRequest,
+        of request: AVAssetResourceLoadingRequest,
+        using resource: Resource,
+        link: Link
+    ) {
+        tasks.add {
+            infoRequest.isByteRangeAccessSupported = true
+            infoRequest.contentType = link.mediaType?.uti
+
+            switch await resource.length() {
+            case let .success(length):
+                infoRequest.contentLength = Int64(length)
+                request.finishLoading()
+
+            case let .failure(error):
+                log(.error, error)
+                request.finishLoading(with: error)
+            }
+        }
     }
 
     private func fillData(_ dataRequest: AVAssetResourceLoadingDataRequest, of request: AVAssetResourceLoadingRequest, using resource: Resource, link: Link) {
@@ -180,5 +195,18 @@ extension URL {
         // * readiumfile:///directory/local-file.mp3
         // * readiumhttp(s)://domain.com/external-file.mp3
         return AnyURL(string: url.string.removingPrefix(schemePrefix).removingPrefix(":"))
+    }
+}
+
+extension Resource {
+    func length() async -> ReadResult<UInt64> {
+        await estimatedLength()
+            .flatMap { length in
+                if let length = length {
+                    return .success(length)
+                } else {
+                    return await read().map { UInt64($0.count) }
+                }
+            }
     }
 }
