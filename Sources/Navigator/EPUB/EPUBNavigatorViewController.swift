@@ -122,7 +122,7 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     public weak var delegate: EPUBNavigatorDelegate? {
-        didSet { notifyCurrentLocation() }
+        didSet { updateCurrentLocation() }
     }
 
     @available(*, unavailable, message: "See the 2.5.0 migration guide to migrate to the Preferences API")
@@ -613,7 +613,7 @@ open class EPUBNavigatorViewController: UIViewController,
         )
     }
 
-    private func updateCurrentLocation() async -> Locator? {
+    private func computeCurrentLocation() async -> Locator? {
         if case .initializing = state {
             assertionFailure("Cannot update current location when initializing the navigator")
             return nil
@@ -665,22 +665,25 @@ open class EPUBNavigatorViewController: UIViewController,
     /// Used to avoid sending twice the same location.
     private var notifiedCurrentLocation: Locator?
 
-    private lazy var notifyCurrentLocation = execute(
+    private lazy var updateCurrentLocation = execute(
         // If we're not in an `idle` state, we postpone the notification.
         when: { [weak self] in self?.state == .idle },
         pollingInterval: 0.1
     ) { [weak self] in
-        guard
-            let self = self,
-            let delegate = self.delegate,
-            let location = self.currentLocation,
-            location != self.notifiedCurrentLocation
-        else {
+        guard let self = self else {
             return
         }
 
-        self.notifiedCurrentLocation = location
-        delegate.navigator(self, locationDidChange: location)
+        currentLocation = await computeCurrentLocation()
+
+        if
+            let delegate = delegate,
+            let location = currentLocation,
+            location != notifiedCurrentLocation
+        {
+            notifiedCurrentLocation = location
+            delegate.navigator(self, locationDidChange: location)
+        }
     }
 
     public func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool {
@@ -1138,7 +1141,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
 
     func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView) {
         if paginationView.currentView == spreadView {
-            notifyCurrentLocation()
+            updateCurrentLocation()
         }
     }
 
@@ -1188,7 +1191,7 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
     func paginationViewDidUpdateViews(_ paginationView: PaginationView) {
         // notice that you should set the delegate before you load views
         // otherwise, when open the publication, you may miss the first invocation
-        notifyCurrentLocation()
+        updateCurrentLocation()
     }
 
     func paginationView(_ paginationView: PaginationView, positionCountAtIndex index: Int) -> Int {
