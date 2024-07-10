@@ -12,19 +12,6 @@ public protocol Cancellable {
     func cancel()
 }
 
-// FIXME: Remove eventually
-public struct CancellableTask<Success, Failure: Error>: Cancellable {
-    let task: Task<Success, Failure>
-
-    public init(task: Task<Success, Failure>) {
-        self.task = task
-    }
-
-    public func cancel() {
-        task.cancel()
-    }
-}
-
 /// A `Cancellable` object saving its cancelled state.
 public final class CancellableObject: Cancellable {
     public private(set) var isCancelled = false
