@@ -98,26 +98,19 @@ class ResourceResponse: ReadiumGCDWebServerFileResponse, Loggable {
     }
 
     /// Read a new chunk of data.
-    override open func readData() throws -> Data {
-        let semaphore = DispatchSemaphore(value: 0)
-        Task {
-            let len = min(bufferSize, range.count - Int(totalNumberOfBytesRead))
-            // If nothing to read, return
-            guard len > 0, offset < length else {
-                lastReadData = .success(Data())
-                return
-            }
-            // Read
-            lastReadData = await resource.read(range: offset ..< (offset + UInt64(len)))
-            if case let .success(data) = lastReadData {
-                totalNumberOfBytesRead += UInt64(data.count)
-                offset += UInt64(data.count)
-            }
-
-            semaphore.signal()
+    override func asyncReadData() async throws -> Data {
+        let len = min(bufferSize, range.count - Int(totalNumberOfBytesRead))
+        // If nothing to read, return
+        guard len > 0, offset < length else {
+            lastReadData = .success(Data())
+            return Data()
         }
-
-        _ = semaphore.wait(timeout: .distantFuture)
+        // Read
+        lastReadData = await resource.read(range: offset ..< (offset + UInt64(len)))
+        if case let .success(data) = lastReadData {
+            totalNumberOfBytesRead += UInt64(data.count)
+            offset += UInt64(data.count)
+        }
 
         return (try? lastReadData?.get()) ?? Data()
     }
