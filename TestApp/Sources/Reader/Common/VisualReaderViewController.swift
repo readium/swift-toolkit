@@ -83,6 +83,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 
         if let state = ttsViewModel?.$state, let controls = ttsControlsViewController {
             controls.view.backgroundColor = .clear
+            controls.view.isHidden = true
 
             addChild(controls)
             controls.view.translatesAutoresizingMaskIntoConstraints = false
@@ -94,6 +95,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             controls.didMove(toParent: self)
 
             state
+                .receive(on: DispatchQueue.main)
                 .sink { state in
                     controls.view.isHidden = !state.showControls
                 }

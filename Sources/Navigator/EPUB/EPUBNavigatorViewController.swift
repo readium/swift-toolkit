@@ -377,7 +377,6 @@ open class EPUBNavigatorViewController: UIViewController,
 
     /// Intercepts tap gesture when the web views are not loaded.
     @objc private func didTapBackground(_ gesture: UITapGestureRecognizer) {
-        guard case .loading = state else { return }
         didTap(at: gesture.location(in: view))
     }
 

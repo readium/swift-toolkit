@@ -38,7 +38,7 @@ public struct EPUBFormatSniffer: FormatSniffer {
 
         return await resource.readAsString()
             .flatMap { mimetype in
-                if MediaType.epub.matches(MediaType(mimetype)) {
+                if MediaType.epub.matches(MediaType(mimetype.trimmingCharacters(in: .whitespacesAndNewlines))) {
                     var format = format
                     format.addSpecifications(.epub)
                     if format.conformsTo(.zip) {

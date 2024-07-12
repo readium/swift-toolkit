@@ -64,6 +64,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
             .map { TTSVoice(voice: $0) }
     }
 
+    @MainActor
     public func speak(
         _ utterance: TTSUtterance,
         onSpeakRange: @escaping (Range<String.Index>) -> Void

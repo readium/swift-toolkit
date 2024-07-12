@@ -12,6 +12,7 @@ enum LibraryError: LocalizedError {
     case bookNotFound
     case bookDeletionFailed(Error?)
     case importFailed(Error)
+    case publicationIsRestricted(Error)
     case openFailed(Error)
     case downloadFailed(Error?)
     case cancelled

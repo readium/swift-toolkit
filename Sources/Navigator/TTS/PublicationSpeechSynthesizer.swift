@@ -10,9 +10,11 @@ import ReadiumShared
 
 public protocol PublicationSpeechSynthesizerDelegate: AnyObject {
     /// Called when the synthesizer's state is updated.
+    @MainActor
     func publicationSpeechSynthesizer(_ synthesizer: PublicationSpeechSynthesizer, stateDidChange state: PublicationSpeechSynthesizer.State)
 
     /// Called when an `error` occurs while speaking `utterance`.
+    @MainActor
     func publicationSpeechSynthesizer(_ synthesizer: PublicationSpeechSynthesizer, utterance: PublicationSpeechSynthesizer.Utterance, didFailWithError error: PublicationSpeechSynthesizer.Error)
 }
 
@@ -89,7 +91,9 @@ public class PublicationSpeechSynthesizer: Loggable {
                 AudioSession.shared.user(audioSessionUser, didChangePlaying: state.isPlaying)
             }
 
-            delegate?.publicationSpeechSynthesizer(self, stateDidChange: state)
+            Task {
+                await delegate?.publicationSpeechSynthesizer(self, stateDidChange: state)
+            }
         }
     }
 
@@ -296,7 +300,7 @@ public class PublicationSpeechSynthesizer: Loggable {
             await playNextUtterance(.forward)
         case let .failure(error):
             state = .paused(utterance)
-            delegate?.publicationSpeechSynthesizer(self, utterance: utterance, didFailWithError: .engine(error))
+            await delegate?.publicationSpeechSynthesizer(self, utterance: utterance, didFailWithError: .engine(error))
         }
     }
 
