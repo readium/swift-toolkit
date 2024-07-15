@@ -7,7 +7,7 @@
 import Foundation
 
 /// Holds the information about an HTTP request performed by an `HTTPClient`.
-public struct HTTPRequest: Equatable, Sendable {
+public struct HTTPRequest: Equatable {
     /// Address of the remote resource to request.
     public var url: HTTPURL
 
@@ -15,7 +15,7 @@ public struct HTTPRequest: Equatable, Sendable {
     public var method: Method
 
     /// Supported HTTP methods.
-    public enum Method: String, Equatable, Sendable {
+    public enum Method: String, Equatable {
         case delete = "DELETE"
         case get = "GET"
         case head = "HEAD"
@@ -32,7 +32,7 @@ public struct HTTPRequest: Equatable, Sendable {
     public var body: Body?
 
     /// Supported body values.
-    public enum Body: Equatable, Sendable {
+    public enum Body: Equatable {
         case data(Data)
         case file(URL)
     }

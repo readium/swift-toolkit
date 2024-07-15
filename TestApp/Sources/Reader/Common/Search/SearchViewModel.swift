@@ -9,6 +9,7 @@ import ReadiumOPDS
 import ReadiumShared
 
 // See https://github.com/readium/r2-testapp-swift/discussions/402
+@MainActor
 final class SearchViewModel: ObservableObject {
     enum State {
         // Empty state / waiting for a search query

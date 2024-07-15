@@ -24,6 +24,7 @@ public struct RARFormatSniffer: FormatSniffer {
         await blob.read(range: 0 ..< 8)
             .map { data in
                 guard
+                    data.count > 8,
                     data[0 ..< 7] == Data([0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x00]) ||
                     data == Data([0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x01, 0x00])
                 else {

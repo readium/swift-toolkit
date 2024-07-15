@@ -17,7 +17,7 @@ final class EPUBModule: ReaderFormatModule {
     }
 
     func supports(_ publication: Publication) -> Bool {
-        publication.conforms(to: .epub)
+        publication.conforms(to: .epub) || publication.readingOrder.allAreHTML
     }
 
     @MainActor
