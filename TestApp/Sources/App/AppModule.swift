@@ -78,11 +78,18 @@ extension AppModule: ModuleDelegate {
         guard let error = error else { return }
         if case LibraryError.cancelled = error { return }
 
-        print("Error: \(error)")
+        var message = ""
+        if let error = (error as? LocalizedError)?.errorDescription {
+            message += error + "\n\n"
+        }
+
+        var desc = ""
+        dump(error, to: &desc)
+        message += desc
 
         presentAlert(
             NSLocalizedString("error_title", comment: "Alert title for errors"),
-            message: error.localizedDescription,
+            message: message,
             from: viewController
         )
     }
