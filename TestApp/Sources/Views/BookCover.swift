@@ -14,11 +14,10 @@ struct BookCover: View {
 
     var body: some View {
         VStack {
-            let width: CGFloat = 150
             cover
-                .frame(width: width, height: 220, alignment: .bottom)
+                .frame(width: Constant.bookCoverWidth, height: Constant.bookCoverHeight, alignment: .bottom)
             labels
-                .frame(width: width, alignment: .topLeading)
+                .frame(width: Constant.bookCoverWidth, alignment: .topLeading)
         }
     }
 
@@ -37,6 +36,7 @@ struct BookCover: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 }
             )
+            .onTapGesture(perform: action)
         } else {
             Image(systemName: "book.closed")
                 .resizable()
@@ -66,4 +66,10 @@ struct BookCover_Previews: PreviewProvider {
         let book = Book(title: "Test Title", authors: "Test Author", type: "application/epub+zip", path: "/test/path/")
         BookCover(title: book.title, authors: book.authors)
     }
+}
+
+enum Constant {
+    static let bookCoverWidth: Double = 130
+    static let bookCoverHeight: Double = 200
+    static let adaptiveGridDelta: Double = 8
 }
