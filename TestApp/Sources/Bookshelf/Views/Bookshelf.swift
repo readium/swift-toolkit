@@ -20,7 +20,10 @@ struct Bookshelf: View {
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 20) {
                         ForEach(books, id: \.self) { book in
-                            BookCover(title: book.title, authors: book.authors, url: book.cover?.url)
+                            NavigationLink(value: book) {
+                                BookCover(title: book.title, authors: book.authors, url: book.cover?.url)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                     // TODO: handle error
@@ -32,6 +35,9 @@ struct Bookshelf: View {
                 }
             }
             .navigationTitle("Bookshelf")
+            .navigationDestination(for: Book.self) { book in
+                Reader(book: book)
+            }
             .toolbar(content: toolbarContent)
         }
         .sheet(isPresented: $showingSheet) {

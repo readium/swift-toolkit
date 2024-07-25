@@ -10,7 +10,6 @@ struct BookCover: View {
     var title: String
     var authors: String?
     var url: URL?
-    var action: () -> Void = {}
 
     var body: some View {
         VStack {
@@ -36,7 +35,6 @@ struct BookCover: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 }
             )
-            .onTapGesture(perform: action)
         } else {
             Image(systemName: "book.closed")
                 .resizable()
