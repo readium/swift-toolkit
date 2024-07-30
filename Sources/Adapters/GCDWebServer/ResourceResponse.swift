@@ -29,7 +29,7 @@ class ResourceResponse: ReadiumGCDWebServerFileResponse, Loggable {
     private var lastReadData: ReadResult<Data>?
     private lazy var totalNumberOfBytesRead = UInt64(0)
 
-    init(resource: Resource, length: UInt64, range: NSRange?, mediaType: MediaType?) {
+    init(resource: Resource, length: UInt64, range: NSRange?, mediaType: MediaType) {
         self.resource = resource
         self.length = length
 
@@ -71,9 +71,7 @@ class ResourceResponse: ReadiumGCDWebServerFileResponse, Loggable {
 
         super.init()
 
-        if let type = mediaType?.string {
-            contentType = type
-        }
+        contentType = mediaType.string
 
         // Disable HTTP caching for publication resources, because it poses a security threat for protected
         // publications.

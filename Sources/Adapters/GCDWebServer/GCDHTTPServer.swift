@@ -6,6 +6,7 @@
 
 import Foundation
 import ReadiumGCDWebServer
+import ReadiumInternal
 import ReadiumShared
 import UIKit
 
@@ -340,11 +341,29 @@ private extension Resource {
 }
 
 private extension HTTPServerResponse {
-    func mediaType(using assetRetriever: AssetRetriever) async -> MediaType? {
+    func mediaType(using assetRetriever: AssetRetriever) async -> MediaType {
         if let mediaType = mediaType {
             return mediaType
         }
 
-        return try? await assetRetriever.sniffFormat(of: resource).get().mediaType
+        if let properties = try? await resource.properties().get() {
+            if let mediaType = properties.mediaType {
+                return mediaType
+            }
+            if
+                let filename = properties.filename,
+                let uti = UTI.findFrom(mediaTypes: [], fileExtensions: [URL(fileURLWithPath: filename).pathExtension]),
+                let type = uti.preferredTag(withClass: .mediaType),
+                let mediaType = MediaType(type)
+            {
+                return mediaType
+            }
+        }
+
+        if let mediaType = try? await assetRetriever.sniffFormat(of: resource).get().mediaType {
+            return mediaType
+        }
+
+        return .binary
     }
 }

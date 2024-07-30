@@ -8,9 +8,9 @@ import CoreServices
 import Foundation
 
 /// Uniform Type Identifier.
-struct UTI: ExpressibleByStringLiteral {
+public struct UTI: ExpressibleByStringLiteral {
     /// Type tag class, eg. kUTTagClassMIMEType.
-    enum TagClass {
+    public enum TagClass {
         case mediaType, fileExtension
 
         var rawString: CFString {
@@ -23,31 +23,31 @@ struct UTI: ExpressibleByStringLiteral {
         }
     }
 
-    let string: String
+    public let string: String
 
-    init(stringLiteral value: StringLiteralType) {
+    public init(stringLiteral value: StringLiteralType) {
         string = value
     }
 
-    var name: String? {
+    public var name: String? {
         UTTypeCopyDescription(string as CFString)?.takeRetainedValue() as String?
     }
 
     /// Returns the preferred tag for this `UTI`, with the given type `tagClass`.
-    func preferredTag(withClass tagClass: TagClass) -> String? {
+    public func preferredTag(withClass tagClass: TagClass) -> String? {
         UTTypeCopyPreferredTagWithClass(string as CFString, tagClass.rawString)?.takeRetainedValue() as String?
     }
 
     /// Returns all tags for this `UTI`, with the given type `tagClass`.
-    func tags(withClass tagClass: TagClass) -> [String] {
+    public func tags(withClass tagClass: TagClass) -> [String] {
         UTTypeCopyAllTagsWithClass(string as CFString, tagClass.rawString)?.takeRetainedValue() as? [String]
             ?? []
     }
 
     /// Finds the first `UTI` recognizing any of the given `mediaTypes` or `fileExtensions`.
-    static func findFrom(mediaTypes: [MediaType], fileExtensions: [String]) -> UTI? {
+    public static func findFrom(mediaTypes: [String], fileExtensions: [String]) -> UTI? {
         for mediaType in mediaTypes {
-            if let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, mediaType.string as CFString, nil)?.takeUnretainedValue() {
+            if let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, mediaType as CFString, nil)?.takeUnretainedValue() {
                 return UTI(stringLiteral: uti as String)
             }
         }
@@ -60,7 +60,7 @@ struct UTI: ExpressibleByStringLiteral {
     }
 }
 
-extension Array where Element == UTI {
+public extension Array where Element == UTI {
     /// Returns the first preferred tag found in the list of `UTI`, with the given type `tagClass`.
     func preferredTag(withClass tagClass: UTI.TagClass) -> String? {
         for uti in self {

@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Represents and holds information about the document format of an asset.
 public struct Format: Hashable {
@@ -14,7 +15,7 @@ public struct Format: Hashable {
 
     /// Returns the UTI (Uniform Type Identifier) matching this format, if any.
     public var uti: String? {
-        UTI.findFrom(mediaTypes: Array(ofNotNil: mediaType), fileExtensions: Array(ofNotNil: fileExtension?.rawValue))?.string
+        UTI.findFrom(mediaTypes: Array(ofNotNil: mediaType?.string), fileExtensions: Array(ofNotNil: fileExtension?.rawValue))?.string
     }
 
     public init(

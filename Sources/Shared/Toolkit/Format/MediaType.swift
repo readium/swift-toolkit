@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Represents a RFC 6838 media type.
 ///
@@ -65,7 +66,7 @@ public struct MediaType: Hashable, Loggable, Sendable {
 
     /// Returns the UTI (Uniform Type Identifier) matching this media type, if any.
     public var uti: String? {
-        UTI.findFrom(mediaTypes: [self], fileExtensions: [])?.string
+        UTI.findFrom(mediaTypes: [string], fileExtensions: [])?.string
     }
 
     public init?(_ string: String) {
