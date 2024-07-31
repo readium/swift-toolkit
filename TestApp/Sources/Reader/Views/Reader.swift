@@ -9,23 +9,19 @@ import SwiftUI
 
 struct Reader: View {
     @State private var isFullScreen = true
-
-    var book: Book
+    @ObservedObject var viewModel: ReaderViewModel
 
     var body: some View {
-        VStack {
-            Text("Reader")
-                .font(.title2)
-        }
-        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
-        .toolbar(.hidden, for: .tabBar)
-        .toolbar(isFullScreen ? .hidden : .visible, for: .navigationBar)
-        .statusBar(hidden: isFullScreen)
-        .onTapGesture {
-            withAnimation {
-                isFullScreen.toggle()
+        NewReaderViewController(makeReaderVCFunc: viewModel.makeReaderVCFunc)
+            .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+            .toolbar(.hidden, for: .tabBar)
+            .toolbar(isFullScreen ? .hidden : .visible, for: .navigationBar)
+            .statusBar(hidden: isFullScreen)
+            .onTapGesture {
+                withAnimation {
+                    isFullScreen.toggle()
+                }
             }
-        }
-        .edgesIgnoringSafeArea(.all)
+            .edgesIgnoringSafeArea(.all)
     }
 }

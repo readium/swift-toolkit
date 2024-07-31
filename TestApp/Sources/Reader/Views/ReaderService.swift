@@ -5,12 +5,13 @@
 //
 
 import Foundation
+import ReadiumAdapterGCDWebServer
 import ReadiumNavigator
 import ReadiumShared
 import ReadiumStreamer
 import UIKit
 
-typealias ReaderViewControllerType = UIViewController & Navigator
+typealias ReaderViewControllerType = Navigator & UIViewController
 
 class ReaderService {
     let bookmarks: BookmarkRepository
@@ -19,14 +20,14 @@ class ReaderService {
     let drmLibraryServices: [DRMLibraryService]
     let streamer: Streamer
     let httpClient: HTTPClient
-    
+
     init(bookmarks: BookmarkRepository,
          highlights: HighlightRepository,
          makeReaderVCFunc: @escaping (Publication, Book, NavigatorDelegate) -> ReaderViewControllerType,
          drmLibraryServices: [DRMLibraryService],
          streamer: Streamer,
-         httpClient: HTTPClient
-    ) {
+         httpClient: HTTPClient)
+    {
         self.bookmarks = bookmarks
         self.highlights = highlights
         self.makeReaderVCFunc = makeReaderVCFunc
@@ -34,7 +35,7 @@ class ReaderService {
         self.streamer = streamer
         self.httpClient = httpClient
     }
-    
+
     func openBook(_ book: Book, sender: UIViewController) async throws -> Publication {
         let (pub, _) = try await openPublication(at: book.url(), allowUserInteraction: true, sender: sender)
         try checkIsReadable(publication: pub)
@@ -70,6 +71,49 @@ class ReaderService {
             } else {
                 throw LibraryError.cancelled
             }
+        }
+    }
+
+    func makeReaderVCFunc(for publication: Publication, book: Book, delegate: NavigatorDelegate) -> ReaderViewControllerType {
+        let locator = book.locator
+        let httpServer = GCDHTTPServer.shared
+
+        do {
+            if publication.conforms(to: .pdf) {
+                let navigator = try PDFNavigatorViewController(publication: publication, initialLocation: locator, httpServer: httpServer)
+                navigator.delegate = delegate as? PDFNavigatorDelegate
+                return navigator
+            }
+
+            if publication.conforms(to: .epub) || publication.readingOrder.allAreHTML {
+                guard publication.metadata.identifier != nil else {
+                    fatalError("ReaderError.epubNotValid")
+                }
+
+                let navigator = try EPUBNavigatorViewController(publication: publication, initialLocation: locator, httpServer: httpServer)
+                navigator.delegate = delegate as? EPUBNavigatorDelegate
+                return navigator
+            }
+
+            if publication.conforms(to: .divina) {
+                let navigator = try CBZNavigatorViewController(publication: publication, initialLocation: locator, httpServer: httpServer)
+                navigator.delegate = delegate as? CBZNavigatorDelegate
+                return navigator
+            }
+        } catch {
+            fatalError("Failed: \(error)")
+        }
+        return StubNavigatorViewController(coder: NSCoder())!
+    }
+
+    private class StubNavigatorViewController: UIViewController, Navigator {
+        var publication: ReadiumShared.Publication
+
+        var currentLocation: Locator?
+
+        @available(*, unavailable)
+        required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
         }
     }
 }

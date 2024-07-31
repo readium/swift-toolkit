@@ -4,10 +4,12 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import ReadiumShared
 import SwiftUI
 
 struct Bookshelf: View {
     let bookRepository: BookRepository
+    let reader: (Book) -> Reader
 
     @State private var showingSheet = false
     @State private var books: [Book] = []
@@ -36,7 +38,7 @@ struct Bookshelf: View {
             }
             .navigationTitle("Bookshelf")
             .navigationDestination(for: Book.self) { book in
-                Reader(book: book)
+                reader(book)
             }
             .toolbar(content: toolbarContent)
         }

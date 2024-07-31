@@ -11,7 +11,8 @@ import WebKit
 
 class ReaderViewModel: ObservableObject {
     let book: Book
-    let publication: Publication
+    // TODO: do we need publication in the VM?
+    let publication: Publication?
     let readerService: ReaderService
 
     @Published var positionLabelText: String = ""
@@ -21,15 +22,15 @@ class ReaderViewModel: ObservableObject {
         book.id!
     }
 
-    init(book: Book, publication: Publication, readerService: ReaderService) {
+    init(book: Book, readerService: ReaderService) {
         self.book = book
-        self.publication = publication
         self.readerService = readerService
     }
 
     func makeReaderVCFunc() -> UIViewController {
+        // Where best to get the publication from the book via openBook, which is async. Here?
         let result = readerService.makeReaderVCFunc(publication, book, self)
-        self.navigator = result
+        navigator = result
         // TODO: become a delegate of a specific Format implementation
         return result
     }
@@ -38,13 +39,9 @@ class ReaderViewModel: ObservableObject {
 extension ReaderViewModel: PDFNavigatorDelegate, EPUBNavigatorDelegate, CBZNavigatorDelegate {}
 
 extension ReaderViewModel: NavigatorDelegate {
-    func navigator(_ navigator: any ReadiumNavigator.Navigator, didFailToLoadResourceAt href: ReadiumShared.RelativeURL, withError error: ReadiumShared.ResourceError) {
+    func navigator(_ navigator: any ReadiumNavigator.Navigator, didFailToLoadResourceAt href: ReadiumShared.RelativeURL, withError error: ReadiumShared.ResourceError) {}
 
-    }
-    
-    func navigator(_ navigator: Navigator, presentError error: NavigatorError) {
-
-    }
+    func navigator(_ navigator: Navigator, presentError error: NavigatorError) {}
 
     func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
         positionLabelText = {

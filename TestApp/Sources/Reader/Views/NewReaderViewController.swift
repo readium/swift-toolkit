@@ -10,11 +10,9 @@ import SwiftUI
 struct NewReaderViewController: UIViewControllerRepresentable {
     let makeReaderVCFunc: () -> UIViewController
 
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
-
-    }
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
 
     func makeUIViewController(context: Context) -> UIViewController {
-        return makeReaderVCFunc()
+        makeReaderVCFunc()
     }
 }
