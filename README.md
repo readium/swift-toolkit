@@ -103,3 +103,6 @@ Finally, add the Readium libraries you want to use to your app target from the *
 
 Using the toolkit with Readium LCP requires additional dependencies, including the framework `R2LCPClient.framework` provided by EDRLab. [Contact EDRLab](mailto:contact@edrlab.org) to request your private `R2LCPClient.framework` and the setup instructions.
 
+## Credits
+
+This project is tested with BrowserStack.
