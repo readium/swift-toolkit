@@ -295,6 +295,10 @@ public class PublicationSpeechSynthesizer: Loggable {
             }
         )
 
+        guard !Task.isCancelled else {
+            return
+        }
+
         switch result {
         case .success:
             await playNextUtterance(.forward)
