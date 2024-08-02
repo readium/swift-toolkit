@@ -208,10 +208,13 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     // Location to scroll to in the resource once the page is loaded.
     private var pendingLocation: PageLocation = .start
 
+    @MainActor
     override func go(to location: PageLocation) async {
         guard spreadLoaded else {
             // Delays moving to the location until the document is loaded.
             pendingLocation = location
+
+            await waitGoToCompletion()
             return
         }
 
@@ -223,7 +226,27 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         case .end:
             await scroll(toProgression: 1)
         }
+
+        await didCompleteGoTo()
     }
+
+    @MainActor
+    private func waitGoToCompletion() async {
+        await withCheckedContinuation { continuation in
+            goToContinuations.append(continuation)
+        }
+    }
+
+    @MainActor
+    private func didCompleteGoTo() async {
+        for cont in goToContinuations {
+            cont.resume()
+        }
+        goToContinuations.removeAll()
+    }
+
+    @MainActor
+    private var goToContinuations: [CheckedContinuation<Void, Never>] = []
 
     @discardableResult
     private func go(to locator: Locator) async -> Bool {
