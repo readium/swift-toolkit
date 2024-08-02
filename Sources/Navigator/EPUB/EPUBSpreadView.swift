@@ -225,7 +225,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     private func spreadLoadDidStart(_ body: Any) {
         trace()
-        activityIndicatorStopWorkItem?.cancel()
     }
 
     /// Called by the javascript code when the spread contents is fully loaded.
@@ -245,6 +244,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     func showSpread() {
         trace()
         activityIndicatorView?.stopAnimating()
+        activityIndicatorStopWorkItem?.cancel()
         UIView.animate(withDuration: animatedLoad ? 0.3 : 0, animations: {
             self.scrollView.alpha = 1
         })
@@ -548,22 +548,28 @@ private extension EPUBSpreadView {
                 self?.activityIndicatorStopWorkItem = nil
             }
 
-            if self?.activityIndicatorStopWorkItem?.isCancelled ?? true {
+            guard
+                let self = self,
+                let workItem = activityIndicatorStopWorkItem,
+                !workItem.isCancelled
+            else {
                 return
             }
 
-            self?.trace("stopping activity indicator because spread did not load")
-            self?.activityIndicatorView?.stopAnimating()
+            trace("stopping activity indicator because spread \(spread.leading.href) did not load")
+            activityIndicatorView?.stopAnimating()
         }
 
-        // If the spread doesn't begin loading within 1 sec it means that we
+        // If the spread doesn't begin loading within 2 seconds it means that we
         // likely encountered an error. In that case the work item we
         // schedule below will stop the activity indicator.
         // If the spread begins to load it will send a `spreadLoadStart` JS
         // event which will cancel the work item being scheduled here.
         trace("scheduling activity indicator stop")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1,
-                                      execute: activityIndicatorStopWorkItem!)
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + 2,
+            execute: activityIndicatorStopWorkItem!
+        )
     }
 }
 
