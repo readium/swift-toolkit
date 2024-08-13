@@ -83,7 +83,7 @@ struct EPUBSpread: Loggable {
     ///   - page [left|center|right]: (optional) Page position of the linked resource in the spread.
     func json(forBaseURL baseURL: HTTPURL) -> [[String: Any]] {
         func makeLinkJSON(_ link: Link, page: Presentation.Page? = nil) -> [String: Any]? {
-            let page = page ?? link.properties.page ?? readingProgression.leadingPage
+            let page = page ?? link.properties.page ?? readingProgression.startingPage
             return [
                 "link": link.json,
                 "url": link.url(relativeTo: baseURL).string,
@@ -147,7 +147,7 @@ struct EPUBSpread: Loggable {
         readingProgression: ReadingProgression
     ) -> [EPUBSpread] {
         /// Builds two-pages spreads from a list of links and a spread accumulator.
-        func makeSpreads(for links: [Link], in spreads: [EPUBSpread] = []) -> [EPUBSpread] {
+        func makeSpreads(for links: [Link], index: Int, in spreads: [EPUBSpread] = []) -> [EPUBSpread] {
             var links = links
             var spreads = spreads
             guard !links.isEmpty else {
@@ -160,7 +160,7 @@ struct EPUBSpread: Loggable {
             if let second = links.first,
                layout == .fixed,
                layout == publication.metadata.presentation.layout(of: second),
-               areConsecutive(first, second)
+               areConsecutive(first, second, index: index)
             {
                 spreads.append(EPUBSpread(
                     spread: true,
@@ -176,11 +176,15 @@ struct EPUBSpread: Loggable {
                 ))
             }
 
-            return makeSpreads(for: links, in: spreads)
+            return makeSpreads(for: links, index: index + 1, in: spreads)
         }
 
         /// Two resources are consecutive if their position hint (Properties.Page) are paired according to the reading progression.
-        func areConsecutive(_ first: Link, _ second: Link) -> Bool {
+        func areConsecutive(_ first: Link, _ second: Link, index: Int) -> Bool {
+            guard index > 0 || first.properties.page != nil else {
+                return false
+            }
+
             // Here we use the default publication reading progression instead of the custom one provided, otherwise the page position hints might be wrong, and we could end up with only one-page spreads.
             switch publication.metadata.effectiveReadingProgression {
             case .ltr, .ttb, .auto:
@@ -194,7 +198,7 @@ struct EPUBSpread: Loggable {
             }
         }
 
-        return makeSpreads(for: readingOrder)
+        return makeSpreads(for: readingOrder, index: 0)
     }
 }
 
