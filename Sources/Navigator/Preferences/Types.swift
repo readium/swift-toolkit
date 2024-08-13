@@ -52,13 +52,13 @@ public enum ReadingProgression: String, Codable, Hashable {
         }
     }
 
-    /// Returns the leading Page for the reading progression.
-    var leadingPage: Presentation.Page {
+    /// Returns the starting page for the reading progression.
+    var startingPage: Presentation.Page {
         switch self {
         case .ltr:
-            return .left
-        case .rtl:
             return .right
+        case .rtl:
+            return .left
         }
     }
 }
