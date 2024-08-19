@@ -120,35 +120,31 @@ public class _StringSearchService: _SearchService {
         }
 
         private func findNext(_ cancellable: CancellableObject, _ completion: @escaping (SearchResult<_LocatorCollection?>) -> Void) {
-            guard index < publication.readingOrder.count - 1 else {
-                completion(.success(nil))
-                return
+            while index < publication.readingOrder.count - 1 {
+                index += 1
+
+                let link = publication.readingOrder[index]
+                let resource = publication.get(link)
+
+                do {
+                    guard let extractor = extractorFactory.makeExtractor(for: resource) else {
+                        log(.warning, "Cannot extract text from resource: \(link.href)")
+                        continue
+                    }
+                    let text = try extractor.extractText(of: resource).get()
+
+                    let locators = findLocators(in: link, resourceIndex: index, text: text, cancellable: cancellable)
+                    if !locators.isEmpty {
+                        resultCount = (resultCount ?? 0) + locators.count
+                        completion(.success(_LocatorCollection(locators: locators)))
+                    }
+                } catch {
+                    completion(.failure(.wrap(error)))
+                    return
+                }
             }
 
-            index += 1
-
-            let link = publication.readingOrder[index]
-            let resource = publication.get(link)
-
-            do {
-                guard let extractor = extractorFactory.makeExtractor(for: resource) else {
-                    log(.warning, "Cannot extract text from resource: \(link.href)")
-                    return findNext(cancellable, completion)
-                }
-                let text = try extractor.extractText(of: resource).get()
-
-                let locators = findLocators(in: link, resourceIndex: index, text: text, cancellable: cancellable)
-                // If no occurrences were found in the current resource, skip to the next one automatically.
-                guard !locators.isEmpty else {
-                    return findNext(cancellable, completion)
-                }
-
-                resultCount = (resultCount ?? 0) + locators.count
-                completion(.success(_LocatorCollection(locators: locators)))
-
-            } catch {
-                completion(.failure(.wrap(error)))
-            }
+            completion(.success(nil))
         }
 
         private func findLocators(in link: Link, resourceIndex: Int, text: String, cancellable: CancellableObject) -> [Locator] {
