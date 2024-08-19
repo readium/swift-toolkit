@@ -132,9 +132,7 @@ export function getColumnCountPerScreen() {
 
 export function isScrollModeEnabled() {
   const style = document.documentElement.style;
-  return (
-    style.getPropertyValue("--USER__view").trim() == "readium-scroll-on"
-  );
+  return style.getPropertyValue("--USER__view").trim() == "readium-scroll-on";
 }
 
 // Scroll to the given TagId in document and snap.

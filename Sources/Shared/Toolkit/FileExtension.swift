@@ -20,7 +20,7 @@ public struct FileExtension: Hashable, RawRepresentable, ExpressibleByStringLite
     }
 
     /// Appends this file extension to `filename`.
-    public func appendToFilename(_ filename: String) -> String {
+    public func appendedToFilename(_ filename: String) -> String {
         "\(filename).\(rawValue)"
     }
 
@@ -38,10 +38,10 @@ public struct FileExtension: Hashable, RawRepresentable, ExpressibleByStringLite
 
 public extension Optional where Wrapped == FileExtension {
     /// Appends this file extension to `filename`.
-    func appendToFilename(_ filename: String) -> String {
+    func appendedToFilename(_ filename: String) -> String {
         switch self {
         case let .some(ext):
-            return ext.appendToFilename(filename)
+            return ext.appendedToFilename(filename)
         case .none:
             return filename
         }

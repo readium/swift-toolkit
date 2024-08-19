@@ -222,8 +222,6 @@ public struct MediaType: Hashable, Loggable, Sendable {
     @available(*, unavailable)
     public var isSupportedDocumentType: Bool {
         fatalError()
-//        DocumentTypes.main.supportsMediaType(string)
-//            || DocumentTypes.main.supportsFileExtension(fileExtension)
     }
 
     // MARK: Known Media Types

@@ -19,7 +19,8 @@ final class LCPContentProtection: ContentProtection, Loggable {
     func open(
         asset: Asset,
         credentials: String?,
-        allowUserInteraction: Bool, sender: Any?
+        allowUserInteraction: Bool,
+        sender: Any?
     ) async -> Result<ContentProtectionAsset, ContentProtectionOpenError> {
         guard asset.format.conformsTo(.lcp) else {
             return .failure(.assetNotSupported(DebugError("The asset does not appear to be protected with LCP")))

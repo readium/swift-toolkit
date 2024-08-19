@@ -38,14 +38,14 @@ class FormatSniffersTests: XCTestCase {
     }
 
     func testSniffBlobReadError() async {
-        let error = ReadError.access(FileSystemError.fileNotFound(DebugError("error")))
+        let error = ReadError.access(.fileSystem(.fileNotFound(DebugError("error"))))
 
         let result = await sut.sniffBlob(FormatSnifferBlob(source: FailureResource(error: error)))
         XCTAssertEqual(result, .failure(error))
     }
 
     func testSniffContainerReadError() async {
-        let error = ReadError.access(FileSystemError.fileNotFound(DebugError("error")))
+        let error = ReadError.access(.fileSystem(.fileNotFound(DebugError("error"))))
 
         let container = ProxyContainer { _ in
             FailureResource(error: error)

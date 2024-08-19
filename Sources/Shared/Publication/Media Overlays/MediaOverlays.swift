@@ -116,7 +116,7 @@ public class MediaOverlays {
         // For each node of the current scope..
         for node in nodes {
             // If the node is a "section" (<seq> sequence element)..
-            // TODO: ask if really usefull?
+            // TODO: ask if really useful?
             if node.role.contains("section") {
                 // Try to find par nodes inside.
                 if let found = _findNode(forFragment: fragment, inNodes: node.children) {

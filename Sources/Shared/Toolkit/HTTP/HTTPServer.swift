@@ -84,7 +84,7 @@ public extension HTTPServer {
                 let link = publication.linkWithHREF(href),
                 let resource = publication.get(href)
             else {
-                onFailure?(request, .access(HTTPError(kind: .notFound)))
+                onFailure?(request, .access(.http(HTTPError(kind: .notFound))))
 
                 return HTTPServerResponse(error: .notFound)
             }
@@ -134,7 +134,7 @@ public struct HTTPServerResponse {
 
     public init(error: HTTPError.Kind) {
         self.init(
-            resource: FailureResource(error: .access(HTTPError(kind: error))),
+            resource: FailureResource(error: .access(.http(HTTPError(kind: error)))),
             mediaType: nil
         )
     }

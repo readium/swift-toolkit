@@ -19,8 +19,16 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Shared
 
+* A new `Format` type was introduced to augment `MediaType` with more precise information about the format specifications of an `Asset`.
+* `Fetcher` was replaced with a simpler `Container` type.
+* `PublicationAsset` was replaced by `Asset`, which contains a `Format` and access to the underlying `Container` or `Resource`.
+* The `ResourceError` hierarchy was revamped and simplified (see `ReadError`). Now it is your responsibility to provide a localized user message for each error case.
 * The `Link` property key for archive-based publication assets (e.g. an EPUB/ZIP) is now `https://readium.org/webpub-manifest/properties#archive` instead of `archive`.
 * The API of `HTTPServer` slightly changed to be more future-proof.
+
+#### Streamer
+
+* The `Streamer` object was deprecated in favor of smaller segregated APIs: `AssetRetriever` and `PublicationOpener`. 
 
 #### Navigator
 

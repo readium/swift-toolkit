@@ -35,7 +35,7 @@ final class Paths {
             return source
         } else {
             let title = title.takeIf { !$0.isEmpty } ?? UUID().uuidString
-            let filename = format.fileExtension.appendToFilename(title.sanitizedPathComponent)
+            let filename = format.fileExtension.appendedToFilename(title.sanitizedPathComponent)
             return documents.appendingUniquePathComponent(filename)
         }
     }

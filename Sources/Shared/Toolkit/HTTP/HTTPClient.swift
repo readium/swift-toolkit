@@ -94,7 +94,7 @@ public extension HTTPClient {
         _ request: HTTPRequestConvertible,
         onProgress: @escaping (Double) -> Void
     ) async -> HTTPResult<HTTPDownload> {
-        let location = FileURL(
+        let location = await FileURL(
             url: URL(
                 fileURLWithPath: NSTemporaryDirectory(),
                 isDirectory: true

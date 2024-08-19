@@ -35,8 +35,13 @@ public enum ReadError: Error {
     }
 }
 
-/// Marker interface for source-specific access errors.
-public protocol AccessError: Error {}
+public enum AccessError: Error {
+    /// An error occurred while accessing content over HTTP.
+    case http(HTTPError)
 
-extension HTTPError: AccessError {}
-extension FileSystemError: AccessError {}
+    /// An error occurred while accessing content on the local file system.
+    case fileSystem(FileSystemError)
+
+    /// For extension purposes. This is not used in the Readium toolkit.
+    case other(Error)
+}

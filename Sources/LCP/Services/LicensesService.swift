@@ -144,7 +144,7 @@ final class LicensesService: Loggable {
         return LCPAcquiredPublication(
             localURL: download.location,
             format: asset.format,
-            suggestedFilename: asset.format.fileExtension.appendToFilename(license.id),
+            suggestedFilename: asset.format.fileExtension.appendedToFilename(license.id),
             licenseDocument: license
         )
     }

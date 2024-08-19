@@ -6,7 +6,7 @@
 
 import Foundation
 
-/// Returns a new ``Resource`` accessing the same data but not owning them.
+/// Returns a new ``Resource`` accessing the same data but not owning it.
 ///
 /// This is useful when you want to pass a ``Resource`` to a component which
 /// might close it, but you want to keep using it after.

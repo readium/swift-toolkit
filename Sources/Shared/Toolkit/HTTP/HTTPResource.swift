@@ -46,7 +46,7 @@ public actor HTTPResource: Resource {
     private func headResponse() async -> ReadResult<HTTPResponse> {
         if _headResponse == nil {
             _headResponse = await client.fetch(HTTPRequest(url: url, method: .head))
-                .mapError { .access($0) }
+                .mapError { .access(.http($0)) }
         }
         return _headResponse!
     }
@@ -65,6 +65,6 @@ public actor HTTPResource: Resource {
             consume: { data, _ in consume(data) }
         )
         .map { _ in () }
-        .mapError { .access($0) }
+        .mapError { .access(.http($0)) }
     }
 }

@@ -37,10 +37,10 @@ public actor FileResource: Resource, Loggable {
                 if let length = values.fileSize {
                     _length = .success(UInt64(length))
                 } else {
-                    _length = .failure(.access(FileSystemError.fileNotFound(nil)))
+                    _length = .failure(.access(.fileSystem(.fileNotFound(nil))))
                 }
             } catch {
-                _length = .failure(.access(FileSystemError.io(error)))
+                _length = .failure(.access(.fileSystem(.io(error))))
             }
         }
         return _length!
@@ -75,10 +75,10 @@ public actor FileResource: Resource, Loggable {
                 if let isReadable = values.isReadable, isReadable, values.isDirectory != true {
                     _handle = try .success(FileHandle(forReadingFrom: fileURL.url))
                 } else {
-                    _handle = .failure(.access(FileSystemError.fileNotFound(nil)))
+                    _handle = .failure(.access(.fileSystem(.fileNotFound(nil))))
                 }
             } catch {
-                _handle = .failure(.access(FileSystemError.io(error)))
+                _handle = .failure(.access(.fileSystem(.io(error))))
             }
         }
         return _handle!

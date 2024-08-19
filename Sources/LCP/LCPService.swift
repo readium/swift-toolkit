@@ -85,15 +85,14 @@ public final class LCPService: Loggable {
     }
 
     /// Opens the LCP license of a protected publication, to access its DRM
-    /// metadata and decipher its content. If the updated license cannot be
-    /// stored into the ``Asset``, you'll get an exception if the license
-    /// points to a LSD server that cannot be reached, for instance because no
-    /// Internet gateway is available.
+    /// metadata and decipher its content.
+    ///
+    /// If the updated license cannot be stored into the ``Asset``, you'll get
+    /// an exception if the license points to a LSD server that cannot be
+    /// reached, for instance because no Internet gateway is available.
     ///
     /// Updated licenses can currently be stored only into ``Asset``s whose
-    /// source property points to a `file://` URL. Opens the LCP license of a
-    /// protected publication, to access its DRM metadata and decipher its
-    /// content.
+    /// source property points to a `file://` URL.
     ///
     /// - Parameters:
     ///   - authentication: Used to retrieve the user passphrase if it is not
@@ -155,7 +154,7 @@ public final class LCPService: Loggable {
         fatalError()
     }
 
-    @available(*, unavailable, message: "Pass explicitly a `LCPDialogAuthentication()` for the same behavior as before")
+    @available(*, unavailable, message: "Pass explicitly an `LCPDialogAuthentication()` for the same behavior as before")
     public func contentProtection() -> ContentProtection {
         contentProtection(with: LCPDialogAuthentication())
     }

@@ -15,7 +15,7 @@ extension SingleResourceContainer {
     convenience init(publication: ResourceAsset) {
         var filename = "publication"
         if let fileExtension = publication.format.fileExtension {
-            filename = fileExtension.appendToFilename(filename)
+            filename = fileExtension.appendedToFilename(filename)
         }
 
         self.init(resource: publication.resource, at: AnyURL(string: filename)!)
