@@ -264,7 +264,7 @@
       "sources" : [
         {
           "excludes" : [
-            "Toolkit\/Archive\/ZIPFoundation.swift"
+            "Toolkit\/ZIP\/ZIPFoundation.swift"
           ],
           "path" : "..\/..\/Sources\/Shared"
         }

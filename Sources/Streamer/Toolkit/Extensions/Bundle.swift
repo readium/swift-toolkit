@@ -15,7 +15,7 @@ import Foundation
     extension Bundle {
         #if !COCOAPODS
             /// Returns ReadiumStreamer's bundle by querying an arbitrary type.
-            static let module = Bundle(for: Streamer.self)
+            static let module = Bundle(for: PublicationOpener.self)
         #else
             /// Returns ReadiumStreamer's bundle by querying for the cocoapods bundle.
             static let module = Bundle.getCocoaPodsBundle()
