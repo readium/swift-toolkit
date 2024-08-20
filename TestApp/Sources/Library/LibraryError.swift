@@ -12,6 +12,7 @@ enum LibraryError: LocalizedError {
     case bookNotFound
     case bookDeletionFailed(Error?)
     case importFailed(Error)
+    case publicationIsRestricted(Error)
     case openFailed(Error)
     case downloadFailed(Error?)
     case cancelled
@@ -28,7 +29,11 @@ enum LibraryError: LocalizedError {
             return String(format: NSLocalizedString("library_error_openFailed", comment: "Error message used when a low-level error occured while opening a publication"), error.localizedDescription)
         case let .downloadFailed(error):
             return String(format: NSLocalizedString("library_error_downloadFailed", comment: "Error message when the download of a publication failed"), error?.localizedDescription ?? "None")
-        default:
+        case .bookDeletionFailed:
+            return NSLocalizedString("library_error_bookDeletionFailed", comment: "Error message when the deletion of a publication failed")
+        case .publicationIsRestricted:
+            return NSLocalizedString("library_error_publicationIsRestricted", comment: "Error message when the publication is still restricted")
+        case .cancelled:
             return nil
         }
     }

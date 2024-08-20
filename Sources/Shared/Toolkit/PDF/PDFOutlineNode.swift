@@ -24,14 +24,14 @@ public struct PDFOutlineNode {
 
     /// Converts a PDF outline node and its descendants to a `Link` object.
     ///
-    /// - Parameter documentHref: HREF of the PDF document in the `Publication` to which the links
-    ///   are relative to.
-    public func link(withDocumentHREF documentHREF: String) -> Link {
+    /// - Parameter href: HREF of the PDF document in the `Publication` to
+    /// which the links are relative to.
+    public func linkWithDocumentHREF<T: URLConvertible>(_ href: T) -> Link {
         Link(
-            href: "\(documentHREF)#page=\(pageNumber)",
+            href: "\(href.anyURL.string)#page=\(pageNumber)",
             mediaType: .pdf,
             title: title,
-            children: children.links(withDocumentHREF: documentHREF)
+            children: children.linksWithDocumentHREF(href)
         )
     }
 }
@@ -39,9 +39,9 @@ public struct PDFOutlineNode {
 public extension Sequence where Element == PDFOutlineNode {
     /// Converts a list of PDF outline node and their descendants to `Link` objects.
     ///
-    /// - Parameter documentHref: HREF of the PDF document in the `Publication` to which the links
-    ///   are relative to.
-    func links(withDocumentHREF documentHREF: String) -> [Link] {
-        map { $0.link(withDocumentHREF: documentHREF) }
+    /// - Parameter href: HREF of the PDF document in the `Publication` to
+    /// which the links are relative to.
+    func linksWithDocumentHREF<T: URLConvertible>(_ href: T) -> [Link] {
+        map { $0.linkWithDocumentHREF(href) }
     }
 }

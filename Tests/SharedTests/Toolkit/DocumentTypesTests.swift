@@ -41,7 +41,7 @@ class DocumentTypesTests: XCTestCase {
         XCTAssertEqual(all[2], DocumentType(
             name: "EPUB Publication",
             utis: ["org.idpf.epub-container"],
-            preferredMediaType: MediaType("application/epub+zip", name: "EPUB Publication", fileExtension: "epub")!,
+            preferredMediaType: MediaType("application/epub+zip")!,
             mediaTypes: [
                 MediaType("application/epub+zip")!,
             ],

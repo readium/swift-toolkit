@@ -16,13 +16,13 @@ This toolkit is a modular project, which follows the [Readium Architecture](http
 
 <!-- https://swiftversion.net/ -->
 
-| Readium   | iOS  | Swift compiler | Xcode  |
-|-----------|------|----------------|--------|
-| `develop` | 13.0 | 5.9            | 15.0.1 |
-| 3.0.0     | 13.0 | 5.9            | 15.0.1 |
-| 2.5.1     | 11.0 | 5.6.1          | 13.4   |
-| 2.5.0     | 10.0 | 5.6.1          | 13.4   |
-| 2.4.0     | 10.0 | 5.3.2          | 12.4   |
+| Readium   | iOS  | Swift compiler | Xcode |
+|-----------|------|----------------|-------|
+| `develop` | 13.0 | 5.10           | 15.4  |
+| 3.0.0     | 13.0 | 5.10           | 15.4  |
+| 2.5.1     | 11.0 | 5.6.1          | 13.4  |
+| 2.5.0     | 10.0 | 5.6.1          | 13.4  |
+| 2.4.0     | 10.0 | 5.3.2          | 12.4  |
 
 ## Using Readium
 

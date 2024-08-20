@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 import SwiftSoup
 
 /// Iterates an HTML `resource`, starting from the given `locator`.
@@ -28,44 +29,46 @@ public class HTMLResourceContentIterator: ContentIterator {
             resource: Resource,
             locator: Locator
         ) -> ContentIterator? {
-            guard resource.link.mediaType?.isHTML == true else {
+            guard publication.readingOrder.getOrNil(readingOrderIndex)?.mediaType?.isHTML == true else {
                 return nil
             }
 
-            let positions = publication.positionsByReadingOrder
             return HTMLResourceContentIterator(
                 resource: resource,
-                totalProgressionRange: positions.getOrNil(readingOrderIndex)?
-                    .first?.locations.totalProgression
-                    .map { start in
-                        let end = positions.getOrNil(readingOrderIndex + 1)?
-                            .first?.locations.totalProgression
-                            ?? 1.0
+                totalProgressionRange: {
+                    let positions = await publication.positionsByReadingOrder().getOrNil() ?? []
+                    return positions.getOrNil(readingOrderIndex)?
+                        .first?.locations.totalProgression
+                        .map { start in
+                            let end = positions.getOrNil(readingOrderIndex + 1)?
+                                .first?.locations.totalProgression
+                                ?? 1.0
 
-                        return start ... end
-                    },
+                            return start ... end
+                        }
+                },
                 locator: locator
             )
         }
     }
 
     private let resource: Resource
-    private let totalProgressionRange: ClosedRange<Double>?
     private let locator: Locator
     private let beforeMaxLength: Int = 50
+    private let totalProgressionRange: () async -> ClosedRange<Double>?
 
     public init(
         resource: Resource,
-        totalProgressionRange: ClosedRange<Double>?,
+        totalProgressionRange: @escaping () async -> ClosedRange<Double>?,
         locator: Locator
     ) {
         self.resource = resource
-        self.totalProgressionRange = totalProgressionRange
+        self.totalProgressionRange = memoize(totalProgressionRange)
         self.locator = locator
     }
 
-    public func previous() throws -> ContentElement? {
-        let elements = try elements.get()
+    public func previous() async throws -> ContentElement? {
+        let elements = try await elements()
         let index = (currentIndex ?? elements.startIndex) - 1
 
         guard let content = elements.elements.getOrNil(index) else {
@@ -76,8 +79,8 @@ public class HTMLResourceContentIterator: ContentIterator {
         return content
     }
 
-    public func next() throws -> ContentElement? {
-        let elements = try elements.get()
+    public func next() async throws -> ContentElement? {
+        let elements = try await elements()
         let index = (currentIndex ?? (elements.startIndex - 1)) + 1
 
         guard let content = elements.elements.getOrNil(index) else {
@@ -90,17 +93,17 @@ public class HTMLResourceContentIterator: ContentIterator {
 
     private var currentIndex: Int?
 
-    private lazy var elements: Result<ParsedElements, Error> = parseElements()
+    private lazy var elements = memoize(parseElements)
 
-    private func parseElements() -> Result<ParsedElements, Error> {
-        let result = resource
+    private func parseElements() async throws -> ParsedElements {
+        let result = await resource
             .readAsString()
             .eraseToAnyError()
             .tryMap { try SwiftSoup.parse($0) }
             .tryMap { try parse(document: $0, locator: locator, beforeMaxLength: beforeMaxLength) }
-            .map { adjustProgressions(of: $0) }
+            .map { await adjustProgressions(of: $0) }
         resource.close()
-        return result
+        return try result.get()
     }
 
     private func parse(document: Document, locator: Locator, beforeMaxLength: Int) throws -> ParsedElements {
@@ -121,18 +124,18 @@ public class HTMLResourceContentIterator: ContentIterator {
         return parser.result
     }
 
-    private func adjustProgressions(of elements: ParsedElements) -> ParsedElements {
+    private func adjustProgressions(of elements: ParsedElements) async -> ParsedElements {
         let count = Double(elements.elements.count)
         guard count > 0 else {
             return elements
         }
 
         var elements = elements
-        elements.elements = elements.elements.enumerated().map { index, element in
+        elements.elements = await elements.elements.enumerated().asyncmap { index, element in
             let progression = Double(index) / count
-            return element.copy(
+            return await element.copy(
                 progression: progression,
-                totalProgression: totalProgressionRange.map { range in
+                totalProgression: totalProgressionRange().map { range in
                     range.lowerBound + progression * (range.upperBound - range.lowerBound)
                 }
             )
@@ -242,7 +245,7 @@ public class HTMLResourceContentIterator: ContentIterator {
                         elements.append(ImageContentElement(
                             locator: elementLocator,
                             embeddedLink: Link(href: href.string),
-                            caption: nil, // FIXME: Get the caption from figcaption
+                            caption: nil, // TODO: Get the caption from figcaption
                             attributes: attributes
                         ))
                     }

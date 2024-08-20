@@ -117,7 +117,7 @@ public struct HTTPError: LocalizedError, Equatable, Loggable {
         self.response = response
 
         problemDetails = {
-            if let body = response?.body, response?.mediaType.matches(.problemDetails) == true {
+            if let body = response?.body, response?.mediaType?.matches(.problemDetails) == true {
                 do {
                     return try HTTPProblemDetails(data: body)
                 } catch {

@@ -13,7 +13,7 @@ targets:
     sources: 
       - path: ../../Sources/Shared
         excludes:
-          - Toolkit/Archive/ZIPFoundation.swift
+          - Toolkit/ZIP/ZIPFoundation.swift
     dependencies:
       - framework: ../../Carthage/Build/Fuzi.xcframework
       - framework: ../../Carthage/Build/Minizip.xcframework
@@ -38,7 +38,6 @@ targets:
       - framework: ../../Carthage/Build/CryptoSwift.xcframework
       - framework: ../../Carthage/Build/Fuzi.xcframework
       - framework: ../../Carthage/Build/Minizip.xcframework
-      - framework: ../../Carthage/Build/ReadiumGCDWebServer.xcframework
       - target: ReadiumShared
       - target: ReadiumInternal
     settings:

@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumGCDWebServer
 import ReadiumShared
 import UIKit
 

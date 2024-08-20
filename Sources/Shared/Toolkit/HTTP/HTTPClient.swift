@@ -16,8 +16,8 @@ public protocol HTTPClient: Loggable {
     /// - Parameters:
     ///   - request: Request to the streamed resource.
     ///     also access it in the completion block after consuming the data.
-    ///   - consume: Callback called for each chunk of data received. Callers are responsible to accumulate the data
-    ///     if needed.
+    ///   - consume: Callback called for each chunk of data received. Callers
+    ///     are responsible to accumulate the data if needed.
     func stream(
         request: HTTPRequestConvertible,
         consume: @escaping (_ chunk: Data, _ progress: Double?) -> Void
@@ -75,7 +75,7 @@ public extension HTTPClient {
     /// Fetches the resource as a `String`.
     func fetchString(_ request: HTTPRequestConvertible) async -> HTTPResult<String> {
         await fetch(request) { response, body in
-            let encoding = response.mediaType.encoding ?? .utf8
+            let encoding = response.mediaType?.encoding ?? .utf8
             return String(data: body, encoding: encoding)
         }
     }
@@ -94,11 +94,11 @@ public extension HTTPClient {
         _ request: HTTPRequestConvertible,
         onProgress: @escaping (Double) -> Void
     ) async -> HTTPResult<HTTPDownload> {
-        let location = FileURL(
+        let location = await FileURL(
             url: URL(
                 fileURLWithPath: NSTemporaryDirectory(),
                 isDirectory: true
-            ).appendingUniquePathComponent()
+            ).appendingUniquePathSegment()
         )!
 
         let fileHandle: FileHandle
@@ -147,23 +147,17 @@ public extension HTTPClient {
 
     @available(*, unavailable, message: "Use the async variant.")
     func stream(_ request: HTTPRequestConvertible, receiveResponse: ((HTTPResponse) -> Void)?, consume: @escaping (_ chunk: Data, _ progress: Double?) -> Void, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
-        CancellableTask(task: Task {
-            await completion(stream(request: request, consume: consume))
-        })
+        fatalError()
     }
 
     @available(*, unavailable, message: "Use the async variant.")
     func stream(_ request: HTTPRequestConvertible, consume: @escaping (Data, Double?) -> Void, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
-        CancellableTask(task: Task {
-            await completion(stream(request: request, consume: consume))
-        })
+        fatalError()
     }
 
     @available(*, unavailable, message: "Use the async variant.")
     func fetch(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
-        CancellableTask(task: Task {
-            await completion(fetch(request))
-        })
+        fatalError()
     }
 
     @available(*, unavailable, message: "Use the async variant.")
@@ -206,7 +200,7 @@ public extension HTTPClient {
 }
 
 /// Represents a successful HTTP response received from a server.
-public struct HTTPResponse: Equatable, Sendable {
+public struct HTTPResponse: Equatable {
     /// Request associated with the response.
     public let request: HTTPRequest
 
@@ -219,38 +213,19 @@ public struct HTTPResponse: Equatable, Sendable {
     /// HTTP response headers, indexed by their name.
     public let headers: [String: String]
 
-    /// Media type sniffed from the `Content-Type` header and response body.
-    /// Falls back on `application/octet-stream`.
-    public let mediaType: MediaType
+    /// Media type provided in the `Content-Type` header.
+    public let mediaType: MediaType?
 
     /// Response body content, when available.
     public var body: Data?
 
-    public init(request: HTTPRequest, url: HTTPURL, statusCode: Int, headers: [String: String], mediaType: MediaType, body: Data?) {
+    public init(request: HTTPRequest, url: HTTPURL, statusCode: Int, headers: [String: String], mediaType: MediaType?, body: Data?) {
         self.request = request
         self.url = url
         self.statusCode = statusCode
         self.headers = headers
         self.mediaType = mediaType
         self.body = body
-    }
-
-    public init(request: HTTPRequest, response: HTTPURLResponse, url: HTTPURL, body: Data? = nil) {
-        var headers: [String: String] = [:]
-        for (k, v) in response.allHeaderFields {
-            if let ks = k as? String, let vs = v as? String {
-                headers[ks] = vs
-            }
-        }
-
-        self.init(
-            request: request,
-            url: url,
-            statusCode: response.statusCode,
-            headers: headers,
-            mediaType: response.sniffMediaType { body ?? Data() } ?? .binary,
-            body: body
-        )
     }
 
     /// Finds the value of the first header matching the given name.
@@ -314,9 +289,9 @@ public struct HTTPDownload {
     public let suggestedFilename: String?
 
     /// Media type sniffed from the `Content-Type` header and response body.
-    public let mediaType: MediaType
+    public let mediaType: MediaType?
 
-    public init(location: FileURL, suggestedFilename: String? = nil, mediaType: MediaType) {
+    public init(location: FileURL, suggestedFilename: String? = nil, mediaType: MediaType?) {
         self.location = location
         self.suggestedFilename = suggestedFilename
         self.mediaType = mediaType

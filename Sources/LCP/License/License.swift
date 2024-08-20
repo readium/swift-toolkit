@@ -146,7 +146,7 @@ extension License: LCPLicense {
                 throw LCPError.licenseInteractionNotAvailable
             }
 
-            if link.mediaType.isHTML {
+            if link.mediaType?.isHTML == true {
                 return try await renewWithWebPage(link)
             } else {
                 return try await renewProgrammatically(link)

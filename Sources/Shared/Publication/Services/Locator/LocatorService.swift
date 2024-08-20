@@ -17,37 +17,37 @@ public typealias LocatorServiceFactory = (PublicationServiceContext) -> LocatorS
 ///     order. For example, when downloading a streamed manifest or offloading a package.
 public protocol LocatorService: PublicationService {
     /// Locates the target of the given `locator`.
-    func locate(_ locator: Locator) -> Locator?
+    func locate(_ locator: Locator) async -> Locator?
 
     /// Locates the target of the given `link`.
-    func locate(_ link: Link) -> Locator?
+    func locate(_ link: Link) async -> Locator?
 
     /// Locates the target at the given `progression` relative to the whole publication.
-    func locate(progression: Double) -> Locator?
+    func locate(progression: Double) async -> Locator?
 }
 
 public extension LocatorService {
-    func locate(_ locator: Locator) -> Locator? { nil }
-    func locate(_ link: Link) -> Locator? { nil }
-    func locate(progression: Double) -> Locator? { nil }
+    func locate(_ locator: Locator) async -> Locator? { nil }
+    func locate(_ link: Link) async -> Locator? { nil }
+    func locate(progression: Double) async -> Locator? { nil }
 }
 
 // MARK: Publication Helpers
 
 public extension Publication {
     /// Locates the target of the given `locator`.
-    func locate(_ locator: Locator) -> Locator? {
-        findService(LocatorService.self)?.locate(locator)
+    func locate(_ locator: Locator) async -> Locator? {
+        await findService(LocatorService.self)?.locate(locator)
     }
 
     /// Locates the target at the given `progression` relative to the whole publication.
-    func locate(progression: Double) -> Locator? {
-        findService(LocatorService.self)?.locate(progression: progression)
+    func locate(progression: Double) async -> Locator? {
+        await findService(LocatorService.self)?.locate(progression: progression)
     }
 
     /// Locates the target of the given `link`.
-    func locate(_ link: Link) -> Locator? {
-        findService(LocatorService.self)?.locate(link)
+    func locate(_ link: Link) async -> Locator? {
+        await findService(LocatorService.self)?.locate(link)
     }
 }
 

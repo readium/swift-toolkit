@@ -12,39 +12,49 @@ class ReadiumWebPubParserTests: XCTestCase {
     let fixtures = Fixtures()
     var parser: ReadiumWebPubParser!
 
-    var manifestAsset: FileAsset!
-    var manifestFetcher: Fetcher!
+    var manifestAsset: Asset!
+    var packageAsset: Asset!
+    var lcpdfAsset: Asset!
 
-    var packageAsset: FileAsset!
-    var packageFetcher: Fetcher!
-
-    var lcpdfAsset: FileAsset!
-    var lcpdfFetcher: Fetcher!
-
-    override func setUpWithError() throws {
+    override func setUp() async throws {
         parser = ReadiumWebPubParser(pdfFactory: DefaultPDFDocumentFactory(), httpClient: DefaultHTTPClient())
 
-        manifestAsset = FileAsset(file: fixtures.url(for: "flatland.json"))
-        manifestFetcher = FileFetcher(href: RelativeURL(path: "flatland.json")!, file: manifestAsset.file)
+        manifestAsset = .resource(ResourceAsset(
+            resource: FileResource(file: fixtures.url(for: "flatland.json")),
+            format: Format(specifications: .json, .rwpm, mediaType: .readiumWebPubManifest, fileExtension: "json")
+        ))
 
-        packageAsset = FileAsset(file: fixtures.url(for: "audiotest.lcpa"))
-        packageFetcher = try ArchiveFetcher(file: packageAsset.file)
+        packageAsset = try await .container(ZIPArchiveOpener().open(
+            resource: FileResource(file: fixtures.url(for: "audiotest.lcpa")),
+            format: Format(specifications: .zip, .rpf, .lcp, mediaType: .lcpProtectedAudiobook, fileExtension: "lcpa")
+        ).get())
 
-        lcpdfAsset = FileAsset(file: fixtures.url(for: "daisy.lcpdf"))
-        lcpdfFetcher = try ArchiveFetcher(file: lcpdfAsset.file)
+        lcpdfAsset = try await .container(ZIPArchiveOpener().open(
+            resource: FileResource(file: fixtures.url(for: "daisy.lcpdf")),
+            format: Format(specifications: .zip, .rpf, .lcp, mediaType: .lcpProtectedPDF, fileExtension: "lcpdf")
+        ).get())
     }
 
-    func testRefusesNonReadiumWebPub() throws {
-        let asset = FileAsset(file: fixtures.url(for: "audiotest.zab"))
-        let fetcher = try ArchiveFetcher(file: asset.file)
-        XCTAssertNil(try parser.parse(asset: asset, fetcher: fetcher, warnings: nil))
+    func testRefusesNonReadiumWebPub() async throws {
+        let asset: Asset = try await .container(ZIPArchiveOpener().open(
+            resource: FileResource(file: fixtures.url(for: "audiotest.zab")),
+            format: Format(specifications: .zip, .informalAudiobook, mediaType: .zab, fileExtension: "zab")
+        ).get())
+        do {
+            _ = try await parser.parse(asset: asset, warnings: nil).get()
+        } catch PublicationParseError.formatNotSupported {
+            return
+        } catch {}
+        XCTFail("Expected an error")
     }
 
-    func testAcceptsManifest() {
-        XCTAssertNotNil(try parser.parse(asset: manifestAsset, fetcher: manifestFetcher, warnings: nil))
+    func testAcceptsManifest() async throws {
+        let result = try await parser.parse(asset: manifestAsset, warnings: nil).get()
+        XCTAssertNotNil(result)
     }
 
-    func testAcceptsPackage() {
-        XCTAssertNotNil(try parser.parse(asset: packageAsset, fetcher: packageFetcher, warnings: nil))
+    func testAcceptsPackage() async throws {
+        let result = try await parser.parse(asset: packageAsset, warnings: nil).get()
+        XCTAssertNotNil(result)
     }
 }

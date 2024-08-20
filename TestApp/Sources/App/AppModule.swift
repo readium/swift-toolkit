@@ -27,8 +27,6 @@ final class AppModule {
     var opds: OPDSModuleAPI!
 
     init() throws {
-        let httpClient = DefaultHTTPClient()
-
         let file = Paths.library.appendingPath("database.db", isDirectory: false)
         let db = try Database(file: file.url)
         print("Created database at \(file.path)")
@@ -37,12 +35,26 @@ final class AppModule {
         let bookmarks = BookmarkRepository(db: db)
         let highlights = HighlightRepository(db: db)
 
-        library = LibraryModule(delegate: self, books: books, httpClient: httpClient)
-        reader = ReaderModule(delegate: self, books: books, bookmarks: bookmarks, highlights: highlights)
+        let readium = Readium()
+
+        library = LibraryModule(
+            delegate: self,
+            books: books,
+            readium: readium
+        )
+
+        reader = ReaderModule(
+            delegate: self,
+            books: books,
+            bookmarks: bookmarks,
+            highlights: highlights,
+            readium: readium
+        )
+
         opds = OPDSModule(delegate: self)
 
         // Set Readium 2's logging minimum level.
-        ReadiumEnableLog(withMinimumSeverityLevel: .debug)
+        ReadiumEnableLog(withMinimumSeverityLevel: .trace)
     }
 
     private(set) lazy var aboutViewController: UIViewController = {
@@ -66,11 +78,18 @@ extension AppModule: ModuleDelegate {
         guard let error = error else { return }
         if case LibraryError.cancelled = error { return }
 
-        print("Error: \(error)")
+        var message = ""
+        if let error = (error as? LocalizedError)?.errorDescription {
+            message += error + "\n\n"
+        }
+
+        var desc = ""
+        dump(error, to: &desc)
+        message += desc
 
         presentAlert(
             NSLocalizedString("error_title", comment: "Alert title for errors"),
-            message: error.localizedDescription,
+            message: message,
             from: viewController
         )
     }

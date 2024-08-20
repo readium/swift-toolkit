@@ -4,7 +4,6 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import ReadiumAdapterGCDWebServer
 import ReadiumNavigator
 import ReadiumShared
 import SwiftSoup
@@ -28,7 +27,8 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
         bookmarks: BookmarkRepository,
         highlights: HighlightRepository,
         initialPreferences: EPUBPreferences,
-        preferencesStore: AnyUserPreferencesStore<EPUBPreferences>
+        preferencesStore: AnyUserPreferencesStore<EPUBPreferences>,
+        httpServer: HTTPServer
     ) throws {
         var templates = HTMLDecorationTemplate.defaultTemplates()
         templates[.pageList] = .pageList
@@ -62,7 +62,7 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
                     ).eraseToAnyHTMLFontFamilyDeclaration(),
                 ]
             ),
-            httpServer: GCDHTTPServer.shared
+            httpServer: httpServer
         )
 
         self.preferencesStore = preferencesStore

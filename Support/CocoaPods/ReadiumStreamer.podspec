@@ -24,7 +24,6 @@ Pod::Spec.new do |s|
   s.dependency 'ReadiumInternal'
   s.dependency 'CryptoSwift', '~> 1.8.0'
   s.dependency 'Fuzi', '~> 3.1.0'
-  s.dependency 'ReadiumGCDWebServer', '~> 4.0.0'
   s.dependency 'Minizip', '~> 1.0.0'
 
 end

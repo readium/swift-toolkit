@@ -64,8 +64,8 @@ public struct Link {
     @available(*, unavailable, message: "Use url() instead")
     var url: URL? { fatalError() }
 
-    var mediaType: MediaType {
-        type.flatMap { MediaType.of(mediaType: $0) } ?? .binary
+    var mediaType: MediaType? {
+        type.flatMap { MediaType($0) }
     }
 
     /// List of URI template parameter keys, if the `Link` is templated.

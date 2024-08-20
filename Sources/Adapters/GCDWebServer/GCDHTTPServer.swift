@@ -6,6 +6,7 @@
 
 import Foundation
 import ReadiumGCDWebServer
+import ReadiumInternal
 import ReadiumShared
 import UIKit
 
@@ -19,7 +20,8 @@ public enum GCDHTTPServerError: Error {
 /// Implementation of `HTTPServer` using ReadiumGCDWebServer under the hood.
 public class GCDHTTPServer: HTTPServer, Loggable {
     /// Shared instance of the HTTP server.
-    public static let shared = GCDHTTPServer()
+    @available(*, unavailable, message: "Create your own shared instance")
+    public static var shared: GCDHTTPServer { fatalError() }
 
     /// The actual underlying HTTP server instance.
     private let server = ReadiumGCDWebServer()
@@ -29,6 +31,8 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
     /// Mapping between endpoints and resource transformers.
     private var transformers: [HTTPURL: [ResourceTransformer]] = [:]
+
+    private let assetRetriever: AssetRetriever
 
     private enum State {
         case stopped
@@ -47,7 +51,12 @@ public class GCDHTTPServer: HTTPServer, Loggable {
     /// Creates a new instance of the HTTP server.
     ///
     /// - Parameter logLevel: See `ReadiumGCDWebServer.setLogLevel`.
-    public init(logLevel: Int = 3) {
+    public init(
+        assetRetriever: AssetRetriever,
+        logLevel: Int = 3
+    ) {
+        self.assetRetriever = assetRetriever
+
         ReadiumGCDWebServer.setLogLevel(Int32(logLevel))
 
         NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
@@ -85,31 +94,40 @@ public class GCDHTTPServer: HTTPServer, Loggable {
     }
 
     private func handle(request: ReadiumGCDWebServerRequest, completion: @escaping ReadiumGCDWebServerCompletionBlock) {
-        responseResource(for: request) { httpServerRequest, resource, failureHandler in
-            let response: ReadiumGCDWebServerResponse
-            switch resource.length {
-            case let .success(length):
-                response = ResourceResponse(
-                    resource: resource,
-                    length: length,
-                    range: request.hasByteRange() ? request.byteRange : nil
-                )
-            case let .failure(error):
-                self.log(.error, error)
-                failureHandler?(httpServerRequest, error)
-                response = ReadiumGCDWebServerErrorResponse(
-                    statusCode: error.httpStatusCode,
-                    error: error
-                )
-            }
+        responseResource(for: request) { httpServerRequest, httpServerResponse, failureHandler in
+            Task {
+                let response: ReadiumGCDWebServerResponse
+                let resource = httpServerResponse.resource
 
-            completion(response) // goes back to ReadiumGCDWebServerConnection.m
+                func fail(_ error: ReadError) -> ReadiumGCDWebServerResponse {
+                    self.log(.error, error)
+                    failureHandler?(httpServerRequest, error)
+                    return ReadiumGCDWebServerErrorResponse(
+                        statusCode: 500,
+                        error: error
+                    )
+                }
+
+                switch await resource.length() {
+                case let .success(length):
+                    response = await ResourceResponse(
+                        resource: httpServerResponse.resource,
+                        length: length,
+                        range: request.hasByteRange() ? request.byteRange : nil,
+                        mediaType: httpServerResponse.mediaType(using: self.assetRetriever)
+                    )
+                case let .failure(error):
+                    response = fail(error)
+                }
+
+                completion(response) // goes back to ReadiumGCDWebServerConnection.m
+            }
         }
     }
 
     private func responseResource(
         for request: ReadiumGCDWebServerRequest,
-        completion: @escaping (HTTPServerRequest, Resource, HTTPRequestHandler.OnFailure?) -> Void
+        completion: @escaping (HTTPServerRequest, HTTPServerResponse, HTTPRequestHandler.OnFailure?) -> Void
     ) {
         let completion = { request, resource, failureHandler in
             // Escape the queue to avoid deadlocks if something is using the
@@ -124,13 +142,14 @@ public class GCDHTTPServer: HTTPServer, Loggable {
                 fatalError("Expected an HTTP URL")
             }
 
-            func transform(resource: Resource, at endpoint: HTTPURL) -> Resource {
+            func transform(resource: Resource, request: HTTPServerRequest, at endpoint: HTTPURL) -> Resource {
                 guard let transformers = transformers[endpoint], !transformers.isEmpty else {
                     return resource
                 }
+                let href = request.href?.anyURL ?? request.url.anyURL
                 var resource = resource
                 for transformer in transformers {
-                    resource = transformer(resource)
+                    resource = transformer(href, resource)
                 }
                 return resource
             }
@@ -138,38 +157,25 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             let pathWithoutAnchor = url.removingQuery().removingFragment()
 
             for (endpoint, handler) in handlers {
+                let request: HTTPServerRequest
                 if endpoint.isEquivalentTo(pathWithoutAnchor) {
-                    let request = HTTPServerRequest(url: url, href: nil)
-                    let resource = handler.onRequest(request)
-                    completion(
-                        request,
-                        transform(resource: resource, at: endpoint),
-                        handler.onFailure
-                    )
-                    return
-
+                    request = HTTPServerRequest(url: url, href: nil)
                 } else if let href = endpoint.relativize(url) {
-                    let request = HTTPServerRequest(
-                        url: url,
-                        href: href
-                    )
-                    let resource = handler.onRequest(request)
-                    completion(
-                        request,
-                        transform(resource: resource, at: endpoint),
-                        handler.onFailure
-                    )
-                    return
+                    request = HTTPServerRequest(url: url, href: href)
+                } else {
+                    continue
                 }
+
+                var response = handler.onRequest(request)
+                response.resource = transform(resource: response.resource, request: request, at: endpoint)
+                completion(request, response, handler.onFailure)
+                return
             }
 
             log(.warning, "Resource not found for request \(request)")
             completion(
                 HTTPServerRequest(url: url, href: nil),
-                FailureResource(
-                    link: Link(href: request.url.absoluteString),
-                    error: .notFound(nil)
-                ),
+                HTTPServerResponse(error: .notFound),
                 nil
             )
         }
@@ -318,5 +324,46 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
         // It might not actually be free, but we'll try to restart the server.
         return true
+    }
+}
+
+private extension Resource {
+    func length() async -> ReadResult<UInt64> {
+        await estimatedLength()
+            .flatMap { length in
+                if let length = length {
+                    return .success(length)
+                } else {
+                    return await read().map { UInt64($0.count) }
+                }
+            }
+    }
+}
+
+private extension HTTPServerResponse {
+    func mediaType(using assetRetriever: AssetRetriever) async -> MediaType {
+        if let mediaType = mediaType {
+            return mediaType
+        }
+
+        if let properties = try? await resource.properties().get() {
+            if let mediaType = properties.mediaType {
+                return mediaType
+            }
+            if
+                let filename = properties.filename,
+                let uti = UTI.findFrom(mediaTypes: [], fileExtensions: [URL(fileURLWithPath: filename).pathExtension]),
+                let type = uti.preferredTag(withClass: .mediaType),
+                let mediaType = MediaType(type)
+            {
+                return mediaType
+            }
+        }
+
+        if let mediaType = try? await assetRetriever.sniffFormat(of: resource).get().mediaType {
+            return mediaType
+        }
+
+        return .binary
     }
 }

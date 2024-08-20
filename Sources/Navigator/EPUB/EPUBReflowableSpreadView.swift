@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 import ReadiumShared
 import UIKit
 import WebKit
@@ -22,20 +23,14 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         scripts: [WKUserScript],
         animatedLoad: Bool
     ) {
-        var scripts = scripts
-
-        if viewModel.useLegacySettings {
-            let layout = ReadiumCSSLayout(languages: viewModel.publication.metadata.languages, readingProgression: viewModel.readingProgression)
-            scripts.append(WKUserScript(
-                source: "window.readiumCSSBaseURL = '\(viewModel.assetsURL.resolve(layout.readiumCSSBasePath)!)'",
-                injectionTime: .atDocumentStart,
-                forMainFrameOnly: false
-            ))
-        }
-
-        scripts.append(WKUserScript(source: Self.reflowableScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
-
-        super.init(viewModel: viewModel, spread: spread, scripts: scripts, animatedLoad: animatedLoad)
+        super.init(
+            viewModel: viewModel,
+            spread: spread,
+            scripts: [
+                WKUserScript(source: Self.reflowableScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
+            ],
+            animatedLoad: animatedLoad
+        )
     }
 
     override func setupWebView() {
@@ -84,37 +79,10 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     override func applySettings() {
         super.applySettings()
 
-        applyLegacyUserSettingsStyle()
-
         // Disables paginated mode if scroll is on.
         scrollView.isPagingEnabled = !viewModel.scroll
 
         updateContentInset()
-    }
-
-    private func applyLegacyUserSettingsStyle() {
-        guard viewModel.useLegacySettings else {
-            return
-        }
-
-        let properties = viewModel.config.userSettings.userProperties.properties
-        let propertiesScript = properties.reduce("") { script, property in
-            let value: String = {
-                // Scroll mode depends both on the user settings, and on the fact that VoiceOver is activated or not, so we need to generate the value dynamically.
-                // FIXME: This would be handled in a better way by decoupling the user settings from the actual ReadiumCSS properties sent to the WebView, which should be private details of the EPUBNavigator implementation and not shared with the host app.
-                if let switchable = property as? Switchable, property.name == ReadiumCSSName.scroll.rawValue {
-                    return switchable.values[viewModel.scroll]!
-                } else {
-                    return property.toString()
-                }
-            }()
-            return script + "readium.setProperty(\"\(property.name)\", \"\(value)\");\n"
-        }
-        evaluateScript(propertiesScript) { res in
-            if case let .failure(error) = res {
-                self.log(.error, error)
-            }
-        }
     }
 
     private func updateContentInset() {
@@ -180,30 +148,32 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
 
     override func spreadDidLoad() {
-        if let linkJSON = serializeJSONString(spread.leading.json) {
-            evaluateScript("readium.link = \(linkJSON);")
-        }
-
-        // FIXME: Better solution for delaying scrolling to pending location
-        // This delay is used to wait for the web view pagination to settle and give the CSS and webview time to layout
-        // correctly before attempting to scroll to the target progression, otherwise we might end up at the wrong spot.
-        // 0.2 seconds seems like a good value for it to work on an iPhone 5s.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            let location = self.pendingLocation
-            self.go(to: location) {
-                // The rendering is sometimes very slow. So in case we don't show the first page of the resource, we add
-                // a generous delay before showing the spread again.
-                let delayed = !location.isStart
-                DispatchQueue.main.asyncAfter(deadline: .now() + (delayed ? 0.3 : 0)) {
-                    self.showSpread()
-                }
+        Task {
+            if let linkJSON = serializeJSONString(spread.leading.json) {
+                await evaluateScript("readium.link = \(linkJSON);")
             }
+
+            // TODO: Better solution for delaying scrolling to pending location
+            // This delay is used to wait for the web view pagination to settle and give the CSS and webview time to layout
+            // correctly before attempting to scroll to the target progression, otherwise we might end up at the wrong spot.
+            // 0.2 seconds seems like a good value for it to work on an iPhone 5s.
+            try? await Task.sleep(seconds: 0.2)
+
+            let location = pendingLocation
+            await go(to: pendingLocation)
+
+            // The rendering is sometimes very slow. So in case we don't show the first page of the resource, we add
+            // a generous delay before showing the spread again.
+            let delayed = !location.isStart
+            try? await Task.sleep(seconds: delayed ? 0.3 : 0)
+
+            self.showSpread()
         }
     }
 
-    override func go(to direction: EPUBSpreadView.Direction, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+    override func go(to direction: EPUBSpreadView.Direction, options: NavigatorGoOptions) async -> Bool {
         guard !viewModel.scroll else {
-            return super.go(to: direction, animated: animated, completion: completion)
+            return await super.go(to: direction, options: options)
         }
 
         let factor: CGFloat = {
@@ -224,14 +194,13 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return false
         }
 
-        scrollView.setContentOffset(newOffset, animated: animated)
+        scrollView.setContentOffset(newOffset, animated: options.animated)
 
-        // This delay is only used when turning pages in a single resource if the page turn is animated. The delay is roughly the length of the animation.
-        // FIXME: completion should be implemented using scroll view delegates
-        DispatchQueue.main.asyncAfter(
-            deadline: .now() + (animated ? 0.3 : 0),
-            execute: completion
-        )
+        // This delay is only used when turning pages in a single resource if
+        // the page turn is animated. The delay is roughly the length of the
+        // animation.
+        // TODO: completion should be implemented using scroll view delegates
+        try? await Task.sleep(seconds: 0.3)
 
         return true
     }
@@ -239,51 +208,70 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     // Location to scroll to in the resource once the page is loaded.
     private var pendingLocation: PageLocation = .start
 
-    private let goToCompletions = CompletionList()
-
-    override func go(to location: PageLocation, completion: (() -> Void)?) {
-        let completion = goToCompletions.add(completion)
-
+    @MainActor
+    override func go(to location: PageLocation) async {
         guard spreadLoaded else {
             // Delays moving to the location until the document is loaded.
             pendingLocation = location
+
+            await waitGoToCompletion()
             return
         }
 
         switch location {
         case let .locator(locator):
-            go(to: locator) { _ in completion() }
+            await go(to: locator)
         case .start:
-            scroll(toProgression: 0) { _ in completion() }
+            await scroll(toProgression: 0)
         case .end:
-            scroll(toProgression: 1) { _ in completion() }
+            await scroll(toProgression: 1)
+        }
+
+        await didCompleteGoTo()
+    }
+
+    @MainActor
+    private func waitGoToCompletion() async {
+        await withCheckedContinuation { continuation in
+            goToContinuations.append(continuation)
         }
     }
 
-    private func go(to locator: Locator, completion: @escaping (Bool) -> Void) {
+    @MainActor
+    private func didCompleteGoTo() async {
+        for cont in goToContinuations {
+            cont.resume()
+        }
+        goToContinuations.removeAll()
+    }
+
+    @MainActor
+    private var goToContinuations: [CheckedContinuation<Void, Never>] = []
+
+    @discardableResult
+    private func go(to locator: Locator) async -> Bool {
         guard ["", "#"].contains(locator.href.string) || spread.contains(href: locator.href) else {
             log(.warning, "The locator's href is not in the spread")
-            completion(false)
-            return
+            return false
         }
 
         if locator.text.highlight != nil {
-            scroll(toLocator: locator, completion: completion)
-            // FIXME: find the first fragment matching a tag ID (need a regex)
+            return await scroll(toLocator: locator)
+            // TODO: find the first fragment matching a tag ID (need a regex)
         } else if let id = locator.locations.fragments.first, !id.isEmpty {
-            scroll(toTagID: id, completion: completion)
+            return await scroll(toTagID: id)
         } else {
             let progression = locator.locations.progression ?? 0
-            scroll(toProgression: progression, completion: completion)
+            return await scroll(toProgression: progression)
         }
     }
 
     /// Scrolls at given progression (from 0.0 to 1.0)
-    private func scroll(toProgression progression: Double, completion: @escaping (Bool) -> Void) {
+    @discardableResult
+    private func scroll(toProgression progression: Double) async -> Bool {
         guard progression >= 0, progression <= 1 else {
             log(.warning, "Scrolling to invalid progression \(progression)")
-            completion(false)
-            return
+            return false
         }
 
         // Note: The JS layer does not take into account the scroll view's content inset. So it can't be used to reliably scroll to the top or the bottom of the page in scroll mode.
@@ -293,40 +281,40 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
                 ? -scrollView.contentInset.top
                 : (scrollView.contentSize.height - scrollView.bounds.height + scrollView.contentInset.bottom)
             scrollView.contentOffset = contentOffset
-            completion(true)
+            return true
         } else {
             let dir = viewModel.readingProgression.rawValue
-            evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')") { _ in completion(true) }
+            await evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')")
+            return true
         }
     }
 
     /// Scrolls at the tag with ID `tagID`.
-    private func scroll(toTagID tagID: String, completion: @escaping (Bool) -> Void) {
-        evaluateScript("readium.scrollToId(\'\(tagID)\');") { result in
-            switch result {
-            case let .success(value):
-                completion((value as? Bool) ?? false)
-            case let .failure(error):
-                self.log(.error, error)
-                completion(false)
-            }
+    @discardableResult
+    private func scroll(toTagID tagID: String) async -> Bool {
+        let result = await evaluateScript("readium.scrollToId(\'\(tagID)\');")
+        switch result {
+        case let .success(value):
+            return (value as? Bool) ?? false
+        case let .failure(error):
+            log(.error, error)
+            return false
         }
     }
 
     /// Scrolls at the snippet matching the given text context.
-    private func scroll(toLocator locator: Locator, completion: @escaping (Bool) -> Void) {
+    @discardableResult
+    private func scroll(toLocator locator: Locator) async -> Bool {
         guard let json = locator.jsonString else {
-            completion(false)
-            return
+            return false
         }
-        evaluateScript("readium.scrollToLocator(\(json));") { result in
-            switch result {
-            case let .success(value):
-                completion((value as? Bool) ?? false)
-            case let .failure(error):
-                self.log(.error, error)
-                completion(false)
-            }
+        let result = await evaluateScript("readium.scrollToLocator(\(json));")
+        switch result {
+        case let .success(value):
+            return (value as? Bool) ?? false
+        case let .failure(error):
+            log(.error, error)
+            return false
         }
     }
 
@@ -387,54 +375,5 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         // ie. https://stackoverflow.com/a/1857162/1474476
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(notifyPagesDidChange), object: nil)
         perform(#selector(notifyPagesDidChange), with: nil, afterDelay: 0.3)
-    }
-}
-
-/// Determines the Readium CSS stylesheets to use depending on the publication languages and
-/// reading progression.
-// FIXME: To move in a dedicated native Readium CSS module
-private enum ReadiumCSSLayout: String {
-    case ltr
-    case rtl
-    case cjkVertical
-    case cjkHorizontal
-
-    init(languages: [String], readingProgression: ReadingProgression) {
-        let isCJK: Bool = {
-            guard
-                languages.count == 1,
-                let language = languages.first?.split(separator: "-").first.map(String.init)?.lowercased()
-            else {
-                return false
-            }
-            return ["zh", "ja", "ko"].contains(language)
-        }()
-
-        switch readingProgression {
-        case .rtl:
-            self = isCJK ? .cjkVertical : .rtl
-        case .ltr:
-            self = isCJK ? .cjkHorizontal : .ltr
-        }
-    }
-
-    var readiumCSSBasePath: RelativeURL {
-        let folder: String = {
-            switch self {
-            case .ltr:
-                return ""
-            case .rtl:
-                return "rtl/"
-            case .cjkVertical:
-                return "cjk-vertical/"
-            case .cjkHorizontal:
-                return "cjk-horizontal/"
-            }
-        }()
-        return RelativeURL(string: "readium-css/\(folder)")!
-    }
-
-    func readiumCSSPath(for name: String) -> RelativeURL {
-        readiumCSSBasePath.appendingPath("ReadiumCSS-\(name).css", isDirectory: false)
     }
 }

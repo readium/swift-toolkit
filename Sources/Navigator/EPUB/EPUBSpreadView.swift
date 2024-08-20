@@ -148,14 +148,17 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     /// Evaluates the given JavaScript into the resource's HTML page.
-    func evaluateScript(_ script: String, inHREF href: AnyURL? = nil, completion: ((Result<Any, Error>) -> Void)? = nil) {
+    @discardableResult
+    func evaluateScript(_ script: String, inHREF href: AnyURL? = nil) async -> Result<Any, Error> {
         log(.debug, "Evaluate script: \(script)")
-        webView.evaluateJavaScript(script) { res, error in
-            if let error = error {
-                self.log(.error, error)
-                completion?(.failure(error))
-            } else {
-                completion?(.success(res ?? ()))
+        return await withCheckedContinuation { continuation in
+            webView.evaluateJavaScript(script) { res, error in
+                if let error = error {
+                    self.log(.error, error)
+                    continuation.resume(returning: .failure(error))
+                } else {
+                    continuation.resume(returning: .success(res ?? ()))
+                }
             }
         }
     }
@@ -222,7 +225,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     private func spreadLoadDidStart(_ body: Any) {
         trace()
-        activityIndicatorStopWorkItem?.cancel()
     }
 
     /// Called by the javascript code when the spread contents is fully loaded.
@@ -242,6 +244,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     func showSpread() {
         trace()
         activityIndicatorView?.stopAnimating()
+        activityIndicatorStopWorkItem?.cancel()
         UIView.animate(withDuration: animatedLoad ? 0.3 : 0, animations: {
             self.scrollView.alpha = 1
         })
@@ -287,8 +290,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         0
     }
 
-    func go(to location: PageLocation, completion: (() -> Void)?) {
-        fatalError("go(to:completion:) must be implemented in subclasses")
+    func go(to location: PageLocation) async {
+        fatalError("go(to:) must be implemented in subclasses")
     }
 
     enum Direction: CustomStringConvertible {
@@ -303,24 +306,21 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
-    func go(to direction: Direction, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+    func go(to direction: Direction, options: NavigatorGoOptions) async -> Bool {
         // The default implementation of a spread view considers that its content is entirely visible on screen.
         false
     }
 
-    func findFirstVisibleElementLocator(completion: @escaping (Locator?) -> Void) {
-        evaluateScript("readium.findFirstVisibleLocator()") { result in
-            DispatchQueue.main.async {
-                do {
-                    let resource = self.spread.leading
-                    let locator = try Locator(json: result.get())?
-                        .copy(href: resource.url(), mediaType: resource.mediaType ?? .xhtml)
-                    completion(locator)
-                } catch {
-                    self.log(.error, error)
-                    completion(nil)
-                }
-            }
+    func findFirstVisibleElementLocator() async -> Locator? {
+        let result = await evaluateScript("readium.findFirstVisibleLocator()")
+        do {
+            let resource = spread.leading
+            let locator = try Locator(json: result.get())?
+                .copy(href: resource.url(), mediaType: resource.mediaType ?? .xhtml)
+            return locator
+        } catch {
+            log(.error, error)
+            return nil
         }
     }
 
@@ -548,22 +548,28 @@ private extension EPUBSpreadView {
                 self?.activityIndicatorStopWorkItem = nil
             }
 
-            if self?.activityIndicatorStopWorkItem?.isCancelled ?? true {
+            guard
+                let self = self,
+                let workItem = activityIndicatorStopWorkItem,
+                !workItem.isCancelled
+            else {
                 return
             }
 
-            self?.trace("stopping activity indicator because spread did not load")
-            self?.activityIndicatorView?.stopAnimating()
+            trace("stopping activity indicator because spread \(spread.leading.href) did not load")
+            activityIndicatorView?.stopAnimating()
         }
 
-        // If the spread doesn't begin loading within 1 sec it means that we
+        // If the spread doesn't begin loading within 2 seconds it means that we
         // likely encountered an error. In that case the work item we
         // schedule below will stop the activity indicator.
         // If the spread begins to load it will send a `spreadLoadStart` JS
         // event which will cancel the work item being scheduled here.
         trace("scheduling activity indicator stop")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1,
-                                      execute: activityIndicatorStopWorkItem!)
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + 2,
+            execute: activityIndicatorStopWorkItem!
+        )
     }
 }
 

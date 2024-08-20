@@ -85,6 +85,16 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
         subcollections = PublicationCollection.makeCollections(json: json.json, warnings: warnings)
     }
 
+    /// The URL where this publication is served, computed from the `Link` with
+    /// `self` relation.
+    ///
+    /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
+    public var baseURL: HTTPURL? {
+        links.firstWithRel(.`self`)
+            .takeIf { !$0.templated }
+            .flatMap { HTTPURL(string: $0.href)?.removingLastPathSegment() }
+    }
+
     public var json: JSONDictionary.Wrapped {
         makeJSON([
             "@context": encodeIfNotEmpty(context),
@@ -153,6 +163,11 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
     /// Finds all the links with the given relation in the manifest's links.
     public func linksWithRel(_ rel: LinkRelation) -> [Link] {
         (readingOrder + resources + links).filterByRel(rel)
+    }
+
+    /// Finds all the links matching the given predicate in the manifest's links.
+    public func linksMatching(_ predicate: (Link) -> Bool) -> [Link] {
+        (readingOrder + resources + links).filter(predicate)
     }
 
     @available(*, unavailable, renamed: "linkWithHREF")

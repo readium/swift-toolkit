@@ -39,7 +39,7 @@ let package = Package(
             path: "Sources/Shared",
             exclude: [
                 // Support for ZIPFoundation is not yet achieved.
-                "Toolkit/Archive/ZIPFoundation.swift",
+                "Toolkit/ZIP/ZIPFoundation.swift",
             ],
             resources: [
                 .process("Resources"),
@@ -63,7 +63,6 @@ let package = Package(
             dependencies: [
                 "CryptoSwift",
                 "Fuzi",
-                .product(name: "ReadiumGCDWebServer", package: "GCDWebServer"),
                 "Zip",
                 "ReadiumShared",
             ],
@@ -134,7 +133,7 @@ let package = Package(
             ]
         ),
         // These tests require a R2LCPClient.framework to run.
-        // FIXME: Find a solution to run the tests with GitHub action.
+        // TODO: Find a solution to run the tests with GitHub action.
         // .testTarget(
         //     name: "ReadiumLCPTests",
         //     dependencies: ["ReadiumLCP"],

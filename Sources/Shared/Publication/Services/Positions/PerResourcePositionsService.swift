@@ -19,9 +19,13 @@ public final class PerResourcePositionsService: PositionsService {
         self.fallbackMediaType = fallbackMediaType
     }
 
+    public func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
+        .success(positions)
+    }
+
     private lazy var pageCount: Int = readingOrder.count
 
-    public lazy var positionsByReadingOrder: [[Locator]] = readingOrder.enumerated().map { index, link in
+    private lazy var positions: [[Locator]] = readingOrder.enumerated().map { index, link in
         [
             Locator(
                 href: link.url(),

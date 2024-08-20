@@ -185,8 +185,10 @@ struct EPUBSpread: Loggable {
                 return false
             }
 
-            // Here we use the default publication reading progression instead of the custom one provided, otherwise the page position hints might be wrong, and we could end up with only one-page spreads.
-            switch publication.metadata.effectiveReadingProgression {
+            // Here we use the default publication reading progression instead
+            // of the custom one provided, otherwise the page position hints
+            // might be wrong, and we could end up with only one-page spreads.
+            switch publication.metadata.readingProgression {
             case .ltr, .ttb, .auto:
                 let firstPosition = first.properties.page ?? .left
                 let secondPosition = second.properties.page ?? .right

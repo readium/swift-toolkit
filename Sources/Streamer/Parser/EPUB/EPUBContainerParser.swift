@@ -17,14 +17,12 @@ final class EPUBContainerParser: Loggable {
         document.definePrefix("cn", forNamespace: "urn:oasis:names:tc:opendocument:xmlns:container")
     }
 
-    convenience init(fetcher: Fetcher) throws {
+    convenience init(container: Container) async throws {
         let href = "META-INF/container.xml"
-        do {
-            let data = try fetcher.readData(at: AnyURL(string: href)!)
-            try self.init(data: data)
-        } catch {
+        guard let data = try? await container.readData(at: AnyURL(string: href)!) else {
             throw EPUBParserError.missingFile(path: href)
         }
+        try self.init(data: data)
     }
 
     /// Parses the container.xml file and retrieves the relative path to the OPF file (rootFilePath)

@@ -69,6 +69,10 @@
 "library_error_openFailed" = "Error while opening this publication: %@";
 /* Error message when the download of a publication failed */
 "library_error_downloadFailed" = "Download failed: %@";
+/* Error message when the deletion of a publication failed */
+"library_error_bookDeletionFailed" = "Failed to delete the publication";
+/* Error message when the publication is still restricted. */
+"library_error_publicationIsRestricted" = "You are not allowed to open this publication";
 
 /* Accessibility label for the library collection view */
 "library_a11y_label" = "Library";

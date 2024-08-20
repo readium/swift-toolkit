@@ -27,42 +27,53 @@ public final class PDFParser: PublicationParser, Loggable {
 
     private let pdfFactory: PDFDocumentFactory
 
-    public init(pdfFactory: PDFDocumentFactory = DefaultPDFDocumentFactory()) {
+    public init(pdfFactory: PDFDocumentFactory) {
         self.pdfFactory = pdfFactory
     }
 
-    public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
-        guard asset.mediaType() == .pdf else {
-            return nil
+    public func parse(
+        asset: Asset,
+        warnings: WarningLogger?
+    ) async -> Result<Publication.Builder, PublicationParseError> {
+        guard
+            asset.format.conformsTo(.pdf),
+            case let .resource(asset) = asset
+        else {
+            return .failure(.formatNotSupported)
         }
 
-        let readingOrder = fetcher.links.filterByMediaType(.pdf)
-        guard let firstLink = readingOrder.first else {
-            throw PDFDocumentError.openFailed
-        }
+        do {
+            let container = SingleResourceContainer(publication: asset)
+            let resource = asset.resource
+            let document = try await pdfFactory.open(resource: resource, at: container.entry, password: nil)
+            let authors = try await Array(ofNotNil: document.author().map { Contributor(name: $0) })
 
-        let resource = fetcher.get(firstLink)
-        let document = try pdfFactory.open(resource: resource, password: nil)
-        let authors = Array(ofNotNil: document.author.map { Contributor(name: $0) })
-
-        return Publication.Builder(
-            mediaType: .pdf,
-            manifest: Manifest(
-                metadata: Metadata(
-                    identifier: document.identifier,
-                    title: document.title,
-                    authors: authors,
-                    readingProgression: document.readingProgression ?? .auto,
-                    numberOfPages: document.pageCount
+            return try await .success(Publication.Builder(
+                manifest: Manifest(
+                    metadata: Metadata(
+                        identifier: document.identifier(),
+                        conformsTo: [.pdf],
+                        title: document.title(),
+                        authors: authors,
+                        readingProgression: document.readingProgression() ?? .auto,
+                        numberOfPages: document.pageCount()
+                    ),
+                    readingOrder: [
+                        Link(
+                            href: container.entry.string,
+                            mediaType: .pdf
+                        ),
+                    ],
+                    tableOfContents: document.tableOfContents().linksWithDocumentHREF(container.entry)
                 ),
-                readingOrder: readingOrder,
-                tableOfContents: document.tableOfContents.links(withDocumentHREF: firstLink.href)
-            ),
-            fetcher: fetcher,
-            servicesBuilder: PublicationServicesBuilder(
-                cover: document.cover.map(GeneratedCoverService.makeFactory(cover:)),
-                positions: PDFPositionsService.makeFactory()
-            )
-        )
+                container: container,
+                servicesBuilder: PublicationServicesBuilder(
+                    cover: document.cover().map(GeneratedCoverService.makeFactory(cover:)),
+                    positions: PDFPositionsService.makeFactory()
+                )
+            ))
+        } catch {
+            return .failure(.reading(.decoding(error)))
+        }
     }
 }
