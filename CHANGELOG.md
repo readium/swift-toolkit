@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * Optimized scrolling to an EPUB text-based locator if it contains a CSS selector.
+* The first resource of a fixed-layout EPUB is now displayed on its own when spreads are enabled and the author has not set a `page-spread-*` property. This is the default behavior in major reading apps like Apple Books.
 
 
 ## [3.0.0-alpha.1]
