@@ -13,7 +13,7 @@ public final class DefaultPublicationParser: CompositePublicationParser {
     public init(
         httpClient: HTTPClient,
         assetRetriever: AssetRetriever,
-        pdfFactory: PDFDocumentFactory = DefaultPDFDocumentFactory(),
+        pdfFactory: PDFDocumentFactory,
         additionalParsers: [PublicationParser] = []
     ) {
         super.init(additionalParsers + Array(ofNotNil:
