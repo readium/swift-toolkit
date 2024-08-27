@@ -336,6 +336,15 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             previousProgression = progression
         }
         progression = newProgression
+
+        setNeedsNotifyPagesDidChange()
+    }
+
+    private func setNeedsNotifyPagesDidChange() {
+        // Makes sure we always receive the "ending scroll" event.
+        // ie. https://stackoverflow.com/a/1857162/1474476
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(notifyPagesDidChange), object: nil)
+        perform(#selector(notifyPagesDidChange), with: nil, afterDelay: 0.3)
     }
 
     @objc private func notifyPagesDidChange() {
@@ -370,10 +379,6 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         super.scrollViewDidScroll(scrollView)
-
-        // Makes sure we always receive the "ending scroll" event.
-        // ie. https://stackoverflow.com/a/1857162/1474476
-        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(notifyPagesDidChange), object: nil)
-        perform(#selector(notifyPagesDidChange), with: nil, afterDelay: 0.3)
+        setNeedsNotifyPagesDidChange()
     }
 }
