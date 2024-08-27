@@ -4,7 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
+import ReadiumInternal
+import ReadiumShared
 import UIKit
 
 public protocol CBZNavigatorDelegate: VisualNavigatorDelegate {}
@@ -21,12 +22,13 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
     public let publication: Publication
     private let initialIndex: Int
+    private var positions: [Locator]?
 
     private let pageViewController: UIPageViewController
 
     private let server: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
-    private var publicationBaseURL: URL!
+    private var publicationBaseURL: HTTPURL!
 
     public convenience init(
         publication: Publication,
@@ -59,7 +61,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
             publicationBaseURL = try httpServer.serve(
                 at: uuidEndpoint,
                 publication: publication,
-                failureHandler: { [weak self] request, error in
+                onFailure: { [weak self] request, error in
                     DispatchQueue.main.async { [weak self] in
                         guard let self = self, let href = request.href else {
                             return
@@ -69,26 +71,14 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
                 }
             )
         }
-
-        publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
     }
 
-    @available(*, deprecated, message: "See the 2.5.0 migration guide to migrate the HTTP server")
+    @available(*, unavailable, message: "See the 2.5.0 migration guide to migrate the HTTP server")
     public convenience init(publication: Publication, initialLocation: Locator? = nil) {
-        precondition(!publication.isRestricted, "The provided publication is restricted. Check that any DRM was properly unlocked using a Content Protection.")
-        guard publication.baseURL != nil else {
-            preconditionFailure("No base URL provided for the publication. Add it to the HTTP server.")
-        }
-
-        self.init(
-            publication: publication,
-            initialLocation: initialLocation,
-            httpServer: nil,
-            publicationEndpoint: nil
-        )
-
-        publicationBaseURL = URL(string: publicationBaseURL.absoluteString.addingSuffix("/"))!
+        fatalError()
     }
+
+    private let tasks = CancellableTasks()
 
     private init(
         publication: Publication,
@@ -101,7 +91,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         self.publicationEndpoint = publicationEndpoint
 
         initialIndex = {
-            guard let initialLocation = initialLocation, let initialIndex = publication.readingOrder.firstIndex(withHREF: initialLocation.href) else {
+            guard let initialLocation = initialLocation, let initialIndex = publication.readingOrder.firstIndexWithHREF(initialLocation.href) else {
                 return 0
             }
             return initialIndex
@@ -115,6 +105,10 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         super.init(nibName: nil, bundle: nil)
     }
 
+    private func didLoadPositions(_ positions: [Locator]?) {
+        self.positions = positions ?? []
+    }
+
     @available(*, unavailable)
     public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -122,7 +116,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
     deinit {
         if let endpoint = publicationEndpoint {
-            server?.remove(at: endpoint)
+            try? server?.remove(at: endpoint)
         }
     }
 
@@ -140,27 +134,28 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap)))
 
-        goToResourceAtIndex(initialIndex, animated: false, isJump: false)
+        tasks.add {
+            try? await didLoadPositions(publication.positions().get())
+            await goToResourceAtIndex(initialIndex, options: NavigatorGoOptions(animated: false), isJump: false)
+        }
     }
 
     private var currentResourceIndex: Int {
-        guard let imageViewController = pageViewController.viewControllers?.first as? ImageViewController,
-              publication.positions.indices.contains(imageViewController.index)
+        guard
+            let positions = positions,
+            let imageViewController = pageViewController.viewControllers?.first as? ImageViewController,
+            positions.indices.contains(imageViewController.index)
         else {
             return initialIndex
         }
         return imageViewController.index
     }
 
-    public var currentPosition: Locator? {
-        guard publication.positions.indices.contains(currentResourceIndex) else {
-            return nil
-        }
-        return publication.positions[currentResourceIndex]
-    }
+    @available(*, unavailable, renamed: "currentLocation")
+    public var currentPosition: Locator? { fatalError() }
 
     @discardableResult
-    private func goToResourceAtIndex(_ index: Int, animated: Bool, isJump: Bool, completion: @escaping () -> Void = {}) -> Bool {
+    private func goToResourceAtIndex(_ index: Int, options: NavigatorGoOptions, isJump: Bool) async -> Bool {
         guard let imageViewController = imageViewController(at: index) else {
             return false
         }
@@ -175,16 +170,20 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
             }()
             return forward ? .forward : .reverse
         }()
-        pageViewController.setViewControllers([imageViewController], direction: direction, animated: animated) { [weak self] _ in
-            guard let self = self, let position = self.currentPosition else {
-                return
+
+        await withCheckedContinuation { continuation in
+            pageViewController.setViewControllers([imageViewController], direction: direction, animated: options.animated) { [weak self] _ in
+                guard let self = self, let position = self.currentLocation else {
+                    return
+                }
+                self.delegate?.navigator(self, locationDidChange: position)
+                if isJump {
+                    self.delegate?.navigator(self, didJumpTo: position)
+                }
+                continuation.resume()
             }
-            self.delegate?.navigator(self, locationDidChange: position)
-            if isJump {
-                self.delegate?.navigator(self, didJumpTo: position)
-            }
-            completion()
         }
+
         return true
     }
 
@@ -194,53 +193,59 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     }
 
     private func imageViewController(at index: Int) -> ImageViewController? {
-        guard publication.readingOrder.indices.contains(index),
-              let url = publication.readingOrder[index].url(relativeTo: publicationBaseURL)
-        else {
+        guard publication.readingOrder.indices.contains(index) else {
             return nil
         }
-
-        return ImageViewController(index: index, url: url)
+        let url = publication.readingOrder[index].url(relativeTo: publicationBaseURL)
+        return ImageViewController(index: index, url: url.url)
     }
 
     // MARK: - Navigator
 
     public var presentation: VisualNavigatorPresentation {
         VisualNavigatorPresentation(
-            readingProgression: ReadingProgression(publication.metadata.effectiveReadingProgression) ?? .ltr,
+            readingProgression: ReadingProgression(publication.metadata.readingProgression) ?? .ltr,
             scroll: false,
             axis: .horizontal
         )
     }
 
-    public var readingProgression: R2Shared.ReadingProgression {
-        R2Shared.ReadingProgression(presentation.readingProgression)
+    public var readingProgression: ReadiumShared.ReadingProgression {
+        ReadiumShared.ReadingProgression(presentation.readingProgression)
     }
 
     public var currentLocation: Locator? {
-        currentPosition
+        guard
+            let positions = positions,
+            positions.indices.contains(currentResourceIndex)
+        else {
+            return nil
+        }
+        return positions[currentResourceIndex]
     }
 
-    public func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        guard let index = publication.readingOrder.firstIndex(withHREF: locator.href) else {
+    public func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool {
+        let locator = publication.normalizeLocator(locator)
+
+        guard let index = publication.readingOrder.firstIndexWithHREF(locator.href) else {
             return false
         }
-        return goToResourceAtIndex(index, animated: animated, isJump: true, completion: completion)
+        return await goToResourceAtIndex(index, options: options, isJump: true)
     }
 
-    public func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool {
-        guard let index = publication.readingOrder.firstIndex(withHREF: link.href) else {
+    public func go(to link: Link, options: NavigatorGoOptions) async -> Bool {
+        guard let index = publication.readingOrder.firstIndexWithHREF(link.url()) else {
             return false
         }
-        return goToResourceAtIndex(index, animated: animated, isJump: true, completion: completion)
+        return await goToResourceAtIndex(index, options: options, isJump: true)
     }
 
-    public func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        goToResourceAtIndex(currentResourceIndex + 1, animated: animated, isJump: false, completion: completion)
+    public func goForward(options: NavigatorGoOptions) async -> Bool {
+        await goToResourceAtIndex(currentResourceIndex + 1, options: options, isJump: false)
     }
 
-    public func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool {
-        goToResourceAtIndex(currentResourceIndex - 1, animated: animated, isJump: false, completion: completion)
+    public func goBackward(options: NavigatorGoOptions) async -> Bool {
+        await goToResourceAtIndex(currentResourceIndex - 1, options: options, isJump: false)
     }
 }
 
@@ -276,7 +281,7 @@ extension CBZNavigatorViewController: UIPageViewControllerDataSource {
 
 extension CBZNavigatorViewController: UIPageViewControllerDelegate {
     public func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
-        if completed, let position = currentPosition {
+        if completed, let position = currentLocation {
             delegate?.navigator(self, locationDidChange: position)
         }
     }

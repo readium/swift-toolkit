@@ -6,7 +6,7 @@
 
 import AVFoundation
 import Foundation
-import R2Shared
+import ReadiumShared
 
 public protocol AVTTSEngineDelegate: AnyObject {
     /// Called when the engine created a new utterance to be played.
@@ -64,40 +64,36 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
             .map { TTSVoice(voice: $0) }
     }
 
+    @MainActor
     public func speak(
         _ utterance: TTSUtterance,
-        onSpeakRange: @escaping (Range<String.Index>) -> Void,
-        completion: @escaping (Result<Void, TTSError>) -> Void
-    ) -> Cancellable {
+        onSpeakRange: @escaping (Range<String.Index>) -> Void
+    ) async -> Result<Void, TTSError> {
         let task = Task(
             utterance: utterance,
-            onSpeakRange: onSpeakRange,
-            completion: completion
+            onSpeakRange: onSpeakRange
         )
-        let cancellable = CancellableObject { [weak self] in
-            self?.on(.stop(task))
+
+        return await withTaskCancellationHandler {
+            await withCheckedContinuation {
+                task.continuation = $0
+                on(.play(task))
+            }
+        } onCancel: {
+            task.cancel()
+            on(.stop(task))
         }
-        task.cancellable = cancellable
-
-        on(.play(task))
-
-        return cancellable
     }
 
     private class Task: Equatable, CustomStringConvertible {
         let utterance: TTSUtterance
-        let onSpeakRange: (Range<String.Index>) -> Void
-        let completion: (Result<Void, TTSError>) -> Void
-        var cancellable: CancellableObject? = nil
+        private let onSpeakRange: (Range<String.Index>) -> Void
+        var continuation: CheckedContinuation<Result<Void, TTSError>, Never>!
+        private(set) var isCancelled: Bool = false
 
-        init(utterance: TTSUtterance, onSpeakRange: @escaping (Range<String.Index>) -> Void, completion: @escaping (Result<Void, TTSError>) -> Void) {
+        init(utterance: TTSUtterance, onSpeakRange: @escaping (Range<String.Index>) -> Void) {
             self.utterance = utterance
             self.onSpeakRange = onSpeakRange
-            self.completion = completion
-        }
-
-        var isCancelled: Bool {
-            cancellable?.isCancelled ?? false
         }
 
         var description: String {
@@ -106,6 +102,21 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
 
         static func == (lhs: Task, rhs: Task) -> Bool {
             ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+        }
+
+        func onSpeakRange(_ range: Range<String.Index>) {
+            guard !isCancelled else {
+                return
+            }
+            onSpeakRange(range)
+        }
+
+        func finish() {
+            continuation.resume(returning: .success(()))
+        }
+
+        func cancel() {
+            isCancelled = true
         }
     }
 
@@ -159,6 +170,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance avUtterance: AVSpeechUtterance) {
         guard
             let task = (avUtterance as? TaskUtterance)?.task,
+            characterRange.upperBound <= task.utterance.text.count,
             let range = Range(characterRange, in: task.utterance.text)
         else {
             return
@@ -263,9 +275,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         case let (.playing(current), .didFinish(finished)) where current == finished:
             state = .stopped
 
-            if !current.isCancelled {
-                current.completion(.success(()))
-            }
+            current.finish()
 
         case let (.playing(current), .play(next)):
             state = .stopping(current, queued: next)
@@ -276,9 +286,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
             stopEngine()
 
         case let (.playing(current), .willSpeakRange(range, task: speaking)) where current == speaking:
-            if !current.isCancelled {
-                current.onSpeakRange(range)
-            }
+            current.onSpeakRange(range)
 
         // stopping
 
@@ -294,9 +302,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
                 state = .stopped
             }
 
-            if !current.isCancelled {
-                current.completion(.success(()))
-            }
+            current.finish()
 
         case let (.stopping(current, queued: _), .play(next)):
             state = .stopping(current, queued: next)

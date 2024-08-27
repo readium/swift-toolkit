@@ -5,7 +5,8 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumInternal
+import ReadiumShared
 import SafariServices
 
 public protocol Navigator: AnyObject {
@@ -19,61 +20,93 @@ public protocol Navigator: AnyObject {
     /// Moves to the position in the publication correponding to the given
     /// `Locator`.
     ///
-    /// - Parameter completion: Called when the transition is completed.
     /// - Returns: Whether the navigator is able to move to the locator. The
     ///   completion block is only called if true was returned.
     @discardableResult
-    func go(to locator: Locator, animated: Bool, completion: @escaping () -> Void) -> Bool
+    func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool
 
     /// Moves to the position in the publication targeted by the given link.
-    /// - Parameter completion: Called when the transition is completed.
+
     /// - Returns: Whether the navigator is able to move to the locator. The
     ///   completion block is only called if true was returned.
     @discardableResult
-    func go(to link: Link, animated: Bool, completion: @escaping () -> Void) -> Bool
+    func go(to link: Link, options: NavigatorGoOptions) async -> Bool
 
     /// Moves to the next content portion (eg. page or audiobook resource) in
     /// the reading progression direction.
     ///
-    /// - Parameter completion: Called when the transition is completed.
     /// - Returns: Whether the navigator is able to move to the next content
     ///   portion. The completion block is only called if true was returned.
     @discardableResult
-    func goForward(animated: Bool, completion: @escaping () -> Void) -> Bool
+    func goForward(options: NavigatorGoOptions) async -> Bool
 
     /// Moves to the previous content portion (eg. page or audiobook resource)
     /// in the reading progression direction.
     ///
-    /// - Parameter completion: Called when the transition is completed.
     /// - Returns: Whether the navigator is able to move to the previous content
     ///   portion. The completion block is only called if true was returned.
     @discardableResult
-    func goBackward(animated: Bool, completion: @escaping () -> Void) -> Bool
+    func goBackward(options: NavigatorGoOptions) async -> Bool
+}
+
+public struct NavigatorGoOptions {
+    /// Indicates whether the move should be animated when possible.
+    public var animated: Bool = false
+
+    /// Extension point for navigator implementations.
+    public var otherOptions: [String: Any] {
+        get { otherOptionsJSON.json }
+        set { otherOptionsJSON = JSONDictionary(newValue) ?? JSONDictionary() }
+    }
+
+    // Trick to keep the struct equatable despite [String: Any]
+    private var otherOptionsJSON: JSONDictionary
+
+    public init(animated: Bool = false, otherOptions: [String: Any] = [:]) {
+        self.animated = animated
+        otherOptionsJSON = JSONDictionary(otherOptions) ?? JSONDictionary()
+    }
 }
 
 public extension Navigator {
-    /// Adds default values for the parameters.
     @discardableResult
+    func go(to locator: Locator, options: NavigatorGoOptions = NavigatorGoOptions()) async -> Bool {
+        await go(to: locator, options: options)
+    }
+
+    @discardableResult
+    func go(to link: Link, options: NavigatorGoOptions = NavigatorGoOptions()) async -> Bool {
+        await go(to: link, options: options)
+    }
+
+    @discardableResult
+    func goForward(options: NavigatorGoOptions = NavigatorGoOptions()) async -> Bool {
+        await goForward(options: options)
+    }
+
+    @discardableResult
+    func goBackward(options: NavigatorGoOptions = NavigatorGoOptions()) async -> Bool {
+        await goBackward(options: options)
+    }
+
+    @available(*, unavailable, message: "Use the async variant")
     func go(to locator: Locator, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        go(to: locator, animated: animated, completion: completion)
+        fatalError()
     }
 
-    /// Adds default values for the parameters.
-    @discardableResult
+    @available(*, unavailable, message: "Use the async variant")
     func go(to link: Link, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        go(to: link, animated: animated, completion: completion)
+        fatalError()
     }
 
-    /// Adds default values for the parameters.
-    @discardableResult
+    @available(*, unavailable, message: "Use the async variant")
     func goForward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        goForward(animated: animated, completion: completion)
+        fatalError()
     }
 
-    /// Adds default values for the parameters.
-    @discardableResult
+    @available(*, unavailable, message: "Use the async variant")
     func goBackward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        goBackward(animated: animated, completion: completion)
+        fatalError()
     }
 }
 
@@ -105,7 +138,7 @@ public protocol NavigatorDelegate: AnyObject {
     func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, referrer: String?) -> Bool
 
     /// Called when an error occurs while attempting to load a resource.
-    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: String, withError error: ResourceError)
+    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: RelativeURL, withError error: ReadError)
 }
 
 public extension NavigatorDelegate {
@@ -121,7 +154,7 @@ public extension NavigatorDelegate {
         true
     }
 
-    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: String, withError error: ResourceError) {}
+    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: String, withError error: ReadError) {}
 }
 
 public enum NavigatorError: LocalizedError {
@@ -131,7 +164,7 @@ public enum NavigatorError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .copyForbidden:
-            return R2NavigatorLocalizedString("NavigatorError.copyForbidden")
+            return ReadiumNavigatorLocalizedString("NavigatorError.copyForbidden")
         }
     }
 }

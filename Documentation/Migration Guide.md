@@ -2,6 +2,110 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
+## Unreleased
+
+### Async APIs
+
+Plenty of completion-based APIs were changed to use `async` functions instead. Follow the deprecation warnings to update your codebase.
+
+### Readium LCP SQLite adapter
+
+The Readium LCP persistence layer was extracted to allow applications to provide their own implementations. The previous implementation is now part of a new package, `ReadiumAdapterLCPSQLite`, which you need to use to maintain the same behavior as before.
+
+To use `ReadiumAdapterLCPSQLite`, you must update your imports and the dependencies included in your project:
+
+* Swift Package Manager:
+    * Add the `ReadiumAdapterLCPSQLite` package to your project dependencies.
+* Carthage:
+    * Update the Carthage dependencies and make sure the new `ReadiumAdapterLCPSQLite.xcframework` was built.
+    * Add this new framework to your project dependencies.
+* CocoaPods:
+    * Update the `pod` statements in your `Podfile` with the following, before running `pod install`:
+        ```
+        pod 'ReadiumAdapterLCPSQLite', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/3.0.0/Support/CocoaPods/ReadiumAdapterLCPSQLite.podspec'
+        ```
+Then, provide the adapters when initializing the `LCPService`.
+
+```swift
+import ReadiumAdapterLCPSQLite
+import ReadiumLCP
+
+let lcpService = LCPService(
+    client: LCPClient(),
+    licenseRepository: LCPSQLiteLicenseRepository(),
+    passphraseRepository: LCPSQLitePassphraseRepository(),
+    httpClient: DefaultHTTPClient()
+)
+```
+
+
+## 3.0.0-alpha.1
+
+### R2 prefix dropped
+
+The `R2` prefix is now deprecated. The `R2Shared`, `R2Streamer` and `R2Navigator` packages were renamed as `ReadiumShared`, `ReadiumStreamer` and `ReadiumNavigator`.
+
+You will need to update your imports, as well as the dependencies you include in your project:
+
+* Swift Package Manager: There's nothing to do.
+* Carthage:
+    * Update the Carthage dependencies and make sure the new `ReadiumShared.xcframework`, `ReadiumStreamer.xcframework` and `ReadiumNavigator.xcframework` were built.
+    * Replace the old frameworks with the new ones in your project.
+* CocoaPods:
+    * Update the `pod` statements in your `Podfile` with the following, before running `pod install`:
+        ```
+        pod 'ReadiumShared', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/3.0.0/Support/CocoaPods/ReadiumShared.podspec'
+        pod 'ReadiumStreamer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/3.0.0/Support/CocoaPods/ReadiumStreamer.podspec'
+        pod 'ReadiumNavigator', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/3.0.0/Support/CocoaPods/ReadiumNavigator.podspec'
+        ```
+
+### Migration of HREFs and Locators (bookmarks, annotations, etc.)
+
+ :warning: This requires a database migration in your application, if you were persisting `Locator` objects.
+
+ In Readium v2.x, a `Link` or `Locator`'s `href` could be either:
+
+ * a valid absolute URL for a streamed publication, e.g. `https://domain.com/isbn/dir/my%20chapter.html`,
+ * a percent-decoded path for a local archive such as an EPUB, e.g. `/dir/my chapter.html`.
+     * Note that it was relative to the root of the archive (`/`).
+
+ To improve the interoperability with other Readium toolkits (in particular the Readium Web Toolkits, which only work in a streaming context) **Readium v3 now generates and expects valid URLs** for `Locator` and `Link`'s `href`.
+
+ * `https://domain.com/isbn/dir/my%20chapter.html` is left unchanged, as it was already a valid URL.
+ * `/dir/my chapter.html` becomes the relative URL path `dir/my%20chapter.html`
+     * We dropped the `/` prefix to avoid issues when resolving to a base URL.
+     * Special characters are percent-encoded.
+
+ **You must migrate the HREFs or Locators stored in your database** when upgrading to Readium 3. To assist you, two helpers are provided: `AnyURL(legacyHREF:)` and `Locator(legacyJSONString:)`.
+
+ Here's an example of a [GRDB migration](https://swiftpackageindex.com/groue/grdb.swift/master/documentation/grdb/migrations) that can serve as inspiration:
+
+ ```swift
+ migrator.registerMigration("normalizeHREFs") { db in
+    let normalizedRows: [(id: Int, href: String, locator: String)] =
+        try Row.fetchAll(db, sql: "SELECT id, href, locator FROM bookmarks")
+            .compactMap { row in
+                guard
+                    let normalizedHREF = AnyURL(legacyHREF: row["href"])?.string,
+                    let normalizedLocator = try Locator(legacyJSONString: row["locator"])?.jsonString
+                else {
+                    return nil
+                }
+                return (row["id"], normalizedHREF, normalizedLocator)
+            }
+            
+    let updateStmt = try db.makeStatement(sql: "UPDATE bookmarks SET href = :href, locator = :locator WHERE id = :id")
+    for (id, href, locator) in normalizedRows {
+        try updateStmt.execute(arguments: [
+            "id": id,
+            "href": href
+            "locator": locator
+        ])
+    }
+}
+```
+
+
 ## 2.7.0
 
 ### `AudioNavigator` is now stable
@@ -56,7 +160,7 @@ Instead, the EPUB, PDF and CBZ navigators expect an instance of `HTTPServer` upo
 You can implement your own HTTP server using a third-party library. But the easiest way to migrate is to use the one provided in the new Readium package `ReadiumAdapterGCDWebServer`.
 
 ```swift
-import R2Navigator
+import ReadiumNavigator
 import ReadiumAdapterGCDWebServer
 
 let navigator = try EPUBNavigatorViewController(
@@ -167,15 +271,15 @@ Then, rebuild the libraries using `carthage update --platform ios --use-xcframew
 If you are using CocoaPods, you will need to update the URL to the Podspecs in your `Podfile`:
 
 ```diff
-+  pod 'R2Shared', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.2.0/Support/CocoaPods/ReadiumShared.podspec'
-+  pod 'R2Streamer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.2.0/Support/CocoaPods/ReadiumStreamer.podspec'
-+  pod 'R2Navigator', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.2.0/Support/CocoaPods/ReadiumNavigator.podspec'
++  pod 'ReadiumShared', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.2.0/Support/CocoaPods/ReadiumShared.podspec'
++  pod 'ReadiumStreamer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.2.0/Support/CocoaPods/ReadiumStreamer.podspec'
++  pod 'ReadiumNavigator', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.2.0/Support/CocoaPods/ReadiumNavigator.podspec'
 +  pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.2.0/Support/CocoaPods/ReadiumOPDS.podspec'
 +  pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.2.0/Support/CocoaPods/ReadiumLCP.podspec'
 
--  pod 'R2Shared', podspec: 'https://raw.githubusercontent.com/readium/r2-shared-swift/2.2.0/R2Shared.podspec'
--  pod 'R2Streamer', podspec: 'https://raw.githubusercontent.com/readium/r2-streamer-swift/2.2.0/R2Streamer.podspec'
--  pod 'R2Navigator', podspec: 'https://raw.githubusercontent.com/readium/r2-navigator-swift/2.2.0/R2Navigator.podspec'
+-  pod 'ReadiumShared', podspec: 'https://raw.githubusercontent.com/readium/r2-shared-swift/2.2.0/ReadiumShared.podspec'
+-  pod 'ReadiumStreamer', podspec: 'https://raw.githubusercontent.com/readium/r2-streamer-swift/2.2.0/ReadiumStreamer.podspec'
+-  pod 'ReadiumNavigator', podspec: 'https://raw.githubusercontent.com/readium/r2-navigator-swift/2.2.0/ReadiumNavigator.podspec'
 -  pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/r2-opds-swift/2.2.0/ReadiumOPDS.podspec'
 -  pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/r2-lcp-swift/2.2.0/ReadiumLCP.podspec'
 ```
@@ -275,7 +379,7 @@ Migrating a project to XCFrameworks is [explained on Carthage's repository](http
 
 #### Troubleshooting
 
-If after migrating to XCFrameworks you experience some build issues like **Could not find module 'R2Shared' for target 'X'**, try building the `r2-shared-swift` target with Xcode manually, before building your app. If you know of a better way to handle this, [please share it with the community](https://github.com/readium/r2-testapp-swift/issues/new).
+If after migrating to XCFrameworks you experience some build issues like **Could not find module 'ReadiumShared' for target 'X'**, try building the `r2-shared-swift` target with Xcode manually, before building your app. If you know of a better way to handle this, [please share it with the community](https://github.com/readium/r2-testapp-swift/issues/new).
 
 ### LCP
 

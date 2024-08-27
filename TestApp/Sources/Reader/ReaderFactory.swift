@@ -6,7 +6,7 @@
 
 import Combine
 import Foundation
-import R2Shared
+import ReadiumShared
 import SwiftUI
 import UIKit
 
@@ -28,15 +28,22 @@ extension ReaderFactory: OutlineTableViewControllerFactory {
     }
 }
 
-extension ReaderFactory: DRMManagementTableViewControllerFactory {
-    func make(publication: Publication, delegate: ReaderModuleDelegate?) -> DRMManagementTableViewController {
-        let controller =
-            storyboards.drm.instantiateViewController(withIdentifier: "DRMManagementTableViewController") as! DRMManagementTableViewController
-        controller.moduleDelegate = delegate
-        controller.viewModel = DRMViewModel.make(publication: publication, presentingViewController: controller)
-        return controller
+#if LCP
+
+    extension ReaderFactory: LCPManagementTableViewControllerFactory {
+        func make(publication: Publication, delegate: ReaderModuleDelegate?) -> LCPManagementTableViewController? {
+            guard let license = publication.lcpLicense else {
+                return nil
+            }
+
+            let controller = storyboards.drm.instantiateViewController(withIdentifier: "DRMManagementTableViewController") as! LCPManagementTableViewController
+            controller.moduleDelegate = delegate
+            controller.viewModel = LCPViewModel(license: license, presentingViewController: controller)
+            return controller
+        }
     }
-}
+
+#endif
 
 /// This is a wrapper for the "OutlineTableView" to encapsulate the  "Cancel" button behaviour
 class OutlineHostingController: UIHostingController<OutlineTableView> {

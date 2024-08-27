@@ -5,29 +5,30 @@
 //
 
 import Foundation
+import ReadiumShared
 import ZIPFoundation
 
 /// Access to a License Document stored in a ZIP archive.
 /// Meant to be subclassed to customize the pathInZIP property, eg. EPUBLicenseContainer.
 class ZIPLicenseContainer: LicenseContainer {
-    private let zip: URL
+    private let zip: FileURL
     private let pathInZIP: String
 
-    init(zip: URL, pathInZIP: String) {
+    init(zip: FileURL, pathInZIP: String) {
         self.zip = zip
         self.pathInZIP = pathInZIP
     }
 
-    func containsLicense() -> Bool {
-        guard let archive = Archive(url: zip, accessMode: .read) else {
+    func containsLicense() async throws -> Bool {
+        guard let archive = Archive(url: zip.url, accessMode: .read) else {
             return false
         }
         return archive[pathInZIP] != nil
     }
 
-    func read() throws -> Data {
-        guard let archive = Archive(url: zip, accessMode: .read) else {
-            throw LCPError.licenseContainer(.openFailed)
+    func read() async throws -> Data {
+        guard let archive = Archive(url: zip.url, accessMode: .read) else {
+            throw LCPError.licenseContainer(.openFailed(nil))
         }
         guard let entry = archive[pathInZIP] else {
             throw LCPError.licenseContainer(.fileNotFound(pathInZIP))
@@ -45,9 +46,9 @@ class ZIPLicenseContainer: LicenseContainer {
         return data
     }
 
-    func write(_ license: LicenseDocument) throws {
-        guard let archive = Archive(url: zip, accessMode: .update) else {
-            throw LCPError.licenseContainer(.openFailed)
+    func write(_ license: LicenseDocument) async throws {
+        guard let archive = Archive(url: zip.url, accessMode: .update) else {
+            throw LCPError.licenseContainer(.openFailed(nil))
         }
 
         do {
@@ -57,7 +58,7 @@ class ZIPLicenseContainer: LicenseContainer {
             }
 
             // Stores the License into the ZIP file
-            let data = license.data
+            let data = license.jsonData
             try archive.addEntry(with: pathInZIP, type: .file, uncompressedSize: UInt32(data.count), provider: { position, size -> Data in
                 data[position ..< size]
             })

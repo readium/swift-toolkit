@@ -12,20 +12,24 @@ public final class PerResourcePositionsService: PositionsService {
     private let readingOrder: [Link]
 
     /// Media type that will be used as a fallback if the `Link` doesn't specify any.
-    private let fallbackMediaType: String
+    private let fallbackMediaType: MediaType
 
-    init(readingOrder: [Link], fallbackMediaType: String) {
+    init(readingOrder: [Link], fallbackMediaType: MediaType) {
         self.readingOrder = readingOrder
         self.fallbackMediaType = fallbackMediaType
     }
 
+    public func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
+        .success(positions)
+    }
+
     private lazy var pageCount: Int = readingOrder.count
 
-    public lazy var positionsByReadingOrder: [[Locator]] = readingOrder.enumerated().map { index, link in
+    private lazy var positions: [[Locator]] = readingOrder.enumerated().map { index, link in
         [
             Locator(
-                href: link.href,
-                type: link.type ?? fallbackMediaType,
+                href: link.url(),
+                mediaType: link.mediaType ?? fallbackMediaType,
                 title: link.title,
                 locations: Locator.Locations(
                     totalProgression: Double(index) / Double(pageCount),
@@ -35,7 +39,7 @@ public final class PerResourcePositionsService: PositionsService {
         ]
     }
 
-    public static func makeFactory(fallbackMediaType: String) -> (PublicationServiceContext) -> PerResourcePositionsService {
+    public static func makeFactory(fallbackMediaType: MediaType) -> (PublicationServiceContext) -> PerResourcePositionsService {
         { context in
             PerResourcePositionsService(readingOrder: context.manifest.readingOrder, fallbackMediaType: fallbackMediaType)
         }

@@ -4,7 +4,64 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Added
+
+#### Streamer
+
+* Support for standalone audio files and their metadata (contributed by [@domkm](https://github.com/readium/swift-toolkit/pull/414)).
+
+### Changed
+
+* The Readium Swift toolkit now requires a minimum of iOS 13.
+* Plenty of completion-based APIs were changed to use `async` functions instead.
+
+#### Shared
+
+* A new `Format` type was introduced to augment `MediaType` with more precise information about the format specifications of an `Asset`.
+* `Fetcher` was replaced with a simpler `Container` type.
+* `PublicationAsset` was replaced by `Asset`, which contains a `Format` and access to the underlying `Container` or `Resource`.
+* The `ResourceError` hierarchy was revamped and simplified (see `ReadError`). Now it is your responsibility to provide a localized user message for each error case.
+* The `Link` property key for archive-based publication assets (e.g. an EPUB/ZIP) is now `https://readium.org/webpub-manifest/properties#archive` instead of `archive`.
+* The API of `HTTPServer` slightly changed to be more future-proof.
+
+#### Streamer
+
+* The `Streamer` object was deprecated in favor of smaller segregated APIs: `AssetRetriever` and `PublicationOpener`. 
+
+#### Navigator
+
+* EPUB: The `scroll` preference is now forced to `true` when rendering vertical text (e.g. CJK vertical). [See this discussion for the rationale](https://github.com/readium/swift-toolkit/discussions/370).
+
+#### LCP
+
+* The Readium LCP persistence layer was extracted to allow applications to provide their own implementations. Take a look at [the migration guide](Documentation/Migration%20Guide.md) for guidance.
+
+### Fixed
+
+#### Navigator
+
+* Optimized scrolling to an EPUB text-based locator if it contains a CSS selector.
+* The first resource of a fixed-layout EPUB is now displayed on its own when spreads are enabled and the author has not set a `page-spread-*` property. This is the default behavior in major reading apps like Apple Books.
+
+
+## [3.0.0-alpha.1]
+
+### Changed
+
+* The `R2Shared`, `R2Streamer` and `R2Navigator` packages are now called `ReadiumShared`, `ReadiumStreamer` and `ReadiumNavigator`.
+* Many APIs now expect one of the new URL types (`RelativeURL`, `AbsoluteURL`, `HTTPURL` and `FileURL`). This is helpful because:
+    * It validates at compile time that we provide a URL that is supported.
+    * The API's capabilities are better documented, e.g. a download API could look like this : `download(url: HTTPURL) -> FileURL`. 
+
+#### Shared
+
+* `Link` and `Locator`'s `href` are normalized as valid URLs to improve interoperability with the Readium Web toolkits.
+   * **You MUST migrate your database if you were persisting HREFs and Locators**. Take a look at [the migration guide](Documentation/Migration%20Guide.md) for guidance.
+* Links are not resolved to the `self` URL of a manifest anymore. However, you can still normalize the HREFs yourselves by calling `Manifest.normalizeHREFsToSelf()`.
+* `Publication.localizedTitle` is now optional, as we cannot guarantee a publication will always have a title.
+
 
 ## [2.7.2]
 
@@ -687,3 +744,4 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [2.7.0]: https://github.com/readium/swift-toolkit/compare/2.6.1...2.7.0
 [2.7.1]: https://github.com/readium/swift-toolkit/compare/2.7.0...2.7.1
 [2.7.2]: https://github.com/readium/swift-toolkit/compare/2.7.1...2.7.2
+[3.0.0-alpha.1]: https://github.com/readium/swift-toolkit/compare/2.7.1...3.0.0-alpha.1

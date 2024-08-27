@@ -5,70 +5,142 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Parses an image–based Publication from an unstructured archive format containing bitmap files,
 /// such as CBZ or a simple ZIP.
 ///
 /// It can also work for a standalone bitmap file.
 public final class ImageParser: PublicationParser {
-    public init() {}
+    private let assetRetriever: AssetRetriever
 
-    public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
-        guard accepts(asset, fetcher) else {
-            return nil
+    public init(
+        assetRetriever: AssetRetriever
+    ) {
+        self.assetRetriever = assetRetriever
+    }
+
+    private let bitmapSpecifications: Set<FormatSpecification> = [
+        .avif,
+        .bmp,
+        .gif,
+        .jpeg,
+        .png,
+        .tiff,
+        .webp,
+    ]
+
+    public func parse(
+        asset: Asset,
+        warnings: WarningLogger?
+    ) async -> Result<Publication.Builder, PublicationParseError> {
+        switch asset {
+        case let .resource(asset):
+            return await parse(resource: asset, warnings: warnings)
+        case let .container(asset):
+            return await parse(container: asset, warnings: warnings)
+        }
+    }
+
+    private func parse(
+        resource asset: ResourceAsset,
+        warnings: WarningLogger?
+    ) async -> Result<Publication.Builder, PublicationParseError> {
+        guard asset.format.conformsToAny(bitmapSpecifications) else {
+            return .failure(.formatNotSupported)
         }
 
-        var readingOrder = fetcher.links
-            .filter { !ignores($0) && $0.mediaType.isBitmap }
-            .sorted { $0.href.localizedCaseInsensitiveCompare($1.href) == .orderedAscending }
-
-        guard !readingOrder.isEmpty else {
-            return nil
-        }
-
-        // First valid resource is the cover.
-        readingOrder[0] = readingOrder[0].copy(rels: [.cover])
-
-        return Publication.Builder(
-            mediaType: .cbz,
-            format: .cbz,
-            manifest: Manifest(
-                metadata: Metadata(
-                    conformsTo: [.divina],
-                    title: fetcher.guessTitle(ignoring: ignores) ?? asset.name
-                ),
-                readingOrder: readingOrder
-            ),
-            fetcher: fetcher,
-            servicesBuilder: .init(
-                positions: PerResourcePositionsService.makeFactory(fallbackMediaType: "image/*")
-            )
+        let container = SingleResourceContainer(publication: asset)
+        return makeBuilder(
+            container: container,
+            readingOrder: [(container.entry, asset.format)],
+            title: nil
         )
     }
 
-    private func accepts(_ asset: PublicationAsset, _ fetcher: Fetcher) -> Bool {
-        if asset.mediaType() == .cbz {
-            return true
+    private func parse(
+        container asset: ContainerAsset,
+        warnings: WarningLogger?
+    ) async -> Result<Publication.Builder, PublicationParseError> {
+        guard asset.format.conformsTo(.informalComic) else {
+            return .failure(.formatNotSupported)
         }
 
-        // Checks if the fetcher contains only bitmap-based resources.
-        return !fetcher.links.isEmpty
-            && fetcher.links.allSatisfy { ignores($0) || $0.mediaType.isBitmap }
+        return await makeReadingOrder(for: asset.container)
+            .flatMap { readingOrder in
+                makeBuilder(
+                    container: asset.container,
+                    readingOrder: readingOrder,
+                    title: asset.container.guessTitle(ignoring: ignores)
+                )
+            }
     }
 
-    private func ignores(_ link: Link) -> Bool {
-        let url = URL(fileURLWithPath: link.href)
-        let filename = url.lastPathComponent
-        let allowedExtensions = ["acbf", "txt", "xml"]
+    private func makeReadingOrder(for container: Container) async -> Result<[(AnyURL, Format)], PublicationParseError> {
+        await container
+            .sniffFormats(
+                using: assetRetriever,
+                ignoring: ignores
+            )
+            .map { formats in
+                container.entries
+                    .compactMap { url -> (AnyURL, Format)? in
+                        guard
+                            let format = formats[url],
+                            format.conformsToAny(bitmapSpecifications)
+                        else {
+                            return nil
+                        }
+                        return (url, format)
+                    }
+                    .sorted { $0.0.string.localizedStandardCompare($1.0.string) == .orderedAscending }
+            }
+            .mapError { .reading($0) }
+    }
 
-        return allowedExtensions.contains(url.pathExtension.lowercased())
+    private func ignores(_ url: AnyURL) -> Bool {
+        guard let filename = url.lastPathSegment else {
+            return true
+        }
+        let ignoredExtensions: [FileExtension] = ["acbf", "txt", "xml"]
+
+        return url.pathExtension == nil
+            || ignoredExtensions.contains(url.pathExtension!)
             || filename.hasPrefix(".")
             || filename == "Thumbs.db"
     }
 
-    @available(*, unavailable, message: "Not supported for `ImageParser`")
-    public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
-        fatalError("Not supported for `ImageParser`")
+    private func makeBuilder(
+        container: Container,
+        readingOrder: [(AnyURL, Format)],
+        title: String?
+    ) -> Result<Publication.Builder, PublicationParseError> {
+        guard !readingOrder.isEmpty else {
+            return .failure(.reading(.decoding("No bitmap resources found in the publication")))
+        }
+
+        var readingOrder = readingOrder.map { url, format in
+            Link(
+                href: url.string,
+                mediaType: format.mediaType
+            )
+        }
+
+        // First valid resource is the cover.
+        readingOrder[0].rels = [.cover]
+
+        return .success(Publication.Builder(
+            manifest: Manifest(
+                metadata: Metadata(
+                    conformsTo: [.divina],
+                    title: title
+                ),
+                readingOrder: readingOrder
+            ),
+            container: container,
+            servicesBuilder: .init(
+                positions: PerResourcePositionsService.makeFactory(fallbackMediaType: MediaType("image/*")!)
+            )
+        ))
     }
 }

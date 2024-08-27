@@ -7,10 +7,9 @@
 import Foundation
 
 public extension Array {
-    /// Creates a new `Array` from the given `element`, if it is not nil. Otherwise creates an
-    /// empty array.
-    init(ofNotNil element: Element?) {
-        self.init(element.map { [$0] } ?? [])
+    /// Creates a new `Array` from the given `elements`, if they are not nil.
+    init(ofNotNil elements: Element?...) {
+        self = elements.compactMap { $0 }
     }
 
     func first<T>(where transform: (Element) throws -> T?) rethrows -> T? {
@@ -56,6 +55,10 @@ public extension Array where Element: Hashable {
         var array = self
         array.removeAll { other in other == element }
         return array
+    }
+
+    @inlinable mutating func remove(_ element: Element) {
+        removeAll { other in other == element }
     }
 }
 

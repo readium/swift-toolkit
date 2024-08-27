@@ -8,14 +8,14 @@ import Foundation
 import ReadiumInternal
 
 // https://github.com/readium/webpub-manifest/tree/master/contexts/default#subjects
-public struct Subject: Hashable {
-    public let localizedName: LocalizedString
+public struct Subject: Hashable, Sendable {
+    public var localizedName: LocalizedString
     public var name: String { localizedName.string }
-    public let sortAs: String?
-    public let scheme: String? // URI
-    public let code: String?
+    public var sortAs: String?
+    public var scheme: String? // URI
+    public var code: String?
     /// Used to retrieve similar publications for the given subjects.
-    public let links: [Link]
+    public var links: [Link]
 
     public init(name: LocalizedStringConvertible, sortAs: String? = nil, scheme: String? = nil, code: String? = nil, links: [Link] = []) {
         localizedName = name.localizedString

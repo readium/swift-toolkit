@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import R2Shared
+@testable import ReadiumShared
 import XCTest
 
 class PublicationTests: XCTestCase {
@@ -13,67 +13,64 @@ class PublicationTests: XCTestCase {
             Publication(
                 manifest: Manifest(
                     metadata: Metadata(title: "Title"),
-                    links: [Link(href: "/manifest.json", rels: [.`self`])],
-                    readingOrder: [Link(href: "/chap1.html", type: "text/html")]
+                    links: [Link(href: "manifest.json", rels: [.`self`])],
+                    readingOrder: [Link(href: "chap1.html", mediaType: .html)]
                 )
             ).jsonManifest,
             serializeJSONString([
                 "metadata": ["title": "Title", "readingProgression": "auto"],
                 "links": [
-                    ["href": "/manifest.json", "rel": ["self"], "templated": false] as [String: Any],
+                    ["href": "manifest.json", "rel": ["self"], "templated": false] as [String: Any],
                 ],
                 "readingOrder": [
-                    ["href": "/chap1.html", "type": "text/html", "templated": false] as [String: Any],
+                    ["href": "chap1.html", "type": "text/html", "templated": false] as [String: Any],
                 ],
             ] as [String: Any])
         )
     }
 
     func testConformsToProfile() {
-        func makePub(_ readingOrder: [String], conformsTo: [Publication.Profile] = []) -> Publication {
+        func makePub(_ readingOrder: [Link], conformsTo: [Publication.Profile] = []) -> Publication {
             Publication(manifest: Manifest(
-                metadata: Metadata(
-                    conformsTo: conformsTo,
-                    title: ""
-                ),
-                readingOrder: readingOrder.map { Link(href: $0) }
+                metadata: Metadata(conformsTo: conformsTo),
+                readingOrder: readingOrder
             ))
         }
 
         // An empty reading order doesn't conform to anything.
         XCTAssertFalse(makePub([], conformsTo: [.epub]).conforms(to: .epub))
 
-        XCTAssertTrue(makePub(["c1.mp3", "c2.aac"]).conforms(to: .audiobook))
-        XCTAssertTrue(makePub(["c1.jpg", "c2.png"]).conforms(to: .divina))
-        XCTAssertTrue(makePub(["c1.pdf", "c2.pdf"]).conforms(to: .pdf))
+        XCTAssertTrue(makePub([Link(href: "c1.mp3", mediaType: .mp3), Link(href: "c2.aac", mediaType: .aac)]).conforms(to: .audiobook))
+        XCTAssertTrue(makePub([Link(href: "c1.jpg", mediaType: .jpeg), Link(href: "c2.png", mediaType: .png)]).conforms(to: .divina))
+        XCTAssertTrue(makePub([Link(href: "c1.pdf", mediaType: .pdf), Link(href: "c2.pdf", mediaType: .pdf)]).conforms(to: .pdf))
 
         // Mixed media types disable implicit conformance.
-        XCTAssertFalse(makePub(["c1.mp3", "c2.jpg"]).conforms(to: .audiobook))
-        XCTAssertFalse(makePub(["c1.mp3", "c2.jpg"]).conforms(to: .divina))
+        XCTAssertFalse(makePub([Link(href: "c1.mp3", mediaType: .mp3), Link(href: "c2.jpg", mediaType: .jpeg)]).conforms(to: .audiobook))
+        XCTAssertFalse(makePub([Link(href: "c1.mp3", mediaType: .mp3), Link(href: "c2.jpg", mediaType: .jpeg)]).conforms(to: .divina))
 
         // XHTML could be EPUB or a Web Publication, so we require an explicit EPUB profile.
-        XCTAssertFalse(makePub(["c1.xhtml", "c2.xhtml"]).conforms(to: .epub))
-        XCTAssertFalse(makePub(["c1.html", "c2.html"]).conforms(to: .epub))
-        XCTAssertTrue(makePub(["c1.xhtml", "c2.xhtml"], conformsTo: [.epub]).conforms(to: .epub))
-        XCTAssertTrue(makePub(["c1.html", "c2.html"], conformsTo: [.epub]).conforms(to: .epub))
+        XCTAssertFalse(makePub([Link(href: "c1.xhtml", mediaType: .xhtml), Link(href: "c2.xhtml", mediaType: .xhtml)]).conforms(to: .epub))
+        XCTAssertFalse(makePub([Link(href: "c1.html", mediaType: .html), Link(href: "c2.html", mediaType: .html)]).conforms(to: .epub))
+        XCTAssertTrue(makePub([Link(href: "c1.xhtml", mediaType: .xhtml), Link(href: "c2.xhtml", mediaType: .xhtml)], conformsTo: [.epub]).conforms(to: .epub))
+        XCTAssertTrue(makePub([Link(href: "c1.html", mediaType: .html), Link(href: "c2.html", mediaType: .html)], conformsTo: [.epub]).conforms(to: .epub))
 
         // Implicit conformance always take precedence over explicit profiles.
-        XCTAssertTrue(makePub(["c1.mp3", "c2.aac"]).conforms(to: .audiobook))
-        XCTAssertTrue(makePub(["c1.mp3", "c2.aac"], conformsTo: [.divina]).conforms(to: .audiobook))
-        XCTAssertFalse(makePub(["c1.mp3", "c2.aac"], conformsTo: [.divina]).conforms(to: .divina))
+        XCTAssertTrue(makePub([Link(href: "c1.mp3", mediaType: .mp3), Link(href: "c2.aac", mediaType: .aac)]).conforms(to: .audiobook))
+        XCTAssertTrue(makePub([Link(href: "c1.mp3", mediaType: .mp3), Link(href: "c2.aac", mediaType: .aac)], conformsTo: [.divina]).conforms(to: .audiobook))
+        XCTAssertFalse(makePub([Link(href: "c1.mp3", mediaType: .mp3), Link(href: "c2.aac", mediaType: .aac)], conformsTo: [.divina]).conforms(to: .divina))
 
         // Unknown profile
         let profile = Publication.Profile("http://extension")
-        XCTAssertFalse(makePub(["file"]).conforms(to: profile))
-        XCTAssertTrue(makePub(["file"], conformsTo: [profile]).conforms(to: profile))
+        XCTAssertFalse(makePub([Link(href: "file", mediaType: .text)]).conforms(to: profile))
+        XCTAssertTrue(makePub([Link(href: "file", mediaType: .text)], conformsTo: [profile]).conforms(to: profile))
     }
 
     func testBaseURL() {
         XCTAssertEqual(
             makePublication(links: [
                 Link(href: "http://host/folder/manifest.json", rel: .`self`),
-            ]).baseURL,
-            URL(string: "http://host/folder/")!
+            ]).baseURL?.string,
+            "http://host/folder/"
         )
     }
 
@@ -89,8 +86,8 @@ class PublicationTests: XCTestCase {
         XCTAssertEqual(
             makePublication(links: [
                 Link(href: "http://host/manifest.json", rel: .`self`),
-            ]).baseURL,
-            URL(string: "http://host/")!
+            ]).baseURL?.string,
+            "http://host/"
         )
     }
 
@@ -99,7 +96,7 @@ class PublicationTests: XCTestCase {
             makePublication(readingOrder: [
                 Link(href: "l1"),
                 Link(href: "l2"),
-            ]).link(withHREF: "l2")?.href,
+            ]).linkWithHREF(AnyURL(string: "l2")!)?.href,
             "l2"
         )
     }
@@ -109,7 +106,7 @@ class PublicationTests: XCTestCase {
             makePublication(links: [
                 Link(href: "l1"),
                 Link(href: "l2"),
-            ]).link(withHREF: "l2")?.href,
+            ]).linkWithHREF(AnyURL(string: "l2")!)?.href,
             "l2"
         )
     }
@@ -119,7 +116,7 @@ class PublicationTests: XCTestCase {
             makePublication(resources: [
                 Link(href: "l1"),
                 Link(href: "l2"),
-            ]).link(withHREF: "l2")?.href,
+            ]).linkWithHREF(AnyURL(string: "l2")!)?.href,
             "l2"
         )
     }
@@ -132,7 +129,7 @@ class PublicationTests: XCTestCase {
                         Link(href: "l3"),
                     ]),
                 ]),
-            ]).link(withHREF: "l3")?.href,
+            ]).linkWithHREF(AnyURL(string: "l3")!)?.href,
             "l3"
         )
     }
@@ -145,7 +142,7 @@ class PublicationTests: XCTestCase {
                         Link(href: "l3"),
                     ]),
                 ]),
-            ]).link(withHREF: "l3")?.href,
+            ]).linkWithHREF(AnyURL(string: "l3")!)?.href,
             "l3"
         )
     }
@@ -156,8 +153,8 @@ class PublicationTests: XCTestCase {
             Link(href: "l2"),
         ])
 
-        XCTAssertEqual(publication.link(withHREF: "l1?q=a")?.href, "l1?q=a")
-        XCTAssertEqual(publication.link(withHREF: "l2?q=b")?.href, "l2")
+        XCTAssertEqual(publication.linkWithHREF(AnyURL(string: "l1?q=a")!)?.href, "l1?q=a")
+        XCTAssertEqual(publication.linkWithHREF(AnyURL(string: "l2?q=b")!)?.href, "l2")
     }
 
     func testLinkWithHREFIgnoresAnchor() {
@@ -166,8 +163,8 @@ class PublicationTests: XCTestCase {
             Link(href: "l2"),
         ])
 
-        XCTAssertEqual(publication.link(withHREF: "l1#a")?.href, "l1#a")
-        XCTAssertEqual(publication.link(withHREF: "l2#b")?.href, "l2")
+        XCTAssertEqual(publication.linkWithHREF(AnyURL(string: "l1#a")!)?.href, "l1#a")
+        XCTAssertEqual(publication.linkWithHREF(AnyURL(string: "l2#b")!)?.href, "l2")
     }
 
     func testLinkWithRelInReadingOrder() {
@@ -175,7 +172,7 @@ class PublicationTests: XCTestCase {
             makePublication(readingOrder: [
                 Link(href: "l1"),
                 Link(href: "l2", rel: "rel1"),
-            ]).link(withRel: "rel1")?.href,
+            ]).linkWithRel("rel1")?.href,
             "l2"
         )
     }
@@ -185,7 +182,7 @@ class PublicationTests: XCTestCase {
             makePublication(links: [
                 Link(href: "l1"),
                 Link(href: "l2", rel: "rel1"),
-            ]).link(withRel: "rel1")?.href,
+            ]).linkWithRel("rel1")?.href,
             "l2"
         )
     }
@@ -195,7 +192,7 @@ class PublicationTests: XCTestCase {
             makePublication(resources: [
                 Link(href: "l1"),
                 Link(href: "l2", rel: "rel1"),
-            ]).link(withRel: "rel1")?.href,
+            ]).linkWithRel("rel1")?.href,
             "l2"
         )
     }
@@ -217,7 +214,7 @@ class PublicationTests: XCTestCase {
                     ]),
                     Link(href: "l6", rel: "rel1"),
                 ]
-            ).links(withRel: "rel1"),
+            ).linksWithRel("rel1"),
             [
                 Link(href: "l4", rel: "rel1"),
                 Link(href: "l6", rel: "rel1"),
@@ -231,63 +228,21 @@ class PublicationTests: XCTestCase {
             makePublication(resources: [
                 Link(href: "l1"),
                 Link(href: "l2"),
-            ]).links(withRel: "rel1"),
+            ]).linksWithRel("rel1"),
             []
         )
     }
 
-    /// `Publication.get()` delegates to the `Fetcher`.
-    func testGetDelegatesToFetcher() {
-        let link = Link(href: "test", type: "text/html")
+    /// `Publication.get()` delegates to the `Container`.
+    func testGetDelegatesToContainer() async throws {
+        let link = Link(href: "test", mediaType: .html)
         let publication = makePublication(
             links: [link],
-            fetcher: ProxyFetcher {
-                if link.href == $0.href {
-                    return DataResource(link: $0, string: "hello")
-                } else {
-                    return FailureResource(link: $0, error: .notFound(nil))
-                }
-            }
+            container: SingleResourceContainer(resource: DataResource(string: "hello"), at: link.url())
         )
 
-        XCTAssertEqual(publication.get(link).readAsString().getOrNil(), "hello")
-    }
-
-    /// Services take precedence over the Fetcher in `Publication.get()`.
-    func testGetServicesTakePrecedence() {
-        let link = Link(href: "test", type: "text/html")
-        let publication = makePublication(
-            links: [link],
-            fetcher: ProxyFetcher {
-                if link.href == $0.href {
-                    return DataResource(link: $0, string: "hello")
-                } else {
-                    return FailureResource(link: $0, error: .notFound(nil))
-                }
-            },
-            services: PublicationServicesBuilder(setup: {
-                $0.set(TestService.self) { _ in TestService(link: link) }
-            })
-        )
-
-        XCTAssertEqual(publication.get(link).readAsString().getOrNil(), "world")
-    }
-
-    /// `Publication.get(String)` keeps the query parameters and automatically untemplate the `Link`.
-    func testGetKeepsQueryParameters() {
-        let link = Link(href: "test", type: "text/html", templated: true)
-        var requestedLink: Link?
-        let publication = makePublication(
-            links: [link],
-            fetcher: ProxyFetcher {
-                requestedLink = $0
-                return FailureResource(link: $0, error: .notFound(nil))
-            }
-        )
-
-        _ = publication.get("test?query=param")
-
-        XCTAssertEqual(requestedLink, Link(href: "test?query=param", type: "text/html", templated: false))
+        let result = try await publication.get(link)?.readAsString().get()
+        XCTAssertEqual(result, "hello")
     }
 
     private func makePublication(
@@ -295,7 +250,7 @@ class PublicationTests: XCTestCase {
         links: [Link] = [],
         readingOrder: [Link] = [],
         resources: [Link] = [],
-        fetcher: Fetcher? = nil,
+        container: Container? = nil,
         services: PublicationServicesBuilder = PublicationServicesBuilder()
     ) -> Publication {
         Publication(
@@ -305,22 +260,69 @@ class PublicationTests: XCTestCase {
                 readingOrder: readingOrder,
                 resources: resources
             ),
-            fetcher: fetcher ?? EmptyFetcher(),
+            container: container ?? EmptyContainer(),
             servicesBuilder: services
         )
     }
-}
 
-private struct TestService: PublicationService {
-    let link: Link
+    func testNormalizeLocatorRemotePublication() {
+        let publication = Publication(
+            manifest: Manifest(
+                links: [Link(href: "https://example.com/foo/manifest.json", rels: [.`self`])],
+                readingOrder: [
+                    Link(href: "chap1.html", mediaType: .html),
+                    Link(href: "bar/c'est%20valide.html", mediaType: .html),
+                ]
+            )
+        )
 
-    lazy var links: [Link] = [link]
+        // Passthrough for invalid locators.
+        XCTAssertEqual(
+            publication.normalizeLocator(
+                Locator(href: "invalid", mediaType: .html)
+            ),
+            Locator(href: "invalid", mediaType: .html)
+        )
 
-    func get(link: Link) -> Resource? {
-        if link.href == self.link.href {
-            return DataResource(link: link, string: "world")
-        } else {
-            return FailureResource(link: link, error: .notFound(nil))
-        }
+        // Absolute URLs relative to self are made relative.
+        XCTAssertEqual(
+            publication.normalizeLocator(
+                Locator(href: "https://example.com/foo/chap1.html", mediaType: .html)
+            ),
+            Locator(href: "chap1.html", mediaType: .html)
+        )
+        XCTAssertEqual(
+            publication.normalizeLocator(
+                Locator(href: "https://other.com/chap1.html", mediaType: .html)
+            ),
+            Locator(href: "https://other.com/chap1.html", mediaType: .html)
+        )
+    }
+
+    func testNormalizeLocatorPackagedPublication() {
+        let publication = Publication(
+            manifest: Manifest(
+                readingOrder: [
+                    Link(href: "foo/chap1.html", mediaType: .html),
+                    Link(href: "bar/c'est%20valide.html", mediaType: .html),
+                ]
+            )
+        )
+
+        // Passthrough for invalid locators.
+        XCTAssertEqual(
+            publication.normalizeLocator(
+                Locator(href: "invalid", mediaType: .html)
+            ),
+            Locator(href: "invalid", mediaType: .html)
+        )
+
+        // Leading slashes are removed
+        XCTAssertEqual(
+            publication.normalizeLocator(
+                Locator(href: "foo/chap1.html", mediaType: .html)
+            ),
+            Locator(href: "foo/chap1.html", mediaType: .html)
+        )
     }
 }

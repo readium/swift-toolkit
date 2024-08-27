@@ -5,85 +5,104 @@
 //
 
 import Foundation
+import ReadiumShared
 
 public enum LCPError: LocalizedError {
-    // The operation can't be done right now because another License operation is running.
+    /// The license could not be retrieved because the passphrase is unknown.
+    case missingPassphrase
+
+    /// The given file is not an LCP License Document (LCPL).
+    case notALicenseDocument(LicenseDocumentSource)
+
+    /// The operation can't be done right now because another License operation is running.
     case licenseIsBusy
-    // An error occured while checking the integrity of the License, it can't be retrieved.
+
+    /// An error occured while checking the integrity of the License, it can't be retrieved.
     case licenseIntegrity(LCPClientError)
-    // The status of the License is not valid, it can't be used to decrypt the publication.
+
+    /// The status of the License is not valid, it can't be used to decrypt the publication.
     case licenseStatus(StatusError)
-    // Can't read or write the License Document from its container.
+
+    /// Can't read or write the License Document from its container.
     case licenseContainer(ContainerError)
-    // The interaction is not available with this License.
+
+    /// The interaction is not available with this License.
     case licenseInteractionNotAvailable
-    // This License's profile is not supported by liblcp.
+
+    /// This License's profile is not supported by liblcp.
     case licenseProfileNotSupported
-    // Failed to renew the loan.
+
+    /// Failed to renew the loan.
     case licenseRenew(RenewError)
-    // Failed to return the loan.
+
+    /// Failed to return the loan.
     case licenseReturn(ReturnError)
 
-    // Failed to retrieve the Certificate Revocation List.
+    /// Failed to retrieve the Certificate Revocation List.
     case crlFetching
 
-    // Failed to parse information from the License or Status Documents.
+    /// Failed to parse information from the License or Status Documents.
     case parsing(ParsingError)
-    // A network request failed with the given error.
+
+    /// A network request failed with the given error.
     case network(Error?)
-    // An unexpected LCP error occured. Please post an issue on r2-lcp-swift with the error message and how to reproduce it.
+
+    /// An unexpected LCP error occured. Please post an issue on r2-lcp-swift with the error message and how to reproduce it.
     case runtime(String)
-    // An unknown low-level error was reported.
+
+    /// An unknown low-level error was reported.
     case unknown(Error?)
 
     public var errorDescription: String? {
         switch self {
+        case .missingPassphrase: return nil
+        case .notALicenseDocument: return nil
         case .licenseIsBusy:
-            return R2LCPLocalizedString("LCPError.licenseIsBusy")
+            return ReadiumLCPLocalizedString("LCPError.licenseIsBusy")
         case let .licenseIntegrity(error):
             let description: String = {
                 switch error {
                 case .licenseOutOfDate:
-                    return R2LCPLocalizedString("LCPClientError.licenseOutOfDate")
+                    return ReadiumLCPLocalizedString("LCPClientError.licenseOutOfDate")
                 case .certificateRevoked:
-                    return R2LCPLocalizedString("LCPClientError.certificateRevoked")
+                    return ReadiumLCPLocalizedString("LCPClientError.certificateRevoked")
                 case .certificateSignatureInvalid:
-                    return R2LCPLocalizedString("LCPClientError.certificateSignatureInvalid")
+                    return ReadiumLCPLocalizedString("LCPClientError.certificateSignatureInvalid")
                 case .licenseSignatureDateInvalid:
-                    return R2LCPLocalizedString("LCPClientError.licenseSignatureDateInvalid")
+                    return ReadiumLCPLocalizedString("LCPClientError.licenseSignatureDateInvalid")
                 case .licenseSignatureInvalid:
-                    return R2LCPLocalizedString("LCPClientError.licenseSignatureInvalid")
+                    return ReadiumLCPLocalizedString("LCPClientError.licenseSignatureInvalid")
                 case .contextInvalid:
-                    return R2LCPLocalizedString("LCPClientError.contextInvalid")
+                    return ReadiumLCPLocalizedString("LCPClientError.contextInvalid")
                 case .contentKeyDecryptError:
-                    return R2LCPLocalizedString("LCPClientError.contentKeyDecryptError")
+                    return ReadiumLCPLocalizedString("LCPClientError.contentKeyDecryptError")
                 case .userKeyCheckInvalid:
-                    return R2LCPLocalizedString("LCPClientError.userKeyCheckInvalid")
+                    return ReadiumLCPLocalizedString("LCPClientError.userKeyCheckInvalid")
                 case .contentDecryptError:
-                    return R2LCPLocalizedString("LCPClientError.contentDecryptError")
+                    return ReadiumLCPLocalizedString("LCPClientError.contentDecryptError")
                 case .unknown:
-                    return R2LCPLocalizedString("LCPClientError.unknown")
+                    return ReadiumLCPLocalizedString("LCPClientError.unknown")
                 }
             }()
-            return R2LCPLocalizedString("LCPError.licenseIntegrity", description)
+            return ReadiumLCPLocalizedString("LCPError.licenseIntegrity", description)
         case let .licenseStatus(error):
             return error.localizedDescription
         case .licenseContainer:
-            return R2LCPLocalizedString("LCPError.licenseContainer")
+            return ReadiumLCPLocalizedString("LCPError.licenseContainer")
         case .licenseInteractionNotAvailable:
-            return R2LCPLocalizedString("LCPError.licenseInteractionNotAvailable")
+            return ReadiumLCPLocalizedString("LCPError.licenseInteractionNotAvailable")
         case .licenseProfileNotSupported:
-            return R2LCPLocalizedString("LCPError.licenseProfileNotSupported")
+            return ReadiumLCPLocalizedString("LCPError.licenseProfileNotSupported")
         case .crlFetching:
-            return R2LCPLocalizedString("LCPError.crlFetching")
+            return ReadiumLCPLocalizedString("LCPError.crlFetching")
         case let .licenseRenew(error):
             return error.localizedDescription
         case let .licenseReturn(error):
             return error.localizedDescription
         case .parsing:
-            return R2LCPLocalizedString("LCPError.parsing")
+            return ReadiumLCPLocalizedString("LCPError.parsing")
         case let .network(error):
-            return error?.localizedDescription ?? R2LCPLocalizedString("LCPError.network")
+            return error?.localizedDescription ?? ReadiumLCPLocalizedString("LCPError.network")
         case let .runtime(error):
             return error
         case let .unknown(error):
@@ -107,20 +126,20 @@ public enum StatusError: LocalizedError {
 
         switch self {
         case let .cancelled(date):
-            return R2LCPLocalizedString("StatusError.cancelled", dateFormatter.string(from: date))
+            return ReadiumLCPLocalizedString("StatusError.cancelled", dateFormatter.string(from: date))
 
         case let .returned(date):
-            return R2LCPLocalizedString("StatusError.returned", dateFormatter.string(from: date))
+            return ReadiumLCPLocalizedString("StatusError.returned", dateFormatter.string(from: date))
 
         case let .expired(start: start, end: end):
             if start > Date() {
-                return R2LCPLocalizedString("StatusError.expired.start", dateFormatter.string(from: start))
+                return ReadiumLCPLocalizedString("StatusError.expired.start", dateFormatter.string(from: start))
             } else {
-                return R2LCPLocalizedString("StatusError.expired.end", dateFormatter.string(from: end))
+                return ReadiumLCPLocalizedString("StatusError.expired.end", dateFormatter.string(from: end))
             }
 
         case let .revoked(date, devicesCount):
-            return R2LCPLocalizedString("StatusError.revoked", dateFormatter.string(from: date), devicesCount)
+            return ReadiumLCPLocalizedString("StatusError.revoked", dateFormatter.string(from: date), devicesCount)
         }
     }
 }
@@ -137,11 +156,11 @@ public enum RenewError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .renewFailed:
-            return R2LCPLocalizedString("RenewError.renewFailed")
+            return ReadiumLCPLocalizedString("RenewError.renewFailed")
         case .invalidRenewalPeriod(maxRenewDate: _):
-            return R2LCPLocalizedString("RenewError.invalidRenewalPeriod")
+            return ReadiumLCPLocalizedString("RenewError.invalidRenewalPeriod")
         case .unexpectedServerError:
-            return R2LCPLocalizedString("RenewError.unexpectedServerError")
+            return ReadiumLCPLocalizedString("RenewError.unexpectedServerError")
         }
     }
 }
@@ -158,11 +177,11 @@ public enum ReturnError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .returnFailed:
-            return R2LCPLocalizedString("ReturnError.returnFailed")
+            return ReadiumLCPLocalizedString("ReturnError.returnFailed")
         case .alreadyReturnedOrExpired:
-            return R2LCPLocalizedString("ReturnError.alreadyReturnedOrExpired")
+            return ReadiumLCPLocalizedString("ReturnError.alreadyReturnedOrExpired")
         case .unexpectedServerError:
-            return R2LCPLocalizedString("ReturnError.unexpectedServerError")
+            return ReadiumLCPLocalizedString("ReturnError.unexpectedServerError")
         }
     }
 }
@@ -188,7 +207,7 @@ public enum ParsingError: Error {
 /// Errors while reading or writing a LCP container (LCPL, EPUB, LCPDF, etc.)
 public enum ContainerError: Error {
     // Can't access the container, it's format is wrong.
-    case openFailed
+    case openFailed(Error?)
     // The file at given relative path is not found in the Container.
     case fileNotFound(String)
     // Can't read the file at given relative path in the Container.

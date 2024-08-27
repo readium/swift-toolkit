@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 
 /// An `EditingAction` is an item in the text selection menu.
@@ -135,8 +135,6 @@ final class EditingActionsController {
     /// Verifies that the user has the rights to use the given `action`.
     private func isActionAllowed(_ action: EditingAction) -> Bool {
         switch action {
-        case .copy:
-            return rights.canCopy
         case .share:
             return canShare
         default:
@@ -180,11 +178,12 @@ final class EditingActionsController {
     }
 
     /// Copies the authorized portion of the selection text into the pasteboard.
-    func copy() {
+    @MainActor
+    func copy() async {
         guard let text = selection?.locator.text.highlight else {
             return
         }
-        guard rights.copy(text: text) else {
+        guard await rights.copy(text: text) else {
             delegate?.editingActionsDidPreventCopy(self)
             return
         }

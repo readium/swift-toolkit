@@ -5,38 +5,42 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Encapsulates the read/write access to the packaged License Document (eg. in an EPUB container, or a standalone LCPL file)
 protocol LicenseContainer {
     /// Returns whether this container currently contains a License Document.
     ///
     /// For example, when fulfilling an EPUB publication, it initially doesn't contain the license.
-    func containsLicense() -> Bool
+    func containsLicense() async throws -> Bool
 
-    func read() throws -> Data
-    func write(_ license: LicenseDocument) throws
+    func read() async throws -> Data
+    func write(_ license: LicenseDocument) async throws
 }
 
-func makeLicenseContainer(for file: URL, mimetypes: [String] = []) -> Deferred<LicenseContainer?, LCPError> {
-    deferred(on: .global(qos: .background)) { success, _, _ in
-        success(makeLicenseContainerSync(for: file, mimetypes: mimetypes))
-    }
-}
-
-func makeLicenseContainerSync(for file: URL, mimetypes: [String] = []) -> LicenseContainer? {
-    guard let mediaType = MediaType.of(file, mediaTypes: mimetypes, fileExtensions: []) else {
-        return nil
-    }
-
-    switch mediaType {
-    case .lcpLicenseDocument:
+func makeLicenseContainer(for asset: Asset) throws -> LicenseContainer {
+    switch asset {
+    case let .resource(asset):
+        guard
+            asset.format.conformsTo(.lcpLicense),
+            let file = asset.resource.sourceURL?.fileURL
+        else {
+            throw LCPError.licenseContainer(ContainerError.openFailed(nil))
+        }
         return LCPLLicenseContainer(lcpl: file)
-    case .lcpProtectedPDF, .lcpProtectedAudiobook, .readiumAudiobook, .readiumWebPub, .divina:
-        return ReadiumLicenseContainer(path: file)
-    case .epub:
-        return EPUBLicenseContainer(epub: file)
-    default:
-        return nil
+
+    case let .container(asset):
+        guard
+            asset.format.conformsTo(.zip),
+            let file = asset.container.sourceURL?.fileURL
+        else {
+            throw LCPError.licenseContainer(ContainerError.openFailed(nil))
+        }
+
+        if asset.format.conformsTo(.epub) {
+            return EPUBLicenseContainer(epub: file)
+        } else {
+            return ReadiumLicenseContainer(path: file)
+        }
     }
 }

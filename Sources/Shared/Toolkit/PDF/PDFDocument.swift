@@ -20,41 +20,41 @@ public enum PDFDocumentError: Error {
 public protocol PDFDocument {
     /// Permanent identifier based on the contents of the file at the time it was originally
     /// created.
-    var identifier: String? { get }
+    func identifier() async throws -> String?
 
     /// Number of pages in the document.
-    var pageCount: Int { get }
+    func pageCount() async throws -> Int
 
     /// The first page rendered as a cover.
-    var cover: UIImage? { get }
+    func cover() async throws -> UIImage?
 
     /// Reading progression set with the "Binding" property in Acrobat.
-    var readingProgression: ReadingProgression? { get }
+    func readingProgression() async throws -> ReadingProgression?
 
     // Values extracted from the document information dictionary, defined in PDF specification.
 
     /// The document's title.
-    var title: String? { get }
+    func title() async throws -> String?
 
     /// The name of the person who created the document.
-    var author: String? { get }
+    func author() async throws -> String?
 
     /// The subject of the document.
-    var subject: String? { get }
+    func subject() async throws -> String?
 
     /// Keywords associated with the document.
-    var keywords: [String] { get }
+    func keywords() async throws -> [String]
 
     /// Outline to build the table of contents.
-    var tableOfContents: [PDFOutlineNode] { get }
+    func tableOfContents() async throws -> [PDFOutlineNode]
 }
 
 public protocol PDFDocumentFactory {
     /// Opens a PDF from a local file path.
-    func open(url: URL, password: String?) throws -> PDFDocument
+    func open(file: FileURL, password: String?) async throws -> PDFDocument
 
-    /// Opens a PDF from a `Fetcher`'s resource.
-    func open(resource: Resource, password: String?) throws -> PDFDocument
+    /// Opens a PDF from a `Resource` located at the given `href`.
+    func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument
 }
 
 public class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable {
@@ -63,12 +63,12 @@ public class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable {
 
     public init() {}
 
-    public func open(url: URL, password: String?) throws -> PDFDocument {
-        try factory.open(url: url, password: password)
+    public func open(file: FileURL, password: String?) async throws -> PDFDocument {
+        try await factory.open(file: file, password: password)
     }
 
-    public func open(resource: Resource, password: String?) throws -> PDFDocument {
-        try factory.open(resource: resource, password: password)
+    public func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument {
+        try await factory.open(resource: resource, at: href, password: password)
     }
 }
 
@@ -80,18 +80,18 @@ public class CompositePDFDocumentFactory: PDFDocumentFactory, Loggable {
         self.factories = factories
     }
 
-    public func open(url: URL, password: String?) throws -> PDFDocument {
-        try eachFactory { try $0.open(url: url, password: password) }
+    public func open(file: FileURL, password: String?) async throws -> PDFDocument {
+        try await eachFactory { try await $0.open(file: file, password: password) }
     }
 
-    public func open(resource: Resource, password: String?) throws -> PDFDocument {
-        try eachFactory { try $0.open(resource: resource, password: password) }
+    public func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument {
+        try await eachFactory { try await $0.open(resource: resource, at: href, password: password) }
     }
 
-    private func eachFactory(tryOpen: (PDFDocumentFactory) throws -> PDFDocument) throws -> PDFDocument {
+    private func eachFactory(tryOpen: (PDFDocumentFactory) async throws -> PDFDocument) async throws -> PDFDocument {
         for factory in factories {
             do {
-                return try tryOpen(factory)
+                return try await tryOpen(factory)
             } catch PDFDocumentError.openFailed {
                 continue
             }

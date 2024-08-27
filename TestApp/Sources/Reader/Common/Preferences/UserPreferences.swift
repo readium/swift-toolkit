@@ -6,8 +6,8 @@
 
 import Combine
 import Foundation
-import R2Navigator
-import R2Shared
+import ReadiumNavigator
+import ReadiumShared
 import SwiftUI
 
 final class UserPreferencesViewModel<
@@ -168,15 +168,15 @@ struct UserPreferences<
     /// fixed-layout EPUB, PDF or comic book.
     @ViewBuilder func fixedLayoutUserPreferences(
         commit: @escaping () -> Void,
-        backgroundColor: AnyPreference<R2Navigator.Color>? = nil,
-        fit: AnyEnumPreference<R2Navigator.Fit>? = nil,
+        backgroundColor: AnyPreference<ReadiumNavigator.Color>? = nil,
+        fit: AnyEnumPreference<ReadiumNavigator.Fit>? = nil,
         language: AnyPreference<Language?>? = nil,
         offsetFirstPage: AnyPreference<Bool>? = nil,
         pageSpacing: AnyRangePreference<Double>? = nil,
-        readingProgression: AnyEnumPreference<R2Navigator.ReadingProgression>? = nil,
+        readingProgression: AnyEnumPreference<ReadiumNavigator.ReadingProgression>? = nil,
         scroll: AnyPreference<Bool>? = nil,
-        scrollAxis: AnyEnumPreference<R2Navigator.Axis>? = nil,
-        spread: AnyEnumPreference<R2Navigator.Spread>? = nil,
+        scrollAxis: AnyEnumPreference<ReadiumNavigator.Axis>? = nil,
+        spread: AnyEnumPreference<ReadiumNavigator.Spread>? = nil,
         visibleScrollbar: AnyPreference<Bool>? = nil
     ) -> some View {
         if language != nil || readingProgression != nil {
@@ -298,7 +298,7 @@ struct UserPreferences<
     /// enabled.
     @ViewBuilder func reflowableUserPreferences(
         commit: @escaping () -> Void,
-        backgroundColor: AnyPreference<R2Navigator.Color>? = nil,
+        backgroundColor: AnyPreference<ReadiumNavigator.Color>? = nil,
         columnCount: AnyEnumPreference<ColumnCount>? = nil,
         fontFamily: AnyPreference<FontFamily?>? = nil,
         fontSize: AnyRangePreference<Double>? = nil,
@@ -313,10 +313,10 @@ struct UserPreferences<
         paragraphIndent: AnyRangePreference<Double>? = nil,
         paragraphSpacing: AnyRangePreference<Double>? = nil,
         publisherStyles: AnyPreference<Bool>? = nil,
-        readingProgression: AnyEnumPreference<R2Navigator.ReadingProgression>? = nil,
+        readingProgression: AnyEnumPreference<ReadiumNavigator.ReadingProgression>? = nil,
         scroll: AnyPreference<Bool>? = nil,
-        textAlign: AnyEnumPreference<R2Navigator.TextAlignment?>? = nil,
-        textColor: AnyPreference<R2Navigator.Color>? = nil,
+        textAlign: AnyEnumPreference<ReadiumNavigator.TextAlignment?>? = nil,
+        textColor: AnyPreference<ReadiumNavigator.Color>? = nil,
         textNormalization: AnyPreference<Bool>? = nil,
         theme: AnyEnumPreference<Theme>? = nil,
         typeScale: AnyRangePreference<Double>? = nil,
@@ -752,7 +752,7 @@ struct UserPreferences<
     /// Component for a `Preference` holding a `Color` value.
     @ViewBuilder func colorRow(
         title: String,
-        preference: AnyPreference<R2Navigator.Color>,
+        preference: AnyPreference<ReadiumNavigator.Color>,
         commit: @escaping () -> Void
     ) -> some View {
         colorRow(
@@ -760,7 +760,7 @@ struct UserPreferences<
             value: Binding(
                 get: { (preference.value ?? preference.effectiveValue).color },
                 set: {
-                    preference.set(R2Navigator.Color(color: $0))
+                    preference.set(ReadiumNavigator.Color(color: $0))
                     commit()
                 }
             ),

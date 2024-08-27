@@ -4,29 +4,39 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import R2Shared
+@testable import ReadiumShared
 import XCTest
 
 class UserRightsTests: XCTestCase {
-    func testUnrestricted() {
+    func testUnrestricted() async {
         let rights = UnrestrictedUserRights()
 
-        XCTAssertTrue(rights.canCopy)
-        XCTAssertTrue(rights.canCopy(text: "1"))
-        XCTAssertTrue(rights.copy(text: "1"))
-        XCTAssertTrue(rights.canPrint)
-        XCTAssertTrue(rights.canPrint(pageCount: 1))
-        XCTAssertTrue(rights.print(pageCount: 1))
+        let r1 = await rights.canCopy(text: "1")
+        XCTAssertTrue(r1)
+
+        let r2 = await rights.copy(text: "1")
+        XCTAssertTrue(r2)
+
+        let r3 = await rights.canPrint(pageCount: 1)
+        XCTAssertTrue(r3)
+
+        let r4 = await rights.print(pageCount: 1)
+        XCTAssertTrue(r4)
     }
 
-    func testAllRestricted() {
+    func testAllRestricted() async {
         let rights = AllRestrictedUserRights()
 
-        XCTAssertFalse(rights.canCopy)
-        XCTAssertFalse(rights.canCopy(text: "1"))
-        XCTAssertFalse(rights.copy(text: "1"))
-        XCTAssertFalse(rights.canPrint)
-        XCTAssertFalse(rights.canPrint(pageCount: 1))
-        XCTAssertFalse(rights.print(pageCount: 1))
+        let r1 = await rights.canCopy(text: "1")
+        XCTAssertFalse(r1)
+
+        let r2 = await rights.copy(text: "1")
+        XCTAssertFalse(r2)
+
+        let r3 = await rights.canPrint(pageCount: 1)
+        XCTAssertFalse(r3)
+
+        let r4 = await rights.print(pageCount: 1)
+        XCTAssertFalse(r4)
     }
 }

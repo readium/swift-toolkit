@@ -6,13 +6,15 @@
 
 import AVFoundation
 import Foundation
-import R2Shared
+import ReadiumShared
 
 public protocol PublicationSpeechSynthesizerDelegate: AnyObject {
     /// Called when the synthesizer's state is updated.
+    @MainActor
     func publicationSpeechSynthesizer(_ synthesizer: PublicationSpeechSynthesizer, stateDidChange state: PublicationSpeechSynthesizer.State)
 
     /// Called when an `error` occurs while speaking `utterance`.
+    @MainActor
     func publicationSpeechSynthesizer(_ synthesizer: PublicationSpeechSynthesizer, utterance: PublicationSpeechSynthesizer.Utterance, didFailWithError error: PublicationSpeechSynthesizer.Error)
 }
 
@@ -89,7 +91,9 @@ public class PublicationSpeechSynthesizer: Loggable {
                 AudioSession.shared.user(audioSessionUser, didChangePlaying: state.isPlaying)
             }
 
-            delegate?.publicationSpeechSynthesizer(self, stateDidChange: state)
+            Task {
+                await delegate?.publicationSpeechSynthesizer(self, stateDidChange: state)
+            }
         }
     }
 
@@ -152,7 +156,7 @@ public class PublicationSpeechSynthesizer: Loggable {
         )
     }
 
-    private var currentTask: Cancellable? = nil
+    private var currentTask: Task<Void, Never>? = nil
 
     private lazy var engine: TTSEngine = engineFactory()
 
@@ -181,7 +185,9 @@ public class PublicationSpeechSynthesizer: Loggable {
 
         currentTask?.cancel()
         publicationIterator = publication.content(from: startLocator)?.iterator()
-        playNextUtterance(.forward)
+        currentTask = Task {
+            await playNextUtterance(.forward)
+        }
     }
 
     /// Stops the synthesizer.
@@ -207,7 +213,9 @@ public class PublicationSpeechSynthesizer: Loggable {
     public func resume() {
         currentTask?.cancel()
         if case let .paused(utterance) = state {
-            play(utterance)
+            currentTask = Task {
+                await play(utterance)
+            }
         }
     }
 
@@ -223,13 +231,17 @@ public class PublicationSpeechSynthesizer: Loggable {
     /// Skips to the previous utterance.
     public func previous() {
         currentTask?.cancel()
-        playNextUtterance(.backward)
+        currentTask = Task {
+            await playNextUtterance(.backward)
+        }
     }
 
     /// Skips to the next utterance.
     public func next() {
         currentTask?.cancel()
-        playNextUtterance(.forward)
+        currentTask = Task {
+            await playNextUtterance(.forward)
+        }
     }
 
     /// `Content.Iterator` used to iterate through the `publication`.
@@ -243,17 +255,19 @@ public class PublicationSpeechSynthesizer: Loggable {
     private var utterances: CursorList<Utterance> = CursorList()
 
     /// Plays the next utterance in the given `direction`.
-    private func playNextUtterance(_ direction: Direction) {
-        guard let utterance = nextUtterance(direction) else {
+    private func playNextUtterance(_ direction: Direction) async {
+        guard let utterance = await nextUtterance(direction) else {
             state = .stopped
             return
         }
-        play(utterance)
+        await play(utterance)
     }
 
     /// Plays the given `utterance` with the TTS `engine`.
-    private func play(_ utterance: Utterance) {
-        currentTask = engine.speak(
+    private func play(_ utterance: Utterance) async {
+        state = .playing(utterance, range: nil)
+
+        let result = await engine.speak(
             TTSUtterance(
                 text: utterance.text,
                 delay: 0,
@@ -278,23 +292,20 @@ public class PublicationSpeechSynthesizer: Loggable {
                         }
                     )
                 )
-            },
-            completion: { [weak self] result in
-                guard let self = self else {
-                    return
-                }
-
-                switch result {
-                case .success:
-                    self.playNextUtterance(.forward)
-                case let .failure(error):
-                    self.state = .paused(utterance)
-                    self.delegate?.publicationSpeechSynthesizer(self, utterance: utterance, didFailWithError: .engine(error))
-                }
             }
         )
 
-        state = .playing(utterance, range: nil)
+        guard !Task.isCancelled else {
+            return
+        }
+
+        switch result {
+        case .success:
+            await playNextUtterance(.forward)
+        case let .failure(error):
+            state = .paused(utterance)
+            await delegate?.publicationSpeechSynthesizer(self, utterance: utterance, didFailWithError: .engine(error))
+        }
     }
 
     /// Returns the user selected voice if it's compatible with the utterance language. Otherwise, falls back on
@@ -315,10 +326,10 @@ public class PublicationSpeechSynthesizer: Loggable {
     }
 
     /// Gets the next utterance in the given `direction`, or null when reaching the beginning or the end.
-    private func nextUtterance(_ direction: Direction) -> Utterance? {
+    private func nextUtterance(_ direction: Direction) async -> Utterance? {
         guard let utterance = utterances.next(direction) else {
-            if loadNextUtterances(direction) {
-                return nextUtterance(direction)
+            if await loadNextUtterances(direction) {
+                return await nextUtterance(direction)
             }
             return nil
         }
@@ -326,9 +337,9 @@ public class PublicationSpeechSynthesizer: Loggable {
     }
 
     /// Loads the utterances for the next publication `ContentElement` item in the given `direction`.
-    private func loadNextUtterances(_ direction: Direction) -> Bool {
+    private func loadNextUtterances(_ direction: Direction) async -> Bool {
         do {
-            guard let content = try publicationIterator?.next(direction) else {
+            guard let content = try await publicationIterator?.next(direction) else {
                 return false
             }
 
@@ -336,7 +347,7 @@ public class PublicationSpeechSynthesizer: Loggable {
                 .flatMap { utterances(for: $0) }
 
             if nextUtterances.isEmpty {
-                return loadNextUtterances(direction)
+                return await loadNextUtterances(direction)
             }
 
             utterances = CursorList(
@@ -405,7 +416,7 @@ public class PublicationSpeechSynthesizer: Loggable {
 
     private let audioSessionUser: AudioSessionUser
 
-    private final class AudioSessionUser: R2Shared.AudioSessionUser {
+    private final class AudioSessionUser: ReadiumShared.AudioSessionUser {
         let audioConfiguration: AudioSession.Configuration
 
         init(config: AudioSession.Configuration) {
@@ -436,12 +447,12 @@ private extension CursorList {
 }
 
 private extension ContentIterator {
-    func next(_ direction: Direction) throws -> ContentElement? {
+    func next(_ direction: Direction) async throws -> ContentElement? {
         switch direction {
         case .forward:
-            return try next()
+            return try await next()
         case .backward:
-            return try previous()
+            return try await previous()
         }
     }
 }

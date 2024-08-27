@@ -6,8 +6,8 @@
 
 import Combine
 import Foundation
-import R2Shared
-import R2Streamer
+import ReadiumShared
+import ReadiumStreamer
 import UIKit
 
 /// Base module delegate, that sub-modules' delegate can extend.
@@ -27,18 +27,34 @@ final class AppModule {
     var opds: OPDSModuleAPI!
 
     init() throws {
-        let httpClient = DefaultHTTPClient()
-        let db = try Database(file: Paths.library.appendingPathComponent("database.db"))
+        let file = Paths.library.appendingPath("database.db", isDirectory: false)
+        let db = try Database(file: file.url)
+        print("Created database at \(file.path)")
+
         let books = BookRepository(db: db)
         let bookmarks = BookmarkRepository(db: db)
         let highlights = HighlightRepository(db: db)
 
-        library = LibraryModule(delegate: self, books: books, httpClient: httpClient)
-        reader = ReaderModule(delegate: self, books: books, bookmarks: bookmarks, highlights: highlights)
+        let readium = Readium()
+
+        library = LibraryModule(
+            delegate: self,
+            books: books,
+            readium: readium
+        )
+
+        reader = ReaderModule(
+            delegate: self,
+            books: books,
+            bookmarks: bookmarks,
+            highlights: highlights,
+            readium: readium
+        )
+
         opds = OPDSModule(delegate: self)
 
         // Set Readium 2's logging minimum level.
-        R2EnableLog(withMinimumSeverityLevel: .debug)
+        ReadiumEnableLog(withMinimumSeverityLevel: .trace)
     }
 
     private(set) lazy var aboutViewController: UIViewController = {
@@ -61,9 +77,19 @@ extension AppModule: ModuleDelegate {
     func presentError(_ error: Error?, from viewController: UIViewController) {
         guard let error = error else { return }
         if case LibraryError.cancelled = error { return }
+
+        var message = ""
+        if let error = (error as? LocalizedError)?.errorDescription {
+            message += error + "\n\n"
+        }
+
+        var desc = ""
+        dump(error, to: &desc)
+        message += desc
+
         presentAlert(
             NSLocalizedString("error_title", comment: "Alert title for errors"),
-            message: error.localizedDescription,
+            message: message,
             from: viewController
         )
     }
@@ -79,10 +105,9 @@ extension AppModule: ReaderModuleDelegate {}
 
 extension AppModule: OPDSModuleDelegate {
     func opdsDownloadPublication(_ publication: Publication?, at link: Link, sender: UIViewController) async throws -> Book {
-        guard let url = link.url(relativeTo: publication?.baseURL) else {
-            throw LibraryError.cancelled
+        guard let url = link.url(relativeTo: publication?.baseURL).absoluteURL else {
+            throw OPDSError.invalidURL(link.href)
         }
-
         return try await library.importPublication(from: url, sender: sender)
     }
 }

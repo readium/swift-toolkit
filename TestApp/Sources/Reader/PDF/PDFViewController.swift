@@ -5,9 +5,8 @@
 //
 
 import Foundation
-import R2Navigator
-import R2Shared
-import ReadiumAdapterGCDWebServer
+import ReadiumNavigator
+import ReadiumShared
 import SwiftUI
 import UIKit
 
@@ -22,7 +21,8 @@ final class PDFViewController: VisualReaderViewController<PDFNavigatorViewContro
         bookmarks: BookmarkRepository,
         highlights: HighlightRepository,
         initialPreferences: PDFPreferences,
-        preferencesStore: AnyUserPreferencesStore<PDFPreferences>
+        preferencesStore: AnyUserPreferencesStore<PDFPreferences>,
+        httpServer: HTTPServer
     ) throws {
         self.preferencesStore = preferencesStore
 
@@ -32,7 +32,7 @@ final class PDFViewController: VisualReaderViewController<PDFNavigatorViewContro
             config: PDFNavigatorViewController.Configuration(
                 preferences: initialPreferences
             ),
-            httpServer: GCDHTTPServer.shared
+            httpServer: httpServer
         )
 
         super.init(navigator: navigator, publication: publication, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights)

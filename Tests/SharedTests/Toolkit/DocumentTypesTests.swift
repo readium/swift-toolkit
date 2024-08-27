@@ -4,11 +4,11 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import R2Shared
+@testable import ReadiumShared
 import XCTest
 
 class DocumentTypesTests: XCTestCase {
-    private let infoDictionary = NSDictionary(contentsOf: Fixtures().url(for: "DocumentTypes.plist")) as! [String: Any]
+    private let infoDictionary = NSDictionary(contentsOf: Fixtures().url(for: "DocumentTypes.plist").url) as! [String: Any]
     private var sut: DocumentTypes!
 
     override func setUp() {
@@ -41,7 +41,7 @@ class DocumentTypesTests: XCTestCase {
         XCTAssertEqual(all[2], DocumentType(
             name: "EPUB Publication",
             utis: ["org.idpf.epub-container"],
-            preferredMediaType: MediaType("application/epub+zip", name: "EPUB Publication", fileExtension: "epub")!,
+            preferredMediaType: MediaType("application/epub+zip")!,
             mediaTypes: [
                 MediaType("application/epub+zip")!,
             ],

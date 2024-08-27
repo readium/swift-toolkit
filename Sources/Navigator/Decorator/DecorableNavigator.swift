@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 
 /// A navigator able to render arbitrary decorations over a publication.
@@ -28,7 +28,7 @@ public protocol DecorableNavigator {
     /// Registers new callbacks for decoration interactions in the given `group`.
     ///
     /// - Parameter onActivated: Called when the user activates the decoration, e.g. with a click or tap.
-    func observeDecorationInteractions(inGroup group: String, onActivated: OnActivatedCallback?)
+    func observeDecorationInteractions(inGroup group: String, onActivated: @escaping OnActivatedCallback)
 
     /// Called when the user activates a decoration, e.g. with a click or tap.
     typealias OnActivatedCallback = (_ event: OnDecorationActivatedEvent) -> Void
@@ -46,12 +46,6 @@ public struct OnDecorationActivatedEvent {
     /// Event point of the interaction, in the coordinate of the navigator view. This is only useful in the context of a
     /// VisualNavigator.
     public let point: CGPoint?
-}
-
-public extension DecorableNavigator {
-    func observeDecorationInteractions(inGroup group: String, onActivated: OnActivatedCallback? = nil) {
-        observeDecorationInteractions(inGroup: group, onActivated: onActivated)
-    }
 }
 
 /// A decoration is a user interface element drawn on top of a publication. It associates a `style` to be rendered with

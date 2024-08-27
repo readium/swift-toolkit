@@ -14,13 +14,13 @@ import Foundation
 #if !SWIFT_PACKAGE
     extension Bundle {
         #if !COCOAPODS
-            /// Returns R2Streamer's bundle by querying an arbitrary type.
-            static let module = Bundle(for: Streamer.self)
+            /// Returns ReadiumStreamer's bundle by querying an arbitrary type.
+            static let module = Bundle(for: PublicationOpener.self)
         #else
-            /// Returns R2Streamer's bundle by querying for the cocoapods bundle.
+            /// Returns ReadiumStreamer's bundle by querying for the cocoapods bundle.
             static let module = Bundle.getCocoaPodsBundle()
             static func getCocoaPodsBundle() -> Bundle {
-                let rootBundle = Bundle(for: Streamer.self)
+                let rootBundle = Bundle(for: PublicationOpener.self)
                 guard let resourceBundleUrl = rootBundle.url(forResource: "ReadiumStreamer", withExtension: "bundle") else {
                     fatalError("Unable to locate ReadiumStreamer.bundle")
                 }

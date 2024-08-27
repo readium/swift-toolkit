@@ -7,17 +7,17 @@ on:
 
 env:
   platform: ${{ 'iOS Simulator' }}
-  device: ${{ 'iPhone 12' }}
+  device: ${{ 'iPhone 15' }}
   commit_sha: ${{ github.sha }}
+  DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
 
 jobs:
   build:
     name: Build
-    runs-on: macos-12
+    runs-on: macos-14
     if: ${{ !github.event.pull_request.draft }}
     env:
       scheme: ${{ 'Readium-Package' }}
-      DEVELOPER_DIR: /Applications/Xcode_13.4.1.app/Contents/Developer
 
     steps:
       - name: Checkout
@@ -42,7 +42,7 @@ jobs:
 
   lint:
     name: Lint
-    runs-on: macos-12
+    runs-on: macos-14
     if: ${{ !github.event.pull_request.draft }}
     env:
       scripts: ${{ 'Sources/Navigator/EPUB/Scripts' }}
@@ -76,7 +76,7 @@ jobs:
 
   int-dev:
     name: Integration (Local)
-    runs-on: macos-12
+    runs-on: macos-14
     if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
@@ -98,7 +98,7 @@ jobs:
 
   int-spm:
     name: Integration (Swift Package Manager)
-    runs-on: macos-12
+    runs-on: macos-14
     if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
@@ -126,7 +126,7 @@ jobs:
 
   int-carthage:
     name: Integration (Carthage)
-    runs-on: macos-12
+    runs-on: macos-14
     if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
@@ -157,7 +157,7 @@ jobs:
   int-cocoapods:
     name: Integration (CocoaPods)
     if: github.event_name == 'push'
-    runs-on: macos-12
+    runs-on: macos-14
     defaults:
       run:
         working-directory: TestApp

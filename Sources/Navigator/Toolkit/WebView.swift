@@ -44,7 +44,9 @@ final class WebView: WKWebView {
     }
 
     override func copy(_ sender: Any?) {
-        editingActions.copy()
+        Task {
+            await editingActions.copy()
+        }
     }
 
     override func didMoveToWindow() {

@@ -18,6 +18,15 @@ packages:
   SwiftSoup:
     url: https://github.com/scinfu/SwiftSoup.git
     from: 2.3.2
+schemes:
+  TestApp:
+    build:
+      targets:
+        TestApp: none
+    test:
+      testPlans:
+        - path: TestApp.xctestplan
+          defaultPlan: true
 targets:
   TestApp:
     type: application
@@ -33,13 +42,15 @@ targets:
       - package: R2LCPClient
         product: R2LCPClient
       - package: Readium
-        product: R2Shared
+        product: ReadiumShared
       - package: Readium
-        product: R2Streamer
+        product: ReadiumStreamer
       - package: Readium
-        product: R2Navigator
+        product: ReadiumNavigator
       - package: Readium
         product: ReadiumAdapterGCDWebServer
+      - package: Readium
+        product: ReadiumAdapterLCPSQLite
       - package: Readium
         product: ReadiumOPDS
       - package: Readium

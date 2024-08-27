@@ -28,6 +28,7 @@ public extension AudioSessionUser {
 }
 
 /// Manages an activated `AVAudioSession`.
+@MainActor
 public final class AudioSession: Loggable {
     public struct Configuration: Equatable {
         let category: AVAudioSession.Category
@@ -49,41 +50,67 @@ public final class AudioSession: Loggable {
     }
 
     /// Shared `AudioSession` for this app.
-    public static let shared = AudioSession()
+    public nonisolated static let shared = AudioSession()
 
-    private init() {
-        observeAppStateChanges()
+    private nonisolated init() {
+        Task {
+            await observeAppStateChanges()
+        }
     }
 
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
 
+    struct User {
+        let id: ObjectIdentifier
+        private(set) weak var user: AudioSessionUser?
+
+        init(_ user: AudioSessionUser) {
+            id = ObjectIdentifier(user)
+            self.user = user
+        }
+    }
+
     /// Current user of the `AudioSession`.
-    private weak var user: AudioSessionUser?
+    private var user: User?
 
     /// Starts a new audio session with the given `user`.
-    public func start(with user: AudioSessionUser, isPlaying: Bool) {
-        guard self.user !== user else {
+    public nonisolated func start(with user: AudioSessionUser, isPlaying: Bool) {
+        Task {
+            await start(with: user, isPlaying: isPlaying)
+        }
+    }
+
+    private func start(with user: AudioSessionUser, isPlaying: Bool) async {
+        let id = ObjectIdentifier(user)
+        guard self.user?.id != id else {
             return
         }
 
         if let oldUser = self.user {
-            end(for: oldUser)
+            end(forUserID: oldUser.id)
         }
-        self.user = user
+        self.user = User(user)
         self.isPlaying = false
 
         startSession(with: user.audioConfiguration)
     }
 
     /// Ends the current audio session.
-    public func end(for user: AudioSessionUser) {
-        guard self.user === user || self.user == nil else {
+    public nonisolated func end(for user: AudioSessionUser) {
+        let id = ObjectIdentifier(user)
+        Task {
+            await end(forUserID: id)
+        }
+    }
+
+    private func end(forUserID id: ObjectIdentifier) {
+        guard user?.id == id else {
             return
         }
 
-        self.user = nil
+        user = nil
         isPlaying = false
 
         endSession()
@@ -92,8 +119,15 @@ public final class AudioSession: Loggable {
     /// Indicates whether the `user` is playing.
     private var isPlaying: Bool = false
 
-    public func user(_ user: AudioSessionUser, didChangePlaying isPlaying: Bool) {
-        guard self.user === user, self.isPlaying != isPlaying else {
+    public nonisolated func user(_ user: AudioSessionUser, didChangePlaying isPlaying: Bool) {
+        Task {
+            await self.user(user, didChangePlaying: isPlaying)
+        }
+    }
+
+    private func user(_ user: AudioSessionUser, didChangePlaying isPlaying: Bool) async {
+        let id = ObjectIdentifier(user)
+        guard self.user?.id == id, self.isPlaying != isPlaying else {
             return
         }
 
@@ -131,6 +165,7 @@ public final class AudioSession: Loggable {
         do {
             try audioSession.setCategory(config.category, mode: config.mode, policy: config.routeSharingPolicy, options: config.options)
             try audioSession.setActive(true)
+            log(.info, "Started audio session with category: \(config.category), mode: \(config.mode), policy: \(config.routeSharingPolicy), options: \(config.options)")
         } catch {
             log(.error, "Failed to start the audio session: \(error)")
         }
@@ -154,6 +189,7 @@ public final class AudioSession: Loggable {
         do {
             AVAudioSession.sharedInstance()
             try AVAudioSession.sharedInstance().setActive(false)
+            log(.info, "Ended audio session")
         } catch {
             log(.error, "Failed to end the audio session: \(error)")
         }
@@ -168,7 +204,7 @@ public final class AudioSession: Loggable {
     /// The observer of audio session interruption notifications.
     private var interruptionObserver: Any?
 
-    private func handleAudioSessionInterruption(notification: Notification) {
+    private nonisolated func handleAudioSessionInterruption(notification: Notification) {
         guard let userInfo = notification.userInfo,
               let rawInterruptionType = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
               let interruptionType = AVAudioSession.InterruptionType(rawValue: rawInterruptionType)
@@ -180,7 +216,13 @@ public final class AudioSession: Loggable {
             .map(AVAudioSession.InterruptionOptions.init(rawValue:))
             ?? []
 
-        switch interruptionType {
+        Task {
+            await handleAudioSessionInterruption(type: interruptionType, options: options)
+        }
+    }
+
+    private func handleAudioSessionInterruption(type: AVAudioSession.InterruptionType, options: AVAudioSession.InterruptionOptions) {
+        switch type {
         case .began:
             isInterrupted = true
 
@@ -190,7 +232,7 @@ public final class AudioSession: Loggable {
             // When an interruption ends, determine whether playback should resume automatically,
             // and reactivate the audio session if necessary.
             do {
-                if let user = user {
+                if let user = user?.user {
                     try AVAudioSession.sharedInstance().setActive(true)
 
                     if options.contains(.shouldResume) {

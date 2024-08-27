@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 final class LCPContentProtection: ContentProtection, Loggable {
     private let service: LCPService
@@ -17,50 +17,51 @@ final class LCPContentProtection: ContentProtection, Loggable {
     }
 
     func open(
-        asset: PublicationAsset,
-        fetcher: Fetcher,
+        asset: Asset,
         credentials: String?,
         allowUserInteraction: Bool,
-        sender: Any?,
-        completion: @escaping (CancellableResult<ProtectedAsset?, Publication.OpeningError>) -> Void
-    ) {
-        guard let file = asset as? FileAsset else {
-            log(.warning, "Only `FileAsset` is supported with the `LCPContentProtection`. Make sure you are trying to open a package from the file system.")
-            completion(.success(nil))
-            return
+        sender: Any?
+    ) async -> Result<ContentProtectionAsset, ContentProtectionOpenError> {
+        guard asset.format.conformsTo(.lcp) else {
+            return .failure(.assetNotSupported(DebugError("The asset does not appear to be protected with LCP")))
+        }
+        guard
+            case var .container(asset) = asset,
+            asset.container.sourceURL?.scheme == .file
+        else {
+            return .failure(.assetNotSupported(DebugError("Only container asset of local files are currently supported with LCP")))
         }
 
-        let authentication = credentials.map { LCPPassphraseAuthentication($0, fallback: self.authentication) }
-            ?? self.authentication
+        return await parseEncryptionData(in: asset)
+            .mapError { ContentProtectionOpenError.reading(.decoding($0)) }
+            .flatMap { encryptionData in
+                let authentication = credentials.map { LCPPassphraseAuthentication($0, fallback: self.authentication) }
+                    ?? self.authentication
 
-        service.retrieveLicense(
-            from: file.url,
-            authentication: authentication,
-            allowUserInteraction: allowUserInteraction,
-            sender: sender
-        ) { result in
-            if case let .success(license) = result, license == nil {
-                // Not protected with LCP.
-                completion(.success(nil))
-                return
-            }
+                let license = await self.service.retrieveLicense(
+                    from: .container(asset),
+                    authentication: authentication,
+                    allowUserInteraction: allowUserInteraction,
+                    sender: sender
+                )
 
-            let license = try? result.get()
-            let protectedAsset = ProtectedAsset(
-                asset: asset,
-                fetcher: TransformingFetcher(
-                    fetcher: fetcher,
-                    transformer: LCPDecryptor(license: license).decrypt(resource:)
-                ),
-                onCreatePublication: { _, _, _, services in
-                    services.setContentProtectionServiceFactory { _ in
-                        LCPContentProtectionService(result: result)
-                    }
+                if let license = try? license.get() {
+                    let decryptor = LCPDecryptor(license: license, encryptionData: encryptionData)
+                    asset.container = asset.container
+                        .map(transform: decryptor.decrypt(at:resource:))
                 }
-            )
 
-            completion(.success(protectedAsset))
-        }
+                let cpAsset = ContentProtectionAsset(
+                    asset: .container(asset),
+                    onCreatePublication: { _, _, services in
+                        services.setContentProtectionServiceFactory { _ in
+                            LCPContentProtectionService(result: license)
+                        }
+                    }
+                )
+
+                return .success(cpAsset)
+            }
     }
 }
 
@@ -86,16 +87,16 @@ private final class LCPContentProtectionService: ContentProtectionService {
         self.error = error
     }
 
-    convenience init(result: CancellableResult<LCPLicense?, LCPError>) {
+    convenience init(result: Result<LCPLicense?, LCPError>) {
         switch result {
         case let .success(license):
             self.init(license: license)
         case let .failure(error):
             self.init(error: error)
-        case .cancelled:
-            self.init()
         }
     }
+
+    let scheme: ContentProtectionScheme = .lcp
 
     var isRestricted: Bool {
         license == nil

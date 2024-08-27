@@ -7,7 +7,7 @@
 import Combine
 import Foundation
 import GRDB
-import R2Shared
+import ReadiumShared
 
 struct Book: Codable {
     struct Id: EntityId { let rawValue: Int64 }
@@ -38,7 +38,7 @@ struct Book: Codable {
     /// reading progression, spreads).
     var preferencesJSON: String?
 
-    var mediaType: MediaType { MediaType.of(mediaType: type) ?? .binary }
+    var mediaType: MediaType { MediaType(type) ?? .binary }
 
     init(
         id: Id? = nil,
@@ -65,8 +65,8 @@ struct Book: Codable {
         self.preferencesJSON = preferencesJSON
     }
 
-    var cover: URL? {
-        coverPath.map { Paths.covers.appendingPathComponent($0) }
+    var cover: FileURL? {
+        coverPath.map { Paths.covers.appendingPath($0, isDirectory: false) }
     }
 
     func preferences<P: Decodable>() throws -> P? {

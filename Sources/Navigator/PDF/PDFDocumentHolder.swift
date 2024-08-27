@@ -6,28 +6,28 @@
 
 import Foundation
 import PDFKit
-import R2Shared
+import ReadiumShared
 
 final class PDFDocumentHolder {
-    private var href: String?
+    private var href: AnyURL?
     private var document: PDFKit.PDFDocument?
 
-    func set(_ document: PDFKit.PDFDocument, at href: String) {
-        self.href = href
+    func set<HREF: URLConvertible>(_ document: PDFKit.PDFDocument, at href: HREF) {
+        self.href = href.anyURL
         self.document = document
     }
 }
 
-extension PDFDocumentHolder: R2Shared.PDFDocumentFactory {
-    func open(url: URL, password: String?) throws -> R2Shared.PDFDocument {
-        guard let document = document, url.absoluteString == href else {
+extension PDFDocumentHolder: ReadiumShared.PDFDocumentFactory {
+    func open(file: FileURL, password: String?) throws -> ReadiumShared.PDFDocument {
+        guard let document = document, file.anyURL == href else {
             throw PDFDocumentError.openFailed
         }
         return document
     }
 
-    func open(resource: Resource, password: String?) throws -> R2Shared.PDFDocument {
-        guard let document = document, resource.link.href == href else {
+    public func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> ReadiumShared.PDFDocument {
+        guard let document = document, self.href == href.anyURL else {
             throw PDFDocumentError.openFailed
         }
         return document

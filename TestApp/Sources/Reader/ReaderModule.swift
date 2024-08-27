@@ -6,7 +6,7 @@
 
 import Combine
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 
 /// The ReaderModule handles the presentation of publications to be read by the user.
@@ -26,17 +26,25 @@ final class ReaderModule: ReaderModuleAPI {
     private let books: BookRepository
     private let bookmarks: BookmarkRepository
     private let highlights: HighlightRepository
+    private let readium: Readium
 
     /// Sub-modules to handle different publication formats (eg. EPUB, CBZ)
     var formatModules: [ReaderFormatModule] = []
 
     private let factory = ReaderFactory()
 
-    init(delegate: ReaderModuleDelegate?, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) {
+    init(
+        delegate: ReaderModuleDelegate?,
+        books: BookRepository,
+        bookmarks: BookmarkRepository,
+        highlights: HighlightRepository,
+        readium: Readium
+    ) {
         self.delegate = delegate
         self.books = books
         self.bookmarks = bookmarks
         self.highlights = highlights
+        self.readium = readium
 
         formatModules = [
             AudiobookModule(delegate: self),
@@ -66,7 +74,15 @@ final class ReaderModule: ReaderModuleAPI {
             }
 
             do {
-                let readerViewController = try await module.makeReaderViewController(for: publication, locator: book.locator, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights)
+                let readerViewController = try await module.makeReaderViewController(
+                    for: publication,
+                    locator: book.locator,
+                    bookId: bookId,
+                    books: books,
+                    bookmarks: bookmarks,
+                    highlights: highlights,
+                    readium: readium
+                )
                 await present(readerViewController)
             } catch {
                 delegate.presentError(error, from: navigationController)
@@ -77,11 +93,15 @@ final class ReaderModule: ReaderModuleAPI {
 
 extension ReaderModule: ReaderFormatModuleDelegate {
     func presentDRM(for publication: Publication, from viewController: UIViewController) {
-        let drmViewController: DRMManagementTableViewController = factory.make(publication: publication, delegate: delegate)
-        let backItem = UIBarButtonItem()
-        backItem.title = ""
-        drmViewController.navigationItem.backBarButtonItem = backItem
-        viewController.navigationController?.pushViewController(drmViewController, animated: true)
+        #if LCP
+            guard let drmViewController: LCPManagementTableViewController = factory.make(publication: publication, delegate: delegate) else {
+                return
+            }
+            let backItem = UIBarButtonItem()
+            backItem.title = ""
+            drmViewController.navigationItem.backBarButtonItem = backItem
+            viewController.navigationController?.pushViewController(drmViewController, animated: true)
+        #endif
     }
 
     func presentOutline(of publication: Publication, bookId: Book.Id, from viewController: UIViewController) -> AnyPublisher<Locator, Never> {

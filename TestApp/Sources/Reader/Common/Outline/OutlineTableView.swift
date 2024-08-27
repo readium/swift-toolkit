@@ -5,7 +5,7 @@
 //
 
 import Combine
-import R2Shared
+import ReadiumShared
 import SwiftUI
 
 typealias OutlineTableViewAdapter = (UIHostingController<OutlineTableView>, AnyPublisher<Locator, Never>)
@@ -25,14 +25,14 @@ struct OutlineTableView: View {
     @State private var selectedSection: OutlineSection = .tableOfContents
 
     // Outlines (list of links) to display for each section.
-    private var outlines: [OutlineSection: [(level: Int, link: R2Shared.Link)]] = [:]
+    private var outlines: [OutlineSection: [(level: Int, link: ReadiumShared.Link)]] = [:]
 
     init(publication: Publication, bookId: Book.Id, bookmarkRepository: BookmarkRepository, highlightRepository: HighlightRepository) {
         self.publication = publication
         bookmarksModel = BookmarksViewModel(bookId: bookId, repository: bookmarkRepository)
         highlightsModel = HighlightsViewModel(bookId: bookId, repository: highlightRepository)
 
-        func flatten(_ links: [R2Shared.Link], level: Int = 0) -> [(level: Int, link: R2Shared.Link)] {
+        func flatten(_ links: [ReadiumShared.Link], level: Int = 0) -> [(level: Int, link: ReadiumShared.Link)] {
             links.flatMap { [(level, $0)] + flatten($0.children, level: level + 1) }
         }
 
@@ -60,8 +60,10 @@ struct OutlineTableView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .contentShape(Rectangle())
                             .onTapGesture {
-                                if let locator = publication.locate(item.link) {
-                                    locatorSubject.send(locator)
+                                Task {
+                                    if let locator = await publication.locate(item.link) {
+                                        locatorSubject.send(locator)
+                                    }
                                 }
                             }
                     }

@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import R2Shared
+@testable import ReadiumShared
 import XCTest
 
 class LocatorTests: XCTestCase {
@@ -16,7 +16,7 @@ class LocatorTests: XCTestCase {
             ]),
             Locator(
                 href: "http://locator",
-                type: "text/html"
+                mediaType: .html
             )
         )
     }
@@ -36,7 +36,7 @@ class LocatorTests: XCTestCase {
             ] as [String: Any]),
             Locator(
                 href: "http://locator",
-                type: "text/html",
+                mediaType: .html,
                 title: "My Locator",
                 locations: .init(position: 42),
                 text: .init(highlight: "Excerpt")
@@ -59,8 +59,8 @@ class LocatorTests: XCTestCase {
                 ["href": "loc2", "type": "text/html"],
             ]),
             [
-                Locator(href: "loc1", type: "text/html"),
-                Locator(href: "loc2", type: "text/html"),
+                Locator(href: "loc1", mediaType: .html),
+                Locator(href: "loc2", mediaType: .html),
             ]
         )
     }
@@ -73,7 +73,7 @@ class LocatorTests: XCTestCase {
         AssertJSONEqual(
             Locator(
                 href: "http://locator",
-                type: "text/html"
+                mediaType: .html
             ).json,
             [
                 "href": "http://locator",
@@ -86,7 +86,7 @@ class LocatorTests: XCTestCase {
         AssertJSONEqual(
             Locator(
                 href: "http://locator",
-                type: "text/html",
+                mediaType: .html,
                 title: "My Locator",
                 locations: .init(position: 42),
                 text: .init(highlight: "Excerpt")
@@ -108,8 +108,8 @@ class LocatorTests: XCTestCase {
     func testGetJSONArray() {
         AssertJSONEqual(
             [
-                Locator(href: "loc1", type: "text/html"),
-                Locator(href: "loc2", type: "text/html"),
+                Locator(href: "loc1", mediaType: .html),
+                Locator(href: "loc2", mediaType: .html),
             ].json,
             [
                 ["href": "loc1", "type": "text/html"],
@@ -121,7 +121,7 @@ class LocatorTests: XCTestCase {
     func testCopy() {
         let locator = Locator(
             href: "http://locator",
-            type: "text/html",
+            mediaType: .html,
             title: "My Locator",
             locations: .init(position: 42),
             text: .init(highlight: "Excerpt")
@@ -452,14 +452,14 @@ class LocatorTextTests: XCTestCase {
 class LocatorCollectionTests: XCTestCase {
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            _LocatorCollection(json: [:] as [String: Any]),
-            _LocatorCollection()
+            LocatorCollection(json: [:] as [String: Any]),
+            LocatorCollection()
         )
     }
 
     func testParseFullJSON() {
         XCTAssertEqual(
-            _LocatorCollection(json: [
+            LocatorCollection(json: [
                 "metadata": [
                     "title": [
                         "en": "Searching <riddle> in Alice in Wonderlands - Page 1",
@@ -505,8 +505,8 @@ class LocatorCollectionTests: XCTestCase {
                     ],
                 ],
             ] as [String: Any]),
-            _LocatorCollection(
-                metadata: _LocatorCollection.Metadata(
+            LocatorCollection(
+                metadata: LocatorCollection.Metadata(
                     title: LocalizedString.localized([
                         "en": "Searching <riddle> in Alice in Wonderlands - Page 1",
                         "fr": "Recherche <riddle> dans Alice in Wonderlands – Page 1",
@@ -517,13 +517,13 @@ class LocatorCollectionTests: XCTestCase {
                     ]
                 ),
                 links: [
-                    Link(href: "/978-1503222687/search?query=apple", type: "application/vnd.readium.locators+json", rel: "self"),
-                    Link(href: "/978-1503222687/search?query=apple&page=2", type: "application/vnd.readium.locators+json", rel: "next"),
+                    Link(href: "/978-1503222687/search?query=apple", mediaType: MediaType("application/vnd.readium.locators+json")!, rel: "self"),
+                    Link(href: "/978-1503222687/search?query=apple&page=2", mediaType: MediaType("application/vnd.readium.locators+json")!, rel: "next"),
                 ],
                 locators: [
                     Locator(
                         href: "/978-1503222687/chap7.html",
-                        type: "application/xhtml+xml",
+                        mediaType: .xhtml,
                         locations: Locator.Locations(
                             fragments: [":~:text=riddle,-yet%3F'"],
                             progression: 0.43
@@ -536,7 +536,7 @@ class LocatorCollectionTests: XCTestCase {
                     ),
                     Locator(
                         href: "/978-1503222687/chap7.html",
-                        type: "application/xhtml+xml",
+                        mediaType: .xhtml,
                         locations: Locator.Locations(
                             fragments: [":~:text=in%20asking-,riddles"],
                             progression: 0.47
@@ -554,22 +554,22 @@ class LocatorCollectionTests: XCTestCase {
 
     func testParseEmptyJSON() {
         XCTAssertEqual(
-            _LocatorCollection(json: [:] as [String: Any]),
-            _LocatorCollection()
+            LocatorCollection(json: [:] as [String: Any]),
+            LocatorCollection()
         )
     }
 
     func testParseNilJSON() {
-        XCTAssertNil(_LocatorCollection(json: nil))
+        XCTAssertNil(LocatorCollection(json: nil))
     }
 
     func testParseInvalidJSON() {
-        XCTAssertNil(_LocatorCollection(json: [] as [Any]))
+        XCTAssertNil(LocatorCollection(json: [] as [Any]))
     }
 
     func testGetMinimalJSON() {
         AssertJSONEqual(
-            _LocatorCollection().json as Any,
+            LocatorCollection().json as Any,
             [
                 "locators": [] as [Any],
             ]
@@ -578,8 +578,8 @@ class LocatorCollectionTests: XCTestCase {
 
     func testGetFullJSON() {
         AssertJSONEqual(
-            _LocatorCollection(
-                metadata: _LocatorCollection.Metadata(
+            LocatorCollection(
+                metadata: LocatorCollection.Metadata(
                     title: LocalizedString.localized([
                         "en": "Searching <riddle> in Alice in Wonderlands - Page 1",
                         "fr": "Recherche <riddle> dans Alice in Wonderlands – Page 1",
@@ -590,13 +590,13 @@ class LocatorCollectionTests: XCTestCase {
                     ]
                 ),
                 links: [
-                    Link(href: "/978-1503222687/search?query=apple", type: "application/vnd.readium.locators+json", rel: "self"),
-                    Link(href: "/978-1503222687/search?query=apple&page=2", type: "application/vnd.readium.locators+json", rel: "next"),
+                    Link(href: "/978-1503222687/search?query=apple", mediaType: MediaType("application/vnd.readium.locators+json")!, rel: "self"),
+                    Link(href: "/978-1503222687/search?query=apple&page=2", mediaType: MediaType("application/vnd.readium.locators+json")!, rel: "next"),
                 ],
                 locators: [
                     Locator(
                         href: "/978-1503222687/chap7.html",
-                        type: "application/xhtml+xml",
+                        mediaType: .xhtml,
                         locations: Locator.Locations(
                             fragments: [":~:text=riddle,-yet%3F'"],
                             progression: 0.43
@@ -609,7 +609,7 @@ class LocatorCollectionTests: XCTestCase {
                     ),
                     Locator(
                         href: "/978-1503222687/chap7.html",
-                        type: "application/xhtml+xml",
+                        mediaType: .xhtml,
                         locations: Locator.Locations(
                             fragments: [":~:text=in%20asking-,riddles"],
                             progression: 0.47

@@ -8,52 +8,51 @@ import Foundation
 import ReadiumInternal
 
 /// https://github.com/readium/architecture/tree/master/locators
-public struct Locator: Hashable, CustomStringConvertible, Loggable {
+public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
     /// The URI of the resource that the Locator Object points to.
-    public let href: String // URI
+    public var href: AnyURL
 
     /// The media type of the resource that the Locator Object points to.
-    public let type: String
+    public var mediaType: MediaType
 
     /// The title of the chapter or section which is more relevant in the context of this locator.
-    public let title: String?
+    public var title: String?
 
     /// One or more alternative expressions of the location.
-    public let locations: Locations
+    public var locations: Locations
 
     /// Textual context of the locator.
-    public let text: Text
+    public var text: Text
 
-    public init(href: String, type: String, title: String? = nil, locations: Locations = .init(), text: Text = .init()) {
-        self.href = href
-        self.type = type
+    @available(*, unavailable, renamed: "mediaType")
+    public var type: String { mediaType.string }
+
+    public init<T: URLConvertible>(href: T, mediaType: MediaType, title: String? = nil, locations: Locations = .init(), text: Text = .init()) {
+        self.href = href.anyURL
+        self.mediaType = mediaType
         self.title = title
         self.locations = locations
         self.text = text
     }
 
     public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        if json == nil {
-            return nil
-        }
-        guard let jsonObject = json as? [String: Any],
-              let href = jsonObject["href"] as? String,
-              let type = jsonObject["type"] as? String
-        else {
-            warnings?.log("`href` and `type` required", model: Self.self, source: json)
-            throw JSONError.parsing(Self.self)
-        }
-
-        try self.init(
-            href: href,
-            type: type,
-            title: jsonObject["title"] as? String,
-            locations: Locations(json: jsonObject["locations"], warnings: warnings),
-            text: Text(json: jsonObject["text"], warnings: warnings)
-        )
+        try self.init(json: json, warnings: warnings, legacyHREF: false)
     }
 
     public init?(jsonString: String, warnings: WarningLogger? = nil) throws {
+        try self.init(jsonString: jsonString, warnings: warnings, legacyHREF: false)
+    }
+
+    /// Creates a ``Locator`` from its legacy JSON representation.
+    ///
+    /// Only use this API when you are upgrading to Readium 3.x and migrating
+    /// the ``Locator`` objects stored in your database. See the migration guide
+    /// for more information.
+    public init?(legacyJSONString: String, warnings: WarningLogger? = nil) throws {
+        try self.init(jsonString: legacyJSONString, warnings: warnings, legacyHREF: true)
+    }
+
+    private init?(jsonString: String, warnings: WarningLogger?, legacyHREF: Bool) throws {
         let json: Any
         do {
             json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
@@ -62,26 +61,47 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
             throw JSONError.parsing(Self.self)
         }
 
-        try self.init(json: json, warnings: warnings)
+        try self.init(json: json, warnings: warnings, legacyHREF: legacyHREF)
     }
 
-    @available(*, deprecated, message: "This may create an incorrect `Locator` if the link `type` is missing. Use `publication.locate(Link)` instead.")
-    public init(link: Link) {
-        let components = link.href.split(separator: "#", maxSplits: 1).map(String.init)
-        let fragments = (components.count > 1) ? [String(components[1])] : []
+    private init?(json: Any?, warnings: WarningLogger?, legacyHREF: Bool) throws {
+        if json == nil {
+            return nil
+        }
+        guard let jsonObject = json as? JSONDictionary.Wrapped,
+              let hrefString = jsonObject["href"] as? String,
+              let typeString = jsonObject["type"] as? String
+        else {
+            warnings?.log("`href` and `type` required", model: Self.self, source: json)
+            throw JSONError.parsing(Self.self)
+        }
 
-        self.init(
-            href: components.first ?? link.href,
-            type: link.type ?? "",
-            title: link.title,
-            locations: Locations(fragments: fragments)
+        guard let type = MediaType(typeString) else {
+            warnings?.log("`type` is not a valid media type", model: Self.self, source: json)
+            throw JSONError.parsing(Self.self)
+        }
+
+        guard let href = legacyHREF ? AnyURL(legacyHREF: hrefString) : AnyURL(string: hrefString) else {
+            warnings?.log("`href` is not a valid URL", model: Self.self, source: json)
+            throw JSONError.parsing(Self.self)
+        }
+
+        try self.init(
+            href: href,
+            mediaType: type,
+            title: jsonObject["title"] as? String,
+            locations: Locations(json: jsonObject["locations"], warnings: warnings),
+            text: Text(json: jsonObject["text"], warnings: warnings)
         )
     }
 
-    public var json: [String: Any] {
+    @available(*, unavailable, message: "This may create an incorrect `Locator` if the link `type` is missing. Use `publication.locate(Link)` instead.")
+    public init(link: Link) { fatalError() }
+
+    public var json: JSONDictionary.Wrapped {
         makeJSON([
-            "href": href,
-            "type": type,
+            "href": href.string,
+            "type": mediaType.string,
             "title": encodeIfNotNil(title),
             "locations": encodeIfNotEmpty(locations.json),
             "text": encodeIfNotEmpty(text.json),
@@ -97,15 +117,38 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
     }
 
     /// Makes a copy of the `Locator`, after modifying some of its components.
-    public func copy(href: String? = nil, type: String? = nil, title: String?? = nil, locations transformLocations: ((inout Locations) -> Void)? = nil, text transformText: ((inout Text) -> Void)? = nil) -> Locator {
+    public func copy(
+        href: AnyURL? = nil,
+        mediaType: MediaType? = nil,
+        title: String?? = nil,
+        locations transformLocations: ((inout Locations) -> Void)? = nil,
+        text transformText: ((inout Text) -> Void)? = nil
+    ) -> Locator {
         var locations = locations
         var text = text
         transformLocations?(&locations)
         transformText?(&text)
         return Locator(
             href: href ?? self.href,
-            type: type ?? self.type,
+            mediaType: mediaType ?? self.mediaType,
             title: title ?? self.title,
+            locations: locations,
+            text: text
+        )
+    }
+
+    /// Makes a copy of the `Locator`, after modifying some of its components.
+    public func copy<T: URLConvertible>(
+        href: T?,
+        mediaType: MediaType? = nil,
+        title: String?? = nil,
+        locations: ((inout Locations) -> Void)? = nil,
+        text: ((inout Text) -> Void)? = nil
+    ) -> Locator {
+        copy(
+            href: href?.anyURL,
+            mediaType: mediaType,
+            title: title,
             locations: locations,
             text: text
         )
@@ -116,7 +159,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
     ///
     /// Properties are mutable for convenience when making a copy, but the `locations` property
     /// is immutable in `Locator`, for safety.
-    public struct Locations: Hashable, Loggable, WarningLogger {
+    public struct Locations: Hashable, Loggable, WarningLogger, Sendable {
         /// Contains one or more fragment in the resource referenced by the `Locator`.
         public var fragments: [String]
         /// Progression in the resource expressed as a percentage (between 0 and 1).
@@ -127,7 +170,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
         public var position: Int?
 
         /// Additional locations for extensions.
-        public var otherLocations: [String: Any] {
+        public var otherLocations: JSONDictionary.Wrapped {
             get { otherLocationsJSON.json }
             set { otherLocationsJSON = JSONDictionary(newValue) ?? JSONDictionary() }
         }
@@ -135,7 +178,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
         // Trick to keep the struct equatable despite [String: Any]
         private var otherLocationsJSON: JSONDictionary
 
-        public init(fragments: [String] = [], progression: Double? = nil, totalProgression: Double? = nil, position: Int? = nil, otherLocations: [String: Any] = [:]) {
+        public init(fragments: [String] = [], progression: Double? = nil, totalProgression: Double? = nil, position: Int? = nil, otherLocations: JSONDictionary.Wrapped = [:]) {
             self.fragments = fragments
             self.progression = progression
             self.totalProgression = totalProgression
@@ -177,7 +220,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
 
         public var isEmpty: Bool { json.isEmpty }
 
-        public var json: [String: Any] {
+        public var json: JSONDictionary.Wrapped {
             makeJSON([
                 "fragments": encodeIfNotEmpty(fragments),
                 "progression": encodeIfNotNil(progression),
@@ -191,22 +234,9 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
         /// Syntactic sugar to access the `otherLocations` values by subscripting `Locations` directly.
         /// locations["cssSelector"] == locations.otherLocations["cssSelector"]
         public subscript(key: String) -> Any? { otherLocations[key] }
-
-        @available(*, unavailable, renamed: "init(jsonString:)")
-        public init(fromString: String) {
-            fatalError()
-        }
-
-        @available(*, unavailable, renamed: "jsonString")
-        public func toString() -> String? {
-            fatalError()
-        }
-
-        @available(*, unavailable, message: "Use `fragments.first` instead")
-        public var fragment: String? { fragments.first }
     }
 
-    public struct Text: Hashable, Loggable {
+    public struct Text: Hashable, Loggable, Sendable {
         public var after: String?
         public var before: String?
         public var highlight: String?
@@ -222,7 +252,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
                 self.init()
                 return
             }
-            guard let jsonObject = json as? [String: Any] else {
+            guard let jsonObject = json as? JSONDictionary.Wrapped else {
                 warnings?.log("Invalid Text object", model: Self.self, source: json)
                 throw JSONError.parsing(Self.self)
             }
@@ -243,7 +273,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
             }
         }
 
-        public var json: [String: Any] {
+        public var json: JSONDictionary.Wrapped {
             makeJSON([
                 "after": encodeIfNotNil(after),
                 "before": encodeIfNotNil(before),
@@ -288,16 +318,6 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable {
                 highlight: String(newHighlight)
             )
         }
-
-        @available(*, unavailable, renamed: "init(jsonString:)")
-        public init(fromString: String) {
-            fatalError()
-        }
-
-        @available(*, unavailable, renamed: "jsonString")
-        public func toString() -> String? {
-            fatalError()
-        }
     }
 }
 
@@ -305,7 +325,7 @@ public extension Array where Element == Locator {
     /// Parses multiple JSON locators into an array of `Locator`.
     init(json: Any?, warnings: WarningLogger? = nil) {
         self.init()
-        guard let json = json as? [Any] else {
+        guard let json = json as? [JSONDictionary.Wrapped] else {
             return
         }
 
@@ -313,21 +333,21 @@ public extension Array where Element == Locator {
         append(contentsOf: links)
     }
 
-    var json: [[String: Any]] {
+    var json: [JSONDictionary.Wrapped] {
         map(\.json)
     }
 }
 
+@available(*, unavailable, renamed: "LocatorCollection")
+public typealias _LocatorCollection = LocatorCollection
+
 /// Represents a sequential list of `Locator` objects.
 ///
 /// For example, a search result or a list of positions.
-///
-/// **WARNING:** This API is experimental and may change or be removed in a future release without
-/// notice. Use with caution.
-public struct _LocatorCollection: Hashable {
-    public let metadata: Metadata
-    public let links: [Link]
-    public let locators: [Locator]
+public struct LocatorCollection: Hashable {
+    public var metadata: Metadata
+    public var links: [Link]
+    public var locators: [Locator]
 
     public init(metadata: Metadata = Metadata(), links: [Link] = [], locators: [Locator] = []) {
         self.metadata = metadata
@@ -339,7 +359,7 @@ public struct _LocatorCollection: Hashable {
         if json == nil {
             return nil
         }
-        guard let jsonObject = json as? [String: Any] else {
+        guard let jsonObject = json as? JSONDictionary.Wrapped else {
             warnings?.log("Not a JSON object", model: Self.self, source: json)
             return nil
         }
@@ -350,7 +370,7 @@ public struct _LocatorCollection: Hashable {
         )
     }
 
-    public var json: [String: Any] {
+    public var json: JSONDictionary.Wrapped {
         makeJSON([
             "metadata": encodeIfNotEmpty(metadata.json),
             "links": encodeIfNotEmpty(links.json),
@@ -360,22 +380,25 @@ public struct _LocatorCollection: Hashable {
 
     /// Holds the metadata of a `LocatorCollection`.
     public struct Metadata: Hashable {
-        public let localizedTitle: LocalizedString?
+        public var localizedTitle: LocalizedString?
         public var title: String? { localizedTitle?.string }
 
         /// Indicates the total number of locators in the collection.
-        public let numberOfItems: Int?
+        public var numberOfItems: Int?
 
         /// Additional properties for extensions.
-        public var otherMetadata: [String: Any] { otherMetadataJSON.json }
+        public var otherMetadata: JSONDictionary.Wrapped {
+            get { otherMetadataJSON.json }
+            set { otherMetadataJSON = JSONDictionary(newValue) ?? JSONDictionary() }
+        }
 
         // Trick to keep the struct equatable despite [String: Any]
-        private let otherMetadataJSON: JSONDictionary
+        private var otherMetadataJSON: JSONDictionary
 
         public init(
             title: LocalizedStringConvertible? = nil,
             numberOfItems: Int? = nil,
-            otherMetadata: [String: Any] = [:]
+            otherMetadata: JSONDictionary.Wrapped = [:]
         ) {
             localizedTitle = title?.localizedString
             self.numberOfItems = numberOfItems
@@ -395,7 +418,7 @@ public struct _LocatorCollection: Hashable {
             }
         }
 
-        public var json: [String: Any] {
+        public var json: JSONDictionary.Wrapped {
             makeJSON([
                 "title": encodeIfNotNil(localizedTitle?.json),
                 "numberOfItems": encodeIfNotNil(numberOfItems),

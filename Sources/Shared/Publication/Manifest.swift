@@ -11,28 +11,42 @@ import ReadiumInternal
 /// Manifest.
 ///
 /// See. https://readium.org/webpub-manifest/
-public struct Manifest: JSONEquatable, Hashable {
-    public let context: [String] // @context
+public struct Manifest: JSONEquatable, Hashable, Sendable {
+    public var context: [String] // @context
 
-    public let metadata: Metadata
+    public var metadata: Metadata
 
-    // FIXME: should not be mutable, but we need it to set `self` in the publication server
     public var links: [Link]
 
     /// Identifies a list of resources in reading order for the publication.
-    public let readingOrder: [Link]
+    public var readingOrder: [Link]
 
     /// Identifies resources that are necessary for rendering the publication.
-    public let resources: [Link]
+    public var resources: [Link]
 
-    public let subcollections: [String: [PublicationCollection]]
+    public var subcollections: [String: [PublicationCollection]]
 
     /// Identifies the collection that contains a table of contents.
     public var tableOfContents: [Link] {
-        subcollections["toc"]?.first?.links ?? []
+        get { subcollections["toc"]?.first?.links ?? [] }
+        set {
+            if newValue.isEmpty {
+                subcollections.removeValue(forKey: "toc")
+            } else {
+                subcollections["toc"] = [PublicationCollection(links: newValue)]
+            }
+        }
     }
 
-    public init(context: [String] = [], metadata: Metadata, links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = [], tableOfContents: [Link] = [], subcollections: [String: [PublicationCollection]] = [:]) {
+    public init(
+        context: [String] = [],
+        metadata: Metadata = Metadata(),
+        links: [Link] = [],
+        readingOrder: [Link] = [],
+        resources: [Link] = [],
+        tableOfContents: [Link] = [],
+        subcollections: [String: [PublicationCollection]] = [:]
+    ) {
         // Convenience to set the table of contents during construction
         var subcollections = subcollections
         if !tableOfContents.isEmpty {
@@ -51,43 +65,37 @@ public struct Manifest: JSONEquatable, Hashable {
     /// https://readium.org/webpub-manifest/schema/publication.schema.json
     ///
     /// If a non-fatal parsing error occurs, it will be logged through `warnings`.
-    public init(json: Any, isPackaged: Bool = false, warnings: WarningLogger? = nil) throws {
+    public init(json: Any, warnings: WarningLogger? = nil) throws {
         guard var json = JSONDictionary(json) else {
             throw JSONError.parsing(Publication.self)
         }
 
-        let baseHREF = isPackaged ? "/" : (
-            [Link](json: json.json["links"], warnings: warnings)
-                .first(withRel: .self)
-                .flatMap { URL(string: $0.href) }?
-                .absoluteString
-                ?? "/"
-        )
-
-        let normalizer = HREF.normalizer(relativeTo: baseHREF)
-
         context = parseArray(json.pop("@context"), allowingSingle: true)
-        metadata = try Metadata(json: json.pop("metadata"), warnings: warnings, normalizeHREF: normalizer)
+        metadata = try Metadata(json: json.pop("metadata"), warnings: warnings)
 
-        links = [Link](json: json.pop("links"), warnings: warnings, normalizeHREF: normalizer)
-            // If the manifest is packaged, replace any `self` link by an `alternate`.
-            .map { link in
-                (isPackaged && link.rels.contains(.self))
-                    ? link.copy(rels: link.rels.removing(.self).appending(.alternate))
-                    : link
-            }
+        links = [Link](json: json.pop("links"), warnings: warnings)
 
         // `readingOrder` used to be `spine`, so we parse `spine` as a fallback.
-        readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"), warnings: warnings, normalizeHREF: normalizer)
-            .filter { $0.type != nil }
-        resources = [Link](json: json.pop("resources"), warnings: warnings, normalizeHREF: normalizer)
-            .filter { $0.type != nil }
+        readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"), warnings: warnings)
+            .filter { $0.mediaType != nil }
+        resources = [Link](json: json.pop("resources"), warnings: warnings)
+            .filter { $0.mediaType != nil }
 
         // Parses sub-collections from remaining JSON properties.
-        subcollections = PublicationCollection.makeCollections(json: json.json, warnings: warnings, normalizeHREF: normalizer)
+        subcollections = PublicationCollection.makeCollections(json: json.json, warnings: warnings)
     }
 
-    public var json: [String: Any] {
+    /// The URL where this publication is served, computed from the `Link` with
+    /// `self` relation.
+    ///
+    /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
+    public var baseURL: HTTPURL? {
+        links.firstWithRel(.`self`)
+            .takeIf { !$0.templated }
+            .flatMap { HTTPURL(string: $0.href)?.removingLastPathSegment() }
+    }
+
+    public var json: JSONDictionary.Wrapped {
         makeJSON([
             "@context": encodeIfNotEmpty(context),
             "metadata": metadata.json,
@@ -114,7 +122,7 @@ public struct Manifest: JSONEquatable, Hashable {
             // it could be a regular Web Publication.
             return readingOrder.allAreHTML && metadata.conformsTo.contains(.epub)
         case .pdf:
-            return readingOrder.all(matchMediaType: .pdf)
+            return readingOrder.allMatchingMediaType(.pdf)
         default:
             break
         }
@@ -123,13 +131,13 @@ public struct Manifest: JSONEquatable, Hashable {
     }
 
     /// Finds the first Link having the given `href` in the manifest's links.
-    public func link(withHREF href: String) -> Link? {
-        func deepFind(in linkLists: [Link]...) -> Link? {
+    public func linkWithHREF<T: URLConvertible>(_ href: T) -> Link? {
+        func deepFind(href: AnyURL, in linkLists: [[Link]]) -> Link? {
             for links in linkLists {
                 for link in links {
-                    if link.href == href {
+                    if link.url().normalized.string == href.string {
                         return link
-                    } else if let child = deepFind(in: link.alternates, link.children) {
+                    } else if let child = deepFind(href: href, in: [link.alternates, link.children]) {
                         return child
                     }
                 }
@@ -138,32 +146,47 @@ public struct Manifest: JSONEquatable, Hashable {
             return nil
         }
 
-        var link = deepFind(in: readingOrder, resources, links)
-        if
-            link == nil,
-            let shortHREF = href.components(separatedBy: .init(charactersIn: "#?")).first,
-            shortHREF != href
-        {
-            // Tries again, but without the anchor and query parameters.
-            link = self.link(withHREF: shortHREF)
-        }
+        let href = href.anyURL.normalized
+        let links = [readingOrder, resources, links]
 
-        return link
+        return deepFind(href: href, in: links)
+            ?? deepFind(href: href.removingQuery().removingFragment(), in: links)
     }
 
     /// Finds the first link with the given relation in the manifest's links.
-    public func link(withRel rel: LinkRelation) -> Link? {
-        readingOrder.first(withRel: rel)
-            ?? resources.first(withRel: rel)
-            ?? links.first(withRel: rel)
+    public func linkWithRel(_ rel: LinkRelation) -> Link? {
+        readingOrder.firstWithRel(rel)
+            ?? resources.firstWithRel(rel)
+            ?? links.firstWithRel(rel)
     }
 
     /// Finds all the links with the given relation in the manifest's links.
+    public func linksWithRel(_ rel: LinkRelation) -> [Link] {
+        (readingOrder + resources + links).filterByRel(rel)
+    }
+
+    /// Finds all the links matching the given predicate in the manifest's links.
+    public func linksMatching(_ predicate: (Link) -> Bool) -> [Link] {
+        (readingOrder + resources + links).filter(predicate)
+    }
+
+    @available(*, unavailable, renamed: "linkWithHREF")
+    public func link(withHREF href: String) -> Link? {
+        fatalError()
+    }
+
+    @available(*, unavailable, renamed: "linkWithRel")
+    public func link(withRel rel: LinkRelation) -> Link? {
+        fatalError()
+    }
+
+    @available(*, unavailable, renamed: "linksWithRel")
     public func links(withRel rel: LinkRelation) -> [Link] {
-        (readingOrder + resources + links).filter(byRel: rel)
+        fatalError()
     }
 
     /// Makes a copy of the `Manifest`, after modifying some of its properties.
+    @available(*, deprecated, message: "Make a mutable copy of the struct instead")
     public func copy(
         context: [String]? = nil,
         metadata: Metadata? = nil,

@@ -6,8 +6,8 @@
 
 import Combine
 import Foundation
-import R2Shared
-import R2Streamer
+import ReadiumShared
+import ReadiumStreamer
 import UIKit
 
 protocol LibraryServiceDelegate: AnyObject {
@@ -22,22 +22,14 @@ protocol LibraryServiceDelegate: AnyObject {
 final class LibraryService: Loggable {
     weak var delegate: LibraryServiceDelegate?
 
-    private let streamer: Streamer
     private let books: BookRepository
-    private let httpClient: HTTPClient
-    private var drmLibraryServices = [DRMLibraryService]()
+    private let readium: Readium
+    private let lcp: LCPModuleAPI
 
-    init(books: BookRepository, httpClient: HTTPClient) {
+    init(books: BookRepository, readium: Readium, lcp: LCPModuleAPI) {
         self.books = books
-        self.httpClient = httpClient
-
-        #if LCP
-            drmLibraryServices.append(LCPLibraryService())
-        #endif
-
-        streamer = Streamer(
-            contentProtections: drmLibraryServices.compactMap(\.contentProtection)
-        )
+        self.readium = readium
+        self.lcp = lcp
     }
 
     func allBooks() -> AnyPublisher<[Book], Error> {
@@ -54,23 +46,24 @@ final class LibraryService: Loggable {
     }
 
     /// Opens the Readium 2 Publication at the given `url`.
-    private func openPublication(at url: URL, allowUserInteraction: Bool, sender: UIViewController?) async throws -> (Publication, MediaType) {
-        let asset = FileAsset(url: url)
-        guard let mediaType = asset.mediaType() else {
-            throw LibraryError.openFailed(Publication.OpeningError.unsupportedFormat)
-        }
+    private func openPublication(
+        at url: FileURL,
+        allowUserInteraction: Bool,
+        sender: UIViewController?
+    ) async throws -> (Publication, Format) {
+        do {
+            let asset = try await readium.assetRetriever.retrieve(url: url).get()
 
-        return try await withCheckedThrowingContinuation { cont in
-            streamer.open(asset: asset, allowUserInteraction: allowUserInteraction, sender: sender) { result in
-                switch result {
-                case let .success(publication):
-                    cont.resume(returning: (publication, mediaType))
-                case let .failure(error):
-                    cont.resume(throwing: LibraryError.openFailed(error))
-                case .cancelled:
-                    cont.resume(throwing: LibraryError.cancelled)
-                }
-            }
+            let publication = try await readium.publicationOpener.open(
+                asset: asset,
+                allowUserInteraction: allowUserInteraction,
+                sender: sender
+            ).get()
+
+            return (publication, asset.format)
+
+        } catch {
+            throw LibraryError.openFailed(error)
         }
     }
 
@@ -78,7 +71,7 @@ final class LibraryService: Loggable {
     private func checkIsReadable(publication: Publication) throws {
         guard !publication.isRestricted else {
             if let error = publication.protectionError {
-                throw LibraryError.openFailed(error)
+                throw LibraryError.publicationIsRestricted(error)
             } else {
                 throw LibraryError.cancelled
             }
@@ -90,6 +83,9 @@ final class LibraryService: Loggable {
     /// Imports a bunch of publications.
     func importPublications(from sourceURLs: [URL], sender: UIViewController) async throws {
         for url in sourceURLs {
+            guard let url = url.absoluteURL else {
+                continue
+            }
             try await importPublication(from: url, sender: sender)
         }
     }
@@ -102,44 +98,54 @@ final class LibraryService: Loggable {
     /// DRM services are used to fulfill the publication, in case the URL locates a licensing
     /// document.
     @discardableResult
-    func importPublication(from sourceURL: URL, sender: UIViewController, progress: @escaping (Double) -> Void = { _ in }) async throws -> Book {
+    func importPublication(from sourceURL: AbsoluteURL, sender: UIViewController, progress: @escaping (Double) -> Void = { _ in }) async throws -> Book {
         // Necessary to read URL exported from the Files app, for example.
-        let shouldRelinquishAccess = sourceURL.startAccessingSecurityScopedResource()
+        let shouldRelinquishAccess = sourceURL.url.startAccessingSecurityScopedResource()
         defer {
             if shouldRelinquishAccess {
-                sourceURL.stopAccessingSecurityScopedResource()
+                sourceURL.url.stopAccessingSecurityScopedResource()
             }
         }
 
         var url = try await downloadIfNeeded(sourceURL, progress: progress)
         url = try await fulfillIfNeeded(url)
-        let (pub, mediaType) = try await openPublication(at: url, allowUserInteraction: false, sender: sender)
-        let coverPath = try importCover(of: pub)
-        url = try moveToDocuments(from: url, title: pub.metadata.title, mediaType: mediaType)
-        return try await insertBook(at: url, publication: pub, mediaType: mediaType, coverPath: coverPath)
+        let (pub, format) = try await openPublication(at: url, allowUserInteraction: false, sender: sender)
+        let coverPath = try await importCover(of: pub)
+        url = try moveToDocuments(
+            from: url,
+            title: pub.metadata.title ?? url.lastPathSegment,
+            format: format
+        )
+        return try await insertBook(at: url, publication: pub, mediaType: format.mediaType, coverPath: coverPath)
     }
 
-    /// Downloads `sourceURL` if it locates a remote file.
-    private func downloadIfNeeded(_ url: URL, progress: @escaping (Double) -> Void) async throws -> URL {
-        guard !url.isFileURL, url.scheme != nil else {
+    /// Downloads `url` if it locates a remote file.
+    private func downloadIfNeeded(_ url: AbsoluteURL, progress: @escaping (Double) -> Void) async throws -> FileURL {
+        if let url = url.fileURL {
             return url
+        } else if let url = url.httpURL {
+            return try await download(url, progress: progress)
+        } else {
+            throw LibraryError.downloadFailed(nil)
         }
+    }
 
+    private func download(_ url: HTTPURL, progress: @escaping (Double) -> Void) async throws -> FileURL {
         do {
-            return try await httpClient.download(url, progress: progress).file
+            return try await readium.httpClient.download(url, onProgress: progress).get().location
         } catch {
             throw LibraryError.downloadFailed(error)
         }
     }
 
     /// Fulfills the given `url` if it's a DRM license file.
-    private func fulfillIfNeeded(_ url: URL) async throws -> URL {
-        guard let drmService = drmLibraryServices.first(where: { $0.canFulfill(url) }) else {
+    private func fulfillIfNeeded(_ url: FileURL) async throws -> FileURL {
+        guard lcp.canFulfill(url) else {
             return url
         }
 
         do {
-            let pub = try await drmService.fulfill(url)
+            let pub = try await lcp.fulfill(url)
             guard let url = pub?.localURL else {
                 throw LibraryError.cancelled
             }
@@ -150,16 +156,16 @@ final class LibraryService: Loggable {
     }
 
     /// Moves the given `sourceURL` to the user Documents/ directory.
-    private func moveToDocuments(from source: URL, title: String, mediaType: MediaType) throws -> URL {
-        let destination = Paths.makeDocumentURL(title: title, mediaType: mediaType)
+    private func moveToDocuments(from source: FileURL, title: String, format: Format) throws -> FileURL {
+        let destination = Paths.makeDocumentURL(title: title, format: format)
 
         do {
             // If the source file is part of the app folder, we can move it. Otherwise we make a
             // copy, to avoid deleting files from iCloud, for example.
             if Paths.isAppFile(at: source) {
-                try FileManager.default.moveItem(at: source, to: destination)
+                try FileManager.default.moveItem(at: source.url, to: destination.url)
             } else {
-                try FileManager.default.copyItem(at: source, to: destination)
+                try FileManager.default.copyItem(at: source.url, to: destination.url)
             }
             return destination
         } catch {
@@ -168,30 +174,30 @@ final class LibraryService: Loggable {
     }
 
     /// Imports the publication cover and return its path relative to the Covers/ folder.
-    private func importCover(of publication: Publication) throws -> String? {
-        guard let cover = publication.cover?.pngData() else {
-            return nil
-        }
-        let coverURL = Paths.covers.appendingUniquePathComponent()
-
+    private func importCover(of publication: Publication) async throws -> String? {
         do {
-            try cover.write(to: coverURL)
-            return coverURL.lastPathComponent
+            guard let cover = try await publication.cover().get()?.pngData() else {
+                return nil
+            }
+            let coverURL = Paths.covers.appendingUniquePathComponent()
+
+            try cover.write(to: coverURL.url)
+            return coverURL.lastPathSegment
         } catch {
             throw LibraryError.importFailed(error)
         }
     }
 
     /// Inserts the given `book` in the bookshelf.
-    private func insertBook(at url: URL, publication: Publication, mediaType: MediaType, coverPath: String?) async throws -> Book {
+    private func insertBook(at url: FileURL, publication: Publication, mediaType: MediaType?, coverPath: String?) async throws -> Book {
         let book = Book(
             identifier: publication.metadata.identifier,
-            title: publication.metadata.title,
+            title: publication.metadata.title ?? url.lastPathSegment,
             authors: publication.metadata.authors
                 .map(\.name)
                 .joined(separator: ", "),
-            type: mediaType.string,
-            path: (url.isFileURL || url.scheme == nil) ? url.lastPathComponent : url.absoluteString,
+            type: mediaType?.string ?? MediaType.binary.string,
+            path: Paths.documents.relativize(url)!.string,
             coverPath: coverPath
         )
 
@@ -229,12 +235,12 @@ final class LibraryService: Loggable {
         }
     }
 
-    private func removeBookFile(at url: URL) throws {
-        guard Paths.documents.isParentOf(url) else {
+    private func removeBookFile(at url: FileURL) throws {
+        guard Paths.documents.isParent(of: url) else {
             return
         }
         do {
-            try FileManager.default.removeItem(at: url)
+            try FileManager.default.removeItem(at: url.url)
         } catch {
             throw LibraryError.bookDeletionFailed(error)
         }
@@ -242,30 +248,24 @@ final class LibraryService: Loggable {
 }
 
 private extension Book {
-    func url() throws -> URL {
-        // Absolute URL.
-        if let url = URL(string: path), url.scheme != nil {
-            return url
+    func url() throws -> FileURL {
+        guard let url = AnyURL(string: path) else {
+            throw LibraryError.bookNotFound
         }
 
-        // Absolute file path.
-        if path.hasPrefix("/") {
-            return URL(fileURLWithPath: path)
-        }
-
-        do {
-            // Path relative to Documents/.
-            let files = FileManager.default
-            let documents = try files.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-
-            let documentURL = documents.appendingPathComponent(path)
-            guard (try? documentURL.checkResourceIsReachable()) == true else {
+        switch url {
+        case let .absolute(url):
+            guard let url = url.fileURL else {
                 throw LibraryError.bookNotFound
             }
-            return documentURL
+            return url
 
-        } catch {
-            throw LibraryError.bookNotFound
+        case let .relative(relativeURL):
+            // Path relative to Documents/.
+            guard let url = Paths.documents.resolve(relativeURL) else {
+                throw LibraryError.bookNotFound
+            }
+            return url
         }
     }
 }

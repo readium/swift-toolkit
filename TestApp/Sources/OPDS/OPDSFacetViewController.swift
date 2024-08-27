@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
+import ReadiumShared
 import UIKit
 
 protocol OPDSFacetViewControllerFactory {

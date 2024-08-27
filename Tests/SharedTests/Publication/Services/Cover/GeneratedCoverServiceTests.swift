@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import R2Shared
+@testable import ReadiumShared
 import XCTest
 
 class GeneratedCoverServiceTests: XCTestCase {
@@ -18,20 +18,20 @@ class GeneratedCoverServiceTests: XCTestCase {
 
     /// `GeneratedCoverService` adds a custom `Link` with `cover` rel in `links`.
     func testLinks() {
-        let expectedLinks = [Link(href: "/~readium/cover", type: "image/png", rels: [.cover])]
+        let expectedLinks = [Link(href: "~readium/cover", mediaType: .png, rels: [.cover])]
         XCTAssertEqual(GeneratedCoverService(cover: cover).links, expectedLinks)
-        XCTAssertEqual(GeneratedCoverService(makeCover: { self.cover }).links, expectedLinks)
+        XCTAssertEqual(GeneratedCoverService(makeCover: { .success(self.cover) }).links, expectedLinks)
     }
 
     /// `GeneratedCoverService` serves the provided cover with `get()`.
-    func testGetCover() throws {
+    func testGetCover() async throws {
         for service in [
             GeneratedCoverService(cover: cover),
-            GeneratedCoverService(makeCover: { self.cover }),
+            GeneratedCoverService(makeCover: { .success(self.cover) }),
         ] {
-            let resource = try XCTUnwrap(service.get(link: Link(href: "/~readium/cover")))
-            XCTAssertEqual(resource.link, Link(href: "/~readium/cover", type: "image/png", rels: [.cover], height: 800, width: 598))
-            try AssertImageEqual(resource.read().map(UIImage.init).get(), cover)
+            let resource = try XCTUnwrap(service.get(link: Link(href: "~readium/cover")))
+            let result = await resource.read().map(UIImage.init)
+            AssertImageEqual(result, .success(cover))
         }
     }
 }

@@ -132,11 +132,7 @@ export function getColumnCountPerScreen() {
 
 export function isScrollModeEnabled() {
   const style = document.documentElement.style;
-  return (
-    style.getPropertyValue("--USER__view").trim() == "readium-scroll-on" ||
-    // FIXME: Will need to be removed in Readium 3.0, --USER__scroll was incorrect.
-    style.getPropertyValue("--USER__scroll").trim() == "readium-scroll-on"
-  );
+  return style.getPropertyValue("--USER__view").trim() == "readium-scroll-on";
 }
 
 // Scroll to the given TagId in document and snap.
@@ -172,10 +168,10 @@ export function scrollToPosition(position, dir) {
 
 // Scrolls to the first occurrence of the given text snippet.
 //
-// The expected text argument is a Locator Text object, as defined here:
+// The expected text argument is a Locator object, as defined here:
 // https://readium.org/architecture/models/locators/
-export function scrollToText(text) {
-  let range = rangeFromLocator({ text });
+export function scrollToLocator(locator) {
+  let range = rangeFromLocator(locator);
   if (!range) {
     return false;
   }

@@ -5,21 +5,19 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 final class PDFPositionsService: PositionsService {
-    let positionsByReadingOrder: [[Locator]]
-
     init(link: Link, pageCount: Int, tableOfContents: [Link]) {
         assert(pageCount > 0, "Invalid PDF page count")
         // FIXME: Use the `tableOfContents` to generate the titles
 
-        positionsByReadingOrder = [
+        _positionsByReadingOrder = [
             (1 ... pageCount).map { position in
                 let progression = Double(position - 1) / Double(pageCount)
                 return Locator(
-                    href: link.href,
-                    type: link.type ?? MediaType.pdf.string,
+                    href: link.url(),
+                    mediaType: link.mediaType ?? .pdf,
                     locations: .init(
                         fragments: ["page=\(position)"],
                         progression: progression,
@@ -29,6 +27,12 @@ final class PDFPositionsService: PositionsService {
                 )
             },
         ]
+    }
+
+    private let _positionsByReadingOrder: [[Locator]]
+
+    func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
+        .success(_positionsByReadingOrder)
     }
 
     static func makeFactory() -> (PublicationServiceContext) -> PDFPositionsService? {

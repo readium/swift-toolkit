@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import ZIPFoundation
 
 final class License: Loggable {
@@ -15,11 +15,11 @@ final class License: Loggable {
     // Dependencies
     private let client: LCPClient
     private let validation: LicenseValidation
-    private let licenses: LicensesRepository
+    private let licenses: LCPLicenseRepository
     private let device: DeviceService
     private let httpClient: HTTPClient
 
-    init(documents: ValidatedDocuments, client: LCPClient, validation: LicenseValidation, licenses: LicensesRepository, device: DeviceService, httpClient: HTTPClient) {
+    init(documents: ValidatedDocuments, client: LCPClient, validation: LicenseValidation, licenses: LCPLicenseRepository, device: DeviceService, httpClient: HTTPClient) {
         self.documents = documents
         self.client = client
         self.validation = validation
@@ -28,7 +28,7 @@ final class License: Loggable {
         self.httpClient = httpClient
 
         validation.observe { [weak self] result in
-            if case let .success(documents) = result {
+            if case let .success(documents) = result, let documents = documents {
                 self?.documents = documents
             }
         }
@@ -54,92 +54,82 @@ extension License: LCPLicense {
         return client.decrypt(data: data, using: context)
     }
 
-    var charactersToCopyLeft: Int? {
+    func charactersToCopyLeft() async -> Int? {
         do {
-            if let charactersLeft = try licenses.copiesLeft(for: license.id) {
-                return charactersLeft
-            }
+            return try await licenses.userRights(for: license.id).copy
         } catch {
             log(.error, error)
+            return nil
         }
-        return nil
     }
 
-    var canCopy: Bool {
-        (charactersToCopyLeft ?? 1) > 0
-    }
-
-    func canCopy(text: String) -> Bool {
-        guard let charactersLeft = charactersToCopyLeft else {
+    func canCopy(text: String) async -> Bool {
+        guard let charactersLeft = await charactersToCopyLeft() else {
             return true
         }
         return text.count <= charactersLeft
     }
 
-    func copy(text: String) -> Bool {
-        guard var charactersLeft = charactersToCopyLeft else {
-            return true
-        }
-        guard text.count <= charactersLeft else {
-            return false
-        }
-
+    func copy(text: String) async -> Bool {
         do {
-            charactersLeft = max(0, charactersLeft - text.count)
-            try licenses.setCopiesLeft(charactersLeft, for: license.id)
-        } catch {
-            log(.error, error)
-        }
+            var allowed = true
+            try await licenses.updateUserRights(for: license.id) { rights in
+                guard let copyLeft = rights.copy else {
+                    return
+                }
+                guard text.count <= copyLeft else {
+                    allowed = false
+                    return
+                }
 
-        return true
-    }
-
-    // Deprecated
-    func copy(_ text: String, consumes: Bool) -> String? {
-        if consumes {
-            return copy(text: text) ? text : nil
-        } else {
-            return canCopy(text: text) ? text : nil
-        }
-    }
-
-    var pagesToPrintLeft: Int? {
-        do {
-            if let pagesLeft = try licenses.printsLeft(for: license.id) {
-                return pagesLeft
+                rights.copy = max(0, copyLeft - text.count)
             }
+
+            return allowed
+
         } catch {
             log(.error, error)
-        }
-        return nil
-    }
-
-    func canPrint(pageCount: Int) -> Bool {
-        guard let pagesLeft = pagesToPrintLeft else {
-            return true
-        }
-        return pageCount <= pagesLeft
-    }
-
-    var canPrint: Bool {
-        (pagesToPrintLeft ?? 1) > 0
-    }
-
-    func print(pageCount: Int) -> Bool {
-        guard var pagesLeft = pagesToPrintLeft else {
-            return true
-        }
-        guard pagesLeft >= pageCount else {
             return false
         }
+    }
 
+    func pagesToPrintLeft() async -> Int? {
         do {
-            pagesLeft = max(0, pagesLeft - pageCount)
-            try licenses.setPrintsLeft(pagesLeft, for: license.id)
+            return try await licenses.userRights(for: license.id).print
         } catch {
             log(.error, error)
+            return nil
         }
-        return true
+    }
+
+    func canPrint(pageCount: Int) async -> Bool {
+        guard let pageLeft = await pagesToPrintLeft() else {
+            return true
+        }
+        return pageCount <= pageLeft
+    }
+
+    func print(pageCount: Int) async -> Bool {
+        do {
+            var allowed = true
+            try await licenses.updateUserRights(for: license.id) { rights in
+                guard let printLeft = rights.print else {
+                    return
+                }
+                guard pageCount <= printLeft else {
+                    allowed = false
+                    return
+                }
+
+                rights.copy = max(0, printLeft - pageCount)
+            }
+
+            return allowed
+
+        } catch {
+            log(.error, error)
+            return false
+        }
     }
 
     var canRenewLoan: Bool {
@@ -150,18 +140,16 @@ extension License: LCPLicense {
         status?.potentialRights?.end
     }
 
-    func renewLoan(with delegate: LCPRenewDelegate, prefersWebPage: Bool, completion: @escaping (CancellableResult<Void, LCPError>) -> Void) {
-        func renew() -> Deferred<Data, Error> {
-            deferredCatching {
-                guard let link = findRenewLink() else {
-                    throw LCPError.licenseInteractionNotAvailable
-                }
+    func renewLoan(with delegate: any LCPRenewDelegate, prefersWebPage: Bool) async -> Result<Void, LCPError> {
+        func renew() async throws -> Data {
+            guard let link = findRenewLink() else {
+                throw LCPError.licenseInteractionNotAvailable
+            }
 
-                if link.mediaType.isHTML {
-                    return try renewWithWebPage(link)
-                } else {
-                    return renewProgrammatically(link)
-                }
+            if link.mediaType?.isHTML == true {
+                return try await renewWithWebPage(link)
+            } else {
+                return try await renewProgrammatically(link)
             }
         }
 
@@ -189,117 +177,111 @@ extension License: LCPLicense {
         }
 
         // Renew the loan by presenting a web page to the user.
-        func renewWithWebPage(_ link: Link) throws -> Deferred<Data, Error> {
+        func renewWithWebPage(_ link: Link) async throws -> Data {
             guard
                 let statusURL = try? license.url(for: .status, preferredType: .lcpStatusDocument),
-                let url = link.url
+                let url = link.url()
             else {
                 throw LCPError.licenseInteractionNotAvailable
             }
 
-            return delegate.presentWebPage(url: url)
-                .flatMap {
-                    // We fetch the Status Document again after the HTML interaction is done, in case it changed the
-                    // License.
-                    self.httpClient.fetch(HTTPRequest(url: statusURL, headers: ["Accept": MediaType.lcpStatusDocument.string]))
-                        .map { $0.body ?? Data() }
-                        .eraseToAnyError()
-                }
+            try await delegate.presentWebPage(url: url)
+
+            // We fetch the Status Document again after the HTML interaction is
+            // done, in case it changed the License.
+            return try await httpClient
+                .fetch(HTTPRequest(url: statusURL, headers: ["Accept": MediaType.lcpStatusDocument.string]))
+                .map { $0.body ?? Data() }
+                .get()
         }
 
         // Programmatically renew the loan with a PUT request.
-        func renewProgrammatically(_ link: Link) -> Deferred<Data, Error> {
+        func renewProgrammatically(_ link: Link) async throws -> Data {
             // Asks the delegate for a renew date if there's an `end` parameter.
-            func preferredEndDate() -> Deferred<Date?, Error> {
+            func preferredEndDate() async throws -> Date? {
                 (link.templateParameters.contains("end"))
-                    ? delegate.preferredEndDate(maximum: maxRenewDate)
-                    : Deferred.success(nil)
+                    ? try await delegate.preferredEndDate(maximum: maxRenewDate)
+                    : nil
             }
 
-            func makeRenewURL(from endDate: Date?) throws -> URL {
+            func makeRenewURL(from endDate: Date?) throws -> HTTPURL {
                 var params = device.asQueryParameters
                 if let end = endDate {
                     params["end"] = end.iso8601
                 }
 
-                guard let url = link.url(with: params) else {
+                guard let url = link.url(parameters: params) else {
                     throw LCPError.licenseInteractionNotAvailable
                 }
                 return url
             }
 
-            return preferredEndDate()
-                .tryMap(makeRenewURL(from:))
-                .flatMap {
-                    self.httpClient.fetch(HTTPRequest(url: $0, method: .put))
-                        .map { $0.body ?? Data() }
-                        .mapError { error -> RenewError in
-                            switch error.kind {
-                            case .badRequest:
-                                return .renewFailed
-                            case .forbidden:
-                                return .invalidRenewalPeriod(maxRenewDate: self.maxRenewDate)
-                            default:
-                                return .unexpectedServerError
-                            }
-                        }
-                        .eraseToAnyError()
+            let url = try await makeRenewURL(from: preferredEndDate())
+
+            return try await httpClient.fetch(HTTPRequest(url: url, method: .put))
+                .map { $0.body ?? Data() }
+                .mapError { error -> RenewError in
+                    switch error.kind {
+                    case .badRequest:
+                        return .renewFailed
+                    case .forbidden:
+                        return .invalidRenewalPeriod(maxRenewDate: self.maxRenewDate)
+                    default:
+                        return .unexpectedServerError
+                    }
                 }
+                .get()
         }
 
-        renew()
-            .flatMap(validateStatusDocument)
-            .mapError(LCPError.wrap)
-            .resolve { result in
-                // Trick to make sure the delegate is not deallocated before the end of the renew process.
-                _ = type(of: delegate)
-
-                completion(result)
-            }
+        do {
+            try await validateStatusDocument(data: renew())
+            return .success(())
+        } catch {
+            return .failure(.wrap(error))
+        }
     }
 
     var canReturnPublication: Bool {
         status?.link(for: .return) != nil
     }
 
-    func returnPublication(completion: @escaping (LCPError?) -> Void) {
-        guard let status = documents.status,
-              let url = try? status.url(for: .return, preferredType: .lcpStatusDocument, with: device.asQueryParameters)
+    func returnPublication() async -> Result<Void, LCPError> {
+        guard
+            let status = documents.status,
+            let url = try? status.url(
+                for: .return,
+                preferredType: .lcpStatusDocument,
+                parameters: device.asQueryParameters
+            )
         else {
-            completion(LCPError.licenseInteractionNotAvailable)
-            return
+            return .failure(.licenseInteractionNotAvailable)
         }
 
-        httpClient.fetch(HTTPRequest(url: url, method: .put))
-            .mapError { error -> ReturnError in
-                switch error.kind {
-                case .badRequest:
-                    return .returnFailed
-                case .forbidden:
-                    return .alreadyReturnedOrExpired
-                default:
-                    return .unexpectedServerError
+        do {
+            let data = try await httpClient.fetch(HTTPRequest(url: url, method: .put))
+                .mapError { error -> ReturnError in
+                    switch error.kind {
+                    case .badRequest:
+                        return .returnFailed
+                    case .forbidden:
+                        return .alreadyReturnedOrExpired
+                    default:
+                        return .unexpectedServerError
+                    }
                 }
-            }
-            .map { $0.body ?? Data() }
-            .flatMap(validateStatusDocument)
-            .mapError(LCPError.wrap)
-            .resolveWithError(completion)
+                .map { $0.body ?? Data() }
+                .get()
+
+            try await validateStatusDocument(data: data)
+            return .success(())
+
+        } catch {
+            return .failure(.wrap(error))
+        }
     }
 
     /// Shortcut to be used in LSD interactions (eg. renew), to validate the returned Status Document.
-    fileprivate func validateStatusDocument(data: Data) -> Deferred<Void, Error> {
-        validation.validate(.status(data))
-            .map { _ in () } // We don't want to forward the Validated Documents
-    }
-}
-
-public extension LCPRenewDelegate {
-    func preferredEndDate(maximum: Date?) -> Deferred<Date?, Error> {
-        Deferred { preferredEndDate(maximum: maximum, completion: $0) }
-    }
-
-    func presentWebPage(url: URL) -> Deferred<Void, Error> {
-        Deferred { presentWebPage(url: url, completion: $0) }
+    fileprivate func validateStatusDocument(data: Data) async throws {
+        _ = try await validation.validate(.status(data))
     }
 }

@@ -19,16 +19,19 @@ open class DefaultLocatorService: LocatorService, Loggable {
     /// If `locator.href` can be found in the links, `locator` will be returned directly.
     /// Otherwise, will attempt to find the closest match using `totalProgression`, `position`,
     /// `fragments`, etc.
-    open func locate(_ locator: Locator) -> Locator? {
+    open func locate(_ locator: Locator) async -> Locator? {
         guard let publication = publication() else {
             return nil
         }
 
-        if publication.link(withHREF: locator.href) != nil {
+        if publication.linkWithHREF(locator.href) != nil {
             return locator
         }
 
-        if let totalProgression = locator.locations.totalProgression, let target = locate(progression: totalProgression) {
+        if
+            let totalProgression = locator.locations.totalProgression,
+            let target = await locate(progression: totalProgression)
+        {
             return target.copy(
                 title: locator.title,
                 text: { $0 = locator.text }
@@ -38,21 +41,21 @@ open class DefaultLocatorService: LocatorService, Loggable {
         return nil
     }
 
-    open func locate(_ link: Link) -> Locator? {
-        let components = link.href.split(separator: "#", maxSplits: 1).map(String.init)
-        let href = components.first ?? link.href
-        let fragment = components.getOrNil(1)
+    open func locate(_ link: Link) async -> Locator? {
+        let originalHREF = link.url()
+        let fragment = originalHREF.fragment
+        let href = originalHREF.removingFragment()
 
         guard
-            let resourceLink = publication()?.link(withHREF: href),
-            let type = resourceLink.type
+            let resourceLink = publication()?.linkWithHREF(href),
+            let type = resourceLink.mediaType
         else {
             return nil
         }
 
         return Locator(
             href: href,
-            type: type,
+            mediaType: type,
             title: resourceLink.title ?? link.title,
             locations: Locator.Locations(
                 fragments: Array(ofNotNil: fragment),
@@ -61,14 +64,14 @@ open class DefaultLocatorService: LocatorService, Loggable {
         )
     }
 
-    open func locate(progression totalProgression: Double) -> Locator? {
+    open func locate(progression totalProgression: Double) async -> Locator? {
         guard 0.0 ... 1.0 ~= totalProgression else {
             log(.error, "Progression must be between 0.0 and 1.0, received \(totalProgression)")
             return nil
         }
 
         guard
-            let positions = publication()?.positionsByReadingOrder,
+            let positions = await publication()?.positionsByReadingOrder().getOrNil(),
             let (readingOrderIndex, position) = findClosest(to: totalProgression, in: positions)
         else {
             return nil

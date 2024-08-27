@@ -7,10 +7,10 @@
 import Combine
 import Kingfisher
 import MobileCoreServices
-import R2Navigator
-import R2Shared
-import R2Streamer
+import ReadiumNavigator
 import ReadiumOPDS
+import ReadiumShared
+import ReadiumStreamer
 import UIKit
 import UniformTypeIdentifiers
 import WebKit
@@ -212,7 +212,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         // Load image and then apply the shadow.
         if
             let coverURL = book.cover,
-            let data = try? Data(contentsOf: coverURL),
+            let data = try? Data(contentsOf: coverURL.url),
             let cover = UIImage(data: data)
         {
             cell.coverImageView.image = cover

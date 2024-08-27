@@ -5,8 +5,8 @@
 //
 
 import Foundation
-import R2Navigator
-import R2Shared
+import ReadiumNavigator
+import ReadiumShared
 import UIKit
 
 final class PDFModule: ReaderFormatModule {
@@ -21,7 +21,15 @@ final class PDFModule: ReaderFormatModule {
     }
 
     @MainActor
-    func makeReaderViewController(for publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) async throws -> UIViewController {
+    func makeReaderViewController(
+        for publication: Publication,
+        locator: Locator?,
+        bookId: Book.Id,
+        books: BookRepository,
+        bookmarks: BookmarkRepository,
+        highlights: HighlightRepository,
+        readium: Readium
+    ) async throws -> UIViewController {
         let preferencesStore = makePreferencesStore(books: books)
         let viewController = try await PDFViewController(
             publication: publication,
@@ -31,7 +39,8 @@ final class PDFModule: ReaderFormatModule {
             bookmarks: bookmarks,
             highlights: highlights,
             initialPreferences: preferencesStore.preferences(for: bookId),
-            preferencesStore: preferencesStore
+            preferencesStore: preferencesStore,
+            httpServer: readium.httpServer
         )
         viewController.moduleDelegate = delegate
         return viewController

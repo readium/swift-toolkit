@@ -5,11 +5,14 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Document that contains references to the various keys, links to related external resources, rights and restrictions that are applied to the Protected Publication, and user information.
 /// https://github.com/readium/lcp-specs/blob/master/schema/license.schema.json
 public struct LicenseDocument {
+    public typealias ID = String
+    public typealias Provider = String
+
     // The possible rel of Links.
     public enum Rel: String {
         // Location where a Reading System can redirect a User looking for additional information about the User Passphrase.
@@ -25,9 +28,9 @@ public struct LicenseDocument {
     }
 
     /// Unique identifier for the Provider (URI).
-    public let provider: String
+    public let provider: Provider
     /// Unique identifier for the License.
-    public let id: String
+    public let id: LicenseDocument.ID
     /// Date when the license was first issued.
     public let issued: Date
     /// Date when the license was last updated.
@@ -44,12 +47,15 @@ public struct LicenseDocument {
     public let signature: Signature
 
     /// JSON representation used to parse the License Document.
-    let json: String
-    let data: Data
+    public let jsonData: Data
+
+    /// JSON string representation used to parse the License Document.
+    public let jsonString: String
 
     public init(data: Data) throws {
-        guard let jsonString = String(data: data, encoding: .utf8),
-              let deserializedJSON = try? JSONSerialization.jsonObject(with: data)
+        guard
+            let jsonString = String(data: data, encoding: .utf8),
+            let deserializedJSON = try? JSONSerialization.jsonObject(with: data)
         else {
             throw ParsingError.malformedJSON
         }
@@ -74,8 +80,8 @@ public struct LicenseDocument {
         user = try User(json: json["user"] as? [String: Any])
         rights = try Rights(json: json["rights"] as? [String: Any])
         self.signature = try Signature(json: signature)
-        self.json = jsonString
-        self.data = data
+        jsonData = data
+        self.jsonString = jsonString
 
         /// Checks that `links` contains at least one link with `publication` relation.
         guard link(for: .publication) != nil else {
@@ -99,11 +105,11 @@ public struct LicenseDocument {
     /// are found, the first link with the `rel` and an empty `type` will be returned.
     ///
     /// - Throws: `LCPError.invalidLink` if the URL can't be built.
-    func url(for rel: Rel, preferredType: MediaType? = nil, with parameters: [String: LosslessStringConvertible] = [:]) throws -> URL {
+    func url(for rel: Rel, preferredType: MediaType? = nil, parameters: [String: LosslessStringConvertible] = [:]) throws -> HTTPURL {
         let link = link(for: rel, type: preferredType)
             ?? links.firstWithRelAndNoType(rel.rawValue)
 
-        guard let url = link?.url(with: parameters) else {
+        guard let url = link?.url(parameters: parameters) else {
             throw ParsingError.url(rel: rel.rawValue)
         }
 

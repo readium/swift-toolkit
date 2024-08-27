@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Positions Service for an EPUB from its `readingOrder` and `fetcher`.
 ///
@@ -15,13 +15,13 @@ import R2Shared
 /// https://github.com/readium/architecture/blob/master/models/locators/best-practices/format.md#epub
 /// https://github.com/readium/architecture/issues/101
 ///
-public final class EPUBPositionsService: PositionsService {
+public actor EPUBPositionsService: PositionsService {
     public static func makeFactory(reflowableStrategy: ReflowableStrategy = .recommended) -> (PublicationServiceContext) -> EPUBPositionsService? {
         { context in
             EPUBPositionsService(
                 readingOrder: context.manifest.readingOrder,
                 presentation: context.manifest.metadata.presentation,
-                fetcher: context.fetcher,
+                container: context.container,
                 reflowableStrategy: reflowableStrategy
             )
         }
@@ -31,10 +31,6 @@ public final class EPUBPositionsService: PositionsService {
     ///
     /// Note that a fixed-layout resource always has a single position.
     public enum ReflowableStrategy {
-        /// Use the original length of each resource (before compression and encryption) and split it by the given
-        /// `pageLength`.
-        case originalLength(pageLength: Int)
-
         /// Use the archive entry length (whether it is compressed or stored) and split it by the given `pageLength`.
         case archiveEntryLength(pageLength: Int)
 
@@ -45,18 +41,18 @@ public final class EPUBPositionsService: PositionsService {
         public static var recommended = archiveEntryLength(pageLength: 1024)
 
         /// Returns the number of positions in the given `resource` according to the strategy.
-        func positionCount(for resource: Resource) -> Int {
+        func positionCount(for link: Link, resource: Resource) async -> Int {
             switch self {
-            case let .originalLength(pageLength):
-                let length = resource.link.properties.encryption?.originalLength.map { UInt64($0) }
-                    ?? (try? resource.length.get())
-                    ?? 0
-                return max(1, Int(ceil(Double(length) / Double(pageLength))))
-
             case let .archiveEntryLength(pageLength):
-                let length = resource.link.properties.archive?.entryLength
-                    ?? (try? resource.length.get())
-                    ?? 0
+                let length = await {
+                    if let l = try? await resource.properties().map({ $0.archive?.entryLength }).get() {
+                        return l
+                    } else if let l = try? await resource.estimatedLength().get() {
+                        return l
+                    } else {
+                        return 0
+                    }
+                }()
                 return max(1, Int(ceil(Double(length) / Double(pageLength))))
             }
         }
@@ -64,24 +60,38 @@ public final class EPUBPositionsService: PositionsService {
 
     private let readingOrder: [Link]
     private let presentation: Presentation
-    private let fetcher: Fetcher
+    private let container: Container
     private let reflowableStrategy: ReflowableStrategy
 
-    init(readingOrder: [Link], presentation: Presentation, fetcher: Fetcher, reflowableStrategy: ReflowableStrategy) {
+    init(
+        readingOrder: [Link],
+        presentation: Presentation,
+        container: Container,
+        reflowableStrategy: ReflowableStrategy
+    ) {
         self.readingOrder = readingOrder
-        self.fetcher = fetcher
         self.presentation = presentation
+        self.container = container
         self.reflowableStrategy = reflowableStrategy
     }
 
-    public lazy var positionsByReadingOrder: [[Locator]] = {
+    private var _positionsByReadingOrder: ReadResult<[[Locator]]>?
+
+    public func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
+        if _positionsByReadingOrder == nil {
+            _positionsByReadingOrder = await .success(computePositionsByReadingOrder())
+        }
+        return _positionsByReadingOrder!
+    }
+
+    private func computePositionsByReadingOrder() async -> [[Locator]] {
         var lastPositionOfPreviousResource = 0
-        var positions = readingOrder.map { link -> [Locator] in
-            let (lastPosition, positions): (Int, [Locator]) = {
+        var positions = await readingOrder.asyncmap { link -> [Locator] in
+            let (lastPosition, positions): (Int, [Locator]) = await {
                 if presentation.layout(of: link) == .fixed {
                     return makePositions(ofFixedResource: link, from: lastPositionOfPreviousResource)
                 } else {
-                    return makePositions(ofReflowableResource: link, from: lastPositionOfPreviousResource)
+                    return await makePositions(ofReflowableResource: link, from: lastPositionOfPreviousResource)
                 }
             }()
             lastPositionOfPreviousResource = lastPosition
@@ -89,7 +99,7 @@ public final class EPUBPositionsService: PositionsService {
         }
 
         // Calculates totalProgression
-        let totalPageCount = positions.map(\.count).reduce(0, +)
+        let totalPageCount = await positions.asyncmap(\.count).reduce(0, +)
         if totalPageCount > 0 {
             positions = positions.map { locators in
                 locators.map { locator in
@@ -103,7 +113,7 @@ public final class EPUBPositionsService: PositionsService {
         }
 
         return positions
-    }()
+    }
 
     private func makePositions(ofFixedResource link: Link, from startPosition: Int) -> (Int, [Locator]) {
         let position = startPosition + 1
@@ -117,10 +127,12 @@ public final class EPUBPositionsService: PositionsService {
         return (position, positions)
     }
 
-    private func makePositions(ofReflowableResource link: Link, from startPosition: Int) -> (Int, [Locator]) {
-        let resource = fetcher.get(link)
-        let positionCount = reflowableStrategy.positionCount(for: resource)
-        resource.close()
+    private func makePositions(ofReflowableResource link: Link, from startPosition: Int) async -> (Int, [Locator]) {
+        guard let resource = container[link.url()] else {
+            return (startPosition, [])
+        }
+        defer { resource.close() }
+        let positionCount = await reflowableStrategy.positionCount(for: link, resource: resource)
 
         let positions = (1 ... positionCount).map { position in
             makeLocator(
@@ -134,8 +146,8 @@ public final class EPUBPositionsService: PositionsService {
 
     private func makeLocator(for link: Link, progression: Double, position: Int) -> Locator {
         Locator(
-            href: link.href,
-            type: link.type ?? MediaType.html.string,
+            href: link.url(),
+            mediaType: link.mediaType ?? .html,
             title: link.title,
             locations: .init(
                 progression: progression,

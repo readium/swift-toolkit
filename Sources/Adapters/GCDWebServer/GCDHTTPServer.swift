@@ -5,38 +5,38 @@
 //
 
 import Foundation
-import R2Shared
 import ReadiumGCDWebServer
+import ReadiumInternal
+import ReadiumShared
 import UIKit
 
 public enum GCDHTTPServerError: Error {
     case failedToStartServer(cause: Error)
     case serverNotStarted
+    case invalidEndpoint(HTTPServerEndpoint)
     case nullServerURL
 }
 
 /// Implementation of `HTTPServer` using ReadiumGCDWebServer under the hood.
 public class GCDHTTPServer: HTTPServer, Loggable {
-    private struct EndpointHandler {
-        let resourceHandler: (HTTPServerRequest) -> Resource
-        let failureHandler: HTTPServer.FailureHandler?
-    }
-
     /// Shared instance of the HTTP server.
-    public static let shared = GCDHTTPServer()
+    @available(*, unavailable, message: "Create your own shared instance")
+    public static var shared: GCDHTTPServer { fatalError() }
 
     /// The actual underlying HTTP server instance.
     private let server = ReadiumGCDWebServer()
 
     /// Mapping between endpoints and their handlers.
-    private var handlers: [HTTPServerEndpoint: EndpointHandler] = [:]
+    private var handlers: [HTTPURL: HTTPRequestHandler] = [:]
 
     /// Mapping between endpoints and resource transformers.
-    private var transformers: [HTTPServerEndpoint: [ResourceTransformer]] = [:]
+    private var transformers: [HTTPURL: [ResourceTransformer]] = [:]
+
+    private let assetRetriever: AssetRetriever
 
     private enum State {
         case stopped
-        case started(port: UInt, baseURL: URL)
+        case started(port: UInt, baseURL: HTTPURL)
     }
 
     private var state: State = .stopped
@@ -51,7 +51,12 @@ public class GCDHTTPServer: HTTPServer, Loggable {
     /// Creates a new instance of the HTTP server.
     ///
     /// - Parameter logLevel: See `ReadiumGCDWebServer.setLogLevel`.
-    public init(logLevel: Int = 3) {
+    public init(
+        assetRetriever: AssetRetriever,
+        logLevel: Int = 3
+    ) {
+        self.assetRetriever = assetRetriever
+
         ReadiumGCDWebServer.setLogLevel(Int32(logLevel))
 
         NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
@@ -89,31 +94,40 @@ public class GCDHTTPServer: HTTPServer, Loggable {
     }
 
     private func handle(request: ReadiumGCDWebServerRequest, completion: @escaping ReadiumGCDWebServerCompletionBlock) {
-        responseResource(for: request) { httpServerRequest, resource, failureHandler in
-            let response: ReadiumGCDWebServerResponse
-            switch resource.length {
-            case let .success(length):
-                response = ResourceResponse(
-                    resource: resource,
-                    length: length,
-                    range: request.hasByteRange() ? request.byteRange : nil
-                )
-            case let .failure(error):
-                self.log(.error, error)
-                failureHandler?(httpServerRequest, error)
-                response = ReadiumGCDWebServerErrorResponse(
-                    statusCode: error.httpStatusCode,
-                    error: error
-                )
-            }
+        responseResource(for: request) { httpServerRequest, httpServerResponse, failureHandler in
+            Task {
+                let response: ReadiumGCDWebServerResponse
+                let resource = httpServerResponse.resource
 
-            completion(response) // goes back to ReadiumGCDWebServerConnection.m
+                func fail(_ error: ReadError) -> ReadiumGCDWebServerResponse {
+                    self.log(.error, error)
+                    failureHandler?(httpServerRequest, error)
+                    return ReadiumGCDWebServerErrorResponse(
+                        statusCode: 500,
+                        error: error
+                    )
+                }
+
+                switch await resource.length() {
+                case let .success(length):
+                    response = await ResourceResponse(
+                        resource: httpServerResponse.resource,
+                        length: length,
+                        range: request.hasByteRange() ? request.byteRange : nil,
+                        mediaType: httpServerResponse.mediaType(using: self.assetRetriever)
+                    )
+                case let .failure(error):
+                    response = fail(error)
+                }
+
+                completion(response) // goes back to ReadiumGCDWebServerConnection.m
+            }
         }
     }
 
     private func responseResource(
         for request: ReadiumGCDWebServerRequest,
-        completion: @escaping (HTTPServerRequest, Resource, FailureHandler?) -> Void
+        completion: @escaping (HTTPServerRequest, HTTPServerResponse, HTTPRequestHandler.OnFailure?) -> Void
     ) {
         let completion = { request, resource, failureHandler in
             // Escape the queue to avoid deadlocks if something is using the
@@ -124,92 +138,94 @@ public class GCDHTTPServer: HTTPServer, Loggable {
         }
 
         queue.async { [self] in
-            var path = request.path.removingPrefix("/")
-            path = path.removingPercentEncoding ?? path
-            // Remove anchors and query params
-            let pathWithoutAnchor = path.components(separatedBy: .init(charactersIn: "#?")).first ?? path
+            guard let url = request.url.httpURL else {
+                fatalError("Expected an HTTP URL")
+            }
 
-            func transform(resource: Resource, at endpoint: HTTPServerEndpoint) -> Resource {
+            func transform(resource: Resource, request: HTTPServerRequest, at endpoint: HTTPURL) -> Resource {
                 guard let transformers = transformers[endpoint], !transformers.isEmpty else {
                     return resource
                 }
+                let href = request.href?.anyURL ?? request.url.anyURL
                 var resource = resource
                 for transformer in transformers {
-                    resource = transformer(resource)
+                    resource = transformer(href, resource)
                 }
                 return resource
             }
 
-            for (endpoint, handler) in handlers {
-                if endpoint == pathWithoutAnchor {
-                    let request = HTTPServerRequest(url: request.url, href: nil)
-                    let resource = handler.resourceHandler(request)
-                    completion(request,
-                               transform(resource: resource, at: endpoint),
-                               handler.failureHandler)
-                    return
+            let pathWithoutAnchor = url.removingQuery().removingFragment()
 
-                } else if path.hasPrefix(endpoint.addingSuffix("/")) {
-                    let request = HTTPServerRequest(
-                        url: request.url,
-                        href: path.removingPrefix(endpoint.removingSuffix("/"))
-                    )
-                    let resource = handler.resourceHandler(request)
-                    completion(request,
-                               transform(resource: resource, at: endpoint),
-                               handler.failureHandler)
-                    return
+            for (endpoint, handler) in handlers {
+                let request: HTTPServerRequest
+                if endpoint.isEquivalentTo(pathWithoutAnchor) {
+                    request = HTTPServerRequest(url: url, href: nil)
+                } else if let href = endpoint.relativize(url) {
+                    request = HTTPServerRequest(url: url, href: href)
+                } else {
+                    continue
                 }
+
+                var response = handler.onRequest(request)
+                response.resource = transform(resource: response.resource, request: request, at: endpoint)
+                completion(request, response, handler.onFailure)
+                return
             }
 
             log(.warning, "Resource not found for request \(request)")
-            completion(HTTPServerRequest(url: request.url, href: nil),
-                       FailureResource(link: Link(href: request.url.absoluteString),
-                                       error: .notFound(nil)),
-                       nil)
+            completion(
+                HTTPServerRequest(url: url, href: nil),
+                HTTPServerResponse(error: .notFound),
+                nil
+            )
         }
     }
 
     // MARK: HTTPServer
 
-    public func serve(at endpoint: HTTPServerEndpoint, handler: @escaping (HTTPServerRequest) -> Resource) throws -> URL {
-        try serve(at: endpoint, handler: handler, failureHandler: nil)
-    }
-
     public func serve(
         at endpoint: HTTPServerEndpoint,
-        handler: @escaping (HTTPServerRequest) -> Resource,
-        failureHandler: FailureHandler?
-    ) throws -> URL {
+        handler: HTTPRequestHandler
+    ) throws -> HTTPURL {
         try queue.sync(flags: .barrier) {
             if case .stopped = state {
                 try start()
             }
 
-            guard case let .started(port: _, baseURL: baseURL) = state else {
-                throw GCDHTTPServerError.serverNotStarted
-            }
-
-            handlers[endpoint] = EndpointHandler(resourceHandler: handler,
-                                                 failureHandler: failureHandler)
-
-            return baseURL.appendingPathComponent(endpoint)
+            let url = try url(for: endpoint)
+            handlers[url] = handler
+            return url
         }
     }
 
-    public func transformResources(at endpoint: HTTPServerEndpoint, with transformer: @escaping ResourceTransformer) {
-        queue.sync(flags: .barrier) {
-            var trs = transformers[endpoint] ?? []
+    public func transformResources(at endpoint: HTTPServerEndpoint, with transformer: @escaping ResourceTransformer) throws {
+        try queue.sync(flags: .barrier) {
+            let url = try url(for: endpoint)
+            var trs = transformers[url] ?? []
             trs.append(transformer)
-            transformers[endpoint] = trs
+            transformers[url] = trs
         }
     }
 
-    public func remove(at endpoint: HTTPServerEndpoint) {
-        queue.sync(flags: .barrier) {
-            handlers.removeValue(forKey: endpoint)
-            transformers.removeValue(forKey: endpoint)
+    public func remove(at endpoint: HTTPServerEndpoint) throws {
+        try queue.sync(flags: .barrier) {
+            let url = try url(for: endpoint)
+            handlers.removeValue(forKey: url)
+            transformers.removeValue(forKey: url)
         }
+    }
+
+    private func url(for endpoint: HTTPServerEndpoint) throws -> HTTPURL {
+        guard case let .started(port: _, baseURL: baseURL) = state else {
+            throw GCDHTTPServerError.serverNotStarted
+        }
+        guard
+            let endpointPath = RelativeURL(string: endpoint.addingSuffix("/")),
+            let endpointURL = baseURL.resolve(endpointPath)
+        else {
+            throw GCDHTTPServerError.invalidEndpoint(endpoint)
+        }
+        return endpointURL
     }
 
     // MARK: Server lifecycle
@@ -262,7 +278,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             throw GCDHTTPServerError.failedToStartServer(cause: error)
         }
 
-        guard let baseURL = server.serverURL else {
+        guard let baseURL = server.serverURL?.httpURL else {
             stop()
             throw GCDHTTPServerError.nullServerURL
         }
@@ -308,5 +324,46 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
         // It might not actually be free, but we'll try to restart the server.
         return true
+    }
+}
+
+private extension Resource {
+    func length() async -> ReadResult<UInt64> {
+        await estimatedLength()
+            .flatMap { length in
+                if let length = length {
+                    return .success(length)
+                } else {
+                    return await read().map { UInt64($0.count) }
+                }
+            }
+    }
+}
+
+private extension HTTPServerResponse {
+    func mediaType(using assetRetriever: AssetRetriever) async -> MediaType {
+        if let mediaType = mediaType {
+            return mediaType
+        }
+
+        if let properties = try? await resource.properties().get() {
+            if let mediaType = properties.mediaType {
+                return mediaType
+            }
+            if
+                let filename = properties.filename,
+                let uti = UTI.findFrom(mediaTypes: [], fileExtensions: [URL(fileURLWithPath: filename).pathExtension]),
+                let type = uti.preferredTag(withClass: .mediaType),
+                let mediaType = MediaType(type)
+            {
+                return mediaType
+            }
+        }
+
+        if let mediaType = try? await assetRetriever.sniffFormat(of: resource).get().mediaType {
+            return mediaType
+        }
+
+        return .binary
     }
 }

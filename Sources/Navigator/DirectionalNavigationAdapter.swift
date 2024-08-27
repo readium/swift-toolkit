@@ -84,8 +84,9 @@ public final class DirectionalNavigationAdapter {
     ///
     /// - Parameter point: Tap point in the navigator bounds.
     /// - Returns: Whether the tap triggered a page turn.
+    @MainActor
     @discardableResult
-    public func didTap(at point: CGPoint) -> Bool {
+    public func didTap(at point: CGPoint) async -> Bool {
         guard
             let navigator = navigator,
             handleTapsWhileScrolling || !navigator.presentation.scroll
@@ -94,6 +95,7 @@ public final class DirectionalNavigationAdapter {
         }
 
         let bounds = navigator.view.bounds
+        let options = NavigatorGoOptions(animated: animatedTransition)
 
         if tapEdges.contains(.horizontal) {
             let horizontalEdgeSize = horizontalEdgeThresholdPercent
@@ -103,9 +105,9 @@ public final class DirectionalNavigationAdapter {
             let rightRange = (bounds.width - horizontalEdgeSize) ... bounds.width
 
             if rightRange.contains(point.x) {
-                return navigator.goRight(animated: animatedTransition)
+                return await navigator.goRight(options: options)
             } else if leftRange.contains(point.x) {
-                return navigator.goLeft(animated: animatedTransition)
+                return await navigator.goLeft(options: options)
             }
         }
 
@@ -117,9 +119,9 @@ public final class DirectionalNavigationAdapter {
             let bottomRange = (bounds.height - verticalEdgeSize) ... bounds.height
 
             if bottomRange.contains(point.y) {
-                return navigator.goForward(animated: animatedTransition)
+                return await navigator.goForward(options: options)
             } else if topRange.contains(point.y) {
-                return navigator.goBackward(animated: animatedTransition)
+                return await navigator.goBackward(options: options)
             }
         }
 
@@ -132,7 +134,7 @@ public final class DirectionalNavigationAdapter {
     ///
     /// - Returns: Whether the key press triggered a page turn.
     @discardableResult
-    public func didPressKey(event: KeyEvent) -> Bool {
+    public func didPressKey(event: KeyEvent) async -> Bool {
         guard
             let navigator = navigator,
             event.modifiers.isEmpty
@@ -140,15 +142,17 @@ public final class DirectionalNavigationAdapter {
             return false
         }
 
+        let options = NavigatorGoOptions(animated: animatedTransition)
+
         switch event.key {
         case .arrowUp:
-            return navigator.goBackward(animated: animatedTransition)
+            return await navigator.goBackward(options: options)
         case .arrowDown, .space:
-            return navigator.goForward(animated: animatedTransition)
+            return await navigator.goForward(options: options)
         case .arrowLeft:
-            return navigator.goLeft(animated: animatedTransition)
+            return await navigator.goLeft(options: options)
         case .arrowRight:
-            return navigator.goRight(animated: animatedTransition)
+            return await navigator.goRight(options: options)
         default:
             return false
         }

@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Editor for a set of `PDFPreferences`.
 ///
@@ -64,7 +64,12 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
             preference: \.readingProgression,
             setting: \.readingProgression,
             defaultEffectiveValue: defaults.readingProgression ?? .ltr,
-            isEffective: { _ in true },
+            isEffective: {
+                // A bug in PDFKit prevents the PDF from being laid out as RTL
+                // if the scroll mode is enabled.
+                // https://stackoverflow.com/questions/64399748/pdfkit-pdfview-wont-be-rtl-without-usepageviewcontroller
+                !$0.settings.scroll
+            },
             supportedValues: [.ltr, .rtl]
         )
 

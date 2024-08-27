@@ -5,8 +5,8 @@
 //
 
 import Combine
-import R2Navigator
-import R2Shared
+import ReadiumNavigator
+import ReadiumShared
 import SafariServices
 import SwiftUI
 import UIKit
@@ -76,7 +76,7 @@ class ReaderViewController<N: Navigator>: UIViewController,
         // Bookmarks
         buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(bookmarkCurrentPosition)))
         // Search
-        if publication._isSearchable {
+        if publication.isSearchable {
             buttons.append(UIBarButtonItem(image: UIImage(systemName: "magnifyingglass"), style: .plain, target: self, action: #selector(showSearchUI)))
         }
 
@@ -107,7 +107,7 @@ class ReaderViewController<N: Navigator>: UIViewController,
         moduleDelegate?.presentError(error, from: self)
     }
 
-    func navigator(_ navigator: any Navigator, didFailToLoadResourceAt href: String, withError error: ResourceError) {
+    func navigator(_ navigator: any Navigator, didFailToLoadResourceAt href: RelativeURL, withError error: ReadError) {
         log(.error, "Failed to load resource at \(href): \(error)")
     }
 
@@ -130,7 +130,8 @@ class ReaderViewController<N: Navigator>: UIViewController,
 
         locatorPublisher
             .sink(receiveValue: { [weak self] locator in
-                self?.navigator.go(to: locator, animated: false) {
+                Task {
+                    await self?.navigator.go(to: locator, options: NavigatorGoOptions(animated: false))
                     self?.dismiss(animated: true)
                 }
             })
@@ -167,7 +168,11 @@ class ReaderViewController<N: Navigator>: UIViewController,
             searchViewModel?.$selectedLocator.sink(receiveValue: { [weak self] locator in
                 self?.searchViewController?.dismiss(animated: true, completion: nil)
                 if let self = self, let locator = locator {
-                    self.navigator.go(to: locator, animated: true) {
+                    Task {
+                        await self.navigator.go(
+                            to: locator,
+                            options: NavigatorGoOptions(animated: true)
+                        )
                         if let decorator = self.navigator as? DecorableNavigator {
                             let decoration = Decoration(id: "selectedSearchResult", locator: locator, style: Decoration.Style.highlight(tint: .yellow, isActive: false))
                             decorator.apply(decorations: [decoration], in: "search")
