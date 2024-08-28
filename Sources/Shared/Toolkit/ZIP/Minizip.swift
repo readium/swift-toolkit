@@ -63,7 +63,7 @@ final class MinizipContainer: Container, Loggable {
     }
 
     static func make(file: FileURL) async -> Result<MinizipContainer, MakeError> {
-        guard (try? file.exists()) ?? false else {
+        guard await (try? file.exists()) ?? false else {
             return .failure(.reading(.access(.fileSystem(.fileNotFound(nil)))))
         }
         guard let zipFile = MinizipFile(url: file.url) else {

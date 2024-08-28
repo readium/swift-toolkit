@@ -9,4 +9,12 @@ import ReadiumShared
 
 /// Opens a `Publication` using a list of parsers.
 @available(*, unavailable, renamed: "PublicationOpener", message: "Use a `PublicationOpener` instead")
-public final class Streamer {}
+public final class Streamer {
+    public init(
+        parsers: [PublicationParser] = [],
+        ignoreDefaultParsers: Bool = false,
+        contentProtections: [ContentProtection] = [],
+        httpClient: HTTPClient = DefaultHTTPClient(),
+        onCreatePublication: Publication.Builder.Transform? = nil
+    ) {}
+}

@@ -29,7 +29,8 @@ final class Readium {
     lazy var publicationOpener = PublicationOpener(
         parser: DefaultPublicationParser(
             httpClient: httpClient,
-            assetRetriever: assetRetriever
+            assetRetriever: assetRetriever,
+            pdfFactory: DefaultPDFDocumentFactory()
         ),
         contentProtections: contentProtections
     )

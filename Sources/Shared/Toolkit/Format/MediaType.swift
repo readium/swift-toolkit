@@ -64,6 +64,11 @@ public struct MediaType: Hashable, Loggable, Sendable {
         fatalError()
     }
 
+    @available(*, unavailable, message: "File extension was moved to `Format`")
+    public var fileExtension: String {
+        fatalError()
+    }
+
     /// Returns the UTI (Uniform Type Identifier) matching this media type, if any.
     public var uti: String? {
         UTI.findFrom(mediaTypes: [string], fileExtensions: [])?.string

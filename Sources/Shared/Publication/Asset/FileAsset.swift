@@ -8,4 +8,7 @@ import Foundation
 
 /// Represents a publication stored as a file on the local file system.
 @available(*, unavailable, message: "Use an `AssetRetriever` instead. See the migration guide.")
-public final class FileAsset: PublicationAsset {}
+public final class FileAsset: PublicationAsset {
+    public init(url: URL, mediaType: String? = nil) {}
+    public init(url: URL, mediaType: MediaType?) {}
+}
