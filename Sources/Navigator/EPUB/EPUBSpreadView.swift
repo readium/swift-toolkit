@@ -495,15 +495,7 @@ extension EPUBSpreadView: UIScrollViewDelegate {
     }
 }
 
-extension EPUBSpreadView: WKUIDelegate {
-    func webView(_ webView: WKWebView, shouldPreviewElement elementInfo: WKPreviewElementInfo) -> Bool {
-        // Preview allowed only if the link is not internal
-        guard let url = elementInfo.linkURL?.httpURL else {
-            return true
-        }
-        return url.isRelative(to: viewModel.publicationBaseURL)
-    }
-}
+extension EPUBSpreadView: WKUIDelegate {}
 
 extension EPUBSpreadView: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -517,19 +509,20 @@ private extension EPUBSpreadView {
     func updateActivityIndicator() {
         switch viewModel.theme {
         case .dark:
-            createActivityIndicator(style: .white)
+            createActivityIndicator(color: .white)
         default:
-            createActivityIndicator(style: .gray)
+            createActivityIndicator(color: .systemGray)
         }
     }
 
-    func createActivityIndicator(style: UIActivityIndicatorView.Style) {
-        guard activityIndicatorView?.style != style else {
+    func createActivityIndicator(color: UIColor) {
+        guard activityIndicatorView?.color != color else {
             return
         }
 
         activityIndicatorView?.removeFromSuperview()
-        let view = UIActivityIndicatorView(style: style)
+        let view = UIActivityIndicatorView(style: .medium)
+        view.color = color
         view.translatesAutoresizingMaskIntoConstraints = false
         addSubview(view)
         view.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
