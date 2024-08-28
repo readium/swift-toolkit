@@ -45,8 +45,7 @@ public struct FileURL: AbsoluteURL, Hashable, Sendable {
     }
 
     /// Returns new `FileURL` with symlinks resolved
-    // FIXME: Async
-    public func resolvingSymlinks() -> Self {
+    public func resolvingSymlinks() async -> Self {
         Self(url: url.resolvingSymlinksInPath())!
     }
 
@@ -56,14 +55,12 @@ public struct FileURL: AbsoluteURL, Hashable, Sendable {
     }
 
     /// Returns whether the file exists on the file system.
-    // FIXME: Async
-    public func exists() throws -> Bool {
+    public func exists() async throws -> Bool {
         try url.checkResourceIsReachable()
     }
 
     /// Returns whether the file is a directory.
-    // FIXME: Async
-    public func isDirectory() throws -> Bool {
+    public func isDirectory() async throws -> Bool {
         try (url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
     }
 
