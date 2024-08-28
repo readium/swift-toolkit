@@ -24,13 +24,13 @@ public extension Resource {
     @available(*, unavailable, message: "Use the async variant")
     var length: ResourceResult<UInt64> { fatalError() }
 
-    @available(*, deprecated, renamed: "sourceURL")
+    @available(*, unavailable, renamed: "sourceURL")
     var file: FileURL? { fatalError() }
 
     @available(*, unavailable, message: "Use the async variant")
     func read(range: Range<UInt64>?) -> ResourceResult<Data> { fatalError() }
 
-    @available(*, deprecated, message: "Use the async variant")
+    @available(*, unavailable, message: "Use the async variant")
     func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void, completion: @escaping (ReadResult<Void>) -> Void) -> Cancellable {
         fatalError()
     }

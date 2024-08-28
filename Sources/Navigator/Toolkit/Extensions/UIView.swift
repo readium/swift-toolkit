@@ -18,11 +18,15 @@ extension UIView {
     /// We use that instead of pinning the content directly to the safe area layout guides to avoid
     /// the view shifting when the status bar is toggled.
     var notchAreaInsets: UIEdgeInsets {
-        var windowSafeAreaInsets = window?.safeAreaInsets ?? safeAreaInsets
+        guard let window = window else {
+            return safeAreaInsets
+        }
+
+        var windowSafeAreaInsets = window.safeAreaInsets
 
         // Trick to ignore the status bar on devices without notches (pre iPhone X).
         // Notch height is usually at least 44pts tall.
-        let statusBarSize = UIApplication.shared.statusBarFrame.size
+        let statusBarSize = window.windowScene?.statusBarManager?.statusBarFrame.size ?? .zero
         // The frame is in the coordinate space of the window, so it might be swapped in landscape.
         let statusBarHeight = min(statusBarSize.width, statusBarSize.height)
         if statusBarHeight < 44, windowSafeAreaInsets.top == statusBarHeight {

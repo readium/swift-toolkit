@@ -8,9 +8,9 @@ import AVFoundation
 import Foundation
 import UIKit
 
-@available(*, deprecated, message: "Use `AudioSession` instead")
+@available(*, unavailable, message: "Use `AudioSession` instead")
 public typealias _AudioSession = AudioSession
-@available(*, deprecated, message: "Use `AudioSessionUser` instead")
+@available(*, unavailable, message: "Use `AudioSessionUser` instead")
 public typealias _AudioSessionUser = AudioSessionUser
 
 /// An user of the `AudioSession`, for example a media player object.

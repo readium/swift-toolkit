@@ -186,7 +186,7 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
     }
 
     /// Makes a copy of the `Manifest`, after modifying some of its properties.
-    @available(*, deprecated, message: "Make a mutable copy of the struct instead")
+    @available(*, unavailable, message: "Make a mutable copy of the struct instead")
     public func copy(
         context: [String]? = nil,
         metadata: Metadata? = nil,
@@ -196,14 +196,6 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
         tableOfContents: [Link]? = nil,
         subcollections: [String: [PublicationCollection]]? = nil
     ) -> Manifest {
-        Manifest(
-            context: context ?? self.context,
-            metadata: metadata ?? self.metadata,
-            links: links ?? self.links,
-            readingOrder: readingOrder ?? self.readingOrder,
-            resources: resources ?? self.resources,
-            tableOfContents: tableOfContents ?? self.tableOfContents,
-            subcollections: subcollections ?? self.subcollections
-        )
+        fatalError()
     }
 }
