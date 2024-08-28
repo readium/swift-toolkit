@@ -52,7 +52,7 @@ The `MediaType` struct has been simplified. It now only holds the actual media t
 
 ### Navigator
 
-All the navigator `go` APIs are now asynchronous and takes an `options` argument instead of the `animated` boolean.
+All the navigator `go` APIs are now asynchronous and take an `options` argument instead of the `animated` boolean.
 
 ```diff
 -navigator.go(to: locator, animated: true, completion: { }
