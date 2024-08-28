@@ -225,8 +225,7 @@ public class Publication: Closeable, Loggable {
         public init(
             manifest: Manifest,
             container: Container,
-            servicesBuilder: PublicationServicesBuilder = .init(),
-            setupPublication: ((Publication) -> Void)? = nil
+            servicesBuilder: PublicationServicesBuilder = .init()
         ) {
             self.manifest = manifest
             self.container = container

@@ -47,7 +47,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         synthesizer.delegate = self
     }
 
-    @available(*, deprecated, message: "The audio session is now configured through the `PublicationSpeechSynthesizer`")
+    @available(*, unavailable, message: "The audio session is now configured through the `PublicationSpeechSynthesizer`")
     public convenience init(
         audioSessionConfig: AudioSession.Configuration? = nil,
         delegate: AVTTSEngineDelegate? = nil
