@@ -648,7 +648,7 @@ open class EPUBNavigatorViewController: UIViewController,
         {
             // Gets the current locator from the positionList, and fill its missing data.
             let positionIndex = Int(ceil(progression * Double(positionList.count - 1)))
-            return positionList[positionIndexawait].copy(
+            return await positionList[positionIndex].copy(
                 title: tableOfContentsTitleByHref()[equivalent: href],
                 locations: { $0.progression = progression }
             )
