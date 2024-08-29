@@ -143,7 +143,7 @@ public class StringSearchService: SearchService {
                 return []
             }
 
-            let title = publication.tableOfContents.titleMatchingHREF(link.href)
+            let title = await publication.tableOfContents().getOrNil()?.titleMatchingHREF(link.href)
             resourceLocator = resourceLocator.copy(
                 title: Optional(title ?? link.title)
             )

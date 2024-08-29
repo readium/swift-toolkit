@@ -4,7 +4,18 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Added
+
+#### Shared
+
+* `TableOfContentsService` can now be used to customize the computation of `publication.tableOfContents()`.
+
+#### LCP
+
+* The table of contents of an LCP-protected PDF is now extracted directly from the PDF if the `tableOfContents` property in `manifest.json` is empty.
+
 
 ## [3.0.0-alpha.2]
 

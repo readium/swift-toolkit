@@ -449,7 +449,9 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     /// Mapping between reading order hrefs and the table of contents title.
-    private lazy var tableOfContentsTitleByHref: [AnyURL: String] = {
+    private lazy var tableOfContentsTitleByHref = memoize(computeTableOfContentsTitleByHref)
+
+    private func computeTableOfContentsTitleByHref() async -> [AnyURL: String] {
         func fulfill(linkList: [Link]) -> [AnyURL: String] {
             var result = [AnyURL: String]()
 
@@ -465,8 +467,12 @@ open class EPUBNavigatorViewController: UIViewController,
             return result
         }
 
-        return fulfill(linkList: publication.tableOfContents)
-    }()
+        guard let toc = try? await publication.tableOfContents().get() else {
+            return [:]
+        }
+
+        return fulfill(linkList: toc)
+    }
 
     /// Goes to the next or previous page in the given scroll direction.
     private func go(to direction: EPUBSpreadView.Direction, options: NavigatorGoOptions) async -> Bool {
@@ -642,8 +648,8 @@ open class EPUBNavigatorViewController: UIViewController,
         {
             // Gets the current locator from the positionList, and fill its missing data.
             let positionIndex = Int(ceil(progression * Double(positionList.count - 1)))
-            return positionList[positionIndex].copy(
-                title: tableOfContentsTitleByHref[equivalent: href],
+            return positionList[positionIndexawait].copy(
+                title: tableOfContentsTitleByHref()[equivalent: href],
                 locations: { $0.progression = progression }
             )
         } else {
