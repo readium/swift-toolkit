@@ -13,15 +13,9 @@ import ReadiumShared
 ///
 /// Useful for local resources or when you need to customize the way HTTP requests are sent.
 final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Loggable {
-    public enum AssetError: LocalizedError {
+    public enum AssetError: Error {
+        /// Can't produce an URL to create an AVAsset for the given HREF.
         case invalidHREF(String)
-
-        public var errorDescription: String? {
-            switch self {
-            case let .invalidHREF(href):
-                return "Can't produce an URL to create an AVAsset for HREF \(href)"
-            }
-        }
     }
 
     private let publication: Publication

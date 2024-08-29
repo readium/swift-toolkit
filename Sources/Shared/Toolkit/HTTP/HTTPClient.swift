@@ -106,7 +106,7 @@ public extension HTTPClient {
             try "".write(to: location.url, atomically: true, encoding: .utf8)
             fileHandle = try FileHandle(forWritingTo: location.url)
         } catch {
-            return .failure(HTTPError(kind: .ioError, cause: error))
+            return .failure(HTTPError(kind: .fileSystem(.io(error)), cause: error))
         }
 
         let result = await stream(

@@ -14,17 +14,9 @@ import Foundation
 public protocol ContentProtection {
     /// Attempts to unlock a potentially protected publication asset.
     ///
-    /// The Streamer will create a leaf `fetcher` for the low-level `asset` access (e.g.
-    /// `ArchiveFetcher` for a ZIP archive), to avoid having each Content Protection open the asset
-    /// to check if it's protected or not.
-    ///
-    /// A publication might be protected in such a way that the asset format can't be recognized,
-    /// in which case the Content Protection will have the responsibility of creating a new leaf
-    /// `Fetcher`.
-    ///
-    /// - Returns: A `ProtectedAsset` in case of success, nil if the asset is not protected by this
-    ///   technology or a `Publication.OpeningError` if the asset can't be successfully opened, even
-    ///   in restricted mode.
+    /// - Returns: An ``Asset`` in case of success or an
+    ///   ``ContentProtectionOpenError`` if the asset can't be successfully
+    ///   opened even in restricted mode.
     func open(
         asset: Asset,
         credentials: String?,

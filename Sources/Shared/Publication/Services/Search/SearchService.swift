@@ -122,12 +122,12 @@ public struct SearchOptions: Hashable {
 public typealias SearchResult<Success> = Result<Success, SearchError>
 
 /// Represents an error which might occur during a search activity.
-public enum SearchError: LocalizedError {
+public enum SearchError: Error {
     /// The publication is not searchable.
     case publicationNotSearchable
 
     /// The provided search query cannot be handled by the service.
-    case badQuery(LocalizedError)
+    case badQuery(Error)
 
     /// An error occurred while accessing one of the publication's resources.
     case reading(ReadError)

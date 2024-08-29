@@ -157,14 +157,7 @@ public extension NavigatorDelegate {
     func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: String, withError error: ReadError) {}
 }
 
-public enum NavigatorError: LocalizedError {
+public enum NavigatorError: Error {
     /// The user tried to copy the text selection but the DRM License doesn't allow it.
     case copyForbidden
-
-    public var errorDescription: String? {
-        switch self {
-        case .copyForbidden:
-            return ReadiumNavigatorLocalizedString("NavigatorError.copyForbidden")
-        }
-    }
 }

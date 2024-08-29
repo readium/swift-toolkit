@@ -10,18 +10,12 @@ import ReadiumShared
 import ReadiumStreamer
 import UIKit
 
-protocol LibraryServiceDelegate: AnyObject {
-    func confirmImportingDuplicatePublication(withTitle title: String) async -> Bool
-}
-
 /// The Library service is used to:
 ///
 /// - Import new publications (`Book` in the database).
 /// - Remove existing publications from the bookshelf.
 /// - Open publications for presentation in a navigator.
 final class LibraryService: Loggable {
-    weak var delegate: LibraryServiceDelegate?
-
     private let books: BookRepository
     private let readium: Readium
     private let lcp: LCPModuleAPI
@@ -39,9 +33,11 @@ final class LibraryService: Loggable {
     // MARK: Opening
 
     /// Opens the Readium 2 Publication for the given `book`.
-    func openBook(_ book: Book, sender: UIViewController) async throws -> Publication {
+    func openBook(_ book: Book, sender: UIViewController) async throws -> Publication? {
         let (pub, _) = try await openPublication(at: book.url(), allowUserInteraction: true, sender: sender)
-        try checkIsReadable(publication: pub)
+        guard try checkIsReadable(publication: pub) else {
+            return nil
+        }
         return pub
     }
 
@@ -68,14 +64,16 @@ final class LibraryService: Loggable {
     }
 
     /// Checks if the publication is not still locked by a DRM.
-    private func checkIsReadable(publication: Publication) throws {
+    private func checkIsReadable(publication: Publication) throws -> Bool {
         guard !publication.isRestricted else {
             if let error = publication.protectionError {
                 throw LibraryError.publicationIsRestricted(error)
             } else {
-                throw LibraryError.cancelled
+                return false
             }
         }
+
+        return true
     }
 
     // MARK: Importation
@@ -146,10 +144,7 @@ final class LibraryService: Loggable {
 
         do {
             let pub = try await lcp.fulfill(url)
-            guard let url = pub?.localURL else {
-                throw LibraryError.cancelled
-            }
-            return url
+            return pub.localURL
         } catch {
             throw LibraryError.downloadFailed(error)
         }
@@ -206,17 +201,6 @@ final class LibraryService: Loggable {
             return book
         } catch {
             throw LibraryError.importFailed(error)
-        }
-    }
-
-    private func confirmImportingDuplicate(book: Book) async throws {
-        guard let delegate = delegate else {
-            return
-        }
-
-        let confirmed = await delegate.confirmImportingDuplicatePublication(withTitle: book.title)
-        guard confirmed else {
-            throw LibraryError.cancelled
         }
     }
 

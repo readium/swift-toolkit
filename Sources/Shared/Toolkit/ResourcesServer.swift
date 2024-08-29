@@ -6,12 +6,14 @@
 
 import Foundation
 
+@available(*, unavailable, message: "Not used anymore")
 public enum ResourcesServerError: Error {
     case fileNotFound
     case invalidPath
     case serverFailure
 }
 
+@available(*, unavailable, message: "Not used anymore")
 public protocol ResourcesServer {
     /// Serves the local file URL at the given absolute path on the server.
     /// If the given URL is a directory, then all the files in the directory are served.

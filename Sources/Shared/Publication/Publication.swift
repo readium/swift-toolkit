@@ -169,7 +169,8 @@ public class Publication: Closeable, Loggable {
     }
 
     /// Errors occurring while opening a Publication.
-    public enum OpeningError: LocalizedError {
+    @available(*, unavailable, message: "Not used anymore")
+    public enum OpeningError: Error {
         /// The file format could not be recognized by any parser.
         case unsupportedFormat
         /// The publication file was not found on the file system.
@@ -184,23 +185,6 @@ public class Publication: Closeable, Loggable {
         /// The provided credentials are incorrect and we can't open the publication in a
         /// `restricted` state (e.g. for a password-protected ZIP).
         case incorrectCredentials
-
-        public var errorDescription: String? {
-            switch self {
-            case .unsupportedFormat:
-                return ReadiumSharedLocalizedString("Publication.OpeningError.unsupportedFormat")
-            case .notFound:
-                return ReadiumSharedLocalizedString("Publication.OpeningError.notFound")
-            case .parsingFailed:
-                return ReadiumSharedLocalizedString("Publication.OpeningError.parsingFailed")
-            case .forbidden:
-                return ReadiumSharedLocalizedString("Publication.OpeningError.forbidden")
-            case .unavailable:
-                return ReadiumSharedLocalizedString("Publication.OpeningError.unavailable")
-            case .incorrectCredentials:
-                return ReadiumSharedLocalizedString("Publication.OpeningError.incorrectCredentials")
-            }
-        }
     }
 
     /// Holds the components of a `Publication` to build it.

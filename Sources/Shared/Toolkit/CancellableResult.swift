@@ -7,6 +7,7 @@
 import Foundation
 
 /// Represents a `Result` which can be in a `cancelled` state.
+@available(*, unavailable, message: "Not used anymore")
 public enum CancellableResult<Success, Failure: Error> {
     case success(Success)
     case failure(Failure)
@@ -122,4 +123,5 @@ public enum CancellableResult<Success, Failure: Error> {
     }
 }
 
+@available(*, unavailable, message: "Not used anymore")
 extension CancellableResult: Equatable where Success: Equatable, Failure: Equatable {}
