@@ -27,12 +27,7 @@ class LibraryViewController: UIViewController, Loggable {
 
     weak var lastFlippedCell: PublicationCollectionViewCell?
 
-    var library: LibraryService! {
-        didSet {
-            oldValue?.delegate = nil
-            library.delegate = self
-        }
-    }
+    var library: LibraryService!
 
     weak var libraryDelegate: LibraryModuleDelegate?
 
@@ -60,7 +55,7 @@ class LibraryViewController: UIViewController, Loggable {
             .receive(on: DispatchQueue.main)
             .sink { completion in
                 if case let .failure(error) = completion {
-                    self.libraryDelegate?.presentError(error, from: self)
+                    self.libraryDelegate?.presentError(UserError(error), from: self)
                 }
             } receiveValue: { newBooks in
                 self.books = newBooks
@@ -172,7 +167,7 @@ extension LibraryViewController: UIDocumentPickerDelegate {
             do {
                 try await library.importPublications(from: urls, sender: self)
             } catch {
-                libraryDelegate?.presentError(error, from: self)
+                libraryDelegate?.presentError(UserError(error), from: self)
             }
         }
     }
@@ -251,17 +246,21 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
             cell.contentView.addSubview(self.loadingIndicator)
             collectionView.isUserInteractionEnabled = false
 
+            defer {
+                loadingIndicator.removeFromSuperview()
+                collectionView.isUserInteractionEnabled = true
+            }
+
             let book = books[indexPath.item]
 
             do {
-                let pub = try await library.openBook(book, sender: self)
+                guard let pub = try await library.openBook(book, sender: self) else {
+                    return
+                }
                 libraryDelegate.libraryDidSelectPublication(pub, book: book)
             } catch {
-                libraryDelegate.presentError(error, from: self)
+                libraryDelegate.presentError(UserError(error), from: self)
             }
-
-            loadingIndicator.removeFromSuperview()
-            collectionView.isUserInteractionEnabled = true
         }
     }
 }
@@ -280,7 +279,7 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
                 do {
                     try await self.library.remove(book)
                 } catch {
-                    self.libraryDelegate?.presentError(error, from: self)
+                    self.libraryDelegate?.presentError(UserError(error), from: self)
                 }
             }
         })
@@ -296,12 +295,14 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
 
         Task {
             do {
-                let pub = try await library.openBook(book, sender: self)
+                guard let pub = try await library.openBook(book, sender: self) else {
+                    return
+                }
                 let detailsViewController = self.factory.make(publication: pub)
                 detailsViewController.modalPresentationStyle = .popover
                 self.navigationController?.pushViewController(detailsViewController, animated: true)
             } catch {
-                libraryDelegate?.presentError(error, from: self)
+                libraryDelegate?.presentError(UserError(error), from: self)
             }
         }
     }
@@ -311,30 +312,6 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
     func cellFlipped(_ cell: PublicationCollectionViewCell) {
         lastFlippedCell?.flipMenu()
         lastFlippedCell = cell
-    }
-}
-
-extension LibraryViewController: LibraryServiceDelegate {
-    func confirmImportingDuplicatePublication(withTitle title: String) async -> Bool {
-        await withCheckedContinuation { cont in
-            let confirmAction = UIAlertAction(title: NSLocalizedString("add_button", comment: "Confirmation button to import a duplicated publication"), style: .default) { _ in
-                cont.resume(returning: true)
-            }
-
-            let cancelAction = UIAlertAction(title: NSLocalizedString("cancel_button", comment: "Cancel the confirmation alert"), style: .cancel) { _ in
-                cont.resume(returning: false)
-            }
-
-            let alert = UIAlertController(
-                title: NSLocalizedString("library_duplicate_alert_title", comment: "Title of the import confirmation alert when the publication already exists in the library"),
-                message: NSLocalizedString("library_duplicate_alert_message", comment: "Message of the import confirmation alert when the publication already exists in the library"),
-                preferredStyle: .alert
-            )
-            alert.addAction(confirmAction)
-            alert.addAction(cancelAction)
-
-            self.present(alert, animated: true)
-        }
     }
 }
 

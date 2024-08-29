@@ -21,6 +21,7 @@ protocol LibraryModuleAPI {
     /// Imports a new publication to the library, either from:
     /// - a local file URL
     /// - a remote URL which will be downloaded
+    @discardableResult
     func importPublication(from url: AbsoluteURL, sender: UIViewController) async throws -> Book
 }
 

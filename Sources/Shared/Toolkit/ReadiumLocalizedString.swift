@@ -29,7 +29,3 @@ public func ReadiumLocalizedString(_ key: String, in bundleID: String, _ values:
 public func ReadiumLocalizedString(_ key: String, in bundleID: String, _ values: CVarArg...) -> String {
     ReadiumLocalizedString(key, in: bundleID, values)
 }
-
-func ReadiumSharedLocalizedString(_ key: String, _ values: CVarArg...) -> String {
-    ReadiumLocalizedString("ReadiumShared.\(key)", in: Bundle.module, values)
-}

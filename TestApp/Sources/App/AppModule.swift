@@ -14,7 +14,7 @@ import UIKit
 /// Provides basic shared functionalities.
 protocol ModuleDelegate: AnyObject {
     func presentAlert(_ title: String, message: String, from viewController: UIViewController)
-    func presentError(_ error: Error?, from viewController: UIViewController)
+    func presentError<T: UserErrorConvertible>(_ error: T, from viewController: UIViewController)
 }
 
 /// Main application module, it:
@@ -74,24 +74,8 @@ extension AppModule: ModuleDelegate {
         }
     }
 
-    func presentError(_ error: Error?, from viewController: UIViewController) {
-        guard let error = error else { return }
-        if case LibraryError.cancelled = error { return }
-
-        var message = ""
-        if let error = (error as? LocalizedError)?.errorDescription {
-            message += error + "\n\n"
-        }
-
-        var desc = ""
-        dump(error, to: &desc)
-        message += desc
-
-        presentAlert(
-            NSLocalizedString("error_title", comment: "Alert title for errors"),
-            message: message,
-            from: viewController
-        )
+    func presentError<T: UserErrorConvertible>(_ error: T, from viewController: UIViewController) {
+        viewController.alert(error)
     }
 }
 

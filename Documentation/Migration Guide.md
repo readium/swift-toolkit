@@ -4,6 +4,10 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ## Unreleased
 
+### Error management
+
+The error hierarchy returned by the Readium APIs has been revamped and simplified. They are no longer `LocalizedError` instances, so you must provide your own user-friendly error messages. Refer to the `Readium.swift` file in the Test App for an example.
+
 ### Opening a `Publication`
 
 The `Streamer` object has been deprecated in favor of components with smaller responsibilities:

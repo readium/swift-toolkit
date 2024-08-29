@@ -397,7 +397,6 @@
 ../../Sources/LCP/Toolkit
 ../../Sources/LCP/Toolkit/Bundle.swift
 ../../Sources/LCP/Toolkit/DataCompression.swift
-../../Sources/LCP/Toolkit/Deferred.swift
 ../../Sources/LCP/Toolkit/ReadiumLCPLocalizedString.swift
 ../../Sources/Navigator
 ../../Sources/Navigator/Audiobook
@@ -13846,9 +13845,6 @@
 ../../Sources/Shared/Publication/User Settings
 ../../Sources/Shared/Publication/User Settings/UserProperties.swift
 ../../Sources/Shared/Publication/User Settings/UserSettings.swift
-../../Sources/Shared/Resources
-../../Sources/Shared/Resources/en.lproj
-../../Sources/Shared/Resources/en.lproj/Localizable.strings
 ../../Sources/Shared/RootFile.swift
 ../../Sources/Shared/Toolkit
 ../../Sources/Shared/Toolkit/Archive
@@ -13872,7 +13868,6 @@
 ../../Sources/Shared/Toolkit/Data/Container/Fetcher.swift
 ../../Sources/Shared/Toolkit/Data/Container/SingleResourceContainer.swift
 ../../Sources/Shared/Toolkit/Data/Container/TransformingContainer.swift
-../../Sources/Shared/Toolkit/Data/Decoding.swift
 ../../Sources/Shared/Toolkit/Data/ReadError.swift
 ../../Sources/Shared/Toolkit/Data/Resource
 ../../Sources/Shared/Toolkit/Data/Resource/BorrowedResource.swift
