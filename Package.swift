@@ -41,9 +41,6 @@ let package = Package(
                 // Support for ZIPFoundation is not yet achieved.
                 "Toolkit/ZIP/ZIPFoundation.swift",
             ],
-            resources: [
-                .process("Resources"),
-            ],
             linkerSettings: [
                 .linkedFramework("CoreServices"),
                 .linkedFramework("UIKit"),
