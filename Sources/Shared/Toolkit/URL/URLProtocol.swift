@@ -78,8 +78,10 @@ public extension URLProtocol {
     }
 
     /// The path extension, or nil if it is empty.
-    var pathExtension: String? {
-        url.pathExtension.orNilIfEmpty()
+    var pathExtension: FileExtension? {
+        url.pathExtension
+            .orNilIfEmpty()
+            .map { FileExtension(rawValue: $0) }
     }
 
     /// Returns a URL constructed by replacing or appending the given path

@@ -48,6 +48,8 @@ final class TTSViewModel: ObservableObject, Loggable {
     @Published private var playingUtterance: Locator?
     private let playingWordRangeSubject = PassthroughSubject<Locator, Never>()
 
+    private var isMoving = false
+
     private var subscriptions: Set<AnyCancellable> = []
 
     init?(navigator: Navigator, publication: Publication) {
@@ -81,15 +83,20 @@ final class TTSViewModel: ObservableObject, Loggable {
 
         // Navigate to the currently spoken utterance word.
         // This will automatically turn pages when needed.
-        var isMoving = false
         playingWordRangeSubject
             .removeDuplicates()
             //  Improve performances by throttling the moves to maximum one per second.
             .throttle(for: 1, scheduler: RunLoop.main, latest: true)
-            .drop(while: { _ in isMoving })
-            .sink { locator in
-                isMoving = navigator.go(to: locator) {
-                    isMoving = false
+            .drop(while: { [weak self] _ in self?.isMoving ?? true })
+            .sink { [weak self] locator in
+                guard let self = self else {
+                    return
+                }
+
+                isMoving = true
+                Task {
+                    await navigator.go(to: locator)
+                    self.isMoving = false
                 }
             }
             .store(in: &subscriptions)
@@ -106,9 +113,11 @@ final class TTSViewModel: ObservableObject, Loggable {
 
     @objc func start() {
         if let navigator = navigator as? VisualNavigator {
-            // Gets the locator of the element at the top of the page.
-            navigator.firstVisibleElementLocator { [self] locator in
-                synthesizer.start(from: locator)
+            Task {
+                // Gets the locator of the element at the top of the page.
+                if let locator = await navigator.firstVisibleElementLocator() {
+                    synthesizer.start(from: locator)
+                }
             }
         } else {
             synthesizer.start(from: navigator.currentLocation)
@@ -143,11 +152,13 @@ final class TTSViewModel: ObservableObject, Loggable {
     // external controls.
 
     private func setupNowPlaying() {
-        NowPlayingInfo.shared.media = .init(
-            title: publication.metadata.title ?? "",
-            artist: publication.metadata.authors.map(\.name).joined(separator: ", "),
-            artwork: publication.cover
-        )
+        Task {
+            NowPlayingInfo.shared.media = await .init(
+                title: publication.metadata.title ?? "",
+                artist: publication.metadata.authors.map(\.name).joined(separator: ", "),
+                artwork: try? publication.cover().get()
+            )
+        }
 
         let commandCenter = MPRemoteCommandCenter.shared()
 

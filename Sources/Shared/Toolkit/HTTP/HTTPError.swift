@@ -7,11 +7,10 @@
 import Foundation
 
 public typealias HTTPResult<Success> = Result<Success, HTTPError>
-public typealias HTTPDeferred<Success> = Deferred<Success, HTTPError>
 
 /// Represents an error occurring during an `HTTPClient` activity.
-public struct HTTPError: LocalizedError, Equatable, Loggable {
-    public enum Kind: Equatable, Sendable {
+public struct HTTPError: Error, Loggable {
+    public enum Kind: Sendable {
         /// The provided request was not valid.
         case malformedRequest(url: String?)
         /// The received response couldn't be decoded.
@@ -36,7 +35,7 @@ public struct HTTPError: LocalizedError, Equatable, Loggable {
         /// The device is offline.
         case offline
         /// IO error while accessing the disk.
-        case ioError
+        case fileSystem(FileSystemError)
         /// The request was cancelled.
         case cancelled
         /// An error whose kind is not recognized.
@@ -117,7 +116,7 @@ public struct HTTPError: LocalizedError, Equatable, Loggable {
         self.response = response
 
         problemDetails = {
-            if let body = response?.body, response?.mediaType.matches(.problemDetails) == true {
+            if let body = response?.body, response?.mediaType?.matches(.problemDetails) == true {
                 do {
                     return try HTTPProblemDetails(data: body)
                 } catch {
@@ -143,51 +142,5 @@ public struct HTTPError: LocalizedError, Equatable, Loggable {
         }
 
         self.init(kind: Kind(error: error), cause: error)
-    }
-
-    public var errorDescription: String? {
-        if var message = problemDetails?.title {
-            if let detail = problemDetails?.detail {
-                message += "\n" + detail
-            }
-            return message
-        }
-
-        switch kind {
-        case .malformedRequest:
-            return ReadiumSharedLocalizedString("HTTPError.malformedRequest")
-        case .malformedResponse:
-            return ReadiumSharedLocalizedString("HTTPError.malformedResponse")
-        case .timeout:
-            return ReadiumSharedLocalizedString("HTTPError.timeout")
-        case .badRequest:
-            return ReadiumSharedLocalizedString("HTTPError.badRequest")
-        case .unauthorized:
-            return ReadiumSharedLocalizedString("HTTPError.unauthorized")
-        case .forbidden:
-            return ReadiumSharedLocalizedString("HTTPError.forbidden")
-        case .notFound:
-            return ReadiumSharedLocalizedString("HTTPError.notFound")
-        case .clientError:
-            return ReadiumSharedLocalizedString("HTTPError.clientError")
-        case .serverError:
-            return ReadiumSharedLocalizedString("HTTPError.serverError")
-        case .serverUnreachable:
-            return ReadiumSharedLocalizedString("HTTPError.serverUnreachable")
-        case .cancelled:
-            return ReadiumSharedLocalizedString("HTTPError.cancelled")
-        case .offline:
-            return ReadiumSharedLocalizedString("HTTPError.offline")
-        case .ioError:
-            return ReadiumSharedLocalizedString("HTTPError.ioError")
-        case .other:
-            return (cause as? LocalizedError)?.errorDescription
-        }
-    }
-
-    public static func == (lhs: HTTPError, rhs: HTTPError) -> Bool {
-        lhs.kind == rhs.kind
-            && lhs.response == rhs.response
-            && lhs.problemDetails == rhs.problemDetails
     }
 }

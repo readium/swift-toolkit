@@ -20,3 +20,7 @@ func AssertJSONEqual(_ json1: Any, _ json2: Any, file: StaticString = #file, lin
 func AssertImageEqual(_ image1: UIImage?, _ image2: UIImage?, file: StaticString = #file, line: UInt = #line) {
     XCTAssertEqual(image1?.pngData(), image2?.pngData(), file: file, line: line)
 }
+
+func AssertImageEqual<F: Error>(_ image1: Result<UIImage?, F>, _ image2: Result<UIImage?, F>, file: StaticString = #file, line: UInt = #line) {
+    XCTAssertEqual(try image1.get()?.pngData(), try image2.get()?.pngData(), file: file, line: line)
+}

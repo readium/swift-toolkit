@@ -6,10 +6,12 @@
 
 import Foundation
 
+@available(*, unavailable, message: "Take a look at the migration guide to migrate to the new Preferences API")
 public protocol UserPropertyStringifier {
     func toString() -> String
 }
 
+@available(*, unavailable, message: "Take a look at the migration guide to migrate to the new Preferences API")
 public class UserProperty: UserPropertyStringifier {
     public var reference: String
     public var name: String
@@ -24,6 +26,7 @@ public class UserProperty: UserPropertyStringifier {
     }
 }
 
+@available(*, unavailable, message: "Take a look at the migration guide to migrate to the new Preferences API")
 public class Enumerable: UserProperty {
     public var index: Int
     public var values: [String]
@@ -40,6 +43,7 @@ public class Enumerable: UserProperty {
     }
 }
 
+@available(*, unavailable, message: "Take a look at the migration guide to migrate to the new Preferences API")
 public class Incrementable: UserProperty {
     public var value, min, max, step: Float
     public var suffix: String
@@ -67,6 +71,7 @@ public class Incrementable: UserProperty {
     }
 }
 
+@available(*, unavailable, message: "Take a look at the migration guide to migrate to the new Preferences API")
 public class Switchable: UserProperty {
     public var onValue: String
     public var offValue: String
@@ -92,6 +97,7 @@ public class Switchable: UserProperty {
     }
 }
 
+@available(*, unavailable, message: "Take a look at the migration guide to migrate to the new Preferences API")
 public class StringProperty: UserProperty {
     public var value: String?
 
@@ -106,6 +112,7 @@ public class StringProperty: UserProperty {
     }
 }
 
+@available(*, unavailable, message: "Take a look at the migration guide to migrate to the new Preferences API")
 public class UserProperties {
     public var properties = [UserProperty]()
 

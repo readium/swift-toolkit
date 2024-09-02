@@ -233,58 +233,16 @@ class PublicationTests: XCTestCase {
         )
     }
 
-    /// `Publication.get()` delegates to the `Fetcher`.
-    func testGetDelegatesToFetcher() {
+    /// `Publication.get()` delegates to the `Container`.
+    func testGetDelegatesToContainer() async throws {
         let link = Link(href: "test", mediaType: .html)
         let publication = makePublication(
             links: [link],
-            fetcher: ProxyFetcher {
-                if link.href == $0.href {
-                    return DataResource(link: $0, string: "hello")
-                } else {
-                    return FailureResource(link: $0, error: .notFound(nil))
-                }
-            }
+            container: SingleResourceContainer(resource: DataResource(string: "hello"), at: link.url())
         )
 
-        XCTAssertEqual(publication.get(link).readAsString().getOrNil(), "hello")
-    }
-
-    /// Services take precedence over the Fetcher in `Publication.get()`.
-    func testGetServicesTakePrecedence() {
-        let link = Link(href: "test", mediaType: .html)
-        let publication = makePublication(
-            links: [link],
-            fetcher: ProxyFetcher {
-                if link.href == $0.href {
-                    return DataResource(link: $0, string: "hello")
-                } else {
-                    return FailureResource(link: $0, error: .notFound(nil))
-                }
-            },
-            services: PublicationServicesBuilder(setup: {
-                $0.set(TestService.self) { _ in TestService(link: link) }
-            })
-        )
-
-        XCTAssertEqual(publication.get(link).readAsString().getOrNil(), "world")
-    }
-
-    /// `Publication.get(String)` keeps the query parameters and automatically untemplate the `Link`.
-    func testGetKeepsQueryParameters() {
-        let link = Link(href: "test", mediaType: .html, templated: true)
-        var requestedLink: Link?
-        let publication = makePublication(
-            links: [link],
-            fetcher: ProxyFetcher {
-                requestedLink = $0
-                return FailureResource(link: $0, error: .notFound(nil))
-            }
-        )
-
-        _ = publication.get(AnyURL(string: "test?query=param")!)
-
-        XCTAssertEqual(requestedLink, Link(href: "test?query=param", mediaType: .html, templated: false))
+        let result = try await publication.get(link)?.readAsString().get()
+        XCTAssertEqual(result, "hello")
     }
 
     private func makePublication(
@@ -292,7 +250,7 @@ class PublicationTests: XCTestCase {
         links: [Link] = [],
         readingOrder: [Link] = [],
         resources: [Link] = [],
-        fetcher: Fetcher? = nil,
+        container: Container? = nil,
         services: PublicationServicesBuilder = PublicationServicesBuilder()
     ) -> Publication {
         Publication(
@@ -302,7 +260,7 @@ class PublicationTests: XCTestCase {
                 readingOrder: readingOrder,
                 resources: resources
             ),
-            fetcher: fetcher ?? EmptyFetcher(),
+            container: container ?? EmptyContainer(),
             servicesBuilder: services
         )
     }
@@ -366,19 +324,5 @@ class PublicationTests: XCTestCase {
             ),
             Locator(href: "foo/chap1.html", mediaType: .html)
         )
-    }
-}
-
-private struct TestService: PublicationService {
-    let link: Link
-
-    lazy var links: [Link] = [link]
-
-    func get(link: Link) -> Resource? {
-        if link.href == self.link.href {
-            return DataResource(link: link, string: "world")
-        } else {
-            return FailureResource(link: link, error: .notFound(nil))
-        }
     }
 }

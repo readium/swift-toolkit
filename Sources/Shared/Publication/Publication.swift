@@ -8,9 +8,9 @@ import CoreServices
 import Foundation
 
 /// Shared model for a Readium Publication.
-public class Publication: Loggable {
+public class Publication: Closeable, Loggable {
     private var manifest: Manifest
-    private let fetcher: Fetcher
+    private let container: Container
     private let services: [PublicationService]
 
     public var context: [String] { manifest.context }
@@ -24,19 +24,9 @@ public class Publication: Loggable {
     public var tableOfContents: [Link] { manifest.tableOfContents }
     public var subcollections: [String: [PublicationCollection]] { manifest.subcollections }
 
-    public var userProperties = UserProperties()
-
-    // The status of User Settings properties (enabled or disabled).
-    public var userSettingsUIPreset: [ReadiumCSSName: Bool]? {
-        didSet { userSettingsUIPresetUpdated?(userSettingsUIPreset) }
-    }
-
-    /// Called when the User Settings changed.
-    public var userSettingsUIPresetUpdated: (([ReadiumCSSName: Bool]?) -> Void)?
-
     public init(
         manifest: Manifest,
-        fetcher: Fetcher = EmptyFetcher(),
+        container: Container = EmptyContainer(),
         servicesBuilder: PublicationServicesBuilder = .init()
     ) {
         let weakPublication = Weak<Publication>()
@@ -46,13 +36,13 @@ public class Publication: Loggable {
             context: PublicationServiceContext(
                 publication: weakPublication,
                 manifest: manifest,
-                fetcher: fetcher
+                container: container
             )
         )
         manifest.links.append(contentsOf: services.flatMap(\.links))
 
         self.manifest = manifest
-        self.fetcher = fetcher
+        self.container = container
         self.services = services
 
         weakPublication.ref = self
@@ -77,11 +67,7 @@ public class Publication: Loggable {
     /// The URL where this publication is served, computed from the `Link` with `self` relation.
     ///
     /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
-    public var baseURL: HTTPURL? {
-        links.firstWithRel(.`self`)
-            .takeIf { !$0.templated }
-            .flatMap { HTTPURL(string: $0.href)?.removingLastPathSegment() }
-    }
+    public var baseURL: HTTPURL? { manifest.baseURL }
 
     /// Finds the first Link having the given `href` in the publication's links.
     public func linkWithHREF<T: URLConvertible>(_ href: T) -> Link? {
@@ -98,42 +84,25 @@ public class Publication: Loggable {
         manifest.linksWithRel(rel)
     }
 
-    @available(*, unavailable, renamed: "linkWithHREF")
-    public func link(withHREF href: String) -> Link? {
-        fatalError()
-    }
-
-    @available(*, unavailable, renamed: "linkWithRel")
-    public func link(withRel rel: LinkRelation) -> Link? {
-        fatalError()
-    }
-
-    @available(*, unavailable, renamed: "linksWithRel")
-    public func links(withRel rel: LinkRelation) -> [Link] {
-        fatalError()
-    }
-
     /// Returns the resource targeted by the given `link`.
-    public func get(_ link: Link) -> Resource {
+    public func get(_ link: Link) -> Resource? {
         assert(!link.templated, "You must expand templated links before calling `Publication.get`")
-
-        return services.first { $0.get(link: link) }
-            ?? fetcher.get(link)
+        return get(link.url())
     }
 
     /// Returns the resource targeted by the given `href`.
-    public func get<T: URLConvertible>(_ href: T) -> Resource {
-        var link = linkWithHREF(href) ?? Link(href: href.anyURL.string)
-        // Uses the original href to keep the query parameters
-        link.href = href.anyURL.string
-        link.templated = false
-        return get(link)
+    public func get<T: URLConvertible>(_ href: T) -> Resource? {
+        // Try first the original href and falls back to href without query and fragment.
+        container[href] ?? container[href.anyURL.removingQuery().removingFragment()]
     }
 
     /// Closes any opened resource associated with the `Publication`, including `services`.
     public func close() {
-        fetcher.close()
-        services.forEach { $0.close() }
+        container.close()
+
+        for service in services {
+            service.close()
+        }
     }
 
     /// Finds the first `Publication.Service` implementing the given service type.
@@ -200,7 +169,8 @@ public class Publication: Loggable {
     }
 
     /// Errors occurring while opening a Publication.
-    public enum OpeningError: LocalizedError {
+    @available(*, unavailable, message: "Not used anymore")
+    public enum OpeningError: Error {
         /// The file format could not be recognized by any parser.
         case unsupportedFormat
         /// The publication file was not found on the file system.
@@ -215,56 +185,35 @@ public class Publication: Loggable {
         /// The provided credentials are incorrect and we can't open the publication in a
         /// `restricted` state (e.g. for a password-protected ZIP).
         case incorrectCredentials
-
-        public var errorDescription: String? {
-            switch self {
-            case .unsupportedFormat:
-                return ReadiumSharedLocalizedString("Publication.OpeningError.unsupportedFormat")
-            case .notFound:
-                return ReadiumSharedLocalizedString("Publication.OpeningError.notFound")
-            case .parsingFailed:
-                return ReadiumSharedLocalizedString("Publication.OpeningError.parsingFailed")
-            case .forbidden:
-                return ReadiumSharedLocalizedString("Publication.OpeningError.forbidden")
-            case .unavailable:
-                return ReadiumSharedLocalizedString("Publication.OpeningError.unavailable")
-            case .incorrectCredentials:
-                return ReadiumSharedLocalizedString("Publication.OpeningError.incorrectCredentials")
-            }
-        }
     }
 
     /// Holds the components of a `Publication` to build it.
     ///
-    /// A `Publication`'s construction is distributed over the Streamer and its parsers, and since
-    /// `Publication` is immutable, it's useful to pass the parts around before actually building
-    /// it.
+    /// A `Publication`'s construction is distributed over the Streamer and its
+    /// parsers, and since `Publication` is immutable, it's useful to pass the
+    /// parts around before actually building it.
     public struct Builder {
-        /// Transform which can be used to modify a `Publication`'s components before building it.
-        /// For example, to add Publication Services or wrap the root Fetcher.
-        public typealias Transform = (_ mediaType: MediaType, _ manifest: inout Manifest, _ fetcher: inout Fetcher, _ services: inout PublicationServicesBuilder) -> Void
+        /// Transform which can be used to modify a `Publication`'s components
+        /// before building it. For example, to add Publication Services or
+        /// wrap the root Container.
+        public typealias Transform = (
+            _ manifest: inout Manifest,
+            _ container: inout Container,
+            _ services: inout PublicationServicesBuilder
+        ) -> Void
 
-        private let mediaType: MediaType
         private var manifest: Manifest
-        private var fetcher: Fetcher
+        private var container: Container
         private var servicesBuilder: PublicationServicesBuilder
 
-        /// Closure which will be called once the `Publication` is built.
-        /// This is used for backwrad compatibility, until `Publication` is purely immutable.
-        private let setupPublication: ((Publication) -> Void)?
-
         public init(
-            mediaType: MediaType,
             manifest: Manifest,
-            fetcher: Fetcher,
-            servicesBuilder: PublicationServicesBuilder = .init(),
-            setupPublication: ((Publication) -> Void)? = nil
+            container: Container,
+            servicesBuilder: PublicationServicesBuilder = .init()
         ) {
-            self.mediaType = mediaType
             self.manifest = manifest
-            self.fetcher = fetcher
+            self.container = container
             self.servicesBuilder = servicesBuilder
-            self.setupPublication = setupPublication
         }
 
         public mutating func apply(_ transform: Transform?) {
@@ -272,18 +221,16 @@ public class Publication: Loggable {
                 return
             }
 
-            transform(mediaType, &manifest, &fetcher, &servicesBuilder)
+            transform(&manifest, &container, &servicesBuilder)
         }
 
         /// Builds the `Publication` from its parts.
         public func build() -> Publication {
-            let publication = Publication(
+            Publication(
                 manifest: manifest,
-                fetcher: fetcher,
+                container: container,
                 servicesBuilder: servicesBuilder
             )
-            setupPublication?(publication)
-            return publication
         }
     }
 
@@ -300,5 +247,33 @@ public class Publication: Loggable {
         case cbz, epub, pdf, webpub
         /// Default value when the format is not specified.
         case unknown
+    }
+
+    @available(*, unavailable, message: "Take a look at the migration guide to migrate to the new Preferences API")
+    public var userProperties: UserProperties { fatalError() }
+
+    @available(*, unavailable, message: "Take a look at the migration guide to migrate to the new Preferences API")
+    public var userSettingsUIPreset: [AnyHashable: Bool]? {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Take a look at the migration guide to migrate to the new Preferences API")
+    public var userSettingsUIPresetUpdated: (([AnyHashable: Bool]?) -> Void)? {
+        fatalError()
+    }
+
+    @available(*, unavailable, renamed: "linkWithHREF")
+    public func link(withHREF href: String) -> Link? {
+        fatalError()
+    }
+
+    @available(*, unavailable, renamed: "linkWithRel")
+    public func link(withRel rel: LinkRelation) -> Link? {
+        fatalError()
+    }
+
+    @available(*, unavailable, renamed: "linksWithRel")
+    public func links(withRel rel: LinkRelation) -> [Link] {
+        fatalError()
     }
 }

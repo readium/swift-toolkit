@@ -4,7 +4,6 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import ReadiumAdapterGCDWebServer
 import ReadiumNavigator
 import ReadiumShared
 import ReadiumStreamer
@@ -16,12 +15,13 @@ class CBZViewController: VisualReaderViewController<CBZNavigatorViewController> 
         locator: Locator?,
         bookId: Book.Id,
         books: BookRepository,
-        bookmarks: BookmarkRepository
+        bookmarks: BookmarkRepository,
+        httpServer: HTTPServer
     ) throws {
         let navigator = try CBZNavigatorViewController(
             publication: publication,
             initialLocation: locator,
-            httpServer: GCDHTTPServer.shared
+            httpServer: httpServer
         )
 
         super.init(

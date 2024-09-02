@@ -1,6 +1,7 @@
 # User guides
 
 * [Getting Started](Getting%20Started.md)
+* [Opening a publication](Open%20Publication.md)
 * [Extracting the content of a publication](Content.md)
 * [Text-to-speech](TTS.md)
 * [Supporting Readium LCP](Readium%20LCP.md)

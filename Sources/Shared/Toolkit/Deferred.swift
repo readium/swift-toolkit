@@ -45,6 +45,7 @@ import Foundation
 ///
 /// `Deferred` uses internally `CancellableResult`, which means that the result can be in a
 ///  cancelled state, which is convenient for asynchronous APIs.
+@available(*, unavailable, message: "Not used anymore")
 public final class Deferred<Success, Failure: Error> {
     /// Traditional completion closure signature, with a `CancelableResult` object.
     public typealias Completion = (CancellableResult<Success, Failure>) -> Void
@@ -310,6 +311,7 @@ public final class Deferred<Success, Failure: Error> {
 ///     deferred { completion in
 ///         traditionalAsync(completion)
 ///     }
+@available(*, unavailable, message: "Not used anymore")
 public func deferred<Success, Failure: Error>(on queue: DispatchQueue? = nil, closure: @escaping (@escaping Deferred<Success, Failure>.Completion) -> Void) -> Deferred<Success, Failure> {
     Deferred(on: queue, closure)
 }
@@ -318,6 +320,7 @@ public func deferred<Success, Failure: Error>(on queue: DispatchQueue? = nil, cl
 /// result.
 ///
 /// Any thrown error is caught and wrapped in a result.
+@available(*, unavailable, message: "Not used anymore")
 public func deferredCatching<Success>(on queue: DispatchQueue? = nil, closure: @escaping (@escaping Deferred<Success, Error>.Completion) throws -> Void) -> Deferred<Success, Error> {
     Deferred(on: queue) { completion in
         do {
@@ -347,6 +350,7 @@ public func deferredCatching<Success>(on queue: DispatchQueue? = nil, closure: @
 ///                 }
 ///         }
 ///     }
+@available(*, unavailable, message: "Not used anymore")
 public func deferred<Success, Failure>(on queue: DispatchQueue? = nil, closure: @escaping () -> Deferred<Success, Failure>) -> Deferred<Success, Failure> {
     Deferred(on: queue) { completion in
         closure().resolve(completion)
@@ -356,6 +360,7 @@ public func deferred<Success, Failure>(on queue: DispatchQueue? = nil, closure: 
 /// Constructs a Deferred by wrapping another Deferred.
 ///
 /// Any thrown error is caught and wrapped in a result.
+@available(*, unavailable, message: "Not used anymore")
 public func deferredCatching<Success>(on queue: DispatchQueue? = nil, closure: @escaping () throws -> Deferred<Success, Error>) -> Deferred<Success, Error> {
     Deferred(on: queue) { completion in
         do {
@@ -378,6 +383,7 @@ public func deferredCatching<Success>(on queue: DispatchQueue? = nil, closure: @
 ///             success(response.data)
 ///         }
 ///     }
+@available(*, unavailable, message: "Not used anymore")
 public func deferred<Success, Failure>(on queue: DispatchQueue? = nil, closure: @escaping (@escaping (Success) -> Void, @escaping (Failure) -> Void, @escaping () -> Void) -> Void) -> Deferred<Success, Failure> {
     Deferred(on: queue) { completion in
         closure(
@@ -390,6 +396,7 @@ public func deferred<Success, Failure>(on queue: DispatchQueue? = nil, closure: 
 
 public extension Result {
     /// Converts a `Result` to a `Deferred`.
+    @available(*, unavailable, message: "Not used anymore")
     var deferred: Deferred<Success, Failure> {
         switch self {
         case let .success(value):

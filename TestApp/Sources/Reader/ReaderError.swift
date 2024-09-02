@@ -6,16 +6,20 @@
 
 import Foundation
 
-enum ReaderError: LocalizedError {
+enum ReaderError: Error {
     case formatNotSupported
     case epubNotValid
+}
 
-    var errorDescription: String? {
-        switch self {
-        case .formatNotSupported:
-            return NSLocalizedString("reader_error_formatNotSupported", comment: "Error message when trying to read a publication with a unsupported format")
-        case .epubNotValid:
-            return NSLocalizedString("reader_error_epubNotValid", comment: "Error message when trying to read an EPUB that is invalid")
+extension ReaderError: UserErrorConvertible {
+    func userError() -> UserError {
+        UserError(cause: self) {
+            switch self {
+            case .formatNotSupported:
+                return "reader_error_formatNotSupported".localized
+            case .epubNotValid:
+                return "reader_error_epubNotValid".localized
+            }
         }
     }
 }

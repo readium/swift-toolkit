@@ -6,24 +6,21 @@
 
 import AVFoundation
 import Foundation
+import ReadiumInternal
 import ReadiumShared
 
 /// Serves `Publication`'s `Resource`s as an `AVURLAsset`.
 ///
 /// Useful for local resources or when you need to customize the way HTTP requests are sent.
-final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
-    public enum AssetError: LocalizedError {
+final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Loggable {
+    public enum AssetError: Error {
+        /// Can't produce an URL to create an AVAsset for the given HREF.
         case invalidHREF(String)
-
-        public var errorDescription: String? {
-            switch self {
-            case let .invalidHREF(href):
-                return "Can't produce an URL to create an AVAsset for HREF \(href)"
-            }
-        }
     }
 
     private let publication: Publication
+
+    private let tasks = CancellableTasks()
 
     init(publication: Publication) {
         self.publication = publication
@@ -51,31 +48,36 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
 
     // MARK: - Resource Management
 
-    private var resources: [AnyURL: Resource] = [:]
+    private var resources: [AnyURL: (Link, Resource)] = [:]
 
-    private func resource<T: URLConvertible>(forHREF href: T) -> Resource {
+    private func resource<T: URLConvertible>(forHREF href: T) -> (Link, Resource)? {
         let href = href.anyURL
         if let res = resources[equivalent: href] {
             return res
         }
 
-        let res = publication.get(href)
-        resources[href] = res
-        return res
+        guard
+            let link = publication.linkWithHREF(href),
+            let resource = publication.get(link)
+        else {
+            return nil
+        }
+        resources[href] = (link, resource)
+        return (link, resource)
     }
 
     // MARK: - Requests Management
 
-    private typealias CancellableRequest = (request: AVAssetResourceLoadingRequest, cancellable: Cancellable)
+    private typealias CancellableRequest = (request: AVAssetResourceLoadingRequest, task: Task<Void, Never>)
 
     /// List of on-going loading requests.
     private var requests: [AnyURL: [CancellableRequest]] = [:]
 
     /// Adds a new loading request.
-    private func registerRequest<T: URLConvertible>(_ request: AVAssetResourceLoadingRequest, cancellable: Cancellable, for href: T) {
+    private func registerRequest<T: URLConvertible>(_ request: AVAssetResourceLoadingRequest, task: Task<Void, Never>, for href: T) {
         let href = href.anyURL
         var reqs: [CancellableRequest] = requests[href] ?? []
-        reqs.append((request, cancellable))
+        reqs.append((request, task))
         requests[href] = reqs
     }
 
@@ -90,11 +92,12 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
         }
 
         let req = reqs.remove(at: index)
-        req.cancellable.cancel()
+        req.task.cancel()
 
         if reqs.isEmpty {
-            let res = resources.removeValue(forKey: href)
-            res?.close()
+            if let (_, res) = resources.removeValue(forKey: href) {
+                res.close()
+            }
             requests.removeValue(forKey: href)
         } else {
             requests[href] = reqs
@@ -104,11 +107,12 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
     // MARK: - AVAssetResourceLoaderDelegate
 
     func resourceLoader(_ resourceLoader: AVAssetResourceLoader, shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest) -> Bool {
-        guard let href = loadingRequest.request.url?.audioHREF else {
+        guard
+            let href = loadingRequest.request.url?.audioHREF,
+            let (link, res) = resource(forHREF: href)
+        else {
             return false
         }
-
-        let res = resource(forHREF: href)
 
         // According to https://jaredsinclair.com/2016/09/03/implementing-avassetresourceload.html, we should not
         // honor the `dataRequest` if there is a `contentInformationRequest`.
@@ -117,41 +121,54 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate {
         // > lead to an undocumented bug where no further loading requests will be made, stalling playback
         // > indefinitely.
         if let infoRequest = loadingRequest.contentInformationRequest {
-            fillInfo(infoRequest, of: loadingRequest, using: res)
+            fillInfo(infoRequest, of: loadingRequest, using: res, link: link)
         } else if let dataRequest = loadingRequest.dataRequest {
-            fillData(dataRequest, of: loadingRequest, using: res)
+            fillData(dataRequest, of: loadingRequest, using: res, link: link)
         }
 
         return true
     }
 
-    private func fillInfo(_ infoRequest: AVAssetResourceLoadingContentInformationRequest, of request: AVAssetResourceLoadingRequest, using resource: Resource) {
-        infoRequest.isByteRangeAccessSupported = true
-        infoRequest.contentType = resource.link.mediaType?.uti
-        if case let .success(length) = resource.length {
-            infoRequest.contentLength = Int64(length)
+    private func fillInfo(
+        _ infoRequest: AVAssetResourceLoadingContentInformationRequest,
+        of request: AVAssetResourceLoadingRequest,
+        using resource: Resource,
+        link: Link
+    ) {
+        tasks.add {
+            infoRequest.isByteRangeAccessSupported = true
+            infoRequest.contentType = link.mediaType?.uti
+
+            switch await resource.length() {
+            case let .success(length):
+                infoRequest.contentLength = Int64(length)
+                request.finishLoading()
+
+            case let .failure(error):
+                log(.error, error)
+                request.finishLoading(with: error)
+            }
         }
-        request.finishLoading()
     }
 
-    private func fillData(_ dataRequest: AVAssetResourceLoadingDataRequest, of request: AVAssetResourceLoadingRequest, using resource: Resource) {
+    private func fillData(_ dataRequest: AVAssetResourceLoadingDataRequest, of request: AVAssetResourceLoadingRequest, using resource: Resource, link: Link) {
         let range: Range<UInt64> = UInt64(dataRequest.currentOffset) ..< (UInt64(dataRequest.currentOffset) + UInt64(dataRequest.requestedLength))
 
-        let cancellable = resource.stream(
-            range: range,
-            consume: { dataRequest.respond(with: $0) },
-            completion: { result in
-                switch result {
-                case .success:
-                    request.finishLoading()
-                case let .failure(error):
-                    request.finishLoading(with: error)
-                }
-                self.finishRequest(request)
+        let task = Task {
+            let result = await resource.stream(
+                range: range,
+                consume: { dataRequest.respond(with: $0) }
+            )
+            switch result {
+            case .success:
+                request.finishLoading()
+            case let .failure(error):
+                request.finishLoading(with: error)
             }
-        )
+            self.finishRequest(request)
+        }
 
-        registerRequest(request, cancellable: cancellable, for: resource.link.url())
+        registerRequest(request, task: task, for: link.url())
     }
 
     func resourceLoader(_ resourceLoader: AVAssetResourceLoader, didCancel loadingRequest: AVAssetResourceLoadingRequest) {
@@ -172,5 +189,18 @@ extension URL {
         // * readiumfile:///directory/local-file.mp3
         // * readiumhttp(s)://domain.com/external-file.mp3
         return AnyURL(string: url.string.removingPrefix(schemePrefix).removingPrefix(":"))
+    }
+}
+
+extension Resource {
+    func length() async -> ReadResult<UInt64> {
+        await estimatedLength()
+            .flatMap { length in
+                if let length = length {
+                    return .success(length)
+                } else {
+                    return await read().map { UInt64($0.count) }
+                }
+            }
     }
 }

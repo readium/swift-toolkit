@@ -78,6 +78,6 @@ class EPUBEncryptionParserTests: XCTestCase {
 
     func parseEncryptions(_ name: String) -> [RelativeURL: Encryption] {
         let data = fixtures.data(at: "\(name).xml")
-        return EPUBEncryptionParser(fetcher: EmptyFetcher(), data: data).parseEncryptions()
+        return EPUBEncryptionParser(container: EmptyContainer(), data: data).parseEncryptions()
     }
 }

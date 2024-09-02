@@ -16,9 +16,9 @@ The toolkit has been designed following these core tenets:
 
 ### Main packages
 
-* `R2Shared` contains shared `Publication` models and utilities.
-* `R2Streamer` parses publication files (e.g. an EPUB) into a `Publication` object.
-* [`R2Navigator` renders the content of a publication](Navigator/Navigator.md).
+* `ReadiumShared` contains shared `Publication` models and utilities.
+* `ReadiumStreamer` parses publication files (e.g. an EPUB) into a `Publication` object.
+* [`ReadiumNavigator` renders the content of a publication](Navigator/Navigator.md).
 
 ### Specialized packages
 
@@ -30,7 +30,7 @@ The toolkit has been designed following these core tenets:
 * `ReadiumAdapterGCDWebServer` provides an HTTP server built with [GCDWebServer](https://github.com/swisspol/GCDWebServer).
 * `ReadiumAdapterLCPSQLite` provides implementations of the `ReadiumLCP` license and passphrase repositories using [SQLite.swift](https://github.com/stephencelis/SQLite.swift).
 
-## Overview of the shared models (`R2Shared`)
+## Overview of the shared models (`ReadiumShared`)
 
 The Readium toolkit provides models used as exchange types between packages.
 
@@ -47,7 +47,6 @@ A `Publication` instance:
 * provides additional services, for example content extraction or text search.
 
 #### Link
-
 
 A [`Link` object](https://readium.org/webpub-manifest/#24-the-link-object) holds a pointer (URL) to a resource or service along with additional metadata, such as its media type or title.
 
@@ -70,68 +69,87 @@ A [`Locator` object](https://readium.org/architecture/models/locators/) represen
 
 ### Data models
 
-#### Publication Asset
+#### Asset
 
-A `PublicationAsset` is an interface representing a single file or package holding the content of a `Publication`. A default implementation `FileAsset` grants access to a publication stored locally.
+An `Asset` represents a single file or package and provides access to its content. There are two types of `Asset`:
+
+* `ContainerAsset` for packages which contains several resources, such as a ZIP archive.
+* `ResourceAsset` for accessing a single resource, such as a JSON or PDF file.
+
+`Asset` instances are obtained through an `AssetRetriever`.
+
+You can use the `asset.format` to identify the media type and capabilities of the asset.
+
+```swift
+if asset.format.conformsTo(.lcp) {
+    // The asset is protected with LCP.
+}
+if asset.format.conformsTo(.epub) {
+    // The asset represents an EPUB publication.
+}
+```
 
 #### Resource
 
-A `Resource` provides read access to a single resource of a publication, such as a file or an entry in an archive.
+A `Resource` provides read access to a single resource, such as a file or an entry in an archive.
 
-`Resource` instances are usually created by a `Fetcher`. The toolkit ships with various implementations supporting different data access protocols such as local files, HTTP, etc.
+`Resource` instances are usually created by a `ResourceFactory`. The toolkit ships with various implementations supporting different data access protocols such as local files or HTTP.
 
-#### Fetcher
+#### Container
 
-A `Fetcher` provides read access to a collection of resources. `Fetcher` instances are created by a `PublicationAsset` to provide access to the content of a publication.
+A `Container` provides read access to a collection of resources. `Container` instances representing an archive are usually created by an `ArchiveOpener`. The toolkit ships with a `ZIPArchiveOpener` supporting local ZIP files.
 
-`Publication` objects internally use a `Fetcher` to expose their content.
+`Publication` objects internally use a `Container` to expose its content.
 
-## Opening a publication (`R2Streamer`)
+## Opening a publication (`ReadiumStreamer`)
 
-To retrieve a `Publication` object from a publication file like an EPUB or audiobook, begin by creating a `PublicationAsset` object used to read the file. Readium provides a `FileAsset` implementation for reading a publication stored on the local file system.
-
-```swift
-let file = URL(fileURLWithPath: "path/to/book.epub")
-let asset = FileAsset(file: file)
-```
-
-Then, use a `Streamer` instance to parse the asset and create a `Publication` object.
+To retrieve a `Publication` object from a publication file like an EPUB or audiobook, you can use an `AssetRetriever` and `PublicationOpener`.
 
 ```swift
-let streamer = Streamer()
+// Instantiate the required components.
+let httpClient = DefaultHTTPClient()
+let assetRetriever = AssetRetriever(
+    httpClient: httpClient
+)
+let publicationOpener = PublicationOpener(
+    publicationParser: DefaultPublicationParser(
+        httpClient: httpClient,
+        assetRetriever: assetRetriever,
+        pdfFactory: DefaultPDFDocumentFactory()
+    )
+)
 
-streamer.open(asset: asset, allowUserInteraction: false) { result in
-    switch result {
+let url: URL = URL(...)
+
+// Retrieve an `Asset` to access the file content.
+switch await assetRetriever.retrieve(url: url.anyURL.absoluteURL!) {
+case .success(let asset):
+    // Open a `Publication` from the `Asset`.
+    switch await publicationOpener.open(asset: asset, allowUserInteraction: true, sender: view) {
     case .success(let publication):
         print("Opened \(publication.metadata.title)")
+
     case .failure(let error):
-        alert(error.localizedDescription)
-    case .cancelled:
-        // The user cancelled the opening, for example by dismissing a password pop-up.
-        break
+        // Failed to access or parse the publication
     }
+
+case .failure(let error):
+    // Failed to retrieve the asset
 }
 ```
 
 The `allowUserInteraction` parameter is useful when supporting a DRM like Readium LCP. It indicates if the toolkit can prompt the user for credentials when the publication is protected.
 
+[See the dedicated user guide for more information](Open%20Publication.md).
+
 ## Accessing the metadata of a publication
 
 After opening a publication, you may want to read its metadata to insert a new entity into your bookshelf database, for instance. The `publication.metadata` object contains everything you need, including `title`, `authors` and the `published` date.
 
-You can retrieve the publication cover using `publication.cover`. Avoid calling this from the main thread to prevent blocking the user interface.
+You can retrieve the publication cover using `await publication.cover()`.
 
-## Rendering the publication on the screen (`R2Navigator`)
+## Rendering the publication on the screen (`ReadiumNavigator`)
 
 You can use a Readium navigator to present the publication to the user. The `Navigator` renders resources on the screen and offers APIs and user interactions for navigating the contents.
 
-```swift
-let navigator = try EPUBNavigatorViewController(
-    publication: publication,
-    initialLocation: lastReadLocation,
-    httpServer: GCDHTTPServer.shared
-)
-
-hostViewController.present(navigator, animated: true)
-```
 Please refer to the [Navigator guide](Navigator/Navigator.md) for more information.

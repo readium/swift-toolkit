@@ -85,6 +85,16 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
         subcollections = PublicationCollection.makeCollections(json: json.json, warnings: warnings)
     }
 
+    /// The URL where this publication is served, computed from the `Link` with
+    /// `self` relation.
+    ///
+    /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
+    public var baseURL: HTTPURL? {
+        links.firstWithRel(.`self`)
+            .takeIf { !$0.templated }
+            .flatMap { HTTPURL(string: $0.href)?.removingLastPathSegment() }
+    }
+
     public var json: JSONDictionary.Wrapped {
         makeJSON([
             "@context": encodeIfNotEmpty(context),
@@ -155,6 +165,11 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
         (readingOrder + resources + links).filterByRel(rel)
     }
 
+    /// Finds all the links matching the given predicate in the manifest's links.
+    public func linksMatching(_ predicate: (Link) -> Bool) -> [Link] {
+        (readingOrder + resources + links).filter(predicate)
+    }
+
     @available(*, unavailable, renamed: "linkWithHREF")
     public func link(withHREF href: String) -> Link? {
         fatalError()
@@ -171,7 +186,7 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
     }
 
     /// Makes a copy of the `Manifest`, after modifying some of its properties.
-    @available(*, deprecated, message: "Make a mutable copy of the struct instead")
+    @available(*, unavailable, message: "Make a mutable copy of the struct instead")
     public func copy(
         context: [String]? = nil,
         metadata: Metadata? = nil,
@@ -181,14 +196,6 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
         tableOfContents: [Link]? = nil,
         subcollections: [String: [PublicationCollection]]? = nil
     ) -> Manifest {
-        Manifest(
-            context: context ?? self.context,
-            metadata: metadata ?? self.metadata,
-            links: links ?? self.links,
-            readingOrder: readingOrder ?? self.readingOrder,
-            resources: resources ?? self.resources,
-            tableOfContents: tableOfContents ?? self.tableOfContents,
-            subcollections: subcollections ?? self.subcollections
-        )
+        fatalError()
     }
 }

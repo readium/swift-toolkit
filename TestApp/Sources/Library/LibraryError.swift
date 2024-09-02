@@ -7,29 +7,39 @@
 import Foundation
 import ReadiumShared
 
-enum LibraryError: LocalizedError {
+enum LibraryError: Error {
     case publicationIsNotValid
     case bookNotFound
     case bookDeletionFailed(Error?)
     case importFailed(Error)
+    case publicationIsRestricted(Error)
     case openFailed(Error)
     case downloadFailed(Error?)
-    case cancelled
+}
 
-    var errorDescription: String? {
-        switch self {
-        case .publicationIsNotValid:
-            return NSLocalizedString("library_error_publicationIsNotValid", comment: "Error message used when trying to import a publication that is not valid")
-        case .bookNotFound:
-            return NSLocalizedString("library_error_bookNotFound", comment: "Error message used when trying to open a book whose file is not found")
-        case let .importFailed(error):
-            return String(format: NSLocalizedString("library_error_importFailed", comment: "Error message used when a low-level error occured while importing a publication"), error.localizedDescription)
-        case let .openFailed(error):
-            return String(format: NSLocalizedString("library_error_openFailed", comment: "Error message used when a low-level error occured while opening a publication"), error.localizedDescription)
-        case let .downloadFailed(error):
-            return String(format: NSLocalizedString("library_error_downloadFailed", comment: "Error message when the download of a publication failed"), error?.localizedDescription ?? "None")
-        default:
-            return nil
+extension LibraryError: UserErrorConvertible {
+    func userError() -> UserError {
+        UserError(cause: self) {
+            switch self {
+            case .publicationIsNotValid:
+                return "library_error_publicationIsNotValid".localized
+            case .bookNotFound:
+                return "library_error_bookNotFound".localized
+            case .importFailed:
+                return "library_error_importFailed".localized
+            case .openFailed:
+                return "library_error_openFailed".localized
+            case .downloadFailed:
+                return "library_error_downloadFailed".localized
+            case .bookDeletionFailed:
+                return "library_error_bookDeletionFailed".localized
+            case let .publicationIsRestricted(error):
+                if let error = error as? UserErrorConvertible {
+                    return error.userError().message
+                } else {
+                    return "library_error_publicationIsRestricted".localized
+                }
+            }
         }
     }
 }

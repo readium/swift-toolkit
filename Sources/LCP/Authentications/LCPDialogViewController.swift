@@ -183,7 +183,12 @@ final class LCPDialogViewController: UIViewController {
 
     /// Makes sure the form contents is scrollable when the keyboard is visible.
     @objc func keyboardWillChangeFrame(_ note: Notification) {
-        guard let window = UIApplication.shared.keyWindow, let scrollView = scrollView, let scrollViewSuperview = scrollView.superview, let info = note.userInfo else {
+        guard
+            let window = view.window,
+            let scrollView = scrollView,
+            let scrollViewSuperview = scrollView.superview,
+            let info = note.userInfo
+        else {
             return
         }
 

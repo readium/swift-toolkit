@@ -8,11 +8,27 @@ import Foundation
 import Fuzi
 
 final class FuziXMLDocument: XMLDocument, Loggable {
+    enum ParseError: Error {
+        case notAnXML
+    }
+
     fileprivate let document: Fuzi.XMLDocument
 
-    init(string: String, namespaces: [XMLNamespace]) throws {
-        document = try Fuzi.XMLDocument(string: string)
+    convenience init(data: Data, namespaces: [XMLNamespace]) throws {
+        try self.init(document: Fuzi.XMLDocument(data: data), namespaces: namespaces)
+    }
+
+    convenience init(string: String, namespaces: [XMLNamespace]) throws {
+        try self.init(document: Fuzi.XMLDocument(string: string), namespaces: namespaces)
+    }
+
+    init(document: Fuzi.XMLDocument, namespaces: [XMLNamespace]) throws {
+        guard document.root != nil else {
+            throw ParseError.notAnXML
+        }
+
         document.definePrefixes(namespaces)
+        self.document = document
     }
 
     lazy var documentElement: XMLElement? =

@@ -21,6 +21,7 @@ protocol LibraryModuleAPI {
     /// Imports a new publication to the library, either from:
     /// - a local file URL
     /// - a remote URL which will be downloaded
+    @discardableResult
     func importPublication(from url: AbsoluteURL, sender: UIViewController) async throws -> Book
 }
 
@@ -32,12 +33,18 @@ protocol LibraryModuleDelegate: ModuleDelegate {
 final class LibraryModule: LibraryModuleAPI {
     weak var delegate: LibraryModuleDelegate?
 
+    private let lcp: LCPModuleAPI
     private let library: LibraryService
     private let factory: LibraryFactory
     private var subscriptions = Set<AnyCancellable>()
 
-    init(delegate: LibraryModuleDelegate?, books: BookRepository, httpClient: HTTPClient) {
-        library = LibraryService(books: books, httpClient: httpClient)
+    init(
+        delegate: LibraryModuleDelegate?,
+        books: BookRepository,
+        readium: Readium
+    ) {
+        lcp = LCPModule(readium: readium)
+        library = LibraryService(books: books, readium: readium, lcp: lcp)
         factory = LibraryFactory(libraryService: library)
         self.delegate = delegate
     }

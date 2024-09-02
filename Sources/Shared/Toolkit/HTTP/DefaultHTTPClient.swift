@@ -525,3 +525,22 @@ private extension HTTPRequest {
         return request
     }
 }
+
+private extension HTTPResponse {
+    init(request: HTTPRequest, response: HTTPURLResponse, url: HTTPURL, body: Data? = nil) {
+        var headers: [String: String] = [:]
+        for (k, v) in response.allHeaderFields {
+            if let ks = k as? String, let vs = v as? String {
+                headers[ks] = vs
+            }
+        }
+        self.init(
+            request: request,
+            url: url,
+            statusCode: response.statusCode,
+            headers: headers,
+            mediaType: response.mimeType.flatMap { MediaType($0) },
+            body: body
+        )
+    }
+}

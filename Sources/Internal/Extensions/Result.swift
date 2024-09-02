@@ -41,4 +41,10 @@ public extension Result {
             return try await catching(error)
         }
     }
+
+    @inlinable func combine<T>(_ other: Result<T, Failure>) -> Result<(Success, T), Failure> {
+        flatMap { success in
+            other.map { other in (success, other) }
+        }
+    }
 }

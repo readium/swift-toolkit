@@ -38,7 +38,7 @@ struct Book: Codable, Hashable, Identifiable {
     /// reading progression, spreads).
     var preferencesJSON: String?
 
-    var mediaType: MediaType { MediaType.of(mediaType: type) ?? .binary }
+    var mediaType: MediaType { MediaType(type) ?? .binary }
 
     init(
         id: Id? = nil,

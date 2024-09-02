@@ -19,110 +19,148 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         case invalidManifest
     }
 
-    private let pdfFactory: PDFDocumentFactory
+    private let pdfFactory: PDFDocumentFactory?
     private let httpClient: HTTPClient
     private let epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy
 
-    /// - Parameter epubReflowablePositionsStrategy: Strategy used to calculate the
-    ///   number of positions in a reflowable resource of a web publication conforming to the EPUB profile.
-    public init(pdfFactory: PDFDocumentFactory, httpClient: HTTPClient, epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy = .recommended) {
+    /// - Parameter epubReflowablePositionsStrategy: Strategy used to calculate
+    ///   the number of positions in a reflowable resource of a web publication
+    ///   conforming to the EPUB profile.
+    public init(pdfFactory: PDFDocumentFactory?, httpClient: HTTPClient, epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy = .recommended) {
         self.pdfFactory = pdfFactory
         self.httpClient = httpClient
         self.epubReflowablePositionsStrategy = epubReflowablePositionsStrategy
     }
 
     public func parse(
-        asset: PublicationAsset,
-        fetcher: Fetcher,
+        asset: Asset,
+        warnings: (any WarningLogger)?
+    ) async -> Result<Publication.Builder, PublicationParseError> {
+        switch asset {
+        case let .resource(asset):
+            return await parse(resource: asset.resource, format: asset.format.specifications, warnings: warnings)
+        case let .container(asset):
+            return await parse(container: asset.container, format: asset.format.specifications, warnings: warnings)
+        }
+    }
+
+    private func parse(
+        resource: Resource,
+        format: FormatSpecifications,
         warnings: WarningLogger?
-    ) throws -> Publication.Builder? {
-        guard let mediaType = asset.mediaType(), mediaType.isReadiumWebPubProfile else {
-            return nil
+    ) async -> Result<Publication.Builder, PublicationParseError> {
+        guard format.conformsTo(.rwpm) else {
+            return .failure(.formatNotSupported)
         }
 
-        let isPackage = !mediaType.isRWPM
+        return await resource.readAsRWPM(warnings: warnings)
+            .flatMap { manifest in
+                guard let baseURL = manifest.baseURL else {
+                    return .failure(.decoding("No valid self link found in the manifest"))
+                }
 
-        // Reads the manifest data from the fetcher.
-        guard let manifestData: Data = (
-            isPackage
-                ? try? fetcher.readData(at: AnyURL(string: "manifest.json")!)
-                // For a single manifest file, reads the first (and only) file in the fetcher.
-                : try? fetcher.readData(at: fetcher.links.first)
-        ) else {
-            throw Error.manifestNotFound
+                return .success(CompositeContainer(
+                    SingleResourceContainer(
+                        resource: resource,
+                        at: AnyURL(string: "manifest.json")!
+                    ),
+                    HTTPContainer(
+                        client: httpClient,
+                        baseURL: baseURL,
+                        entries: Set(
+                            (manifest.readingOrder + manifest.resources)
+                                .map { $0.url() }
+                        )
+                    )
+                ))
+            }
+            .mapError { .reading($0) }
+            .flatMap { container in
+                await parse(
+                    container: container,
+                    format: FormatSpecifications(.rpf),
+                    warnings: warnings
+                )
+            }
+    }
+
+    private func parse(
+        container: Container,
+        format: FormatSpecifications,
+        warnings: WarningLogger?
+    ) async -> Result<Publication.Builder, PublicationParseError> {
+        guard format.conformsTo(.rpf) else {
+            return .failure(.formatNotSupported)
         }
 
-        let manifest = try Manifest(json: JSONSerialization.jsonObject(with: manifestData))
-        var fetcher = fetcher
-
-        // For a manifest, we discard the `fetcher` provided by the Streamer, because it was only
-        // used to read the manifest file. We use an `HTTPFetcher` instead to serve the remote
-        // resources.
-        if !isPackage {
-            let baseURL = manifest.linkWithRel(.`self`)?.url().httpURL
-            fetcher = HTTPFetcher(client: httpClient, baseURL: baseURL)
+        guard let manifestResource = container[RelativeURL(path: "manifest.json")!] else {
+            return .failure(.reading(.decoding("Cannot find a manifest.json file in the RPF package.")))
         }
 
-        let userProperties = UserProperties()
-        if mediaType.matches(.readiumWebPub) {
-            fetcher = TransformingFetcher(fetcher: fetcher, transformers: [
-                EPUBHTMLInjector(metadata: manifest.metadata, userProperties: userProperties).inject(resource:),
-            ])
+        return await manifestResource.readAsRWPM(warnings: warnings)
+            .flatMap(checkProfileRequirements(of:))
+            .map { manifest in
+                Publication.Builder(
+                    manifest: manifest,
+                    container: container,
+                    servicesBuilder: PublicationServicesBuilder(setup: {
+                        if manifest.conforms(to: .epub) {
+                            $0.setPositionsServiceFactory(EPUBPositionsService.makeFactory(reflowableStrategy: epubReflowablePositionsStrategy))
+
+                        } else if manifest.conforms(to: .divina) {
+                            $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: MediaType("image/*")!))
+
+                        } else if manifest.conforms(to: .audiobook) {
+                            $0.setLocatorServiceFactory(AudioLocatorService.makeFactory())
+
+                        } else if manifest.conforms(to: .pdf), format.conformsTo(.lcp), let pdfFactory = pdfFactory {
+                            $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory(pdfFactory: pdfFactory))
+                        }
+
+                        // FIXME: WebPositionsService from Kotlin?
+
+                        if manifest.readingOrder.allAreHTML {
+                            $0.setSearchServiceFactory(StringSearchService.makeFactory())
+                            $0.setContentServiceFactory(DefaultContentService.makeFactory(
+                                resourceContentIteratorFactories: [
+                                    HTMLResourceContentIterator.Factory(),
+                                ]
+                            ))
+                        }
+                    })
+                )
+            }
+            .mapError { .reading($0) }
+    }
+
+    private func checkProfileRequirements(of manifest: Manifest) -> Result<Manifest, ReadError> {
+        guard !manifest.readingOrder.isEmpty else {
+            return .failure(.decoding("The manifest reading order is empty"))
         }
 
-        if mediaType.matches(.lcpProtectedPDF) {
-            // Checks the requirements from the spec, see. https://readium.org/lcp-specs/drafts/lcpdf
-            guard
-                !manifest.readingOrder.isEmpty,
-                manifest.readingOrder.allMatchingMediaType(.pdf)
-            else {
-                throw Error.invalidManifest
+        if manifest.conforms(to: .pdf) {
+            guard manifest.readingOrder.allMatchingMediaType(.pdf) else {
+                return .failure(.decoding("The publication does not conform to the PDF profile specification"))
+            }
+        } else if manifest.conforms(to: .audiobook) {
+            guard manifest.readingOrder.allAreAudio else {
+                return .failure(.decoding("The publication does not conform to the Audiobook profile specification"))
             }
         }
 
-        return Publication.Builder(
-            mediaType: mediaType,
-            manifest: manifest,
-            fetcher: fetcher,
-            servicesBuilder: PublicationServicesBuilder(setup: {
-                if manifest.conforms(to: .epub) {
-                    $0.setPositionsServiceFactory(EPUBPositionsService.makeFactory(reflowableStrategy: epubReflowablePositionsStrategy))
-
-                } else if manifest.conforms(to: .divina) {
-                    $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: MediaType("image/*")!))
-
-                } else if manifest.conforms(to: .audiobook) {
-                    $0.setLocatorServiceFactory(AudioLocatorService.makeFactory())
-
-                } else if manifest.conforms(to: .pdf), mediaType.matches(.lcpProtectedPDF) {
-                    $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory(pdfFactory: self.pdfFactory))
-                }
-
-                if manifest.readingOrder.allAreHTML {
-                    $0.setSearchServiceFactory(_StringSearchService.makeFactory())
-                    $0.setContentServiceFactory(DefaultContentService.makeFactory(
-                        resourceContentIteratorFactories: [
-                            HTMLResourceContentIterator.Factory(),
-                        ]
-                    ))
-                }
-            }),
-            setupPublication: { publication in
-                if mediaType.matches(.readiumWebPub) {
-                    publication.userProperties = userProperties
-                    publication.userSettingsUIPreset = EPUBParser.userSettingsPreset(for: publication.metadata)
-                }
-            }
-        )
+        return .success(manifest)
     }
 }
 
-private extension MediaType {
-    /// Returns whether this media type is of a Readium Web Publication profile.
-    var isReadiumWebPubProfile: Bool {
-        matchesAny(
-            .readiumWebPub, .readiumWebPubManifest, .readiumAudiobook, .readiumAudiobookManifest,
-            .lcpProtectedAudiobook, .divina, .divinaManifest, .lcpProtectedPDF
-        )
+private extension Streamable {
+    /// Reads the whole content as a Readium Web Pub Manifest.
+    func readAsRWPM(warnings: WarningLogger?) async -> ReadResult<Manifest> {
+        await readAsJSON().flatMap {
+            do {
+                return try .success(Manifest(json: $0, warnings: warnings))
+            } catch {
+                return .failure(.decoding(error))
+            }
+        }
     }
 }

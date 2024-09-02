@@ -6,12 +6,16 @@
 
 import Foundation
 
-/// A [PositionsService] holding the pre-computed position locators in memory.
+/// A ``PositionsService`` holding the pre-computed position locators in memory.
 public class InMemoryPositionsService: PositionsService {
-    public private(set) var positionsByReadingOrder: [[Locator]]
+    private let _positions: [[Locator]]
 
     public init(positionsByReadingOrder: [[Locator]]) {
-        self.positionsByReadingOrder = positionsByReadingOrder
+        _positions = positionsByReadingOrder
+    }
+
+    public func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
+        .success(_positions)
     }
 
     public static func makeFactory(positionsByReadingOrder: [[Locator]]) -> (PublicationServiceContext) -> InMemoryPositionsService {

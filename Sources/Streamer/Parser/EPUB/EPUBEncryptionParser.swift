@@ -10,22 +10,20 @@ import ReadiumShared
 
 /// A parser module which provide methods to parse encrypted XML elements.
 final class EPUBEncryptionParser: Loggable {
-    private let fetcher: Fetcher
+    private let container: Container
     private let data: Data
 
-    init(fetcher: Fetcher, data: Data) {
-        self.fetcher = fetcher
+    init(container: Container, data: Data) {
+        self.container = container
         self.data = data
     }
 
-    convenience init(fetcher: Fetcher) throws {
+    convenience init(container: Container) async throws {
         let path = "META-INF/encryption.xml"
-        do {
-            let data = try fetcher.readData(at: AnyURL(string: path)!)
-            self.init(fetcher: fetcher, data: data)
-        } catch {
+        guard let data = try? await container.readData(at: AnyURL(string: path)!) else {
             throw EPUBParserError.missingFile(path: path)
         }
+        self.init(container: container, data: data)
     }
 
     private lazy var document: Fuzi.XMLDocument? = {

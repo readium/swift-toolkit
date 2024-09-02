@@ -28,7 +28,7 @@ class ZIPLicenseContainer: LicenseContainer {
 
     func read() async throws -> Data {
         guard let archive = Archive(url: zip.url, accessMode: .read) else {
-            throw LCPError.licenseContainer(.openFailed)
+            throw LCPError.licenseContainer(.openFailed(nil))
         }
         guard let entry = archive[pathInZIP] else {
             throw LCPError.licenseContainer(.fileNotFound(pathInZIP))
@@ -48,7 +48,7 @@ class ZIPLicenseContainer: LicenseContainer {
 
     func write(_ license: LicenseDocument) async throws {
         guard let archive = Archive(url: zip.url, accessMode: .update) else {
-            throw LCPError.licenseContainer(.openFailed)
+            throw LCPError.licenseContainer(.openFailed(nil))
         }
 
         do {

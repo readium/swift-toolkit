@@ -28,13 +28,21 @@
 "filter_button" = "Filter";
 
 /* Alerts */
-"error_title" = "Error";
 "success_title" = "Success";
 
 /* Caption for the app version in About screen */
 "app_version_caption" = "App Version:";
 /* Caption for the build version in About screen */
 "build_version_caption" = "Build Version:";
+
+"error" = "An error occurred.";
+"error_cancelled" = "The operation was cancelled.";
+"error_decoding" = "Failed to decode the resource.";
+"error_forbidden" = "You are not allowed to access this resource.";
+"error_io" = "A file system error occurred.";
+"error_network" = "A networking error occurred.";
+"error_not_found" = "The resource was not found.";
+"error_read" = "Failed to read the resource.";
 
 
 /* MARK: Library */
@@ -64,11 +72,15 @@
 /* Error message used when trying to open a book whose file is not found */
 "library_error_bookNotFound" = "The book file was not found";
 /* Error message used when a low-level error occured while importing a publication */
-"library_error_importFailed" = "Error while importing this publication: %@";
+"library_error_importFailed" = "Failed to import the publication";
 /* Error message used when a low-level error occured while opening a publication */
-"library_error_openFailed" = "Error while opening this publication: %@";
+"library_error_openFailed" = "Failed to open the publication";
 /* Error message when the download of a publication failed */
-"library_error_downloadFailed" = "Download failed: %@";
+"library_error_downloadFailed" = "Download failed";
+/* Error message when the deletion of a publication failed */
+"library_error_bookDeletionFailed" = "Failed to delete the publication";
+/* Error message when the publication is still restricted. */
+"library_error_publicationIsRestricted" = "You are not allowed to open this publication";
 
 /* Accessibility label for the library collection view */
 "library_a11y_label" = "Library";
@@ -91,8 +103,13 @@
 
 /* Error message when trying to read a publication with a unsupported format */
 "reader_error_formatNotSupported" = "Unsupported format";
+"reader_error_schemeNotSupported" = "Unsupported resource scheme";
 /* Error message when trying to read an EPUB that is invalid */
 "reader_error_epubNotValid" = "Invalid EPUB file";
+"reader_error_copyForbidden" = "You exceeded the amount of characters allowed to be copied.";
+"reader_error_search" = "Failed to search this publication";
+"reader_error_tts" = "An error occurred when trying to read aloud this publication.";
+"reader_error_tts_language_not_supported" = "The selected language is not supported by the TTS engine.";
 
 /* Accessibility label to go backward in the publication */
 "reader_backward_a11y_label" = "Previous Chapter";
@@ -139,6 +156,22 @@
 /* Quantity of pages left to be printed */
 "lcp_pages_label" = "%d pages";
 
+/* LCP errors */
+"lcp_error_missing_passphrase" = "The passphrase is required to open the publication.";
+"lcp_error_internal" = "A critical internal LCP error occurred.";
+"lcp_error_invalid_license" = "The LCP license is not valid.";
+"lcp_error_invalid_operation" = "This action cannot be performed.";
+"lcp_error_container" = "Failed to read or write the LCP license.";
+"lcp_error_network" = "A networking error occurred.";
+"lcp_error_status_cancelled" = "This license was cancelled on %@.";
+"lcp_error_status_returned" = "This license has been returned on %@.";
+"lcp_error_status_expired_start" = "This license starts on %@.";
+"lcp_error_status_expired_end" = "This license expired on %@.";
+"lcp_error_status_revoked" = "This license was revoked by its provider on %1$@.\nIt was registered by %2$d device(s)";
+"lcp_error_renew_failed" = "Your publication could not be renewed properly.";
+"lcp_error_invalid_renewal_period" = "Incorrect renewal period, your publication could not be renewed.";
+"lcp_error_return_failed" = "Your publication could not be returned properly.";
+"lcp_error_already_returned_or_expired" = "Your publication has already been returned before or is expired.";
 
 /* MARK: OPDS */
 

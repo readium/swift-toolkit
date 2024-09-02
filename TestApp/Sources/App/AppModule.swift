@@ -14,7 +14,7 @@ import UIKit
 /// Provides basic shared functionalities.
 protocol ModuleDelegate: AnyObject {
     func presentAlert(_ title: String, message: String, from viewController: UIViewController)
-    func presentError(_ error: Error?, from viewController: UIViewController)
+    func presentError<T: UserErrorConvertible>(_ error: T, from viewController: UIViewController)
 }
 
 /// Main application module, it:
@@ -27,8 +27,6 @@ final class AppModule {
     var opds: OPDSModuleAPI!
 
     init() throws {
-        let httpClient = DefaultHTTPClient()
-
         let file = Paths.library.appendingPath("database.db", isDirectory: false)
         let db = try Database(file: file.url, migrations: [InitialMigration()])
         print("Created database at \(file.path)")
@@ -37,12 +35,26 @@ final class AppModule {
         let bookmarks = BookmarkRepository(db: db)
         let highlights = HighlightRepository(db: db)
 
-        library = LibraryModule(delegate: self, books: books, httpClient: httpClient)
-        reader = ReaderModule(delegate: self, books: books, bookmarks: bookmarks, highlights: highlights)
+        let readium = Readium()
+
+        library = LibraryModule(
+            delegate: self,
+            books: books,
+            readium: readium
+        )
+
+        reader = ReaderModule(
+            delegate: self,
+            books: books,
+            bookmarks: bookmarks,
+            highlights: highlights,
+            readium: readium
+        )
+
         opds = OPDSModule(delegate: self)
 
         // Set Readium 2's logging minimum level.
-        ReadiumEnableLog(withMinimumSeverityLevel: .debug)
+        ReadiumEnableLog(withMinimumSeverityLevel: .warning)
     }
 
     private(set) lazy var aboutViewController: UIViewController = {
@@ -62,17 +74,8 @@ extension AppModule: ModuleDelegate {
         }
     }
 
-    func presentError(_ error: Error?, from viewController: UIViewController) {
-        guard let error = error else { return }
-        if case LibraryError.cancelled = error { return }
-
-        print("Error: \(error)")
-
-        presentAlert(
-            NSLocalizedString("error_title", comment: "Alert title for errors"),
-            message: error.localizedDescription,
-            from: viewController
-        )
+    func presentError<T: UserErrorConvertible>(_ error: T, from viewController: UIViewController) {
+        viewController.alert(error)
     }
 }
 

@@ -47,16 +47,13 @@ public extension HTTPServer {
         contentsOf url: FileURL,
         onFailure: HTTPRequestHandler.OnFailure? = nil
     ) throws -> HTTPURL {
-        func onRequest(request: HTTPServerRequest) -> Resource {
+        func onRequest(request: HTTPServerRequest) -> HTTPServerResponse {
             let file = request.href.flatMap { url.resolve($0) }
                 ?? url
 
-            return FileResource(
-                link: Link(
-                    href: request.url.string,
-                    mediaType: MediaType.of(file)
-                ),
-                file: file
+            return HTTPServerResponse(
+                resource: FileResource(file: file),
+                mediaType: nil
             )
         }
 
@@ -81,17 +78,21 @@ public extension HTTPServer {
         publication: Publication,
         onFailure: HTTPRequestHandler.OnFailure? = nil
     ) throws -> HTTPURL {
-        func onRequest(request: HTTPServerRequest) -> Resource {
-            guard let href = request.href else {
-                onFailure?(request, .notFound(nil))
+        func onRequest(request: HTTPServerRequest) -> HTTPServerResponse {
+            guard
+                let href = request.href,
+                let link = publication.linkWithHREF(href),
+                let resource = publication.get(href)
+            else {
+                onFailure?(request, .access(.http(HTTPError(kind: .notFound))))
 
-                return FailureResource(
-                    link: Link(href: request.url.string),
-                    error: .notFound(nil)
-                )
+                return HTTPServerResponse(error: .notFound)
             }
 
-            return publication.get(href)
+            return HTTPServerResponse(
+                resource: resource,
+                mediaType: link.mediaType
+            )
         }
 
         return try serve(
@@ -121,12 +122,30 @@ public struct HTTPServerRequest {
     }
 }
 
+/// Response sent from the `HTTPServer` when receiving a request.
+public struct HTTPServerResponse {
+    public var resource: Resource
+    public var mediaType: MediaType?
+
+    public init(resource: Resource, mediaType: MediaType?) {
+        self.resource = resource
+        self.mediaType = mediaType
+    }
+
+    public init(error: HTTPError.Kind) {
+        self.init(
+            resource: FailureResource(error: .access(.http(HTTPError(kind: error)))),
+            mediaType: nil
+        )
+    }
+}
+
 /// Callbacks handling a request.
 ///
 /// If the resource cannot be served, the `onFailure` callback is called.
 public struct HTTPRequestHandler {
-    public typealias OnRequest = (_ request: HTTPServerRequest) -> Resource
-    public typealias OnFailure = (_ request: HTTPServerRequest, _ error: ResourceError) -> Void
+    public typealias OnRequest = (_ request: HTTPServerRequest) -> HTTPServerResponse
+    public typealias OnFailure = (_ request: HTTPServerRequest, _ error: ReadError) -> Void
 
     public let onRequest: OnRequest
     public let onFailure: OnFailure?

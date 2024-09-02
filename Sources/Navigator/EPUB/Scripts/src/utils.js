@@ -27,6 +27,7 @@ window.addEventListener(
   function () {
     const observer = new ResizeObserver(() => {
       appendVirtualColumnIfNeeded();
+      onScroll();
     });
     observer.observe(document.body);
 
@@ -79,7 +80,9 @@ function update(position) {
   webkit.messageHandlers.progressionChanged.postMessage(positionString);
 }
 
-window.addEventListener("scroll", function () {
+window.addEventListener("scroll", onScroll);
+
+function onScroll() {
   last_known_scrollY_position =
     window.scrollY / document.scrollingElement.scrollHeight;
   // Using Math.abs because for RTL books, the value will be negative.
@@ -106,7 +109,7 @@ window.addEventListener("scroll", function () {
     });
   }
   ticking = true;
-});
+}
 
 document.addEventListener(
   "selectionchange",
@@ -132,11 +135,7 @@ export function getColumnCountPerScreen() {
 
 export function isScrollModeEnabled() {
   const style = document.documentElement.style;
-  return (
-    style.getPropertyValue("--USER__view").trim() == "readium-scroll-on" ||
-    // FIXME: Will need to be removed in Readium 3.0, --USER__scroll was incorrect.
-    style.getPropertyValue("--USER__scroll").trim() == "readium-scroll-on"
-  );
+  return style.getPropertyValue("--USER__view").trim() == "readium-scroll-on";
 }
 
 // Scroll to the given TagId in document and snap.

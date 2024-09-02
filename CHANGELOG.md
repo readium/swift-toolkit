@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-## [Unreleased]
+<!-- ## [Unreleased] -->
+
+## [3.0.0-alpha.2]
 
 ### Added
 
@@ -19,8 +21,16 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Shared
 
+* A new `Format` type was introduced to augment `MediaType` with more precise information about the format specifications of an `Asset`.
+* `Fetcher` was replaced with a simpler `Container` type.
+* `PublicationAsset` was replaced by `Asset`, which contains a `Format` and access to the underlying `Container` or `Resource`.
+* The `ResourceError` hierarchy was revamped and simplified (see `ReadError`). Now it is your responsibility to provide a localized user message for each error case.
 * The `Link` property key for archive-based publication assets (e.g. an EPUB/ZIP) is now `https://readium.org/webpub-manifest/properties#archive` instead of `archive`.
 * The API of `HTTPServer` slightly changed to be more future-proof.
+
+#### Streamer
+
+* The `Streamer` object was deprecated in favor of smaller segregated APIs: `AssetRetriever` and `PublicationOpener`. 
 
 #### Navigator
 
@@ -36,6 +46,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Optimized scrolling to an EPUB text-based locator if it contains a CSS selector.
 * The first resource of a fixed-layout EPUB is now displayed on its own when spreads are enabled and the author has not set a `page-spread-*` property. This is the default behavior in major reading apps like Apple Books.
+* [#471](https://github.com/readium/swift-toolkit/issues/471) EPUB: Fixed reporting the current location when submitting new preferences.
 
 
 ## [3.0.0-alpha.1]
@@ -737,3 +748,4 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [2.7.1]: https://github.com/readium/swift-toolkit/compare/2.7.0...2.7.1
 [2.7.2]: https://github.com/readium/swift-toolkit/compare/2.7.1...2.7.2
 [3.0.0-alpha.1]: https://github.com/readium/swift-toolkit/compare/2.7.1...3.0.0-alpha.1
+[3.0.0-alpha.2]: https://github.com/readium/swift-toolkit/compare/3.0.0-alpha.1...3.0.0-alpha.2

@@ -8,7 +8,7 @@ import Foundation
 import MediaPlayer
 import UIKit
 
-@available(*, deprecated, message: "Use `NowPlayingInfo` instead")
+@available(*, unavailable, message: "Use `NowPlayingInfo` instead")
 public typealias _NowPlayingInfo = NowPlayingInfo
 
 /// Manages the Now Playing media item displayed on the lock screen.

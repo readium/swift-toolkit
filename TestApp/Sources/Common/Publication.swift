@@ -13,7 +13,7 @@ extension Publication {
     var downloadLinks: [Link] {
         links.filter {
             ($0.mediaType.map { DocumentTypes.main.supportsMediaType($0.string) } == true)
-                || DocumentTypes.main.supportsFileExtension($0.url().pathExtension)
+                || DocumentTypes.main.supportsFileExtension($0.url().pathExtension?.rawValue)
         }
     }
 }

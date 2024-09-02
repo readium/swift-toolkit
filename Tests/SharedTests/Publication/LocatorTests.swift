@@ -452,14 +452,14 @@ class LocatorTextTests: XCTestCase {
 class LocatorCollectionTests: XCTestCase {
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            _LocatorCollection(json: [:] as [String: Any]),
-            _LocatorCollection()
+            LocatorCollection(json: [:] as [String: Any]),
+            LocatorCollection()
         )
     }
 
     func testParseFullJSON() {
         XCTAssertEqual(
-            _LocatorCollection(json: [
+            LocatorCollection(json: [
                 "metadata": [
                     "title": [
                         "en": "Searching <riddle> in Alice in Wonderlands - Page 1",
@@ -505,8 +505,8 @@ class LocatorCollectionTests: XCTestCase {
                     ],
                 ],
             ] as [String: Any]),
-            _LocatorCollection(
-                metadata: _LocatorCollection.Metadata(
+            LocatorCollection(
+                metadata: LocatorCollection.Metadata(
                     title: LocalizedString.localized([
                         "en": "Searching <riddle> in Alice in Wonderlands - Page 1",
                         "fr": "Recherche <riddle> dans Alice in Wonderlands – Page 1",
@@ -554,22 +554,22 @@ class LocatorCollectionTests: XCTestCase {
 
     func testParseEmptyJSON() {
         XCTAssertEqual(
-            _LocatorCollection(json: [:] as [String: Any]),
-            _LocatorCollection()
+            LocatorCollection(json: [:] as [String: Any]),
+            LocatorCollection()
         )
     }
 
     func testParseNilJSON() {
-        XCTAssertNil(_LocatorCollection(json: nil))
+        XCTAssertNil(LocatorCollection(json: nil))
     }
 
     func testParseInvalidJSON() {
-        XCTAssertNil(_LocatorCollection(json: [] as [Any]))
+        XCTAssertNil(LocatorCollection(json: [] as [Any]))
     }
 
     func testGetMinimalJSON() {
         AssertJSONEqual(
-            _LocatorCollection().json as Any,
+            LocatorCollection().json as Any,
             [
                 "locators": [] as [Any],
             ]
@@ -578,8 +578,8 @@ class LocatorCollectionTests: XCTestCase {
 
     func testGetFullJSON() {
         AssertJSONEqual(
-            _LocatorCollection(
-                metadata: _LocatorCollection.Metadata(
+            LocatorCollection(
+                metadata: LocatorCollection.Metadata(
                     title: LocalizedString.localized([
                         "en": "Searching <riddle> in Alice in Wonderlands - Page 1",
                         "fr": "Recherche <riddle> dans Alice in Wonderlands – Page 1",

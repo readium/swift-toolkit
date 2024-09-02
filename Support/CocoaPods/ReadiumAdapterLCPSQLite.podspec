@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name          = "ReadiumAdapterLCPSQLite"
-  s.version       = "3.0.0-alpha.1"
+  s.version       = "3.0.0-alpha.2"
   s.license       = "BSD 3-Clause License"
   s.summary       = "Adapter to use SQLite.swift for the Readium LCP repositories"
   s.homepage      = "http://readium.github.io"

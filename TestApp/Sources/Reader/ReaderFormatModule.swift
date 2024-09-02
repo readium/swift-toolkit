@@ -17,7 +17,15 @@ protocol ReaderFormatModule {
     func supports(_ publication: Publication) -> Bool
 
     /// Creates the view controller to present the publication.
-    func makeReaderViewController(for publication: Publication, locator: Locator?, bookId: Book.Id, books: BookRepository, bookmarks: BookmarkRepository, highlights: HighlightRepository) async throws -> UIViewController
+    func makeReaderViewController(
+        for publication: Publication,
+        locator: Locator?,
+        bookId: Book.Id,
+        books: BookRepository,
+        bookmarks: BookmarkRepository,
+        highlights: HighlightRepository,
+        readium: Readium
+    ) async throws -> UIViewController
 }
 
 protocol ReaderFormatModuleDelegate: AnyObject {
@@ -28,5 +36,5 @@ protocol ReaderFormatModuleDelegate: AnyObject {
     func presentDRM(for publication: Publication, from viewController: UIViewController)
 
     func presentAlert(_ title: String, message: String, from viewController: UIViewController)
-    func presentError(_ error: Error?, from viewController: UIViewController)
+    func presentError<T: UserErrorConvertible>(_ error: T, from viewController: UIViewController)
 }

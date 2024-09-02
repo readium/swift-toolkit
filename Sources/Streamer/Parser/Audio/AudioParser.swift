@@ -12,63 +12,153 @@ import ReadiumShared
 ///
 /// It can also work for a standalone audio file.
 public final class AudioParser: PublicationParser {
-    public init(manifestAugmentor: AudioPublicationManifestAugmentor = AVAudioPublicationManifestAugmentor()) {
+    private let assetRetriever: AssetRetriever
+    private let manifestAugmentor: AudioPublicationManifestAugmentor
+
+    public init(
+        assetRetriever: AssetRetriever,
+        manifestAugmentor: AudioPublicationManifestAugmentor = AVAudioPublicationManifestAugmentor()
+    ) {
+        self.assetRetriever = assetRetriever
         self.manifestAugmentor = manifestAugmentor
     }
 
-    private let manifestAugmentor: AudioPublicationManifestAugmentor
+    private let audioSpecifications: Set<FormatSpecification> = [
+        .aac,
+        .aiff,
+        .flac,
+        .mp4,
+        .mp3,
+        .ogg,
+        .opus,
+        .wav,
+        .webm,
+    ]
 
-    public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
-        guard accepts(asset, fetcher) else {
-            return nil
+    public func parse(
+        asset: Asset,
+        warnings: WarningLogger?
+    ) async -> Result<Publication.Builder, PublicationParseError> {
+        switch asset {
+        case let .resource(asset):
+            return await parse(resource: asset, warnings: warnings)
+        case let .container(asset):
+            return await parse(container: asset, warnings: warnings)
+        }
+    }
+
+    private func parse(
+        resource asset: ResourceAsset,
+        warnings: WarningLogger?
+    ) async -> Result<Publication.Builder, PublicationParseError> {
+        guard asset.format.conformsToAny(audioSpecifications) else {
+            return .failure(.formatNotSupported)
         }
 
-        let defaultReadingOrder = fetcher.links
-            .filter { !ignores($0) && $0.mediaType?.isAudio == true }
-            .sorted { $0.href.localizedStandardCompare($1.href) == .orderedAscending }
+        let container = SingleResourceContainer(publication: asset)
+        return makeBuilder(
+            container: container,
+            readingOrder: [(container.entry, asset.format)],
+            title: nil
+        )
+    }
 
-        guard !defaultReadingOrder.isEmpty else {
-            return nil
+    private func parse(
+        container asset: ContainerAsset,
+        warnings: WarningLogger?
+    ) async -> Result<Publication.Builder, PublicationParseError> {
+        guard asset.format.conformsTo(.informalAudiobook) else {
+            return .failure(.formatNotSupported)
         }
 
-        let defaultManifest = Manifest(
+        return await makeReadingOrder(for: asset.container)
+            .flatMap { readingOrder in
+                makeBuilder(
+                    container: asset.container,
+                    readingOrder: readingOrder,
+                    title: asset.container.guessTitle(ignoring: ignores)
+                )
+            }
+    }
+
+    private func makeReadingOrder(for container: Container) async -> Result<[(AnyURL, Format)], PublicationParseError> {
+        await container
+            .sniffFormats(
+                using: assetRetriever,
+                ignoring: ignores
+            )
+            .map { formats in
+                container.entries
+                    .compactMap { url -> (AnyURL, Format)? in
+                        guard
+                            let format = formats[url],
+                            format.conformsToAny(audioSpecifications)
+                        else {
+                            return nil
+                        }
+                        return (url, format)
+                    }
+                    .sorted { $0.0.string.localizedStandardCompare($1.0.string) == .orderedAscending }
+            }
+            .mapError { .reading($0) }
+    }
+
+    private func ignores(_ url: AnyURL) -> Bool {
+        guard let filename = url.lastPathSegment else {
+            return true
+        }
+        let ignoredExtensions: [FileExtension] = [
+            "asx",
+            "bio",
+            "m3u",
+            "m3u8",
+            "pla",
+            "pls",
+            "smil",
+            "txt",
+            "vlc",
+            "wpl",
+            "xspf",
+            "zpl",
+        ]
+
+        return url.pathExtension == nil
+            || ignoredExtensions.contains(url.pathExtension!)
+            || filename.hasPrefix(".")
+            || filename == "Thumbs.db"
+    }
+
+    private func makeBuilder(
+        container: Container,
+        readingOrder: [(AnyURL, Format)],
+        title: String?
+    ) -> Result<Publication.Builder, PublicationParseError> {
+        guard !readingOrder.isEmpty else {
+            return .failure(.reading(.decoding("No audio resources found in the publication")))
+        }
+
+        let manifest = Manifest(
             metadata: Metadata(
                 conformsTo: [.audiobook],
-                title: fetcher.guessTitle(ignoring: ignores) ?? asset.name
+                title: title
             ),
-            readingOrder: defaultReadingOrder
+            readingOrder: readingOrder.map { url, format in
+                Link(
+                    href: url.string,
+                    mediaType: format.mediaType
+                )
+            }
         )
 
-        let augmented = manifestAugmentor.augment(defaultManifest, using: fetcher)
+        let augmented = manifestAugmentor.augment(manifest, using: container)
 
-        return Publication.Builder(
-            mediaType: .zab,
+        return .success(Publication.Builder(
             manifest: augmented.manifest,
-            fetcher: fetcher,
+            container: container,
             servicesBuilder: .init(
                 cover: augmented.cover.map(GeneratedCoverService.makeFactory(cover:)),
                 locator: AudioLocatorService.makeFactory()
             )
-        )
-    }
-
-    private func accepts(_ asset: PublicationAsset, _ fetcher: Fetcher) -> Bool {
-        if asset.mediaType() == .zab {
-            return true
-        }
-
-        // Checks if the fetcher contains only bitmap-based resources.
-        return !fetcher.links.isEmpty
-            && fetcher.links.allSatisfy { ignores($0) || $0.mediaType?.isAudio == true }
-    }
-
-    private func ignores(_ link: Link) -> Bool {
-        let url = URL(fileURLWithPath: link.href)
-        let filename = url.lastPathComponent
-        let allowedExtensions = ["asx", "bio", "m3u", "m3u8", "pla", "pls", "smil", "txt", "vlc", "wpl", "xspf", "zpl"]
-
-        return allowedExtensions.contains(url.pathExtension.lowercased())
-            || filename.hasPrefix(".")
-            || filename == "Thumbs.db"
+        ))
     }
 }
