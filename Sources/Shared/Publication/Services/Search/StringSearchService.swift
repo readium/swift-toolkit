@@ -102,37 +102,37 @@ public class StringSearchService: SearchService {
         private var index = -1
 
         func next() async -> SearchResult<LocatorCollection?> {
-            guard index < publication.readingOrder.count - 1 else {
-                return .success(nil)
-            }
+            while index < publication.readingOrder.count - 1 {
+                index += 1
 
-            index += 1
+                let link = publication.readingOrder[index]
 
-            let link = publication.readingOrder[index]
-
-            guard
-                let resource = publication.get(link),
-                let mediaType = link.mediaType,
-                let extractor = extractorFactory.makeExtractor(for: resource, mediaType: mediaType)
-            else {
-                log(.warning, "Cannot extract text from resource: \(link.href)")
-                return await next()
-            }
-
-            switch await extractor.extractText(of: resource) {
-            case let .success(text):
-                let locators = await findLocators(in: link, resourceIndex: index, text: text)
-                // If no occurrences were found in the current resource, skip to the next one automatically.
-                guard !locators.isEmpty else {
-                    return await next()
+                guard
+                    let resource = publication.get(link),
+                    let mediaType = link.mediaType,
+                    let extractor = extractorFactory.makeExtractor(for: resource, mediaType: mediaType)
+                else {
+                    log(.warning, "Cannot extract text from resource: \(link.href)")
+                    continue
                 }
 
-                resultCount = (resultCount ?? 0) + locators.count
-                return .success(LocatorCollection(locators: locators))
+                switch await extractor.extractText(of: resource) {
+                case let .success(text):
+                    let locators = await findLocators(in: link, resourceIndex: index, text: text)
+                    // If no occurrences were found in the current resource, skip to the next one automatically.
+                    guard !locators.isEmpty else {
+                        continue
+                    }
 
-            case let .failure(error):
-                return .failure(.reading(error))
+                    resultCount = (resultCount ?? 0) + locators.count
+                    return .success(LocatorCollection(locators: locators))
+
+                case let .failure(error):
+                    return .failure(.reading(error))
+                }
             }
+
+            return .success(nil)
         }
 
         private func findLocators(in link: Link, resourceIndex: Int, text: String) async -> [Locator] {
