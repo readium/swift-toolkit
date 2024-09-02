@@ -6,18 +6,9 @@
 
 import Foundation
 
-public enum JSONError: LocalizedError {
+public enum JSONError: Error {
     case parsing(Any.Type)
     case serializing(Any.Type)
-
-    public var errorDescription: String? {
-        switch self {
-        case let .parsing(type):
-            return ReadiumSharedLocalizedString("JSONError.parsing", "\(type)")
-        case let .serializing(type):
-            return ReadiumSharedLocalizedString("JSONError.serializing", "\(type)")
-        }
-    }
 }
 
 // MARK: - JSON Serialization

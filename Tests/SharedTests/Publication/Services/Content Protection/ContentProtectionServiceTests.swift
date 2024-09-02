@@ -23,7 +23,7 @@ class ContentProtectionServiceTests: XCTestCase {
             TestContentProtectionService(
                 scheme: scheme,
                 isRestricted: true,
-                error: Publication.OpeningError.notFound,
+                error: FileSystemError.fileNotFound(nil),
                 credentials: "open sesame",
                 rights: AllRestrictedUserRights(),
                 name: .localized(["en": "DRM", "fr": "GDN"])

@@ -206,7 +206,7 @@ public struct Link: JSONEquatable, Hashable, Sendable {
 
     // MARK: Copy
 
-    @available(*, deprecated, message: "Make a mutable copy of the struct instead")
+    @available(*, unavailable, message: "Make a mutable copy of the struct instead")
     /// Makes a copy of the `Link`, after modifying some of its properties.
     public func copy(
         href: String? = nil,
@@ -223,21 +223,7 @@ public struct Link: JSONEquatable, Hashable, Sendable {
         alternates: [Link]? = nil,
         children: [Link]? = nil
     ) -> Link {
-        Link(
-            href: href ?? self.href,
-            mediaType: mediaType ?? self.mediaType,
-            templated: templated ?? self.templated,
-            title: title ?? self.title,
-            rels: rels ?? self.rels,
-            properties: properties ?? self.properties,
-            height: height ?? self.height,
-            width: width ?? self.width,
-            bitrate: bitrate ?? self.bitrate,
-            duration: duration ?? self.duration,
-            languages: languages ?? self.languages,
-            alternates: alternates ?? self.alternates,
-            children: children ?? self.children
-        )
+        fatalError()
     }
 
     ///  Merges in the given additional other `properties`.
@@ -246,11 +232,9 @@ public struct Link: JSONEquatable, Hashable, Sendable {
     }
 
     ///  Makes a copy of this `Link` after merging in the given additional other `properties`.
-    @available(*, deprecated, message: "Use `addProperties` on a mutable copy")
+    @available(*, unavailable, message: "Use `addProperties` on a mutable copy")
     public func addingProperties(_ properties: [String: Any]) -> Link {
-        var copy = self
-        copy.addProperties(properties)
-        return copy
+        fatalError()
     }
 }
 

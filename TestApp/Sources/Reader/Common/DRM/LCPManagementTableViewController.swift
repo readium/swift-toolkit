@@ -56,7 +56,7 @@ import UIKit
                         )
 
                     } catch {
-                        self.moduleDelegate?.presentError(error, from: self)
+                        self.moduleDelegate?.presentError(UserError(error), from: self)
                     }
                 }
             })
@@ -87,7 +87,7 @@ import UIKit
                         )
 
                     } catch {
-                        self.moduleDelegate?.presentError(error, from: self)
+                        self.moduleDelegate?.presentError(UserError(error), from: self)
                     }
                 }
             })

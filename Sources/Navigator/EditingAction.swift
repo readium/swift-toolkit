@@ -31,7 +31,7 @@ public struct EditingAction: Hashable {
     /// Search Web.
     public static let lookup = EditingAction(kind: .native(["lookup", "_lookup:", "define:", "_define:"]))
 
-    @available(*, deprecated, message: "lookup and define were merged", renamed: "lookup")
+    @available(*, unavailable, message: "lookup and define were merged", renamed: "lookup")
     public static let define = lookup
 
     /// Translate the text selection.

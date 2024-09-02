@@ -65,19 +65,6 @@ final class LCPContentProtection: ContentProtection, Loggable {
     }
 }
 
-private extension Publication.OpeningError {
-    static func wrap(_ error: LCPError) -> Publication.OpeningError {
-        switch error {
-        case .licenseIsBusy, .network, .licenseContainer:
-            return .unavailable(error)
-        case .licenseStatus:
-            return .forbidden(error)
-        default:
-            return .parsingFailed(error)
-        }
-    }
-}
-
 private final class LCPContentProtectionService: ContentProtectionService {
     let license: LCPLicense?
     let error: Error?

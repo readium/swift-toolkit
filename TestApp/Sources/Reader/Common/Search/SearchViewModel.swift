@@ -23,7 +23,7 @@ final class SearchViewModel: ObservableObject {
         // We reached the end of the search results
         case end
         // An error occurred, we need to show it to the user
-        case failure(LocalizedError)
+        case failure(SearchError)
     }
 
     @Published private(set) var state: State = .empty

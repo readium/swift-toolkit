@@ -4,11 +4,68 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ## Unreleased
 
-### Async APIs
+### Error management
 
-Plenty of completion-based APIs were changed to use `async` functions instead. Follow the deprecation warnings to update your codebase.
+The error hierarchy returned by the Readium APIs has been revamped and simplified. They are no longer `LocalizedError` instances, so you must provide your own user-friendly error messages. Refer to the `Readium.swift` file in the Test App for an example.
 
-### Readium LCP SQLite adapter
+### Opening a `Publication`
+
+The `Streamer` object has been deprecated in favor of components with smaller responsibilities:
+
+* `AssetRetriever` grants access to the content of an asset located at a given URL, such as a publication package, manifest, or LCP license
+* `PublicationOpener` uses a publication parser and a set of content protections to create a `Publication` object from an `Asset`.
+
+[See the user guide for a detailed explanation on how to use these new APIs](Guides/Open%20Publication.md).
+
+### Typed URLs
+
+The toolkit now includes a new set of URL types (`RelativeURL`, `AbsoluteURL`, `FileURL`, `HTTPURL`, etc.). These new types ensure that you only pass URLs supported by our APIs.
+
+You can create an instance of such `URL` from its string representation:
+
+```swift
+FileURL(string: "file:///path/to%20a%20file")
+FileURL(path: "/path/to a file")
+HTTPURL(string: "https://domain.com/file")
+```
+
+Or convert an existing Foundation `URL`:
+
+```swift
+let url: URL
+url.fileURL
+url.httpURL
+```
+
+### Sniffing a `Format`
+
+`MediaType` no longer has static helpers for sniffing it from a file or URL. Instead, you can use an `AssetRetriever` to retrieve the format of a file.
+
+```swift
+let assetRetriever = AssetRetriever(httpClient: DefaultHTTPClient())
+
+switch await assetRetriever.sniffFormat(of: FileURL(string: ...)) {
+case .success(let format):
+    print("Sniffed media type: \(format.mediaType)")
+case .failure(let error):
+    // Failed to access the asset or recognize its format
+}
+```
+
+The `MediaType` struct has been simplified. It now only holds the actual media type string. The name has been removed, and the file extension has been moved to `Format`.
+
+### Navigator
+
+All the navigator `go` APIs are now asynchronous and take an `options` argument instead of the `animated` boolean.
+
+```diff
+-navigator.go(to: locator, animated: true, completion: { }
++await navigator.go(to: locator, options: NavigatorGoOptions(animated: true))
+```
+
+### Readium LCP
+
+#### Readium LCP SQLite adapter
 
 The Readium LCP persistence layer was extracted to allow applications to provide their own implementations. The previous implementation is now part of a new package, `ReadiumAdapterLCPSQLite`, which you need to use to maintain the same behavior as before.
 
@@ -36,6 +93,15 @@ let lcpService = LCPService(
     passphraseRepository: LCPSQLitePassphraseRepository(),
     httpClient: DefaultHTTPClient()
 )
+```
+
+#### Introducing `LicenseDocumentSource`
+
+The LCP APIs now accept a `LicenseDocumentSource` enum instead of a URL to an LCPL file. This approach is more flexible, as it doesn't require the LCPL file to be stored on the file system.
+
+```diff
+-lcpService.acquirePublication(from: url) { ... }
++await lcpService.acquirePublication(from: .file(FileURL(url: url)))
 ```
 
 

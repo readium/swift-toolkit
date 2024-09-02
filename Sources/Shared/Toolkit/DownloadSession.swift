@@ -32,15 +32,8 @@ public class DownloadSession: NSObject, URLSessionDelegate, URLSessionDownloadDe
         let completion: CompletionHandler
     }
 
-    enum RequestError: LocalizedError {
+    enum RequestError: Error {
         case notFound
-
-        var errorDescription: String? {
-            switch self {
-            case .notFound:
-                return ReadiumSharedLocalizedString("DownloadSession.RequestError.notFound")
-            }
-        }
     }
 
     public static let shared = DownloadSession()

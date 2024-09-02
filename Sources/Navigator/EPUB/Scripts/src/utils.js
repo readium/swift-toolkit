@@ -27,6 +27,7 @@ window.addEventListener(
   function () {
     const observer = new ResizeObserver(() => {
       appendVirtualColumnIfNeeded();
+      onScroll();
     });
     observer.observe(document.body);
 
@@ -79,7 +80,9 @@ function update(position) {
   webkit.messageHandlers.progressionChanged.postMessage(positionString);
 }
 
-window.addEventListener("scroll", function () {
+window.addEventListener("scroll", onScroll);
+
+function onScroll() {
   last_known_scrollY_position =
     window.scrollY / document.scrollingElement.scrollHeight;
   // Using Math.abs because for RTL books, the value will be negative.
@@ -106,7 +109,7 @@ window.addEventListener("scroll", function () {
     });
   }
   ticking = true;
-});
+}
 
 document.addEventListener(
   "selectionchange",

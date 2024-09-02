@@ -4,5 +4,4 @@
   available in the top-level LICENSE file of the project.
 */
 
-"ReadiumNavigator.NavigatorError.copyForbidden" = "You exceeded the amount of characters allowed to be copied.";
 "ReadiumNavigator.EditingAction.share" = "Share…";

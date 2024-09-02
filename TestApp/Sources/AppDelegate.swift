@@ -53,12 +53,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        guard let url = url.absoluteURL else {
+        guard let url = url.absoluteURL, let vc = window?.rootViewController else {
             return false
         }
 
         Task {
-            try! await app.library.importPublication(from: url, sender: window!.rootViewController!)
+            do {
+                try await app.library.importPublication(from: url, sender: vc)
+            } catch {
+                guard let error = error as? UserErrorConvertible else {
+                    print(error)
+                    return
+                }
+                vc.alert(error)
+            }
         }
 
         return true
