@@ -13841,6 +13841,8 @@
 ../../Sources/Shared/Publication/Services/Search
 ../../Sources/Shared/Publication/Services/Search/SearchService.swift
 ../../Sources/Shared/Publication/Services/Search/StringSearchService.swift
+../../Sources/Shared/Publication/Services/Table Of Contents
+../../Sources/Shared/Publication/Services/Table Of Contents/TableOfContentsService.swift
 ../../Sources/Shared/Publication/Subject.swift
 ../../Sources/Shared/Publication/User Settings
 ../../Sources/Shared/Publication/User Settings/UserProperties.swift
@@ -14011,6 +14013,7 @@
 ../../Sources/Streamer/Parser/PDF/PDFParser.swift
 ../../Sources/Streamer/Parser/PDF/Services
 ../../Sources/Streamer/Parser/PDF/Services/LCPDFPositionsService.swift
+../../Sources/Streamer/Parser/PDF/Services/LCPDFTableOfContentsService.swift
 ../../Sources/Streamer/Parser/PDF/Services/PDFPositionsService.swift
 ../../Sources/Streamer/Parser/PublicationParser.swift
 ../../Sources/Streamer/Parser/Readium

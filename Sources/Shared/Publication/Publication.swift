@@ -9,7 +9,7 @@ import Foundation
 
 /// Shared model for a Readium Publication.
 public class Publication: Closeable, Loggable {
-    private var manifest: Manifest
+    public var manifest: Manifest
     private let container: Container
     private let services: [PublicationService]
 
@@ -20,8 +20,6 @@ public class Publication: Closeable, Loggable {
     public var readingOrder: [Link] { manifest.readingOrder }
     /// Identifies resources that are necessary for rendering the publication.
     public var resources: [Link] { manifest.resources }
-    /// Identifies the collection that contains a table of contents.
-    public var tableOfContents: [Link] { manifest.tableOfContents }
     public var subcollections: [String: [PublicationCollection]] { manifest.subcollections }
 
     public init(
