@@ -8,8 +8,6 @@ import Foundation
 import R2Shared
 import ReadiumGCDWebServer
 
-extension ReadiumGCDWebServerResponse: Loggable {}
-
 /// Errors thrown by the `WebServerResourceResponse`
 ///
 /// - streamOpenFailed: The stream is not open, stream.open() failed.
@@ -44,7 +42,7 @@ open class WebServerResourceResponse: ReadiumGCDWebServerFileResponse {
 
         // If range is non nil - means it's not the first part (?)
         if let range = range {
-            WebServerResourceResponse.log(.debug, "Request range at \(range.location) remaining: \(range.length).")
+//            WebServerResourceResponse.log(.debug, "Request range at \(range.location) remaining: \(range.length).")
             /// Return a range of what to read next (nothing, next part, whole data).
             func getNextRange(after range: NSRange,
                               forStreamOfLength streamLength: UInt64) -> Range<UInt64>

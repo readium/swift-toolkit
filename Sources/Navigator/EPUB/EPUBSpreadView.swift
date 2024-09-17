@@ -6,7 +6,7 @@
 
 import R2Shared
 import SwiftSoup
-import WebKit
+@preconcurrency import WebKit
 
 protocol EPUBSpreadViewDelegate: AnyObject {
     /// Called when the spread view finished loading.

@@ -13,10 +13,10 @@ class Transactions: Loggable {
     /// Table.
     let transactions = Table("Transactions")
     /// Fields.
-    let licenseId = Expression<String>("licenseId")
-    let origin = Expression<String>("origin")
-    let userId = Expression<String?>("userId")
-    let passphrase = Expression<String>("passphrase") // hashed.
+    let licenseId = SQLite.Expression<String>("licenseId")
+    let origin = SQLite.Expression<String>("origin")
+    let userId = SQLite.Expression<String?>("userId")
+    let passphrase = SQLite.Expression<String>("passphrase") // hashed.
 
     init(_ connection: Connection) {
         do {
