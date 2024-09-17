@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Fixed
+
+#### Navigator
+
+* [#459](https://github.com/readium/swift-toolkit/issues/459) Fixed the stack overflow issue that occurred when running the text-to-speech on an EPUB file with many empty resources.
+
 
 ## [3.0.0-alpha.2]
 

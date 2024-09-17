@@ -339,15 +339,14 @@ public class PublicationSpeechSynthesizer: Loggable {
     /// Loads the utterances for the next publication `ContentElement` item in the given `direction`.
     private func loadNextUtterances(_ direction: Direction) async -> Bool {
         do {
-            guard let content = try await publicationIterator?.next(direction) else {
-                return false
-            }
+            var nextUtterances: [Utterance] = []
+            while nextUtterances.isEmpty {
+                guard let content = try await publicationIterator?.next(direction) else {
+                    return false
+                }
 
-            let nextUtterances = try tokenize(content)
-                .flatMap { utterances(for: $0) }
-
-            if nextUtterances.isEmpty {
-                return await loadNextUtterances(direction)
+                nextUtterances = try tokenize(content)
+                    .flatMap { utterances(for: $0) }
             }
 
             utterances = CursorList(
