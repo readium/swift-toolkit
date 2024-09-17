@@ -13,10 +13,10 @@ class Licenses {
     /// Table.
     let licenses = Table("Licenses")
     /// Fields.
-    let id = Expression<String>("id")
-    let printsLeft = Expression<Int?>("printsLeft")
-    let copiesLeft = Expression<Int?>("copiesLeft")
-    let registered = Expression<Bool>("registered")
+    let id = SQLite.Expression<String>("id")
+    let printsLeft = SQLite.Expression<Int?>("printsLeft")
+    let copiesLeft = SQLite.Expression<Int?>("copiesLeft")
+    let registered = SQLite.Expression<Bool>("registered")
 
     init(_ connection: Connection) {
         _ = try? connection.run(licenses.create(temporary: false, ifNotExists: true) { t in
@@ -41,7 +41,7 @@ class Licenses {
         return ((try? db.count(filterLicense)) ?? 0) != 0
     }
 
-    private func get(_ column: Expression<Int?>, for licenseId: String) throws -> Int? {
+    private func get(_ column: SQLite.Expression<Int?>, for licenseId: String) throws -> Int? {
         let db = Database.shared.connection
         let query = licenses.select(column).filter(id == licenseId)
         for row in try db.prepare(query) {
@@ -50,7 +50,7 @@ class Licenses {
         return nil
     }
 
-    private func set(_ column: Expression<Int?>, to value: Int, for licenseId: String) throws {
+    private func set(_ column: SQLite.Expression<Int?>, to value: Int, for licenseId: String) throws {
         let db = Database.shared.connection
         let filterLicense = licenses.filter(id == licenseId)
         try db.run(filterLicense.update(column <- value))

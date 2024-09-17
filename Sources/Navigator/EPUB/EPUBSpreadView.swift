@@ -456,7 +456,7 @@ extension EPUBSpreadView: WKNavigationDelegate {
         setNeedsStopActivityIndicator()
     }
 
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping @MainActor (WKNavigationActionPolicy) -> Void) {
         var policy: WKNavigationActionPolicy = .allow
 
         if navigationAction.navigationType == .linkActivated {

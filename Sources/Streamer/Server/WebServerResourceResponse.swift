@@ -8,7 +8,7 @@ import Foundation
 import R2Shared
 import ReadiumGCDWebServer
 
-extension ReadiumGCDWebServerResponse: Loggable {}
+extension ReadiumGCDWebServerResponse: @retroactive Loggable {}
 
 /// Errors thrown by the `WebServerResourceResponse`
 ///
