@@ -6,7 +6,7 @@
 
 import R2Shared
 import SwiftSoup
-import WebKit
+@preconcurrency import WebKit
 
 protocol EPUBSpreadViewDelegate: AnyObject {
     /// Called when the spread view finished loading.
@@ -456,7 +456,7 @@ extension EPUBSpreadView: WKNavigationDelegate {
         setNeedsStopActivityIndicator()
     }
 
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping @MainActor (WKNavigationActionPolicy) -> Void) {
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         var policy: WKNavigationActionPolicy = .allow
 
         if navigationAction.navigationType == .linkActivated {
