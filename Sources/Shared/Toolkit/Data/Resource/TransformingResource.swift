@@ -71,7 +71,7 @@ open class TransformingResource: Resource {
 /// Convenient shortcuts to create a `TransformingResource`.
 public extension Resource {
     func map(transform: @escaping (Data) async -> Data) -> Resource {
-        TransformingResource(self, transform: { await $0.map(transform) })
+        TransformingResource(self, transform: { await $0.asyncmap(transform) })
     }
 
     func mapAsString(encoding: String.Encoding = .utf8, transform: @escaping (String) -> String) -> Resource {

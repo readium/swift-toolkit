@@ -195,7 +195,7 @@ extension URL {
 extension Resource {
     func length() async -> ReadResult<UInt64> {
         await estimatedLength()
-            .flatMap { length in
+            .asyncflatMap { length in
                 if let length = length {
                     return .success(length)
                 } else {

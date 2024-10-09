@@ -8,7 +8,7 @@ import Foundation
 
 public extension Result {
     /// Asynchronous variant of `map`.
-    @inlinable func map<NewSuccess>(
+    @inlinable func asyncmap<NewSuccess>(
         _ transform: (Success) async throws -> NewSuccess
     ) async rethrows -> Result<NewSuccess, Failure> {
         switch self {
@@ -20,7 +20,7 @@ public extension Result {
     }
 
     /// Asynchronous variant of `flatMap`.
-    @inlinable func flatMap<NewSuccess>(
+    @inlinable func asyncflatMap<NewSuccess>(
         _ transform: (Success) async throws -> Result<NewSuccess, Failure>
     ) async rethrows -> Result<NewSuccess, Failure> {
         switch self {

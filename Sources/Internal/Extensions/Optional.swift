@@ -8,7 +8,7 @@ import Foundation
 
 public extension Optional {
     /// Asynchronous variant of `map`.
-    @inlinable func map<U>(_ transform: (Wrapped) async throws -> U) async rethrows -> U? {
+    @inlinable func asyncmap<U>(_ transform: (Wrapped) async throws -> U) async rethrows -> U? {
         switch self {
         case let .some(wrapped):
             return try await .some(transform(wrapped))
@@ -18,7 +18,7 @@ public extension Optional {
     }
 
     /// Asynchronous variant of `flatMap`.
-    @inlinable func flatMap<U>(_ transform: (Wrapped) async throws -> U?) async rethrows -> U? {
+    @inlinable func asyncflatMap<U>(_ transform: (Wrapped) async throws -> U?) async rethrows -> U? {
         switch self {
         case let .some(wrapped):
             return try await transform(wrapped)

@@ -47,7 +47,7 @@ class _HTMLResourceContentExtractor: _ResourceContentExtractor {
 
     func extractText(of resource: Resource) async -> ReadResult<String> {
         await resource.readAsString()
-            .flatMap { content in
+            .asyncflatMap { content in
                 do {
                     // First try to parse a valid XML document, then fallback on SwiftSoup, which is slower.
                     var text = await parse(xml: content)

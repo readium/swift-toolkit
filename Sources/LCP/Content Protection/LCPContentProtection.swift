@@ -34,7 +34,7 @@ final class LCPContentProtection: ContentProtection, Loggable {
 
         return await parseEncryptionData(in: asset)
             .mapError { ContentProtectionOpenError.reading(.decoding($0)) }
-            .flatMap { encryptionData in
+            .asyncflatMap { encryptionData in
                 let authentication = credentials.map { LCPPassphraseAuthentication($0, fallback: self.authentication) }
                     ?? self.authentication
 

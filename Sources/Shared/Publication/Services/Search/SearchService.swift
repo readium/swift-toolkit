@@ -43,7 +43,7 @@ public extension SearchIterator {
     @discardableResult
     func forEach(_ block: @escaping (LocatorCollection) -> Void) async -> SearchResult<Void> {
         func next() async -> SearchResult<Void> {
-            await self.next().flatMap { locators in
+            await self.next().asyncflatMap { locators in
                 if let locators = locators {
                     block(locators)
                     return await next()

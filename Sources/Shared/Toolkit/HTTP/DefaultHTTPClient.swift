@@ -185,12 +185,12 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         consume: @escaping (Data, Double?) -> Void
     ) async -> HTTPResult<HTTPResponse> {
         await request.httpRequest()
-            .flatMap(willStartRequest)
-            .flatMap { request in
+            .asyncflatMap(willStartRequest)
+            .asyncflatMap { request in
                 await startTask(for: request, consume: consume)
                     .recover { error in
                         await recover(request, from: error)
-                            .flatMap { newRequest in
+                            .asyncflatMap { newRequest in
                                 await stream(request: newRequest, consume: consume)
                             }
                     }

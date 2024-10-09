@@ -118,7 +118,7 @@ final class LCPDecryptor {
         private lazy var plainTextSize = memoize(_plainTextSize)
 
         private func _plainTextSize() async -> ReadResult<UInt64?> {
-            await resource.estimatedLength().flatMap { length in
+            await resource.estimatedLength().asyncflatMap { length in
                 guard let length = length else {
                     return failure(.requiredEstimatedLength)
                 }
@@ -156,7 +156,7 @@ final class LCPDecryptor {
                     }
             }
 
-            return await resource.estimatedLength().flatMap { encryptedLength in
+            return await resource.estimatedLength().asyncflatMap { encryptedLength in
                 guard let encryptedLength = encryptedLength else {
                     return failure(.requiredEstimatedLength)
                 }
