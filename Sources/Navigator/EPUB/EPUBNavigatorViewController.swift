@@ -222,9 +222,9 @@ open class EPUBNavigatorViewController: UIViewController,
             // Disable user interaction while transitioning, to avoid UX issues.
             switch state {
             case .initializing, .loading, .jumping, .moving:
-                paginationView.isUserInteractionEnabled = false
+                paginationView?.isUserInteractionEnabled = false
             case .idle:
-                paginationView.isUserInteractionEnabled = true
+                paginationView?.isUserInteractionEnabled = true
             }
         }
     }

@@ -28,7 +28,7 @@ public struct HTMLFormatSniffer: FormatSniffer {
 
     public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
         await blob.readAsXML()
-            .map { document in
+            .asyncMap { document in
                 if let format = sniffDocument(document) {
                     return format
                 } else if let format = await sniffString(blob) {

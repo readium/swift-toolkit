@@ -75,7 +75,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
                 ))
             }
             .mapError { .reading($0) }
-            .flatMap { container in
+            .asyncFlatMap { container in
                 await parse(
                     container: container,
                     format: FormatSpecifications(.rpf),

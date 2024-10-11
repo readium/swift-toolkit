@@ -73,6 +73,11 @@ All notable changes to this project will be documented in this file. Take a look
 * `Publication.localizedTitle` is now optional, as we cannot guarantee a publication will always have a title.
 
 
+## [2.7.3]
+
+* [#483](https://github.com/readium/swift-toolkit/issues/483) Fix build on Xcode 16.
+
+
 ## [2.7.2]
 
 ### Fixed
@@ -754,5 +759,6 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [2.7.0]: https://github.com/readium/swift-toolkit/compare/2.6.1...2.7.0
 [2.7.1]: https://github.com/readium/swift-toolkit/compare/2.7.0...2.7.1
 [2.7.2]: https://github.com/readium/swift-toolkit/compare/2.7.1...2.7.2
+[2.7.3]: https://github.com/readium/swift-toolkit/compare/2.7.2...2.7.3
 [3.0.0-alpha.1]: https://github.com/readium/swift-toolkit/compare/2.7.1...3.0.0-alpha.1
 [3.0.0-alpha.2]: https://github.com/readium/swift-toolkit/compare/3.0.0-alpha.1...3.0.0-alpha.2

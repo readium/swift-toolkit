@@ -35,7 +35,7 @@ public actor FormatSnifferBlob {
     func read() async -> ReadResult<Data?> {
         if bytes == nil {
             bytes = await length()
-                .flatMap { length in
+                .asyncFlatMap { length in
                     guard let length = length, length < 5 * 1000 * 1000 else {
                         return .success(nil)
                     }
@@ -72,8 +72,8 @@ public actor FormatSnifferBlob {
     /// Reads the whole content as an XML document.
     func readAsXML() async -> ReadResult<XMLDocument?> {
         if xml == nil {
-            xml = await read().map {
-                await $0.flatMap {
+            xml = await read().asyncMap {
+                await $0.asyncFlatMap {
                     try? await xmlDocumentFactory.open(data: $0, namespaces: [])
                 }
             }

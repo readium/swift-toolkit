@@ -11,10 +11,10 @@ import SQLite
 
 public class LCPSQLitePassphraseRepository: LCPPassphraseRepository, Loggable {
     let transactions = Table("Transactions")
-    let licenseId = Expression<String>("licenseId")
-    let provider = Expression<String>("origin")
-    let userId = Expression<String?>("userId")
-    let passphrase = Expression<String>("passphrase") // hashed.
+    let licenseId = SQLite.Expression<String>("licenseId")
+    let provider = SQLite.Expression<String>("origin")
+    let userId = SQLite.Expression<String?>("userId")
+    let passphrase = SQLite.Expression<String>("passphrase") // hashed.
 
     private let db: Connection
 

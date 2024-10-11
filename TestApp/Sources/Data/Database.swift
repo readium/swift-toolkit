@@ -16,7 +16,7 @@ final class Database {
 
     private let writer: DatabaseWriter
 
-    private init(writer: DatabaseWriter = DatabaseQueue()) throws {
+    private init(writer: DatabaseWriter) throws {
         self.writer = writer
 
         var migrator = DatabaseMigrator()
