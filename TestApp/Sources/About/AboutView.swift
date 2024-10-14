@@ -13,11 +13,11 @@ struct AboutView: View {
                 .font(.title2)
             HStack(spacing: 10) {
                 Text("Version").frame(width: 170.0, alignment: .leading)
-                Text("2.3.0")
+                Text(.appVersion ?? "")
             }
             HStack(spacing: 10) {
                 Text("Build").frame(width: 170.0, alignment: .leading)
-                Text("1")
+                Text(.buildVersion ?? "")
             }
             Text("Copyright").font(.title2)
             Link("© 2022 European Digital Reading Lab",
@@ -37,4 +37,10 @@ struct About_Previews: PreviewProvider {
     static var previews: some View {
         AboutView()
     }
+}
+
+private extension String {
+    static let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+    
+    static let buildVersion = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
 }
