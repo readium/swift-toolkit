@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct AboutView: View {
+    
     var body: some View {
         NavigationView {
             VStack(alignment: .center, spacing: 20) {
@@ -18,21 +19,26 @@ struct AboutView: View {
             .navigationBarTitleDisplayMode(.inline)
             .navigationTitle("About the Readium Swift Toolkit")
         }
+        .accentColor(Color(red: 0.78, green: 0.0, blue: 0.0))
     }
     
     private var versionSection: some View {
         AboutSectionView(title: "Version") {
             VStack(spacing: 16) {
                 HStack {
-                    Text("app_version_caption")
+                    Text("App Version:")
+                        .foregroundColor(.gray)
                     Spacer()
                     Text(.appVersion ?? "")
+                        .foregroundColor(.primary)
                 }
                 
                 HStack(spacing: 10) {
-                    Text("build_version_caption").frame(width: 170.0, alignment: .leading)
+                    Text("Build Version:")
+                        .foregroundColor(.gray)
                     Spacer()
                     Text(.buildVersion ?? "")
+                        .foregroundColor(.primary)
                 }
             }
         }
@@ -43,8 +49,10 @@ struct AboutView: View {
             VStack(alignment: .leading, spacing: 16) {
                 Link("© 2022 European Digital Reading Lab",
                      destination: URL(string: "https://www.edrlab.org/")!)
+                .foregroundColor(Color(red: 0.78, green: 0.0, blue: 0.0))
                 Link("[BSD-3 License]",
                      destination: URL(string: "https://opensource.org/licenses/BSD-3-Clause")!)
+                .foregroundColor(Color(red: 0.78, green: 0.0, blue: 0.0))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -55,7 +63,12 @@ struct AboutView: View {
             VStack(alignment: .center, spacing: 16) {
                 Text("R2 Reader wouldn't have been developed without the financial help of the French State.")
                     .multilineTextAlignment(.center)
+                    .foregroundColor(.primary)
                 Image("rf")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 150)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
             }
         }
     }

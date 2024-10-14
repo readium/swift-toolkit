@@ -25,11 +25,15 @@ struct AboutSectionView<Content: View>: View {
                 Text(title)
                     .font(.title2)
                     .bold()
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color(red: 0.0, green: 0.18, blue: 0.39))
                 Spacer()
             }
             content()
         }
+        .padding()
+        .background(Color(UIColor.secondarySystemGroupedBackground))
+        .cornerRadius(10)
+        .shadow(radius: 2)
     }
     
 }
