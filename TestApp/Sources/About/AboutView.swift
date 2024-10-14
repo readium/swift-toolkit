@@ -10,12 +10,14 @@ struct AboutView: View {
     
     var body: some View {
         NavigationView {
-            VStack(alignment: .center, spacing: 20) {
-                versionSection
-                copyrightSection
-                acknowledgementsSection
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .center, spacing: 20) {
+                    versionSection
+                    copyrightSection
+                    acknowledgementsSection
+                }
+                .padding(.horizontal, 16)
             }
-            .padding(.horizontal, 16)
             .navigationBarTitleDisplayMode(.inline)
             .navigationTitle("About the Readium Swift Toolkit")
         }
@@ -46,10 +48,15 @@ struct AboutView: View {
     private var copyrightSection: some View {
         AboutSectionView(title: "Copyright") {
             VStack(alignment: .leading, spacing: 16) {
-                Link("© 2022 European Digital Reading Lab",
-                     destination: URL(string: "https://www.edrlab.org/")!)
-                Link("[BSD-3 License]",
-                     destination: URL(string: "https://opensource.org/licenses/BSD-3-Clause")!)
+                Link(destination: URL(string: "https://www.edrlab.org/")!) {
+                    Text("© 2022 European Digital Reading Lab")
+                        .multilineTextAlignment(.leading)
+                }
+                
+                Link(destination: URL(string: "https://opensource.org/licenses/BSD-3-Clause")!) {
+                    Text("[BSD-3 License]")
+                        .multilineTextAlignment(.leading)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
