@@ -48,12 +48,12 @@ struct AboutView: View {
     private var copyrightSection: some View {
         AboutSectionView(title: "Copyright") {
             VStack(alignment: .leading, spacing: 16) {
-                Link(destination: URL(string: "https://www.edrlab.org/")!) {
+                Link(destination: .edrlab) {
                     Text("© 2022 European Digital Reading Lab")
                         .multilineTextAlignment(.leading)
                 }
                 
-                Link(destination: URL(string: "https://opensource.org/licenses/BSD-3-Clause")!) {
+                Link(destination: .license) {
                     Text("[BSD-3 License]")
                         .multilineTextAlignment(.leading)
                 }
@@ -88,4 +88,9 @@ private extension String {
     static let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
     
     static let buildVersion = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
+}
+
+private extension URL {
+    static let edrlab = URL(string: "https://www.edrlab.org/")!
+    static let license = URL(string: "https://opensource.org/licenses/BSD-3-Clause")!
 }
