@@ -8,8 +8,8 @@ import Combine
 import Foundation
 import ReadiumShared
 import ReadiumStreamer
-import UIKit
 import SwiftUI
+import UIKit
 
 /// Base module delegate, that sub-modules' delegate can extend.
 /// Provides basic shared functionalities.

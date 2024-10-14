@@ -7,10 +7,9 @@
 import SwiftUI
 
 struct AboutSectionView<Content: View>: View {
-    
     private let title: String
     private var content: () -> Content
-    
+
     init(
         title: String,
         content: @escaping () -> Content
@@ -18,7 +17,7 @@ struct AboutSectionView<Content: View>: View {
         self.title = title
         self.content = content
     }
-    
+
     var body: some View {
         VStack(spacing: 16) {
             HStack {
@@ -35,5 +34,4 @@ struct AboutSectionView<Content: View>: View {
         .cornerRadius(10)
         .shadow(radius: 2)
     }
-    
 }
