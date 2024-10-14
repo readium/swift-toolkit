@@ -19,7 +19,7 @@ struct AboutView: View {
     
     private var versionSection: some View {
         AboutSectionView(title: "Version") {
-            VStack {
+            VStack(spacing: 16) {
                 HStack {
                     Text("app_version_caption")
                     Spacer()
@@ -37,19 +37,21 @@ struct AboutView: View {
     
     private var copyrightSection: some View {
         AboutSectionView(title: "Copyright") {
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 16) {
                 Link("© 2022 European Digital Reading Lab",
                      destination: URL(string: "https://www.edrlab.org/")!)
                 Link("[BSD-3 License]",
                      destination: URL(string: "https://opensource.org/licenses/BSD-3-Clause")!)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
     
     private var acknowledgementsSection: some View {
         AboutSectionView(title: "Acknowledgements") {
-            VStack(alignment: .leading) {
+            VStack(alignment: .center, spacing: 16) {
                 Text("R2 Reader wouldn't have been developed without the financial help of the French State.")
+                    .multilineTextAlignment(.center)
                 Image("rf")
             }
         }

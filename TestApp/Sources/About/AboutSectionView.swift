@@ -20,12 +20,14 @@ struct AboutSectionView<Content: View>: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading) {
-            Text(title)
-                .font(.title2)
-                .bold()
-                .foregroundColor(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(spacing: 16) {
+            HStack {
+                Text(title)
+                    .font(.title2)
+                    .bold()
+                    .foregroundColor(.secondary)
+                Spacer()
+            }
             content()
         }
     }
