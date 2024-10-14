@@ -8,30 +8,53 @@ import SwiftUI
 
 struct AboutView: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .center, spacing: 20) {
+            versionSection
+            copyrightSection
+            acknowledgementsSection
+        }
+        .padding(.horizontal, 16)
+        .navigationTitle("About")
+    }
+    
+    private var versionSection: some View {
+        VStack(alignment: .leading) {
             Text("Version")
                 .font(.title2)
-            HStack(spacing: 10) {
-                Text("app_version_caption").frame(width: 170.0, alignment: .leading)
+            HStack {
+                Text("app_version_caption")
                 Spacer()
                 Text(.appVersion ?? "")
             }
+            
             HStack(spacing: 10) {
                 Text("build_version_caption").frame(width: 170.0, alignment: .leading)
                 Spacer()
                 Text(.buildVersion ?? "")
             }
-            Text("Copyright").font(.title2)
+        }
+    }
+    
+    private var copyrightSection: some View {
+        VStack(alignment: .leading) {
+            Text("Copyright")
+                .font(.title2)
+                .frame(maxWidth: .infinity, alignment: .leading)
             Link("© 2022 European Digital Reading Lab",
                  destination: URL(string: "https://www.edrlab.org/")!)
             Link("[BSD-3 License]",
                  destination: URL(string: "https://opensource.org/licenses/BSD-3-Clause")!)
-            Text("Acknowledgements").font(.title2)
+        }
+    }
+    
+    private var acknowledgementsSection: some View {
+        VStack(alignment: .leading) {
+            Text("Acknowledgements")
+                .font(.title2)
+                .frame(maxWidth: .infinity, alignment: .leading)
             Text("R2 Reader wouldn't have been developed without the financial help of the French State.")
             Image("rf")
         }
-        .padding(.horizontal, 16)
-        .navigationTitle("About")
     }
 }
 
