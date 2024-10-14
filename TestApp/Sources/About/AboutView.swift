@@ -19,7 +19,6 @@ struct AboutView: View {
             .navigationBarTitleDisplayMode(.inline)
             .navigationTitle("About the Readium Swift Toolkit")
         }
-        .accentColor(Color(red: 0.78, green: 0.0, blue: 0.0))
     }
     
     private var versionSection: some View {
@@ -49,10 +48,8 @@ struct AboutView: View {
             VStack(alignment: .leading, spacing: 16) {
                 Link("© 2022 European Digital Reading Lab",
                      destination: URL(string: "https://www.edrlab.org/")!)
-                .foregroundColor(Color(red: 0.78, green: 0.0, blue: 0.0))
                 Link("[BSD-3 License]",
                      destination: URL(string: "https://opensource.org/licenses/BSD-3-Clause")!)
-                .foregroundColor(Color(red: 0.78, green: 0.0, blue: 0.0))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
