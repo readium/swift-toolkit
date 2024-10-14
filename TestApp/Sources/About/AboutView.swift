@@ -14,7 +14,6 @@ struct AboutView: View {
             acknowledgementsSection
         }
         .padding(.horizontal, 16)
-        .navigationTitle("About")
     }
     
     private var versionSection: some View {

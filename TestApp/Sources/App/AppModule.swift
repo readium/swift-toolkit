@@ -9,6 +9,7 @@ import Foundation
 import ReadiumShared
 import ReadiumStreamer
 import UIKit
+import SwiftUI
 
 /// Base module delegate, that sub-modules' delegate can extend.
 /// Provides basic shared functionalities.
@@ -58,9 +59,9 @@ final class AppModule {
     }
 
     private(set) lazy var aboutViewController: UIViewController = {
-        let storyboard = UIStoryboard(name: "App", bundle: nil)
-        let aboutViewController = storyboard.instantiateViewController(withIdentifier: "AboutTableViewController") as! AboutTableViewController
-        return UINavigationController(rootViewController: aboutViewController)
+        let hosting = UIHostingController(rootView: AboutView())
+        hosting.navigationItem.title = "About the Readium Swift Toolkit"
+        return UINavigationController(rootViewController: hosting)
     }()
 }
 
@@ -88,7 +89,11 @@ extension AppModule: LibraryModuleDelegate {
 extension AppModule: ReaderModuleDelegate {}
 
 extension AppModule: OPDSModuleDelegate {
-    func opdsDownloadPublication(_ publication: Publication?, at link: Link, sender: UIViewController) async throws -> Book {
+    func opdsDownloadPublication(
+        _ publication: Publication?,
+        at link: ReadiumShared.Link,
+        sender: UIViewController
+    ) async throws -> Book {
         guard let url = link.url(relativeTo: publication?.baseURL).absoluteURL else {
             throw OPDSError.invalidURL(link.href)
         }
