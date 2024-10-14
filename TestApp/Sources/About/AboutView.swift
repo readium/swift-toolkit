@@ -12,11 +12,13 @@ struct AboutView: View {
             Text("Version")
                 .font(.title2)
             HStack(spacing: 10) {
-                Text("Version").frame(width: 170.0, alignment: .leading)
+                Text("app_version_caption").frame(width: 170.0, alignment: .leading)
+                Spacer()
                 Text(.appVersion ?? "")
             }
             HStack(spacing: 10) {
-                Text("Build").frame(width: 170.0, alignment: .leading)
+                Text("build_version_caption").frame(width: 170.0, alignment: .leading)
+                Spacer()
                 Text(.buildVersion ?? "")
             }
             Text("Copyright").font(.title2)
@@ -28,7 +30,7 @@ struct AboutView: View {
             Text("R2 Reader wouldn't have been developed without the financial help of the French State.")
             Image("rf")
         }
-        .padding()
+        .padding(.horizontal, 16)
         .navigationTitle("About")
     }
 }
