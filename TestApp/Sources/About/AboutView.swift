@@ -8,12 +8,16 @@ import SwiftUI
 
 struct AboutView: View {
     var body: some View {
-        VStack(alignment: .center, spacing: 20) {
-            versionSection
-            copyrightSection
-            acknowledgementsSection
+        NavigationView {
+            VStack(alignment: .center, spacing: 20) {
+                versionSection
+                copyrightSection
+                acknowledgementsSection
+            }
+            .padding(.horizontal, 16)
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("About the Readium Swift Toolkit")
         }
-        .padding(.horizontal, 16)
     }
     
     private var versionSection: some View {

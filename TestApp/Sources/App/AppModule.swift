@@ -58,11 +58,7 @@ final class AppModule {
         ReadiumEnableLog(withMinimumSeverityLevel: .warning)
     }
 
-    private(set) lazy var aboutViewController: UIViewController = {
-        let hosting = UIHostingController(rootView: AboutView())
-        hosting.navigationItem.title = "About the Readium Swift Toolkit"
-        return UINavigationController(rootViewController: hosting)
-    }()
+    private(set) lazy var aboutViewController = UIHostingController(rootView: AboutView())
 }
 
 extension AppModule: ModuleDelegate {
