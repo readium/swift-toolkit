@@ -8,23 +8,31 @@ import SwiftUI
 
 struct AboutSectionView<Content: View>: View {
     private let title: String
+    private let iconName: String
     private var content: () -> Content
-
+    
     init(
         title: String,
+        iconName: String,
         content: @escaping () -> Content
     ) {
         self.title = title
+        self.iconName = iconName
         self.content = content
     }
-
+    
     var body: some View {
         VStack(spacing: 16) {
             HStack {
-                Text(title)
-                    .font(.title2)
-                    .bold()
-                    .foregroundColor(Color(red: 0.0, green: 0.18, blue: 0.39))
+                Label {
+                    Text(title)
+                        .bold()
+                } icon: {
+                    Image(systemName: iconName)
+                }
+                .font(.title2)
+                .foregroundColor(Color(red: 0.0, green: 0.18, blue: 0.39))
+                
                 Spacer()
             }
             content()

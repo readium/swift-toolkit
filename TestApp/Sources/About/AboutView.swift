@@ -23,7 +23,10 @@ struct AboutView: View {
     }
 
     private var versionSection: some View {
-        AboutSectionView(title: "Version") {
+        AboutSectionView(
+            title: "Version",
+            iconName: "app.badge"
+        ) {
             VStack(spacing: 16) {
                 HStack {
                     Text("App Version:")
@@ -45,7 +48,10 @@ struct AboutView: View {
     }
 
     private var copyrightSection: some View {
-        AboutSectionView(title: "Copyright") {
+        AboutSectionView(
+            title: "Copyright",
+            iconName: "c.circle"
+        ) {
             VStack(alignment: .leading, spacing: 16) {
                 Link(destination: .edrlab) {
                     Text("© 2022 European Digital Reading Lab")
@@ -62,7 +68,10 @@ struct AboutView: View {
     }
 
     private var acknowledgementsSection: some View {
-        AboutSectionView(title: "Acknowledgements") {
+        AboutSectionView(
+            title: "Acknowledgements",
+            iconName: "hands.sparkles"
+        ) {
             VStack(alignment: .center, spacing: 16) {
                 Text("R2 Reader wouldn't have been developed without the financial help of the French State.")
                     .multilineTextAlignment(.center)
