@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * [#459](https://github.com/readium/swift-toolkit/issues/459) Fixed the stack overflow issue that occurred when running the text-to-speech on an EPUB file with many empty resources.
+* [#490](https://github.com/readium/swift-toolkit/issues/490) Fixed issue loading fixed-layout EPUBs.
 
 
 ## [3.0.0-alpha.2]
