@@ -347,7 +347,7 @@ open class EPUBNavigatorViewController: UIViewController,
 
         applySettings()
 
-        await reloadSpreads(at: currentLocation, force: false)
+        await _reloadSpreads(at: currentLocation, force: false)
 
         onInitializedCallbacks.complete()
     }
@@ -536,11 +536,11 @@ open class EPUBNavigatorViewController: UIViewController,
     private var reloadSpreadsContinuations = [CheckedContinuation<Void, Never>]()
     private var needsReloadSpreads = false
 
-    @MainActor
     private func reloadSpreads(at locator: Locator? = nil, force: Bool) async {
-        guard isViewLoaded else {
+        guard state != .initializing, isViewLoaded else {
             return
         }
+
         guard !needsReloadSpreads else {
             await withCheckedContinuation { continuation in
                 reloadSpreadsContinuations.append(continuation)
