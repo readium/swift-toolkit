@@ -10,7 +10,7 @@ struct AboutSectionView<Content: View>: View {
     private let title: String
     private let iconName: String
     private var content: () -> Content
-
+    
     init(
         title: String,
         iconName: String,
@@ -20,26 +20,44 @@ struct AboutSectionView<Content: View>: View {
         self.iconName = iconName
         self.content = content
     }
-
+    
     var body: some View {
-        VStack(spacing: 16) {
-            HStack {
-                Label {
-                    Text(title)
-                        .bold()
-                } icon: {
-                    Image(systemName: iconName)
-                }
-                .font(.title2)
-                .foregroundColor(Color(red: 0.0, green: 0.18, blue: 0.39))
-
-                Spacer()
-            }
+        GroupBox {
             content()
+                .padding(.top, 4)
+        } label: {
+            Label {
+                Text(title)
+                    .bold()
+            } icon: {
+                Image(systemName: iconName)
+            }
+            .font(.title2)
+        }
+    }
+}
+
+#Preview {
+    AboutSectionView(
+        title: "Version",
+        iconName: "app.badge") {
+            VStack {
+                HStack {
+                    Text("App Version:")
+                        .foregroundColor(.gray)
+                    Spacer()
+                    Text("alpha-3.0")
+                        .foregroundColor(.primary)
+                }
+                
+                HStack(spacing: 10) {
+                    Text("Build Version:")
+                        .foregroundColor(.gray)
+                    Spacer()
+                    Text("alpha-3.0")
+                        .foregroundColor(.primary)
+                }
+            }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemGroupedBackground))
-        .cornerRadius(10)
-        .shadow(radius: 2)
-    }
 }

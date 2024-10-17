@@ -27,10 +27,10 @@ struct AboutView: View {
             title: "Version",
             iconName: "app.badge"
         ) {
-            VStack(spacing: 16) {
+            VStack {
                 HStack {
                     Text("App Version:")
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                     Spacer()
                     Text(.appVersion ?? "")
                         .foregroundColor(.primary)
@@ -38,7 +38,7 @@ struct AboutView: View {
 
                 HStack(spacing: 10) {
                     Text("Build Version:")
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                     Spacer()
                     Text(.buildVersion ?? "")
                         .foregroundColor(.primary)
@@ -52,7 +52,7 @@ struct AboutView: View {
             title: "Copyright",
             iconName: "c.circle"
         ) {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading) {
                 Link(destination: .edrlab) {
                     Text("© 2022 European Digital Reading Lab")
                         .multilineTextAlignment(.leading)
@@ -72,14 +72,14 @@ struct AboutView: View {
             title: "Acknowledgements",
             iconName: "hands.sparkles"
         ) {
-            VStack(alignment: .center, spacing: 16) {
+            VStack(alignment: .center) {
                 Text("R2 Reader wouldn't have been developed without the financial help of the French State.")
                     .multilineTextAlignment(.center)
                     .foregroundColor(.primary)
                 Image("rf")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 150)
+                    .frame(width: 200)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
             }
         }
