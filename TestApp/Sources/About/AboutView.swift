@@ -25,7 +25,7 @@ struct AboutView: View {
     private var versionSection: some View {
         AboutSectionView(
             title: "Version",
-            iconName: "app.badge"
+            icon: .app
         ) {
             VStack {
                 HStack {
@@ -50,7 +50,7 @@ struct AboutView: View {
     private var copyrightSection: some View {
         AboutSectionView(
             title: "Copyright",
-            iconName: "c.circle"
+            icon: .circle
         ) {
             VStack(alignment: .leading) {
                 Link(destination: .edrlab) {
@@ -70,7 +70,7 @@ struct AboutView: View {
     private var acknowledgementsSection: some View {
         AboutSectionView(
             title: "Acknowledgements",
-            iconName: "hands.sparkles"
+            icon: .hands
         ) {
             VStack(alignment: .center) {
                 Text("R2 Reader wouldn't have been developed without the financial help of the French State.")

@@ -7,17 +7,24 @@
 import SwiftUI
 
 struct AboutSectionView<Content: View>: View {
+    
+    enum Icon: String {
+        case app = "app.badge"
+        case circle = "c.circle"
+        case hands = "hands.sparkles"
+    }
+    
     private let title: String
-    private let iconName: String
+    private let icon: Icon
     private var content: () -> Content
     
     init(
         title: String,
-        iconName: String,
+        icon: Icon,
         content: @escaping () -> Content
     ) {
         self.title = title
-        self.iconName = iconName
+        self.icon = icon
         self.content = content
     }
     
@@ -30,7 +37,7 @@ struct AboutSectionView<Content: View>: View {
                 Text(title)
                     .bold()
             } icon: {
-                Image(systemName: iconName)
+                Image(systemName: icon.rawValue)
             }
             .font(.title2)
         }
@@ -38,9 +45,7 @@ struct AboutSectionView<Content: View>: View {
 }
 
 #Preview {
-    AboutSectionView(
-        title: "Version",
-        iconName: "app.badge") {
+    AboutSectionView(title: "Version", icon: .app) {
             VStack {
                 HStack {
                     Text("App Version:")
