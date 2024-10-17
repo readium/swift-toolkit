@@ -17,7 +17,7 @@ struct AboutView: View {
             .padding(.horizontal, 16)
         }
     }
-    
+
     private var versionSection: some View {
         AboutSectionView(
             title: "Version",
@@ -31,7 +31,7 @@ struct AboutView: View {
                     Text(.appVersion ?? "")
                         .foregroundColor(.primary)
                 }
-                
+
                 HStack(spacing: 10) {
                     Text("Build Version:")
                         .foregroundColor(.secondary)
@@ -42,7 +42,7 @@ struct AboutView: View {
             }
         }
     }
-    
+
     private var copyrightSection: some View {
         AboutSectionView(
             title: "Copyright",
@@ -53,7 +53,7 @@ struct AboutView: View {
                     Text("© 2022 European Digital Reading Lab")
                         .multilineTextAlignment(.leading)
                 }
-                
+
                 Link(destination: .license) {
                     Text("[BSD-3 License]")
                         .multilineTextAlignment(.leading)
@@ -62,7 +62,7 @@ struct AboutView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
-    
+
     private var acknowledgementsSection: some View {
         AboutSectionView(
             title: "Acknowledgements",
@@ -90,7 +90,7 @@ struct About_Previews: PreviewProvider {
 
 private extension String {
     static let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
-    
+
     static let buildVersion = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
 }
 

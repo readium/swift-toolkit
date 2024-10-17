@@ -7,17 +7,16 @@
 import SwiftUI
 
 struct AboutSectionView<Content: View>: View {
-    
     enum Icon: String {
         case app = "app.badge"
         case circle = "c.circle"
         case hands = "hands.sparkles"
     }
-    
+
     private let title: String
     private let icon: Icon
     private var content: () -> Content
-    
+
     init(
         title: String,
         icon: Icon,
@@ -27,7 +26,7 @@ struct AboutSectionView<Content: View>: View {
         self.icon = icon
         self.content = content
     }
-    
+
     var body: some View {
         GroupBox {
             content()
@@ -46,23 +45,23 @@ struct AboutSectionView<Content: View>: View {
 
 #Preview {
     AboutSectionView(title: "Version", icon: .app) {
-            VStack {
-                HStack {
-                    Text("App Version:")
-                        .foregroundColor(.gray)
-                    Spacer()
-                    Text("alpha-3.0")
-                        .foregroundColor(.primary)
-                }
-                
-                HStack(spacing: 10) {
-                    Text("Build Version:")
-                        .foregroundColor(.gray)
-                    Spacer()
-                    Text("alpha-3.0")
-                        .foregroundColor(.primary)
-                }
+        VStack {
+            HStack {
+                Text("App Version:")
+                    .foregroundColor(.gray)
+                Spacer()
+                Text("alpha-3.0")
+                    .foregroundColor(.primary)
+            }
+
+            HStack(spacing: 10) {
+                Text("Build Version:")
+                    .foregroundColor(.gray)
+                Spacer()
+                Text("alpha-3.0")
+                    .foregroundColor(.primary)
             }
         }
-        .padding()
+    }
+    .padding()
 }
