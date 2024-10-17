@@ -83,6 +83,10 @@ function update(position) {
 window.addEventListener("scroll", onScroll);
 
 function onScroll() {
+  if (readium.isFixedLayout) {
+    return;
+  }
+
   last_known_scrollY_position =
     window.scrollY / document.scrollingElement.scrollHeight;
   // Using Math.abs because for RTL books, the value will be negative.
