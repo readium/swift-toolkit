@@ -13,7 +13,7 @@ import Foundation
 /// **Warning**: Bytes are read and cached entirely the first time, even if only a `range` is
 /// requested. So this is not appropriate for large resources.
 public actor CachingResource: Resource {
-    private let resource: Resource
+    private nonisolated let resource: Resource
 
     public init(resource: Resource) {
         self.resource = resource

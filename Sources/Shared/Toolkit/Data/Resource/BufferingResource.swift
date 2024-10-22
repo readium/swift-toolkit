@@ -19,7 +19,7 @@ import Foundation
 /// resource by chunks. The buffer is ignored when reading backward or far
 /// ahead.
 public actor BufferingResource: Resource {
-    private let resource: Resource
+    private nonisolated let resource: Resource
     private let bufferSize: UInt64
 
     /// - Parameter bufferSize: Size of the buffer chunks to read.

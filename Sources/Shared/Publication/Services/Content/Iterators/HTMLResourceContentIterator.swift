@@ -101,7 +101,7 @@ public class HTMLResourceContentIterator: ContentIterator {
             .eraseToAnyError()
             .tryMap { try SwiftSoup.parse($0) }
             .tryMap { try parse(document: $0, locator: locator, beforeMaxLength: beforeMaxLength) }
-            .map { await adjustProgressions(of: $0) }
+            .asyncMap { await adjustProgressions(of: $0) }
         resource.close()
         return try result.get()
     }

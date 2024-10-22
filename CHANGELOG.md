@@ -17,6 +17,16 @@ All notable changes to this project will be documented in this file. Take a look
 * The table of contents of an LCP-protected PDF is now extracted directly from the PDF if the `tableOfContents` property in `manifest.json` is empty.
 
 
+## [3.0.0-alpha.3]
+
+### Fixed
+
+#### Navigator
+
+* [#459](https://github.com/readium/swift-toolkit/issues/459) Fixed the stack overflow issue that occurred when running the text-to-speech on an EPUB file with many empty resources.
+* [#490](https://github.com/readium/swift-toolkit/issues/490) Fixed issue loading fixed-layout EPUBs.
+
+
 ## [3.0.0-alpha.2]
 
 ### Added
@@ -75,6 +85,11 @@ All notable changes to this project will be documented in this file. Take a look
    * **You MUST migrate your database if you were persisting HREFs and Locators**. Take a look at [the migration guide](Documentation/Migration%20Guide.md) for guidance.
 * Links are not resolved to the `self` URL of a manifest anymore. However, you can still normalize the HREFs yourselves by calling `Manifest.normalizeHREFsToSelf()`.
 * `Publication.localizedTitle` is now optional, as we cannot guarantee a publication will always have a title.
+
+
+## [2.7.3]
+
+* [#483](https://github.com/readium/swift-toolkit/issues/483) Fix build on Xcode 16.
 
 
 ## [2.7.2]
@@ -758,5 +773,7 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [2.7.0]: https://github.com/readium/swift-toolkit/compare/2.6.1...2.7.0
 [2.7.1]: https://github.com/readium/swift-toolkit/compare/2.7.0...2.7.1
 [2.7.2]: https://github.com/readium/swift-toolkit/compare/2.7.1...2.7.2
+[2.7.3]: https://github.com/readium/swift-toolkit/compare/2.7.2...2.7.3
 [3.0.0-alpha.1]: https://github.com/readium/swift-toolkit/compare/2.7.1...3.0.0-alpha.1
 [3.0.0-alpha.2]: https://github.com/readium/swift-toolkit/compare/3.0.0-alpha.1...3.0.0-alpha.2
+[3.0.0-alpha.3]: https://github.com/readium/swift-toolkit/compare/3.0.0-alpha.2...3.0.0-alpha.3

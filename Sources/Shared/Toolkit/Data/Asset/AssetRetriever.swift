@@ -80,7 +80,7 @@ public final class AssetRetriever {
     /// Retrieves an asset from a URL and a known format.
     public func retrieve(url: AbsoluteURL, format: Format) async -> Result<Asset, AssetRetrieveURLError> {
         await openResource(at: url)
-            .flatMap { resource in
+            .asyncFlatMap { resource in
                 await tryOpenArchive(with: resource, format: format)
                     .mapError { .reading($0) }
                     .map { container in
@@ -101,7 +101,7 @@ public final class AssetRetriever {
     /// Retrieves an asset from a URL of unknown format.
     public func retrieve(url: AbsoluteURL, hints: FormatHints = FormatHints()) async -> Result<Asset, AssetRetrieveURLError> {
         await openResource(at: url)
-            .flatMap { resource in
+            .asyncFlatMap { resource in
                 await retrieve(resource: resource, hints: hints)
                     .mapError { AssetRetrieveURLError($0) }
             }
@@ -111,7 +111,7 @@ public final class AssetRetriever {
     public func retrieve(resource: Resource, hints: FormatHints = FormatHints()) async -> Result<Asset, AssetRetrieveError> {
         await resource.fill(hints: hints)
             .mapError { .reading($0) }
-            .flatMap { hints in
+            .asyncFlatMap { hints in
                 await refine(
                     format: formatSniffer.sniffHints(hints) ?? .null,
                     of: .resource(ResourceAsset(resource: resource, format: .null))

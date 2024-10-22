@@ -6,7 +6,7 @@
 
 import ReadiumShared
 import SwiftSoup
-import WebKit
+@preconcurrency import WebKit
 
 protocol EPUBSpreadViewDelegate: AnyObject {
     /// Called when the spread view finished loading.
@@ -234,11 +234,31 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         applySettings()
         spreadDidLoad()
         delegate?.spreadViewDidLoad(self)
+        onSpreadLoadedCallbacks.complete()
     }
 
     /// To be overriden to customize the behavior after the spread is loaded.
     func spreadDidLoad() {
         showSpread()
+    }
+
+    private let onSpreadLoadedCallbacks = CompletionList()
+
+    /// Awaits for the spread to be fully loaded.
+    func spreadLoaded() async {
+        await withCheckedContinuation { continuation in
+            whenSpreadLoaded {
+                continuation.resume()
+            }
+        }
+    }
+
+    /// Executes the given `callback` when the spread is fully loaded.
+    func whenSpreadLoaded(_ callback: @escaping () -> Void) {
+        let callback = onSpreadLoadedCallbacks.add(callback)
+        if spreadLoaded {
+            callback()
+        }
     }
 
     func showSpread() {

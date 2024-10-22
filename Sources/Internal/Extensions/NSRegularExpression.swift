@@ -49,7 +49,7 @@ public extension NSRange {
     }
 }
 
-public final class ReplacingRegularExpression: NSRegularExpression {
+public final class ReplacingRegularExpression: NSRegularExpression, @unchecked Sendable {
     public typealias Replace = (NSTextCheckingResult, [String]) -> String
 
     private let replace: Replace

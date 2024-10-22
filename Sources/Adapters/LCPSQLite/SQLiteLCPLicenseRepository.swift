@@ -10,10 +10,10 @@ import SQLite
 
 public class LCPSQLiteLicenseRepository: LCPLicenseRepository {
     let licenses = Table("Licenses")
-    let id = Expression<String>("id")
-    let printsLeft = Expression<Int?>("printsLeft")
-    let copiesLeft = Expression<Int?>("copiesLeft")
-    let registered = Expression<Bool>("registered")
+    let id = SQLite.Expression<String>("id")
+    let printsLeft = SQLite.Expression<Int?>("printsLeft")
+    let copiesLeft = SQLite.Expression<Int?>("copiesLeft")
+    let registered = SQLite.Expression<Bool>("registered")
 
     private let db: Connection
 
@@ -98,7 +98,7 @@ public class LCPSQLiteLicenseRepository: LCPLicenseRepository {
         ((try? db.scalar(licenses.filter(id == licenseID).count)) ?? 0) != 0
     }
 
-    private func get(_ column: Expression<Int?>, for licenseId: String) throws -> Int? {
+    private func get(_ column: SQLite.Expression<Int?>, for licenseId: String) throws -> Int? {
         let query = licenses.select(column).filter(id == licenseId)
         for row in try db.prepare(query) {
             return try row.get(column)
@@ -106,7 +106,7 @@ public class LCPSQLiteLicenseRepository: LCPLicenseRepository {
         return nil
     }
 
-    private func set(_ column: Expression<Int?>, to value: Int?, for licenseId: String) throws {
+    private func set(_ column: SQLite.Expression<Int?>, to value: Int?, for licenseId: String) throws {
         let filterLicense = licenses.filter(id == licenseId)
         try db.run(filterLicense.update(column <- value))
     }

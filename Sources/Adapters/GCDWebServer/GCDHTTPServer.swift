@@ -330,7 +330,7 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 private extension Resource {
     func length() async -> ReadResult<UInt64> {
         await estimatedLength()
-            .flatMap { length in
+            .asyncFlatMap { length in
                 if let length = length {
                     return .success(length)
                 } else {
