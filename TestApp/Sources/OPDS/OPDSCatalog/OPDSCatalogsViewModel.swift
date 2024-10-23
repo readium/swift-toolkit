@@ -9,7 +9,7 @@ import Foundation
 final class OPDSCatalogsViewModel: ObservableObject {
     @Published var catalogs: [OPDSCatalog] = []
     
-    var openCatalog: ((URL) -> Void)?
+    var openCatalog: ((URL, IndexPath) -> Void)?
     
     private let userDefaultsID = "opdsCatalogArray"
     private var isFirstAppear = false
@@ -21,11 +21,14 @@ final class OPDSCatalogsViewModel: ObservableObject {
     }
     
     func onCatalogTap(_ catalog: OPDSCatalog) {
-        guard let openCatalog else {
+        guard
+            let openCatalog,
+            let index = catalogs.firstIndex(of: catalog)
+        else {
             assertionFailure("openCatalog closure have to be set")
             return
         }
-        openCatalog(catalog.url)
+        openCatalog(catalog.url, IndexPath(row: index, section: 0))
     }
     
     private func preloadTestFeeds() {

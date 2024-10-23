@@ -19,8 +19,7 @@ final class OPDSFactory {
 
 extension OPDSFactory: OPDSCatalogSelectorViewControllerFactory {
     func make() -> UIViewController {
-        let hostingController = UIHostingController(rootView: OPDSCatalogsView())
-        return hostingController
+        return UIViewController()
     }
 }
 

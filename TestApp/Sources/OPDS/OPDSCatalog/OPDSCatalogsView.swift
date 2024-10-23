@@ -7,7 +7,11 @@
 import SwiftUI
 
 struct OPDSCatalogsView: View {
-    @StateObject private var viewModel = OPDSCatalogsViewModel()
+    @StateObject private var viewModel: OPDSCatalogsViewModel
+    
+    init(viewModel: OPDSCatalogsViewModel) {
+        self._viewModel = StateObject(wrappedValue: viewModel)
+    }
     
     var body: some View {
         List(
@@ -26,5 +30,5 @@ struct OPDSCatalogsView: View {
 }
 
 #Preview {
-    OPDSCatalogsView()
+    OPDSCatalogsView(viewModel: OPDSCatalogsViewModel())
 }
