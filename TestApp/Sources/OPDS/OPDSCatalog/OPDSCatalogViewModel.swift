@@ -29,9 +29,6 @@ final class OPDSCatalogViewModel: ObservableObject {
     private func preloadTestFeeds() {
         let version = 2
         let VERSION_KEY = "OPDS_CATALOG_VERSION"
-        let OPDS2Catalog = ["title": "OPDS 2.0 Test Catalog", "url": "https://test.opds.io/2.0/home.json"]
-        let OTBCatalog = ["title": "Open Textbooks Catalog", "url": "http://open.minitex.org/textbooks"]
-        let SEBCatalog = ["title": "Standard eBooks Catalog", "url": "https://standardebooks.org/opds/all"]
         
         catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
         
@@ -41,10 +38,16 @@ final class OPDSCatalogViewModel: ObservableObject {
             catalogData == nil || oldversion < version
         {
             UserDefaults.standard.set(version, forKey: VERSION_KEY)
-            catalogData = [
-                OPDS2Catalog, OTBCatalog, SEBCatalog,
-            ]
+            catalogData = .testData
             UserDefaults.standard.set(catalogData, forKey: userDefaultsID)
         }
     }
+}
+
+private extension [[String: String]] {
+    static let testData: [[String: String]] = [
+        ["title": "OPDS 2.0 Test Catalog", "url": "https://test.opds.io/2.0/home.json"],
+        ["title": "Open Textbooks Catalog", "url": "http://open.minitex.org/textbooks"],
+        ["title": "Standard eBooks Catalog", "url": "https://standardebooks.org/opds/all"]
+    ]
 }
