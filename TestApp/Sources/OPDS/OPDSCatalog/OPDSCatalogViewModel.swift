@@ -7,16 +7,8 @@
 import Foundation
 
 final class OPDSCatalogViewModel: ObservableObject {
-    @Published var catalogs: [String] = []
+    @Published var catalogs: [OPDSCatalog] = []
     
-    private var catalogData: [[String: String]]? {
-        didSet {
-            guard let catalogData else { return }
-            catalogs = catalogData.compactMap { data in
-                data["title"]
-            }
-        }
-    }
     private let userDefaultsID = "opdsCatalogArray"
     private var isFirstAppear = false
     
@@ -30,16 +22,20 @@ final class OPDSCatalogViewModel: ObservableObject {
         let version = 2
         let VERSION_KEY = "OPDS_CATALOG_VERSION"
         
-        catalogData = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
+        let catalogsArray = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
+        catalogs = catalogsArray?.compactMap(OPDSCatalog.init) ?? []
         
         let oldversion = UserDefaults.standard.integer(forKey: VERSION_KEY)
         
         if
-            catalogData == nil || oldversion < version
+            catalogs.isEmpty || oldversion < version
         {
             UserDefaults.standard.set(version, forKey: VERSION_KEY)
-            catalogData = .testData
-            UserDefaults.standard.set(catalogData, forKey: userDefaultsID)
+            catalogs = .testData
+            UserDefaults.standard.set(
+                catalogs.map(\.toDictionary),
+                forKey: userDefaultsID
+            )
         }
     }
 }
@@ -49,5 +45,22 @@ private extension [[String: String]] {
         ["title": "OPDS 2.0 Test Catalog", "url": "https://test.opds.io/2.0/home.json"],
         ["title": "Open Textbooks Catalog", "url": "http://open.minitex.org/textbooks"],
         ["title": "Standard eBooks Catalog", "url": "https://standardebooks.org/opds/all"]
+    ]
+}
+
+private extension Array where Element == OPDSCatalog {
+    static let testData: [OPDSCatalog] = [
+        OPDSCatalog(
+            title: "OPDS 2.0 Test Catalog",
+            url: URL(string: "https://test.opds.io/2.0/home.json")!
+        ),
+        OPDSCatalog(
+            title: "Open Textbooks Catalog",
+            url: URL(string: "http://open.minitex.org/textbooks")!
+        ),
+        OPDSCatalog(
+            title: "Standard eBooks Catalog",
+            url: URL(string: "https://standardebooks.org/opds/all")!
+        )
     ]
 }

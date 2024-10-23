@@ -11,9 +11,9 @@ struct OPDSCatalogView: View {
     
     var body: some View {
         List(
-            viewModel.catalogs, id: \.self
+            viewModel.catalogs
         ) { catalog in
-            OPDSCatalogRow(title: catalog)
+            OPDSCatalogRow(title: catalog.title)
         }
         .onAppear {
             viewModel.viewDidAppear()
