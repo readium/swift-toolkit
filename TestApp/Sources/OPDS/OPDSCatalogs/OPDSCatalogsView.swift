@@ -38,6 +38,15 @@ struct OPDSCatalogsView: View {
         .onAppear {
             viewModel.viewDidAppear()
         }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    viewModel.onAddCatalogTap()
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+        }
         .sheet(item: $viewModel.editingCatalog) { catalog in
             EditOPDSCatalogView(catalog: catalog) { editingCatalog in
                 viewModel.onSaveEditedCatalogTap(editingCatalog)

@@ -59,8 +59,19 @@ final class OPDSCatalogsViewModel: ObservableObject {
             let index = catalogs.firstIndex(where: { $0.id == catalog.id })
         {
             catalogs[index] = catalog
+        } else {
+            catalogs.append(catalog)
         }
         editingCatalog = nil
+    }
+    
+    func onAddCatalogTap() {
+        let newCatalog = OPDSCatalog(
+            id: UUID().uuidString,
+            title: "",
+            url: URL(string: "http://")!
+        )
+        editingCatalog = newCatalog
     }
     
     private func preloadTestFeeds() {
