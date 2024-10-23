@@ -20,6 +20,19 @@ struct OPDSCatalogsView: View {
                 .onTapGesture {
                     viewModel.onCatalogTap(catalog)
                 }
+                .swipeActions(allowsFullSwipe: false) {
+                    Button(role: .destructive) {
+                        viewModel.onDeleteCatalogTap(catalog)
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                    
+                    Button {
+                        viewModel.onEditCatalogTap(catalog)
+                    } label: {
+                        Label("Edit", systemImage: "pencil")
+                    }
+                }
         }
         .listStyle(.plain)
         .onAppear {

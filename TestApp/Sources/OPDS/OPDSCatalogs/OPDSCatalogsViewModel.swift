@@ -7,7 +7,11 @@
 import Foundation
 
 final class OPDSCatalogsViewModel: ObservableObject {
-    @Published var catalogs: [OPDSCatalog] = []
+    @Published var catalogs: [OPDSCatalog] = [] {
+        didSet {
+            print("===> \(catalogs.count)")
+        }
+    }
     
     var openCatalog: ((URL, IndexPath) -> Void)?
     
@@ -29,6 +33,14 @@ final class OPDSCatalogsViewModel: ObservableObject {
             return
         }
         openCatalog(catalog.url, IndexPath(row: index, section: 0))
+    }
+    
+    func onEditCatalogTap(_ catalog: OPDSCatalog) {
+        print("===> onEditCatalogTap \(catalog.title)")
+    }
+    
+    func onDeleteCatalogTap(_ catalog: OPDSCatalog) {
+        print("===> onDeleteCatalogTap \(catalog.title)")
     }
     
     private func preloadTestFeeds() {
