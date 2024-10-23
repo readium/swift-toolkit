@@ -29,7 +29,7 @@ final class AppModule {
 
     init() throws {
         let file = Paths.library.appendingPath("database.db", isDirectory: false)
-        let db = try Database(file: file.url)
+        let db = try Database(file: file.url, migrations: [InitialMigration()])
         print("Created database at \(file.path)")
 
         let books = BookRepository(db: db)
