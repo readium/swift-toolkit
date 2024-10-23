@@ -14,6 +14,10 @@ struct OPDSCatalogsView: View {
             viewModel.catalogs
         ) { catalog in
             OPDSCatalogRow(title: catalog.title)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    viewModel.onCatalogTap(catalog)
+                }
         }
         .onAppear {
             viewModel.viewDidAppear()

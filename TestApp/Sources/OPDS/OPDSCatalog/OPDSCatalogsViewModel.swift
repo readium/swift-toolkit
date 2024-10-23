@@ -9,6 +9,8 @@ import Foundation
 final class OPDSCatalogsViewModel: ObservableObject {
     @Published var catalogs: [OPDSCatalog] = []
     
+    var openCatalog: ((URL) -> Void)?
+    
     private let userDefaultsID = "opdsCatalogArray"
     private var isFirstAppear = false
     
@@ -16,6 +18,14 @@ final class OPDSCatalogsViewModel: ObservableObject {
         guard !isFirstAppear else { return }
         isFirstAppear = true
         preloadTestFeeds()
+    }
+    
+    func onCatalogTap(_ catalog: OPDSCatalog) {
+        guard let openCatalog else {
+            assertionFailure("openCatalog closure have to be set")
+            return
+        }
+        openCatalog(catalog.url)
     }
     
     private func preloadTestFeeds() {
