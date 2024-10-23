@@ -69,7 +69,8 @@ final class OPDSCatalogsViewModel: ObservableObject {
         let newCatalog = OPDSCatalog(
             id: UUID().uuidString,
             title: "",
-            url: URL(string: "http://")!
+            url: URL(string: "http://")!,
+            symbol: .booksVerticalFill
         )
         editingCatalog = newCatalog
     }
@@ -115,17 +116,20 @@ private extension Array where Element == OPDSCatalog {
         OPDSCatalog(
             id: UUID().uuidString,
             title: "OPDS 2.0 Test Catalog",
-            url: URL(string: "https://test.opds.io/2.0/home.json")!
+            url: URL(string: "https://test.opds.io/2.0/home.json")!,
+            symbol: .booksVerticalFill
         ),
         OPDSCatalog(
             id: UUID().uuidString,
             title: "Open Textbooks Catalog",
-            url: URL(string: "http://open.minitex.org/textbooks")!
+            url: URL(string: "http://open.minitex.org/textbooks")!,
+            symbol: .booksVerticalFill
         ),
         OPDSCatalog(
             id: UUID().uuidString,
             title: "Standard eBooks Catalog",
-            url: URL(string: "https://standardebooks.org/opds/all")!
+            url: URL(string: "https://standardebooks.org/opds/all")!,
+            symbol: .booksVerticalFill
         )
     ]
 }

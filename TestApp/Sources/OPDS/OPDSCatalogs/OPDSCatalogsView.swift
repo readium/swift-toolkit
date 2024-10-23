@@ -15,7 +15,7 @@ struct OPDSCatalogsView: View {
     
     var body: some View {
         List(viewModel.catalogs) { catalog in
-            OPDSCatalogRow(title: catalog.title)
+            OPDSCatalogRow(title: catalog.title, symbol: catalog.symbol)
                 .contentShape(Rectangle())
                 .onTapGesture {
                     viewModel.onCatalogTap(id: catalog.id)

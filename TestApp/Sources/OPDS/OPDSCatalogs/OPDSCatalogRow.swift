@@ -8,29 +8,21 @@ import SwiftUI
 
 struct OPDSCatalogRow: View {
     let title: String
+    let symbol: OPDSCatalogSymbol
     
     var body: some View {
         HStack {
-            Image(systemName: "books.vertical.fill")
-                .foregroundColor(.blue)
-                .font(.system(size: 24))
-                .padding(.trailing, 10)
-            
+            Image(systemName: symbol.rawValue)
+                .foregroundColor(.accentColor)
             Text(title)
-                .font(.headline)
-                .padding(.vertical, 10)
-            
-            Spacer()
-            
-            Image(systemName: "chevron.right")
-                .foregroundColor(.gray)
         }
     }
 }
 
 #Preview {
     OPDSCatalogRow(
-        title: "OPDS 2.0 Test Catalog"
+        title: "OPDS 2.0 Test Catalog",
+        symbol: .booksVerticalFill
     )
     .padding()
 }
