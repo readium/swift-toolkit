@@ -19,25 +19,35 @@ final class OPDSCatalogsViewModel: ObservableObject {
     }
     
     private func preloadTestFeeds() {
-        let version = 2
-        let VERSION_KEY = "OPDS_CATALOG_VERSION"
-        
         let catalogsArray = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
-        catalogs = catalogsArray?.compactMap(OPDSCatalog.init) ?? []
+        self.catalogs = catalogsArray?
+            .compactMap(OPDSCatalog.init) ?? []
         
-        let oldversion = UserDefaults.standard.integer(forKey: VERSION_KEY)
+        let oldVersion = UserDefaults.standard.integer(forKey: .versionKey)
         
         if
-            catalogs.isEmpty || oldversion < version
+            self.catalogs.isEmpty || oldVersion < .currentVersion
         {
-            UserDefaults.standard.set(version, forKey: VERSION_KEY)
-            catalogs = .testData
-            UserDefaults.standard.set(
-                catalogs.map(\.toDictionary),
-                forKey: userDefaultsID
-            )
+            setDefaultCatalogs()
         }
     }
+    
+    private func setDefaultCatalogs() {
+        UserDefaults.standard.set(.currentVersion, forKey: .versionKey)
+        self.catalogs = .testData
+        UserDefaults.standard.set(
+            catalogs.map(\.toDictionary),
+            forKey: userDefaultsID
+        )
+    }
+}
+
+private extension String {
+    static let versionKey = "VERSION_KEY"
+}
+
+private extension Int {
+    static let currentVersion = 2
 }
 
 private extension [[String: String]] {
