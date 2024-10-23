@@ -15,6 +15,11 @@ struct OPDSCatalogRow: View {
             Image(systemName: symbol.rawValue)
                 .foregroundColor(.accentColor)
             Text(title)
+            
+            Spacer()
+            
+            Image(systemName: "chevron.right")
+                .foregroundColor(.gray)
         }
     }
 }
