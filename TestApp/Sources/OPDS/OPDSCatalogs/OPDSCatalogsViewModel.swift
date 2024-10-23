@@ -40,7 +40,8 @@ final class OPDSCatalogsViewModel: ObservableObject {
     }
     
     func onDeleteCatalogTap(_ catalog: OPDSCatalog) {
-        print("===> onDeleteCatalogTap \(catalog.title)")
+        guard let index = catalogs.firstIndex(of: catalog) else { return }
+        self.catalogs.remove(at: index)
     }
     
     private func preloadTestFeeds() {
