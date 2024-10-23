@@ -6,7 +6,7 @@
 
 import Foundation
 
-final class OPDSCatalogViewModel: ObservableObject {
+final class OPDSCatalogsViewModel: ObservableObject {
     @Published var catalogs: [OPDSCatalog] = []
     
     private let userDefaultsID = "opdsCatalogArray"

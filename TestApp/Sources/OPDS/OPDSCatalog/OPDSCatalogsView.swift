@@ -6,8 +6,8 @@
 
 import SwiftUI
 
-struct OPDSCatalogView: View {
-    @StateObject private var viewModel = OPDSCatalogViewModel()
+struct OPDSCatalogsView: View {
+    @StateObject private var viewModel = OPDSCatalogsViewModel()
     
     var body: some View {
         List(
@@ -22,5 +22,5 @@ struct OPDSCatalogView: View {
 }
 
 #Preview {
-    OPDSCatalogView()
+    OPDSCatalogsView()
 }

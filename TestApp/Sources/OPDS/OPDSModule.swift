@@ -39,7 +39,7 @@ final class OPDSModule: OPDSModuleAPI {
     }
 
     private(set) lazy var rootViewController: UINavigationController = {
-        let catalogViewController = UIHostingController(rootView: OPDSCatalogView())
+        let catalogViewController = UIHostingController(rootView: OPDSCatalogsView())
         let navigationController = UINavigationController(rootViewController: catalogViewController)
         return navigationController
     }()
