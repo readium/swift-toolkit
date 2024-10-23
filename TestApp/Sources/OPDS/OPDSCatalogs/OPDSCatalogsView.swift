@@ -18,17 +18,17 @@ struct OPDSCatalogsView: View {
             OPDSCatalogRow(title: catalog.title)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    viewModel.onCatalogTap(catalog)
+                    viewModel.onCatalogTap(id: catalog.id)
                 }
                 .swipeActions(allowsFullSwipe: false) {
                     Button(role: .destructive) {
-                        viewModel.onDeleteCatalogTap(catalog)
+                        viewModel.onDeleteCatalogTap(id: catalog.id)
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
                     
                     Button {
-                        viewModel.onEditCatalogTap(catalog)
+                        viewModel.onEditCatalogTap(id: catalog.id)
                     } label: {
                         Label("Edit", systemImage: "pencil")
                     }

@@ -27,23 +27,28 @@ final class OPDSCatalogsViewModel: ObservableObject {
         preloadTestFeeds()
     }
     
-    func onCatalogTap(_ catalog: OPDSCatalog) {
+    func onCatalogTap(id: OPDSCatalog.ID) {
         guard
             let openCatalog,
-            let index = catalogs.firstIndex(of: catalog)
+            let index = catalogs.firstIndex(where: { $0.id == id} )
         else {
             assertionFailure("openCatalog closure have to be set")
             return
         }
-        openCatalog(catalog.url, IndexPath(row: index, section: 0))
+        openCatalog(catalogs[index].url, IndexPath(row: index, section: 0))
     }
     
-    func onEditCatalogTap(_ catalog: OPDSCatalog) {
+    func onEditCatalogTap(id: OPDSCatalog.ID) {
+        guard
+            let catalog = catalogs.first(where: { $0.id == id })
+        else { return }
         print("===> onEditCatalogTap \(catalog.title)")
     }
     
-    func onDeleteCatalogTap(_ catalog: OPDSCatalog) {
-        guard let index = catalogs.firstIndex(of: catalog) else { return }
+    func onDeleteCatalogTap(id: OPDSCatalog.ID) {
+        guard
+            let index = catalogs.firstIndex(where: { $0.id == id})
+        else { return }
         self.catalogs.remove(at: index)
     }
     
@@ -86,14 +91,17 @@ private extension [[String: String]] {
 private extension Array where Element == OPDSCatalog {
     static let testData: [OPDSCatalog] = [
         OPDSCatalog(
+            id: UUID().uuidString,
             title: "OPDS 2.0 Test Catalog",
             url: URL(string: "https://test.opds.io/2.0/home.json")!
         ),
         OPDSCatalog(
+            id: UUID().uuidString,
             title: "Open Textbooks Catalog",
             url: URL(string: "http://open.minitex.org/textbooks")!
         ),
         OPDSCatalog(
+            id: UUID().uuidString,
             title: "Standard eBooks Catalog",
             url: URL(string: "https://standardebooks.org/opds/all")!
         )

@@ -1,13 +1,13 @@
 import Foundation
 
 struct OPDSCatalog: Identifiable, Equatable {
-    var id: URL { url }
-    
+    let id: String
     let title: String
     let url: URL
     
     var toDictionary: [String: String] {
         [
+            "id": id,
             "title": title,
             "url": url.absoluteString
         ]
@@ -21,6 +21,7 @@ extension OPDSCatalog {
             let url = URL(string: dictionary["url"] ?? "")
         else { return nil }
         
+        self.id = dictionary["id"] ?? UUID().uuidString
         self.title = title
         self.url = url
     }

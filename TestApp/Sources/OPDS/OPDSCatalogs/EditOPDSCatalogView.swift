@@ -10,6 +10,7 @@ struct EditOPDSCatalogView: View {
 
 private struct Wrapper: View {
     @State private var catalog = OPDSCatalog(
+        id: UUID().uuidString,
         title: "OPDS 2.0 Test Catalog",
         url: URL(string: "https://test.opds.io/2.0/home.json")!
     )
