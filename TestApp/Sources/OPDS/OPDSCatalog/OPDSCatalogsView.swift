@@ -14,15 +14,14 @@ struct OPDSCatalogsView: View {
     }
     
     var body: some View {
-        List(
-            viewModel.catalogs
-        ) { catalog in
+        List(viewModel.catalogs) { catalog in
             OPDSCatalogRow(title: catalog.title)
                 .contentShape(Rectangle())
                 .onTapGesture {
                     viewModel.onCatalogTap(catalog)
                 }
         }
+        .listStyle(.plain)
         .onAppear {
             viewModel.viewDidAppear()
         }
