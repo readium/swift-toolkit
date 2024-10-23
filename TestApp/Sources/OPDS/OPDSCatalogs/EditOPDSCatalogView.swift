@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct AddOPDSCatalogView: View {
+struct EditOPDSCatalogView: View {
     @Binding var catalog: OPDSCatalog
     
     var body: some View {
@@ -15,7 +15,7 @@ private struct Wrapper: View {
     )
     
     var body: some View {
-        AddOPDSCatalogView(catalog: $catalog)
+        EditOPDSCatalogView(catalog: $catalog)
     }
 }
 
