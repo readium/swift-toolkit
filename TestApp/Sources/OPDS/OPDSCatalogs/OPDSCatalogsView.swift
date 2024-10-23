@@ -38,6 +38,9 @@ struct OPDSCatalogsView: View {
         .onAppear {
             viewModel.viewDidAppear()
         }
+        .sheet(item: $viewModel.editingCatalog) { catalog in
+            EditOPDSCatalogView(catalog: catalog)
+        }
     }
 }
 

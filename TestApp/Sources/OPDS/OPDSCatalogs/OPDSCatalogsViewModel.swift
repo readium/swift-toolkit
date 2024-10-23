@@ -16,6 +16,8 @@ final class OPDSCatalogsViewModel: ObservableObject {
         }
     }
     
+    @Published var editingCatalog: OPDSCatalog?
+    
     var openCatalog: ((URL, IndexPath) -> Void)?
     
     private let userDefaultsID = "opdsCatalogArray"
@@ -42,7 +44,7 @@ final class OPDSCatalogsViewModel: ObservableObject {
         guard
             let catalog = catalogs.first(where: { $0.id == id })
         else { return }
-        print("===> onEditCatalogTap \(catalog.title)")
+        editingCatalog = catalog
     }
     
     func onDeleteCatalogTap(id: OPDSCatalog.ID) {
