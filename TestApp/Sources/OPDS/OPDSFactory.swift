@@ -7,6 +7,7 @@
 import Foundation
 import ReadiumShared
 import UIKit
+import SwiftUI
 
 final class OPDSFactory {
     /// To simplify the refactoring of dependencies, the factory is a singleton for now.
@@ -17,9 +18,9 @@ final class OPDSFactory {
 }
 
 extension OPDSFactory: OPDSCatalogSelectorViewControllerFactory {
-    func make() -> OPDSCatalogSelectorViewController {
-        let controller = storyboard.instantiateViewController(withIdentifier: "OPDSCatalogSelectorViewController") as! OPDSCatalogSelectorViewController
-        return controller
+    func make() -> UIViewController {
+        let hostingController = UIHostingController(rootView: OPDSCatalogView())
+        return hostingController
     }
 }
 

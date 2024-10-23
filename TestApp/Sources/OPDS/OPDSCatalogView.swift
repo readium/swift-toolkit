@@ -34,12 +34,10 @@ struct OPDSCatalogView: View {
     ]
     
     var body: some View {
-        VStack {
-            List(
-                catalogs, id: \.self
-            ) { catalog in
-                OPDSCatalogRow(title: catalog)
-            }
+        List(
+            catalogs, id: \.self
+        ) { catalog in
+            OPDSCatalogRow(title: catalog)
         }
     }
 }

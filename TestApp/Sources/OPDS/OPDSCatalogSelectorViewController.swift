@@ -10,7 +10,7 @@ import ReadiumShared
 import UIKit
 
 protocol OPDSCatalogSelectorViewControllerFactory {
-    func make() -> OPDSCatalogSelectorViewController
+    func make() -> UIViewController
 }
 
 class OPDSCatalogSelectorViewController: UITableViewController {

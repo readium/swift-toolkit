@@ -8,6 +8,7 @@ import Combine
 import Foundation
 import ReadiumShared
 import UIKit
+import SwiftUI
 
 enum OPDSError: Error {
     case invalidURL(String)
@@ -38,7 +39,8 @@ final class OPDSModule: OPDSModuleAPI {
     }
 
     private(set) lazy var rootViewController: UINavigationController = {
-        let catalogViewController: OPDSCatalogSelectorViewController = factory.make()
-        return UINavigationController(rootViewController: catalogViewController)
+        let catalogViewController = UIHostingController(rootView: OPDSCatalogView())
+        let navigationController = UINavigationController(rootViewController: catalogViewController)
+        return navigationController
     }()
 }
