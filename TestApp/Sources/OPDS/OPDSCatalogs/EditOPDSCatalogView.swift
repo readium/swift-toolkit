@@ -6,20 +6,26 @@ struct EditOPDSCatalogView: View {
     
     @Environment(\.presentationMode) var presentationMode
     
+    @State private var showErrorAlert = false
+    @State private var errorTitle = ""
+    @State private var errorMessage = ""
+    @State private var urlString: String
+    
+    init(catalog: OPDSCatalog, onSave: @escaping (OPDSCatalog) -> Void) {
+        self._catalog = State(initialValue: catalog)
+        self.onSave = onSave
+        self._urlString = State(initialValue: catalog.url.absoluteString)
+    }
+    
     var body: some View {
         NavigationView {
             Form {
-                Section(
-                    header: Text("opds_add_title")
-                ) {
+                Section(header: Text("opds_add_title")) {
                     TextField("Title", text: $catalog.title)
-                    TextField("URL", text: Binding(
-                        get: { catalog.url.absoluteString },
-                        set: { catalog.url = URL(string: $0) ?? catalog.url }
-                    ))
-                    .keyboardType(.URL)
-                    .autocapitalization(.none)
-                    .disableAutocorrection(true)
+                    TextField("URL", text: $urlString)
+                        .keyboardType(.URL)
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
                 }
             }
             .navigationBarItems(
@@ -27,10 +33,41 @@ struct EditOPDSCatalogView: View {
                     presentationMode.wrappedValue.dismiss()
                 },
                 trailing: Button("Save") {
-                    onSave(catalog)
-                    presentationMode.wrappedValue.dismiss()
+                    validateAndSave()
                 }
             )
+            .alert(isPresented: $showErrorAlert) {
+                Alert(
+                    title: Text(errorTitle),
+                    message: Text(errorMessage),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
+        }
+    }
+    
+    private func validateAndSave() {
+        let trimmedTitle = catalog.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        if trimmedTitle.isEmpty {
+            errorTitle = "Title Required"
+            errorMessage = "Please enter a title."
+            showErrorAlert = true
+            return
+        }
+        
+        if
+            let url = URL(string: urlString),
+            url.scheme != nil,
+            url.host != nil
+        {
+            catalog.url = url
+            onSave(catalog)
+            presentationMode.wrappedValue.dismiss()
+        } else {
+            errorTitle = "Invalid URL"
+            errorMessage = "Please enter a valid URL."
+            showErrorAlert = true
         }
     }
 }
