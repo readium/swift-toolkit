@@ -15,6 +15,9 @@ struct OPDSCatalogView: View {
         ) { catalog in
             OPDSCatalogRow(title: catalog)
         }
+        .onAppear {
+            viewModel.viewDidAppear()
+        }
     }
 }
 
