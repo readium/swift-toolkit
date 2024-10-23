@@ -9,7 +9,10 @@ import Foundation
 final class OPDSCatalogsViewModel: ObservableObject {
     @Published var catalogs: [OPDSCatalog] = [] {
         didSet {
-            print("===> \(catalogs.count)")
+            UserDefaults.standard.set(
+                catalogs.map(\.toDictionary),
+                forKey: userDefaultsID
+            )
         }
     }
     
@@ -61,10 +64,6 @@ final class OPDSCatalogsViewModel: ObservableObject {
     private func setDefaultCatalogs() {
         UserDefaults.standard.set(.currentVersion, forKey: .versionKey)
         self.catalogs = .testData
-        UserDefaults.standard.set(
-            catalogs.map(\.toDictionary),
-            forKey: userDefaultsID
-        )
     }
 }
 
