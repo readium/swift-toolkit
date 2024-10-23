@@ -9,7 +9,9 @@ struct EditOPDSCatalogView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Catalog Details")) {
+                Section(
+                    header: Text("opds_add_title")
+                ) {
                     TextField("Title", text: $catalog.title)
                     TextField("URL", text: Binding(
                         get: { catalog.url.absoluteString },
@@ -20,7 +22,6 @@ struct EditOPDSCatalogView: View {
                     .disableAutocorrection(true)
                 }
             }
-            .navigationTitle("Edit Catalog")
             .navigationBarItems(
                 leading: Button("Cancel") {
                     presentationMode.wrappedValue.dismiss()
