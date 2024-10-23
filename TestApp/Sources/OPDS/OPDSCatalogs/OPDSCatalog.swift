@@ -11,13 +11,13 @@ struct OPDSCatalog: Identifiable, Equatable {
     var title: String
     var url: URL
     var symbol: OPDSCatalogSymbol
-    
+
     var toDictionary: [String: String] {
         [
             "id": id,
             "title": title,
             "url": url.absoluteString,
-            "symbolName": symbol.rawValue
+            "symbolName": symbol.rawValue,
         ]
     }
 }
@@ -29,11 +29,11 @@ extension OPDSCatalog {
             let urlString = dictionary["url"],
             let url = URL(string: urlString)
         else { return nil }
-        
-        self.id = dictionary["id"] ?? UUID().uuidString
+
+        id = dictionary["id"] ?? UUID().uuidString
         self.title = title
         self.url = url
-        self.symbol = OPDSCatalogSymbol(
+        symbol = OPDSCatalogSymbol(
             rawValue: dictionary["symbolName"] ?? ""
         ) ?? .booksVerticalFill
     }

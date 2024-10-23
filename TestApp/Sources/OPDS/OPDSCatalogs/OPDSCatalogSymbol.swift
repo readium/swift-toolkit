@@ -5,16 +5,16 @@
 //
 
 enum OPDSCatalogSymbol: String, CaseIterable, Identifiable {
-    case book = "book"
+    case book
     case bookFill = "book.fill"
     case booksVertical = "books.vertical"
     case booksVerticalFill = "books.vertical.fill"
-    case bookmark = "bookmark"
+    case bookmark
     case bookmarkFill = "bookmark.fill"
     case textBookClosed = "text.book.closed"
     case textBookClosedFill = "text.book.closed.fill"
     case bookCircle = "book.circle"
     case bookCircleFill = "book.circle.fill"
-    
-    var id: String { self.rawValue }
+
+    var id: String { rawValue }
 }

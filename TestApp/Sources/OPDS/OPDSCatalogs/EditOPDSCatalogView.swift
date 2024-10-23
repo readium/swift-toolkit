@@ -1,26 +1,30 @@
+//
+//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
+//
+
 import SwiftUI
 
 struct EditOPDSCatalogView: View {
     @State var catalog: OPDSCatalog
     var onSave: (OPDSCatalog) -> Void
-    
+
     @Environment(\.presentationMode) var presentationMode
-    
+
     @State private var showErrorAlert = false
     @State private var errorTitle = ""
     @State private var errorMessage = ""
     @State private var urlString: String
     @State private var selectedSymbol: OPDSCatalogSymbol
 
-    
     init(catalog: OPDSCatalog, onSave: @escaping (OPDSCatalog) -> Void) {
-        self._catalog = State(initialValue: catalog)
+        _catalog = State(initialValue: catalog)
         self.onSave = onSave
-        self._urlString = State(initialValue: catalog.url.absoluteString)
-        self._selectedSymbol = State(initialValue: catalog.symbol)
-
+        _urlString = State(initialValue: catalog.url.absoluteString)
+        _selectedSymbol = State(initialValue: catalog.symbol)
     }
-    
+
     var body: some View {
         NavigationView {
             Form {
@@ -31,7 +35,7 @@ struct EditOPDSCatalogView: View {
                         .autocapitalization(.none)
                         .disableAutocorrection(true)
                 }
-                
+
                 Section(header: Text("Icon")) {
                     Picker(
                         "Choose icon",
@@ -61,17 +65,17 @@ struct EditOPDSCatalogView: View {
             }
         }
     }
-    
+
     private func validateAndSave() {
         let trimmedTitle = catalog.title.trimmingCharacters(in: .whitespacesAndNewlines)
-        
+
         if trimmedTitle.isEmpty {
             errorTitle = "Title Required"
             errorMessage = "Please enter a title."
             showErrorAlert = true
             return
         }
-        
+
         if
             let url = URL(string: urlString),
             url.scheme != nil,

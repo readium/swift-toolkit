@@ -6,8 +6,8 @@
 
 import Foundation
 import ReadiumShared
-import UIKit
 import SwiftUI
+import UIKit
 
 final class OPDSFactory {
     /// To simplify the refactoring of dependencies, the factory is a singleton for now.

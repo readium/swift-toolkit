@@ -8,11 +8,11 @@ import SwiftUI
 
 struct OPDSCatalogsView: View {
     @StateObject private var viewModel: OPDSCatalogsViewModel
-    
+
     init(viewModel: OPDSCatalogsViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel)
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
-    
+
     var body: some View {
         List(viewModel.catalogs) { catalog in
             OPDSCatalogRow(title: catalog.title, symbol: catalog.symbol)
@@ -26,7 +26,7 @@ struct OPDSCatalogsView: View {
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
-                    
+
                     Button {
                         viewModel.onEditCatalogTap(id: catalog.id)
                     } label: {

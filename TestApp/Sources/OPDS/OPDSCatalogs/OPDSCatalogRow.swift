@@ -9,7 +9,7 @@ import SwiftUI
 struct OPDSCatalogRow: View {
     let title: String
     let symbol: OPDSCatalogSymbol
-    
+
     var body: some View {
         HStack {
             Image(systemName: symbol.rawValue)
