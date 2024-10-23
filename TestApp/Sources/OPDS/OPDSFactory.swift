@@ -18,8 +18,9 @@ final class OPDSFactory {
 }
 
 extension OPDSFactory: OPDSCatalogSelectorViewControllerFactory {
-    func make() -> UIViewController {
-        return UIViewController()
+    func make() -> OPDSCatalogSelectorViewController {
+        let controller = storyboard.instantiateViewController(withIdentifier: "OPDSCatalogSelectorViewController") as! OPDSCatalogSelectorViewController
+        return controller
     }
 }
 
