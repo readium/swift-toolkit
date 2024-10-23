@@ -7,6 +7,7 @@
 import Combine
 import Foundation
 import ReadiumShared
+import SwiftUI
 import UIKit
 
 enum OPDSError: Error {
@@ -24,7 +25,7 @@ protocol OPDSModuleAPI {
 
 protocol OPDSModuleDelegate: ModuleDelegate {
     /// Called when an OPDS publication needs to be downloaded.
-    func opdsDownloadPublication(_ publication: Publication?, at link: Link, sender: UIViewController) async throws -> Book
+    func opdsDownloadPublication(_ publication: Publication?, at link: ReadiumShared.Link, sender: UIViewController) async throws -> Book
 }
 
 final class OPDSModule: OPDSModuleAPI {
@@ -38,7 +39,24 @@ final class OPDSModule: OPDSModuleAPI {
     }
 
     private(set) lazy var rootViewController: UINavigationController = {
-        let catalogViewController: OPDSCatalogSelectorViewController = factory.make()
-        return UINavigationController(rootViewController: catalogViewController)
+        let viewModel = OPDSCatalogsViewModel()
+
+        let catalogViewController = UIHostingController(
+            rootView: OPDSCatalogsView(viewModel: viewModel)
+        )
+
+        let navigationController = UINavigationController(
+            rootViewController: catalogViewController
+        )
+
+        viewModel.openCatalog = { [weak navigationController] url, indexPath in
+            let viewController = OPDSFactory.shared.make(
+                feedURL: url,
+                indexPath: indexPath
+            )
+            navigationController?.pushViewController(viewController, animated: true)
+        }
+
+        return navigationController
     }()
 }

@@ -6,6 +6,7 @@
 
 import Foundation
 import ReadiumShared
+import SwiftUI
 import UIKit
 
 final class OPDSFactory {
