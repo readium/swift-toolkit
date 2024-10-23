@@ -39,7 +39,9 @@ struct OPDSCatalogsView: View {
             viewModel.viewDidAppear()
         }
         .sheet(item: $viewModel.editingCatalog) { catalog in
-            EditOPDSCatalogView(catalog: catalog)
+            EditOPDSCatalogView(catalog: catalog) { editingCatalog in
+                viewModel.onSaveEditedCatalogTap(editingCatalog)
+            }
         }
     }
 }

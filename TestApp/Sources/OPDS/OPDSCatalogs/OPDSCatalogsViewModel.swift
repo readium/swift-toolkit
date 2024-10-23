@@ -54,6 +54,15 @@ final class OPDSCatalogsViewModel: ObservableObject {
         self.catalogs.remove(at: index)
     }
     
+    func onSaveEditedCatalogTap(_ catalog: OPDSCatalog) {
+        if
+            let index = catalogs.firstIndex(where: { $0.id == catalog.id })
+        {
+            catalogs[index] = catalog
+        }
+        editingCatalog = nil
+    }
+    
     private func preloadTestFeeds() {
         let catalogsArray = UserDefaults.standard.array(forKey: userDefaultsID) as? [[String: String]]
         self.catalogs = catalogsArray?

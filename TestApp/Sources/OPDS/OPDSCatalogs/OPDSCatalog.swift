@@ -2,8 +2,8 @@ import Foundation
 
 struct OPDSCatalog: Identifiable, Equatable {
     let id: String
-    let title: String
-    let url: URL
+    var title: String
+    var url: URL
     
     var toDictionary: [String: String] {
         [
