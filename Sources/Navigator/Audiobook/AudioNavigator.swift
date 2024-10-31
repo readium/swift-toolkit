@@ -314,7 +314,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         if let time = time {
             let locator = makeLocator(forTime: time)
             currentLocation = locator
-            delegate?.navigator(self, locationDidChange: locator)
+            Task { @MainActor in
+                delegate?.navigator(self, locationDidChange: locator)
+            }
         }
 
         makePlaybackInfo(forTime: time) { info in
@@ -418,7 +420,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             await withCheckedContinuation { continuation in
                 player.seek(to: CMTime(seconds: time, preferredTimescale: 1000)) { [weak self] finished in
                     if let self = self, finished {
-                        self.delegate?.navigator(self, didJumpTo: locator)
+                        Task { @MainActor in
+                            self.delegate?.navigator(self, didJumpTo: locator)
+                        }
                     }
                     continuation.resume()
                 }

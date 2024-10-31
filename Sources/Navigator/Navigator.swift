@@ -66,6 +66,15 @@ public struct NavigatorGoOptions {
         self.animated = animated
         otherOptionsJSON = JSONDictionary(otherOptions) ?? JSONDictionary()
     }
+    
+    public static var none: NavigatorGoOptions {
+        NavigatorGoOptions()
+    }
+
+    /// Convenience helper for options that contain only animated: true.
+    public static var animated: NavigatorGoOptions {
+        NavigatorGoOptions(animated: true)
+    }
 }
 
 public extension Navigator {
@@ -110,7 +119,7 @@ public extension Navigator {
     }
 }
 
-public protocol NavigatorDelegate: AnyObject {
+@MainActor public protocol NavigatorDelegate: AnyObject {
     /// Called when the current position in the publication changed. You should save the locator here to restore the
     /// last read page.
     func navigator(_ navigator: Navigator, locationDidChange locator: Locator)
