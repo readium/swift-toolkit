@@ -588,7 +588,8 @@ extension OPDSRootTableViewController: OPDSFacetViewControllerDelegate {
 extension OPDSRootTableViewController: UINavigationControllerDelegate {
     func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
         if mustEditFeed {
-            (viewController as? OPDSCatalogSelectorViewController)?.mustEditAtIndexPath = originalFeedIndexPath
+            print("")
+//            (viewController as? OPDSCatalogSelectorViewController)?.mustEditAtIndexPath = originalFeedIndexPath
         }
     }
 
