@@ -586,13 +586,6 @@ extension OPDSRootTableViewController: OPDSFacetViewControllerDelegate {
 // MARK: - UINavigationController delegate and tooling
 
 extension OPDSRootTableViewController: UINavigationControllerDelegate {
-    func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
-        if mustEditFeed {
-            print("")
-//            (viewController as? OPDSCatalogSelectorViewController)?.mustEditAtIndexPath = originalFeedIndexPath
-        }
-    }
-
     fileprivate func pushOpdsRootViewController(href: String) {
         guard let url = URL(string: href) else {
             return
