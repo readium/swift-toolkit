@@ -16,13 +16,11 @@ struct EditOPDSCatalogView: View {
     @State private var errorTitle = ""
     @State private var errorMessage = ""
     @State private var urlString: String
-    @State private var selectedSymbol: OPDSCatalogSymbol
 
     init(catalog: OPDSCatalog, onSave: @escaping (OPDSCatalog) -> Void) {
         _catalog = State(initialValue: catalog)
         self.onSave = onSave
         _urlString = State(initialValue: catalog.url.absoluteString)
-        _selectedSymbol = State(initialValue: catalog.symbol)
     }
 
     var body: some View {
@@ -34,18 +32,6 @@ struct EditOPDSCatalogView: View {
                         .keyboardType(.URL)
                         .autocapitalization(.none)
                         .disableAutocorrection(true)
-                }
-
-                Section(header: Text("Icon")) {
-                    Picker(
-                        "Choose icon",
-                        selection: $selectedSymbol
-                    ) {
-                        ForEach(OPDSCatalogSymbol.allCases) { symbol in
-                            Image(systemName: symbol.rawValue)
-                                .tag(symbol)
-                        }
-                    }
                 }
             }
             .navigationBarItems(
@@ -82,7 +68,6 @@ struct EditOPDSCatalogView: View {
             url.host != nil
         {
             catalog.url = url
-            catalog.symbol = selectedSymbol
             onSave(catalog)
             presentationMode.wrappedValue.dismiss()
         } else {
@@ -98,8 +83,7 @@ struct EditOPDSCatalogView: View {
         catalog: OPDSCatalog(
             id: UUID().uuidString,
             title: "OPDS 2.0 Test Catalog",
-            url: URL(string: "https://test.opds.io/2.0/home.json")!,
-            symbol: .booksVerticalFill
+            url: URL(string: "https://test.opds.io/2.0/home.json")!
         ),
         onSave: { _ in }
     )

@@ -8,11 +8,10 @@ import SwiftUI
 
 struct OPDSCatalogRow: View {
     let title: String
-    let symbol: OPDSCatalogSymbol
 
     var body: some View {
         HStack {
-            Image(systemName: symbol.rawValue)
+            Image(systemName: "books.vertical.fill")
                 .foregroundColor(.accentColor)
             Text(title)
 
@@ -26,8 +25,7 @@ struct OPDSCatalogRow: View {
 
 #Preview {
     OPDSCatalogRow(
-        title: "OPDS 2.0 Test Catalog",
-        symbol: .booksVerticalFill
+        title: "OPDS 2.0 Test Catalog"
     )
     .padding()
 }
