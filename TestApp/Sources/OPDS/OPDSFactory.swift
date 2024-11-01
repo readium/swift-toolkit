@@ -22,7 +22,7 @@ extension OPDSFactory: OPDSRootTableViewControllerFactory {
         let controller = storyboard.instantiateViewController(withIdentifier: "OPDSRootTableViewController") as! OPDSRootTableViewController
         controller.factory = self
         controller.originalFeedURL = feedURL
-        controller.originalFeedIndexPath = indexPath
+        controller.originalFeedIndexPath = nil
         return controller
     }
 }
