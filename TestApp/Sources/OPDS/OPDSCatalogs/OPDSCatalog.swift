@@ -15,7 +15,7 @@ struct OPDSCatalog: Identifiable, Equatable {
         [
             "id": id,
             "title": title,
-            "url": url.absoluteString
+            "url": url.absoluteString,
         ]
     }
 }

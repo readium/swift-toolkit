@@ -23,7 +23,7 @@ struct EditOPDSCatalogView: View {
     ) {
         self.catalog = catalog
         self.onSave = onSave
-        self.urlString = catalog.url.absoluteString
+        urlString = catalog.url.absoluteString
     }
 
     var body: some View {
