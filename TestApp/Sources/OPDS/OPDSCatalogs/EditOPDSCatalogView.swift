@@ -17,10 +17,13 @@ struct EditOPDSCatalogView: View {
     @State private var errorMessage = ""
     @State private var urlString: String
 
-    init(catalog: OPDSCatalog, onSave: @escaping (OPDSCatalog) -> Void) {
-        _catalog = State(initialValue: catalog)
+    init(
+        catalog: OPDSCatalog,
+        onSave: @escaping (OPDSCatalog) -> Void
+    ) {
+        self.catalog = catalog
         self.onSave = onSave
-        _urlString = State(initialValue: catalog.url.absoluteString)
+        self.urlString = catalog.url.absoluteString
     }
 
     var body: some View {
