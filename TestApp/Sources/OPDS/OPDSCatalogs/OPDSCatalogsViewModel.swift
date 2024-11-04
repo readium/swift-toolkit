@@ -106,7 +106,6 @@ private extension [[String: String]] {
     static let testData: [[String: String]] = [
         ["title": "OPDS 2.0 Test Catalog", "url": "https://test.opds.io/2.0/home.json"],
         ["title": "Open Textbooks Catalog", "url": "http://open.minitex.org/textbooks"],
-        ["title": "Standard eBooks Catalog", "url": "https://standardebooks.org/opds/all"],
     ]
 }
 
@@ -121,11 +120,6 @@ private extension Array where Element == OPDSCatalog {
             id: UUID().uuidString,
             title: "Open Textbooks Catalog",
             url: URL(string: "http://open.minitex.org/textbooks")!
-        ),
-        OPDSCatalog(
-            id: UUID().uuidString,
-            title: "Standard eBooks Catalog",
-            url: URL(string: "https://standardebooks.org/opds/all")!
         ),
     ]
 }
