@@ -28,7 +28,10 @@ struct OPDSFacetsView: View {
                 ForEach(facet.links, id: \.href) { link in
                     OPDSFacetLInkView(link: link)
                         .contentShape(Rectangle())
-                        .onTapGesture { onLinkTap(link) }
+                        .onTapGesture {
+                            onLinkTap(link)
+                            dismiss()
+                        }
                 }
             }
         }

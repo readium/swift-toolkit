@@ -37,9 +37,11 @@ extension OPDSFactory: OPDSPublicationInfoViewControllerFactory {
 }
 
 extension OPDSFactory: OPDSFacetViewControllerFactory {
-    func make(feed: Feed) -> OPDSFacetViewController {
-        let controller = storyboard.instantiateViewController(withIdentifier: "OPDSFacetViewController") as! OPDSFacetViewController
-        controller.feed = feed
-        return controller
+    func make(
+        feed: Feed,
+        onLinkTap: @escaping (ReadiumShared.Link) -> Void
+    ) -> UIViewController {
+        let view = OPDSFacetsView(feed: feed, onLinkTap: onLinkTap)
+        return UIHostingController(rootView: view)
     }
 }

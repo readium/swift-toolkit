@@ -8,7 +8,10 @@ import ReadiumShared
 import UIKit
 
 protocol OPDSFacetViewControllerFactory {
-    func make(feed: Feed) -> OPDSFacetViewController
+    func make(
+        feed: Feed,
+        onLinkTap: @escaping (ReadiumShared.Link) -> Void
+    ) -> UIViewController
 }
 
 protocol OPDSFacetViewControllerDelegate: AnyObject {

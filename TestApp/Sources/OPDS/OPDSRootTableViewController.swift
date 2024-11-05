@@ -183,8 +183,11 @@ class OPDSRootTableViewController: UITableViewController {
             return
         }
 
-        let facetViewController: OPDSFacetViewController = factory.make(feed: feed)
-        facetViewController.delegate = self
+        let facetViewController = factory.make(
+            feed: feed
+        ) { [weak self] link in
+            self?.pushOpdsRootViewController(href: link.href)
+        }
         facetViewController.modalPresentationStyle = UIModalPresentationStyle.popover
         present(facetViewController, animated: true, completion: nil)
 
