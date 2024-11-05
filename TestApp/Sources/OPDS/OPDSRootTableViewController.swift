@@ -61,18 +61,16 @@ class OPDSRootTableViewController: UITableViewController {
     // MARK: - OPDS feed parsing
 
     func parseFeed() {
-//        if let url = originalFeedURL {
-//            OPDSParser.parseURL(url: url) { data, _ in
-//                DispatchQueue.main.async {
-//                    if let data = data {
-//                        self.parseData = data
-//                    }
-//                    self.finishFeedInitialization()
-//                }
-//            }
-//        }
-        self.parseData = try! OPDS2Parser.parse(jsonData: .preview, url: URL(string: "https://test.opds.io/2.0/home.json")!, response: URLResponse())
-        self.finishFeedInitialization()
+        if let url = originalFeedURL {
+            OPDSParser.parseURL(url: url) { data, _ in
+                DispatchQueue.main.async {
+                    if let data = data {
+                        self.parseData = data
+                    }
+                    self.finishFeedInitialization()
+                }
+            }
+        }
     }
 
     func finishFeedInitialization() {

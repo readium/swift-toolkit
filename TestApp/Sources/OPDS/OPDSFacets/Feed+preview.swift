@@ -18,7 +18,7 @@ extension Feed {
     }
 }
 
-extension Data {
+private extension Data {
     static var preview: Data {
         let jsonString = """
 {
