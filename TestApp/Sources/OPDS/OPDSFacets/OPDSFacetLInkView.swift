@@ -4,12 +4,12 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import SwiftUI
 import ReadiumShared
+import SwiftUI
 
 struct OPDSFacetLInkView: View {
     let link: ReadiumShared.Link
-    
+
     var body: some View {
         HStack {
             if let title = link.title {
@@ -17,15 +17,15 @@ struct OPDSFacetLInkView: View {
                     .foregroundStyle(Color.primary)
                     .font(.body)
             }
-            
+
             Spacer()
-            
+
             if let count = link.properties.numberOfItems {
                 Text("\(count)")
                     .foregroundStyle(Color.secondary)
                     .font(.subheadline)
             }
-            
+
             Image(systemName: "chevron.right")
                 .font(.system(size: 14))
         }

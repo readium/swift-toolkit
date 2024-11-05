@@ -4,12 +4,11 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import UIKit
-import SwiftUI
 import ReadiumShared
+import SwiftUI
+import UIKit
 
 final class OPDSFacetsViewController: UIHostingController<OPDSFacetsView> {
-
     init(
         feed: Feed,
         onLinkTap: @escaping (ReadiumShared.Link) -> Void
@@ -17,9 +16,9 @@ final class OPDSFacetsViewController: UIHostingController<OPDSFacetsView> {
         let view = OPDSFacetsView(feed: feed, onLinkTap: onLinkTap)
         super.init(rootView: view)
     }
-    
-    @MainActor @preconcurrency required dynamic init?(coder aDecoder: NSCoder) {
+
+    @available(*, unavailable)
+    @MainActor @preconcurrency dynamic required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
 }

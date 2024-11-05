@@ -4,15 +4,15 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import SwiftUI
 import ReadiumShared
+import SwiftUI
 
 struct OPDSFacetsView: View {
     @Environment(\.dismiss) private var dismiss
-    
+
     let feed: Feed
     let onLinkTap: (ReadiumShared.Link) -> Void
-    
+
     var body: some View {
         NavigationView {
             facetsList
@@ -21,7 +21,7 @@ struct OPDSFacetsView: View {
                 .navigationTitle("Filters")
         }
     }
-    
+
     private var facetsList: some View {
         List(feed.facets, id: \.metadata.title) { facet in
             Section(facet.metadata.title) {
@@ -36,7 +36,7 @@ struct OPDSFacetsView: View {
             }
         }
     }
-    
+
     private var cancelButton: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button("Cancel") { dismiss() }
