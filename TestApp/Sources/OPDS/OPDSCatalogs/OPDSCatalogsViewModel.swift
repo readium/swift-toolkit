@@ -6,8 +6,9 @@
 
 import Foundation
 
+@Observable
 final class OPDSCatalogsViewModel: ObservableObject {
-    @Published var catalogs: [OPDSCatalog] = [] {
+    var catalogs: [OPDSCatalog] = [] {
         didSet {
             UserDefaults.standard.set(
                 catalogs.map(\.toDictionary),
@@ -16,7 +17,7 @@ final class OPDSCatalogsViewModel: ObservableObject {
         }
     }
 
-    @Published var editingCatalog: OPDSCatalog?
+    var editingCatalog: OPDSCatalog?
 
     var openCatalog: ((URL, IndexPath) -> Void)?
 
