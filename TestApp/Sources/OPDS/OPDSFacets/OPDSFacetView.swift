@@ -15,17 +15,15 @@ struct OPDSFacetView: View {
     var body: some View {
         NavigationView {
             Text(feed.metadata.title)
-                .toolbar {
-                    ToolbarItem(
-                        placement: .topBarLeading
-                    ) {
-                        Button("Cancel") {
-                            dismiss()
-                        }
-                    }
-                }
+                .toolbar { cancelButton }
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationTitle("Filters")
+        }
+    }
+    
+    private var cancelButton: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button("Cancel") { dismiss() }
         }
     }
 }
