@@ -7,6 +7,13 @@
 import SwiftUI
 import ReadiumShared
 
+protocol OPDSFacetViewControllerFactory {
+    func make(
+        feed: Feed,
+        onLinkTap: @escaping (ReadiumShared.Link) -> Void
+    ) -> UIViewController
+}
+
 struct OPDSFacetsView: View {
     @Environment(\.dismiss) private var dismiss
     

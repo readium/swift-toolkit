@@ -582,12 +582,6 @@ class OPDSRootTableViewController: UITableViewController {
     }
 }
 
-extension OPDSRootTableViewController: OPDSFacetViewControllerDelegate {
-    func opdsFacetViewController(_ opdsFacetViewController: OPDSFacetViewController, presentOPDSFeedAt href: String) {
-        pushOpdsRootViewController(href: href)
-    }
-}
-
 // MARK: - UINavigationController delegate and tooling
 
 extension OPDSRootTableViewController: UINavigationControllerDelegate {
