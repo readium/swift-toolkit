@@ -11,7 +11,11 @@ struct OPDSFacetView: View {
     let feed: Feed
     
     var body: some View {
-        Text(feed.metadata.title)
+        NavigationView {
+            Text(feed.metadata.title)
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationTitle("Filters")
+        }
     }
 }
 
