@@ -35,13 +35,3 @@ extension OPDSFactory: OPDSPublicationInfoViewControllerFactory {
         return controller
     }
 }
-
-extension OPDSFactory: OPDSFacetViewControllerFactory {
-    func make(
-        feed: Feed,
-        onLinkTap: @escaping (ReadiumShared.Link) -> Void
-    ) -> UIViewController {
-        let view = OPDSFacetsView(feed: feed, onLinkTap: onLinkTap)
-        return UIHostingController(rootView: view)
-    }
-}
