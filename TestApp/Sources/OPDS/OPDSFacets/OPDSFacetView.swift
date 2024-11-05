@@ -14,10 +14,22 @@ struct OPDSFacetView: View {
     
     var body: some View {
         NavigationView {
-            Text(feed.metadata.title)
+            facetsList
                 .toolbar { cancelButton }
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationTitle("Filters")
+        }
+    }
+    
+    private var facetsList: some View {
+        List(feed.facets, id: \.metadata.title) { facet in
+            Section(facet.metadata.title) {
+                ForEach(
+                    facet.links,
+                    id: \.href,
+                    content: OPDSFacetLInkView.init
+                )
+            }
         }
     }
     
