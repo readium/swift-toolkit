@@ -4,9 +4,16 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Fixed
+
+* [#489](https://github.com/readium/swift-toolkit/issues/489) Fix crash related to Fuzi when compiling with Xcode 16 in release mode.
+
 
 ## [2.7.3]
+
+### Fixed
 
 * [#483](https://github.com/readium/swift-toolkit/issues/483) Fix build on Xcode 16.
 
