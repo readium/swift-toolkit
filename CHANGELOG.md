@@ -4,11 +4,18 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Fixed
+
+#### Navigator
+
+* [#502](https://github.com/readium/swift-toolkit/issues/502) Fixed accessibility editing actions on iOS 18.
+
 
 ## [2.7.3]
 
-* [#483](https://github.com/readium/swift-toolkit/issues/483) Fix build on Xcode 16.
+* [#483](https://github.com/readium/swift-toolkit/issues/483) Fixed build on Xcode 16.
 
 
 ## [2.7.2]
