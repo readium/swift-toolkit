@@ -10,12 +10,16 @@ All notable changes to this project will be documented in this file. Take a look
 
 * [#489](https://github.com/readium/swift-toolkit/issues/489) Fix crash related to Fuzi when compiling with Xcode 16 in release mode.
 
+#### Navigator
+
+* [#502](https://github.com/readium/swift-toolkit/issues/502) Fixed accessibility editing actions on iOS 18.
+
 
 ## [2.7.3]
 
 ### Fixed
 
-* [#483](https://github.com/readium/swift-toolkit/issues/483) Fix build on Xcode 16.
+* [#483](https://github.com/readium/swift-toolkit/issues/483) Fixed build on Xcode 16.
 
 
 ## [2.7.2]
