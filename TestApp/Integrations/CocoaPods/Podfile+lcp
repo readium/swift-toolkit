@@ -11,6 +11,7 @@ target 'TestApp' do
   pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumOPDS.podspec'
   pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumLCP.podspec'
   pod 'ReadiumInternal', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumInternal.podspec'
+  pod 'Fuzi', podspec: 'https://raw.githubusercontent.com/readium/Fuzi/refs/heads/master/Fuzi.podspec'
   pod 'R2LCPClient', podspec: 'LCP_URL'
 
   # Required for R2Streamer and ReadiumAdapterGCDWebServer.

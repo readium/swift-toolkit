@@ -77,6 +77,7 @@ pod 'R2Navigator', podspec: 'https://raw.githubusercontent.com/readium/swift-too
 pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.7.3/Support/CocoaPods/ReadiumOPDS.podspec'
 pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.7.3/Support/CocoaPods/ReadiumLCP.podspec'
 pod 'ReadiumInternal', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.7.3/Support/CocoaPods/ReadiumInternal.podspec'
+pod 'Fuzi', podspec: 'https://raw.githubusercontent.com/readium/Fuzi/refs/heads/master/Fuzi.podspec'
 
 # Required if you use R2Streamer.
 pod 'ReadiumGCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/4.0.0/GCDWebServer.podspec'
