@@ -66,7 +66,7 @@ public struct NavigatorGoOptions {
         self.animated = animated
         otherOptionsJSON = JSONDictionary(otherOptions) ?? JSONDictionary()
     }
-    
+
     public static var none: NavigatorGoOptions {
         NavigatorGoOptions()
     }

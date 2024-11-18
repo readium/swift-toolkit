@@ -159,7 +159,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
                 range: range,
                 consume: { dataRequest.respond(with: $0) }
             )
-            
+
             queue.async { [weak self] in
                 switch result {
                 case .success:
@@ -167,7 +167,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
                 case let .failure(error):
                     request.finishLoading(with: error)
                 }
-            
+
                 self?.finishRequest(request)
             }
         }
