@@ -159,13 +159,17 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
                 range: range,
                 consume: { dataRequest.respond(with: $0) }
             )
-            switch result {
-            case .success:
-                request.finishLoading()
-            case let .failure(error):
-                request.finishLoading(with: error)
+
+            queue.async { [weak self] in
+                switch result {
+                case .success:
+                    request.finishLoading()
+                case let .failure(error):
+                    request.finishLoading(with: error)
+                }
+
+                self?.finishRequest(request)
             }
-            self.finishRequest(request)
         }
 
         registerRequest(request, task: task, for: link.url())
