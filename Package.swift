@@ -23,10 +23,10 @@ let package = Package(
         .library(name: "ReadiumAdapterLCPSQLite", targets: ["ReadiumAdapterLCPSQLite"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/cezheng/Fuzi.git", from: "3.1.0"),
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.8.0"),
         .package(url: "https://github.com/marmelroy/Zip.git", from: "2.1.0"),
         .package(url: "https://github.com/ra1028/DifferenceKit.git", from: "1.3.0"),
+        .package(url: "https://github.com/readium/Fuzi.git", from: "3.1.4"),
         .package(url: "https://github.com/readium/GCDWebServer.git", from: "4.0.0"),
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.7.0"),
         .package(url: "https://github.com/stephencelis/SQLite.swift.git", from: "0.15.0"),
