@@ -908,6 +908,8 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
 
     func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel, runScript script: String, in scope: EPUBScriptScope) {
         Task {
+            await initialized()
+
             switch scope {
             case .currentResource:
                 await (paginationView.currentView as? EPUBSpreadView)?.evaluateScript(script)
