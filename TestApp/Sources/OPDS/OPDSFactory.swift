@@ -6,6 +6,7 @@
 
 import Foundation
 import ReadiumShared
+import SwiftUI
 import UIKit
 
 final class OPDSFactory {
@@ -14,13 +15,6 @@ final class OPDSFactory {
 
     weak var delegate: OPDSModuleDelegate?
     private let storyboard = UIStoryboard(name: "OPDS", bundle: nil)
-}
-
-extension OPDSFactory: OPDSCatalogSelectorViewControllerFactory {
-    func make() -> OPDSCatalogSelectorViewController {
-        let controller = storyboard.instantiateViewController(withIdentifier: "OPDSCatalogSelectorViewController") as! OPDSCatalogSelectorViewController
-        return controller
-    }
 }
 
 extension OPDSFactory: OPDSRootTableViewControllerFactory {
