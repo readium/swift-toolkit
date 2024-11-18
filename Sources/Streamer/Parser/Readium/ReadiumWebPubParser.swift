@@ -114,6 +114,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
                             $0.setLocatorServiceFactory(AudioLocatorService.makeFactory())
 
                         } else if manifest.conforms(to: .pdf), format.conformsTo(.lcp), let pdfFactory = pdfFactory {
+                            $0.setTableOfContentsServiceFactory(LCPDFTableOfContentsService.makeFactory(pdfFactory: pdfFactory))
                             $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory(pdfFactory: pdfFactory))
                         }
 
