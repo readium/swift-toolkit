@@ -7,10 +7,10 @@
 import SwiftUI
 
 struct OPDSCatalogsView: View {
-    @StateObject private var viewModel: OPDSCatalogsViewModel
+    @State private var viewModel: OPDSCatalogsViewModel
 
     init(viewModel: OPDSCatalogsViewModel) {
-        _viewModel = StateObject(wrappedValue: viewModel)
+        self.viewModel = viewModel
     }
 
     var body: some View {

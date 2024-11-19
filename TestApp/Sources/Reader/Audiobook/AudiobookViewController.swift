@@ -347,7 +347,7 @@ struct TimeSlider: View {
                 }
             }
         )
-        .onChange(of: time) { _ in
+        .onChange(of: time) {
             if !isEditing {
                 progress = time / duration
             }

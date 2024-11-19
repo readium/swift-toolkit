@@ -6,6 +6,7 @@
 
 import ReadiumOPDS
 import ReadiumShared
+import SwiftUI
 import UIKit
 
 enum FeedBrowsingState {
@@ -25,7 +26,6 @@ protocol OPDSRootTableViewControllerFactory {
 class OPDSRootTableViewController: UITableViewController {
     typealias Factory =
         OPDSRootTableViewControllerFactory
-            & OPDSFacetViewControllerFactory
 
     var factory: Factory!
     var originalFeedURL: URL?
@@ -181,9 +181,15 @@ class OPDSRootTableViewController: UITableViewController {
             return
         }
 
-        let facetViewController: OPDSFacetViewController = factory.make(feed: feed)
-        facetViewController.delegate = self
+        let facetViewController = UIHostingController(rootView: OPDSFacetList(
+            feed: feed,
+            onLinkSelected: { [weak self] link in
+                self?.pushOpdsRootViewController(href: link.href)
+            }
+        ))
+
         facetViewController.modalPresentationStyle = UIModalPresentationStyle.popover
+
         present(facetViewController, animated: true, completion: nil)
 
         if let popoverPresentationController = facetViewController.popoverPresentationController {
@@ -329,7 +335,7 @@ class OPDSRootTableViewController: UITableViewController {
                     heightForRowAt = calculateRowHeightForGroup(feed!.groups[indexPath.section - 1])
                 }
             } else {
-                let group = Group(title: feed!.metadata.title)
+                let group = ReadiumShared.Group(title: feed!.metadata.title)
                 group.publications = feed!.publications
                 heightForRowAt = calculateRowHeightForGroup(group)
             }
@@ -341,7 +347,7 @@ class OPDSRootTableViewController: UITableViewController {
         return heightForRowAt
     }
 
-    fileprivate func calculateRowHeightForGroup(_ group: Group) -> CGFloat {
+    fileprivate func calculateRowHeightForGroup(_ group: ReadiumShared.Group) -> CGFloat {
         if group.navigation.count > 0 {
             return tableView.bounds.height / 2
 
@@ -434,7 +440,7 @@ class OPDSRootTableViewController: UITableViewController {
     func buildNavigationCell(tableView: UITableView, indexPath: IndexPath) -> OPDSNavigationTableViewCell {
         let castedCell = tableView.dequeueReusableCell(withIdentifier: "opdsNavigationCell", for: indexPath) as! OPDSNavigationTableViewCell
 
-        var currentNavigation: [Link]?
+        var currentNavigation: [ReadiumShared.Link]?
 
         if let navigation = feed?.navigation, navigation.count > 0 {
             currentNavigation = navigation
@@ -466,7 +472,7 @@ class OPDSRootTableViewController: UITableViewController {
     func buildGroupCell(tableView: UITableView, indexPath: IndexPath) -> UITableViewCell {
         if browsingState != .MixedGroup {
             if indexPath.section > feed!.groups.count {
-                let group = Group(title: feed!.metadata.title)
+                let group = ReadiumShared.Group(title: feed!.metadata.title)
                 group.publications = feed!.publications
                 return preparedGroupCell(group: group, indexPath: indexPath, offset: 0)
             } else {
@@ -485,7 +491,7 @@ class OPDSRootTableViewController: UITableViewController {
         }
     }
 
-    fileprivate func preparedGroupCell(group: Group?, indexPath: IndexPath, offset: Int) -> OPDSGroupTableViewCell {
+    fileprivate func preparedGroupCell(group: ReadiumShared.Group?, indexPath: IndexPath, offset: Int) -> OPDSGroupTableViewCell {
         let castedCell = tableView.dequeueReusableCell(withIdentifier: "opdsGroupCell", for: indexPath) as! OPDSGroupTableViewCell
         castedCell.group = group != nil ? group : feed?.groups[indexPath.section - offset]
         castedCell.opdsRootTableViewController = self
@@ -497,7 +503,7 @@ class OPDSRootTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         switch browsingState {
         case .Navigation, .MixedNavigationPublication, .MixedNavigationGroup, .MixedNavigationGroupPublication:
-            var link: Link?
+            var link: ReadiumShared.Link?
             if indexPath.section == 0 {
                 link = feed!.navigation[indexPath.row]
             } else if indexPath.section >= 1, indexPath.section <= feed!.groups.count, feed!.groups[indexPath.section - 1].navigation.count > 0 {
@@ -574,12 +580,6 @@ class OPDSRootTableViewController: UITableViewController {
                 pushOpdsRootViewController(href: href)
             }
         }
-    }
-}
-
-extension OPDSRootTableViewController: OPDSFacetViewControllerDelegate {
-    func opdsFacetViewController(_ opdsFacetViewController: OPDSFacetViewController, presentOPDSFeedAt href: String) {
-        pushOpdsRootViewController(href: href)
     }
 }
 

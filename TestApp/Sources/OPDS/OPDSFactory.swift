@@ -35,11 +35,3 @@ extension OPDSFactory: OPDSPublicationInfoViewControllerFactory {
         return controller
     }
 }
-
-extension OPDSFactory: OPDSFacetViewControllerFactory {
-    func make(feed: Feed) -> OPDSFacetViewController {
-        let controller = storyboard.instantiateViewController(withIdentifier: "OPDSFacetViewController") as! OPDSFacetViewController
-        controller.feed = feed
-        return controller
-    }
-}
