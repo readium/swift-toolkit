@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
   s.summary      = "Readium Shared"
   s.homepage     = "http://readium.github.io"
   s.author       = { "Readium" => "contact@readium.org" }
-  s.source       = { :git => 'https://github.com/readium/swift-toolkit.git', :tag => s.version }
+  s.source       = { :git => 'https://github.com/readium/swift-toolkit.git', :branch => "develop" }
   s.exclude_files = ["Sources/Shared/Toolkit/ZIP/ZIPFoundation.swift"]
   s.requires_arc = true
   s.source_files  = "Sources/Shared/**/*.{m,h,swift}"
