@@ -2,7 +2,7 @@
 
 [Readium Mobile](https://github.com/readium/mobile) is a toolkit for ebooks, audiobooks and comics written in Swift & Kotlin.
 
-:point_up: **Take a look at the [guide to get started](Documentation/Guides/Getting%20Started.md).** A [Test App](TestApp) demonstrates how to integrate the Readium Swift toolkit in your own reading app.
+:point_up: **Take a look at the [guide to get started](docs/Guides/Getting%20Started.md).** A [Test App](TestApp) demonstrates how to integrate the Readium Swift toolkit in your own reading app.
 
 This toolkit is a modular project, which follows the [Readium Architecture](https://github.com/readium/architecture).
 
@@ -78,6 +78,7 @@ pod 'ReadiumNavigator', podspec: 'https://raw.githubusercontent.com/readium/swif
 pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/3.0.0-alpha.3/Support/CocoaPods/ReadiumOPDS.podspec'
 pod 'ReadiumLCP', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/3.0.0-alpha.3/Support/CocoaPods/ReadiumLCP.podspec'
 pod 'ReadiumInternal', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/3.0.0-alpha.3/Support/CocoaPods/ReadiumInternal.podspec'
+pod 'Fuzi', podspec: 'https://raw.githubusercontent.com/readium/Fuzi/refs/heads/master/Fuzi.podspec'
 
 # Required if you use ReadiumAdapterGCDWebServer.
 pod 'ReadiumGCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/4.0.0/GCDWebServer.podspec'

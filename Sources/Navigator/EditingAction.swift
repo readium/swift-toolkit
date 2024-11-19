@@ -120,6 +120,12 @@ final class EditingActionsController {
     }
 
     func canPerformAction(_ selector: Selector) -> Bool {
+        // Accessibility editing actions (e.g. Spoken Option in Accessibility
+        // system settings) cannot be properly disabled.
+        guard !selector.description.hasPrefix("_accessibility") else {
+            return true
+        }
+
         guard
             isEnabled,
             let selection = selection,

@@ -320,7 +320,7 @@ extension LicenseValidation {
             .map { $0.body ?? Data() }
             .get()
 
-        try await raise(.retrievedStatusData(data))
+        try await raise(.retrievedLicenseData(data))
     }
 
     private func checkLicenseStatus(of license: LicenseDocument, status: StatusDocument?, statusDocumentTakesPrecedence: Bool) async throws {
