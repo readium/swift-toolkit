@@ -7,7 +7,7 @@
 import ReadiumShared
 import SwiftUI
 
-struct OPDSFacetLInkView: View {
+struct OPDSFacetLink: View {
     let link: ReadiumShared.Link
 
     var body: some View {
@@ -15,7 +15,6 @@ struct OPDSFacetLInkView: View {
             if let title = link.title {
                 Text(title)
                     .foregroundStyle(Color.primary)
-                    .font(.body)
             }
 
             Spacer()
@@ -27,13 +26,13 @@ struct OPDSFacetLInkView: View {
             }
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 14))
         }
+        .font(.body)
     }
 }
 
 #Preview {
-    OPDSFacetLInkView(
+    OPDSFacetLink(
         link: Feed.preview.facets[0].links[0]
     )
     .padding()

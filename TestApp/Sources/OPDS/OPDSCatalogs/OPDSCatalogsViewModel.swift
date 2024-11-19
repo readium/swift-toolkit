@@ -7,7 +7,7 @@
 import Foundation
 
 @Observable
-final class OPDSCatalogsViewModel: ObservableObject {
+final class OPDSCatalogsViewModel {
     var catalogs: [OPDSCatalog] = [] {
         didSet {
             UserDefaults.standard.set(

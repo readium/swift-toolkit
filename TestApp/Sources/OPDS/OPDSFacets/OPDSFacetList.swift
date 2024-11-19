@@ -7,29 +7,29 @@
 import ReadiumShared
 import SwiftUI
 
-struct OPDSFacetsView: View {
+struct OPDSFacetList: View {
     @Environment(\.dismiss) private var dismiss
 
     let feed: Feed
-    let onLinkTap: (ReadiumShared.Link) -> Void
+    let onLinkSelected: (ReadiumShared.Link) -> Void
 
     var body: some View {
         NavigationView {
-            facetsList
+            facets
                 .toolbar { cancelButton }
                 .navigationBarTitleDisplayMode(.inline)
-                .navigationTitle("Filters")
+                .navigationTitle("Facets")
         }
     }
 
-    private var facetsList: some View {
+    private var facets: some View {
         List(feed.facets, id: \.metadata.title) { facet in
             Section(facet.metadata.title) {
                 ForEach(facet.links, id: \.href) { link in
-                    OPDSFacetLInkView(link: link)
+                    OPDSFacetLink(link: link)
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            onLinkTap(link)
+                            onLinkSelected(link)
                             dismiss()
                         }
                 }
@@ -45,7 +45,7 @@ struct OPDSFacetsView: View {
 }
 
 #Preview {
-    OPDSFacetsView(feed: .preview) { link in
+    OPDSFacetList(feed: .preview) { link in
         print("Tap on link \(link.href)")
     }
 }
