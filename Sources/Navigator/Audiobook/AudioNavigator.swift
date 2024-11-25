@@ -50,7 +50,7 @@ public struct MediaPlaybackInfo {
     }
 }
 
-public protocol AudioNavigatorDelegate: NavigatorDelegate {
+@MainActor public protocol AudioNavigatorDelegate: NavigatorDelegate {
     /// Called when the playback updates.
     func navigator(_ navigator: AudioNavigator, playbackDidChange info: MediaPlaybackInfo)
 
@@ -108,7 +108,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         }
     }
 
-    public let publication: Publication
+    public nonisolated let publication: Publication
     private let initialLocation: Locator?
     private let config: Configuration
 
@@ -326,7 +326,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// A deadlock can occur when loading HTTP assets and creating the playback info from the main thread.
     /// To fix this, this is an asynchronous operation.
-    private func makePlaybackInfo(forTime time: Double? = nil, completion: @escaping (MediaPlaybackInfo) -> Void) {
+    private func makePlaybackInfo(forTime time: Double? = nil, completion: @escaping @MainActor (MediaPlaybackInfo) -> Void) {
         DispatchQueue.global(qos: .userInteractive).async {
             let info = MediaPlaybackInfo(
                 resourceIndex: self.resourceIndex,
@@ -389,7 +389,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         }
 
         self.lastLoadedTimeRanges = ranges
-        self.delegate?.navigator(self, loadedTimeRangesDidChange: ranges)
+        Task { @MainActor in
+            self.delegate?.navigator(self, loadedTimeRangesDidChange: ranges)
+        }
     }
 
     // MARK: - Navigator
@@ -411,7 +413,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
                 resourceIndex = newResourceIndex
                 loadedTimeRangesTimer.fire()
-                delegate?.navigator(self, loadedTimeRangesDidChange: [])
+                await delegate?.navigator(self, loadedTimeRangesDidChange: [])
             }
 
             // Seeks to time

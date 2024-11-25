@@ -106,7 +106,7 @@ public struct VisualNavigatorPresentation {
     }
 }
 
-public protocol VisualNavigatorDelegate: NavigatorDelegate {
+@MainActor public protocol VisualNavigatorDelegate: NavigatorDelegate {
     /// Called when the navigator presentation changed, for example after
     /// applying a new set of preferences.
     func navigator(_ navigator: Navigator, presentationDidChange presentation: VisualNavigatorPresentation)

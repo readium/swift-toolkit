@@ -30,7 +30,7 @@ public struct Selection {
     public let frame: CGRect?
 }
 
-public protocol SelectableNavigatorDelegate: NavigatorDelegate {
+@MainActor public protocol SelectableNavigatorDelegate: NavigatorDelegate {
     /// Returns whether the default edit menu (`UIMenuController`) should be displayed for the given `selection`.
     ///
     /// To implement a custom selection pop-up, return false and display your own view using `selection.frame`.
