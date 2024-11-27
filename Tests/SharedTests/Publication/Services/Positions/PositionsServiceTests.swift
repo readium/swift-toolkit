@@ -123,7 +123,7 @@ class PositionsServiceTests: XCTestCase {
     func testGetPositions() async throws {
         let service = TestPositionsService(positions)
 
-        let resource = service.get(link: Link(href: "~readium/positions"))
+        let resource = service.get(AnyURL(string: "~readium/positions")!)
 
         let result = try await resource?.readAsString().get()
         XCTAssertEqual(
@@ -137,7 +137,7 @@ class PositionsServiceTests: XCTestCase {
     func testGetUnknown() {
         let service = TestPositionsService(positions)
 
-        let resource = service.get(link: Link(href: "/unknown"))
+        let resource = service.get(AnyURL(string: "/unknown")!)
 
         XCTAssertNil(resource)
     }

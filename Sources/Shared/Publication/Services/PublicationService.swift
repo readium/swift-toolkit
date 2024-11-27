@@ -31,14 +31,17 @@ public protocol PublicationService: Closeable {
     ///
     /// Called by `Publication.get()` for each request.
     ///
-    /// - Returns: The Resource containing the response, or null if the service doesn't recognize
-    ///   this request.
-    func get(link: Link) -> Resource?
+    /// - Returns: The Resource containing the response, or null if the service
+    ///   doesn't recognize this request.
+    func get<T: URLConvertible>(_ href: T) -> Resource?
 }
 
 public extension PublicationService {
     var links: [Link] { [] }
 
+    func get<T: URLConvertible>(_ href: T) -> Resource? { nil }
+
+    @available(*, unavailable, message: "Use get(URLConvertible) instead")
     func get(link: Link) -> Resource? { nil }
 }
 
