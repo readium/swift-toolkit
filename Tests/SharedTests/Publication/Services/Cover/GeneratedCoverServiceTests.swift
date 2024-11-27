@@ -29,7 +29,7 @@ class GeneratedCoverServiceTests: XCTestCase {
             GeneratedCoverService(cover: cover),
             GeneratedCoverService(makeCover: { .success(self.cover) }),
         ] {
-            let resource = try XCTUnwrap(service.get(link: Link(href: "~readium/cover")))
+            let resource = try XCTUnwrap(service.get(AnyURL(string: "~readium/cover")!))
             let result = await resource.read().map(UIImage.init)
             AssertImageEqual(result, .success(cover))
         }

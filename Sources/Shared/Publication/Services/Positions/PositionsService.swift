@@ -33,8 +33,8 @@ private let positionsLink = Link(
 public extension PositionsService {
     var links: [Link] { [positionsLink] }
 
-    func get(link: Link) -> Resource? {
-        guard link.href == positionsLink.href else {
+    func get<T>(_ href: T) -> (any Resource)? where T: URLConvertible {
+        guard href.anyURL.isEquivalentTo(positionsLink.url()) else {
             return nil
         }
         return PositionsResource(positions: positions)

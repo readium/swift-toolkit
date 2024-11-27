@@ -6,6 +6,7 @@
 
 import CoreServices
 import Foundation
+import ReadiumInternal
 
 /// Shared model for a Readium Publication.
 public class Publication: Closeable, Loggable {
@@ -90,8 +91,10 @@ public class Publication: Closeable, Loggable {
 
     /// Returns the resource targeted by the given `href`.
     public func get<T: URLConvertible>(_ href: T) -> Resource? {
-        // Try first the original href and falls back to href without query and fragment.
-        container[href] ?? container[href.anyURL.removingQuery().removingFragment()]
+        services.first { $0.get(href) }
+            // Try first the original href and falls back to href without query and fragment.
+            ?? container[href]
+            ?? container[href.anyURL.removingQuery().removingFragment()]
     }
 
     /// Closes any opened resource associated with the `Publication`, including `services`.

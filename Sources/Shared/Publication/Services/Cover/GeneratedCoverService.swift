@@ -43,8 +43,8 @@ public final class GeneratedCoverService: CoverService {
 
     public var links: [Link] { [coverLink] }
 
-    public func get(link: Link) -> Resource? {
-        guard link.href == coverLink.href else {
+    public func get<T>(_ href: T) -> (any Resource)? where T: URLConvertible {
+        guard href.anyURL.isEquivalentTo(coverLink.url()) else {
             return nil
         }
 
