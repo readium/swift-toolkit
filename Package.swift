@@ -60,7 +60,6 @@ let package = Package(
             dependencies: [
                 "CryptoSwift",
                 "Fuzi",
-                "Zip",
                 "ReadiumShared",
             ],
             path: "Sources/Streamer",

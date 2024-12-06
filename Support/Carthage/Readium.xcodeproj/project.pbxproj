@@ -108,7 +108,6 @@
 		3E9F244ACDA938D330B9EAEA /* Subject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98CD4C99103DC795E44F56AE /* Subject.swift */; };
 		3ECB525CEB712CEC5EFCD26D /* WarningLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3510E7E84A5361BCECC90569 /* WarningLogger.swift */; };
 		40A44414CC911BF49BB5EE60 /* Tokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DA31089FCAD8DFB9AC46E4E /* Tokenizer.swift */; };
-		4299A01EF9F64B562A234FF6 /* ZIPArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA10E1438AE5AF459033776A /* ZIPArchive.swift */; };
 		44152DBECE34F063AD0E93BC /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE3E6442F0C7FE2098D71F27 /* Link.swift */; };
 		448374F2605586249A6CB4C8 /* FailureResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78FFDF8CF77437EDB41E4547 /* FailureResource.swift */; };
 		46D29739FB017C62767CBE63 /* Presentation+EPUB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42EFF9139B59D763CE254F92 /* Presentation+EPUB.swift */; };
@@ -216,7 +215,6 @@
 		8D6EFD7710BEB8539E4E64E6 /* DOMRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = C084C255A327387F36B97A62 /* DOMRange.swift */; };
 		8E25FF2EEFA72D9B0F3025C5 /* PDFFormatSniffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B72B76AB39E09E4A2E465AF /* PDFFormatSniffer.swift */; };
 		8F5B0B5B83BF7F1145556FF8 /* Properties+OPDS.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD79372361D085CA0500CF4 /* Properties+OPDS.swift */; };
-		8FEB56CBC27DE69E120F138C /* Zip.h in Headers */ = {isa = PBXBuildFile; fileRef = CE641F78FD99A426A80B3495 /* Zip.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9065C4C0F40B6A5601541EF7 /* Streamable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 622CB8B75A568846FECA44D6 /* Streamable.swift */; };
 		90769CA2ABCBD1F7203697DC /* Minizip.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CFFEBDFE931745C07DACD4A3 /* Minizip.xcframework */; };
 		90CFD62B993F6759716C0AF0 /* LicensesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56286133DD0AE093F2C5E9FD /* LicensesService.swift */; };
@@ -774,7 +772,6 @@
 		CBB57FCAEE605484A7290DBB /* Atomic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Atomic.swift; sourceTree = "<group>"; };
 		CC925E451D875E5F74748EDC /* Optional.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Optional.swift; sourceTree = "<group>"; };
 		CDA8111A330AB4D7187DD743 /* LocatorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocatorService.swift; sourceTree = "<group>"; };
-		CE641F78FD99A426A80B3495 /* Zip.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Zip.h; sourceTree = "<group>"; };
 		CF31AEFB5FF0E7892C6D903E /* EPUBPreferences+Legacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EPUBPreferences+Legacy.swift"; sourceTree = "<group>"; };
 		CFE1142A6C038A35C527CE84 /* URITemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URITemplate.swift; sourceTree = "<group>"; };
 		CFE34EA8AF2D815F7169CA45 /* Fuzi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fuzi.swift; sourceTree = "<group>"; };
@@ -848,7 +845,6 @@
 		F820DAECA1FC23C42719CD68 /* EncryptionParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncryptionParser.swift; sourceTree = "<group>"; };
 		F8C32FDF5E2D35BE71E45ED0 /* AudioPreferencesEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPreferencesEditor.swift; sourceTree = "<group>"; };
 		F90C4D94134D9F741D38D8AA /* Comparable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Comparable.swift; sourceTree = "<group>"; };
-		FA10E1438AE5AF459033776A /* ZIPArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPArchive.swift; sourceTree = "<group>"; };
 		FC3996B9F88089C7F752C531 /* DefaultFormatSniffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultFormatSniffer.swift; sourceTree = "<group>"; };
 		FC6271FA7F282364A4E68C4C /* ComicFormatSniffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComicFormatSniffer.swift; sourceTree = "<group>"; };
 		FC9D0ACCBA7B6E4473A95D5E /* AudioSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSettings.swift; sourceTree = "<group>"; };
@@ -1247,7 +1243,6 @@
 				ACB32E55E1F3CAF1737979CC /* DataCompression.swift */,
 				125BAF5FDFA097BA5CC63539 /* StringExtension.swift */,
 				C436D1FEFF82645FF9286F52 /* Extensions */,
-				C134ADFADD569A8A7471178E /* ZIPArchive */,
 			);
 			path = Toolkit;
 			sourceTree = "<group>";
@@ -1794,15 +1789,6 @@
 			path = "Media Overlays";
 			sourceTree = "<group>";
 		};
-		C134ADFADD569A8A7471178E /* ZIPArchive */ = {
-			isa = PBXGroup;
-			children = (
-				CE641F78FD99A426A80B3495 /* Zip.h */,
-				FA10E1438AE5AF459033776A /* ZIPArchive.swift */,
-			);
-			path = ZIPArchive;
-			sourceTree = "<group>";
-		};
 		C42B511253C3D9C6DA8AA5CC /* Toolkit */ = {
 			isa = PBXGroup;
 			children = (
@@ -2084,17 +2070,6 @@
 		};
 /* End PBXGroup section */
 
-/* Begin PBXHeadersBuildPhase section */
-		991EA4CF27076654ADC28E9E /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				8FEB56CBC27DE69E120F138C /* Zip.h in Headers */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXHeadersBuildPhase section */
-
 /* Begin PBXNativeTarget section */
 		223AD2DC63611790F513E0C7 /* ReadiumAdapterLCPSQLite */ = {
 			isa = PBXNativeTarget;
@@ -2118,7 +2093,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = E7578035C21EEC9C0AE298B2 /* Build configuration list for PBXNativeTarget "ReadiumStreamer" */;
 			buildPhases = (
-				991EA4CF27076654ADC28E9E /* Headers */,
 				91B7510E2CDFC2FAD8619A77 /* Sources */,
 				587BC73C39EFB0296396D4E0 /* Resources */,
 				B9FAF5D6C24FE948E42D98A1 /* Frameworks */,
@@ -2420,7 +2394,6 @@
 				25E7A4A839D3BDB07D8A7203 /* Streamer.swift in Sources */,
 				4AE70F783C07D9938B40E792 /* StringExtension.swift in Sources */,
 				C1CD3DA1A9EF154667E5B50B /* WebServerResourceResponse.swift in Sources */,
-				4299A01EF9F64B562A234FF6 /* ZIPArchive.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

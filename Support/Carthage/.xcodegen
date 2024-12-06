@@ -14028,7 +14028,4 @@
 ../../Sources/Streamer/Toolkit/Extensions
 ../../Sources/Streamer/Toolkit/Extensions/Bundle.swift
 ../../Sources/Streamer/Toolkit/Extensions/Container.swift
-../../Sources/Streamer/Toolkit/StringExtension.swift
-../../Sources/Streamer/Toolkit/ZIPArchive
-../../Sources/Streamer/Toolkit/ZIPArchive/Zip.h
-../../Sources/Streamer/Toolkit/ZIPArchive/ZIPArchive.swift"
+../../Sources/Streamer/Toolkit/StringExtension.swift"
