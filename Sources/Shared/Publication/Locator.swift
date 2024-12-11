@@ -300,7 +300,11 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
                 let highlight = highlight,
                 !highlight.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             else {
-                preconditionFailure("highlight is nil")
+                return Locator.Text(
+                    after: after.takeIf { !$0.isEmpty },
+                    before: before.takeIf { !$0.isEmpty },
+                    highlight: nil
+                )
             }
 
             let range = range
