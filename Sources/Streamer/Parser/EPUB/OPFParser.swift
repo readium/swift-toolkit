@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import Fuzi
+import ReadiumFuzi
 import ReadiumShared
 
 // http://www.idpf.org/epub/30/spec/epub30-publications.html#title-type
@@ -33,11 +33,11 @@ final class OPFParser: Loggable {
     private let baseURL: RelativeURL
 
     /// DOM representation of the OPF file.
-    private let document: Fuzi.XMLDocument
+    private let document: ReadiumFuzi.XMLDocument
 
     /// iBooks Display Options XML file to use as a fallback for metadata.
     /// See https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#epub-2x-9
-    private let displayOptions: Fuzi.XMLDocument?
+    private let displayOptions: ReadiumFuzi.XMLDocument?
 
     /// List of metadata declared in the package.
     private let metas: OPFMetaList
@@ -47,9 +47,9 @@ final class OPFParser: Loggable {
 
     init(baseURL: RelativeURL, data: Data, displayOptionsData: Data? = nil, encryptions: [RelativeURL: Encryption]) throws {
         self.baseURL = baseURL
-        document = try Fuzi.XMLDocument(data: data)
+        document = try ReadiumFuzi.XMLDocument(data: data)
         document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
-        displayOptions = (displayOptionsData.map { try? Fuzi.XMLDocument(data: $0) }) ?? nil
+        displayOptions = (displayOptionsData.map { try? ReadiumFuzi.XMLDocument(data: $0) }) ?? nil
         metas = OPFMetaList(document: document)
         self.encryptions = encryptions
     }
@@ -159,7 +159,7 @@ final class OPFParser: Loggable {
         return (resources, readingOrder)
     }
 
-    private func makeLink(manifestItem: Fuzi.XMLElement, spineItem: Fuzi.XMLElement?, isCover: Bool) -> Link? {
+    private func makeLink(manifestItem: ReadiumFuzi.XMLElement, spineItem: ReadiumFuzi.XMLElement?, isCover: Bool) -> Link? {
         guard
             let relativeHref = manifestItem.attr("href").flatMap(RelativeURL.init(epubHREF:)),
             let href = baseURL.resolve(relativeHref)

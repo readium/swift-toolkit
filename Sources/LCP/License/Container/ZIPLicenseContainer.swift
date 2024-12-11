@@ -6,7 +6,7 @@
 
 import Foundation
 import ReadiumShared
-import ZIPFoundation
+import ReadiumZIPFoundation
 
 /// Access to a License Document stored in a ZIP archive.
 /// Meant to be subclassed to customize the pathInZIP property, eg. EPUBLicenseContainer.
@@ -20,15 +20,20 @@ class ZIPLicenseContainer: LicenseContainer {
     }
 
     func containsLicense() async throws -> Bool {
-        guard let archive = Archive(url: zip.url, accessMode: .read) else {
-            return false
+        do {
+            let archive = try Archive(url: zip.url, accessMode: .read)
+            return archive[pathInZIP] != nil
+        } catch {
+            throw LCPError.licenseContainer(.openFailed(error))
         }
-        return archive[pathInZIP] != nil
     }
 
     func read() async throws -> Data {
-        guard let archive = Archive(url: zip.url, accessMode: .read) else {
-            throw LCPError.licenseContainer(.openFailed(nil))
+        let archive: Archive
+        do {
+            archive = try Archive(url: zip.url, accessMode: .read)
+        } catch {
+            throw LCPError.licenseContainer(.openFailed(error))
         }
         guard let entry = archive[pathInZIP] else {
             throw LCPError.licenseContainer(.fileNotFound(pathInZIP))
@@ -47,8 +52,11 @@ class ZIPLicenseContainer: LicenseContainer {
     }
 
     func write(_ license: LicenseDocument) async throws {
-        guard let archive = Archive(url: zip.url, accessMode: .update) else {
-            throw LCPError.licenseContainer(.openFailed(nil))
+        let archive: Archive
+        do {
+            archive = try Archive(url: zip.url, accessMode: .update)
+        } catch {
+            throw LCPError.licenseContainer(.openFailed(error))
         }
 
         do {
@@ -59,8 +67,8 @@ class ZIPLicenseContainer: LicenseContainer {
 
             // Stores the License into the ZIP file
             let data = license.jsonData
-            try archive.addEntry(with: pathInZIP, type: .file, uncompressedSize: UInt32(data.count), provider: { position, size -> Data in
-                data[position ..< size]
+            try archive.addEntry(with: pathInZIP, type: .file, uncompressedSize: Int64(data.count), provider: { position, size -> Data in
+                data[position ..< Int64(size)]
             })
         } catch {
             throw LCPError.licenseContainer(.writeFailed(path: pathInZIP))

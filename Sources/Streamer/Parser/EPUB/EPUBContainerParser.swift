@@ -5,12 +5,12 @@
 //
 
 import Foundation
-import Fuzi
+import ReadiumFuzi
 import ReadiumShared
 
 /// A parser for the META-INF/container.xml file.
 final class EPUBContainerParser: Loggable {
-    private let document: Fuzi.XMLDocument
+    private let document: ReadiumFuzi.XMLDocument
 
     init(data: Data) throws {
         document = try XMLDocument(data: data)

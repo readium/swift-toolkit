@@ -12,11 +12,8 @@ targets:
     deploymentTarget: "13.0"
     sources: 
       - path: ../../Sources/Shared
-        excludes:
-          - Toolkit/ZIP/ZIPFoundation.swift
     dependencies:
-      - framework: ../../Carthage/Build/Fuzi.xcframework
-      - framework: ../../Carthage/Build/Minizip.xcframework
+      - framework: ../../Carthage/Build/ReadiumFuzi.xcframework
       - framework: ../../Carthage/Build/SwiftSoup.xcframework
       - target: ReadiumInternal
       - sdk: CoreServices.framework
@@ -36,8 +33,7 @@ targets:
         type: folder
     dependencies:
       - framework: ../../Carthage/Build/CryptoSwift.xcframework
-      - framework: ../../Carthage/Build/Fuzi.xcframework
-      - framework: ../../Carthage/Build/Minizip.xcframework
+      - framework: ../../Carthage/Build/ReadiumFuzi.xcframework
       - target: ReadiumShared
       - target: ReadiumInternal
     settings:
@@ -57,8 +53,7 @@ targets:
         type: folder
     dependencies:
       - framework: ../../Carthage/Build/DifferenceKit.xcframework
-      - framework: ../../Carthage/Build/Fuzi.xcframework
-      - framework: ../../Carthage/Build/Minizip.xcframework
+      - framework: ../../Carthage/Build/ReadiumFuzi.xcframework
       - framework: ../../Carthage/Build/SwiftSoup.xcframework
       - target: ReadiumShared
       - target: ReadiumInternal
@@ -73,8 +68,7 @@ targets:
     sources: 
       - path: ../../Sources/OPDS
     dependencies:
-      - framework: ../../Carthage/Build/Fuzi.xcframework
-      - framework: ../../Carthage/Build/Minizip.xcframework
+      - framework: ../../Carthage/Build/ReadiumFuzi.xcframework
       - target: ReadiumShared
       - target: ReadiumInternal
     settings:
@@ -89,9 +83,8 @@ targets:
       - path: ../../Sources/LCP
     dependencies:
       - framework: ../../Carthage/Build/CryptoSwift.xcframework
-      - framework: ../../Carthage/Build/Fuzi.xcframework
-      - framework: ../../Carthage/Build/Minizip.xcframework
-      - framework: ../../Carthage/Build/ZIPFoundation.xcframework
+      - framework: ../../Carthage/Build/ReadiumFuzi.xcframework
+      - framework: ../../Carthage/Build/ReadiumZIPFoundation.xcframework
       - target: ReadiumShared
       - target: ReadiumInternal
     settings:

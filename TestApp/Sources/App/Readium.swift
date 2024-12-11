@@ -6,6 +6,7 @@
 
 import Foundation
 import ReadiumAdapterGCDWebServer
+import ReadiumAdapterZIPFoundation
 import ReadiumNavigator
 import ReadiumShared
 import ReadiumStreamer
@@ -23,7 +24,9 @@ final class Readium {
     lazy var formatSniffer: FormatSniffer = DefaultFormatSniffer()
 
     lazy var assetRetriever = AssetRetriever(
-        httpClient: httpClient
+        formatSniffer: DefaultFormatSniffer(),
+        resourceFactory: DefaultResourceFactory(httpClient: httpClient),
+        archiveOpener: ZIPFoundationArchiveOpener()
     )
 
     lazy var publicationOpener = PublicationOpener(

@@ -52,6 +52,8 @@ targets:
       - package: Readium
         product: ReadiumAdapterLCPSQLite
       - package: Readium
+        product: ReadiumAdapterZIPFoundation
+      - package: Readium
         product: ReadiumOPDS
       - package: Readium
         product: ReadiumLCP

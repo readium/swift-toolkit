@@ -135,7 +135,6 @@
 		5730E84475195005D1291672 /* Publication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF03272C07D6951ADC1311E /* Publication.swift */; };
 		57583D27AB12063C3D114A47 /* AudioParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9FFEB1FF4B5CD74EB35CD63 /* AudioParser.swift */; };
 		58E8C178E0748B7CBEA9D7AC /* CSSLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = C51A36BFDC79EB5377D69582 /* CSSLayout.swift */; };
-		5903F431F5558958EF7CDDA0 /* ZIPFoundation.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8D187A577EBFCFF738D1CDC7 /* ZIPFoundation.xcframework */; };
 		5912EC9BB073282862F325F2 /* DocumentTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A00FF0C84822A134A353BD4 /* DocumentTypes.swift */; };
 		594CE84C2B11169AA0B86615 /* HTMLResourceContentIterator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34AB954525AC159166C96A36 /* HTMLResourceContentIterator.swift */; };
 		5A9AEC4A9AE686ED74E9B8BF /* RWPMFormatSniffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFE4559CE100932572C843E5 /* RWPMFormatSniffer.swift */; };
@@ -293,6 +292,7 @@
 		BD520A603D8351461485877F /* ComicFormatSniffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC6271FA7F282364A4E68C4C /* ComicFormatSniffer.swift */; };
 		BE754F8C0536C8B7D28A294C /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5507BD4012032A7567175B69 /* Localizable.strings */; };
 		BF0CC6F4EE0F18B52D2D8693 /* Properties+Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E175BF1A1F97687B4119BB1 /* Properties+Encryption.swift */; };
+		C0A492BDDCB4A472F408B3B4 /* ReadiumZIPFoundation.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 69E17C4870C64264819EB227 /* ReadiumZIPFoundation.xcframework */; };
 		C122D3F719E77AEFA36E3034 /* RPFFormatSniffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACA9031C70DAB05CE0DD463 /* RPFFormatSniffer.swift */; };
 		C1A94B2A9C446CB03650DC47 /* NCXParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4363E8A92B1EA9AF2561DCE9 /* NCXParser.swift */; };
 		C1CD3DA1A9EF154667E5B50B /* WebServerResourceResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D008F7BB187AE82CBB115D0F /* WebServerResourceResponse.swift */; };
@@ -638,6 +638,7 @@
 		68FF131876FA3A63025F2662 /* Language.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Language.swift; sourceTree = "<group>"; };
 		691C96D23D42A0C6AC03B1AE /* FileAsset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileAsset.swift; sourceTree = "<group>"; };
 		69212974E62EF509BC1F0C7A /* UnknownAbsoluteURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnknownAbsoluteURL.swift; sourceTree = "<group>"; };
+		69E17C4870C64264819EB227 /* ReadiumZIPFoundation.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = ReadiumZIPFoundation.xcframework; path = ../../Carthage/Build/ReadiumZIPFoundation.xcframework; sourceTree = "<group>"; };
 		6BC71BAFF7A20D7903E6EE4D /* Properties+EPUB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Properties+EPUB.swift"; sourceTree = "<group>"; };
 		6D80848AADD20D4384D9AF59 /* HTMLFontFamilyDeclaration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLFontFamilyDeclaration.swift; sourceTree = "<group>"; };
 		6FA3AA272772FCF7D6268A74 /* FileURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileURL.swift; sourceTree = "<group>"; };
@@ -681,7 +682,6 @@
 		8B6A5B12925813FB40C41034 /* Presentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation.swift; sourceTree = "<group>"; };
 		8B72B76AB39E09E4A2E465AF /* PDFFormatSniffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFFormatSniffer.swift; sourceTree = "<group>"; };
 		8BF64D7C05A790D9CA5DD442 /* Types.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Types.swift; sourceTree = "<group>"; };
-		8D187A577EBFCFF738D1CDC7 /* ZIPFoundation.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = ZIPFoundation.xcframework; path = ../../Carthage/Build/ZIPFoundation.xcframework; sourceTree = "<group>"; };
 		8DA31089FCAD8DFB9AC46E4E /* Tokenizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tokenizer.swift; sourceTree = "<group>"; };
 		8EA0008AF1B9B97962824D85 /* FallbackContentProtection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FallbackContentProtection.swift; sourceTree = "<group>"; };
 		91F34B9B08BC6FB84CE54A26 /* LCPProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPProgress.swift; sourceTree = "<group>"; };
@@ -878,7 +878,7 @@
 				26CC9CB6CA4D81EB60AE860C /* CryptoSwift.xcframework in Frameworks */,
 				DAA4EA6A44E288F015A638D0 /* Fuzi.xcframework in Frameworks */,
 				90769CA2ABCBD1F7203697DC /* Minizip.xcframework in Frameworks */,
-				5903F431F5558958EF7CDDA0 /* ZIPFoundation.xcframework in Frameworks */,
+				C0A492BDDCB4A472F408B3B4 /* ReadiumZIPFoundation.xcframework in Frameworks */,
 				13534618D5095F49627C4409 /* ReadiumShared.framework in Frameworks */,
 				C3F4CBE80D741D4158CA8407 /* ReadiumInternal.framework in Frameworks */,
 			);
@@ -1752,9 +1752,9 @@
 				B421601FB56132514CCD9699 /* Fuzi.xcframework */,
 				CFFEBDFE931745C07DACD4A3 /* Minizip.xcframework */,
 				6536C07F5A50F7F25FDBF69C /* ReadiumGCDWebServer.xcframework */,
+				69E17C4870C64264819EB227 /* ReadiumZIPFoundation.xcframework */,
 				F07214E263C6589987A561F9 /* SQLite.xcframework */,
 				BE09289EB0FEA5FEC8506B1F /* SwiftSoup.xcframework */,
-				8D187A577EBFCFF738D1CDC7 /* ZIPFoundation.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";

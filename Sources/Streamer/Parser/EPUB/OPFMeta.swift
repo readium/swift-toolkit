@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import Fuzi
+import ReadiumFuzi
 import ReadiumShared
 
 /// Package vocabularies used for `property`, `properties`, `scheme` and `rel`.
@@ -96,7 +96,7 @@ enum OPFVocabulary: String {
     /// > Reserved prefixes should not be overridden in the prefix attribute, but Reading Systems
     /// > must use such local overrides when encountered.
     /// http://www.idpf.org/epub/301/spec/epub-publications.html#sec-metadata-reserved-vocabs
-    static func prefixes(in document: Fuzi.XMLDocument) -> [String: String] {
+    static func prefixes(in document: ReadiumFuzi.XMLDocument) -> [String: String] {
         document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
         guard let prefixAttribute = document.firstChild(xpath: "/opf:package")?.attr("prefix") else {
             return [:]
@@ -128,7 +128,7 @@ struct OPFMeta {
     let id: String?
     /// ID of the metadata that is refined by this one, if any.
     let refines: String?
-    let element: Fuzi.XMLElement
+    let element: ReadiumFuzi.XMLElement
 }
 
 /// Represents a `link` tag in an OPF document.
@@ -139,15 +139,15 @@ struct OPFLink {
     let href: String
     /// ID of the metadata that is refined by this one, if any.
     let refines: String?
-    let element: Fuzi.XMLElement
+    let element: ReadiumFuzi.XMLElement
 }
 
 struct OPFMetaList {
-    private let document: Fuzi.XMLDocument
+    private let document: ReadiumFuzi.XMLDocument
     private let metas: [OPFMeta]
     private let links: [OPFLink]
 
-    init(document: Fuzi.XMLDocument) {
+    init(document: ReadiumFuzi.XMLDocument) {
         self.document = document
         let prefixes = OPFVocabulary.prefixes(in: document)
         document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")

@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import Fuzi
+import ReadiumFuzi
 import ReadiumShared
 
 /// The navigation document if documented here at Navigation
@@ -31,9 +31,9 @@ final class NavigationDocumentParser {
         self.url = url
     }
 
-    private lazy var document: Fuzi.XMLDocument? = {
+    private lazy var document: ReadiumFuzi.XMLDocument? = {
         // Warning: Somehow if we use HTMLDocument instead of XMLDocument, then the `epub` prefix doesn't work.
-        let document = try? Fuzi.XMLDocument(data: data)
+        let document = try? ReadiumFuzi.XMLDocument(data: data)
         document?.definePrefix("html", forNamespace: "http://www.w3.org/1999/xhtml")
         document?.definePrefix("epub", forNamespace: "http://www.idpf.org/2007/ops")
         return document
@@ -52,13 +52,13 @@ final class NavigationDocumentParser {
     }
 
     /// Parses recursively an <ol> as a list of `Link`.
-    private func links(in element: Fuzi.XMLElement) -> [Link] {
+    private func links(in element: ReadiumFuzi.XMLElement) -> [Link] {
         element.xpath("html:ol[1]/html:li")
             .compactMap { self.link(for: $0) }
     }
 
     /// Parses a <li> element as a `Link`.
-    private func link(for li: Fuzi.XMLElement) -> Link? {
+    private func link(for li: ReadiumFuzi.XMLElement) -> Link? {
         guard let label = li.firstChild(xpath: "html:a|html:span") else {
             return nil
         }

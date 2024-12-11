@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import Fuzi
+import ReadiumFuzi
 import ReadiumShared
 
 /// From IDPF a11y-guidelines content/nav/toc.html :
@@ -29,7 +29,7 @@ final class NCXParser {
         self.url = url
     }
 
-    private lazy var document: Fuzi.XMLDocument? = {
+    private lazy var document: ReadiumFuzi.XMLDocument? = {
         let document = try? XMLDocument(data: data)
         document?.definePrefix("ncx", forNamespace: "http://www.daisy.org/z3986/2005/ncx/")
         return document
@@ -55,13 +55,13 @@ final class NCXParser {
     }
 
     /// Parses recursively a list of nodes as a list of `Link`.
-    private func links(in element: Fuzi.XMLElement, nodeTagName: String) -> [Link] {
+    private func links(in element: ReadiumFuzi.XMLElement, nodeTagName: String) -> [Link] {
         element.xpath("ncx:\(nodeTagName)")
             .compactMap { self.link(for: $0, nodeTagName: nodeTagName) }
     }
 
     /// Parses a node element as a `Link`.
-    private func link(for element: Fuzi.XMLElement, nodeTagName: String) -> Link? {
+    private func link(for element: ReadiumFuzi.XMLElement, nodeTagName: String) -> Link? {
         NavigationDocumentParser.makeLink(
             title: element.firstChild(xpath: "ncx:navLabel/ncx:text")?.stringValue,
             href: element.firstChild(xpath: "ncx:content")?.attr("src").flatMap(RelativeURL.init(epubHREF:)),

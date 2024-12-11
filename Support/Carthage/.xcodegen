@@ -145,7 +145,7 @@
           "framework" : "..\/..\/Carthage\/Build\/Minizip.xcframework"
         },
         {
-          "framework" : "..\/..\/Carthage\/Build\/ZIPFoundation.xcframework"
+          "framework" : "..\/..\/Carthage\/Build\/ReadiumZIPFoundation.xcframework"
         },
         {
           "target" : "ReadiumShared"
@@ -263,9 +263,6 @@
       },
       "sources" : [
         {
-          "excludes" : [
-            "Toolkit\/ZIP\/ZIPFoundation.swift"
-          ],
           "path" : "..\/..\/Sources\/Shared"
         }
       ],
@@ -13979,7 +13976,6 @@
 ../../Sources/Shared/Toolkit/ZIP
 ../../Sources/Shared/Toolkit/ZIP/Minizip.swift
 ../../Sources/Shared/Toolkit/ZIP/ZIPArchiveOpener.swift
-../../Sources/Shared/Toolkit/ZIP/ZIPFoundation.swift
 ../../Sources/Streamer
 ../../Sources/Streamer/Assets
 ../../Sources/Streamer/Assets/fonts

@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import Fuzi
+import ReadiumFuzi
 import ReadiumShared
 @testable import ReadiumStreamer
 import XCTest

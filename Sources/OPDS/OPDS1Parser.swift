@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import Fuzi
+import ReadiumFuzi
 import ReadiumShared
 
 public enum OPDS1ParserError: Error {
@@ -85,7 +85,7 @@ public class OPDS1Parser: Loggable {
     /// Feed can only be v1 (XML).
     /// - parameter document: The XMLDocument data
     /// - Returns: The resulting Feed
-    public static func parse(document: Fuzi.XMLDocument) throws -> Feed {
+    public static func parse(document: ReadiumFuzi.XMLDocument) throws -> Feed {
         document.definePrefix("thr", forNamespace: "http://purl.org/syndication/thread/1.0")
         document.definePrefix("dcterms", forNamespace: "http://purl.org/dc/terms/")
         document.definePrefix("opds", forNamespace: "http://opds-spec.org/2010/catalog")
@@ -218,7 +218,7 @@ public class OPDS1Parser: Loggable {
     /// Publication can only be v1 (XML).
     /// - parameter document: The XMLDocument data
     /// - Returns: The resulting Publication
-    public static func parseEntry(document: Fuzi.XMLDocument) throws -> Publication? {
+    public static func parseEntry(document: ReadiumFuzi.XMLDocument) throws -> Publication? {
         guard let root = document.root else {
             throw OPDS1ParserError.rootNotFound
         }
@@ -254,8 +254,8 @@ public class OPDS1Parser: Loggable {
             }
             // The OpenSearch document may contain multiple Urls, and we need to find the closest matching one.
             // We match by mimetype and profile; if that fails, by mimetype; and if that fails, the first url is returned
-            var typeAndProfileMatch: Fuzi.XMLElement? = nil
-            var typeMatch: Fuzi.XMLElement? = nil
+            var typeAndProfileMatch: ReadiumFuzi.XMLElement? = nil
+            var typeMatch: ReadiumFuzi.XMLElement? = nil
             if let selfMimeType = feed.links.firstWithRel(.self)?.mediaType {
                 let selfMimeParams = parseMimeType(mimeTypeString: selfMimeType.string)
                 for url in urls {
@@ -297,7 +297,7 @@ public class OPDS1Parser: Loggable {
         return MimeTypeParameters(type: type, parameters: params)
     }
 
-    static func parseEntry(entry: Fuzi.XMLElement) -> Publication? {
+    static func parseEntry(entry: ReadiumFuzi.XMLElement) -> Publication? {
         // Shortcuts to get tag(s)' string value.
         func tag(_ name: String) -> String? {
             entry.firstChild(tag: name)?.stringValue
@@ -456,7 +456,7 @@ public class OPDS1Parser: Loggable {
         }
     }
 
-    static func parseIndirectAcquisition(children: [Fuzi.XMLElement]) -> [OPDSAcquisition] {
+    static func parseIndirectAcquisition(children: [ReadiumFuzi.XMLElement]) -> [OPDSAcquisition] {
         children.compactMap { child in
             guard let type = child.attributes["type"] else {
                 return nil
@@ -470,7 +470,7 @@ public class OPDS1Parser: Loggable {
         }
     }
 
-    static func parsePrice(link: Fuzi.XMLElement) -> OPDSPrice? {
+    static func parsePrice(link: ReadiumFuzi.XMLElement) -> OPDSPrice? {
         guard let price = link.firstChild(tag: "price")?.stringValue,
               let value = Double(price),
               let currency = link.firstChild(tag: "price")?.attr("currencycode")

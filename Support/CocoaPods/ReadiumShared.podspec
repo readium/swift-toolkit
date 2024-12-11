@@ -7,7 +7,6 @@ Pod::Spec.new do |s|
   s.homepage     = "http://readium.github.io"
   s.author       = { "Readium" => "contact@readium.org" }
   s.source       = { :git => 'https://github.com/readium/swift-toolkit.git', :branch => "develop" }
-  s.exclude_files = ["Sources/Shared/Toolkit/ZIP/ZIPFoundation.swift"]
   s.requires_arc = true
   s.source_files  = "Sources/Shared/**/*.{m,h,swift}"
   s.platform     = :ios
@@ -16,9 +15,8 @@ Pod::Spec.new do |s|
   s.libraries =  "xml2"
   s.xcconfig = { 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2' }
   
-  s.dependency 'Fuzi', '~> 3.1.0'
-  s.dependency 'Minizip', '~> 1.0.0'
   s.dependency 'SwiftSoup', '~> 2.7.0'
+  s.dependency 'ReadiumFuzi', '~> 4.0.0'
   s.dependency 'ReadiumInternal'
 
 end
