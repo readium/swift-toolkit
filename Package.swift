@@ -21,17 +21,15 @@ let package = Package(
         // Adapters to third-party dependencies.
         .library(name: "ReadiumAdapterGCDWebServer", targets: ["ReadiumAdapterGCDWebServer"]),
         .library(name: "ReadiumAdapterLCPSQLite", targets: ["ReadiumAdapterLCPSQLite"]),
-        .library(name: "ReadiumAdapterZIPFoundation", targets: ["ReadiumAdapterZIPFoundation"]),
     ],
     dependencies: [
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.8.0"),
         .package(url: "https://github.com/ra1028/DifferenceKit.git", from: "1.3.0"),
         .package(url: "https://github.com/readium/Fuzi.git", from: "4.0.0"),
         .package(url: "https://github.com/readium/GCDWebServer.git", from: "4.0.0"),
+        .package(url: "https://github.com/readium/ZIPFoundation.git", from: "1.0.0"),
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.7.0"),
         .package(url: "https://github.com/stephencelis/SQLite.swift.git", from: "0.15.0"),
-//        .package(url: "https://github.com/readium/ZIPFoundation.git", branch: "main"),
-        .package(path: "../ZIPFoundation"),
     ],
     targets: [
         .target(
@@ -40,6 +38,7 @@ let package = Package(
                 "ReadiumInternal",
                 "SwiftSoup",
                 .product(name: "ReadiumFuzi", package: "Fuzi"),
+                .product(name: "ReadiumZIPFoundation", package: "ZIPFoundation"),
             ],
             path: "Sources/Shared",
             linkerSettings: [
@@ -156,23 +155,6 @@ let package = Package(
                 "ReadiumLCP",
             ],
             path: "Sources/Adapters/LCPSQLite"
-        ),
-
-        .target(
-            name: "ReadiumAdapterZIPFoundation",
-            dependencies: [
-                "ReadiumShared",
-                .product(name: "ReadiumZIPFoundation", package: "ZIPFoundation"),
-            ],
-            path: "Sources/Adapters/ZIPFoundation"
-        ),
-        .testTarget(
-            name: "ReadiumAdapterZIPFoundationTests",
-            dependencies: ["ReadiumAdapterZIPFoundation"],
-            path: "Tests/Adapters/ZIPFoundationTests",
-            resources: [
-                .copy("Fixtures"),
-            ]
         ),
 
         .target(

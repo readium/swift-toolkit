@@ -46,8 +46,6 @@ targets:
       - package: Readium
         product: ReadiumAdapterGCDWebServer
       - package: Readium
-        product: ReadiumAdapterZIPFoundation
-      - package: Readium
         product: ReadiumOPDS
       - package: GRDB
       - package: Kingfisher

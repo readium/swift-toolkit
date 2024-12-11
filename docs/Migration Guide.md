@@ -2,6 +2,18 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
+## Unreleased
+
+### CocoaPods dependencies
+
+Some CocoaPods dependencies are now part of the official trunk and handled automatically. You must remove the custom declarations from your `Podfile`:
+
+```diff
+-pod 'Fuzi', podspec: 'https://raw.githubusercontent.com/readium/Fuzi/refs/heads/master/Fuzi.podspec'
+-pod 'ReadiumGCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/4.0.0/GCDWebServer.podspec'
+```
+
+
 ## 3.0.0-alpha.2
 
 ### Error management

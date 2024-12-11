@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumShared
 import ReadiumZIPFoundation
 
 /// An ``ArchiveOpener`` able to open ZIP archives using ZIPFoundation.
@@ -73,7 +72,7 @@ final class ZIPFoundationContainer: Container, Loggable {
         }
 
         do {
-            let archive = try Archive(url: file.url, accessMode: .read, pathEncoding: nil)
+            let archive = try ReadiumZIPFoundation.Archive(url: file.url, accessMode: .read)
             var entries = [RelativeURL: ZIPFoundationEntryMetadata]()
 
             for entry in archive {
@@ -178,11 +177,11 @@ private actor ZIPFoundationResource: Resource, Loggable {
         }
     }
     
-    private var _archive: ReadResult<Archive>?
-    private func archive() async -> ReadResult<Archive> {
+    private var _archive: ReadResult<ReadiumZIPFoundation.Archive>?
+    private func archive() async -> ReadResult<ReadiumZIPFoundation.Archive> {
         if _archive == nil {
             do {
-                _archive = .success(try Archive(url: file.url, accessMode: .read, pathEncoding: nil))
+                _archive = .success(try ReadiumZIPFoundation.Archive(url: file.url, accessMode: .read, pathEncoding: nil))
             } catch {
                 _archive = .failure(.decoding(error))
             }

@@ -9,34 +9,37 @@ import XCTest
 
 private let fixtures = Fixtures(path: "Archive")
 
-struct ZIPTester {
-    let make: (FileURL) async throws -> Container
+class ZIPFoundationTests: XCTestCase {
 
+    private func container(for filename: String) async throws -> Container {
+        try await ZIPFoundationContainer.make(file: fixtures.url(for: filename)).get()
+    }
+    
     func testOpenSuccess() async throws {
-        _ = try await make(fixtures.url(for: "test.zip"))
+        _ = try await container(for: "test.zip")
     }
 
     func testOpenNotFound() async {
         do {
-            _ = try await make(fixtures.url(for: "unknown.zip"))
+            _ = try await container(for: "unknown.zip")
             XCTFail("Expected an error")
         } catch {}
     }
 
     func testOpenNotAZIP() async {
         do {
-            _ = try await make(fixtures.url(for: "not-a.zip"))
+            _ = try await container(for: "not-a.zip")
             XCTFail("Expected an error")
         } catch {}
     }
 
     func testGetNonExistingEntry() async throws {
-        let container = try await make(fixtures.url(for: "test.zip"))
+        let container = try await container(for: "test.zip")
         XCTAssertNil(container[AnyURL(path: "unknown")!])
     }
 
     func testEntries() async throws {
-        let container = try await make(fixtures.url(for: "test.zip"))
+        let container = try await container(for: "test.zip")
 
         XCTAssertEqual(
             container.entries,
@@ -53,7 +56,7 @@ struct ZIPTester {
     }
 
     func testResources() async throws {
-        let container = try await make(fixtures.url(for: "test.zip"))
+        let container = try await container(for: "test.zip")
 
         try await AssertEntry(path: ".hidden", in: container, isCompressed: false, length: 0, originalLength: 0)
         try await AssertEntry(path: "A folder/Sub.folder%/file.txt", in: container, isCompressed: false, length: 20, originalLength: 20)
@@ -65,7 +68,7 @@ struct ZIPTester {
     }
 
     func testReadCompressedEntry() async throws {
-        let container = try await make(fixtures.url(for: "test.zip"))
+        let container = try await container(for: "test.zip")
         let entry = try XCTUnwrap(container[AnyURL(path: "A folder/Sub.folder%/file-compressed.txt")!])
         let data = try await entry.read().get()
         let string = String(data: data, encoding: .utf8)!
@@ -74,7 +77,7 @@ struct ZIPTester {
     }
 
     func testReadUncompressedEntry() async throws {
-        let container = try await make(fixtures.url(for: "test.zip"))
+        let container = try await container(for: "test.zip")
         let entry = try XCTUnwrap(container[AnyURL(path: "A folder/Sub.folder%/file.txt")!])
         let data = try await entry.read().get()
         XCTAssertNotNil(data)
@@ -86,7 +89,7 @@ struct ZIPTester {
 
     func testReadUncompressedRange() async throws {
         // FIXME: It looks like unzseek64 starts from the beginning of the file header, instead of the content. Reading a first byte solves this but then Minizip crashes randomly... Note that this only fails in the test case. I didn't see actual issues in LCPDF or videos embedded in EPUBs.
-        let container = try await make(fixtures.url(for: "test.zip"))
+        let container = try await container(for: "test.zip")
         let entry = try XCTUnwrap(container[AnyURL(path: "A folder/Sub.folder%/file.txt")!])
         let data = try await entry.read(range: 14 ..< 20).get()
         XCTAssertEqual(
@@ -96,13 +99,37 @@ struct ZIPTester {
     }
 
     func testReadCompressedRange() async throws {
-        let container = try await make(fixtures.url(for: "test.zip"))
+        let container = try await container(for: "test.zip")
         let entry = try XCTUnwrap(container[AnyURL(path: "A folder/Sub.folder%/file-compressed.txt")!])
         let data = try await entry.read(range: 14 ..< 20).get()
         XCTAssertEqual(
             String(data: data, encoding: .utf8),
             " ZIP.\n"
         )
+    }
+    
+    func testRandomCompressedRead() async throws {
+        for _ in 0..<100 {
+            let container = try await container(for: "test.zip")
+            let entry = try XCTUnwrap(container[AnyURL(path: "A folder/wasteland-cover.jpg")!])
+            let length: UInt64 = 103_477
+            let lower = UInt64.random(in: 0 ..< length - 100)
+            let upper = UInt64.random(in: lower ..< length)
+            let range = lower ..< upper
+            _ = try await entry.read(range: range).get()
+        }
+    }
+    
+    func testRandomStoredRead() async throws {
+        for _ in 0..<100 {
+            let container = try await container(for: "test.zip")
+            let entry = try XCTUnwrap(container[AnyURL(path: "uncompressed.jpg")!])
+            let length: UInt64 = 279_551
+            let lower = UInt64.random(in: 0 ..< length - 100)
+            let upper = UInt64.random(in: lower ..< length)
+            let range = lower ..< upper
+            _ = try await entry.read(range: range).get()
+        }
     }
 
     private func AssertEntry(
@@ -126,69 +153,5 @@ struct ZIPTester {
             )
         )
         XCTAssertEqual(properties.filename, RelativeURL(path: path)!.lastPathSegment)
-    }
-}
-
-class MinizipTests: XCTestCase {
-    lazy var tester = ZIPTester {
-        try await MinizipContainer.make(file: $0).get()
-    }
-
-    func testOpenSuccess() async throws { try await tester.testOpenSuccess() }
-    func testOpenNotFound() async { await tester.testOpenNotFound() }
-    func testOpenNotAZIP() async { await tester.testOpenNotAZIP() }
-    func testGetNonExistingEntry() async throws { try await tester.testGetNonExistingEntry() }
-    func testEntries() async throws { try await tester.testEntries() }
-    func testResources() async throws { try await tester.testResources() }
-    func testReadCompressedEntry() async throws { try await tester.testReadCompressedEntry() }
-    func testReadUncompressedEntry() async throws { try await tester.testReadUncompressedEntry() }
-    func testReadCompressedRange() async throws { try await tester.testReadCompressedRange() }
-    func testReadUncompressedRange() async throws { try await tester.testReadUncompressedRange() }
-}
-
-// class ZIPFoundationTests: XCTestCase {
-//
-//    lazy var tester = ZIPTester {
-//        url in try ZIPFoundation.make(url: url).get()
-//    }
-//
-// func testOpenSuccess() async throws { try await tester.testOpenSuccess() }
-// func testOpenNotFound() async { await tester.testOpenNotFound() }
-// func testOpenNotAZIP() async { await tester.testOpenNotAZIP() }
-// func testGetNonExistingEntry() async throws { try await tester.testGetNonExistingEntry() }
-// func testEntries() async throws { try await tester.testEntries() }
-// func testResources() async throws { try await tester.testResources() }
-// func testReadCompressedEntry() async throws { try await tester.testReadCompressedEntry() }
-// func testReadUncompressedEntry() async throws { try await tester.testReadUncompressedEntry() }
-// func testReadCompressedRange() async throws { try await tester.testReadCompressedRange() }
-// func testReadUncompressedRange() async throws { try await tester.testReadUncompressedRange() }
-//
-// }
-
-class ZIPBenchmarkingTests: XCTestCase {
-    func testCompareRange() async throws {
-        let containers: [Container] = [
-            try! await MinizipContainer.make(file: fixtures.url(for: "test.zip")).get(),
-//            try! ZIPFoundationArchive(url: fixtures.url(for: "test.zip"))
-        ]
-        let path = AnyURL(path: "A folder/wasteland-cover.jpg")!
-        let length: UInt64 = 103_477
-
-        let entries = try containers
-            .map { try XCTUnwrap($0[path]) }
-
-        measure {
-            let exp = expectation(description: "Finished")
-            Task {
-                let lower = UInt64.random(in: 0 ..< length - 100)
-                let upper = UInt64.random(in: lower ..< length)
-                let range = lower ..< upper
-                let datas = await entries.asyncMap { await $0.read(range: range).getOrNil() }
-                let data = datas[0]
-                XCTAssertTrue(datas.allSatisfy { $0 == data })
-                exp.fulfill()
-            }
-            wait(for: [exp], timeout: 200.0)
-        }
     }
 }

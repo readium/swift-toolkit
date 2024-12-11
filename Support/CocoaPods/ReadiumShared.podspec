@@ -17,6 +17,7 @@ Pod::Spec.new do |s|
   
   s.dependency 'SwiftSoup', '~> 2.7.0'
   s.dependency 'ReadiumFuzi', '~> 4.0.0'
+  s.dependency 'ReadiumZIPFoundation', '~> 1.0.0'
   s.dependency 'ReadiumInternal'
 
 end

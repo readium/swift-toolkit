@@ -24,9 +24,7 @@ final class Readium {
     lazy var formatSniffer: FormatSniffer = DefaultFormatSniffer()
 
     lazy var assetRetriever = AssetRetriever(
-        formatSniffer: DefaultFormatSniffer(),
-        resourceFactory: DefaultResourceFactory(httpClient: httpClient),
-        archiveOpener: ZIPFoundationArchiveOpener()
+        httpClient: httpClient
     )
 
     lazy var publicationOpener = PublicationOpener(
