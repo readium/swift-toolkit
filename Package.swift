@@ -10,7 +10,7 @@ import PackageDescription
 let package = Package(
     name: "Readium",
     defaultLocalization: "en",
-    platforms: [.iOS(.v13)],
+    platforms: [.iOS("13.4")],
     products: [
         .library(name: "ReadiumShared", targets: ["ReadiumShared"]),
         .library(name: "ReadiumStreamer", targets: ["ReadiumStreamer"]),

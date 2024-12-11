@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
+* The Readium Swift toolkit now requires a minimum of iOS 13.4.
+
 ### Changed
 
 #### Shared
