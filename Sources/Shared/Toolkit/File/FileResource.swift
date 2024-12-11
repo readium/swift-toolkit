@@ -53,16 +53,24 @@ public actor FileResource: Resource, Loggable {
     }
 
     public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
-        await handle().map { handle in
-            if let range = range {
-                handle.seek(toFileOffset: UInt64(max(0, range.lowerBound)))
-                consume(handle.readData(ofLength: Int(range.upperBound - range.lowerBound)))
-            } else {
-                handle.seek(toFileOffset: 0)
-                consume(handle.readDataToEndOfFile())
+        await handle().flatMap { handle in
+            do {
+                if let range = range {
+                    try handle.seek(toOffset: UInt64(max(0, range.lowerBound)))
+                    if let data = try handle.read(upToCount: Int(range.upperBound - range.lowerBound)) {
+                        consume(data)
+                    }
+                } else {
+                    try handle.seek(toOffset: 0)
+                    if let data = try handle.readToEnd() {
+                        consume(data)
+                    }
+                }
+            } catch {
+                return .failure(.access(.fileSystem(.io(error))))
             }
 
-            return ()
+            return .success(())
         }
     }
 

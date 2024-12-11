@@ -253,27 +253,31 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
 
         func start(
             request: HTTPRequest,
-            task: URLSessionDataTask,
+            task sessionTask: URLSessionDataTask,
             receiveResponse: @escaping HTTPTask.ReceiveResponse,
             receiveChallenge: @escaping HTTPTask.ReceiveChallenge,
             consume: @escaping HTTPTask.Consume
         ) async -> HTTPResult<HTTPResponse> {
             let task = HTTPTask(
                 request: request,
-                task: task,
+                task: sessionTask,
                 receiveResponse: receiveResponse,
                 receiveChallenge: receiveChallenge,
                 consume: consume
             )
             $tasks.write { $0.append(task) }
 
-            return await withTaskCancellationHandler {
+            let result = await withTaskCancellationHandler {
                 await withCheckedContinuation { continuation in
                     task.start(with: continuation)
                 }
             } onCancel: {
                 task.cancel()
             }
+
+            $tasks.write { $0.removeAll { $0.task == sessionTask } }
+
+            return result
         }
 
         private func findTask(for urlTask: URLSessionTask) -> HTTPTask? {
@@ -373,6 +377,10 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
             self.consume = consume
         }
 
+        deinit {
+            finish()
+        }
+
         func start(with continuation: Continuation) {
             log(.info, request)
             state = .start(continuation: continuation)
@@ -385,8 +393,8 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
 
         private func finish() {
             switch state {
-            case .initializing, .start:
-                preconditionFailure("finish() called in `start` or `initializing` state")
+            case let .start(continuation):
+                continuation.resume(returning: .failure(HTTPError(kind: .cancelled)))
 
             case let .stream(continuation, response, _):
                 continuation.resume(returning: .success(response))
@@ -396,7 +404,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                 log(.error, "\(request.method) \(request.url) failed with: \(error.localizedDescription)")
                 continuation.resume(returning: .failure(error))
 
-            case .finished:
+            case .initializing, .finished:
                 break
             }
 
