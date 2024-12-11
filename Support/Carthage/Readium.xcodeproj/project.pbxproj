@@ -155,6 +155,7 @@
 		66018235ED40B89D27EE9F33 /* Group.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FAAD26EE52713DB9F103610 /* Group.swift */; };
 		66A251DA78C53384E94F169F /* PublicationServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6D87AB6FB1B213E6269736B /* PublicationServer.swift */; };
 		6719F981514309A65D206A85 /* LCPAcquisition.swift in Sources */ = {isa = PBXBuildFile; fileRef = F622773881411FB8BE686B9F /* LCPAcquisition.swift */; };
+		6724EAA0D931CF252E5FAEDF /* ZIPFoundation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59624A8738EB3A791CEF8E4C /* ZIPFoundation.swift */; };
 		674BEEF110667C3051296E9B /* Double.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F3481F848A616A9A825A4BD /* Double.swift */; };
 		67F1C7C3D434D2AA542376E3 /* PublicationParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F609C27F073E40D662CFE093 /* PublicationParser.swift */; };
 		682DFC1AF2BD7CAE0862B331 /* CryptoSwift.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = E37F94C388A86CB8A34812A5 /* CryptoSwift.xcframework */; };
@@ -611,6 +612,7 @@
 		567C115FF0939F69AD83AE82 /* UserRights.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserRights.swift; sourceTree = "<group>"; };
 		56C489452239BF85F4D14E95 /* PublicationMediaLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationMediaLoader.swift; sourceTree = "<group>"; };
 		57338C29681D4872D425AB81 /* UInt64.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UInt64.swift; sourceTree = "<group>"; };
+		59624A8738EB3A791CEF8E4C /* ZIPFoundation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPFoundation.swift; sourceTree = "<group>"; };
 		5A85DB4931BA5D965042CC6F /* CompositePublicationParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompositePublicationParser.swift; sourceTree = "<group>"; };
 		5BC6AE42A31D77B548CB0BB4 /* Observable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Observable.swift; sourceTree = "<group>"; };
 		5E788FD34BE635B4B80C18A6 /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
@@ -1105,6 +1107,7 @@
 			isa = PBXGroup;
 			children = (
 				C51C74A5990A3BA93B3DC587 /* ZIPArchiveOpener.swift */,
+				59624A8738EB3A791CEF8E4C /* ZIPFoundation.swift */,
 			);
 			path = ZIP;
 			sourceTree = "<group>";
@@ -2664,6 +2667,7 @@
 				5591563FD08A956B80C37716 /* XMLFormatSniffer.swift in Sources */,
 				BBF5AAEEE90BD88D58191DA3 /* ZIPArchiveOpener.swift in Sources */,
 				B49522888052E9F41D0DD013 /* ZIPFormatSniffer.swift in Sources */,
+				6724EAA0D931CF252E5FAEDF /* ZIPFoundation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

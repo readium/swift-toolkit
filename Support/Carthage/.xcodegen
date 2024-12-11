@@ -13963,6 +13963,7 @@
 ../../Sources/Shared/Toolkit/XML/XML.swift
 ../../Sources/Shared/Toolkit/ZIP
 ../../Sources/Shared/Toolkit/ZIP/ZIPArchiveOpener.swift
+../../Sources/Shared/Toolkit/ZIP/ZIPFoundation.swift
 ../../Sources/Streamer
 ../../Sources/Streamer/Assets
 ../../Sources/Streamer/Assets/fonts

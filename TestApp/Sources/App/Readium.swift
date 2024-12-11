@@ -6,7 +6,6 @@
 
 import Foundation
 import ReadiumAdapterGCDWebServer
-import ReadiumAdapterZIPFoundation
 import ReadiumNavigator
 import ReadiumShared
 import ReadiumStreamer

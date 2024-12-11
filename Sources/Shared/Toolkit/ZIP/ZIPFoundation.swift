@@ -9,9 +9,8 @@ import ReadiumZIPFoundation
 
 /// An ``ArchiveOpener`` able to open ZIP archives using ZIPFoundation.
 public final class ZIPFoundationArchiveOpener: ArchiveOpener {
-    
     public init() {}
-    
+
     public func open(resource: any Resource, format: Format) async -> Result<ContainerAsset, ArchiveOpenError> {
         guard
             format.conformsTo(.zip),
@@ -152,14 +151,13 @@ private actor ZIPFoundationResource: Resource, Loggable {
     }
 
     func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
-        if range != nil {
-        }
+        if range != nil {}
 
         return await archive().flatMap { archive in
             guard let entry = archive[entryPath] else {
                 return .failure(.decoding("No entry found in the ZIP at \(entryPath)"))
             }
-            
+
             do {
                 if let range = range {
                     try archive.extractRange(range, of: entry) { data in
@@ -176,12 +174,12 @@ private actor ZIPFoundationResource: Resource, Loggable {
             }
         }
     }
-    
+
     private var _archive: ReadResult<ReadiumZIPFoundation.Archive>?
     private func archive() async -> ReadResult<ReadiumZIPFoundation.Archive> {
         if _archive == nil {
             do {
-                _archive = .success(try ReadiumZIPFoundation.Archive(url: file.url, accessMode: .read, pathEncoding: nil))
+                _archive = try .success(ReadiumZIPFoundation.Archive(url: file.url, accessMode: .read))
             } catch {
                 _archive = .failure(.decoding(error))
             }

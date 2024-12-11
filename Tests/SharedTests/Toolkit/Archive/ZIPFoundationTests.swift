@@ -10,11 +10,10 @@ import XCTest
 private let fixtures = Fixtures(path: "Archive")
 
 class ZIPFoundationTests: XCTestCase {
-
     private func container(for filename: String) async throws -> Container {
         try await ZIPFoundationContainer.make(file: fixtures.url(for: filename)).get()
     }
-    
+
     func testOpenSuccess() async throws {
         _ = try await container(for: "test.zip")
     }
@@ -107,9 +106,9 @@ class ZIPFoundationTests: XCTestCase {
             " ZIP.\n"
         )
     }
-    
+
     func testRandomCompressedRead() async throws {
-        for _ in 0..<100 {
+        for _ in 0 ..< 100 {
             let container = try await container(for: "test.zip")
             let entry = try XCTUnwrap(container[AnyURL(path: "A folder/wasteland-cover.jpg")!])
             let length: UInt64 = 103_477
@@ -119,9 +118,9 @@ class ZIPFoundationTests: XCTestCase {
             _ = try await entry.read(range: range).get()
         }
     }
-    
+
     func testRandomStoredRead() async throws {
-        for _ in 0..<100 {
+        for _ in 0 ..< 100 {
             let container = try await container(for: "test.zip")
             let entry = try XCTUnwrap(container[AnyURL(path: "uncompressed.jpg")!])
             let length: UInt64 = 279_551
