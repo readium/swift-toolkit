@@ -6,7 +6,7 @@
 
 import CoreServices
 import Foundation
-import Fuzi
+import ReadiumFuzi
 
 public extension MediaType {
     @available(*, unavailable, message: "Use an `AssetRetriever` to sniff a `Format` instead")

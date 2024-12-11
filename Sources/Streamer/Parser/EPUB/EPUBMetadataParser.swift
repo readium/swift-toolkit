@@ -5,16 +5,16 @@
 //
 
 import Foundation
-import Fuzi
+import ReadiumFuzi
 import ReadiumShared
 
 /// Reference: https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md
 final class EPUBMetadataParser: Loggable {
-    private let document: Fuzi.XMLDocument
-    private let displayOptions: Fuzi.XMLDocument?
+    private let document: ReadiumFuzi.XMLDocument
+    private let displayOptions: ReadiumFuzi.XMLDocument?
     private let metas: OPFMetaList
 
-    init(document: Fuzi.XMLDocument, displayOptions: Fuzi.XMLDocument?, metas: OPFMetaList) {
+    init(document: ReadiumFuzi.XMLDocument, displayOptions: ReadiumFuzi.XMLDocument?, metas: OPFMetaList) {
         self.document = document
         self.displayOptions = displayOptions
         self.metas = metas
@@ -25,7 +25,7 @@ final class EPUBMetadataParser: Loggable {
         document.definePrefix("rendition", forNamespace: "http://www.idpf.org/2013/rendition")
     }
 
-    private lazy var metadataElement: Fuzi.XMLElement? = document.firstChild(xpath: "/opf:package/opf:metadata")
+    private lazy var metadataElement: ReadiumFuzi.XMLElement? = document.firstChild(xpath: "/opf:package/opf:metadata")
 
     /// Parses the Metadata in the XML <metadata> element.
     func parse() throws -> Metadata {
@@ -73,7 +73,7 @@ final class EPUBMetadataParser: Loggable {
     ///   1. its xml:lang attribute
     ///   2. the package's xml:lang attribute
     ///   3. the primary language for the publication
-    private func language(for element: Fuzi.XMLElement) -> String? {
+    private func language(for element: ReadiumFuzi.XMLElement) -> String? {
         element.attr("lang") ?? packageLanguage ?? languages.first
     }
 
@@ -142,7 +142,7 @@ final class EPUBMetadataParser: Loggable {
 
     /// Finds all the `<dc:title> element matching the given `title-type`.
     /// The elements are then sorted by the `display-seq` refines, when available.
-    private func titleElements(ofType titleType: EPUBTitleType) -> [Fuzi.XMLElement] {
+    private func titleElements(ofType titleType: EPUBTitleType) -> [ReadiumFuzi.XMLElement] {
         // Finds the XML element corresponding to the specific title type
         // `<meta refines="#.." property="title-type" id="title-type">titleType</meta>`
         metas["title-type"]
@@ -173,7 +173,7 @@ final class EPUBMetadataParser: Loggable {
             }
     }()
 
-    private lazy var mainTitleElement: Fuzi.XMLElement? = titleElements(ofType: .main).first
+    private lazy var mainTitleElement: ReadiumFuzi.XMLElement? = titleElements(ofType: .main).first
         ?? metas["title", in: .dcterms].first?.element
 
     private lazy var mainTitle: LocalizedString? = localizedString(for: mainTitleElement)
@@ -432,7 +432,7 @@ final class EPUBMetadataParser: Loggable {
     ///
     /// - Parameter metadata: The XML metadata element.
     /// - Returns: The array of XML element representing the contributors.
-    private func findContributorElements() -> [Fuzi.XMLElement] {
+    private func findContributorElements() -> [ReadiumFuzi.XMLElement] {
         let contributors = metas["creator", in: .dcterms]
             + metas["publisher", in: .dcterms]
             + metas["contributor", in: .dcterms]
@@ -446,7 +446,7 @@ final class EPUBMetadataParser: Loggable {
     /// - Parameters:
     ///   - element: The XML element reprensenting the contributor.
     /// - Returns: The newly created Contributor instance.
-    private func createContributor(from element: Fuzi.XMLElement, roles: [String] = []) -> Contributor? {
+    private func createContributor(from element: ReadiumFuzi.XMLElement, roles: [String] = []) -> Contributor? {
         guard let name = localizedString(for: element) else {
             return nil
         }
@@ -531,7 +531,7 @@ final class EPUBMetadataParser: Loggable {
     ///
     /// - Parameters:
     ///   - element: The element to parse (can be a title or a contributor).
-    private func localizedString(for element: Fuzi.XMLElement?) -> LocalizedString? {
+    private func localizedString(for element: ReadiumFuzi.XMLElement?) -> LocalizedString? {
         guard let element = element else {
             return nil
         }
@@ -568,7 +568,7 @@ final class EPUBMetadataParser: Loggable {
     /// Returns the given `dc:` tag in the `metadata` element.
     ///
     /// This looks under `metadata/dc-metadata` as well, to be compatible with old EPUB 2 files.
-    private func dcElement(tag: String) -> Fuzi.XMLElement? {
+    private func dcElement(tag: String) -> ReadiumFuzi.XMLElement? {
         metadataElement?
             .firstChild(xpath: "(.|opf:dc-metadata)/dc:\(tag)")
     }

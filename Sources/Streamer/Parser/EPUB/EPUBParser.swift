@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import Fuzi
+import ReadiumFuzi
 import ReadiumShared
 
 /// Epub related constants.

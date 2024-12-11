@@ -131,7 +131,7 @@ public class HTMLResourceContentIterator: ContentIterator {
         }
 
         var elements = elements
-        elements.elements = await elements.elements.enumerated().asyncmap { index, element in
+        elements.elements = await elements.elements.enumerated().asyncMap { index, element in
             let progression = Double(index) / count
             return await element.copy(
                 progression: progression,

@@ -2,6 +2,24 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
+## Unreleased
+
+### ZIPFoundation replaces Minizip
+
+The default `ZIPArchiveOpener` is now using ZIPFoundation instead of Minizip, with improved performances when reading ranges of `stored` ZIP entries.
+
+If you use Carthage, remove `Minizip.xcframework` from your dependencies and add `ReadiumZIPFoundation.xcframework` instead. No changes are needed when using Swift Package Manager or CocoaPods.
+
+### CocoaPods dependencies
+
+Some CocoaPods dependencies are now part of the official trunk and handled automatically. You must remove the custom declarations from your `Podfile`:
+
+```diff
+-pod 'Fuzi', podspec: 'https://raw.githubusercontent.com/readium/Fuzi/refs/heads/master/Fuzi.podspec'
+-pod 'ReadiumGCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/GCDWebServer/4.0.0/GCDWebServer.podspec'
+```
+
+
 ## 3.0.0-alpha.2
 
 ### Error management

@@ -5,134 +5,185 @@
 //
 
 import Foundation
-import ZIPFoundation
+import ReadiumZIPFoundation
 
-/// A ZIP `Archive` using the ZIPFoundation library.
-///
-/// Note: At the moment, the Minizip version is used. Keeping this in case we migrate to
-/// ZIPFoundation.
-final class ZIPFoundationArchive: Archive, Loggable {
-    fileprivate let archive: ZIPFoundation.Archive
+/// An ``ArchiveOpener`` able to open ZIP archives using ZIPFoundation.
+public final class ZIPFoundationArchiveOpener: ArchiveOpener {
+    public init() {}
 
-    // Note: passwords are not supported with ZIPFoundation
-    required convenience init(file: URL, password: String?) throws {
-        try self.init(file: file, accessMode: .read)
-    }
-
-    fileprivate init(file: URL, accessMode: Archive.AccessMode) throws {
-        guard let archive = Archive(url: file, accessMode: accessMode) else {
-            throw ArchiveError.openFailed
-        }
-        self.archive = archive
-    }
-
-    lazy var entries: [ArchiveEntry] = archive.map(ArchiveEntry.init)
-
-    func entry(at path: String) -> ArchiveEntry? {
-        archive[path]
-            .filter { $0.type != .directory }
-            .map(ArchiveEntry.init)
-    }
-
-    func read(at path: String) -> Data? {
-        objc_sync_enter(archive)
-        defer { objc_sync_exit(archive) }
-
-        guard let entry = archive[path] else {
-            return nil
+    public func open(resource: any Resource, format: Format) async -> Result<ContainerAsset, ArchiveOpenError> {
+        guard
+            format.conformsTo(.zip),
+            let file = resource.sourceURL?.fileURL
+        else {
+            return .failure(.formatNotSupported(format))
         }
 
-        do {
-            var data = Data()
-            _ = try archive.extract(entry) { chunk in
-                data.append(chunk)
+        return await ZIPFoundationContainer.make(file: file)
+            .mapError {
+                switch $0 {
+                case .notAZIP:
+                    return .formatNotSupported(format)
+                case let .reading(error):
+                    return .reading(error)
+                }
             }
-            return data
+            .map { ContainerAsset(container: $0, format: format) }
+    }
+
+    public func sniffOpen(resource: any Resource) async -> Result<ContainerAsset, ArchiveSniffOpenError> {
+        guard let file = resource.sourceURL?.fileURL else {
+            return .failure(.formatNotRecognized)
+        }
+
+        return await ZIPFoundationContainer.make(file: file)
+            .mapError {
+                switch $0 {
+                case .notAZIP:
+                    return .formatNotRecognized
+                case let .reading(error):
+                    return .reading(error)
+                }
+            }
+            .map {
+                ContainerAsset(
+                    container: $0,
+                    format: Format(
+                        specifications: .zip,
+                        mediaType: .zip,
+                        fileExtension: "zip"
+                    )
+                )
+            }
+    }
+}
+
+/// A ZIP ``Container`` using the ZIPFoundation library.
+final class ZIPFoundationContainer: Container, Loggable {
+    enum MakeError: Error {
+        case notAZIP
+        case reading(ReadError)
+    }
+
+    static func make(file: FileURL) async -> Result<ZIPFoundationContainer, MakeError> {
+        guard await (try? file.exists()) ?? false else {
+            return .failure(.reading(.access(.fileSystem(.fileNotFound(nil)))))
+        }
+
+        do {
+            let archive = try ReadiumZIPFoundation.Archive(url: file.url, accessMode: .read)
+            var entries = [RelativeURL: ZIPFoundationEntryMetadata]()
+
+            for entry in archive {
+                guard
+                    entry.type == .file,
+                    let url = RelativeURL(path: entry.path(using: .utf8)),
+                    !url.path.isEmpty
+                else {
+                    continue
+                }
+                entries[url] = ZIPFoundationEntryMetadata(
+                    length: entry.uncompressedSize,
+                    compressedLength: entry.isCompressed ? entry.compressedSize : nil
+                )
+            }
+
+            return .success(Self(file: file, entries: entries))
+
         } catch {
-            log(.error, error)
-            return nil
+            return .failure(.reading(.decoding(error)))
         }
     }
 
-    func read(at path: String, range: Range<UInt64>) -> Data? {
-        objc_sync_enter(archive)
-        defer { objc_sync_exit(archive) }
+    private let file: FileURL
+    private let entriesMetadata: [RelativeURL: ZIPFoundationEntryMetadata]
 
-        guard let entry = archive[path] else {
+    public var sourceURL: AbsoluteURL? { file }
+    public let entries: Set<AnyURL>
+
+    private init(file: FileURL, entries: [RelativeURL: ZIPFoundationEntryMetadata]) {
+        self.file = file
+        entriesMetadata = entries
+        self.entries = Set(entries.keys.map(\.anyURL))
+    }
+
+    subscript(url: any URLConvertible) -> (any Resource)? {
+        guard
+            let url = url.relativeURL,
+            let metadata = entriesMetadata[url]
+        else {
             return nil
         }
+        return ZIPFoundationResource(file: file, entryPath: url.path, metadata: metadata)
+    }
+}
 
-        let rangeLength = range.upperBound - range.lowerBound
-        var data = Data()
+private struct ZIPFoundationEntryMetadata {
+    let length: UInt64
+    let compressedLength: UInt64?
+}
 
-        do {
-            var offset = 0
-            let progress = Progress()
+private actor ZIPFoundationResource: Resource, Loggable {
+    private let file: FileURL
+    private let entryPath: String
+    private let metadata: ZIPFoundationEntryMetadata
 
-            _ = try archive.extract(entry, progress: progress) { chunk in
-                let chunkLength = chunk.count
-                defer {
-                    offset += chunkLength
-                    if offset >= range.upperBound {
-                        progress.cancel()
+    init(file: FileURL, entryPath: String, metadata: ZIPFoundationEntryMetadata) {
+        self.file = file
+        self.entryPath = entryPath
+        self.metadata = metadata
+    }
+
+    public let sourceURL: AbsoluteURL? = nil
+
+    func estimatedLength() async -> ReadResult<UInt64?> {
+        .success(metadata.length)
+    }
+
+    func properties() async -> ReadResult<ResourceProperties> {
+        .success(ResourceProperties {
+            $0.filename = RelativeURL(path: entryPath)?.lastPathSegment
+            $0.archive = ArchiveProperties(
+                entryLength: metadata.compressedLength ?? metadata.length,
+                isEntryCompressed: metadata.compressedLength != nil
+            )
+        })
+    }
+
+    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+        if range != nil {}
+
+        return await archive().flatMap { archive in
+            guard let entry = archive[entryPath] else {
+                return .failure(.decoding("No entry found in the ZIP at \(entryPath)"))
+            }
+
+            do {
+                if let range = range {
+                    try archive.extractRange(range, of: entry) { data in
+                        consume(data)
+                    }
+                } else {
+                    _ = try archive.extract(entry, skipCRC32: true) { data in
+                        consume(data)
                     }
                 }
-
-                guard offset < range.upperBound, offset + chunkLength >= range.lowerBound else {
-                    return
-                }
-
-                let startingIndex = (range.lowerBound > offset)
-                    ? (range.lowerBound - offset)
-                    : 0
-                data.append(chunk[startingIndex...])
-            }
-        } catch {
-            switch error {
-            case Archive.ArchiveError.cancelledOperation:
-                break
-            default:
-                log(.error, error)
-                return nil
+                return .success(())
+            } catch {
+                return .failure(.decoding(error))
             }
         }
-
-        return data[0 ..< rangeLength]
-    }
-}
-
-final class MutableZIPFoundationArchive: ZIPFoundationArchive, MutableArchive {
-    required convenience init(file: URL, password: String?) throws {
-        try self.init(file: file, accessMode: .update)
     }
 
-    func replace(at path: String, with data: Data, deflated: Bool) throws {
-        objc_sync_enter(archive)
-        defer { objc_sync_exit(archive) }
-
-        do {
-            // Removes the old entry if it already exists in the archive, otherwise we get
-            // duplicated entries
-            if let entry = archive[path] {
-                try archive.remove(entry)
+    private var _archive: ReadResult<ReadiumZIPFoundation.Archive>?
+    private func archive() async -> ReadResult<ReadiumZIPFoundation.Archive> {
+        if _archive == nil {
+            do {
+                _archive = try .success(ReadiumZIPFoundation.Archive(url: file.url, accessMode: .read))
+            } catch {
+                _archive = .failure(.decoding(error))
             }
-
-            try archive.addEntry(with: path, type: .file, uncompressedSize: UInt32(data.count), compressionMethod: deflated ? .deflate : .none, provider: { position, size in
-                data[position ..< size]
-            })
-        } catch {
-            log(.error, error)
-            throw ArchiveError.updateFailed
         }
-    }
-}
-
-private extension ArchiveEntry {
-    init(entry: Entry) {
-        self.init(
-            path: entry.path,
-            length: entry.uncompressedSize,
-            compressedLength: entry.compressedSize
-        )
+        return _archive!
     }
 }

@@ -8,7 +8,7 @@ import Foundation
 
 public extension Sequence {
     /// Asynchronous variant of `map`.
-    @inlinable func asyncmap<NewElement>(
+    @inlinable func asyncMap<NewElement>(
         _ transform: (Element) async throws -> NewElement
     ) async rethrows -> [NewElement] {
         var result: [NewElement] = []

@@ -139,13 +139,10 @@
           "framework" : "..\/..\/Carthage\/Build\/CryptoSwift.xcframework"
         },
         {
-          "framework" : "..\/..\/Carthage\/Build\/Fuzi.xcframework"
+          "framework" : "..\/..\/Carthage\/Build\/ReadiumFuzi.xcframework"
         },
         {
-          "framework" : "..\/..\/Carthage\/Build\/Minizip.xcframework"
-        },
-        {
-          "framework" : "..\/..\/Carthage\/Build\/ZIPFoundation.xcframework"
+          "framework" : "..\/..\/Carthage\/Build\/ReadiumZIPFoundation.xcframework"
         },
         {
           "target" : "ReadiumShared"
@@ -173,10 +170,7 @@
           "framework" : "..\/..\/Carthage\/Build\/DifferenceKit.xcframework"
         },
         {
-          "framework" : "..\/..\/Carthage\/Build\/Fuzi.xcframework"
-        },
-        {
-          "framework" : "..\/..\/Carthage\/Build\/Minizip.xcframework"
+          "framework" : "..\/..\/Carthage\/Build\/ReadiumFuzi.xcframework"
         },
         {
           "framework" : "..\/..\/Carthage\/Build\/SwiftSoup.xcframework"
@@ -212,10 +206,7 @@
     "ReadiumOPDS" : {
       "dependencies" : [
         {
-          "framework" : "..\/..\/Carthage\/Build\/Fuzi.xcframework"
-        },
-        {
-          "framework" : "..\/..\/Carthage\/Build\/Minizip.xcframework"
+          "framework" : "..\/..\/Carthage\/Build\/ReadiumFuzi.xcframework"
         },
         {
           "target" : "ReadiumShared"
@@ -240,10 +231,10 @@
     "ReadiumShared" : {
       "dependencies" : [
         {
-          "framework" : "..\/..\/Carthage\/Build\/Fuzi.xcframework"
+          "framework" : "..\/..\/Carthage\/Build\/ReadiumFuzi.xcframework"
         },
         {
-          "framework" : "..\/..\/Carthage\/Build\/Minizip.xcframework"
+          "framework" : "..\/..\/Carthage\/Build\/ReadiumZIPFoundation.xcframework"
         },
         {
           "framework" : "..\/..\/Carthage\/Build\/SwiftSoup.xcframework"
@@ -263,9 +254,6 @@
       },
       "sources" : [
         {
-          "excludes" : [
-            "Toolkit\/ZIP\/ZIPFoundation.swift"
-          ],
           "path" : "..\/..\/Sources\/Shared"
         }
       ],
@@ -277,10 +265,7 @@
           "framework" : "..\/..\/Carthage\/Build\/CryptoSwift.xcframework"
         },
         {
-          "framework" : "..\/..\/Carthage\/Build\/Fuzi.xcframework"
-        },
-        {
-          "framework" : "..\/..\/Carthage\/Build\/Minizip.xcframework"
+          "framework" : "..\/..\/Carthage\/Build\/ReadiumFuzi.xcframework"
         },
         {
           "target" : "ReadiumShared"
@@ -13977,7 +13962,6 @@
 ../../Sources/Shared/Toolkit/XML/Fuzi.swift
 ../../Sources/Shared/Toolkit/XML/XML.swift
 ../../Sources/Shared/Toolkit/ZIP
-../../Sources/Shared/Toolkit/ZIP/Minizip.swift
 ../../Sources/Shared/Toolkit/ZIP/ZIPArchiveOpener.swift
 ../../Sources/Shared/Toolkit/ZIP/ZIPFoundation.swift
 ../../Sources/Streamer

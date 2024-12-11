@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import Fuzi
+import ReadiumFuzi
 import ReadiumShared
 @testable import ReadiumStreamer
 import XCTest
@@ -356,7 +356,7 @@ class EPUBMetadataParserTests: XCTestCase {
     // MARK: - Toolkit
 
     func parseMetadata(_ name: String, displayOptions: String? = nil) throws -> Metadata {
-        func parseDocument(named name: String, type: String) throws -> Fuzi.XMLDocument {
+        func parseDocument(named name: String, type: String) throws -> ReadiumFuzi.XMLDocument {
             try XMLDocument(data: fixtures.data(at: "\(name).\(type)"))
         }
 

@@ -6,7 +6,7 @@
 
 import Foundation
 import ReadiumShared
-import ZIPFoundation
+import ReadiumZIPFoundation
 
 final class License: Loggable {
     // Last Documents which passed the integrity checks.

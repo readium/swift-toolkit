@@ -8,7 +8,7 @@ import Foundation
 
 /// An ``ArchiveOpener`` for ZIP resources.
 public class ZIPArchiveOpener: ArchiveOpener {
-    private let opener = MinizipArchiveOpener()
+    private let opener = ZIPFoundationArchiveOpener()
 
     public init() {}
 
