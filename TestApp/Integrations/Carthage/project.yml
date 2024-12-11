@@ -25,15 +25,15 @@ targets:
     dependencies:
       - framework: Carthage/Build/CryptoSwift.xcframework
       - framework: Carthage/Build/DifferenceKit.xcframework
-      - framework: Carthage/Build/Fuzi.xcframework
-      - framework: Carthage/Build/Minizip.xcframework
-      - framework: Carthage/Build/ReadiumNavigator.xcframework
-      - framework: Carthage/Build/ReadiumShared.xcframework
-      - framework: Carthage/Build/ReadiumStreamer.xcframework
       - framework: Carthage/Build/ReadiumAdapterGCDWebServer.xcframework
+      - framework: Carthage/Build/ReadiumFuzi.xcframework
       - framework: Carthage/Build/ReadiumGCDWebServer.xcframework
       - framework: Carthage/Build/ReadiumInternal.xcframework
+      - framework: Carthage/Build/ReadiumNavigator.xcframework
       - framework: Carthage/Build/ReadiumOPDS.xcframework
+      - framework: Carthage/Build/ReadiumShared.xcframework
+      - framework: Carthage/Build/ReadiumStreamer.xcframework
+      - framework: Carthage/Build/ReadiumZIPFoundation.xcframework
       - framework: Carthage/Build/SwiftSoup.xcframework
       - package: GRDB
       - package: Kingfisher

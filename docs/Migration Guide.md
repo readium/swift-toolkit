@@ -4,6 +4,12 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ## Unreleased
 
+### ZIPFoundation replaces Minizip
+
+The default `ZIPArchiveOpener` is now using ZIPFoundation instead of Minizip, with improved performances when reading ranges of `stored` ZIP entries.
+
+If you use Carthage, remove `Minizip.xcframework` from your dependencies and add `ReadiumZIPFoundation.xcframework` instead. No changes are needed when using Swift Package Manager or CocoaPods.
+
 ### CocoaPods dependencies
 
 Some CocoaPods dependencies are now part of the official trunk and handled automatically. You must remove the custom declarations from your `Podfile`:
