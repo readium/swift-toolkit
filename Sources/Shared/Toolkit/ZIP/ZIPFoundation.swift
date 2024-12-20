@@ -12,14 +12,11 @@ public final class ZIPFoundationArchiveOpener: ArchiveOpener {
     public init() {}
 
     public func open(resource: any Resource, format: Format) async -> Result<ContainerAsset, ArchiveOpenError> {
-        guard
-            format.conformsTo(.zip),
-            let file = resource.sourceURL?.fileURL
-        else {
+        guard format.conformsTo(.zip) else {
             return .failure(.formatNotSupported(format))
         }
 
-        return await ZIPFoundationContainer.make(file: file)
+        return await ZIPFoundationContainer.make(resource: resource)
             .mapError {
                 switch $0 {
                 case .notAZIP:
@@ -32,11 +29,7 @@ public final class ZIPFoundationArchiveOpener: ArchiveOpener {
     }
 
     public func sniffOpen(resource: any Resource) async -> Result<ContainerAsset, ArchiveSniffOpenError> {
-        guard let file = resource.sourceURL?.fileURL else {
-            return .failure(.formatNotRecognized)
-        }
-
-        return await ZIPFoundationContainer.make(file: file)
+        await ZIPFoundationContainer.make(resource: resource)
             .mapError {
                 switch $0 {
                 case .notAZIP:
@@ -65,16 +58,13 @@ final class ZIPFoundationContainer: Container, Loggable {
         case reading(ReadError)
     }
 
-    static func make(file: FileURL) async -> Result<ZIPFoundationContainer, MakeError> {
-        guard await (try? file.exists()) ?? false else {
-            return .failure(.reading(.access(.fileSystem(.fileNotFound(nil)))))
-        }
-
+    static func make(resource: Resource) async -> Result<ZIPFoundationContainer, MakeError> {
+//        let resource = resource.buffered()
         do {
-            let archive = try ReadiumZIPFoundation.Archive(url: file.url, accessMode: .read)
+            let archive = try await ReadiumZIPFoundation.Archive(resource: resource)
             var entries = [RelativeURL: ZIPFoundationEntryMetadata]()
 
-            for entry in archive {
+            for try await entry in archive {
                 guard
                     entry.type == .file,
                     let url = RelativeURL(path: entry.path(using: .utf8)),
@@ -88,21 +78,21 @@ final class ZIPFoundationContainer: Container, Loggable {
                 )
             }
 
-            return .success(Self(file: file, entries: entries))
+            return .success(Self(resource: resource, entries: entries))
 
         } catch {
             return .failure(.reading(.decoding(error)))
         }
     }
 
-    private let file: FileURL
+    private let resource: any Resource
     private let entriesMetadata: [RelativeURL: ZIPFoundationEntryMetadata]
 
-    public var sourceURL: AbsoluteURL? { file }
+    public var sourceURL: AbsoluteURL? { resource.sourceURL }
     public let entries: Set<AnyURL>
 
-    private init(file: FileURL, entries: [RelativeURL: ZIPFoundationEntryMetadata]) {
-        self.file = file
+    private init(resource: any Resource, entries: [RelativeURL: ZIPFoundationEntryMetadata]) {
+        self.resource = resource
         entriesMetadata = entries
         self.entries = Set(entries.keys.map(\.anyURL))
     }
@@ -114,7 +104,7 @@ final class ZIPFoundationContainer: Container, Loggable {
         else {
             return nil
         }
-        return ZIPFoundationResource(file: file, entryPath: url.path, metadata: metadata)
+        return ZIPFoundationResource(archiveResource: resource, entryPath: url.path, metadata: metadata)
     }
 }
 
@@ -124,12 +114,12 @@ private struct ZIPFoundationEntryMetadata {
 }
 
 private actor ZIPFoundationResource: Resource, Loggable {
-    private let file: FileURL
+    private let archiveResource: any Resource
     private let entryPath: String
     private let metadata: ZIPFoundationEntryMetadata
 
-    init(file: FileURL, entryPath: String, metadata: ZIPFoundationEntryMetadata) {
-        self.file = file
+    init(archiveResource: any Resource, entryPath: String, metadata: ZIPFoundationEntryMetadata) {
+        self.archiveResource = archiveResource
         self.entryPath = entryPath
         self.metadata = metadata
     }
@@ -153,18 +143,18 @@ private actor ZIPFoundationResource: Resource, Loggable {
     func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
         if range != nil {}
 
-        return await archive().flatMap { archive in
-            guard let entry = archive[entryPath] else {
-                return .failure(.decoding("No entry found in the ZIP at \(entryPath)"))
-            }
-
+        return await archive().asyncFlatMap { archive in
             do {
+                guard let entry = try await archive.get(entryPath) else {
+                    return .failure(.decoding("No entry found in the ZIP at \(entryPath)"))
+                }
+
                 if let range = range {
-                    try archive.extractRange(range, of: entry) { data in
+                    try await archive.extractRange(range, of: entry) { data in
                         consume(data)
                     }
                 } else {
-                    _ = try archive.extract(entry, skipCRC32: true) { data in
+                    _ = try await archive.extract(entry, skipCRC32: true) { data in
                         consume(data)
                     }
                 }
@@ -179,11 +169,65 @@ private actor ZIPFoundationResource: Resource, Loggable {
     private func archive() async -> ReadResult<ReadiumZIPFoundation.Archive> {
         if _archive == nil {
             do {
-                _archive = try .success(ReadiumZIPFoundation.Archive(url: file.url, accessMode: .read))
+                _archive = try await .success(ReadiumZIPFoundation.Archive(resource: archiveResource))
             } catch {
                 _archive = .failure(.decoding(error))
             }
         }
         return _archive!
+    }
+}
+
+private extension ReadiumZIPFoundation.Archive {
+    
+    convenience init(resource: any Resource) async throws {
+        if let file = resource.sourceURL?.fileURL {
+            try await self.init(url: file.url, accessMode: .read)
+        } else {
+            try await self.init(url: resource.sourceURL?.url, dataSource: ResourceDataSource(resource: resource))
+        }
+    }
+}
+
+enum ResourceDataSourceError: Error {
+    case unknownContentLength
+}
+
+private final class ResourceDataSource: ReadiumZIPFoundation.DataSource {
+    private let resource: Resource
+    private var _position: UInt64 = 0
+    
+    init(resource: Resource) {
+        self.resource = resource
+    }
+    
+    func length() async throws -> UInt64 {
+        guard let length = try await resource.estimatedLength().get() else {
+            throw ResourceDataSourceError.unknownContentLength
+        }
+        return length
+    }
+    
+    func position() async throws -> UInt64 {
+        _position
+    }
+    
+    func seek(to position: UInt64) async throws {
+        _position = position
+    }
+    
+    func read(length: Int) async throws -> Data {
+        guard length > 0 else {
+            return Data()
+        }
+        let range = _position..<(_position + UInt64(length))
+        let data = try await resource.read(range: range).get()
+        _position += UInt64(data.count)
+        return data
+    }
+    
+    func close() throws {
+        // FIXME?
+//        resource.close()
     }
 }

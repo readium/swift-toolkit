@@ -218,6 +218,7 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
     }
 }
 
+@MainActor
 class AudiobookViewModel: ObservableObject {
     let navigator: AudioNavigator
 
