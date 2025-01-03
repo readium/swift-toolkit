@@ -1,16 +1,3 @@
-/* 
-  Localizable.strings
-  r2-testapp-swift
-
-  Created by Mickaël Menu on 12.06.19.
- 
-  Copyright 2018 European Digital Reading Lab. All rights reserved.
-  Licensed to the Readium Foundation under one or more contributor license agreements.
-  Use of this source code is governed by a BSD-style license which is detailed in the
-  LICENSE file present in the project repository where this source code is maintained.
-*/
-
-
 /* MARK: App */
 
 /* Library tab title */
