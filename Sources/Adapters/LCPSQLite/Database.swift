@@ -9,22 +9,24 @@ import SQLite
 
 final class Database {
     /// Shared instance.
-    static let shared = Database()
+    static let shared: Swift.Result<Database, Error> = {
+        do {
+            return try .success(Database())
+        } catch {
+            return .failure(error)
+        }
+    }()
 
     let connection: Connection
 
-    private init() {
-        do {
-            var url = try FileManager.default.url(
-                for: .libraryDirectory,
-                in: .userDomainMask,
-                appropriateFor: nil, create: true
-            )
-            url.appendPathComponent("lcpdatabase.sqlite")
-            connection = try Connection(url.absoluteString)
-        } catch {
-            fatalError("Error initializing db.")
-        }
+    private init() throws {
+        var url = try FileManager.default.url(
+            for: .libraryDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil, create: true
+        )
+        url.appendPathComponent("lcpdatabase.sqlite")
+        connection = try Connection(url.absoluteString)
     }
 }
 

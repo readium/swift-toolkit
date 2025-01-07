@@ -17,17 +17,17 @@ public class LCPSQLiteLicenseRepository: LCPLicenseRepository {
 
     private let db: Connection
 
-    public init() {
-        db = Database.shared.connection
+    public init() throws {
+        db = try Database.shared.get().connection
 
-        _ = try? db.run(licenses.create(temporary: false, ifNotExists: true) { t in
+        try db.run(licenses.create(temporary: false, ifNotExists: true) { t in
             t.column(id, unique: true)
             t.column(printsLeft)
             t.column(copiesLeft)
         })
 
         if db.userVersion == 0 {
-            _ = try? db.run(licenses.addColumn(registered, defaultValue: false))
+            try db.run(licenses.addColumn(registered, defaultValue: false))
             db.userVersion = 1
         }
         if db.userVersion == 1 {

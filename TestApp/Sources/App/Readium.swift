@@ -45,8 +45,8 @@ final class Readium {
 
         lazy var lcpService = LCPService(
             client: LCPClient(),
-            licenseRepository: LCPSQLiteLicenseRepository(),
-            passphraseRepository: LCPSQLitePassphraseRepository(),
+            licenseRepository: try! LCPSQLiteLicenseRepository(),
+            passphraseRepository: try! LCPSQLitePassphraseRepository(),
             assetRetriever: assetRetriever,
             httpClient: httpClient
         )
