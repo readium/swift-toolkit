@@ -14,6 +14,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 * The default `ZIPArchiveOpener` is now using ZIPFoundation instead of Minizip, with improved performances when reading ranges of `stored` ZIP entries.
 
+### Fixed
+
+#### OPDS
+
+* Fixed a data race in the OPDS 1 parser.
+
 
 ## [3.0.0-beta.1]
 

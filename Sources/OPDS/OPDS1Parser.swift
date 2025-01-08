@@ -28,14 +28,10 @@ struct MimeTypeParameters {
 }
 
 public class OPDS1Parser: Loggable {
-    static var feedURL: URL?
-
     /// Parse an OPDS feed or publication.
     /// Feed can only be v1 (XML).
     /// - parameter url: The feed URL
     public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
-        feedURL = url
-
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, let response = response else {
                 completion(nil, error ?? OPDSParserError.documentNotFound)
@@ -58,19 +54,17 @@ public class OPDS1Parser: Loggable {
     /// - parameter response: The response payload
     /// - Returns: The intermediate structure of type ParseData
     public static func parse(xmlData: Data, url: URL, response: URLResponse) throws -> ParseData {
-        feedURL = url
-
         var parseData = ParseData(url: url, response: response, version: .OPDS1)
 
         let xmlDocument = try XMLDocument(data: xmlData)
 
         if xmlDocument.root?.tag == "feed" {
             // Feed
-            parseData.feed = try? parse(document: xmlDocument)
+            parseData.feed = try? parse(document: xmlDocument, feedURL: url)
         } else if xmlDocument.root?.tag == "entry" {
             // Publication only
             do {
-                parseData.publication = try parseEntry(document: xmlDocument)
+                parseData.publication = try parseEntry(document: xmlDocument, feedURL: url)
             } catch {
                 log(.warning, "Failed to parse Publication at \(url)")
             }
@@ -85,7 +79,7 @@ public class OPDS1Parser: Loggable {
     /// Feed can only be v1 (XML).
     /// - parameter document: The XMLDocument data
     /// - Returns: The resulting Feed
-    public static func parse(document: ReadiumFuzi.XMLDocument) throws -> Feed {
+    private static func parse(document: ReadiumFuzi.XMLDocument, feedURL: URL) throws -> Feed {
         document.definePrefix("thr", forNamespace: "http://purl.org/syndication/thread/1.0")
         document.definePrefix("dcterms", forNamespace: "http://purl.org/dc/terms/")
         document.definePrefix("opds", forNamespace: "http://opds-spec.org/2010/catalog")
@@ -136,7 +130,7 @@ public class OPDS1Parser: Loggable {
             }
 
             if !isNavigation {
-                if let publication = parseEntry(entry: entry) {
+                if let publication = parseEntry(entry: entry, feedURL: feedURL) {
                     // Checking if this publication need to go into a group or in publications.
                     if let collectionLink = collectionLink {
                         addPublicationInGroup(feed, publication, collectionLink)
@@ -218,11 +212,11 @@ public class OPDS1Parser: Loggable {
     /// Publication can only be v1 (XML).
     /// - parameter document: The XMLDocument data
     /// - Returns: The resulting Publication
-    public static func parseEntry(document: ReadiumFuzi.XMLDocument) throws -> Publication? {
+    public static func parseEntry(document: ReadiumFuzi.XMLDocument, feedURL: URL) throws -> Publication? {
         guard let root = document.root else {
             throw OPDS1ParserError.rootNotFound
         }
-        return parseEntry(entry: root)
+        return parseEntry(entry: root, feedURL: feedURL)
     }
 
     /// Fetch an Open Search template from an OPDS feed.
@@ -297,7 +291,7 @@ public class OPDS1Parser: Loggable {
         return MimeTypeParameters(type: type, parameters: params)
     }
 
-    static func parseEntry(entry: ReadiumFuzi.XMLElement) -> Publication? {
+    static func parseEntry(entry: ReadiumFuzi.XMLElement, feedURL: URL) -> Publication? {
         // Shortcuts to get tag(s)' string value.
         func tag(_ name: String) -> String? {
             entry.firstChild(tag: name)?.stringValue
