@@ -62,7 +62,10 @@ public actor HTTPResource: Resource {
 
         return await client.stream(
             request: request,
-            consume: { data, _ in consume(data) }
+            consume: { data, _ in
+                consume(data)
+                return .success(())
+            }
         )
         .map { _ in () }
         .mapError { .access(.http($0)) }
