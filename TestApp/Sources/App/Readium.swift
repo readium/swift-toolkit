@@ -101,17 +101,22 @@ extension ReadiumShared.AccessError: UserErrorConvertible {
 extension ReadiumShared.HTTPError: UserErrorConvertible {
     func userError() -> UserError {
         UserError(cause: self) {
-            switch kind {
-            case .malformedRequest, .malformedResponse, .timeout, .badRequest, .clientError, .serverError, .serverUnreachable, .offline, .other:
-                return "error_network".localized
-            case .unauthorized, .forbidden:
-                return "error_forbidden".localized
-            case .notFound:
-                return "error_not_found".localized
+            switch self {
+            case let .errorResponse(response):
+                switch response.status {
+                case .notFound:
+                    return "error_not_found".localized
+                case .unauthorized, .forbidden:
+                    return "error_forbidden".localized
+                default:
+                    return "error_network".localized
+                }
             case let .fileSystem(error):
                 return error.userError().message
             case .cancelled:
                 return "error_cancelled".localized
+            case .malformedRequest, .malformedResponse, .timeout, .unreachable, .redirection, .security, .rangeNotSupported, .offline, .other:
+                return "error_network".localized
             }
         }
     }

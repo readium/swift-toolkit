@@ -17,10 +17,11 @@ public protocol HTTPClient: Loggable {
     ///   - request: Request to the streamed resource.
     ///     also access it in the completion block after consuming the data.
     ///   - consume: Callback called for each chunk of data received. Callers
-    ///     are responsible to accumulate the data if needed.
+    ///     are responsible to accumulate the data if needed. Return an error
+    ///     to abort the request.
     func stream(
         request: HTTPRequestConvertible,
-        consume: @escaping (_ chunk: Data, _ progress: Double?) -> Void
+        consume: @escaping (_ chunk: Data, _ progress: Double?) -> HTTPResult<Void>
     ) async -> HTTPResult<HTTPResponse>
 }
 
@@ -30,7 +31,10 @@ public extension HTTPClient {
         var data = Data()
         let response = await stream(
             request: request,
-            consume: { chunk, _ in data.append(chunk) }
+            consume: { chunk, _ in
+                data.append(chunk)
+                return .success(())
+            }
         )
 
         return response
@@ -55,12 +59,12 @@ public extension HTTPClient {
                         let body = response.body,
                         let result = try decoder(response, body)
                     else {
-                        return .failure(HTTPError(kind: .malformedResponse))
+                        return .failure(.malformedResponse(nil))
                     }
                     return .success(result)
 
                 } catch {
-                    return .failure(HTTPError(kind: .malformedResponse, cause: error))
+                    return .failure(.malformedResponse(error))
                 }
             }
     }
@@ -106,18 +110,24 @@ public extension HTTPClient {
             try "".write(to: location.url, atomically: true, encoding: .utf8)
             fileHandle = try FileHandle(forWritingTo: location.url)
         } catch {
-            return .failure(HTTPError(kind: .fileSystem(.io(error)), cause: error))
+            return .failure(.fileSystem(.io(error)))
         }
 
         let result = await stream(
             request: request,
             consume: { data, progression in
-                fileHandle.seekToEndOfFile()
-                fileHandle.write(data)
+                do {
+                    try fileHandle.seekToEnd()
+                    try fileHandle.write(contentsOf: data)
+                } catch {
+                    return .failure(.fileSystem(.io(error)))
+                }
 
                 if let progression = progression {
                     onProgress(progression)
                 }
+
+                return .success(())
             }
         )
 
@@ -199,6 +209,52 @@ public extension HTTPClient {
     }
 }
 
+/// Status code of an HTTP response.
+public struct HTTPStatus: Equatable, RawRepresentable, ExpressibleByIntegerLiteral {
+    public let rawValue: Int
+
+    public init(rawValue: RawValue) {
+        self.rawValue = rawValue
+    }
+
+    public init(integerLiteral value: IntegerLiteralType) {
+        rawValue = value
+    }
+
+    /// Returns whether this represents a successful HTTP status.
+    public var isSuccess: Bool {
+        (200 ..< 400).contains(rawValue)
+    }
+
+    /// (200) OK.
+    public static let ok = HTTPStatus(rawValue: 200)
+
+    /// (206) This response code is used in response to a range request when the
+    /// client has requested a part or parts of a resource.
+    public static let partialContent = HTTPStatus(rawValue: 206)
+
+    /// (400) The server cannot or will not process the request due to an
+    /// apparent client error.
+    public static let badRequest = HTTPStatus(rawValue: 400)
+
+    /// (401) Authentication is required and has failed or has not yet been
+    /// provided.
+    public static let unauthorized = HTTPStatus(rawValue: 401)
+
+    /// (403) The server refuses the action, probably because we don't have the
+    /// necessary permissions.
+    public static let forbidden = HTTPStatus(rawValue: 403)
+
+    /// (404) The requested resource could not be found.
+    public static let notFound = HTTPStatus(rawValue: 404)
+
+    /// (405) Method not allowed.
+    public static let methodNotAllowed = HTTPStatus(rawValue: 405)
+
+    /// (500) Internal server error.
+    public static let internalServerError = HTTPStatus(rawValue: 500)
+}
+
 /// Represents a successful HTTP response received from a server.
 public struct HTTPResponse: Equatable {
     /// Request associated with the response.
@@ -208,7 +264,10 @@ public struct HTTPResponse: Equatable {
     public let url: HTTPURL
 
     /// HTTP status code returned by the server.
-    public let statusCode: Int
+    public let status: HTTPStatus
+
+    @available(*, unavailable, renamed: "status.rawValue")
+    public var statusCode: HTTPStatus { fatalError() }
 
     /// HTTP response headers, indexed by their name.
     public let headers: [String: String]
@@ -219,10 +278,17 @@ public struct HTTPResponse: Equatable {
     /// Response body content, when available.
     public var body: Data?
 
-    public init(request: HTTPRequest, url: HTTPURL, statusCode: Int, headers: [String: String], mediaType: MediaType?, body: Data?) {
+    public init(
+        request: HTTPRequest,
+        url: HTTPURL,
+        status: HTTPStatus,
+        headers: [String: String],
+        mediaType: MediaType?,
+        body: Data?
+    ) {
         self.request = request
         self.url = url
-        self.statusCode = statusCode
+        self.status = status
         self.headers = headers
         self.mediaType = mediaType
         self.body = body

@@ -154,7 +154,7 @@ extension HTTPURL: HTTPRequestConvertible {
 extension URL: HTTPRequestConvertible {
     public func httpRequest() -> HTTPResult<HTTPRequest> {
         guard let url = HTTPURL(url: self) else {
-            return .failure(HTTPError(kind: .malformedRequest(url: absoluteString)))
+            return .failure(.malformedRequest(url: absoluteString))
         }
         return url.httpRequest()
     }
@@ -163,7 +163,7 @@ extension URL: HTTPRequestConvertible {
 extension URLComponents: HTTPRequestConvertible {
     public func httpRequest() -> HTTPResult<HTTPRequest> {
         guard let url = url else {
-            return .failure(HTTPError(kind: .malformedRequest(url: description)))
+            return .failure(.malformedRequest(url: description))
         }
         return url.httpRequest()
     }
@@ -172,7 +172,7 @@ extension URLComponents: HTTPRequestConvertible {
 extension String: HTTPRequestConvertible {
     public func httpRequest() -> HTTPResult<HTTPRequest> {
         guard let url = HTTPURL(string: self) else {
-            return .failure(HTTPError(kind: .malformedRequest(url: self)))
+            return .failure(.malformedRequest(url: self))
         }
         return url.httpRequest()
     }
@@ -181,7 +181,7 @@ extension String: HTTPRequestConvertible {
 extension Link: HTTPRequestConvertible {
     public func httpRequest() -> HTTPResult<HTTPRequest> {
         guard let url = url().httpURL else {
-            return .failure(HTTPError(kind: .malformedRequest(url: href)))
+            return .failure(.malformedRequest(url: href))
         }
         return url.httpRequest()
     }

@@ -182,7 +182,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
 
     public func stream(
         request: any HTTPRequestConvertible,
-        consume: @escaping (Data, Double?) -> Void
+        consume: @escaping (Data, Double?) -> HTTPResult<Void>
     ) async -> HTTPResult<HTTPResponse> {
         await request.httpRequest()
             .asyncFlatMap(willStartRequest)
@@ -321,11 +321,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         typealias Continuation = CheckedContinuation<HTTPResult<HTTPResponse>, Never>
         typealias ReceiveResponse = (HTTPResponse) -> Void
         typealias ReceiveChallenge = (URLAuthenticationChallenge) async -> URLAuthenticationChallengeResponse
-        typealias Consume = (Data, Double?) -> Void
-
-        enum TaskError: Error {
-            case byteRangesNotSupported(url: HTTPURL)
-        }
+        typealias Consume = (Data, Double?) -> HTTPResult<Void>
 
         private let request: HTTPRequest
         fileprivate let task: URLSessionTask
@@ -339,13 +335,20 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         private enum State {
             /// Waiting to start the task.
             case initializing
+
             /// Waiting for the HTTP response.
             case start(continuation: Continuation)
-            /// We received a success response, the data will be sent to `consume` progressively.
+
+            /// We received a success response, the data will be sent to
+            /// `consume` progressively.
             case stream(continuation: Continuation, response: HTTPResponse, readBytes: Int64)
-            /// We received an error response, the data will be accumulated in `response.body` to make the final
-            /// `HTTPError`. The body is needed for example when the response is an OPDS Authentication Document.
-            case failure(continuation: Continuation, kind: HTTPError.Kind, cause: Error?, response: HTTPResponse?)
+
+            /// We received an error response, the data will be accumulated in
+            /// `response.body` if the error is an `HTTPError.errorResponse`, as
+            /// it could be needed for example when the response is an OPDS
+            /// Authentication Document.
+            case failure(continuation: Continuation, error: HTTPError)
+
             /// The request is terminated.
             case finished
 
@@ -357,7 +360,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                     return continuation
                 case let .stream(continuation, _, _):
                     return continuation
-                case let .failure(continuation, _, _, _):
+                case let .failure(continuation, _):
                     return continuation
                 }
             }
@@ -394,14 +397,15 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         private func finish() {
             switch state {
             case let .start(continuation):
-                continuation.resume(returning: .failure(HTTPError(kind: .cancelled)))
+                continuation.resume(returning: .failure(.cancelled))
 
             case let .stream(continuation, response, _):
                 continuation.resume(returning: .success(response))
 
-            case let .failure(continuation, kind, cause, response):
-                let error = HTTPError(kind: kind, cause: cause, response: response)
-                log(.error, "\(request.method) \(request.url) failed with: \(error.localizedDescription)")
+            case let .failure(continuation, error):
+                var errorDescription = ""
+                dump(error, to: &errorDescription)
+                log(.error, "\(request.method) \(request.url) failed with:\n\(errorDescription)")
                 continuation.resume(returning: .failure(error))
 
             case .initializing, .finished:
@@ -427,33 +431,21 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
 
             var response = HTTPResponse(request: request, response: urlResponse, url: url)
 
-            if let kind = HTTPError.Kind(statusCode: response.statusCode) {
-                state = .failure(continuation: continuation, kind: kind, cause: nil, response: response)
-
-                // It was a HEAD request? We need to query the resource again to get the error body. The body is needed
-                // for example when the response is an OPDS Authentication Document.
-                if request.method == .head {
-                    var modifiedRequest = request
-                    modifiedRequest.method = .get
-                    session.dataTask(with: modifiedRequest.urlRequest) { data, _, error in
-                        response.body = data
-                        self.state = .failure(continuation: continuation, kind: kind, cause: error, response: response)
-                        completionHandler(.cancel)
-                    }.resume()
-                    return
-                }
-
-            } else {
-                guard !request.hasHeader("Range") || response.acceptsByteRanges else {
-                    log(.error, "Streaming ranges requires the remote HTTP server to support byte range requests: \(url)")
-                    state = .failure(continuation: continuation, kind: .other, cause: TaskError.byteRangesNotSupported(url: url), response: response)
-                    completionHandler(.cancel)
-                    return
-                }
-
-                state = .stream(continuation: continuation, response: response, readBytes: 0)
-                receiveResponse(response)
+            guard response.status.isSuccess else {
+                state = .failure(continuation: continuation, error: .errorResponse(response))
+                completionHandler(.allow)
+                return
             }
+
+            guard !request.hasHeader("Range") || response.acceptsByteRanges else {
+                log(.error, "Streaming ranges requires the remote HTTP server to support byte range requests: \(url)")
+                state = .failure(continuation: continuation, error: .rangeNotSupported)
+                completionHandler(.cancel)
+                return
+            }
+
+            state = .stream(continuation: continuation, response: response, readBytes: 0)
+            receiveResponse(response)
 
             completionHandler(.allow)
         }
@@ -469,14 +461,23 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                 if let expectedBytes = response.contentLength {
                     progress = Double(min(readBytes, expectedBytes)) / Double(expectedBytes)
                 }
-                consume(data, progress)
-                state = .stream(continuation: continuation, response: response, readBytes: readBytes)
 
-            case .failure(let continuation, let kind, let cause, var response):
-                var body = response?.body ?? Data()
-                body.append(data)
-                response?.body = body
-                state = .failure(continuation: continuation, kind: kind, cause: cause, response: response)
+                switch consume(data, progress) {
+                case .success:
+                    state = .stream(continuation: continuation, response: response, readBytes: readBytes)
+                case let .failure(error):
+                    state = .failure(continuation: continuation, error: error)
+                }
+
+            case .failure(let continuation, var error):
+                if case var .errorResponse(response) = error {
+                    var body = response.body ?? Data()
+                    body.append(data)
+                    response.body = body
+                    error = .errorResponse(response)
+                }
+
+                state = .failure(continuation: continuation, error: error)
             }
         }
 
@@ -485,7 +486,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                 if case .failure = state {
                     // No-op, we don't want to overwrite the failure state in this case.
                 } else if let continuation = state.continuation {
-                    state = .failure(continuation: continuation, kind: HTTPError.Kind(error: error), cause: error, response: nil)
+                    state = .failure(continuation: continuation, error: HTTPError(error: error))
                 } else {
                     state = .finished
                 }
@@ -507,6 +508,35 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                     completion(.rejectProtectionSpace, nil)
                 }
             }
+        }
+    }
+}
+
+private extension HTTPError {
+    /// Maps a native `URLError` to `HTTPError`.
+    init(error: Error) {
+        switch error {
+        case let error as URLError:
+            switch error.code {
+            case .httpTooManyRedirects, .redirectToNonExistentLocation:
+                self = .redirection(error)
+            case .secureConnectionFailed, .clientCertificateRejected, .clientCertificateRequired, .appTransportSecurityRequiresSecureConnection, .userAuthenticationRequired:
+                self = .security(error)
+            case .badServerResponse, .zeroByteResource, .cannotDecodeContentData, .cannotDecodeRawData, .dataLengthExceedsMaximum:
+                self = .malformedResponse(error)
+            case .notConnectedToInternet, .networkConnectionLost:
+                self = .offline(error)
+            case .cannotConnectToHost, .cannotFindHost:
+                self = .unreachable(error)
+            case .timedOut:
+                self = .timeout(error)
+            case .cancelled, .userCancelledAuthentication:
+                self = .cancelled
+            default:
+                self = .other(error)
+            }
+        default:
+            self = .other(error)
         }
     }
 }
@@ -545,7 +575,7 @@ private extension HTTPResponse {
         self.init(
             request: request,
             url: url,
-            statusCode: response.statusCode,
+            status: HTTPStatus(rawValue: response.statusCode),
             headers: headers,
             mediaType: response.mimeType.flatMap { MediaType($0) },
             body: body
