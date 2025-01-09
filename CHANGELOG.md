@@ -13,8 +13,16 @@ All notable changes to this project will be documented in this file. Take a look
 #### Shared
 
 * The default `ZIPArchiveOpener` is now using ZIPFoundation instead of Minizip, with improved performances when reading ranges of `stored` ZIP entries.
+* Improvements in the HTTP client:
+    * The `consume` closure of `HTTPClient.stream()` can now return an error to abort the HTTP request.
+    * `HTTPError` has been refactored for improved type safety and a clearer separation of connection errors versus HTTP errors.
+    * `DefaultHTTPClient` no longer automatically restarts a failed `HEAD` request as a `GET` to retrieve the response body. If you relied on this behavior, you can implement it using a custom `DefaultHTTPClientDelegate.httpClient(_:recoverRequest:fromError:)`.
 
 ### Fixed
+
+#### Shared
+
+* Fixed a crash using `HTTPClient.download()` when the device storage is full.
 
 #### OPDS
 
