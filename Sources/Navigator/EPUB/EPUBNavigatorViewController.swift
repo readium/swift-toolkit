@@ -68,6 +68,9 @@ open class EPUBNavigatorViewController: UIViewController,
         /// `UIViewController` wrapping the `EPUBNavigatorViewController`.
         public var editingActions: [EditingAction]
 
+        /// Disables horizontal page turning when scroll is enabled.
+        public var disablePageTurnsWhileScrolling: Bool
+
         /// Content insets used to add some vertical margins around reflowable EPUB publications.
         /// The insets can be configured for each size class to allow smaller margins on compact
         /// screens.
@@ -97,6 +100,7 @@ open class EPUBNavigatorViewController: UIViewController,
             preferences: EPUBPreferences = .empty,
             defaults: EPUBDefaults = EPUBDefaults(),
             editingActions: [EditingAction] = EditingAction.defaultActions,
+            disablePageTurnsWhileScrolling: Bool = false,
             contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets] = [
                 .compact: (top: 20, bottom: 20),
                 .regular: (top: 44, bottom: 44),
@@ -111,6 +115,7 @@ open class EPUBNavigatorViewController: UIViewController,
             self.preferences = preferences
             self.defaults = defaults
             self.editingActions = editingActions
+            self.disablePageTurnsWhileScrolling = disablePageTurnsWhileScrolling
             self.contentInset = contentInset
             self.preloadPreviousPositionCount = preloadPreviousPositionCount
             self.preloadNextPositionCount = preloadNextPositionCount
@@ -516,7 +521,8 @@ open class EPUBNavigatorViewController: UIViewController,
         let view = PaginationView(
             frame: .zero,
             preloadPreviousPositionCount: hasPositions ? config.preloadPreviousPositionCount : 0,
-            preloadNextPositionCount: hasPositions ? config.preloadNextPositionCount : 0
+            preloadNextPositionCount: hasPositions ? config.preloadNextPositionCount : 0,
+            isScrollEnabled: isPaginationViewScrollingEnabled
         )
         view.delegate = self
         view.backgroundColor = .clear
@@ -607,6 +613,10 @@ open class EPUBNavigatorViewController: UIViewController,
     }
 
     // MARK: - Navigator
+
+    private var isPaginationViewScrollingEnabled: Bool {
+        !(config.disablePageTurnsWhileScrolling && settings.scroll)
+    }
 
     public var presentation: VisualNavigatorPresentation {
         VisualNavigatorPresentation(
@@ -844,6 +854,7 @@ open class EPUBNavigatorViewController: UIViewController,
         }
 
         view.backgroundColor = settings.effectiveBackgroundColor.uiColor
+        paginationView.isScrollEnabled = isPaginationViewScrollingEnabled
     }
 
     // MARK: - User interactions
@@ -902,6 +913,7 @@ open class EPUBNavigatorViewController: UIViewController,
 extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
     func epubNavigatorViewModelInvalidatePaginationView(_ viewModel: EPUBNavigatorViewModel) {
         Task {
+            paginationView.isScrollEnabled = isPaginationViewScrollingEnabled
             await reloadSpreads(force: true)
         }
     }

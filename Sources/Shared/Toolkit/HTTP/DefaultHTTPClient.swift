@@ -429,7 +429,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                 return
             }
 
-            var response = HTTPResponse(request: request, response: urlResponse, url: url)
+            let response = HTTPResponse(request: request, response: urlResponse, url: url)
 
             guard response.status.isSuccess else {
                 state = .failure(continuation: continuation, error: .errorResponse(response))
