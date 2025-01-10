@@ -68,6 +68,9 @@ open class EPUBNavigatorViewController: UIViewController,
         /// `UIViewController` wrapping the `EPUBNavigatorViewController`.
         public var editingActions: [EditingAction]
 
+        /// Disables horizontal page turning when scroll is enabled.
+        public var disablePageTurnsWhileScrolling: Bool
+
         /// Content insets used to add some vertical margins around reflowable EPUB publications.
         /// The insets can be configured for each size class to allow smaller margins on compact
         /// screens.
@@ -92,14 +95,12 @@ open class EPUBNavigatorViewController: UIViewController,
 
         /// Logs the state changes when true.
         public var debugState: Bool
-        
-        /// Disables horizontal page turning when scroll is enabled.
-        public let disablePageTurnsWhileScrolling: Bool
-        
+
         public init(
             preferences: EPUBPreferences = .empty,
             defaults: EPUBDefaults = EPUBDefaults(),
             editingActions: [EditingAction] = EditingAction.defaultActions,
+            disablePageTurnsWhileScrolling: Bool = false,
             contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets] = [
                 .compact: (top: 20, bottom: 20),
                 .regular: (top: 44, bottom: 44),
@@ -109,12 +110,12 @@ open class EPUBNavigatorViewController: UIViewController,
             decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate] = HTMLDecorationTemplate.defaultTemplates(),
             fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration] = [],
             readiumCSSRSProperties: CSSRSProperties = CSSRSProperties(),
-            debugState: Bool = false,
-            disablePageTurnsWhileScrolling: Bool = false
+            debugState: Bool = false
         ) {
             self.preferences = preferences
             self.defaults = defaults
             self.editingActions = editingActions
+            self.disablePageTurnsWhileScrolling = disablePageTurnsWhileScrolling
             self.contentInset = contentInset
             self.preloadPreviousPositionCount = preloadPreviousPositionCount
             self.preloadNextPositionCount = preloadNextPositionCount
@@ -122,7 +123,6 @@ open class EPUBNavigatorViewController: UIViewController,
             self.fontFamilyDeclarations = fontFamilyDeclarations
             self.readiumCSSRSProperties = readiumCSSRSProperties
             self.debugState = debugState
-            self.disablePageTurnsWhileScrolling = disablePageTurnsWhileScrolling
         }
     }
 
@@ -522,7 +522,7 @@ open class EPUBNavigatorViewController: UIViewController,
             frame: .zero,
             preloadPreviousPositionCount: hasPositions ? config.preloadPreviousPositionCount : 0,
             preloadNextPositionCount: hasPositions ? config.preloadNextPositionCount : 0,
-            isScrollEnabled: isPaginationViewScrollingEnabled(with: settings)
+            isScrollEnabled: isPaginationViewScrollingEnabled
         )
         view.delegate = self
         view.backgroundColor = .clear
@@ -614,10 +614,10 @@ open class EPUBNavigatorViewController: UIViewController,
 
     // MARK: - Navigator
 
-    private func isPaginationViewScrollingEnabled(with settings: EPUBSettings) -> Bool {
+    private var isPaginationViewScrollingEnabled: Bool {
         !(config.disablePageTurnsWhileScrolling && settings.scroll)
     }
-    
+
     public var presentation: VisualNavigatorPresentation {
         VisualNavigatorPresentation(
             readingProgression: settings.readingProgression,
@@ -854,6 +854,7 @@ open class EPUBNavigatorViewController: UIViewController,
         }
 
         view.backgroundColor = settings.effectiveBackgroundColor.uiColor
+        paginationView.isScrollEnabled = isPaginationViewScrollingEnabled
     }
 
     // MARK: - User interactions
@@ -912,7 +913,7 @@ open class EPUBNavigatorViewController: UIViewController,
 extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
     func epubNavigatorViewModelInvalidatePaginationView(_ viewModel: EPUBNavigatorViewModel) {
         Task {
-            paginationView.isScrollEnabled = isPaginationViewScrollingEnabled(with: viewModel.settings)
+            paginationView.isScrollEnabled = isPaginationViewScrollingEnabled
             await reloadSpreads(force: true)
         }
     }

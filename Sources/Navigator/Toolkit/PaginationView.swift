@@ -94,8 +94,10 @@ final class PaginationView: UIView, Loggable {
     private let scrollView = UIScrollView()
 
     /// Allows the scroll view to scroll.
-    var isScrollEnabled: Bool
-    
+    var isScrollEnabled: Bool {
+        didSet { scrollView.isScrollEnabled = isScrollEnabled }
+    }
+
     init(
         frame: CGRect,
         preloadPreviousPositionCount: Int,
@@ -105,7 +107,7 @@ final class PaginationView: UIView, Loggable {
         self.preloadPreviousPositionCount = preloadPreviousPositionCount
         self.preloadNextPositionCount = preloadNextPositionCount
         self.isScrollEnabled = isScrollEnabled
-        
+
         super.init(frame: frame)
 
         scrollView.delegate = self

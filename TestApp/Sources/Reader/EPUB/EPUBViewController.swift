@@ -37,7 +37,7 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
         let navigator = try EPUBNavigatorViewController(
             publication: publication,
             initialLocation: locator,
-            config: .init(
+            config: EPUBNavigatorViewController.Configuration(
                 preferences: initialPreferences,
                 editingActions: EditingAction.defaultActions
                     .appending(EditingAction(

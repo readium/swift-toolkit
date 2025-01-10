@@ -8,6 +8,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 * The Readium Swift toolkit now requires a minimum of iOS 13.4.
 
+### Added
+
+#### Navigator
+
+* The `EPUBNavigatorViewController.Configuration.disablePageTurnsWhileScrolling` property disables horizontal swipes for navigating to previous or next resources when scroll mode is enabled. When set to `true`, you must implement your own mechanism to move to the next resource (contributed by [@alecdhansen](https://github.com/readium/swift-toolkit/pull/531)).
+
 ### Changed
 
 #### Shared
