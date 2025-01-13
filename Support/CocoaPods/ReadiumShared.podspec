@@ -1,14 +1,15 @@
 Pod::Spec.new do |s|
   
   s.name         = "ReadiumShared"
-  s.version      = "3.0.0-beta.1"
+  s.version      = "3.0.0-beta.2"
   s.license      = "BSD 3-Clause License"
   s.summary      = "Readium Shared"
   s.homepage     = "http://readium.github.io"
   s.author       = { "Readium" => "contact@readium.org" }
-  s.source       = { :git => 'https://github.com/readium/swift-toolkit.git', :branch => "develop" }
+  s.source       = { :git => 'https://github.com/readium/swift-toolkit.git', :tag => s.version }
   s.requires_arc = true
   s.source_files  = "Sources/Shared/**/*.{m,h,swift}"
+  s.swift_version = '5.10'
   s.platform     = :ios
   s.ios.deployment_target = "13.4"
   s.frameworks   = "CoreServices"
@@ -18,6 +19,6 @@ Pod::Spec.new do |s|
   s.dependency 'SwiftSoup', '~> 2.7.0'
   s.dependency 'ReadiumFuzi', '~> 4.0.0'
   s.dependency 'ReadiumZIPFoundation', '~> 1.0.0'
-  s.dependency 'ReadiumInternal'
+  s.dependency 'ReadiumInternal', '~> 3.0.0-beta.2'
 
 end
