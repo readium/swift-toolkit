@@ -419,15 +419,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             // Seeks to time
             let time = locator.locations.time?.begin ?? ((resourceDuration ?? 0) * (locator.locations.progression ?? 0))
 
-            await withCheckedContinuation { continuation in
-                player.seek(to: CMTime(seconds: time, preferredTimescale: 1000)) { [weak self] finished in
-                    if let self = self, finished {
-                        Task { @MainActor in
-                            self.delegate?.navigator(self, didJumpTo: locator)
-                        }
-                    }
-                    continuation.resume()
-                }
+            let finished = await player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
+            if finished {
+                await delegate?.navigator(self, didJumpTo: locator)
             }
 
             return true
