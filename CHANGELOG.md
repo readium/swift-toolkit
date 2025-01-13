@@ -30,6 +30,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Fixed a crash using `HTTPClient.download()` when the device storage is full.
 
+#### Navigator
+
+* [#509](https://github.com/readium/swift-toolkit/issues/509) Removed the "Copy Link with Highlight" and "Writing Tools" EPUB editing actions on newer devices.
+
 #### OPDS
 
 * Fixed a data race in the OPDS 1 parser.
