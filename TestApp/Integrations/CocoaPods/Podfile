@@ -1,15 +1,17 @@
+source 'https://github.com/readium/podspecs'
+source 'https://cdn.cocoapods.org/'
+
 platform :ios, '18.0'
 
 target 'TestApp' do
   # Comment the next line if you don't want to use dynamic frameworks
   use_frameworks!
 
-  pod 'ReadiumShared', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumShared.podspec'
-  pod 'ReadiumStreamer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumStreamer.podspec'
-  pod 'ReadiumNavigator', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumNavigator.podspec'
-  pod 'ReadiumAdapterGCDWebServer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumAdapterGCDWebServer.podspec'
-  pod 'ReadiumOPDS', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumOPDS.podspec'
-  pod 'ReadiumInternal', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/VERSION/Support/CocoaPods/ReadiumInternal.podspec'
+  pod 'ReadiumShared', '~> VERSION'
+  pod 'ReadiumStreamer', '~> VERSION'
+  pod 'ReadiumNavigator', '~> VERSION'
+  pod 'ReadiumOPDS', '~> VERSION'
+  pod 'ReadiumAdapterGCDWebServer', '~> VERSION'
 
   pod 'GRDB.swift', '~> 6.0'
   pod 'Kingfisher', '~> 5.0'
