@@ -18,7 +18,7 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
 4. Issue the new release.
     1. Create a branch with the same name as the future tag, from `develop`.
     2. Bump the version numbers in the `Support/CocoaPods/*.podspec` files.
-        * :warning: Don't forget to use `:tag` in the `Podspec` files instead of `:branch`, [for example](https://github.com/readium/swift-toolkit/pull/353/commits/a0714589b3da928dd923ba78f379116715797333#diff-b726fa4aff3ea878dedf3e0f78607c09975ef5412966dc1b547d9b5e9e4b0d9cL9).
+        * :warning: Don't forget to use `:tag => s.version` in the `Podspec` files instead of `:branch`.
     3. Bump the version numbers in `README.md`.
     4. Bump the version numbers in `TestApp/Sources/Info.plist`.
     5. Close the version in the `CHANGELOG.md`, [for example](https://github.com/readium/swift-toolkit/pull/353/commits/a0714589b3da928dd923ba78f379116715797333#diff-06572a96a58dc510037d5efa622f9bec8519bc1beab13c9f251e97e657a9d4ed).
@@ -31,11 +31,25 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
         git tag -a 3.0.1 -m 3.0.1
         git push --tags
         ```
+    9. Release the updated Podspecs:
+        ```shell
+        cd Support/CocoaPods
+
+        pod repo add readium git@github.com:readium/podspecs.git
+
+        pod repo push readium ReadiumInternal.podspec
+        pod repo push readium ReadiumShared.podspec
+        pod repo push readium ReadiumStreamer.podspec
+        pod repo push readium ReadiumNavigator.podspec
+        pod repo push readium ReadiumOPDS.podspec
+        pod repo push readium ReadiumLCP.podspec
+        pod repo push readium ReadiumAdapterGCDWebServer.podspec
+        pod repo push readium ReadiumAdapterLCPSQLite.podspec
+        ```
 5. Verify you can fetch the new version from the latest Test App with `make spm|carthage|cocoapods version=3.0.1`
 7. Announce the release.
     1. Create a new release on GitHub.
     2. Publish a new TestFlight beta with LCP enabled.
         * Click on "External Groups" > "Public Beta", then add the new build so that it's available to everyone.
 8. Merge `develop` into `main`.
-9. :warning: Revert to `:branch => "develop"` in the `Podspec` files in `develop`.
 

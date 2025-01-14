@@ -1,12 +1,12 @@
 Pod::Spec.new do |s|
 
   s.name          = "ReadiumNavigator"
-  s.version       = "3.0.0-beta.1"
+  s.version       = "3.0.0-beta.2"
   s.license       = "BSD 3-Clause License"
   s.summary       = "Readium Navigator"
   s.homepage      = "http://readium.github.io"
   s.author        = { "Readium" => "contact@readium.org" }
-  s.source        = { :git => "https://github.com/readium/swift-toolkit.git", :branch => "develop" }
+  s.source        = { :git => "https://github.com/readium/swift-toolkit.git", :tag => s.version }
   s.requires_arc  = true
   s.resource_bundles = {
     'ReadiumNavigator' => [
@@ -15,11 +15,12 @@ Pod::Spec.new do |s|
     ],
   }
   s.source_files  = "Sources/Navigator/**/*.{m,h,swift}"
+  s.swift_version = '5.10'
   s.platform      = :ios
   s.ios.deployment_target = "13.4"
 
-  s.dependency 'ReadiumShared'
-  s.dependency 'ReadiumInternal'
+  s.dependency 'ReadiumShared', '~> 3.0.0-beta.2'
+  s.dependency 'ReadiumInternal', '~> 3.0.0-beta.2'
   s.dependency 'DifferenceKit', '~> 1.0'
   s.dependency 'SwiftSoup', '~> 2.7.0'
 
