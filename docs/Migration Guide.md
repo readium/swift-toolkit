@@ -4,9 +4,26 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 <!-- ## Unreleased -->
 
-## 3.0.0-beta.2
+## 3.0.0
 
-### CocoaPods Specs repository
+:warning: If you upgrade from an `alpha` or `beta` version of 3.0.0, please refer to the [3.0.0-beta.2 migration guide](https://github.com/readium/swift-toolkit/blob/3.0.0-beta.2/docs/Migration%20Guide.md) instead.
+
+### R2 prefix dropped
+
+The `R2` prefix is now deprecated. The `R2Shared`, `R2Streamer` and `R2Navigator` packages were renamed as `ReadiumShared`, `ReadiumStreamer` and `ReadiumNavigator`.
+
+You will need to update your imports, as well as the dependencies you include in your project:
+
+* Swift Package Manager: There's nothing to do.
+* Carthage:
+    * Update the Carthage dependencies and make sure the new `ReadiumShared.xcframework`, `ReadiumStreamer.xcframework` and `ReadiumNavigator.xcframework` were built.
+    * Replace the old frameworks with the new ones in your project.
+* CocoaPods:
+    * Update the `pod` statements to reflect the new names of `ReadiumShared`, `ReadiumStreamer` and `ReadiumNavigator`.
+
+### Dependency managers
+
+#### CocoaPods Specs repository
 
 All the libraries are now available on a dedicated [Readium CocoaPods Specs repository](https://github.com/readium/podspecs). To use it, add the following statements at the top of your `Podfile`:
 
@@ -35,14 +52,57 @@ Don't forget to remove the statements for some internal dependencies that are no
 
 Finally, run `pod install --repo-update`.
 
-### ZIPFoundation replaces Minizip
+#### ZIPFoundation replaces Minizip
 
 The default `ZIPArchiveOpener` is now using ZIPFoundation instead of Minizip, with improved performances when reading ranges of `stored` ZIP entries.
 
 If you use Carthage, remove `Minizip.xcframework` from your dependencies and add `ReadiumZIPFoundation.xcframework` instead. No changes are needed when using Swift Package Manager or CocoaPods.
 
+### Migration of HREFs and Locators (bookmarks, annotations, etc.)
 
-## 3.0.0-alpha.2
+ :warning: This requires a database migration in your application, if you were persisting `Locator` objects.
+
+ In Readium v2.x, a `Link` or `Locator`'s `href` could be either:
+
+ * a valid absolute URL for a streamed publication, e.g. `https://domain.com/isbn/dir/my%20chapter.html`,
+ * a percent-decoded path for a local archive such as an EPUB, e.g. `/dir/my chapter.html`.
+     * Note that it was relative to the root of the archive (`/`).
+
+ To improve the interoperability with other Readium toolkits (in particular the Readium Web Toolkits, which only work in a streaming context) **Readium v3 now generates and expects valid URLs** for `Locator` and `Link`'s `href`.
+
+ * `https://domain.com/isbn/dir/my%20chapter.html` is left unchanged, as it was already a valid URL.
+ * `/dir/my chapter.html` becomes the relative URL path `dir/my%20chapter.html`
+     * We dropped the `/` prefix to avoid issues when resolving to a base URL.
+     * Special characters are percent-encoded.
+
+ **You must migrate the HREFs or Locators stored in your database** when upgrading to Readium 3. To assist you, two helpers are provided: `AnyURL(legacyHREF:)` and `Locator(legacyJSONString:)`.
+
+ Here's an example of a [GRDB migration](https://swiftpackageindex.com/groue/grdb.swift/master/documentation/grdb/migrations) that can serve as inspiration:
+
+ ```swift
+ migrator.registerMigration("normalizeHREFs") { db in
+    let normalizedRows: [(id: Int, href: String, locator: String)] =
+        try Row.fetchAll(db, sql: "SELECT id, href, locator FROM bookmarks")
+            .compactMap { row in
+                guard
+                    let normalizedHREF = AnyURL(legacyHREF: row["href"])?.string,
+                    let normalizedLocator = try Locator(legacyJSONString: row["locator"])?.jsonString
+                else {
+                    return nil
+                }
+                return (row["id"], normalizedHREF, normalizedLocator)
+            }
+            
+    let updateStmt = try db.makeStatement(sql: "UPDATE bookmarks SET href = :href, locator = :locator WHERE id = :id")
+    for (id, href, locator) in normalizedRows {
+        try updateStmt.execute(arguments: [
+            "id": id,
+            "href": href
+            "locator": locator
+        ])
+    }
+}
+```
 
 ### Error management
 
@@ -119,7 +179,7 @@ To use `ReadiumAdapterLCPSQLite`, you must update your imports and the dependenc
 * CocoaPods:
     * Update the `pod` statements in your `Podfile` with the following, before running `pod install`:
         ```
-        pod 'ReadiumAdapterLCPSQLite', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/3.0.0/Support/CocoaPods/ReadiumAdapterLCPSQLite.podspec'
+        pod 'ReadiumAdapterLCPSQLite', '~> 3.0.0'
         ```
 Then, provide the adapters when initializing the `LCPService`.
 
@@ -142,73 +202,6 @@ The LCP APIs now accept a `LicenseDocumentSource` enum instead of a URL to an LC
 ```diff
 -lcpService.acquirePublication(from: url) { ... }
 +await lcpService.acquirePublication(from: .file(FileURL(url: url)))
-```
-
-
-## 3.0.0-alpha.1
-
-### R2 prefix dropped
-
-The `R2` prefix is now deprecated. The `R2Shared`, `R2Streamer` and `R2Navigator` packages were renamed as `ReadiumShared`, `ReadiumStreamer` and `ReadiumNavigator`.
-
-You will need to update your imports, as well as the dependencies you include in your project:
-
-* Swift Package Manager: There's nothing to do.
-* Carthage:
-    * Update the Carthage dependencies and make sure the new `ReadiumShared.xcframework`, `ReadiumStreamer.xcframework` and `ReadiumNavigator.xcframework` were built.
-    * Replace the old frameworks with the new ones in your project.
-* CocoaPods:
-    * Update the `pod` statements in your `Podfile` with the following, before running `pod install`:
-        ```
-        pod 'ReadiumShared', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/3.0.0/Support/CocoaPods/ReadiumShared.podspec'
-        pod 'ReadiumStreamer', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/3.0.0/Support/CocoaPods/ReadiumStreamer.podspec'
-        pod 'ReadiumNavigator', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/3.0.0/Support/CocoaPods/ReadiumNavigator.podspec'
-        ```
-
-### Migration of HREFs and Locators (bookmarks, annotations, etc.)
-
- :warning: This requires a database migration in your application, if you were persisting `Locator` objects.
-
- In Readium v2.x, a `Link` or `Locator`'s `href` could be either:
-
- * a valid absolute URL for a streamed publication, e.g. `https://domain.com/isbn/dir/my%20chapter.html`,
- * a percent-decoded path for a local archive such as an EPUB, e.g. `/dir/my chapter.html`.
-     * Note that it was relative to the root of the archive (`/`).
-
- To improve the interoperability with other Readium toolkits (in particular the Readium Web Toolkits, which only work in a streaming context) **Readium v3 now generates and expects valid URLs** for `Locator` and `Link`'s `href`.
-
- * `https://domain.com/isbn/dir/my%20chapter.html` is left unchanged, as it was already a valid URL.
- * `/dir/my chapter.html` becomes the relative URL path `dir/my%20chapter.html`
-     * We dropped the `/` prefix to avoid issues when resolving to a base URL.
-     * Special characters are percent-encoded.
-
- **You must migrate the HREFs or Locators stored in your database** when upgrading to Readium 3. To assist you, two helpers are provided: `AnyURL(legacyHREF:)` and `Locator(legacyJSONString:)`.
-
- Here's an example of a [GRDB migration](https://swiftpackageindex.com/groue/grdb.swift/master/documentation/grdb/migrations) that can serve as inspiration:
-
- ```swift
- migrator.registerMigration("normalizeHREFs") { db in
-    let normalizedRows: [(id: Int, href: String, locator: String)] =
-        try Row.fetchAll(db, sql: "SELECT id, href, locator FROM bookmarks")
-            .compactMap { row in
-                guard
-                    let normalizedHREF = AnyURL(legacyHREF: row["href"])?.string,
-                    let normalizedLocator = try Locator(legacyJSONString: row["locator"])?.jsonString
-                else {
-                    return nil
-                }
-                return (row["id"], normalizedHREF, normalizedLocator)
-            }
-            
-    let updateStmt = try db.makeStatement(sql: "UPDATE bookmarks SET href = :href, locator = :locator WHERE id = :id")
-    for (id, href, locator) in normalizedRows {
-        try updateStmt.execute(arguments: [
-            "id": id,
-            "href": href
-            "locator": locator
-        ])
-    }
-}
 ```
 
 

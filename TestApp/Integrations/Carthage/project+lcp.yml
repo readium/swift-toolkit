@@ -28,6 +28,7 @@ targets:
       - framework: Carthage/Build/R2LCPClient.xcframework
       - framework: Carthage/Build/ReadiumAdapterGCDWebServer.xcframework
       - framework: Carthage/Build/ReadiumAdapterLCPSQLite.xcframework
+      - framework: Carthage/Build/ReadiumFuzi.xcframework
       - framework: Carthage/Build/ReadiumGCDWebServer.xcframework
       - framework: Carthage/Build/ReadiumInternal.xcframework
       - framework: Carthage/Build/ReadiumLCP.xcframework
