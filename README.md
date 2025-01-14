@@ -71,7 +71,6 @@ Refer to the following table to know which dependencies are required for each Re
 Add the following `pod` statements to your `Podfile` for the Readium libraries you want to use:
 
 ```
-# Make sure the Readium repository is before the official CocoaPods CDN.
 source 'https://github.com/readium/podspecs'
 source 'https://cdn.cocoapods.org/'
 

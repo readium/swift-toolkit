@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. Take a look
 ## [3.0.0-beta.2]
 
 * The Readium Swift toolkit now requires a minimum of iOS 13.4.
+* All the libraries are now available on a dedicated [Readium CocoaPods Specs repository](https://github.com/readium/podspecs). Take a look at [the migration guide](Documentation/Migration%20Guide.md) to migrate.
 
 ### Added
 
