@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -9,138 +9,69 @@ import Foundation
 public typealias HTTPResult<Success> = Result<Success, HTTPError>
 
 /// Represents an error occurring during an `HTTPClient` activity.
-public struct HTTPError: Error, Loggable {
-    public enum Kind: Sendable {
-        /// The provided request was not valid.
-        case malformedRequest(url: String?)
-        /// The received response couldn't be decoded.
-        case malformedResponse
-        /// The client, server or gateways timed out.
-        case timeout
-        /// (400) The server cannot or will not process the request due to an apparent client error.
-        case badRequest
-        /// (401) Authentication is required and has failed or has not yet been provided.
-        case unauthorized
-        /// (403) The server refuses the action, probably because we don't have the necessary
-        /// permissions.
-        case forbidden
-        /// (404) The requested resource could not be found.
-        case notFound
-        /// (4xx) Other client errors
-        case clientError
-        /// (5xx) Server errors
-        case serverError
-        /// Cannot connect to the server, or the host cannot be resolved.
-        case serverUnreachable
-        /// The device is offline.
-        case offline
-        /// IO error while accessing the disk.
-        case fileSystem(FileSystemError)
-        /// The request was cancelled.
-        case cancelled
-        /// An error whose kind is not recognized.
-        case other
+public enum HTTPError: Error, Loggable {
+    /// The provided request was not valid.
+    case malformedRequest(url: String?)
 
-        public init?(statusCode: Int) {
-            switch statusCode {
-            case 200 ..< 400:
-                return nil
-            case 400:
-                self = .badRequest
-            case 401:
-                self = .unauthorized
-            case 403:
-                self = .forbidden
-            case 404:
-                self = .notFound
-            case 405 ... 498:
-                self = .clientError
-            case 499:
-                self = .cancelled
-            case 500 ... 599:
-                self = .serverError
-            default:
-                self = .malformedResponse
-            }
-        }
+    /// The received response couldn't be decoded.
+    case malformedResponse(Error?)
 
-        /// Creates a `Kind` from a native `URLError` or another error.
-        public init(error: Error) {
-            switch error {
-            case let error as HTTPError:
-                self = error.kind
-            case let error as URLError:
-                switch error.code {
-                case .badURL, .unsupportedURL:
-                    self = .badRequest
-                case .httpTooManyRedirects, .redirectToNonExistentLocation, .badServerResponse, .secureConnectionFailed:
-                    self = .serverError
-                case .zeroByteResource, .cannotDecodeContentData, .cannotDecodeRawData, .dataLengthExceedsMaximum:
-                    self = .malformedResponse
-                case .notConnectedToInternet, .networkConnectionLost:
-                    self = .offline
-                case .cannotConnectToHost, .cannotFindHost:
-                    self = .serverUnreachable
-                case .timedOut:
-                    self = .timeout
-                case .userAuthenticationRequired, .appTransportSecurityRequiresSecureConnection, .noPermissionsToReadFile:
-                    self = .forbidden
-                case .fileDoesNotExist:
-                    self = .notFound
-                case .cancelled, .userCancelledAuthentication:
-                    self = .cancelled
-                default:
-                    self = .other
-                }
-            default:
-                self = .other
-            }
-        }
-    }
+    /// The server returned a response with an HTTP status error.
+    case errorResponse(HTTPResponse)
 
-    /// Category of HTTP error.
-    public let kind: Kind
+    /// The client, server or gateways timed out.
+    case timeout(Error?)
+
+    /// Cannot connect to the server, or the host cannot be resolved.
+    case unreachable(Error?)
+
+    /// Redirection failed.
+    case redirection(Error?)
+
+    /// Cannot open a secure connection to the server, for example because of
+    /// a failed SSL handshake.
+    case security(Error?)
+
+    /// A Range header was used in the request, but the server does not support
+    /// byte range requests. The request was cancelled.
+    case rangeNotSupported
+
+    /// The device appears offline.
+    case offline(Error?)
+
+    /// IO error while accessing the disk.
+    case fileSystem(FileSystemError)
+
+    /// The request was cancelled.
+    case cancelled
+
+    /// An other unknown error occurred.
+    case other(Error)
+
+    @available(*, unavailable, message: "Use the HTTPError enum instead. HTTP status codes are available with HTTPError.errorResponse.")
+    public enum Kind: Sendable {}
+
+    @available(*, unavailable, message: "Use the HTTPError enum instead. HTTP status codes are available with HTTPError.errorResponse.")
+    public var kind: Kind { fatalError() }
 
     /// Underlying error, if any.
-    public let cause: Error?
+    @available(*, unavailable, message: "Use the HTTPError enum instead. HTTP status codes are available with HTTPError.errorResponse.")
+    public var cause: Error? { fatalError() }
 
     /// Received HTTP response, if any.
-    public let response: HTTPResponse?
+    @available(*, unavailable, message: "Use the HTTPError.errorResponse enum case instead.")
+    public var response: HTTPResponse? { fatalError() }
 
     /// Response body parsed as a JSON problem details.
-    public let problemDetails: HTTPProblemDetails?
-
-    public init(kind: Kind, cause: Error? = nil, response: HTTPResponse? = nil) {
-        self.kind = kind
-        self.cause = cause
-        self.response = response
-
-        problemDetails = {
-            if let body = response?.body, response?.mediaType?.matches(.problemDetails) == true {
-                do {
-                    return try HTTPProblemDetails(data: body)
-                } catch {
-                    HTTPError.log(.error, "Failed to parse the JSON problem details: \(error)")
-                }
-            }
-            return nil
-        }()
-    }
-
-    public init?(response: HTTPResponse) {
-        guard let kind = Kind(statusCode: response.statusCode) else {
+    public func problemDetails() throws -> HTTPProblemDetails? {
+        guard
+            case let .errorResponse(response) = self,
+            response.mediaType?.matches(.problemDetails) == true,
+            let body = response.body
+        else {
             return nil
         }
-        self.init(kind: kind, response: response)
-    }
 
-    /// Creates an `HTTPError` from a native `URLError` or another error.
-    public init(error: Error) {
-        if let error = error as? HTTPError {
-            self = error
-            return
-        }
-
-        self.init(kind: Kind(error: error), cause: error)
+        return try HTTPProblemDetails(data: body)
     }
 }

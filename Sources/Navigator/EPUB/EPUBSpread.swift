@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -10,17 +10,17 @@ import ReadiumShared
 /// A list of EPUB resources to be displayed together on the screen, as one-page or two-pages spread.
 struct EPUBSpread: Loggable {
     /// Indicates whether two pages are displayed side by side.
-    let spread: Bool
+    var spread: Bool
 
     /// Links for the resources displayed in the spread, in reading order.
     /// Note: it's possible to have less links than the amount of `pageCount` available, because a single page might be displayed in a two-page spread (eg. with Properties.Page center, left or right)
-    let links: [Link]
+    var links: [Link]
 
     /// Spread reading progression direction.
-    let readingProgression: ReadingProgression
+    var readingProgression: ReadingProgression
 
     /// Rendition layout of the links in the spread.
-    let layout: EPUBLayout
+    var layout: EPUBLayout
 
     init(spread: Bool, links: [Link], readingProgression: ReadingProgression, layout: EPUBLayout) {
         precondition(!links.isEmpty, "A spread must have at least one page")
@@ -143,64 +143,40 @@ struct EPUBSpread: Loggable {
     /// Builds a list of two-page spreads for the given Publication.
     private static func makeTwoPagesSpreads(
         for publication: Publication,
-        readingOrder: [Link],
+        readingOrder links: [Link],
         readingProgression: ReadingProgression
     ) -> [EPUBSpread] {
-        /// Builds two-pages spreads from a list of links and a spread accumulator.
-        func makeSpreads(for links: [Link], index: Int, in spreads: [EPUBSpread] = []) -> [EPUBSpread] {
-            var links = links
-            var spreads = spreads
-            guard !links.isEmpty else {
-                return spreads
-            }
+        var spreads: [EPUBSpread] = []
 
-            let first = links.removeFirst()
+        var index = 0
+        while index < links.count {
+            let first = links[index]
             let layout = publication.metadata.presentation.layout(of: first)
-            // To be displayed together, the two pages must have a fixed layout, and have consecutive position hints (Properties.Page).
-            if let second = links.first,
-               layout == .fixed,
-               layout == publication.metadata.presentation.layout(of: second),
-               areConsecutive(first, second, index: index)
+
+            var spread = EPUBSpread(
+                spread: true,
+                links: [first],
+                readingProgression: readingProgression,
+                layout: layout
+            )
+
+            // To be displayed together, the two pages must have a fixed layout,
+            // and have consecutive position hints (Properties.Page).
+            if
+                let second = links.getOrNil(index + 1),
+                layout == .fixed,
+                layout == publication.metadata.presentation.layout(of: second),
+                publication.areConsecutive(first, second, index: index)
             {
-                spreads.append(EPUBSpread(
-                    spread: true,
-                    links: [first, second],
-                    readingProgression: readingProgression, layout: layout
-                ))
-                links.removeFirst() // Removes the consumed "second" page
-            } else {
-                spreads.append(EPUBSpread(
-                    spread: true,
-                    links: [first],
-                    readingProgression: readingProgression, layout: layout
-                ))
+                spread.links.append(second)
+                index += 1 // Skips the consumed "second" page
             }
 
-            return makeSpreads(for: links, index: index + 1, in: spreads)
+            spreads.append(spread)
+            index += 1
         }
 
-        /// Two resources are consecutive if their position hint (Properties.Page) are paired according to the reading progression.
-        func areConsecutive(_ first: Link, _ second: Link, index: Int) -> Bool {
-            guard index > 0 || first.properties.page != nil else {
-                return false
-            }
-
-            // Here we use the default publication reading progression instead
-            // of the custom one provided, otherwise the page position hints
-            // might be wrong, and we could end up with only one-page spreads.
-            switch publication.metadata.readingProgression {
-            case .ltr, .ttb, .auto:
-                let firstPosition = first.properties.page ?? .left
-                let secondPosition = second.properties.page ?? .right
-                return firstPosition == .left && secondPosition == .right
-            case .rtl, .btt:
-                let firstPosition = first.properties.page ?? .right
-                let secondPosition = second.properties.page ?? .left
-                return firstPosition == .right && secondPosition == .left
-            }
-        }
-
-        return makeSpreads(for: readingOrder, index: 0)
+        return spreads
     }
 }
 
@@ -210,6 +186,30 @@ extension Array where Element == EPUBSpread {
         let href = href.anyURL.normalized
         return firstIndex { spread in
             spread.links.contains { $0.url().normalized.string == href.string }
+        }
+    }
+}
+
+private extension Publication {
+    /// Two resources are consecutive if their position hint (Properties.Page)
+    /// are paired according to the reading progression.
+    func areConsecutive(_ first: Link, _ second: Link, index: Int) -> Bool {
+        guard index > 0 || first.properties.page != nil else {
+            return false
+        }
+
+        // Here we use the default publication reading progression instead
+        // of the custom one provided, otherwise the page position hints
+        // might be wrong, and we could end up with only one-page spreads.
+        switch metadata.readingProgression {
+        case .ltr, .ttb, .auto:
+            let firstPosition = first.properties.page ?? .left
+            let secondPosition = second.properties.page ?? .right
+            return firstPosition == .left && secondPosition == .right
+        case .rtl, .btt:
+            let firstPosition = first.properties.page ?? .right
+            let secondPosition = second.properties.page ?? .left
+            return firstPosition == .right && secondPosition == .left
         }
     }
 }

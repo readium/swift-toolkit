@@ -4,15 +4,42 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-## [Unreleased]
+<!-- ## [Unreleased] -->
+
+## [3.0.0-beta.2]
 
 * The Readium Swift toolkit now requires a minimum of iOS 13.4.
+* All the libraries are now available on a dedicated [Readium CocoaPods Specs repository](https://github.com/readium/podspecs). Take a look at [the migration guide](Documentation/Migration%20Guide.md) to migrate.
+
+### Added
+
+#### Navigator
+
+* The `EPUBNavigatorViewController.Configuration.disablePageTurnsWhileScrolling` property disables horizontal swipes for navigating to previous or next resources when scroll mode is enabled. When set to `true`, you must implement your own mechanism to move to the next resource (contributed by [@alecdhansen](https://github.com/readium/swift-toolkit/pull/531)).
 
 ### Changed
 
 #### Shared
 
 * The default `ZIPArchiveOpener` is now using ZIPFoundation instead of Minizip, with improved performances when reading ranges of `stored` ZIP entries.
+* Improvements in the HTTP client:
+    * The `consume` closure of `HTTPClient.stream()` can now return an error to abort the HTTP request.
+    * `HTTPError` has been refactored for improved type safety and a clearer separation of connection errors versus HTTP errors.
+    * `DefaultHTTPClient` no longer automatically restarts a failed `HEAD` request as a `GET` to retrieve the response body. If you relied on this behavior, you can implement it using a custom `DefaultHTTPClientDelegate.httpClient(_:recoverRequest:fromError:)`.
+
+### Fixed
+
+#### Shared
+
+* Fixed a crash using `HTTPClient.download()` when the device storage is full.
+
+#### Navigator
+
+* [#509](https://github.com/readium/swift-toolkit/issues/509) Removed the "Copy Link with Highlight" and "Writing Tools" EPUB editing actions on newer devices.
+
+#### OPDS
+
+* Fixed a data race in the OPDS 1 parser.
 
 
 ## [3.0.0-beta.1]
@@ -811,3 +838,4 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [3.0.0-alpha.2]: https://github.com/readium/swift-toolkit/compare/3.0.0-alpha.1...3.0.0-alpha.2
 [3.0.0-alpha.3]: https://github.com/readium/swift-toolkit/compare/3.0.0-alpha.2...3.0.0-alpha.3
 [3.0.0-beta.1]: https://github.com/readium/swift-toolkit/compare/3.0.0-alpha.3...3.0.0-beta.1
+[3.0.0-beta.2]: https://github.com/readium/swift-toolkit/compare/3.0.0-beta.1...3.0.0-beta.2

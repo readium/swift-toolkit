@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -175,7 +175,14 @@ public class GCDHTTPServer: HTTPServer, Loggable {
             log(.warning, "Resource not found for request \(request)")
             completion(
                 HTTPServerRequest(url: url, href: nil),
-                HTTPServerResponse(error: .notFound),
+                HTTPServerResponse(error: .errorResponse(HTTPResponse(
+                    request: HTTPRequest(url: url),
+                    url: url,
+                    status: .notFound,
+                    headers: [:],
+                    mediaType: nil,
+                    body: nil
+                ))),
                 nil
             )
         }

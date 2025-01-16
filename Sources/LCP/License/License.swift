@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -221,13 +221,18 @@ extension License: LCPLicense {
             return try await httpClient.fetch(HTTPRequest(url: url, method: .put))
                 .map { $0.body ?? Data() }
                 .mapError { error -> RenewError in
-                    switch error.kind {
-                    case .badRequest:
-                        return .renewFailed
-                    case .forbidden:
-                        return .invalidRenewalPeriod(maxRenewDate: self.maxRenewDate)
+                    switch error {
+                    case let .errorResponse(response):
+                        switch response.status {
+                        case .badRequest:
+                            return .renewFailed
+                        case .forbidden:
+                            return .invalidRenewalPeriod(maxRenewDate: self.maxRenewDate)
+                        default:
+                            return .unexpectedServerError(error)
+                        }
                     default:
-                        return .unexpectedServerError
+                        return .unexpectedServerError(error)
                     }
                 }
                 .get()
@@ -260,13 +265,18 @@ extension License: LCPLicense {
         do {
             let data = try await httpClient.fetch(HTTPRequest(url: url, method: .put))
                 .mapError { error -> ReturnError in
-                    switch error.kind {
-                    case .badRequest:
-                        return .returnFailed
-                    case .forbidden:
-                        return .alreadyReturnedOrExpired
+                    switch error {
+                    case let .errorResponse(response):
+                        switch response.status {
+                        case .badRequest:
+                            return .returnFailed
+                        case .forbidden:
+                            return .alreadyReturnedOrExpired
+                        default:
+                            return .unexpectedServerError(error)
+                        }
                     default:
-                        return .unexpectedServerError
+                        return .unexpectedServerError(error)
                     }
                 }
                 .map { $0.body ?? Data() }

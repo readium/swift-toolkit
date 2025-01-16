@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -79,14 +79,23 @@ public extension HTTPServer {
         onFailure: HTTPRequestHandler.OnFailure? = nil
     ) throws -> HTTPURL {
         func onRequest(request: HTTPServerRequest) -> HTTPServerResponse {
+            lazy var notFound = HTTPError.errorResponse(HTTPResponse(
+                request: HTTPRequest(url: request.url),
+                url: request.url,
+                status: .notFound,
+                headers: [:],
+                mediaType: nil,
+                body: nil
+            ))
+
             guard
                 let href = request.href,
                 let link = publication.linkWithHREF(href),
                 let resource = publication.get(href)
             else {
-                onFailure?(request, .access(.http(HTTPError(kind: .notFound))))
+                onFailure?(request, .access(.http(notFound)))
 
-                return HTTPServerResponse(error: .notFound)
+                return HTTPServerResponse(error: notFound)
             }
 
             return HTTPServerResponse(
@@ -132,9 +141,9 @@ public struct HTTPServerResponse {
         self.mediaType = mediaType
     }
 
-    public init(error: HTTPError.Kind) {
+    public init(error: HTTPError) {
         self.init(
-            resource: FailureResource(error: .access(.http(HTTPError(kind: error)))),
+            resource: FailureResource(error: .access(.http(error))),
             mediaType: nil
         )
     }

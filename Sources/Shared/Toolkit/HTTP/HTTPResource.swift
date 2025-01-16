@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -62,7 +62,10 @@ public actor HTTPResource: Resource {
 
         return await client.stream(
             request: request,
-            consume: { data, _ in consume(data) }
+            consume: { data, _ in
+                consume(data)
+                return .success(())
+            }
         )
         .map { _ in () }
         .mapError { .access(.http($0)) }

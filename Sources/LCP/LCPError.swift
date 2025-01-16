@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -86,7 +86,7 @@ public enum RenewError: Error {
     // Incorrect renewal period, your publication could not be renewed.
     case invalidRenewalPeriod(maxRenewDate: Date?)
     // An unexpected error has occurred on the licensing server.
-    case unexpectedServerError
+    case unexpectedServerError(HTTPError)
 }
 
 /// Errors while returning a loan.
@@ -96,7 +96,7 @@ public enum ReturnError: Error {
     // Your publication has already been returned before or is expired.
     case alreadyReturnedOrExpired
     // An unexpected error has occurred on the licensing server.
-    case unexpectedServerError
+    case unexpectedServerError(HTTPError)
 }
 
 /// Errors while parsing the License or Status JSON Documents.
