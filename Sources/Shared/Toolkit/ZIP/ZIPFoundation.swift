@@ -59,26 +59,23 @@ final class ZIPFoundationContainer: Container, Loggable {
     }
 
     static func make(resource: Resource) async -> Result<ZIPFoundationContainer, MakeError> {
-        // With an HTTP resource, we use a large buffer of 512 kB to avoid
-        // making hundreds of small HTTP range requests.
+        // With an HTTP resource, we use a large buffer to avoid making hundreds
+        // of small HTTP range requests.
         let bufferSize = ((resource.sourceURL?.httpURL != nil) ? 512 : 16) * 1024
         let resource = resource.buffered(size: bufferSize)
         do {
             let archive = try await ReadiumZIPFoundation.Archive(resource: resource)
-            var entries = [RelativeURL: ZIPFoundationEntryMetadata]()
+            var entries = [RelativeURL: Entry]()
 
             for try await entry in archive {
                 guard
                     entry.type == .file,
-                    let url = RelativeURL(path: entry.path(using: .utf8)),
+                    let url = RelativeURL(path: entry.path),
                     !url.path.isEmpty
                 else {
                     continue
                 }
-                entries[url] = ZIPFoundationEntryMetadata(
-                    length: entry.uncompressedSize,
-                    compressedLength: entry.isCompressed ? entry.compressedSize : nil
-                )
+                entries[url] = entry
             }
 
             return .success(Self(resource: resource, entries: entries, bufferSize: bufferSize))
@@ -89,7 +86,7 @@ final class ZIPFoundationContainer: Container, Loggable {
     }
 
     private let resource: any Resource
-    private let entriesMetadata: [RelativeURL: ZIPFoundationEntryMetadata]
+    private let entriesByPath: [RelativeURL: Entry]
     private let bufferSize: Int
 
     public var sourceURL: AbsoluteURL? { resource.sourceURL }
@@ -97,11 +94,11 @@ final class ZIPFoundationContainer: Container, Loggable {
 
     private init(
         resource: any Resource,
-        entries: [RelativeURL: ZIPFoundationEntryMetadata],
+        entries: [RelativeURL: Entry],
         bufferSize: Int
     ) {
         self.resource = resource
-        entriesMetadata = entries
+        entriesByPath = entries
         self.entries = Set(entries.keys.map(\.anyURL))
         self.bufferSize = bufferSize
     }
@@ -109,54 +106,45 @@ final class ZIPFoundationContainer: Container, Loggable {
     subscript(url: any URLConvertible) -> (any Resource)? {
         guard
             let url = url.relativeURL,
-            let metadata = entriesMetadata[url]
+            let entry = entriesByPath[url]
         else {
             return nil
         }
         return ZIPFoundationResource(
             archiveResource: resource,
-            entryPath: url.path,
-            metadata: metadata,
+            entry: entry,
             bufferSize: bufferSize
         )
     }
 }
 
-private struct ZIPFoundationEntryMetadata {
-    let length: UInt64
-    let compressedLength: UInt64?
-}
-
 private actor ZIPFoundationResource: Resource, Loggable {
     private let archiveResource: any Resource
-    private let entryPath: String
-    private let metadata: ZIPFoundationEntryMetadata
+    private let entry: Entry
     private let bufferSize: Int
 
     init(
         archiveResource: any Resource,
-        entryPath: String,
-        metadata: ZIPFoundationEntryMetadata,
+        entry: Entry,
         bufferSize: Int
     ) {
         self.archiveResource = archiveResource
-        self.entryPath = entryPath
-        self.metadata = metadata
+        self.entry = entry
         self.bufferSize = bufferSize
     }
 
     public let sourceURL: AbsoluteURL? = nil
 
     func estimatedLength() async -> ReadResult<UInt64?> {
-        .success(metadata.length)
+        .success(entry.uncompressedSize)
     }
 
     func properties() async -> ReadResult<ResourceProperties> {
         .success(ResourceProperties {
-            $0.filename = RelativeURL(path: entryPath)?.lastPathSegment
+            $0.filename = RelativeURL(path: entry.path)?.lastPathSegment
             $0.archive = ArchiveProperties(
-                entryLength: metadata.compressedLength ?? metadata.length,
-                isEntryCompressed: metadata.compressedLength != nil
+                entryLength: entry.isCompressed ? entry.compressedSize : entry.uncompressedSize,
+                isEntryCompressed: entry.isCompressed
             )
         })
     }
@@ -166,10 +154,6 @@ private actor ZIPFoundationResource: Resource, Loggable {
 
         return await archive().asyncFlatMap { archive in
             do {
-                guard let entry = try await archive.get(entryPath) else {
-                    return .failure(.decoding("No entry found in the ZIP at \(entryPath)"))
-                }
-
                 if let range = range {
                     try await archive.extractRange(range, of: entry, bufferSize: bufferSize) { data in
                         consume(data)
