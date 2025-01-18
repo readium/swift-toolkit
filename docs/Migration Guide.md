@@ -35,11 +35,11 @@ source 'https://cdn.cocoapods.org/'
 Then, you can reference the Readium libraries as any other CocoaPods dependency, without specifying the full URL to the `Podspec` file.
 
 ```
-pod 'ReadiumShared', '~> 3.0.0-beta.2'
-pod 'ReadiumStreamer', '~> 3.0.0-beta.2'
-pod 'ReadiumNavigator', '~> 3.0.0-beta.2'
-pod 'ReadiumOPDS', '~> 3.0.0-beta.2'
-pod 'ReadiumLCP', '~> 3.0.0-beta.2'
+pod 'ReadiumShared', '~> 3.0.0'
+pod 'ReadiumStreamer', '~> 3.0.0'
+pod 'ReadiumNavigator', '~> 3.0.0'
+pod 'ReadiumOPDS', '~> 3.0.0'
+pod 'ReadiumLCP', '~> 3.0.0'
 ```
 
 Don't forget to remove the statements for some internal dependencies that are now referenced automatically:
