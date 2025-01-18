@@ -35,9 +35,9 @@ class ZIPLicenseContainer: LicenseContainer {
         } catch {
             throw LCPError.licenseContainer(.openFailed(error))
         }
-        
+
         var data = Data()
-        
+
         do {
             guard let entry = try await archive.get(pathInZIP) else {
                 throw LCPError.licenseContainer(.fileNotFound(pathInZIP))

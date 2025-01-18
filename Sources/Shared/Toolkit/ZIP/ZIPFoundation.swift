@@ -59,7 +59,10 @@ final class ZIPFoundationContainer: Container, Loggable {
     }
 
     static func make(resource: Resource) async -> Result<ZIPFoundationContainer, MakeError> {
-//        let resource = resource.buffered()
+        // With an HTTP resource, we use a large buffer of 512 kB to avoid
+        // making hundreds of small HTTP range requests.
+        let bufferSize = ((resource.sourceURL?.httpURL != nil) ? 512 : 16) * 1024
+        let resource = resource.buffered(size: bufferSize)
         do {
             let archive = try await ReadiumZIPFoundation.Archive(resource: resource)
             var entries = [RelativeURL: ZIPFoundationEntryMetadata]()
@@ -78,7 +81,7 @@ final class ZIPFoundationContainer: Container, Loggable {
                 )
             }
 
-            return .success(Self(resource: resource, entries: entries))
+            return .success(Self(resource: resource, entries: entries, bufferSize: bufferSize))
 
         } catch {
             return .failure(.reading(.decoding(error)))
@@ -87,14 +90,20 @@ final class ZIPFoundationContainer: Container, Loggable {
 
     private let resource: any Resource
     private let entriesMetadata: [RelativeURL: ZIPFoundationEntryMetadata]
+    private let bufferSize: Int
 
     public var sourceURL: AbsoluteURL? { resource.sourceURL }
     public let entries: Set<AnyURL>
 
-    private init(resource: any Resource, entries: [RelativeURL: ZIPFoundationEntryMetadata]) {
+    private init(
+        resource: any Resource,
+        entries: [RelativeURL: ZIPFoundationEntryMetadata],
+        bufferSize: Int
+    ) {
         self.resource = resource
         entriesMetadata = entries
         self.entries = Set(entries.keys.map(\.anyURL))
+        self.bufferSize = bufferSize
     }
 
     subscript(url: any URLConvertible) -> (any Resource)? {
@@ -104,7 +113,12 @@ final class ZIPFoundationContainer: Container, Loggable {
         else {
             return nil
         }
-        return ZIPFoundationResource(archiveResource: resource, entryPath: url.path, metadata: metadata)
+        return ZIPFoundationResource(
+            archiveResource: resource,
+            entryPath: url.path,
+            metadata: metadata,
+            bufferSize: bufferSize
+        )
     }
 }
 
@@ -117,11 +131,18 @@ private actor ZIPFoundationResource: Resource, Loggable {
     private let archiveResource: any Resource
     private let entryPath: String
     private let metadata: ZIPFoundationEntryMetadata
+    private let bufferSize: Int
 
-    init(archiveResource: any Resource, entryPath: String, metadata: ZIPFoundationEntryMetadata) {
+    init(
+        archiveResource: any Resource,
+        entryPath: String,
+        metadata: ZIPFoundationEntryMetadata,
+        bufferSize: Int
+    ) {
         self.archiveResource = archiveResource
         self.entryPath = entryPath
         self.metadata = metadata
+        self.bufferSize = bufferSize
     }
 
     public let sourceURL: AbsoluteURL? = nil
@@ -150,11 +171,11 @@ private actor ZIPFoundationResource: Resource, Loggable {
                 }
 
                 if let range = range {
-                    try await archive.extractRange(range, of: entry) { data in
+                    try await archive.extractRange(range, of: entry, bufferSize: bufferSize) { data in
                         consume(data)
                     }
                 } else {
-                    _ = try await archive.extract(entry, skipCRC32: true) { data in
+                    _ = try await archive.extract(entry, bufferSize: bufferSize, skipCRC32: true) { data in
                         consume(data)
                     }
                 }
@@ -179,7 +200,6 @@ private actor ZIPFoundationResource: Resource, Loggable {
 }
 
 private extension ReadiumZIPFoundation.Archive {
-    
     convenience init(resource: any Resource) async throws {
         if let file = resource.sourceURL?.fileURL {
             try await self.init(url: file.url, accessMode: .read)
@@ -196,37 +216,37 @@ enum ResourceDataSourceError: Error {
 private final class ResourceDataSource: ReadiumZIPFoundation.DataSource {
     private let resource: Resource
     private var _position: UInt64 = 0
-    
+
     init(resource: Resource) {
         self.resource = resource
     }
-    
+
     func length() async throws -> UInt64 {
         guard let length = try await resource.estimatedLength().get() else {
             throw ResourceDataSourceError.unknownContentLength
         }
         return length
     }
-    
+
     func position() async throws -> UInt64 {
         _position
     }
-    
+
     func seek(to position: UInt64) async throws {
         _position = position
     }
-    
+
     func read(length: Int) async throws -> Data {
         guard length > 0 else {
             return Data()
         }
-        let range = _position..<(_position + UInt64(length))
+        let range = _position ..< (_position + UInt64(length))
         let data = try await resource.read(range: range).get()
         _position += UInt64(data.count)
         return data
     }
-    
-    func close() throws {
+
+    func close() {
         // FIXME?
 //        resource.close()
     }

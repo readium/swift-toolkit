@@ -11,7 +11,7 @@ private let fixtures = Fixtures(path: "Archive")
 
 class ZIPFoundationTests: XCTestCase {
     private func container(for filename: String) async throws -> Container {
-        try await ZIPFoundationContainer.make(file: fixtures.url(for: filename)).get()
+        try await ZIPFoundationContainer.make(resource: FileResource(file: fixtures.url(for: filename))).get()
     }
 
     func testOpenSuccess() async throws {
