@@ -34,7 +34,20 @@ class LibraryViewController: UIViewController, Loggable {
     private var subscriptions = Set<AnyCancellable>()
 
     lazy var loadingIndicator = PublicationIndicator()
-    private lazy var addBookButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addBookFromDevice))
+
+    private lazy var addBookButton = UIBarButtonItem(
+        systemItem: .add,
+        menu: UIMenu(
+            children: [
+                UIAction(title: "Import local publication") { [weak self] _ in
+                    self?.addBookFromDevice()
+                },
+                UIAction(title: "Stream publication over HTTP") { [weak self] _ in
+                    self?.addBookForStreaming()
+                },
+            ]
+        )
+    )
 
     @IBOutlet var collectionView: UICollectionView! {
         didSet {
@@ -132,6 +145,43 @@ class LibraryViewController: UIViewController, Loggable {
         let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: types)
         documentPicker.delegate = self
         present(documentPicker, animated: true, completion: nil)
+    }
+
+    @objc func addBookForStreaming() {
+        let ac = UIAlertController(title: "Stream publication", message: nil, preferredStyle: .alert)
+        ac.addTextField { tf in
+            tf.placeholder = "HTTP URL"
+        }
+
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
+
+        let addAction = UIAlertAction(title: "Add", style: .default) { [unowned ac, weak self] _ in
+            guard
+                let urlText = ac.textFields?.getOrNil(0)?.text,
+                let url = HTTPURL(string: urlText)
+            else {
+                self?.addBookForStreaming()
+                return
+            }
+
+            self?.importPublication(from: url)
+        }
+
+        ac.addAction(cancelAction)
+        ac.addAction(addAction)
+        ac.preferredAction = addAction
+
+        present(ac, animated: true)
+    }
+
+    private func importPublication(from url: HTTPURL) {
+        Task {
+            do {
+                try await library.importPublication(from: url, sender: self, progress: { _ in })
+            } catch {
+                alert(UserError(error))
+            }
+        }
     }
 }
 

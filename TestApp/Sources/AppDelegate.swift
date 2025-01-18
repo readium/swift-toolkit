@@ -59,7 +59,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         Task {
             do {
-                try await app.library.importPublication(from: url, sender: vc)
+                try await app.library.importPublication(from: url, sender: vc, progress: { _ in })
             } catch {
                 guard let error = error as? UserErrorConvertible else {
                     print(error)

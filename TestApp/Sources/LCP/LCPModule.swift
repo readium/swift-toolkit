@@ -24,7 +24,7 @@ struct LCPPublication {
 
 protocol LCPModuleAPI {
     init(readium: Readium)
-    func fulfill(_ file: FileURL) async throws -> LCPPublication
+    func fulfill(_ file: FileURL, progress: @escaping (Double) -> Void) async throws -> LCPPublication
 }
 
 extension LCPModuleAPI {
@@ -41,8 +41,19 @@ extension LCPModuleAPI {
             lcpService = readium.lcpService
         }
 
-        func fulfill(_ file: FileURL) async throws -> LCPPublication {
-            let pub = try await lcpService.acquirePublication(from: .file(file)).get()
+        func fulfill(_ file: FileURL, progress: @escaping (Double) -> Void) async throws -> LCPPublication {
+            let pub = try await lcpService.acquirePublication(
+                from: .file(file),
+                onProgress: { p in
+                    switch p {
+                    case .indefinite:
+                        progress(0)
+                    case let .percent(percent):
+                        progress(Double(percent))
+                    }
+                }
+            ).get()
+
             // Removes the license file, but only if it's in the App directory (e.g. Inbox/).
             // Otherwise we might delete something from a shared location (e.g. iCloud).
             if Paths.isAppFile(at: file) {
@@ -61,7 +72,7 @@ extension LCPModuleAPI {
     final class LCPModule: LCPModuleAPI {
         init(readium: Readium) {}
 
-        func fulfill(_ file: FileURL) async throws -> LCPPublication {
+        func fulfill(_ file: FileURL, progress: @escaping (Double) -> Void) async throws -> LCPPublication {
             throw LCPModuleError.lcpNotEnabled
         }
     }

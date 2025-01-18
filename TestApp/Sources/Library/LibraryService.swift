@@ -34,7 +34,7 @@ final class LibraryService: Loggable {
 
     /// Opens the Readium 2 Publication for the given `book`.
     func openBook(_ book: Book, sender: UIViewController) async throws -> Publication? {
-        let (pub, _) = try await openPublication(at: book.url(), allowUserInteraction: true, sender: sender)
+        let (pub, _) = try await openPublication(at: book.absoluteURL(), allowUserInteraction: true, sender: sender)
         guard try checkIsReadable(publication: pub) else {
             return nil
         }
@@ -43,7 +43,7 @@ final class LibraryService: Loggable {
 
     /// Opens the Readium 2 Publication at the given `url`.
     private func openPublication(
-        at url: FileURL,
+        at url: AbsoluteURL,
         allowUserInteraction: Bool,
         sender: UIViewController?
     ) async throws -> (Publication, Format) {
@@ -84,66 +84,59 @@ final class LibraryService: Loggable {
             guard let url = url.absoluteURL else {
                 continue
             }
-            try await importPublication(from: url, sender: sender)
+            try await importPublication(from: url, sender: sender, progress: { _ in })
         }
     }
 
+    ///
     /// Imports the publication at the given `url` to the bookshelf.
     ///
-    /// If the `url` is a local file URL, the publication is copied to Documents/. For a remote URL,
-    /// it is first downloaded.
+    /// If the `url` is a local file URL, the publication is copied to
+    /// Documents/ first.
     ///
-    /// DRM services are used to fulfill the publication, in case the URL locates a licensing
-    /// document.
+    /// DRM services are used to fulfill the publication, in case the URL
+    /// locates a licensing document.
     @discardableResult
-    func importPublication(from sourceURL: AbsoluteURL, sender: UIViewController, progress: @escaping (Double) -> Void = { _ in }) async throws -> Book {
+    func importPublication(
+        from url: AbsoluteURL,
+        sender: UIViewController,
+        progress: @escaping (Double) -> Void
+    ) async throws -> Book {
         // Necessary to read URL exported from the Files app, for example.
-        let shouldRelinquishAccess = sourceURL.url.startAccessingSecurityScopedResource()
+        let shouldRelinquishAccess = url.url.startAccessingSecurityScopedResource()
         defer {
             if shouldRelinquishAccess {
-                sourceURL.url.stopAccessingSecurityScopedResource()
+                url.url.stopAccessingSecurityScopedResource()
             }
         }
 
-        var url = try await downloadIfNeeded(sourceURL, progress: progress)
-        url = try await fulfillIfNeeded(url)
+        var url = url
+        if let file = url.fileURL {
+            url = try await fulfillIfNeeded(file, progress: progress)
+        }
+
         let (pub, format) = try await openPublication(at: url, allowUserInteraction: false, sender: sender)
         let coverPath = try await importCover(of: pub)
-        url = try moveToDocuments(
-            from: url,
-            title: pub.metadata.title ?? url.lastPathSegment,
-            format: format
-        )
+
+        if let file = url.fileURL {
+            url = try moveToDocuments(
+                from: file,
+                title: pub.metadata.title ?? file.lastPathSegment,
+                format: format
+            )
+        }
+
         return try await insertBook(at: url, publication: pub, mediaType: format.mediaType, coverPath: coverPath)
     }
 
-    /// Downloads `url` if it locates a remote file.
-    private func downloadIfNeeded(_ url: AbsoluteURL, progress: @escaping (Double) -> Void) async throws -> FileURL {
-        if let url = url.fileURL {
-            return url
-        } else if let url = url.httpURL {
-            return try await download(url, progress: progress)
-        } else {
-            throw LibraryError.downloadFailed(nil)
-        }
-    }
-
-    private func download(_ url: HTTPURL, progress: @escaping (Double) -> Void) async throws -> FileURL {
-        do {
-            return try await readium.httpClient.download(url, onProgress: progress).get().location
-        } catch {
-            throw LibraryError.downloadFailed(error)
-        }
-    }
-
     /// Fulfills the given `url` if it's a DRM license file.
-    private func fulfillIfNeeded(_ url: FileURL) async throws -> FileURL {
+    private func fulfillIfNeeded(_ url: FileURL, progress: @escaping (Double) -> Void) async throws -> FileURL {
         guard lcp.canFulfill(url) else {
             return url
         }
 
         do {
-            let pub = try await lcp.fulfill(url)
+            let pub = try await lcp.fulfill(url, progress: progress)
             return pub.localURL
         } catch {
             throw LibraryError.downloadFailed(error)
@@ -184,15 +177,18 @@ final class LibraryService: Loggable {
     }
 
     /// Inserts the given `book` in the bookshelf.
-    private func insertBook(at url: FileURL, publication: Publication, mediaType: MediaType?, coverPath: String?) async throws -> Book {
+    private func insertBook(at url: AbsoluteURL, publication: Publication, mediaType: MediaType?, coverPath: String?) async throws -> Book {
+        // Makes the URL relative to the Documents/ folder if possible.
+        let url: AnyURL = Paths.documents.relativize(url)?.anyURL ?? url.anyURL
+
         let book = Book(
             identifier: publication.metadata.identifier,
-            title: publication.metadata.title ?? url.lastPathSegment,
+            title: publication.metadata.title ?? url.lastPathSegment ?? "Untitled",
             authors: publication.metadata.authors
                 .map(\.name)
                 .joined(separator: ", "),
             type: mediaType?.string ?? MediaType.binary.string,
-            path: Paths.documents.relativize(url)!.string,
+            url: url,
             coverPath: coverPath
         )
 
@@ -213,7 +209,9 @@ final class LibraryService: Loggable {
 
         do {
             try await books.remove(id)
-            try removeBookFile(at: book.url())
+            if let file = try book.absoluteURL().fileURL {
+                try removeBookFile(at: file)
+            }
         } catch {
             throw LibraryError.bookDeletionFailed(error)
         }
@@ -232,16 +230,13 @@ final class LibraryService: Loggable {
 }
 
 private extension Book {
-    func url() throws -> FileURL {
-        guard let url = AnyURL(string: path) else {
+    func absoluteURL() throws -> AbsoluteURL {
+        guard let url = AnyURL(string: url) else {
             throw LibraryError.bookNotFound
         }
 
         switch url {
         case let .absolute(url):
-            guard let url = url.fileURL else {
-                throw LibraryError.bookNotFound
-            }
             return url
 
         case let .relative(relativeURL):
