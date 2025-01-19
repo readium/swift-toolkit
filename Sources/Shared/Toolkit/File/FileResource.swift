@@ -14,18 +14,6 @@ public actor FileResource: Resource, Loggable {
         fileURL = file
     }
 
-    public nonisolated func close() {
-        Task { await doClose() }
-    }
-
-    private func doClose() async {
-        do {
-            try _handle?.getOrNil()?.close()
-        } catch {
-            log(.error, error)
-        }
-    }
-
     public nonisolated var sourceURL: AbsoluteURL? { fileURL }
 
     private var _length: ReadResult<UInt64?>?

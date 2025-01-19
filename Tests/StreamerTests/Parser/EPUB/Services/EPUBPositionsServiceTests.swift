@@ -424,8 +424,6 @@ private class MockContainer: Container {
         return MockResource(length: length, archiveProperties: archiveProperties)
     }
 
-    func close() {}
-
     struct MockResource: Resource {
         private let _length: UInt64
         private let _properties: ResourceProperties
@@ -436,8 +434,6 @@ private class MockContainer: Container {
             props.archive = archiveProperties
             _properties = props
         }
-
-        func close() {}
 
         let sourceURL: (any AbsoluteURL)? = nil
 

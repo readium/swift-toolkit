@@ -131,7 +131,6 @@ public actor EPUBPositionsService: PositionsService {
         guard let resource = container[link.url()] else {
             return (startPosition, [])
         }
-        defer { resource.close() }
         let positionCount = await reflowableStrategy.positionCount(for: link, resource: resource)
 
         let positions = (1 ... positionCount).map { position in

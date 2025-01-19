@@ -44,10 +44,6 @@ public actor BufferingResource: Resource, Loggable {
         await resource.properties()
     }
 
-    public nonisolated func close() {
-        resource.close()
-    }
-
     private var cachedLength: ReadResult<UInt64?>?
 
     public func estimatedLength() async -> ReadResult<UInt64?> {

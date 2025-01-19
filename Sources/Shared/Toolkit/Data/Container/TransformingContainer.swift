@@ -40,10 +40,6 @@ public final class TransformingContainer: Container {
             transformer(url, resource)
         }
     }
-
-    public func close() {
-        container.close()
-    }
 }
 
 /// Convenient shortcuts to create a `TransformingContainer`.

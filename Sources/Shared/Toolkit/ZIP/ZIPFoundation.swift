@@ -274,6 +274,8 @@ private final class ResourceDataSource: ReadiumZIPFoundation.DataSource {
         self.resource = resource
     }
 
+    func close() throws {}
+
     func length() async throws -> UInt64 {
         guard let length = try await resource.estimatedLength().get() else {
             throw ResourceDataSourceError.unknownContentLength
@@ -297,9 +299,5 @@ private final class ResourceDataSource: ReadiumZIPFoundation.DataSource {
         let data = try await resource.read(range: range).get()
         _position += UInt64(data.count)
         return data
-    }
-
-    func close() {
-        // We don't own the resource, so it will not be closed
     }
 }

@@ -61,10 +61,6 @@ actor TailCachingResource: Resource, Loggable {
             }
     }
 
-    nonisolated func close() {
-        resource.close()
-    }
-
     private var cache: ReadResult<Data?>? = nil
 
     private func cachedTail() async -> ReadResult<Data?> {

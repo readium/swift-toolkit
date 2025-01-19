@@ -28,7 +28,6 @@ extension Container {
         guard let resource = self[href] else {
             return nil
         }
-        defer { resource.close() }
         return try await resource.read().get()
     }
 
@@ -42,7 +41,6 @@ extension Container {
             guard let resource = self[url] else {
                 continue
             }
-            defer { resource.close() }
 
             switch await assetRetriever.sniffFormat(of: resource) {
             case let .success(format):

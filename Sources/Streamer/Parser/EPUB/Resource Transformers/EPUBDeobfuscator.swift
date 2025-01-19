@@ -57,10 +57,6 @@ final class EPUBDeobfuscator {
             self.key = key
         }
 
-        func close() {
-            resource.close()
-        }
-
         let sourceURL: AbsoluteURL? = nil
 
         func estimatedLength() async -> ReadResult<UInt64?> {

@@ -52,10 +52,6 @@ public actor CachingResource: Resource {
             return ()
         }
     }
-
-    public nonisolated func close() {
-        resource.close()
-    }
 }
 
 public extension Resource {
