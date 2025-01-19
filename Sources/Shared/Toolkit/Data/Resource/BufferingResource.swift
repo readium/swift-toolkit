@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Wraps an existing `Resource` and buffers its content.
 ///
@@ -102,6 +103,7 @@ public actor BufferingResource: Resource, Loggable {
                 guard let data = data[requestedRange, offsetBy: readRange.lowerBound] else {
                     return .failure(.decoding("Cannot extract the requested range from the read range"))
                 }
+
                 consume(data)
                 return .success(())
             }
@@ -133,21 +135,6 @@ public actor BufferingResource: Resource, Loggable {
         func get(range: Range<UInt64>) -> Data? {
             data[range, offsetBy: startOffset]
         }
-    }
-}
-
-private extension Data {
-    /// Reads a sub-range of `self` after shifting the given absolute range
-    /// to be relative to `self`.
-    subscript(_ range: Range<UInt64>, offsetBy dataStartOffset: UInt64) -> Data? {
-        let lower = Int(range.lowerBound) - Int(dataStartOffset) + startIndex
-        let upper = lower + range.count
-        guard lower >= 0, upper <= count else {
-            return nil
-        }
-        assert(indices.contains(lower))
-        assert(indices.contains(upper - 1))
-        return self[lower ..< upper]
     }
 }
 

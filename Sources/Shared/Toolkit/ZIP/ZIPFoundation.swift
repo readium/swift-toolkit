@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 import ReadiumZIPFoundation
 
 /// An ``ArchiveOpener`` able to open ZIP archives using ZIPFoundation.
@@ -51,6 +52,88 @@ public final class ZIPFoundationArchiveOpener: ArchiveOpener {
     }
 }
 
+// The ZIP End of Central Directory Record should be at most 65557 bytes,
+// according to the ZIP specification. The ZIP 64 EOCD should be
+// an extra 76 bytes according to ZIPFoundation implementation.
+private let zipEOCDMaximumLength: UInt64 = 65557 + 76
+
+private let maximumZIPLengthToFullyCache = 5.MB
+
+private final class ZIPFoundationArchiveFactory {
+    enum Source {
+        case file(FileURL)
+        case resource(Resource)
+    }
+
+    private let source: Source
+    private let bufferSize: Int
+
+    var sourceURL: AbsoluteURL? {
+        switch source {
+        case let .file(file):
+            return file
+        case let .resource(resource):
+            return resource.sourceURL
+        }
+    }
+
+    init(resource: Resource) async {
+        if let file = resource.sourceURL?.fileURL {
+            source = .file(file)
+            bufferSize = 16.kB
+
+        } else {
+            // We use a large buffer to avoid making hundreds of small HTTP
+            // range requests.
+            let bufferSize = 512.kB
+            var resource: Resource = resource.buffered(size: bufferSize)
+
+            if let optionalLength = await resource.estimatedLength().getOrNil(), let length = optionalLength {
+                // The End of Central Directory Record, located at the end of
+                // the ZIP file, will be read each time we create a new
+                // `Archive` object. To optimize requests, we cache the end of
+                // the resource.
+                //
+                // Additionally, if the ZIP file is small enough, we will cache
+                // it completely in memory.
+                resource = TailCachingResource(
+                    resource: resource,
+                    cacheFromOffset: (!canAllocate(maximumZIPLengthToFullyCache * 2) || length > maximumZIPLengthToFullyCache)
+                        ? Swift.max(0, length - zipEOCDMaximumLength)
+                        : 0
+                )
+            }
+
+            source = .resource(resource)
+            self.bufferSize = bufferSize
+        }
+    }
+
+    func make() async throws -> ReadiumZIPFoundation.Archive {
+        switch source {
+        case let .file(url):
+            return try await .init(
+                url: url.url,
+                accessMode: .read,
+                defaultReadChunkSize: bufferSize
+            )
+
+        case let .resource(resource):
+            return try await .init(
+                url: resource.sourceURL?.url,
+                dataSource: ResourceDataSource(resource: resource),
+                defaultReadChunkSize: bufferSize
+            )
+        }
+    }
+}
+
+/// Indicates whether there is enough available free memory to allocate `length`
+/// bytes.
+private func canAllocate(_ length: Int) -> Bool {
+    os_proc_available_memory() > length
+}
+
 /// A ZIP ``Container`` using the ZIPFoundation library.
 final class ZIPFoundationContainer: Container, Loggable {
     enum MakeError: Error {
@@ -59,12 +142,10 @@ final class ZIPFoundationContainer: Container, Loggable {
     }
 
     static func make(resource: Resource) async -> Result<ZIPFoundationContainer, MakeError> {
-        // With an HTTP resource, we use a large buffer to avoid making hundreds
-        // of small HTTP range requests.
-        let bufferSize = ((resource.sourceURL?.httpURL != nil) ? 512 : 16) * 1024
-        let resource = resource.buffered(size: bufferSize)
         do {
-            let archive = try await ReadiumZIPFoundation.Archive(resource: resource)
+            let archiveFactory = await ZIPFoundationArchiveFactory(resource: resource)
+            let archive = try await archiveFactory.make()
+
             var entries = [RelativeURL: Entry]()
 
             for try await entry in archive {
@@ -78,29 +159,26 @@ final class ZIPFoundationContainer: Container, Loggable {
                 entries[url] = entry
             }
 
-            return .success(Self(resource: resource, entries: entries, bufferSize: bufferSize))
+            return .success(Self(archiveFactory: archiveFactory, entries: entries))
 
         } catch {
             return .failure(.reading(.decoding(error)))
         }
     }
 
-    private let resource: any Resource
+    private let archiveFactory: ZIPFoundationArchiveFactory
     private let entriesByPath: [RelativeURL: Entry]
-    private let bufferSize: Int
 
-    public var sourceURL: AbsoluteURL? { resource.sourceURL }
+    public var sourceURL: AbsoluteURL? { archiveFactory.sourceURL }
     public let entries: Set<AnyURL>
 
     private init(
-        resource: any Resource,
-        entries: [RelativeURL: Entry],
-        bufferSize: Int
+        archiveFactory: ZIPFoundationArchiveFactory,
+        entries: [RelativeURL: Entry]
     ) {
-        self.resource = resource
+        self.archiveFactory = archiveFactory
         entriesByPath = entries
         self.entries = Set(entries.keys.map(\.anyURL))
-        self.bufferSize = bufferSize
     }
 
     subscript(url: any URLConvertible) -> (any Resource)? {
@@ -111,26 +189,22 @@ final class ZIPFoundationContainer: Container, Loggable {
             return nil
         }
         return ZIPFoundationResource(
-            archiveResource: resource,
-            entry: entry,
-            bufferSize: bufferSize
+            archiveFactory: archiveFactory,
+            entry: entry
         )
     }
 }
 
 private actor ZIPFoundationResource: Resource, Loggable {
-    private let archiveResource: any Resource
+    private let archiveFactory: ZIPFoundationArchiveFactory
     private let entry: Entry
-    private let bufferSize: Int
 
     init(
-        archiveResource: any Resource,
-        entry: Entry,
-        bufferSize: Int
+        archiveFactory: ZIPFoundationArchiveFactory,
+        entry: Entry
     ) {
-        self.archiveResource = archiveResource
+        self.archiveFactory = archiveFactory
         self.entry = entry
-        self.bufferSize = bufferSize
     }
 
     public let sourceURL: AbsoluteURL? = nil
@@ -155,11 +229,11 @@ private actor ZIPFoundationResource: Resource, Loggable {
         return await archive().asyncFlatMap { archive in
             do {
                 if let range = range {
-                    try await archive.extractRange(range, of: entry, bufferSize: bufferSize) { data in
+                    try await archive.extractRange(range, of: entry) { data in
                         consume(data)
                     }
                 } else {
-                    _ = try await archive.extract(entry, bufferSize: bufferSize, skipCRC32: true) { data in
+                    _ = try await archive.extract(entry, skipCRC32: true) { data in
                         consume(data)
                     }
                 }
@@ -174,22 +248,12 @@ private actor ZIPFoundationResource: Resource, Loggable {
     private func archive() async -> ReadResult<ReadiumZIPFoundation.Archive> {
         if _archive == nil {
             do {
-                _archive = try await .success(ReadiumZIPFoundation.Archive(resource: archiveResource))
+                _archive = try await .success(archiveFactory.make())
             } catch {
                 _archive = .failure(.decoding(error))
             }
         }
         return _archive!
-    }
-}
-
-private extension ReadiumZIPFoundation.Archive {
-    convenience init(resource: any Resource) async throws {
-        if let file = resource.sourceURL?.fileURL {
-            try await self.init(url: file.url, accessMode: .read)
-        } else {
-            try await self.init(url: resource.sourceURL?.url, dataSource: ResourceDataSource(resource: resource))
-        }
     }
 }
 
