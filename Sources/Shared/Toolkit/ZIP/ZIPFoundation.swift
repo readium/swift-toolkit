@@ -52,13 +52,16 @@ public final class ZIPFoundationArchiveOpener: ArchiveOpener {
     }
 }
 
-// The ZIP End of Central Directory Record should be at most 65557 bytes,
-// according to the ZIP specification. The ZIP 64 EOCD should be
-// an extra 76 bytes according to ZIPFoundation implementation.
+/// The ZIP End of Central Directory Record should be at most 65557 bytes,
+/// according to the ZIP specification. The ZIP 64 EOCD should be
+/// an extra 76 bytes according to ZIPFoundation implementation.
 private let zipEOCDMaximumLength: UInt64 = 65557 + 76
 
+/// The maximum length of a non-local ZIP package to be cached entirely in
+/// memory instead of streamed.
 private let maximumZIPLengthToFullyCache = 5.MB
 
+/// Creates new ZIPFoundation ``Archive`` objects from a shared ``Resource``.
 private final class ZIPFoundationArchiveFactory {
     enum Source {
         case file(FileURL)
@@ -195,6 +198,7 @@ final class ZIPFoundationContainer: Container, Loggable {
     }
 }
 
+/// A ``Resource`` providing access to a single entry in a ZIPFoundation archive.
 private actor ZIPFoundationResource: Resource, Loggable {
     private let archiveFactory: ZIPFoundationArchiveFactory
     private let entry: Entry
@@ -261,6 +265,7 @@ enum ResourceDataSourceError: Error {
     case unknownContentLength
 }
 
+/// Bridges the ZIPFoundation's ``DataSource`` with our ``Resource``.
 private final class ResourceDataSource: ReadiumZIPFoundation.DataSource {
     private let resource: Resource
     private var _position: UInt64 = 0
@@ -295,7 +300,6 @@ private final class ResourceDataSource: ReadiumZIPFoundation.DataSource {
     }
 
     func close() {
-        // FIXME?
-//        resource.close()
+        // We don't own the resource, so it will not be closed
     }
 }
