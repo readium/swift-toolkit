@@ -94,11 +94,7 @@ final class SearchViewModel: ObservableObject {
     /// Cancels any on-going search and clears the results.
     func cancelSearch() {
         switch state {
-        case let .idle(iterator):
-            iterator.close()
-
-        case let .loadingNext(iterator, task):
-            iterator.close()
+        case let .loadingNext(_, task):
             task.cancel()
 
         default:

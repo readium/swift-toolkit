@@ -11,20 +11,18 @@ import Foundation
 /// This is useful when you want to pass a ``Resource`` to a component which
 /// might close it, but you want to keep using it after.
 public extension Resource {
+    @available(*, deprecated, message: "Resources are closed on deallocation now.")
     func borrowed() -> Resource {
         BorrowedResource(resource: self)
     }
 }
 
+@available(*, deprecated, message: "Resources are closed on deallocation now.")
 private class BorrowedResource: Resource {
     private let resource: Resource
 
     init(resource: Resource) {
         self.resource = resource
-    }
-
-    func close() {
-        // Do nothing
     }
 
     var sourceURL: AbsoluteURL? {

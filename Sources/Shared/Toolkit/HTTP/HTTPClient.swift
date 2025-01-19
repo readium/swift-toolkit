@@ -131,12 +131,6 @@ public extension HTTPClient {
             }
         )
 
-        do {
-            try fileHandle.close()
-        } catch {
-            log(.warning, error)
-        }
-
         switch result {
         case let .success(response):
             return .success(HTTPDownload(
