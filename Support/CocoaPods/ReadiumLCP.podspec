@@ -22,6 +22,6 @@ Pod::Spec.new do |s|
   
   s.dependency 'ReadiumShared' , '~> 3.0.0'
   s.dependency 'ReadiumInternal', '~> 3.0.0'
-  s.dependency 'ReadiumZIPFoundation', '~> 1.0.0'
+  s.dependency 'ReadiumZIPFoundation', '~> 2.0.0'
   s.dependency 'CryptoSwift', '~> 1.8.0'
 end
