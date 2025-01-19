@@ -27,6 +27,8 @@ final class AppModule {
     var reader: ReaderModuleAPI!
     var opds: OPDSModuleAPI!
 
+    let readium: Readium
+
     init() throws {
         let file = Paths.library.appendingPath("database.db", isDirectory: false)
         let db = try Database(file: file.url)
@@ -36,7 +38,7 @@ final class AppModule {
         let bookmarks = BookmarkRepository(db: db)
         let highlights = HighlightRepository(db: db)
 
-        let readium = Readium()
+        readium = Readium()
 
         library = LibraryModule(
             delegate: self,
@@ -55,7 +57,7 @@ final class AppModule {
         opds = OPDSModule(delegate: self)
 
         // Set Readium 2's logging minimum level.
-        ReadiumEnableLog(withMinimumSeverityLevel: .warning)
+        ReadiumEnableLog(withMinimumSeverityLevel: .trace)
     }
 
     private(set) lazy var aboutViewController: UIViewController = {
@@ -93,11 +95,14 @@ extension AppModule: OPDSModuleDelegate {
     func opdsDownloadPublication(
         _ publication: Publication?,
         at link: ReadiumShared.Link,
-        sender: UIViewController
+        sender: UIViewController,
+        progress: @escaping (Double) -> Void
     ) async throws -> Book {
-        guard let url = link.url(relativeTo: publication?.baseURL).absoluteURL else {
+        guard let url = link.url(relativeTo: publication?.baseURL).httpURL else {
             throw OPDSError.invalidURL(link.href)
         }
-        return try await library.importPublication(from: url, sender: sender)
+
+        let fileURL = try await readium.httpClient.download(url, onProgress: progress).get().location
+        return try await library.importPublication(from: fileURL, sender: sender, progress: progress)
     }
 }

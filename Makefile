@@ -11,6 +11,7 @@ help:
 
 .PHONY: carthage-project
 carthage-project:
+	rm -rf $(SCRIPTS_PATH)/node_modules/
 	xcodegen -s Support/Carthage/project.yml --use-cache --cache-path Support/Carthage/.xcodegen
 
 .PHONY: scripts

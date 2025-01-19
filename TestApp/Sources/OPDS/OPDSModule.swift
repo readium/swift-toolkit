@@ -24,8 +24,13 @@ protocol OPDSModuleAPI {
 }
 
 protocol OPDSModuleDelegate: ModuleDelegate {
-    /// Called when an OPDS publication needs to be downloaded.
-    func opdsDownloadPublication(_ publication: Publication?, at link: ReadiumShared.Link, sender: UIViewController) async throws -> Book
+    /// Called when an OPDS publication needs to be imported.
+    func opdsDownloadPublication(
+        _ publication: Publication?,
+        at link: ReadiumShared.Link,
+        sender: UIViewController,
+        progress: @escaping (Double) -> Void
+    ) async throws -> Book
 }
 
 final class OPDSModule: OPDSModuleAPI {

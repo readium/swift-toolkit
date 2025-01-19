@@ -96,7 +96,7 @@ class OPDSPublicationInfoViewController: UIViewController, Loggable {
             downloadButton.isEnabled = false
 
             do {
-                let book = try await delegate.opdsDownloadPublication(publication, at: downloadLink, sender: self)
+                let book = try await delegate.opdsDownloadPublication(publication, at: downloadLink, sender: self, progress: { _ in })
                 delegate.presentAlert(
                     NSLocalizedString("success_title", comment: "Title of the alert when a publication is successfully downloaded"),
                     message: String(format: NSLocalizedString("library_download_success_message", comment: "Message of the alert when a publication is successfully downloaded"), book.title),

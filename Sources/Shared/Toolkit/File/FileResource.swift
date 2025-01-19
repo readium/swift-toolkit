@@ -55,7 +55,8 @@ public actor FileResource: Resource, Loggable {
     public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
         await handle().flatMap { handle in
             do {
-                if let range = range {
+                if var range = range {
+                    range = range.clampedToInt()
                     try handle.seek(toOffset: UInt64(max(0, range.lowerBound)))
                     if let data = try handle.read(upToCount: Int(range.upperBound - range.lowerBound)) {
                         consume(data)

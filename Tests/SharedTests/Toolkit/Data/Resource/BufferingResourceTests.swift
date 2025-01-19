@@ -103,19 +103,19 @@ class BufferingResourceTests: XCTestCase {
     private lazy var data = try! Data(contentsOf: file.url)
     private lazy var resource = FileResource(file: file)
 
-    private func sut(bufferSize: UInt64 = 1024) -> BufferingResource {
+    private func sut(bufferSize: Int = 1024) -> BufferingResource {
         BufferingResource(resource: resource, bufferSize: bufferSize)
     }
 
-    func testRead(_ sut: BufferingResource, range: Range<UInt64>? = nil) async throws {
+    func testRead(_ sut: BufferingResource, range: Range<UInt64>? = nil, file: StaticString = #file, line: UInt = #line) async throws {
         let res = await sut.read(range: range)
         let expected = await resource.read(range: range)
-        XCTAssertEqual(res, expected)
+        XCTAssertEqual(res, expected, file: file, line: line)
         let readData = try XCTUnwrap(res.getOrNil())
         if let range = range {
-            XCTAssertEqual(readData, data[range])
+            XCTAssertEqual(readData, data[range], file: file, line: line)
         } else {
-            XCTAssertEqual(readData, data)
+            XCTAssertEqual(readData, data, file: file, line: line)
         }
     }
 }
