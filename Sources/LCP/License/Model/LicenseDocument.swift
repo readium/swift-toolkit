@@ -89,6 +89,11 @@ public struct LicenseDocument {
         }
     }
 
+    /// Link to the protected publication.
+    public var publicationLink: Link {
+        link(for: .publication)!
+    }
+
     /// Returns the first link containing the given rel.
     public func link(for rel: Rel, type: MediaType? = nil) -> Link? {
         links.firstWithRel(rel.rawValue, type: type)
