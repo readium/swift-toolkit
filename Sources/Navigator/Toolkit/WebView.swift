@@ -38,6 +38,15 @@ final class WebView: WKWebView {
         isUserInteractionEnabled = true
     }
 
+    override func buildMenu(with builder: any UIMenuBuilder) {
+        editingActions.buildMenu(with: builder)
+
+        // Don't call super as it is the only way to remove the
+        // "Copy Link with Highlight" menu item.
+        // See https://github.com/readium/swift-toolkit/issues/509
+//        super.buildMenu(with: builder)
+    }
+
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
         super.canPerformAction(action, withSender: sender)
             && editingActions.canPerformAction(action)
