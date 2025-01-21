@@ -16,6 +16,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 * The `close()` and `Closeable` APIs are now deprecated. Resources are automatically released upon `deinit`, which aligns better with Swift.
 
+### Fixed
+
+#### LCP
+
+* Fixed a regression that caused some LCP passphrases to no longer match the protected publication.
+
 
 ## [3.0.0-beta.2]
 

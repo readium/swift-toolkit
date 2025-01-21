@@ -41,10 +41,19 @@ public class LCPSQLitePassphraseRepository: LCPPassphraseRepository, Loggable {
 
     public func passphrasesMatching(userID: User.ID?, provider: LicenseDocument.Provider) async throws -> [LCPPassphraseHash] {
         try logAndRethrow {
-            try db.prepare(transactions.select(passphrase)
-                .filter(self.userId == userID && self.provider == provider)
-            )
-            .compactMap { try $0.get(passphrase) }
+            var passphrases =
+                try db.prepare(transactions.select(passphrase)
+                        .filter(self.userId == userID && self.provider == provider)
+                    )
+                    .compactMap { try $0.get(passphrase) }
+
+            // The legacy SQLite database did not save all the new
+            // (passphrase, userID, provider) tuples. So we need to fall back
+            // on checking all the saved passphrases for a match.
+            passphrases += try db.prepare(transactions.select(passphrase))
+                .compactMap { try $0.get(passphrase) }
+
+            return passphrases
         }
     }
 
