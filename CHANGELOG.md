@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Fixed
+
+#### LCP
+
+* Fixed a regression that caused some LCP passphrases to no longer match the protected publication.
+
 
 ## [3.0.0-beta.2]
 
