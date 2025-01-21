@@ -38,15 +38,6 @@ public enum Asset: AssetProtocol {
             }
         }
     }
-
-    public func close() {
-        switch self {
-        case let .resource(asset):
-            asset.close()
-        case let .container(asset):
-            asset.close()
-        }
-    }
 }
 
 /// A single resource asset.
@@ -58,10 +49,6 @@ public struct ResourceAsset: AssetProtocol {
         self.resource = resource
         self.format = format
     }
-
-    public func close() {
-        resource.close()
-    }
 }
 
 /// A container asset providing access to several resources.
@@ -72,9 +59,5 @@ public struct ContainerAsset: AssetProtocol {
     public init(container: Container, format: Format) {
         self.container = container
         self.format = format
-    }
-
-    public func close() {
-        container.close()
     }
 }

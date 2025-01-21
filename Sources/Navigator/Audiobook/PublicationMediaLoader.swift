@@ -101,9 +101,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
         req.task.cancel()
 
         if reqs.isEmpty {
-            if let (_, res) = resources.removeValue(forKey: href) {
-                res.close()
-            }
+            resources.removeValue(forKey: href)
             requests.removeValue(forKey: href)
         } else {
             requests[href] = reqs

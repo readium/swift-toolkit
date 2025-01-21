@@ -101,10 +101,6 @@ final class LCPDecryptor {
             self.encryption = encryption
         }
 
-        func close() {
-            resource.close()
-        }
-
         let sourceURL: AbsoluteURL? = nil
 
         func properties() async -> ReadResult<ResourceProperties> {

@@ -59,10 +59,4 @@ public class CompositeContainer: Container {
             container[url]
         }
     }
-
-    public func close() {
-        for container in containers {
-            container.close()
-        }
-    }
 }

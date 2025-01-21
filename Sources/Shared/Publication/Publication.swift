@@ -97,15 +97,6 @@ public class Publication: Closeable, Loggable {
             ?? container[href.anyURL.removingQuery().removingFragment()]
     }
 
-    /// Closes any opened resource associated with the `Publication`, including `services`.
-    public func close() {
-        container.close()
-
-        for service in services {
-            service.close()
-        }
-    }
-
     /// Finds the first `Publication.Service` implementing the given service type.
     ///
     /// e.g. `findService(PositionsService.self)`

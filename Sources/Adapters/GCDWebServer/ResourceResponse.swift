@@ -112,8 +112,4 @@ class ResourceResponse: ReadiumGCDWebServerFileResponse, Loggable {
 
         return (try? lastReadData?.get()) ?? Data()
     }
-
-    override open func close() {
-        resource.close()
-    }
 }

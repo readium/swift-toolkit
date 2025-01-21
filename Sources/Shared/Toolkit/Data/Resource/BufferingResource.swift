@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Wraps an existing `Resource` and buffers its content.
 ///
@@ -18,15 +19,23 @@ import Foundation
 /// apparent when reading forward and consecutively – e.g. when downloading the
 /// resource by chunks. The buffer is ignored when reading backward or far
 /// ahead.
-public actor BufferingResource: Resource {
+public actor BufferingResource: Resource, Loggable {
     private nonisolated let resource: Resource
-    private let bufferSize: UInt64
+
+    /// The buffer containing the current bytes read from the wrapped
+    /// `Resource`, with the range it covers.
+    private var buffer: Buffer
 
     /// - Parameter bufferSize: Size of the buffer chunks to read.
-    public init(resource: Resource, bufferSize: UInt64 = 8192) {
-        assert(bufferSize > 0)
+    public init(resource: Resource, bufferSize: Int = 8192) {
+        precondition(bufferSize > 0)
         self.resource = resource
-        self.bufferSize = bufferSize
+        buffer = Buffer(maxSize: bufferSize)
+    }
+
+    @available(*, deprecated, message: "Use an Int bufferSize instead.")
+    public init(resource: Resource, bufferSize: UInt64) {
+        self.init(resource: resource, bufferSize: Int(bufferSize))
     }
 
     public nonisolated var sourceURL: AbsoluteURL? { resource.sourceURL }
@@ -34,13 +43,6 @@ public actor BufferingResource: Resource {
     public func properties() async -> ReadResult<ResourceProperties> {
         await resource.properties()
     }
-
-    public nonisolated func close() {
-        resource.close()
-    }
-
-    /// The buffer containing the current bytes read from the wrapped `Resource`, with the range it covers.
-    private var buffer: (data: Data, range: Range<UInt64>)? = nil
 
     private var cachedLength: ReadResult<UInt64?>?
 
@@ -69,74 +71,78 @@ public actor BufferingResource: Resource {
             consume(Data())
             return .success(())
         }
-
-        // Round up the range to be read to the next `bufferSize`, because we
-        // will buffer the excess.
-        let readUpperBound = min(requestedRange.upperBound.ceilMultiple(of: bufferSize), length)
-        var readRange: Range<UInt64> = requestedRange.lowerBound ..< readUpperBound
-
-        // Attempt to serve parts or all of the request using the buffer.
-        if let buffer = buffer {
-            // Everything already buffered?
-            if buffer.range.contains(requestedRange) {
-                let data = extractRange(requestedRange, in: buffer.data, startingAt: buffer.range.lowerBound)
-                consume(data)
-                return .success(())
-
-                // Beginning of requested data is buffered?
-            } else if buffer.range.contains(requestedRange.lowerBound) {
-                var data = buffer.data
-                let bufferStart = buffer.range.lowerBound
-                readRange = buffer.range.upperBound ..< readRange.upperBound
-
-                return await resource.read(range: readRange)
-                    .map { readData in
-                        data += readData
-                        // Shift the current buffer to the tail of the read data.
-                        saveBuffer(from: data, range: readRange)
-                        consume(extractRange(requestedRange, in: data, startingAt: bufferStart))
-                        return ()
-                    }
-            }
+        if let data = buffer.get(range: requestedRange) {
+            log(.trace, "Used buffer for \(requestedRange) (\(requestedRange.count) bytes)")
+            consume(data)
+            return .success(())
         }
+
+        // Calculate the readRange to cover at least buffer.maxSize bytes.
+        // Adjust the start if near the end of the resource.
+        var readStart = requestedRange.lowerBound
+        var readEnd = requestedRange.upperBound
+        let missingBytesToMatchBufferSize = buffer.maxSize - requestedRange.count
+        if missingBytesToMatchBufferSize > 0 {
+            readEnd = min(readEnd + UInt64(missingBytesToMatchBufferSize), length)
+        }
+        if readEnd - readStart < buffer.maxSize {
+            readStart = UInt64(max(0, Int(readEnd) - buffer.maxSize))
+        }
+        let readRange = readStart ..< readEnd
+        log(.trace, "Requested \(requestedRange) (\(requestedRange.count) bytes), will read range \(readRange) (\(readRange.count) bytes) of resource with length \(length)")
 
         // Fallback on reading the requested range from the original resource.
         return await resource.read(range: readRange)
-            .map { data in
-                saveBuffer(from: data, range: readRange)
-                consume(data[0 ..< requestedRange.count])
-                return ()
+            .flatMap { data in
+                buffer.set(data, at: readRange.lowerBound)
+
+                guard let data = data[requestedRange, offsetBy: readRange.lowerBound] else {
+                    return .failure(.decoding("Cannot extract the requested range from the read range"))
+                }
+
+                consume(data)
+                return .success(())
             }
     }
 
-    /// Keeps the last chunk of the given `data` as the buffer for next reads.
-    ///
-    /// - Parameters:
-    ///   - data: Data read from the original resource.
-    ///   - range: Range of the read data in the resource.
-    private func saveBuffer(from data: Data, range: Range<UInt64>) {
-        let lastChunk = Data(data.suffix(Int(bufferSize)))
-        buffer = (
-            data: lastChunk,
-            range: (range.upperBound - UInt64(lastChunk.count)) ..< range.upperBound
-        )
-    }
+    private struct Buffer {
+        let maxSize: Int
+        private var data: Data = .init()
+        private var startOffset: UInt64 = 0
 
-    /// Reads a sub-range of the given `data` after shifting the given absolute (to the resource) ranges to be relative
-    /// to `data`.
-    private func extractRange(_ requestedRange: Range<UInt64>, in data: Data, startingAt dataStartOffset: UInt64) -> Data {
-        let lower = (requestedRange.lowerBound - dataStartOffset)
-        let upper = lower + (requestedRange.upperBound - requestedRange.lowerBound)
-        assert(lower >= 0)
-        assert(upper <= data.count)
-        return data[lower ..< upper]
+        init(maxSize: Int) {
+            self.maxSize = maxSize
+        }
+
+        mutating func set(_ data: Data, at offset: UInt64) {
+            var data = data
+            var offset = offset
+
+            // Truncates the beginning of the data to maxSize.
+            if data.count > maxSize {
+                offset += UInt64(data.count - maxSize)
+                data = Data(data.suffix(maxSize))
+            }
+
+            self.data = data
+            startOffset = offset
+        }
+
+        func get(range: Range<UInt64>) -> Data? {
+            data[range, offsetBy: startOffset]
+        }
     }
 }
 
 public extension Resource {
     /// Wraps this resource in a `BufferingResource` to improve reading
     /// performances.
-    func buffered(size: UInt64 = 8192) -> BufferingResource {
+    func buffered(size: Int = 8192) -> BufferingResource {
         BufferingResource(resource: self, bufferSize: size)
+    }
+
+    @available(*, deprecated, message: "Use an Int bufferSize instead.")
+    func buffered(size: UInt64) -> BufferingResource {
+        buffered(size: Int(size))
     }
 }

@@ -297,11 +297,6 @@ public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
             },
 
             releaseInfo: { info in
-                guard let context = CGPDFDocumentFactory.context(from: info) else {
-                    return
-                }
-                let resource = context.resource
-                resource.close()
                 let info = info?.assumingMemoryBound(to: ResourceContext.self)
                 info?.deinitialize(count: 1)
                 info?.deallocate()

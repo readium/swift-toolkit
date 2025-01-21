@@ -34,6 +34,8 @@ switch await assetRetriever.retrieve(url: url) {
 }
 ```
 
+:point_up: Assets created with an HTTP URL are not downloaded; they will be streamed. If that is not your intention, you need to download the file first, for example using `HTTPClient.download()`.
+
 The `AssetRetriever` will sniff the media type of the asset, which you can store in your bookshelf database to speed up the process next time you retrieve the `Asset`. This will improve performance, especially with HTTP URL schemes.
 
 ```swift

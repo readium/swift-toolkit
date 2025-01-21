@@ -6,6 +6,16 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
+### Added
+
+#### Shared
+
+* Support for streaming ZIP packages over HTTP. This lets you open a remote EPUB, audiobook, or any other ZIP-based publication without needing to download it first.
+
+### Deprecated
+
+* The `close()` and `Closeable` APIs are now deprecated. Resources are automatically released upon `deinit`, which aligns better with Swift.
+
 ### Fixed
 
 #### LCP

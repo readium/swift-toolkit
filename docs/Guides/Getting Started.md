@@ -97,7 +97,7 @@ A `Resource` provides read access to a single resource, such as a file or an ent
 
 #### Container
 
-A `Container` provides read access to a collection of resources. `Container` instances representing an archive are usually created by an `ArchiveOpener`. The toolkit ships with a `ZIPArchiveOpener` supporting local ZIP files.
+A `Container` provides read access to a collection of resources. `Container` instances representing an archive are usually created by an `ArchiveOpener`. The toolkit ships with a `ZIPArchiveOpener` supporting both local and remote (HTTP) ZIP files.
 
 `Publication` objects internally use a `Container` to expose its content.
 

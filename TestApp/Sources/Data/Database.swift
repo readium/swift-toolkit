@@ -27,7 +27,7 @@ final class Database {
                 t.column("title", .text).notNull()
                 t.column("authors", .text)
                 t.column("type", .text).notNull()
-                t.column("path", .text).notNull()
+                t.column("url", .text).notNull()
                 t.column("coverPath", .text)
                 t.column("locator", .text)
                 t.column("progression", .integer).notNull().defaults(to: 0)

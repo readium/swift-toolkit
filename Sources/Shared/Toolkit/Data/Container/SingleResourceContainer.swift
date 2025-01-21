@@ -24,10 +24,6 @@ public class SingleResourceContainer: Container {
             return nil
         }
 
-        return resource.borrowed()
-    }
-
-    public func close() {
-        resource.close()
+        return resource
     }
 }
