@@ -102,10 +102,10 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
             navigator.clearSelection()
         }
     }
-
+    
     @objc func gptSelection() {
         if let selection = navigator.currentSelection {
-            let url = URL(string: "http://localhost:3000/openai/v1/chat/completions")!
+            let url = URL(string: "https://ereader-backend-03c5888860b8.herokuapp.com/openai/v1/chat/completions")!
             var request = URLRequest(url: url)
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpMethod = "POST"
@@ -119,7 +119,13 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
                 }
                 let responseJSON = try? JSONSerialization.jsonObject(with: data, options: [])
                 if let responseJSON = responseJSON as? [String: Any] {
-                    print(responseJSON)
+                    if let message = responseJSON["message"] as? [String: String] {
+                        if let content = message["content"] {
+                            DispatchQueue.main.async {
+                                self.presentChatGPT(content: content)
+                            }
+                        }
+                    }
                 }
             }
             task.resume()
@@ -127,6 +133,22 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
         }
     }
 
+    // MARK: - ChatGPT
+    
+    func presentChatGPT(content: String) {
+        if #available(iOS 15.0, *) {
+            let chatGPTView = ChatGPTView(content: content)
+            let chatGPTViewController = UIHostingController(rootView: chatGPTView)
+            chatGPTViewController.modalPresentationStyle = .pageSheet
+            if let sheet = chatGPTViewController.sheetPresentationController {
+                sheet.detents = [.medium()]
+            }
+            present(chatGPTViewController, animated: true)
+        } else {
+            // Fallback on earlier versions
+        }
+    }
+    
     // MARK: - Footnotes
 
     private func presentFootnote(content: String, referrer: String?) -> Bool {
