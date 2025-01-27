@@ -19,7 +19,7 @@ enum WebServerResponseError: Error {
 
 /// The object containing the response's ressource data.
 /// If the ressource to be served is too big, multiple responses will be created.
-class ResourceResponse: ReadiumGCDWebServerFileResponse, Loggable {
+class ResourceResponse: ReadiumGCDWebServerResponse, Loggable {
     private let bufferSize = 32 * 1024
 
     private var resource: Resource

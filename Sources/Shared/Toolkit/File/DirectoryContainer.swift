@@ -18,7 +18,7 @@ public struct DirectoryContainer: Container, Loggable {
     /// `entries`.
     public init(directory: FileURL, entries: Set<RelativeURL>) {
         directoryURL = directory
-        self.entries = Set(entries.map(\.anyURL))
+        self.entries = Set(entries.map(\.anyURL.normalized))
     }
 
     /// Creates a ``DirectoryContainer`` at `directory` serving all its children

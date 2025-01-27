@@ -849,7 +849,7 @@ open class EPUBNavigatorViewController: UIViewController,
     /// Applies user settings that require native configuration instead of
     /// CSS properties.
     private func applySettings() {
-        guard isViewLoaded else {
+        guard state != .initializing, isViewLoaded else {
             return
         }
 

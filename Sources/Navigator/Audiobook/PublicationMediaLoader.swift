@@ -53,7 +53,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
     private func resource<T: URLConvertible>(forHREF href: T) -> (Link, Resource)? {
         dispatchPrecondition(condition: .onQueue(queue))
 
-        let href = href.anyURL
+        let href = href.anyURL.normalized
         if let res = resources[equivalent: href] {
             return res
         }
@@ -79,7 +79,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
     private func registerRequest<T: URLConvertible>(_ request: AVAssetResourceLoadingRequest, task: Task<Void, Never>, for href: T) {
         dispatchPrecondition(condition: .onQueue(queue))
 
-        let href = href.anyURL
+        let href = href.anyURL.normalized
         var reqs: [CancellableRequest] = requests[href] ?? []
         reqs.append((request, task))
         requests[href] = reqs
@@ -196,7 +196,7 @@ extension URL {
         // * readium:relative/file.mp3
         // * readiumfile:///directory/local-file.mp3
         // * readiumhttp(s)://domain.com/external-file.mp3
-        return AnyURL(string: url.string.removingPrefix(schemePrefix).removingPrefix(":"))
+        return AnyURL(string: url.string.removingPrefix(schemePrefix).removingPrefix(":"))?.normalized
     }
 }
 
