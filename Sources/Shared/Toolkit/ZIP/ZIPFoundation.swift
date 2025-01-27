@@ -182,7 +182,7 @@ final class ZIPFoundationContainer: Container, Loggable {
         let entries = entries.reduce(into: [:]) { result, item in
             result[item.key.normalized] = item.value
         }
-        
+
         self.archiveFactory = archiveFactory
         entriesByPath = entries
         self.entries = Set(entries.keys.map(\.anyURL))

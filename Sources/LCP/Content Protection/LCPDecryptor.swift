@@ -34,7 +34,7 @@ final class LCPDecryptor {
 
     func decrypt(at href: AnyURL, resource: Resource) -> Resource {
         let href = href.normalized
-        
+
         // Checks if the resource is encrypted and whether the encryption
         // schemes of the resource and the DRM license are the same.
         guard let encryption = encryptionData[href], encryption.scheme == lcpScheme else {
