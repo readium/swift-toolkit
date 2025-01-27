@@ -91,7 +91,7 @@ public final class AudioParser: PublicationParser {
                 container.entries
                     .compactMap { url -> (AnyURL, Format)? in
                         guard
-                            let format = formats[url],
+                            let format = formats[equivalent: url],
                             format.conformsToAny(audioSpecifications)
                         else {
                             return nil

@@ -11,7 +11,7 @@ final class ProxyContainer: Container {
     private let retrieve: (AnyURL) -> Resource?
 
     init(entries: Set<AnyURL> = [], _ retrieve: @escaping (AnyURL) -> Resource?) {
-        self.entries = entries
+        self.entries = Set(entries.map(\.normalized))
         self.retrieve = retrieve
     }
 
@@ -19,6 +19,6 @@ final class ProxyContainer: Container {
     let entries: Set<AnyURL>
 
     subscript(url: any URLConvertible) -> (any Resource)? {
-        retrieve(url.anyURL)
+        retrieve(url.anyURL.normalized)
     }
 }

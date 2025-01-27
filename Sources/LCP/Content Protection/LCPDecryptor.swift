@@ -27,10 +27,14 @@ final class LCPDecryptor {
 
     init(license: LCPLicense?, encryptionData: [AnyURL: ReadiumShared.Encryption]) {
         self.license = license
-        self.encryptionData = encryptionData
+        self.encryptionData = encryptionData.reduce(into: [:]) { result, item in
+            result[item.key.normalized] = item.value
+        }
     }
 
     func decrypt(at href: AnyURL, resource: Resource) -> Resource {
+        let href = href.normalized
+
         // Checks if the resource is encrypted and whether the encryption
         // schemes of the resource and the DRM license are the same.
         guard let encryption = encryptionData[href], encryption.scheme == lcpScheme else {
