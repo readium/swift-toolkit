@@ -16,9 +16,8 @@ import ReadiumShared
 /// - Has better performance when reading an LCP-protected package containing
 ///   large deflated ZIP entries (instead of stored).
 public final class MinizipArchiveOpener: ArchiveOpener {
-    
     public init() {}
-    
+
     public func open(resource: any Resource, format: Format) async -> Result<ContainerAsset, ArchiveOpenError> {
         guard
             format.conformsTo(.zip),

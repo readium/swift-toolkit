@@ -90,19 +90,19 @@ public actor BufferingResource: Resource, Loggable {
         }
         let adjustedRange = adjustedStart ..< adjustedEnd
         log(.trace, "Requested \(requestedRange) (\(requestedRange.count) bytes), adjusted to \(adjustedRange) (\(adjustedRange.count) bytes) of resource with length \(length)")
-        
+
         var data = Data()
-        
+
         // Range that will need to be read from the original resource.
         var readRange = adjustedRange
-        
+
         // Checks if the beginning of the range to read is already buffered.
         // This is an optimization particularly useful with LCP, where we need
         // to go backward for every read to get the previous block of data.
         if
             readRange.lowerBound < buffer.range.upperBound,
             readRange.upperBound > buffer.range.upperBound,
-            let dataPrefix = buffer.get(range: readRange.lowerBound..<buffer.range.upperBound)
+            let dataPrefix = buffer.get(range: readRange.lowerBound ..< buffer.range.upperBound)
         {
             log(.trace, "Found \(dataPrefix.count) bytes to reuse at the end of the buffer")
             data.append(dataPrefix)
@@ -110,7 +110,7 @@ public actor BufferingResource: Resource, Loggable {
         }
 
         log(.trace, "Will read \(readRange) (\(readRange.count) bytes)")
-        
+
         // Fallback on reading the requested range from the original resource.
         return await resource.read(range: readRange)
             .flatMap { readData in
@@ -130,9 +130,9 @@ public actor BufferingResource: Resource, Loggable {
         let maxSize: Int
         private var data: Data = .init()
         private var startOffset: UInt64 = 0
-                
+
         var range: Range<UInt64> {
-            startOffset..<(startOffset + UInt64(data.count))
+            startOffset ..< (startOffset + UInt64(data.count))
         }
 
         init(maxSize: Int) {

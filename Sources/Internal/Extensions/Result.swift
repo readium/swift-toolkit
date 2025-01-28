@@ -7,7 +7,6 @@
 import Foundation
 
 public extension Result {
-    
     func getOrNil() -> Success? {
         try? get()
     }
