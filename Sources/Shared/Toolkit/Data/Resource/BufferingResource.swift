@@ -77,26 +77,47 @@ public actor BufferingResource: Resource, Loggable {
             return .success(())
         }
 
-        // Calculate the readRange to cover at least buffer.maxSize bytes.
+        // Calculate the adjusted range to cover at least buffer.maxSize bytes.
         // Adjust the start if near the end of the resource.
-        var readStart = requestedRange.lowerBound
-        var readEnd = requestedRange.upperBound
+        var adjustedStart = requestedRange.lowerBound
+        var adjustedEnd = requestedRange.upperBound
         let missingBytesToMatchBufferSize = buffer.maxSize - requestedRange.count
         if missingBytesToMatchBufferSize > 0 {
-            readEnd = min(readEnd + UInt64(missingBytesToMatchBufferSize), length)
+            adjustedEnd = min(adjustedEnd + UInt64(missingBytesToMatchBufferSize), length)
         }
-        if readEnd - readStart < buffer.maxSize {
-            readStart = UInt64(max(0, Int(readEnd) - buffer.maxSize))
+        if adjustedEnd - adjustedStart < buffer.maxSize {
+            adjustedStart = UInt64(max(0, Int(adjustedEnd) - buffer.maxSize))
         }
-        let readRange = readStart ..< readEnd
-        log(.trace, "Requested \(requestedRange) (\(requestedRange.count) bytes), will read range \(readRange) (\(readRange.count) bytes) of resource with length \(length)")
+        let adjustedRange = adjustedStart ..< adjustedEnd
+        log(.trace, "Requested \(requestedRange) (\(requestedRange.count) bytes), adjusted to \(adjustedRange) (\(adjustedRange.count) bytes) of resource with length \(length)")
+        
+        var data = Data()
+        
+        // Range that will need to be read from the original resource.
+        var readRange = adjustedRange
+        
+        // Checks if the beginning of the range to read is already buffered.
+        // This is an optimization particularly useful with LCP, where we need
+        // to go backward for every read to get the previous block of data.
+        if
+            readRange.lowerBound < buffer.range.upperBound,
+            readRange.upperBound > buffer.range.upperBound,
+            let dataPrefix = buffer.get(range: readRange.lowerBound..<buffer.range.upperBound)
+        {
+            log(.trace, "Found \(dataPrefix.count) bytes to reuse at the end of the buffer")
+            data.append(dataPrefix)
+            readRange = buffer.range.upperBound ..< readRange.upperBound
+        }
 
+        log(.trace, "Will read \(readRange) (\(readRange.count) bytes)")
+        
         // Fallback on reading the requested range from the original resource.
         return await resource.read(range: readRange)
-            .flatMap { data in
-                buffer.set(data, at: readRange.lowerBound)
+            .flatMap { readData in
+                data.append(readData)
+                buffer.set(data, at: adjustedRange.lowerBound)
 
-                guard let data = data[requestedRange, offsetBy: readRange.lowerBound] else {
+                guard let data = data[requestedRange, offsetBy: adjustedRange.lowerBound] else {
                     return .failure(.decoding("Cannot extract the requested range from the read range"))
                 }
 
@@ -109,6 +130,10 @@ public actor BufferingResource: Resource, Loggable {
         let maxSize: Int
         private var data: Data = .init()
         private var startOffset: UInt64 = 0
+                
+        var range: Range<UInt64> {
+            startOffset..<(startOffset + UInt64(data.count))
+        }
 
         init(maxSize: Int) {
             self.maxSize = maxSize
