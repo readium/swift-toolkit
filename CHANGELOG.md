@@ -11,6 +11,9 @@ All notable changes to this project will be documented in this file. Take a look
 #### Shared
 
 * Support for streaming ZIP packages over HTTP. This lets you open a remote EPUB, audiobook, or any other ZIP-based publication without needing to download it first.
+* A new `ReadiumAdapterMinizip` library ships the old `ArchiveOpener` using Minizip. Compared to the newer default `ZIPArchiveOpener`, it has the following differences:  
+    * It does not support HTTP streaming of ZIP packages.  
+    * It offers better performance for LCP-protected publications containing large resources that are `deflated` instead of `stored` in the archive, which is not recommended.
 
 ### Deprecated
 
