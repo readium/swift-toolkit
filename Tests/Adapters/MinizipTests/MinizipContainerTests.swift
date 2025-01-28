@@ -4,14 +4,15 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import ReadiumShared
+@testable import ReadiumAdapterMinizip
+import ReadiumShared
 import XCTest
 
-private let fixtures = Fixtures(path: "Archive")
+private let fixtures = Fixtures()
 
-class ZIPFoundationTests: XCTestCase {
+class MinizipContainerTests: XCTestCase {
     private func container(for filename: String) async throws -> Container {
-        try await ZIPFoundationContainer.make(resource: FileResource(file: fixtures.url(for: filename))).get()
+        try await MinizipContainer.make(file: fixtures.url(for: filename)).get()
     }
 
     func testOpenSuccess() async throws {
@@ -87,6 +88,7 @@ class ZIPFoundationTests: XCTestCase {
     }
 
     func testReadUncompressedRange() async throws {
+        // FIXME: It looks like unzseek64 starts from the beginning of the file header, instead of the content. Reading a first byte solves this but then Minizip crashes randomly... Note that this only fails in the test case. I didn't see actual issues in LCPDF or videos embedded in EPUBs.
         let container = try await container(for: "test.zip")
         let entry = try XCTUnwrap(container[AnyURL(path: "A folder/Sub.folder%/file.txt")!])
         let data = try await entry.read(range: 14 ..< 20).get()

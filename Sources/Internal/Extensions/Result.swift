@@ -7,6 +7,14 @@
 import Foundation
 
 public extension Result {
+    func getOrNil() -> Success? {
+        try? get()
+    }
+
+    func eraseToAnyError() -> Result<Success, Error> {
+        mapError { $0 as Error }
+    }
+
     /// Asynchronous variant of `map`.
     @inlinable func asyncMap<NewSuccess>(
         _ transform: (Success) async throws -> NewSuccess
@@ -45,6 +53,18 @@ public extension Result {
     @inlinable func combine<T>(_ other: Result<T, Failure>) -> Result<(Success, T), Failure> {
         flatMap { success in
             other.map { other in (success, other) }
+        }
+    }
+}
+
+public extension Result where Failure == Error {
+    func tryMap<T>(_ transform: (Success) throws -> T) -> Result<T, Error> {
+        flatMap {
+            do {
+                return try .success(transform($0))
+            } catch {
+                return .failure(error)
+            }
         }
     }
 }

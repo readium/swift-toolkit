@@ -21,9 +21,11 @@ let package = Package(
         // Adapters to third-party dependencies.
         .library(name: "ReadiumAdapterGCDWebServer", targets: ["ReadiumAdapterGCDWebServer"]),
         .library(name: "ReadiumAdapterLCPSQLite", targets: ["ReadiumAdapterLCPSQLite"]),
+        .library(name: "ReadiumAdapterMinizip", targets: ["ReadiumAdapterMinizip"]),
     ],
     dependencies: [
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.8.0"),
+        .package(url: "https://github.com/marmelroy/Zip.git", from: "2.1.0"),
         .package(url: "https://github.com/ra1028/DifferenceKit.git", from: "1.3.0"),
         .package(url: "https://github.com/readium/Fuzi.git", from: "4.0.0"),
         .package(url: "https://github.com/readium/GCDWebServer.git", from: "4.0.0"),
@@ -155,6 +157,23 @@ let package = Package(
                 "ReadiumLCP",
             ],
             path: "Sources/Adapters/LCPSQLite"
+        ),
+
+        .target(
+            name: "ReadiumAdapterMinizip",
+            dependencies: [
+                "ReadiumShared",
+                "Zip",
+            ],
+            path: "Sources/Adapters/Minizip"
+        ),
+        .testTarget(
+            name: "ReadiumAdapterMinizipTests",
+            dependencies: ["ReadiumAdapterMinizip"],
+            path: "Tests/Adapters/MinizipTests",
+            resources: [
+                .copy("Fixtures"),
+            ]
         ),
 
         .target(
