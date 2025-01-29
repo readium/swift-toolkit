@@ -321,6 +321,7 @@
 ../../Sources/Internal/Extensions/Sequence.swift
 ../../Sources/Internal/Extensions/String.swift
 ../../Sources/Internal/Extensions/Task.swift
+../../Sources/Internal/Extensions/UInt64.swift
 ../../Sources/Internal/Extensions/URL.swift
 ../../Sources/Internal/JSON.swift
 ../../Sources/Internal/Memoize.swift
@@ -438,13 +439,9 @@
 ../../Sources/Navigator/EPUB/Assets/Static/scripts
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/.gitignore
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-one.js
-../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-one.js.map
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-two.js
-../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-two.js.map
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed.js
-../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed.js.map
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-reflowable.js
-../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-reflowable.js.map
 ../../Sources/Navigator/EPUB/CSS
 ../../Sources/Navigator/EPUB/CSS/CSSLayout.swift
 ../../Sources/Navigator/EPUB/CSS/CSSProperties.swift
@@ -706,10 +703,8 @@
 ../../Sources/Shared/Toolkit/Extensions/Bundle.swift
 ../../Sources/Shared/Toolkit/Extensions/Optional.swift
 ../../Sources/Shared/Toolkit/Extensions/Range.swift
-../../Sources/Shared/Toolkit/Extensions/Result.swift
 ../../Sources/Shared/Toolkit/Extensions/StringEncoding.swift
 ../../Sources/Shared/Toolkit/Extensions/UIImage.swift
-../../Sources/Shared/Toolkit/Extensions/UInt64.swift
 ../../Sources/Shared/Toolkit/Extensions/URL.swift
 ../../Sources/Shared/Toolkit/File
 ../../Sources/Shared/Toolkit/File/DirectoryContainer.swift
