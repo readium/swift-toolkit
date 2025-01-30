@@ -29,9 +29,6 @@ The toolkit has been designed following these core tenets:
 
 * `ReadiumAdapterGCDWebServer` provides an HTTP server built with [GCDWebServer](https://github.com/swisspol/GCDWebServer).
 * `ReadiumAdapterLCPSQLite` provides implementations of the `ReadiumLCP` license and passphrase repositories using [SQLite.swift](https://github.com/stephencelis/SQLite.swift).
-* `ReadiumAdapterMinizip` provides an implementation of `ArchiveOpener` using [Minizip](https://github.com/marmelroy/Zip). Compared to the default `ZIPArchiveOpener`, it has the following differences:  
-    * It does not support HTTP streaming of ZIP packages.  
-    * It offers better performance for LCP-protected publications containing large resources that are `deflated` instead of `stored` in the archive, which is not recommended.
 
 ## Overview of the shared models (`ReadiumShared`)
 

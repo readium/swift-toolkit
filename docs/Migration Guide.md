@@ -2,7 +2,14 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
-<!-- ## Unreleased -->
+## Unreleased
+
+### Bringing back Minizip
+
+Minizip was removed in version 3.0.0 and replaced by ZIPFoundation. Until the ZIPFoundation implementation is thoroughly tested, we have reintroduced Minizip as a dependency in version 3.1.0.
+
+If you use Carthage, add `Minizip.xcframework` back to your dependencies. No changes are required when using Swift Package Manager or CocoaPods.
+
 
 ## 3.0.0
 

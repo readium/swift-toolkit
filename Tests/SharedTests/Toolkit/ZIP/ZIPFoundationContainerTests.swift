@@ -9,7 +9,7 @@ import XCTest
 
 private let fixtures = Fixtures(path: "Archive")
 
-class ZIPFoundationTests: XCTestCase {
+class ZIPFoundationContainerTests: XCTestCase {
     private func container(for filename: String) async throws -> Container {
         try await ZIPFoundationContainer.make(resource: FileResource(file: fixtures.url(for: filename))).get()
     }

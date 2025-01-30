@@ -4,11 +4,10 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import ReadiumAdapterMinizip
-import ReadiumShared
+@testable import ReadiumShared
 import XCTest
 
-private let fixtures = Fixtures()
+private let fixtures = Fixtures(path: "Archive")
 
 class MinizipContainerTests: XCTestCase {
     private func container(for filename: String) async throws -> Container {
