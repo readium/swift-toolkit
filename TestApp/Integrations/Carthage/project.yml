@@ -25,6 +25,7 @@ targets:
     dependencies:
       - framework: Carthage/Build/CryptoSwift.xcframework
       - framework: Carthage/Build/DifferenceKit.xcframework
+      - framework: Carthage/Build/Minizip.xcframework
       - framework: Carthage/Build/ReadiumAdapterGCDWebServer.xcframework
       - framework: Carthage/Build/ReadiumFuzi.xcframework
       - framework: Carthage/Build/ReadiumGCDWebServer.xcframework
