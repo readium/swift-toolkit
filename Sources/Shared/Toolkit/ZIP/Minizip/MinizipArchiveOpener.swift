@@ -5,13 +5,10 @@
 //
 
 import Foundation
-import ReadiumShared
 
 /// An ``ArchiveOpener`` able to open ZIP archives using Minizip.
 ///
-/// Compared to the default ZIPFoundation implementation shipped with
-/// ReadiumShared, the ``MinizipArchiveOpener``:
-///
+/// Compared to the ``ZIPFoundationArchiveOpener`` it:
 /// - Does not support HTTP streaming of ZIP archives.
 /// - Has better performance when reading an LCP-protected package containing
 ///   large deflated ZIP entries (instead of stored).

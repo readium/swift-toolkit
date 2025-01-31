@@ -21,7 +21,6 @@ let package = Package(
         // Adapters to third-party dependencies.
         .library(name: "ReadiumAdapterGCDWebServer", targets: ["ReadiumAdapterGCDWebServer"]),
         .library(name: "ReadiumAdapterLCPSQLite", targets: ["ReadiumAdapterLCPSQLite"]),
-        .library(name: "ReadiumAdapterMinizip", targets: ["ReadiumAdapterMinizip"]),
     ],
     dependencies: [
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.8.0"),
@@ -39,6 +38,7 @@ let package = Package(
             dependencies: [
                 "ReadiumInternal",
                 "SwiftSoup",
+                "Zip",
                 .product(name: "ReadiumFuzi", package: "Fuzi"),
                 .product(name: "ReadiumZIPFoundation", package: "ZIPFoundation"),
             ],
@@ -157,23 +157,6 @@ let package = Package(
                 "ReadiumLCP",
             ],
             path: "Sources/Adapters/LCPSQLite"
-        ),
-
-        .target(
-            name: "ReadiumAdapterMinizip",
-            dependencies: [
-                "ReadiumShared",
-                "Zip",
-            ],
-            path: "Sources/Adapters/Minizip"
-        ),
-        .testTarget(
-            name: "ReadiumAdapterMinizipTests",
-            dependencies: ["ReadiumAdapterMinizip"],
-            path: "Tests/Adapters/MinizipTests",
-            resources: [
-                .copy("Fixtures"),
-            ]
         ),
 
         .target(

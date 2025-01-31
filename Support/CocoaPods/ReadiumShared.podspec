@@ -16,6 +16,7 @@ Pod::Spec.new do |s|
   s.libraries =  "xml2"
   s.xcconfig = { 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2' }
   
+  s.dependency 'Minizip', '~> 1.0.0'
   s.dependency 'SwiftSoup', '~> 2.7.0'
   s.dependency 'ReadiumFuzi', '~> 4.0.0'
   s.dependency 'ReadiumZIPFoundation', '~> 2.0.0'
