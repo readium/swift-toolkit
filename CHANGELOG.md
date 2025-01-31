@@ -4,16 +4,15 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-## [Unreleased]
+<!-- ## [Unreleased] -->
+
+## [3.1.0]
 
 ### Added
 
 #### Shared
 
 * Support for streaming ZIP packages over HTTP. This lets you open a remote EPUB, audiobook, or any other ZIP-based publication without needing to download it first.
-* A new `ReadiumAdapterMinizip` library ships the old `ArchiveOpener` using Minizip. Compared to the newer default `ZIPArchiveOpener`, it has the following differences:  
-    * It does not support HTTP streaming of ZIP packages.  
-    * It offers better performance for LCP-protected publications containing large resources that are `deflated` instead of `stored` in the archive, which is not recommended.
 
 ### Deprecated
 
@@ -863,3 +862,4 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [3.0.0-alpha.3]: https://github.com/readium/swift-toolkit/compare/3.0.0-alpha.2...3.0.0-alpha.3
 [3.0.0-beta.1]: https://github.com/readium/swift-toolkit/compare/3.0.0-alpha.3...3.0.0-beta.1
 [3.0.0-beta.2]: https://github.com/readium/swift-toolkit/compare/3.0.0-beta.1...3.0.0-beta.2
+[3.1.0]: https://github.com/readium/swift-toolkit/compare/3.0.0...3.1.0
