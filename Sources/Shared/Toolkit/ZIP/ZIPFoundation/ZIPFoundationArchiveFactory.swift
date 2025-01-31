@@ -97,15 +97,14 @@ enum ResourceDataSourceError: Error {
 }
 
 /// Bridges the ZIPFoundation's ``DataSource`` with our ``Resource``.
-private final class ResourceDataSource: ReadiumZIPFoundation.DataSource {
+private actor ResourceDataSource: ReadiumZIPFoundation.DataSource {
     private let resource: Resource
-    private var _position: UInt64 = 0
 
     init(resource: Resource) {
         self.resource = resource
     }
 
-    func close() throws {}
+    let isWritable: Bool = false
 
     func length() async throws -> UInt64 {
         guard let length = try await resource.estimatedLength().get() else {
@@ -114,21 +113,36 @@ private final class ResourceDataSource: ReadiumZIPFoundation.DataSource {
         return length
     }
 
-    func position() async throws -> UInt64 {
-        _position
+    func openRead() async throws -> any DataSourceTransaction {
+        Transaction(resource: resource)
     }
 
-    func seek(to position: UInt64) async throws {
-        _position = position
-    }
+    private actor Transaction: ReadiumZIPFoundation.DataSourceTransaction {
+        private var _position: UInt64 = 0
+        private let resource: Resource
 
-    func read(length: Int) async throws -> Data {
-        guard length > 0 else {
-            return Data()
+        init(resource: Resource) {
+            self.resource = resource
         }
-        let range = _position ..< (_position + UInt64(length))
-        let data = try await resource.read(range: range).get()
-        _position += UInt64(data.count)
-        return data
+
+        func close() async throws {}
+
+        func position() async throws -> UInt64 {
+            _position
+        }
+
+        func seek(to position: UInt64) async throws {
+            _position = position
+        }
+
+        func read(length: Int) async throws -> Data {
+            guard length > 0 else {
+                return Data()
+            }
+            let range = _position ..< (_position + UInt64(length))
+            let data = try await resource.read(range: range).get()
+            _position += UInt64(data.count)
+            return data
+        }
     }
 }

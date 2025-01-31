@@ -56,42 +56,27 @@ final class LCPContentProtection: ContentProtection, Loggable {
         return await asset.resource.readAsLCPL()
             .mapError { .reading($0) }
             .asyncFlatMap { licenseDocument in
-                let link = licenseDocument.publicationLink
-                guard let url = link.url() else {
-                    return .failure(.reading(.decoding("The LCP License Document does not contain a valid HTTP URL to the protected publication")))
-                }
 
-                return await assetRetriever.retrieve(
-                    url: url,
-                    hints: FormatHints(mediaType: link.mediaType)
-                )
-                .mapError { error in
-                    switch error {
-                    case .formatNotSupported, .schemeNotSupported:
-                        return .assetNotSupported(error)
-                    case let .reading(error):
-                        return .reading(error)
+                await assetRetriever.retrieve(link: licenseDocument.publicationLink)
+                    .flatMap { publicationAsset in
+                        switch publicationAsset {
+                        case .resource:
+                            return .failure(.assetNotSupported(DebugError("Cannot open the LCP-protected publication as a Container")))
+                        case let .container(container):
+                            return .success(container)
+                        }
                     }
-                }
-                .flatMap { publicationAsset in
-                    switch publicationAsset {
-                    case .resource:
-                        return .failure(.assetNotSupported(DebugError("Cannot open the LCP-protected publication as a Container")))
-                    case let .container(container):
-                        return .success(container)
-                    }
-                }
-                .asyncFlatMap {
-                    await makeLCPAsset(
-                        from: $0,
-                        license: retrieveLicense(
-                            in: .resource(asset),
-                            credentials: credentials,
-                            allowUserInteraction: allowUserInteraction,
-                            sender: sender
+                    .asyncFlatMap {
+                        await makeLCPAsset(
+                            from: $0,
+                            license: retrieveLicense(
+                                in: .resource(asset),
+                                credentials: credentials,
+                                allowUserInteraction: allowUserInteraction,
+                                sender: sender
+                            )
                         )
-                    )
-                }
+                    }
             }
     }
 
@@ -210,5 +195,70 @@ public extension Publication {
     /// Returns the `LCPLicense` if the `Protection` is protected by LCP and the license is opened.
     var lcpLicense: LCPLicense? {
         findService(LCPContentProtectionService.self)?.license
+    }
+}
+
+private extension AssetRetriever {
+    func retrieve(link: Link) async -> Result<Asset, ContentProtectionOpenError> {
+        guard let url = link.url() else {
+            return .failure(.reading(.decoding("The LCP License Document does not contain a valid HTTP URL to the protected publication")))
+        }
+
+        return await retrieve(
+            url: url,
+            mediaType: link.mediaType
+        )
+        .mapError { error in
+            switch error {
+            case .formatNotSupported, .schemeNotSupported:
+                return .assetNotSupported(error)
+            case let .reading(error):
+                return .reading(error)
+            }
+        }
+    }
+
+    func retrieve(url: HTTPURL, mediaType: MediaType?) async -> Result<Asset, AssetRetrieveURLError> {
+        if let format = mediaType?.lcpFormat {
+            return await retrieve(url: url, format: format)
+        } else {
+            return await retrieve(url: url, hints: FormatHints(mediaType: mediaType))
+        }
+    }
+}
+
+private extension MediaType {
+    /// To avoid sniffing the media type of the known protected package,
+    /// we rely only on the link media type. This is fine because we already
+    /// know that the files are protected with LCP and so we don't need to
+    /// refine the format.
+    var lcpFormat: Format? {
+        if matches(.epub) {
+            return Format(
+                specifications: .zip, .epub, .lcp,
+                mediaType: .epub,
+                fileExtension: "epub"
+            )
+        } else if matches(.lcpProtectedPDF) {
+            return Format(
+                specifications: .zip, .rpf, .lcp,
+                mediaType: .lcpProtectedPDF,
+                fileExtension: "lcpdf"
+            )
+        } else if matches(.lcpProtectedAudiobook) {
+            return Format(
+                specifications: .zip, .rpf, .lcp,
+                mediaType: .lcpProtectedAudiobook,
+                fileExtension: "lcpa"
+            )
+        } else if matches(.divina) {
+            return Format(
+                specifications: .zip, .rpf, .lcp,
+                mediaType: .divina,
+                fileExtension: "divina"
+            )
+        } else {
+            return nil
+        }
     }
 }
