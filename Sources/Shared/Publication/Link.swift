@@ -167,7 +167,7 @@ public struct Link: JSONEquatable, Hashable, Sendable {
         if href.isEmpty {
             href = "#"
         }
-        return (AnyURL(string: href) ?? AnyURL(legacyHREF: href))!
+        return (AnyURL(string: href) ?? AnyURL(legacyHREF: href))!.normalized
     }
 
     /// Returns the URL represented by this link's HREF, resolved to the given
@@ -180,7 +180,7 @@ public struct Link: JSONEquatable, Hashable, Sendable {
         parameters: [String: LosslessStringConvertible] = [:]
     ) -> AnyURL {
         let url = url(parameters: parameters)
-        return baseURL?.anyURL.resolve(url) ?? url
+        return baseURL?.anyURL.resolve(url)?.normalized ?? url
     }
 
     // MARK: URI Template
