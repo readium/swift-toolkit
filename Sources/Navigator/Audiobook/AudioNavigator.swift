@@ -136,6 +136,10 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     }
 
     deinit {
+        if let timeObserver = timeObserver {
+            player.removeTimeObserver(timeObserver)
+        }
+
         playTask?.cancel()
         AudioSession.shared.end(for: self)
     }
@@ -239,6 +243,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     private var rateObserver: NSKeyValueObservation?
     private var timeControlStatusObserver: NSKeyValueObservation?
     private var currentItemObserver: NSKeyValueObservation?
+    private var timeObserver: Any?
 
     private lazy var mediaLoader = PublicationMediaLoader(publication: publication)
 
@@ -248,7 +253,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         player.automaticallyWaitsToMinimizeStalling = false
         player.volume = Float(settings.volume)
 
-        player.addPeriodicTimeObserver(
+        timeObserver = player.addPeriodicTimeObserver(
             forInterval: CMTime(
                 seconds: config.playbackRefreshInterval,
                 preferredTimescale: 1000
