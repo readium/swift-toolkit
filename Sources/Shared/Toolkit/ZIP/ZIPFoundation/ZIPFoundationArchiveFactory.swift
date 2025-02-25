@@ -43,7 +43,7 @@ final class ZIPFoundationArchiveFactory {
         } else {
             // We use a large buffer to avoid making hundreds of small HTTP
             // range requests.
-            let bufferSize = 512.kB
+            let bufferSize = 6.MB
             var resource: Resource = resource.buffered(size: bufferSize)
 
             if let optionalLength = await resource.estimatedLength().getOrNil(), let length = optionalLength {
