@@ -221,7 +221,14 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// Seeks to the given time in the current resource.
     public func seek(to time: Double) async {
+        let wasPlaying = (state == .playing)
+        pause()
+
         await player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
+
+        if wasPlaying {
+            play()
+        }
     }
 
     /// Seeks relatively from the current time in the current resource.
@@ -399,6 +406,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     public private(set) var currentLocation: Locator?
 
     public func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool {
+        let wasPlaying = (state == .playing)
+        pause()
+
         guard let newResourceIndex = publication.readingOrder.firstIndexWithHREF(locator.href) else {
             return false
         }
@@ -422,6 +432,10 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             let finished = await player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
             if finished {
                 await delegate?.navigator(self, didJumpTo: locator)
+            }
+
+            if wasPlaying {
+                play()
             }
 
             return true
