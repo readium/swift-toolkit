@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Changed
+
+#### Streamer
+
+* A `self` link is not required anymore when parsing a RWPM.
+
 
 ## [3.1.0]
 
