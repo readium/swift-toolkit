@@ -28,7 +28,7 @@ let package = Package(
         .package(url: "https://github.com/ra1028/DifferenceKit.git", from: "1.3.0"),
         .package(url: "https://github.com/readium/Fuzi.git", from: "4.0.0"),
         .package(url: "https://github.com/readium/GCDWebServer.git", from: "4.0.0"),
-        .package(url: "https://github.com/readium/ZIPFoundation.git", from: "2.0.0"),
+        .package(url: "https://github.com/readium/ZIPFoundation.git", from: "3.0.0"),
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.7.0"),
         .package(url: "https://github.com/stephencelis/SQLite.swift.git", from: "0.15.0"),
     ],
