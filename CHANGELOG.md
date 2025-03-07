@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. Take a look at [the migration guide](Documentation/Migration%20Guide.md) to upgrade between two major versions.
+All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
@@ -14,6 +14,10 @@ All notable changes to this project will be documented in this file. Take a look
 * A new `ReadiumAdapterMinizip` library ships the old `ArchiveOpener` using Minizip. Compared to the newer default `ZIPArchiveOpener`, it has the following differences:  
     * It does not support HTTP streaming of ZIP packages.  
     * It offers better performance for LCP-protected publications containing large resources that are `deflated` instead of `stored` in the archive, which is not recommended.
+
+#### LCP
+
+* Support for streaming an LCP-protected publication from its License Document (LCPL). [Take a look at the LCP guide for more information](docs/Guides/Readium%20LCP.md#streaming-an-lcp-protected-package).
 
 ### Deprecated
 
@@ -33,7 +37,7 @@ All notable changes to this project will be documented in this file. Take a look
 ## [3.0.0-beta.2]
 
 * The Readium Swift toolkit now requires a minimum of iOS 13.4.
-* All the libraries are now available on a dedicated [Readium CocoaPods Specs repository](https://github.com/readium/podspecs). Take a look at [the migration guide](Documentation/Migration%20Guide.md) to migrate.
+* All the libraries are now available on a dedicated [Readium CocoaPods Specs repository](https://github.com/readium/podspecs). Take a look at [the migration guide](docs/Migration%20Guide.md) to migrate.
 
 ### Added
 
@@ -129,7 +133,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### LCP
 
-* The Readium LCP persistence layer was extracted to allow applications to provide their own implementations. Take a look at [the migration guide](Documentation/Migration%20Guide.md) for guidance.
+* The Readium LCP persistence layer was extracted to allow applications to provide their own implementations. Take a look at [the migration guide](docs/Migration%20Guide.md) for guidance.
 
 ### Fixed
 
@@ -152,7 +156,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Shared
 
 * `Link` and `Locator`'s `href` are normalized as valid URLs to improve interoperability with the Readium Web toolkits.
-   * **You MUST migrate your database if you were persisting HREFs and Locators**. Take a look at [the migration guide](Documentation/Migration%20Guide.md) for guidance.
+   * **You MUST migrate your database if you were persisting HREFs and Locators**. Take a look at [the migration guide](docs/Migration%20Guide.md) for guidance.
 * Links are not resolved to the `self` URL of a manifest anymore. However, you can still normalize the HREFs yourselves by calling `Manifest.normalizeHREFsToSelf()`.
 * `Publication.localizedTitle` is now optional, as we cannot guarantee a publication will always have a title.
 
@@ -335,8 +339,8 @@ All notable changes to this project will be documented in this file. Take a look
 
 * New `VisualNavigatorDelegate` APIs to handle keyboard events (contributed by [@lukeslu](https://github.com/readium/swift-toolkit/pull/267)).
     * This can be used to turn pages with the arrow keys, for example.
-* [Support for custom fonts with the EPUB navigator](Documentation/Guides/EPUB%20Fonts.md).
-* A brand new user preferences API for configuring the EPUB and PDF Navigators. This new API is easier and safer to use. To learn how to integrate it in your app, [please refer to the user guide](Documentation/Guides/Navigator%20Preferences.md) and [migration guide](Documentation/Migration%20Guide.md).
+* [Support for custom fonts with the EPUB navigator](docs/Guides/EPUB%20Fonts.md).
+* A brand new user preferences API for configuring the EPUB and PDF Navigators. This new API is easier and safer to use. To learn how to integrate it in your app, [please refer to the user guide](docs/Guides/Navigator%20Preferences.md) and [migration guide](docs/Migration%20Guide.md).
     * New EPUB user preferences:
         * `fontWeight` - Base text font weight.
         * `textNormalization` - Normalize font style, weight and variants, which improves accessibility.
@@ -363,11 +367,11 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Streamer
 
-* `PublicationServer` is deprecated. See the [the migration guide](Documentation/Migration%20Guide.md#2.5.0) to migrate the HTTP server.
+* `PublicationServer` is deprecated. See the [the migration guide](docs/Migration%20Guide.md#2.5.0) to migrate the HTTP server.
 
 #### Navigator
 
-* The EPUB `UserSettings` component is deprecated and replaced by the new Preferences API. [Take a look at the user guide](Documentation/Guides/Navigator%20Preferences.md) and [migration guide](Documentation/Migration%20Guide.md).
+* The EPUB `UserSettings` component is deprecated and replaced by the new Preferences API. [Take a look at the user guide](docs/Guides/Navigator%20Preferences.md) and [migration guide](docs/Migration%20Guide.md).
 
 ### Changed
 
@@ -392,11 +396,11 @@ All notable changes to this project will be documented in this file. Take a look
 #### Shared
 
 * Support for the accessibility metadata in RWPM per [Schema.org Accessibility Properties for Discoverability Vocabulary](https://www.w3.org/2021/a11y-discov-vocab/latest/).
-* [Extract the raw content (text, images, etc.) of a publication](Documentation/Guides/Content.md).
+* [Extract the raw content (text, images, etc.) of a publication](docs/Guides/Content.md).
 
 #### Navigator
 
-* [A brand new text-to-speech implementation](Documentation/Guides/TTS.md).
+* [A brand new text-to-speech implementation](docs/Guides/TTS.md).
 
 #### Streamer
 
