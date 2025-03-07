@@ -231,6 +231,9 @@
     "ReadiumShared" : {
       "dependencies" : [
         {
+          "framework" : "..\/..\/Carthage\/Build\/Minizip.xcframework"
+        },
+        {
           "framework" : "..\/..\/Carthage\/Build\/ReadiumFuzi.xcframework"
         },
         {
@@ -439,13 +442,9 @@
 ../../Sources/Navigator/EPUB/Assets/Static/scripts
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/.gitignore
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-one.js
-../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-one.js.map
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-two.js
-../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-two.js.map
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed.js
-../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed.js.map
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-reflowable.js
-../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-reflowable.js.map
 ../../Sources/Navigator/EPUB/CSS
 ../../Sources/Navigator/EPUB/CSS/CSSLayout.swift
 ../../Sources/Navigator/EPUB/CSS/CSSProperties.swift

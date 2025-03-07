@@ -13,6 +13,7 @@ targets:
     sources: 
       - path: ../../Sources/Shared
     dependencies:
+      - framework: ../../Carthage/Build/Minizip.xcframework
       - framework: ../../Carthage/Build/ReadiumFuzi.xcframework
       - framework: ../../Carthage/Build/ReadiumZIPFoundation.xcframework
       - framework: ../../Carthage/Build/SwiftSoup.xcframework

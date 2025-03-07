@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0025BE4D568B560277323B95 /* FileResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = C05502AD8940D6616D6C386F /* FileResource.swift */; };
+		01AC52ADE389D14F5274CEB2 /* Minizip.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CFFEBDFE931745C07DACD4A3 /* Minizip.xcframework */; };
 		01AD628D6DE82E1C1C4C281D /* NavigationDocumentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29AD63CD2A41586290547212 /* NavigationDocumentParser.swift */; };
 		01E785BEA7F30AD1C8A5F3DE /* SearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5B029CA09EE1F86A19612A /* SearchService.swift */; };
 		01F29BAD25D4597903AF253F /* CompositeFormatSniffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41E54A18E2983098A6A4DAE0 /* CompositeFormatSniffer.swift */; };
@@ -781,6 +782,7 @@
 		CF31AEFB5FF0E7892C6D903E /* EPUBPreferences+Legacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EPUBPreferences+Legacy.swift"; sourceTree = "<group>"; };
 		CFE1142A6C038A35C527CE84 /* URITemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URITemplate.swift; sourceTree = "<group>"; };
 		CFE34EA8AF2D815F7169CA45 /* Fuzi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fuzi.swift; sourceTree = "<group>"; };
+		CFFEBDFE931745C07DACD4A3 /* Minizip.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Minizip.xcframework; path = ../../Carthage/Build/Minizip.xcframework; sourceTree = "<group>"; };
 		D008F7BB187AE82CBB115D0F /* WebServerResourceResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebServerResourceResponse.swift; sourceTree = "<group>"; };
 		D0C2A38D366CE8560BCBAC8B /* PDFPositionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFPositionsService.swift; sourceTree = "<group>"; };
 		D0E8D322A523DA324E3E2E59 /* MinizipContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinizipContainer.swift; sourceTree = "<group>"; };
@@ -905,6 +907,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01AC52ADE389D14F5274CEB2 /* Minizip.xcframework in Frameworks */,
 				B02109488289D631DF959B8D /* ReadiumFuzi.xcframework in Frameworks */,
 				CDE5EE79D3F0D00F9CAED8B8 /* ReadiumZIPFoundation.xcframework in Frameworks */,
 				D9499DACC5329F3774CBEDAC /* SwiftSoup.xcframework in Frameworks */,
@@ -1777,6 +1780,7 @@
 				342D5C0FEE79A2ABEE24A43E /* CoreServices.framework */,
 				E37F94C388A86CB8A34812A5 /* CryptoSwift.xcframework */,
 				3F95F3F20D758BE0E7005EA3 /* DifferenceKit.xcframework */,
+				CFFEBDFE931745C07DACD4A3 /* Minizip.xcframework */,
 				2828D89EBB52CCA782ED1146 /* ReadiumFuzi.xcframework */,
 				6536C07F5A50F7F25FDBF69C /* ReadiumGCDWebServer.xcframework */,
 				69E17C4870C64264819EB227 /* ReadiumZIPFoundation.xcframework */,
