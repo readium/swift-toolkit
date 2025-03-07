@@ -1,6 +1,7 @@
 # Extracting the content of a publication
 
-:warning: The described feature is still experimental and the implementation incomplete.
+> [!NOTE]
+> The described feature is still experimental and the implementation incomplete.
 
 Many high-level features require access to the raw content (text, media, etc.) of a publication, such as:
 

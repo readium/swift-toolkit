@@ -2,7 +2,8 @@
 
 [Readium Mobile](https://github.com/readium/mobile) is a toolkit for ebooks, audiobooks and comics written in Swift & Kotlin.
 
-:point_up: **Take a look at the [guide to get started](docs/Guides/Getting%20Started.md).** A [Test App](TestApp) demonstrates how to integrate the Readium Swift toolkit in your own reading app.
+> [!TIP]
+> **Take a look at the [guide to get started](docs/Guides/Getting%20Started.md).** A [Test App](TestApp) demonstrates how to integrate the Readium Swift toolkit in your own reading app.
 
 This toolkit is a modular project, which follows the [Readium Architecture](https://github.com/readium/architecture).
 

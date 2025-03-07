@@ -1,6 +1,7 @@
 # Text-to-speech
 
-:warning: TTS is an experimental feature which is not yet implemented for all formats.
+> [!NOTE]
+> TTS is not yet implemented for all formats.
 
 Text-to-speech can be used to read aloud a publication using a synthetic voice. The Readium toolkit ships with a TTS implementation based on the native [Apple Speech Synthesis](https://developer.apple.com/documentation/avfoundation/speech_synthesis), but it is opened for extension if you want to use a different TTS engine.
 
@@ -53,7 +54,8 @@ When pairing the `PublicationSpeechSynthesizer` with a `Navigator`, you can use 
 
 ## Configuring the TTS
 
-:warning: The way the synthesizer is configured is expected to change with the introduction of the new Settings API. Expect some breaking changes when updating.
+> [!WARNING]
+> The way the synthesizer is configured is expected to change with the introduction of the new Settings API. Expect some breaking changes when updating.
 
 The `PublicationSpeechSynthesizer` offers some options to configure the TTS engine. Note that the support of each configuration option depends on the TTS engine used.
 

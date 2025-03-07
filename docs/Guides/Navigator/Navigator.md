@@ -2,7 +2,8 @@
 
 You can use a Readium Navigator to present the publication to the user. The `Navigator` renders resources on the screen and offers APIs and user interactions for navigating the contents.
 
-:warning: Navigators do not have user interfaces besides the view that displays the publication. Applications are responsible for providing a user interface with bookmark buttons, a progress bar, etc.
+> [!IMPORTANT]
+> Navigators do not have user interfaces besides the view that displays the publication. Applications are responsible for providing a user interface with bookmark buttons, a progress bar, etc.
 
 ## Default implementations
 
@@ -71,7 +72,8 @@ let navigator = try EPUBNavigatorViewController(
 hostViewController.present(navigator, animated: true)
 ```
 
-:point_up: The HTTP server is used to serve the publication resources to the Navigator. You may use your own implementation, or the recommended `GCDHTTPServer` which is part of the `ReadiumAdapterGCDWebServer` package.
+> [!NOTE]
+> The HTTP server is used to serve the publication resources to the Navigator. You may use your own implementation, or the recommended `GCDHTTPServer` which is part of the `ReadiumAdapterGCDWebServer` package.
 
 ### Audio Navigator
 
@@ -156,7 +158,8 @@ if let locator = publication.locate(progression: 0.5) {
 
 ### Displaying the number of positions
 
-:warning: Readium does not have the concept of pages, as they are not useful when dealing with reflowable publications across different screen sizes. Instead, we use [**positions**](https://readium.org/architecture/models/locators/positions/) which remain stable even when the user changes the font size or device.
+> [!NOTE]
+> Readium does not have the concept of pages, as they are not useful when dealing with reflowable publications across different screen sizes. Instead, we use [**positions**](https://readium.org/architecture/models/locators/positions/) which remain stable even when the user changes the font size or device.
 
 Not all Navigators provide positions, but most `VisualNavigator` implementations do. Verify if `publication.positions` is not empty to determine if it is supported.
 
