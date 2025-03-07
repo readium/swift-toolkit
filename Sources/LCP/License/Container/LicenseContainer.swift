@@ -7,7 +7,8 @@
 import Foundation
 import ReadiumShared
 
-/// Encapsulates the read/write access to the packaged License Document (eg. in an EPUB container, or a standalone LCPL file)
+/// Encapsulates the read/write access to the packaged License Document (eg. in
+/// an EPUB container, or a standalone LCPL file)
 protocol LicenseContainer {
     /// Returns whether this container currently contains a License Document.
     ///
@@ -15,32 +16,25 @@ protocol LicenseContainer {
     func containsLicense() async throws -> Bool
 
     func read() async throws -> Data
+
+    /// Indicates whether this container can update its license.
+    var isWritable: Bool { get }
+
     func write(_ license: LicenseDocument) async throws
 }
 
 func makeLicenseContainer(for asset: Asset) throws -> LicenseContainer {
     switch asset {
     case let .resource(asset):
-        guard
-            asset.format.conformsTo(.lcpLicense),
-            let file = asset.resource.sourceURL?.fileURL
-        else {
-            throw LCPError.licenseContainer(ContainerError.openFailed(nil))
+        guard asset.format.conformsTo(.lcpLicense) else {
+            throw LCPError.licenseContainer(ContainerError.openFailed(DebugError("Expected an LCP License Document")))
         }
-        return LCPLLicenseContainer(lcpl: file)
+        return ResourceLicenseContainer(asset: asset)
 
     case let .container(asset):
-        guard
-            asset.format.conformsTo(.zip),
-            let file = asset.container.sourceURL?.fileURL
-        else {
-            throw LCPError.licenseContainer(ContainerError.openFailed(nil))
-        }
-
-        if asset.format.conformsTo(.epub) {
-            return EPUBLicenseContainer(epub: file)
-        } else {
-            return ReadiumLicenseContainer(path: file)
-        }
+        return ContainerLicenseContainer(
+            asset: asset,
+            pathInContainer: RelativeURL(path: asset.format.conformsTo(.epub) ? "META-INF/license.lcpl" : "license.lcpl")!
+        )
     }
 }

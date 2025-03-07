@@ -19,6 +19,7 @@ import UIKit
 /// when presenting a dialog, for example.
 public final class LCPService: Loggable {
     private let licenses: LicensesService
+    private let assetRetriever: AssetRetriever
 
     @available(*, unavailable, message: "Provide a `licenseRepository` and `passphraseRepository`, following the migration guide")
     public init(
@@ -67,6 +68,8 @@ public final class LCPService: Loggable {
                 repository: passphraseRepository
             )
         )
+
+        self.assetRetriever = assetRetriever
     }
 
     @available(*, unavailable, message: "Check the conformance of the file `Format` to the `lcp` specification instead.")
@@ -108,7 +111,7 @@ public final class LCPService: Loggable {
         authentication: LCPAuthenticating,
         allowUserInteraction: Bool,
         sender: Any?
-    ) async -> Result<LCPLicense?, LCPError> {
+    ) async -> Result<LCPLicense, LCPError> {
         await wrap {
             try await licenses.retrieve(
                 from: asset,
@@ -126,7 +129,7 @@ public final class LCPService: Loggable {
     /// LCP license. The default implementation `LCPDialogAuthentication` presents a dialog to the
     /// user to enter their passphrase.
     public func contentProtection(with authentication: LCPAuthenticating) -> ContentProtection {
-        LCPContentProtection(service: self, authentication: authentication)
+        LCPContentProtection(service: self, authentication: authentication, assetRetriever: assetRetriever)
     }
 
     private func wrap<Success>(_ block: () async throws -> Success) async -> Result<Success, LCPError> {

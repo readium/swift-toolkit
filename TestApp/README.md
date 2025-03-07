@@ -2,8 +2,6 @@
 
 This sample application demonstrates how to integrate the Readium Swift toolkit in your own reading app. Stable versions are [published on TestFlight](https://testflight.apple.com/join/lYEMEfBr).
 
-:warning: The Readium toolkit itself supports down to iOS 11, but the Test App requires iOS 14 and Xcode 13.2.
-
 ## Features
 
 * Supported publication formats:
@@ -40,7 +38,8 @@ This project shows how to use Readium with several dependency managers: Swift Pa
     make spm
     ```
 
-:warning: Since the Xcode project is not committed to this repository, you need to run the `make <target>` command again after pulling any change from `r2-testapp-swift`.
+> [!IMPORTANT]
+> Since the Xcode project is not committed to this repository, you need to run the `make <target>` command again after pulling any change from the repository.
 
 ### Building with Readium LCP
 

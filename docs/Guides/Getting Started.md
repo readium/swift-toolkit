@@ -2,7 +2,8 @@
 
 The Readium Swift toolkit enables you to develop reading apps for iOS and iPadOS. It provides built-in support for multiple publication formats such as EPUB, PDF, audiobooks, and comics.
 
-:warning: Readium offers only low-level tools. You are responsible for creating a user interface for reading and managing books, as well as a data layer to store the user's publications. The Test App is an example of such integration.
+> [!NOTE]
+> Readium offers only low-level tools. You are responsible for creating a user interface for reading and managing books, as well as a data layer to store the user's publications. The Test App is an example of such integration.
 
 ## Design principles
 

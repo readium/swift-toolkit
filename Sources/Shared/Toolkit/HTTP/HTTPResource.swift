@@ -23,15 +23,17 @@ public actor HTTPResource: Resource {
         await headResponse()
             .map { response in
                 ResourceProperties {
-                    $0.filename = response.filename ?? url.lastPathSegment
-                    $0.mediaType = response.mediaType
+                    if let response = response {
+                        $0.filename = response.filename ?? url.lastPathSegment
+                        $0.mediaType = response.mediaType
+                    }
                 }
             }
     }
 
     public func estimatedLength() async -> ReadResult<UInt64?> {
         await headResponse().flatMap {
-            if let length = $0.contentLength {
+            if let length = $0?.contentLength {
                 return .success(UInt64(length))
             } else {
                 return .success(nil)
@@ -39,14 +41,22 @@ public actor HTTPResource: Resource {
         }
     }
 
-    private var _headResponse: ReadResult<HTTPResponse>?
+    private var _headResponse: ReadResult<HTTPResponse?>?
 
     /// Cached HEAD response to get the expected content length and other
     /// metadata.
-    private func headResponse() async -> ReadResult<HTTPResponse> {
+    private func headResponse() async -> ReadResult<HTTPResponse?> {
         if _headResponse == nil {
             _headResponse = await client.fetch(HTTPRequest(url: url, method: .head))
-                .mapError { .access(.http($0)) }
+                .map { $0 as HTTPResponse? }
+                .flatMapError { error in
+                    switch error {
+                    case let .errorResponse(response) where response.status == .methodNotAllowed:
+                        return .success(nil)
+                    default:
+                        return .failure(.access(.http(error)))
+                    }
+                }
         }
         return _headResponse!
     }

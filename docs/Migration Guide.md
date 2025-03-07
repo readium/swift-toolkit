@@ -15,7 +15,8 @@ If you use Carthage, add `Minizip.xcframework` back to your dependencies. No cha
 
 ## 3.0.0
 
-:warning: If you upgrade from an `alpha` or `beta` version of 3.0.0, please refer to the [3.0.0-beta.2 migration guide](https://github.com/readium/swift-toolkit/blob/3.0.0-beta.2/docs/Migration%20Guide.md) instead.
+> [!IMPORTANT]
+> If you upgrade from an `alpha` or `beta` version of 3.0.0, please refer to the [3.0.0-beta.2 migration guide](https://github.com/readium/swift-toolkit/blob/3.0.0-beta.2/docs/Migration%20Guide.md) instead.
 
 ### R2 prefix dropped
 
@@ -71,7 +72,8 @@ If you use Carthage, remove `Minizip.xcframework` from your dependencies and add
 
 ### Migration of HREFs and Locators (bookmarks, annotations, etc.)
 
- :warning: This requires a database migration in your application, if you were persisting `Locator` objects.
+ > [!CAUTION]
+ > This requires a database migration in your application, if you were persisting `Locator` objects.
 
  In Readium v2.x, a `Link` or `Locator`'s `href` could be either:
 
@@ -257,11 +259,13 @@ A new Readium package was added to host the private internal utilities used by t
     pod 'ReadiumInternal', podspec: 'https://raw.githubusercontent.com/readium/swift-toolkit/2.5.0/Support/CocoaPods/ReadiumInternal.podspec'
     ```
 
-:warning: It is not recommended to use any API from `ReadiumInternal` directly in your application. No compatibility guarantee is made between two versions.
+> [!CAUTION]
+> It is not recommended to use any API from `ReadiumInternal` directly in your application. No compatibility guarantee is made between two versions.
 
 ### Migrating the HTTP server
 
-:warning: Migrating to the new Preferences API (see below) is required for the user settings to work with the new HTTP server.
+> [!IMPORTANT]
+> Migrating to the new Preferences API (see below) is required for the user settings to work with the new HTTP server.
 
 The Streamer's `PublicationServer` is now deprecated and you don't need to manage the HTTP server or register publications manually to it anymore.
 

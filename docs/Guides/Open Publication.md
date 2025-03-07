@@ -34,7 +34,8 @@ switch await assetRetriever.retrieve(url: url) {
 }
 ```
 
-:point_up: Assets created with an HTTP URL are not downloaded; they will be streamed. If that is not your intention, you need to download the file first, for example using `HTTPClient.download()`.
+> [!IMPORTANT]
+> Assets created with an HTTP URL are not downloaded; they will be streamed. If that is not your intention, you need to download the file first, for example using `HTTPClient.download()`.
 
 The `AssetRetriever` will sniff the media type of the asset, which you can store in your bookshelf database to speed up the process next time you retrieve the `Asset`. This will improve performance, especially with HTTP URL schemes.
 
@@ -58,10 +59,11 @@ let result = await assetRetriever.retrieve(url: url, mediaType: mediaType)
 let publicationOpener = PublicationOpener(
     parser: DefaultPublicationParser(
         httpClient: httpClient,
-        assetRetriever: assetRetriever
+        assetRetriever: assetRetriever,
+        pdfFactory: DefaultPDFDocumentFactory()
     ),
     contentProtections: [
-        lcpService.contentProtection(with: LCPDialogAuthentication()),
+        lcpService.contentProtection(with: LCPDialogAuthentication())
     ]
 )
 ```
@@ -73,7 +75,7 @@ Now that you have a `PublicationOpener` ready, you can use it to create a `Publi
 The `allowUserInteraction` parameter is useful when supporting Readium LCP. When enabled and using a `LCPDialogAuthentication`, the toolkit will prompt the user if the passphrase is missing.
 
 ```swift
-let result = await readium.publicationOpener.open(
+let result = await publicationOpener.open(
     asset: asset,
     allowUserInteraction: true,
     sender: sender

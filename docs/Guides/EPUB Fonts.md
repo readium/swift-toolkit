@@ -2,7 +2,8 @@
 
 Readium allows users to customize the font family used to render a reflowable EPUB, by changing the [EPUB navigator preferences](Navigator%20Preferences.md).
 
-:warning: You cannot change the default font family of a fixed-layout EPUB (with zoomable pages), as it is similar to a PDF or a comic book.
+> [!NOTE]
+> You cannot change the default font family of a fixed-layout EPUB (with zoomable pages), as it is similar to a PDF or a comic book.
 
 ## Available font families
 

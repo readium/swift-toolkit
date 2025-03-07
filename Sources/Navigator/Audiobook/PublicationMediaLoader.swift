@@ -156,7 +156,12 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
     }
 
     private func fillData(_ dataRequest: AVAssetResourceLoadingDataRequest, of request: AVAssetResourceLoadingRequest, using resource: Resource, link: Link) {
-        let range: Range<UInt64> = UInt64(dataRequest.currentOffset) ..< (UInt64(dataRequest.currentOffset) + UInt64(dataRequest.requestedLength))
+        let range: Range<UInt64>?
+        if dataRequest.currentOffset == 0, dataRequest.requestsAllDataToEndOfResource {
+            range = nil
+        } else {
+            range = UInt64(dataRequest.currentOffset) ..< (UInt64(dataRequest.currentOffset) + UInt64(dataRequest.requestedLength))
+        }
 
         let task = Task {
             let result = await resource.stream(

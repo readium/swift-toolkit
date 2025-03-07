@@ -2,7 +2,8 @@
 
 You can use the Readium Swift toolkit to download and read publications that are protected with the [Readium LCP](https://www.edrlab.org/readium-lcp/) DRM.
 
-:point_up: To use LCP with the Readium toolkit, you must first obtain the `R2LCPClient` private library by contacting [EDRLab](https://www.edrlab.org/contact/).
+> [!IMPORTANT]
+> To use LCP with the Readium toolkit, you must first obtain the `R2LCPClient` private library by contacting [EDRLab](https://www.edrlab.org/contact/).
 
 ## Overview
 
@@ -33,7 +34,8 @@ Readium LCP specifies new file formats.
 | [LCP for PDF package](https://readium.org/lcp-specs/notes/lcp-for-pdf.html) | `.lcpdf` | `application/pdf+lcp` |
 | [LCP for Audiobooks package](https://readium.org/lcp-specs/notes/lcp-for-audiobooks.html) | `.lcpa` | `application/audiobook+lcp` |
 
-:point_up: EPUB files protected by LCP are supported without a special file extension or media type because EPUB accommodates any DRM scheme in its specification.
+> [!NOTE]
+> EPUB files protected by LCP are supported without a special file extension or media type because EPUB accommodates any DRM scheme in its specification.
 
 To support these formats in your application, you need to [register them in your `Info.plist`](https://developer.apple.com/documentation/uniformtypeidentifiers/defining_file_and_data_types_for_your_app) as imported types.
 
@@ -150,7 +152,8 @@ Next, declare the imported types as [Document Types](https://help.apple.com/xcod
 </dict>
 ```
 
-:point_up: If EPUB is not included in your document types, now is a good time to add it.
+> [!TIP]
+> If EPUB is not included in your document types, now is a good time to add it.
 
 ## Initializing the `LCPService`
 
@@ -214,14 +217,21 @@ After the download is completed, import the `publication.localURL` file into the
 
 ## Opening a publication protected with LCP
 
-### Initializing the `Streamer`
+### Initializing the `PublicationOpener`
 
-A publication protected with LCP can be opened using the `Streamer` component, just like a non-protected publication. However, you must provide a [`ContentProtection`](https://readium.org/architecture/proposals/006-content-protection.html) implementation when initializing the `Streamer` to enable LCP. Luckily, `LCPService` has you covered.
+A publication protected with LCP can be opened using the `PublicationOpener` component, just like a non-protected publication. However, you must provide a [`ContentProtection`](https://readium.org/architecture/proposals/006-content-protection.html) implementation when initializing the `PublicationOpener` to enable LCP. Luckily, `LCPService` has you covered.
 
 ```swift
+let httpClient = DefaultHTTPClient()
+
 let authentication = LCPDialogAuthentication()
 
-let streamer = Streamer(
+let publicationOpener = PublicationOpener(
+    parser: DefaultPublicationParser(
+        httpClient: httpClient,
+        assetRetriever: AssetRetriever(httpClient: httpClient),
+        pdfFactory: DefaultPDFDocumentFactory()
+    ),
     contentProtections: [
         lcpService.contentProtection(with: authentication)
     ]
@@ -230,35 +240,39 @@ let streamer = Streamer(
 
 An LCP package is secured with a *user passphrase* for decrypting the content. The `LCPAuthenticating` protocol used by `LCPService.contentProtection(with:)` provides the passphrase when needed. You can use the default `LCPDialogAuthentication` which displays a pop-up to enter the passphrase, or implement your own method for passphrase retrieval.
 
-:point_up: The user will be prompted once per passphrase since `ReadiumLCP` stores known passphrases on the device. 
+> [!NOTE]
+> The user will be prompted once per passphrase since `ReadiumLCP` stores known passphrases on the device. 
 
 ### Opening the publication
 
-You are now ready to open the publication file with your `Streamer` instance.
+You are now ready to open the publication file with your `PublicationOpener` instance.
 
 ```swift
-streamer.open(
-    asset: FileAsset(url: publicationURL),
+// Retrieve an `Asset` to access the file content.
+let url = FileURL(path: "/path/to/lcp-protected-book.epub", isDirectory: false)
+let asset = try await assetRetriever.retrieve(url: url).get()
+ 
+// Open a `Publication` from the `Asset`.
+let result = await publicationOpener.open(
+    asset: asset,
     allowUserInteraction: true,
-    sender: hostViewController,
-    completion: { result in
-        switch result {
-        case .success(let publication):
-            // Import or present the publication.
-        case .failure(let error):
-            // Present the error.
-        case .cancelled:
-            // The operation was cancelled.
-        }
-    }
+    sender: hostViewController
 )
+
+switch result {
+case .success(let publication):
+    // Import or present the publication.
+case .failure(let error):
+    // Present the error.
+}
 ```
 
 The `allowUserInteraction` and `sender` arguments are forwarded to the `LCPAuthenticating` implementation when the passphrase is unknown. `LCPDialogAuthentication` shows a pop-up only if `allowUserInteraction` is `true`, using the `sender` as the pop-up's host `UIViewController`.
 
 When importing the publication to the bookshelf, set `allowUserInteraction` to `false` as you don't need the passphrase for accessing the publication metadata and cover. If you intend to present the publication using a Navigator, set `allowUserInteraction` to `true` as decryption will be required.
 
-:point_up: To check if a publication is protected with LCP before opening it, you can use `LCPService.isLCPProtected()`.
+> [!TIP]
+> To check if a publication is protected with LCP before opening it, you can use `LCPService.isLCPProtected()`.
 
 ### Using the opened `Publication`
 
@@ -277,6 +291,40 @@ if publication.isRestricted {
 } else {
     // The publication is not restricted, you may render it with a Navigator component.
 }
+```
+
+## Streaming an LCP protected package
+
+If the server hosting the LCP protected package supports the [HTTP `HEAD` method](https://httpwg.org/specs/rfc9110.html#HEAD) and [HTTP Range requests](https://httpwg.org/specs/rfc7233.html), it is possible to stream directly an LCP protected publication from a License Document (`.lcpl`) file, without downloading the whole publication first.
+
+Simply open the License Document directly using the `PublicationOpener`. Make sure you provide an `HTTPClient` (or an `HTTPResourceFactory` for additional customization) to the `AssetRetriever`.
+
+```swift
+// Instantiate the required components.
+let httpClient = DefaultHTTPClient()
+let assetRetriever = AssetRetriever(httpClient: httpClient)
+let publicationOpener = PublicationOpener(
+    parser: DefaultPublicationParser(
+        httpClient: httpClient,
+        assetRetriever: assetRetriever
+    ),
+    contentProtections: [
+        lcpService.contentProtection(with: LCPDialogAuthentication()),
+    ]
+)
+
+// Retrieve an `Asset` to access the LCPL content.
+let url = FileURL(path: "/path/to/license.lcpl", isDirectory: false)
+let asset = try await assetRetriever.retrieve(url: url).get()
+ 
+// Open a `Publication` from the LCPL `Asset`.
+let publication = try await publicationOpener.open(
+    asset: asset,
+    allowUserInteraction: true,
+    sender: hostViewController
+).get()
+    
+print("Opened \(publication.metadata.title)")
 ```
 
 ## Obtaining information on an LCP license
@@ -365,6 +413,4 @@ lcpLicense.renewLoan(
 
 The APIs may fail with an `LCPError`. These errors **must** be displayed to the user with a suitable message.
 
-`LCPError` implements `LocalizedError`, enabling you to retrieve a user-friendly message. It's recommended to override the LCP localized strings in your app to translate them. These strings can be found at [Sources/LCP/Resources/en.lproj/Localizable.strings](https://github.com/readium/swift-toolkit/blob/main/Sources/LCP/Resources/en.lproj/Localizable.strings).
-
-:warning: In the next major update, `LCPError` will no longer be localized. Applications will need to provide their own localized error messages. If you are adding LCP to a new app, consider treating `LCPError` as non-localized from the start to ease future migration.
+For an example, [take a look at the Test App](https://github.com/readium/swift-toolkit/blob/3.0.0/TestApp/Sources/App/Readium.swift#L221).

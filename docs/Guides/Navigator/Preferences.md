@@ -311,7 +311,8 @@ In the following example, the `Picker` is built with `preference.supportedValues
 }
 ```
 
-:point_up: Contrarily to a `RangePreference`, there's no intrinsic `format(value:)` helper for an `EnumPreference`. Instead, you must provide your own localized strings for the possible values.
+> [!NOTE]
+> Contrarily to a `RangePreference`, there's no intrinsic `format(value:)` helper for an `EnumPreference`. Instead, you must provide your own localized strings for the possible values.
 
 ```swift
 pickerRow(
@@ -363,7 +364,8 @@ let sharedPrefs = preferences.filterSharedPreferences()
 let combinedPrefs = publicationPrefs.merging(sharedPrefs)
 ```
 
-:warning: Some preferences are closely tied to a specific publication and should never be shared between multiple publications, such as the language. It is recommended that you store these preferences separately per book, which is what the suggested filters will do if you use them.
+> [!TIP]
+> Some preferences are closely tied to a specific publication and should never be shared between multiple publications, such as the language. It is recommended that you store these preferences separately per book, which is what the suggested filters will do if you use them.
 
 ## Appendix: Preference constraints
 

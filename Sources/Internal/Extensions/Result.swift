@@ -11,6 +11,17 @@ public extension Result {
         try? get()
     }
 
+    func get(or def: Success) -> Success {
+        (try? get()) ?? def
+    }
+
+    func `catch`(_ recover: (Failure) -> Self) -> Self {
+        if case let .failure(error) = self {
+            return recover(error)
+        }
+        return self
+    }
+
     func eraseToAnyError() -> Result<Success, Error> {
         mapError { $0 as Error }
     }
