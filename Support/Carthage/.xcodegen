@@ -353,11 +353,9 @@
 ../../Sources/LCP/LCPService.swift
 ../../Sources/LCP/License
 ../../Sources/LCP/License/Container
-../../Sources/LCP/License/Container/EPUBLicenseContainer.swift
-../../Sources/LCP/License/Container/LCPLLicenseContainer.swift
+../../Sources/LCP/License/Container/ContainerLicenseContainer.swift
 ../../Sources/LCP/License/Container/LicenseContainer.swift
-../../Sources/LCP/License/Container/ReadiumLicenseContainer.swift
-../../Sources/LCP/License/Container/ZIPLicenseContainer.swift
+../../Sources/LCP/License/Container/ResourceLicenseContainer.swift
 ../../Sources/LCP/License/LCPError+wrap.swift
 ../../Sources/LCP/License/License.swift
 ../../Sources/LCP/License/LicenseValidation.swift
@@ -390,6 +388,7 @@
 ../../Sources/LCP/Toolkit/Bundle.swift
 ../../Sources/LCP/Toolkit/DataCompression.swift
 ../../Sources/LCP/Toolkit/ReadiumLCPLocalizedString.swift
+../../Sources/LCP/Toolkit/Streamable.swift
 ../../Sources/Navigator
 ../../Sources/Navigator/Audiobook
 ../../Sources/Navigator/Audiobook/AudioNavigator.swift
@@ -442,9 +441,13 @@
 ../../Sources/Navigator/EPUB/Assets/Static/scripts
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/.gitignore
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-one.js
+../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-one.js.map
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-two.js
+../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-two.js.map
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed.js
+../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed.js.map
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-reflowable.js
+../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-reflowable.js.map
 ../../Sources/Navigator/EPUB/CSS
 ../../Sources/Navigator/EPUB/CSS/CSSLayout.swift
 ../../Sources/Navigator/EPUB/CSS/CSSProperties.swift
