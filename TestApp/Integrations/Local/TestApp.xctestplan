@@ -20,27 +20,6 @@
     {
       "target" : {
         "containerPath" : "container:..",
-        "identifier" : "R2NavigatorTests",
-        "name" : "R2NavigatorTests"
-      }
-    },
-    {
-      "target" : {
-        "containerPath" : "container:..",
-        "identifier" : "R2SharedTests",
-        "name" : "R2SharedTests"
-      }
-    },
-    {
-      "target" : {
-        "containerPath" : "container:..",
-        "identifier" : "R2StreamerTests",
-        "name" : "R2StreamerTests"
-      }
-    },
-    {
-      "target" : {
-        "containerPath" : "container:..",
         "identifier" : "ReadiumInternalTests",
         "name" : "ReadiumInternalTests"
       }
@@ -50,6 +29,27 @@
         "containerPath" : "container:..",
         "identifier" : "ReadiumOPDSTests",
         "name" : "ReadiumOPDSTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:..",
+        "identifier" : "ReadiumNavigatorTests",
+        "name" : "ReadiumNavigatorTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:..",
+        "identifier" : "ReadiumSharedTests",
+        "name" : "ReadiumSharedTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:..",
+        "identifier" : "ReadiumStreamerTests",
+        "name" : "ReadiumStreamerTests"
       }
     }
   ],
