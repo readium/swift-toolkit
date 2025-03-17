@@ -6,7 +6,18 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
+### Added
+
+#### LCP
+
+* Support for streaming an LCP-protected publication from its License Document (LCPL). [Take a look at the LCP guide for more information](docs/Guides/Readium%20LCP.md#streaming-an-lcp-protected-package).
+
 ### Changed
+
+#### Shared
+
+* The `absoluteURL` and `relativeURL` extensions on `URLConvertible` were removed as they conflict with the native `URL.absoluteURL`.
+    * If you were using them, you can for example still use `anyURL.absoluteURL` instead.
 
 #### Streamer
 
@@ -20,10 +31,6 @@ All notable changes to this project will be documented in this file. Take a look
 #### Shared
 
 * Support for streaming ZIP packages over HTTP. This lets you open a remote EPUB, audiobook, or any other ZIP-based publication without needing to download it first.
-
-#### LCP
-
-* Support for streaming an LCP-protected publication from its License Document (LCPL). [Take a look at the LCP guide for more information](docs/Guides/Readium%20LCP.md#streaming-an-lcp-protected-package).
 
 ### Deprecated
 
