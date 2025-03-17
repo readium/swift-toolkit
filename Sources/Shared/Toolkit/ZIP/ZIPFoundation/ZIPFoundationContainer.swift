@@ -60,7 +60,7 @@ final class ZIPFoundationContainer: Container, Loggable {
 
     subscript(url: any URLConvertible) -> (any Resource)? {
         guard
-            let url = url.relativeURL?.normalized,
+            let url = url.anyURL.relativeURL?.normalized,
             let entry = entriesByPath[url]
         else {
             return nil

@@ -10,19 +10,6 @@ import Foundation
 public protocol URLConvertible {
     /// Converts the receiver to an ``AnyURL``.
     var anyURL: AnyURL { get }
-
-    /// Converts the receiver to a ``RelativeURL``, if the represented URL is
-    /// relative.
-    var relativeURL: RelativeURL? { get }
-
-    /// Converts the receiver to an ``AnyAbsoluteURL``, if the represented URL
-    /// is absolute.
-    var absoluteURL: AbsoluteURL? { get }
-}
-
-public extension URLConvertible {
-    var relativeURL: RelativeURL? { anyURL.relativeURL }
-    var absoluteURL: AbsoluteURL? { anyURL.absoluteURL }
 }
 
 extension URL: URLConvertible {

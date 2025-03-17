@@ -81,7 +81,7 @@ final class LibraryService: Loggable {
     /// Imports a bunch of publications.
     func importPublications(from sourceURLs: [URL], sender: UIViewController) async throws {
         for url in sourceURLs {
-            guard let url = url.absoluteURL else {
+            guard let url = url.anyURL.absoluteURL else {
                 continue
             }
             try await importPublication(from: url, sender: sender, progress: { _ in })

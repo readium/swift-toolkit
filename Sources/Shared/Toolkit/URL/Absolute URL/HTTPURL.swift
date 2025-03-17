@@ -51,6 +51,6 @@ public struct HTTPURL: AbsoluteURL, Hashable, Sendable {
 public extension URLConvertible {
     /// Returns an `HTTPURL` if the URL has an `http` or `https` scheme.
     var httpURL: HTTPURL? {
-        (absoluteURL as? HTTPURL) ?? HTTPURL(url: anyURL.url)
+        (anyURL.absoluteURL as? HTTPURL) ?? HTTPURL(url: anyURL.url)
     }
 }

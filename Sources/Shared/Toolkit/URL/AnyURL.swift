@@ -58,6 +58,22 @@ public enum AnyURL: URLProtocol {
         }
     }
 
+    /// Returns the wrapped ``RelativeURL``, if this URL is relative.
+    public var relativeURL: RelativeURL? {
+        guard case let .relative(url) = self else {
+            return nil
+        }
+        return url
+    }
+
+    /// Returns the wrapped ``AbsoluteURL``, if this URL is absolute.
+    public var absoluteURL: AbsoluteURL? {
+        guard case let .absolute(url) = self else {
+            return nil
+        }
+        return url
+    }
+
     private var wrapped: URLProtocol {
         switch self {
         case let .absolute(url):
@@ -104,20 +120,6 @@ public enum AnyURL: URLProtocol {
 /// Implements `URLConvertible`.
 extension AnyURL: URLConvertible {
     public var anyURL: AnyURL { self }
-
-    public var relativeURL: RelativeURL? {
-        guard case let .relative(url) = self else {
-            return nil
-        }
-        return url
-    }
-
-    public var absoluteURL: AbsoluteURL? {
-        guard case let .absolute(url) = self else {
-            return nil
-        }
-        return url
-    }
 }
 
 /// Implements `Hashable` and `Equatable`.
