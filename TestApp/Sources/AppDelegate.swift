@@ -53,7 +53,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        guard let url = url.absoluteURL, let vc = window?.rootViewController else {
+        guard let url = url.anyURL.absoluteURL, let vc = window?.rootViewController else {
             return false
         }
 

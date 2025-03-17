@@ -60,7 +60,7 @@ final class MinizipContainer: Container, Loggable {
 
     subscript(url: any URLConvertible) -> (any Resource)? {
         guard
-            let url = url.relativeURL?.normalized,
+            let url = url.anyURL.relativeURL?.normalized,
             let metadata = entriesMetadata[url]
         else {
             return nil

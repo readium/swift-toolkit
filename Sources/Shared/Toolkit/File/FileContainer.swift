@@ -26,7 +26,7 @@ public final class FileContainer: Container, Loggable {
 
     public subscript(url: any URLConvertible) -> Resource? {
         guard
-            let url = url.relativeURL?.normalized,
+            let url = url.anyURL.relativeURL?.normalized,
             let file = files[url]
         else {
             return nil

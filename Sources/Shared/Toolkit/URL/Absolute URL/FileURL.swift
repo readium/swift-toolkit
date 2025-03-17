@@ -79,6 +79,6 @@ public struct FileURL: AbsoluteURL, Hashable, Sendable {
 public extension URLConvertible {
     /// Returns a `FileURL` if the URL has a `file` scheme.
     var fileURL: FileURL? {
-        (absoluteURL as? FileURL) ?? FileURL(url: anyURL.url)
+        (anyURL.absoluteURL as? FileURL) ?? FileURL(url: anyURL.url)
     }
 }

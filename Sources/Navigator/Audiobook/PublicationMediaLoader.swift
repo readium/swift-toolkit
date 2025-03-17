@@ -193,7 +193,7 @@ private let schemePrefix = "readium"
 
 extension URL {
     var audioHREF: AnyURL? {
-        guard let url = absoluteURL, url.scheme.rawValue.hasPrefix(schemePrefix) == true else {
+        guard let url = anyURL.absoluteURL, url.scheme.rawValue.hasPrefix(schemePrefix) == true else {
             return nil
         }
 
