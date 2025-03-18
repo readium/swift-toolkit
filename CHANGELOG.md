@@ -23,6 +23,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 * A `self` link is not required anymore when parsing a RWPM.
 
+### Fixed
+
+#### Navigator
+
+* Fixed going to a link containing a fragment in the PDF navigator, for example from the table of contents.
+
 
 ## [3.1.0]
 
