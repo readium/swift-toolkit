@@ -294,7 +294,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         if let locator = locator {
             await go(to: locator, isJump: false)
         } else if let link = publication.readingOrder.first {
-            await go(to: link, pageNumber: 0, isJump: false)
+            await go(to: link.url(), pageNumber: 0, isJump: false)
         } else {
             log(.error, "No initial location and empty reading order")
         }
@@ -384,23 +384,22 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     private func go(to locator: Locator, isJump: Bool) async -> Bool {
         let locator = publication.normalizeLocator(locator)
 
-        guard let link = findLink(at: locator) else {
+        let href: AnyURL? = {
+            if isPDFFile {
+                return publication.readingOrder.first?.url()
+            } else {
+                return publication.readingOrder.firstWithHREF(locator.href)?.url()
+            }
+        }()
+        guard let href = href else {
             return false
         }
 
         return await go(
-            to: link,
+            to: href,
             pageNumber: pageNumber(for: locator),
             isJump: isJump
         )
-    }
-
-    private func findLink(at locator: Locator) -> Link? {
-        if isPDFFile {
-            return publication.readingOrder.first
-        } else {
-            return publication.readingOrder.firstWithHREF(locator.href)
-        }
     }
 
     /// Historically, the reading order of a standalone PDF file contained a
@@ -415,20 +414,23 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         publication.readingOrder.count == 1 && publication.readingOrder[0].href == "publication.pdf"
 
     @discardableResult
-    private func go(to link: Link, pageNumber: Int?, isJump: Bool) async -> Bool {
-        guard let pdfView = pdfView, let index = publication.readingOrder.firstIndex(of: link) else {
+    private func go<HREF: URLConvertible>(to href: HREF, pageNumber: Int?, isJump: Bool) async -> Bool {
+        guard
+            let pdfView = pdfView,
+            let url = publicationBaseURL.resolve(href),
+            let index = publication.readingOrder.firstIndexWithHREF(href)
+        else {
             return false
         }
 
         if currentResourceIndex != index {
-            let url = link.url(relativeTo: publicationBaseURL)
             guard let document = PDFDocument(url: url.url) else {
-                log(.error, "Can't open PDF document at \(link)")
+                log(.error, "Can't open PDF document at \(url)")
                 return false
             }
 
             currentResourceIndex = index
-            documentHolder.set(document, at: link.url())
+            documentHolder.set(document, at: href)
             pdfView.document = document
             updateScaleFactors()
         }
@@ -613,7 +615,11 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     }
 
     public func go(to link: Link, options: NavigatorGoOptions) async -> Bool {
-        await go(to: link, pageNumber: nil, isJump: true)
+        guard let locator = await publication.locate(link) else {
+            return false
+        }
+
+        return await go(to: locator, options: options)
     }
 
     public func goForward(options: NavigatorGoOptions) async -> Bool {
