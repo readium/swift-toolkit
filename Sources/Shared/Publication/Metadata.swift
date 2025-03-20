@@ -49,6 +49,11 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
     public var numberOfPages: Int?
     public var belongsTo: [String: [Collection]]
 
+    /// Publications can indicate whether they allow third parties to use their
+    /// content for text and data mining purposes using the [TDM Rep protocol](https://www.w3.org/community/tdmrep/),
+    /// as defined in a [W3C Community Group Report](https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/).
+    public var tdm: TDM?
+
     public var readingProgression: ReadingProgression
 
     /// Additional properties for extensions.
@@ -92,6 +97,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
         belongsTo: [String: [Collection]] = [:],
         belongsToCollections: [Collection] = [],
         belongsToSeries: [Collection] = [],
+        tdm: TDM? = nil,
         otherMetadata: JSONDictionary.Wrapped = [:]
     ) {
         self.identifier = identifier
@@ -132,6 +138,8 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
             belongsTo["series"] = belongsToSeries
         }
         self.belongsTo = belongsTo
+
+        self.tdm = tdm
 
         otherMetadataJSON = JSONDictionary(otherMetadata) ?? JSONDictionary()
     }
@@ -179,6 +187,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
         belongsTo = (json.pop("belongsTo") as? JSONDictionary.Wrapped)?
             .compactMapValues { item in [Collection](json: item, warnings: warnings) }
             ?? [:]
+        tdm = try? TDM(json: json.pop("tdm"), warnings: warnings)
         otherMetadataJSON = json
     }
 
@@ -213,6 +222,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
             "duration": encodeIfNotNil(duration),
             "numberOfPages": encodeIfNotNil(numberOfPages),
             "belongsTo": encodeIfNotEmpty(belongsTo.mapValues { $0.json }),
+            "tdm": encodeIfNotEmpty(tdm?.json),
         ], additional: otherMetadata)
     }
 
@@ -261,6 +271,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
         belongsTo: [String: [Collection]]? = nil,
         belongsToCollections: [Collection]? = nil,
         belongsToSeries: [Collection]? = nil,
+        tdm: TDM? = nil,
         otherMetadata: JSONDictionary.Wrapped? = nil
     ) -> Metadata {
         Metadata(
@@ -295,6 +306,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
             belongsTo: belongsTo ?? self.belongsTo,
             belongsToCollections: belongsToCollections ?? self.belongsToCollections,
             belongsToSeries: belongsToSeries ?? self.belongsToSeries,
+            tdm: tdm ?? self.tdm,
             otherMetadata: otherMetadata ?? self.otherMetadata
         )
     }
