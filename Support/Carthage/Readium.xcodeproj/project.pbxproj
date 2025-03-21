@@ -327,6 +327,7 @@
 		D1248D9E9EE269C3245927F7 /* Cancellable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BBD54FD376456C1925316BC /* Cancellable.swift */; };
 		D25058A427D47ABEA88A3F4B /* PublicationSpeechSynthesizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DE4955327D8C2DE6F866D3 /* PublicationSpeechSynthesizer.swift */; };
 		D29E1DBC5BD1B82C996427C4 /* Closeable.swift in Sources */ = {isa = PBXBuildFile; fileRef = C02A9225D636D845BF24F6AC /* Closeable.swift */; };
+		D3058C80ABFBAED1CAA1B0CC /* TDM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28792F801221D49F61B92CF8 /* TDM.swift */; };
 		D4BBC0AD7652265497B5CD1C /* URLExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10894CC9684584098A22D8FA /* URLExtensions.swift */; };
 		D525E9E2AFA0ED63151A4FBC /* Assets in Resources */ = {isa = PBXBuildFile; fileRef = DBCE9786DD346E6BDB2E50FF /* Assets */; };
 		D589F337B244F5B58E85AEFB /* AudioSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC9D0ACCBA7B6E4473A95D5E /* AudioSettings.swift */; };
@@ -542,6 +543,7 @@
 		258351CE21165EDED7F87878 /* URLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLProtocol.swift; sourceTree = "<group>"; };
 		2732AFC91AB15FA09C60207A /* Locator+Audio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Locator+Audio.swift"; sourceTree = "<group>"; };
 		2828D89EBB52CCA782ED1146 /* ReadiumFuzi.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = ReadiumFuzi.xcframework; path = ../../Carthage/Build/ReadiumFuzi.xcframework; sourceTree = "<group>"; };
+		28792F801221D49F61B92CF8 /* TDM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TDM.swift; sourceTree = "<group>"; };
 		294E01A2E6FF25539EBC1082 /* Properties+Archive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Properties+Archive.swift"; sourceTree = "<group>"; };
 		29AD63CD2A41586290547212 /* NavigationDocumentParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationDocumentParser.swift; sourceTree = "<group>"; };
 		2AF56CF04F94B7BE45631897 /* LCPContentProtection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPContentProtection.swift; sourceTree = "<group>"; };
@@ -2005,6 +2007,7 @@
 				3B0A149FC97C747F55F6463C /* PublicationCollection.swift */,
 				74F646B746EB27124F9456F8 /* ReadingProgression.swift */,
 				98CD4C99103DC795E44F56AE /* Subject.swift */,
+				28792F801221D49F61B92CF8 /* TDM.swift */,
 				87352D29A81641A4B9054319 /* Asset */,
 				055166DFDEE6C6A17D04D42D /* Extensions */,
 				C1002695D860AE505D689C26 /* Media Overlays */,
@@ -2686,6 +2689,7 @@
 				4DB4C10CB9AB5D38C56C1609 /* StringEncoding.swift in Sources */,
 				E6AC10CCF9711168BE2BE85C /* StringSearchService.swift in Sources */,
 				3E9F244ACDA938D330B9EAEA /* Subject.swift in Sources */,
+				D3058C80ABFBAED1CAA1B0CC /* TDM.swift in Sources */,
 				CB95F5EAA4D0DB5177FED4F7 /* TableOfContentsService.swift in Sources */,
 				4E84353322A4CDBBCAD6C070 /* TailCachingResource.swift in Sources */,
 				96048047B4205636ABB66DC9 /* TextTokenizer.swift in Sources */,

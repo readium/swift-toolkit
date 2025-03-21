@@ -659,6 +659,7 @@
 ../../Sources/Shared/Publication/Services/Table Of Contents
 ../../Sources/Shared/Publication/Services/Table Of Contents/TableOfContentsService.swift
 ../../Sources/Shared/Publication/Subject.swift
+../../Sources/Shared/Publication/TDM.swift
 ../../Sources/Shared/Publication/User Settings
 ../../Sources/Shared/Publication/User Settings/UserProperties.swift
 ../../Sources/Shared/Publication/User Settings/UserSettings.swift

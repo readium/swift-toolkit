@@ -353,6 +353,28 @@ class EPUBMetadataParserTests: XCTestCase {
         XCTAssertEqual(Array(sut.otherMetadata.keys), ["presentation"])
     }
 
+    func testParseEPUB2TDM() throws {
+        let sut = try parseMetadata("tdm-epub2")
+        XCTAssertEqual(
+            sut.tdm,
+            TDM(
+                reservation: .all,
+                policy: HTTPURL(string: "https://provider.com/policies/policy.json")!
+            )
+        )
+    }
+
+    func testParseEPUB3TDM() throws {
+        let sut = try parseMetadata("tdm-epub3")
+        XCTAssertEqual(
+            sut.tdm,
+            TDM(
+                reservation: .all,
+                policy: HTTPURL(string: "https://provider.com/policies/policy.json")!
+            )
+        )
+    }
+
     // MARK: - Toolkit
 
     func parseMetadata(_ name: String, displayOptions: String? = nil) throws -> Metadata {
