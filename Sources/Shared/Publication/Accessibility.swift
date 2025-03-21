@@ -66,6 +66,24 @@ public struct Accessibility: Hashable, Sendable {
         public static let epubA11y10WCAG20AA = Profile("http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa")
         /// EPUB Accessibility 1.0 - WCAG 2.0 Level AAA
         public static let epubA11y10WCAG20AAA = Profile("http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa")
+        /// EPUB Accessibility 1.1 - WCAG 2.0 Level A
+        public static let epubA11y11WCAG20A = Profile("https://www.w3.org/TR/epub-a11y-11#wcag-2.0-a")
+        /// EPUB Accessibility 1.1 - WCAG 2.0 Level AA
+        public static let epubA11y11WCAG20AA = Profile("https://www.w3.org/TR/epub-a11y-11#wcag-2.0-aa")
+        /// EPUB Accessibility 1.1 - WCAG 2.0 Level AAA
+        public static let epubA11y11WCAG20AAA = Profile("https://www.w3.org/TR/epub-a11y-11#wcag-2.0-aaa")
+        /// EPUB Accessibility 1.1 - WCAG 2.1 Level A
+        public static let epubA11y11WCAG21A = Profile("https://www.w3.org/TR/epub-a11y-11#wcag-2.1-a")
+        /// EPUB Accessibility 1.1 - WCAG 2.1 Level AA
+        public static let epubA11y11WCAG21AA = Profile("https://www.w3.org/TR/epub-a11y-11#wcag-2.1-aa")
+        /// EPUB Accessibility 1.1 - WCAG 2.1 Level AAA
+        public static let epubA11y11WCAG21AAA = Profile("https://www.w3.org/TR/epub-a11y-11#wcag-2.1-aaa")
+        /// EPUB Accessibility 1.1 - WCAG 2.2 Level A
+        public static let epubA11y11WCAG22A = Profile("https://www.w3.org/TR/epub-a11y-11#wcag-2.2-a")
+        /// EPUB Accessibility 1.1 - WCAG 2.2 Level AA
+        public static let epubA11y11WCAG22AA = Profile("https://www.w3.org/TR/epub-a11y-11#wcag-2.2-aa")
+        /// EPUB Accessibility 1.1 - WCAG 2.2 Level AAA
+        public static let epubA11y11WCAG22AAA = Profile("https://www.w3.org/TR/epub-a11y-11#wcag-2.2-aaa")
     }
 
     public struct Certification: Hashable, Sendable {

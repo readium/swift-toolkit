@@ -316,7 +316,7 @@ class EPUBMetadataParserTests: XCTestCase {
         XCTAssertEqual(
             sut.accessibility,
             Accessibility(
-                conformsTo: [.epubA11y10WCAG20A],
+                conformsTo: [.epubA11y10WCAG20A, .epubA11y11WCAG20AAA, .epubA11y11WCAG21AA],
                 certification: Accessibility.Certification(
                     certifiedBy: "Accessibility Testers Group",
                     credential: "DAISY OK",
@@ -339,7 +339,7 @@ class EPUBMetadataParserTests: XCTestCase {
         XCTAssertEqual(
             sut.accessibility,
             Accessibility(
-                conformsTo: [.epubA11y10WCAG20A],
+                conformsTo: [.epubA11y10WCAG20A, .epubA11y11WCAG20AAA, .epubA11y11WCAG21AA],
                 certification: Accessibility.Certification(
                     certifiedBy: "Accessibility Testers Group",
                     credential: "DAISY OK",

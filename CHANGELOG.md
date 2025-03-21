@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Support for [W3C's Text & data mining Reservation Protocol](https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/) in our metadata models.
 * Support for [accessibility exemption metadata]https://readium.org/webpub-manifest/contexts/default/#exemption), which allows content creators to identify publications that do not meet conformance requirements but fall under exemptions in a given juridiction.
+* Support for [EPUB Accessibility 1.1](https://www.w3.org/TR/epub-a11y-11/) conformance profiles.
 
 #### LCP
 

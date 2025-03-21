@@ -205,26 +205,51 @@ final class EPUBMetadataParser: Loggable {
 
     private func accessibilityProfile(from value: String) -> Accessibility.Profile? {
         switch value {
-        case "EPUB Accessibility 1.1 - WCAG 2.0 Level A",
-             "http://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a",
+        case "http://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a",
              "http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a",
              "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a",
              "https://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a":
             return .epubA11y10WCAG20A
 
-        case "EPUB Accessibility 1.1 - WCAG 2.0 Level AA",
-             "http://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa",
+        case "http://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa",
              "http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa",
              "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa",
              "https://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aa":
             return .epubA11y10WCAG20AA
 
-        case "EPUB Accessibility 1.1 - WCAG 2.0 Level AAA",
-             "http://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa",
+        case "http://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa",
              "http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa",
              "https://idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa",
              "https://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-aaa":
             return .epubA11y10WCAG20AAA
+
+        case "EPUB Accessibility 1.1 - WCAG 2.0 Level A":
+            return .epubA11y11WCAG20A
+
+        case "EPUB Accessibility 1.1 - WCAG 2.0 Level AA":
+            return .epubA11y11WCAG20AA
+
+        case "EPUB Accessibility 1.1 - WCAG 2.0 Level AAA":
+            return .epubA11y11WCAG20AAA
+
+        case "EPUB Accessibility 1.1 - WCAG 2.1 Level A":
+            return .epubA11y11WCAG21A
+
+        case "EPUB Accessibility 1.1 - WCAG 2.1 Level AA":
+            return .epubA11y11WCAG21AA
+
+        case "EPUB Accessibility 1.1 - WCAG 2.1 Level AAA":
+            return .epubA11y11WCAG21AAA
+
+        case "EPUB Accessibility 1.1 - WCAG 2.2 Level A":
+            return .epubA11y11WCAG22A
+
+        case "EPUB Accessibility 1.1 - WCAG 2.2 Level AA":
+            return .epubA11y11WCAG22AA
+
+        case "EPUB Accessibility 1.1 - WCAG 2.2 Level AAA":
+            return .epubA11y11WCAG22AAA
+
         default:
             return nil
         }
