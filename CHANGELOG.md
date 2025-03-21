@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 * The `absoluteURL` and `relativeURL` extensions on `URLConvertible` were removed as they conflict with the native `URL.absoluteURL`.
     * If you were using them, you can for example still use `anyURL.absoluteURL` instead.
+* [go-toolkit#92](https://github.com/readium/go-toolkit/issues/92) The accessibility feature `printPageNumbers` is deprecated in favor of `pageNavigation`.
 
 #### Streamer
 

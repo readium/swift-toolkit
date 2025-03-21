@@ -176,9 +176,16 @@ public struct Accessibility: Hashable, Sendable {
 
         /// The work includes an index to the content.
         public static let index = Feature("index")
+        
+        /// The resource includes a means of navigating to static page break
+        /// locations.
+        ///
+        /// The most common way of providing page navigation in digital
+        /// publications is through a page list.
+        public static let pageNavigation = Feature("pageNavigation")
 
-        /// The work includes equivalent print page numbers. This setting is most commonly used with ebooks for which
-        /// there is a print equivalent.
+        // https://github.com/readium/go-toolkit/issues/92
+        @available(*, deprecated, renamed: "pageNavigation")
         public static let printPageNumbers = Feature("printPageNumbers")
 
         /// The reading order of the content is clearly defined in the markup (e.g., figures, sidebars and other
