@@ -23,7 +23,10 @@
     <meta property="a11y:certifierCredential" refines="#certifier">DAISY OK</meta>
     <link rel="a11y:certifierReport" refines="#certifier2" href="https://example.com/fakereport"/>
     <link rel="a11y:certifierReport" refines="#certifier" href="https://example.com/a11y-report/"/>
-
+    
+    <meta property="a11y:exemption">eaa-microenterprise</meta>
+    <meta property="a11y:exemption">eaa-fundamental-alteration</meta>
+    <meta property="a11y:exemption">eaa-disproportionate-burden</meta>
   </metadata>
   <manifest>
     <item id="titlepage" href="titlepage.xhtml"/>

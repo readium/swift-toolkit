@@ -303,7 +303,7 @@ struct OPFMetaList {
     /// List of properties that should not be added to `otherMetadata` because they are already
     /// consumed by the RWPM model.
     private let rwpmProperties: [OPFVocabulary: [String]] = [
-        .a11y: ["certifiedBy", "certifierCredential", "certifierReport"],
+        .a11y: ["certifiedBy", "certifierCredential", "certifierReport", "exemption"],
         .defaultMetadata: ["cover"],
         .dcterms: [
             "contributor", "creator", "date", "description", "identifier",

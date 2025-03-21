@@ -33,6 +33,7 @@ class AccessibilityTests: XCTestCase {
                 "accessModeSufficient": [["visual", "tactile"]],
                 "feature": ["readingOrder", "alternativeText"],
                 "hazard": ["flashing", "motionSimulation"],
+                "exemption": ["eaa-fundamental-alteration", "eaa-microenterprise"],
             ] as [String: Any]),
             Accessibility(
                 conformsTo: [
@@ -48,7 +49,8 @@ class AccessibilityTests: XCTestCase {
                 accessModes: [.auditory, .chartOnVisual],
                 accessModesSufficient: [[.visual, .tactile]],
                 features: [.readingOrder, .alternativeText],
-                hazards: [.flashing, .motionSimulation]
+                hazards: [.flashing, .motionSimulation],
+                exemptions: [.eaaFundamentalAlteration, .eaaMicroenterprise]
             )
         )
     }
@@ -164,6 +166,25 @@ class AccessibilityTests: XCTestCase {
         )
     }
 
+    func testParseExemptions() {
+        XCTAssertEqual(
+            try? Accessibility(json: [
+                "exemption": ["eaa-microenterprise"],
+            ]),
+            Accessibility(
+                exemptions: [.eaaMicroenterprise]
+            )
+        )
+        XCTAssertEqual(
+            try? Accessibility(json: [
+                "exemption": ["eaa-disproportionate-burden", "eaa-microenterprise"],
+            ]),
+            Accessibility(
+                exemptions: [.eaaDisproportionateBurden, .eaaMicroenterprise]
+            )
+        )
+    }
+
     func testGetMinimalJSON() {
         AssertJSONEqual(
             Accessibility().json,
@@ -186,7 +207,8 @@ class AccessibilityTests: XCTestCase {
             accessModes: [.auditory, .chartOnVisual],
             accessModesSufficient: [[.auditory], [.visual, .tactile], [.visual]],
             features: [.readingOrder, .alternativeText],
-            hazards: [.flashing, .motionSimulation]
+            hazards: [.flashing, .motionSimulation],
+            exemptions: [.eaaDisproportionateBurden, .eaaMicroenterprise]
         ).json
         AssertJSONEqual(
             expected,
@@ -202,6 +224,7 @@ class AccessibilityTests: XCTestCase {
                 "accessModeSufficient": [["auditory"], ["visual", "tactile"], ["visual"]],
                 "feature": ["readingOrder", "alternativeText"],
                 "hazard": ["flashing", "motionSimulation"],
+                "exemption": ["eaa-disproportionate-burden", "eaa-microenterprise"],
             ] as [String: Any]
         )
     }

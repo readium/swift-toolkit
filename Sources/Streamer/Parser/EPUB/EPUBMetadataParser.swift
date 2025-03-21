@@ -190,7 +190,8 @@ final class EPUBMetadataParser: Loggable {
             accessModes: accessibilityAccessModes(),
             accessModesSufficient: accessibilityAccessModesSufficient(),
             features: accessibilityFeatures(),
-            hazards: accessibilityHazards()
+            hazards: accessibilityHazards(),
+            exemptions: accessibilityExemptions()
         )
 
         return accessibility.takeIf { $0 != Accessibility() }
@@ -275,6 +276,11 @@ final class EPUBMetadataParser: Loggable {
     private func accessibilityHazards() -> [Accessibility.Hazard] {
         metas["accessibilityHazard", in: .schema]
             .map { Accessibility.Hazard($0.content) }
+    }
+
+    private func accessibilityExemptions() -> [Accessibility.Exemption] {
+        metas["exemption", in: .a11y]
+            .map { Accessibility.Exemption($0.content) }
     }
 
     /// https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/#sec-epub3

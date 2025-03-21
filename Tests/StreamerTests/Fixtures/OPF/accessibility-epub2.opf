@@ -20,6 +20,10 @@
     <meta name="a11y:certifiedBy" content="Accessibility Testers Group"/>
     <meta name="a11y:certifierCredential" content="DAISY OK"/>
     <meta name="a11y:certifierReport" content="https://example.com/a11y-report/"/>
+    
+    <meta name="a11y:exemption" content="eaa-microenterprise"/>
+    <meta name="a11y:exemption" content="eaa-fundamental-alteration"/>
+    <meta name="a11y:exemption" content="eaa-disproportionate-burden"/>
   </metadata>
   <manifest>
     <item id="titlepage" href="titlepage.xhtml"/>

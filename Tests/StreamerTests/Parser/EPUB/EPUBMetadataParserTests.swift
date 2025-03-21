@@ -326,9 +326,11 @@ class EPUBMetadataParserTests: XCTestCase {
                 accessModes: [.textual, .visual],
                 accessModesSufficient: [[.textual], [.textual, .visual]],
                 features: [.structuralNavigation, .alternativeText],
-                hazards: [.motionSimulation, .noSoundHazard]
+                hazards: [.motionSimulation, .noSoundHazard],
+                exemptions: [.eaaMicroenterprise, .eaaFundamentalAlteration, .eaaDisproportionateBurden]
             )
         )
+        // Checks that the a11y metadata are not added to otherMetadata.
         XCTAssertEqual(Array(sut.otherMetadata.keys), ["presentation"])
     }
 
@@ -347,9 +349,11 @@ class EPUBMetadataParserTests: XCTestCase {
                 accessModes: [.textual, .visual],
                 accessModesSufficient: [[.textual], [.textual, .visual]],
                 features: [.structuralNavigation, .alternativeText],
-                hazards: [.motionSimulation, .noSoundHazard]
+                hazards: [.motionSimulation, .noSoundHazard],
+                exemptions: [.eaaMicroenterprise, .eaaFundamentalAlteration, .eaaDisproportionateBurden]
             )
         )
+        // Checks that the a11y metadata are not added to otherMetadata.
         XCTAssertEqual(Array(sut.otherMetadata.keys), ["presentation"])
     }
 

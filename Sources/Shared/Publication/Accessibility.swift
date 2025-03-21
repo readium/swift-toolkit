@@ -48,6 +48,10 @@ public struct Accessibility: Hashable, Sendable {
     /// https://www.w3.org/2021/a11y-discov-vocab/latest/#accessibilityHazard
     public var hazards: [Hazard]
 
+    /// Justifications for non-conformance based on exemptions in a given
+    /// jurisdiction.
+    public var exemptions: [Exemption]
+
     /// Accessibility profile.
     public struct Profile: Hashable, Sendable {
         public let uri: String
@@ -176,7 +180,7 @@ public struct Accessibility: Hashable, Sendable {
 
         /// The work includes an index to the content.
         public static let index = Feature("index")
-        
+
         /// The resource includes a means of navigating to static page break
         /// locations.
         ///
@@ -348,6 +352,49 @@ public struct Accessibility: Hashable, Sendable {
         public static let none = Hazard("none")
     }
 
+    /// ``Exemption`` allows content creators to identify publications that do
+    /// not meet conformance requirements but fall under exemptions in a given
+    /// juridiction.
+    ///
+    /// While this list is currently limited to exemptions covered by the
+    /// European Accessibility Act, it will be extended to cover additional
+    /// exemptions in the future.
+    public struct Exemption: Hashable, Sendable {
+        public let id: String
+
+        public init(_ id: String) {
+            self.id = id
+        }
+
+        /// Article 14, paragraph 1 of the European Accessibility Act states
+        /// that its accessibility requirements shall apply only to the extent
+        /// that compliance: … (b) does not result in the imposition of a
+        /// disproportionate burden on the economic operators concerned
+        /// https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32019L0882#d1e2148-70-1
+        public static let eaaDisproportionateBurden = Exemption("eaa-disproportionate-burden")
+
+        /// Article 14, paragraph 1 of the European Accessibility Act states
+        /// that its accessibility requirements shall apply only to the extent
+        /// that compliance: (a) does not require a significant change in a
+        /// product or service that results in the fundamental alteration of its
+        /// basic nature
+        /// https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32019L0882#d1e2148-70-1
+        public static let eaaFundamentalAlteration = Exemption("eaa-fundamental-alteration")
+
+        /// The European Accessibility Act defines a microenterprise as: an
+        /// enterprise which employs fewer than 10 persons and which has an
+        /// annual turnover not exceeding EUR 2 million or an annual balance
+        /// sheet total not exceeding EUR 2 million.
+        ///
+        /// It further states in Article 4, paragraph 5: Microenterprises
+        /// providing services shall be exempt from complying with the
+        /// accessibility requirements referred to in paragraph 3 of this
+        /// Article and any obligations relating to the compliance with those
+        /// requirements.
+        /// https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32019L0882#d1e1798-70-1
+        public static let eaaMicroenterprise = Exemption("eaa-microenterprise")
+    }
+
     public init(
         conformsTo: [Profile] = [],
         certification: Certification? = nil,
@@ -355,7 +402,8 @@ public struct Accessibility: Hashable, Sendable {
         accessModes: [AccessMode] = [],
         accessModesSufficient: [[PrimaryAccessMode]] = [],
         features: [Feature] = [],
-        hazards: [Hazard] = []
+        hazards: [Hazard] = [],
+        exemptions: [Exemption] = []
     ) {
         self.conformsTo = conformsTo
         self.certification = certification
@@ -364,6 +412,7 @@ public struct Accessibility: Hashable, Sendable {
         self.accessModesSufficient = accessModesSufficient
         self.features = features
         self.hazards = hazards
+        self.exemptions = exemptions
     }
 
     public init?(json: Any?, warnings: WarningLogger? = nil) throws {
@@ -401,7 +450,8 @@ public struct Accessibility: Hashable, Sendable {
                 }
                 .filter { !$0.isEmpty },
             features: parseArray(jsonObject["feature"]).map(Feature.init),
-            hazards: parseArray(jsonObject["hazard"]).map(Hazard.init)
+            hazards: parseArray(jsonObject["hazard"]).map(Hazard.init),
+            exemptions: parseArray(jsonObject["exemption"]).map(Exemption.init)
         )
     }
 
@@ -420,6 +470,7 @@ public struct Accessibility: Hashable, Sendable {
             "accessModeSufficient": encodeIfNotEmpty(accessModesSufficient.map { $0.map(\.rawValue) }),
             "feature": encodeIfNotEmpty(features.map(\.id)),
             "hazard": encodeIfNotEmpty(hazards.map(\.id)),
+            "exemption": encodeIfNotEmpty(exemptions.map(\.id)),
         ])
     }
 }
