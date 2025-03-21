@@ -61,6 +61,7 @@ final class EPUBMetadataParser: Loggable {
             numberOfPages: numberOfPages,
             belongsToCollections: belongsToCollections,
             belongsToSeries: belongsToSeries,
+            tdm: tdm(),
             otherMetadata: otherMetadata
         )
     }
@@ -274,6 +275,22 @@ final class EPUBMetadataParser: Loggable {
     private func accessibilityHazards() -> [Accessibility.Hazard] {
         metas["accessibilityHazard", in: .schema]
             .map { Accessibility.Hazard($0.content) }
+    }
+
+    /// https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/#sec-epub3
+    private func tdm() -> TDM? {
+        guard
+            let reservationMeta = metas["reservation", in: .tdm].first,
+            let reservation = TDM.Reservation(epub: reservationMeta)
+        else {
+            return nil
+        }
+
+        return TDM(
+            reservation: reservation,
+            policy: metas["policy", in: .tdm].first
+                .flatMap { HTTPURL(string: $0.content) }
+        )
     }
 
     /// Parse and return the Epub unique identifier.
@@ -571,5 +588,18 @@ final class EPUBMetadataParser: Loggable {
     private func dcElement(tag: String) -> ReadiumFuzi.XMLElement? {
         metadataElement?
             .firstChild(xpath: "(.|opf:dc-metadata)/dc:\(tag)")
+    }
+}
+
+private extension TDM.Reservation {
+    init?(epub: OPFMeta) {
+        switch epub.content {
+        case "0":
+            self = .none
+        case "1":
+            self = .all
+        default:
+            return nil
+        }
     }
 }

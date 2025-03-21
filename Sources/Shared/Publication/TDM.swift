@@ -31,7 +31,7 @@ public struct TDM: Hashable, Sendable {
     }
 
     public var reservation: Reservation
-    
+
     /// URL pointing to a TDM Policy set be the rightsholder.
     public var policy: HTTPURL?
 
