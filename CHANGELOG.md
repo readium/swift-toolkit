@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Added
 
+#### Shared
+
+* Support for [W3C's Text & data mining Reservation Protocol](https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/) in our metadata models.
+
 #### LCP
 
 * Support for streaming an LCP-protected publication from its License Document (LCPL). [Take a look at the LCP guide for more information](docs/Guides/Readium%20LCP.md#streaming-an-lcp-protected-package).
