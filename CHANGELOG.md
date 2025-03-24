@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file. Take a look
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
-## [Unreleased]
+<!-- ## [Unreleased] -->
+
+## [3.2.0]
 
 ### Added
 
@@ -894,3 +896,4 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [3.0.0-beta.1]: https://github.com/readium/swift-toolkit/compare/3.0.0-alpha.3...3.0.0-beta.1
 [3.0.0-beta.2]: https://github.com/readium/swift-toolkit/compare/3.0.0-beta.1...3.0.0-beta.2
 [3.1.0]: https://github.com/readium/swift-toolkit/compare/3.0.0...3.1.0
+[3.2.0]: https://github.com/readium/swift-toolkit/compare/3.1.0...3.2.0
