@@ -199,6 +199,16 @@ public struct Accessibility: Hashable, Sendable {
         /// The work includes an index to the content.
         public static let index = Feature("index")
 
+        /// The resource includes static page markers, such as those identified
+        /// by the doc-pagebreak role (DPUB-ARIA-1.0).
+        ///
+        /// This value is most commonly used with ebooks for which there is a
+        /// statically paginated equivalent, such as a print edition, but it is
+        /// not required that the page markers correspond to another work. The
+        /// markers may exist solely to facilitate navigation in purely digital
+        /// works.
+        public static let pageBreakMarkers = Feature("pageBreakMarkers")
+
         /// The resource includes a means of navigating to static page break
         /// locations.
         ///
