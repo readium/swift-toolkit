@@ -18,7 +18,7 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
 4. Issue the new release.
     1. Create a branch with the same name as the future tag, from `develop`.
     2. Bump the version numbers in the `Support/CocoaPods/*.podspec` files.
-        * :warning: Don't forget to use `:tag => s.version` in the `Podspec` files instead of `:branch`.
+        * :warning: Don't forget to bump the version numbers of the Readium dependencies as well.
     3. Bump the version numbers in `README.md`.
     4. Bump the version numbers in `TestApp/Sources/Info.plist`.
     5. Close the version in the `CHANGELOG.md`, [for example](https://github.com/readium/swift-toolkit/pull/353/commits/a0714589b3da928dd923ba78f379116715797333#diff-06572a96a58dc510037d5efa622f9bec8519bc1beab13c9f251e97e657a9d4ed).
