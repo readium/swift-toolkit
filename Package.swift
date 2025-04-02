@@ -43,6 +43,9 @@ let package = Package(
                 .product(name: "ReadiumZIPFoundation", package: "ZIPFoundation"),
             ],
             path: "Sources/Shared",
+            resources: [
+                .process("Resources"),
+            ],
             linkerSettings: [
                 .linkedFramework("CoreServices"),
                 .linkedFramework("UIKit"),
