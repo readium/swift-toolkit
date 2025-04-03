@@ -7,6 +7,12 @@
 import Foundation
 
 public extension Array {
+
+    init(builder: (inout Self) -> Void) {
+        self.init()
+        builder(&self)
+    }
+
     /// Creates a new `Array` from the given `elements`, if they are not nil.
     init(ofNotNil elements: Element?...) {
         self = elements.compactMap { $0 }

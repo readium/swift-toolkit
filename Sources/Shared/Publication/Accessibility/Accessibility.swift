@@ -84,6 +84,27 @@ public struct Accessibility: Hashable, Sendable {
         public static let epubA11y11WCAG22AA = Profile("https://www.w3.org/TR/epub-a11y-11#wcag-2.2-aa")
         /// EPUB Accessibility 1.1 - WCAG 2.2 Level AAA
         public static let epubA11y11WCAG22AAA = Profile("https://www.w3.org/TR/epub-a11y-11#wcag-2.2-aaa")
+        
+        public var isWCAGLevelA: Bool {
+            return self == Self.epubA11y10WCAG20A
+                || self == Self.epubA11y11WCAG20A
+                || self == Self.epubA11y11WCAG21A
+                || self == Self.epubA11y11WCAG22A
+        }
+        
+        public var isWCAGLevelAA: Bool {
+            return self == Self.epubA11y10WCAG20AA
+                || self == Self.epubA11y11WCAG20AA
+                || self == Self.epubA11y11WCAG21AA
+                || self == Self.epubA11y11WCAG22AA
+        }
+        
+        public var isWCAGLevelAAA: Bool {
+            return self == Self.epubA11y10WCAG20AAA
+                || self == Self.epubA11y11WCAG20AAA
+                || self == Self.epubA11y11WCAG21AAA
+                || self == Self.epubA11y11WCAG22AAA
+        }
     }
 
     public struct Certification: Hashable, Sendable {
