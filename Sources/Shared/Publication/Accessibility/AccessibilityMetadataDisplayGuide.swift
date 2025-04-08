@@ -30,13 +30,25 @@ public struct AccessibilityMetadataDisplayGuide {
     /// for prerecorded audio are available.
     public var richContent: RichContent
 
-    /// Identifies whether the digital publication claims to meet
-    /// internationally recognized conformance standards for accessibility.
-    public var conformance: Conformance
+    /// This section lists additional metadata categories that can help users
+    /// better understand the accessibility characteristics of digital
+    /// publications. These are for metadata that do not fit into the other
+    /// categories or are rarely used in trade publishing.
+    public var additionalInformation: AdditionalInformation
 
     /// Identifies any potential hazards (e.g., flashing elements, sounds, and
     /// motion simulation) that could afflict physiologically sensitive users.
     public var hazards: Hazards
+
+    /// Identifies whether the digital publication claims to meet
+    /// internationally recognized conformance standards for accessibility.
+    public var conformance: Conformance
+
+    /// In some jurisdictions publishers may be able to claim an exemption from
+    /// the provision of accessible publications, including the provision of
+    /// accessibility metadata. This should always be subject to clarification
+    /// by legal counsel for each jurisdiction.
+    public var legal: Legal
 
     /// The accessibility summary was intended (in EPUB Accessibility 1.0) to
     /// describe in human-readable prose the accessibility features present in
@@ -45,18 +57,6 @@ public struct AccessibilityMetadataDisplayGuide {
     /// readable summary of the accessibility that complements, but does not
     /// duplicate, the other discoverability metadata.
     public var accessibilitySummary: AccessibilitySummary
-
-    /// In some jurisdictions publishers may be able to claim an exemption from
-    /// the provision of accessible publications, including the provision of
-    /// accessibility metadata. This should always be subject to clarification
-    /// by legal counsel for each jurisdiction.
-    public var legal: Legal
-
-    /// This section lists additional metadata categories that can help users
-    /// better understand the accessibility characteristics of digital
-    /// publications. These are for metadata that do not fit into the other
-    /// categories or are rarely used in trade publishing.
-    public var additionalInformation: AdditionalInformation
 
     /// Returns the list of display fields in their recommended order.
     public var fields: [AccessibilityDisplayField] {
@@ -81,21 +81,21 @@ public struct AccessibilityMetadataDisplayGuide {
         /// Indicates if users can modify the appearance of the text and the
         /// page layout according to the possibilities offered by the reading
         /// system.
-        public var visualAdjustments: VisualAdjustments
+        public var visualAdjustments: VisualAdjustments = .unknown
 
         /// Indicates whether all content required for comprehension can be
         /// consumed in text and therefore is available to reading systems with
         /// read aloud speech or dynamic braille capabilities.
-        public var nonvisualReading: NonvisualReading
+        public var nonvisualReading: NonvisualReading = .noMetadata
 
         /// Indicates whether text alternatives are provided for visuals.
-        public var nonvisualReadingAltText: Bool
+        public var nonvisualReadingAltText: Bool = false
 
         /// Indicates the presence of prerecorded audio and specifies if this
         /// audio is standalone (an audiobook), is an alternative to the text
         /// (synchronized text with audio playback), or is complementary audio
         /// (portions of audio, (e.g., reading of a poem).
-        public var prerecordedAudio: PrerecordedAudio
+        public var prerecordedAudio: PrerecordedAudio = .noMetadata
 
         public var localizedTitle: String { bundleString("ways-of-reading-title") }
 
@@ -454,7 +454,7 @@ public struct AccessibilityMetadataDisplayGuide {
     public struct AccessibilitySummary: AccessibilityDisplayField {
         public var summary: String? = nil
 
-        public var localizedTitle: String { bundleString("conformance-title") }
+        public var localizedTitle: String { bundleString("accessibility-summary-title") }
 
         public var shouldDisplay: Bool { summary != nil }
 
@@ -494,12 +494,10 @@ public struct AccessibilityMetadataDisplayGuide {
 
         public var statements: [AccessibilityDisplayStatement] {
             Array {
-                guard !noMetadata else {
-                    $0.append(.legalConsiderationsNoMetadata)
-                    return
-                }
                 if exemption {
                     $0.append(.legalConsiderationsExempt)
+                } else {
+                    $0.append(.legalConsiderationsNoMetadata)
                 }
             }
         }
@@ -552,7 +550,7 @@ public struct AccessibilityMetadataDisplayGuide {
         /// Text-to-speech hinting provided.
         public var textToSpeechHinting: Bool = false
 
-        public var localizedTitle: String { bundleString("legal-considerations-title") }
+        public var localizedTitle: String { bundleString("additional-accessibility-information-title") }
 
         public var shouldDisplay: Bool { !noMetadata }
 
@@ -667,7 +665,7 @@ public struct AccessibilityDisplayStatement {
     private let compactLocalizedString: () -> NSAttributedString
     private let descriptiveLocalizedString: () -> NSAttributedString
 
-    public struct Key: RawRepresentable, ExpressibleByStringLiteral {
+    public struct Key: RawRepresentable, ExpressibleByStringLiteral, Hashable {
         public let rawValue: String
 
         public init(rawValue: String) {
