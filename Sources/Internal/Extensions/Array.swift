@@ -7,7 +7,6 @@
 import Foundation
 
 public extension Array {
-
     init(builder: (inout Self) -> Void) {
         self.init()
         builder(&self)
