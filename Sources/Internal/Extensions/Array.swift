@@ -42,6 +42,12 @@ public extension Array {
     }
 }
 
+public extension Array where Element: Equatable {
+    @inlinable func containsAny(_ elements: Element...) -> Bool {
+        contains { elements.contains($0) }
+    }
+}
+
 public extension Array where Element: Hashable {
     /// Creates a new `Array` after removing all the element duplicates.
     func removingDuplicates() -> Array {

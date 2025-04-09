@@ -11,7 +11,7 @@ import SwiftUI
 /// When presenting accessibility metadata provided by the publisher, it is
 /// suggested that the section is introduced using terms such as "claims" or
 /// "declarations" (e.g., "Accessibility Claims").
-public struct AccessibilityMetadataDisplayGuide {
+public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
     /// The ways of reading display field is a banner heading that groups
     /// together the following information about how the content facilitates
     /// access.
@@ -59,7 +59,7 @@ public struct AccessibilityMetadataDisplayGuide {
     public var accessibilitySummary: AccessibilitySummary
 
     /// Returns the list of display fields in their recommended order.
-    public var fields: [AccessibilityDisplayField] {
+    public var fields: [any AccessibilityDisplayField] {
         [
             waysOfReading,
             navigation,
@@ -72,6 +72,18 @@ public struct AccessibilityMetadataDisplayGuide {
         ]
     }
 
+    /// Creates a new display guide for the given `accessibility` metadata.
+    public init(publication: Publication) {
+        waysOfReading = WaysOfReading(publication: publication)
+        navigation = Navigation(publication: publication)
+        richContent = RichContent(publication: publication)
+        additionalInformation = AdditionalInformation(publication: publication)
+        hazards = Hazards(publication: publication)
+        conformance = Conformance(publication: publication)
+        legal = Legal(publication: publication)
+        accessibilitySummary = AccessibilitySummary(publication: publication)
+    }
+
     /// The ways of reading display field is a banner heading that groups
     /// together the following information about how the content facilitates
     /// access.
@@ -81,28 +93,28 @@ public struct AccessibilityMetadataDisplayGuide {
         /// Indicates if users can modify the appearance of the text and the
         /// page layout according to the possibilities offered by the reading
         /// system.
-        public var visualAdjustments: VisualAdjustments = .unknown
+        public var visualAdjustments: VisualAdjustments
 
         /// Indicates whether all content required for comprehension can be
         /// consumed in text and therefore is available to reading systems with
         /// read aloud speech or dynamic braille capabilities.
-        public var nonvisualReading: NonvisualReading = .noMetadata
+        public var nonvisualReading: NonvisualReading
 
         /// Indicates whether text alternatives are provided for visuals.
-        public var nonvisualReadingAltText: Bool = false
+        public var nonvisualReadingAltText: Bool
 
         /// Indicates the presence of prerecorded audio and specifies if this
         /// audio is standalone (an audiobook), is an alternative to the text
         /// (synchronized text with audio playback), or is complementary audio
         /// (portions of audio, (e.g., reading of a poem).
-        public var prerecordedAudio: PrerecordedAudio = .noMetadata
+        public var prerecordedAudio: PrerecordedAudio
 
         public var localizedTitle: String { bundleString("ways-of-reading-title") }
 
         /// "Ways of reading" should be rendered even if there is no metadata.
         public let shouldDisplay: Bool = true
 
-        public enum VisualAdjustments {
+        public enum VisualAdjustments: Sendable {
             /// Appearance can be modified
             case modifiable
 
@@ -113,7 +125,7 @@ public struct AccessibilityMetadataDisplayGuide {
             case unknown
         }
 
-        public enum NonvisualReading {
+        public enum NonvisualReading: Sendable {
             /// Readable in read aloud or dynamic braille
             case readable
 
@@ -127,7 +139,7 @@ public struct AccessibilityMetadataDisplayGuide {
             case noMetadata
         }
 
-        public enum PrerecordedAudio {
+        public enum PrerecordedAudio: Sendable {
             /// Prerecorded audio synchronized with text
             case synchronized
 
@@ -179,6 +191,73 @@ public struct AccessibilityMetadataDisplayGuide {
                 }
             }
         }
+
+        public init(
+            visualAdjustments: VisualAdjustments = .unknown,
+            nonvisualReading: NonvisualReading = .noMetadata,
+            nonvisualReadingAltText: Bool = false,
+            prerecordedAudio: PrerecordedAudio = .noMetadata
+        ) {
+            self.visualAdjustments = visualAdjustments
+            self.nonvisualReading = nonvisualReading
+            self.nonvisualReadingAltText = nonvisualReadingAltText
+            self.prerecordedAudio = prerecordedAudio
+        }
+
+        public init(publication: Publication) {
+            let isFixedLayout = publication.metadata.presentation.layout == .fixed
+            let a11y = publication.metadata.accessibility ?? Accessibility()
+
+            visualAdjustments = {
+                if a11y.features.contains(.displayTransformability) {
+                    return .modifiable
+                } else if isFixedLayout {
+                    return .unmodifiable
+                } else {
+                    return .unknown
+                }
+            }()
+
+            let allText = a11y.accessModes == [.textual]
+                || a11y.accessModesSufficient.contains([.textual])
+
+            let someText = a11y.accessModes.contains(.textual)
+                || a11y.accessModesSufficient.contains { $0.contains(.textual) }
+
+            let noText = !(a11y.accessModes.isEmpty && a11y.accessModesSufficient.isEmpty)
+                && !a11y.accessModes.contains(.textual)
+                && !a11y.accessModesSufficient.contains { $0.contains(.textual) }
+
+            let hasTextAlt = a11y.features.containsAny(
+                .longDescription, .alternativeText, .describedMath, .transcript
+            )
+
+            nonvisualReading = {
+                if allText {
+                    return .readable
+                } else if someText || hasTextAlt {
+                    return .notFully
+                } else if noText {
+                    return .unreadable
+                } else {
+                    return .noMetadata
+                }
+            }()
+
+            nonvisualReadingAltText = hasTextAlt
+
+            prerecordedAudio = {
+                if a11y.features.contains(.synchronizedAudioText) {
+                    return .synchronized
+                } else if a11y.accessModesSufficient.contains(where: { $0.contains(.auditory) }) {
+                    return .audioOnly
+                } else if a11y.accessModes.contains(.auditory) {
+                    return .audioComplementary
+                } else {
+                    return .noMetadata
+                }
+            }()
+        }
     }
 
     /// Identifies the navigation features included in the publication.
@@ -187,19 +266,19 @@ public struct AccessibilityMetadataDisplayGuide {
     public struct Navigation: AccessibilityDisplayField {
         /// Indicates whether no information about navigation features is
         /// available.
-        public var noMetadata: Bool = true
+        public var noMetadata: Bool { !tableOfContents && !index && !headings && !page }
 
         /// Table of contents to all chapters of the text via links.
-        public var tableOfContents: Bool = false
+        public var tableOfContents: Bool
 
         /// Index with links to referenced entries.
-        public var index: Bool = false
+        public var index: Bool
 
         /// Elements such as headings, tables, etc for structured navigation.
-        public var headings: Bool = false
+        public var headings: Bool
 
         /// Page list to go to pages from the print source version.
-        public var page: Bool = false
+        public var page: Bool
 
         public var localizedTitle: String { bundleString("navigation-title") }
 
@@ -207,11 +286,6 @@ public struct AccessibilityMetadataDisplayGuide {
 
         public var statements: [AccessibilityDisplayStatement] {
             Array {
-                guard !noMetadata else {
-                    $0.append(.navigationNoMetadata)
-                    return
-                }
-
                 if tableOfContents {
                     $0.append(.navigationTOC)
                 }
@@ -224,51 +298,32 @@ public struct AccessibilityMetadataDisplayGuide {
                 if page {
                     $0.append(.navigationPageNavigation)
                 }
+
+                if $0.isEmpty {
+                    $0.append(.navigationNoMetadata)
+                }
             }
         }
-    }
 
-    /// Identifies whether the digital publication claims to meet
-    /// internationally recognized conformance standards for accessibility.
-    ///
-    /// https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/#conformance-group
-    public struct Conformance: AccessibilityDisplayField {
-        /// Accessibility conformance profile.
-        public var profile: Accessibility.Profile?
+        public init(
+            tableOfContents: Bool = false,
+            index: Bool = false,
+            headings: Bool = false,
+            page: Bool = false
+        ) {
+            self.tableOfContents = tableOfContents
+            self.index = index
+            self.headings = headings
+            self.page = page
+        }
 
-        public var localizedTitle: String { bundleString("conformance-title") }
+        public init(publication: Publication) {
+            let features = publication.metadata.accessibility?.features ?? []
 
-        /// "Conformance" should be rendered even if there is no metadata.
-        public let shouldDisplay: Bool = true
-
-        public var statements: [AccessibilityDisplayStatement] {
-            Array {
-                guard let profile = profile else {
-                    $0.append(.conformanceNo)
-                    return
-                }
-
-                if profile.isWCAGLevelAAA {
-                    $0.append(.conformanceAAA)
-                } else if profile.isWCAGLevelAA {
-                    $0.append(.conformanceAA)
-                } else if profile.isWCAGLevelA {
-                    $0.append(.conformanceA)
-                } else {
-                    $0.append(.conformanceUnknownStandard)
-                }
-
-                // FIXME: Waiting on W3C to offer localized strings with placeholders instead of concatenation. See https://github.com/w3c/publ-a11y/issues/688
-                // FIXME: Details? + Certification date is missing from RWPM
-//                if let certification = certification {
-//                    if let certifier = certification.certifiedBy {
-//                        $0.append(.conformanceCertifier, appending: certifier)
-//                    }
-//                    if let credential = certification.credential {
-//                        $0.append(.conformanceCertifierCredentials, appending: credential)
-//                    }
-//                }
-            }
+            tableOfContents = features.contains(.tableOfContents)
+            index = features.contains(.index)
+            headings = features.contains(.structuralNavigation)
+            page = features.contains(.pageNavigation)
         }
     }
 
@@ -284,34 +339,38 @@ public struct AccessibilityMetadataDisplayGuide {
     /// https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/#rich-content
     public struct RichContent: AccessibilityDisplayField {
         /// Indicates whether no information about rich content is available.
-        public var noMetadata: Bool = true
+        public var noMetadata: Bool {
+            !extendedAltTextDescriptions && !mathFormula && !mathFormulaAsMathML &&
+                !mathFormulaAsLaTeX && !chemicalFormulaAsMathML && !chemicalFormulaAsLaTeX &&
+                !closedCaptions && !openCaptions && !transcript
+        }
 
         /// Information-rich images are described by extended descriptions.
-        public var extendedAltTextDescriptions: Bool = false
+        public var extendedAltTextDescriptions: Bool
 
         /// Text descriptions of math are provided.
-        public var mathFormula: Bool = false
+        public var mathFormula: Bool
 
         /// Math formulas in accessible format (MathML).
-        public var mathFormulaAsMathML: Bool = false
+        public var mathFormulaAsMathML: Bool
 
         /// Math formulas in accessible format (LaTeX).
-        public var mathFormulaAsLaTeX: Bool = false
+        public var mathFormulaAsLaTeX: Bool
 
         /// Chemical formulas in accessible format (MathML).
-        public var chemicalFormulaAsMathML: Bool = false
+        public var chemicalFormulaAsMathML: Bool
 
         /// Chemical formulas in accessible format (LaTeX).
-        public var chemicalFormulaAsLaTeX: Bool = false
+        public var chemicalFormulaAsLaTeX: Bool
 
         /// Videos included in publications have closed captions.
-        public var closedCaptions: Bool = false
+        public var closedCaptions: Bool
 
         /// Videos included in publications have open captions.
-        public var openCaptions: Bool = false
+        public var openCaptions: Bool
 
         /// Transcript(s) provided.
-        public var transcript: Bool = false
+        public var transcript: Bool
 
         public var localizedTitle: String { bundleString("rich-content-title") }
 
@@ -319,11 +378,6 @@ public struct AccessibilityMetadataDisplayGuide {
 
         public var statements: [AccessibilityDisplayStatement] {
             Array {
-                guard !noMetadata else {
-                    $0.append(.richContentUnknown)
-                    return
-                }
-
                 if extendedAltTextDescriptions {
                     $0.append(.richContentExtended)
                 }
@@ -351,7 +405,195 @@ public struct AccessibilityMetadataDisplayGuide {
                 if transcript {
                     $0.append(.richContentTranscript)
                 }
+
+                if $0.isEmpty {
+                    $0.append(.richContentUnknown)
+                }
             }
+        }
+
+        public init(
+            extendedAltTextDescriptions: Bool = false,
+            mathFormula: Bool = false,
+            mathFormulaAsMathML: Bool = false,
+            mathFormulaAsLaTeX: Bool = false,
+            chemicalFormulaAsMathML: Bool = false,
+            chemicalFormulaAsLaTeX: Bool = false,
+            closedCaptions: Bool = false,
+            openCaptions: Bool = false,
+            transcript: Bool = false
+        ) {
+            self.extendedAltTextDescriptions = extendedAltTextDescriptions
+            self.mathFormula = mathFormula
+            self.mathFormulaAsMathML = mathFormulaAsMathML
+            self.mathFormulaAsLaTeX = mathFormulaAsLaTeX
+            self.chemicalFormulaAsMathML = chemicalFormulaAsMathML
+            self.chemicalFormulaAsLaTeX = chemicalFormulaAsLaTeX
+            self.closedCaptions = closedCaptions
+            self.openCaptions = openCaptions
+            self.transcript = transcript
+        }
+
+        public init(publication: Publication) {
+            let features = publication.metadata.accessibility?.features ?? []
+            extendedAltTextDescriptions = features.contains(.longDescription)
+            mathFormula = features.contains(.describedMath)
+            mathFormulaAsMathML = features.contains(.mathML)
+            mathFormulaAsLaTeX = features.contains(.latex)
+            chemicalFormulaAsMathML = features.contains(.mathMLChemistry)
+            chemicalFormulaAsLaTeX = features.contains(.latexChemistry)
+            closedCaptions = features.contains(.closedCaptions)
+            openCaptions = features.contains(.openCaptions)
+            transcript = features.contains(.transcript)
+        }
+    }
+
+    /// This section lists additional metadata categories that can help users
+    /// better understand the accessibility characteristics of digital
+    /// publications. These are for metadata that do not fit into the other
+    /// categories or are rarely used in trade publishing.
+    public struct AdditionalInformation: AccessibilityDisplayField {
+        /// No information is available.
+        public var noMetadata: Bool {
+            !pageBreakMarkers && !aria && !audioDescriptions && !braille &&
+                !rubyAnnotations && !fullRubyAnnotations && !highAudioContrast &&
+                !highDisplayContrast && !largePrint && !signLanguage &&
+                !tactileGraphics && !tactileObjects && !textToSpeechHinting
+        }
+
+        /// Page breaks included.
+        public var pageBreakMarkers: Bool
+
+        /// ARIA roles included.
+        public var aria: Bool
+
+        /// Audio descriptions.
+        public var audioDescriptions: Bool
+
+        /// Braille.
+        public var braille: Bool
+
+        /// Some ruby annotations.
+        public var rubyAnnotations: Bool
+
+        /// Full ruby annotations
+        public var fullRubyAnnotations: Bool
+
+        /// High contrast between foreground and background audio
+        public var highAudioContrast: Bool
+
+        /// High contrast between foreground text and background.
+        public var highDisplayContrast: Bool
+
+        /// Large print.
+        public var largePrint: Bool
+
+        /// Sign language.
+        public var signLanguage: Bool
+
+        /// Tactile graphics included.
+        public var tactileGraphics: Bool
+
+        /// Tactile 3D objects.
+        public var tactileObjects: Bool
+
+        /// Text-to-speech hinting provided.
+        public var textToSpeechHinting: Bool
+
+        public var localizedTitle: String { bundleString("additional-accessibility-information-title") }
+
+        public var shouldDisplay: Bool { !noMetadata }
+
+        public var statements: [AccessibilityDisplayStatement] {
+            Array {
+                if pageBreakMarkers {
+                    $0.append(.additionalAccessibilityInformationPageBreaks)
+                }
+                if aria {
+                    $0.append(.additionalAccessibilityInformationARIA)
+                }
+                if audioDescriptions {
+                    $0.append(.additionalAccessibilityInformationAudioDescriptions)
+                }
+                if braille {
+                    $0.append(.additionalAccessibilityInformationBraille)
+                }
+                if rubyAnnotations {
+                    $0.append(.additionalAccessibilityInformationRubyAnnotations)
+                }
+                if fullRubyAnnotations {
+                    $0.append(.additionalAccessibilityInformationFullRubyAnnotations)
+                }
+                if highAudioContrast {
+                    $0.append(.additionalAccessibilityInformationHighContrastBetweenForegroundAndBackgroundAudio)
+                }
+                if highDisplayContrast {
+                    $0.append(.additionalAccessibilityInformationHighContrastBetweenTextAndBackground)
+                }
+                if largePrint {
+                    $0.append(.additionalAccessibilityInformationLargePrint)
+                }
+                if signLanguage {
+                    $0.append(.additionalAccessibilityInformationSignLanguage)
+                }
+                if tactileGraphics {
+                    $0.append(.additionalAccessibilityInformationTactileGraphics)
+                }
+                if tactileObjects {
+                    $0.append(.additionalAccessibilityInformationTactileObjects)
+                }
+                if textToSpeechHinting {
+                    $0.append(.additionalAccessibilityInformationTextToSpeechHinting)
+                }
+            }
+        }
+
+        public init(
+            pageBreakMarkers: Bool = false,
+            aria: Bool = false,
+            audioDescriptions: Bool = false,
+            braille: Bool = false,
+            rubyAnnotations: Bool = false,
+            fullRubyAnnotations: Bool = false,
+            highAudioContrast: Bool = false,
+            highDisplayContrast: Bool = false,
+            largePrint: Bool = false,
+            signLanguage: Bool = false,
+            tactileGraphics: Bool = false,
+            tactileObjects: Bool = false,
+            textToSpeechHinting: Bool = false
+        ) {
+            self.pageBreakMarkers = pageBreakMarkers
+            self.aria = aria
+            self.audioDescriptions = audioDescriptions
+            self.braille = braille
+            self.rubyAnnotations = rubyAnnotations
+            self.fullRubyAnnotations = fullRubyAnnotations
+            self.highAudioContrast = highAudioContrast
+            self.highDisplayContrast = highDisplayContrast
+            self.largePrint = largePrint
+            self.signLanguage = signLanguage
+            self.tactileGraphics = tactileGraphics
+            self.tactileObjects = tactileObjects
+            self.textToSpeechHinting = textToSpeechHinting
+        }
+
+        public init(publication: Publication) {
+            let features = publication.metadata.accessibility?.features ?? []
+
+            pageBreakMarkers = features.contains(.pageBreakMarkers)
+            aria = features.contains(.aria)
+            audioDescriptions = features.contains(.audioDescription)
+            braille = features.contains(.braille)
+            rubyAnnotations = features.contains(.rubyAnnotations)
+            fullRubyAnnotations = features.contains(.fullRubyAnnotations)
+            highAudioContrast = features.contains(.highContrastAudio)
+            highDisplayContrast = features.contains(.highContrastDisplay)
+            largePrint = features.contains(.largePrint)
+            signLanguage = features.contains(.signLanguage)
+            tactileGraphics = features.contains(.tactileGraphic)
+            tactileObjects = features.contains(.tactileObject)
+            textToSpeechHinting = features.contains(.ttsMarkup)
         }
     }
 
@@ -365,7 +607,7 @@ public struct AccessibilityMetadataDisplayGuide {
     ///
     /// https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/#hazards
     public struct Hazards: AccessibilityDisplayField {
-        public enum Hazard {
+        public enum Hazard: Sendable {
             case yes
             case no
             case unknown
@@ -389,14 +631,14 @@ public struct AccessibilityMetadataDisplayGuide {
 
         /// The publication contains flashing content which can cause
         /// photosensitive seizures.
-        public var flashing: Hazard = .noMetadata
+        public var flashing: Hazard
 
         /// The publication contains motion simulations that can cause motion
         /// sickness.
-        public var motion: Hazard = .noMetadata
+        public var motion: Hazard
 
         /// The publication contains sounds which can be uncomfortable.
-        public var sounds: Hazard = .noMetadata
+        public var sounds: Hazard
 
         public var localizedTitle: String { bundleString("hazards-title") }
 
@@ -441,36 +683,117 @@ public struct AccessibilityMetadataDisplayGuide {
                 }
             }
         }
+
+        public init(
+            flashing: Hazard = .unknown,
+            motion: Hazard = .unknown,
+            sounds: Hazard = .unknown
+        ) {
+            self.flashing = flashing
+            self.motion = motion
+            self.sounds = sounds
+        }
+
+        public init(publication: Publication) {
+            let hazards = publication.metadata.accessibility?.hazards ?? []
+
+            let fallback: Hazard = {
+                if hazards.contains(.none) {
+                    return .no
+                } else if hazards.contains(.unknown) {
+                    return .unknown
+                } else {
+                    return .noMetadata
+                }
+            }()
+
+            flashing = {
+                if hazards.contains(.flashing) {
+                    return .yes
+                } else if hazards.contains(.noFlashingHazard) {
+                    return .no
+                } else if hazards.contains(.unknownFlashingHazard) {
+                    return .unknown
+                } else {
+                    return fallback
+                }
+            }()
+
+            motion = {
+                if hazards.contains(.motionSimulation) {
+                    return .yes
+                } else if hazards.contains(.noMotionSimulationHazard) {
+                    return .no
+                } else if hazards.contains(.unknownMotionSimulationHazard) {
+                    return .unknown
+                } else {
+                    return fallback
+                }
+            }()
+
+            sounds = {
+                if hazards.contains(.sound) {
+                    return .yes
+                } else if hazards.contains(.noSoundHazard) {
+                    return .no
+                } else if hazards.contains(.unknownSoundHazard) {
+                    return .unknown
+                } else {
+                    return fallback
+                }
+            }()
+        }
     }
 
-    /// The accessibility summary was intended (in EPUB Accessibility 1.0) to
-    /// describe in human-readable prose the accessibility features present in
-    /// the publication as well as any shortcomings. Starting with EPUB
-    /// Accessibility version 1.1 the accessibility summary became a human-
-    /// readable summary of the accessibility that complements, but does not
-    /// duplicate, the other discoverability metadata.
+    /// Identifies whether the digital publication claims to meet
+    /// internationally recognized conformance standards for accessibility.
     ///
-    /// https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/#accessibility-summary
-    public struct AccessibilitySummary: AccessibilityDisplayField {
-        public var summary: String? = nil
+    /// https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/#conformance-group
+    public struct Conformance: AccessibilityDisplayField {
+        /// Accessibility conformance profiles.
+        public var profiles: [Accessibility.Profile]
 
-        public var localizedTitle: String { bundleString("accessibility-summary-title") }
+        public var localizedTitle: String { bundleString("conformance-title") }
 
-        public var shouldDisplay: Bool { summary != nil }
+        /// "Conformance" should be rendered even if there is no metadata.
+        public let shouldDisplay: Bool = true
 
         public var statements: [AccessibilityDisplayStatement] {
             Array {
-                if let summary = summary {
-                    let summary = NSAttributedString(string: summary)
-                    $0.append(AccessibilityDisplayStatement(
-                        key: .accessibilitySummary,
-                        compactLocalizedString: { summary },
-                        descriptiveLocalizedString: { summary }
-                    ))
-                } else {
-                    $0.append(.accessibilitySummaryNoMetadata)
+                guard !profiles.isEmpty else {
+                    $0.append(.conformanceNo)
+                    return
                 }
+
+                if profiles.contains(where: \.isWCAGLevelAAA) {
+                    $0.append(.conformanceAAA)
+                } else if profiles.contains(where: \.isWCAGLevelAA) {
+                    $0.append(.conformanceAA)
+                } else if profiles.contains(where: \.isWCAGLevelA) {
+                    $0.append(.conformanceA)
+                } else {
+                    $0.append(.conformanceUnknownStandard)
+                }
+
+                // FIXME: Waiting on W3C to offer localized strings with placeholders instead of concatenation. See https://github.com/w3c/publ-a11y/issues/688
+                // FIXME: Details? + Certification date is missing from RWPM
+//                if let certification = certification {
+//                    if let certifier = certification.certifiedBy {
+//                        $0.append(.conformanceCertifier, appending: certifier)
+//                    }
+//                    if let credential = certification.credential {
+//                        $0.append(.conformanceCertifierCredentials, appending: credential)
+//                    }
+//                }
             }
+        }
+
+        public init(profiles: [Accessibility.Profile] = []) {
+            self.profiles = profiles
+        }
+
+        public init(publication: Publication) {
+            profiles = publication.metadata.accessibility?.conformsTo ?? []
         }
     }
 
@@ -482,7 +805,7 @@ public struct AccessibilityMetadataDisplayGuide {
     /// https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/#legal-considerations
     public struct Legal: AccessibilityDisplayField {
         /// No information is available.
-        public var noMetadata: Bool = true
+        public var noMetadata: Bool { !exemption }
 
         /// This publication claims an accessibility exemption in some
         /// jurisdictions.
@@ -501,108 +824,61 @@ public struct AccessibilityMetadataDisplayGuide {
                 }
             }
         }
+
+        public init(
+            exemption: Bool = false
+        ) {
+            self.exemption = exemption
+        }
+
+        public init(publication: Publication) {
+            let exemptions = publication.metadata.accessibility?.exemptions ?? []
+            exemption = !exemptions.isEmpty
+        }
     }
 
-    /// This section lists additional metadata categories that can help users
-    /// better understand the accessibility characteristics of digital
-    /// publications. These are for metadata that do not fit into the other
-    /// categories or are rarely used in trade publishing.
-    public struct AdditionalInformation: AccessibilityDisplayField {
-        /// No information is available.
-        public var noMetadata: Bool = true
+    /// The accessibility summary was intended (in EPUB Accessibility 1.0) to
+    /// describe in human-readable prose the accessibility features present in
+    /// the publication as well as any shortcomings. Starting with EPUB
+    /// Accessibility version 1.1 the accessibility summary became a human-
+    /// readable summary of the accessibility that complements, but does not
+    /// duplicate, the other discoverability metadata.
+    ///
+    /// https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/#accessibility-summary
+    public struct AccessibilitySummary: AccessibilityDisplayField {
+        public var summary: String?
 
-        /// Page breaks included.
-        public var pageBreakMarkers: Bool = false
+        public var localizedTitle: String { bundleString("accessibility-summary-title") }
 
-        /// ARIA roles included.
-        public var aria: Bool = false
-
-        /// Audio descriptions.
-        public var audioDescriptions: Bool = false
-
-        /// Braille.
-        public var braille: Bool = false
-
-        /// Some ruby annotations.
-        public var someRubyAnnotations: Bool = false
-
-        /// Full ruby annotations
-        public var fullRubyAnnotations: Bool = false
-
-        /// High contrast between foreground and background audio
-        public var highAudioContrast: Bool = false
-
-        /// High contrast between foreground text and background.
-        public var highColorContrast: Bool = false
-
-        /// Large print.
-        public var largePrint: Bool = false
-
-        /// Sign language.
-        public var signLanguage: Bool = false
-
-        /// Tactile graphics included.
-        public var tactileGraphics: Bool = false
-
-        /// Tactile 3D objects.
-        public var tactileObjects: Bool = false
-
-        /// Text-to-speech hinting provided.
-        public var textToSpeechHinting: Bool = false
-
-        public var localizedTitle: String { bundleString("additional-accessibility-information-title") }
-
-        public var shouldDisplay: Bool { !noMetadata }
+        public var shouldDisplay: Bool { summary != nil }
 
         public var statements: [AccessibilityDisplayStatement] {
             Array {
-                if pageBreakMarkers {
-                    $0.append(.additionalAccessibilityInformationPageBreaks)
-                }
-                if aria {
-                    $0.append(.additionalAccessibilityInformationARIA)
-                }
-                if audioDescriptions {
-                    $0.append(.additionalAccessibilityInformationAudioDescriptions)
-                }
-                if braille {
-                    $0.append(.additionalAccessibilityInformationBraille)
-                }
-                if someRubyAnnotations {
-                    $0.append(.additionalAccessibilityInformationRubyAnnotations)
-                }
-                if fullRubyAnnotations {
-                    $0.append(.additionalAccessibilityInformationFullRubyAnnotations)
-                }
-                if highAudioContrast {
-                    $0.append(.additionalAccessibilityInformationHighContrastBetweenForegroundAndBackgroundAudio)
-                }
-                if highColorContrast {
-                    $0.append(.additionalAccessibilityInformationHighContrastBetweenTextAndBackground)
-                }
-                if largePrint {
-                    $0.append(.additionalAccessibilityInformationLargePrint)
-                }
-                if signLanguage {
-                    $0.append(.additionalAccessibilityInformationSignLanguage)
-                }
-                if tactileGraphics {
-                    $0.append(.additionalAccessibilityInformationTactileGraphics)
-                }
-                if tactileObjects {
-                    $0.append(.additionalAccessibilityInformationTactileObjects)
-                }
-                if textToSpeechHinting {
-                    $0.append(.additionalAccessibilityInformationTextToSpeechHinting)
+                if let summary = summary {
+                    $0.append(AccessibilityDisplayStatement(
+                        key: .accessibilitySummary,
+                        compactLocalizedString: summary,
+                        descriptiveLocalizedString: summary
+                    ))
+                } else {
+                    $0.append(.accessibilitySummaryNoMetadata)
                 }
             }
+        }
+
+        public init(summary: String? = nil) {
+            self.summary = summary
+        }
+
+        public init(publication: Publication) {
+            summary = publication.metadata.accessibility?.summary
         }
     }
 }
 
 /// Represents a collection of related accessibility claims which should be
 /// displayed together in a section
-public protocol AccessibilityDisplayField {
+public protocol AccessibilityDisplayField: Sendable, Equatable {
     /// Localized title for this display field, for example to use as a
     /// section header.
     var localizedTitle: String { get }
@@ -620,7 +896,7 @@ public protocol AccessibilityDisplayField {
 
 /// Represents a single accessibility claim, such as "Appearance can be
 /// modified".
-public struct AccessibilityDisplayStatement {
+public struct AccessibilityDisplayStatement: Sendable, Equatable {
     /// Key ID identifying the statement.
     /// See https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/draft/localizations/
     public let key: Key
@@ -640,16 +916,16 @@ public struct AccessibilityDisplayStatement {
     ///   statement.
     public func localizedString(descriptive: Bool) -> NSAttributedString {
         if descriptive {
-            return descriptiveLocalizedString()
+            return descriptiveLocalizedString.map(NSAttributedString.init) ?? key.localizedString(descriptive: true)
         } else {
-            return compactLocalizedString()
+            return compactLocalizedString.map(NSAttributedString.init) ?? key.localizedString(descriptive: false)
         }
     }
 
     init(
         key: Key,
-        compactLocalizedString: @escaping () -> NSAttributedString,
-        descriptiveLocalizedString: @escaping () -> NSAttributedString
+        compactLocalizedString: String,
+        descriptiveLocalizedString: String
     ) {
         self.key = key
         self.compactLocalizedString = compactLocalizedString
@@ -658,14 +934,14 @@ public struct AccessibilityDisplayStatement {
 
     init(key: Key) {
         self.key = key
-        compactLocalizedString = { key.localizedString(descriptive: false) }
-        descriptiveLocalizedString = { key.localizedString(descriptive: true) }
+        compactLocalizedString = nil
+        descriptiveLocalizedString = nil
     }
 
-    private let compactLocalizedString: () -> NSAttributedString
-    private let descriptiveLocalizedString: () -> NSAttributedString
+    private let compactLocalizedString: String?
+    private let descriptiveLocalizedString: String?
 
-    public struct Key: RawRepresentable, ExpressibleByStringLiteral, Hashable {
+    public struct Key: RawRepresentable, ExpressibleByStringLiteral, Sendable, Hashable {
         public let rawValue: String
 
         public init(rawValue: String) {
