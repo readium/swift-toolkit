@@ -20,16 +20,7 @@ final class LibraryFactory {
 extension LibraryFactory: LibraryViewControllerFactory {
     func make() -> LibraryViewController {
         let library = storyboard.instantiateViewController(withIdentifier: "LibraryViewController") as! LibraryViewController
-        library.factory = self
         library.library = libraryService
         return library
-    }
-}
-
-extension LibraryFactory: DetailsTableViewControllerFactory {
-    func make(publication: Publication) -> DetailsTableViewController {
-        let controller = storyboard.instantiateViewController(withIdentifier: "DetailsTableViewController") as! DetailsTableViewController
-        controller.publication = publication
-        return controller
     }
 }

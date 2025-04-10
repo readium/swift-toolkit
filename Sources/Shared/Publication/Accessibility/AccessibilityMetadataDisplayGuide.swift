@@ -6,7 +6,6 @@
 
 import Foundation
 import ReadiumInternal
-import SwiftUI
 
 /// When presenting accessibility metadata provided by the publisher, it is
 /// suggested that the section is introduced using terms such as "claims" or
@@ -109,7 +108,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         /// (portions of audio, (e.g., reading of a poem).
         public var prerecordedAudio: PrerecordedAudio
 
-        public var localizedTitle: String { bundleString("ways-of-reading-title") }
+        public let id = "ways-of-reading-title"
+
+        public var localizedTitle: String { bundleString(id) }
 
         /// "Ways of reading" should be rendered even if there is no metadata.
         public let shouldDisplay: Bool = true
@@ -280,7 +281,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         /// Page list to go to pages from the print source version.
         public var page: Bool
 
-        public var localizedTitle: String { bundleString("navigation-title") }
+        public let id = "navigation-title"
+
+        public var localizedTitle: String { bundleString(id) }
 
         public var shouldDisplay: Bool { !noMetadata }
 
@@ -372,7 +375,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         /// Transcript(s) provided.
         public var transcript: Bool
 
-        public var localizedTitle: String { bundleString("rich-content-title") }
+        public let id = "rich-content-title"
+
+        public var localizedTitle: String { bundleString(id) }
 
         public var shouldDisplay: Bool { !noMetadata }
 
@@ -500,7 +505,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         /// Text-to-speech hinting provided.
         public var textToSpeechHinting: Bool
 
-        public var localizedTitle: String { bundleString("additional-accessibility-information-title") }
+        public let id = "additional-accessibility-information-title"
+
+        public var localizedTitle: String { bundleString(id) }
 
         public var shouldDisplay: Bool { !noMetadata }
 
@@ -640,7 +647,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         /// The publication contains sounds which can be uncomfortable.
         public var sounds: Hazard
 
-        public var localizedTitle: String { bundleString("hazards-title") }
+        public let id = "hazards-title"
+
+        public var localizedTitle: String { bundleString(id) }
 
         public var shouldDisplay: Bool { !noMetadata }
 
@@ -753,7 +762,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         /// Accessibility conformance profiles.
         public var profiles: [Accessibility.Profile]
 
-        public var localizedTitle: String { bundleString("conformance-title") }
+        public let id = "conformance-title"
+
+        public var localizedTitle: String { bundleString(id) }
 
         /// "Conformance" should be rendered even if there is no metadata.
         public let shouldDisplay: Bool = true
@@ -811,7 +822,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         /// jurisdictions.
         public var exemption: Bool = false
 
-        public var localizedTitle: String { bundleString("legal-considerations-title") }
+        public let id = "legal-considerations-title"
+
+        public var localizedTitle: String { bundleString(id) }
 
         public var shouldDisplay: Bool { !noMetadata }
 
@@ -846,9 +859,11 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
     ///
     /// https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/#accessibility-summary
     public struct AccessibilitySummary: AccessibilityDisplayField {
+        public let id: String = "accessibility-summary-title"
+
         public var summary: String?
 
-        public var localizedTitle: String { bundleString("accessibility-summary-title") }
+        public var localizedTitle: String { bundleString(id) }
 
         public var shouldDisplay: Bool { summary != nil }
 
@@ -878,7 +893,10 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 
 /// Represents a collection of related accessibility claims which should be
 /// displayed together in a section
-public protocol AccessibilityDisplayField: Sendable, Equatable {
+public protocol AccessibilityDisplayField: Sendable, Equatable, Identifiable {
+    /// Unique identifier for this display field.
+    var id: String { get }
+
     /// Localized title for this display field, for example to use as a
     /// section header.
     var localizedTitle: String { get }
@@ -896,10 +914,10 @@ public protocol AccessibilityDisplayField: Sendable, Equatable {
 
 /// Represents a single accessibility claim, such as "Appearance can be
 /// modified".
-public struct AccessibilityDisplayStatement: Sendable, Equatable {
+public struct AccessibilityDisplayStatement: Sendable, Equatable, Identifiable {
     /// Key ID identifying the statement.
     /// See https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/draft/localizations/
-    public let key: Key
+    public let id: Key
 
     /// A localized representation for this display statement.
     ///
@@ -916,9 +934,9 @@ public struct AccessibilityDisplayStatement: Sendable, Equatable {
     ///   statement.
     public func localizedString(descriptive: Bool) -> NSAttributedString {
         if descriptive {
-            return descriptiveLocalizedString.map(NSAttributedString.init) ?? key.localizedString(descriptive: true)
+            return descriptiveLocalizedString.map(NSAttributedString.init) ?? id.localizedString(descriptive: true)
         } else {
-            return compactLocalizedString.map(NSAttributedString.init) ?? key.localizedString(descriptive: false)
+            return compactLocalizedString.map(NSAttributedString.init) ?? id.localizedString(descriptive: false)
         }
     }
 
@@ -927,13 +945,13 @@ public struct AccessibilityDisplayStatement: Sendable, Equatable {
         compactLocalizedString: String,
         descriptiveLocalizedString: String
     ) {
-        self.key = key
+        id = key
         self.compactLocalizedString = compactLocalizedString
         self.descriptiveLocalizedString = descriptiveLocalizedString
     }
 
     init(key: Key) {
-        self.key = key
+        id = key
         compactLocalizedString = nil
         descriptiveLocalizedString = nil
     }
@@ -965,7 +983,9 @@ public struct AccessibilityDisplayStatement: Sendable, Equatable {
         /// - Parameter descriptive: When true, will return the long descriptive
         ///   statement.
         func localizedString(descriptive: Bool) -> NSAttributedString {
-            NSAttributedString(string: bundleString("\(rawValue)-\(descriptive ? "descriptive" : "compact")"))
+            NSAttributedString(string: bundleString("\(rawValue)-\(descriptive ? "descriptive" : "compact")")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            )
         }
 
         public static let waysOfReadingNonvisualReadingAltText: Self = "ways-of-reading-nonvisual-reading-alt-text"
