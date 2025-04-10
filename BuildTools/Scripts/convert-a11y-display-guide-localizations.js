@@ -11,42 +11,43 @@ const fs = require('fs');
 const path = require('path');
 
 /**
+ * Ends the script with the given error message.
+ */
+function fail(message) {
+    console.error(`Error: ${message}`);
+    process.exit(1);
+}
+
+/**
  * Converter for Apple localized strings.
  */
-const AppleConverter = {
-    convert: (disclaimer, keys) => {
-        let output = `// ${disclaimer}\n`;
-        for (const [key, value] of Object.entries(keys)) {
-            output += `"${key}" = "${value}";\n`;
-        }
-        return output;
-    },
-    getOutputPath: (lang, filename) => {
-        return path.join(`${lang}.lproj`, 'W3CAccessibilityMetadataDisplayGuide.strings');
+function convertApple(lang, version, keys, write) {
+    let output = `// DO NOT EDIT. File generated automatically from v${version} of the ${lang} JSON strings.\n\n`;
+    for (const [key, value] of Object.entries(keys)) {
+        output += `"${key}" = "${value}";\n`;
     }
-};
+    let outputPath = path.join(`${lang}.lproj`, 'W3CAccessibilityMetadataDisplayGuide.strings');
+    write(outputPath, output);
+}
 
 /**
  * Converter for Android strings.xml files.
  */
-const AndroidConverter = {
-    convert: (disclaimer, keys) => {
-        let androidFormat = `<?xml version="1.0" encoding="utf-8"?>\n<!-- ${disclaimer} -->\n<resources>\n`;
-        for (const [key, value] of Object.entries(keys)) {
-            const sanitizedKey = key.replace(/-/g, '_');
-            androidFormat += `    <string name="${sanitizedKey}">${value}</string>\n`;
-        }
-        androidFormat += '</resources>\n';
-        return androidFormat;
-    },
-    getOutputPath: (lang, filename) => {
-        return path.join(`values-${lang}`, 'w3c_a11y_meta_display_guide_strings.xml');
+function convertAndroid(lang, version, keys, write) {
+    let output = `<?xml version="1.0" encoding="utf-8"?>\n<!-- DO NOT EDIT. File generated automatically from v${version} of the ${lang} JSON} -->\n\n<resources>\n`;
+    for (const [key, value] of Object.entries(keys)) {
+        const sanitizedKey = key.replace(/-/g, '_');
+        output += `    <string name="${sanitizedKey}">${value}</string>\n`;
     }
-};
+    output += '</resources>\n';
+
+    let outputPath = path.join(`values-${lang}`, 'w3c_a11y_meta_display_guide_strings.xml');
+    write(outputPath, output);
+}
 
 const converters = {
-    apple: AppleConverter,
-    android: AndroidConverter
+    apple: convertApple,
+    android: convertAndroid
 };
 
 const [inputFolder, outputFormat, outputFolder, keyPrefix = ''] = process.argv.slice(2);
@@ -58,20 +59,17 @@ if (!inputFolder || !outputFormat || !outputFolder) {
 
 const langFolder = path.join(inputFolder, 'lang');
 if (!fs.existsSync(langFolder)) {
-    console.error(`The specified input folder does not contain a 'lang' directory.`);
-    return;
+    fail(`the specified input folder does not contain a 'lang' directory`);
 }
 
-const converter = converters[outputFormat];
-if (!converter) {
-    console.error(`Unrecognized output format: ${outputFormat}. Try: ${Object.keys(converters).join(', ')}.`);
-    return;
+const convert = converters[outputFormat];
+if (!convert) {
+    fail(`unrecognized output format: ${outputFormat}, try: ${Object.keys(converters).join(', ')}.`);
 }
 
 fs.readdir(langFolder, (err, langDirs) => {
     if (err) {
-        console.error(`Error reading directory: ${err.message}`);
-        return;
+        fail(`reading directory: ${err.message}`);
     }
 
     langDirs.forEach(langDir => {
@@ -79,8 +77,7 @@ fs.readdir(langFolder, (err, langDirs) => {
 
         fs.readdir(langDirPath, (err, files) => {
             if (err) {
-                console.error(`Error reading language directory ${langDir}: ${err.message}`);
-                return;
+                fail(`reading language directory ${langDir}: ${err.message}`);
             }
 
             files.forEach(file => {
@@ -95,27 +92,9 @@ fs.readdir(langFolder, (err, langDirs) => {
                         try {
                             const jsonData = JSON.parse(data);
                             const version = jsonData["metadata"]["version"];
-                            const disclaimer = `DO NOT EDIT. File generated automatically from v${version} of lang/${path.join(langDir, file)}`;
-                            const convertedData = converter.convert(disclaimer, parseJsonKeys(jsonData, keyPrefix));
-
-                            const filenameWithoutExt = path.basename(file, '.json');
-                            const relativeOutputPath = converter.getOutputPath(langDir, filenameWithoutExt);
-                            const outputPath = path.join(outputFolder, relativeOutputPath);
-                            const outputDir = path.dirname(outputPath);
-
-                            if (!fs.existsSync(outputDir)) {
-                                fs.mkdirSync(outputDir, { recursive: true });
-                            }
-
-                            fs.writeFile(outputPath, convertedData, 'utf8', err => {
-                                if (err) {
-                                    console.error(`Error writing file ${outputPath}: ${err.message}`);
-                                } else {
-                                    console.log(`Wrote ${outputPath}`);
-                                }
-                            });
+                            convert(langDir, version, parseJsonKeys(jsonData, keyPrefix), write);
                         } catch (err) {
-                            console.error(`Error parsing JSON from file ${file}: ${err.message}`);
+                            fail(`parsing JSON from file ${file}: ${err.message}`);
                         }
                     });
                 }
@@ -123,6 +102,26 @@ fs.readdir(langFolder, (err, langDirs) => {
         });
     });
 });
+
+/**
+ * Writes the given content to the file path relative to the outputFolder provided in the CLI arguments.
+ */
+function write(relativePath, content) {
+    const outputPath = path.join(outputFolder, relativePath);
+    const outputDir = path.dirname(outputPath);
+
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    fs.writeFile(outputPath, content, 'utf8', err => {
+        if (err) {
+            fail(`writing file ${outputPath}: ${err.message}`);
+        } else {
+            console.log(`Wrote ${outputPath}`);
+        }
+    });
+}
 
 /**
  * Collects the JSON translation keys.

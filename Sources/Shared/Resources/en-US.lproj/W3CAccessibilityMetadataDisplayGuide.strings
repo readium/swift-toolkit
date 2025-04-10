@@ -1,4 +1,5 @@
-// DO NOT EDIT. File generated automatically from v2.0.b of lang/en-US/display_guide_vocabulary_w3c.json
+// DO NOT EDIT. File generated automatically from v2.0.b of the en-US JSON.
+
 "readium.a11y.ways-of-reading-title" = "Ways of reading";
 "readium.a11y.ways-of-reading-nonvisual-reading-alt-text-compact" = "Has alternative text";
 "readium.a11y.ways-of-reading-nonvisual-reading-alt-text-descriptive" = "Has alternative text descriptions for images";
