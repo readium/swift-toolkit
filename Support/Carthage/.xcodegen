@@ -1,5 +1,5 @@
 # XCODEGEN VERSION
-2.38.0
+2.41.0
 
 # SPEC
 {
@@ -584,7 +584,10 @@
 ../../Sources/Shared/OPDS/OpdsMetadata.swift
 ../../Sources/Shared/OPDS/OPDSPrice.swift
 ../../Sources/Shared/Publication
-../../Sources/Shared/Publication/Accessibility.swift
+../../Sources/Shared/Publication/Accessibility
+../../Sources/Shared/Publication/Accessibility/Accessibility.swift
+../../Sources/Shared/Publication/Accessibility/AccessibilityDisplayString+Generated.swift
+../../Sources/Shared/Publication/Accessibility/AccessibilityMetadataDisplayGuide.swift
 ../../Sources/Shared/Publication/Asset
 ../../Sources/Shared/Publication/Asset/FileAsset.swift
 ../../Sources/Shared/Publication/Asset/PublicationAsset.swift
@@ -663,7 +666,9 @@
 ../../Sources/Shared/Publication/User Settings
 ../../Sources/Shared/Publication/User Settings/UserProperties.swift
 ../../Sources/Shared/Publication/User Settings/UserSettings.swift
-../../Sources/Shared/RootFile.swift
+../../Sources/Shared/Resources
+../../Sources/Shared/Resources/en-US.lproj
+../../Sources/Shared/Resources/en-US.lproj/W3CAccessibilityMetadataDisplayGuide.strings
 ../../Sources/Shared/Toolkit
 ../../Sources/Shared/Toolkit/Archive
 ../../Sources/Shared/Toolkit/Archive/Archive.swift
@@ -710,6 +715,7 @@
 ../../Sources/Shared/Toolkit/Extensions/Bundle.swift
 ../../Sources/Shared/Toolkit/Extensions/Optional.swift
 ../../Sources/Shared/Toolkit/Extensions/Range.swift
+../../Sources/Shared/Toolkit/Extensions/String.swift
 ../../Sources/Shared/Toolkit/Extensions/StringEncoding.swift
 ../../Sources/Shared/Toolkit/Extensions/UIImage.swift
 ../../Sources/Shared/Toolkit/Extensions/URL.swift
