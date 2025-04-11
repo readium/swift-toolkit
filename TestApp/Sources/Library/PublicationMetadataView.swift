@@ -64,16 +64,16 @@ struct AccessibilityMetadataView: View {
 
     /// Indicates whether accessibility field with no declared information
     /// should always be visible.
-    @State private var a11yAlwaysDisplayFields: Bool = false
+    @State private var alwaysDisplayFields: Bool = false
 
     /// Indicates whether accessibility claims are displayed in their full
     /// descriptive statements.
-    @State private var a11yShowDescriptiveStatements: Bool = false
+    @State private var showDescriptiveStatements: Bool = false
 
     var body: some View {
         Section("Accessibility Claims") {
-            Toggle("Show fields with no metadata", isOn: $a11yAlwaysDisplayFields)
-            Toggle("Show descriptive statements", isOn: $a11yShowDescriptiveStatements)
+            Toggle("Show fields with no metadata", isOn: $alwaysDisplayFields)
+            Toggle("Show descriptive statements", isOn: $showDescriptiveStatements)
 
             ForEach(guide.fields, id: \.id) { field in
                 if shouldShow(field) {
@@ -81,7 +81,7 @@ struct AccessibilityMetadataView: View {
                         ForEach(field.statements) { statement in
                             HStack(alignment: .firstTextBaseline) {
                                 Text(" •")
-                                Text(AttributedString(statement.localizedString(descriptive: a11yShowDescriptiveStatements)))
+                                Text(AttributedString(statement.localizedString(descriptive: showDescriptiveStatements)))
                             }
                         }
                     }
@@ -91,7 +91,7 @@ struct AccessibilityMetadataView: View {
     }
 
     private func shouldShow(_ field: any AccessibilityDisplayField) -> Bool {
-        !field.statements.isEmpty && (a11yAlwaysDisplayFields || field.shouldDisplay)
+        !field.statements.isEmpty && (alwaysDisplayFields || field.shouldDisplay)
     }
 }
 
