@@ -108,9 +108,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         /// (portions of audio, (e.g., reading of a poem).
         public var prerecordedAudio: PrerecordedAudio
 
-        public let id = "ways-of-reading-title"
+        public let id: AccessibilityDisplayString = .waysOfReadingTitle
 
-        public var localizedTitle: String { bundleString(id) }
+        public var localizedTitle: String { id.localized }
 
         /// "Ways of reading" should be rendered even if there is no metadata.
         public let shouldDisplay: Bool = true
@@ -281,16 +281,16 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         /// Page list to go to pages from the print source version.
         public var page: Bool
 
-        public let id = "navigation-title"
+        public let id: AccessibilityDisplayString = .navigationTitle
 
-        public var localizedTitle: String { bundleString(id) }
+        public var localizedTitle: String { id.localized }
 
         public var shouldDisplay: Bool { !noMetadata }
 
         public var statements: [AccessibilityDisplayStatement] {
             Array {
                 if tableOfContents {
-                    $0.append(.navigationTOC)
+                    $0.append(.navigationToc)
                 }
                 if index {
                     $0.append(.navigationIndex)
@@ -375,9 +375,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         /// Transcript(s) provided.
         public var transcript: Bool
 
-        public let id = "rich-content-title"
+        public let id: AccessibilityDisplayString = .richContentTitle
 
-        public var localizedTitle: String { bundleString(id) }
+        public var localizedTitle: String { id.localized }
 
         public var shouldDisplay: Bool { !noMetadata }
 
@@ -390,16 +390,16 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
                     $0.append(.richContentAccessibleMathDescribed)
                 }
                 if mathFormulaAsMathML {
-                    $0.append(.richContentAccessibleMathAsMathML)
+                    $0.append(.richContentAccessibleMathAsMathml)
                 }
                 if mathFormulaAsLaTeX {
-                    $0.append(.richContentAccessibleMathAsLaTeX)
+                    $0.append(.richContentAccessibleMathAsLatex)
                 }
                 if chemicalFormulaAsMathML {
-                    $0.append(.richContentAccessibleChemistryAsMathML)
+                    $0.append(.richContentAccessibleChemistryAsMathml)
                 }
                 if chemicalFormulaAsLaTeX {
-                    $0.append(.richContentAccessibleChemistryAsLaTeX)
+                    $0.append(.richContentAccessibleChemistryAsLatex)
                 }
                 if closedCaptions {
                     $0.append(.richContentClosedCaptions)
@@ -505,9 +505,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         /// Text-to-speech hinting provided.
         public var textToSpeechHinting: Bool
 
-        public let id = "additional-accessibility-information-title"
+        public let id: AccessibilityDisplayString = .additionalAccessibilityInformationTitle
 
-        public var localizedTitle: String { bundleString(id) }
+        public var localizedTitle: String { id.localized }
 
         public var shouldDisplay: Bool { !noMetadata }
 
@@ -517,7 +517,7 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
                     $0.append(.additionalAccessibilityInformationPageBreaks)
                 }
                 if aria {
-                    $0.append(.additionalAccessibilityInformationARIA)
+                    $0.append(.additionalAccessibilityInformationAria)
                 }
                 if audioDescriptions {
                     $0.append(.additionalAccessibilityInformationAudioDescriptions)
@@ -647,9 +647,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         /// The publication contains sounds which can be uncomfortable.
         public var sounds: Hazard
 
-        public let id = "hazards-title"
+        public let id: AccessibilityDisplayString = .hazardsTitle
 
-        public var localizedTitle: String { bundleString(id) }
+        public var localizedTitle: String { id.localized }
 
         public var shouldDisplay: Bool { !noMetadata }
 
@@ -671,24 +671,25 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
                     if sounds == .yes {
                         $0.append(.hazardsSound)
                     }
-                    if flashing == .unknown {
-                        $0.append(.hazardsFlashingUnknown)
-                    }
-                    if motion == .unknown {
-                        $0.append(.hazardsMotionUnknown)
-                    }
-                    if sounds == .unknown {
-                        $0.append(.hazardsSoundUnknown)
-                    }
-                    if flashing == .no {
-                        $0.append(.hazardsFlashingNone)
-                    }
-                    if motion == .no {
-                        $0.append(.hazardsMotionNone)
-                    }
-                    if sounds == .no {
-                        $0.append(.hazardsSoundNone)
-                    }
+                    // FIXME: Waiting for the strings to be available
+//                    if flashing == .unknown {
+//                        $0.append(.hazardsFlashingUnknown)
+//                    }
+//                    if motion == .unknown {
+//                        $0.append(.hazardsMotionUnknown)
+//                    }
+//                    if sounds == .unknown {
+//                        $0.append(.hazardsSoundUnknown)
+//                    }
+//                    if flashing == .no {
+//                        $0.append(.hazardsFlashingNone)
+//                    }
+//                    if motion == .no {
+//                        $0.append(.hazardsMotionNone)
+//                    }
+//                    if sounds == .no {
+//                        $0.append(.hazardsSoundNone)
+//                    }
                 }
             }
         }
@@ -762,9 +763,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         /// Accessibility conformance profiles.
         public var profiles: [Accessibility.Profile]
 
-        public let id = "conformance-title"
+        public let id: AccessibilityDisplayString = .conformanceTitle
 
-        public var localizedTitle: String { bundleString(id) }
+        public var localizedTitle: String { id.localized }
 
         /// "Conformance" should be rendered even if there is no metadata.
         public let shouldDisplay: Bool = true
@@ -777,9 +778,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
                 }
 
                 if profiles.contains(where: \.isWCAGLevelAAA) {
-                    $0.append(.conformanceAAA)
+                    $0.append(.conformanceAaa)
                 } else if profiles.contains(where: \.isWCAGLevelAA) {
-                    $0.append(.conformanceAA)
+                    $0.append(.conformanceAa)
                 } else if profiles.contains(where: \.isWCAGLevelA) {
                     $0.append(.conformanceA)
                 } else {
@@ -822,9 +823,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         /// jurisdictions.
         public var exemption: Bool = false
 
-        public let id = "legal-considerations-title"
+        public let id: AccessibilityDisplayString = .legalConsiderationsTitle
 
-        public var localizedTitle: String { bundleString(id) }
+        public var localizedTitle: String { id.localized }
 
         public var shouldDisplay: Bool { !noMetadata }
 
@@ -859,11 +860,11 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
     ///
     /// https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/#accessibility-summary
     public struct AccessibilitySummary: AccessibilityDisplayField {
-        public let id: String = "accessibility-summary-title"
-
         public var summary: String?
 
-        public var localizedTitle: String { bundleString(id) }
+        public let id: AccessibilityDisplayString = .accessibilitySummaryTitle
+
+        public var localizedTitle: String { id.localized }
 
         public var shouldDisplay: Bool { summary != nil }
 
@@ -871,7 +872,7 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
             Array {
                 if let summary = summary {
                     $0.append(AccessibilityDisplayStatement(
-                        key: .accessibilitySummary,
+                        string: .accessibilitySummary,
                         compactLocalizedString: summary,
                         descriptiveLocalizedString: summary
                     ))
@@ -895,7 +896,7 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 /// displayed together in a section
 public protocol AccessibilityDisplayField: Sendable, Equatable, Identifiable {
     /// Unique identifier for this display field.
-    var id: String { get }
+    var id: AccessibilityDisplayString { get }
 
     /// Localized title for this display field, for example to use as a
     /// section header.
@@ -915,9 +916,9 @@ public protocol AccessibilityDisplayField: Sendable, Equatable, Identifiable {
 /// Represents a single accessibility claim, such as "Appearance can be
 /// modified".
 public struct AccessibilityDisplayStatement: Sendable, Equatable, Identifiable {
-    /// Key ID identifying the statement.
+    /// Display string identifying the statement.
     /// See https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/draft/localizations/
-    public let id: Key
+    public let id: AccessibilityDisplayString
 
     /// A localized representation for this display statement.
     ///
@@ -934,160 +935,91 @@ public struct AccessibilityDisplayStatement: Sendable, Equatable, Identifiable {
     ///   statement.
     public func localizedString(descriptive: Bool) -> NSAttributedString {
         if descriptive {
-            return descriptiveLocalizedString.map(NSAttributedString.init) ?? id.localizedString(descriptive: true)
+            return descriptiveLocalizedString.map(NSAttributedString.init) ?? id.localized(descriptive: true)
         } else {
-            return compactLocalizedString.map(NSAttributedString.init) ?? id.localizedString(descriptive: false)
+            return compactLocalizedString.map(NSAttributedString.init) ?? id.localized(descriptive: false)
         }
     }
 
     init(
-        key: Key,
+        string: AccessibilityDisplayString,
         compactLocalizedString: String,
         descriptiveLocalizedString: String
     ) {
-        id = key
+        id = string
         self.compactLocalizedString = compactLocalizedString
         self.descriptiveLocalizedString = descriptiveLocalizedString
     }
 
-    init(key: Key) {
-        id = key
+    init(string: AccessibilityDisplayString) {
+        id = string
         compactLocalizedString = nil
         descriptiveLocalizedString = nil
     }
 
     private let compactLocalizedString: String?
     private let descriptiveLocalizedString: String?
-
-    public struct Key: RawRepresentable, ExpressibleByStringLiteral, Sendable, Hashable {
-        public let rawValue: String
-
-        public init(rawValue: String) {
-            self.rawValue = rawValue
-        }
-
-        public init(stringLiteral value: StringLiteralType) {
-            self.init(rawValue: value)
-        }
-
-        /// A localized statement for this key.
-        ///
-        /// For example:
-        /// - compact: Appearance can be modified
-        /// - descriptive: For example, "Appearance of the text and page layout
-        ///   can be modified according to the capabilities of the reading
-        ///   system (font family and font size, spaces between paragraphs,
-        ///   sentences, words, and letters, as well as color of background and
-        ///   text)
-        ///
-        /// - Parameter descriptive: When true, will return the long descriptive
-        ///   statement.
-        func localizedString(descriptive: Bool) -> NSAttributedString {
-            NSAttributedString(string: bundleString("\(rawValue)-\(descriptive ? "descriptive" : "compact")")
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            )
-        }
-
-        public static let waysOfReadingNonvisualReadingAltText: Self = "ways-of-reading-nonvisual-reading-alt-text"
-        public static let waysOfReadingNonvisualReadingNoMetadata: Self = "ways-of-reading-nonvisual-reading-no-metadata"
-        public static let waysOfReadingNonvisualReadingNone: Self = "ways-of-reading-nonvisual-reading-none"
-        public static let waysOfReadingNonvisualReadingNotFully: Self = "ways-of-reading-nonvisual-reading-not-fully"
-        public static let waysOfReadingNonvisualReadingReadable: Self = "ways-of-reading-nonvisual-reading-readable"
-        public static let waysOfReadingPrerecordedAudioComplementary: Self = "ways-of-reading-prerecorded-audio-complementary"
-        public static let waysOfReadingPrerecordedAudioNoMetadata: Self = "ways-of-reading-prerecorded-audio-no-metadata"
-        public static let waysOfReadingPrerecordedAudioOnly: Self = "ways-of-reading-prerecorded-audio-only"
-        public static let waysOfReadingPrerecordedAudioSynchronized: Self = "ways-of-reading-prerecorded-audio-synchronized"
-        public static let waysOfReadingVisualAdjustmentsModifiable: Self = "ways-of-reading-visual-adjustments-modifiable"
-        public static let waysOfReadingVisualAdjustmentsUnknown: Self = "ways-of-reading-visual-adjustments-unknown"
-        public static let waysOfReadingVisualAdjustmentsUnmodifiable: Self = "ways-of-reading-visual-adjustments-unmodifiable"
-        public static let conformanceA: Self = "conformance-a"
-        public static let conformanceAA: Self = "conformance-aa"
-        public static let conformanceAAA: Self = "conformance-aaa"
-        public static let conformanceCertifier: Self = "conformance-certifier"
-        public static let conformanceCertifierCredentials: Self = "conformance-certifier-credentials"
-        public static let conformanceDetailsCertificationInfo: Self = "conformance-details-certification-info"
-        public static let conformanceDetailsCertifierReport: Self = "conformance-details-certifier-report"
-        public static let conformanceDetailsClaim: Self = "conformance-details-claim"
-        public static let conformanceDetailsEpubAccessibility10: Self = "conformance-details-epub-accessibility-1-0"
-        public static let conformanceDetailsEpubAccessibility11: Self = "conformance-details-epub-accessibility-1-1"
-        public static let conformanceDetailsLevelA: Self = "conformance-details-level-a"
-        public static let conformanceDetailsLevelAA: Self = "conformance-details-level-aa"
-        public static let conformanceDetailsLevelAAA: Self = "conformance-details-level-aaa"
-        public static let conformanceDetailsWCAG20: Self = "conformance-details-wcag-2-0"
-        public static let conformanceDetailsWCAG21: Self = "conformance-details-wcag-2-1"
-        public static let conformanceDetailsWCAG22: Self = "conformance-details-wcag-2-2"
-        public static let conformanceNo: Self = "conformance-no"
-        public static let conformanceUnknownStandard: Self = "conformance-unknown-standard"
-        public static let navigationIndex: Self = "navigation-index"
-        public static let navigationNoMetadata: Self = "navigation-no-metadata"
-        public static let navigationPageNavigation: Self = "navigation-page-navigation"
-        public static let navigationStructural: Self = "navigation-structural"
-        public static let navigationTOC: Self = "navigation-toc"
-        public static let richContentAccessibleChemistryAsLaTeX: Self = "rich-content-accessible-chemistry-as-latex"
-        public static let richContentAccessibleChemistryAsMathML: Self = "rich-content-accessible-chemistry-as-mathml"
-        public static let richContentAccessibleMathAsLaTeX: Self = "rich-content-accessible-math-as-latex"
-        public static let richContentAccessibleMathAsMathML: Self = "rich-content-accessible-math-as-mathml"
-        public static let richContentAccessibleMathDescribed: Self = "rich-content-accessible-math-described"
-        public static let richContentClosedCaptions: Self = "rich-content-closed-captions"
-        public static let richContentExtended: Self = "rich-content-extended"
-        public static let richContentOpenCaptions: Self = "rich-content-open-captions"
-        public static let richContentTranscript: Self = "rich-content-transcript"
-        public static let richContentUnknown: Self = "rich-content-unknown"
-        public static let hazardsFlashing: Self = "hazards-flashing"
-        public static let hazardsFlashingNone: Self = "hazards-flashing-none"
-        public static let hazardsFlashingUnknown: Self = "hazards-flashing-unknown"
-        public static let hazardsMotion: Self = "hazards-motion"
-        public static let hazardsMotionNone: Self = "hazards-motion-none"
-        public static let hazardsMotionUnknown: Self = "hazards-motion-unknown"
-        public static let hazardsNoMetadata: Self = "hazards-no-metadata"
-        public static let hazardsNone: Self = "hazards-none"
-        public static let hazardsSound: Self = "hazards-sound"
-        public static let hazardsSoundNone: Self = "hazards-sound-none"
-        public static let hazardsSoundUnknown: Self = "hazards-sound-unknown"
-        public static let hazardsUnknown: Self = "hazards-unknown"
-        public static let accessibilitySummary: Self = "accessibility-summary"
-        public static let accessibilitySummaryNoMetadata: Self = "accessibility-summary-no-metadata"
-        public static let legalConsiderationsExempt: Self = "legal-considerations-exempt"
-        public static let legalConsiderationsNoMetadata: Self = "legal-considerations-no-metadata"
-        public static let additionalAccessibilityInformationARIA: Self = "additional-accessibility-information-aria"
-        public static let additionalAccessibilityInformationAudioDescriptions: Self = "additional-accessibility-information-audio-descriptions"
-        public static let additionalAccessibilityInformationBraille: Self = "additional-accessibility-information-braille"
-        public static let additionalAccessibilityInformationColorNotSoleMeansOfConveyingInformation: Self = "additional-accessibility-information-color-not-sole-means-of-conveying-information"
-        public static let additionalAccessibilityInformationDyslexiaReadability: Self = "additional-accessibility-information-dyslexia-readability"
-        public static let additionalAccessibilityInformationFullRubyAnnotations: Self = "additional-accessibility-information-full-ruby-annotations"
-        public static let additionalAccessibilityInformationHighContrastBetweenForegroundAndBackgroundAudio: Self = "additional-accessibility-information-high-contrast-between-foreground-and-background-audio"
-        public static let additionalAccessibilityInformationHighContrastBetweenTextAndBackground: Self = "additional-accessibility-information-high-contrast-between-text-and-background"
-        public static let additionalAccessibilityInformationLargePrint: Self = "additional-accessibility-information-large-print"
-        public static let additionalAccessibilityInformationPageBreaks: Self = "additional-accessibility-information-page-breaks"
-        public static let additionalAccessibilityInformationRubyAnnotations: Self = "additional-accessibility-information-ruby-annotations"
-        public static let additionalAccessibilityInformationSignLanguage: Self = "additional-accessibility-information-sign-language"
-        public static let additionalAccessibilityInformationTactileGraphics: Self = "additional-accessibility-information-tactile-graphics"
-        public static let additionalAccessibilityInformationTactileObjects: Self = "additional-accessibility-information-tactile-objects"
-        public static let additionalAccessibilityInformationTextToSpeechHinting: Self = "additional-accessibility-information-text-to-speech-hinting"
-        public static let additionalAccessibilityInformationUltraHighContrastBetweenTextAndBackground: Self = "additional-accessibility-information-ultra-high-contrast-between-text-and-background"
-        public static let additionalAccessibilityInformationVisiblePageNumbering: Self = "additional-accessibility-information-visible-page-numbering"
-        public static let additionalAccessibilityInformationWithoutBackgroundSounds: Self = "additional-accessibility-information-without-background-sounds"
-    }
 }
 
-private func bundleString(_ key: String, _ values: CVarArg...) -> String {
-    bundleString("readium.a11y.\(key)", in: Bundle.module, table: "W3CAccessibilityMetadataDisplayGuide", values)
-}
+/// Localized display string.
+///
+/// See https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/draft/localizations/
+public struct AccessibilityDisplayString: RawRepresentable, ExpressibleByStringLiteral, Sendable, Hashable {
+    // Special key for the provided summary, which is not localized.
+    static let accessibilitySummary: Self = "readium.a11y.accessibility-summary"
 
-/// Returns the localized string in the main bundle, or fallback on the given
-/// bundle if not found.
-private func bundleString(_ key: String, in bundle: Bundle, table: String? = nil, _ values: [CVarArg]) -> String {
-    let defaultValue = bundle.localizedString(forKey: key, value: nil, table: table)
-    var string = Bundle.main.localizedString(forKey: key, value: defaultValue, table: nil)
-    if !values.isEmpty {
-        string = String(format: string, locale: .current, arguments: values)
+    public let rawValue: String
+
+    public init(rawValue: String) {
+        self.rawValue = rawValue
     }
-    return string
+
+    public init(stringLiteral value: StringLiteralType) {
+        self.init(rawValue: value)
+    }
+
+    /// Returns the localized string for this display string.
+    public var localized: String {
+        bundleString(rawValue).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Returns the localized string for this display string, if it contains a compact or descriptive variant.
+    ///
+    /// For example:
+    /// - compact: Appearance can be modified
+    /// - descriptive: For example, "Appearance of the text and page layout
+    ///   can be modified according to the capabilities of the reading
+    ///   system (font family and font size, spaces between paragraphs,
+    ///   sentences, words, and letters, as well as color of background and
+    ///   text)
+    ///
+    /// - Parameter descriptive: When true, will return the long descriptive
+    ///   statement.
+    public func localized(descriptive: Bool) -> NSAttributedString {
+        NSAttributedString(string: bundleString("\(rawValue)-\(descriptive ? "descriptive" : "compact")")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        )
+    }
+
+    private func bundleString(_ key: String, _ values: CVarArg...) -> String {
+        bundleString(key, in: Bundle.module, table: "W3CAccessibilityMetadataDisplayGuide", values)
+    }
+
+    /// Returns the localized string in the main bundle, or fallback on the given
+    /// bundle if not found.
+    private func bundleString(_ key: String, in bundle: Bundle, table: String? = nil, _ values: [CVarArg]) -> String {
+        let defaultValue = bundle.localizedString(forKey: key, value: nil, table: table)
+        var string = Bundle.main.localizedString(forKey: key, value: defaultValue, table: nil)
+        if !values.isEmpty {
+            string = String(format: string, locale: .current, arguments: values)
+        }
+        return string
+    }
 }
 
 // Syntactic sugar
 private extension Array where Element == AccessibilityDisplayStatement {
-    mutating func append(_ key: AccessibilityDisplayStatement.Key) {
-        append(AccessibilityDisplayStatement(key: key))
+    mutating func append(_ string: AccessibilityDisplayString) {
+        append(AccessibilityDisplayStatement(string: string))
     }
 }

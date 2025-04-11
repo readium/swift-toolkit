@@ -9,6 +9,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const [inputFolder, outputFormat, outputFolder, keyPrefix = ''] = process.argv.slice(2);
 
 /**
  * Ends the script with the given error message.
@@ -21,23 +22,51 @@ function fail(message) {
 /**
  * Converter for Apple localized strings.
  */
-function convertApple(lang, version, keys, write) {
-    let output = `// DO NOT EDIT. File generated automatically from v${version} of the ${lang} JSON strings.\n\n`;
+function convertApple(lang, version, keys, keyPrefix, write) {
+    let disclaimer = `DO NOT EDIT. File generated automatically from v${version} of the ${lang} JSON strings.`;
+
+    let stringsOutput = `// ${disclaimer}\n\n`;
     for (const [key, value] of Object.entries(keys)) {
-        output += `"${key}" = "${value}";\n`;
+        stringsOutput += `"${keyPrefix}${key}" = "${value}";\n`;
     }
-    let outputPath = path.join(`${lang}.lproj`, 'W3CAccessibilityMetadataDisplayGuide.strings');
-    write(outputPath, output);
+    let stringsFile = path.join(`Resources/${lang}.lproj`, 'W3CAccessibilityMetadataDisplayGuide.strings');
+    write(stringsFile, stringsOutput);
+
+    // Using the "base" language, we will generate a static list of string keys to validate them at compile time.
+    if (lang == 'en-US') {
+        writeSwiftExtensions(disclaimer, keys, keyPrefix, write);
+    }
+}
+
+/**
+ * Generates a static list of string keys to validate them at compile time.
+ */
+function writeSwiftExtensions(disclaimer, keys, keyPrefix, write) {
+    let keysOutput = `//
+//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
+//
+
+// ${disclaimer}\n\npublic extension AccessibilityDisplayString {\n`
+    let keysList = Object.keys(keys)
+        .filter((k) => !k.endsWith("-descriptive"))
+        .map((k) => removeSuffix(k, "-compact"));
+    for (const key of keysList) {
+        keysOutput += `    static let ${convertKebabToCamelCase(key)}: Self = "${keyPrefix}${key}"\n`;
+    }
+    keysOutput += "}\n"
+    write("Publication/Accessibility/AccessibilityDisplayString+Generated.swift", keysOutput);
 }
 
 /**
  * Converter for Android strings.xml files.
  */
-function convertAndroid(lang, version, keys, write) {
+function convertAndroid(lang, version, keys, keyPrefix, write) {
     let output = `<?xml version="1.0" encoding="utf-8"?>\n<!-- DO NOT EDIT. File generated automatically from v${version} of the ${lang} JSON} -->\n\n<resources>\n`;
     for (const [key, value] of Object.entries(keys)) {
         const sanitizedKey = key.replace(/-/g, '_');
-        output += `    <string name="${sanitizedKey}">${value}</string>\n`;
+        output += `    <string name=${keyPrefix}${sanitizedKey}>${value}</string>\n`;
     }
     output += '</resources>\n';
 
@@ -49,8 +78,6 @@ const converters = {
     apple: convertApple,
     android: convertAndroid
 };
-
-const [inputFolder, outputFormat, outputFolder, keyPrefix = ''] = process.argv.slice(2);
 
 if (!inputFolder || !outputFormat || !outputFolder) {
     console.error('Usage: node convert.js <input-folder> <output-format> <output-folder> [key-prefix]');
@@ -92,7 +119,7 @@ fs.readdir(langFolder, (err, langDirs) => {
                         try {
                             const jsonData = JSON.parse(data);
                             const version = jsonData["metadata"]["version"];
-                            convert(langDir, version, parseJsonKeys(jsonData, keyPrefix), write);
+                            convert(langDir, version, parseJsonKeys(jsonData), keyPrefix, write);
                         } catch (err) {
                             fail(`parsing JSON from file ${file}: ${err.message}`);
                         }
@@ -126,7 +153,7 @@ function write(relativePath, content) {
 /**
  * Collects the JSON translation keys.
  */
-function parseJsonKeys(obj, keyPrefix = '') {
+function parseJsonKeys(obj) {
     const keys = {};
     for (const key in obj) {
         if (key === 'metadata') continue; // Ignore the metadata key
@@ -134,15 +161,33 @@ function parseJsonKeys(obj, keyPrefix = '') {
             for (const subKey in obj[key]) {
                 if (typeof obj[key][subKey] === 'object') {
                     for (const innerKey in obj[key][subKey]) {
-                        const fullKey = `${keyPrefix}${subKey}-${innerKey}`;
+                        const fullKey = `${subKey}-${innerKey}`;
                         keys[fullKey] = obj[key][subKey][innerKey];
                     }
                 } else {
-                    const fullKey = `${keyPrefix}${subKey}`;
-                    keys[fullKey] = obj[key][subKey];
+                    keys[subKey] = obj[key][subKey];
                 }
             }
         }
     }
     return keys;
+}
+
+function convertKebabToCamelCase(string) {
+    return string
+        .split('-')
+        .map((word, index) => {
+            if (index === 0) {
+                return word;
+            }
+            return word.charAt(0).toUpperCase() + word.slice(1);
+        })
+        .join('');
+}
+
+function removeSuffix(str, suffix) {
+    if (str.endsWith(suffix)) {
+        return str.slice(0, -suffix.length);
+    }
+    return str;
 }

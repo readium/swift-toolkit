@@ -49,7 +49,8 @@ format:
 .PHONY: update-a11y-l10n
 update-a11y-l10n:
 	@which node >/dev/null 2>&1 || (echo "ERROR: node is required, please install it first"; exit 1)
+	rm -rf publ-a11y-display-guide-localizations
 	git clone https://github.com/w3c/publ-a11y-display-guide-localizations.git
-	node BuildTools/Scripts/convert-a11y-display-guide-localizations.js publ-a11y-display-guide-localizations apple Sources/Shared/Resources readium.a11y.
+	node BuildTools/Scripts/convert-a11y-display-guide-localizations.js publ-a11y-display-guide-localizations apple Sources/Shared readium.a11y.
 	rm -rf publ-a11y-display-guide-localizations
 

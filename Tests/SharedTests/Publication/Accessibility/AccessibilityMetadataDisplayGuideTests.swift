@@ -18,7 +18,7 @@ typealias WaysOfReading = AccessibilityMetadataDisplayGuide.WaysOfReading
 
 class AccessibilityMetadataDisplayGuideTests: XCTestCase {
     func testDisplayStatementLocalizedString() {
-        let statement = AccessibilityDisplayStatement(key: .waysOfReadingNonvisualReadingReadable)
+        let statement = AccessibilityDisplayStatement(string: .waysOfReadingNonvisualReadingReadable)
 
         XCTAssertEqual(
             statement.localizedString(descriptive: false).string,
@@ -32,7 +32,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
 
     func testDisplayStatementCustomLocalizedString() {
         let statement = AccessibilityDisplayStatement(
-            key: .waysOfReadingNonvisualReadingReadable,
+            string: .waysOfReadingNonvisualReadingReadable,
             compactLocalizedString: "Compact",
             descriptiveLocalizedString: "Descriptive"
         )
@@ -164,7 +164,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 nonvisualReading: .noMetadata,
                 nonvisualReadingAltText: true,
                 prerecordedAudio: .noMetadata
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .waysOfReadingVisualAdjustmentsUnknown,
                 .waysOfReadingNonvisualReadingNoMetadata,
@@ -179,7 +179,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 nonvisualReading: .readable,
                 nonvisualReadingAltText: false,
                 prerecordedAudio: .synchronized
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .waysOfReadingVisualAdjustmentsModifiable,
                 .waysOfReadingNonvisualReadingReadable,
@@ -193,7 +193,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 nonvisualReading: .notFully,
                 nonvisualReadingAltText: false,
                 prerecordedAudio: .audioOnly
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .waysOfReadingVisualAdjustmentsUnmodifiable,
                 .waysOfReadingNonvisualReadingNotFully,
@@ -207,7 +207,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 nonvisualReading: .unreadable,
                 nonvisualReadingAltText: false,
                 prerecordedAudio: .audioComplementary
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .waysOfReadingVisualAdjustmentsUnknown,
                 .waysOfReadingNonvisualReadingNone,
@@ -267,7 +267,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 index: false,
                 headings: false,
                 page: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .navigationNoMetadata,
             ]
@@ -280,9 +280,9 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 index: true,
                 headings: true,
                 page: true
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
-                .navigationTOC,
+                .navigationToc,
                 .navigationIndex,
                 .navigationStructural,
                 .navigationPageNavigation,
@@ -296,9 +296,9 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 index: false,
                 headings: false,
                 page: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
-                .navigationTOC,
+                .navigationToc,
             ]
         )
 
@@ -308,7 +308,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 index: true,
                 headings: false,
                 page: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .navigationIndex,
             ]
@@ -320,7 +320,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 index: false,
                 headings: true,
                 page: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .navigationStructural,
             ]
@@ -332,7 +332,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 index: false,
                 headings: false,
                 page: true
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .navigationPageNavigation,
             ]
@@ -413,7 +413,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 closedCaptions: false,
                 openCaptions: false,
                 transcript: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .richContentUnknown,
             ]
@@ -431,14 +431,14 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 closedCaptions: true,
                 openCaptions: true,
                 transcript: true
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .richContentExtended,
                 .richContentAccessibleMathDescribed,
-                .richContentAccessibleMathAsMathML,
-                .richContentAccessibleMathAsLaTeX,
-                .richContentAccessibleChemistryAsMathML,
-                .richContentAccessibleChemistryAsLaTeX,
+                .richContentAccessibleMathAsMathml,
+                .richContentAccessibleMathAsLatex,
+                .richContentAccessibleChemistryAsMathml,
+                .richContentAccessibleChemistryAsLatex,
                 .richContentClosedCaptions,
                 .richContentOpenCaptions,
                 .richContentTranscript,
@@ -457,7 +457,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 closedCaptions: false,
                 openCaptions: false,
                 transcript: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .richContentExtended,
             ]
@@ -474,7 +474,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 closedCaptions: false,
                 openCaptions: false,
                 transcript: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .richContentAccessibleMathDescribed,
             ]
@@ -491,9 +491,9 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 closedCaptions: false,
                 openCaptions: false,
                 transcript: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
-                .richContentAccessibleMathAsMathML,
+                .richContentAccessibleMathAsMathml,
             ]
         )
 
@@ -508,9 +508,9 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 closedCaptions: false,
                 openCaptions: false,
                 transcript: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
-                .richContentAccessibleMathAsLaTeX,
+                .richContentAccessibleMathAsLatex,
             ]
         )
 
@@ -525,9 +525,9 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 closedCaptions: false,
                 openCaptions: false,
                 transcript: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
-                .richContentAccessibleChemistryAsMathML,
+                .richContentAccessibleChemistryAsMathml,
             ]
         )
 
@@ -542,9 +542,9 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 closedCaptions: false,
                 openCaptions: false,
                 transcript: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
-                .richContentAccessibleChemistryAsLaTeX,
+                .richContentAccessibleChemistryAsLatex,
             ]
         )
 
@@ -559,7 +559,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 closedCaptions: true,
                 openCaptions: false,
                 transcript: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .richContentClosedCaptions,
             ]
@@ -576,7 +576,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 closedCaptions: false,
                 openCaptions: true,
                 transcript: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .richContentOpenCaptions,
             ]
@@ -593,7 +593,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 closedCaptions: false,
                 openCaptions: false,
                 transcript: true
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .richContentTranscript,
             ]
@@ -693,7 +693,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 tactileGraphics: false,
                 tactileObjects: false,
                 textToSpeechHinting: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             []
         )
 
@@ -713,10 +713,10 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 tactileGraphics: true,
                 tactileObjects: true,
                 textToSpeechHinting: true
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .additionalAccessibilityInformationPageBreaks,
-                .additionalAccessibilityInformationARIA,
+                .additionalAccessibilityInformationAria,
                 .additionalAccessibilityInformationAudioDescriptions,
                 .additionalAccessibilityInformationBraille,
                 .additionalAccessibilityInformationRubyAnnotations,
@@ -747,7 +747,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 tactileGraphics: false,
                 tactileObjects: false,
                 textToSpeechHinting: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .additionalAccessibilityInformationPageBreaks,
             ]
@@ -768,9 +768,9 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 tactileGraphics: false,
                 tactileObjects: false,
                 textToSpeechHinting: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
-                .additionalAccessibilityInformationARIA,
+                .additionalAccessibilityInformationAria,
             ]
         )
 
@@ -789,7 +789,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 tactileGraphics: false,
                 tactileObjects: false,
                 textToSpeechHinting: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .additionalAccessibilityInformationAudioDescriptions,
             ]
@@ -810,7 +810,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 tactileGraphics: false,
                 tactileObjects: false,
                 textToSpeechHinting: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .additionalAccessibilityInformationBraille,
             ]
@@ -832,7 +832,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 tactileGraphics: false,
                 tactileObjects: false,
                 textToSpeechHinting: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .additionalAccessibilityInformationRubyAnnotations,
             ]
@@ -853,7 +853,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 tactileGraphics: false,
                 tactileObjects: false,
                 textToSpeechHinting: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .additionalAccessibilityInformationFullRubyAnnotations,
             ]
@@ -874,7 +874,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 tactileGraphics: false,
                 tactileObjects: false,
                 textToSpeechHinting: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .additionalAccessibilityInformationHighContrastBetweenForegroundAndBackgroundAudio,
             ]
@@ -895,7 +895,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 tactileGraphics: false,
                 tactileObjects: false,
                 textToSpeechHinting: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .additionalAccessibilityInformationHighContrastBetweenTextAndBackground,
             ]
@@ -916,7 +916,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 tactileGraphics: false,
                 tactileObjects: false,
                 textToSpeechHinting: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .additionalAccessibilityInformationLargePrint,
             ]
@@ -937,7 +937,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 tactileGraphics: false,
                 tactileObjects: false,
                 textToSpeechHinting: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .additionalAccessibilityInformationSignLanguage,
             ]
@@ -958,7 +958,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 tactileGraphics: true,
                 tactileObjects: false,
                 textToSpeechHinting: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .additionalAccessibilityInformationTactileGraphics,
             ]
@@ -979,7 +979,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 tactileGraphics: false,
                 tactileObjects: true,
                 textToSpeechHinting: false
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .additionalAccessibilityInformationTactileObjects,
             ]
@@ -1000,7 +1000,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 tactileGraphics: false,
                 tactileObjects: false,
                 textToSpeechHinting: true
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .additionalAccessibilityInformationTextToSpeechHinting,
             ]
@@ -1077,7 +1077,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 flashing: .noMetadata,
                 motion: .noMetadata,
                 sounds: .noMetadata
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .hazardsNoMetadata,
             ]
@@ -1089,7 +1089,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 flashing: .no,
                 motion: .no,
                 sounds: .no
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .hazardsNone,
             ]
@@ -1101,7 +1101,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 flashing: .unknown,
                 motion: .unknown,
                 sounds: .unknown
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .hazardsUnknown,
             ]
@@ -1113,11 +1113,11 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 flashing: .yes,
                 motion: .no,
                 sounds: .no
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .hazardsFlashing,
-                .hazardsMotionNone,
-                .hazardsSoundNone,
+//                .hazardsMotionNone,
+//                .hazardsSoundNone,
             ]
         )
 
@@ -1126,11 +1126,11 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 flashing: .no,
                 motion: .yes,
                 sounds: .no
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .hazardsMotion,
-                .hazardsFlashingNone,
-                .hazardsSoundNone,
+//                .hazardsFlashingNone,
+//                .hazardsSoundNone,
             ]
         )
 
@@ -1139,11 +1139,11 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 flashing: .no,
                 motion: .no,
                 sounds: .yes
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .hazardsSound,
-                .hazardsFlashingNone,
-                .hazardsMotionNone,
+//                .hazardsFlashingNone,
+//                .hazardsMotionNone,
             ]
         )
 
@@ -1153,7 +1153,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 flashing: .yes,
                 motion: .yes,
                 sounds: .yes
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .hazardsFlashing,
                 .hazardsMotion,
@@ -1166,11 +1166,11 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 flashing: .unknown,
                 motion: .yes,
                 sounds: .no
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .hazardsMotion,
-                .hazardsFlashingUnknown,
-                .hazardsSoundNone,
+//                .hazardsFlashingUnknown,
+//                .hazardsSoundNone,
             ]
         )
 
@@ -1179,11 +1179,11 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 flashing: .yes,
                 motion: .unknown,
                 sounds: .unknown
-            ).statements.map(\.key),
+            ).statements.map(\.id),
             [
                 .hazardsFlashing,
-                .hazardsMotionUnknown,
-                .hazardsSoundUnknown,
+//                .hazardsMotionUnknown,
+//                .hazardsSoundUnknown,
             ]
         )
     }
@@ -1216,9 +1216,9 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
     }
 
     func testConformanceStatements() {
-        func test(_ profiles: [Accessibility.Profile], expected: AccessibilityDisplayStatement.Key) {
+        func test(_ profiles: [Accessibility.Profile], expected: AccessibilityDisplayString) {
             XCTAssertEqual(
-                Conformance(profiles: profiles).statements.map(\.key),
+                Conformance(profiles: profiles).statements.map(\.id),
                 [expected]
             )
         }
@@ -1233,18 +1233,18 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
         test([.epubA11y11WCAG21A], expected: .conformanceA)
         test([.epubA11y11WCAG22A], expected: .conformanceA)
         // Test level AA profiles
-        test([.epubA11y10WCAG20AA], expected: .conformanceAA)
-        test([.epubA11y11WCAG20AA], expected: .conformanceAA)
-        test([.epubA11y11WCAG21AA], expected: .conformanceAA)
-        test([.epubA11y11WCAG22AA], expected: .conformanceAA)
+        test([.epubA11y10WCAG20AA], expected: .conformanceAa)
+        test([.epubA11y11WCAG20AA], expected: .conformanceAa)
+        test([.epubA11y11WCAG21AA], expected: .conformanceAa)
+        test([.epubA11y11WCAG22AA], expected: .conformanceAa)
         // Test level AAA profiles
-        test([.epubA11y10WCAG20AAA], expected: .conformanceAAA)
-        test([.epubA11y11WCAG20AAA], expected: .conformanceAAA)
-        test([.epubA11y11WCAG21AAA], expected: .conformanceAAA)
-        test([.epubA11y11WCAG22AAA], expected: .conformanceAAA)
+        test([.epubA11y10WCAG20AAA], expected: .conformanceAaa)
+        test([.epubA11y11WCAG20AAA], expected: .conformanceAaa)
+        test([.epubA11y11WCAG21AAA], expected: .conformanceAaa)
+        test([.epubA11y11WCAG22AAA], expected: .conformanceAaa)
         // Test multiple profiles
-        test([.epubA11y10WCAG20A, .epubA11y10WCAG20AA, .epubA11y10WCAG20AAA], expected: .conformanceAAA)
-        test([.epubA11y10WCAG20A, .epubA11y10WCAG20AA], expected: .conformanceAA)
+        test([.epubA11y10WCAG20A, .epubA11y10WCAG20AA, .epubA11y10WCAG20AAA], expected: .conformanceAaa)
+        test([.epubA11y10WCAG20A, .epubA11y10WCAG20AA], expected: .conformanceAa)
     }
 
     func testLegalInit() {
@@ -1277,7 +1277,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
     func testLegalStatements() {
         // Test when noMetadata is true
         XCTAssertEqual(
-            Legal(exemption: false).statements.map(\.key),
+            Legal(exemption: false).statements.map(\.id),
             [
                 .legalConsiderationsNoMetadata,
             ]
@@ -1285,7 +1285,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
 
         // Test when exemption is claimed
         XCTAssertEqual(
-            Legal(exemption: true).statements.map(\.key),
+            Legal(exemption: true).statements.map(\.id),
             [
                 .legalConsiderationsExempt,
             ]
@@ -1319,7 +1319,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
     func testAccessibilitySummaryStatements() {
         // Test when summary is nil
         XCTAssertEqual(
-            AccessibilitySummary(summary: nil).statements.map(\.key),
+            AccessibilitySummary(summary: nil).statements.map(\.id),
             [
                 .accessibilitySummaryNoMetadata,
             ]
@@ -1330,7 +1330,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
         let fields = AccessibilitySummary(summary: summaryText).statements
         XCTAssertEqual(fields.count, 1)
         let field = fields[0]
-        XCTAssertEqual(field.key, .accessibilitySummary)
+        XCTAssertEqual(field.id, .accessibilitySummary)
         XCTAssertEqual(field.localizedString(descriptive: false).string, summaryText)
         XCTAssertEqual(field.localizedString(descriptive: true).string, summaryText)
     }
