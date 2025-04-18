@@ -1014,39 +1014,39 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
         }
 
         // No hazards metadata
-        test(a11y: nil, expected: Hazards(flashing: .noMetadata, motion: .noMetadata, sounds: .noMetadata))
-        test(a11y: .init(), expected: Hazards(flashing: .noMetadata, motion: .noMetadata, sounds: .noMetadata))
+        test(a11y: nil, expected: Hazards(flashing: .noMetadata, motion: .noMetadata, sound: .noMetadata))
+        test(a11y: .init(), expected: Hazards(flashing: .noMetadata, motion: .noMetadata, sound: .noMetadata))
 
         // Declared no hazards
-        test(a11y: .init(hazards: [.none]), expected: Hazards(flashing: .no, motion: .no, sounds: .no))
-        test(a11y: .init(hazards: [.none, .flashing]), expected: Hazards(flashing: .yes, motion: .no, sounds: .no))
-        test(a11y: .init(hazards: [.none, .motionSimulation]), expected: Hazards(flashing: .no, motion: .yes, sounds: .no))
-        test(a11y: .init(hazards: [.none, .unknownSoundHazard]), expected: Hazards(flashing: .no, motion: .no, sounds: .unknown))
+        test(a11y: .init(hazards: [.none]), expected: Hazards(flashing: .no, motion: .no, sound: .no))
+        test(a11y: .init(hazards: [.none, .flashing]), expected: Hazards(flashing: .yes, motion: .no, sound: .no))
+        test(a11y: .init(hazards: [.none, .motionSimulation]), expected: Hazards(flashing: .no, motion: .yes, sound: .no))
+        test(a11y: .init(hazards: [.none, .unknownSoundHazard]), expected: Hazards(flashing: .no, motion: .no, sound: .unknown))
 
         // Declared unknown hazards
-        test(a11y: .init(hazards: [.unknown]), expected: Hazards(flashing: .unknown, motion: .unknown, sounds: .unknown))
-        test(a11y: .init(hazards: [.unknown, .flashing]), expected: Hazards(flashing: .yes, motion: .unknown, sounds: .unknown))
-        test(a11y: .init(hazards: [.unknown, .motionSimulation]), expected: Hazards(flashing: .unknown, motion: .yes, sounds: .unknown))
-        test(a11y: .init(hazards: [.unknown, .noSoundHazard]), expected: Hazards(flashing: .unknown, motion: .unknown, sounds: .no))
+        test(a11y: .init(hazards: [.unknown]), expected: Hazards(flashing: .unknown, motion: .unknown, sound: .unknown))
+        test(a11y: .init(hazards: [.unknown, .flashing]), expected: Hazards(flashing: .yes, motion: .unknown, sound: .unknown))
+        test(a11y: .init(hazards: [.unknown, .motionSimulation]), expected: Hazards(flashing: .unknown, motion: .yes, sound: .unknown))
+        test(a11y: .init(hazards: [.unknown, .noSoundHazard]), expected: Hazards(flashing: .unknown, motion: .unknown, sound: .no))
 
         // Flashing
-        test(a11y: .init(hazards: [.flashing]), expected: Hazards(flashing: .yes, motion: .noMetadata, sounds: .noMetadata))
-        test(a11y: .init(hazards: [.noFlashingHazard]), expected: Hazards(flashing: .no, motion: .noMetadata, sounds: .noMetadata))
-        test(a11y: .init(hazards: [.unknownFlashingHazard]), expected: Hazards(flashing: .unknown, motion: .noMetadata, sounds: .noMetadata))
+        test(a11y: .init(hazards: [.flashing]), expected: Hazards(flashing: .yes, motion: .noMetadata, sound: .noMetadata))
+        test(a11y: .init(hazards: [.noFlashingHazard]), expected: Hazards(flashing: .no, motion: .noMetadata, sound: .noMetadata))
+        test(a11y: .init(hazards: [.unknownFlashingHazard]), expected: Hazards(flashing: .unknown, motion: .noMetadata, sound: .noMetadata))
 
         // Motion
-        test(a11y: .init(hazards: [.motionSimulation]), expected: Hazards(flashing: .noMetadata, motion: .yes, sounds: .noMetadata))
-        test(a11y: .init(hazards: [.noMotionSimulationHazard]), expected: Hazards(flashing: .noMetadata, motion: .no, sounds: .noMetadata))
-        test(a11y: .init(hazards: [.unknownMotionSimulationHazard]), expected: Hazards(flashing: .noMetadata, motion: .unknown, sounds: .noMetadata))
+        test(a11y: .init(hazards: [.motionSimulation]), expected: Hazards(flashing: .noMetadata, motion: .yes, sound: .noMetadata))
+        test(a11y: .init(hazards: [.noMotionSimulationHazard]), expected: Hazards(flashing: .noMetadata, motion: .no, sound: .noMetadata))
+        test(a11y: .init(hazards: [.unknownMotionSimulationHazard]), expected: Hazards(flashing: .noMetadata, motion: .unknown, sound: .noMetadata))
 
         // Sound
-        test(a11y: .init(hazards: [.sound]), expected: Hazards(flashing: .noMetadata, motion: .noMetadata, sounds: .yes))
-        test(a11y: .init(hazards: [.noSoundHazard]), expected: Hazards(flashing: .noMetadata, motion: .noMetadata, sounds: .no))
-        test(a11y: .init(hazards: [.unknownSoundHazard]), expected: Hazards(flashing: .noMetadata, motion: .noMetadata, sounds: .unknown))
+        test(a11y: .init(hazards: [.sound]), expected: Hazards(flashing: .noMetadata, motion: .noMetadata, sound: .yes))
+        test(a11y: .init(hazards: [.noSoundHazard]), expected: Hazards(flashing: .noMetadata, motion: .noMetadata, sound: .no))
+        test(a11y: .init(hazards: [.unknownSoundHazard]), expected: Hazards(flashing: .noMetadata, motion: .noMetadata, sound: .unknown))
 
         // Combination of hazards
-        test(a11y: .init(hazards: [.flashing, .noSoundHazard]), expected: Hazards(flashing: .yes, motion: .noMetadata, sounds: .no))
-        test(a11y: .init(hazards: [.unknownFlashingHazard, .noSoundHazard, .motionSimulation]), expected: Hazards(flashing: .unknown, motion: .yes, sounds: .no))
+        test(a11y: .init(hazards: [.flashing, .noSoundHazard]), expected: Hazards(flashing: .yes, motion: .noMetadata, sound: .no))
+        test(a11y: .init(hazards: [.unknownFlashingHazard, .noSoundHazard, .motionSimulation]), expected: Hazards(flashing: .unknown, motion: .yes, sound: .no))
     }
 
     func testHazardsTitle() {
@@ -1058,14 +1058,14 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
         let hazardsWithMetadata = Hazards(
             flashing: .yes,
             motion: .noMetadata,
-            sounds: .noMetadata
+            sound: .noMetadata
         )
         XCTAssertTrue(hazardsWithMetadata.shouldDisplay)
 
         let hazardsWithoutMetadata = Hazards(
             flashing: .noMetadata,
             motion: .noMetadata,
-            sounds: .noMetadata
+            sound: .noMetadata
         )
         XCTAssertFalse(hazardsWithoutMetadata.shouldDisplay)
     }
@@ -1076,7 +1076,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
             Hazards(
                 flashing: .noMetadata,
                 motion: .noMetadata,
-                sounds: .noMetadata
+                sound: .noMetadata
             ).statements.map(\.id),
             [
                 .hazardsNoMetadata,
@@ -1088,7 +1088,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
             Hazards(
                 flashing: .no,
                 motion: .no,
-                sounds: .no
+                sound: .no
             ).statements.map(\.id),
             [
                 .hazardsNone,
@@ -1100,7 +1100,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
             Hazards(
                 flashing: .unknown,
                 motion: .unknown,
-                sounds: .unknown
+                sound: .unknown
             ).statements.map(\.id),
             [
                 .hazardsUnknown,
@@ -1112,12 +1112,12 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
             Hazards(
                 flashing: .yes,
                 motion: .no,
-                sounds: .no
+                sound: .no
             ).statements.map(\.id),
             [
                 .hazardsFlashing,
-//                .hazardsMotionNone,
-//                .hazardsSoundNone,
+                .hazardsMotionNone,
+                .hazardsSoundNone,
             ]
         )
 
@@ -1125,12 +1125,12 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
             Hazards(
                 flashing: .no,
                 motion: .yes,
-                sounds: .no
+                sound: .no
             ).statements.map(\.id),
             [
                 .hazardsMotion,
-//                .hazardsFlashingNone,
-//                .hazardsSoundNone,
+                .hazardsFlashingNone,
+                .hazardsSoundNone,
             ]
         )
 
@@ -1138,12 +1138,12 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
             Hazards(
                 flashing: .no,
                 motion: .no,
-                sounds: .yes
+                sound: .yes
             ).statements.map(\.id),
             [
                 .hazardsSound,
-//                .hazardsFlashingNone,
-//                .hazardsMotionNone,
+                .hazardsFlashingNone,
+                .hazardsMotionNone,
             ]
         )
 
@@ -1152,7 +1152,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
             Hazards(
                 flashing: .yes,
                 motion: .yes,
-                sounds: .yes
+                sound: .yes
             ).statements.map(\.id),
             [
                 .hazardsFlashing,
@@ -1165,12 +1165,12 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
             Hazards(
                 flashing: .unknown,
                 motion: .yes,
-                sounds: .no
+                sound: .no
             ).statements.map(\.id),
             [
                 .hazardsMotion,
-//                .hazardsFlashingUnknown,
-//                .hazardsSoundNone,
+                .hazardsFlashingUnknown,
+                .hazardsSoundNone,
             ]
         )
 
@@ -1178,12 +1178,12 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
             Hazards(
                 flashing: .yes,
                 motion: .unknown,
-                sounds: .unknown
+                sound: .unknown
             ).statements.map(\.id),
             [
                 .hazardsFlashing,
-//                .hazardsMotionUnknown,
-//                .hazardsSoundUnknown,
+                .hazardsMotionUnknown,
+                .hazardsSoundUnknown,
             ]
         )
     }

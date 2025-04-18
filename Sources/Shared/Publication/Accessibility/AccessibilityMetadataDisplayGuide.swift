@@ -71,7 +71,7 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         ]
     }
 
-    /// Creates a new display guide for the given `accessibility` metadata.
+    /// Creates a new display guide for the given `publication` metadata.
     public init(publication: Publication) {
         waysOfReading = WaysOfReading(publication: publication)
         navigation = Navigation(publication: publication)
@@ -621,19 +621,19 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
             case noMetadata
         }
 
-        /// Indicates whether no information about rich content is available.
+        /// Indicates whether no information about hazards is available.
         public var noMetadata: Bool {
-            flashing == .noMetadata && motion == .noMetadata && sounds == .noMetadata
+            flashing == .noMetadata && motion == .noMetadata && sound == .noMetadata
         }
 
         /// The publication contains no hazards.
         public var noHazards: Bool {
-            flashing == .no && motion == .no && sounds == .no
+            flashing == .no && motion == .no && sound == .no
         }
 
         /// The presence of hazards is unknown.
         public var unknown: Bool {
-            flashing == .unknown && motion == .unknown && sounds == .unknown
+            flashing == .unknown && motion == .unknown && sound == .unknown
         }
 
         /// The publication contains flashing content which can cause
@@ -645,7 +645,7 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         public var motion: Hazard
 
         /// The publication contains sounds which can be uncomfortable.
-        public var sounds: Hazard
+        public var sound: Hazard
 
         public let id: AccessibilityDisplayString = .hazardsTitle
 
@@ -668,28 +668,29 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
                     if motion == .yes {
                         $0.append(.hazardsMotion)
                     }
-                    if sounds == .yes {
+                    if sound == .yes {
                         $0.append(.hazardsSound)
                     }
-                    // FIXME: Waiting for the strings to be available
-//                    if flashing == .unknown {
-//                        $0.append(.hazardsFlashingUnknown)
-//                    }
-//                    if motion == .unknown {
-//                        $0.append(.hazardsMotionUnknown)
-//                    }
-//                    if sounds == .unknown {
-//                        $0.append(.hazardsSoundUnknown)
-//                    }
-//                    if flashing == .no {
-//                        $0.append(.hazardsFlashingNone)
-//                    }
-//                    if motion == .no {
-//                        $0.append(.hazardsMotionNone)
-//                    }
-//                    if sounds == .no {
-//                        $0.append(.hazardsSoundNone)
-//                    }
+
+                    if flashing == .unknown {
+                        $0.append(.hazardsFlashingUnknown)
+                    }
+                    if motion == .unknown {
+                        $0.append(.hazardsMotionUnknown)
+                    }
+                    if sound == .unknown {
+                        $0.append(.hazardsSoundUnknown)
+                    }
+
+                    if flashing == .no {
+                        $0.append(.hazardsFlashingNone)
+                    }
+                    if motion == .no {
+                        $0.append(.hazardsMotionNone)
+                    }
+                    if sound == .no {
+                        $0.append(.hazardsSoundNone)
+                    }
                 }
             }
         }
@@ -697,11 +698,11 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         public init(
             flashing: Hazard = .unknown,
             motion: Hazard = .unknown,
-            sounds: Hazard = .unknown
+            sound: Hazard = .unknown
         ) {
             self.flashing = flashing
             self.motion = motion
-            self.sounds = sounds
+            self.sound = sound
         }
 
         public init(publication: Publication) {
@@ -741,7 +742,7 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
                 }
             }()
 
-            sounds = {
+            sound = {
                 if hazards.contains(.sound) {
                     return .yes
                 } else if hazards.contains(.noSoundHazard) {

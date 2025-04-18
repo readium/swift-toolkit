@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-// DO NOT EDIT. File generated automatically from v2.0.b of the en-US JSON strings.
+// DO NOT EDIT. File generated automatically from v2.0.c of the en-US JSON strings.
 
 public extension AccessibilityDisplayString {
     static let waysOfReadingTitle: Self = "readium.a11y.ways-of-reading-title"
@@ -59,13 +59,20 @@ public extension AccessibilityDisplayString {
     static let richContentUnknown: Self = "readium.a11y.rich-content-unknown"
     static let hazardsTitle: Self = "readium.a11y.hazards-title"
     static let hazardsFlashing: Self = "readium.a11y.hazards-flashing"
+    static let hazardsFlashingNone: Self = "readium.a11y.hazards-flashing-none"
+    static let hazardsFlashingUnknown: Self = "readium.a11y.hazards-flashing-unknown"
     static let hazardsMotion: Self = "readium.a11y.hazards-motion"
+    static let hazardsMotionNone: Self = "readium.a11y.hazards-motion-none"
+    static let hazardsMotionUnknown: Self = "readium.a11y.hazards-motion-unknown"
     static let hazardsNoMetadata: Self = "readium.a11y.hazards-no-metadata"
     static let hazardsNone: Self = "readium.a11y.hazards-none"
     static let hazardsSound: Self = "readium.a11y.hazards-sound"
+    static let hazardsSoundNone: Self = "readium.a11y.hazards-sound-none"
+    static let hazardsSoundUnknown: Self = "readium.a11y.hazards-sound-unknown"
     static let hazardsUnknown: Self = "readium.a11y.hazards-unknown"
     static let accessibilitySummaryTitle: Self = "readium.a11y.accessibility-summary-title"
     static let accessibilitySummaryNoMetadata: Self = "readium.a11y.accessibility-summary-no-metadata"
+    static let accessibilitySummaryPublisherContact: Self = "readium.a11y.accessibility-summary-publisher-contact"
     static let legalConsiderationsTitle: Self = "readium.a11y.legal-considerations-title"
     static let legalConsiderationsExempt: Self = "readium.a11y.legal-considerations-exempt"
     static let legalConsiderationsNoMetadata: Self = "readium.a11y.legal-considerations-no-metadata"

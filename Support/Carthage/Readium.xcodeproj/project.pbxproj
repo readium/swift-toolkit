@@ -2141,6 +2141,8 @@
 				5114D5C5742C86A35A45548E /* PBXTargetDependency */,
 			);
 			name = ReadiumAdapterLCPSQLite;
+			packageProductDependencies = (
+			);
 			productName = ReadiumAdapterLCPSQLite;
 			productReference = 53DAB92EBBB8031CA66B1E6F /* ReadiumAdapterLCPSQLite.framework */;
 			productType = "com.apple.product-type.framework";
@@ -2160,6 +2162,8 @@
 				39F2FBACF195331F2304F749 /* PBXTargetDependency */,
 			);
 			name = ReadiumStreamer;
+			packageProductDependencies = (
+			);
 			productName = ReadiumStreamer;
 			productReference = 9D2B24C3150D502382AAC939 /* ReadiumStreamer.framework */;
 			productType = "com.apple.product-type.framework";
@@ -2179,6 +2183,8 @@
 				E5CBAD29AB9C4B18E4DBDD12 /* PBXTargetDependency */,
 			);
 			name = ReadiumLCP;
+			packageProductDependencies = (
+			);
 			productName = ReadiumLCP;
 			productReference = 37120DA973F5C438B59BC014 /* ReadiumLCP.framework */;
 			productType = "com.apple.product-type.framework";
@@ -2197,6 +2203,8 @@
 				77444EEC3A2F55F018832CCB /* PBXTargetDependency */,
 			);
 			name = ReadiumAdapterGCDWebServer;
+			packageProductDependencies = (
+			);
 			productName = ReadiumAdapterGCDWebServer;
 			productReference = 031593240E2CCD681E652D7E /* ReadiumAdapterGCDWebServer.framework */;
 			productType = "com.apple.product-type.framework";
@@ -2215,6 +2223,8 @@
 				97DD2B3014EE5716A2144765 /* PBXTargetDependency */,
 			);
 			name = ReadiumShared;
+			packageProductDependencies = (
+			);
 			productName = ReadiumShared;
 			productReference = 97BC822B36D72EF548162129 /* ReadiumShared.framework */;
 			productType = "com.apple.product-type.framework";
@@ -2234,6 +2244,8 @@
 				87A07A91EEB59A5AF544D945 /* PBXTargetDependency */,
 			);
 			name = ReadiumNavigator;
+			packageProductDependencies = (
+			);
 			productName = ReadiumNavigator;
 			productReference = 9407E818636BEA4550E57F57 /* ReadiumNavigator.framework */;
 			productType = "com.apple.product-type.framework";
@@ -2252,6 +2264,8 @@
 				5D2138BC434F097D8B2074EC /* PBXTargetDependency */,
 			);
 			name = ReadiumOPDS;
+			packageProductDependencies = (
+			);
 			productName = ReadiumOPDS;
 			productReference = EC329362A0E8AC6CC018452A /* ReadiumOPDS.framework */;
 			productType = "com.apple.product-type.framework";
@@ -2267,6 +2281,8 @@
 			dependencies = (
 			);
 			name = ReadiumInternal;
+			packageProductDependencies = (
+			);
 			productName = ReadiumInternal;
 			productReference = 42FD63C2720614E558522675 /* ReadiumInternal.framework */;
 			productType = "com.apple.product-type.framework";
@@ -2292,6 +2308,8 @@
 				"en-US",
 			);
 			mainGroup = 2C63ECC3CC1230CCA416F55F;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 54;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
