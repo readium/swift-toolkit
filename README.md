@@ -7,16 +7,53 @@
 
 ## Features
 
-| Feature | Support |
-|-|---------|
-| [OPDS Catalog 1.2](https://specs.opds.io/opds-1.2) | :white_check_mark: | 
-| [OPDS Catalog 2.0](https://drafts.opds.io/opds-2.0) | :white_check_mark: | 
-| [Authentication for OPDS](https://drafts.opds.io/authentication-for-opds-1.0.html) | :eyes: |
-| [Readium LCP Automatic Key Retrieval](https://readium.org/lcp-specs/notes/lcp-key-retrieval.html) | :eyes: |
-| Adobe ACS DRM | :x: |
+✅ Implemented &nbsp;&nbsp;&nbsp;&nbsp; 📆 Planned &nbsp;&nbsp;&nbsp;&nbsp; 👀 Want to do &nbsp;&nbsp;&nbsp;&nbsp; ❌ Will not do
 
+### Publication Formats
 
-<!-- || EPUB | PDF | Readium Audiobook | -->
+| Format | Status |
+|---|:---:|
+| EPUB 2 | ✅ |
+| EPUB 3 | ✅ |
+| Readium Web Publication | 👀 |
+| PDF | ✅ |
+| Readium Audiobook | ✅ |
+| Zipped Audiobook | ✅ |
+| Standalone audio files (MP3, AAC, etc.) | ✅ |
+| Readium Divina | ✅ |
+| CBZ (Comic Book ZIP) | ✅ |
+| CBR (Comic Book RAR) | ❌ |
+| [DAISY](https://daisy.org/activities/standards/daisy/) | 👀 |
+
+### Format Features
+
+A number of features are implemented only for some publication formats.
+
+| Feature | EPUB (reflow) | EPUB (FXL) | PDF | Comicbook | Audiobook |
+|---|:---:|:---:|:---:|:---:|:---:|
+| Pagination | ✅ | ✅ | ✅ | ✅ | |
+| Scrolling | ✅ | 👀 | ✅ | 👀 | |
+| Right-to-left (RTL) | ✅ | ✅ |  ✅ | 👀 | |
+| Search in textual content | ✅ | ✅ | 👀 | ❌ | ❌ |
+| Highlighting (Decoration API) | ✅ | ✅ | 👀 | ❌  | |
+| Text-to-speech (TTS) | ✅ | ✅ | 👀 | ❌ | |
+| Media overlays | 📆 | 📆 |
+
+### OPDS
+
+| Feature | Status |
+|---|:---:|
+| [OPDS Catalog 1.2](https://specs.opds.io/opds-1.2) | ✅ | 
+| [OPDS Catalog 2.0](https://drafts.opds.io/opds-2.0) | ✅ | 
+| [Authentication for OPDS](https://drafts.opds.io/authentication-for-opds-1.0.html) | 📆 |
+| [Readium LCP Automatic Key Retrieval](https://readium.org/lcp-specs/notes/lcp-key-retrieval.html) | 📆 |
+
+### DRM
+
+| Feature | Status |
+|---|:---:|
+| [Readium LCP](https://www.edrlab.org/projects/readium-lcp/) | ✅ |
+| [Adobe ACS](https://www.adobe.com/fr/solutions/ebook/content-server.html) | ❌ |
 
 
 ## User Guides
