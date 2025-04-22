@@ -36,12 +36,12 @@ final class EPUBMetadataParser: Loggable {
 
         let contributorsWithRoles = findContributorElements()
             .compactMap { createContributor(from: $0) }
-        
+
         let contributorsByRole = Dictionary(grouping: contributorsWithRoles, by: \.role)
             .mapValues { $0.map(\.contributor) }
-        
+
         func contributorsForRole(role: String?) -> [Contributor] {
-            return contributorsByRole[role] ?? []
+            contributorsByRole[role] ?? []
         }
 
         return Metadata(
@@ -422,14 +422,14 @@ final class EPUBMetadataParser: Loggable {
         guard let name = localizedString(for: element) else {
             return nil
         }
-        
+
         let knownRoles: Set = ["aut", "trl", "edt", "pbl", "art", "ill", "clr", "nrt"]
-        
+
         // Look up for possible meta refines for contributor's role.
         let role: String? = element.attr("id")
             .map { id in metas["role", refining: id].map(\.content) }?.first
             ?? element.attr("role") // falls back to EPUB 2 role attribute
-        
+
         let roles = role.map { role in knownRoles.contains(role) ? [] : [role] } ?? []
 
         let contributor = Contributor(
@@ -437,7 +437,7 @@ final class EPUBMetadataParser: Loggable {
             sortAs: element.attr("file-as"),
             roles: roles
         )
-        
+
         let type: String? = if element.tag == "creator" || element.attr("property") == "dcterms:creator" {
             "aut"
         } else if element.tag == "publisher" || element.attr("property") == "dcterms:publisher" {
@@ -449,9 +449,8 @@ final class EPUBMetadataParser: Loggable {
         } else {
             knownRoles.contains(role!) ? role : nil
         }
-        
+
         return (role: type, contributor: contributor)
-        
     }
 
     private lazy var readingProgression: ReadingProgression = {
@@ -490,14 +489,14 @@ final class EPUBMetadataParser: Loggable {
                 return metas["collection-type", refining: id].first?.content == "series"
             }
             .compactMap(collection(from:))
-        
+
         if !epub3Series.isEmpty {
             return epub3Series
         }
-        
+
         let epub2Position = metas["series_index", in: .calibre].first
             .flatMap { Double($0.content) }
-        
+
         return metas["series", in: .calibre]
             .map { meta in
                 Metadata.Collection(
