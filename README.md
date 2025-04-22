@@ -7,39 +7,39 @@
 
 ## Features
 
-✅ Implemented &nbsp;&nbsp;&nbsp;&nbsp; 📆 Planned &nbsp;&nbsp;&nbsp;&nbsp; 👀 Want to do &nbsp;&nbsp;&nbsp;&nbsp; ❌ Will not do
+✅ Implemented &nbsp;&nbsp;&nbsp;&nbsp; 🚧 Partially implemented  &nbsp;&nbsp;&nbsp;&nbsp; 📆 Planned &nbsp;&nbsp;&nbsp;&nbsp; 👀 Want to do &nbsp;&nbsp;&nbsp;&nbsp; ❌ Will not do
 
-### Publication Formats
+### Formats
 
 | Format | Status |
 |---|:---:|
 | EPUB 2 | ✅ |
 | EPUB 3 | ✅ |
-| Readium Web Publication | 👀 |
+| Readium Web Publication | 🚧 |
 | PDF | ✅ |
 | Readium Audiobook | ✅ |
 | Zipped Audiobook | ✅ |
 | Standalone audio files (MP3, AAC, etc.) | ✅ |
-| Readium Divina | ✅ |
-| CBZ (Comic Book ZIP) | ✅ |
+| Readium Divina | 🚧 |
+| CBZ (Comic Book ZIP) | 🚧 |
 | CBR (Comic Book RAR) | ❌ |
 | [DAISY](https://daisy.org/activities/standards/daisy/) | 👀 |
 
-### Format Features
+### Features
 
 A number of features are implemented only for some publication formats.
 
-| Feature | EPUB (reflow) | EPUB (FXL) | PDF | Comicbook | Audiobook |
-|---|:---:|:---:|:---:|:---:|:---:|
-| Pagination | ✅ | ✅ | ✅ | ✅ | |
-| Scrolling | ✅ | 👀 | ✅ | 👀 | |
-| Right-to-left (RTL) | ✅ | ✅ |  ✅ | 👀 | |
-| Search in textual content | ✅ | ✅ | 👀 | ❌ | ❌ |
-| Highlighting (Decoration API) | ✅ | ✅ | 👀 | ❌  | |
-| Text-to-speech (TTS) | ✅ | ✅ | 👀 | ❌ | |
-| Media overlays | 📆 | 📆 |
+| Feature | EPUB (reflow) | EPUB (FXL) | PDF |
+|---|:---:|:---:|:---:|
+| Pagination | ✅ | ✅ | ✅ |
+| Scrolling | ✅ | 👀 | ✅ |
+| Right-to-left (RTL) | ✅ | ✅ |  ✅ |
+| Search in textual content | ✅ | ✅ | 👀 | ❌ |
+| Highlighting (Decoration API) | ✅ | ✅ | 👀 |
+| Text-to-speech (TTS) | ✅ | ✅ | 👀 |
+| Media overlays | 📆 | 📆 | |
 
-### OPDS
+### OPDS Support
 
 | Feature | Status |
 |---|:---:|
@@ -48,7 +48,7 @@ A number of features are implemented only for some publication formats.
 | [Authentication for OPDS](https://drafts.opds.io/authentication-for-opds-1.0.html) | 📆 |
 | [Readium LCP Automatic Key Retrieval](https://readium.org/lcp-specs/notes/lcp-key-retrieval.html) | 📆 |
 
-### DRM
+### DRM Support
 
 | Feature | Status |
 |---|:---:|
