@@ -7,7 +7,7 @@
 import UIKit
 
 protocol PublicationMenuViewControllerDelegate: AnyObject {
-    func infosButtonTapped()
+    func metadataButtonTapped()
     func removeButtonTapped()
     func cancelButtonTapped()
 }
@@ -19,8 +19,8 @@ class PublicationMenuViewController: UIViewController {
         super.viewDidLoad()
     }
 
-    @IBAction func infosButtonTapped(_ sender: Any) {
-        delegate?.infosButtonTapped()
+    @IBAction func metadataButtonTapped(_ sender: Any) {
+        delegate?.metadataButtonTapped()
     }
 
     @IBAction func removeButtonTapped(_ sender: Any) {

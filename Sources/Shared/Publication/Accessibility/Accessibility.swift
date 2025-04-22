@@ -84,6 +84,30 @@ public struct Accessibility: Hashable, Sendable {
         public static let epubA11y11WCAG22AA = Profile("https://www.w3.org/TR/epub-a11y-11#wcag-2.2-aa")
         /// EPUB Accessibility 1.1 - WCAG 2.2 Level AAA
         public static let epubA11y11WCAG22AAA = Profile("https://www.w3.org/TR/epub-a11y-11#wcag-2.2-aaa")
+
+        /// Indicates whether this profile matches WCAG level A.
+        public var isWCAGLevelA: Bool {
+            self == Self.epubA11y10WCAG20A
+                || self == Self.epubA11y11WCAG20A
+                || self == Self.epubA11y11WCAG21A
+                || self == Self.epubA11y11WCAG22A
+        }
+
+        /// Indicates whether this profile matches WCAG level AA.
+        public var isWCAGLevelAA: Bool {
+            self == Self.epubA11y10WCAG20AA
+                || self == Self.epubA11y11WCAG20AA
+                || self == Self.epubA11y11WCAG21AA
+                || self == Self.epubA11y11WCAG22AA
+        }
+
+        /// Indicates whether this profile matches WCAG level AAA.
+        public var isWCAGLevelAAA: Bool {
+            self == Self.epubA11y10WCAG20AAA
+                || self == Self.epubA11y11WCAG20AAA
+                || self == Self.epubA11y11WCAG21AAA
+                || self == Self.epubA11y11WCAG22AAA
+        }
     }
 
     public struct Certification: Hashable, Sendable {
@@ -180,6 +204,9 @@ public struct Accessibility: Hashable, Sendable {
             self.id = id
         }
 
+        /// Indicates that the resource does not contain any accessibility features.
+        public static let none = Feature("none")
+
         // Structure and Navigation Terms
         //
         // The structure and navigation term identify structuring and navigation aids that facilitate use of the work.
@@ -194,6 +221,7 @@ public struct Accessibility: Hashable, Sendable {
         public static let aria = Feature("ARIA")
 
         /// The work includes bookmarks to facilitate navigation to key points.
+        @available(*, deprecated, message: "The use of the bookmarks value is now deprecated due to its ambiguity. For PDF bookmarks, the tableOfContents value should be used instead. For bookmarks in ebooks, the annotations value can be used.")
         public static let bookmarks = Feature("bookmarks")
 
         /// The work includes an index to the content.
@@ -216,8 +244,11 @@ public struct Accessibility: Hashable, Sendable {
         /// publications is through a page list.
         public static let pageNavigation = Feature("pageNavigation")
 
-        // https://github.com/readium/go-toolkit/issues/92
-        @available(*, deprecated, renamed: "pageNavigation")
+        /// The work includes equivalent print page numbers. This setting is
+        /// most commonly used with ebooks for which there is a print
+        /// equivalent.
+        ///
+        /// Deprecated for publication authors: https://github.com/readium/go-toolkit/issues/92
         public static let printPageNumbers = Feature("printPageNumbers")
 
         /// The reading order of the content is clearly defined in the markup (e.g., figures, sidebars and other
@@ -246,7 +277,16 @@ public struct Accessibility: Hashable, Sendable {
         public static let audioDescription = Feature("audioDescription")
 
         /// Indicates that synchronized captions are available for audio and video content.
+        @available(*, deprecated, message: "Authors should use the more specific closedCaptions or openCaptions values, as appropriate.")
         public static let captions = Feature("captions")
+
+        /// Indicates that synchronized closed captions are available for audio
+        /// and video content.
+        ///
+        /// Closed captions are defined separately from the video, allowing
+        /// users to control whether they are rendered or not, unlike open
+        /// captions.
+        public static let closedCaptions = Feature("closedCaptions")
 
         /// Textual descriptions of math equations are included, whether in the alt attribute for image-based equations,
         /// using the `alttext` attribute for MathML equations, or by other means.
@@ -256,12 +296,12 @@ public struct Accessibility: Hashable, Sendable {
         /// mathematics, diagrams, and charts.
         public static let longDescription = Feature("longDescription")
 
-        /// Indicates that `ruby` annotations HTML are provided in the content. Ruby annotations are used as
-        /// pronunciation guides for the logographic characters for languages like Chinese or Japanese. It makes
-        /// difficult Kanji or CJK ideographic characters more accessible.
+        /// Indicates that synchronized open captions are available for audio
+        /// and video content.
         ///
-        /// The absence of rubyAnnotations implies that no CJK ideographic characters have ruby.
-        public static let rubyAnnotations = Feature("rubyAnnotations")
+        /// Open captions are part of the video stream and cannot be turned off
+        /// by the user, unlike closed captions.
+        public static let openCaptions = Feature("openCaptions")
 
         /// Sign language interpretation is available for audio and video content.
         public static let signLanguage = Feature("signLanguage")
@@ -302,8 +342,16 @@ public struct Accessibility: Hashable, Sendable {
         /// Identifies that mathematical equations and formulas are encoded in the LaTeX typesetting system.
         public static let latex = Feature("latex")
 
+        /// Identifies that the LaTeX typesetting system is used to encode
+        /// chemical equations and formulas.
+        public static let latexChemistry = Feature("latex-chemistry")
+
         /// Identifies that mathematical equations and formulas are encoded in MathML.
         public static let mathML = Feature("MathML")
+
+        /// Identifies that MathML is used to encode chemical equations and
+        /// formulas.
+        public static let mathMLChemistry = Feature("MathML-chemistry")
 
         /// One or more of SSML, Pronunciation-Lexicon, and CSS3-Speech properties has been used to enhance
         /// text-to-speech playback quality.
@@ -341,8 +389,48 @@ public struct Accessibility: Hashable, Sendable {
         /// 3D objects. When used to describe a physical object, indicates that the resource is a tactile 3D object.
         public static let tactileObject = Feature("tactileObject")
 
-        /// Indicates that the resource does not contain any accessibility features.
-        public static let none = Feature("none")
+        // Internationalization terms
+        //
+        // The internationalization terms identify those accessibility
+        // characteristics of the content which are required for
+        // internationalization.
+
+        /// Indicates that ruby annotations JLreq are attached to every CJK
+        /// ideographic character in the content. Ruby annotations are used as
+        /// pronunciation guides for the logographic characters for languages
+        /// like Chinese or Japanese. They make difficult CJK ideographic
+        /// characters more accessible.
+        public static let fullRubyAnnotations = Feature("fullRubyAnnotations")
+
+        /// Indicates that the content can be laid out horizontally (e.g, using
+        /// the horizontal-tb writing mode of css-writing-modes-3). This value
+        /// should only be set when the language of the content allows both
+        /// horizontal and vertical directions. Notable examples of such
+        /// languages are Chinese, Japanese, and Korean.
+        public static let horizontalWriting = Feature("horizontalWriting")
+
+        /// Indicates that `ruby` annotations HTML are provided in the content.
+        /// Ruby annotations are used as pronunciation guides for the
+        /// logographic characters for languages like Chinese or Japanese. It
+        /// makes difficult Kanji or CJK ideographic characters more accessible.
+        ///
+        /// The absence of rubyAnnotations implies that no CJK ideographic
+        /// characters have ruby.
+        public static let rubyAnnotations = Feature("rubyAnnotations")
+
+        /// Indicates that the content can be laid out vertically (e.g, using
+        /// the vertical-rl of [css-writing-modes-3]). This value should only
+        /// be set when the language of the content allows both horizontal and
+        /// vertical directions.
+        public static let verticalWriting = Feature("verticalWriting")
+
+        /// Indicates that the content can be rendered with additional word
+        /// segmentation.
+        public static let withAdditionalWordSegmentation = Feature("withAdditionalWordSegmentation")
+
+        /// Indicates that the content can be rendered without additional word
+        /// segmentation.
+        public static let withoutAdditionalWordSegmentation = Feature("withoutAdditionalWordSegmentation")
     }
 
     public struct Hazard: Hashable, Sendable {
@@ -358,22 +446,38 @@ public struct Accessibility: Hashable, Sendable {
         /// Indicates that the resource does not present a flashing hazard.
         public static let noFlashingHazard = Hazard("noFlashingHazard")
 
-        /// Indicates that the resource contains instances of motion simulation that may affect some individuals.
+        /// Indicates that the author cannot determine if a flashing hazard
+        /// exists.
+        public static let unknownFlashingHazard = Hazard("unknownFlashingHazard")
+
+        /// Indicates that the resource contains instances of motion simulation
+        /// that may affect some individuals.
         ///
-        /// Some examples of motion simulation include video games with a first-person perspective and CSS-controlled
-        /// backgrounds that move when a user scrolls a page.
+        /// Some examples of motion simulation include video games with a
+        /// first-person perspective and CSS-controlled backgrounds that move
+        /// when a user scrolls a page.
         public static let motionSimulation = Hazard("motionSimulation")
 
         /// Indicates that the resource does not contain instances of motion simulation.
         public static let noMotionSimulationHazard = Hazard("noMotionSimulationHazard")
 
-        /// Indicates that the resource contains auditory sounds that may affect some individuals.
+        /// Indicates that it is unknown if a motion simulation hazard exists
+        /// within the content.
+        public static let unknownMotionSimulationHazard = Hazard("unknownMotionSimulationHazard")
+
+        /// Indicates that the resource contains auditory sounds that may affect
+        /// some individuals.
         public static let sound = Hazard("sound")
 
         /// Indicates that the resource does not contain auditory hazards.
         public static let noSoundHazard = Hazard("noSoundHazard")
 
-        /// Indicates that the author is not able to determine if the resource presents any hazards.
+        /// Indicates that it is unknown if an auditory hazard exists within the
+        /// content.
+        public static let unknownSoundHazard = Hazard("unknownSoundHazard")
+
+        /// Indicates that the author is not able to determine if the resource
+        /// presents any hazards.
         public static let unknown = Hazard("unknown")
 
         /// Indicates that the resource does not contain any hazards.

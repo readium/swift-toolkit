@@ -65,6 +65,8 @@ Guides are available to help you make the most of the toolkit.
 * [Opening a publication](docs/Guides/Open%20Publication.md) – parse a publication package (EPUB, PDF, etc.) or manifest (RWPM) into Readium `Publication` models
 * [Extracting the content of a publication](docs/Guides/Content.md) – API to extract the text content of a publication for searching or indexing it
 * [Text-to-speech](docs/Guides/TTS.md) – read aloud the content of a textual publication using speech synthesis
+* [Accessibility](docs/Guides/Accessibility.md) – inspect accessibility metadata and present it to users
+
 
 ### Navigator
 
