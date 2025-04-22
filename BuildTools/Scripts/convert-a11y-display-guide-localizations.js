@@ -59,24 +59,8 @@ function writeSwiftExtensions(disclaimer, keys, keyPrefix, write) {
     write("Publication/Accessibility/AccessibilityDisplayString+Generated.swift", keysOutput);
 }
 
-/**
- * Converter for Android strings.xml files.
- */
-function convertAndroid(lang, version, keys, keyPrefix, write) {
-    let output = `<?xml version="1.0" encoding="utf-8"?>\n<!-- DO NOT EDIT. File generated automatically from v${version} of the ${lang} JSON} -->\n\n<resources>\n`;
-    for (const [key, value] of Object.entries(keys)) {
-        const sanitizedKey = key.replace(/-/g, '_');
-        output += `    <string name=${keyPrefix}${sanitizedKey}>${value}</string>\n`;
-    }
-    output += '</resources>\n';
-
-    let outputPath = path.join(`values-${lang}`, 'w3c_a11y_meta_display_guide_strings.xml');
-    write(outputPath, output);
-}
-
 const converters = {
-    apple: convertApple,
-    android: convertAndroid
+    apple: convertApple
 };
 
 if (!inputFolder || !outputFormat || !outputFolder) {
