@@ -34,7 +34,15 @@ final class EPUBMetadataParser: Loggable {
             otherMetadata["presentation"] = presentation.json
         }
 
-        let contributors = parseContributors()
+        let contributorsWithRoles = findContributorElements()
+            .compactMap { createContributor(from: $0) }
+        
+        let contributorsByRole = Dictionary(grouping: contributorsWithRoles, by: \.role)
+            .mapValues { $0.map(\.contributor) }
+        
+        func contributorsForRole(role: String?) -> [Contributor] {
+            return contributorsByRole[role] ?? []
+        }
 
         return Metadata(
             identifier: uniqueIdentifier,
@@ -47,15 +55,15 @@ final class EPUBMetadataParser: Loggable {
             languages: languages,
             sortAs: sortAs,
             subjects: subjects,
-            authors: contributors.authors,
-            translators: contributors.translators,
-            editors: contributors.editors,
-            artists: contributors.artists,
-            illustrators: contributors.illustrators,
-            colorists: contributors.colorists,
-            narrators: contributors.narrators,
-            contributors: contributors.contributors,
-            publishers: contributors.publishers,
+            authors: contributorsForRole(role: "aut"),
+            translators: contributorsForRole(role: "trl"),
+            editors: contributorsForRole(role: "edt"),
+            artists: contributorsForRole(role: "art"),
+            illustrators: contributorsForRole(role: "ill"),
+            colorists: contributorsForRole(role: "clr"),
+            narrators: contributorsForRole(role: "nrt"),
+            contributors: contributorsForRole(role: nil),
+            publishers: contributorsForRole(role: "pbl"),
             readingProgression: readingProgression,
             description: description,
             numberOfPages: numberOfPages,
@@ -389,91 +397,6 @@ final class EPUBMetadataParser: Loggable {
         }
     }()
 
-    /// Parse all the Contributors objects of the model (`creator`, `contributor`,
-    /// `publisher`) and add them to the metadata.
-    ///
-    /// - Parameters:
-    ///   - metadata: The Metadata object to fill (inout).
-    private func parseContributors() -> (
-        authors: [Contributor],
-        translators: [Contributor],
-        editors: [Contributor],
-        artists: [Contributor],
-        illustrators: [Contributor],
-        colorists: [Contributor],
-        narrators: [Contributor],
-        contributors: [Contributor],
-        publishers: [Contributor]
-    ) {
-        var authors: [Contributor] = []
-        var translators: [Contributor] = []
-        var editors: [Contributor] = []
-        var artists: [Contributor] = []
-        var illustrators: [Contributor] = []
-        var colorists: [Contributor] = []
-        var narrators: [Contributor] = []
-        var contributors: [Contributor] = []
-        var publishers: [Contributor] = []
-
-        for element in findContributorElements() {
-            // Look up for possible meta refines for contributor's role.
-            let roles = element.attr("id")
-                .map { id in metas["role", refining: id].map(\.content) }
-                ?? []
-
-            guard let contributor = createContributor(from: element, roles: roles) else {
-                continue
-            }
-            // Add the contributor to the proper property according to its `roles`
-            if !contributor.roles.isEmpty {
-                for role in contributor.roles {
-                    switch role {
-                    case "aut":
-                        authors.append(contributor)
-                    case "trl":
-                        translators.append(contributor)
-                    case "art":
-                        artists.append(contributor)
-                    case "edt":
-                        editors.append(contributor)
-                    case "ill":
-                        illustrators.append(contributor)
-                    case "clr":
-                        colorists.append(contributor)
-                    case "nrt":
-                        narrators.append(contributor)
-                    case "pbl":
-                        publishers.append(contributor)
-                    default:
-                        contributors.append(contributor)
-                    }
-                }
-            } else {
-                // No role, so do the branching using the element.name.
-                // The remaining ones go to to the contributors.
-                if element.tag == "creator" || element.attr("property") == "dcterms:creator" {
-                    authors.append(contributor)
-                } else if element.tag == "publisher" || element.attr("property") == "dcterms:publisher" {
-                    publishers.append(contributor)
-                } else {
-                    contributors.append(contributor)
-                }
-            }
-        }
-
-        return (
-            authors: authors,
-            translators: translators,
-            editors: editors,
-            artists: artists,
-            illustrators: illustrators,
-            colorists: colorists,
-            narrators: narrators,
-            contributors: contributors,
-            publishers: publishers
-        )
-    }
-
     /// Returns the XML elements about the contributors.
     /// e.g. `<dc:publisher "property"=".." >value<\>`,
     /// or `<meta property="dcterms:publisher/creator/contributor"`
@@ -484,6 +407,7 @@ final class EPUBMetadataParser: Loggable {
         let contributors = metas["creator", in: .dcterms]
             + metas["publisher", in: .dcterms]
             + metas["contributor", in: .dcterms]
+            + metas["narrator", in: .media]
         return contributors.map(\.element)
     }
 
@@ -494,21 +418,40 @@ final class EPUBMetadataParser: Loggable {
     /// - Parameters:
     ///   - element: The XML element reprensenting the contributor.
     /// - Returns: The newly created Contributor instance.
-    private func createContributor(from element: ReadiumFuzi.XMLElement, roles: [String] = []) -> Contributor? {
+    private func createContributor(from element: ReadiumFuzi.XMLElement) -> (role: String?, contributor: Contributor)? {
         guard let name = localizedString(for: element) else {
             return nil
         }
+        
+        let knownRoles: Set = ["aut", "trl", "edt", "pbl", "art", "ill", "clr", "nrt"]
+        
+        // Look up for possible meta refines for contributor's role.
+        let role: String? = element.attr("id")
+            .map { id in metas["role", refining: id].map(\.content) }?.first
+            ?? element.attr("role") // falls back to EPUB 2 role attribute
+        
+        let roles = role.map { role in knownRoles.contains(role) ? [] : [role] } ?? []
 
-        var roles = roles
-        if let role = element.attr("role") {
-            roles.insert(role, at: 0)
-        }
-
-        return Contributor(
+        let contributor = Contributor(
             name: name,
             sortAs: element.attr("file-as"),
             roles: roles
         )
+        
+        let type: String? = if element.tag == "creator" || element.attr("property") == "dcterms:creator" {
+            "aut"
+        } else if element.tag == "publisher" || element.attr("property") == "dcterms:publisher" {
+            "pbl"
+        } else if element.tag == "narrator" {
+            "nrt"
+        } else if role == nil {
+            nil
+        } else {
+            knownRoles.contains(role!) ? role : nil
+        }
+        
+        return (role: type, contributor: contributor)
+        
     }
 
     private lazy var readingProgression: ReadingProgression = {
@@ -547,18 +490,21 @@ final class EPUBMetadataParser: Loggable {
                 return metas["collection-type", refining: id].first?.content == "series"
             }
             .compactMap(collection(from:))
-
+        
+        if !epub3Series.isEmpty {
+            return epub3Series
+        }
+        
         let epub2Position = metas["series_index", in: .calibre].first
             .flatMap { Double($0.content) }
-        let epub2Series = metas["series", in: .calibre]
+        
+        return metas["series", in: .calibre]
             .map { meta in
                 Metadata.Collection(
                     name: meta.content,
                     position: epub2Position
                 )
             }
-
-        return epub3Series + epub2Series
     }()
 
     private func collection(from meta: OPFMeta) -> Metadata.Collection? {
