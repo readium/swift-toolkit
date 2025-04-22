@@ -588,7 +588,7 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         public init(publication: Publication) {
             let features = publication.metadata.accessibility?.features ?? []
 
-            pageBreakMarkers = features.contains(.pageBreakMarkers)
+            pageBreakMarkers = features.containsAny(.pageBreakMarkers, .printPageNumbers)
             aria = features.contains(.aria)
             audioDescriptions = features.contains(.audioDescription)
             braille = features.contains(.braille)

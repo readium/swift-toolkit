@@ -244,8 +244,11 @@ public struct Accessibility: Hashable, Sendable {
         /// publications is through a page list.
         public static let pageNavigation = Feature("pageNavigation")
 
-        // https://github.com/readium/go-toolkit/issues/92
-        @available(*, deprecated, renamed: "pageNavigation")
+        /// The work includes equivalent print page numbers. This setting is
+        /// most commonly used with ebooks for which there is a print
+        /// equivalent.
+        ///
+        /// Deprecated for publication authors: https://github.com/readium/go-toolkit/issues/92
         public static let printPageNumbers = Feature("printPageNumbers")
 
         /// The reading order of the content is clearly defined in the markup (e.g., figures, sidebars and other
