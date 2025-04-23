@@ -7,7 +7,7 @@ on:
 
 env:
   platform: ${{ 'iOS Simulator' }}
-  device: ${{ 'iPhone 15' }}
+  device: ${{ 'iPhone SE (3rd generation)' }}
   commit_sha: ${{ github.sha }}
   DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
 
