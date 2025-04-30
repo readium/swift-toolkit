@@ -7,7 +7,7 @@
 
 ## Features
 
-✅ Implemented &nbsp;&nbsp;&nbsp;&nbsp; 🚧 Partially implemented  &nbsp;&nbsp;&nbsp;&nbsp; 📆 Planned &nbsp;&nbsp;&nbsp;&nbsp; 👀 Want to do &nbsp;&nbsp;&nbsp;&nbsp; ❌ Will not do
+✅ Implemented &nbsp;&nbsp;&nbsp;&nbsp; 🚧 Partially implemented  &nbsp;&nbsp;&nbsp;&nbsp; 📆 Planned &nbsp;&nbsp;&nbsp;&nbsp; 👀 Want to do &nbsp;&nbsp;&nbsp;&nbsp; ❓ Not planned
 
 ### Formats
 
@@ -22,7 +22,7 @@
 | Standalone audio files (MP3, AAC, etc.) | ✅ |
 | Readium Divina | 🚧 |
 | CBZ (Comic Book ZIP) | 🚧 |
-| CBR (Comic Book RAR) | ❌ |
+| CBR (Comic Book RAR) | ❓ |
 | [DAISY](https://daisy.org/activities/standards/daisy/) | 👀 |
 
 ### Features
@@ -34,7 +34,7 @@ A number of features are implemented only for some publication formats.
 | Pagination | ✅ | ✅ | ✅ |
 | Scrolling | ✅ | 👀 | ✅ |
 | Right-to-left (RTL) | ✅ | ✅ |  ✅ |
-| Search in textual content | ✅ | ✅ | 👀 | ❌ |
+| Search in textual content | ✅ | ✅ | 👀 |
 | Highlighting (Decoration API) | ✅ | ✅ | 👀 |
 | Text-to-speech (TTS) | ✅ | ✅ | 👀 |
 | Media overlays | 📆 | 📆 | |
@@ -53,7 +53,7 @@ A number of features are implemented only for some publication formats.
 | Feature | Status |
 |---|:---:|
 | [Readium LCP](https://www.edrlab.org/projects/readium-lcp/) | ✅ |
-| [Adobe ACS](https://www.adobe.com/fr/solutions/ebook/content-server.html) | ❌ |
+| [Adobe ACS](https://www.adobe.com/fr/solutions/ebook/content-server.html) | ❓ |
 
 
 ## User Guides
