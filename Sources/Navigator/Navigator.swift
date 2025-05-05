@@ -152,7 +152,7 @@ public extension Navigator {
 
 public extension NavigatorDelegate {
     func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {}
-    
+
     func navigator(_ navigator: Navigator, didJumpTo locator: Locator) {}
 
     func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
