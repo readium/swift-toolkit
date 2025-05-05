@@ -9,9 +9,6 @@ import { adjustPointToViewport } from "./rect";
 import { findNearestInteractiveElement } from "./dom";
 
 window.addEventListener("DOMContentLoaded", function () {
-  // If we don't set the CSS cursor property to pointer, then the click events are not triggered pre-iOS 13.
-  document.body.style.cursor = "pointer";
-
   document.addEventListener("click", onClick, false);
 });
 

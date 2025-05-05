@@ -12,6 +12,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Implementation of the [W3C Accessibility Metadata Display Guide](https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/) specification to facilitate displaying accessibility metadata to users. [See the dedicated user guide](docs/Guides/Accessibility.md).
 
+### Fixed
+
+#### Navigator
+
+* Fixed the cursor shape on iPadOS when using a physical trackpad or mouse.
+
 
 ## [3.2.0]
 

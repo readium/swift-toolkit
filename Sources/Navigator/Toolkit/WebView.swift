@@ -42,9 +42,6 @@ final class WebView: WKWebView {
 
     func clearSelection() {
         evaluateJavaScript("window.getSelection().removeAllRanges()")
-        // Before iOS 12, we also need to disable user interaction to get rid of the selection overlays.
-        isUserInteractionEnabled = false
-        isUserInteractionEnabled = true
     }
 
     override func buildMenu(with builder: any UIMenuBuilder) {

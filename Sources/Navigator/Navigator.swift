@@ -151,6 +151,8 @@ public extension Navigator {
 }
 
 public extension NavigatorDelegate {
+    func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {}
+
     func navigator(_ navigator: Navigator, didJumpTo locator: Locator) {}
 
     func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
@@ -163,7 +165,7 @@ public extension NavigatorDelegate {
         true
     }
 
-    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: String, withError error: ReadError) {}
+    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: RelativeURL, withError error: ReadError) {}
 }
 
 public enum NavigatorError: Error {
