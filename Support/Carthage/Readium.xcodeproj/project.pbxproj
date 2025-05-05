@@ -366,6 +366,7 @@
 		E75D342B54BD25242A29B105 /* Publication+EPUB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 508E0CD4F9F02CC851E6D1E1 /* Publication+EPUB.swift */; };
 		E782980A49279BCB0C70C24C /* OPDSCopies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 819D931708B3EE95CF9ADFED /* OPDSCopies.swift */; };
 		E8293787CB5E5CECE38A63B2 /* Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54699BC0E00F327E67908F6A /* Encryption.swift */; };
+		E8C3B837B9FB2ABCB5F82380 /* Measure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FEE01FAD273864D0908C358 /* Measure.swift */; };
 		E90B8CDCDEE4B20B3A6AB2FC /* ZIPFoundationContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8A3CDE3EA555A97BBFE1EEF /* ZIPFoundationContainer.swift */; };
 		EBD75415CB917F57D1ACF10B /* UTI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 218BE3110D2886B252A769A2 /* UTI.swift */; };
 		ECCE64CDEDA32509382A8520 /* CachingResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 789B56D6D8A6AA79CD3643F4 /* CachingResource.swift */; };
@@ -607,6 +608,7 @@
 		4BF38F71FDEC1920325B62D3 /* PublicationContentIterator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationContentIterator.swift; sourceTree = "<group>"; };
 		4BF3D04FB9D6A90EE77F1F02 /* ResourceProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceProperties.swift; sourceTree = "<group>"; };
 		4E564AE6D5137499C81FEBE2 /* TargetAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetAction.swift; sourceTree = "<group>"; };
+		4FEE01FAD273864D0908C358 /* Measure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Measure.swift; sourceTree = "<group>"; };
 		50064FE9BBCEA4C00BA6BBEF /* ZIPFoundationArchiveOpener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZIPFoundationArchiveOpener.swift; sourceTree = "<group>"; };
 		505BF8A630F7C7B96754E333 /* InMemoryPositionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryPositionsService.swift; sourceTree = "<group>"; };
 		508E0CD4F9F02CC851E6D1E1 /* Publication+EPUB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publication+EPUB.swift"; sourceTree = "<group>"; };
@@ -1351,6 +1353,7 @@
 			isa = PBXGroup;
 			children = (
 				529B55BE6996FCDC1082BF0A /* JSON.swift */,
+				4FEE01FAD273864D0908C358 /* Measure.swift */,
 				F6E45005E776078B46DB8E14 /* Memoize.swift */,
 				218BE3110D2886B252A769A2 /* UTI.swift */,
 				40D18A37080F5B1D114CE2E1 /* Extensions */,
@@ -2492,6 +2495,7 @@
 				330690F62A5F240B77A14337 /* Date+ISO8601.swift in Sources */,
 				674BEEF110667C3051296E9B /* Double.swift in Sources */,
 				DDD0C8AC27EF8D1A893DF6CC /* JSON.swift in Sources */,
+				E8C3B837B9FB2ABCB5F82380 /* Measure.swift in Sources */,
 				D6D695C1BC390F583A350E0A /* Memoize.swift in Sources */,
 				F631EA324143E669070523F3 /* NSRegularExpression.swift in Sources */,
 				606EBE8AC2096BC681F92908 /* Number.swift in Sources */,
