@@ -228,8 +228,10 @@ open class EPUBNavigatorViewController: UIViewController,
             switch state {
             case .initializing, .loading, .jumping, .moving:
                 paginationView?.isUserInteractionEnabled = false
+                tapGestureRecognizer.isEnabled = true
             case .idle:
                 paginationView?.isUserInteractionEnabled = true
+                tapGestureRecognizer.isEnabled = false
             }
         }
     }
@@ -321,6 +323,11 @@ open class EPUBNavigatorViewController: UIViewController,
         fatalError("init(coder:) has not been implemented")
     }
 
+    /// Tap gesture recognizer used to intercept taps and clicks when a web view
+    /// is not yet ready.
+    private lazy var tapGestureRecognizer: UIGestureRecognizer =
+        UITapGestureRecognizer(target: self, action: #selector(didTapBackground))
+
     override open func viewDidLoad() {
         super.viewDidLoad()
 
@@ -328,7 +335,7 @@ open class EPUBNavigatorViewController: UIViewController,
         // the current resource. We can use this to go to the next resource.
         view.accessibilityTraits.insert(.causesPageTurn)
 
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapBackground)))
+        view.addGestureRecognizer(tapGestureRecognizer)
 
         tasks.add {
             await initialize()

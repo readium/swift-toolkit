@@ -16,7 +16,9 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Navigator
 
-* Fixed the cursor shape on iPadOS when using a physical trackpad or mouse.
+* Fixed several issues with the EPUB navigator cursor and pointer events.
+    * Fixed the cursor shape on iPadOS when using a physical trackpad or mouse.
+    * Fixed multiple tap events broadcasted while running on macOS.
 
 
 ## [3.2.0]
