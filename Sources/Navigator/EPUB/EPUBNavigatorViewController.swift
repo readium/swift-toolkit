@@ -36,7 +36,7 @@ public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
 
 open class EPUBNavigatorViewController: UIViewController,
     VisualNavigator, SelectableNavigator, DecorableNavigator,
-    Configurable, Loggable
+    Configurable, InputObservable, Loggable
 {
     public enum EPUBError: Error {
         /// The provided publication is restricted. Check that any DRM was
@@ -240,6 +240,7 @@ open class EPUBNavigatorViewController: UIViewController,
     public private(set) var currentLocation: Locator?
     private let loadPositionsByReadingOrder: () async -> ReadResult<[[Locator]]>
     private var positionsByReadingOrder: [[Locator]] = []
+    private var inputObservers = InputObserverSet()
     private let tasks = CancellableTasks()
 
     private let viewModel: EPUBNavigatorViewModel
@@ -422,7 +423,8 @@ open class EPUBNavigatorViewController: UIViewController,
         if isFirstResponder {
             for press in presses {
                 if let event = KeyEvent(uiPress: press) {
-                    didPressKey(event)
+                    // FIXME:
+                    delegate?.navigator(self, didPressKey: event)
                     didHandleEvent = true
                 }
             }
@@ -890,14 +892,21 @@ open class EPUBNavigatorViewController: UIViewController,
         paginationView?.isScrollEnabled = isPaginationViewScrollingEnabled
     }
 
+    // MARK: - InputObservable
+
+    @discardableResult
+    public func addInputObserver(_ observer: any InputObserver) -> InputObserverToken {
+        inputObservers.addInputObserver(observer)
+    }
+
+    public func removeObserver(_ token: InputObserverToken) {
+        inputObservers.removeObserver(token)
+    }
+
     // MARK: - User interactions
 
     private func didTap(at point: CGPoint) {
         delegate?.navigator(self, didTapAt: point)
-    }
-
-    private func didPressKey(_ event: KeyEvent) {
-        delegate?.navigator(self, didPressKey: event)
     }
 
     // MARK: - EPUB-specific extensions
@@ -1061,12 +1070,21 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
 //        }
     }
 
-    func spreadView(_ spreadView: EPUBSpreadView, didPressKey event: KeyEvent) {
-        didPressKey(event)
+    func spreadView(_ spreadView: EPUBSpreadView, didReceive event: PointerEvent) {
+        _ = inputObservers.didReceive(event)
     }
 
-    func spreadView(_ spreadView: EPUBSpreadView, didReleaseKey event: KeyEvent) {
-        delegate?.navigator(self, didReleaseKey: event)
+    func spreadView(_ spreadView: EPUBSpreadView, didReceive event: KeyEvent) {
+        _ = inputObservers.didReceive(event)
+
+        switch event.phase {
+        case .down:
+            delegate?.navigator(self, didPressKey: event)
+        case .cancel, .up:
+            delegate?.navigator(self, didReleaseKey: event)
+        case .change:
+            break
+        }
     }
 
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnExternalURL url: URL) {

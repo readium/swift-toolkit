@@ -9,19 +9,40 @@ import UIKit
 
 /// Represents a keyboard event emitted by a Navigator.
 public struct KeyEvent: Equatable, CustomStringConvertible {
+    /// Phase of this event, e.g. pressed or released.
+    public let phase: Phase
+
     /// Key the user pressed or released.
     public let key: Key
 
     /// Additional key modifiers for keyboard shortcuts.
     public let modifiers: KeyModifiers
 
-    public init(key: Key, modifiers: KeyModifiers = []) {
+    public init(phase: Phase, key: Key, modifiers: KeyModifiers = []) {
+        self.phase = phase
         self.key = key
         self.modifiers = modifiers
     }
 
     public var description: String {
-        modifiers.description + " " + key.description
+        "\(phase) \(modifiers) \(key.description)"
+    }
+
+    /// Phase of a key event, e.g. pressed or released.
+    public enum Phase: Equatable, CustomStringConvertible {
+        case down
+        case change
+        case up
+        case cancel
+
+        public var description: String {
+            switch self {
+            case .down: "down"
+            case .up: "up"
+            case .change: "change"
+            case .cancel: "cancel"
+            }
+        }
     }
 }
 
@@ -101,57 +122,6 @@ public enum Key: Equatable, CustomStringConvertible {
     }
 }
 
-/// Represents a set of modifier keys held together.
-public struct KeyModifiers: OptionSet, CustomStringConvertible {
-    public static let command = KeyModifiers(rawValue: 1 << 0)
-    public static let control = KeyModifiers(rawValue: 1 << 1)
-    public static let option = KeyModifiers(rawValue: 1 << 2)
-    public static let shift = KeyModifiers(rawValue: 1 << 3)
-
-    public var rawValue: Int
-
-    public init(rawValue: Int) {
-        self.rawValue = rawValue
-    }
-
-    public init?(key: Key) {
-        switch key {
-        case .command:
-            self = .command
-        case .control:
-            self = .control
-        case .option:
-            self = .option
-        case .shift:
-            self = .shift
-        default:
-            return nil
-        }
-    }
-
-    public var description: String {
-        var modifiers: [String] = []
-        if contains(.command) {
-            modifiers.append("Command")
-        }
-        if contains(.control) {
-            modifiers.append("Control")
-        }
-        if contains(.option) {
-            modifiers.append("Option")
-        }
-        if contains(.shift) {
-            modifiers.append("Shift")
-        }
-
-        guard !modifiers.isEmpty else {
-            return "[]"
-        }
-
-        return "[" + modifiers.joined(separator: ",") + "]"
-    }
-}
-
 // MARK: - UIKit extensions
 
 public extension KeyEvent {
@@ -167,7 +137,15 @@ public extension KeyEvent {
             modifiers.remove(modKey)
         }
 
-        self.init(key: key, modifiers: modifiers)
+        let phase: Phase = switch uiPress.phase {
+        case .began: .down
+        case .changed, .stationary: .change
+        case .ended: .up
+        case .cancelled: .cancel
+        @unknown default: .change
+        }
+
+        self.init(phase: phase, key: key, modifiers: modifiers)
     }
 }
 
@@ -217,29 +195,6 @@ public extension Key {
                 return nil
             }
             self = .character(character)
-        }
-    }
-}
-
-public extension KeyModifiers {
-    init?(uiPress: UIPress) {
-        guard let flags = uiPress.key?.modifierFlags else {
-            return nil
-        }
-
-        self = []
-
-        if flags.contains(.shift) {
-            insert(.shift)
-        }
-        if flags.contains(.command) {
-            insert(.command)
-        }
-        if flags.contains(.control) {
-            insert(.control)
-        }
-        if flags.contains(.alternate) {
-            insert(.option)
         }
     }
 }

@@ -33,11 +33,11 @@ protocol EPUBSpreadViewDelegate: AnyObject {
     /// Called when the spread view needs to present a view controller.
     func spreadView(_ spreadView: EPUBSpreadView, present viewController: UIViewController)
 
-    /// Called when the user pressed a key down and it was not handled by the resource.
-    func spreadView(_ spreadView: EPUBSpreadView, didPressKey event: KeyEvent)
+    /// Called when the user triggered an input pointer event.
+    func spreadView(_ spreadView: EPUBSpreadView, didReceive event: PointerEvent)
 
-    /// Called when the user released a key and it was not handled by the resource.
-    func spreadView(_ spreadView: EPUBSpreadView, didReleaseKey event: KeyEvent)
+    /// Called when the user triggered an input key event.
+    func spreadView(_ spreadView: EPUBSpreadView, didReceive event: KeyEvent)
 
     /// Called when WKWebview terminates
     func spreadViewDidTerminate()
@@ -205,6 +205,24 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
+    /// Called from the JS code when receiving a pointer event.
+    private func didReceivePointerEvent(_ data: Any) {
+        guard
+            let json = data as? [String: Any],
+            // FIXME: Really needed?
+            let defaultPrevented = json["defaultPrevented"] as? Bool,
+            !defaultPrevented,
+            // Ignores events on interactive elements
+            (json["interactiveElement"] as? String) == nil,
+            var event = PointerEvent(json: json)
+        else {
+            return
+        }
+
+        event.location = convertPointToNavigatorSpace(event.location)
+        delegate?.spreadView(self, didReceive: event)
+    }
+
     /// Converts the given JavaScript point into a point in the webview's coordinate space.
     func convertPointToNavigatorSpace(_ point: CGPoint) -> CGPoint {
         // To override in subclasses.
@@ -367,11 +385,12 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         registerJSMessage(named: "log") { [weak self] in self?.didLog($0) }
         registerJSMessage(named: "logError") { [weak self] in self?.didLogError($0) }
         registerJSMessage(named: "tap") { [weak self] in self?.didTap($0) }
+        registerJSMessage(named: "pointerEventReceived") { [weak self] in self?.didReceivePointerEvent($0) }
         registerJSMessage(named: "spreadLoadStarted") { [weak self] in self?.spreadLoadDidStart($0) }
         registerJSMessage(named: "spreadLoaded") { [weak self] in self?.spreadDidLoad($0) }
         registerJSMessage(named: "selectionChanged") { [weak self] in self?.selectionDidChange($0) }
         registerJSMessage(named: "decorationActivated") { [weak self] in self?.decorationDidActivate($0) }
-        registerJSMessage(named: "pressKey") { [weak self] in self?.didPressKey($0) }
+        registerJSMessage(named: "keyEventReceived") { [weak self] in self?.didReceiveKeyEvent($0) }
     }
 
     /// Add the message handlers for incoming javascript events.
@@ -396,21 +415,15 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
-    private func didPressKey(_ event: Any) {
-        guard let dict = event as? [String: Any],
-              let type = dict["type"] as? String,
-              let keyEvent = KeyEvent(dict: dict)
+    private func didReceiveKeyEvent(_ event: Any) {
+        guard
+            let dict = event as? [String: Any],
+            let keyEvent = KeyEvent(dict: dict)
         else {
             return
         }
 
-        if type == "keydown" {
-            delegate?.spreadView(self, didPressKey: keyEvent)
-        } else if type == "keyup" {
-            delegate?.spreadView(self, didReleaseKey: keyEvent)
-        } else {
-            fatalError("Unexpected key event type: \(type)")
-        }
+        delegate?.spreadView(self, didReceive: keyEvent)
     }
 
     // MARK: - Decorator
@@ -608,13 +621,110 @@ struct ClickEvent {
     }
 }
 
-private extension KeyEvent {
-    /// Parses the dictionary created in keyboard.js
-    init?(dict: [String: Any]) {
-        guard let code = dict["code"] as? String else {
+/// Produced by gestures.js
+private extension PointerEvent {
+    init?(json: [String: Any]) {
+        guard
+            let pointerId = json["pointerId"] as? Int,
+            let pointerType = json["pointerType"] as? String,
+            let phase = PointerEvent.Phase(json: json["phase"]),
+            let x = json["x"] as? Double,
+            let y = json["y"] as? Double
+        else {
             return nil
         }
 
+        let optionalPointer: Pointer? = switch pointerType {
+        case "mouse":
+            .mouse(MousePointer(id: pointerId, buttons: MouseButtons(json: json)))
+        case "touch":
+            .touch(TouchPointer(id: pointerId))
+        default:
+            nil
+        }
+
+        guard let pointer = optionalPointer else {
+            return nil
+        }
+
+        self.init(
+            pointer: pointer,
+            phase: phase,
+            location: CGPoint(x: x, y: y),
+            modifiers: KeyModifiers(json: json)
+        )
+        // FIXME:
+//        targetElement = dict["targetElement"] as? String ?? ""
+//        interactiveElement = dict["interactiveElement"] as? String
+    }
+}
+
+private extension MouseButtons {
+    init(json: [String: Any]) {
+        self.init()
+
+        guard let buttons = json["buttons"] as? [Int] else {
+            return
+        }
+
+        if buttons.contains(0) {
+            insert(.main)
+        }
+        if buttons.contains(1) {
+            insert(.auxiliary)
+        }
+        if buttons.contains(2) {
+            insert(.secondary)
+        }
+    }
+}
+
+private extension PointerEvent.Phase {
+    init?(json: Any?) {
+        guard let json = json as? String else {
+            return nil
+        }
+
+        switch json {
+        case "down": self = .down
+        case "cancel": self = .cancel
+        case "move": self = .move
+        case "up": self = .up
+        default: return nil
+        }
+    }
+}
+
+private extension KeyModifiers {
+    init(json: [String: Any]) {
+        self.init()
+
+        if (json["control"] as? Bool) ?? false {
+            insert(.control)
+        }
+        if (json["command"] as? Bool) ?? false {
+            insert(.command)
+        }
+        if (json["shift"] as? Bool) ?? false {
+            insert(.shift)
+        }
+        if (json["option"] as? Bool) ?? false {
+            insert(.option)
+        }
+    }
+}
+
+private extension KeyEvent {
+    /// Parses the dictionary created in keyboard.js
+    init?(dict: [String: Any]) {
+        guard
+            let phase = Phase(json: dict["phase"]),
+            let code = dict["code"] as? String
+        else {
+            return nil
+        }
+
+        let key: Key
         switch code {
         case "Enter":
             key = .enter
@@ -662,22 +772,25 @@ private extension KeyEvent {
             key = .character(char.lowercased())
         }
 
-        var modifiers: KeyModifiers = []
-        if let holdCommand = dict["command"] as? Bool, holdCommand {
-            modifiers.insert(.command)
-        }
-        if let holdControl = dict["control"] as? Bool, holdControl {
-            modifiers.insert(.control)
-        }
-        if let holdOption = dict["option"] as? Bool, holdOption {
-            modifiers.insert(.option)
-        }
-        if let holdShift = dict["shift"] as? Bool, holdShift {
-            modifiers.insert(.shift)
-        }
+        var modifiers = KeyModifiers(json: dict)
         if let modifier = KeyModifiers(key: key) {
             modifiers.remove(modifier)
         }
-        self.modifiers = modifiers
+
+        self.init(phase: phase, key: key, modifiers: modifiers)
+    }
+}
+
+private extension KeyEvent.Phase {
+    init?(json: Any?) {
+        guard let json = json as? String else {
+            return nil
+        }
+
+        switch json {
+        case "up": self = .up
+        case "down": self = .down
+        default: return nil
+        }
     }
 }
