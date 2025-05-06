@@ -14,11 +14,11 @@ public protocol InputObservable {
     /// - Returns: An opaque token which can be used to remove the observer with
     ///   `removeInputObserver`.
     @discardableResult
-    mutating func addInputObserver(_ observer: InputObserving) -> InputObservableToken
+    func addInputObserver(_ observer: InputObserving) -> InputObservableToken
 
     /// Unregisters an ``InputObserver`` from this receiver using the given
     /// `token` returned by `addInputObserver`.
-    mutating func removeObserver(_ token: InputObservableToken)
+    func removeObserver(_ token: InputObservableToken)
 }
 
 /// A token which can be used to remove an ``InputObserver`` from an

@@ -10,13 +10,13 @@ import UIKit
 /// Represents a keyboard event emitted by a Navigator.
 public struct KeyEvent: Equatable, CustomStringConvertible {
     /// Phase of this event, e.g. pressed or released.
-    public let phase: Phase
+    public var phase: Phase
 
     /// Key the user pressed or released.
-    public let key: Key
+    public var key: Key
 
     /// Additional key modifiers for keyboard shortcuts.
-    public let modifiers: KeyModifiers
+    public var modifiers: KeyModifiers
 
     public init(phase: Phase, key: Key, modifiers: KeyModifiers = []) {
         self.phase = phase

@@ -240,7 +240,7 @@ open class EPUBNavigatorViewController: UIViewController,
     public private(set) var currentLocation: Locator?
     private let loadPositionsByReadingOrder: () async -> ReadResult<[[Locator]]>
     private var positionsByReadingOrder: [[Locator]] = []
-    private var inputObservers = InputObservingSet()
+    private let inputObservers = InputObservingSet()
     private let tasks = CancellableTasks()
 
     private let viewModel: EPUBNavigatorViewModel

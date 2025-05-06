@@ -76,6 +76,22 @@ public final class DirectionalNavigationAdapter {
         self.minimumVerticalEdgeSize = minimumVerticalEdgeSize
         self.verticalEdgeThresholdPercent = verticalEdgeThresholdPercent
         self.animatedTransition = animatedTransition
+
+        if let navigator = navigator {
+            bind(to: navigator)
+        }
+    }
+
+    /// Binds the adapter to the given visual navigator.
+    ///
+    /// It will automatically observe pointer and key events to turn pages.
+    public func bind(to navigator: VisualNavigator) {
+        self.navigator = navigator
+        if let observable = navigator as? InputObservable {
+            observable.addInputObserver(.tap { event in
+                await self.didTap(at: event.location)
+            })
+        }
     }
 
     /// Turn pages when `point` is located in one of the tap edges.
