@@ -240,7 +240,7 @@ open class EPUBNavigatorViewController: UIViewController,
     public private(set) var currentLocation: Locator?
     private let loadPositionsByReadingOrder: () async -> ReadResult<[[Locator]]>
     private var positionsByReadingOrder: [[Locator]] = []
-    private var inputObservers = InputObserverSet()
+    private var inputObservers = InputObservingSet()
     private let tasks = CancellableTasks()
 
     private let viewModel: EPUBNavigatorViewModel
@@ -895,11 +895,11 @@ open class EPUBNavigatorViewController: UIViewController,
     // MARK: - InputObservable
 
     @discardableResult
-    public func addInputObserver(_ observer: any InputObserver) -> InputObserverToken {
+    public func addInputObserver(_ observer: any InputObserving) -> InputObservableToken {
         inputObservers.addInputObserver(observer)
     }
 
-    public func removeObserver(_ token: InputObserverToken) {
+    public func removeObserver(_ token: InputObservableToken) {
         inputObservers.removeObserver(token)
     }
 

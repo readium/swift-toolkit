@@ -44,7 +44,7 @@ public enum Pointer: Equatable {
     case mouse(MousePointer)
 
     /// Unique identifier for this pointer.
-    var id: AnyHashable {
+    public var id: AnyHashable {
         switch self {
         case let .touch(pointer):
             return pointer.id
