@@ -14,7 +14,7 @@ public protocol InputObservable {
     /// - Returns: An opaque token which can be used to remove the observer with
     ///   `removeInputObserver`.
     @discardableResult
-    func addInputObserver(_ observer: InputObserving) -> InputObservableToken
+    func addObserver(_ observer: InputObserving) -> InputObservableToken
 
     /// Unregisters an ``InputObserver`` from this receiver using the given
     /// `token` returned by `addInputObserver`.
@@ -28,5 +28,10 @@ public struct InputObservableToken: Hashable, Identifiable {
 
     public init(id: AnyHashable = UUID()) {
         self.id = id
+    }
+
+    /// Stores the receiver in the given `set` of tokens.
+    public func store(in set: inout Set<InputObservableToken>) {
+        set.insert(self)
     }
 }

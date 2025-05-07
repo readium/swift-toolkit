@@ -28,13 +28,17 @@ public extension InputObserving {
     func didReceive(_ event: KeyEvent) async -> Bool { false }
 }
 
-/// Utility to store and manage a set of ``InputObserver``.
-final class InputObservingSet: InputObservable {
+/// Utility for storing and managing a list of ``InputObserving`` objects.
+///
+/// The order of the observers is significant because a previous observer might
+/// consume an event. When an event is consumed, the other observers will still
+/// receive the event but with a `cancel` phase.
+final class CompositeInputObserver: InputObservable {
     private typealias Observer = (token: InputObservableToken, observer: InputObserving)
 
     private var observers: [Observer] = []
 
-    func addInputObserver(_ observer: any InputObserving) -> InputObservableToken {
+    func addObserver(_ observer: any InputObserving) -> InputObservableToken {
         let token = InputObservableToken()
         precondition(!observers.contains { $0.token == token })
         observers.append(Observer(token: token, observer: observer))
