@@ -34,26 +34,26 @@ public struct KeyModifiers: OptionSet, Equatable, CustomStringConvertible {
         }
     }
 
-    public var description: String {
-        var modifiers: [String] = []
+    /// Returns the modifiers as keys.
+    public var keys: [Key] {
+        var keys: [Key] = []
         if contains(.command) {
-            modifiers.append("Command")
+            keys.append(.command)
         }
         if contains(.control) {
-            modifiers.append("Control")
+            keys.append(.control)
         }
         if contains(.option) {
-            modifiers.append("Option")
+            keys.append(.option)
         }
         if contains(.shift) {
-            modifiers.append("Shift")
+            keys.append(.shift)
         }
+        return keys
+    }
 
-        guard !modifiers.isEmpty else {
-            return "[]"
-        }
-
-        return "[" + modifiers.joined(separator: ",") + "]"
+    public var description: String {
+        keys.map(\.description).joined(separator: "+")
     }
 }
 

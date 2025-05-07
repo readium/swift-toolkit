@@ -12,13 +12,13 @@ public extension InputObserving where Self == ActivatePointerObserver {
     /// `modifiers` are pressed.
     static func activate(
         modifiers: KeyModifiers = [],
-        _ onActivate: @escaping (PointerEvent) async -> Bool
-    ) -> InputObserving {
+        onActivate: @escaping (PointerEvent) async -> Bool
+    ) -> ActivatePointerObserver {
         ActivatePointerObserver(
             modifiers: modifiers,
             shouldIgnore: {
                 switch $0.pointer {
-                case .mouse(let pointer):
+                case let .mouse(pointer):
                     return $0.phase != .up && pointer.buttons != [.main]
                 case .touch:
                     return false
@@ -27,11 +27,12 @@ public extension InputObserving where Self == ActivatePointerObserver {
             onActivate: onActivate
         )
     }
+
     /// Recognizes a tap input event, if the given key `modifiers` are pressed.
     static func tap(
         modifiers: KeyModifiers = [],
-        _ onTap: @escaping (PointerEvent) async -> Bool
-    ) -> InputObserving {
+        onTap: @escaping (PointerEvent) async -> Bool
+    ) -> ActivatePointerObserver {
         ActivatePointerObserver(
             modifiers: modifiers,
             shouldIgnore: { $0.pointer.type != .touch },
@@ -44,8 +45,8 @@ public extension InputObserving where Self == ActivatePointerObserver {
     static func click(
         buttons: MouseButtons = [.main],
         modifiers: KeyModifiers = [],
-        _ onClick: @escaping (PointerEvent) async -> Bool
-    ) -> InputObserving {
+        onClick: @escaping (PointerEvent) async -> Bool
+    ) -> ActivatePointerObserver {
         ActivatePointerObserver(
             modifiers: modifiers,
             shouldIgnore: {
@@ -85,7 +86,7 @@ public actor ActivatePointerObserver: InputObserving, Loggable {
     private enum State {
         case idle
         case recognizing(id: AnyHashable, lastLocation: CGPoint)
-        case recognized(event: PointerEvent)
+        case recognized
         case failed(activePointers: Set<AnyHashable>)
     }
 
@@ -105,11 +106,9 @@ public actor ActivatePointerObserver: InputObserving, Loggable {
 
         state = transition(state: state, event: event)
 
-        if case let .recognized(event) = state {
-            let handled = await onActivate(event)
+        if case .recognized = state {
             state = .idle
-
-            return handled
+            return await onActivate(event)
         }
 
         return false
@@ -140,7 +139,7 @@ public actor ActivatePointerObserver: InputObserving, Loggable {
             }
 
         case let (.recognizing(recognizingID, _), .up) where recognizingID == id:
-            return .recognized(event: event)
+            return .recognized
 
         case var (.failed(activePointers), .down):
             activePointers.insert(id)
