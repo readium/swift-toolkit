@@ -25,7 +25,7 @@ class ReaderViewController<N: Navigator>: UIViewController,
 
     var subscriptions = Set<AnyCancellable>()
 
-    private var searchViewModel: SearchViewModel?
+    private(set) var searchViewModel: SearchViewModel?
     private var searchViewController: UIHostingController<SearchView>?
 
     init(
@@ -165,21 +165,32 @@ class ReaderViewController<N: Navigator>: UIViewController,
     @objc func showSearchUI() {
         if searchViewModel == nil {
             searchViewModel = SearchViewModel(publication: publication)
-            searchViewModel?.$selectedLocator.sink(receiveValue: { [weak self] locator in
-                self?.searchViewController?.dismiss(animated: true, completion: nil)
-                if let self = self, let locator = locator {
+            searchViewModel?.$selectedLocator.sink { [weak self] locator in
+                guard let self else { return }
+
+                self.searchViewController?.dismiss(animated: true, completion: nil)
+                if let locator = locator {
                     Task {
                         await self.navigator.go(
                             to: locator,
                             options: NavigatorGoOptions(animated: true)
                         )
-                        if let decorator = self.navigator as? DecorableNavigator {
-                            let decoration = Decoration(id: "selectedSearchResult", locator: locator, style: Decoration.Style.highlight(tint: .yellow, isActive: false))
-                            decorator.apply(decorations: [decoration], in: "search")
-                        }
                     }
                 }
-            }).store(in: &subscriptions)
+
+                if let decorator = self.navigator as? DecorableNavigator {
+                    var decorations: [Decoration] = []
+                    if let locator = locator {
+                        decorations.append(Decoration(
+                            id: "selectedSearchResult",
+                            locator: locator,
+                            style: .highlight(tint: .yellow, isActive: false)
+                        ))
+                    }
+                    decorator.apply(decorations: decorations, in: "search")
+                }
+            }
+            .store(in: &subscriptions)
         }
 
         let searchView = SearchView(viewModel: searchViewModel!)

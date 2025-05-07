@@ -30,7 +30,6 @@ public final class DirectionalNavigationAdapter {
         }
     }
 
-    private weak var navigator: VisualNavigator?
     private let tapEdges: TapEdges
     private let handleTapsWhileScrolling: Bool
     private let minimumHorizontalEdgeSize: Double
@@ -39,10 +38,11 @@ public final class DirectionalNavigationAdapter {
     private let verticalEdgeThresholdPercent: Double?
     private let animatedTransition: Bool
 
+    private weak var navigator: VisualNavigator?
+
     /// Initializes a new `DirectionalNavigationAdapter`.
     ///
     /// - Parameters:
-    ///  - navigator: Navigator used to turn pages.
     ///  - tapEdges: Indicates which viewport edges handle taps.
     ///  - handleTapsWhileScrolling: Indicates whether the page turns should be
     ///    handled when the publication is scrollable.
@@ -59,7 +59,6 @@ public final class DirectionalNavigationAdapter {
     ///  - animatedTransition: Indicates whether the page turns should be
     ///    animated.
     public init(
-        navigator: VisualNavigator? = nil,
         tapEdges: TapEdges = .horizontal,
         handleTapsWhileScrolling: Bool = false,
         minimumHorizontalEdgeSize: Double = 80.0,
@@ -68,7 +67,6 @@ public final class DirectionalNavigationAdapter {
         verticalEdgeThresholdPercent: Double? = 0.3,
         animatedTransition: Bool = false
     ) {
-        self.navigator = navigator
         self.tapEdges = tapEdges
         self.handleTapsWhileScrolling = handleTapsWhileScrolling
         self.minimumHorizontalEdgeSize = minimumHorizontalEdgeSize
@@ -76,37 +74,30 @@ public final class DirectionalNavigationAdapter {
         self.minimumVerticalEdgeSize = minimumVerticalEdgeSize
         self.verticalEdgeThresholdPercent = verticalEdgeThresholdPercent
         self.animatedTransition = animatedTransition
-
-        if let navigator = navigator {
-            bind(to: navigator)
-        }
     }
 
     /// Binds the adapter to the given visual navigator.
     ///
     /// It will automatically observe pointer and key events to turn pages.
     public func bind(to navigator: VisualNavigator) {
-        self.navigator = navigator
-        if let observable = navigator as? InputObservable {
-            observable.addInputObserver(.tap { event in
-                await self.didTap(at: event.location)
-            })
-        }
+        navigator.addObserver(.tap { [self, weak navigator] event in
+            guard let navigator = navigator else {
+                return false
+            }
+            return await onTap(at: event.location, in: navigator)
+        })
+
+        navigator.addObserver(.key { [self, weak navigator] event in
+            guard let navigator = navigator else {
+                return false
+            }
+            return await onKey(event, in: navigator)
+        })
     }
 
-    /// Turn pages when `point` is located in one of the tap edges.
-    ///
-    /// To be called from `VisualNavigatorDelegate.navigator(_:didTapAt:)`.
-    ///
-    /// - Parameter point: Tap point in the navigator bounds.
-    /// - Returns: Whether the tap triggered a page turn.
     @MainActor
-    @discardableResult
-    public func didTap(at point: CGPoint) async -> Bool {
-        guard
-            let navigator = navigator,
-            handleTapsWhileScrolling || !navigator.presentation.scroll
-        else {
+    private func onTap(at point: CGPoint, in navigator: VisualNavigator) async -> Bool {
+        guard handleTapsWhileScrolling || !navigator.presentation.scroll else {
             return false
         }
 
@@ -144,17 +135,8 @@ public final class DirectionalNavigationAdapter {
         return false
     }
 
-    /// Turn pages when the arrow or space keys are used.
-    ///
-    /// To be called from `VisualNavigatorDelegate.navigator(_:didPressKey:)`
-    ///
-    /// - Returns: Whether the key press triggered a page turn.
-    @discardableResult
-    public func didPressKey(event: KeyEvent) async -> Bool {
-        guard
-            let navigator = navigator,
-            event.modifiers.isEmpty
-        else {
+    private func onKey(_ event: KeyEvent, in navigator: VisualNavigator) async -> Bool {
+        guard event.modifiers.isEmpty else {
             return false
         }
 
@@ -172,5 +154,45 @@ public final class DirectionalNavigationAdapter {
         default:
             return false
         }
+    }
+
+    @available(*, deprecated, message: "Use the initializer without the navigator parameter and call `bind(to:)`. See the migration guide.")
+    public init(
+        navigator: VisualNavigator,
+        tapEdges: TapEdges = .horizontal,
+        handleTapsWhileScrolling: Bool = false,
+        minimumHorizontalEdgeSize: Double = 80.0,
+        horizontalEdgeThresholdPercent: Double? = 0.3,
+        minimumVerticalEdgeSize: Double = 80.0,
+        verticalEdgeThresholdPercent: Double? = 0.3,
+        animatedTransition: Bool = false
+    ) {
+        self.navigator = navigator
+        self.tapEdges = tapEdges
+        self.handleTapsWhileScrolling = handleTapsWhileScrolling
+        self.minimumHorizontalEdgeSize = minimumHorizontalEdgeSize
+        self.horizontalEdgeThresholdPercent = horizontalEdgeThresholdPercent
+        self.minimumVerticalEdgeSize = minimumVerticalEdgeSize
+        self.verticalEdgeThresholdPercent = verticalEdgeThresholdPercent
+        self.animatedTransition = animatedTransition
+    }
+
+    @available(*, deprecated, message: "Use `bind(to:)` instead of notifying the event yourself. See the migration guide.")
+    @MainActor
+    @discardableResult
+    public func didTap(at point: CGPoint) async -> Bool {
+        guard let navigator = navigator else {
+            return false
+        }
+        return await onTap(at: point, in: navigator)
+    }
+
+    @available(*, deprecated, message: "Use `bind(to:)` instead of notifying the event yourself. See the migration guide.")
+    @discardableResult
+    public func didPressKey(event: KeyEvent) async -> Bool {
+        guard let navigator = navigator else {
+            return false
+        }
+        return await onKey(event, in: navigator)
     }
 }
