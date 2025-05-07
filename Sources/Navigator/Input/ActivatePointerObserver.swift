@@ -8,6 +8,25 @@ import Foundation
 import ReadiumShared
 
 public extension InputObserving where Self == ActivatePointerObserver {
+    /// Recognizes a tap or (main) click input event, if the given key
+    /// `modifiers` are pressed.
+    static func activate(
+        modifiers: KeyModifiers = [],
+        _ onActivate: @escaping (PointerEvent) async -> Bool
+    ) -> InputObserving {
+        ActivatePointerObserver(
+            modifiers: modifiers,
+            shouldIgnore: {
+                switch $0.pointer {
+                case .mouse(let pointer):
+                    return $0.phase != .up && pointer.buttons != [.main]
+                case .touch:
+                    return false
+                }
+            },
+            onActivate: onActivate
+        )
+    }
     /// Recognizes a tap input event, if the given key `modifiers` are pressed.
     static func tap(
         modifiers: KeyModifiers = [],
