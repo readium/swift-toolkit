@@ -59,7 +59,7 @@ public final class DirectionalNavigationAdapter {
     ///  - animatedTransition: Indicates whether the page turns should be
     ///    animated.
     public init(
-        navigator: VisualNavigator,
+        navigator: VisualNavigator? = nil,
         tapEdges: TapEdges = .horizontal,
         handleTapsWhileScrolling: Bool = false,
         minimumHorizontalEdgeSize: Double = 80.0,

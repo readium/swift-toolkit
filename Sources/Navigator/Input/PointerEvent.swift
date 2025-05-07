@@ -21,7 +21,7 @@ public struct PointerEvent: Equatable {
     public var modifiers: KeyModifiers
 
     /// Phase of a pointer event.
-    public enum Phase: Equatable {
+    public enum Phase: Equatable, CustomStringConvertible {
         /// Fired when a pointer becomes active.
         case down
 
@@ -35,23 +35,53 @@ public struct PointerEvent: Equatable {
         /// Fired if the navigator cannot generate more events for this pointer,
         /// for example because the interaction was captured by the system.
         case cancel
+
+        public var description: String {
+            switch self {
+            case .down: "down"
+            case .move: "move"
+            case .up: "up"
+            case .cancel: "cancel"
+            }
+        }
     }
 }
 
 /// Represents a pointer device, such as a mouse or a physical touch.
-public enum Pointer: Equatable {
+public enum Pointer: Equatable, CustomStringConvertible {
     case touch(TouchPointer)
     case mouse(MousePointer)
 
     /// Unique identifier for this pointer.
     public var id: AnyHashable {
         switch self {
-        case let .touch(pointer):
-            return pointer.id
-        case let .mouse(pointer):
-            return pointer.id
+        case let .touch(pointer): pointer.id
+        case let .mouse(pointer): pointer.id
         }
     }
+
+    /// Type of the pointer.
+    public var type: PointerType {
+        switch self {
+        case .touch: .touch
+        case .mouse: .mouse
+        }
+    }
+
+    public var description: String {
+        switch self {
+        case let .touch(pointer):
+            return "touch (\(pointer.id))"
+        case let .mouse(pointer):
+            return "mouse (\(pointer.id)) \(pointer.buttons)"
+        }
+    }
+}
+
+/// Type of a pointer.
+public enum PointerType: Equatable {
+    case touch
+    case mouse
 }
 
 /// Represents a physical touch pointer.
@@ -79,19 +109,52 @@ public struct MousePointer: Identifiable, Equatable {
 }
 
 /// Represents a set of mouse buttons.
-public struct MouseButtons: OptionSet, Equatable {
+///
+/// The values are derived from https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/buttons#value
+public struct MouseButtons: OptionSet, Equatable, CustomStringConvertible {
     /// Main button, usually the left button.
     public static let main = MouseButtons(rawValue: 1 << 0)
 
-    /// Auxiliary button, usually the wheel button or the middle button.
-    public static let auxiliary = MouseButtons(rawValue: 1 << 1)
-
     /// Secondary button, usually the right button.
-    public static let secondary = MouseButtons(rawValue: 1 << 2)
+    public static let secondary = MouseButtons(rawValue: 1 << 1)
+
+    /// Auxiliary button, usually the wheel button or the middle button.
+    public static let auxiliary = MouseButtons(rawValue: 1 << 2)
+
+    /// 4th button (typically the "Browser Back" button).
+    public static let fourth = MouseButtons(rawValue: 1 << 3)
+
+    /// 5th button (typically the "Browser Forward" button)
+    public static let fifth = MouseButtons(rawValue: 1 << 4)
 
     public var rawValue: Int
 
     public init(rawValue: Int) {
         self.rawValue = rawValue
+    }
+
+    public var description: String {
+        var buttons: [String] = []
+        if contains(.main) {
+            buttons.append("main")
+        }
+        if contains(.secondary) {
+            buttons.append("secondary")
+        }
+        if contains(.auxiliary) {
+            buttons.append("auxiliary")
+        }
+        if contains(.fourth) {
+            buttons.append("fourth")
+        }
+        if contains(.fifth) {
+            buttons.append("fifth")
+        }
+
+        guard !buttons.isEmpty else {
+            return "[]"
+        }
+
+        return "[" + buttons.joined(separator: ",") + "]"
     }
 }

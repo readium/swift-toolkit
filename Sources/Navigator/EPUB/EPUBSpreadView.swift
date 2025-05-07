@@ -663,19 +663,11 @@ private extension MouseButtons {
     init(json: [String: Any]) {
         self.init()
 
-        guard let buttons = json["buttons"] as? [Int] else {
+        guard let buttons = json["buttons"] as? Int else {
             return
         }
 
-        if buttons.contains(0) {
-            insert(.main)
-        }
-        if buttons.contains(1) {
-            insert(.auxiliary)
-        }
-        if buttons.contains(2) {
-            insert(.secondary)
-        }
+        self = MouseButtons(rawValue: buttons)
     }
 }
 
