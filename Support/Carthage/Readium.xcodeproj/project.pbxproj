@@ -248,6 +248,7 @@
 		9A1877FBEAA0BFC4C74AD3BB /* Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87727AC33D368A88A60A12B9 /* Encryption.swift */; };
 		9A463F872E1B05B64E026EBB /* LCPLicenseRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3230FB63D7ADDD514D74F7E6 /* LCPLicenseRepository.swift */; };
 		9AF316DF0B1CD4452D785EBC /* KeyModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0812058DB4FBFDF0A862E57E /* KeyModifiers.swift */; };
+		9B0369F8C0187528486440F4 /* CompositeInputObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8E202B8A16B960AE73CABF /* CompositeInputObserver.swift */; };
 		9BC4D1F2958D2F7D7BDB88DA /* CursorList.swift in Sources */ = {isa = PBXBuildFile; fileRef = C361F965E7A7962CA3E4C0BA /* CursorList.swift */; };
 		9DB9674C11DF356966CBFA79 /* EPUBNavigatorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9ACC1EB3903149EBF21BC0 /* EPUBNavigatorViewModel.swift */; };
 		9E064BC9E99D4F7D8AC3109B /* MediaOverlays.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1F5FEE0323287B9CAA09F03 /* MediaOverlays.swift */; };
@@ -278,6 +279,7 @@
 		AD87094AA40926939955E9F2 /* LCPRenewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230985A228FA74F24735D6BB /* LCPRenewDelegate.swift */; };
 		B01E5FC64FD1411DD9899ADC /* HTMLInjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A75B535BBE6EE5898327DB52 /* HTMLInjection.swift */; };
 		B02109488289D631DF959B8D /* ReadiumFuzi.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2828D89EBB52CCA782ED1146 /* ReadiumFuzi.xcframework */; };
+		B06476E5CCB09C8D913CCFA7 /* UIKitInputObserverAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16C19CB22649198DFA492DEF /* UIKitInputObserverAdapter.swift */; };
 		B066F9DDCD00A8917478CB6C /* LCPDialogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB64178365BFA9ED75C7078 /* LCPDialogViewController.swift */; };
 		B0B2C38D1A7B36E73C3E3779 /* DifferenceKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F95F3F20D758BE0E7005EA3 /* DifferenceKit.xcframework */; };
 		B0F62AC136EF3587E147468E /* AssetRetriever.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C054DDC6D1BCF4A420C980C /* AssetRetriever.swift */; };
@@ -534,6 +536,7 @@
 		13C2DC41BEDB70085FCBBC00 /* PDFPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFPreferences.swift; sourceTree = "<group>"; };
 		15980B67505AAF10642B56C8 /* LicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseContainer.swift; sourceTree = "<group>"; };
 		1674CCC0BA8B1F4E2D2B3A4C /* AudiobookFormatSniffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudiobookFormatSniffer.swift; sourceTree = "<group>"; };
+		16C19CB22649198DFA492DEF /* UIKitInputObserverAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIKitInputObserverAdapter.swift; sourceTree = "<group>"; };
 		17ACAC3E8F61DA108DCC9F51 /* SQLiteLCPLicenseRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteLCPLicenseRepository.swift; sourceTree = "<group>"; };
 		17D22986A3ADE9E883691EE2 /* Deferred.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deferred.swift; sourceTree = "<group>"; };
 		18E809378D79D09192A0AAE1 /* ContentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentService.swift; sourceTree = "<group>"; };
@@ -849,6 +852,7 @@
 		EC329362A0E8AC6CC018452A /* ReadiumOPDS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ReadiumOPDS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		EC59A963F316359DF8B119AC /* Metadata+Presentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Metadata+Presentation.swift"; sourceTree = "<group>"; };
 		EC5ED9E15482AED288A6634F /* EPUBNavigatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBNavigatorViewController.swift; sourceTree = "<group>"; };
+		EC8E202B8A16B960AE73CABF /* CompositeInputObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompositeInputObserver.swift; sourceTree = "<group>"; };
 		EC96A56AB406203898059B6C /* UserKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserKey.swift; sourceTree = "<group>"; };
 		EC9ACC1EB3903149EBF21BC0 /* EPUBNavigatorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBNavigatorViewModel.swift; sourceTree = "<group>"; };
 		ECF32CF55DD942ACB06389C5 /* Preference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preference.swift; sourceTree = "<group>"; };
@@ -1172,8 +1176,10 @@
 		2B899CEEE36736DE73D3044B /* Input */ = {
 			isa = PBXGroup;
 			children = (
+				EC8E202B8A16B960AE73CABF /* CompositeInputObserver.swift */,
 				E20ED98539825B35F64D8262 /* InputObservable.swift */,
 				421AE163B6A0248637504A07 /* InputObserving.swift */,
+				16C19CB22649198DFA492DEF /* UIKitInputObserverAdapter.swift */,
 				EB64264B8AED33E93297BA5C /* Key */,
 				F2877F50E88B9EDB0194EE3E /* Pointer */,
 			);
@@ -2437,6 +2443,7 @@
 				58E8C178E0748B7CBEA9D7AC /* CSSLayout.swift in Sources */,
 				1B15166C79C7C05CE491AD2C /* CSSProperties.swift in Sources */,
 				FED01A1734FAAD72683CC79E /* CompletionList.swift in Sources */,
+				9B0369F8C0187528486440F4 /* CompositeInputObserver.swift in Sources */,
 				E42CCC4CB1D491564664B5B6 /* Configurable.swift in Sources */,
 				9BC4D1F2958D2F7D7BDB88DA /* CursorList.swift in Sources */,
 				0ECE94F27E005FC454EA9D12 /* DecorableNavigator.swift in Sources */,
@@ -2490,6 +2497,7 @@
 				E12A731DD41BD2BC3C8076F8 /* TargetAction.swift in Sources */,
 				4A5F53CCC083D3E348379963 /* Types.swift in Sources */,
 				D8C9C54CC84D1C0810343D9E /* UIColor.swift in Sources */,
+				B06476E5CCB09C8D913CCFA7 /* UIKitInputObserverAdapter.swift in Sources */,
 				8BA982B992E0370C7BF94DF6 /* UIView.swift in Sources */,
 				47FE7B25B5DB153D406CF0CE /* UserSettings.swift in Sources */,
 				B96E8865DCA4A0CEFDA24DDF /* VisualNavigator.swift in Sources */,

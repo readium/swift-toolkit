@@ -12,7 +12,7 @@ public extension InputObserving where Self == ActivatePointerObserver {
     /// `modifiers` are pressed.
     static func activate(
         modifiers: KeyModifiers = [],
-        onActivate: @escaping (PointerEvent) async -> Bool
+        onActivate: @MainActor @escaping (PointerEvent) async -> Bool
     ) -> ActivatePointerObserver {
         ActivatePointerObserver(
             modifiers: modifiers,
@@ -31,7 +31,7 @@ public extension InputObserving where Self == ActivatePointerObserver {
     /// Recognizes a tap input event, if the given key `modifiers` are pressed.
     static func tap(
         modifiers: KeyModifiers = [],
-        onTap: @escaping (PointerEvent) async -> Bool
+        onTap: @MainActor @escaping (PointerEvent) async -> Bool
     ) -> ActivatePointerObserver {
         ActivatePointerObserver(
             modifiers: modifiers,
@@ -43,16 +43,16 @@ public extension InputObserving where Self == ActivatePointerObserver {
     /// Recognizes a click event, if the given key `modifiers` and mouse
     /// `buttons` are pressed.
     static func click(
-        buttons: MouseButtons = [.main],
+        buttons: MouseButtons = .main,
         modifiers: KeyModifiers = [],
-        onClick: @escaping (PointerEvent) async -> Bool
+        onClick: @MainActor @escaping (PointerEvent) async -> Bool
     ) -> ActivatePointerObserver {
         ActivatePointerObserver(
             modifiers: modifiers,
             shouldIgnore: {
                 guard
                     case let .mouse(pointer) = $0.pointer,
-                    $0.phase == .up || pointer.buttons == buttons
+                    pointer.buttons == buttons || (pointer.buttons == [] && buttons == .main)
                 else {
                     return true
                 }
@@ -68,15 +68,15 @@ public extension InputObserving where Self == ActivatePointerObserver {
 ///
 /// If multiple pointers are activated or the pointer moved (e.g. drag), the
 /// activation is considered cancelled.
-public actor ActivatePointerObserver: InputObserving, Loggable {
+@MainActor public final class ActivatePointerObserver: InputObserving, Loggable {
     private let modifiers: KeyModifiers
-    private let shouldIgnore: (PointerEvent) -> Bool
-    private let onActivate: (PointerEvent) async -> Bool
+    private let shouldIgnore: @MainActor (PointerEvent) -> Bool
+    private let onActivate: @MainActor (PointerEvent) async -> Bool
 
     public init(
         modifiers: KeyModifiers = [],
-        shouldIgnore: @escaping (PointerEvent) -> Bool,
-        onActivate: @escaping (PointerEvent) async -> Bool
+        shouldIgnore: @MainActor @escaping (PointerEvent) -> Bool,
+        onActivate: @MainActor @escaping (PointerEvent) async -> Bool
     ) {
         self.modifiers = modifiers
         self.shouldIgnore = shouldIgnore
@@ -92,13 +92,13 @@ public actor ActivatePointerObserver: InputObserving, Loggable {
 
     private var state: State = .idle {
         didSet {
-//            log(.trace, "state \(state)")
+//            log(.info, "state \(state)")
         }
     }
 
     public func didReceive(_ event: PointerEvent) async -> Bool {
         let ignored = shouldIgnore(event)
-//        log(.trace, "on \(ignored ? "ignored " : "")\(event)")
+//        log(.info, "on \(ignored ? "ignored " : "")\(event)")
 
         guard !ignored else {
             return false

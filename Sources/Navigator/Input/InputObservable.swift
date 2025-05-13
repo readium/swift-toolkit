@@ -8,7 +8,7 @@ import Foundation
 
 /// A type broadcasting user input events (e.g. touch or keyboard events) to
 /// a set of observers.
-public protocol InputObservable {
+@MainActor public protocol InputObservable {
     /// Registers a new ``InputObserver`` for the observable receiver.
     ///
     /// - Returns: An opaque token which can be used to remove the observer with

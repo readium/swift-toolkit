@@ -11,13 +11,13 @@ Here's an example of a simple `InputObserving` implementation that logs all key 
 ```swift
 navigator.addObserver(InputObserver())
 
-final class InputObserver: InputObserving {
-    func didReceive(_ event: PointerEvent) async -> Bool {
+@MainActor final class InputObserver: InputObserving {
+    func didReceive(_ event: PointerEvent) -> Bool {
         print("Received pointer event: \(event)")
         return false
     }
     
-    func didReceive(_ event: KeyEvent) async -> Bool {
+    func didReceive(_ event: KeyEvent) -> Bool {
         print("Received key event: \(event)")
         return false
     }

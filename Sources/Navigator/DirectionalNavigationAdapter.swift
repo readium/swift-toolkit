@@ -79,7 +79,7 @@ public final class DirectionalNavigationAdapter {
     /// Binds the adapter to the given visual navigator.
     ///
     /// It will automatically observe pointer and key events to turn pages.
-    public func bind(to navigator: VisualNavigator) {
+    @MainActor public func bind(to navigator: VisualNavigator) {
         navigator.addObserver(.tap { [self, weak navigator] event in
             guard let navigator = navigator else {
                 return false

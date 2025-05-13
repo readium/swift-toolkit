@@ -45,30 +45,3 @@ public struct KeyEvent: Equatable, CustomStringConvertible {
         }
     }
 }
-
-// MARK: - UIKit extensions
-
-public extension KeyEvent {
-    init?(uiPress: UIPress) {
-        guard
-            let key = Key(uiPress: uiPress),
-            var modifiers = KeyModifiers(uiPress: uiPress)
-        else {
-            return nil
-        }
-
-        if let modKey = KeyModifiers(key: key) {
-            modifiers.remove(modKey)
-        }
-
-        let phase: Phase = switch uiPress.phase {
-        case .began: .down
-        case .changed, .stationary: .change
-        case .ended: .up
-        case .cancelled: .cancel
-        @unknown default: .change
-        }
-
-        self.init(phase: phase, key: key, modifiers: modifiers)
-    }
-}

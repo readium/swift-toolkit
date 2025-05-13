@@ -11,7 +11,7 @@ public extension InputObserving where Self == KeyObserver {
     ///
     /// Inspect the provided ``KeyEvent`` to know which keys were pressed.
     static func key(
-        onKey: @escaping (KeyEvent) async -> Bool
+        onKey: @MainActor @escaping (KeyEvent) async -> Bool
     ) -> KeyObserver {
         KeyObserver(onKey: onKey)
     }
@@ -20,30 +20,30 @@ public extension InputObserving where Self == KeyObserver {
     static func key(
         _ key: Key,
         _ modifiers: KeyModifiers = [],
-        onKey: @escaping () async -> Bool
+        onKey: @MainActor @escaping () async -> Bool
     ) -> KeyObserver {
         KeyObserver(key: key, modifiers: modifiers, onKey: onKey)
     }
 }
 
 /// An input observer used to recognize a single key combination pressed.
-public actor KeyObserver: InputObserving {
+@MainActor public final class KeyObserver: InputObserving {
     private typealias KeyCombo = (KeyModifiers, Key)
 
     private let keyCombo: KeyCombo?
-    private let onKey: (KeyEvent) async -> Bool
+    private let onKey: @MainActor (KeyEvent) async -> Bool
 
     public init(
         key: Key,
         modifiers: KeyModifiers,
-        onKey: @escaping () async -> Bool
+        onKey: @MainActor @escaping () async -> Bool
     ) {
         keyCombo = (modifiers, key)
         self.onKey = { _ in await onKey() }
     }
 
     public init(
-        onKey: @escaping (KeyEvent) async -> Bool
+        onKey: @MainActor @escaping (KeyEvent) async -> Bool
     ) {
         keyCombo = nil
         self.onKey = onKey

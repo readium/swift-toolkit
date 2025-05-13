@@ -56,28 +56,3 @@ public struct KeyModifiers: OptionSet, Equatable, CustomStringConvertible {
         keys.map(\.description).joined(separator: "+")
     }
 }
-
-// MARK: - UIKit Extensions
-
-public extension KeyModifiers {
-    init?(uiPress: UIPress) {
-        guard let flags = uiPress.key?.modifierFlags else {
-            return nil
-        }
-
-        self = []
-
-        if flags.contains(.shift) {
-            insert(.shift)
-        }
-        if flags.contains(.command) {
-            insert(.command)
-        }
-        if flags.contains(.control) {
-            insert(.control)
-        }
-        if flags.contains(.alternate) {
-            insert(.option)
-        }
-    }
-}

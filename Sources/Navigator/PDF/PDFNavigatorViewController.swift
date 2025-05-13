@@ -220,7 +220,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         var didHandleEvent = false
         if isFirstResponder {
             for press in presses {
-                if let event = KeyEvent(uiPress: press) {
+                if let event = KeyEvent(phase: .down, uiPress: press) {
                     delegate?.navigator(self, didPressKey: event)
                     didHandleEvent = true
                 }
@@ -236,7 +236,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         var didHandleEvent = false
         if isFirstResponder {
             for press in presses {
-                if let event = KeyEvent(uiPress: press) {
+                if let event = KeyEvent(phase: .up, uiPress: press) {
                     delegate?.navigator(self, didReleaseKey: event)
                     didHandleEvent = true
                 }

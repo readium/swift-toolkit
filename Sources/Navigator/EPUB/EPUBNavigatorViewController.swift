@@ -36,7 +36,7 @@ public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
 
 open class EPUBNavigatorViewController: UIViewController,
     VisualNavigator, SelectableNavigator, DecorableNavigator,
-    Configurable, InputObservable, Loggable
+    Configurable, Loggable
 {
     public enum EPUBError: Error {
         /// The provided publication is restricted. Check that any DRM was
@@ -228,10 +228,10 @@ open class EPUBNavigatorViewController: UIViewController,
             switch state {
             case .initializing, .loading, .jumping, .moving:
                 paginationView?.isUserInteractionEnabled = false
-                tapGestureRecognizer.isEnabled = true
+                shouldIgnoreUIKitInputEvents = false
             case .idle:
                 paginationView?.isUserInteractionEnabled = true
-                tapGestureRecognizer.isEnabled = false
+                shouldIgnoreUIKitInputEvents = true
             }
         }
     }
@@ -240,8 +240,11 @@ open class EPUBNavigatorViewController: UIViewController,
     public private(set) var currentLocation: Locator?
     private let loadPositionsByReadingOrder: () async -> ReadResult<[[Locator]]>
     private var positionsByReadingOrder: [[Locator]] = []
-    private let inputObservers = CompositeInputObserver()
     private let tasks = CancellableTasks()
+
+    private let inputObservers = CompositeInputObserver()
+    private lazy var uikitInputObserverAdapter = UIKitInputObserverAdapter(observer: inputObservers)
+    private var shouldIgnoreUIKitInputEvents = false
 
     private let viewModel: EPUBNavigatorViewModel
     public var publication: Publication { viewModel.publication }
@@ -324,11 +327,6 @@ open class EPUBNavigatorViewController: UIViewController,
         fatalError("init(coder:) has not been implemented")
     }
 
-    /// Tap gesture recognizer used to intercept taps and clicks when a web view
-    /// is not yet ready.
-    private lazy var tapGestureRecognizer: UIGestureRecognizer =
-        UITapGestureRecognizer(target: self, action: #selector(didTapBackground))
-
     override open func viewDidLoad() {
         super.viewDidLoad()
 
@@ -336,7 +334,7 @@ open class EPUBNavigatorViewController: UIViewController,
         // the current resource. We can use this to go to the next resource.
         view.accessibilityTraits.insert(.causesPageTurn)
 
-        view.addGestureRecognizer(tapGestureRecognizer)
+        uikitInputObserverAdapter.view = view
 
         tasks.add {
             await initialize()
@@ -388,11 +386,6 @@ open class EPUBNavigatorViewController: UIViewController,
         super.buildMenu(with: builder)
     }
 
-    /// Intercepts tap gesture when the web views are not loaded.
-    @objc private func didTapBackground(_ gesture: UITapGestureRecognizer) {
-        didTap(at: gesture.location(in: view))
-    }
-
     override open func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         viewModel.viewSizeWillChange(view.bounds.size)
@@ -416,39 +409,60 @@ open class EPUBNavigatorViewController: UIViewController,
         becomeFirstResponder()
     }
 
+    // MARK: - UIResponder
+
     override open var canBecomeFirstResponder: Bool { true }
 
     override open func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
-        var didHandleEvent = false
-        if isFirstResponder {
-            for press in presses {
-                if let event = KeyEvent(uiPress: press) {
-                    // FIXME:
-                    delegate?.navigator(self, didPressKey: event)
-                    didHandleEvent = true
-                }
-            }
-        }
+        super.pressesBegan(presses, with: event)
 
-        if !didHandleEvent {
-            super.pressesBegan(presses, with: event)
+        if isFirstResponder {
+            uikitInputObserverAdapter.on(.down, presses: presses, with: event)
+        }
+    }
+
+    override open func pressesChanged(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        super.pressesChanged(presses, with: event)
+
+        if isFirstResponder {
+            uikitInputObserverAdapter.on(.change, presses: presses, with: event)
+        }
+    }
+
+    override open func pressesCancelled(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        super.pressesCancelled(presses, with: event)
+
+        if isFirstResponder {
+            uikitInputObserverAdapter.on(.cancel, presses: presses, with: event)
         }
     }
 
     override open func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
-        var didHandleEvent = false
-        if isFirstResponder {
-            for press in presses {
-                if let event = KeyEvent(uiPress: press) {
-                    delegate?.navigator(self, didReleaseKey: event)
-                    didHandleEvent = true
-                }
-            }
-        }
+        super.pressesEnded(presses, with: event)
 
-        if !didHandleEvent {
-            super.pressesEnded(presses, with: event)
+        if isFirstResponder {
+            uikitInputObserverAdapter.on(.up, presses: presses, with: event)
         }
+    }
+
+    override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        uikitInputObserverAdapter.on(.down, touches: touches, event: event)
+    }
+
+    override open func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesMoved(touches, with: event)
+        uikitInputObserverAdapter.on(.move, touches: touches, event: event)
+    }
+
+    override open func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
+        uikitInputObserverAdapter.on(.cancel, touches: touches, event: event)
+    }
+
+    override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        uikitInputObserverAdapter.on(.up, touches: touches, event: event)
     }
 
     @discardableResult
@@ -1071,11 +1085,15 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     }
 
     func spreadView(_ spreadView: EPUBSpreadView, didReceive event: PointerEvent) {
-        inputObservers.didReceive(event)
+        Task {
+            _ = await inputObservers.didReceive(event)
+        }
     }
 
     func spreadView(_ spreadView: EPUBSpreadView, didReceive event: KeyEvent) {
-        inputObservers.didReceive(event)
+        Task {
+            _ = await inputObservers.didReceive(event)
+        }
 
         switch event.phase {
         case .down:
