@@ -9,7 +9,7 @@ import ReadiumShared
 import UIKit
 
 /// A navigator rendering the publication visually on-screen.
-public protocol VisualNavigator: Navigator {
+public protocol VisualNavigator: Navigator, InputObservable {
     /// Viewport view.
     var view: UIView! { get }
 

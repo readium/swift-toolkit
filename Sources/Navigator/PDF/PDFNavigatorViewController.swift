@@ -76,6 +76,7 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     private let server: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
     private var publicationBaseURL: HTTPURL!
+    private let inputObservers = CompositeInputObserver()
 
     public init(
         publication: Publication,
@@ -530,6 +531,17 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
             metadata: publication.metadata,
             defaults: config.defaults
         )
+    }
+
+    // MARK: - InputObservable
+
+    @discardableResult
+    public func addObserver(_ observer: any InputObserving) -> InputObservableToken {
+        inputObservers.addObserver(observer)
+    }
+
+    public func removeObserver(_ token: InputObservableToken) {
+        inputObservers.removeObserver(token)
     }
 
     // MARK: - SelectableNavigator

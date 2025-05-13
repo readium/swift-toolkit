@@ -30,6 +30,8 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     private let publicationEndpoint: HTTPServerEndpoint?
     private var publicationBaseURL: HTTPURL!
 
+    private let inputObservers = CompositeInputObserver()
+
     public convenience init(
         publication: Publication,
         initialLocation: Locator?,
@@ -246,6 +248,17 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
     public func goBackward(options: NavigatorGoOptions) async -> Bool {
         await goToResourceAtIndex(currentResourceIndex - 1, options: options, isJump: false)
+    }
+
+    // MARK: - InputObservable
+
+    @discardableResult
+    public func addObserver(_ observer: any InputObserving) -> InputObservableToken {
+        inputObservers.addObserver(observer)
+    }
+
+    public func removeObserver(_ token: InputObservableToken) {
+        inputObservers.removeObserver(token)
     }
 }
 
