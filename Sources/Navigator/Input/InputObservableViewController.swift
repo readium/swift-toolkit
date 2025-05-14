@@ -122,7 +122,7 @@ extension Pointer {
         case .direct, .indirect:
             .touch(TouchPointer(id: id))
         case .pencil, .indirectPointer:
-            fallthrough
+            .mouse(MousePointer(id: id, buttons: MouseButtons(event: event)))
         @unknown default:
             .mouse(MousePointer(id: id, buttons: MouseButtons(event: event)))
         }
