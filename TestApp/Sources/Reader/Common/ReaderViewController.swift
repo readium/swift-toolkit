@@ -62,13 +62,17 @@ class ReaderViewController<N: Navigator>: UIViewController,
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
-        tabBarController?.isTabBarHidden = true
+        if #available(iOS 18.0, *) {
+            tabBarController?.isTabBarHidden = true
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 
-        tabBarController?.isTabBarHidden = false
+        if #available(iOS 18.0, *) {
+            tabBarController?.isTabBarHidden = false
+        }
     }
 
     // MARK: - Navigation bar
