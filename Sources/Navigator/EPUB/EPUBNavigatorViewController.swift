@@ -19,17 +19,6 @@ public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate, SelectableNaviga
 
 public extension EPUBNavigatorDelegate {
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController) {}
-
-    @available(*, unavailable, message: "Implement navigator(_:didTapAt:) instead.")
-    func middleTapHandler() {}
-    @available(*, unavailable, message: "Implement navigator(_:locationDidChange:) instead, to save the last read location")
-    func willExitPublication(documentIndex: Int, progression: Double?) {}
-    @available(*, unavailable, message: "Implement navigator(_:locationDidChange:) instead")
-    func didChangedDocumentPage(currentDocumentIndex: Int) {}
-    @available(*, unavailable)
-    func didNavigateViaInternalLinkTap(to documentIndex: Int) {}
-    @available(*, unavailable, message: "Implement navigator(_:presentError:) instead")
-    func presentError(_ error: NavigatorError) {}
 }
 
 public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
@@ -320,6 +309,21 @@ open class EPUBNavigatorViewController: UIViewController,
 
         viewModel.delegate = self
         viewModel.editingActions.delegate = self
+        
+        setupLegacyInputCallbacks(
+            onTap: { [weak self] point in
+                guard let self else { return }
+                self.delegate?.navigator(self, didTapAt: point)
+            },
+            onPressKey: { [weak self] event in
+                guard let self else { return }
+                self.delegate?.navigator(self, didPressKey: event)
+            },
+            onReleaseKey: { [weak self] event in
+                guard let self else { return }
+                self.delegate?.navigator(self, didReleaseKey: event)
+            }
+        )
     }
 
     @available(*, unavailable)

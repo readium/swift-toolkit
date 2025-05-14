@@ -523,7 +523,10 @@
 ../../Sources/Navigator/Input/.DS_Store
 ../../Sources/Navigator/Input/CompositeInputObserver.swift
 ../../Sources/Navigator/Input/InputObservable.swift
+../../Sources/Navigator/Input/InputObservable+Legacy.swift
+../../Sources/Navigator/Input/InputObservableViewController.swift
 ../../Sources/Navigator/Input/InputObserving.swift
+../../Sources/Navigator/Input/InputObservingGestureRecognizerAdapter.swift
 ../../Sources/Navigator/Input/Key
 ../../Sources/Navigator/Input/Key/Key.swift
 ../../Sources/Navigator/Input/Key/KeyEvent.swift
@@ -533,7 +536,6 @@
 ../../Sources/Navigator/Input/Pointer/.DS_Store
 ../../Sources/Navigator/Input/Pointer/ActivatePointerObserver.swift
 ../../Sources/Navigator/Input/Pointer/PointerEvent.swift
-../../Sources/Navigator/Input/UIKitInputObserverAdapter.swift
 ../../Sources/Navigator/Navigator.swift
 ../../Sources/Navigator/PDF
 ../../Sources/Navigator/PDF/PDFDocumentHolder.swift

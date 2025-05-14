@@ -105,6 +105,21 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         )
 
         super.init(nibName: nil, bundle: nil)
+        
+        setupLegacyInputCallbacks(
+            onTap: { [weak self] point in
+                guard let self else { return }
+                self.delegate?.navigator(self, didTapAt: point)
+            },
+            onPressKey: { [weak self] event in
+                guard let self else { return }
+                self.delegate?.navigator(self, didPressKey: event)
+            },
+            onReleaseKey: { [weak self] event in
+                guard let self else { return }
+                self.delegate?.navigator(self, didReleaseKey: event)
+            }
+        )
     }
 
     private func didLoadPositions(_ positions: [Locator]?) {
