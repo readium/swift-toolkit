@@ -113,7 +113,7 @@ public extension InputObserving where Self == ActivatePointerObserver {
 
         return false
     }
-    
+
     public func didReceive(_ event: KeyEvent) async -> Bool {
         false
     }

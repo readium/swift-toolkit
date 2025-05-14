@@ -73,8 +73,9 @@ open class PDFNavigatorViewController:
     /// Holds the currently opened PDF Document.
     private let documentHolder = PDFDocumentHolder()
 
-    /// Holds a reference to make sure it is not garbage-collected.
+    // Holds a reference to make sure they are not garbage-collected.
     private var tapGestureController: PDFTapGestureController?
+    private var clickGestureController: PDFTapGestureController?
 
     private let server: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
@@ -145,21 +146,6 @@ open class PDFNavigatorViewController:
                 documentHolder, service.pdfFactory,
             ])
         }
-        
-        setupLegacyInputCallbacks(
-            onTap: { [weak self] point in
-                guard let self else { return }
-                self.delegate?.navigator(self, didTapAt: point)
-            },
-            onPressKey: { [weak self] event in
-                guard let self else { return }
-                self.delegate?.navigator(self, didPressKey: event)
-            },
-            onReleaseKey: { [weak self] event in
-                guard let self else { return }
-                self.delegate?.navigator(self, didReleaseKey: event)
-            }
-        )
     }
 
     @available(*, unavailable)
@@ -261,7 +247,18 @@ open class PDFNavigatorViewController:
         pdfView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(pdfView)
 
-        tapGestureController = PDFTapGestureController(pdfView: pdfView, target: self, action: #selector(didTap))
+        tapGestureController = PDFTapGestureController(
+            pdfView: pdfView,
+            touchTypes: [.direct, .indirect],
+            target: self,
+            action: #selector(didTap)
+        )
+        clickGestureController = PDFTapGestureController(
+            pdfView: pdfView,
+            touchTypes: [.indirectPointer],
+            target: self,
+            action: #selector(didClick)
+        )
 
         apply(settings: settings, to: pdfView)
         delegate?.navigator(self, setupPDFView: pdfView)
@@ -347,8 +344,27 @@ open class PDFNavigatorViewController:
     open func setupPDFView() {}
 
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
-        let point = gesture.location(in: view)
-        delegate?.navigator(self, didTapAt: point)
+        let location = gesture.location(in: view)
+        let pointer = Pointer.touch(TouchPointer(id: ObjectIdentifier(gesture)))
+        let modifiers = KeyModifiers(flags: gesture.modifierFlags)
+        Task {
+            _ = await inputObservers.didReceive(PointerEvent(pointer: pointer, phase: .down, location: location, modifiers: modifiers))
+            _ = await inputObservers.didReceive(PointerEvent(pointer: pointer, phase: .up, location: location, modifiers: modifiers))
+        }
+
+        delegate?.navigator(self, didTapAt: location)
+    }
+
+    @objc private func didClick(_ gesture: UITapGestureRecognizer) {
+        let location = gesture.location(in: view)
+        let pointer = Pointer.mouse(MousePointer(id: ObjectIdentifier(gesture), buttons: .main))
+        let modifiers = KeyModifiers(flags: gesture.modifierFlags)
+        Task {
+            _ = await inputObservers.didReceive(PointerEvent(pointer: pointer, phase: .down, location: location, modifiers: modifiers))
+            _ = await inputObservers.didReceive(PointerEvent(pointer: pointer, phase: .up, location: location, modifiers: modifiers))
+        }
+
+        delegate?.navigator(self, didTapAt: location)
     }
 
     @objc private func pageDidChange() {

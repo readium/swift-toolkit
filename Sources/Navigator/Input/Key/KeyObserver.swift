@@ -48,7 +48,7 @@ public extension InputObserving where Self == KeyObserver {
         keyCombo = nil
         self.onKey = onKey
     }
-    
+
     public func didReceive(_ event: PointerEvent) async -> Bool {
         false
     }

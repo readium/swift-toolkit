@@ -215,11 +215,15 @@ extension MouseButtons {
 
 extension KeyModifiers {
     init(event: UIEvent?) {
-        self.init()
-
-        guard let flags = event?.modifierFlags else {
-            return
+        if let flags = event?.modifierFlags {
+            self.init(flags: flags)
+        } else {
+            self.init()
         }
+    }
+
+    init(flags: UIKeyModifierFlags) {
+        self.init()
 
         if flags.contains(.shift) {
             insert(.shift)
