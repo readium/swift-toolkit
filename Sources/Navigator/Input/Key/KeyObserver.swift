@@ -48,6 +48,10 @@ public extension InputObserving where Self == KeyObserver {
         keyCombo = nil
         self.onKey = onKey
     }
+    
+    public func didReceive(_ event: PointerEvent) async -> Bool {
+        false
+    }
 
     public func didReceive(_ event: KeyEvent) async -> Bool {
         guard event.phase == .down else {

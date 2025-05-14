@@ -22,8 +22,3 @@ import Foundation
     /// will not be forwarded to other observers.
     func didReceive(_ event: KeyEvent) async -> Bool
 }
-
-public extension InputObserving {
-    func didReceive(_ event: PointerEvent) async -> Bool { false }
-    func didReceive(_ event: KeyEvent) async -> Bool { false }
-}
