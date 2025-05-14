@@ -19,22 +19,11 @@ public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate, SelectableNaviga
 
 public extension EPUBNavigatorDelegate {
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController) {}
-
-    @available(*, unavailable, message: "Implement navigator(_:didTapAt:) instead.")
-    func middleTapHandler() {}
-    @available(*, unavailable, message: "Implement navigator(_:locationDidChange:) instead, to save the last read location")
-    func willExitPublication(documentIndex: Int, progression: Double?) {}
-    @available(*, unavailable, message: "Implement navigator(_:locationDidChange:) instead")
-    func didChangedDocumentPage(currentDocumentIndex: Int) {}
-    @available(*, unavailable)
-    func didNavigateViaInternalLinkTap(to documentIndex: Int) {}
-    @available(*, unavailable, message: "Implement navigator(_:presentError:) instead")
-    func presentError(_ error: NavigatorError) {}
 }
 
 public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
 
-open class EPUBNavigatorViewController: UIViewController,
+open class EPUBNavigatorViewController: InputObservableViewController,
     VisualNavigator, SelectableNavigator, DecorableNavigator,
     Configurable, Loggable
 {
@@ -228,10 +217,8 @@ open class EPUBNavigatorViewController: UIViewController,
             switch state {
             case .initializing, .loading, .jumping, .moving:
                 paginationView?.isUserInteractionEnabled = false
-                tapGestureRecognizer.isEnabled = true
             case .idle:
                 paginationView?.isUserInteractionEnabled = true
-                tapGestureRecognizer.isEnabled = false
             }
         }
     }
@@ -316,6 +303,21 @@ open class EPUBNavigatorViewController: UIViewController,
 
         viewModel.delegate = self
         viewModel.editingActions.delegate = self
+
+        setupLegacyInputCallbacks(
+            onTap: { [weak self] point in
+                guard let self else { return }
+                self.delegate?.navigator(self, didTapAt: point)
+            },
+            onPressKey: { [weak self] event in
+                guard let self else { return }
+                self.delegate?.navigator(self, didPressKey: event)
+            },
+            onReleaseKey: { [weak self] event in
+                guard let self else { return }
+                self.delegate?.navigator(self, didReleaseKey: event)
+            }
+        )
     }
 
     @available(*, unavailable)
@@ -323,19 +325,12 @@ open class EPUBNavigatorViewController: UIViewController,
         fatalError("init(coder:) has not been implemented")
     }
 
-    /// Tap gesture recognizer used to intercept taps and clicks when a web view
-    /// is not yet ready.
-    private lazy var tapGestureRecognizer: UIGestureRecognizer =
-        UITapGestureRecognizer(target: self, action: #selector(didTapBackground))
-
     override open func viewDidLoad() {
         super.viewDidLoad()
 
         // Will call `accessibilityScroll()` when VoiceOver reaches the end of
         // the current resource. We can use this to go to the next resource.
         view.accessibilityTraits.insert(.causesPageTurn)
-
-        view.addGestureRecognizer(tapGestureRecognizer)
 
         tasks.add {
             await initialize()
@@ -387,11 +382,6 @@ open class EPUBNavigatorViewController: UIViewController,
         super.buildMenu(with: builder)
     }
 
-    /// Intercepts tap gesture when the web views are not loaded.
-    @objc private func didTapBackground(_ gesture: UITapGestureRecognizer) {
-        didTap(at: gesture.location(in: view))
-    }
-
     override open func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         viewModel.viewSizeWillChange(view.bounds.size)
@@ -406,46 +396,6 @@ open class EPUBNavigatorViewController: UIViewController,
             Task {
                 await self?.reloadSpreads(force: false)
             }
-        }
-    }
-
-    override open func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-
-        becomeFirstResponder()
-    }
-
-    override open var canBecomeFirstResponder: Bool { true }
-
-    override open func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
-        var didHandleEvent = false
-        if isFirstResponder {
-            for press in presses {
-                if let event = KeyEvent(uiPress: press) {
-                    didPressKey(event)
-                    didHandleEvent = true
-                }
-            }
-        }
-
-        if !didHandleEvent {
-            super.pressesBegan(presses, with: event)
-        }
-    }
-
-    override open func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
-        var didHandleEvent = false
-        if isFirstResponder {
-            for press in presses {
-                if let event = KeyEvent(uiPress: press) {
-                    delegate?.navigator(self, didReleaseKey: event)
-                    didHandleEvent = true
-                }
-            }
-        }
-
-        if !didHandleEvent {
-            super.pressesEnded(presses, with: event)
         }
     }
 
@@ -890,16 +840,6 @@ open class EPUBNavigatorViewController: UIViewController,
         paginationView?.isScrollEnabled = isPaginationViewScrollingEnabled
     }
 
-    // MARK: - User interactions
-
-    private func didTap(at point: CGPoint) {
-        delegate?.navigator(self, didTapAt: point)
-    }
-
-    private func didPressKey(_ event: KeyEvent) {
-        delegate?.navigator(self, didPressKey: event)
-    }
-
     // MARK: - EPUB-specific extensions
 
     /// Evaluates the given JavaScript on the currently visible HTML resource.
@@ -1041,32 +981,18 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         }
     }
 
-    func spreadView(_ spreadView: EPUBSpreadView, didTapAt point: CGPoint) {
-        // We allow taps in any state, because we should always be able to toggle the navigation bar,
-        // even while a locator is pending.
-
-        didTap(at: view.convert(point, from: spreadView))
-
-        // Uncomment to debug the coordinates of the tap point.
-//        let tapView = UIView(frame: .init(x: 0, y: 0, width: 50, height: 50))
-//        view.addSubview(tapView)
-//        tapView.backgroundColor = .red
-//        tapView.center = point
-//        tapView.layer.cornerRadius = 25
-//        tapView.layer.masksToBounds = true
-//        UIView.animate(withDuration: 0.8, animations: {
-//            tapView.alpha = 0
-//        }) { _ in
-//            tapView.removeFromSuperview()
-//        }
+    func spreadView(_ spreadView: EPUBSpreadView, didReceive event: PointerEvent) {
+        Task {
+            var event = event
+            event.location = view.convert(event.location, from: spreadView)
+            _ = await inputObservers.didReceive(event)
+        }
     }
 
-    func spreadView(_ spreadView: EPUBSpreadView, didPressKey event: KeyEvent) {
-        didPressKey(event)
-    }
-
-    func spreadView(_ spreadView: EPUBSpreadView, didReleaseKey event: KeyEvent) {
-        delegate?.navigator(self, didReleaseKey: event)
+    func spreadView(_ spreadView: EPUBSpreadView, didReceive event: KeyEvent) {
+        Task {
+            _ = await inputObservers.didReceive(event)
+        }
     }
 
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnExternalURL url: URL) {

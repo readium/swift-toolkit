@@ -53,7 +53,11 @@ final class LibraryModule: LibraryModuleAPI {
         self.delegate = delegate
     }
 
-    private(set) lazy var rootViewController: UINavigationController = .init(rootViewController: libraryViewController)
+    private(set) lazy var rootViewController: UINavigationController = {
+        let nav = UINavigationController(rootViewController: libraryViewController)
+        nav.navigationBar.backgroundColor = .systemBackground
+        return nav
+    }()
 
     private lazy var libraryViewController: LibraryViewController = {
         let library: LibraryViewController = factory.make()

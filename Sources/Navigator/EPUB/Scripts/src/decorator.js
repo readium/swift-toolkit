@@ -59,31 +59,7 @@ export function getDecorations(groupName) {
  * Returns whether a decoration matched this event.
  */
 export function handleDecorationClickEvent(event, clickEvent) {
-  if (groups.size === 0) {
-    return false;
-  }
-
-  function findTarget() {
-    for (const [group, groupContent] of groups) {
-      if (!groupContent.isActivable()) {
-        continue;
-      }
-
-      for (const item of groupContent.items.reverse()) {
-        if (!item.clickableElements) {
-          continue;
-        }
-        for (const element of item.clickableElements) {
-          let rect = element.getBoundingClientRect().toJSON();
-          if (rectContainsPoint(rect, event.clientX, event.clientY, 1)) {
-            return { group, item, element, rect };
-          }
-        }
-      }
-    }
-  }
-
-  let target = findTarget();
+  let target = findDecorationTarget(event);
   if (!target) {
     return false;
   }
@@ -94,6 +70,34 @@ export function handleDecorationClickEvent(event, clickEvent) {
     click: clickEvent,
   });
   return true;
+}
+
+/**
+ * Finds any Decoration under the given pointer event, if any.
+ */
+export function findDecorationTarget(event) {
+  if (groups.size === 0) {
+    return null;
+  }
+
+  for (const [group, groupContent] of groups) {
+    if (!groupContent.isActivable()) {
+      continue;
+    }
+
+    for (const item of groupContent.items.reverse()) {
+      if (!item.clickableElements) {
+        continue;
+      }
+      for (const element of item.clickableElements) {
+        let rect = element.getBoundingClientRect().toJSON();
+        if (rectContainsPoint(rect, event.clientX, event.clientY, 1)) {
+          return { group, item, element, rect };
+        }
+      }
+    }
+  }
+  return null;
 }
 
 /**

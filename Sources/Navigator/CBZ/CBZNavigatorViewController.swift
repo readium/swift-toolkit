@@ -11,7 +11,10 @@ import UIKit
 public protocol CBZNavigatorDelegate: VisualNavigatorDelegate {}
 
 /// A view controller used to render a CBZ `Publication`.
-open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggable {
+open class CBZNavigatorViewController:
+    InputObservableViewController,
+    VisualNavigator, Loggable
+{
     enum Error: Swift.Error {
         /// The provided publication is restricted. Check that any DRM was
         /// properly unlocked using a Content Protection.
@@ -103,6 +106,21 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         )
 
         super.init(nibName: nil, bundle: nil)
+
+        setupLegacyInputCallbacks(
+            onTap: { [weak self] point in
+                guard let self else { return }
+                self.delegate?.navigator(self, didTapAt: point)
+            },
+            onPressKey: { [weak self] event in
+                guard let self else { return }
+                self.delegate?.navigator(self, didPressKey: event)
+            },
+            onReleaseKey: { [weak self] event in
+                guard let self else { return }
+                self.delegate?.navigator(self, didReleaseKey: event)
+            }
+        )
     }
 
     private func didLoadPositions(_ positions: [Locator]?) {
@@ -132,7 +150,7 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         view.addSubview(pageViewController.view)
         pageViewController.didMove(toParent: self)
 
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap)))
+        view.addGestureRecognizer(InputObservingGestureRecognizerAdapter(observer: inputObservers))
 
         tasks.add {
             try? await didLoadPositions(publication.positions().get())
@@ -185,11 +203,6 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
         }
 
         return true
-    }
-
-    @objc private func didTap(_ gesture: UITapGestureRecognizer) {
-        let point = gesture.location(in: view)
-        delegate?.navigator(self, didTapAt: point)
     }
 
     private func imageViewController(at index: Int) -> ImageViewController? {

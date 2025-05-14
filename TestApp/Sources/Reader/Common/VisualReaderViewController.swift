@@ -40,6 +40,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             bookmarks: bookmarks
         )
 
+        setupUserInteraction()
         addHighlightDecorationsObserverOnce()
         updateHighlightDecorations()
 
@@ -48,6 +49,58 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 
             await updatePageListDecorations()
         }
+    }
+
+    /// Setups the user interaction (e.g. taps) with the navigator.
+    private func setupUserInteraction() {
+        guard let navigator = navigator as? VisualNavigator else {
+            return
+        }
+
+        // Show a red dot at the location where the user tapped.
+//        navigator.addObserver(.tap { [weak self] event in
+//            guard let self else { return false }
+//
+//            let tapView = UIView(frame: .init(x: 0, y: 0, width: 50, height: 50))
+//            view.addSubview(tapView)
+//            tapView.backgroundColor = .red
+//            tapView.center = event.location
+//            tapView.layer.cornerRadius = 25
+//            tapView.layer.masksToBounds = true
+//            UIView.animate(withDuration: 0.8, animations: {
+//                tapView.alpha = 0
+//            }) { _ in
+//                tapView.removeFromSuperview()
+//            }
+//
+//            return false
+//        })
+
+        /// This adapter will automatically turn pages when the user taps the
+        /// screen edges or press arrow keys.
+        ///
+        /// Bind it to the navigator before adding your own observers to prevent
+        /// triggering your actions when turning pages.
+        DirectionalNavigationAdapter().bind(to: navigator)
+
+        // Clear the current search highlight on tap.
+        navigator.addObserver(.tap { [weak self] _ in
+            guard
+                let searchViewModel = self?.searchViewModel,
+                searchViewModel.selectedLocator != nil
+            else {
+                return false
+            }
+
+            searchViewModel.selectedLocator = nil
+            return true
+        })
+
+        // Toggle the navigation bar on tap, if nothing else took precedence.
+        navigator.addObserver(.tap { [weak self] _ in
+            self?.toggleNavigationBar()
+            return true
+        })
     }
 
     @available(*, unavailable)
@@ -159,28 +212,6 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
                 return nil
             }
         }()
-    }
-
-    func navigator(_ navigator: VisualNavigator, didTapAt point: CGPoint) {
-        Task {
-            // Turn pages when tapping the edge of the screen.
-            guard await !DirectionalNavigationAdapter(navigator: navigator).didTap(at: point) else {
-                return
-            }
-            // clear a current search highlight
-            if let decorator = self.navigator as? DecorableNavigator {
-                decorator.apply(decorations: [], in: "search")
-            }
-
-            toggleNavigationBar()
-        }
-    }
-
-    func navigator(_ navigator: VisualNavigator, didPressKey event: KeyEvent) {
-        Task {
-            // Turn pages when pressing the arrow keys.
-            await DirectionalNavigationAdapter(navigator: navigator).didPressKey(event: event)
-        }
     }
 
     // MARK: - Highlights

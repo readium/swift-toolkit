@@ -49,7 +49,6 @@ class LibraryViewController: UIViewController, Loggable {
 
     @IBOutlet var collectionView: UICollectionView! {
         didSet {
-            collectionView.backgroundColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
             collectionView.contentInset = UIEdgeInsets(top: 15, left: 20,
                                                        bottom: 20, right: 20)
             collectionView.register(UINib(nibName: "PublicationCollectionViewCell", bundle: nil),

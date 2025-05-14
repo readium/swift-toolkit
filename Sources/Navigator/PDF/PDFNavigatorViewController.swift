@@ -21,7 +21,10 @@ public extension PDFNavigatorDelegate {
 }
 
 /// A view controller used to render a PDF `Publication`.
-open class PDFNavigatorViewController: UIViewController, VisualNavigator, SelectableNavigator, Configurable, Loggable {
+open class PDFNavigatorViewController:
+    InputObservableViewController,
+    VisualNavigator, SelectableNavigator, Configurable, Loggable
+{
     public struct Configuration {
         /// Initial set of setting preferences.
         public var preferences: PDFPreferences
@@ -70,8 +73,9 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     /// Holds the currently opened PDF Document.
     private let documentHolder = PDFDocumentHolder()
 
-    /// Holds a reference to make sure it is not garbage-collected.
+    // Holds a reference to make sure they are not garbage-collected.
     private var tapGestureController: PDFTapGestureController?
+    private var clickGestureController: PDFTapGestureController?
 
     private let server: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
@@ -188,12 +192,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         }
     }
 
-    override open func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-
-        becomeFirstResponder()
-    }
-
     override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
 
@@ -211,40 +209,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
                     self.resetPDFView(at: self.currentLocation)
                 }
             })
-        }
-    }
-
-    override open var canBecomeFirstResponder: Bool { true }
-
-    override open func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
-        var didHandleEvent = false
-        if isFirstResponder {
-            for press in presses {
-                if let event = KeyEvent(uiPress: press) {
-                    delegate?.navigator(self, didPressKey: event)
-                    didHandleEvent = true
-                }
-            }
-        }
-
-        if !didHandleEvent {
-            super.pressesBegan(presses, with: event)
-        }
-    }
-
-    override open func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
-        var didHandleEvent = false
-        if isFirstResponder {
-            for press in presses {
-                if let event = KeyEvent(uiPress: press) {
-                    delegate?.navigator(self, didReleaseKey: event)
-                    didHandleEvent = true
-                }
-            }
-        }
-
-        if !didHandleEvent {
-            super.pressesEnded(presses, with: event)
         }
     }
 
@@ -283,7 +247,18 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         pdfView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(pdfView)
 
-        tapGestureController = PDFTapGestureController(pdfView: pdfView, target: self, action: #selector(didTap))
+        tapGestureController = PDFTapGestureController(
+            pdfView: pdfView,
+            touchTypes: [.direct, .indirect],
+            target: self,
+            action: #selector(didTap)
+        )
+        clickGestureController = PDFTapGestureController(
+            pdfView: pdfView,
+            touchTypes: [.indirectPointer],
+            target: self,
+            action: #selector(didClick)
+        )
 
         apply(settings: settings, to: pdfView)
         delegate?.navigator(self, setupPDFView: pdfView)
@@ -369,8 +344,27 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     open func setupPDFView() {}
 
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
-        let point = gesture.location(in: view)
-        delegate?.navigator(self, didTapAt: point)
+        let location = gesture.location(in: view)
+        let pointer = Pointer.touch(TouchPointer(id: ObjectIdentifier(gesture)))
+        let modifiers = KeyModifiers(flags: gesture.modifierFlags)
+        Task {
+            _ = await inputObservers.didReceive(PointerEvent(pointer: pointer, phase: .down, location: location, modifiers: modifiers))
+            _ = await inputObservers.didReceive(PointerEvent(pointer: pointer, phase: .up, location: location, modifiers: modifiers))
+        }
+
+        delegate?.navigator(self, didTapAt: location)
+    }
+
+    @objc private func didClick(_ gesture: UITapGestureRecognizer) {
+        let location = gesture.location(in: view)
+        let pointer = Pointer.mouse(MousePointer(id: ObjectIdentifier(gesture), buttons: .main))
+        let modifiers = KeyModifiers(flags: gesture.modifierFlags)
+        Task {
+            _ = await inputObservers.didReceive(PointerEvent(pointer: pointer, phase: .down, location: location, modifiers: modifiers))
+            _ = await inputObservers.didReceive(PointerEvent(pointer: pointer, phase: .up, location: location, modifiers: modifiers))
+        }
+
+        delegate?.navigator(self, didTapAt: location)
     }
 
     @objc private func pageDidChange() {
