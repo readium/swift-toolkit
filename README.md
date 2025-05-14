@@ -87,7 +87,7 @@ Guides are available to help you make the most of the toolkit.
 
 | Readium   | iOS  | Swift compiler | Xcode |
 |-----------|------|----------------|-------|
-| `develop` | 13.4 | 5.10           | 15.4  |
+| `develop` | 13.4 | 6.0            | 16.2  |
 | 3.0.0     | 13.4 | 5.10           | 15.4  |
 | 2.5.1     | 11.0 | 5.6.1          | 13.4  |
 | 2.5.0     | 10.0 | 5.6.1          | 13.4  |
