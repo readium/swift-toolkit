@@ -21,7 +21,10 @@ public extension PDFNavigatorDelegate {
 }
 
 /// A view controller used to render a PDF `Publication`.
-open class PDFNavigatorViewController: UIViewController, VisualNavigator, SelectableNavigator, Configurable, Loggable {
+open class PDFNavigatorViewController:
+    InputObservableViewController,
+    VisualNavigator, SelectableNavigator, Configurable, Loggable
+{
     public struct Configuration {
         /// Initial set of setting preferences.
         public var preferences: PDFPreferences
@@ -76,7 +79,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
     private let server: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
     private var publicationBaseURL: HTTPURL!
-    private let inputObservers = CompositeInputObserver()
 
     public init(
         publication: Publication,
@@ -204,12 +206,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
         }
     }
 
-    override open func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-
-        becomeFirstResponder()
-    }
-
     override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
 
@@ -227,40 +223,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
                     self.resetPDFView(at: self.currentLocation)
                 }
             })
-        }
-    }
-
-    override open var canBecomeFirstResponder: Bool { true }
-
-    override open func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
-        var didHandleEvent = false
-        if isFirstResponder {
-            for press in presses {
-                if let event = KeyEvent(phase: .down, uiPress: press) {
-                    delegate?.navigator(self, didPressKey: event)
-                    didHandleEvent = true
-                }
-            }
-        }
-
-        if !didHandleEvent {
-            super.pressesBegan(presses, with: event)
-        }
-    }
-
-    override open func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
-        var didHandleEvent = false
-        if isFirstResponder {
-            for press in presses {
-                if let event = KeyEvent(phase: .up, uiPress: press) {
-                    delegate?.navigator(self, didReleaseKey: event)
-                    didHandleEvent = true
-                }
-            }
-        }
-
-        if !didHandleEvent {
-            super.pressesEnded(presses, with: event)
         }
     }
 
@@ -546,17 +508,6 @@ open class PDFNavigatorViewController: UIViewController, VisualNavigator, Select
             metadata: publication.metadata,
             defaults: config.defaults
         )
-    }
-
-    // MARK: - InputObservable
-
-    @discardableResult
-    public func addObserver(_ observer: any InputObserving) -> InputObservableToken {
-        inputObservers.addObserver(observer)
-    }
-
-    public func removeObserver(_ token: InputObservableToken) {
-        inputObservers.removeObserver(token)
     }
 
     // MARK: - SelectableNavigator

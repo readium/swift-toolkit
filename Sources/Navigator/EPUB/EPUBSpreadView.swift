@@ -12,9 +12,6 @@ protocol EPUBSpreadViewDelegate: AnyObject {
     /// Called when the spread view finished loading.
     func spreadViewDidLoad(_ spreadView: EPUBSpreadView)
 
-    /// Called when the user tapped on the spread contents.
-    func spreadView(_ spreadView: EPUBSpreadView, didTapAt point: CGPoint)
-
     /// Called when the user tapped on an external link.
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnExternalURL url: URL)
 
@@ -81,10 +78,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         addSubview(webView)
         setupWebView()
-
-        let gestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(didTapBackground))
-        gestureRecognizer.delegate = self
-        addGestureRecognizer(gestureRecognizer)
 
         for script in scripts {
             webView.configuration.userContentController.addUserScript(script)
@@ -197,12 +190,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             return
         }
         lastClick = clickEvent
-
-        // Ignores taps on interactive elements, or if the script prevents the default behavior.
-        if !clickEvent.defaultPrevented, clickEvent.interactiveElement == nil {
-            let point = convertPointToNavigatorSpace(clickEvent.point)
-            delegate?.spreadView(self, didTapAt: point)
-        }
     }
 
     /// Called from the JS code when receiving a pointer event.
@@ -235,10 +222,38 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         rect
     }
 
-    /// Called by the UITapGestureRecognizer as a fallback tap when tapping around the webview.
-    @objc private func didTapBackground(_ gesture: UITapGestureRecognizer) {
-        let point = gesture.location(in: self)
-        delegate?.spreadView(self, didTapAt: point)
+    // We override the UIResponder touches callbacks to handle taps around the
+    // web view.
+
+    override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        on(.down, touches: touches, event: event)
+    }
+
+    override open func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesMoved(touches, with: event)
+        on(.move, touches: touches, event: event)
+    }
+
+    override open func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
+        on(.cancel, touches: touches, event: event)
+    }
+
+    override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        on(.up, touches: touches, event: event)
+    }
+
+    private func on(_ phase: PointerEvent.Phase, touches: Set<UITouch>, event: UIEvent?) {
+        for touch in touches {
+            delegate?.spreadView(self, didReceive: PointerEvent(
+                pointer: Pointer(touch: touch, event: event),
+                phase: phase,
+                location: touch.location(in: self),
+                modifiers: KeyModifiers(event: event)
+            ))
+        }
     }
 
     private func spreadLoadDidStart(_ body: Any) {

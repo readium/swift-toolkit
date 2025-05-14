@@ -19,7 +19,7 @@ public extension InputObserving where Self == ActivatePointerObserver {
             shouldIgnore: {
                 switch $0.pointer {
                 case let .mouse(pointer):
-                    return $0.phase != .up && pointer.buttons != [.main]
+                    return pointer.buttons != [] && pointer.buttons != .main
                 case .touch:
                     return false
                 }

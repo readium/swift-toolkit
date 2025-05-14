@@ -11,7 +11,10 @@ import UIKit
 public protocol CBZNavigatorDelegate: VisualNavigatorDelegate {}
 
 /// A view controller used to render a CBZ `Publication`.
-open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggable {
+open class CBZNavigatorViewController:
+    InputObservableViewController,
+    VisualNavigator, Loggable
+{
     enum Error: Swift.Error {
         /// The provided publication is restricted. Check that any DRM was
         /// properly unlocked using a Content Protection.
@@ -29,8 +32,6 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
     private let server: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
     private var publicationBaseURL: HTTPURL!
-
-    private let inputObservers = CompositeInputObserver()
 
     public convenience init(
         publication: Publication,
@@ -263,17 +264,6 @@ open class CBZNavigatorViewController: UIViewController, VisualNavigator, Loggab
 
     public func goBackward(options: NavigatorGoOptions) async -> Bool {
         await goToResourceAtIndex(currentResourceIndex - 1, options: options, isJump: false)
-    }
-
-    // MARK: - InputObservable
-
-    @discardableResult
-    public func addObserver(_ observer: any InputObserving) -> InputObservableToken {
-        inputObservers.addObserver(observer)
-    }
-
-    public func removeObserver(_ token: InputObservableToken) {
-        inputObservers.removeObserver(token)
     }
 }
 

@@ -6,38 +6,105 @@
 
 import UIKit
 
-@MainActor final class UIKitInputObserverAdapter {
-    weak var view: UIView?
-    private let observer: InputObserving
+/// Base implementation of ``UIViewController`` which implements
+/// ``InputObservable`` to forward UIKit touches and presses events to
+/// observers.
+open class InputObservableViewController: UIViewController, InputObservable {
+    let inputObservers = CompositeInputObserver()
 
-    init(observer: InputObserving) {
-        self.observer = observer
+    override open func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        becomeFirstResponder()
     }
 
-    // MARK: - Presses
+    // MARK: - InputObservable
 
-    func on(_ phase: KeyEvent.Phase, presses: Set<UIPress>, with event: UIPressesEvent?) {
+    @discardableResult
+    public func addObserver(_ observer: any InputObserving) -> InputObservableToken {
+        inputObservers.addObserver(observer)
+    }
+
+    public func removeObserver(_ token: InputObservableToken) {
+        inputObservers.removeObserver(token)
+    }
+
+    // MARK: - UIResponder
+
+    override open var canBecomeFirstResponder: Bool { true }
+
+    override open func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if isFirstResponder {
+            on(.down, presses: presses, with: event)
+        } else {
+            super.pressesBegan(presses, with: event)
+        }
+    }
+
+    override open func pressesChanged(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if isFirstResponder {
+            on(.change, presses: presses, with: event)
+        } else {
+            super.pressesChanged(presses, with: event)
+        }
+    }
+
+    override open func pressesCancelled(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if isFirstResponder {
+            on(.cancel, presses: presses, with: event)
+        } else {
+            super.pressesCancelled(presses, with: event)
+        }
+    }
+
+    override open func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if isFirstResponder {
+            on(.up, presses: presses, with: event)
+        } else {
+            super.pressesEnded(presses, with: event)
+        }
+    }
+
+    private func on(_ phase: KeyEvent.Phase, presses: Set<UIPress>, with event: UIPressesEvent?) {
         Task {
             for press in presses {
                 guard let event = KeyEvent(phase: phase, uiPress: press) else {
                     continue
                 }
-                _ = await observer.didReceive(event)
+                _ = await inputObservers.didReceive(event)
             }
         }
     }
 
-    // MARK: - Touches
+    override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        on(.down, touches: touches, event: event)
+    }
 
-    func on(_ phase: PointerEvent.Phase, touches: Set<UITouch>, event: UIEvent?) {
+    override open func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesMoved(touches, with: event)
+        on(.move, touches: touches, event: event)
+    }
+
+    override open func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
+        on(.cancel, touches: touches, event: event)
+    }
+
+    override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        on(.up, touches: touches, event: event)
+    }
+
+    private func on(_ phase: PointerEvent.Phase, touches: Set<UITouch>, event: UIEvent?) {
         Task {
             for touch in touches {
                 guard let view = view else {
                     continue
                 }
 
-                _ = await observer.didReceive(PointerEvent(
-                    pointer: pointer(for: touch, with: event),
+                _ = await inputObservers.didReceive(PointerEvent(
+                    pointer: Pointer(touch: touch, event: event),
                     phase: phase,
                     location: touch.location(in: view),
                     modifiers: KeyModifiers(event: event)
@@ -45,11 +112,13 @@ import UIKit
             }
         }
     }
+}
 
-    private func pointer(for touch: UITouch, with event: UIEvent?) -> Pointer {
-        let id = AnyHashable("UITouch.TouchType(\(touch.type))")
+extension Pointer {
+    init(touch: UITouch, event: UIEvent?) {
+        let id = AnyHashable(ObjectIdentifier(touch))
 
-        return switch touch.type {
+        self = switch touch.type {
         case .direct, .indirect:
             .touch(TouchPointer(id: id))
         case .pencil, .indirectPointer:
@@ -60,7 +129,7 @@ import UIKit
     }
 }
 
-public extension KeyEvent {
+extension KeyEvent {
     init?(phase: KeyEvent.Phase, uiPress: UIPress) {
         guard
             let key = Key(uiPress: uiPress),
@@ -77,7 +146,7 @@ public extension KeyEvent {
     }
 }
 
-public extension Key {
+extension Key {
     init?(uiPress: UIPress) {
         guard let key = uiPress.key else {
             return nil
@@ -127,7 +196,7 @@ public extension Key {
     }
 }
 
-private extension MouseButtons {
+extension MouseButtons {
     init(event: UIEvent?) {
         self.init()
 
@@ -144,7 +213,7 @@ private extension MouseButtons {
     }
 }
 
-private extension KeyModifiers {
+extension KeyModifiers {
     init(event: UIEvent?) {
         self.init()
 
