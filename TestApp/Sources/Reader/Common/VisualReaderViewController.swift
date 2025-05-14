@@ -57,6 +57,25 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             return
         }
 
+        // Show a red dot at the location where the user tapped.
+//        navigator.addObserver(.tap { [weak self] event in
+//            guard let self else { return false }
+//
+//            let tapView = UIView(frame: .init(x: 0, y: 0, width: 50, height: 50))
+//            view.addSubview(tapView)
+//            tapView.backgroundColor = .red
+//            tapView.center = event.location
+//            tapView.layer.cornerRadius = 25
+//            tapView.layer.masksToBounds = true
+//            UIView.animate(withDuration: 0.8, animations: {
+//                tapView.alpha = 0
+//            }) { _ in
+//                tapView.removeFromSuperview()
+//            }
+//
+//            return false
+//        })
+
         /// This adapter will automatically turn pages when the user taps the
         /// screen edges or press arrow keys.
         ///
