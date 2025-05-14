@@ -2,7 +2,69 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
-<!-- ## Unreleased -->
+## Unreleased
+
+### New Input API
+
+A new `InputObserving` API has been added to enable more flexible gesture recognition and support for mouse pointers. [See the dedicated user guide](Guides/Navigator/Input.md).
+
+The `DirectionalNavigationAdapter` was also updated to use this new API, and is easier to use.
+
+To migrate the old API, remove the old `VisualNavigatorDelegate` callbacks, for example:
+
+```diff
+-func navigator(_ navigator: VisualNavigator, didTapAt point: CGPoint) {
+-    Task {
+-        // Turn pages when tapping the edge of the screen.
+-        guard await !DirectionalNavigationAdapter(navigator: navigator).didTap(at: point) else {
+-            return
+-        }
+-        // clear a current search highlight
+-        if let decorator = self.navigator as? DecorableNavigator {
+-            decorator.apply(decorations: [], in: "search")
+-        }
+-
+-        toggleNavigationBar()
+-    }
+-}
+-
+-func navigator(_ navigator: VisualNavigator, didPressKey event: KeyEvent) {
+-    Task {
+-        // Turn pages when pressing the arrow keys.
+-        await DirectionalNavigationAdapter(navigator: navigator).didPressKey(event: event)
+-    }
+-}
+```
+
+Instead, setup your observers after initializing the navigator. Return `true` if you want to stop the propagation of a particular event to the next observers.
+
+```swift
+/// This adapter will automatically turn pages when the user taps the
+/// screen edges or press arrow keys.
+///
+/// Bind it to the navigator before adding your own observers to prevent
+/// triggering your actions when turning pages.
+DirectionalNavigationAdapter().bind(to: navigator)
+
+// Clear the current search highlight on tap.
+navigator.addObserver(.tap { [weak self] _ in
+    guard
+        let searchViewModel = self?.searchViewModel,
+        searchViewModel.selectedLocator != nil
+    else {
+        return false
+    }
+
+    searchViewModel.selectedLocator = nil
+    return true
+})
+
+// Toggle the navigation bar on tap, if nothing else took precedence.
+navigator.addObserver(.tap { [weak self] _ in
+    self?.toggleNavigationBar()
+    return true
+})
+```
 
 ## 3.1.0
 

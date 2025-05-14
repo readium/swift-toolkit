@@ -58,16 +58,16 @@ class ReaderViewController<N: Navigator>: UIViewController,
 
         navigationItem.rightBarButtonItems = makeNavigationBarButtons()
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
+
         tabBarController?.isTabBarHidden = true
     }
-    
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        
+
         tabBarController?.isTabBarHidden = false
     }
 
