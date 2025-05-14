@@ -303,7 +303,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         viewModel.delegate = self
         viewModel.editingActions.delegate = self
-        
+
         setupLegacyInputCallbacks(
             onTap: { [weak self] point in
                 guard let self else { return }

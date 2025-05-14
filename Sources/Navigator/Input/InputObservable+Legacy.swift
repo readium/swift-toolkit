@@ -16,7 +16,7 @@ extension InputObservable {
             onTap(event.location)
             return false
         })
-        
+
         addObserver(.key { event in
             switch event.phase {
             case .down:

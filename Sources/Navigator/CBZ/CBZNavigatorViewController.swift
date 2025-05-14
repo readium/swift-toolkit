@@ -106,7 +106,7 @@ open class CBZNavigatorViewController:
         )
 
         super.init(nibName: nil, bundle: nil)
-        
+
         setupLegacyInputCallbacks(
             onTap: { [weak self] point in
                 guard let self else { return }
@@ -150,7 +150,7 @@ open class CBZNavigatorViewController:
         view.addSubview(pageViewController.view)
         pageViewController.didMove(toParent: self)
 
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTap)))
+        view.addGestureRecognizer(InputObservingGestureRecognizerAdapter(observer: inputObservers))
 
         tasks.add {
             try? await didLoadPositions(publication.positions().get())
@@ -203,11 +203,6 @@ open class CBZNavigatorViewController:
         }
 
         return true
-    }
-
-    @objc private func didTap(_ gesture: UITapGestureRecognizer) {
-        let point = gesture.location(in: view)
-        delegate?.navigator(self, didTapAt: point)
     }
 
     private func imageViewController(at index: Int) -> ImageViewController? {
