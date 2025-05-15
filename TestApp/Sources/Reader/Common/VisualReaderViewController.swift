@@ -81,10 +81,12 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
         ///
         /// Bind it to the navigator before adding your own observers to prevent
         /// triggering your actions when turning pages.
-        DirectionalNavigationAdapter().bind(to: navigator)
+        DirectionalNavigationAdapter(
+            pointerPolicy: .init(types: [.mouse, .touch]),
+        ).bind(to: navigator)
 
         // Clear the current search highlight on tap.
-        navigator.addObserver(.tap { [weak self] _ in
+        navigator.addObserver(.activate { [weak self] _ in
             guard
                 let searchViewModel = self?.searchViewModel,
                 searchViewModel.selectedLocator != nil
@@ -97,7 +99,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
         })
 
         // Toggle the navigation bar on tap, if nothing else took precedence.
-        navigator.addObserver(.tap { [weak self] _ in
+        navigator.addObserver(.activate { [weak self] _ in
             self?.toggleNavigationBar()
             return true
         })
