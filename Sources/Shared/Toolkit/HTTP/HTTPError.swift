@@ -48,20 +48,6 @@ public enum HTTPError: Error, Loggable {
     /// An other unknown error occurred.
     case other(Error)
 
-    @available(*, unavailable, message: "Use the HTTPError enum instead. HTTP status codes are available with HTTPError.errorResponse.")
-    public enum Kind: Sendable {}
-
-    @available(*, unavailable, message: "Use the HTTPError enum instead. HTTP status codes are available with HTTPError.errorResponse.")
-    public var kind: Kind { fatalError() }
-
-    /// Underlying error, if any.
-    @available(*, unavailable, message: "Use the HTTPError enum instead. HTTP status codes are available with HTTPError.errorResponse.")
-    public var cause: Error? { fatalError() }
-
-    /// Received HTTP response, if any.
-    @available(*, unavailable, message: "Use the HTTPError.errorResponse enum case instead.")
-    public var response: HTTPResponse? { fatalError() }
-
     /// Response body parsed as a JSON problem details.
     public func problemDetails() throws -> HTTPProblemDetails? {
         guard

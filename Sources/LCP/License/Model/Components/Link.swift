@@ -60,10 +60,6 @@ public struct Link {
         return HTTPURL(string: href)
     }
 
-    /// Expands the href without any template context.
-    @available(*, unavailable, message: "Use url() instead")
-    var url: URL? { fatalError() }
-
     var mediaType: MediaType? {
         type.flatMap { MediaType($0) }
     }

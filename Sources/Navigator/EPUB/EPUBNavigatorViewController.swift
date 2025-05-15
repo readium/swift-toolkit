@@ -119,9 +119,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         didSet { updateCurrentLocation() }
     }
 
-    @available(*, unavailable, message: "See the 2.5.0 migration guide to migrate to the Preferences API")
-    public var userSettings: Any { fatalError() }
-
     /// Navigation state.
     private enum State: Equatable {
         /// Initializing the navigator.
@@ -276,16 +273,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             // totalProgression when calculating the current locator.
             (readingOrder != nil) ? { .success([]) } : publication.positionsByReadingOrder
         )
-    }
-
-    @available(*, unavailable, message: "See the 2.5.0 migration guide to migrate the HTTP server and settings API")
-    public convenience init(
-        publication: Publication,
-        initialLocation: Locator? = nil,
-        resourcesServer: ResourcesServer,
-        config: Configuration = .init()
-    ) {
-        fatalError()
     }
 
     private init(
@@ -469,9 +456,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         on(.moved)
         return moved
     }
-
-    @available(*, unavailable, message: "See the 2.5.0 migration guide to migrate to the Preferences API")
-    public func updateUserSettingStyle() {}
 
     // MARK: - Pagination and spreads
 
@@ -849,11 +833,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             return .failure(EPUBError.spreadNotLoaded)
         }
         return await spreadView.evaluateScript(script)
-    }
-
-    @available(*, unavailable, message: "Use the async variant")
-    public func evaluateJavaScript(_ script: String, completion: ((Result<Any, Error>) -> Void)? = nil) {
-        fatalError()
     }
 
     // MARK: - UIAccessibilityAction

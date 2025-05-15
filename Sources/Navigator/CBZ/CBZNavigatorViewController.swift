@@ -76,11 +76,6 @@ open class CBZNavigatorViewController:
         }
     }
 
-    @available(*, unavailable, message: "See the 2.5.0 migration guide to migrate the HTTP server")
-    public convenience init(publication: Publication, initialLocation: Locator? = nil) {
-        fatalError()
-    }
-
     private let tasks = CancellableTasks()
 
     private init(
@@ -168,9 +163,6 @@ open class CBZNavigatorViewController:
         }
         return imageViewController.index
     }
-
-    @available(*, unavailable, renamed: "currentLocation")
-    public var currentPosition: Locator? { fatalError() }
 
     @discardableResult
     private func goToResourceAtIndex(_ index: Int, options: NavigatorGoOptions, isJump: Bool) async -> Bool {

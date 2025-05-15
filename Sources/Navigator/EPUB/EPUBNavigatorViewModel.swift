@@ -85,15 +85,6 @@ final class EPUBNavigatorViewModel: Loggable {
         }
     }
 
-    @available(*, unavailable, message: "See the 2.5.0 migration guide to migrate the Settings API")
-    convenience init(
-        publication: Publication,
-        config: EPUBNavigatorViewController.Configuration,
-        resourcesServer: ResourcesServer
-    ) {
-        fatalError()
-    }
-
     private init(
         publication: Publication,
         config: EPUBNavigatorViewController.Configuration,

@@ -21,14 +21,6 @@ public final class LCPService: Loggable {
     private let licenses: LicensesService
     private let assetRetriever: AssetRetriever
 
-    @available(*, unavailable, message: "Provide a `licenseRepository` and `passphraseRepository`, following the migration guide")
-    public init(
-        client: LCPClient,
-        httpClient: HTTPClient = DefaultHTTPClient()
-    ) {
-        fatalError()
-    }
-
     /// - Parameter deviceName: Device name used when registering a license to an LSD server.
     ///   If not provided, the device name will be the default `UIDevice.current.name`.
     public init(
@@ -70,11 +62,6 @@ public final class LCPService: Loggable {
         )
 
         self.assetRetriever = assetRetriever
-    }
-
-    @available(*, unavailable, message: "Check the conformance of the file `Format` to the `lcp` specification instead.")
-    public func isLCPProtected(_ file: FileURL) async -> Bool {
-        fatalError()
     }
 
     /// Acquires a protected publication from an LCPL.
@@ -138,28 +125,6 @@ public final class LCPService: Loggable {
         } catch {
             return .failure(.wrap(error))
         }
-    }
-
-    @available(*, unavailable, message: "Use the async variant.")
-    @discardableResult
-    public func acquirePublication(from lcpl: FileURL, onProgress: @escaping (LCPAcquisition.Progress) -> Void = { _ in }, completion: @escaping (CancellableResult<LCPAcquisition.Publication, LCPError>) -> Void) -> LCPAcquisition {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant using an `Asset`.")
-    public func retrieveLicense(
-        from publication: FileURL,
-        authentication: LCPAuthenticating = LCPDialogAuthentication(),
-        allowUserInteraction: Bool = true,
-        sender: Any? = nil,
-        completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void
-    ) {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Pass explicitly an `LCPDialogAuthentication()` for the same behavior as before")
-    public func contentProtection() -> ContentProtection {
-        contentProtection(with: LCPDialogAuthentication())
     }
 }
 

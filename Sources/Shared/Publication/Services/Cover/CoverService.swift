@@ -39,9 +39,6 @@ public protocol CoverService: PublicationService {
 }
 
 public extension CoverService {
-    @available(*, unavailable, message: "Use the async variant")
-    var cover: UIImage? { fatalError() }
-
     func coverFitting(maxSize: CGSize) async -> ReadResult<UIImage?> {
         await cover().map { $0?.scaleToFit(maxSize: maxSize) }
     }

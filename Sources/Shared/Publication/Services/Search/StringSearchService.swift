@@ -5,8 +5,6 @@
 //
 
 import Foundation
-@available(*, unavailable, renamed: "StringSearchService")
-public typealias _StringSearchService = StringSearchService
 
 /// Base implementation of `SearchService` iterating through the content of
 /// Publication's resources.

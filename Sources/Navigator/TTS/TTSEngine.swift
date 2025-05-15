@@ -31,15 +31,6 @@ public extension TTSEngine {
     func voiceWithIdentifier(_ identifier: String) -> TTSVoice? {
         availableVoices.first { $0.identifier == identifier }
     }
-
-    @available(*, unavailable, message: "Use the async variant")
-    func speak(
-        _ utterance: TTSUtterance,
-        onSpeakRange: @escaping (Range<String.Index>) -> Void,
-        completion: @escaping (Result<Void, TTSError>) -> Void
-    ) -> Cancellable {
-        fatalError()
-    }
 }
 
 public enum TTSError: Error {

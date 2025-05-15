@@ -339,10 +339,6 @@ open class PDFNavigatorViewController:
             ?? pdfViewDefaultBackgroundColor
     }
 
-    /// Override to customize the PDFDocumentView.
-    @available(*, unavailable, message: "Override the PDFNavigatorDelegate instead")
-    open func setupPDFView() {}
-
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
         let location = gesture.location(in: view)
         let pointer = Pointer.touch(TouchPointer(id: ObjectIdentifier(gesture)))

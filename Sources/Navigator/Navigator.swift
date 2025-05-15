@@ -97,26 +97,6 @@ public extension Navigator {
     func goBackward(options: NavigatorGoOptions = NavigatorGoOptions()) async -> Bool {
         await goBackward(options: options)
     }
-
-    @available(*, unavailable, message: "Use the async variant")
-    func go(to locator: Locator, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant")
-    func go(to link: Link, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant")
-    func goForward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant")
-    func goBackward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        fatalError()
-    }
 }
 
 @MainActor public protocol NavigatorDelegate: AnyObject {

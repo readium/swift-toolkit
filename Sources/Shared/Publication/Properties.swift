@@ -48,12 +48,4 @@ public struct Properties: Hashable, Loggable, WarningLogger, Sendable {
     public mutating func add(_ properties: JSONDictionary.Wrapped) {
         otherPropertiesJSON.json.merge(properties, uniquingKeysWith: { _, second in second })
     }
-
-    /// Makes a copy of this `Properties` after merging in the given additional other `properties`.
-    @available(*, unavailable, message: "Use `add` on a mutable copy")
-    public func adding(_ properties: JSONDictionary.Wrapped) -> Properties {
-        var copy = self
-        copy.add(properties)
-        return copy
-    }
 }
