@@ -8,11 +8,6 @@ import AVFoundation
 import Foundation
 import UIKit
 
-@available(*, unavailable, message: "Use `AudioSession` instead")
-public typealias _AudioSession = AudioSession
-@available(*, unavailable, message: "Use `AudioSessionUser` instead")
-public typealias _AudioSessionUser = AudioSessionUser
-
 /// An user of the `AudioSession`, for example a media player object.
 public protocol AudioSessionUser: AnyObject {
     /// Audio session configuration to use for this user.

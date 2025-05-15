@@ -42,12 +42,6 @@ public protocol VisualNavigator: Navigator, InputObservable {
 }
 
 public extension VisualNavigator {
-    /// Current reading progression direction.
-    @available(*, unavailable, message: "Use `presentation.readingProgression` instead", renamed: "presentation.readingProgression")
-    var readingProgression: ReadiumShared.ReadingProgression { fatalError() }
-}
-
-public extension VisualNavigator {
     func firstVisibleElementLocator() async -> Locator? {
         currentLocation
     }
@@ -70,21 +64,6 @@ public extension VisualNavigator {
         case .rtl:
             return await goBackward(options: options)
         }
-    }
-
-    @available(*, unavailable, message: "Use the async variant")
-    func firstVisibleElementLocator(completion: @escaping (Locator?) -> Void) {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant")
-    func goLeft(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant")
-    func goRight(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        fatalError()
     }
 }
 

@@ -47,14 +47,6 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         synthesizer.delegate = self
     }
 
-    @available(*, unavailable, message: "The audio session is now configured through the `PublicationSpeechSynthesizer`")
-    public convenience init(
-        audioSessionConfig: AudioSession.Configuration? = nil,
-        delegate: AVTTSEngineDelegate? = nil
-    ) {
-        self.init(delegate: delegate)
-    }
-
     public lazy var availableVoices: [TTSVoice] =
         AVSpeechSynthesisVoice.speechVoices()
             .map { TTSVoice(voice: $0) }

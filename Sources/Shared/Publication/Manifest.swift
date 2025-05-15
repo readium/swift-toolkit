@@ -169,33 +169,4 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
     public func linksMatching(_ predicate: (Link) -> Bool) -> [Link] {
         (readingOrder + resources + links).filter(predicate)
     }
-
-    @available(*, unavailable, renamed: "linkWithHREF")
-    public func link(withHREF href: String) -> Link? {
-        fatalError()
-    }
-
-    @available(*, unavailable, renamed: "linkWithRel")
-    public func link(withRel rel: LinkRelation) -> Link? {
-        fatalError()
-    }
-
-    @available(*, unavailable, renamed: "linksWithRel")
-    public func links(withRel rel: LinkRelation) -> [Link] {
-        fatalError()
-    }
-
-    /// Makes a copy of the `Manifest`, after modifying some of its properties.
-    @available(*, unavailable, message: "Make a mutable copy of the struct instead")
-    public func copy(
-        context: [String]? = nil,
-        metadata: Metadata? = nil,
-        links: [Link]? = nil,
-        readingOrder: [Link]? = nil,
-        resources: [Link]? = nil,
-        tableOfContents: [Link]? = nil,
-        subcollections: [String: [PublicationCollection]]? = nil
-    ) -> Manifest {
-        fatalError()
-    }
 }

@@ -40,9 +40,6 @@ public extension PublicationService {
     var links: [Link] { [] }
 
     func get<T: URLConvertible>(_ href: T) -> Resource? { nil }
-
-    @available(*, unavailable, message: "Use get(URLConvertible) instead")
-    func get(link: Link) -> Resource? { nil }
 }
 
 /// Factory used to create a `PublicationService`.
@@ -67,7 +64,4 @@ public struct PublicationServiceContext {
         self.manifest = manifest
         self.container = container
     }
-
-    @available(*, unavailable, renamed: "container")
-    public var fetcher: Fetcher { fatalError() }
 }

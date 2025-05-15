@@ -52,14 +52,4 @@ public extension LCPLicense {
     func renewLoan(with delegate: LCPRenewDelegate) async -> Result<Void, LCPError> {
         await renewLoan(with: delegate, prefersWebPage: false)
     }
-
-    @available(*, unavailable, message: "Use the async variant.")
-    func renewLoan(with delegate: LCPRenewDelegate, prefersWebPage: Bool, completion: @escaping (CancellableResult<Void, LCPError>) -> Void) {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant.")
-    func returnPublication(completion: @escaping (LCPError?) -> Void) {
-        fatalError()
-    }
 }
