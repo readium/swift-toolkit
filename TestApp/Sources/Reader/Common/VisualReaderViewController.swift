@@ -82,7 +82,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
         /// Bind it to the navigator before adding your own observers to prevent
         /// triggering your actions when turning pages.
         DirectionalNavigationAdapter(
-            pointerPolicy: .init(types: [.mouse, .touch]),
+            pointerPolicy: .init(types: [.mouse, .touch])
         ).bind(to: navigator)
 
         // Clear the current search highlight on tap.

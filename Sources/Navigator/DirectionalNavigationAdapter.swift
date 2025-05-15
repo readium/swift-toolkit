@@ -125,6 +125,10 @@ public final class DirectionalNavigationAdapter {
     /// It will automatically observe pointer and key events to turn pages.
     @MainActor public func bind(to navigator: VisualNavigator) {
         for pointerType in PointerType.allCases {
+            guard pointerPolicy.types.contains(pointerType) else {
+                continue
+            }
+
             switch pointerType {
             case .touch:
                 navigator.addObserver(.tap { [self, weak navigator] event in
