@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file. Take a look
 * Fixed several issues with the EPUB navigator cursor and pointer events.
     * Fixed the cursor shape on iPadOS when using a physical trackpad or mouse.
     * Fixed multiple tap events broadcasted while running on macOS.
+* [#449](https://github.com/readium/swift-toolkit/issues/449) Fixed misaligned EPUB navigator when it does not span the full screen width.
 
 
 ## [3.2.0]

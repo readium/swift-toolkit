@@ -25,21 +25,27 @@ window.addEventListener(
 window.addEventListener(
   "load",
   function () {
+    var pendingResize;
     const observer = new ResizeObserver(() => {
-      appendVirtualColumnIfNeeded();
-      onScroll();
+      if (pendingResize) {
+        window.cancelAnimationFrame(pendingResize);
+      }
+
+      pendingResize = window.requestAnimationFrame(function () {
+        onViewportWidthChanged();
+        onScroll();
+      });
     });
     observer.observe(document.body);
-
-    // on page load
-    window.addEventListener("orientationchange", function () {
-      orientationChanged();
-      snapCurrentPosition();
-    });
-    orientationChanged();
   },
   false
 );
+
+function onViewportWidthChanged() {
+  viewportWidth = window.innerWidth;
+  appendVirtualColumnIfNeeded();
+  snapCurrentPosition();
+}
 
 /**
  * Having an odd number of columns when displaying two columns per screen causes snapping and page
@@ -72,7 +78,7 @@ function appendVirtualColumnIfNeeded() {
 var last_known_scrollX_position = 0;
 var last_known_scrollY_position = 0;
 var ticking = false;
-var maxScreenX = 0;
+var viewportWidth = 0;
 
 // Position in range [0 - 1].
 function update(position) {
@@ -122,13 +128,6 @@ document.addEventListener(
   })
 );
 
-function orientationChanged() {
-  maxScreenX =
-    window.orientation === 0 || window.orientation == 180
-      ? screen.width
-      : screen.height;
-}
-
 export function getColumnCountPerScreen() {
   return parseInt(
     window
@@ -155,16 +154,16 @@ export function scrollToId(id) {
 
 // Position must be in the range [0 - 1], 0-100%.
 export function scrollToPosition(position, dir) {
-  console.log("ScrollToPosition");
   if (position < 0 || position > 1) {
-    console.log("InvalidPosition");
+    console.error(
+      `Expected a valid progression in scrollToPosition, got ${position}`
+    );
     return;
   }
 
   if (isScrollModeEnabled()) {
     let offset = document.scrollingElement.scrollHeight * position;
     document.scrollingElement.scrollTop = offset;
-    // window.scrollTo(0, offset);
   } else {
     var documentWidth = document.scrollingElement.scrollWidth;
     var factor = dir == "rtl" ? -1 : 1;
@@ -236,7 +235,7 @@ function scrollToOffset(offset) {
 function snapOffset(offset) {
   var value = offset + 1;
 
-  return value - (value % maxScreenX);
+  return value - (value % viewportWidth);
 }
 
 function snapCurrentPosition() {
