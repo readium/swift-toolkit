@@ -13,15 +13,18 @@ import Foundation
 /// This takes into account the reading progression of the navigator to turn
 /// pages in the right direction.
 public final class DirectionalNavigationAdapter {
-    /// Indicates which viewport edges trigger page turns on tap.
-    public struct TapEdges: OptionSet {
+    @available(*, deprecated, renamed: "Edges")
+    public typealias TapEdges = Edges
+
+    /// Indicates which viewport edges trigger page turns on pointer activation.
+    public struct Edges: OptionSet {
         /// The user can turn pages when tapping on the edges of both the
         /// horizontal and vertical axes.
-        public static let all: TapEdges = [.horizontal, .vertical]
+        public static let all: Edges = [.horizontal, .vertical]
         /// The user can turn pages when tapping on the left and right edges.
-        public static let horizontal = TapEdges(rawValue: 1 << 0)
+        public static let horizontal = Edges(rawValue: 1 << 0)
         /// The user can turn pages when tapping on the top and bottom edges.
-        public static let vertical = TapEdges(rawValue: 1 << 1)
+        public static let vertical = Edges(rawValue: 1 << 1)
 
         public var rawValue: Int
 
@@ -30,12 +33,72 @@ public final class DirectionalNavigationAdapter {
         }
     }
 
-    private let tapEdges: TapEdges
-    private let handleTapsWhileScrolling: Bool
-    private let minimumHorizontalEdgeSize: Double
-    private let horizontalEdgeThresholdPercent: Double?
-    private let minimumVerticalEdgeSize: Double
-    private let verticalEdgeThresholdPercent: Double?
+    public struct PointerPolicy {
+        /// The types of pointer that will trigger page turns.
+        public var types: [PointerType]
+
+        /// Indicates which viewport edges recognize pointer activation.
+        public var edges: Edges
+
+        /// Indicates whether to ignore pointer events when the publication is
+        /// scrollable.
+        public var ignoreWhileScrolling: Bool
+
+        /// The minimum horizontal edge dimension that triggers page turns, in
+        /// pixels.
+        public var minimumHorizontalEdgeSize: Double
+
+        /// The percentage of the viewport dimension used to calculate the
+        /// horizontal edge size. If it is nil, a fixed edge of
+        /// `minimumHorizontalEdgeSize` will be used instead.
+        public var horizontalEdgeThresholdPercent: Double?
+
+        /// The minimum vertical edge dimension that triggers page turns, in
+        /// pixels.
+        public var minimumVerticalEdgeSize: Double
+
+        /// The percentage of the viewport dimension used to calculate the
+        /// vertical edge size. If it is nil, a fixed edge of
+        /// `minimumVerticalEdgeSize` will be used instead.
+        public var verticalEdgeThresholdPercent: Double?
+
+        public init(
+            types: [PointerType] = [.touch, .mouse],
+            edges: Edges = .horizontal,
+            ignoreWhileScrolling: Bool = true,
+            minimumHorizontalEdgeSize: Double = 80.0,
+            horizontalEdgeThresholdPercent: Double? = 0.3,
+            minimumVerticalEdgeSize: Double = 80.0,
+            verticalEdgeThresholdPercent: Double? = 0.3
+        ) {
+            self.types = types
+            self.edges = edges
+            self.ignoreWhileScrolling = ignoreWhileScrolling
+            self.minimumHorizontalEdgeSize = minimumHorizontalEdgeSize
+            self.horizontalEdgeThresholdPercent = horizontalEdgeThresholdPercent
+            self.minimumVerticalEdgeSize = minimumVerticalEdgeSize
+            self.verticalEdgeThresholdPercent = verticalEdgeThresholdPercent
+        }
+    }
+
+    public struct KeyboardPolicy {
+        /// Indicates whether arrow keys should turn pages.
+        public var handleArrowKeys: Bool
+
+        /// Indicates whether the space key should turn the page forward.
+        public var handleSpaceKey: Bool
+
+        public init(
+            handleArrowKeys: Bool = true,
+            handleSpaceKey: Bool = true
+        ) {
+            self.handleArrowKeys = handleArrowKeys
+            self.handleSpaceKey = handleSpaceKey
+        }
+    }
+
+    private let pointerPolicy: PointerPolicy
+    private let keyboardPolicy: KeyboardPolicy
     private let animatedTransition: Bool
 
     private weak var navigator: VisualNavigator?
@@ -43,36 +106,17 @@ public final class DirectionalNavigationAdapter {
     /// Initializes a new `DirectionalNavigationAdapter`.
     ///
     /// - Parameters:
-    ///  - tapEdges: Indicates which viewport edges handle taps.
-    ///  - handleTapsWhileScrolling: Indicates whether the page turns should be
-    ///    handled when the publication is scrollable.
-    ///  - minimumHorizontalEdgeSize: The minimum horizontal edge dimension
-    ///    triggering page turns, in pixels.
-    ///  - horizontalEdgeThresholdPercent: The percentage of the viewport
-    ///    dimension used to compute the horizontal edge size. When null,
-    ///    `minimumHorizontalEdgeSize` will be used instead.
-    ///  - minimumVerticalEdgeSize: The minimum vertical edge dimension
-    ///    triggering page turns, in pixels.
-    ///  - verticalEdgeThresholdPercent: The percentage of the viewport
-    ///    dimension used to compute the vertical edge size. When null,
-    ///    `minimumVerticalEdgeSize` will be used instead.
+    ///  - pointerPolicy: Policy on page turns using pointers (touches, mouse).
+    ///  - keyboardPolicy: Policy on page turns using the keyboard.
     ///  - animatedTransition: Indicates whether the page turns should be
     ///    animated.
     public init(
-        tapEdges: TapEdges = .horizontal,
-        handleTapsWhileScrolling: Bool = false,
-        minimumHorizontalEdgeSize: Double = 80.0,
-        horizontalEdgeThresholdPercent: Double? = 0.3,
-        minimumVerticalEdgeSize: Double = 80.0,
-        verticalEdgeThresholdPercent: Double? = 0.3,
+        pointerPolicy: PointerPolicy = PointerPolicy(),
+        keyboardPolicy: KeyboardPolicy = KeyboardPolicy(),
         animatedTransition: Bool = false
     ) {
-        self.tapEdges = tapEdges
-        self.handleTapsWhileScrolling = handleTapsWhileScrolling
-        self.minimumHorizontalEdgeSize = minimumHorizontalEdgeSize
-        self.horizontalEdgeThresholdPercent = horizontalEdgeThresholdPercent
-        self.minimumVerticalEdgeSize = minimumVerticalEdgeSize
-        self.verticalEdgeThresholdPercent = verticalEdgeThresholdPercent
+        self.pointerPolicy = pointerPolicy
+        self.keyboardPolicy = keyboardPolicy
         self.animatedTransition = animatedTransition
     }
 
@@ -80,12 +124,28 @@ public final class DirectionalNavigationAdapter {
     ///
     /// It will automatically observe pointer and key events to turn pages.
     @MainActor public func bind(to navigator: VisualNavigator) {
-        navigator.addObserver(.tap { [self, weak navigator] event in
-            guard let navigator = navigator else {
-                return false
+        for pointerType in PointerType.allCases {
+            guard pointerPolicy.types.contains(pointerType) else {
+                continue
             }
-            return await onTap(at: event.location, in: navigator)
-        })
+
+            switch pointerType {
+            case .touch:
+                navigator.addObserver(.tap { [self, weak navigator] event in
+                    guard let navigator = navigator else {
+                        return false
+                    }
+                    return await onTap(at: event.location, in: navigator)
+                })
+            case .mouse:
+                navigator.addObserver(.click { [self, weak navigator] event in
+                    guard let navigator = navigator else {
+                        return false
+                    }
+                    return await onTap(at: event.location, in: navigator)
+                })
+            }
+        }
 
         navigator.addObserver(.key { [self, weak navigator] event in
             guard let navigator = navigator else {
@@ -97,17 +157,17 @@ public final class DirectionalNavigationAdapter {
 
     @MainActor
     private func onTap(at point: CGPoint, in navigator: VisualNavigator) async -> Bool {
-        guard handleTapsWhileScrolling || !navigator.presentation.scroll else {
+        guard !pointerPolicy.ignoreWhileScrolling || !navigator.presentation.scroll else {
             return false
         }
 
         let bounds = navigator.view.bounds
         let options = NavigatorGoOptions(animated: animatedTransition)
 
-        if tapEdges.contains(.horizontal) {
-            let horizontalEdgeSize = horizontalEdgeThresholdPercent
-                .map { max(minimumHorizontalEdgeSize, $0 * bounds.width) }
-                ?? minimumHorizontalEdgeSize
+        if pointerPolicy.edges.contains(.horizontal) {
+            let horizontalEdgeSize = pointerPolicy.horizontalEdgeThresholdPercent
+                .map { max(pointerPolicy.minimumHorizontalEdgeSize, $0 * bounds.width) }
+                ?? pointerPolicy.minimumHorizontalEdgeSize
             let leftRange = 0.0 ... horizontalEdgeSize
             let rightRange = (bounds.width - horizontalEdgeSize) ... bounds.width
 
@@ -118,10 +178,10 @@ public final class DirectionalNavigationAdapter {
             }
         }
 
-        if tapEdges.contains(.vertical) {
-            let verticalEdgeSize = verticalEdgeThresholdPercent
-                .map { max(minimumVerticalEdgeSize, $0 * bounds.height) }
-                ?? minimumVerticalEdgeSize
+        if pointerPolicy.edges.contains(.vertical) {
+            let verticalEdgeSize = pointerPolicy.verticalEdgeThresholdPercent
+                .map { max(pointerPolicy.minimumVerticalEdgeSize, $0 * bounds.height) }
+                ?? pointerPolicy.minimumVerticalEdgeSize
             let topRange = 0.0 ... verticalEdgeSize
             let bottomRange = (bounds.height - verticalEdgeSize) ... bounds.height
 
@@ -143,23 +203,25 @@ public final class DirectionalNavigationAdapter {
         let options = NavigatorGoOptions(animated: animatedTransition)
 
         switch event.key {
-        case .arrowUp:
+        case .arrowUp where keyboardPolicy.handleArrowKeys:
             return await navigator.goBackward(options: options)
-        case .arrowDown, .space:
+        case .arrowDown where keyboardPolicy.handleArrowKeys:
             return await navigator.goForward(options: options)
-        case .arrowLeft:
+        case .arrowLeft where keyboardPolicy.handleArrowKeys:
             return await navigator.goLeft(options: options)
-        case .arrowRight:
+        case .arrowRight where keyboardPolicy.handleArrowKeys:
             return await navigator.goRight(options: options)
+        case .space where keyboardPolicy.handleSpaceKey:
+            return await navigator.goForward(options: options)
         default:
             return false
         }
     }
 
-    @available(*, deprecated, message: "Use the initializer without the navigator parameter and call `bind(to:)`. See the migration guide.")
+    @available(*, deprecated, message: "Use the new initializer without the navigator parameter and call `bind(to:)`. See the migration guide.")
     public init(
         navigator: VisualNavigator,
-        tapEdges: TapEdges = .horizontal,
+        tapEdges: Edges = .horizontal,
         handleTapsWhileScrolling: Bool = false,
         minimumHorizontalEdgeSize: Double = 80.0,
         horizontalEdgeThresholdPercent: Double? = 0.3,
@@ -168,12 +230,15 @@ public final class DirectionalNavigationAdapter {
         animatedTransition: Bool = false
     ) {
         self.navigator = navigator
-        self.tapEdges = tapEdges
-        self.handleTapsWhileScrolling = handleTapsWhileScrolling
-        self.minimumHorizontalEdgeSize = minimumHorizontalEdgeSize
-        self.horizontalEdgeThresholdPercent = horizontalEdgeThresholdPercent
-        self.minimumVerticalEdgeSize = minimumVerticalEdgeSize
-        self.verticalEdgeThresholdPercent = verticalEdgeThresholdPercent
+        pointerPolicy = PointerPolicy(
+            types: [.touch, .mouse],
+            ignoreWhileScrolling: !handleTapsWhileScrolling,
+            minimumHorizontalEdgeSize: minimumHorizontalEdgeSize,
+            horizontalEdgeThresholdPercent: horizontalEdgeThresholdPercent,
+            minimumVerticalEdgeSize: minimumVerticalEdgeSize,
+            verticalEdgeThresholdPercent: verticalEdgeThresholdPercent
+        )
+        keyboardPolicy = KeyboardPolicy()
         self.animatedTransition = animatedTransition
     }
 

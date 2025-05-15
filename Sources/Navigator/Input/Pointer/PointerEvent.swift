@@ -79,7 +79,7 @@ public enum Pointer: Equatable, CustomStringConvertible {
 }
 
 /// Type of a pointer.
-public enum PointerType: Equatable {
+public enum PointerType: Equatable, CaseIterable {
     case touch
     case mouse
 }
