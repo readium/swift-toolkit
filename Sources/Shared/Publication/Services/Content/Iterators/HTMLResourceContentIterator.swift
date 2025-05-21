@@ -55,7 +55,7 @@ public class HTMLResourceContentIterator: ContentIterator {
     private let resource: Resource
     private let locator: Locator
     private let beforeMaxLength: Int = 50
-    private let totalProgressionRange: () async -> ClosedRange<Double>?
+    private let totalProgressionRange: Task<ClosedRange<Double>?, Never>
 
     public init(
         resource: Resource,
@@ -63,8 +63,8 @@ public class HTMLResourceContentIterator: ContentIterator {
         locator: Locator
     ) {
         self.resource = resource
-        self.totalProgressionRange = memoize(totalProgressionRange)
         self.locator = locator
+        self.totalProgressionRange = Task { await totalProgressionRange() }
     }
 
     public func previous() async throws -> ContentElement? {
@@ -93,9 +93,11 @@ public class HTMLResourceContentIterator: ContentIterator {
 
     private var currentIndex: Int?
 
-    private lazy var elements = memoize(parseElements)
+    private func elements() async throws -> ParsedElements {
+        try await elementsTask.value
+    }
 
-    private func parseElements() async throws -> ParsedElements {
+    private lazy var elementsTask = Task {
         let result = await resource
             .readAsString()
             .eraseToAnyError()
@@ -134,7 +136,7 @@ public class HTMLResourceContentIterator: ContentIterator {
             let progression = Double(index) / count
             return await element.copy(
                 progression: progression,
-                totalProgression: totalProgressionRange().map { range in
+                totalProgression: totalProgressionRange.value.map { range in
                     range.lowerBound + progression * (range.upperBound - range.lowerBound)
                 }
             )

@@ -398,9 +398,11 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     }
 
     /// Mapping between reading order hrefs and the table of contents title.
-    private lazy var tableOfContentsTitleByHref = memoize(computeTableOfContentsTitleByHref)
+    private var tableOfContentsTitleByHref: [AnyURL: String] {
+        get async { await tableOfContentsTitleByHrefTask.value }
+    }
 
-    private func computeTableOfContentsTitleByHref() async -> [AnyURL: String] {
+    private lazy var tableOfContentsTitleByHrefTask: Task<[AnyURL: String], Never> = Task {
         func fulfill(linkList: [Link]) -> [AnyURL: String] {
             var result = [AnyURL: String]()
 
@@ -613,7 +615,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             // Gets the current locator from the positionList, and fill its missing data.
             let positionIndex = Int(ceil(progression * Double(positionList.count - 1)))
             return await positionList[positionIndex].copy(
-                title: tableOfContentsTitleByHref()[equivalent: href],
+                title: tableOfContentsTitleByHref[equivalent: href],
                 locations: { $0.progression = progression }
             )
         } else {
