@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -7,8 +7,10 @@
 import Foundation
 
 public struct User {
+    public typealias ID = String
+
     /// Unique identifier for the User at a specific Provider.
-    public let id: String?
+    public let id: ID?
     /// The User’s e-mail address.
     public let email: String?
     /// The User’s name.

@@ -1,11 +1,11 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 
 /// An `EditingAction` is an item in the text selection menu.
@@ -31,7 +31,7 @@ public struct EditingAction: Hashable {
     /// Search Web.
     public static let lookup = EditingAction(kind: .native(["lookup", "_lookup:", "define:", "_define:"]))
 
-    @available(*, deprecated, message: "lookup and define were merged", renamed: "lookup")
+    @available(*, unavailable, message: "lookup and define were merged", renamed: "lookup")
     public static let define = lookup
 
     /// Translate the text selection.
@@ -120,6 +120,12 @@ final class EditingActionsController {
     }
 
     func canPerformAction(_ selector: Selector) -> Bool {
+        // Accessibility editing actions (e.g. Spoken Option in Accessibility
+        // system settings) cannot be properly disabled.
+        guard !selector.description.hasPrefix("_accessibility") else {
+            return true
+        }
+
         guard
             isEnabled,
             let selection = selection,
@@ -135,8 +141,6 @@ final class EditingActionsController {
     /// Verifies that the user has the rights to use the given `action`.
     private func isActionAllowed(_ action: EditingAction) -> Bool {
         switch action {
-        case .copy:
-            return rights.canCopy
         case .share:
             return canShare
         default:
@@ -180,11 +184,12 @@ final class EditingActionsController {
     }
 
     /// Copies the authorized portion of the selection text into the pasteboard.
-    func copy() {
+    @MainActor
+    func copy() async {
         guard let text = selection?.locator.text.highlight else {
             return
         }
-        guard rights.copy(text: text) else {
+        guard await rights.copy(text: text) else {
             delegate?.editingActionsDidPreventCopy(self)
             return
         }

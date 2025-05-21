@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -15,7 +15,7 @@ import {
   scrollRight,
   scrollToId,
   scrollToPosition,
-  scrollToText,
+  scrollToLocator,
   setProperty,
   setCSSProperties,
 } from "./utils";
@@ -26,7 +26,7 @@ global.readium = {
   // utils
   scrollToId: scrollToId,
   scrollToPosition: scrollToPosition,
-  scrollToText: scrollToText,
+  scrollToLocator: scrollToLocator,
   scrollLeft: scrollLeft,
   scrollRight: scrollRight,
   setCSSProperties: setCSSProperties,

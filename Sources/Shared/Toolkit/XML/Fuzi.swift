@@ -1,18 +1,34 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import Fuzi
+import ReadiumFuzi
 
 final class FuziXMLDocument: XMLDocument, Loggable {
-    fileprivate let document: Fuzi.XMLDocument
+    enum ParseError: Error {
+        case notAnXML
+    }
 
-    init(string: String, namespaces: [XMLNamespace]) throws {
-        document = try Fuzi.XMLDocument(string: string)
+    fileprivate let document: ReadiumFuzi.XMLDocument
+
+    convenience init(data: Data, namespaces: [XMLNamespace]) throws {
+        try self.init(document: ReadiumFuzi.XMLDocument(data: data), namespaces: namespaces)
+    }
+
+    convenience init(string: String, namespaces: [XMLNamespace]) throws {
+        try self.init(document: ReadiumFuzi.XMLDocument(string: string), namespaces: namespaces)
+    }
+
+    init(document: ReadiumFuzi.XMLDocument, namespaces: [XMLNamespace]) throws {
+        guard document.root != nil else {
+            throw ParseError.notAnXML
+        }
+
         document.definePrefixes(namespaces)
+        self.document = document
     }
 
     lazy var documentElement: XMLElement? =
@@ -34,10 +50,10 @@ final class FuziXMLDocument: XMLDocument, Loggable {
 }
 
 final class FuziXMLElement: XMLElement, Loggable {
-    fileprivate let document: Fuzi.XMLDocument
-    fileprivate let element: Fuzi.XMLElement
+    fileprivate let document: ReadiumFuzi.XMLDocument
+    fileprivate let element: ReadiumFuzi.XMLElement
 
-    fileprivate init(document: Fuzi.XMLDocument, element: Fuzi.XMLElement) {
+    fileprivate init(document: ReadiumFuzi.XMLDocument, element: ReadiumFuzi.XMLElement) {
         self.document = document
         self.element = element
     }
@@ -69,7 +85,7 @@ final class FuziXMLElement: XMLElement, Loggable {
     }
 }
 
-private extension Fuzi.XMLDocument {
+private extension ReadiumFuzi.XMLDocument {
     func definePrefixes(_ namespaces: [XMLNamespace]) {
         for namespace in namespaces {
             definePrefix(namespace.prefix, forNamespace: namespace.uri)

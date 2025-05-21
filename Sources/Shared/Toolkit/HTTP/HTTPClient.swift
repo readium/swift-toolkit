@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -15,53 +15,34 @@ public protocol HTTPClient: Loggable {
     ///
     /// - Parameters:
     ///   - request: Request to the streamed resource.
-    ///   - receiveResponse: Callback called when receiving the initial response, before consuming its body. You can
     ///     also access it in the completion block after consuming the data.
-    ///   - consume: Callback called for each chunk of data received. Callers are responsible to accumulate the data
-    ///     if needed.
-    ///   - completion: Callback called when the streaming finishes or an error occurs.
-    /// - Returns: A `Cancellable` interrupting the stream when requested.
+    ///   - consume: Callback called for each chunk of data received. Callers
+    ///     are responsible to accumulate the data if needed. Return an error
+    ///     to abort the request.
     func stream(
-        _ request: HTTPRequestConvertible,
-        receiveResponse: ((HTTPResponse) -> Void)?,
-        consume: @escaping (_ chunk: Data, _ progress: Double?) -> Void,
-        completion: @escaping (HTTPResult<HTTPResponse>) -> Void
-    ) -> Cancellable
+        request: HTTPRequestConvertible,
+        consume: @escaping (_ chunk: Data, _ progress: Double?) -> HTTPResult<Void>
+    ) async -> HTTPResult<HTTPResponse>
 }
 
 public extension HTTPClient {
-    func stream(_ request: HTTPRequestConvertible, consume: @escaping (Data, Double?) -> Void, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
-        stream(request, receiveResponse: nil, consume: consume, completion: completion)
-    }
-
     /// Fetches the resource from the given `request`.
-    func fetch(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
+    func fetch(_ request: HTTPRequestConvertible) async -> HTTPResult<HTTPResponse> {
         var data = Data()
-        return stream(request,
-                      consume: { chunk, _ in data.append(chunk) },
-                      completion: { result in
-                          completion(result.map {
-                              var response = $0
-                              response.body = data
-                              return response
-                          })
-                      })
-    }
+        let response = await stream(
+            request: request,
+            consume: { chunk, _ in
+                data.append(chunk)
+                return .success(())
+            }
+        )
 
-    /// Fetches a resource synchronously.
-    func fetchSync(_ request: HTTPRequestConvertible) -> HTTPResult<HTTPResponse> {
-        warnIfMainThread()
-
-        var result: HTTPResult<HTTPResponse>!
-
-        let semaphore = DispatchSemaphore(value: 0)
-        _ = fetch(request) {
-            result = $0
-            semaphore.signal()
-        }
-        _ = semaphore.wait(timeout: .distantFuture)
-
-        return result!
+        return response
+            .map {
+                var response = $0
+                response.body = data
+                return response
+            }
     }
 
     /// Fetches the resource and attempts to decode it with the given `decoder`.
@@ -69,45 +50,45 @@ public extension HTTPClient {
     /// If the decoder fails, a `malformedResponse` HTTP error is returned.
     func fetch<T>(
         _ request: HTTPRequestConvertible,
-        decoder: @escaping (HTTPResponse, Data) throws -> T?,
-        completion: @escaping (HTTPResult<T>) -> Void
-    ) -> Cancellable {
-        fetch(request) { response in
-            let result = response.flatMap { response -> HTTPResult<T> in
-                guard
-                    let body = response.body,
-                    let result = try? decoder(response, body)
-                else {
-                    return .failure(HTTPError(kind: .malformedResponse))
+        decoder: @escaping (HTTPResponse, Data) throws -> T?
+    ) async -> HTTPResult<T> {
+        await fetch(request)
+            .flatMap { response in
+                do {
+                    guard
+                        let body = response.body,
+                        let result = try decoder(response, body)
+                    else {
+                        return .failure(.malformedResponse(nil))
+                    }
+                    return .success(result)
+
+                } catch {
+                    return .failure(.malformedResponse(error))
                 }
-                return .success(result)
             }
-            completion(result)
-        }
     }
 
     /// Fetches the resource as a JSON object.
-    func fetchJSON(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<[String: Any]>) -> Void) -> Cancellable {
-        fetch(request,
-              decoder: { try JSONSerialization.jsonObject(with: $1) as? [String: Any] },
-              completion: completion)
+    func fetchJSON(_ request: HTTPRequestConvertible) async -> HTTPResult<[String: Any]> {
+        await fetch(request) {
+            try JSONSerialization.jsonObject(with: $1) as? [String: Any]
+        }
     }
 
     /// Fetches the resource as a `String`.
-    func fetchString(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<String>) -> Void) -> Cancellable {
-        fetch(request,
-              decoder: { response, body in
-                  let encoding = response.mediaType.encoding ?? .utf8
-                  return String(data: body, encoding: encoding)
-              },
-              completion: completion)
+    func fetchString(_ request: HTTPRequestConvertible) async -> HTTPResult<String> {
+        await fetch(request) { response, body in
+            let encoding = response.mediaType?.encoding ?? .utf8
+            return String(data: body, encoding: encoding)
+        }
     }
 
     /// Fetches the resource as an `UIImage`.
-    func fetchImage(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<UIImage>) -> Void) -> Cancellable {
-        fetch(request,
-              decoder: { UIImage(data: $1) },
-              completion: completion)
+    func fetchImage(_ request: HTTPRequestConvertible) async -> HTTPResult<UIImage> {
+        await fetch(request) {
+            UIImage(data: $1)
+        }
     }
 
     /// Downloads the resource at a temporary location.
@@ -115,62 +96,157 @@ public extension HTTPClient {
     /// You are responsible for moving or deleting the downloaded file in the `completion` block.
     func download(
         _ request: HTTPRequestConvertible,
-        onProgress: @escaping (Double) -> Void,
-        completion: @escaping (HTTPResult<HTTPDownload>) -> Void
-    ) -> Cancellable {
-        let location = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
-            .appendingUniquePathComponent()
+        onProgress: @escaping (Double) -> Void
+    ) async -> HTTPResult<HTTPDownload> {
+        let location = await FileURL(
+            url: URL(
+                fileURLWithPath: NSTemporaryDirectory(),
+                isDirectory: true
+            ).appendingUniquePathSegment()
+        )!
+
         let fileHandle: FileHandle
         do {
-            try "".write(to: location, atomically: true, encoding: .utf8)
-            fileHandle = try FileHandle(forWritingTo: location)
+            try "".write(to: location.url, atomically: true, encoding: .utf8)
+            fileHandle = try FileHandle(forWritingTo: location.url)
         } catch {
-            completion(.failure(HTTPError(kind: .ioError, cause: error)))
-            return CancellableObject()
+            return .failure(.fileSystem(.io(error)))
         }
-        var suggestedFilename: String?
 
-        return stream(
-            request,
-            receiveResponse: { response in
-                suggestedFilename = response.filename
-            },
+        let result = await stream(
+            request: request,
             consume: { data, progression in
-                fileHandle.seekToEndOfFile()
-                fileHandle.write(data)
+                do {
+                    try fileHandle.seekToEnd()
+                    try fileHandle.write(contentsOf: data)
+                } catch {
+                    return .failure(.fileSystem(.io(error)))
+                }
 
                 if let progression = progression {
                     onProgress(progression)
                 }
-            },
-            completion: { result in
-                if #available(iOS 13.0, *) {
-                    do {
-                        try fileHandle.close()
-                    } catch {
-                        log(.warning, error)
-                    }
-                }
 
-                switch result {
-                case let .success(response):
-                    completion(.success(HTTPDownload(
-                        location: location,
-                        suggestedFilename: suggestedFilename ?? response.filename,
-                        mediaType: response.mediaType
-                    )))
-
-                case let .failure(error):
-                    completion(.failure(error))
-                    do {
-                        try FileManager.default.removeItem(at: location)
-                    } catch {
-                        log(.warning, error)
-                    }
-                }
+                return .success(())
             }
         )
+
+        switch result {
+        case let .success(response):
+            return .success(HTTPDownload(
+                location: location,
+                suggestedFilename: response.filename,
+                mediaType: response.mediaType
+            ))
+
+        case let .failure(error):
+            do {
+                try FileManager.default.removeItem(at: location.url)
+            } catch {
+                log(.warning, error)
+            }
+            return .failure(error)
+        }
     }
+
+    @available(*, unavailable, message: "Use the async variant.")
+    func stream(_ request: HTTPRequestConvertible, receiveResponse: ((HTTPResponse) -> Void)?, consume: @escaping (_ chunk: Data, _ progress: Double?) -> Void, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Use the async variant.")
+    func stream(_ request: HTTPRequestConvertible, consume: @escaping (Data, Double?) -> Void, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Use the async variant.")
+    func fetch(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Use the async variant.")
+    func fetchSync(_ request: HTTPRequestConvertible) -> HTTPResult<HTTPResponse> {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Use the async variant.")
+    func fetch<T>(
+        _ request: HTTPRequestConvertible,
+        decoder: @escaping (HTTPResponse, Data) throws -> T?,
+        completion: @escaping (HTTPResult<T>) -> Void
+    ) -> Cancellable {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Use the async variant.")
+    func fetchJSON(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<[String: Any]>) -> Void) -> Cancellable {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Use the async variant.")
+    func fetchString(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<String>) -> Void) -> Cancellable {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Use the async variant.")
+    func fetchImage(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<UIImage>) -> Void) -> Cancellable {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Use the async variant.")
+    func download(
+        _ request: HTTPRequestConvertible,
+        onProgress: @escaping (Double) -> Void,
+        completion: @escaping (HTTPResult<HTTPDownload>) -> Void
+    ) -> Cancellable {
+        fatalError()
+    }
+}
+
+/// Status code of an HTTP response.
+public struct HTTPStatus: Equatable, RawRepresentable, ExpressibleByIntegerLiteral {
+    public let rawValue: Int
+
+    public init(rawValue: RawValue) {
+        self.rawValue = rawValue
+    }
+
+    public init(integerLiteral value: IntegerLiteralType) {
+        rawValue = value
+    }
+
+    /// Returns whether this represents a successful HTTP status.
+    public var isSuccess: Bool {
+        (200 ..< 400).contains(rawValue)
+    }
+
+    /// (200) OK.
+    public static let ok = HTTPStatus(rawValue: 200)
+
+    /// (206) This response code is used in response to a range request when the
+    /// client has requested a part or parts of a resource.
+    public static let partialContent = HTTPStatus(rawValue: 206)
+
+    /// (400) The server cannot or will not process the request due to an
+    /// apparent client error.
+    public static let badRequest = HTTPStatus(rawValue: 400)
+
+    /// (401) Authentication is required and has failed or has not yet been
+    /// provided.
+    public static let unauthorized = HTTPStatus(rawValue: 401)
+
+    /// (403) The server refuses the action, probably because we don't have the
+    /// necessary permissions.
+    public static let forbidden = HTTPStatus(rawValue: 403)
+
+    /// (404) The requested resource could not be found.
+    public static let notFound = HTTPStatus(rawValue: 404)
+
+    /// (405) Method not allowed.
+    public static let methodNotAllowed = HTTPStatus(rawValue: 405)
+
+    /// (500) Internal server error.
+    public static let internalServerError = HTTPStatus(rawValue: 500)
 }
 
 /// Represents a successful HTTP response received from a server.
@@ -179,46 +255,37 @@ public struct HTTPResponse: Equatable {
     public let request: HTTPRequest
 
     /// URL for the response, after any redirect.
-    public let url: URL
+    public let url: HTTPURL
 
     /// HTTP status code returned by the server.
-    public let statusCode: Int
+    public let status: HTTPStatus
+
+    @available(*, unavailable, renamed: "status.rawValue")
+    public var statusCode: HTTPStatus { fatalError() }
 
     /// HTTP response headers, indexed by their name.
     public let headers: [String: String]
 
-    /// Media type sniffed from the `Content-Type` header and response body.
-    /// Falls back on `application/octet-stream`.
-    public let mediaType: MediaType
+    /// Media type provided in the `Content-Type` header.
+    public let mediaType: MediaType?
 
     /// Response body content, when available.
     public var body: Data?
 
-    public init(request: HTTPRequest, url: URL, statusCode: Int, headers: [String: String], mediaType: MediaType, body: Data?) {
+    public init(
+        request: HTTPRequest,
+        url: HTTPURL,
+        status: HTTPStatus,
+        headers: [String: String],
+        mediaType: MediaType?,
+        body: Data?
+    ) {
         self.request = request
         self.url = url
-        self.statusCode = statusCode
+        self.status = status
         self.headers = headers
         self.mediaType = mediaType
         self.body = body
-    }
-
-    public init(request: HTTPRequest, response: HTTPURLResponse, url: URL, body: Data? = nil) {
-        var headers: [String: String] = [:]
-        for (k, v) in response.allHeaderFields {
-            if let ks = k as? String, let vs = v as? String {
-                headers[ks] = vs
-            }
-        }
-
-        self.init(
-            request: request,
-            url: url,
-            statusCode: response.statusCode,
-            headers: headers,
-            mediaType: response.sniffMediaType { body ?? Data() } ?? .binary,
-            body: body
-        )
     }
 
     /// Finds the value of the first header matching the given name.
@@ -276,15 +343,15 @@ public struct HTTPResponse: Equatable {
 public struct HTTPDownload {
     /// The location of a temporary file where the server's response is stored.
     /// You are responsible for moving or deleting the downloaded file..
-    public let location: URL
+    public let location: FileURL
 
     /// A suggested filename for the response data, taken from the `Content-Disposition` header.
     public let suggestedFilename: String?
 
     /// Media type sniffed from the `Content-Type` header and response body.
-    public let mediaType: MediaType
+    public let mediaType: MediaType?
 
-    public init(location: URL, suggestedFilename: String? = nil, mediaType: MediaType) {
+    public init(location: FileURL, suggestedFilename: String? = nil, mediaType: MediaType?) {
         self.location = location
         self.suggestedFilename = suggestedFilename
         self.mediaType = mediaType

@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -24,7 +24,13 @@ public protocol LCPAuthenticating {
     ///     presenting dialogs. For example, the host `UIViewController`.
     ///   - completion: Used to return the retrieved passphrase. If the user cancelled, send nil.
     ///     The passphrase may be already hashed.
-    func retrievePassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, allowUserInteraction: Bool, sender: Any?, completion: @escaping (String?) -> Void)
+    @MainActor
+    func retrievePassphrase(
+        for license: LCPAuthenticatedLicense,
+        reason: LCPAuthenticationReason,
+        allowUserInteraction: Bool,
+        sender: Any?
+    ) async -> String?
 }
 
 public enum LCPAuthenticationReason {

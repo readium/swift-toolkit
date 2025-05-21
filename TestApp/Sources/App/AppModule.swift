@@ -1,20 +1,21 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Combine
 import Foundation
-import R2Shared
-import R2Streamer
+import ReadiumShared
+import ReadiumStreamer
+import SwiftUI
 import UIKit
 
 /// Base module delegate, that sub-modules' delegate can extend.
 /// Provides basic shared functionalities.
 protocol ModuleDelegate: AnyObject {
     func presentAlert(_ title: String, message: String, from viewController: UIViewController)
-    func presentError(_ error: Error?, from viewController: UIViewController)
+    func presentError<T: UserErrorConvertible>(_ error: T, from viewController: UIViewController)
 }
 
 /// Main application module, it:
@@ -26,25 +27,44 @@ final class AppModule {
     var reader: ReaderModuleAPI!
     var opds: OPDSModuleAPI!
 
+    let readium: Readium
+
     init() throws {
-        let httpClient = DefaultHTTPClient()
-        let db = try Database(file: Paths.library.appendingPathComponent("database.db"))
+        let file = Paths.library.appendingPath("database.db", isDirectory: false)
+        let db = try Database(file: file.url)
+        print("Created database at \(file.path)")
+
         let books = BookRepository(db: db)
         let bookmarks = BookmarkRepository(db: db)
         let highlights = HighlightRepository(db: db)
 
-        library = LibraryModule(delegate: self, books: books, httpClient: httpClient)
-        reader = ReaderModule(delegate: self, books: books, bookmarks: bookmarks, highlights: highlights)
+        readium = Readium()
+
+        library = LibraryModule(
+            delegate: self,
+            books: books,
+            readium: readium
+        )
+
+        reader = ReaderModule(
+            delegate: self,
+            books: books,
+            bookmarks: bookmarks,
+            highlights: highlights,
+            readium: readium
+        )
+
         opds = OPDSModule(delegate: self)
 
         // Set Readium 2's logging minimum level.
-        R2EnableLog(withMinimumSeverityLevel: .debug)
+        ReadiumEnableLog(withMinimumSeverityLevel: .trace)
     }
 
     private(set) lazy var aboutViewController: UIViewController = {
-        let storyboard = UIStoryboard(name: "App", bundle: nil)
-        let aboutViewController = storyboard.instantiateViewController(withIdentifier: "AboutTableViewController") as! AboutTableViewController
-        return UINavigationController(rootViewController: aboutViewController)
+        let hostingController = UIHostingController(rootView: AboutView())
+        hostingController.navigationItem.title = "About the Readium Swift Toolkit"
+        hostingController.navigationItem.largeTitleDisplayMode = .never
+        return UINavigationController(rootViewController: hostingController)
     }()
 }
 
@@ -58,14 +78,8 @@ extension AppModule: ModuleDelegate {
         }
     }
 
-    func presentError(_ error: Error?, from viewController: UIViewController) {
-        guard let error = error else { return }
-        if case LibraryError.cancelled = error { return }
-        presentAlert(
-            NSLocalizedString("error_title", comment: "Alert title for errors"),
-            message: error.localizedDescription,
-            from: viewController
-        )
+    func presentError<T: UserErrorConvertible>(_ error: T, from viewController: UIViewController) {
+        viewController.alert(error)
     }
 }
 
@@ -78,11 +92,17 @@ extension AppModule: LibraryModuleDelegate {
 extension AppModule: ReaderModuleDelegate {}
 
 extension AppModule: OPDSModuleDelegate {
-    func opdsDownloadPublication(_ publication: Publication?, at link: Link, sender: UIViewController) async throws -> Book {
-        guard let url = link.url(relativeTo: publication?.baseURL) else {
-            throw LibraryError.cancelled
+    func opdsDownloadPublication(
+        _ publication: Publication?,
+        at link: ReadiumShared.Link,
+        sender: UIViewController,
+        progress: @escaping (Double) -> Void
+    ) async throws -> Book {
+        guard let url = link.url(relativeTo: publication?.baseURL).httpURL else {
+            throw OPDSError.invalidURL(link.href)
         }
 
-        return try await library.importPublication(from: url, sender: sender)
+        let fileURL = try await readium.httpClient.download(url, onProgress: progress).get().location
+        return try await library.importPublication(from: fileURL, sender: sender, progress: progress)
     }
 }

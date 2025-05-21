@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -116,7 +116,7 @@ public class MediaOverlays {
         // For each node of the current scope..
         for node in nodes {
             // If the node is a "section" (<seq> sequence element)..
-            // FIXME: ask if really usefull?
+            // TODO: ask if really useful?
             if node.role.contains("section") {
                 // Try to find par nodes inside.
                 if let found = _findNode(forFragment: fragment, inNodes: node.children) {

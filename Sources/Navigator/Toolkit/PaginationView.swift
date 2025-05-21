@@ -1,10 +1,10 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
+import ReadiumShared
 import UIKit
 
 enum PageLocation: Equatable {
@@ -31,13 +31,7 @@ enum PageLocation: Equatable {
 
 protocol PageView {
     /// Moves the page to the given internal location.
-    func go(to location: PageLocation, completion: (() -> Void)?)
-}
-
-extension PageView {
-    func go(to location: PageLocation) {
-        go(to: location, completion: nil)
-    }
+    func go(to location: PageLocation) async
 }
 
 protocol PaginationViewDelegate: AnyObject {
@@ -99,9 +93,20 @@ final class PaginationView: UIView, Loggable {
 
     private let scrollView = UIScrollView()
 
-    init(frame: CGRect, preloadPreviousPositionCount: Int, preloadNextPositionCount: Int) {
+    /// Allows the scroll view to scroll.
+    var isScrollEnabled: Bool {
+        didSet { scrollView.isScrollEnabled = isScrollEnabled }
+    }
+
+    init(
+        frame: CGRect,
+        preloadPreviousPositionCount: Int,
+        preloadNextPositionCount: Int,
+        isScrollEnabled: Bool
+    ) {
         self.preloadPreviousPositionCount = preloadPreviousPositionCount
         self.preloadNextPositionCount = preloadNextPositionCount
+        self.isScrollEnabled = isScrollEnabled
 
         super.init(frame: frame)
 
@@ -111,6 +116,7 @@ final class PaginationView: UIView, Loggable {
         scrollView.isPagingEnabled = true
         scrollView.bounces = false
         scrollView.showsHorizontalScrollIndicator = false
+        scrollView.isScrollEnabled = isScrollEnabled
         addSubview(scrollView)
 
         // Adds an empty view before the scroll view to have a consistent behavior on all iOS
@@ -158,8 +164,7 @@ final class PaginationView: UIView, Loggable {
     ///   - location: Location to be displayed in the page.
     ///   - pageCount: Total number of pages in the pagination view.
     ///   - readingProgression: Direction of reading progression.
-    ///   - completion: Closure called when the location is loaded.
-    func reloadAtIndex(_ index: Int, location: PageLocation, pageCount: Int, readingProgression: ReadingProgression, completion: @escaping () -> Void) {
+    func reloadAtIndex(_ index: Int, location: PageLocation, pageCount: Int, readingProgression: ReadingProgression) async {
         precondition(pageCount >= 1)
         precondition(0 ..< pageCount ~= index)
 
@@ -172,13 +177,12 @@ final class PaginationView: UIView, Loggable {
         loadedViews.removeAll()
         loadingIndexQueue.removeAll()
 
-        setCurrentIndex(index, location: location, completion: completion)
+        await setCurrentIndex(index, location: location)
     }
 
     /// Updates the current and pre-loaded views.
-    private func setCurrentIndex(_ index: Int, location: PageLocation? = nil, completion: @escaping () -> Void = {}) {
+    private func setCurrentIndex(_ index: Int, location: PageLocation? = nil) async {
         guard isEmpty || index != currentIndex else {
-            completion()
             return
         }
 
@@ -205,17 +209,12 @@ final class PaginationView: UIView, Loggable {
             }
         }
 
-        loadNextPage { [weak self] in
-            if let self = self {
-                self.delegate?.paginationViewDidUpdateViews(self)
-                completion()
-            }
-        }
+        await loadNextPage()
+        delegate?.paginationViewDidUpdateViews(self)
     }
 
-    private func loadNextPage(completion: @escaping () -> Void) {
+    private func loadNextPage() async {
         guard let (index, location) = loadingIndexQueue.popFirst() else {
-            completion()
             return
         }
 
@@ -229,13 +228,11 @@ final class PaginationView: UIView, Loggable {
         }
 
         guard let view = loadedViews[index] else {
-            completion()
             return
         }
 
-        view.go(to: location) {
-            self.loadNextPage(completion: completion)
-        }
+        await view.go(to: location)
+        await loadNextPage()
     }
 
     /// Queue views to be loaded until reaching the given number of pre-loaded positions.
@@ -290,50 +287,49 @@ final class PaginationView: UIView, Loggable {
     ///   - index: The index to move to.
     ///   - location: The location to move the future current page view to.
     /// - Returns: Whether the move is possible.
-    func goToIndex(_ index: Int, location: PageLocation, animated: Bool = false, completion: @escaping () -> Void) -> Bool {
+    func goToIndex(_ index: Int, location: PageLocation, options: NavigatorGoOptions) async -> Bool {
         guard 0 ..< pageCount ~= index else {
             return false
         }
 
         if currentIndex == index {
-            scrollToView(at: index, location: location, completion: completion)
+            await scrollToView(at: index, location: location)
         } else {
-            fadeToView(at: index, location: location, animated: animated, completion: completion)
+            await fadeToView(at: index, location: location, animated: options.animated)
         }
         return true
     }
 
-    private func fadeToView(at index: Int, location: PageLocation, animated: Bool, completion: @escaping () -> Void) {
-        func fade(to alpha: CGFloat, completion: @escaping () -> Void) {
+    private func fadeToView(at index: Int, location: PageLocation, animated: Bool) async {
+        func fade(to alpha: CGFloat) async {
             if animated {
-                UIView.animate(withDuration: 0.15, animations: {
-                    self.alpha = alpha
-                }) { _ in completion() }
+                await withCheckedContinuation { continuation in
+                    UIView.animate(withDuration: 0.15, animations: {
+                        self.alpha = alpha
+                    }) { _ in
+                        continuation.resume()
+                    }
+                }
             } else {
                 self.alpha = alpha
-                completion()
             }
         }
 
-        fade(to: 0) {
-            self.scrollToView(at: index, location: location) {
-                fade(to: 1, completion: completion)
-            }
-        }
+        await fade(to: 0)
+        await scrollToView(at: index, location: location)
+        await fade(to: 1)
     }
 
-    private func scrollToView(at index: Int, location: PageLocation, completion: @escaping () -> Void) {
+    private func scrollToView(at index: Int, location: PageLocation) async {
         guard currentIndex != index else {
             if let view = currentView {
-                view.go(to: location, completion: completion)
-            } else {
-                completion()
+                await view.go(to: location)
             }
             return
         }
 
-        scrollView.isScrollEnabled = true
-        setCurrentIndex(index, location: location, completion: completion)
+        scrollView.isScrollEnabled = isScrollEnabled
+        await setCurrentIndex(index, location: location)
 
         scrollView.scrollRectToVisible(CGRect(
             origin: CGPoint(
@@ -357,17 +353,17 @@ extension PaginationView: UIScrollViewDelegate {
     }
 
     func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
-        scrollView.isScrollEnabled = true
+        scrollView.isScrollEnabled = isScrollEnabled
     }
 
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if !decelerate {
-            scrollView.isScrollEnabled = true
+            scrollView.isScrollEnabled = isScrollEnabled
         }
     }
 
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        scrollView.isScrollEnabled = true
+        scrollView.isScrollEnabled = isScrollEnabled
 
         let currentOffset = (readingProgression == .rtl)
             ? scrollView.contentSize.width - (scrollView.contentOffset.x + scrollView.frame.width)
@@ -375,6 +371,8 @@ extension PaginationView: UIScrollViewDelegate {
 
         let newIndex = Int(round(currentOffset / scrollView.frame.width))
 
-        setCurrentIndex(newIndex)
+        Task {
+            await setCurrentIndex(newIndex)
+        }
     }
 }

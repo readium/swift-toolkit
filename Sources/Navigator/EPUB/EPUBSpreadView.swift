@@ -1,10 +1,10 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
+import ReadiumShared
 import SwiftSoup
 @preconcurrency import WebKit
 
@@ -148,14 +148,17 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     /// Evaluates the given JavaScript into the resource's HTML page.
-    func evaluateScript(_ script: String, inHREF href: String? = nil, completion: ((Result<Any, Error>) -> Void)? = nil) {
-        log(.debug, "Evaluate script: \(script)")
-        webView.evaluateJavaScript(script) { res, error in
-            if let error = error {
-                self.log(.error, error)
-                completion?(.failure(error))
-            } else {
-                completion?(.success(res ?? ()))
+    @discardableResult
+    func evaluateScript(_ script: String, inHREF href: AnyURL? = nil) async -> Result<Any, Error> {
+        log(.trace, "Evaluate script: \(script)")
+        return await withCheckedContinuation { continuation in
+            webView.evaluateJavaScript(script) { res, error in
+                if let error = error {
+                    self.log(.error, error)
+                    continuation.resume(returning: .failure(error))
+                } else {
+                    continuation.resume(returning: .success(res ?? ()))
+                }
             }
         }
     }
@@ -222,7 +225,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     private func spreadLoadDidStart(_ body: Any) {
         trace()
-        activityIndicatorStopWorkItem?.cancel()
     }
 
     /// Called by the javascript code when the spread contents is fully loaded.
@@ -232,6 +234,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         applySettings()
         spreadDidLoad()
         delegate?.spreadViewDidLoad(self)
+        onSpreadLoadedCallbacks.complete()
     }
 
     /// To be overriden to customize the behavior after the spread is loaded.
@@ -239,9 +242,29 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         showSpread()
     }
 
+    private let onSpreadLoadedCallbacks = CompletionList()
+
+    /// Awaits for the spread to be fully loaded.
+    func spreadLoaded() async {
+        await withCheckedContinuation { continuation in
+            whenSpreadLoaded {
+                continuation.resume()
+            }
+        }
+    }
+
+    /// Executes the given `callback` when the spread is fully loaded.
+    func whenSpreadLoaded(_ callback: @escaping () -> Void) {
+        let callback = onSpreadLoadedCallbacks.add(callback)
+        if spreadLoaded {
+            callback()
+        }
+    }
+
     func showSpread() {
         trace()
         activityIndicatorView?.stopAnimating()
+        activityIndicatorStopWorkItem?.cancel()
         UIView.animate(withDuration: animatedLoad ? 0.3 : 0, animations: {
             self.scrollView.alpha = 1
         })
@@ -257,7 +280,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
         guard
             let selection = body as? [String: Any],
-            let href = selection["href"] as? String,
+            let hrefString = selection["href"] as? String,
+            let href = AnyURL(string: hrefString),
             let text = try? Locator.Text(json: selection["text"]),
             var frame = CGRect(json: selection["rect"])
         else {
@@ -267,7 +291,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             return
         }
 
-        focusedResource = spread.links.first(withHREF: href)
+        focusedResource = spread.links.firstWithHREF(href)
         frame.origin = convertPointToNavigatorSpace(frame.origin)
         delegate?.spreadView(self, selectionDidChange: text, frame: frame)
     }
@@ -281,13 +305,13 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     // MARK: - Location and progression.
 
     /// Current progression in the resource with given href.
-    func progression(in href: String) -> Double {
+    func progression<T: URLConvertible>(in href: T) -> Double {
         // To be overridden in subclasses if the resource supports a progression.
         0
     }
 
-    func go(to location: PageLocation, completion: (() -> Void)?) {
-        fatalError("go(to:completion:) must be implemented in subclasses")
+    func go(to location: PageLocation) async {
+        fatalError("go(to:) must be implemented in subclasses")
     }
 
     enum Direction: CustomStringConvertible {
@@ -302,24 +326,21 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
-    func go(to direction: Direction, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+    func go(to direction: Direction, options: NavigatorGoOptions) async -> Bool {
         // The default implementation of a spread view considers that its content is entirely visible on screen.
         false
     }
 
-    func findFirstVisibleElementLocator(completion: @escaping (Locator?) -> Void) {
-        evaluateScript("readium.findFirstVisibleLocator()") { result in
-            DispatchQueue.main.async {
-                do {
-                    let resource = self.spread.leading
-                    let locator = try Locator(json: result.get())?
-                        .copy(href: resource.href, type: resource.type ?? MediaType.xhtml.string)
-                    completion(locator)
-                } catch {
-                    self.log(.error, error)
-                    completion(nil)
-                }
-            }
+    func findFirstVisibleElementLocator() async -> Locator? {
+        let result = await evaluateScript("readium.findFirstVisibleLocator()")
+        do {
+            let resource = spread.leading
+            let locator = try Locator(json: result.get())?
+                .copy(href: resource.url(), mediaType: resource.mediaType ?? .xhtml)
+            return locator
+        } catch {
+            log(.error, error)
+            return nil
         }
     }
 
@@ -460,13 +481,12 @@ extension EPUBSpreadView: WKNavigationDelegate {
         var policy: WKNavigationActionPolicy = .allow
 
         if navigationAction.navigationType == .linkActivated {
-            if let url = navigationAction.request.url {
+            if let url = navigationAction.request.url?.httpURL {
                 // Check if url is internal or external
-                if let baseURL = viewModel.publicationBaseURL, url.host == baseURL.host {
-                    let href = url.absoluteString.replacingOccurrences(of: baseURL.absoluteString, with: "/")
-                    delegate?.spreadView(self, didTapOnInternalLink: href, clickEvent: lastClick)
+                if let relativeURL = viewModel.publicationBaseURL.relativize(url) {
+                    delegate?.spreadView(self, didTapOnInternalLink: relativeURL.string, clickEvent: lastClick)
                 } else {
-                    delegate?.spreadView(self, didTapOnExternalURL: url)
+                    delegate?.spreadView(self, didTapOnExternalURL: url.url)
                 }
 
                 policy = .cancel
@@ -495,12 +515,7 @@ extension EPUBSpreadView: UIScrollViewDelegate {
     }
 }
 
-extension EPUBSpreadView: WKUIDelegate {
-    func webView(_ webView: WKWebView, shouldPreviewElement elementInfo: WKPreviewElementInfo) -> Bool {
-        // Preview allowed only if the link is not internal
-        elementInfo.linkURL?.host != viewModel.publicationBaseURL.host
-    }
-}
+extension EPUBSpreadView: WKUIDelegate {}
 
 extension EPUBSpreadView: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -514,19 +529,20 @@ private extension EPUBSpreadView {
     func updateActivityIndicator() {
         switch viewModel.theme {
         case .dark:
-            createActivityIndicator(style: .white)
+            createActivityIndicator(color: .white)
         default:
-            createActivityIndicator(style: .gray)
+            createActivityIndicator(color: .systemGray)
         }
     }
 
-    func createActivityIndicator(style: UIActivityIndicatorView.Style) {
-        guard activityIndicatorView?.style != style else {
+    func createActivityIndicator(color: UIColor) {
+        guard activityIndicatorView?.color != color else {
             return
         }
 
         activityIndicatorView?.removeFromSuperview()
-        let view = UIActivityIndicatorView(style: style)
+        let view = UIActivityIndicatorView(style: .medium)
+        view.color = color
         view.translatesAutoresizingMaskIntoConstraints = false
         addSubview(view)
         view.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
@@ -545,22 +561,28 @@ private extension EPUBSpreadView {
                 self?.activityIndicatorStopWorkItem = nil
             }
 
-            if self?.activityIndicatorStopWorkItem?.isCancelled ?? true {
+            guard
+                let self = self,
+                let workItem = activityIndicatorStopWorkItem,
+                !workItem.isCancelled
+            else {
                 return
             }
 
-            self?.trace("stopping activity indicator because spread did not load")
-            self?.activityIndicatorView?.stopAnimating()
+            trace("stopping activity indicator because spread \(spread.leading.href) did not load")
+            activityIndicatorView?.stopAnimating()
         }
 
-        // If the spread doesn't begin loading within 1 sec it means that we
+        // If the spread doesn't begin loading within 2 seconds it means that we
         // likely encountered an error. In that case the work item we
         // schedule below will stop the activity indicator.
         // If the spread begins to load it will send a `spreadLoadStart` JS
         // event which will cancel the work item being scheduled here.
         trace("scheduling activity indicator stop")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1,
-                                      execute: activityIndicatorStopWorkItem!)
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + 2,
+            execute: activityIndicatorStopWorkItem!
+        )
     }
 }
 

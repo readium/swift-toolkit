@@ -1,13 +1,13 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Combine
 import Foundation
-import R2Shared
-import R2Streamer
+import ReadiumShared
+import ReadiumStreamer
 import UIKit
 
 /// The Library module handles the presentation of the bookshelf, and the publications' management.
@@ -20,8 +20,13 @@ protocol LibraryModuleAPI {
 
     /// Imports a new publication to the library, either from:
     /// - a local file URL
-    /// - a remote URL which will be downloaded
-    func importPublication(from url: URL, sender: UIViewController) async throws -> Book
+    /// - a remote URL which will be streamed
+    @discardableResult
+    func importPublication(
+        from url: AbsoluteURL,
+        sender: UIViewController,
+        progress: @escaping (Double) -> Void
+    ) async throws -> Book
 }
 
 protocol LibraryModuleDelegate: ModuleDelegate {
@@ -32,12 +37,18 @@ protocol LibraryModuleDelegate: ModuleDelegate {
 final class LibraryModule: LibraryModuleAPI {
     weak var delegate: LibraryModuleDelegate?
 
+    private let lcp: LCPModuleAPI
     private let library: LibraryService
     private let factory: LibraryFactory
     private var subscriptions = Set<AnyCancellable>()
 
-    init(delegate: LibraryModuleDelegate?, books: BookRepository, httpClient: HTTPClient) {
-        library = LibraryService(books: books, httpClient: httpClient)
+    init(
+        delegate: LibraryModuleDelegate?,
+        books: BookRepository,
+        readium: Readium
+    ) {
+        lcp = LCPModule(readium: readium)
+        library = LibraryService(books: books, readium: readium, lcp: lcp)
         factory = LibraryFactory(libraryService: library)
         self.delegate = delegate
     }
@@ -50,7 +61,11 @@ final class LibraryModule: LibraryModuleAPI {
         return library
     }()
 
-    func importPublication(from url: URL, sender: UIViewController) async throws -> Book {
-        try await library.importPublication(from: url, sender: sender)
+    func importPublication(
+        from url: AbsoluteURL,
+        sender: UIViewController,
+        progress: @escaping (Double) -> Void
+    ) async throws -> Book {
+        try await library.importPublication(from: url, sender: sender, progress: progress)
     }
 }

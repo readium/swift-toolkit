@@ -1,12 +1,12 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import R2Navigator
-import R2Shared
+import ReadiumNavigator
+import ReadiumShared
 import UIKit
 
 final class AudiobookModule: ReaderFormatModule {
@@ -27,7 +27,8 @@ final class AudiobookModule: ReaderFormatModule {
         bookId: Book.Id,
         books: BookRepository,
         bookmarks: BookmarkRepository,
-        highlights: HighlightRepository
+        highlights: HighlightRepository,
+        readium: Readium
     ) async throws -> UIViewController {
         let preferencesStore = makePreferencesStore(books: books)
         let viewController = try await AudiobookViewController(

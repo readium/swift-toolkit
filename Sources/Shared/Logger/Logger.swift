@@ -1,16 +1,21 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 
-/// Initialize the R2Logger.
+@available(*, unavailable, renamed: "ReadiumEnableLog")
+public func R2EnableLog(withMinimumSeverityLevel level: SeverityLevel, customLogger: LoggerType = LoggerStub()) {
+    fatalError()
+}
+
+/// Initialize the Logger.
 /// Default logger is the `LoggerStub` class
 ///
 /// - Parameter customLogger: The Logger that will be used for printing logs.
-public func R2EnableLog(withMinimumSeverityLevel level: SeverityLevel, customLogger: LoggerType = LoggerStub()) {
+public func ReadiumEnableLog(withMinimumSeverityLevel level: SeverityLevel, customLogger: LoggerType = LoggerStub()) {
     Logger.sharedInstance.setupLogger(logger: customLogger)
     Logger.sharedInstance.setMinimumSeverityLevel(at: level)
 

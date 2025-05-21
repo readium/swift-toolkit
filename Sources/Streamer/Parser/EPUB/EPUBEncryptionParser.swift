@@ -1,35 +1,33 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import Fuzi
-import R2Shared
+import ReadiumFuzi
+import ReadiumShared
 
 /// A parser module which provide methods to parse encrypted XML elements.
 final class EPUBEncryptionParser: Loggable {
-    private let fetcher: Fetcher
+    private let container: Container
     private let data: Data
 
-    init(fetcher: Fetcher, data: Data) {
-        self.fetcher = fetcher
+    init(container: Container, data: Data) {
+        self.container = container
         self.data = data
     }
 
-    convenience init(fetcher: Fetcher) throws {
-        let path = "/META-INF/encryption.xml"
-        do {
-            let data = try fetcher.readData(at: path)
-            self.init(fetcher: fetcher, data: data)
-        } catch {
+    convenience init(container: Container) async throws {
+        let path = "META-INF/encryption.xml"
+        guard let data = try? await container.readData(at: AnyURL(string: path)!) else {
             throw EPUBParserError.missingFile(path: path)
         }
+        self.init(container: container, data: data)
     }
 
-    private lazy var document: Fuzi.XMLDocument? = {
-        let document = try? Fuzi.XMLDocument(data: data)
+    private lazy var document: ReadiumFuzi.XMLDocument? = {
+        let document = try? ReadiumFuzi.XMLDocument(data: data)
         document?.definePrefix("enc", forNamespace: "http://www.w3.org/2001/04/xmlenc#")
         document?.definePrefix("ds", forNamespace: "http://www.w3.org/2000/09/xmldsig#")
         document?.definePrefix("comp", forNamespace: "http://www.idpf.org/2016/encryption#compression")
@@ -39,21 +37,22 @@ final class EPUBEncryptionParser: Loggable {
     /// Parse the Encryption.xml EPUB file. It contains the informationg about encrypted resources and how to decrypt them.
     ///
     /// - Returns: A map between the resource `href` and the matching `Encryption`.
-    func parseEncryptions() -> [String: Encryption] {
+    func parseEncryptions() -> [RelativeURL: Encryption] {
         guard let document = document else {
             return [:]
         }
 
-        var encryptions: [String: Encryption] = [:]
+        var encryptions: [RelativeURL: Encryption] = [:]
 
         // Loop through <EncryptedData> elements..
         for encryptedDataElement in document.xpath("./enc:EncryptedData") {
-            guard let algorithm = encryptedDataElement.firstChild(xpath: "enc:EncryptionMethod")?.attr("Algorithm"),
-                  var resourceURI = encryptedDataElement.firstChild(xpath: "enc:CipherData/enc:CipherReference")?.attr("URI")?.removingPercentEncoding
+            guard
+                let algorithm = encryptedDataElement.firstChild(xpath: "enc:EncryptionMethod")?.attr("Algorithm"),
+                let resourceURI = encryptedDataElement.firstChild(xpath: "enc:CipherData/enc:CipherReference")?.attr("URI")
+                .flatMap(RelativeURL.init(epubHREF:))
             else {
                 continue
             }
-            resourceURI = HREF(resourceURI, relativeTo: "/").string
 
             var scheme: String?
             var originalLength: Int?

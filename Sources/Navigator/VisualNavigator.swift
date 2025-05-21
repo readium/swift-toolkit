@@ -1,11 +1,11 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 
 /// A navigator rendering the publication visually on-screen.
@@ -16,10 +16,6 @@ public protocol VisualNavigator: Navigator {
     /// Current presentation rendered by the navigator.
     var presentation: VisualNavigatorPresentation { get }
 
-    /// Current reading progression direction.
-    @available(*, deprecated, message: "Use `presentation.readingProgression` instead", renamed: "presentation.readingProgression")
-    var readingProgression: R2Shared.ReadingProgression { get }
-
     /// Moves to the left content portion (eg. page) relative to the reading
     /// progression direction.
     ///
@@ -28,7 +24,7 @@ public protocol VisualNavigator: Navigator {
     ///   content portion. The completion block is only called if true was
     ///   returned.
     @discardableResult
-    func goLeft(animated: Bool, completion: @escaping () -> Void) -> Bool
+    func goLeft(options: NavigatorGoOptions) async -> Bool
 
     /// Moves to the right content portion (eg. page) relative to the reading
     /// progression direction.
@@ -38,38 +34,57 @@ public protocol VisualNavigator: Navigator {
     ///   content portion. The completion block is only called if true was
     ///   returned.
     @discardableResult
-    func goRight(animated: Bool, completion: @escaping () -> Void) -> Bool
+    func goRight(options: NavigatorGoOptions) async -> Bool
 
     /// Returns the `Locator` to the first content element that begins on the
     /// current screen.
-    func firstVisibleElementLocator(completion: @escaping (Locator?) -> Void)
+    func firstVisibleElementLocator() async -> Locator?
 }
 
 public extension VisualNavigator {
+    /// Current reading progression direction.
+    @available(*, unavailable, message: "Use `presentation.readingProgression` instead", renamed: "presentation.readingProgression")
+    var readingProgression: ReadiumShared.ReadingProgression { fatalError() }
+}
+
+public extension VisualNavigator {
+    func firstVisibleElementLocator() async -> Locator? {
+        currentLocation
+    }
+
+    @discardableResult
+    func goLeft(options: NavigatorGoOptions) async -> Bool {
+        switch presentation.readingProgression {
+        case .ltr:
+            return await goBackward(options: options)
+        case .rtl:
+            return await goForward(options: options)
+        }
+    }
+
+    @discardableResult
+    func goRight(options: NavigatorGoOptions) async -> Bool {
+        switch presentation.readingProgression {
+        case .ltr:
+            return await goForward(options: options)
+        case .rtl:
+            return await goBackward(options: options)
+        }
+    }
+
+    @available(*, unavailable, message: "Use the async variant")
     func firstVisibleElementLocator(completion: @escaping (Locator?) -> Void) {
-        DispatchQueue.main.async {
-            completion(self.currentLocation)
-        }
+        fatalError()
     }
 
-    @discardableResult
+    @available(*, unavailable, message: "Use the async variant")
     func goLeft(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        switch presentation.readingProgression {
-        case .ltr:
-            return goBackward(animated: animated, completion: completion)
-        case .rtl:
-            return goForward(animated: animated, completion: completion)
-        }
+        fatalError()
     }
 
-    @discardableResult
+    @available(*, unavailable, message: "Use the async variant")
     func goRight(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        switch presentation.readingProgression {
-        case .ltr:
-            return goForward(animated: animated, completion: completion)
-        case .rtl:
-            return goBackward(animated: animated, completion: completion)
-        }
+        fatalError()
     }
 }
 
@@ -91,7 +106,7 @@ public struct VisualNavigatorPresentation {
     }
 }
 
-public protocol VisualNavigatorDelegate: NavigatorDelegate {
+@MainActor public protocol VisualNavigatorDelegate: NavigatorDelegate {
     /// Called when the navigator presentation changed, for example after
     /// applying a new set of preferences.
     func navigator(_ navigator: Navigator, presentationDidChange presentation: VisualNavigatorPresentation)

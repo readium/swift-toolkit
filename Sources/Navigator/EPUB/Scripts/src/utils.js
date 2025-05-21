@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -27,6 +27,7 @@ window.addEventListener(
   function () {
     const observer = new ResizeObserver(() => {
       appendVirtualColumnIfNeeded();
+      onScroll();
     });
     observer.observe(document.body);
 
@@ -79,7 +80,13 @@ function update(position) {
   webkit.messageHandlers.progressionChanged.postMessage(positionString);
 }
 
-window.addEventListener("scroll", function () {
+window.addEventListener("scroll", onScroll);
+
+function onScroll() {
+  if (readium.isFixedLayout) {
+    return;
+  }
+
   last_known_scrollY_position =
     window.scrollY / document.scrollingElement.scrollHeight;
   // Using Math.abs because for RTL books, the value will be negative.
@@ -106,7 +113,7 @@ window.addEventListener("scroll", function () {
     });
   }
   ticking = true;
-});
+}
 
 document.addEventListener(
   "selectionchange",
@@ -132,11 +139,7 @@ export function getColumnCountPerScreen() {
 
 export function isScrollModeEnabled() {
   const style = document.documentElement.style;
-  return (
-    style.getPropertyValue("--USER__view").trim() == "readium-scroll-on" ||
-    // FIXME: Will need to be removed in Readium 3.0, --USER__scroll was incorrect.
-    style.getPropertyValue("--USER__scroll").trim() == "readium-scroll-on"
-  );
+  return style.getPropertyValue("--USER__view").trim() == "readium-scroll-on";
 }
 
 // Scroll to the given TagId in document and snap.
@@ -172,10 +175,10 @@ export function scrollToPosition(position, dir) {
 
 // Scrolls to the first occurrence of the given text snippet.
 //
-// The expected text argument is a Locator Text object, as defined here:
+// The expected text argument is a Locator object, as defined here:
 // https://readium.org/architecture/models/locators/
-export function scrollToText(text) {
-  let range = rangeFromLocator({ text });
+export function scrollToLocator(locator) {
+  let range = rangeFromLocator(locator);
   if (!range) {
     return false;
   }

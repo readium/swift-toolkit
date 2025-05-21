@@ -1,14 +1,210 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. Take a look at [the migration guide](Documentation/Migration%20Guide.md) to upgrade between two major versions.
+All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
 **Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
 <!-- ## [Unreleased] -->
 
+## [3.2.0]
+
+### Added
+
+#### Shared
+
+* Support for [W3C's Text & data mining Reservation Protocol](https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/) in our metadata models.
+* Support for [accessibility exemption metadata](https://readium.org/webpub-manifest/contexts/default/#exemption), which allows content creators to identify publications that do not meet conformance requirements but fall under exemptions in a given juridiction.
+* Support for [EPUB Accessibility 1.1](https://www.w3.org/TR/epub-a11y-11/) conformance profiles.
+
+#### LCP
+
+* Support for streaming an LCP-protected publication from its License Document (LCPL). [Take a look at the LCP guide for more information](docs/Guides/Readium%20LCP.md#streaming-an-lcp-protected-package).
+
+### Changed
+
+#### Shared
+
+* The `absoluteURL` and `relativeURL` extensions on `URLConvertible` were removed as they conflict with the native `URL.absoluteURL`.
+    * If you were using them, you can for example still use `anyURL.absoluteURL` instead.
+* [go-toolkit#92](https://github.com/readium/go-toolkit/issues/92) The accessibility feature `printPageNumbers` is deprecated in favor of `pageNavigation`.
+
+#### Streamer
+
+* A `self` link is not required anymore when parsing a RWPM.
+
+### Fixed
+
+#### Navigator
+
+* Fixed going to a link containing a fragment in the PDF navigator, for example from the table of contents.
+
+
+## [3.1.0]
+
+### Added
+
+#### Shared
+
+* Support for streaming ZIP packages over HTTP. This lets you open a remote EPUB, audiobook, or any other ZIP-based publication without needing to download it first.
+
+### Deprecated
+
+* The `close()` and `Closeable` APIs are now deprecated. Resources are automatically released upon `deinit`, which aligns better with Swift.
+
+### Fixed
+
+#### LCP
+
+* Fixed a regression that caused some LCP passphrases to no longer match the protected publication.
+
+#### Navigator
+
+* Fixed race condition when calling `submitPreferences()` before the EPUB navigator is fully initialized.
+
+
+## [3.0.0-beta.2]
+
+* The Readium Swift toolkit now requires a minimum of iOS 13.4.
+* All the libraries are now available on a dedicated [Readium CocoaPods Specs repository](https://github.com/readium/podspecs). Take a look at [the migration guide](docs/Migration%20Guide.md) to migrate.
+
+### Added
+
+#### Navigator
+
+* The `EPUBNavigatorViewController.Configuration.disablePageTurnsWhileScrolling` property disables horizontal swipes for navigating to previous or next resources when scroll mode is enabled. When set to `true`, you must implement your own mechanism to move to the next resource (contributed by [@alecdhansen](https://github.com/readium/swift-toolkit/pull/531)).
+
+### Changed
+
+#### Shared
+
+* The default `ZIPArchiveOpener` is now using ZIPFoundation instead of Minizip, with improved performances when reading ranges of `stored` ZIP entries.
+* Improvements in the HTTP client:
+    * The `consume` closure of `HTTPClient.stream()` can now return an error to abort the HTTP request.
+    * `HTTPError` has been refactored for improved type safety and a clearer separation of connection errors versus HTTP errors.
+    * `DefaultHTTPClient` no longer automatically restarts a failed `HEAD` request as a `GET` to retrieve the response body. If you relied on this behavior, you can implement it using a custom `DefaultHTTPClientDelegate.httpClient(_:recoverRequest:fromError:)`.
+
+### Fixed
+
+#### Shared
+
+* Fixed a crash using `HTTPClient.download()` when the device storage is full.
+
+#### Navigator
+
+* [#509](https://github.com/readium/swift-toolkit/issues/509) Removed the "Copy Link with Highlight" and "Writing Tools" EPUB editing actions on newer devices.
+
+#### OPDS
+
+* Fixed a data race in the OPDS 1 parser.
+
+
+## [3.0.0-beta.1]
+
+### Added
+
+#### Shared
+
+* `TableOfContentsService` can now be used to customize the computation of `publication.tableOfContents()`.
+
+#### LCP
+
+* The table of contents of an LCP-protected PDF is now extracted directly from the PDF if the `tableOfContents` property in `manifest.json` is empty.
+
+### Fixed
+
+* [#489](https://github.com/readium/swift-toolkit/issues/489) Fix crash related to Fuzi when compiling with Xcode 16 in release mode.
+
+#### Navigator
+
+* [#502](https://github.com/readium/swift-toolkit/issues/502) Fixed accessibility editing actions on iOS 18.
+
+
+## [3.0.0-alpha.3]
+
+### Fixed
+
+#### Navigator
+
+* [#459](https://github.com/readium/swift-toolkit/issues/459) Fixed the stack overflow issue that occurred when running the text-to-speech on an EPUB file with many empty resources.
+* [#490](https://github.com/readium/swift-toolkit/issues/490) Fixed issue loading fixed-layout EPUBs.
+
+
+## [3.0.0-alpha.2]
+
+### Added
+
+#### Streamer
+
+* Support for standalone audio files and their metadata (contributed by [@domkm](https://github.com/readium/swift-toolkit/pull/414)).
+
+### Changed
+
+* The Readium Swift toolkit now requires a minimum of iOS 13.
+* Plenty of completion-based APIs were changed to use `async` functions instead.
+
+#### Shared
+
+* A new `Format` type was introduced to augment `MediaType` with more precise information about the format specifications of an `Asset`.
+* `Fetcher` was replaced with a simpler `Container` type.
+* `PublicationAsset` was replaced by `Asset`, which contains a `Format` and access to the underlying `Container` or `Resource`.
+* The `ResourceError` hierarchy was revamped and simplified (see `ReadError`). Now it is your responsibility to provide a localized user message for each error case.
+* The `Link` property key for archive-based publication assets (e.g. an EPUB/ZIP) is now `https://readium.org/webpub-manifest/properties#archive` instead of `archive`.
+* The API of `HTTPServer` slightly changed to be more future-proof.
+
+#### Streamer
+
+* The `Streamer` object was deprecated in favor of smaller segregated APIs: `AssetRetriever` and `PublicationOpener`. 
+
+#### Navigator
+
+* EPUB: The `scroll` preference is now forced to `true` when rendering vertical text (e.g. CJK vertical). [See this discussion for the rationale](https://github.com/readium/swift-toolkit/discussions/370).
+
+#### LCP
+
+* The Readium LCP persistence layer was extracted to allow applications to provide their own implementations. Take a look at [the migration guide](docs/Migration%20Guide.md) for guidance.
+
+### Fixed
+
+#### Navigator
+
+* Optimized scrolling to an EPUB text-based locator if it contains a CSS selector.
+* The first resource of a fixed-layout EPUB is now displayed on its own when spreads are enabled and the author has not set a `page-spread-*` property. This is the default behavior in major reading apps like Apple Books.
+* [#471](https://github.com/readium/swift-toolkit/issues/471) EPUB: Fixed reporting the current location when submitting new preferences.
+
+
+## [3.0.0-alpha.1]
+
+### Changed
+
+* The `R2Shared`, `R2Streamer` and `R2Navigator` packages are now called `ReadiumShared`, `ReadiumStreamer` and `ReadiumNavigator`.
+* Many APIs now expect one of the new URL types (`RelativeURL`, `AbsoluteURL`, `HTTPURL` and `FileURL`). This is helpful because:
+    * It validates at compile time that we provide a URL that is supported.
+    * The API's capabilities are better documented, e.g. a download API could look like this : `download(url: HTTPURL) -> FileURL`. 
+
+#### Shared
+
+* `Link` and `Locator`'s `href` are normalized as valid URLs to improve interoperability with the Readium Web toolkits.
+   * **You MUST migrate your database if you were persisting HREFs and Locators**. Take a look at [the migration guide](docs/Migration%20Guide.md) for guidance.
+* Links are not resolved to the `self` URL of a manifest anymore. However, you can still normalize the HREFs yourselves by calling `Manifest.normalizeHREFsToSelf()`.
+* `Publication.localizedTitle` is now optional, as we cannot guarantee a publication will always have a title.
+
+
+## [2.7.4]
+
+### Fixed
+
+* [#489](https://github.com/readium/swift-toolkit/issues/489) Fix crash related to Fuzi when compiling with Xcode 16 in release mode.
+
+#### Navigator
+
+* [#502](https://github.com/readium/swift-toolkit/issues/502) Fixed accessibility editing actions on iOS 18.
+
+
 ## [2.7.3]
 
-* [#483](https://github.com/readium/swift-toolkit/issues/483) Fix build on Xcode 16.
+### Fixed
+
+* [#483](https://github.com/readium/swift-toolkit/issues/483) Fixed build on Xcode 16.
 
 
 ## [2.7.2]
@@ -171,8 +367,8 @@ All notable changes to this project will be documented in this file. Take a look
 
 * New `VisualNavigatorDelegate` APIs to handle keyboard events (contributed by [@lukeslu](https://github.com/readium/swift-toolkit/pull/267)).
     * This can be used to turn pages with the arrow keys, for example.
-* [Support for custom fonts with the EPUB navigator](Documentation/Guides/EPUB%20Fonts.md).
-* A brand new user preferences API for configuring the EPUB and PDF Navigators. This new API is easier and safer to use. To learn how to integrate it in your app, [please refer to the user guide](Documentation/Guides/Navigator%20Preferences.md) and [migration guide](Documentation/Migration%20Guide.md).
+* [Support for custom fonts with the EPUB navigator](docs/Guides/EPUB%20Fonts.md).
+* A brand new user preferences API for configuring the EPUB and PDF Navigators. This new API is easier and safer to use. To learn how to integrate it in your app, [please refer to the user guide](docs/Guides/Navigator%20Preferences.md) and [migration guide](docs/Migration%20Guide.md).
     * New EPUB user preferences:
         * `fontWeight` - Base text font weight.
         * `textNormalization` - Normalize font style, weight and variants, which improves accessibility.
@@ -199,11 +395,11 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Streamer
 
-* `PublicationServer` is deprecated. See the [the migration guide](Documentation/Migration%20Guide.md#2.5.0) to migrate the HTTP server.
+* `PublicationServer` is deprecated. See the [the migration guide](docs/Migration%20Guide.md#2.5.0) to migrate the HTTP server.
 
 #### Navigator
 
-* The EPUB `UserSettings` component is deprecated and replaced by the new Preferences API. [Take a look at the user guide](Documentation/Guides/Navigator%20Preferences.md) and [migration guide](Documentation/Migration%20Guide.md).
+* The EPUB `UserSettings` component is deprecated and replaced by the new Preferences API. [Take a look at the user guide](docs/Guides/Navigator%20Preferences.md) and [migration guide](docs/Migration%20Guide.md).
 
 ### Changed
 
@@ -228,11 +424,11 @@ All notable changes to this project will be documented in this file. Take a look
 #### Shared
 
 * Support for the accessibility metadata in RWPM per [Schema.org Accessibility Properties for Discoverability Vocabulary](https://www.w3.org/2021/a11y-discov-vocab/latest/).
-* [Extract the raw content (text, images, etc.) of a publication](Documentation/Guides/Content.md).
+* [Extract the raw content (text, images, etc.) of a publication](docs/Guides/Content.md).
 
 #### Navigator
 
-* [A brand new text-to-speech implementation](Documentation/Guides/TTS.md).
+* [A brand new text-to-speech implementation](docs/Guides/TTS.md).
 
 #### Streamer
 
@@ -693,3 +889,11 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [2.7.1]: https://github.com/readium/swift-toolkit/compare/2.7.0...2.7.1
 [2.7.2]: https://github.com/readium/swift-toolkit/compare/2.7.1...2.7.2
 [2.7.3]: https://github.com/readium/swift-toolkit/compare/2.7.2...2.7.3
+[2.7.4]: https://github.com/readium/swift-toolkit/compare/2.7.3...2.7.4
+[3.0.0-alpha.1]: https://github.com/readium/swift-toolkit/compare/2.7.1...3.0.0-alpha.1
+[3.0.0-alpha.2]: https://github.com/readium/swift-toolkit/compare/3.0.0-alpha.1...3.0.0-alpha.2
+[3.0.0-alpha.3]: https://github.com/readium/swift-toolkit/compare/3.0.0-alpha.2...3.0.0-alpha.3
+[3.0.0-beta.1]: https://github.com/readium/swift-toolkit/compare/3.0.0-alpha.3...3.0.0-beta.1
+[3.0.0-beta.2]: https://github.com/readium/swift-toolkit/compare/3.0.0-beta.1...3.0.0-beta.2
+[3.1.0]: https://github.com/readium/swift-toolkit/compare/3.0.0...3.1.0
+[3.2.0]: https://github.com/readium/swift-toolkit/compare/3.1.0...3.2.0

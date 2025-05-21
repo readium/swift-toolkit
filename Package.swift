@@ -1,6 +1,6 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.10
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -10,51 +10,47 @@ import PackageDescription
 let package = Package(
     name: "Readium",
     defaultLocalization: "en",
-    platforms: [.iOS(.v11)],
+    platforms: [.iOS("13.4")],
     products: [
-        .library(name: "R2Shared", targets: ["R2Shared"]),
-        .library(name: "R2Streamer", targets: ["R2Streamer"]),
-        .library(name: "R2Navigator", targets: ["R2Navigator"]),
+        .library(name: "ReadiumShared", targets: ["ReadiumShared"]),
+        .library(name: "ReadiumStreamer", targets: ["ReadiumStreamer"]),
+        .library(name: "ReadiumNavigator", targets: ["ReadiumNavigator"]),
         .library(name: "ReadiumOPDS", targets: ["ReadiumOPDS"]),
         .library(name: "ReadiumLCP", targets: ["ReadiumLCP"]),
 
         // Adapters to third-party dependencies.
         .library(name: "ReadiumAdapterGCDWebServer", targets: ["ReadiumAdapterGCDWebServer"]),
+        .library(name: "ReadiumAdapterLCPSQLite", targets: ["ReadiumAdapterLCPSQLite"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/cezheng/Fuzi.git", from: "3.1.3"),
-        // From 1.6.0, the build fails in GitHub actions with Carthage
-        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", "1.5.1" ..< "1.6.0"),
-        .package(url: "https://github.com/marmelroy/Zip.git", from: "2.1.2"),
+        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.8.0"),
+        .package(url: "https://github.com/marmelroy/Zip.git", from: "2.1.0"),
         .package(url: "https://github.com/ra1028/DifferenceKit.git", from: "1.3.0"),
+        .package(url: "https://github.com/readium/Fuzi.git", from: "4.0.0"),
         .package(url: "https://github.com/readium/GCDWebServer.git", from: "4.0.0"),
-        // From 2.6.0, Xcode 14 is required
-        .package(url: "https://github.com/scinfu/SwiftSoup.git", "2.5.3" ..< "2.6.0"),
-        // 0.14 introduced a breaking change
-        .package(url: "https://github.com/stephencelis/SQLite.swift.git", "0.12.0" ..< "0.13.3"),
-        // 0.9.12 requires iOS 12+
-        .package(url: "https://github.com/weichsel/ZIPFoundation.git", "0.9.0" ..< "0.9.12"),
+        .package(url: "https://github.com/readium/ZIPFoundation.git", from: "3.0.0"),
+        .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.7.0"),
+        .package(url: "https://github.com/stephencelis/SQLite.swift.git", from: "0.15.0"),
     ],
     targets: [
         .target(
-            name: "R2Shared",
-            dependencies: ["ReadiumInternal", "Fuzi", "SwiftSoup", "Zip"],
+            name: "ReadiumShared",
+            dependencies: [
+                "ReadiumInternal",
+                "SwiftSoup",
+                "Zip",
+                .product(name: "ReadiumFuzi", package: "Fuzi"),
+                .product(name: "ReadiumZIPFoundation", package: "ZIPFoundation"),
+            ],
             path: "Sources/Shared",
-            exclude: [
-                // Support for ZIPFoundation is not yet achieved.
-                "Toolkit/Archive/ZIPFoundation.swift",
-            ],
-            resources: [
-                .process("Resources"),
-            ],
             linkerSettings: [
                 .linkedFramework("CoreServices"),
                 .linkedFramework("UIKit"),
             ]
         ),
         .testTarget(
-            name: "R2SharedTests",
-            dependencies: ["R2Shared"],
+            name: "ReadiumSharedTests",
+            dependencies: ["ReadiumShared"],
             path: "Tests/SharedTests",
             resources: [
                 .copy("Fixtures"),
@@ -62,13 +58,11 @@ let package = Package(
         ),
 
         .target(
-            name: "R2Streamer",
+            name: "ReadiumStreamer",
             dependencies: [
                 "CryptoSwift",
-                "Fuzi",
-                .product(name: "ReadiumGCDWebServer", package: "GCDWebServer"),
-                "Zip",
-                "R2Shared",
+                "ReadiumShared",
+                .product(name: "ReadiumFuzi", package: "Fuzi"),
             ],
             path: "Sources/Streamer",
             resources: [
@@ -76,8 +70,8 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "R2StreamerTests",
-            dependencies: ["R2Streamer"],
+            name: "ReadiumStreamerTests",
+            dependencies: ["ReadiumStreamer"],
             path: "Tests/StreamerTests",
             resources: [
                 .copy("Fixtures"),
@@ -85,10 +79,10 @@ let package = Package(
         ),
 
         .target(
-            name: "R2Navigator",
+            name: "ReadiumNavigator",
             dependencies: [
                 "ReadiumInternal",
-                "R2Shared",
+                "ReadiumShared",
                 "DifferenceKit",
                 "SwiftSoup",
             ],
@@ -102,16 +96,16 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "R2NavigatorTests",
-            dependencies: ["R2Navigator"],
+            name: "ReadiumNavigatorTests",
+            dependencies: ["ReadiumNavigator"],
             path: "Tests/NavigatorTests"
         ),
 
         .target(
             name: "ReadiumOPDS",
             dependencies: [
-                "Fuzi",
-                "R2Shared",
+                "ReadiumShared",
+                .product(name: "ReadiumFuzi", package: "Fuzi"),
             ],
             path: "Sources/OPDS"
         ),
@@ -128,9 +122,8 @@ let package = Package(
             name: "ReadiumLCP",
             dependencies: [
                 "CryptoSwift",
-                "ZIPFoundation",
-                "R2Shared",
-                .product(name: "SQLite", package: "SQLite.swift"),
+                "ReadiumShared",
+                .product(name: "ReadiumZIPFoundation", package: "ZIPFoundation"),
             ],
             path: "Sources/LCP",
             resources: [
@@ -138,7 +131,7 @@ let package = Package(
             ]
         ),
         // These tests require a R2LCPClient.framework to run.
-        // FIXME: Find a solution to run the tests with GitHub action.
+        // TODO: Find a solution to run the tests with GitHub action.
         // .testTarget(
         //     name: "ReadiumLCPTests",
         //     dependencies: ["ReadiumLCP"],
@@ -152,9 +145,18 @@ let package = Package(
             name: "ReadiumAdapterGCDWebServer",
             dependencies: [
                 .product(name: "ReadiumGCDWebServer", package: "GCDWebServer"),
-                "R2Shared",
+                "ReadiumShared",
             ],
             path: "Sources/Adapters/GCDWebServer"
+        ),
+
+        .target(
+            name: "ReadiumAdapterLCPSQLite",
+            dependencies: [
+                .product(name: "SQLite", package: "SQLite.swift"),
+                "ReadiumLCP",
+            ],
+            path: "Sources/Adapters/LCPSQLite"
         ),
 
         .target(

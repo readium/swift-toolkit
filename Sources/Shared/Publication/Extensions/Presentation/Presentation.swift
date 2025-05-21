@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -119,9 +119,6 @@ public struct Presentation: Equatable {
         case scrolled
         /// The User Agent can decide how overflow should be handled.
         case auto
-
-        @available(*, unavailable, message: "Use `Presentation.continuous` instead")
-        static let scrolledContinuous: Overflow = .scrolled
     }
 
     /// Indicates how the linked resource should be displayed in a reading environment that

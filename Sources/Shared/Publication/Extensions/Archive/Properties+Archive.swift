@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -50,6 +50,6 @@ public extension Properties {
 
     /// Provides information about how the resource is stored in the publication archive.
     var archive: Archive? {
-        try? Archive(json: otherProperties["archive"], warnings: self)
+        try? Archive(json: otherProperties["https://readium.org/webpub-manifest/properties#archive"], warnings: self)
     }
 }

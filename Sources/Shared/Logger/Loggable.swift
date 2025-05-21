@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -68,6 +68,15 @@ public extension Loggable {
 
     func log(_ level: SeverityLevel, _ value: Any?, defaultFile: String = #file, defaultLine: Int = #line) {
         Logger.sharedInstance.log(value, at: level, file: defaultFile, line: defaultLine)
+    }
+
+    @discardableResult func logAndRethrow<T>(_ block: () throws -> T) rethrows -> T {
+        do {
+            return try block()
+        } catch {
+            log(.error, error)
+            throw error
+        }
     }
 
     static func log(_ level: SeverityLevel, _ value: Any?, file: String, line: Int) {

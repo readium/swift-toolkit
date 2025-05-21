@@ -1,22 +1,29 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import Fuzi
-import R2Shared
+import ReadiumFuzi
+import ReadiumShared
 
 /// Package vocabularies used for `property`, `properties`, `scheme` and `rel`.
 /// http://www.idpf.org/epub/301/spec/epub-publications.html#sec-metadata-assoc
 enum OPFVocabulary: String {
     // Fallback prefixes for metadata's properties and links' rels.
     case defaultMetadata, defaultLinkRel
-    // Reserved prefixes (https://idpf.github.io/epub-prefixes/packages/).
+
+    // Reserved prefixes
+    // https://idpf.github.io/epub-prefixes/packages/
     case a11y, dcterms, epubsc, marc, media, onix, rendition, schema, xsd
+
     // Additional prefixes used in the streamer.
     case calibre
+
+    // New TDM Reservation Protocol
+    // https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/
+    case tdm
 
     var uri: String {
         switch self {
@@ -45,6 +52,8 @@ enum OPFVocabulary: String {
         case .calibre:
             // https://github.com/kovidgoyal/calibre/blob/3f903cbdd165e0d1c5c25eecb6eef2a998342230/src/calibre/ebooks/metadata/opf3.py#L170
             return "https://calibre-ebook.com"
+        case .tdm:
+            return "http://www.w3.org/ns/tdmrep#"
         }
     }
 
@@ -96,7 +105,7 @@ enum OPFVocabulary: String {
     /// > Reserved prefixes should not be overridden in the prefix attribute, but Reading Systems
     /// > must use such local overrides when encountered.
     /// http://www.idpf.org/epub/301/spec/epub-publications.html#sec-metadata-reserved-vocabs
-    static func prefixes(in document: Fuzi.XMLDocument) -> [String: String] {
+    static func prefixes(in document: ReadiumFuzi.XMLDocument) -> [String: String] {
         document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
         guard let prefixAttribute = document.firstChild(xpath: "/opf:package")?.attr("prefix") else {
             return [:]
@@ -128,7 +137,7 @@ struct OPFMeta {
     let id: String?
     /// ID of the metadata that is refined by this one, if any.
     let refines: String?
-    let element: Fuzi.XMLElement
+    let element: ReadiumFuzi.XMLElement
 }
 
 /// Represents a `link` tag in an OPF document.
@@ -139,15 +148,15 @@ struct OPFLink {
     let href: String
     /// ID of the metadata that is refined by this one, if any.
     let refines: String?
-    let element: Fuzi.XMLElement
+    let element: ReadiumFuzi.XMLElement
 }
 
 struct OPFMetaList {
-    private let document: Fuzi.XMLDocument
+    private let document: ReadiumFuzi.XMLDocument
     private let metas: [OPFMeta]
     private let links: [OPFLink]
 
-    init(document: Fuzi.XMLDocument) {
+    init(document: ReadiumFuzi.XMLDocument) {
         self.document = document
         let prefixes = OPFVocabulary.prefixes(in: document)
         document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
@@ -294,7 +303,7 @@ struct OPFMetaList {
     /// List of properties that should not be added to `otherMetadata` because they are already
     /// consumed by the RWPM model.
     private let rwpmProperties: [OPFVocabulary: [String]] = [
-        .a11y: ["certifiedBy", "certifierCredential", "certifierReport"],
+        .a11y: ["certifiedBy", "certifierCredential", "certifierReport", "exemption"],
         .defaultMetadata: ["cover"],
         .dcterms: [
             "contributor", "creator", "date", "description", "identifier",

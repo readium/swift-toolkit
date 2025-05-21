@@ -1,12 +1,12 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import R2Shared
 import ReadiumGCDWebServer
+import ReadiumShared
 
 /// Errors thrown by the `WebServerResourceResponse`
 ///
@@ -19,23 +19,17 @@ enum WebServerResponseError: Error {
 
 /// The object containing the response's ressource data.
 /// If the ressource to be served is too big, multiple responses will be created.
-class ResourceResponse: ReadiumGCDWebServerFileResponse, Loggable {
+class ResourceResponse: ReadiumGCDWebServerResponse, Loggable {
     private let bufferSize = 32 * 1024
 
     private var resource: Resource
     private var range: Range<UInt64>
     private let length: UInt64
     private var offset: UInt64 = 0
+    private var lastReadData: ReadResult<Data>?
     private lazy var totalNumberOfBytesRead = UInt64(0)
 
-    /// Initialise the WebServerRessourceResponse object, defining what will be
-    /// served.
-    ///
-    /// - Parameters:
-    ///   - resource: The publication resource to be served.
-    ///   - range: The range of resource's data served previously, if any.
-    ///   - contentType: The content-type of the response's ressource.
-    init(resource: Resource, length: UInt64, range: NSRange?) {
+    init(resource: Resource, length: UInt64, range: NSRange?, mediaType: MediaType) {
         self.resource = resource
         self.length = length
 
@@ -77,7 +71,7 @@ class ResourceResponse: ReadiumGCDWebServerFileResponse, Loggable {
 
         super.init()
 
-        contentType = resource.link.type ?? ""
+        contentType = mediaType.string
 
         // Disable HTTP caching for publication resources, because it poses a security threat for protected
         // publications.
@@ -102,20 +96,20 @@ class ResourceResponse: ReadiumGCDWebServerFileResponse, Loggable {
     }
 
     /// Read a new chunk of data.
-    override open func readData() throws -> Data {
+    override func asyncReadData() async throws -> Data {
         let len = min(bufferSize, range.count - Int(totalNumberOfBytesRead))
         // If nothing to read, return
         guard len > 0, offset < length else {
+            lastReadData = .success(Data())
             return Data()
         }
         // Read
-        let data = try resource.read(range: offset ..< (offset + UInt64(len))).get()
-        totalNumberOfBytesRead += UInt64(data.count)
-        offset += UInt64(data.count)
-        return data
-    }
+        lastReadData = await resource.read(range: offset ..< (offset + UInt64(len)))
+        if case let .success(data) = lastReadData {
+            totalNumberOfBytesRead += UInt64(data.count)
+            offset += UInt64(data.count)
+        }
 
-    override open func close() {
-        resource.close()
+        return (try? lastReadData?.get()) ?? Data()
     }
 }

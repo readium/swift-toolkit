@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -32,21 +32,4 @@ window.addEventListener("load", function () {
     "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no"
   );
   document.head.appendChild(meta);
-});
-
-// Injects Readium CSS stylesheets (legacy Settings API).
-document.addEventListener("DOMContentLoaded", function () {
-  if (!window.readiumCSSBaseURL) return;
-
-  function createLink(name) {
-    var link = document.createElement("link");
-    link.setAttribute("rel", "stylesheet");
-    link.setAttribute("type", "text/css");
-    link.setAttribute("href", window.readiumCSSBaseURL + name + ".css");
-    return link;
-  }
-
-  var head = document.getElementsByTagName("head")[0];
-  head.appendChild(createLink("ReadiumCSS-after"));
-  head.insertBefore(createLink("ReadiumCSS-before"), head.children[0]);
 });
