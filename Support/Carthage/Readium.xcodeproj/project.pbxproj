@@ -329,7 +329,6 @@
 		D589F337B244F5B58E85AEFB /* AudioSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC9D0ACCBA7B6E4473A95D5E /* AudioSettings.swift */; };
 		D5AF26F18E98CEF06AEC0329 /* SQLiteLCPLicenseRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17ACAC3E8F61DA108DCC9F51 /* SQLiteLCPLicenseRepository.swift */; };
 		D65BEF9DAF1FEB1A5BEED700 /* EPUBParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03C234075C7F7573BA54B77D /* EPUBParser.swift */; };
-		D6D695C1BC390F583A350E0A /* Memoize.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6E45005E776078B46DB8E14 /* Memoize.swift */; };
 		D7B3500D49A188A0D6B5E7CA /* Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B6A5B12925813FB40C41034 /* Presentation.swift */; };
 		D7FB0CC13190A17DAB7D7DB1 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 866AEA533E1F119928F17990 /* Localizable.strings */; };
 		D81ECD34F39E58E30E7E13B2 /* PublicationCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B0A149FC97C747F55F6463C /* PublicationCollection.swift */; };
@@ -837,7 +836,6 @@
 		F64FBE3CA5C1B0C73A22E86D /* Bundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bundle.swift; sourceTree = "<group>"; };
 		F669F31B0B6EC690C48916EC /* Bundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bundle.swift; sourceTree = "<group>"; };
 		F6D54D373E999936DBAD7E6F /* ResourceFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceFactory.swift; sourceTree = "<group>"; };
-		F6E45005E776078B46DB8E14 /* Memoize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Memoize.swift; sourceTree = "<group>"; };
 		F6EB7CAF6D058380A2AB711A /* CGPDF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGPDF.swift; sourceTree = "<group>"; };
 		F76073E8E6DACE7F9D22E0DD /* PointerEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointerEvent.swift; sourceTree = "<group>"; };
 		F7FF49B3B34628DC67CF8255 /* InputObservableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputObservableViewController.swift; sourceTree = "<group>"; };
@@ -1345,7 +1343,6 @@
 			children = (
 				529B55BE6996FCDC1082BF0A /* JSON.swift */,
 				4FEE01FAD273864D0908C358 /* Measure.swift */,
-				F6E45005E776078B46DB8E14 /* Memoize.swift */,
 				218BE3110D2886B252A769A2 /* UTI.swift */,
 				40D18A37080F5B1D114CE2E1 /* Extensions */,
 			);
@@ -2473,7 +2470,6 @@
 				674BEEF110667C3051296E9B /* Double.swift in Sources */,
 				DDD0C8AC27EF8D1A893DF6CC /* JSON.swift in Sources */,
 				E8C3B837B9FB2ABCB5F82380 /* Measure.swift in Sources */,
-				D6D695C1BC390F583A350E0A /* Memoize.swift in Sources */,
 				F631EA324143E669070523F3 /* NSRegularExpression.swift in Sources */,
 				606EBE8AC2096BC681F92908 /* Number.swift in Sources */,
 				B1008DFBDE3E33CA552E0E26 /* Optional.swift in Sources */,

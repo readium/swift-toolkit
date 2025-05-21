@@ -328,7 +328,6 @@
 ../../Sources/Internal/Extensions/URL.swift
 ../../Sources/Internal/JSON.swift
 ../../Sources/Internal/Measure.swift
-../../Sources/Internal/Memoize.swift
 ../../Sources/Internal/UTI.swift
 ../../Sources/LCP
 ../../Sources/LCP/Authentications
@@ -441,13 +440,9 @@
 ../../Sources/Navigator/EPUB/Assets/Static/scripts
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/.gitignore
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-one.js
-../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-one.js.map
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-two.js
-../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-two.js.map
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed.js
-../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed.js.map
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-reflowable.js
-../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-reflowable.js.map
 ../../Sources/Navigator/EPUB/CSS
 ../../Sources/Navigator/EPUB/CSS/CSSLayout.swift
 ../../Sources/Navigator/EPUB/CSS/CSSProperties.swift
@@ -518,7 +513,6 @@
 ../../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/README.md
 ../../Sources/Navigator/EPUB/Scripts/webpack.config.js
 ../../Sources/Navigator/Input
-../../Sources/Navigator/Input/.DS_Store
 ../../Sources/Navigator/Input/CompositeInputObserver.swift
 ../../Sources/Navigator/Input/InputObservable.swift
 ../../Sources/Navigator/Input/InputObservable+Legacy.swift
@@ -531,7 +525,6 @@
 ../../Sources/Navigator/Input/Key/KeyModifiers.swift
 ../../Sources/Navigator/Input/Key/KeyObserver.swift
 ../../Sources/Navigator/Input/Pointer
-../../Sources/Navigator/Input/Pointer/.DS_Store
 ../../Sources/Navigator/Input/Pointer/ActivatePointerObserver.swift
 ../../Sources/Navigator/Input/Pointer/PointerEvent.swift
 ../../Sources/Navigator/Navigator.swift
