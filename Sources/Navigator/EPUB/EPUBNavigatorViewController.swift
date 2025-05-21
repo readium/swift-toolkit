@@ -115,9 +115,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         }
     }
 
-    public weak var delegate: EPUBNavigatorDelegate? {
-        didSet { updateCurrentLocation() }
-    }
+    public weak var delegate: EPUBNavigatorDelegate?
 
     /// Navigation state.
     private enum State: Equatable {
@@ -516,7 +514,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         needsReloadSpreads = true
 
-        await _reloadSpreads(at: locator, force: force)
+        _reloadSpreads(at: locator, force: force)
         for continuation in reloadSpreadsContinuations {
             continuation.resume()
         }
@@ -525,7 +523,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         needsReloadSpreads = false
     }
 
-    private func _reloadSpreads(at locator: Locator? = nil, force: Bool) async {
+    private func _reloadSpreads(at locator: Locator? = nil, force: Bool) {
         let locator = locator ?? currentLocation
 
         guard
@@ -558,7 +556,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             pageCount: spreads.count,
             readingProgression: viewModel.readingProgression
         )
-        
+
         on(.loaded)
     }
 

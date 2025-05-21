@@ -149,10 +149,10 @@ final class PaginationView: UIView, Loggable {
 
         scrollView.contentOffset.x = xOffsetForIndex(currentIndex)
     }
-    
+
     override func didMoveToWindow() {
         super.didMoveToWindow()
-        
+
         if window == nil {
             loadPagesTask.cancel()
         } else {
@@ -221,14 +221,14 @@ final class PaginationView: UIView, Loggable {
 
         loadPages()
     }
-    
+
     private func loadPages() {
         loadPagesTask.replace { @MainActor in
             await loadNextPage()
             delegate?.paginationViewDidUpdateViews(self)
         }
     }
-    
+
     private var loadPagesTask: Task<Void, Never>?
 
     private func loadNextPage() async {
