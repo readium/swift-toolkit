@@ -224,7 +224,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     public private(set) var currentLocation: Locator?
     private let loadPositionsByReadingOrder: () async -> ReadResult<[[Locator]]>
     private var positionsByReadingOrder: [[Locator]] = []
-    private let tasks = CancellableTasks()
 
     private let viewModel: EPUBNavigatorViewModel
     public var publication: Publication { viewModel.publication }
@@ -319,7 +318,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         // the current resource. We can use this to go to the next resource.
         view.accessibilityTraits.insert(.causesPageTurn)
 
-        tasks.add {
+        Task {
             await initialize()
         }
     }
@@ -553,12 +552,13 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             }
         }()
 
-        await paginationView.reloadAtIndex(
+        paginationView.reloadAtIndex(
             initialIndex,
             location: PageLocation(locator),
             pageCount: spreads.count,
             readingProgression: viewModel.readingProgression
         )
+        
         on(.loaded)
     }
 
@@ -1151,8 +1151,9 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
     }
 
     func paginationViewDidUpdateViews(_ paginationView: PaginationView) {
-        // notice that you should set the delegate before you load views
-        // otherwise, when open the publication, you may miss the first invocation
+        // Note that you should set the delegate before you load views
+        // otherwise, when open the publication, you may miss the first
+        // invocation.
         updateCurrentLocation()
     }
 

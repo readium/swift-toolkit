@@ -149,6 +149,16 @@ final class PaginationView: UIView, Loggable {
 
         scrollView.contentOffset.x = xOffsetForIndex(currentIndex)
     }
+    
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        
+        if window == nil {
+            loadPagesTask.cancel()
+        } else {
+            loadPages()
+        }
+    }
 
     /// Returns the x offset to the page view with given index in the scroll view.
     private func xOffsetForIndex(_ index: Int) -> CGFloat {
@@ -164,7 +174,7 @@ final class PaginationView: UIView, Loggable {
     ///   - location: Location to be displayed in the page.
     ///   - pageCount: Total number of pages in the pagination view.
     ///   - readingProgression: Direction of reading progression.
-    func reloadAtIndex(_ index: Int, location: PageLocation, pageCount: Int, readingProgression: ReadingProgression) async {
+    func reloadAtIndex(_ index: Int, location: PageLocation, pageCount: Int, readingProgression: ReadingProgression) {
         precondition(pageCount >= 1)
         precondition(0 ..< pageCount ~= index)
 
@@ -177,11 +187,11 @@ final class PaginationView: UIView, Loggable {
         loadedViews.removeAll()
         loadingIndexQueue.removeAll()
 
-        await setCurrentIndex(index, location: location)
+        setCurrentIndex(index, location: location)
     }
 
     /// Updates the current and pre-loaded views.
-    private func setCurrentIndex(_ index: Int, location: PageLocation? = nil) async {
+    private func setCurrentIndex(_ index: Int, location: PageLocation? = nil) {
         guard isEmpty || index != currentIndex else {
             return
         }
@@ -209,9 +219,17 @@ final class PaginationView: UIView, Loggable {
             }
         }
 
-        await loadNextPage()
-        delegate?.paginationViewDidUpdateViews(self)
+        loadPages()
     }
+    
+    private func loadPages() {
+        loadPagesTask.replace { @MainActor in
+            await loadNextPage()
+            delegate?.paginationViewDidUpdateViews(self)
+        }
+    }
+    
+    private var loadPagesTask: Task<Void, Never>?
 
     private func loadNextPage() async {
         guard let (index, location) = loadingIndexQueue.popFirst() else {
@@ -329,7 +347,7 @@ final class PaginationView: UIView, Loggable {
         }
 
         scrollView.isScrollEnabled = isScrollEnabled
-        await setCurrentIndex(index, location: location)
+        setCurrentIndex(index, location: location)
 
         scrollView.scrollRectToVisible(CGRect(
             origin: CGPoint(
@@ -370,9 +388,6 @@ extension PaginationView: UIScrollViewDelegate {
             : scrollView.contentOffset.x
 
         let newIndex = Int(round(currentOffset / scrollView.frame.width))
-
-        Task {
-            await setCurrentIndex(newIndex)
-        }
+        setCurrentIndex(newIndex)
     }
 }

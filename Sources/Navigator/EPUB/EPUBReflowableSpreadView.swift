@@ -221,7 +221,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             await scroll(toProgression: 1)
         }
 
-        await didCompleteGoTo()
+        didCompleteGoTo()
     }
 
     @MainActor
@@ -232,7 +232,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
 
     @MainActor
-    private func didCompleteGoTo() async {
+    private func didCompleteGoTo() {
         for cont in goToContinuations {
             cont.resume()
         }
