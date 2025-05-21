@@ -115,9 +115,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         }
     }
 
-    public weak var delegate: EPUBNavigatorDelegate? {
-        didSet { updateCurrentLocation() }
-    }
+    public weak var delegate: EPUBNavigatorDelegate?
 
     /// Navigation state.
     private enum State: Equatable {
@@ -224,7 +222,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     public private(set) var currentLocation: Locator?
     private let loadPositionsByReadingOrder: () async -> ReadResult<[[Locator]]>
     private var positionsByReadingOrder: [[Locator]] = []
-    private let tasks = CancellableTasks()
 
     private let viewModel: EPUBNavigatorViewModel
     public var publication: Publication { viewModel.publication }
@@ -319,7 +316,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         // the current resource. We can use this to go to the next resource.
         view.accessibilityTraits.insert(.causesPageTurn)
 
-        tasks.add {
+        Task {
             await initialize()
         }
     }
@@ -341,7 +338,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         applySettings()
 
-        await _reloadSpreads(at: currentLocation, force: false)
+        _reloadSpreads(at: currentLocation, force: false)
 
         onInitializedCallbacks.complete()
     }
@@ -398,9 +395,11 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     }
 
     /// Mapping between reading order hrefs and the table of contents title.
-    private lazy var tableOfContentsTitleByHref = memoize(computeTableOfContentsTitleByHref)
+    private var tableOfContentsTitleByHref: [AnyURL: String] {
+        get async { await tableOfContentsTitleByHrefTask.value }
+    }
 
-    private func computeTableOfContentsTitleByHref() async -> [AnyURL: String] {
+    private lazy var tableOfContentsTitleByHrefTask: Task<[AnyURL: String], Never> = Task {
         func fulfill(linkList: [Link]) -> [AnyURL: String] {
             var result = [AnyURL: String]()
 
@@ -515,7 +514,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         needsReloadSpreads = true
 
-        await _reloadSpreads(at: locator, force: force)
+        _reloadSpreads(at: locator, force: force)
         for continuation in reloadSpreadsContinuations {
             continuation.resume()
         }
@@ -524,7 +523,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         needsReloadSpreads = false
     }
 
-    private func _reloadSpreads(at locator: Locator? = nil, force: Bool) async {
+    private func _reloadSpreads(at locator: Locator? = nil, force: Bool) {
         let locator = locator ?? currentLocation
 
         guard
@@ -551,12 +550,13 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             }
         }()
 
-        await paginationView.reloadAtIndex(
+        paginationView.reloadAtIndex(
             initialIndex,
             location: PageLocation(locator),
             pageCount: spreads.count,
             readingProgression: viewModel.readingProgression
         )
+
         on(.loaded)
     }
 
@@ -613,7 +613,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             // Gets the current locator from the positionList, and fill its missing data.
             let positionIndex = Int(ceil(progression * Double(positionList.count - 1)))
             return await positionList[positionIndex].copy(
-                title: tableOfContentsTitleByHref()[equivalent: href],
+                title: tableOfContentsTitleByHref[equivalent: href],
                 locations: { $0.progression = progression }
             )
         } else {
@@ -767,8 +767,14 @@ open class EPUBNavigatorViewController: InputObservableViewController,
                         guard let script = changes.javascript(forGroup: group, styles: config.decorationTemplates) else {
                             continue
                         }
-                        tasks.addTask { [weak self] in
-                            await self?.loadedSpreadViewForHREF(href)?.evaluateScript(script, inHREF: href)
+                        tasks.addTask { @MainActor [weak self] in
+                            guard
+                                let spreadView = self?.loadedSpreadViewForHREF(href),
+                                spreadView.isSpreadLoaded
+                            else {
+                                return
+                            }
+                            await spreadView.evaluateScript(script, inHREF: href)
                         }
                     }
                 }
@@ -917,47 +923,41 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
 }
 
 extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
-    func spreadViewDidLoad(_ spreadView: EPUBSpreadView) {
-        Task {
-            let templates = config.decorationTemplates.reduce(into: [:]) { styles, item in
-                styles[item.key.rawValue] = item.value.json
-            }
+    func spreadViewDidLoad(_ spreadView: EPUBSpreadView) async {
+        let templates = config.decorationTemplates.reduce(into: [:]) { styles, item in
+            styles[item.key.rawValue] = item.value.json
+        }
 
-            guard let stylesJSON = serializeJSONString(templates) else {
-                log(.error, "Can't serialize decoration styles to JSON")
-                return
-            }
-            var script = "readium.registerDecorationTemplates(\(stylesJSON.replacingOccurrences(of: "\\n", with: " ")));\n"
+        guard let stylesJSON = serializeJSONString(templates) else {
+            log(.error, "Can't serialize decoration styles to JSON")
+            return
+        }
+        var script = "readium.registerDecorationTemplates(\(stylesJSON.replacingOccurrences(of: "\\n", with: " ")));\n"
 
-            script += decorationCallbacks
-                .compactMap { group, callbacks in
-                    guard !callbacks.isEmpty else {
-                        return nil
-                    }
-                    return "readium.getDecorations('\(group)').setActivable();"
+        script += decorationCallbacks
+            .compactMap { group, callbacks in
+                guard !callbacks.isEmpty else {
+                    return nil
                 }
-                .joined(separator: "\n")
+                return "readium.getDecorations('\(group)').setActivable();"
+            }
+            .joined(separator: "\n")
 
-            await spreadView.evaluateScript("(function() {\n\(script)\n})();")
+        for link in spreadView.spread.links {
+            let href = link.url()
+            for (group, decorations) in decorations {
+                let decorations = decorations
+                    .filter { $0.decoration.locator.href.isEquivalentTo(href) }
+                    .map { DecorationChange.add($0.decoration) }
 
-            await withTaskGroup(of: Void.self) { tasks in
-                for link in spreadView.spread.links {
-                    let href = link.url()
-                    for (group, decorations) in self.decorations {
-                        let decorations = decorations
-                            .filter { $0.decoration.locator.href.isEquivalentTo(href) }
-                            .map { DecorationChange.add($0.decoration) }
-
-                        guard let script = decorations.javascript(forGroup: group, styles: self.config.decorationTemplates) else {
-                            continue
-                        }
-                        tasks.addTask {
-                            await spreadView.evaluateScript(script, inHREF: href)
-                        }
-                    }
+                guard let decorationsScript = decorations.javascript(forGroup: group, styles: config.decorationTemplates) else {
+                    continue
                 }
+                script += decorationsScript
             }
         }
+
+        await spreadView.evaluateScript("(function() {\n\(script)\n})();")
     }
 
     func spreadView(_ spreadView: EPUBSpreadView, didReceive event: PointerEvent) {
@@ -1149,8 +1149,9 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
     }
 
     func paginationViewDidUpdateViews(_ paginationView: PaginationView) {
-        // notice that you should set the delegate before you load views
-        // otherwise, when open the publication, you may miss the first invocation
+        // Note that you should set the delegate before you load views
+        // otherwise, when open the publication, you may miss the first
+        // invocation.
         updateCurrentLocation()
     }
 

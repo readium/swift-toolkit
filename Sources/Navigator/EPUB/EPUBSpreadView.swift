@@ -10,7 +10,7 @@ import SwiftSoup
 
 protocol EPUBSpreadViewDelegate: AnyObject {
     /// Called when the spread view finished loading.
-    func spreadViewDidLoad(_ spreadView: EPUBSpreadView)
+    func spreadViewDidLoad(_ spreadView: EPUBSpreadView) async
 
     /// Called when the user tapped on an external link.
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnExternalURL url: URL)
@@ -56,7 +56,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     weak var activityIndicatorView: UIActivityIndicatorView?
     private var activityIndicatorStopWorkItem: DispatchWorkItem?
 
-    private(set) var spreadLoaded = false
+    private(set) var isSpreadLoaded = false
 
     required init(
         viewModel: EPUBNavigatorViewModel,
@@ -143,6 +143,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     /// Evaluates the given JavaScript into the resource's HTML page.
     @discardableResult
     func evaluateScript(_ script: String, inHREF href: AnyURL? = nil) async -> Result<Any, Error> {
+        await spreadLoaded()
+
         log(.trace, "Evaluate script: \(script)")
         return await withCheckedContinuation { continuation in
             webView.evaluateJavaScript(script) { res, error in
@@ -256,29 +258,32 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
-    private func spreadLoadDidStart(_ body: Any) {
-        trace()
-    }
+    private func spreadLoadDidStart(_ body: Any) {}
 
     /// Called by the javascript code when the spread contents is fully loaded.
     /// The JS message `spreadLoaded` needs to be emitted by a subclass script, EPUBSpreadView's scripts don't.
     private func spreadDidLoad(_ body: Any) {
-        spreadLoaded = true
-        applySettings()
-        spreadDidLoad()
-        delegate?.spreadViewDidLoad(self)
-        onSpreadLoadedCallbacks.complete()
+        Task { @MainActor in
+            isSpreadLoaded = true
+            applySettings()
+            await spreadDidLoad()
+            await delegate?.spreadViewDidLoad(self)
+            onSpreadLoadedCallbacks.complete()
+            showSpread()
+        }
     }
 
     /// To be overriden to customize the behavior after the spread is loaded.
-    func spreadDidLoad() {
-        showSpread()
-    }
+    func spreadDidLoad() async {}
 
     private let onSpreadLoadedCallbacks = CompletionList()
 
     /// Awaits for the spread to be fully loaded.
     func spreadLoaded() async {
+        if isSpreadLoaded {
+            return
+        }
+
         await withCheckedContinuation { continuation in
             whenSpreadLoaded {
                 continuation.resume()
@@ -289,13 +294,12 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     /// Executes the given `callback` when the spread is fully loaded.
     func whenSpreadLoaded(_ callback: @escaping () -> Void) {
         let callback = onSpreadLoadedCallbacks.add(callback)
-        if spreadLoaded {
+        if isSpreadLoaded {
             callback()
         }
     }
 
     func showSpread() {
-        trace()
         activityIndicatorView?.stopAnimating()
         activityIndicatorStopWorkItem?.cancel()
         UIView.animate(withDuration: animatedLoad ? 0.3 : 0, animations: {
@@ -501,7 +505,6 @@ extension EPUBSpreadView: WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        trace()
         setNeedsStopActivityIndicator()
     }
 
