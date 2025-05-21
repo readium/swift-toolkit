@@ -141,28 +141,24 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         return progression
     }
 
-    override func spreadDidLoad() {
-        Task {
-            if let linkJSON = serializeJSONString(spread.leading.json) {
-                await evaluateScript("readium.link = \(linkJSON);")
-            }
-
-            // TODO: Better solution for delaying scrolling to pending location
-            // This delay is used to wait for the web view pagination to settle and give the CSS and webview time to layout
-            // correctly before attempting to scroll to the target progression, otherwise we might end up at the wrong spot.
-            // 0.2 seconds seems like a good value for it to work on an iPhone 5s.
-            try? await Task.sleep(seconds: 0.2)
-
-            let location = pendingLocation
-            await go(to: pendingLocation)
-
-            // The rendering is sometimes very slow. So in case we don't show the first page of the resource, we add
-            // a generous delay before showing the spread again.
-            let delayed = !location.isStart
-            try? await Task.sleep(seconds: delayed ? 0.3 : 0)
-
-            self.showSpread()
+    override func spreadDidLoad() async {
+        if let linkJSON = serializeJSONString(spread.leading.json) {
+            await evaluateScript("readium.link = \(linkJSON);")
         }
+
+        // TODO: Better solution for delaying scrolling to pending location
+        // This delay is used to wait for the web view pagination to settle and give the CSS and webview time to layout
+        // correctly before attempting to scroll to the target progression, otherwise we might end up at the wrong spot.
+        // 0.2 seconds seems like a good value for it to work on an iPhone 5s.
+        try? await Task.sleep(seconds: 0.2)
+
+        let location = pendingLocation
+        await go(to: pendingLocation)
+
+        // The rendering is sometimes very slow. So in case we don't show the first page of the resource, we add
+        // a generous delay before showing the spread again.
+        let delayed = !location.isStart
+        try? await Task.sleep(seconds: delayed ? 0.3 : 0)
     }
 
     override func go(to direction: EPUBSpreadView.Direction, options: NavigatorGoOptions) async -> Bool {
@@ -204,7 +200,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     @MainActor
     override func go(to location: PageLocation) async {
-        guard spreadLoaded else {
+        guard isSpreadLoaded else {
             // Delays moving to the location until the document is loaded.
             pendingLocation = location
 
@@ -321,7 +317,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     // Called by the javascript code to notify that scrolling ended.
     private func progressionDidChange(_ body: Any) {
-        guard spreadLoaded, let bodyString = body as? String, var newProgression = Double(bodyString) else {
+        guard isSpreadLoaded, let bodyString = body as? String, var newProgression = Double(bodyString) else {
             return
         }
         newProgression = min(max(newProgression, 0.0), 1.0)

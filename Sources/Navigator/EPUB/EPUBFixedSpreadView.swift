@@ -93,14 +93,12 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         guard isWrapperLoaded else {
             return
         }
-        Task {
-            await super.evaluateScript("spread.load(\(spread.jsonString(forBaseURL: viewModel.publicationBaseURL)));")
-        }
+        // We call this directly on the web view on purpose, because this needs
+        // to be executed before the spread is loaded.
+        webView.evaluateJavaScript("spread.load(\(spread.jsonString(forBaseURL: viewModel.publicationBaseURL)));")
     }
 
-    override func spreadDidLoad() {
-        super.spreadDidLoad()
-
+    override func spreadDidLoad() async {
         for continuation in goToContinuations {
             continuation.resume()
         }
@@ -108,7 +106,6 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
     }
 
     override func evaluateScript(_ script: String, inHREF href: AnyURL? = nil) async -> Result<Any, any Error> {
-        await spreadLoaded()
         let href = href?.string ?? ""
         let script = "spread.eval('\(href)', `\(script.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "`", with: "\\`"))`);"
         return await super.evaluateScript(script)
@@ -149,7 +146,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         // Fixed layout resources are always fully visible so we don't use the
         // location.
 
-        if spreadLoaded {
+        if isSpreadLoaded {
             return
         } else {
             await withCheckedContinuation { continuation in

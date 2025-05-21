@@ -338,7 +338,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         applySettings()
 
-        await _reloadSpreads(at: currentLocation, force: false)
+        _reloadSpreads(at: currentLocation, force: false)
 
         onInitializedCallbacks.complete()
     }
@@ -767,8 +767,14 @@ open class EPUBNavigatorViewController: InputObservableViewController,
                         guard let script = changes.javascript(forGroup: group, styles: config.decorationTemplates) else {
                             continue
                         }
-                        tasks.addTask { [weak self] in
-                            await self?.loadedSpreadViewForHREF(href)?.evaluateScript(script, inHREF: href)
+                        tasks.addTask { @MainActor [weak self] in
+                            guard
+                                let spreadView = self?.loadedSpreadViewForHREF(href),
+                                spreadView.isSpreadLoaded
+                            else {
+                                return
+                            }
+                            await spreadView.evaluateScript(script, inHREF: href)
                         }
                     }
                 }
@@ -917,47 +923,41 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
 }
 
 extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
-    func spreadViewDidLoad(_ spreadView: EPUBSpreadView) {
-        Task {
-            let templates = config.decorationTemplates.reduce(into: [:]) { styles, item in
-                styles[item.key.rawValue] = item.value.json
-            }
+    func spreadViewDidLoad(_ spreadView: EPUBSpreadView) async {
+        let templates = config.decorationTemplates.reduce(into: [:]) { styles, item in
+            styles[item.key.rawValue] = item.value.json
+        }
 
-            guard let stylesJSON = serializeJSONString(templates) else {
-                log(.error, "Can't serialize decoration styles to JSON")
-                return
-            }
-            var script = "readium.registerDecorationTemplates(\(stylesJSON.replacingOccurrences(of: "\\n", with: " ")));\n"
+        guard let stylesJSON = serializeJSONString(templates) else {
+            log(.error, "Can't serialize decoration styles to JSON")
+            return
+        }
+        var script = "readium.registerDecorationTemplates(\(stylesJSON.replacingOccurrences(of: "\\n", with: " ")));\n"
 
-            script += decorationCallbacks
-                .compactMap { group, callbacks in
-                    guard !callbacks.isEmpty else {
-                        return nil
-                    }
-                    return "readium.getDecorations('\(group)').setActivable();"
+        script += decorationCallbacks
+            .compactMap { group, callbacks in
+                guard !callbacks.isEmpty else {
+                    return nil
                 }
-                .joined(separator: "\n")
+                return "readium.getDecorations('\(group)').setActivable();"
+            }
+            .joined(separator: "\n")
 
-            await spreadView.evaluateScript("(function() {\n\(script)\n})();")
+        for link in spreadView.spread.links {
+            let href = link.url()
+            for (group, decorations) in decorations {
+                let decorations = decorations
+                    .filter { $0.decoration.locator.href.isEquivalentTo(href) }
+                    .map { DecorationChange.add($0.decoration) }
 
-            await withTaskGroup(of: Void.self) { tasks in
-                for link in spreadView.spread.links {
-                    let href = link.url()
-                    for (group, decorations) in self.decorations {
-                        let decorations = decorations
-                            .filter { $0.decoration.locator.href.isEquivalentTo(href) }
-                            .map { DecorationChange.add($0.decoration) }
-
-                        guard let script = decorations.javascript(forGroup: group, styles: self.config.decorationTemplates) else {
-                            continue
-                        }
-                        tasks.addTask {
-                            await spreadView.evaluateScript(script, inHREF: href)
-                        }
-                    }
+                guard let decorationsScript = decorations.javascript(forGroup: group, styles: config.decorationTemplates) else {
+                    continue
                 }
+                script += decorationsScript
             }
         }
+
+        await spreadView.evaluateScript("(function() {\n\(script)\n})();")
     }
 
     func spreadView(_ spreadView: EPUBSpreadView, didReceive event: PointerEvent) {
