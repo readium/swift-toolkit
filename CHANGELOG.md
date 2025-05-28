@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * A new `InputObserving` API has been added to enable more flexible gesture recognition and support for mouse pointers. [See the dedicated user guide](docs/Guides/Navigator/Input.md).
+* Support for starting from a progression in the HTML content iterator.
 
 ### Fixed
 

@@ -94,17 +94,16 @@ public class HTMLResourceContentIterator: ContentIterator {
     private var currentIndex: Int?
 
     private func elements() async throws -> ParsedElements {
-        try await elementsTask.value
+        try await elementsTask.value.get()
     }
 
     private lazy var elementsTask = Task {
-        let result = await resource
+        await resource
             .readAsString()
             .eraseToAnyError()
             .tryMap { try SwiftSoup.parse($0) }
             .tryMap { try parse(document: $0, locator: locator, beforeMaxLength: beforeMaxLength) }
             .asyncMap { await adjustProgressions(of: $0) }
-        return try result.get()
     }
 
     private func parse(document: Document, locator: Locator, beforeMaxLength: Int) throws -> ParsedElements {
@@ -141,6 +140,20 @@ public class HTMLResourceContentIterator: ContentIterator {
                 }
             )
         }
+
+        // Update the `startIndex` if a particular progression was requested.
+        if
+            elements.startIndex == 0,
+            locator.locations.cssSelector == nil,
+            let progression = locator.locations.progression,
+            progression > 0, progression < 1
+        {
+            elements.startIndex = elements.elements.lastIndex { element in
+                let elementProgression = element.locator.locations.progression ?? 0
+                return elementProgression < progression
+            } ?? 0
+        }
+
         return elements
     }
 
