@@ -8,12 +8,18 @@ import { findDecorationTarget, handleDecorationClickEvent } from "./decorator";
 import { adjustPointToViewport } from "./rect";
 import { findNearestInteractiveElement } from "./dom";
 
+var isSelecting = false;
+
 window.addEventListener("DOMContentLoaded", function () {
   document.addEventListener("click", onClick, false);
   document.addEventListener("pointerdown", onPointerDown, false);
   document.addEventListener("pointerup", onPointerUp, false);
   document.addEventListener("pointermove", onPointerMove, false);
   document.addEventListener("pointercancel", onPointerCancel, false);
+
+  document.addEventListener("selectionchange", function () {
+    isSelecting = !window.getSelection().isCollapsed;
+  });
 });
 
 function onClick(event) {
@@ -62,6 +68,11 @@ function onPointerCancel(event) {
 }
 
 function onPointerEvent(phase, event) {
+  // If the user is currently selecting text, we report this event as cancelled to prevent detecting gestures.
+  if (isSelecting) {
+    phase = "cancel";
+  }
+
   let point = adjustPointToViewport({ x: event.clientX, y: event.clientY });
   let pointerEvent = {
     phase: phase,
