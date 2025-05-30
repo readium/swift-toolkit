@@ -8,7 +8,7 @@ import { findDecorationTarget, handleDecorationClickEvent } from "./decorator";
 import { adjustPointToViewport } from "./rect";
 import { findNearestInteractiveElement } from "./dom";
 
-var isSelecting = false;
+let isSelecting = false;
 
 window.addEventListener("DOMContentLoaded", function () {
   document.addEventListener("click", onClick, false);
