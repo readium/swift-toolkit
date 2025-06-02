@@ -1,0 +1,18 @@
+//
+//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
+//
+
+import ReadiumShared
+
+extension LinkRelation {
+    init(epubType: String) {
+        self = switch epubType {
+        case "cover": .cover
+        case "toc": .contents
+        case "bodymatter": .start
+        default: LinkRelation("\(XMLNamespace.epub.uri)#\(epubType)")
+        }
+    }
+}

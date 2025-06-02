@@ -36,7 +36,7 @@ public class OPDSFormatSniffer: FormatSniffer {
                     guard let document = $0 else {
                         return nil
                     }
-                    let namespaces = [(prefix: "atom", uri: "http://www.w3.org/2005/Atom")]
+                    let namespaces = [XMLNamespace.atom]
                     if document.first("/atom:feed", with: namespaces) != nil {
                         return opds1Catalog
                     } else if document.first("/atom:entry", with: namespaces) != nil {

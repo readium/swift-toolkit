@@ -19,10 +19,10 @@ final class EPUBMetadataParser: Loggable {
         self.displayOptions = displayOptions
         self.metas = metas
 
-        document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
-        document.definePrefix("dc", forNamespace: "http://purl.org/dc/elements/1.1/")
-        document.definePrefix("dcterms", forNamespace: "http://purl.org/dc/terms/")
-        document.definePrefix("rendition", forNamespace: "http://www.idpf.org/2013/rendition")
+        document.defineNamespace(.opf)
+        document.defineNamespace(.dc)
+        document.defineNamespace(.dcterms)
+        document.defineNamespace(.rendition)
     }
 
     private lazy var metadataElement: ReadiumFuzi.XMLElement? = document.firstChild(xpath: "/opf:package/opf:metadata")

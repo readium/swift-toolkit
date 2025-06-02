@@ -80,9 +80,9 @@ public class OPDS1Parser: Loggable {
     /// - parameter document: The XMLDocument data
     /// - Returns: The resulting Feed
     private static func parse(document: ReadiumFuzi.XMLDocument, feedURL: URL) throws -> Feed {
-        document.definePrefix("thr", forNamespace: "http://purl.org/syndication/thread/1.0")
-        document.definePrefix("dcterms", forNamespace: "http://purl.org/dc/terms/")
-        document.definePrefix("opds", forNamespace: "http://opds-spec.org/2010/catalog")
+        document.defineNamespace(.thr)
+        document.defineNamespace(.dcterms)
+        document.defineNamespace(.opds)
 
         guard let root = document.root else {
             throw OPDS1ParserError.rootNotFound

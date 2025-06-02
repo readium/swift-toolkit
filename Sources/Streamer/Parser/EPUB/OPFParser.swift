@@ -48,7 +48,7 @@ final class OPFParser: Loggable {
     init(baseURL: RelativeURL, data: Data, displayOptionsData: Data? = nil, encryptions: [RelativeURL: Encryption]) throws {
         self.baseURL = baseURL
         document = try ReadiumFuzi.XMLDocument(data: data)
-        document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
+        document.defineNamespace(.opf)
         displayOptions = (displayOptionsData.map { try? ReadiumFuzi.XMLDocument(data: $0) }) ?? nil
         metas = OPFMetaList(document: document)
         self.encryptions = encryptions
