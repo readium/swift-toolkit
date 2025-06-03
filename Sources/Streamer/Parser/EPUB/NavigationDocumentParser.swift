@@ -65,7 +65,7 @@ final class NavigationDocumentParser {
         return NavigationDocumentParser.makeLink(
             title: label.stringValue,
             href: label.attr("href").flatMap(RelativeURL.init(epubHREF:)),
-            rel: label.attr("type", namespace: .epub).map(LinkRelation.init(epubType:)),
+            rel: label.attr("type", namespace: .epub).flatMap(LinkRelation.init(epubType:)),
             children: links(in: li),
             baseURL: url
         )

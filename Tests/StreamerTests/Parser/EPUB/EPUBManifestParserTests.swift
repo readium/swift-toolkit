@@ -12,18 +12,13 @@ class EPUBManifestParserTests: XCTestCase {
     let fixtures = Fixtures()
 
     func testParseFullManifest() async throws {
-        let sut = EPUBManifestParser(
-            container: CompositeContainer(
-                FileContainer(files: [
-                    RelativeURL(path: "META-INF/container.xml")!: fixtures.url(for: "Container/container.xml"),
-                    RelativeURL(path: "EPUB/content.opf")!: fixtures.url(for: "OPF/full-metadata.opf")
-                ]),
-            ),
-            encryptions: [:]
-        )
-        
+        let sut = parser(files: [
+            "META-INF/container.xml": "Container/container.xml",
+            "EPUB/content.opf": "OPF/full-metadata.opf",
+        ])
+
         let manifest = try await sut.parseManifest()
-        
+
         XCTAssertEqual(
             manifest,
             Manifest(
@@ -77,7 +72,9 @@ class EPUBManifestParserTests: XCTestCase {
                 ),
                 readingOrder: [
                     link(id: "titlepage", href: "EPUB/titlepage.xhtml", mediaType: .xhtml),
+                    link(id: "toc", href: "EPUB/toc.xhtml", mediaType: .xhtml),
                     link(id: "chapter01", href: "EPUB/chapter01.xhtml", mediaType: .xhtml),
+                    link(id: "chapter02", href: "EPUB/chapter02.xhtml", mediaType: .xhtml),
                 ],
                 resources: [
                     link(id: "font0", href: "EPUB/fonts/MinionPro.otf", mediaType: MediaType("application/vnd.ms-opentype")!),
@@ -89,7 +86,36 @@ class EPUBManifestParserTests: XCTestCase {
             )
         )
     }
-    
+
+    func testParseFillInReadingOrderRelsFromLandmarks() async throws {
+        let sut = parser(files: [
+            "META-INF/container.xml": "Container/container.xml",
+            "EPUB/content.opf": "OPF/full-metadata.opf",
+            "EPUB/nav.xhtml": "Navigation Documents/full-metadata-nav.xhtml",
+        ])
+
+        let manifest = try await sut.parseManifest()
+
+        XCTAssertEqual(
+            manifest.readingOrder,
+            [
+                link(id: "titlepage", href: "EPUB/titlepage.xhtml", mediaType: .xhtml, rels: [.cover]),
+                link(id: "toc", href: "EPUB/toc.xhtml", mediaType: .xhtml, rels: [.contents]),
+                link(id: "chapter01", href: "EPUB/chapter01.xhtml", mediaType: .xhtml, rels: [.start]),
+                link(id: "chapter02", href: "EPUB/chapter02.xhtml", mediaType: .xhtml),
+            ]
+        )
+    }
+
+    private func parser(files: [String: String]) -> EPUBManifestParser {
+        EPUBManifestParser(
+            container: FileContainer(files: files.reduce(into: [:]) { files, item in
+                files[RelativeURL(path: item.key)!] = fixtures.url(for: item.value)
+            }),
+            encryptions: [:]
+        )
+    }
+
     private func link(
         id: String? = nil,
         href: String,
@@ -107,4 +133,3 @@ class EPUBManifestParserTests: XCTestCase {
         return Link(href: href, mediaType: mediaType, templated: templated, title: title, rels: rels, properties: Properties(properties), children: children)
     }
 }
-

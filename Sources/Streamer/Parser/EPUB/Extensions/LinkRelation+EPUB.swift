@@ -7,12 +7,16 @@
 import ReadiumShared
 
 extension LinkRelation {
-    init(epubType: String) {
-        self = switch epubType {
-        case "cover": .cover
-        case "toc": .contents
-        case "bodymatter": .start
-        default: LinkRelation("\(XMLNamespace.epub.uri)#\(epubType)")
+    init?(epubType: String) {
+        switch epubType {
+        case "cover":
+            self = .cover
+        case "toc":
+            self = .contents
+        case "bodymatter":
+            self = .start
+        default:
+            return nil
         }
     }
 }

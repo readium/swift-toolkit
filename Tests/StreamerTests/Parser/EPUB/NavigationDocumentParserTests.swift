@@ -63,8 +63,8 @@ class NavigationDocumentParserTests: XCTestCase {
             Link(href: "/base/cover.xhtml", title: "Cover", rel: .cover),
             Link(href: "/base/nav.xhtml#toc", title: "Table of Contents", rel: .contents),
             Link(href: "/base/ch1.xhtml", title: "Begin Reading", rel: .start),
-            Link(href: "/base/index.xhtml", title: "Index", rel: "http://www.idpf.org/2007/ops#index"),
-            Link(href: "/base/glossary.xhtml", title: "Glossary", rel: "http://www.idpf.org/2007/ops#glossary"),
+            Link(href: "/base/index.xhtml", title: "Index"),
+            Link(href: "/base/glossary.xhtml", title: "Glossary"),
         ])
     }
 

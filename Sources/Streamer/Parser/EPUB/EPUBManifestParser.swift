@@ -10,14 +10,14 @@ final class EPUBManifestParser {
     private let container: Container
     private let encryptions: [RelativeURL: Encryption]
 
-    init(container: Container, encryptions: [RelativeURL : Encryption]) {
+    init(container: Container, encryptions: [RelativeURL: Encryption]) {
         self.container = container
         self.encryptions = encryptions
     }
 
     func parseManifest() async throws -> Manifest {
         let opfHREF = try await EPUBContainerParser(container: container).parseOPFHREF()
-        
+
         // Extracts metadata and links from the OPF.
         let components = try await OPFParser(container: container, opfHREF: opfHREF, encryptions: encryptions).parsePublication()
         let metadata = components.metadata
@@ -29,8 +29,41 @@ final class EPUBManifestParser {
             resources: components.resources,
             subcollections: parseCollections(in: container, links: links)
         )
-        
+
+        fillReadingOrderRels(in: &manifest)
+
         return manifest
+    }
+
+    /// Extracts the link relations from the landmarks to fill in the reading
+    /// order.
+    private func fillReadingOrderRels(in manifest: inout Manifest) {
+        guard
+            let landmarks = manifest.subcollections["landmarks"],
+            !landmarks.isEmpty
+        else {
+            return
+        }
+        let links = landmarks.flatMap(\.links)
+        let startURL = links.firstWithRel(.start)?.url()
+        let coverURL = links.firstWithRel(.cover)?.url()
+        let contentsURL = links.firstWithRel(.contents)?.url()
+
+        manifest.readingOrder = manifest.readingOrder.map { link in
+            var link = link
+            let url = link.url()
+            if let coverURL = coverURL, url.isEquivalentTo(coverURL) {
+                link.rels.append(.cover)
+            }
+            if let startURL = startURL, url.isEquivalentTo(startURL) {
+                link.rels.append(.start)
+            }
+            if let contentsURL = contentsURL, url.isEquivalentTo(contentsURL) {
+                link.rels.append(.contents)
+            }
+
+            return link
+        }
     }
 
     private func parseCollections(in container: Container, links: [Link]) async -> [String: [PublicationCollection]] {
