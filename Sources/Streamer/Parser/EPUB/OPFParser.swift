@@ -77,18 +77,27 @@ final class OPFParser: Loggable {
         )
     }
 
+    struct Package {
+        let version: String
+        let metadata: Metadata
+        let readingOrder: [Link]
+        let resources: [Link]
+        let epub2Guide: [Link]
+    }
+
     /// Parse the OPF file of the EPUB container and return a `Publication`.
     /// It also complete the informations stored in the container.
-    func parsePublication() throws -> (version: String, metadata: Metadata, readingOrder: [Link], resources: [Link]) {
+    func parsePublication() throws -> Package {
         let links = parseLinks()
         let (resources, readingOrder) = splitResourcesAndReadingOrderLinks(links)
         let metadata = EPUBMetadataParser(document: document, displayOptions: displayOptions, metas: metas)
 
-        return try (
+        return try Package(
             version: parseEPUBVersion(),
             metadata: metadata.parse(),
             readingOrder: readingOrder,
-            resources: resources
+            resources: resources,
+            epub2Guide: parseEPUB2Guide()
         )
     }
 
@@ -97,6 +106,27 @@ final class OPFParser: Loggable {
         // Default EPUB Version value, used when no version hes been specified (see OPF_2.0.1_draft 1.3.2).
         let defaultVersion = "1.2"
         return document.firstChild(xpath: "/opf:package")?.attr("version") ?? defaultVersion
+    }
+
+    /// Parses EPUB 2 <guide> element into a list of `Link`.
+    ///
+    /// https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#TOC2.6
+    private func parseEPUB2Guide() -> [Link] {
+        document.xpath("/opf:package/opf:guide/opf:reference")
+            .compactMap { node -> Link? in
+                guard
+                    let relativeHref = node.attr("href").flatMap(RelativeURL.init(epubHREF:)),
+                    let href = baseURL.resolve(relativeHref)
+                else {
+                    return nil
+                }
+
+                return Link(
+                    href: href.string,
+                    title: node.attr("title")?.orNilIfBlank(),
+                    rel: node.attr("type").flatMap(LinkRelation.init(epub2Type:))
+                )
+            }
     }
 
     /// Parses XML elements of the <Manifest> in the package.opf file as a list of `Link`.

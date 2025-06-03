@@ -252,7 +252,7 @@ public class HTMLResourceContentIterator: ContentIterator {
                     flushText()
                     try node.srcRelativeToHREF(baseHREF).map { href in
                         var attributes: [ContentAttribute] = []
-                        if let alt = try node.attr("alt").takeUnlessBlank() {
+                        if let alt = try node.attr("alt").orNilIfBlank() {
                             attributes.append(ContentAttribute(key: .accessibilityLabel, value: alt))
                         }
 
@@ -277,7 +277,7 @@ public class HTMLResourceContentIterator: ContentIterator {
                                         try Link(
                                             href: href.string,
                                             mediaType: source.attr("type")
-                                                .takeUnlessBlank()
+                                                .orNilIfBlank()
                                                 .flatMap { MediaType($0) }
                                         )
                                     }
@@ -308,7 +308,7 @@ public class HTMLResourceContentIterator: ContentIterator {
 
         func tail(_ node: Node, _ depth: Int) throws {
             if let node = node as? TextNode {
-                guard let wholeText = node.getWholeText().takeUnlessBlank() else {
+                guard let wholeText = node.getWholeText().orNilIfBlank() else {
                     return
                 }
 
@@ -439,7 +439,7 @@ public class HTMLResourceContentIterator: ContentIterator {
 
 private extension Node {
     func srcRelativeToHREF(_ baseHREF: AnyURL?) throws -> AnyURL? {
-        try attr("src").takeUnlessBlank()
+        try attr("src").orNilIfBlank()
             .flatMap { AnyURL(string: $0) }
             .flatMap {
                 baseHREF?.resolve($0) ?? $0
@@ -447,15 +447,9 @@ private extension Node {
     }
 
     func language() throws -> String? {
-        try attr("xml:lang").takeUnlessBlank()
-            ?? attr("lang").takeUnlessBlank()
+        try attr("xml:lang").orNilIfBlank()
+            ?? attr("lang").orNilIfBlank()
             ?? parent()?.language()
-    }
-}
-
-private extension String {
-    func takeUnlessBlank() -> String? {
-        trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : self
     }
 }
 
@@ -507,8 +501,8 @@ private extension Locator.Text {
         let trailingWhitespace = String(text[trailingWhitespaceIdx...])
 
         return Locator.Text(
-            after: trailingWhitespace.takeUnlessBlank(),
-            before: ((before ?? "") + leadingWhitespace).takeUnlessBlank(),
+            after: trailingWhitespace.orNilIfBlank(),
+            before: ((before ?? "") + leadingWhitespace).orNilIfBlank(),
             highlight: String(text[leadingWhitespaceIdx ..< trailingWhitespaceIdx])
         )
     }

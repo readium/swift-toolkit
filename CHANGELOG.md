@@ -21,6 +21,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 * A new `InputObserving` API has been added to enable more flexible gesture recognition and support for mouse pointers. [See the dedicated user guide](docs/Guides/Navigator/Input.md).
 
+#### Streamer
+
+* The EPUB 2 `<guide>` element is now parsed into the RWPM `landmarks` subcollection when no EPUB 3 `landmarks` navigation document is declared.
+
 ### Fixed
 
 #### Navigator

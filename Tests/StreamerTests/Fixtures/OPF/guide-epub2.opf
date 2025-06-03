@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="pub-id" version="2.0">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+    <dc:title>Alice's Adventures in Wonderland</dc:title>
+    <meta name="cover" content="cover" />
+  </metadata>
+  <manifest>
+    <item id="cover" href="cover.jpg" media-type="image/jpeg" />
+    <item id="titlepage" href="titlepage.xhtml" media-type="application/xhtml+xml" />
+    <item id="beginpage" href="beginpage.xhtml" media-type="application/xhtml+xml" />
+  </manifest>
+  <spine>
+    <itemref idref="titlepage"/>
+    <itemref idref="beginpage"/>
+  </spine>
+  <guide>
+          <reference type="toc" title="Table of Contents"
+                   href="toc.xhtml" />
+          <reference type="loi" title="List Of Illustrations"
+                   href="toc.xhtml#figures" />
+          <reference type="text" title="Introduction"
+                   href="beginpage.xhtml" />
+  </guide>
+</package>

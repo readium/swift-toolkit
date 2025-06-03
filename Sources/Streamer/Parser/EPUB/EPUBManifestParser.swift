@@ -4,6 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import ReadiumFuzi
 import ReadiumShared
 
 final class EPUBManifestParser {
@@ -19,15 +20,15 @@ final class EPUBManifestParser {
         let opfHREF = try await EPUBContainerParser(container: container).parseOPFHREF()
 
         // Extracts metadata and links from the OPF.
-        let components = try await OPFParser(container: container, opfHREF: opfHREF, encryptions: encryptions).parsePublication()
-        let metadata = components.metadata
-        let links = components.readingOrder + components.resources
+        let opfPackage = try await OPFParser(container: container, opfHREF: opfHREF, encryptions: encryptions).parsePublication()
+        let metadata = opfPackage.metadata
+        let links = opfPackage.readingOrder + opfPackage.resources
 
         var manifest = await Manifest(
             metadata: metadata,
-            readingOrder: components.readingOrder,
-            resources: components.resources,
-            subcollections: parseCollections(in: container, links: links)
+            readingOrder: opfPackage.readingOrder,
+            resources: opfPackage.resources,
+            subcollections: parseCollections(in: container, package: opfPackage, links: links)
         )
 
         fillReadingOrderRels(in: &manifest)
@@ -66,12 +67,28 @@ final class EPUBManifestParser {
         }
     }
 
-    private func parseCollections(in container: Container, links: [Link]) async -> [String: [PublicationCollection]] {
+    private func parseCollections(
+        in container: Container,
+        package: OPFParser.Package,
+        links: [Link]
+    ) async -> [String: [PublicationCollection]] {
         var collections = await parseNavigationDocument(in: container, links: links)
         if collections["toc"]?.first?.links.isEmpty != false {
             // Falls back on the NCX tables.
             await collections.merge(parseNCXDocument(in: container, links: links), uniquingKeysWith: { first, _ in first })
         }
+
+        // EPUB 3 Reading Systems must ignore the guide element when provided in
+        // EPUB 3 Publications whose EPUB Navigation Document includes the
+        // landmarks feature.
+        // https://idpf.org/epub/30/spec/epub30-publications.html#sec-guide-elem
+        if !collections.keys.contains("landmarks"), !package.epub2Guide.isEmpty {
+            // EPUB 2.0 doesn't have a landmarks collection, so we use the guide
+            // as a fallback. If an EPUB 3.0+ file does not have landmarks, it
+            // will use guide instead.
+            collections["landmarks"] = [PublicationCollection(links: package.epub2Guide)]
+        }
+
         return collections
     }
 

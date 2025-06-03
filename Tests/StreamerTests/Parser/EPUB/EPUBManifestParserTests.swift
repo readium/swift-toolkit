@@ -107,6 +107,32 @@ class EPUBManifestParserTests: XCTestCase {
         )
     }
 
+    func testParseEPUB2GuideAsLandmarks() async throws {
+        let sut = parser(files: [
+            "META-INF/container.xml": "Container/container.xml",
+            "EPUB/content.opf": "OPF/guide-epub2.opf",
+        ])
+
+        let manifest = try await sut.parseManifest()
+
+        XCTAssertEqual(
+            manifest.subcollections["landmarks"],
+            [PublicationCollection(links: [
+                link(href: "EPUB/toc.xhtml", title: "Table of Contents", rels: [.contents]),
+                link(href: "EPUB/toc.xhtml#figures", title: "List Of Illustrations", rels: ["http://idpf.org/epub/vocab/structure/#loi"]),
+                link(href: "EPUB/beginpage.xhtml", title: "Introduction", rels: [.start]),
+            ])]
+        )
+
+        XCTAssertEqual(
+            manifest.readingOrder,
+            [
+                link(id: "titlepage", href: "EPUB/titlepage.xhtml", mediaType: .xhtml),
+                link(id: "beginpage", href: "EPUB/beginpage.xhtml", mediaType: .xhtml, rels: [.start]),
+            ]
+        )
+    }
+
     private func parser(files: [String: String]) -> EPUBManifestParser {
         EPUBManifestParser(
             container: FileContainer(files: files.reduce(into: [:]) { files, item in
