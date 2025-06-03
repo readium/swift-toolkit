@@ -440,9 +440,13 @@
 ../../Sources/Navigator/EPUB/Assets/Static/scripts
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/.gitignore
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-one.js
+../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-one.js.map
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-two.js
+../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-two.js.map
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed.js
+../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed.js.map
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-reflowable.js
+../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-reflowable.js.map
 ../../Sources/Navigator/EPUB/CSS
 ../../Sources/Navigator/EPUB/CSS/CSSLayout.swift
 ../../Sources/Navigator/EPUB/CSS/CSSProperties.swift
@@ -576,6 +580,7 @@
 ../../Sources/OPDS/OPDSParser.swift
 ../../Sources/OPDS/ParseData.swift
 ../../Sources/OPDS/URLHelper.swift
+../../Sources/OPDS/XMLNamespace.swift
 ../../Sources/Shared
 ../../Sources/Shared/Logger
 ../../Sources/Shared/Logger/Loggable.swift
@@ -811,9 +816,11 @@
 ../../Sources/Streamer/Parser/EPUB
 ../../Sources/Streamer/Parser/EPUB/EPUBContainerParser.swift
 ../../Sources/Streamer/Parser/EPUB/EPUBEncryptionParser.swift
+../../Sources/Streamer/Parser/EPUB/EPUBManifestParser.swift
 ../../Sources/Streamer/Parser/EPUB/EPUBMetadataParser.swift
 ../../Sources/Streamer/Parser/EPUB/EPUBParser.swift
 ../../Sources/Streamer/Parser/EPUB/Extensions
+../../Sources/Streamer/Parser/EPUB/Extensions/LinkRelation+EPUB.swift
 ../../Sources/Streamer/Parser/EPUB/Extensions/Presentation+EPUB.swift
 ../../Sources/Streamer/Parser/EPUB/NavigationDocumentParser.swift
 ../../Sources/Streamer/Parser/EPUB/NCXParser.swift
@@ -823,6 +830,7 @@
 ../../Sources/Streamer/Parser/EPUB/Resource Transformers/EPUBDeobfuscator.swift
 ../../Sources/Streamer/Parser/EPUB/Services
 ../../Sources/Streamer/Parser/EPUB/Services/EPUBPositionsService.swift
+../../Sources/Streamer/Parser/EPUB/XMLNamespace.swift
 ../../Sources/Streamer/Parser/Image
 ../../Sources/Streamer/Parser/Image/ImageParser.swift
 ../../Sources/Streamer/Parser/PDF

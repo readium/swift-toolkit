@@ -6,7 +6,30 @@
 
 import Foundation
 
-public typealias XMLNamespace = (prefix: String, uri: String)
+public struct XMLNamespace {
+    public let prefix: String
+    public let uri: String
+
+    public static let adept = XMLNamespace(prefix: "adept", uri: "http://ns.adobe.com/adept")
+    public static let atom = XMLNamespace(prefix: "atom", uri: "http://www.w3.org/2005/Atom")
+    public static let cn = XMLNamespace(prefix: "cn", uri: "urn:oasis:names:tc:opendocument:xmlns:container")
+    public static let comp = XMLNamespace(prefix: "comp", uri: "http://www.idpf.org/2016/encryption#compression")
+    public static let dc = XMLNamespace(prefix: "dc", uri: "http://purl.org/dc/elements/1.1/")
+    public static let dcterms = XMLNamespace(prefix: "dcterms", uri: "http://purl.org/dc/terms/")
+    public static let ds = XMLNamespace(prefix: "ds", uri: "http://www.w3.org/2000/09/xmldsig#")
+    public static let enc = XMLNamespace(prefix: "enc", uri: "http://www.w3.org/2001/04/xmlenc#")
+    public static let epub = XMLNamespace(prefix: "epub", uri: "http://www.idpf.org/2007/ops")
+    public static let html = XMLNamespace(prefix: "html", uri: "http://www.w3.org/1999/xhtml")
+    public static let ncx = XMLNamespace(prefix: "ncx", uri: "http://www.daisy.org/z3986/2005/ncx/")
+    public static let opds = XMLNamespace(prefix: "opds", uri: "http://opds-spec.org/2010/catalog")
+    public static let opf = XMLNamespace(prefix: "opf", uri: "http://www.idpf.org/2007/opf")
+    public static let rendition = XMLNamespace(prefix: "rendition", uri: "http://www.idpf.org/2013/rendition")
+    public static let sig = XMLNamespace(prefix: "sig", uri: "http://www.w3.org/2000/09/xmldsig#")
+    public static let smil = XMLNamespace(prefix: "smil", uri: "http://www.w3.org/ns/SMIL")
+    public static let thr = XMLNamespace(prefix: "thr", uri: "http://purl.org/syndication/thread/1.0")
+    public static let xhtml = XMLNamespace(prefix: "xhtml", uri: "http://www.w3.org/1999/xhtml")
+    public static let xhtml2 = XMLNamespace(prefix: "xhtml2", uri: "http://www.w3.org/2002/06/xhtml2")
+}
 
 public protocol XMLNode {
     /// Concatenated string content of all descendants.

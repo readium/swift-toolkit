@@ -47,10 +47,7 @@ public struct HTMLFormatSniffer: FormatSniffer {
             return nil
         }
 
-        if element.first("xhtml:body|xhtml2:body", with: [
-            (prefix: "xhtml", uri: "http://www.w3.org/1999/xhtml"),
-            (prefix: "xhtml2", uri: "http://www.w3.org/2002/06/xhtml2"),
-        ]) != nil {
+        if element.first("xhtml:body|xhtml2:body", with: [.xhtml, .xhtml2]) != nil {
             return xhtml
         } else {
             return html

@@ -49,6 +49,8 @@ public struct LinkRelation: Sendable {
     public static let search = LinkRelation("search")
     /// Conveys an identifier for the link's context.
     public static let `self` = LinkRelation("self")
+    /// Refers to the start of the actual content in a publication.
+    public static let start = LinkRelation("start")
 
     // IANA – https://www.iana.org/assignments/link-relations/link-relations.xhtml
 

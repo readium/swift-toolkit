@@ -28,9 +28,9 @@ final class EPUBEncryptionParser: Loggable {
 
     private lazy var document: ReadiumFuzi.XMLDocument? = {
         let document = try? ReadiumFuzi.XMLDocument(data: data)
-        document?.definePrefix("enc", forNamespace: "http://www.w3.org/2001/04/xmlenc#")
-        document?.definePrefix("ds", forNamespace: "http://www.w3.org/2000/09/xmldsig#")
-        document?.definePrefix("comp", forNamespace: "http://www.idpf.org/2016/encryption#compression")
+        document?.defineNamespace(.enc)
+        document?.defineNamespace(.ds)
+        document?.defineNamespace(.comp)
         return document
     }()
 

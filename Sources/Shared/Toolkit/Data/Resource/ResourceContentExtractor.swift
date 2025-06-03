@@ -70,10 +70,7 @@ class _HTMLResourceContentExtractor: _ResourceContentExtractor {
     // This is much more efficient than using SwiftSoup, but will fail when encountering
     // invalid HTML documents.
     private func parse(xml: String) async -> String? {
-        guard let document = try? await xmlFactory.open(string: xml, namespaces: [
-            XMLNamespace(prefix: "xhtml", uri: "http://www.w3.org/1999/xhtml"),
-        ])
-        else {
+        guard let document = try? await xmlFactory.open(string: xml, namespaces: [.xhtml]) else {
             return nil
         }
 
