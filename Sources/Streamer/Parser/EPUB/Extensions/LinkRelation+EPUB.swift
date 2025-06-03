@@ -8,15 +8,11 @@ import ReadiumShared
 
 extension LinkRelation {
     init?(epubType: String) {
-        switch epubType {
-        case "cover":
-            self = .cover
-        case "toc":
-            self = .contents
-        case "bodymatter":
-            self = .start
-        default:
-            return nil
+        self = switch epubType {
+        case "cover": .cover
+        case "toc": .contents
+        case "bodymatter": .start
+        default: LinkRelation("http://idpf.org/epub/vocab/structure/#\(epubType)")
         }
     }
 }
