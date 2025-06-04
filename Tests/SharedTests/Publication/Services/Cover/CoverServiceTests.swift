@@ -53,6 +53,9 @@ class CoverServiceTests: XCTestCase {
                 metadata: Metadata(
                     title: "title"
                 ),
+                readingOrder: [
+                    Link(href: "titlepage.xhtml", rels: [.cover]),
+                ],
                 resources: [
                     Link(href: coverPath, rels: [.cover]),
                 ]
