@@ -155,15 +155,48 @@ Next, declare the imported types as [Document Types](https://help.apple.com/xcod
 > [!TIP]
 > If EPUB is not included in your document types, now is a good time to add it.
 
+### Allow insecure HTTP requests
+
+A file required by the LCP library needs to be downloaded from an insecure HTTP location. You must authorize this download by adding the following to your `Info.plist` file:
+
+```xml
+<key>NSAppTransportSecurity</key>
+<dict>
+    <key>NSExceptionDomains</key>
+    <dict>
+        <key>crl.edrlab.telesec.de</key>
+        <dict>
+            <key>NSExceptionAllowsInsecureHTTPLoads</key>
+            <true/>
+        </dict>
+    </dict>
+</dict>
+```
+
 ## Initializing the `LCPService`
 
 `ReadiumLCP` offers an `LCPService` object that exposes its API. Since the `ReadiumLCP` package is not linked with `R2LCPClient`, you need to create your own adapter when setting up the `LCPService`.
 
+The `LCPService` expects repositories to store the opened licenses and passphrases. While you can implement your own persistence layer, the `ReadiumAdapterLCPSQLite` module provides default implementations based on an SQLite database.
+
 ```swift
 import R2LCPClient
+import ReadiumAdapterLCPSQLite
 import ReadiumLCP
 
-let lcpService = LCPService(client: LCPClientAdapter())
+let httpClient = DefaultHTTPClient()
+
+let assetRetriever = AssetRetriever(
+    httpClient: httpClient
+)
+
+let lcpService = LCPService(
+    client: LCPClientAdapter(),
+    licenseRepository: try LCPSQLiteLicenseRepository(),
+    passphraseRepository: try LCPSQLitePassphraseRepository(),
+    assetRetriever: assetRetriever,
+    httpClient: httpClient
+)
 
 /// Facade to the private R2LCPClient.framework.
 class LCPClientAdapter: ReadiumLCP.LCPClient {
