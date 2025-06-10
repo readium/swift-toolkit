@@ -334,8 +334,10 @@
 ../../Sources/LCP/Authentications/Base.lproj
 ../../Sources/LCP/Authentications/Base.lproj/LCPDialogViewController.xib
 ../../Sources/LCP/Authentications/LCPAuthenticating.swift
+../../Sources/LCP/Authentications/LCPDialog.swift
 ../../Sources/LCP/Authentications/LCPDialogAuthentication.swift
 ../../Sources/LCP/Authentications/LCPDialogViewController.swift
+../../Sources/LCP/Authentications/LCPObservableAuthentication.swift
 ../../Sources/LCP/Authentications/LCPPassphraseAuthentication.swift
 ../../Sources/LCP/Content Protection
 ../../Sources/LCP/Content Protection/EncryptionParser.swift
