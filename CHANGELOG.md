@@ -25,6 +25,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 * The EPUB 2 `<guide>` element is now parsed into the RWPM `landmarks` subcollection when no EPUB 3 `landmarks` navigation document is declared.
 
+#### LCP
+
+* A brand new LCP authentication dialog for SwiftUI applications. [See the accompanying user guide](docs/Guides/Readium%20LCP.md).
+
 ### Fixed
 
 #### Navigator

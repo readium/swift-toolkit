@@ -155,15 +155,48 @@ Next, declare the imported types as [Document Types](https://help.apple.com/xcod
 > [!TIP]
 > If EPUB is not included in your document types, now is a good time to add it.
 
+### Allow insecure HTTP requests
+
+A file required by the LCP library needs to be downloaded from an insecure HTTP location. You must authorize this download by adding the following to your `Info.plist` file:
+
+```xml
+<key>NSAppTransportSecurity</key>
+<dict>
+    <key>NSExceptionDomains</key>
+    <dict>
+        <key>crl.edrlab.telesec.de</key>
+        <dict>
+            <key>NSExceptionAllowsInsecureHTTPLoads</key>
+            <true/>
+        </dict>
+    </dict>
+</dict>
+```
+
 ## Initializing the `LCPService`
 
 `ReadiumLCP` offers an `LCPService` object that exposes its API. Since the `ReadiumLCP` package is not linked with `R2LCPClient`, you need to create your own adapter when setting up the `LCPService`.
 
+The `LCPService` expects repositories to store the opened licenses and passphrases. While you can implement your own persistence layer, the `ReadiumAdapterLCPSQLite` module provides default implementations based on an SQLite database.
+
 ```swift
 import R2LCPClient
+import ReadiumAdapterLCPSQLite
 import ReadiumLCP
 
-let lcpService = LCPService(client: LCPClientAdapter())
+let httpClient = DefaultHTTPClient()
+
+let assetRetriever = AssetRetriever(
+    httpClient: httpClient
+)
+
+let lcpService = LCPService(
+    client: LCPClientAdapter(),
+    licenseRepository: try LCPSQLiteLicenseRepository(),
+    passphraseRepository: try LCPSQLitePassphraseRepository(),
+    assetRetriever: assetRetriever,
+    httpClient: httpClient
+)
 
 /// Facade to the private R2LCPClient.framework.
 class LCPClientAdapter: ReadiumLCP.LCPClient {
@@ -238,7 +271,7 @@ let publicationOpener = PublicationOpener(
 )
 ```
 
-An LCP package is secured with a *user passphrase* for decrypting the content. The `LCPAuthenticating` protocol used by `LCPService.contentProtection(with:)` provides the passphrase when needed. You can use the default `LCPDialogAuthentication` which displays a pop-up to enter the passphrase, or implement your own method for passphrase retrieval.
+An LCP package is secured with a *user passphrase* for decrypting the content. The `LCPAuthenticating` protocol used by `LCPService.contentProtection(with:)` provides the passphrase when needed. You can use the default UIKit `LCPDialogAuthentication` which displays a pop-up to enter the passphrase, or implement your own method for passphrase retrieval. If your application is built using SwiftUI, [prefer using the new `LCPDialog`](#using-the-swiftui-lcp-authentication-dialog)
 
 > [!NOTE]
 > The user will be prompted once per passphrase since `ReadiumLCP` stores known passphrases on the device. 
@@ -414,3 +447,49 @@ lcpLicense.renewLoan(
 The APIs may fail with an `LCPError`. These errors **must** be displayed to the user with a suitable message.
 
 For an example, [take a look at the Test App](https://github.com/readium/swift-toolkit/blob/3.0.0/TestApp/Sources/App/Readium.swift#L221).
+
+## Using the SwiftUI LCP Authentication dialog
+
+If your application is built using SwiftUI, you cannot use `LCPAuthenticationDialog` because it requires a UIKit view controller as its host. Instead, use an `LCPObservableAuthentication` combined with our SwiftUI `LCPDialog` presented as a sheet.
+
+```swift
+@main
+struct MyApp: App {
+    private let lcpService: LCPService
+    private let publicationOpener: PublicationOpener
+
+    @StateObject private var lcpAuthentication: LCPObservableAuthentication
+
+    init() {
+        // Create an `LCPObservableAuthentication` which will be used
+        // to initialize the `LCPContentProtection`.
+        //
+        // With SwiftUI, it must be stored in a `@StateObject` property
+        // to observe the authentication requests.
+        let lcpAuthentication = LCPObservableAuthentication()
+        _lcpAuthentication = StateObject(wrappedValue: lcpAuthentication)
+
+        lcpService = LCPService(...)
+
+        publicationOpener = PublicationOpener(
+            ...,
+            contentProtections: [
+                lcpService.contentProtection(with: lcpAuthentication)
+            ]
+        )
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                // You can present an `LCPDialog` when the `LCPObservableAuthentication`
+                // `request` property is updated.
+                .sheet(item: $lcpAuthentication.request) {
+                    LCPDialog(request: $0)
+                }
+            }
+        }
+    }
+}
+```
+

@@ -6,7 +6,16 @@
 
 import Foundation
 import ReadiumShared
+import SwiftUICore
 
 func ReadiumLCPLocalizedString(_ key: String, _ values: CVarArg...) -> String {
+    ReadiumLCPLocalizedString(key, values)
+}
+
+func ReadiumLCPLocalizedString(_ key: String, _ values: [CVarArg]) -> String {
     ReadiumLocalizedString("ReadiumLCP.\(key)", in: Bundle.module, values)
+}
+
+func ReadiumLCPLocalizedStringKey(_ key: String, _ values: CVarArg...) -> LocalizedStringKey {
+    LocalizedStringKey(ReadiumLCPLocalizedString(key, values))
 }
