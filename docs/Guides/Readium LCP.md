@@ -271,7 +271,7 @@ let publicationOpener = PublicationOpener(
 )
 ```
 
-An LCP package is secured with a *user passphrase* for decrypting the content. The `LCPAuthenticating` protocol used by `LCPService.contentProtection(with:)` provides the passphrase when needed. You can use the default `LCPDialogAuthentication` which displays a pop-up to enter the passphrase, or implement your own method for passphrase retrieval.
+An LCP package is secured with a *user passphrase* for decrypting the content. The `LCPAuthenticating` protocol used by `LCPService.contentProtection(with:)` provides the passphrase when needed. You can use the default UIKit `LCPDialogAuthentication` which displays a pop-up to enter the passphrase, or implement your own method for passphrase retrieval. If your application is built using SwiftUI, [prefer using the new `LCPDialog`](#using-the-swiftui-lcp-authentication-dialog)
 
 > [!NOTE]
 > The user will be prompted once per passphrase since `ReadiumLCP` stores known passphrases on the device. 
@@ -447,3 +447,49 @@ lcpLicense.renewLoan(
 The APIs may fail with an `LCPError`. These errors **must** be displayed to the user with a suitable message.
 
 For an example, [take a look at the Test App](https://github.com/readium/swift-toolkit/blob/3.0.0/TestApp/Sources/App/Readium.swift#L221).
+
+## Using the SwiftUI LCP Authentication dialog
+
+If your application is built using SwiftUI, you cannot use `LCPAuthenticationDialog` because it requires a UIKit view controller as its host. Instead, use an `LCPObservableAuthentication` combined with our SwiftUI `LCPDialog` presented as a sheet.
+
+```swift
+@main
+struct MyApp: App {
+    private let lcpService: LCPService
+    private let publicationOpener: PublicationOpener
+
+    @StateObject private var lcpAuthentication: LCPObservableAuthentication
+
+    init() {
+        // Create an `LCPObservableAuthentication` which will be used
+        // to initialize the `LCPContentProtection`.
+        //
+        // With SwiftUI, it must be stored in a `@StateObject` property
+        // to observe the authentication requests.
+        let lcpAuthentication = LCPObservableAuthentication()
+        _lcpAuthentication = StateObject(wrappedValue: lcpAuthentication)
+
+        lcpService = LCPService(...)
+
+        publicationOpener = PublicationOpener(
+            ...,
+            contentProtections: [
+                lcpService.contentProtection(with: lcpAuthentication)
+            ]
+        )
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                // You can present an `LCPDialog` when the `LCPObservableAuthentication`
+                // `request` property is updated.
+                .sheet(item: $lcpAuthentication.request) {
+                    LCPDialog(request: $0)
+                }
+            }
+        }
+    }
+}
+```
+
