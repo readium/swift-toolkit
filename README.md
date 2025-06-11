@@ -113,7 +113,7 @@ If you're stuck, find more information at [developer.apple.com](https://develope
 Add the following to your `Cartfile`:
 
 ```
-github "readium/swift-toolkit" ~> 3.2.0
+github "readium/swift-toolkit" ~> 3.3.0
 ```
 
 Then, [follow the usual Carthage steps](https://github.com/Carthage/Carthage#adding-frameworks-to-an-application) to add the Readium libraries to your project.
@@ -143,11 +143,11 @@ Add the following `pod` statements to your `Podfile` for the Readium libraries y
 source 'https://github.com/readium/podspecs'
 source 'https://cdn.cocoapods.org/'
 
-pod 'ReadiumShared', '~> 3.2.0'
-pod 'ReadiumStreamer', '~> 3.2.0'
-pod 'ReadiumNavigator', '~> 3.2.0'
-pod 'ReadiumOPDS', '~> 3.2.0'
-pod 'ReadiumLCP', '~> 3.2.0'
+pod 'ReadiumShared', '~> 3.3.0'
+pod 'ReadiumStreamer', '~> 3.3.0'
+pod 'ReadiumNavigator', '~> 3.3.0'
+pod 'ReadiumOPDS', '~> 3.3.0'
+pod 'ReadiumLCP', '~> 3.3.0'
 ```
 
 Take a look at [CocoaPods's documentation](https://guides.cocoapods.org/using/using-cocoapods.html) for more information.
