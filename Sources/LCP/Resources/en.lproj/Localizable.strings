@@ -9,7 +9,7 @@
 "ReadiumLCP.dialog.title" = "Enter Password";
 "ReadiumLCP.dialog.cancel" = "Cancel";
 "ReadiumLCP.dialog.continue" = "Continue";
-"ReadiumLCP.dialog.forgotYourPassphrase" = "Forgot your password?";
+"ReadiumLCP.dialog.forgotYourPassphrase" = "Forgot Your Password?";
 "ReadiumLCP.dialog.forgotYourPassphrase.help" = "Forgot your passphrase? Use the button below to request a new one from your library or bookstore.";
 "ReadiumLCP.dialog.hint" = "**Hint:** %@";
 "ReadiumLCP.dialog.header" = "This publication requires an LCP password to open, which is provided by your library or bookstore. Enter it once, and you're all set to read on this device.";

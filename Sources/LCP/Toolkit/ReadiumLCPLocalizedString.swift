@@ -6,7 +6,7 @@
 
 import Foundation
 import ReadiumShared
-import SwiftUICore
+import SwiftUI
 
 func ReadiumLCPLocalizedString(_ key: String, _ values: CVarArg...) -> String {
     ReadiumLCPLocalizedString(key, values)
