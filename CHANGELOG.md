@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Added
+
+#### Navigator
+
+* You can now access the `viewport` property of an `EPUBNavigatorViewController` to obtain information about the visible portion of the publication, including the visible positions and reading order indices.
+
 
 ## [3.3.0]
 

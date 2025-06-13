@@ -75,15 +75,16 @@ function appendVirtualColumnIfNeeded() {
   }
 }
 
-var last_known_scrollX_position = 0;
-var last_known_scrollY_position = 0;
+var lastKnownProgressions;
 var ticking = false;
 var viewportWidth = 0;
 
-// Position in range [0 - 1].
-function update(position) {
-  var positionString = position.toString();
-  webkit.messageHandlers.progressionChanged.postMessage(positionString);
+/**
+ * First and last progressions in range [0 - 1].
+ * Expects an object {first, last}
+ */
+function notifyProgressions(progressions) {
+  webkit.messageHandlers.progressionChanged.postMessage(progressions);
 }
 
 window.addEventListener("scroll", onScroll);
@@ -93,28 +94,28 @@ function onScroll() {
     return;
   }
 
-  last_known_scrollY_position =
-    window.scrollY / document.scrollingElement.scrollHeight;
-  // Using Math.abs because for RTL books, the value will be negative.
-  last_known_scrollX_position = Math.abs(
-    window.scrollX / document.scrollingElement.scrollWidth
-  );
+  let root = document.scrollingElement;
+  if (isScrollModeEnabled()) {
+    lastKnownProgressions = {
+      first: window.scrollY / root.scrollHeight,
+      last: (window.scrollY + root.clientHeight) / root.scrollHeight,
+    };
+  } else {
+    // Using Math.abs because for RTL books, the value will be negative.
+    lastKnownProgressions = {
+      first: window.scrollX / root.scrollWidth,
+      last: (window.scrollX + root.clientWidth) / root.scrollWidth,
+    };
+  }
 
   // Window is hidden
-  if (
-    document.scrollingElement.scrollWidth === 0 ||
-    document.scrollingElement.scrollHeight === 0
-  ) {
+  if (root.scrollWidth === 0 || root.scrollHeight === 0) {
     return;
   }
 
   if (!ticking) {
     window.requestAnimationFrame(function () {
-      update(
-        isScrollModeEnabled()
-          ? last_known_scrollY_position
-          : last_known_scrollX_position
-      );
+      notifyProgressions(lastKnownProgressions);
       ticking = false;
     });
   }

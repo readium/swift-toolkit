@@ -44,7 +44,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     weak var delegate: EPUBSpreadViewDelegate?
     let viewModel: EPUBNavigatorViewModel
     let spread: EPUBSpread
-    private(set) var focusedResource: Link?
+    private(set) var focusedResource: ReadingOrder.Index?
 
     let webView: WebView
 
@@ -328,7 +328,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             return
         }
 
-        focusedResource = spread.links.firstWithHREF(href)
+        focusedResource = viewModel.readingOrder.firstIndexWithHREF(href)
         frame.origin = convertPointToNavigatorSpace(frame.origin)
         delegate?.spreadView(self, selectionDidChange: text, frame: frame)
     }
@@ -342,9 +342,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     // MARK: - Location and progression.
 
     /// Current progression in the resource with given href.
-    func progression<T: URLConvertible>(in href: T) -> Double {
+    func progression(in index: ReadingOrder.Index) -> Range<Double> {
         // To be overridden in subclasses if the resource supports a progression.
-        0
+        0 ..< 0
     }
 
     func go(to location: PageLocation) async {
@@ -371,7 +371,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     func findFirstVisibleElementLocator() async -> Locator? {
         let result = await evaluateScript("readium.findFirstVisibleLocator()")
         do {
-            let resource = spread.leading
+            let resource = viewModel.readingOrder[spread.leading]
             let locator = try Locator(json: result.get())?
                 .copy(href: resource.url(), mediaType: resource.mediaType ?? .xhtml)
             return locator
@@ -600,7 +600,7 @@ private extension EPUBSpreadView {
                 return
             }
 
-            trace("stopping activity indicator because spread \(spread.leading.href) did not load")
+            trace("stopping activity indicator because spread \(viewModel.readingOrder[spread.leading].href) did not load")
             activityIndicatorView?.stopAnimating()
         }
 
