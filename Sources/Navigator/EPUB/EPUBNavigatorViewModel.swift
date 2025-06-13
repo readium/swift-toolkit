@@ -38,6 +38,8 @@ final class EPUBNavigatorViewModel: Loggable {
     /// `httpServer`. This is used to serve custom font files, for example.
     @Atomic private var servedFiles: [FileURL: HTTPURL] = [:]
 
+    var readingOrder: ReadingOrder { publication.readingOrder }
+
     convenience init(
         publication: Publication,
         config: EPUBNavigatorViewController.Configuration,

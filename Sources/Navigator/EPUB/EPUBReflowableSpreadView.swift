@@ -67,11 +67,11 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
 
     override func loadSpread() {
-        guard spread.links.count == 1 else {
+        guard spread.readingOrderIndices.count == 1 else {
             log(.error, "Only one document at a time can be displayed in a reflowable spread")
             return
         }
-        let link = spread.leading
+        let link = viewModel.readingOrder[spread.leading]
         let url = viewModel.url(to: link)
         webView.load(URLRequest(url: url.url))
     }
@@ -131,18 +131,21 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     // MARK: - Location and progression
 
-    override func progression<T>(in href: T) -> Double where T: URLConvertible {
+    override func progression(in index: ReadingOrder.Index) -> Range<Double> {
         guard
-            spread.leading.url().isEquivalentTo(href),
+            spread.leading == index,
             let progression = progression
         else {
-            return 0
+            return 0 ..< 0
         }
         return progression
     }
 
     override func spreadDidLoad() async {
-        if let linkJSON = serializeJSONString(spread.leading.json) {
+        if
+            let link = viewModel.readingOrder.getOrNil(spread.leading),
+            let linkJSON = serializeJSONString(link.json)
+        {
             await evaluateScript("readium.link = \(linkJSON);")
         }
 
@@ -240,9 +243,14 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     @discardableResult
     private func go(to locator: Locator) async -> Bool {
-        guard ["", "#"].contains(locator.href.string) || spread.contains(href: locator.href) else {
-            log(.warning, "The locator's href is not in the spread")
-            return false
+        if !["", "#"].contains(locator.href.string) {
+            guard
+                let index = viewModel.readingOrder.firstIndexWithHREF(locator.href),
+                spread.contains(index: index)
+            else {
+                log(.warning, "The locator's href is not in the spread")
+                return false
+            }
         }
 
         if locator.text.highlight != nil {
@@ -310,22 +318,29 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     // MARK: - Progression
 
-    // Current progression in the page.
-    private var progression: Double?
+    // Current progression range in the page.
+    private var progression: Range<Double>?
     // To check if a progression change was cancelled or not.
-    private var previousProgression: Double?
+    private var previousProgression: Range<Double>?
 
     // Called by the javascript code to notify that scrolling ended.
     private func progressionDidChange(_ body: Any) {
-        guard isSpreadLoaded, let bodyString = body as? String, var newProgression = Double(bodyString) else {
+        guard
+            isSpreadLoaded,
+            let body = body as? [String: Any],
+            var firstProgression = body["first"] as? Double,
+            var lastProgression = body["last"] as? Double
+        else {
             return
         }
-        newProgression = min(max(newProgression, 0.0), 1.0)
+        precondition(firstProgression <= lastProgression)
+        firstProgression = min(max(firstProgression, 0.0), 1.0)
+        lastProgression = min(max(lastProgression, 0.0), 1.0)
 
         if previousProgression == nil {
             previousProgression = progression
         }
-        progression = newProgression
+        progression = firstProgression ..< lastProgression
 
         setNeedsNotifyPagesDidChange()
     }

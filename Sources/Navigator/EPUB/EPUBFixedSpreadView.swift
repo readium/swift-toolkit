@@ -95,7 +95,11 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         }
         // We call this directly on the web view on purpose, because this needs
         // to be executed before the spread is loaded.
-        webView.evaluateJavaScript("spread.load(\(spread.jsonString(forBaseURL: viewModel.publicationBaseURL)));")
+        let spreadJSON = spread.jsonString(
+            forBaseURL: viewModel.publicationBaseURL,
+            readingOrder: viewModel.readingOrder
+        )
+        webView.evaluateJavaScript("spread.load(\(spreadJSON));")
     }
 
     override func spreadDidLoad() async {

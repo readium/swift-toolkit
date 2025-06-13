@@ -551,6 +551,7 @@
 ../../Sources/Navigator/Preferences/ProgressionStrategy.swift
 ../../Sources/Navigator/Preferences/ProxyPreference.swift
 ../../Sources/Navigator/Preferences/Types.swift
+../../Sources/Navigator/ReadingOrder.swift
 ../../Sources/Navigator/Resources
 ../../Sources/Navigator/Resources/en.lproj
 ../../Sources/Navigator/Resources/en.lproj/Localizable.strings
