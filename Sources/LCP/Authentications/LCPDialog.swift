@@ -150,15 +150,12 @@ public struct LCPDialog: View {
             }
 
             DisclosureGroup(ReadiumLCPLocalizedStringKey("dialog.details.title")) {
-                VStack(spacing: 16) {
+                VStack {
                     Text(ReadiumLCPLocalizedStringKey("dialog.details.body"))
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                     Text("[\(ReadiumLCPLocalizedString("dialog.details.more"))](https://www.edrlab.org/readium-lcp/)")
-
-                    Text(ReadiumLCPLocalizedStringKey("dialog.forgotYourPassphrase.help"))
-                        .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
@@ -191,10 +188,6 @@ public struct LCPDialog: View {
                     .font(.callout)
                 }
             }
-        } footer: {
-            if let hint = hint {
-                Text(ReadiumLCPLocalizedStringKey("dialog.hint", hint))
-            }
         }
         .listRowSeparator(.hidden)
     }
@@ -216,6 +209,10 @@ public struct LCPDialog: View {
                     onForgotPassphrase()
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
+            } footer: {
+                if let hint = hint {
+                    Text(ReadiumLCPLocalizedStringKey("dialog.hint", hint))
+                }
             }
         }
     }
