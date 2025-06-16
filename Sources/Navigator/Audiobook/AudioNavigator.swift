@@ -194,7 +194,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// Resumes or start the playback.
     public func play() {
-        playTask = Task {
+        playTask = Task { @MainActor in
             AudioSession.shared.start(with: self, isPlaying: false)
 
             if player.currentItem == nil {
@@ -204,7 +204,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                     await go(to: link)
                 }
             }
-            await player.playImmediately(atRate: Float(settings.speed))
+            player.playImmediately(atRate: Float(settings.speed))
         }
     }
 
