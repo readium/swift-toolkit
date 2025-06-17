@@ -33,7 +33,6 @@ public struct EPUBSettings: ConfigurableSettings {
     public var textColor: Color?
     public var textNormalization: Bool
     public var theme: Theme
-    public var typeScale: Double?
     public var verticalText: Bool
     public var wordSpacing: Double?
 
@@ -66,7 +65,6 @@ public struct EPUBSettings: ConfigurableSettings {
         textColor: Color?,
         textNormalization: Bool,
         theme: Theme,
-        typeScale: Double?,
         verticalText: Bool,
         wordSpacing: Double?
     ) {
@@ -92,7 +90,6 @@ public struct EPUBSettings: ConfigurableSettings {
         self.textColor = textColor
         self.textNormalization = textNormalization
         self.theme = theme
-        self.typeScale = typeScale
         self.verticalText = verticalText
         self.wordSpacing = wordSpacing
         cssLayout = CSSLayout(verticalText: verticalText, language: language, readingProgression: readingProgression)
@@ -180,14 +177,15 @@ public struct EPUBSettings: ConfigurableSettings {
                 ?? false,
             theme: preferences.theme
                 ?? .light,
-            typeScale: preferences.typeScale
-                ?? defaults.typeScale,
             verticalText: verticalText,
             wordSpacing: preferences.wordSpacing
                 ?? defaults.wordSpacing
         )
     }
     
+    @available(*, unavailable, message: "Not supported anymore")
+    public var typeScale: Double? { nil }
+
     @available(*, unavailable, renamed: "horizontalMargins")
     public var pageMargins: Double? { nil }
     
@@ -246,7 +244,6 @@ public struct EPUBDefaults {
     public var spread: Spread?
     public var textAlign: TextAlignment?
     public var textNormalization: Bool?
-    public var typeScale: Double?
     public var wordSpacing: Double?
     
     public init(
@@ -289,12 +286,14 @@ public struct EPUBDefaults {
         self.spread = spread
         self.textAlign = textAlign
         self.textNormalization = textNormalization
-        self.typeScale = typeScale
         self.wordSpacing = wordSpacing
     }
 
     @available(*, unavailable, renamed: "horizontalMargins")
     public var pageMargins: Double? { nil }
+    
+    @available(*, unavailable, message: "Not supported anymore")
+    public var typeScale: Double? { nil }
     
     @available(*, unavailable, message: "Use the other initializer")
     public init(

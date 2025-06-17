@@ -382,26 +382,6 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             supportedValues: [.light, .dark, .sepia]
         )
 
-    /// Scale applied to all element font sizes.
-    ///
-    /// Only effective when:
-    ///  - the publication is reflowable
-    ///  - `publisherStyles` is off
-    public lazy var typeScale: AnyRangePreference<Double> =
-        rangePreference(
-            preference: \.typeScale,
-            effectiveValue: { $0.settings.typeScale },
-            defaultEffectiveValue: defaults.typeScale ?? 1.2,
-            isEffective: { [layout] in
-                layout == .reflowable
-                    && !$0.settings.publisherStyles
-                    && $0.preferences.typeScale != nil
-            },
-            supportedRange: 1.0 ... 2.0,
-            progressionStrategy: .steps(1.0, 1.067, 1.125, 1.2, 1.25, 1.333, 1.414, 1.5, 1.618),
-            format: { $0.formatDecimal(maximumFractionDigits: 5) }
-        )
-
     /// Indicates whether the text should be laid out vertically. This is used
     /// for example with CJK languages. This setting is automatically derived
     /// from the language if no preference is given.
@@ -438,4 +418,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     
     @available(*, unavailable, renamed: "horizontalMargins")
     public var pageMargins: AnyRangePreference<Double> { fatalError() }
+    
+    @available(*, unavailable, message: "Not available anymore")
+    public var typeScale: AnyRangePreference<Double> { fatalError() }
 }

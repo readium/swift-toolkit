@@ -91,13 +91,6 @@ public struct CSSUserProperties: CSSProperties {
     /// This flag is required to apply the font-size and/or advanced user settings.
     public var advancedSettings: Bool?
 
-    /// The type scale the user wants to use for the publication. It impacts headings, p, li, div,
-    /// pre, dd, small, sub, and sup.
-    ///
-    /// Recommended values: a range from 75% to 250%. Increments are left to implementers’ judgment.
-    /// Requires: advancedSettings
-    public var typeScale: Double?
-
     /// The alignment (text-align) the user prefers. It impacts body, li, and p which are not
     /// children of blockquote and figcaption.
     ///
@@ -172,7 +165,6 @@ public struct CSSUserProperties: CSSProperties {
         fontFamily: [String]? = nil,
         fontSize: CSSLength? = nil,
         advancedSettings: Bool? = nil,
-        typeScale: Double? = nil,
         textAlign: CSSTextAlign? = nil,
         lineHeight: CSSLineHeight? = nil,
         lineLength: CSSLength? = nil,
@@ -196,7 +188,6 @@ public struct CSSUserProperties: CSSProperties {
         self.fontFamily = fontFamily
         self.fontSize = fontSize
         self.advancedSettings = advancedSettings
-        self.typeScale = typeScale
         self.textAlign = textAlign
         self.lineHeight = lineHeight
         self.lineLength = lineLength
@@ -233,7 +224,6 @@ public struct CSSUserProperties: CSSProperties {
         props.putCSS(name: "--USER__fontSize", value: fontSize)
 
         props.putCSS(name: "--USER__advancedSettings", value: CSSFlag(name: "advanced", isEnabled: advancedSettings))
-        props.putCSS(name: "--USER__typeScale", value: typeScale)
         props.putCSS(name: "--USER__textAlign", value: textAlign)
         props.putCSS(name: "--USER__lineHeight", value: lineHeight)
         props.putCSS(name: "--USER__lineLength", value: lineLength)
@@ -330,11 +320,6 @@ public struct CSSRSProperties: CSSProperties {
 
     // Typography
 
-    /// @param typeScale The scale to be used for computing all elements’ font-size. Since those font
-    /// sizes are computed dynamically, you can set a smaller type scale when the user sets one
-    /// of the largest font sizes.
-    public var typeScale: Double?
-
     /// @param baseFontFamily The default typeface for body copy in case the ebook doesn’t have one
     /// declared. Please note some languages have a specific font-stack (japanese, hindi, etc.)
     public var baseFontFamily: [String]?
@@ -412,7 +397,6 @@ public struct CSSRSProperties: CSSProperties {
         visitedColor: CSSColor? = nil,
         primaryColor: CSSColor? = nil,
         secondaryColor: CSSColor? = nil,
-        typeScale: Double? = nil,
         baseFontFamily: [String]? = nil,
         baseLineHeight: CSSLineHeight? = nil,
         oldStyleTf: [String]? = nil,
@@ -448,7 +432,6 @@ public struct CSSRSProperties: CSSProperties {
         self.visitedColor = visitedColor
         self.primaryColor = primaryColor
         self.secondaryColor = secondaryColor
-        self.typeScale = typeScale
         self.baseFontFamily = baseFontFamily
         self.baseLineHeight = baseLineHeight
         self.oldStyleTf = oldStyleTf
@@ -497,7 +480,6 @@ public struct CSSRSProperties: CSSProperties {
         props.putCSS(name: "--RS__secondaryColor", value: secondaryColor)
 
         // Typography
-        props.putCSS(name: "--RS__typeScale", value: typeScale)
         props.putCSS(name: "--RS__baseFontFamily", value: baseFontFamily)
         props.putCSS(name: "--RS__baseLineHeight", value: baseLineHeight)
 

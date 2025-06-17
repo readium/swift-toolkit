@@ -41,7 +41,6 @@ extension ReadiumCSS {
             fontFamily: settings.fontFamily.map(resolveFontStack),
             fontSize: CSSPercentLength(settings.fontSize),
             advancedSettings: !settings.publisherStyles,
-            typeScale: settings.typeScale,
             textAlign: {
                 switch settings.textAlign {
                 case .justify: return .justify

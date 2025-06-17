@@ -81,9 +81,6 @@ public struct EPUBPreferences: ConfigurablePreferences {
     /// Reader theme.
     public var theme: Theme?
 
-    /// Scale applied to all element font sizes.
-    public var typeScale: Double?
-
     /// Indicates whether the text should be laid out vertically.
     ///
     /// This is used for example with CJK languages. This setting is
@@ -116,7 +113,6 @@ public struct EPUBPreferences: ConfigurablePreferences {
         textColor: Color? = nil,
         textNormalization: Bool? = nil,
         theme: Theme? = nil,
-        typeScale: Double? = nil,
         verticalText: Bool? = nil,
         wordSpacing: Double? = nil
     ) {
@@ -142,7 +138,6 @@ public struct EPUBPreferences: ConfigurablePreferences {
         self.textColor = textColor
         self.textNormalization = textNormalization
         self.theme = theme
-        self.typeScale = typeScale.map { max($0, 0) }
         self.verticalText = verticalText
         self.wordSpacing = wordSpacing.map { max($0, 0) }
     }
@@ -171,7 +166,6 @@ public struct EPUBPreferences: ConfigurablePreferences {
             textColor: other.textColor ?? textColor,
             textNormalization: other.textNormalization ?? textNormalization,
             theme: other.theme ?? theme,
-            typeScale: other.typeScale ?? typeScale,
             verticalText: other.verticalText ?? verticalText,
             wordSpacing: other.wordSpacing ?? wordSpacing
         )
@@ -201,6 +195,9 @@ public struct EPUBPreferences: ConfigurablePreferences {
 
     @available(*, unavailable, renamed: "horizontalMargins")
     public var pageMargins: Double? { nil }
+    
+    @available(*, unavailable, message: "Not available anymore")
+    public var typeScale: Double? { nil }
     
     @available(*, unavailable, message: "Use the other initializer")
     public init(
