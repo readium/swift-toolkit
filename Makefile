@@ -40,6 +40,7 @@ update-css:
 	cp -r readium-css/css/dist "$(CSS_PATH)"
 	git -C readium-css rev-parse HEAD > "$(CSS_PATH)/HEAD"
 	rm -rf readium-css
+	rm -rf "$(CSS_PATH)/android-fonts-patch"
 
 .PHONY: test
 test:
