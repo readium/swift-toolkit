@@ -25,14 +25,7 @@ extension ReadiumCSS {
         layout = settings.cssLayout
         userProperties = CSSUserProperties(
             view: settings.scroll ? .scroll : .paged,
-            colCount: {
-                switch settings.columnCount {
-                case .auto: return .auto
-                case .one: return .one
-                case .two: return .two
-                }
-            }(),
-            pageMargins: settings.pageMargins,
+            colCount: settings.columnCount,
             appearance: {
                 switch settings.theme {
                 case .light: return nil
@@ -59,6 +52,7 @@ extension ReadiumCSS {
                 }
             }(),
             lineHeight: settings.lineHeight.map { .unitless($0) },
+            lineLength: CSSPercentLength(settings.horizontalMargins),
             paraSpacing: settings.paragraphSpacing.map { CSSRemLength($0) },
             paraIndent: settings.paragraphIndent.map { CSSRemLength($0) },
             wordSpacing: settings.wordSpacing.map { CSSRemLength($0) },
@@ -130,6 +124,16 @@ extension ReadiumCSS: HTMLInjectable {
         // https://github.com/readium/readium-css/issues/94
         // https://github.com/readium/r2-navigator-kotlin/issues/193
         inj.append(.style("audio[controls] { width: revert; height: revert; }"))
+        
+        // Fix broken pagination when a book contains `overflow-x: hidden`.
+        // https://github.com/readium/kotlin-toolkit/issues/292
+        // Inspired by https://github.com/readium/readium-css/issues/119#issuecomment-1302348238
+        inj.append(.style(
+            """
+            :root[style], :root { overflow: visible !important; }
+            :root[style] > body, :root > body { overflow: visible !important; }
+            """
+        ))
 
         return inj
     }

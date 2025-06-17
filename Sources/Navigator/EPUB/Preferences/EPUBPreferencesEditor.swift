@@ -53,16 +53,18 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     /// Only effective when:
     ///  - the publication is reflowable
     ///  - `scroll` is off
-    public lazy var columnCount: AnyEnumPreference<ColumnCount> =
-        enumPreference(
+    public lazy var columnCount: AnyRangePreference<Int> =
+        rangePreference(
             preference: \.columnCount,
             setting: \.columnCount,
-            defaultEffectiveValue: defaults.columnCount ?? .auto,
+            defaultEffectiveValue: defaults.columnCount ?? 1,
             isEffective: { [layout] in
                 layout == .reflowable
                     && !$0.settings.scroll
             },
-            supportedValues: [.auto, .one, .two]
+            supportedRange: 1...8,
+            progressionStrategy: .increment(1),
+            format: { String(format: "%d", $0) }
         )
 
     /// Default typeface for the text.
@@ -110,6 +112,18 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             supportedRange: 0.0 ... 2.5,
             progressionStrategy: .increment(0.25),
             format: \.percentageString
+        )
+
+    /// Factor applied to horizontal margins. Default to 1.
+    public lazy var horizontalMargins: AnyRangePreference<Double> =
+        rangePreference(
+            preference: \.horizontalMargins,
+            setting: \.horizontalMargins,
+            defaultEffectiveValue: defaults.horizontalMargins ?? 1.0,
+            isEffective: { _ in true },
+            supportedRange: 0.0 ... 4.0,
+            progressionStrategy: .increment(0.3),
+            format: { $0.formatDecimal(maximumFractionDigits: 5) }
         )
 
     /// Enable hyphenation for latin languages.
@@ -212,20 +226,6 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             },
             supportedRange: 1.0 ... 2.0,
             progressionStrategy: .increment(0.1),
-            format: { $0.formatDecimal(maximumFractionDigits: 5) }
-        )
-
-    /// Factor applied to horizontal margins. Default to 1.
-    ///
-    /// Only effective with reflowable publications.
-    public lazy var pageMargins: AnyRangePreference<Double> =
-        rangePreference(
-            preference: \.pageMargins,
-            setting: \.pageMargins,
-            defaultEffectiveValue: defaults.pageMargins ?? 1.0,
-            isEffective: { [layout] _ in layout == .reflowable },
-            supportedRange: 0.0 ... 4.0,
-            progressionStrategy: .increment(0.3),
             format: { $0.formatDecimal(maximumFractionDigits: 5) }
         )
 
@@ -435,4 +435,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             progressionStrategy: .increment(0.1),
             format: \.percentageString
         )
+    
+    @available(*, unavailable, renamed: "horizontalMargins")
+    public var pageMargins: AnyRangePreference<Double> { fatalError() }
 }

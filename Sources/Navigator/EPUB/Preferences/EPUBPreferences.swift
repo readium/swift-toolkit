@@ -14,9 +14,8 @@ public struct EPUBPreferences: ConfigurablePreferences {
     /// Default page background color.
     public var backgroundColor: Color?
 
-    /// Number of reflowable columns to display (one-page view or two-page
-    /// spread).
-    public var columnCount: ColumnCount?
+    /// Number of reflowable columns to display.
+    public var columnCount: Int?
 
     /// Default typeface for the text.
     public var fontFamily: FontFamily?
@@ -44,9 +43,9 @@ public struct EPUBPreferences: ConfigurablePreferences {
 
     /// Leading line height.
     public var lineHeight: Double?
-
+    
     /// Factor applied to horizontal margins.
-    public var pageMargins: Double?
+    public var horizontalMargins: Double?
 
     /// Text indentation for paragraphs.
     public var paragraphIndent: Double?
@@ -96,17 +95,17 @@ public struct EPUBPreferences: ConfigurablePreferences {
 
     public init(
         backgroundColor: Color? = nil,
-        columnCount: ColumnCount? = nil,
+        columnCount: Int? = nil,
         fontFamily: FontFamily? = nil,
         fontSize: Double? = nil,
         fontWeight: Double? = nil,
+        horizontalMargins: Double? = nil,
         hyphens: Bool? = nil,
         imageFilter: ImageFilter? = nil,
         language: Language? = nil,
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
         lineHeight: Double? = nil,
-        pageMargins: Double? = nil,
         paragraphIndent: Double? = nil,
         paragraphSpacing: Double? = nil,
         publisherStyles: Bool? = nil,
@@ -126,13 +125,13 @@ public struct EPUBPreferences: ConfigurablePreferences {
         self.fontFamily = fontFamily
         self.fontSize = fontSize.map { max($0, 0) }
         self.fontWeight = fontWeight?.clamped(to: 0.0 ... 2.5)
+        self.horizontalMargins = horizontalMargins.map { max($0, 0) }
         self.hyphens = hyphens
         self.imageFilter = imageFilter
         self.language = language
         self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
         self.lineHeight = lineHeight
-        self.pageMargins = pageMargins.map { max($0, 0) }
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }
         self.publisherStyles = publisherStyles
@@ -155,13 +154,13 @@ public struct EPUBPreferences: ConfigurablePreferences {
             fontFamily: other.fontFamily ?? fontFamily,
             fontSize: other.fontSize ?? fontSize,
             fontWeight: other.fontWeight ?? fontWeight,
+            horizontalMargins: other.horizontalMargins ?? horizontalMargins,
             hyphens: other.hyphens ?? hyphens,
             imageFilter: other.imageFilter ?? imageFilter,
             language: other.language ?? language,
             letterSpacing: other.letterSpacing ?? letterSpacing,
             ligatures: other.ligatures ?? ligatures,
             lineHeight: other.lineHeight ?? lineHeight,
-            pageMargins: other.pageMargins ?? pageMargins,
             paragraphIndent: other.paragraphIndent ?? paragraphIndent,
             paragraphSpacing: other.paragraphSpacing ?? paragraphSpacing,
             publisherStyles: other.publisherStyles ?? publisherStyles,
@@ -199,4 +198,36 @@ public struct EPUBPreferences: ConfigurablePreferences {
             verticalText: verticalText
         )
     }
+
+    @available(*, unavailable, renamed: "horizontalMargins")
+    public var pageMargins: Double? { nil }
+    
+    @available(*, unavailable, message: "Use the other initializer")
+    public init(
+        backgroundColor: Color? = nil,
+        columnCount: ColumnCount? = nil,
+        fontFamily: FontFamily? = nil,
+        fontSize: Double? = nil,
+        fontWeight: Double? = nil,
+        hyphens: Bool? = nil,
+        imageFilter: ImageFilter? = nil,
+        language: Language? = nil,
+        letterSpacing: Double? = nil,
+        ligatures: Bool? = nil,
+        lineHeight: Double? = nil,
+        pageMargins: Double? = nil,
+        paragraphIndent: Double? = nil,
+        paragraphSpacing: Double? = nil,
+        publisherStyles: Bool? = nil,
+        readingProgression: ReadingProgression? = nil,
+        scroll: Bool? = nil,
+        spread: Spread? = nil,
+        textAlign: TextAlignment? = nil,
+        textColor: Color? = nil,
+        textNormalization: Bool? = nil,
+        theme: Theme? = nil,
+        typeScale: Double? = nil,
+        verticalText: Bool? = nil,
+        wordSpacing: Double? = nil
+    ) { fatalError() }
 }
