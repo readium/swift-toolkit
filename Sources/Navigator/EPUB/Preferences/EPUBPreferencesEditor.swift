@@ -147,14 +147,12 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
 
     /// Filter applied to images in dark theme.
     ///
-    /// Only effective when:
-    ///  - the publication is reflowable
-    ///  - the `theme` is set to `Theme.DARK`
+    /// Only effective when the publication is reflowable.
     public lazy var imageFilter: AnyEnumPreference<ImageFilter?> =
         enumPreference(
             preference: \.imageFilter,
             setting: \.imageFilter,
-            isEffective: { $0.settings.theme == .dark },
+            isEffective: { _ in true },
             supportedValues: [nil, .darken, .invert]
         )
 
