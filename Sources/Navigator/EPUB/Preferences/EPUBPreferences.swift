@@ -43,7 +43,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
 
     /// Leading line height.
     public var lineHeight: Double?
-    
+
     /// Factor applied to horizontal margins.
     public var horizontalMargins: Double?
 
@@ -195,10 +195,10 @@ public struct EPUBPreferences: ConfigurablePreferences {
 
     @available(*, unavailable, renamed: "horizontalMargins")
     public var pageMargins: Double? { nil }
-    
+
     @available(*, unavailable, message: "Not available anymore")
     public var typeScale: Double? { nil }
-    
+
     @available(*, unavailable, message: "Use the other initializer")
     public init(
         backgroundColor: Color? = nil,

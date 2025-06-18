@@ -62,7 +62,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
                 layout == .reflowable
                     && !$0.settings.scroll
             },
-            supportedRange: 1...8,
+            supportedRange: 1 ... 9,
             progressionStrategy: .increment(1),
             format: { String(format: "%d", $0) }
         )
@@ -413,10 +413,10 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             progressionStrategy: .increment(0.1),
             format: \.percentageString
         )
-    
+
     @available(*, unavailable, renamed: "horizontalMargins")
     public var pageMargins: AnyRangePreference<Double> { fatalError() }
-    
+
     @available(*, unavailable, message: "Not available anymore")
     public var typeScale: AnyRangePreference<Double> { fatalError() }
 }

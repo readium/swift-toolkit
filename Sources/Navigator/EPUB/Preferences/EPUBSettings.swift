@@ -182,13 +182,13 @@ public struct EPUBSettings: ConfigurableSettings {
                 ?? defaults.wordSpacing
         )
     }
-    
+
     @available(*, unavailable, message: "Not supported anymore")
     public var typeScale: Double? { nil }
 
     @available(*, unavailable, renamed: "horizontalMargins")
     public var pageMargins: Double? { nil }
-    
+
     @available(*, unavailable, message: "Use the other initializer")
     public init(
         backgroundColor: Color?,
@@ -245,7 +245,7 @@ public struct EPUBDefaults {
     public var textAlign: TextAlignment?
     public var textNormalization: Bool?
     public var wordSpacing: Double?
-    
+
     public init(
         columnCount: Int? = nil,
         fontSize: Double? = nil,
@@ -291,10 +291,10 @@ public struct EPUBDefaults {
 
     @available(*, unavailable, renamed: "horizontalMargins")
     public var pageMargins: Double? { nil }
-    
+
     @available(*, unavailable, message: "Not supported anymore")
     public var typeScale: Double? { nil }
-    
+
     @available(*, unavailable, message: "Use the other initializer")
     public init(
         columnCount: ColumnCount? = nil,

@@ -150,6 +150,14 @@ public struct CSSUserProperties: CSSProperties {
     /// Requires: fontOverride
     public var a11yNormalize: Bool?
 
+    /// Acts as an explicit switch to force iPadOS patching of zoom issues so
+    /// that `--USER__fontSize` can work as expected. This should be applied
+    /// only when the site is requested in its desktop version on iPadOS –
+    /// mobile version is completely fine.
+    ///
+    /// See https://bugs.webkit.org/show_bug.cgi?id=293617
+    public var iPadOSPatch: Bool?
+
     // Additional overrides for extensions and adjustments.
     public var overrides: [String: String?]
 
@@ -175,6 +183,7 @@ public struct CSSUserProperties: CSSProperties {
         bodyHyphens: CSSHyphens? = nil,
         ligatures: CSSLigatures? = nil,
         a11yNormalize: Bool? = nil,
+        iPadOSPatch: Bool? = nil,
         overrides: [String: String?] = [:]
     ) {
         self.view = view
@@ -198,6 +207,7 @@ public struct CSSUserProperties: CSSProperties {
         self.bodyHyphens = bodyHyphens
         self.ligatures = ligatures
         self.a11yNormalize = a11yNormalize
+        self.iPadOSPatch = iPadOSPatch
         self.overrides = overrides
     }
 
@@ -236,6 +246,8 @@ public struct CSSUserProperties: CSSProperties {
 
         // Accessibility
         props.putCSS(name: "--USER__a11yNormalize", value: CSSFlag(name: "a11y", isEnabled: a11yNormalize))
+
+        props.putCSS(name: "--USER__iPadOSPatch", value: CSSFlag(name: "iPadOSPatch", isEnabled: iPadOSPatch))
 
         props.merge(overrides, uniquingKeysWith: { _, n in n })
         return props
@@ -819,7 +831,7 @@ private extension Dictionary where Key == String, Value == String? {
         let css = value.map { String(format: "%d", $0) }
         self[name] = css
     }
-    
+
     mutating func putCSS(name: String, value: Double?) {
         let css = value.map { String(format: "%.5f", $0) }
         self[name] = css

@@ -8,6 +8,7 @@ import Foundation
 import ReadiumInternal
 import ReadiumShared
 import SwiftSoup
+import UIKit
 
 struct ReadiumCSS {
     var layout: CSSLayout = .init()
@@ -59,6 +60,7 @@ extension ReadiumCSS {
             bodyHyphens: settings.hyphens.map { $0 ? .auto : .none },
             ligatures: settings.ligatures.map { $0 ? .common : .none },
             a11yNormalize: settings.textNormalization,
+            iPadOSPatch: UIDevice.current.userInterfaceIdiom == .pad,
             overrides: [
                 "font-weight": settings.fontWeight
                     .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1 ... 1000)) }
@@ -123,7 +125,7 @@ extension ReadiumCSS: HTMLInjectable {
         // https://github.com/readium/readium-css/issues/94
         // https://github.com/readium/r2-navigator-kotlin/issues/193
         inj.append(.style("audio[controls] { width: revert; height: revert; }"))
-        
+
         // Fix broken pagination when a book contains `overflow-x: hidden`.
         // https://github.com/readium/kotlin-toolkit/issues/292
         // Inspired by https://github.com/readium/readium-css/issues/119#issuecomment-1302348238
