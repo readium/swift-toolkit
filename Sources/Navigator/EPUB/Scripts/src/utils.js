@@ -95,16 +95,25 @@ function onScroll() {
   }
 
   let root = document.scrollingElement;
-  if (isScrollModeEnabled()) {
+  if (isScrollModeEnabled() && !isVerticalWritingMode()) {
+    const scrollY = window.scrollY;
+    const viewportHeight = window.innerHeight;
+    const totalContentHeight = root.scrollHeight;
     lastKnownProgressions = {
-      first: window.scrollY / root.scrollHeight,
-      last: (window.scrollY + root.clientHeight) / root.scrollHeight,
+      first: scrollY / totalContentHeight,
+      last: (scrollY + viewportHeight) / totalContentHeight,
     };
   } else {
-    // Using Math.abs because for RTL books, the value will be negative.
+    let scrollX = window.scrollX;
+    const viewportWidth = window.innerWidth;
+    const totalContentWidth = root.scrollWidth;
+
+    if (isRTL()) {
+      scrollX = Math.abs(scrollX);
+    }
     lastKnownProgressions = {
-      first: window.scrollX / root.scrollWidth,
-      last: (window.scrollX + root.clientWidth) / root.scrollWidth,
+      first: scrollX / totalContentWidth,
+      last: (scrollX + viewportWidth) / totalContentWidth,
     };
   }
 
@@ -142,6 +151,21 @@ export function isScrollModeEnabled() {
   return style.getPropertyValue("--USER__view").trim() == "readium-scroll-on";
 }
 
+export function isVerticalWritingMode() {
+  const writingMode = window
+    .getComputedStyle(document.documentElement)
+    .getPropertyValue("writing-mode");
+  return writingMode.startsWith("vertical");
+}
+
+export function isRTL() {
+  const style = window.getComputedStyle(document.documentElement);
+  return (
+    style.getPropertyValue("direction") == "rtl" ||
+    style.getPropertyValue("writing-mode") == "vertical-rl"
+  );
+}
+
 // Scroll to the given TagId in document and snap.
 export function scrollToId(id) {
   let element = document.getElementById(id);
@@ -163,8 +187,13 @@ export function scrollToPosition(position, dir) {
   }
 
   if (isScrollModeEnabled()) {
-    let offset = document.scrollingElement.scrollHeight * position;
-    document.scrollingElement.scrollTop = offset;
+    if (!isVerticalWritingMode()) {
+      let offset = document.scrollingElement.scrollHeight * position;
+      document.scrollingElement.scrollTop = offset;
+    } else {
+      let offset = document.scrollingElement.scrollWidth * position;
+      document.scrollingElement.scrollLeft = -offset;
+    }
   } else {
     var documentWidth = document.scrollingElement.scrollWidth;
     var factor = dir == "rtl" ? -1 : 1;
