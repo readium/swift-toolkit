@@ -342,9 +342,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     // MARK: - Location and progression.
 
     /// Current progression in the resource with given href.
-    func progression(in index: ReadingOrder.Index) -> Range<Double> {
+    func progression(in index: ReadingOrder.Index) -> ClosedRange<Double> {
         // To be overridden in subclasses if the resource supports a progression.
-        0 ..< 0
+        0 ... 1
     }
 
     func go(to location: PageLocation) async {
