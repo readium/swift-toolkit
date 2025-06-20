@@ -263,8 +263,8 @@ function scrollToOffset(offset) {
 
 // Snap the offset to the screen width (page width).
 function snapOffset(offset) {
-  var value = offset + 1;
-
+  const delta = isRTL() ? -1 : 1;
+  const value = offset + delta;
   return value - (value % viewportWidth);
 }
 
