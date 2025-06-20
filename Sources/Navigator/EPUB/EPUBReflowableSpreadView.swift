@@ -273,7 +273,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
 
         // Note: The JS layer does not take into account the scroll view's content inset. So it can't be used to reliably scroll to the top or the bottom of the page in scroll mode.
-        if viewModel.scroll, [0, 1].contains(progression) {
+        if viewModel.scroll, !viewModel.verticalText, [0, 1].contains(progression) {
             var contentOffset = scrollView.contentOffset
             contentOffset.y = (progression == 0)
                 ? -scrollView.contentInset.top
