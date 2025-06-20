@@ -131,12 +131,12 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     // MARK: - Location and progression
 
-    override func progression(in index: ReadingOrder.Index) -> Range<Double> {
+    override func progression(in index: ReadingOrder.Index) -> ClosedRange<Double> {
         guard
             spread.leading == index,
             let progression = progression
         else {
-            return 0 ..< 0
+            return 0 ... 0
         }
         return progression
     }
@@ -273,7 +273,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
 
         // Note: The JS layer does not take into account the scroll view's content inset. So it can't be used to reliably scroll to the top or the bottom of the page in scroll mode.
-        if viewModel.scroll, [0, 1].contains(progression) {
+        if viewModel.scroll, !viewModel.verticalText, [0, 1].contains(progression) {
             var contentOffset = scrollView.contentOffset
             contentOffset.y = (progression == 0)
                 ? -scrollView.contentInset.top
@@ -319,9 +319,9 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     // MARK: - Progression
 
     // Current progression range in the page.
-    private var progression: Range<Double>?
+    private var progression: ClosedRange<Double>?
     // To check if a progression change was cancelled or not.
-    private var previousProgression: Range<Double>?
+    private var previousProgression: ClosedRange<Double>?
 
     // Called by the javascript code to notify that scrolling ended.
     private func progressionDidChange(_ body: Any) {
@@ -340,7 +340,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         if previousProgression == nil {
             previousProgression = progression
         }
-        progression = firstProgression ..< lastProgression
+        progression = firstProgression ... lastProgression
 
         setNeedsNotifyPagesDidChange()
     }

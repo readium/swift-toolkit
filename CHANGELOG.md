@@ -10,6 +10,15 @@ All notable changes to this project will be documented in this file. Take a look
 
 * You can now access the `viewport` property of an `EPUBNavigatorViewController` to obtain information about the visible portion of the publication, including the visible positions and reading order indices.
 
+### Fixed
+
+#### Navigator
+
+* [#70](https://github.com/readium/swift-toolkit/issues/70) Fixed restoring the reading progression with RTL EPUB.
+* EPUB vertical text in scrolling mode:
+    * [#556](https://github.com/readium/swift-toolkit/issues/556) Fixed reporting and restoring the reading progression.
+    * Added support for decorations (highlights).
+
 
 ## [3.3.0]
 

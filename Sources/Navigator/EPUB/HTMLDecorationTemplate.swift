@@ -92,20 +92,36 @@ public struct HTMLDecorationTemplate {
                     css += "background-color: \(tint.cssValue(alpha: alpha)) !important;"
                 }
                 if !asHighlight || isActive {
-                    css += "border-bottom: \(lineWeight)px solid \(tint.cssValue());"
+                    css += "--underline-color: \(tint.cssValue());"
                 }
                 return "<div class=\"\(className)\" style=\"\(css)\"/>"
             },
             stylesheet:
             """
             .\(className) {
-                margin-left: \(-padding.left)px;
-                padding-right: \(padding.left + padding.right)px;
-                margin-top: \(-padding.top)px;
-                padding-bottom: \(padding.top + padding.bottom)px;
+                margin: \(-padding.top)px \(-padding.left)px 0 0;
+                padding: 0 \(padding.left + padding.right)px \(padding.top + padding.bottom)px 0;
                 border-radius: \(cornerRadius)px;
                 box-sizing: border-box;
+                border: 0 solid var(--underline-color);
             }
+
+            /* Horizontal (default) */
+            [data-writing-mode="horizontal-tb"].\(className) {
+                border-bottom-width: \(lineWeight)px;
+            }
+
+            /* Vertical right-to-left */
+            [data-writing-mode="vertical-rl"].\(className),
+            [data-writing-mode="sideways-rl"].\(className) {
+                border-left-width: \(lineWeight)px;
+            }
+
+            /* Vertical left-to-right */
+            [data-writing-mode="vertical-lr"].\(className),
+            [data-writing-mode="sideways-lr"].\(className) {
+                border-right-width: \(lineWeight)px;
+            }    
             """
         )
     }
