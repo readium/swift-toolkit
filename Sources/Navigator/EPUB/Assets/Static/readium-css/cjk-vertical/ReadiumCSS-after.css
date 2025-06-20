@@ -1,5 +1,5 @@
 /*
- * Readium CSS (v. 2.0.0-beta.13)
+ * Readium CSS (v. 2.0.0-beta.14)
  * Developers: Jiminy Panoz 
  * Copyright (c) 2017. Readium Foundation. All rights reserved.
  * Use of this source code is governed by a BSD-style license which is detailed in the
@@ -77,17 +77,20 @@ body{
   max-height:var(--RS__defaultLineLength) !important;
   padding:var(--RS__pageGutter) 0 !important;
   margin:auto 0 !important;
-  overflow:hidden;
   box-sizing:border-box;
+}
+
+:root:not([style*="readium-noOverflow-on"]) body{
+  overflow:hidden;
 }
 
 @supports (overflow: clip){
 
-  :root{
+  :root:not([style*="readium-noOverflow-on"]){
      overflow:clip;
   }
 
-  body{
+  :root:not([style*="readium-noOverflow-on"]) body{
      overflow:clip;
      overflow-clip-margin:content-box;
   }
@@ -111,11 +114,11 @@ body{
 
 @supports (overflow: clip){
 
-  :root[style*="readium-scroll-on"]{
+  :root[style*="readium-scroll-on"]:not([style*="readium-noOverflow-on"]){
      overflow:auto;
   }
 
-  :root[style*="readium-scroll-on"] body{
+  :root[style*="readium-scroll-on"]:not([style*="readium-noOverflow-on"]) body{
      overflow:clip;
   }
 }
@@ -306,11 +309,11 @@ body{
     max-height:var(--USER__lineLength) !important;
   }
 
-:root[style*="readium-font-on"][style*="--USER__fontFamily"]{
+:root[style*="--USER__fontFamily"]{
   font-family:var(--USER__fontFamily) !important;
 }
 
-:root[style*="readium-font-on"][style*="--USER__fontFamily"] *{
+:root[style*="--USER__fontFamily"] *{
   font-family:revert !important;
 }
 
@@ -345,20 +348,20 @@ body{
   margin-left:var(--USER__paraSpacing) !important;
 }
 
-:root[style*="readium-font-on"][style*="--USER__fontWeight"] body{
+:root[style*="--USER__fontWeight"] body{
   font-weight:var(--USER__fontWeight) !important;
 }
 
-:root[style*="readium-font-on"][style*="--USER__fontWeight"] b,
-:root[style*="readium-font-on"][style*="--USER__fontWeight"] strong{
+:root[style*="--USER__fontWeight"] b,
+:root[style*="--USER__fontWeight"] strong{
   font-weight:bolder;
 }
 
-:root[style*="readium-font-on"][style*="--USER__fontWidth"] body{
+:root[style*="--USER__fontWidth"] body{
   font-stretch:var(--USER__fontWidth) !important;
 }
 
-:root[style*="readium-font-on"][style*="--USER__fontOpticalSizing"] body{
+:root[style*="--USER__fontOpticalSizing"] body{
   font-optical-sizing:var(--USER__fontOpticalSizing) !important;
 }
 

@@ -1,5 +1,5 @@
 /*
- * Readium CSS (v. 2.0.0-beta.13)
+ * Readium CSS (v. 2.0.0-beta.14)
  * Developers: Jiminy Panoz 
  * Copyright (c) 2017. Readium Foundation. All rights reserved.
  * Use of this source code is governed by a BSD-style license which is detailed in the
@@ -38,6 +38,31 @@
   --RS__lineHeightCompensation:1;
 
   --RS__baseLineHeight:calc(1.5 * var(--RS__lineHeightCompensation));
+
+  --RS__selectionTextColor:inherit;
+
+  --RS__selectionBackgroundColor:#b4d8fe;
+
+  --RS__visitedColor:#551A8B;
+
+  --RS__linkColor:#0000EE;
+
+  --RS__textColor:#121212;
+
+  --RS__backgroundColor:#FFFFFF;
+  color:var(--RS__textColor) !important;
+
+  background-color:var(--RS__backgroundColor) !important;
+}
+
+::-moz-selection{
+  color:var(--RS__selectionTextColor);
+  background-color:var(--RS__selectionBackgroundColor);
+}
+
+::selection{
+  color:var(--RS__selectionTextColor);
+  background-color:var(--RS__selectionBackgroundColor);
 }
 
 html{
@@ -191,36 +216,6 @@ math{
 :lang(zh-HK){
   --RS__baseFontFamily:"方體", "PingFang HK", "方體", "PingFang TC", "黑體", "Heiti TC", "Microsoft JhengHei UI", "Microsoft JhengHei", roboto, noto, "Noto Sans CJK TC", sans-serif;
   --RS__lineHeightCompensation:1.167;
-}
-
-:root{
-
-  --RS__selectionTextColor:inherit;
-
-  --RS__selectionBackgroundColor:#b4d8fe;
-
-  --RS__visitedColor:#551A8B;
-
-  --RS__linkColor:#0000EE;
-
-  --RS__textColor:#121212;
-
-  --RS__backgroundColor:#FFFFFF;
-}
-
-:root{
-  color:var(--RS__textColor) !important;
-  background-color:var(--RS__backgroundColor) !important;
-}
-
-::-moz-selection{
-  color:var(--RS__selectionTextColor);
-  background-color:var(--RS__selectionBackgroundColor);
-}
-
-::selection{
-  color:var(--RS__selectionTextColor);
-  background-color:var(--RS__selectionBackgroundColor);
 }
 
 @font-face{

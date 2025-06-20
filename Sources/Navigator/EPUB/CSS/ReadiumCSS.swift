@@ -24,6 +24,20 @@ struct ReadiumCSS {
 extension ReadiumCSS {
     mutating func update(with settings: EPUBSettings) {
         layout = settings.cssLayout
+
+        var overrides: [String: String] = [
+            // See https://github.com/readium/css/issues/183
+            "--RS__disableOverflow": "readium-noOverflow-on",
+
+            "font-weight": settings.fontWeight
+                .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1 ... 1000)) }
+                ?? "",
+        ]
+
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            overrides["--USER__iPadOSPatch"] = "readium-iPadOSPatch-on"
+        }
+
         userProperties = CSSUserProperties(
             view: settings.scroll ? .scroll : .paged,
             colCount: settings.columnCount,
@@ -60,12 +74,7 @@ extension ReadiumCSS {
             bodyHyphens: settings.hyphens.map { $0 ? .auto : .none },
             ligatures: settings.ligatures.map { $0 ? .common : .none },
             a11yNormalize: settings.textNormalization,
-            iPadOSPatch: UIDevice.current.userInterfaceIdiom == .pad,
-            overrides: [
-                "font-weight": settings.fontWeight
-                    .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1 ... 1000)) }
-                    ?? "",
-            ]
+            overrides: overrides
         )
     }
 
@@ -125,16 +134,6 @@ extension ReadiumCSS: HTMLInjectable {
         // https://github.com/readium/readium-css/issues/94
         // https://github.com/readium/r2-navigator-kotlin/issues/193
         inj.append(.style("audio[controls] { width: revert; height: revert; }"))
-
-        // Fix broken pagination when a book contains `overflow-x: hidden`.
-        // https://github.com/readium/kotlin-toolkit/issues/292
-        // Inspired by https://github.com/readium/readium-css/issues/119#issuecomment-1302348238
-        inj.append(.style(
-            """
-            :root[style], :root { overflow: visible !important; }
-            :root[style] > body, :root > body { overflow: visible !important; }
-            """
-        ))
 
         return inj
     }
