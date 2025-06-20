@@ -12,17 +12,17 @@ import ReadiumShared
 /// See `EPUBPreferences`
 public struct EPUBSettings: ConfigurableSettings {
     public var backgroundColor: Color?
-    public var columnCount: ColumnCount
+    public var columnCount: Int
     public var fontFamily: FontFamily?
     public var fontSize: Double
     public var fontWeight: Double?
+    public var horizontalMargins: Double
     public var hyphens: Bool?
     public var imageFilter: ImageFilter?
     public var language: Language?
     public var letterSpacing: Double?
     public var ligatures: Bool?
     public var lineHeight: Double?
-    public var pageMargins: Double
     public var paragraphIndent: Double?
     public var paragraphSpacing: Double?
     public var publisherStyles: Bool
@@ -33,7 +33,6 @@ public struct EPUBSettings: ConfigurableSettings {
     public var textColor: Color?
     public var textNormalization: Bool
     public var theme: Theme
-    public var typeScale: Double?
     public var verticalText: Bool
     public var wordSpacing: Double?
 
@@ -45,17 +44,17 @@ public struct EPUBSettings: ConfigurableSettings {
 
     public init(
         backgroundColor: Color?,
-        columnCount: ColumnCount,
+        columnCount: Int,
         fontFamily: FontFamily?,
         fontSize: Double,
         fontWeight: Double?,
+        horizontalMargins: Double,
         hyphens: Bool?,
         imageFilter: ImageFilter?,
         language: Language?,
         letterSpacing: Double?,
         ligatures: Bool?,
         lineHeight: Double?,
-        pageMargins: Double,
         paragraphIndent: Double?,
         paragraphSpacing: Double?,
         publisherStyles: Bool,
@@ -66,7 +65,6 @@ public struct EPUBSettings: ConfigurableSettings {
         textColor: Color?,
         textNormalization: Bool,
         theme: Theme,
-        typeScale: Double?,
         verticalText: Bool,
         wordSpacing: Double?
     ) {
@@ -75,13 +73,13 @@ public struct EPUBSettings: ConfigurableSettings {
         self.fontFamily = fontFamily
         self.fontSize = fontSize
         self.fontWeight = fontWeight
+        self.horizontalMargins = horizontalMargins
         self.hyphens = hyphens
         self.imageFilter = imageFilter
         self.language = language
         self.letterSpacing = letterSpacing
         self.ligatures = ligatures
         self.lineHeight = lineHeight
-        self.pageMargins = pageMargins
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing
         self.publisherStyles = publisherStyles
@@ -92,7 +90,6 @@ public struct EPUBSettings: ConfigurableSettings {
         self.textColor = textColor
         self.textNormalization = textNormalization
         self.theme = theme
-        self.typeScale = typeScale
         self.verticalText = verticalText
         self.wordSpacing = wordSpacing
         cssLayout = CSSLayout(verticalText: verticalText, language: language, readingProgression: readingProgression)
@@ -138,13 +135,16 @@ public struct EPUBSettings: ConfigurableSettings {
             backgroundColor: preferences.backgroundColor,
             columnCount: preferences.columnCount
                 ?? defaults.columnCount
-                ?? .auto,
+                ?? 1,
             fontFamily: preferences.fontFamily,
             fontSize: preferences.fontSize
                 ?? defaults.fontSize
                 ?? 1.0,
             fontWeight: preferences.fontWeight
                 ?? defaults.fontWeight,
+            horizontalMargins: preferences.horizontalMargins
+                ?? defaults.horizontalMargins
+                ?? 1.0,
             hyphens: preferences.hyphens
                 ?? defaults.hyphens,
             imageFilter: preferences.imageFilter
@@ -156,9 +156,6 @@ public struct EPUBSettings: ConfigurableSettings {
                 ?? defaults.ligatures,
             lineHeight: preferences.lineHeight
                 ?? defaults.lineHeight,
-            pageMargins: preferences.pageMargins
-                ?? defaults.pageMargins
-                ?? 1.0,
             paragraphIndent: preferences.paragraphIndent
                 ?? defaults.paragraphIndent,
             paragraphSpacing: preferences.paragraphSpacing
@@ -180,13 +177,46 @@ public struct EPUBSettings: ConfigurableSettings {
                 ?? false,
             theme: preferences.theme
                 ?? .light,
-            typeScale: preferences.typeScale
-                ?? defaults.typeScale,
             verticalText: verticalText,
             wordSpacing: preferences.wordSpacing
                 ?? defaults.wordSpacing
         )
     }
+
+    @available(*, unavailable, message: "Not supported anymore")
+    public var typeScale: Double? { nil }
+
+    @available(*, unavailable, renamed: "horizontalMargins")
+    public var pageMargins: Double? { nil }
+
+    @available(*, unavailable, message: "Use the other initializer")
+    public init(
+        backgroundColor: Color?,
+        columnCount: ColumnCount,
+        fontFamily: FontFamily?,
+        fontSize: Double,
+        fontWeight: Double?,
+        hyphens: Bool?,
+        imageFilter: ImageFilter?,
+        language: Language?,
+        letterSpacing: Double?,
+        ligatures: Bool?,
+        lineHeight: Double?,
+        pageMargins: Double,
+        paragraphIndent: Double?,
+        paragraphSpacing: Double?,
+        publisherStyles: Bool,
+        readingProgression: ReadingProgression,
+        scroll: Bool,
+        spread: Spread,
+        textAlign: TextAlignment?,
+        textColor: Color?,
+        textNormalization: Bool,
+        theme: Theme,
+        typeScale: Double?,
+        verticalText: Bool,
+        wordSpacing: Double?
+    ) { fatalError() }
 }
 
 /// Default setting values for the EPUB navigator.
@@ -196,16 +226,16 @@ public struct EPUBSettings: ConfigurableSettings {
 ///
 /// See `EPUBPreferences`.
 public struct EPUBDefaults {
-    public var columnCount: ColumnCount?
+    public var columnCount: Int?
     public var fontSize: Double?
     public var fontWeight: Double?
+    public var horizontalMargins: Double?
     public var hyphens: Bool?
     public var imageFilter: ImageFilter?
     public var language: Language?
     public var letterSpacing: Double?
     public var ligatures: Bool?
     public var lineHeight: Double?
-    public var pageMargins: Double?
     public var paragraphIndent: Double?
     public var paragraphSpacing: Double?
     public var publisherStyles: Bool?
@@ -214,9 +244,58 @@ public struct EPUBDefaults {
     public var spread: Spread?
     public var textAlign: TextAlignment?
     public var textNormalization: Bool?
-    public var typeScale: Double?
     public var wordSpacing: Double?
 
+    public init(
+        columnCount: Int? = nil,
+        fontSize: Double? = nil,
+        fontWeight: Double? = nil,
+        horizontalMargins: Double? = nil,
+        hyphens: Bool? = nil,
+        imageFilter: ImageFilter? = nil,
+        language: Language? = nil,
+        letterSpacing: Double? = nil,
+        ligatures: Bool? = nil,
+        lineHeight: Double? = nil,
+        paragraphIndent: Double? = nil,
+        paragraphSpacing: Double? = nil,
+        publisherStyles: Bool? = nil,
+        readingProgression: ReadingProgression? = nil,
+        scroll: Bool? = nil,
+        spread: Spread? = nil,
+        textAlign: TextAlignment? = nil,
+        textNormalization: Bool? = nil,
+        typeScale: Double? = nil,
+        wordSpacing: Double? = nil
+    ) {
+        self.columnCount = columnCount
+        self.fontSize = fontSize
+        self.fontWeight = fontWeight
+        self.horizontalMargins = horizontalMargins
+        self.hyphens = hyphens
+        self.imageFilter = imageFilter
+        self.language = language
+        self.letterSpacing = letterSpacing
+        self.ligatures = ligatures
+        self.lineHeight = lineHeight
+        self.paragraphIndent = paragraphIndent
+        self.paragraphSpacing = paragraphSpacing
+        self.publisherStyles = publisherStyles
+        self.readingProgression = readingProgression
+        self.scroll = scroll
+        self.spread = spread
+        self.textAlign = textAlign
+        self.textNormalization = textNormalization
+        self.wordSpacing = wordSpacing
+    }
+
+    @available(*, unavailable, renamed: "horizontalMargins")
+    public var pageMargins: Double? { nil }
+
+    @available(*, unavailable, message: "Not supported anymore")
+    public var typeScale: Double? { nil }
+
+    @available(*, unavailable, message: "Use the other initializer")
     public init(
         columnCount: ColumnCount? = nil,
         fontSize: Double? = nil,
@@ -238,28 +317,7 @@ public struct EPUBDefaults {
         textNormalization: Bool? = nil,
         typeScale: Double? = nil,
         wordSpacing: Double? = nil
-    ) {
-        self.columnCount = columnCount
-        self.fontSize = fontSize
-        self.fontWeight = fontWeight
-        self.hyphens = hyphens
-        self.imageFilter = imageFilter
-        self.language = language
-        self.letterSpacing = letterSpacing
-        self.ligatures = ligatures
-        self.lineHeight = lineHeight
-        self.pageMargins = pageMargins
-        self.paragraphIndent = paragraphIndent
-        self.paragraphSpacing = paragraphSpacing
-        self.publisherStyles = publisherStyles
-        self.readingProgression = readingProgression
-        self.scroll = scroll
-        self.spread = spread
-        self.textAlign = textAlign
-        self.textNormalization = textNormalization
-        self.typeScale = typeScale
-        self.wordSpacing = wordSpacing
-    }
+    ) { fatalError() }
 }
 
 private extension Language {

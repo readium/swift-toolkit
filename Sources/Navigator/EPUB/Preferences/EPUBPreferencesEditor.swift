@@ -53,16 +53,18 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     /// Only effective when:
     ///  - the publication is reflowable
     ///  - `scroll` is off
-    public lazy var columnCount: AnyEnumPreference<ColumnCount> =
-        enumPreference(
+    public lazy var columnCount: AnyRangePreference<Int> =
+        rangePreference(
             preference: \.columnCount,
             setting: \.columnCount,
-            defaultEffectiveValue: defaults.columnCount ?? .auto,
+            defaultEffectiveValue: defaults.columnCount ?? 1,
             isEffective: { [layout] in
                 layout == .reflowable
                     && !$0.settings.scroll
             },
-            supportedValues: [.auto, .one, .two]
+            supportedRange: 1 ... 9,
+            progressionStrategy: .increment(1),
+            format: { String(format: "%d", $0) }
         )
 
     /// Default typeface for the text.
@@ -112,6 +114,18 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             format: \.percentageString
         )
 
+    /// Factor applied to horizontal margins. Default to 1.
+    public lazy var horizontalMargins: AnyRangePreference<Double> =
+        rangePreference(
+            preference: \.horizontalMargins,
+            setting: \.horizontalMargins,
+            defaultEffectiveValue: defaults.horizontalMargins ?? 1.0,
+            isEffective: { _ in true },
+            supportedRange: 0.0 ... 4.0,
+            progressionStrategy: .increment(0.3),
+            format: { $0.formatDecimal(maximumFractionDigits: 5) }
+        )
+
     /// Enable hyphenation for latin languages.
     ///
     /// Only effective when:
@@ -133,14 +147,12 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
 
     /// Filter applied to images in dark theme.
     ///
-    /// Only effective when:
-    ///  - the publication is reflowable
-    ///  - the `theme` is set to `Theme.DARK`
+    /// Only effective when the publication is reflowable.
     public lazy var imageFilter: AnyEnumPreference<ImageFilter?> =
         enumPreference(
             preference: \.imageFilter,
             setting: \.imageFilter,
-            isEffective: { $0.settings.theme == .dark },
+            isEffective: { _ in true },
             supportedValues: [nil, .darken, .invert]
         )
 
@@ -212,20 +224,6 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             },
             supportedRange: 1.0 ... 2.0,
             progressionStrategy: .increment(0.1),
-            format: { $0.formatDecimal(maximumFractionDigits: 5) }
-        )
-
-    /// Factor applied to horizontal margins. Default to 1.
-    ///
-    /// Only effective with reflowable publications.
-    public lazy var pageMargins: AnyRangePreference<Double> =
-        rangePreference(
-            preference: \.pageMargins,
-            setting: \.pageMargins,
-            defaultEffectiveValue: defaults.pageMargins ?? 1.0,
-            isEffective: { [layout] _ in layout == .reflowable },
-            supportedRange: 0.0 ... 4.0,
-            progressionStrategy: .increment(0.3),
             format: { $0.formatDecimal(maximumFractionDigits: 5) }
         )
 
@@ -382,26 +380,6 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             supportedValues: [.light, .dark, .sepia]
         )
 
-    /// Scale applied to all element font sizes.
-    ///
-    /// Only effective when:
-    ///  - the publication is reflowable
-    ///  - `publisherStyles` is off
-    public lazy var typeScale: AnyRangePreference<Double> =
-        rangePreference(
-            preference: \.typeScale,
-            effectiveValue: { $0.settings.typeScale },
-            defaultEffectiveValue: defaults.typeScale ?? 1.2,
-            isEffective: { [layout] in
-                layout == .reflowable
-                    && !$0.settings.publisherStyles
-                    && $0.preferences.typeScale != nil
-            },
-            supportedRange: 1.0 ... 2.0,
-            progressionStrategy: .steps(1.0, 1.067, 1.125, 1.2, 1.25, 1.333, 1.414, 1.5, 1.618),
-            format: { $0.formatDecimal(maximumFractionDigits: 5) }
-        )
-
     /// Indicates whether the text should be laid out vertically. This is used
     /// for example with CJK languages. This setting is automatically derived
     /// from the language if no preference is given.
@@ -435,4 +413,10 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             progressionStrategy: .increment(0.1),
             format: \.percentageString
         )
+
+    @available(*, unavailable, renamed: "horizontalMargins")
+    public var pageMargins: AnyRangePreference<Double> { fatalError() }
+
+    @available(*, unavailable, message: "Not available anymore")
+    public var typeScale: AnyRangePreference<Double> { fatalError() }
 }

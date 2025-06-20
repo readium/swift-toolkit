@@ -33,19 +33,17 @@ public extension EPUBPreferences {
         return EPUBPreferences(
             backgroundColor: defaults.optString(for: .backgroundColor)
                 .flatMap { Color(hex: $0) },
-            columnCount: defaults.optInt(for: .columnCount)
-                .flatMap { (columnCountValues ?? defaultColumnCountValues).getOrNil($0) }
-                .flatMap { ColumnCount(rawValue: $0) },
+            columnCount: defaults.optInt(for: .columnCount),
             fontFamily: defaults.optInt(for: .fontFamily)
                 .takeIf { $0 != 0 } // Original
                 .flatMap { (fontFamilyValues ?? defaultFontFamilyValues).getOrNil($0) }
                 .map { FontFamily(rawValue: $0) },
             fontSize: defaults.optDouble(for: .fontSize)
                 .map { $0 / 100 },
+            horizontalMargins: defaults.optDouble(for: .pageMargins),
             hyphens: defaults.optBool(for: .hyphens),
             letterSpacing: defaults.optDouble(for: .letterSpacing),
             lineHeight: defaults.optDouble(for: .lineHeight),
-            pageMargins: defaults.optDouble(for: .pageMargins),
             paragraphSpacing: defaults.optDouble(for: .paragraphMargins),
             publisherStyles: defaults.optBool(for: .publisherDefault),
             scroll: defaults.optBool(for: .scroll),

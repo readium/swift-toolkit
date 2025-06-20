@@ -8,6 +8,7 @@ import Foundation
 import ReadiumInternal
 import ReadiumShared
 import SwiftSoup
+import UIKit
 
 struct ReadiumCSS {
     var layout: CSSLayout = .init()
@@ -23,16 +24,23 @@ struct ReadiumCSS {
 extension ReadiumCSS {
     mutating func update(with settings: EPUBSettings) {
         layout = settings.cssLayout
+
+        var overrides: [String: String] = [
+            // See https://github.com/readium/css/issues/183
+            "--RS__disableOverflow": "readium-noOverflow-on",
+
+            "font-weight": settings.fontWeight
+                .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1 ... 1000)) }
+                ?? "",
+        ]
+
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            overrides["--USER__iPadOSPatch"] = "readium-iPadOSPatch-on"
+        }
+
         userProperties = CSSUserProperties(
             view: settings.scroll ? .scroll : .paged,
-            colCount: {
-                switch settings.columnCount {
-                case .auto: return .auto
-                case .one: return .one
-                case .two: return .two
-                }
-            }(),
-            pageMargins: settings.pageMargins,
+            colCount: settings.columnCount,
             appearance: {
                 switch settings.theme {
                 case .light: return nil
@@ -48,7 +56,6 @@ extension ReadiumCSS {
             fontFamily: settings.fontFamily.map(resolveFontStack),
             fontSize: CSSPercentLength(settings.fontSize),
             advancedSettings: !settings.publisherStyles,
-            typeScale: settings.typeScale,
             textAlign: {
                 switch settings.textAlign {
                 case .justify: return .justify
@@ -59,6 +66,7 @@ extension ReadiumCSS {
                 }
             }(),
             lineHeight: settings.lineHeight.map { .unitless($0) },
+            lineLength: CSSPercentLength(settings.horizontalMargins),
             paraSpacing: settings.paragraphSpacing.map { CSSRemLength($0) },
             paraIndent: settings.paragraphIndent.map { CSSRemLength($0) },
             wordSpacing: settings.wordSpacing.map { CSSRemLength($0) },
@@ -66,11 +74,7 @@ extension ReadiumCSS {
             bodyHyphens: settings.hyphens.map { $0 ? .auto : .none },
             ligatures: settings.ligatures.map { $0 ? .common : .none },
             a11yNormalize: settings.textNormalization,
-            overrides: [
-                "font-weight": settings.fontWeight
-                    .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1 ... 1000)) }
-                    ?? "",
-            ]
+            overrides: overrides
         )
     }
 

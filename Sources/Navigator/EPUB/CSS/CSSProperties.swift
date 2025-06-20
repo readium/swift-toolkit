@@ -34,7 +34,7 @@ public extension CSSProperties {
 
 /// User settings properties.
 ///
-/// See https://readium.org/readium-css/docs/CSS19-api.html#user-settings
+/// See https://readium.org/css/docs/CSS19-api.html#user-settings
 public struct CSSUserProperties: CSSProperties {
     // View mode
 
@@ -43,18 +43,8 @@ public struct CSSUserProperties: CSSProperties {
 
     // Pagination
 
-    /// The number of columns (column-count) the user wants displayed (one-page view or two-page
-    /// spread).
-    ///
-    /// To reset, change the value to auto.
-    public var colCount: CSSColCount?
-
-    /// A factor applied to horizontal margins (padding-left and padding-right) the user wants to
-    /// set.
-    ///
-    /// Recommended values: a range from 0.5 to 2. Increments are left to implementers’ judgment.
-    /// To reset, change the value to 1.
-    public var pageMargins: Double?
+    /// The number of columns (column-count) the user wants displayed.
+    public var colCount: Int?
 
     // Appearance
 
@@ -101,13 +91,6 @@ public struct CSSUserProperties: CSSProperties {
     /// This flag is required to apply the font-size and/or advanced user settings.
     public var advancedSettings: Bool?
 
-    /// The type scale the user wants to use for the publication. It impacts headings, p, li, div,
-    /// pre, dd, small, sub, and sup.
-    ///
-    /// Recommended values: a range from 75% to 250%. Increments are left to implementers’ judgment.
-    /// Requires: advancedSettings
-    public var typeScale: Double?
-
     /// The alignment (text-align) the user prefers. It impacts body, li, and p which are not
     /// children of blockquote and figcaption.
     ///
@@ -119,6 +102,11 @@ public struct CSSUserProperties: CSSProperties {
     /// Recommended values: a range from 1 to 2. Increments are left to implementers’ judgment.
     /// Requires: advancedSettings
     public var lineHeight: CSSLineHeight?
+
+    /// The `max-width` of `body` (to shrink or grow the line-length of body copy).
+    ///
+    /// Possible values: any value CSS property `max-width|height` accepts.
+    public var lineLength: CSSLength?
 
     /// The vertical margins (margin-top and margin-bottom) for paragraphs.
     ///
@@ -167,8 +155,7 @@ public struct CSSUserProperties: CSSProperties {
 
     public init(
         view: CSSView? = nil,
-        colCount: CSSColCount? = nil,
-        pageMargins: Double? = nil,
+        colCount: Int? = nil,
         appearance: CSSAppearance? = nil,
         darkenImages: Bool? = nil,
         invertImages: Bool? = nil,
@@ -178,9 +165,9 @@ public struct CSSUserProperties: CSSProperties {
         fontFamily: [String]? = nil,
         fontSize: CSSLength? = nil,
         advancedSettings: Bool? = nil,
-        typeScale: Double? = nil,
         textAlign: CSSTextAlign? = nil,
         lineHeight: CSSLineHeight? = nil,
+        lineLength: CSSLength? = nil,
         paraSpacing: CSSLength? = nil,
         paraIndent: CSSRemLength? = nil,
         wordSpacing: CSSRemLength? = nil,
@@ -192,7 +179,6 @@ public struct CSSUserProperties: CSSProperties {
     ) {
         self.view = view
         self.colCount = colCount
-        self.pageMargins = pageMargins
         self.appearance = appearance
         self.darkenImages = darkenImages
         self.invertImages = invertImages
@@ -202,9 +188,9 @@ public struct CSSUserProperties: CSSProperties {
         self.fontFamily = fontFamily
         self.fontSize = fontSize
         self.advancedSettings = advancedSettings
-        self.typeScale = typeScale
         self.textAlign = textAlign
         self.lineHeight = lineHeight
+        self.lineLength = lineLength
         self.paraSpacing = paraSpacing
         self.paraIndent = paraIndent
         self.wordSpacing = wordSpacing
@@ -222,7 +208,6 @@ public struct CSSUserProperties: CSSProperties {
 
         // Pagination
         props.putCSS(name: "--USER__colCount", value: colCount)
-        props.putCSS(name: "--USER__pageMargins", value: pageMargins)
 
         // Appearance
         props.putCSS(name: "--USER__appearance", value: appearance)
@@ -238,11 +223,10 @@ public struct CSSUserProperties: CSSProperties {
         props.putCSS(name: "--USER__fontFamily", value: fontFamily)
         props.putCSS(name: "--USER__fontSize", value: fontSize)
 
-        // Advanced settings
         props.putCSS(name: "--USER__advancedSettings", value: CSSFlag(name: "advanced", isEnabled: advancedSettings))
-        props.putCSS(name: "--USER__typeScale", value: typeScale)
         props.putCSS(name: "--USER__textAlign", value: textAlign)
         props.putCSS(name: "--USER__lineHeight", value: lineHeight)
+        props.putCSS(name: "--USER__lineLength", value: lineLength)
         props.putCSS(name: "--USER__paraSpacing", value: paraSpacing)
         props.putCSS(name: "--USER__paraIndent", value: paraIndent)
         props.putCSS(name: "--USER__wordSpacing", value: wordSpacing)
@@ -260,7 +244,7 @@ public struct CSSUserProperties: CSSProperties {
 
 /// Reading System properties.
 ///
-/// See https://readium.org/readium-css/docs/CSS19-api.html#reading-system-styles
+/// See https://readium.org/css/docs/CSS19-api.html#reading-system-styles
 public struct CSSRSProperties: CSSProperties {
     // Pagination
 
@@ -268,7 +252,7 @@ public struct CSSRSProperties: CSSProperties {
     public var colWidth: CSSLength?
 
     /// @param colCount The optimal number of columns (depending on the columns’ width).
-    public var colCount: CSSColCount?
+    public var colCount: Int?
 
     /// @param colGap The gap between columns. You must account for this gap when scrolling.
     public var colGap: CSSAbsoluteLength?
@@ -336,11 +320,6 @@ public struct CSSRSProperties: CSSProperties {
 
     // Typography
 
-    /// @param typeScale The scale to be used for computing all elements’ font-size. Since those font
-    /// sizes are computed dynamically, you can set a smaller type scale when the user sets one
-    /// of the largest font sizes.
-    public var typeScale: Double?
-
     /// @param baseFontFamily The default typeface for body copy in case the ebook doesn’t have one
     /// declared. Please note some languages have a specific font-stack (japanese, hindi, etc.)
     public var baseFontFamily: [String]?
@@ -399,7 +378,7 @@ public struct CSSRSProperties: CSSProperties {
 
     public init(
         colWidth: CSSLength? = nil,
-        colCount: CSSColCount? = nil,
+        colCount: Int? = nil,
         colGap: CSSAbsoluteLength? = nil,
         pageGutter: CSSAbsoluteLength? = nil,
         flowSpacing: CSSLength? = nil,
@@ -418,7 +397,6 @@ public struct CSSRSProperties: CSSProperties {
         visitedColor: CSSColor? = nil,
         primaryColor: CSSColor? = nil,
         secondaryColor: CSSColor? = nil,
-        typeScale: Double? = nil,
         baseFontFamily: [String]? = nil,
         baseLineHeight: CSSLineHeight? = nil,
         oldStyleTf: [String]? = nil,
@@ -454,7 +432,6 @@ public struct CSSRSProperties: CSSProperties {
         self.visitedColor = visitedColor
         self.primaryColor = primaryColor
         self.secondaryColor = secondaryColor
-        self.typeScale = typeScale
         self.baseFontFamily = baseFontFamily
         self.baseLineHeight = baseLineHeight
         self.oldStyleTf = oldStyleTf
@@ -503,7 +480,6 @@ public struct CSSRSProperties: CSSProperties {
         props.putCSS(name: "--RS__secondaryColor", value: secondaryColor)
 
         // Typography
-        props.putCSS(name: "--RS__typeScale", value: typeScale)
         props.putCSS(name: "--RS__baseFontFamily", value: baseFontFamily)
         props.putCSS(name: "--RS__baseLineHeight", value: baseLineHeight)
 
@@ -537,6 +513,7 @@ public enum CSSView: String, CSSConvertible {
     public func css() -> String? { rawValue }
 }
 
+@available(*, unavailable, message: "Column count is now an integer")
 public enum CSSColCount: String, CSSConvertible {
     case auto
     case one = "1"
@@ -836,6 +813,11 @@ private extension Dictionary where Key == String, Value == String? {
 
     mutating func putCSS(name: String, value: String?) {
         self[name] = value?.css()
+    }
+
+    mutating func putCSS(name: String, value: Int?) {
+        let css = value.map { String(format: "%d", $0) }
+        self[name] = css
     }
 
     mutating func putCSS(name: String, value: Double?) {
