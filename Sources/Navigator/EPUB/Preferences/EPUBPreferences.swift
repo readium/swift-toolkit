@@ -53,11 +53,6 @@ public struct EPUBPreferences: ConfigurablePreferences {
     /// Vertical margins for paragraphs.
     public var paragraphSpacing: Double?
 
-    /// Indicates whether the original publisher styles should be observed.
-    ///
-    /// Many settings require this to be off.
-    public var publisherStyles: Bool?
-
     /// Direction of the reading progression across resources.
     public var readingProgression: ReadingProgression?
 
@@ -105,7 +100,6 @@ public struct EPUBPreferences: ConfigurablePreferences {
         lineHeight: Double? = nil,
         paragraphIndent: Double? = nil,
         paragraphSpacing: Double? = nil,
-        publisherStyles: Bool? = nil,
         readingProgression: ReadingProgression? = nil,
         scroll: Bool? = nil,
         spread: Spread? = nil,
@@ -130,7 +124,6 @@ public struct EPUBPreferences: ConfigurablePreferences {
         self.lineHeight = lineHeight
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }
-        self.publisherStyles = publisherStyles
         self.readingProgression = readingProgression
         self.scroll = scroll
         self.spread = [nil, .never, .always].contains(spread) ? spread : nil
@@ -158,7 +151,6 @@ public struct EPUBPreferences: ConfigurablePreferences {
             lineHeight: other.lineHeight ?? lineHeight,
             paragraphIndent: other.paragraphIndent ?? paragraphIndent,
             paragraphSpacing: other.paragraphSpacing ?? paragraphSpacing,
-            publisherStyles: other.publisherStyles ?? publisherStyles,
             readingProgression: other.readingProgression ?? readingProgression,
             scroll: other.scroll ?? scroll,
             spread: other.spread ?? spread,
@@ -198,6 +190,9 @@ public struct EPUBPreferences: ConfigurablePreferences {
 
     @available(*, unavailable, message: "Not available anymore")
     public var typeScale: Double? { nil }
+
+    @available(*, unavailable, message: "Not needed anymore")
+    public var publisherStyles: Bool? { nil }
 
     @available(*, unavailable, message: "Use the other initializer")
     public init(

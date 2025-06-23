@@ -25,7 +25,6 @@ public struct EPUBSettings: ConfigurableSettings {
     public var lineHeight: Double?
     public var paragraphIndent: Double?
     public var paragraphSpacing: Double?
-    public var publisherStyles: Bool
     public var readingProgression: ReadingProgression
     public var scroll: Bool
     public var spread: Spread
@@ -57,7 +56,6 @@ public struct EPUBSettings: ConfigurableSettings {
         lineHeight: Double?,
         paragraphIndent: Double?,
         paragraphSpacing: Double?,
-        publisherStyles: Bool,
         readingProgression: ReadingProgression,
         scroll: Bool,
         spread: Spread,
@@ -82,7 +80,6 @@ public struct EPUBSettings: ConfigurableSettings {
         self.lineHeight = lineHeight
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing
-        self.publisherStyles = publisherStyles
         self.readingProgression = readingProgression
         self.scroll = scroll
         self.spread = spread
@@ -160,9 +157,6 @@ public struct EPUBSettings: ConfigurableSettings {
                 ?? defaults.paragraphIndent,
             paragraphSpacing: preferences.paragraphSpacing
                 ?? defaults.paragraphSpacing,
-            publisherStyles: preferences.publisherStyles
-                ?? defaults.publisherStyles
-                ?? true,
             readingProgression: readingProgression,
             scroll: scroll,
             spread: preferences.spread
@@ -188,6 +182,9 @@ public struct EPUBSettings: ConfigurableSettings {
 
     @available(*, unavailable, message: "Use lineLength")
     public var pageMargins: Double? { nil }
+
+    @available(*, unavailable, message: "Not needed anymore")
+    public var publisherStyles: Bool? { nil }
 
     @available(*, unavailable, message: "Use the other initializer")
     public init(
@@ -238,7 +235,6 @@ public struct EPUBDefaults {
     public var lineHeight: Double?
     public var paragraphIndent: Double?
     public var paragraphSpacing: Double?
-    public var publisherStyles: Bool?
     public var readingProgression: ReadingProgression?
     public var scroll: Bool?
     public var spread: Spread?
@@ -259,7 +255,6 @@ public struct EPUBDefaults {
         lineHeight: Double? = nil,
         paragraphIndent: Double? = nil,
         paragraphSpacing: Double? = nil,
-        publisherStyles: Bool? = nil,
         readingProgression: ReadingProgression? = nil,
         scroll: Bool? = nil,
         spread: Spread? = nil,
@@ -280,7 +275,6 @@ public struct EPUBDefaults {
         self.lineHeight = lineHeight
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing
-        self.publisherStyles = publisherStyles
         self.readingProgression = readingProgression
         self.scroll = scroll
         self.spread = spread
@@ -294,6 +288,9 @@ public struct EPUBDefaults {
 
     @available(*, unavailable, message: "Not supported anymore")
     public var typeScale: Double? { nil }
+
+    @available(*, unavailable, message: "Not needed anymore")
+    public var publisherStyles: Bool? { nil }
 
     @available(*, unavailable, message: "Use the other initializer")
     public init(

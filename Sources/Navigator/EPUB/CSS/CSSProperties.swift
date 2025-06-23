@@ -71,14 +71,10 @@ public struct CSSUserProperties: CSSProperties {
 
     // Typography
 
-    /// This flag is required to change the font-family user setting.
-    public var fontOverride: Bool?
-
     /// The typeface (font-family) the user wants to read with. It impacts body, p, li, div, dt, dd
     /// and phrasing elements which don’t have a lang or xml:lang attribute.
     ///
     /// To reset, remove the required flag.
-    /// Requires: fontOverride
     public var fontFamily: [String]?
 
     /// Increasing and decreasing the root font-size. It will serve as a reference for the cascade.
@@ -88,13 +84,8 @@ public struct CSSUserProperties: CSSProperties {
 
     // Advanced settings
 
-    /// This flag is required to apply the font-size and/or advanced user settings.
-    public var advancedSettings: Bool?
-
     /// The alignment (text-align) the user prefers. It impacts body, li, and p which are not
     /// children of blockquote and figcaption.
-    ///
-    /// Requires: advancedSettings
     public var textAlign: CSSTextAlign?
 
     /// The `max-width` of `body` (to shrink or grow the line-length of body copy).
@@ -105,49 +96,38 @@ public struct CSSUserProperties: CSSProperties {
     /// Increasing and decreasing leading (line-height). It impacts body, p, li and div.
     ///
     /// Recommended values: a range from 1 to 2. Increments are left to implementers’ judgment.
-    /// Requires: advancedSettings
     public var lineHeight: CSSLineHeight?
 
     /// The vertical margins (margin-top and margin-bottom) for paragraphs.
     ///
     /// Recommended values: a range from 0 to 2rem. Increments are left to implementers’ judgment.
-    /// Requires: advancedSettings = true
     public var paraSpacing: CSSLength?
 
     /// The text-indent for paragraphs.
     ///
     /// Recommended values: a range from 0 to 3rem. Increments are left to implementers’ judgment.
-    /// Requires: advancedSettings
     public var paraIndent: CSSRemLength?
 
     /// Increasing space between words (word-spacing, related to a11y).
     ///
     /// Recommended values: a range from 0 to 1rem. Increments are left to implementers’ judgment.
-    /// Requires: advancedSettings
     public var wordSpacing: CSSRemLength?
 
     /// Increasing space between letters (letter-spacing, related to a11y).
     ///
     /// Recommended values: a range from 0 to 0.5rem. Increments are left to implementers’
     /// judgment.
-    /// Requires: advancedSettings
     public var letterSpacing: CSSRemLength?
 
     /// Enabling and disabling hyphenation. It impacts body, p, li, div and dd.
-    ///
-    /// Requires: advancedSettings
     public var bodyHyphens: CSSHyphens?
 
     /// Enabling and disabling ligatures in Arabic (related to a11y).
-    ///
-    /// Requires: advancedSettings
     public var ligatures: CSSLigatures?
 
     // Accessibility
 
     /// It impacts font style, weight and variant, text decoration, super and subscripts.
-    ///
-    /// Requires: fontOverride
     public var a11yNormalize: Bool?
 
     // Additional overrides for extensions and adjustments.
@@ -161,10 +141,8 @@ public struct CSSUserProperties: CSSProperties {
         invertImages: Bool? = nil,
         textColor: CSSColor? = nil,
         backgroundColor: CSSColor? = nil,
-        fontOverride: Bool? = nil,
         fontFamily: [String]? = nil,
         fontSize: CSSLength? = nil,
-        advancedSettings: Bool? = nil,
         textAlign: CSSTextAlign? = nil,
         lineLength: CSSLength? = nil,
         lineHeight: CSSLineHeight? = nil,
@@ -184,10 +162,8 @@ public struct CSSUserProperties: CSSProperties {
         self.invertImages = invertImages
         self.textColor = textColor
         self.backgroundColor = backgroundColor
-        self.fontOverride = fontOverride
         self.fontFamily = fontFamily
         self.fontSize = fontSize
-        self.advancedSettings = advancedSettings
         self.textAlign = textAlign
         self.lineHeight = lineHeight
         self.lineLength = lineLength
@@ -219,11 +195,9 @@ public struct CSSUserProperties: CSSProperties {
         props.putCSS(name: "--USER__backgroundColor", value: backgroundColor)
 
         // Typography
-        props.putCSS(name: "--USER__fontOverride", value: CSSFlag(name: "font", isEnabled: fontOverride))
         props.putCSS(name: "--USER__fontFamily", value: fontFamily)
         props.putCSS(name: "--USER__fontSize", value: fontSize)
 
-        props.putCSS(name: "--USER__advancedSettings", value: CSSFlag(name: "advanced", isEnabled: advancedSettings))
         props.putCSS(name: "--USER__textAlign", value: textAlign)
         props.putCSS(name: "--USER__lineHeight", value: lineHeight)
         props.putCSS(name: "--USER__lineLength", value: lineLength)

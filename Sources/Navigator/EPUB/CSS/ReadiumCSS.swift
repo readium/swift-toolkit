@@ -52,10 +52,8 @@ extension ReadiumCSS {
             invertImages: settings.imageFilter == .invert,
             textColor: settings.textColor.map { CSSIntColor($0.rawValue) },
             backgroundColor: settings.backgroundColor.map { CSSIntColor($0.rawValue) },
-            fontOverride: settings.fontFamily != nil || settings.textNormalization,
             fontFamily: settings.fontFamily.map(resolveFontStack),
             fontSize: CSSPercentLength(settings.fontSize),
-            advancedSettings: !settings.publisherStyles,
             textAlign: {
                 switch settings.textAlign {
                 case .justify: return .justify

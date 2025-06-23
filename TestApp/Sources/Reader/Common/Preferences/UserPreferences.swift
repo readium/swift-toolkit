@@ -107,7 +107,6 @@ struct UserPreferences<
                             lineLength: editor.lineLength,
                             paragraphIndent: editor.paragraphIndent,
                             paragraphSpacing: editor.paragraphSpacing,
-                            publisherStyles: editor.publisherStyles,
                             readingProgression: editor.readingProgression,
                             scroll: editor.scroll,
                             textAlign: editor.textAlign,
@@ -311,7 +310,6 @@ struct UserPreferences<
         lineLength: AnyRangePreference<Double>? = nil,
         paragraphIndent: AnyRangePreference<Double>? = nil,
         paragraphSpacing: AnyRangePreference<Double>? = nil,
-        publisherStyles: AnyPreference<Bool>? = nil,
         readingProgression: AnyEnumPreference<ReadiumNavigator.ReadingProgression>? = nil,
         scroll: AnyPreference<Bool>? = nil,
         textAlign: AnyEnumPreference<ReadiumNavigator.TextAlignment?>? = nil,
@@ -480,101 +478,88 @@ struct UserPreferences<
             }
         }
 
-        if let publisherStyles = publisherStyles {
-            Section {
-                toggleRow(
-                    title: "Publisher styles",
-                    preference: publisherStyles,
+        Section {
+            if let textAlign = textAlign {
+                pickerRow(
+                    title: "Text alignment",
+                    preference: textAlign,
+                    commit: commit,
+                    formatValue: { v in
+                        switch v {
+                        case nil: return "Default"
+                        case .center: return "Center"
+                        case .left: return "Left"
+                        case .right: return "Right"
+                        case .justify: return "Justify"
+                        case .start: return "Start"
+                        case .end: return "End"
+                        }
+                    }
+                )
+            }
+
+            if let lineLength = lineLength {
+                stepperRow(
+                    title: "Line length",
+                    preference: lineLength,
                     commit: commit
                 )
+            }
 
-                // The following settings all require the publisher styles to
-                // be disabled for EPUB. To simplify the interface, they are
-                // hidden when the publisher styles are on.
-                if !publisherStyles.effectiveValue {
-                    if let textAlign = textAlign {
-                        pickerRow(
-                            title: "Text alignment",
-                            preference: textAlign,
-                            commit: commit,
-                            formatValue: { v in
-                                switch v {
-                                case nil: return "Default"
-                                case .center: return "Center"
-                                case .left: return "Left"
-                                case .right: return "Right"
-                                case .justify: return "Justify"
-                                case .start: return "Start"
-                                case .end: return "End"
-                                }
-                            }
-                        )
-                    }
-                    
-                    if let lineLength = lineLength {
-                        stepperRow(
-                            title: "Line length",
-                            preference: lineLength,
-                            commit: commit
-                        )
-                    }
+            if let lineHeight = lineHeight {
+                stepperRow(
+                    title: "Line height",
+                    preference: lineHeight,
+                    commit: commit
+                )
+            }
 
-                    if let lineHeight = lineHeight {
-                        stepperRow(
-                            title: "Line height",
-                            preference: lineHeight,
-                            commit: commit
-                        )
-                    }
+            if let paragraphIndent = paragraphIndent {
+                stepperRow(
+                    title: "Paragraph indent",
+                    preference: paragraphIndent,
+                    commit: commit
+                )
+            }
 
-                    if let paragraphIndent = paragraphIndent {
-                        stepperRow(
-                            title: "Paragraph indent",
-                            preference: paragraphIndent,
-                            commit: commit
-                        )
-                    }
+            if let paragraphSpacing = paragraphSpacing {
+                stepperRow(
+                    title: "Paragraph spacing",
+                    preference: paragraphSpacing,
+                    commit: commit
+                )
+            }
 
-                    if let paragraphSpacing = paragraphSpacing {
-                        stepperRow(
-                            title: "Paragraph spacing",
-                            preference: paragraphSpacing,
-                            commit: commit
-                        )
-                    }
+            if let wordSpacing = wordSpacing {
+                stepperRow(
+                    title: "Word spacing",
+                    preference: wordSpacing,
+                    commit: commit
+                )
+            }
 
-                    if let wordSpacing = wordSpacing {
-                        stepperRow(
-                            title: "Word spacing",
-                            preference: wordSpacing,
-                            commit: commit
-                        )
-                    }
+            if let letterSpacing = letterSpacing {
+                stepperRow(
+                    title: "Letter spacing",
+                    preference: letterSpacing,
+                    commit: commit
+                )
+            }
 
-                    if let letterSpacing = letterSpacing {
-                        stepperRow(
-                            title: "Letter spacing",
-                            preference: letterSpacing,
-                            commit: commit
-                        )
-                    }
+            if let hyphens = hyphens {
+                toggleRow(
+                    title: "Hyphens",
+                    preference: hyphens,
+                    commit: commit
+                )
+            }
 
-                    if let hyphens = hyphens {
-                        toggleRow(
-                            title: "Hyphens",
-                            preference: hyphens,
-                            commit: commit
-                        )
-                    }
-
-                    if let ligatures = ligatures {
-                        toggleRow(
-                            title: "Ligatures",
-                            preference: ligatures,
-                            commit: commit
-                        )
-                    }
-                }
+            if let ligatures = ligatures {
+                toggleRow(
+                    title: "Ligatures",
+                    preference: ligatures,
+                    commit: commit
+                )
             }
         }
     }
