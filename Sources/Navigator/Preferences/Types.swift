@@ -121,6 +121,7 @@ public enum ColumnCount: String, Codable, Hashable {
 }
 
 /// Filter used to render images in a reflowable document.
+@available(*, unavailable)
 public enum ImageFilter: String, Codable, Hashable {
     case darken
     case invert

@@ -1,4 +1,5 @@
 SCRIPTS_PATH := Sources/Navigator/EPUB/Scripts
+CSS_PATH := Sources/Navigator/EPUB/Assets/Static/readium-css
 
 help:
 	@echo "Usage: make <target>\n\n\
@@ -31,6 +32,15 @@ scripts:
 update-scripts:
 	@which corepack >/dev/null 2>&1 || (echo "ERROR: corepack is required, please install it first\nhttps://pnpm.io/installation#using-corepack"; exit 1)
 	pnpm install --dir "$(SCRIPTS_PATH)"
+
+.PHONY: update-css
+update-css:
+	git clone https://github.com/readium/css.git readium-css
+	rm -rf "$(CSS_PATH)"
+	cp -r readium-css/css/dist "$(CSS_PATH)"
+	git -C readium-css rev-parse HEAD > "$(CSS_PATH)/HEAD"
+	rm -rf readium-css
+	rm -rf "$(CSS_PATH)/android-fonts-patch"
 
 .PHONY: test
 test:
