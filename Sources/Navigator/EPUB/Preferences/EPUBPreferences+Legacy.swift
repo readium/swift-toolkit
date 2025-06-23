@@ -40,9 +40,9 @@ public extension EPUBPreferences {
                 .map { FontFamily(rawValue: $0) },
             fontSize: defaults.optDouble(for: .fontSize)
                 .map { $0 / 100 },
-            horizontalMargins: defaults.optDouble(for: .pageMargins),
             hyphens: defaults.optBool(for: .hyphens),
             letterSpacing: defaults.optDouble(for: .letterSpacing),
+            lineLength: defaults.optDouble(for: .lineHeight),
             lineHeight: defaults.optDouble(for: .lineHeight),
             paragraphSpacing: defaults.optDouble(for: .paragraphMargins),
             publisherStyles: defaults.optBool(for: .publisherDefault),

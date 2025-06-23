@@ -65,8 +65,8 @@ extension ReadiumCSS {
                 default: return nil
                 }
             }(),
+            lineLength: CSSPercentLength(settings.lineLength),
             lineHeight: settings.lineHeight.map { .unitless($0) },
-            lineLength: CSSPercentLength(settings.horizontalMargins),
             paraSpacing: settings.paragraphSpacing.map { CSSRemLength($0) },
             paraIndent: settings.paragraphIndent.map { CSSRemLength($0) },
             wordSpacing: settings.wordSpacing.map { CSSRemLength($0) },

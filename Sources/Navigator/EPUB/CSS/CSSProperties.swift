@@ -97,16 +97,16 @@ public struct CSSUserProperties: CSSProperties {
     /// Requires: advancedSettings
     public var textAlign: CSSTextAlign?
 
+    /// The `max-width` of `body` (to shrink or grow the line-length of body copy).
+    ///
+    /// Possible values: any value CSS property `max-width|height` accepts.
+    public var lineLength: CSSLength?
+
     /// Increasing and decreasing leading (line-height). It impacts body, p, li and div.
     ///
     /// Recommended values: a range from 1 to 2. Increments are left to implementers’ judgment.
     /// Requires: advancedSettings
     public var lineHeight: CSSLineHeight?
-
-    /// The `max-width` of `body` (to shrink or grow the line-length of body copy).
-    ///
-    /// Possible values: any value CSS property `max-width|height` accepts.
-    public var lineLength: CSSLength?
 
     /// The vertical margins (margin-top and margin-bottom) for paragraphs.
     ///
@@ -166,8 +166,8 @@ public struct CSSUserProperties: CSSProperties {
         fontSize: CSSLength? = nil,
         advancedSettings: Bool? = nil,
         textAlign: CSSTextAlign? = nil,
-        lineHeight: CSSLineHeight? = nil,
         lineLength: CSSLength? = nil,
+        lineHeight: CSSLineHeight? = nil,
         paraSpacing: CSSLength? = nil,
         paraIndent: CSSRemLength? = nil,
         wordSpacing: CSSRemLength? = nil,

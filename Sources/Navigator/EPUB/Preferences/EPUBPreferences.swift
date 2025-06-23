@@ -41,11 +41,11 @@ public struct EPUBPreferences: ConfigurablePreferences {
     /// Enable ligatures in Arabic.
     public var ligatures: Bool?
 
+    /// The maximum length of the content.
+    public var lineLength: Double?
+
     /// Leading line height.
     public var lineHeight: Double?
-
-    /// Factor applied to horizontal margins.
-    public var horizontalMargins: Double?
 
     /// Text indentation for paragraphs.
     public var paragraphIndent: Double?
@@ -96,12 +96,12 @@ public struct EPUBPreferences: ConfigurablePreferences {
         fontFamily: FontFamily? = nil,
         fontSize: Double? = nil,
         fontWeight: Double? = nil,
-        horizontalMargins: Double? = nil,
         hyphens: Bool? = nil,
         imageFilter: ImageFilter? = nil,
         language: Language? = nil,
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
+        lineLength: Double? = nil,
         lineHeight: Double? = nil,
         paragraphIndent: Double? = nil,
         paragraphSpacing: Double? = nil,
@@ -121,12 +121,12 @@ public struct EPUBPreferences: ConfigurablePreferences {
         self.fontFamily = fontFamily
         self.fontSize = fontSize.map { max($0, 0) }
         self.fontWeight = fontWeight?.clamped(to: 0.0 ... 2.5)
-        self.horizontalMargins = horizontalMargins.map { max($0, 0) }
         self.hyphens = hyphens
         self.imageFilter = imageFilter
         self.language = language
         self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
+        self.lineLength = lineLength.map { max($0, 0) }
         self.lineHeight = lineHeight
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }
@@ -149,12 +149,12 @@ public struct EPUBPreferences: ConfigurablePreferences {
             fontFamily: other.fontFamily ?? fontFamily,
             fontSize: other.fontSize ?? fontSize,
             fontWeight: other.fontWeight ?? fontWeight,
-            horizontalMargins: other.horizontalMargins ?? horizontalMargins,
             hyphens: other.hyphens ?? hyphens,
             imageFilter: other.imageFilter ?? imageFilter,
             language: other.language ?? language,
             letterSpacing: other.letterSpacing ?? letterSpacing,
             ligatures: other.ligatures ?? ligatures,
+            lineLength: other.lineLength ?? lineLength,
             lineHeight: other.lineHeight ?? lineHeight,
             paragraphIndent: other.paragraphIndent ?? paragraphIndent,
             paragraphSpacing: other.paragraphSpacing ?? paragraphSpacing,
@@ -193,7 +193,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
         )
     }
 
-    @available(*, unavailable, renamed: "horizontalMargins")
+    @available(*, unavailable, message: "Use lineLength instead")
     public var pageMargins: Double? { nil }
 
     @available(*, unavailable, message: "Not available anymore")

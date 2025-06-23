@@ -114,18 +114,6 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             format: \.percentageString
         )
 
-    /// Factor applied to horizontal margins. Default to 1.
-    public lazy var horizontalMargins: AnyRangePreference<Double> =
-        rangePreference(
-            preference: \.horizontalMargins,
-            setting: \.horizontalMargins,
-            defaultEffectiveValue: defaults.horizontalMargins ?? 1.0,
-            isEffective: { _ in true },
-            supportedRange: 0.0 ... 4.0,
-            progressionStrategy: .increment(0.3),
-            format: { $0.formatDecimal(maximumFractionDigits: 5) }
-        )
-
     /// Enable hyphenation for latin languages.
     ///
     /// Only effective when:
@@ -223,6 +211,18 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
                     && $0.preferences.lineHeight != nil
             },
             supportedRange: 1.0 ... 2.0,
+            progressionStrategy: .increment(0.1),
+            format: { $0.formatDecimal(maximumFractionDigits: 5) }
+        )
+
+    /// Factor applied to the maximum line length. Defaults to 100%.
+    public lazy var lineLength: AnyRangePreference<Double> =
+        rangePreference(
+            preference: \.lineLength,
+            setting: \.lineLength,
+            defaultEffectiveValue: defaults.lineLength ?? 1.0,
+            isEffective: { _ in true },
+            supportedRange: 0.0 ... 1.0,
             progressionStrategy: .increment(0.1),
             format: { $0.formatDecimal(maximumFractionDigits: 5) }
         )

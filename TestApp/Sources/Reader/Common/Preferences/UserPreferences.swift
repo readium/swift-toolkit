@@ -98,13 +98,13 @@ struct UserPreferences<
                             fontFamily: editor.fontFamily,
                             fontSize: editor.fontSize,
                             fontWeight: editor.fontWeight,
-                            horizontalMargins: editor.horizontalMargins,
                             hyphens: editor.hyphens,
                             imageFilter: editor.imageFilter,
                             language: editor.language,
                             letterSpacing: editor.letterSpacing,
                             ligatures: editor.ligatures,
                             lineHeight: editor.lineHeight,
+                            lineLength: editor.lineLength,
                             paragraphIndent: editor.paragraphIndent,
                             paragraphSpacing: editor.paragraphSpacing,
                             publisherStyles: editor.publisherStyles,
@@ -302,13 +302,13 @@ struct UserPreferences<
         fontFamily: AnyPreference<FontFamily?>? = nil,
         fontSize: AnyRangePreference<Double>? = nil,
         fontWeight: AnyRangePreference<Double>? = nil,
-        horizontalMargins: AnyRangePreference<Double>? = nil,
         hyphens: AnyPreference<Bool>? = nil,
         imageFilter: AnyEnumPreference<ImageFilter?>? = nil,
         language: AnyPreference<Language?>? = nil,
         letterSpacing: AnyRangePreference<Double>? = nil,
         ligatures: AnyPreference<Bool>? = nil,
         lineHeight: AnyRangePreference<Double>? = nil,
+        lineLength: AnyRangePreference<Double>? = nil,
         paragraphIndent: AnyRangePreference<Double>? = nil,
         paragraphSpacing: AnyRangePreference<Double>? = nil,
         publisherStyles: AnyPreference<Bool>? = nil,
@@ -355,7 +355,7 @@ struct UserPreferences<
             }
         }
 
-        if scroll != nil || columnCount != nil || horizontalMargins != nil {
+        if scroll != nil || columnCount != nil {
             Section {
                 if let scroll = scroll {
                     toggleRow(
@@ -370,14 +370,6 @@ struct UserPreferences<
                         title: "Columns",
                         preference: columnCount,
                         commit: commit,
-                    )
-                }
-
-                if let horizontalMargins = horizontalMargins {
-                    stepperRow(
-                        title: "Horizontal margins",
-                        preference: horizontalMargins,
-                        commit: commit
                     )
                 }
             }
@@ -516,6 +508,14 @@ struct UserPreferences<
                                 case .end: return "End"
                                 }
                             }
+                        )
+                    }
+                    
+                    if let lineLength = lineLength {
+                        stepperRow(
+                            title: "Line length",
+                            preference: lineLength,
+                            commit: commit
                         )
                     }
 
