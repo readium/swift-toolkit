@@ -14,8 +14,14 @@ public struct EPUBPreferences: ConfigurablePreferences {
     /// Default page background color.
     public var backgroundColor: Color?
 
+    /// Blends the images with the background color.
+    public var blendImages: Bool?
+
     /// Number of reflowable columns to display.
     public var columnCount: Int?
+
+    /// Darkens images by the given percentage.
+    public var darkenImages: Double?
 
     /// Default typeface for the text.
     public var fontFamily: FontFamily?
@@ -29,8 +35,11 @@ public struct EPUBPreferences: ConfigurablePreferences {
     /// Enable hyphenation.
     public var hyphens: Bool?
 
-    /// Filter applied to images in dark theme.
-    public var imageFilter: ImageFilter?
+    /// Inverts the color of gaiji images by the given percentage.
+    public var invertGaiji: Double?
+
+    /// Inverts the color of images by the given percentage.
+    public var invertImages: Double?
 
     /// Language of the publication content.
     public var language: Language?
@@ -87,12 +96,15 @@ public struct EPUBPreferences: ConfigurablePreferences {
 
     public init(
         backgroundColor: Color? = nil,
+        blendImages: Bool? = nil,
         columnCount: Int? = nil,
+        darkenImages: Double? = nil,
         fontFamily: FontFamily? = nil,
         fontSize: Double? = nil,
         fontWeight: Double? = nil,
         hyphens: Bool? = nil,
-        imageFilter: ImageFilter? = nil,
+        invertGaiji: Double? = nil,
+        invertImages: Double? = nil,
         language: Language? = nil,
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
@@ -111,12 +123,15 @@ public struct EPUBPreferences: ConfigurablePreferences {
         wordSpacing: Double? = nil
     ) {
         self.backgroundColor = backgroundColor
+        self.blendImages = blendImages
         self.columnCount = columnCount
+        self.darkenImages = darkenImages
         self.fontFamily = fontFamily
         self.fontSize = fontSize.map { max($0, 0) }
         self.fontWeight = fontWeight?.clamped(to: 0.0 ... 2.5)
         self.hyphens = hyphens
-        self.imageFilter = imageFilter
+        self.invertGaiji = invertGaiji
+        self.invertImages = invertImages
         self.language = language
         self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
@@ -138,12 +153,15 @@ public struct EPUBPreferences: ConfigurablePreferences {
     public func merging(_ other: EPUBPreferences) -> EPUBPreferences {
         EPUBPreferences(
             backgroundColor: other.backgroundColor ?? backgroundColor,
+            blendImages: other.blendImages ?? blendImages,
             columnCount: other.columnCount ?? columnCount,
+            darkenImages: other.darkenImages ?? darkenImages,
             fontFamily: other.fontFamily ?? fontFamily,
             fontSize: other.fontSize ?? fontSize,
             fontWeight: other.fontWeight ?? fontWeight,
             hyphens: other.hyphens ?? hyphens,
-            imageFilter: other.imageFilter ?? imageFilter,
+            invertGaiji: other.invertGaiji ?? invertGaiji,
+            invertImages: other.invertImages ?? invertImages,
             language: other.language ?? language,
             letterSpacing: other.letterSpacing ?? letterSpacing,
             ligatures: other.ligatures ?? ligatures,
@@ -193,6 +211,9 @@ public struct EPUBPreferences: ConfigurablePreferences {
 
     @available(*, unavailable, message: "Not needed anymore")
     public var publisherStyles: Bool? { nil }
+
+    @available(*, unavailable, message: "Use invertImages or darkenImages instead")
+    public var imageFilter: ImageFilter? { nil }
 
     @available(*, unavailable, message: "Use the other initializer")
     public init(

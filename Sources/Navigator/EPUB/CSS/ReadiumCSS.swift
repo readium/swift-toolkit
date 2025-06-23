@@ -48,8 +48,10 @@ extension ReadiumCSS {
                 case .sepia: return .sepia
                 }
             }(),
-            darkenImages: settings.imageFilter == .darken,
-            invertImages: settings.imageFilter == .invert,
+            blendImages: settings.blendImages,
+            darkenImages: settings.darkenImages.map { CSSPercent(1 - $0) },
+            invertImages: settings.invertImages.map { CSSPercent($0) },
+            invertGaiji: settings.invertGaiji.map { CSSPercent($0) },
             textColor: settings.textColor.map { CSSIntColor($0.rawValue) },
             backgroundColor: settings.backgroundColor.map { CSSIntColor($0.rawValue) },
             fontFamily: settings.fontFamily.map(resolveFontStack),

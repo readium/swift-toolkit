@@ -51,15 +51,21 @@ public struct CSSUserProperties: CSSProperties {
     /// This flag applies a reading mode (sepia or night).
     public var appearance: CSSAppearance?
 
-    /// This will only apply in night mode to darken images and impact img.
-    ///
-    /// Requires: appearance = Appearance.Night
-    public var darkenImages: Bool?
+    /// This will apply a mix-blend-mode of multiply with a transparent
+    /// background to blend images with a white background with the
+    /// background-color of your theme.
+    public var blendImages: Bool?
 
-    /// This will only apply in night mode to invert images and impact img.
-    ///
-    /// Requires: appearance = Appearance.Night
-    public var invertImages: Bool?
+    /// This will apply a brightness filter with the percentage value it's
+    /// given.
+    public var darkenImages: CSSPercent?
+
+    /// This will apply an invert filter with the percentage value it's given.
+    public var invertImages: CSSPercent?
+
+    /// This will apply an invert filter with the percentage value it's given,
+    /// only to img class="gaiji".
+    public var invertGaiji: CSSPercent?
 
     /// The color for textual contents. It impacts all elements but headings and pre in the DOM.
     ///
@@ -137,8 +143,10 @@ public struct CSSUserProperties: CSSProperties {
         view: CSSView? = nil,
         colCount: Int? = nil,
         appearance: CSSAppearance? = nil,
-        darkenImages: Bool? = nil,
-        invertImages: Bool? = nil,
+        blendImages: Bool? = nil,
+        darkenImages: CSSPercent? = nil,
+        invertImages: CSSPercent? = nil,
+        invertGaiji: CSSPercent? = nil,
         textColor: CSSColor? = nil,
         backgroundColor: CSSColor? = nil,
         fontFamily: [String]? = nil,
@@ -158,8 +166,10 @@ public struct CSSUserProperties: CSSProperties {
         self.view = view
         self.colCount = colCount
         self.appearance = appearance
+        self.blendImages = blendImages
         self.darkenImages = darkenImages
         self.invertImages = invertImages
+        self.invertGaiji = invertGaiji
         self.textColor = textColor
         self.backgroundColor = backgroundColor
         self.fontFamily = fontFamily
@@ -187,8 +197,10 @@ public struct CSSUserProperties: CSSProperties {
 
         // Appearance
         props.putCSS(name: "--USER__appearance", value: appearance)
-        props.putCSS(name: "--USER__darkenImages", value: CSSFlag(name: "darken", isEnabled: darkenImages))
-        props.putCSS(name: "--USER__invertImages", value: CSSFlag(name: "invert", isEnabled: invertImages))
+        props.putCSS(name: "--USER__blendImages", value: CSSFlag(name: "blend", isEnabled: blendImages))
+        props.putCSS(name: "--USER__darkenImages", value: darkenImages)
+        props.putCSS(name: "--USER__invertImages", value: invertImages)
+        props.putCSS(name: "--USER__invertGaiji", value: invertGaiji)
 
         // Colors
         props.putCSS(name: "--USER__textColor", value: textColor)
@@ -501,6 +513,16 @@ public enum CSSAppearance: String, CSSConvertible {
     case sepia = "readium-sepia-on"
 
     public func css() -> String? { rawValue }
+}
+
+public struct CSSPercent: CSSConvertible {
+    public let value: Double
+
+    public init(_ value: Double) {
+        self.value = value
+    }
+
+    public func css() -> String? { (value * 100).css(unit: "%") }
 }
 
 public protocol CSSColor: CSSConvertible {}

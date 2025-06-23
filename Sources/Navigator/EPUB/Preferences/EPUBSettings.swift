@@ -12,12 +12,15 @@ import ReadiumShared
 /// See `EPUBPreferences`
 public struct EPUBSettings: ConfigurableSettings {
     public var backgroundColor: Color?
+    public var blendImages: Bool?
     public var columnCount: Int
+    public var darkenImages: Double?
     public var fontFamily: FontFamily?
     public var fontSize: Double
     public var fontWeight: Double?
     public var hyphens: Bool?
-    public var imageFilter: ImageFilter?
+    public var invertGaiji: Double?
+    public var invertImages: Double?
     public var language: Language?
     public var letterSpacing: Double?
     public var ligatures: Bool?
@@ -43,12 +46,15 @@ public struct EPUBSettings: ConfigurableSettings {
 
     public init(
         backgroundColor: Color?,
+        blendImages: Bool?,
         columnCount: Int,
+        darkenImages: Double?,
         fontFamily: FontFamily?,
         fontSize: Double,
         fontWeight: Double?,
         hyphens: Bool?,
-        imageFilter: ImageFilter?,
+        invertGaiji: Double?,
+        invertImages: Double?,
         language: Language?,
         letterSpacing: Double?,
         ligatures: Bool?,
@@ -67,12 +73,15 @@ public struct EPUBSettings: ConfigurableSettings {
         wordSpacing: Double?
     ) {
         self.backgroundColor = backgroundColor
+        self.blendImages = blendImages
         self.columnCount = columnCount
+        self.darkenImages = darkenImages
         self.fontFamily = fontFamily
         self.fontSize = fontSize
         self.fontWeight = fontWeight
         self.hyphens = hyphens
-        self.imageFilter = imageFilter
+        self.invertGaiji = invertGaiji
+        self.invertImages = invertImages
         self.language = language
         self.letterSpacing = letterSpacing
         self.ligatures = ligatures
@@ -130,9 +139,11 @@ public struct EPUBSettings: ConfigurableSettings {
 
         self.init(
             backgroundColor: preferences.backgroundColor,
+            blendImages: preferences.blendImages,
             columnCount: preferences.columnCount
                 ?? defaults.columnCount
                 ?? 1,
+            darkenImages: preferences.darkenImages,
             fontFamily: preferences.fontFamily,
             fontSize: preferences.fontSize
                 ?? defaults.fontSize
@@ -141,8 +152,8 @@ public struct EPUBSettings: ConfigurableSettings {
                 ?? defaults.fontWeight,
             hyphens: preferences.hyphens
                 ?? defaults.hyphens,
-            imageFilter: preferences.imageFilter
-                ?? defaults.imageFilter,
+            invertGaiji: preferences.invertGaiji,
+            invertImages: preferences.invertImages,
             language: language,
             letterSpacing: preferences.letterSpacing
                 ?? defaults.letterSpacing,
@@ -227,7 +238,6 @@ public struct EPUBDefaults {
     public var fontSize: Double?
     public var fontWeight: Double?
     public var hyphens: Bool?
-    public var imageFilter: ImageFilter?
     public var language: Language?
     public var letterSpacing: Double?
     public var ligatures: Bool?
@@ -247,7 +257,6 @@ public struct EPUBDefaults {
         fontSize: Double? = nil,
         fontWeight: Double? = nil,
         hyphens: Bool? = nil,
-        imageFilter: ImageFilter? = nil,
         language: Language? = nil,
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
@@ -267,7 +276,6 @@ public struct EPUBDefaults {
         self.fontSize = fontSize
         self.fontWeight = fontWeight
         self.hyphens = hyphens
-        self.imageFilter = imageFilter
         self.language = language
         self.letterSpacing = letterSpacing
         self.ligatures = ligatures
@@ -291,6 +299,9 @@ public struct EPUBDefaults {
 
     @available(*, unavailable, message: "Not needed anymore")
     public var publisherStyles: Bool? { nil }
+
+    @available(*, unavailable, message: "Not supported anymore as a defaults")
+    public var imageFilter: ImageFilter? { nil }
 
     @available(*, unavailable, message: "Use the other initializer")
     public init(

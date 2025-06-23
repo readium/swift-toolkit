@@ -47,6 +47,20 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             isEffective: { $0.preferences.backgroundColor != nil }
         )
 
+    /// Blends the images with the background color.
+    ///
+    /// Only effective when the publication is reflowable.
+    public lazy var blendImages: AnyPreference<Bool> =
+        preference(
+            preference: \.blendImages,
+            effectiveValue: { $0.settings.blendImages },
+            defaultEffectiveValue: false,
+            isEffective: { [layout] in
+                layout == .reflowable
+                    && $0.preferences.blendImages != nil
+            }
+        )
+
     /// Number of reflowable columns to display (one-page view or two-page
     /// spread).
     ///
@@ -65,6 +79,23 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             supportedRange: 1 ... 9,
             progressionStrategy: .increment(1),
             format: { String(format: "%d", $0) }
+        )
+
+    /// Darkens images by the given percentage.
+    ///
+    /// Only effective when the publication is reflowable.
+    public lazy var darkenImages: AnyRangePreference<Double> =
+        rangePreference(
+            preference: \.darkenImages,
+            effectiveValue: { $0.settings.darkenImages },
+            defaultEffectiveValue: 0,
+            isEffective: { [layout] in
+                layout == .reflowable
+                    && $0.preferences.darkenImages != nil
+            },
+            supportedRange: 0.0 ... 1.0,
+            progressionStrategy: .increment(0.1),
+            format: \.percentageString
         )
 
     /// Default typeface for the text.
@@ -131,16 +162,49 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             }
         )
 
-    /// Filter applied to images in dark theme.
+    /// Inverts the color of gaiji images.
     ///
     /// Only effective when the publication is reflowable.
-    public lazy var imageFilter: AnyEnumPreference<ImageFilter?> =
-        enumPreference(
-            preference: \.imageFilter,
-            setting: \.imageFilter,
-            isEffective: { _ in true },
-            supportedValues: [nil, .darken, .invert]
+    public lazy var invertGaiji: AnyPreference<Bool> =
+        rangePreference(
+            preference: \.invertGaiji,
+            effectiveValue: { $0.settings.invertGaiji },
+            defaultEffectiveValue: 0,
+            isEffective: { [layout] in
+                layout == .reflowable
+                    && $0.preferences.invertGaiji != nil
+            },
+            supportedRange: 0.0 ... 1.0,
+            progressionStrategy: .increment(0.1),
+            format: \.percentageString
         )
+        .map(
+            from: { $0 > 0 },
+            to: { $0 ? 1.0 : 0.0 }
+        )
+        .eraseToAnyPreference()
+
+    /// Inverts the color of images by the given percentage.
+    ///
+    /// Only effective when the publication is reflowable.
+    public lazy var invertImages: AnyPreference<Bool> =
+        rangePreference(
+            preference: \.invertImages,
+            effectiveValue: { $0.settings.invertImages },
+            defaultEffectiveValue: 0,
+            isEffective: { [layout] in
+                layout == .reflowable
+                    && $0.preferences.invertImages != nil
+            },
+            supportedRange: 0.0 ... 1.0,
+            progressionStrategy: .increment(0.1),
+            format: \.percentageString
+        )
+        .map(
+            from: { $0 > 0 },
+            to: { $0 ? 1.0 : 0.0 }
+        )
+        .eraseToAnyPreference()
 
     /// Language of the publication content.
     ///
@@ -216,7 +280,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             isEffective: { _ in true },
             supportedRange: 0.0 ... 1.0,
             progressionStrategy: .increment(0.1),
-            format: { $0.formatDecimal(maximumFractionDigits: 5) }
+            format: \.percentageString
         )
 
     /// Text indentation for paragraphs.
@@ -395,4 +459,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
 
     @available(*, unavailable, message: "Not needed anymore")
     public var publisherStyles: AnyPreference<Bool> { fatalError() }
+
+    @available(*, unavailable, message: "Use darkenImages and invertImages instead")
+    public var imageFilter: AnyEnumPreference<ImageFilter?> { fatalError() }
 }

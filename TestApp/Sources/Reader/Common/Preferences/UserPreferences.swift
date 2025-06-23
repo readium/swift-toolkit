@@ -94,12 +94,15 @@ struct UserPreferences<
                         reflowableUserPreferences(
                             commit: commit,
                             backgroundColor: editor.backgroundColor,
+                            blendImages: editor.blendImages,
                             columnCount: editor.columnCount,
+                            darkenImages: editor.darkenImages,
                             fontFamily: editor.fontFamily,
                             fontSize: editor.fontSize,
                             fontWeight: editor.fontWeight,
                             hyphens: editor.hyphens,
-                            imageFilter: editor.imageFilter,
+                            invertGaiji: editor.invertGaiji,
+                            invertImages: editor.invertImages,
                             language: editor.language,
                             letterSpacing: editor.letterSpacing,
                             ligatures: editor.ligatures,
@@ -297,12 +300,15 @@ struct UserPreferences<
     @ViewBuilder func reflowableUserPreferences(
         commit: @escaping () -> Void,
         backgroundColor: AnyPreference<ReadiumNavigator.Color>? = nil,
+        blendImages: AnyPreference<Bool>? = nil,
         columnCount: AnyRangePreference<Int>? = nil,
+        darkenImages: AnyRangePreference<Double>? = nil,
         fontFamily: AnyPreference<FontFamily?>? = nil,
         fontSize: AnyRangePreference<Double>? = nil,
         fontWeight: AnyRangePreference<Double>? = nil,
         hyphens: AnyPreference<Bool>? = nil,
-        imageFilter: AnyEnumPreference<ImageFilter?>? = nil,
+        invertGaiji: AnyPreference<Bool>? = nil,
+        invertImages: AnyPreference<Bool>? = nil,
         language: AnyPreference<Language?>? = nil,
         letterSpacing: AnyRangePreference<Double>? = nil,
         ligatures: AnyPreference<Bool>? = nil,
@@ -319,162 +325,173 @@ struct UserPreferences<
         verticalText: AnyPreference<Bool>? = nil,
         wordSpacing: AnyRangePreference<Double>? = nil
     ) -> some View {
-        if language != nil || readingProgression != nil || verticalText != nil {
-            Section {
-                if let language = language {
-                    languageRow(
-                        title: "Language",
-                        preference: language,
-                        commit: commit
-                    )
-                }
+        Section {
+            if let language = language {
+                languageRow(
+                    title: "Language",
+                    preference: language,
+                    commit: commit
+                )
+            }
 
-                if let readingProgression = readingProgression {
-                    pickerRow(
-                        title: "Reading progression",
-                        preference: readingProgression,
-                        commit: commit,
-                        formatValue: { v in
-                            switch v {
-                            case .ltr: return "LTR"
-                            case .rtl: return "RTL"
-                            }
+            if let readingProgression = readingProgression {
+                pickerRow(
+                    title: "Reading progression",
+                    preference: readingProgression,
+                    commit: commit,
+                    formatValue: { v in
+                        switch v {
+                        case .ltr: return "LTR"
+                        case .rtl: return "RTL"
                         }
-                    )
-                }
+                    }
+                )
+            }
 
-                if let verticalText = verticalText {
-                    toggleRow(
-                        title: "Vertical text",
-                        preference: verticalText,
-                        commit: commit
-                    )
-                }
+            if let verticalText = verticalText {
+                toggleRow(
+                    title: "Vertical text",
+                    preference: verticalText,
+                    commit: commit
+                )
             }
         }
 
-        if scroll != nil || columnCount != nil {
-            Section {
-                if let scroll = scroll {
-                    toggleRow(
-                        title: "Scroll",
-                        preference: scroll,
-                        commit: commit
-                    )
-                }
+        Section {
+            if let scroll = scroll {
+                toggleRow(
+                    title: "Scroll",
+                    preference: scroll,
+                    commit: commit
+                )
+            }
 
-                if let columnCount = columnCount {
-                    stepperRow(
-                        title: "Columns",
-                        preference: columnCount,
-                        commit: commit,
-                    )
-                }
+            if let columnCount = columnCount {
+                stepperRow(
+                    title: "Columns",
+                    preference: columnCount,
+                    commit: commit,
+                )
             }
         }
 
-        if theme != nil || imageFilter != nil || textColor != nil || backgroundColor != nil {
-            Section {
-                if let theme = theme {
-                    pickerRow(
-                        title: "Theme",
-                        preference: theme,
-                        commit: commit,
-                        formatValue: { v in
-                            switch v {
-                            case .light: return "Light"
-                            case .dark: return "Dark"
-                            case .sepia: return "Sepia"
-                            }
+        Section {
+            if let theme = theme {
+                pickerRow(
+                    title: "Theme",
+                    preference: theme,
+                    commit: commit,
+                    formatValue: { v in
+                        switch v {
+                        case .light: return "Light"
+                        case .dark: return "Dark"
+                        case .sepia: return "Sepia"
                         }
-                    )
-                }
+                    }
+                )
+            }
 
-                if let imageFilter = imageFilter {
-                    pickerRow(
-                        title: "Image filter",
-                        preference: imageFilter,
-                        commit: commit,
-                        formatValue: { v in
-                            switch v {
-                            case nil: return "None"
-                            case .darken: return "Darken colors"
-                            case .invert: return "Invert colors"
-                            }
-                        }
-                    )
-                }
+            if let textColor = textColor {
+                colorRow(
+                    title: "Text color",
+                    preference: textColor,
+                    commit: commit
+                )
+            }
 
-                if let textColor = textColor {
-                    colorRow(
-                        title: "Text color",
-                        preference: textColor,
-                        commit: commit
-                    )
-                }
-
-                if let backgroundColor = backgroundColor {
-                    colorRow(
-                        title: "Background color",
-                        preference: backgroundColor,
-                        commit: commit
-                    )
-                }
+            if let backgroundColor = backgroundColor {
+                colorRow(
+                    title: "Background color",
+                    preference: backgroundColor,
+                    commit: commit
+                )
             }
         }
 
-        if fontFamily != nil || fontSize != nil || fontWeight != nil || textNormalization != nil {
-            Section {
-                if let fontFamily = fontFamily {
-                    pickerRow(
-                        title: "Typeface",
-                        preference: fontFamily
-                            .with(supportedValues: [
-                                nil,
-                                .sansSerif,
-                                .iaWriterDuospace,
-                                .accessibleDfA,
-                                .openDyslexic,
-                                .literata,
-                            ])
-                            .eraseToAnyPreference(),
-                        commit: commit,
-                        formatValue: { ff in
-                            if let ff = ff {
-                                switch ff {
-                                case .sansSerif: return "Sans serif"
-                                default: return ff.rawValue
-                                }
-                            } else {
-                                return "Original"
+        Section {
+            if let blendImages = blendImages {
+                toggleRow(
+                    title: "Blend images",
+                    preference: blendImages,
+                    commit: commit
+                )
+            }
+
+            if let darkenImages = darkenImages {
+                stepperRow(
+                    title: "Darken images",
+                    preference: darkenImages,
+                    commit: commit
+                )
+            }
+
+            if let invertImages = invertImages {
+                toggleRow(
+                    title: "Invert images",
+                    preference: invertImages,
+                    commit: commit
+                )
+            }
+
+            if let invertGaiji = invertGaiji {
+                toggleRow(
+                    title: "Invert gaiji",
+                    preference: invertGaiji,
+                    commit: commit
+                )
+            }
+        }
+
+        Section {
+            if let fontFamily = fontFamily {
+                pickerRow(
+                    title: "Typeface",
+                    preference: fontFamily
+                        .with(supportedValues: [
+                            nil,
+                            .sansSerif,
+                            .iaWriterDuospace,
+                            .accessibleDfA,
+                            .openDyslexic,
+                            .literata,
+                        ])
+                        .eraseToAnyPreference(),
+                    commit: commit,
+                    formatValue: { ff in
+                        if let ff = ff {
+                            switch ff {
+                            case .sansSerif: return "Sans serif"
+                            default: return ff.rawValue
                             }
+                        } else {
+                            return "Original"
                         }
-                    )
-                }
+                    }
+                )
+            }
 
-                if let fontSize = fontSize {
-                    stepperRow(
-                        title: "Font size",
-                        preference: fontSize,
-                        commit: commit
-                    )
-                }
+            if let fontSize = fontSize {
+                stepperRow(
+                    title: "Font size",
+                    preference: fontSize,
+                    commit: commit
+                )
+            }
 
-                if let fontWeight = fontWeight {
-                    stepperRow(
-                        title: "Font weight",
-                        preference: fontWeight,
-                        commit: commit
-                    )
-                }
+            if let fontWeight = fontWeight {
+                stepperRow(
+                    title: "Font weight",
+                    preference: fontWeight,
+                    commit: commit
+                )
+            }
 
-                if let textNormalization = textNormalization {
-                    toggleRow(
-                        title: "Text normalization",
-                        preference: textNormalization,
-                        commit: commit
-                    )
-                }
+            if let textNormalization = textNormalization {
+                toggleRow(
+                    title: "Text normalization",
+                    preference: textNormalization,
+                    commit: commit
+                )
             }
         }
 
@@ -545,7 +562,9 @@ struct UserPreferences<
                     commit: commit
                 )
             }
+        }
 
+        Section {
             if let hyphens = hyphens {
                 toggleRow(
                     title: "Hyphens",
