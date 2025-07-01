@@ -133,12 +133,12 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     /// Information about the visible portion of the publication.
     public struct Viewport: Equatable {
-        /// Indices of the visible reading order resources.
-        public var readingOrderIndices: ClosedRange<[Link].Index>
+        /// Visible reading order resources.
+        public var readingOrder: [AnyURL]
 
         /// Range of visible scroll progressions for each visible reading order
         /// resource.
-        public var progressions: [[Link].Index: ClosedRange<Double>]
+        public var progressions: [AnyURL: ClosedRange<Double>]
 
         /// Range of visible positions.
         public var positions: ClosedRange<Int>?
@@ -627,11 +627,14 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             return (nil, nil)
         }
 
+        let visibleReadingOrder: [(index: Int, href: AnyURL)] = spreadView.spread.readingOrderIndices
+            .map { ($0, readingOrder[$0].url()) }
+
         var viewport = Viewport(
-            readingOrderIndices: spreadView.spread.readingOrderIndices,
-            progressions: spreadView.spread.readingOrderIndices.reduce([:]) { progressions, index in
+            readingOrder: visibleReadingOrder.map(\.href),
+            progressions: visibleReadingOrder.reduce([:]) { progressions, i in
                 var progressions = progressions
-                progressions[index] = spreadView.progression(in: index)
+                progressions[i.href] = spreadView.progression(in: i.index)
                 return progressions
             },
             positions: nil
