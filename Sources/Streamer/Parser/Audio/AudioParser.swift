@@ -120,6 +120,8 @@ public final class AudioParser: PublicationParser {
             "wpl",
             "xspf",
             "zpl",
+            "jpg",
+            "pdf"
         ]
 
         return url.pathExtension == nil
