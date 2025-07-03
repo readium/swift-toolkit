@@ -25,7 +25,6 @@ Finally, page progression is impacted:
 Disabled user settings: 
 
 - `hyphens`;
-- `word-spacing`;
 - `letter-spacing`.
 
 Added user settings:
@@ -54,8 +53,11 @@ Disabled user settings:
 - `text-align`;
 - `hyphens`;
 - paragraphs’ indent;
-- `word-spacing`;
-- `letter-spacing`.
+- `word-spacing`.
+
+Added user settings:
+
+- hiding/disabling ruby (mapped to `--USER__noRuby: readium-noRuby-on` flag).
 
 ### Vertical
 
@@ -87,8 +89,11 @@ Disabled user settings:
 - `text-align`;
 - `hyphens`;
 - paragraphs’ indent;
-- `word-spacing`;
-- `letter-spacing`.
+- `word-spacing`.
+
+Added user settings:
+
+- hiding/disabling ruby (mapped to `--USER__noRuby: readium-noRuby-on` flag).
 
 ### EBPAJ Polyfill
 
@@ -110,3 +115,6 @@ This is currently an edge case as we still have to see whether we want to suppor
     - if `mn-Cyrl` is set, then the publication is in cyrillic and it is `horizontal-tb`.
 - We don’t currently support the `mn` language, and we can’t rely on system fonts to do so, we’ll have to embed one.
 
+## Android Fonts Patch
+
+See [the specific ReadMe](android-fonts-patch/ReadMe.md) for further information.

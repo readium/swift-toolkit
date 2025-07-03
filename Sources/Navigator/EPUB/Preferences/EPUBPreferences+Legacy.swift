@@ -33,9 +33,7 @@ public extension EPUBPreferences {
         return EPUBPreferences(
             backgroundColor: defaults.optString(for: .backgroundColor)
                 .flatMap { Color(hex: $0) },
-            columnCount: defaults.optInt(for: .columnCount)
-                .flatMap { (columnCountValues ?? defaultColumnCountValues).getOrNil($0) }
-                .flatMap { ColumnCount(rawValue: $0) },
+            columnCount: defaults.optInt(for: .columnCount),
             fontFamily: defaults.optInt(for: .fontFamily)
                 .takeIf { $0 != 0 } // Original
                 .flatMap { (fontFamilyValues ?? defaultFontFamilyValues).getOrNil($0) }
@@ -44,10 +42,9 @@ public extension EPUBPreferences {
                 .map { $0 / 100 },
             hyphens: defaults.optBool(for: .hyphens),
             letterSpacing: defaults.optDouble(for: .letterSpacing),
+            lineLength: defaults.optDouble(for: .lineHeight),
             lineHeight: defaults.optDouble(for: .lineHeight),
-            pageMargins: defaults.optDouble(for: .pageMargins),
             paragraphSpacing: defaults.optDouble(for: .paragraphMargins),
-            publisherStyles: defaults.optBool(for: .publisherDefault),
             scroll: defaults.optBool(for: .scroll),
             // Used to be merged with column-count
             spread: defaults.optInt(for: .columnCount)
@@ -129,7 +126,6 @@ private enum ReadiumCSSName: String {
     case fontOverride = "--USER__fontOverride"
     case appearance = "--USER__appearance"
     case scroll = "--USER__scroll"
-    case publisherDefault = "--USER__advancedSettings"
     case textAlignment = "--USER__textAlign"
     case columnCount = "--USER__colCount"
     case wordSpacing = "--USER__wordSpacing"
