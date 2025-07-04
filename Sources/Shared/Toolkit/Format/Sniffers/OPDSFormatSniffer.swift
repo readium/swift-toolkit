@@ -8,6 +8,8 @@ import Foundation
 
 /// Sniffs OPDS documents.
 public class OPDSFormatSniffer: FormatSniffer {
+    public init() {}
+    
     public func sniffHints(_ hints: FormatHints) -> Format? {
         if hints.hasMediaType("application/atom+xml;type=entry;profile=opds-catalog") {
             return opds1Entry

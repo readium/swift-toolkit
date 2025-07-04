@@ -8,6 +8,8 @@ import Foundation
 
 /// Sniffs a Readium Web Publication package.
 public struct RPFFormatSniffer: FormatSniffer {
+    public init() {}
+    
     public func sniffHints(_ hints: FormatHints) -> Format? {
         if hints.hasMediaType("application/audiobook+zip") || hints.hasFileExtension("audiobook") {
             return audiobook
