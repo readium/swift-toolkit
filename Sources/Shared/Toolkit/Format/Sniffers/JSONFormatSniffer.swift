@@ -8,6 +8,8 @@ import Foundation
 
 /// Sniffs a JSON document.
 public struct JSONFormatSniffer: FormatSniffer {
+    public init() {}
+
     public func sniffHints(_ hints: FormatHints) -> Format? {
         if
             hints.hasFileExtension("json") ||
