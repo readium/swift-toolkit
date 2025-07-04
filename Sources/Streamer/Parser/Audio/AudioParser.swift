@@ -12,18 +12,15 @@ import ReadiumShared
 ///
 /// It can also work for a standalone audio file.
 public final class AudioParser: PublicationParser {
-    private let assetRetriever: AssetRetriever
-    private let manifestAugmentor: AudioPublicationManifestAugmentor
+    /// The default set of audio format specifications that determine whether an archive qualifies as an audiobook.
+    /// These formats include common audio file types such as MP3, AAC, FLAC, etc.
+    public static let defaultAudioSpecifications: Set<FormatSpecification> = audioSpecifications
 
-    public init(
-        assetRetriever: AssetRetriever,
-        manifestAugmentor: AudioPublicationManifestAugmentor = AVAudioPublicationManifestAugmentor()
-    ) {
-        self.assetRetriever = assetRetriever
-        self.manifestAugmentor = manifestAugmentor
-    }
+    /// A set of file extensions that are ignored during audiobook processing.
+    /// These typically include playlist files, metadata, or auxiliary files that should not be treated as audio content.
+    public static let defaultIgnoredExtensions: Set<FileExtension> = ignoredExtensions
 
-    private let audioSpecifications: Set<FormatSpecification> = [
+    private static let audioSpecifications: Set<FormatSpecification> = [
         .aac,
         .aiff,
         .flac,
@@ -34,6 +31,38 @@ public final class AudioParser: PublicationParser {
         .wav,
         .webm,
     ]
+
+    private static let ignoredExtensions: Set<FileExtension> = [
+        "asx",
+        "bio",
+        "m3u",
+        "m3u8",
+        "pla",
+        "pls",
+        "smil",
+        "txt",
+        "vlc",
+        "wpl",
+        "xspf",
+        "zpl",
+    ]
+
+    private let assetRetriever: AssetRetriever
+    private let manifestAugmentor: AudioPublicationManifestAugmentor
+    private let ignoredExtensions: Set<FileExtension>
+    private let audioSpecifications: Set<FormatSpecification>
+
+    public init(
+        assetRetriever: AssetRetriever,
+        manifestAugmentor: AudioPublicationManifestAugmentor = AVAudioPublicationManifestAugmentor(),
+        audioSpecifications: Set<FormatSpecification> = AudioParser.defaultAudioSpecifications,
+        ignoredExtensions: Set<FileExtension> = AudioParser.defaultIgnoredExtensions
+    ) {
+        self.assetRetriever = assetRetriever
+        self.manifestAugmentor = manifestAugmentor
+        self.ignoredExtensions = ignoredExtensions
+        self.audioSpecifications = audioSpecifications
+    }
 
     public func parse(
         asset: Asset,
@@ -107,23 +136,6 @@ public final class AudioParser: PublicationParser {
         guard let filename = url.lastPathSegment else {
             return true
         }
-        let ignoredExtensions: [FileExtension] = [
-            "asx",
-            "bio",
-            "m3u",
-            "m3u8",
-            "pla",
-            "pls",
-            "smil",
-            "txt",
-            "vlc",
-            "wpl",
-            "xspf",
-            "zpl",
-            "jpg",
-            "pdf",
-        ]
-
         return url.pathExtension == nil
             || ignoredExtensions.contains(url.pathExtension!)
             || filename.hasPrefix(".")

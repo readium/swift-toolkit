@@ -74,9 +74,7 @@ public struct ZABFormatSniffer: FormatSniffer {
         let entries = container.entries
             .filter {
                 $0.lastPathSegment?.hasPrefix(".") == false &&
-                    $0.lastPathSegment != "Thumbs.db" &&
-                    $0.pathExtension != "jpg" &&
-                    $0.pathExtension != .pdf
+                    $0.lastPathSegment != "Thumbs.db"
             }
         let containerExtensions = Set(entries.compactMap(\.pathExtension))
         guard
