@@ -9,7 +9,7 @@ import Foundation
 /// Sniffs a RAR file.
 public struct RARFormatSniffer: FormatSniffer {
     public init() {}
-    
+
     public func sniffHints(_ hints: FormatHints) -> Format? {
         if
             hints.hasFileExtension("rar") ||

@@ -9,7 +9,7 @@ import Foundation
 /// Sniffs a Readium Web Publication Manifest.
 public struct RWPMFormatSniffer: FormatSniffer {
     public init() {}
-    
+
     public func sniffHints(_ hints: FormatHints) -> Format? {
         if hints.hasMediaType("application/webpub+json") {
             return webpub

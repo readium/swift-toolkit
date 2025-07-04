@@ -9,7 +9,7 @@ import Foundation
 /// Sniffs bitmap formats.
 public class BitmapFormatSniffer: FormatSniffer {
     public init() {}
-    
+
     public func sniffHints(_ hints: FormatHints) -> Format? {
         if hints.hasFileExtension("avif", "avifs") || hints.hasMediaType("image/avif") {
             return Format(specifications: .avif, mediaType: .avif, fileExtension: "avif")

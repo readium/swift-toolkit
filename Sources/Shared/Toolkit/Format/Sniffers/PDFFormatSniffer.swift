@@ -11,7 +11,7 @@ import Foundation
 /// Reference: https://www.loc.gov/preservation/digital/formats/fdd/fdd000123.shtml
 public struct PDFFormatSniffer: FormatSniffer {
     public init() {}
-    
+
     public func sniffHints(_ hints: FormatHints) -> Format? {
         if
             hints.hasFileExtension("pdf") ||

@@ -9,7 +9,7 @@ import Foundation
 /// Sniffs an HTML or XHTML document.
 public struct HTMLFormatSniffer: FormatSniffer {
     public init() {}
-    
+
     public func sniffHints(_ hints: FormatHints) -> Format? {
         if
             hints.hasFileExtension("htm", "html") ||

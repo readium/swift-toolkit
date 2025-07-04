@@ -9,7 +9,7 @@ import Foundation
 /// Sniffs a ZIP file.
 public struct ZIPFormatSniffer: FormatSniffer {
     public init() {}
-    
+
     public func sniffHints(_ hints: FormatHints) -> Format? {
         if
             hints.hasFileExtension("zip") ||

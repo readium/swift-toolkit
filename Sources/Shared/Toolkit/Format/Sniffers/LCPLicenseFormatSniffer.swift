@@ -9,7 +9,7 @@ import Foundation
 /// Sniffs an LCP License Document.
 public struct LCPLicenseFormatSniffer: FormatSniffer {
     public init() {}
-    
+
     public func sniffHints(_ hints: FormatHints) -> Format? {
         if
             hints.hasFileExtension("lcpl") ||
