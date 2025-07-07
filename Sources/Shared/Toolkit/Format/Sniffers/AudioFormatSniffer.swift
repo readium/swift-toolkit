@@ -8,6 +8,8 @@ import Foundation
 
 /// Sniffs audio formats.
 public class AudioFormatSniffer: FormatSniffer {
+    public init() {}
+
     public func sniffHints(_ hints: FormatHints) -> Format? {
         if hints.hasFileExtension("aac") || hints.hasMediaType("audio/aac") {
             return Format(specifications: .aac, mediaType: .aac, fileExtension: "aac")
