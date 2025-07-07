@@ -101,7 +101,14 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         return await manifestResource.readAsRWPM(warnings: warnings)
             .flatMap(checkProfileRequirements(of:))
             .map { manifest in
-                Publication.Builder(
+                var manifest = manifest
+
+                // Remove any self link as it is a packaged publication. It
+                // might be packaged from a streamed manifest which would cause
+                // issues when serving the relative reading order resources.
+                manifest.links = manifest.links.filter { !$0.rels.contains(.self) }
+
+                return Publication.Builder(
                     manifest: manifest,
                     container: container,
                     servicesBuilder: PublicationServicesBuilder(setup: {
