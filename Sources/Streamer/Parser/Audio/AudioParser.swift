@@ -56,7 +56,7 @@ public final class AudioParser: PublicationParser {
         }
 
         let container = SingleResourceContainer(publication: asset)
-        return makeBuilder(
+        return await makeBuilder(
             container: container,
             readingOrder: [(container.entry, asset.format)],
             title: nil
@@ -72,8 +72,8 @@ public final class AudioParser: PublicationParser {
         }
 
         return await makeReadingOrder(for: asset.container)
-            .flatMap { readingOrder in
-                makeBuilder(
+            .asyncFlatMap { readingOrder in
+                await makeBuilder(
                     container: asset.container,
                     readingOrder: readingOrder,
                     title: asset.container.guessTitle(ignoring: ignores)
@@ -132,7 +132,7 @@ public final class AudioParser: PublicationParser {
         container: Container,
         readingOrder: [(AnyURL, Format)],
         title: String?
-    ) -> Result<Publication.Builder, PublicationParseError> {
+    ) async -> Result<Publication.Builder, PublicationParseError> {
         guard !readingOrder.isEmpty else {
             return .failure(.reading(.decoding("No audio resources found in the publication")))
         }
@@ -150,7 +150,7 @@ public final class AudioParser: PublicationParser {
             }
         )
 
-        let augmented = manifestAugmentor.augment(manifest, using: container)
+        let augmented = await manifestAugmentor.augment(manifest, using: container)
 
         return .success(Publication.Builder(
             manifest: augmented.manifest,
