@@ -1344,7 +1344,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
             manifest: Manifest(
                 metadata: Metadata(
                     accessibility: accessibility,
-                    layout: layout,
+                    layout: layout
                 )
             )
         )
