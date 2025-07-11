@@ -8,6 +8,7 @@ import Foundation
 import ReadiumInternal
 import ReadiumShared
 import SwiftSoup
+import UIKit
 
 struct ReadiumCSS {
     var layout: CSSLayout = .init()
@@ -23,16 +24,34 @@ struct ReadiumCSS {
 extension ReadiumCSS {
     mutating func update(with settings: EPUBSettings) {
         layout = settings.cssLayout
+
+        var overrides: [String: String] = [
+            // See https://github.com/readium/css/issues/183
+            "--RS__disableOverflow": "readium-noOverflow-on",
+
+            "font-weight": settings.fontWeight
+                .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1 ... 1000)) }
+                ?? "",
+        ]
+
+        // Applies WebKit patches, ideally:
+        // - iOS patch for iOS and iPadOS when the site is requested as mobile.
+        // - iPadOSPatch for iPadOS when the site is requested as desktop.
+        // - Nothing if MacOS.
+        //
+        // See https://github.com/readium/css/issues/189
+        switch UIDevice.current.userInterfaceIdiom {
+        case .pad:
+            overrides["--USER__iPadOSPatch"] = "readium-iPadOSPatch-on"
+        case .phone:
+            overrides["--USER__iOSPatch"] = "readium-iOSPatch-on"
+        default:
+            break
+        }
+
         userProperties = CSSUserProperties(
             view: settings.scroll ? .scroll : .paged,
-            colCount: {
-                switch settings.columnCount {
-                case .auto: return .auto
-                case .one: return .one
-                case .two: return .two
-                }
-            }(),
-            pageMargins: settings.pageMargins,
+            colCount: settings.columnCount,
             appearance: {
                 switch settings.theme {
                 case .light: return nil
@@ -40,15 +59,14 @@ extension ReadiumCSS {
                 case .sepia: return .sepia
                 }
             }(),
-            darkenImages: settings.imageFilter == .darken,
-            invertImages: settings.imageFilter == .invert,
+            blendImages: settings.blendImages,
+            darkenImages: settings.darkenImages.map { CSSPercent(1 - $0) },
+            invertImages: settings.invertImages.map { CSSPercent($0) },
+            invertGaiji: settings.invertGaiji.map { CSSPercent($0) },
             textColor: settings.textColor.map { CSSIntColor($0.rawValue) },
             backgroundColor: settings.backgroundColor.map { CSSIntColor($0.rawValue) },
-            fontOverride: settings.fontFamily != nil || settings.textNormalization,
             fontFamily: settings.fontFamily.map(resolveFontStack),
             fontSize: CSSPercentLength(settings.fontSize),
-            advancedSettings: !settings.publisherStyles,
-            typeScale: settings.typeScale,
             textAlign: {
                 switch settings.textAlign {
                 case .justify: return .justify
@@ -58,6 +76,7 @@ extension ReadiumCSS {
                 default: return nil
                 }
             }(),
+            lineLength: CSSPercentLength(settings.lineLength),
             lineHeight: settings.lineHeight.map { .unitless($0) },
             paraSpacing: settings.paragraphSpacing.map { CSSRemLength($0) },
             paraIndent: settings.paragraphIndent.map { CSSRemLength($0) },
@@ -66,11 +85,7 @@ extension ReadiumCSS {
             bodyHyphens: settings.hyphens.map { $0 ? .auto : .none },
             ligatures: settings.ligatures.map { $0 ? .common : .none },
             a11yNormalize: settings.textNormalization,
-            overrides: [
-                "font-weight": settings.fontWeight
-                    .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1 ... 1000)) }
-                    ?? "",
-            ]
+            overrides: overrides
         )
     }
 

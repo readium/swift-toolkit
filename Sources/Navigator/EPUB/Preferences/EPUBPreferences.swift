@@ -14,9 +14,14 @@ public struct EPUBPreferences: ConfigurablePreferences {
     /// Default page background color.
     public var backgroundColor: Color?
 
-    /// Number of reflowable columns to display (one-page view or two-page
-    /// spread).
-    public var columnCount: ColumnCount?
+    /// Blends the images with the background color.
+    public var blendImages: Bool?
+
+    /// Number of reflowable columns to display.
+    public var columnCount: Int?
+
+    /// Darkens images by the given percentage.
+    public var darkenImages: Double?
 
     /// Default typeface for the text.
     public var fontFamily: FontFamily?
@@ -30,8 +35,11 @@ public struct EPUBPreferences: ConfigurablePreferences {
     /// Enable hyphenation.
     public var hyphens: Bool?
 
-    /// Filter applied to images in dark theme.
-    public var imageFilter: ImageFilter?
+    /// Inverts the color of gaiji images by the given percentage.
+    public var invertGaiji: Double?
+
+    /// Inverts the color of images by the given percentage.
+    public var invertImages: Double?
 
     /// Language of the publication content.
     public var language: Language?
@@ -42,22 +50,17 @@ public struct EPUBPreferences: ConfigurablePreferences {
     /// Enable ligatures in Arabic.
     public var ligatures: Bool?
 
+    /// The maximum length of the content.
+    public var lineLength: Double?
+
     /// Leading line height.
     public var lineHeight: Double?
-
-    /// Factor applied to horizontal margins.
-    public var pageMargins: Double?
 
     /// Text indentation for paragraphs.
     public var paragraphIndent: Double?
 
     /// Vertical margins for paragraphs.
     public var paragraphSpacing: Double?
-
-    /// Indicates whether the original publisher styles should be observed.
-    ///
-    /// Many settings require this to be off.
-    public var publisherStyles: Bool?
 
     /// Direction of the reading progression across resources.
     public var readingProgression: ReadingProgression?
@@ -82,9 +85,6 @@ public struct EPUBPreferences: ConfigurablePreferences {
     /// Reader theme.
     public var theme: Theme?
 
-    /// Scale applied to all element font sizes.
-    public var typeScale: Double?
-
     /// Indicates whether the text should be laid out vertically.
     ///
     /// This is used for example with CJK languages. This setting is
@@ -96,20 +96,22 @@ public struct EPUBPreferences: ConfigurablePreferences {
 
     public init(
         backgroundColor: Color? = nil,
-        columnCount: ColumnCount? = nil,
+        blendImages: Bool? = nil,
+        columnCount: Int? = nil,
+        darkenImages: Double? = nil,
         fontFamily: FontFamily? = nil,
         fontSize: Double? = nil,
         fontWeight: Double? = nil,
         hyphens: Bool? = nil,
-        imageFilter: ImageFilter? = nil,
+        invertGaiji: Double? = nil,
+        invertImages: Double? = nil,
         language: Language? = nil,
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
+        lineLength: Double? = nil,
         lineHeight: Double? = nil,
-        pageMargins: Double? = nil,
         paragraphIndent: Double? = nil,
         paragraphSpacing: Double? = nil,
-        publisherStyles: Bool? = nil,
         readingProgression: ReadingProgression? = nil,
         scroll: Bool? = nil,
         spread: Spread? = nil,
@@ -117,25 +119,26 @@ public struct EPUBPreferences: ConfigurablePreferences {
         textColor: Color? = nil,
         textNormalization: Bool? = nil,
         theme: Theme? = nil,
-        typeScale: Double? = nil,
         verticalText: Bool? = nil,
         wordSpacing: Double? = nil
     ) {
         self.backgroundColor = backgroundColor
+        self.blendImages = blendImages
         self.columnCount = columnCount
+        self.darkenImages = darkenImages
         self.fontFamily = fontFamily
         self.fontSize = fontSize.map { max($0, 0) }
         self.fontWeight = fontWeight?.clamped(to: 0.0 ... 2.5)
         self.hyphens = hyphens
-        self.imageFilter = imageFilter
+        self.invertGaiji = invertGaiji
+        self.invertImages = invertImages
         self.language = language
         self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
+        self.lineLength = lineLength.map { max($0, 0) }
         self.lineHeight = lineHeight
-        self.pageMargins = pageMargins.map { max($0, 0) }
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }
-        self.publisherStyles = publisherStyles
         self.readingProgression = readingProgression
         self.scroll = scroll
         self.spread = [nil, .never, .always].contains(spread) ? spread : nil
@@ -143,7 +146,6 @@ public struct EPUBPreferences: ConfigurablePreferences {
         self.textColor = textColor
         self.textNormalization = textNormalization
         self.theme = theme
-        self.typeScale = typeScale.map { max($0, 0) }
         self.verticalText = verticalText
         self.wordSpacing = wordSpacing.map { max($0, 0) }
     }
@@ -151,20 +153,22 @@ public struct EPUBPreferences: ConfigurablePreferences {
     public func merging(_ other: EPUBPreferences) -> EPUBPreferences {
         EPUBPreferences(
             backgroundColor: other.backgroundColor ?? backgroundColor,
+            blendImages: other.blendImages ?? blendImages,
             columnCount: other.columnCount ?? columnCount,
+            darkenImages: other.darkenImages ?? darkenImages,
             fontFamily: other.fontFamily ?? fontFamily,
             fontSize: other.fontSize ?? fontSize,
             fontWeight: other.fontWeight ?? fontWeight,
             hyphens: other.hyphens ?? hyphens,
-            imageFilter: other.imageFilter ?? imageFilter,
+            invertGaiji: other.invertGaiji ?? invertGaiji,
+            invertImages: other.invertImages ?? invertImages,
             language: other.language ?? language,
             letterSpacing: other.letterSpacing ?? letterSpacing,
             ligatures: other.ligatures ?? ligatures,
+            lineLength: other.lineLength ?? lineLength,
             lineHeight: other.lineHeight ?? lineHeight,
-            pageMargins: other.pageMargins ?? pageMargins,
             paragraphIndent: other.paragraphIndent ?? paragraphIndent,
             paragraphSpacing: other.paragraphSpacing ?? paragraphSpacing,
-            publisherStyles: other.publisherStyles ?? publisherStyles,
             readingProgression: other.readingProgression ?? readingProgression,
             scroll: other.scroll ?? scroll,
             spread: other.spread ?? spread,
@@ -172,7 +176,6 @@ public struct EPUBPreferences: ConfigurablePreferences {
             textColor: other.textColor ?? textColor,
             textNormalization: other.textNormalization ?? textNormalization,
             theme: other.theme ?? theme,
-            typeScale: other.typeScale ?? typeScale,
             verticalText: other.verticalText ?? verticalText,
             wordSpacing: other.wordSpacing ?? wordSpacing
         )
@@ -199,4 +202,45 @@ public struct EPUBPreferences: ConfigurablePreferences {
             verticalText: verticalText
         )
     }
+
+    @available(*, unavailable, message: "Use lineLength instead")
+    public var pageMargins: Double? { nil }
+
+    @available(*, unavailable, message: "Not available anymore")
+    public var typeScale: Double? { nil }
+
+    @available(*, unavailable, message: "Not needed anymore")
+    public var publisherStyles: Bool? { nil }
+
+    @available(*, unavailable, message: "Use invertImages or darkenImages instead")
+    public var imageFilter: ImageFilter? { nil }
+
+    @available(*, unavailable, message: "Use the other initializer")
+    public init(
+        backgroundColor: Color? = nil,
+        columnCount: ColumnCount? = nil,
+        fontFamily: FontFamily? = nil,
+        fontSize: Double? = nil,
+        fontWeight: Double? = nil,
+        hyphens: Bool? = nil,
+        imageFilter: ImageFilter? = nil,
+        language: Language? = nil,
+        letterSpacing: Double? = nil,
+        ligatures: Bool? = nil,
+        lineHeight: Double? = nil,
+        pageMargins: Double? = nil,
+        paragraphIndent: Double? = nil,
+        paragraphSpacing: Double? = nil,
+        publisherStyles: Bool? = nil,
+        readingProgression: ReadingProgression? = nil,
+        scroll: Bool? = nil,
+        spread: Spread? = nil,
+        textAlign: TextAlignment? = nil,
+        textColor: Color? = nil,
+        textNormalization: Bool? = nil,
+        theme: Theme? = nil,
+        typeScale: Double? = nil,
+        verticalText: Bool? = nil,
+        wordSpacing: Double? = nil
+    ) { fatalError() }
 }
