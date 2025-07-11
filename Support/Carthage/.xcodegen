@@ -408,9 +408,11 @@
 ../../Sources/Navigator/EditingAction.swift
 ../../Sources/Navigator/EPUB
 ../../Sources/Navigator/EPUB/Assets
+../../Sources/Navigator/EPUB/Assets/.DS_Store
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-one.html
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-two.html
 ../../Sources/Navigator/EPUB/Assets/Static
+../../Sources/Navigator/EPUB/Assets/Static/.DS_Store
 ../../Sources/Navigator/EPUB/Assets/Static/fonts
 ../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-Bold.otf
 ../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-BoldItalic.otf
@@ -628,6 +630,7 @@
 ../../Sources/Shared/Publication/Extensions/Presentation/Presentation.swift
 ../../Sources/Shared/Publication/Extensions/Presentation/Properties+Presentation.swift
 ../../Sources/Shared/Publication/HREFNormalizer.swift
+../../Sources/Shared/Publication/Layout.swift
 ../../Sources/Shared/Publication/Link.swift
 ../../Sources/Shared/Publication/LinkRelation.swift
 ../../Sources/Shared/Publication/LocalizedString.swift
@@ -823,8 +826,8 @@
 ../../Sources/Streamer/Parser/EPUB/EPUBMetadataParser.swift
 ../../Sources/Streamer/Parser/EPUB/EPUBParser.swift
 ../../Sources/Streamer/Parser/EPUB/Extensions
+../../Sources/Streamer/Parser/EPUB/Extensions/Layout+EPUB.swift
 ../../Sources/Streamer/Parser/EPUB/Extensions/LinkRelation+EPUB.swift
-../../Sources/Streamer/Parser/EPUB/Extensions/Presentation+EPUB.swift
 ../../Sources/Streamer/Parser/EPUB/NavigationDocumentParser.swift
 ../../Sources/Streamer/Parser/EPUB/NCXParser.swift
 ../../Sources/Streamer/Parser/EPUB/OPFMeta.swift

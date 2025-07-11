@@ -23,6 +23,7 @@ public extension Properties {
     }
 
     /// Hint about the nature of the layout for the linked resources.
+    @available(*, unavailable, message: "This was removed from RWPM. You can still use the EPUB extensibility to access the original value.")
     var layout: EPUBLayout? {
         parseRaw(otherProperties["layout"])
     }
