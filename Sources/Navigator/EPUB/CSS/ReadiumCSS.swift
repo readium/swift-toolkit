@@ -34,8 +34,19 @@ extension ReadiumCSS {
                 ?? "",
         ]
 
-        if UIDevice.current.userInterfaceIdiom == .pad {
+        // Applies WebKit patches, ideally:
+        // - iOS patch for iOS and iPadOS when the site is requested as mobile.
+        // - iPadOSPatch for iPadOS when the site is requested as desktop.
+        // - Nothing if MacOS.
+        //
+        // See https://github.com/readium/css/issues/189
+        switch UIDevice.current.userInterfaceIdiom {
+        case .pad:
             overrides["--USER__iPadOSPatch"] = "readium-iPadOSPatch-on"
+        case .phone:
+            overrides["--USER__iOSPatch"] = "readium-iOSPatch-on"
+        default:
+            break
         }
 
         userProperties = CSSUserProperties(

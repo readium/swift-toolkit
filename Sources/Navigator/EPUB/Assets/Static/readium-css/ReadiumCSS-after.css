@@ -1,5 +1,5 @@
 /*
- * Readium CSS (v. 2.0.0-beta.14)
+ * Readium CSS (v. 2.0.0-beta.18)
  * Developers: Jiminy Panoz 
  * Copyright (c) 2017. Readium Foundation. All rights reserved.
  * Use of this source code is governed by a BSD-style license which is detailed in the
@@ -99,6 +99,7 @@ body{
 
 :root[style*="readium-scroll-on"] body{
   max-width:var(--RS__defaultLineLength) !important;
+  box-sizing:border-box !important;
 }
 
 :root[style*="readium-scroll-on"]:not([style*="readium-noOverflow-on"]) body{
@@ -114,6 +115,22 @@ body{
   :root[style*="readium-scroll-on"]:not([style*="readium-noOverflow-on"]) body{
      overflow:clip;
   }
+}
+
+:root[style*="readium-scroll-on"][style*="--RS__scrollPaddingTop"] body{
+  padding-top:var(--RS__scrollPaddingTop) !important;
+}
+
+:root[style*="readium-scroll-on"][style*="--RS__scrollPaddingBottom"] body{
+  padding-bottom:var(--RS__scrollPaddingBottom) !important;
+}
+
+:root[style*="readium-scroll-on"][style*="--RS__scrollPaddingLeft"] body{
+  padding-left:var(--RS__scrollPaddingLeft) !important;
+}
+
+:root[style*="readium-scroll-on"][style*="--RS__scrollPaddingRight"] body{
+  padding-right:var(--RS__scrollPaddingRight) !important;
 }
 
 :root[style*="readium-night-on"]{
@@ -404,8 +421,12 @@ body{
   vertical-align:baseline !important;
 }
 
-:root:not([style*="readium-deprecatedFontSize-on"])[style*="--USER__fontSize"] body{
+:root:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] body{
   zoom:var(--USER__fontSize) !important;
+}
+
+:root[style*="readium-iOSPatch-on"][style*="--USER__fontSize"] body{
+  -webkit-text-size-adjust:var(--USER__fontSize) !important;
 }
 
 @supports not (zoom: 1){
