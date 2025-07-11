@@ -233,11 +233,7 @@ final class OPFParser: Loggable {
     /// Parse string properties into an `otherProperties` dictionary.
     private func parseStringProperties(_ properties: [String]) -> [String: Any] {
         var contains: [String] = []
-        var layout: EPUBLayout?
-        var orientation: Presentation.Orientation?
-        var overflow: Presentation.Overflow?
-        var page: Presentation.Page?
-        var spread: Presentation.Spread?
+        var page: Properties.Page?
 
         for property in properties {
             switch property {
@@ -261,37 +257,6 @@ final class OPFParser: Loggable {
                 page = .right
             case "page-spread-center", "rendition:page-spread-center":
                 page = .center
-            // Spread
-            case "rendition:spread-none", "rendition:spread-auto":
-                // If we don't qualify `.none` here it sets it to `nil`.
-                spread = Presentation.Spread.none
-            case "rendition:spread-landscape":
-                spread = .landscape
-            case "rendition:spread-portrait":
-                // `portrait` is deprecated and should fallback to `both`.
-                // See. https://readium.org/architecture/streamer/parser/metadata#epub-3x-11
-                spread = .both
-            case "rendition:spread-both":
-                spread = .both
-            // Layout
-            case "rendition:layout-reflowable":
-                layout = .reflowable
-            case "rendition:layout-pre-paginated":
-                layout = .fixed
-            // Orientation
-            case "rendition:orientation-auto":
-                orientation = .auto
-            case "rendition:orientation-landscape":
-                orientation = .landscape
-            case "rendition:orientation-portrait":
-                orientation = .portrait
-            // Rendition
-            case "rendition:flow-auto":
-                overflow = .auto
-            case "rendition:flow-paginated":
-                overflow = .paginated
-            case "rendition:flow-scrolled-continuous", "rendition:flow-scrolled-doc":
-                overflow = .scrolled
             default:
                 continue
             }
@@ -301,20 +266,8 @@ final class OPFParser: Loggable {
         if !contains.isEmpty {
             otherProperties["contains"] = contains
         }
-        if let layout = layout {
-            otherProperties["layout"] = layout.rawValue
-        }
-        if let orientation = orientation {
-            otherProperties["orientation"] = orientation.rawValue
-        }
-        if let overflow = overflow {
-            otherProperties["overflow"] = overflow.rawValue
-        }
         if let page = page {
             otherProperties["page"] = page.rawValue
-        }
-        if let spread = spread {
-            otherProperties["spread"] = spread.rawValue
         }
 
         return otherProperties

@@ -48,7 +48,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
     }
 
     func testWaysOfReadingInitVisualAdjustments() {
-        func test(layout: EPUBLayout, a11y: Accessibility?, expected: WaysOfReading.VisualAdjustments) {
+        func test(layout: Layout, a11y: Accessibility?, expected: WaysOfReading.VisualAdjustments) {
             let sut = WaysOfReading(publication: publication(
                 layout: layout,
                 accessibility: a11y
@@ -1337,18 +1337,14 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
     }
 
     private func publication(
-        layout: EPUBLayout? = nil,
+        layout: Layout? = nil,
         accessibility: Accessibility?
     ) -> Publication {
         Publication(
             manifest: Manifest(
                 metadata: Metadata(
                     accessibility: accessibility,
-                    otherMetadata: [
-                        "presentation": Presentation(
-                            layout: layout
-                        ).json,
-                    ]
+                    layout: layout,
                 )
             )
         )

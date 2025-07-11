@@ -23,17 +23,13 @@ struct EPUBSpread: Loggable {
     /// Spread reading progression direction.
     var readingProgression: ReadingProgression
 
-    /// Rendition layout of the links in the spread.
-    var layout: EPUBLayout
-
-    init(spread: Bool, readingOrderIndices: ReadingOrderIndices, readingProgression: ReadingProgression, layout: EPUBLayout) {
+    init(spread: Bool, readingOrderIndices: ReadingOrderIndices, readingProgression: ReadingProgression) {
         precondition(!readingOrderIndices.isEmpty, "A spread must have at least one page")
         precondition(spread || readingOrderIndices.count == 1, "A one-page spread must have only one page")
         precondition(!spread || 1 ... 2 ~= readingOrderIndices.count, "A two-pages spread must have one or two pages max")
         self.spread = spread
         self.readingOrderIndices = readingOrderIndices
         self.readingProgression = readingProgression
-        self.layout = layout
     }
 
     /// Returns the left-most reading order index in the spread.
@@ -83,7 +79,7 @@ struct EPUBSpread: Loggable {
     ///   - url: Full URL to the resource.
     ///   - page [left|center|right]: (optional) Page position of the linked resource in the spread.
     func json(forBaseURL baseURL: HTTPURL, readingOrder: ReadingOrder) -> [[String: Any]] {
-        func makeLinkJSON(_ index: ReadingOrder.Index, page: Presentation.Page? = nil) -> [String: Any]? {
+        func makeLinkJSON(_ index: ReadingOrder.Index, page: Properties.Page? = nil) -> [String: Any]? {
             guard let link = readingOrder.getOrNil(index) else {
                 return nil
             }
@@ -136,12 +132,11 @@ struct EPUBSpread: Loggable {
         readingOrder: [Link],
         readingProgression: ReadingProgression
     ) -> [EPUBSpread] {
-        readingOrder.enumerated().map { index, link in
+        readingOrder.enumerated().map { index, _ in
             EPUBSpread(
                 spread: false,
                 readingOrderIndices: index ... index,
-                readingProgression: readingProgression,
-                layout: publication.metadata.presentation.layout(of: link)
+                readingProgression: readingProgression
             )
         }
     }
@@ -157,22 +152,20 @@ struct EPUBSpread: Loggable {
         var index = 0
         while index < readingOrder.count {
             let first = readingOrder[index]
-            let layout = publication.metadata.presentation.layout(of: first)
 
             var spread = EPUBSpread(
                 spread: true,
                 readingOrderIndices: index ... index,
-                readingProgression: readingProgression,
-                layout: layout
+                readingProgression: readingProgression
             )
 
             let nextIndex = index + 1
-            // To be displayed together, the two pages must have a fixed layout,
-            // and have consecutive position hints (Properties.Page).
+            // To be displayed together, two pages must be part of a fixed
+            // layout publication and have consecutive position hints
+            // (Properties.Page).
             if
                 let second = readingOrder.getOrNil(nextIndex),
-                layout == .fixed,
-                layout == publication.metadata.presentation.layout(of: second),
+                publication.metadata.layout == .fixed,
                 publication.areConsecutive(first, second, index: index)
             {
                 spread.readingOrderIndices = index ... nextIndex
