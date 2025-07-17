@@ -10,6 +10,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 * You can now access the `viewport` property of an `EPUBNavigatorViewController` to obtain information about the visible portion of the publication, including the visible positions and reading order indices.
 
+### Deprecated
+
+#### Shared
+
+* The Presentation Hints properties are deprecated from the Readium Web Publication Manifest models. [See the official documentation](https://readium.org/webpub-manifest/profiles/epub.html#appendix-b---deprecated-properties).
+
 ### Fixed
 
 #### Navigator

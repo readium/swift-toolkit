@@ -34,6 +34,7 @@ class EPUBMetadataParserTests: XCTestCase {
             ],
             authors: [Contributor(name: "Lewis Carroll")],
             publishers: [Contributor(name: "D. Appleton and Co")],
+            layout: .fixed,
             readingProgression: .rtl,
             description: "The book description.",
             numberOfPages: 42,
@@ -54,13 +55,9 @@ class EPUBMetadataParserTests: XCTestCase {
                     "http://my.url/#refine2": "Refine 2",
                 ],
                 "http://purl.org/dc/terms/format": "application/epub+zip",
-                "presentation": [
-                    "continuous": false,
-                    "spread": "both",
-                    "overflow": "scrolled",
-                    "orientation": "landscape",
-                    "layout": "fixed",
-                ] as [String: Any],
+                "http://www.idpf.org/vocab/rendition/#flow": "scrolled-doc",
+                "http://www.idpf.org/vocab/rendition/#orientation": "landscape",
+                "http://www.idpf.org/vocab/rendition/#spread": "both",
             ]
         ))
     }
@@ -71,15 +68,7 @@ class EPUBMetadataParserTests: XCTestCase {
         XCTAssertEqual(sut, Metadata(
             conformsTo: [.epub],
             title: "Alice's Adventures in Wonderland",
-            otherMetadata: [
-                "presentation": [
-                    "continuous": false,
-                    "spread": "auto",
-                    "overflow": "auto",
-                    "orientation": "auto",
-                    "layout": "reflowable",
-                ] as [String: Any],
-            ]
+            layout: .reflowable
         ))
     }
 
@@ -89,15 +78,7 @@ class EPUBMetadataParserTests: XCTestCase {
         XCTAssertEqual(sut, Metadata(
             conformsTo: [.epub],
             title: "Alice's Adventures in Wonderland",
-            otherMetadata: [
-                "presentation": [
-                    "continuous": false,
-                    "spread": "auto",
-                    "overflow": "auto",
-                    "orientation": "auto",
-                    "layout": "reflowable",
-                ] as [String: Any],
-            ]
+            layout: .reflowable
         ))
     }
 
@@ -201,15 +182,7 @@ class EPUBMetadataParserTests: XCTestCase {
                 Contributor(name: "Publisher 2"),
             ],
             imprints: [],
-            otherMetadata: [
-                "presentation": [
-                    "continuous": false,
-                    "spread": "auto",
-                    "overflow": "auto",
-                    "orientation": "auto",
-                    "layout": "reflowable",
-                ] as [String: Any],
-            ]
+            layout: .reflowable
         ))
     }
 
@@ -295,16 +268,7 @@ class EPUBMetadataParserTests: XCTestCase {
 
     func testParseRenditionFallbackWithDisplayOptions() throws {
         let sut = try parseMetadata("minimal", displayOptions: "displayOptions")
-        AssertJSONEqual(
-            sut.otherMetadata["presentation"],
-            [
-                "continuous": false,
-                "spread": "auto",
-                "overflow": "auto",
-                "orientation": "landscape",
-                "layout": "fixed",
-            ] as [String: Any]
-        )
+        XCTAssertEqual(sut.layout, .fixed)
     }
 
     func testParseEPUB2Accessibility() throws {
@@ -327,7 +291,7 @@ class EPUBMetadataParserTests: XCTestCase {
             )
         )
         // Checks that the a11y metadata are not added to otherMetadata.
-        XCTAssertEqual(Array(sut.otherMetadata.keys), ["presentation"])
+        XCTAssertTrue(sut.otherMetadata.isEmpty)
     }
 
     func testParseEPUB3Accessibility() throws {
@@ -350,7 +314,7 @@ class EPUBMetadataParserTests: XCTestCase {
             )
         )
         // Checks that the a11y metadata are not added to otherMetadata.
-        XCTAssertEqual(Array(sut.otherMetadata.keys), ["presentation"])
+        XCTAssertTrue(sut.otherMetadata.isEmpty)
     }
 
     func testParseEPUB2TDM() throws {

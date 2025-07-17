@@ -17,14 +17,4 @@ class PropertiesEPUBTests: XCTestCase {
         let sut = Properties(["contains": ["mathml", "onix"]])
         XCTAssertEqual(sut.contains, ["mathml", "onix"])
     }
-
-    func testNoLayout() {
-        let sut = Properties()
-        XCTAssertNil(sut.layout)
-    }
-
-    func testLayout() {
-        let sut = Properties(["layout": "fixed"])
-        XCTAssertEqual(sut.layout, .fixed)
-    }
 }
