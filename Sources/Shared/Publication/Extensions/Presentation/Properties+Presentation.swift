@@ -11,13 +11,13 @@ import ReadiumInternal
 public extension Properties {
     /// Specifies whether or not the parts of a linked resource that flow out of the viewport are
     /// clipped.
-    @available(*, unavailable, message: "This was removed from RWPM. You can still use the EPUB extensibility to access the original value.")
+    @available(*, unavailable, message: "This was removed from RWPM.")
     var clipped: Bool? {
         otherProperties["clipped"] as? Bool
     }
 
     /// Suggested method for constraining a resource inside the viewport.
-    @available(*, unavailable, message: "This was removed from RWPM. You can still use the EPUB extensibility to access the original value.")
+    @available(*, unavailable, message: "This was removed from RWPM.")
     var fit: Presentation.Fit? {
         parseRaw(otherProperties["fit"])
     }
