@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file. Take a look
 * EPUB vertical text in scrolling mode:
     * [#556](https://github.com/readium/swift-toolkit/issues/556) Fixed reporting and restoring the reading progression.
     * Added support for decorations (highlights).
+* [#635](https://github.com/readium/swift-toolkit/issues/635) Fixed overlapping FXL pages in landscape orientation.
 
 
 ## [3.3.0]

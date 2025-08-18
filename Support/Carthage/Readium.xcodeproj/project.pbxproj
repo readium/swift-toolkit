@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -2289,8 +2289,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1250;
-				TargetAttributes = {
-				};
 			};
 			buildConfigurationList = 5A872BCD95ECE5673BC89051 /* Build configuration list for PBXProject "Readium" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -2303,7 +2301,7 @@
 			);
 			mainGroup = 2C63ECC3CC1230CCA416F55F;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 54;
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
