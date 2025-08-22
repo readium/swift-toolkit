@@ -50,6 +50,7 @@ final class EPUBEncryptionParser: Loggable {
                 let algorithm = encryptedDataElement.firstChild(xpath: "enc:EncryptionMethod")?.attr("Algorithm"),
                 let resourceURI = encryptedDataElement.firstChild(xpath: "enc:CipherData/enc:CipherReference")?.attr("URI")
                 .flatMap(RelativeURL.init(epubHREF:))
+                .map(\.normalized)
             else {
                 continue
             }

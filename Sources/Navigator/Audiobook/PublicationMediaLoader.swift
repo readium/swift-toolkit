@@ -54,7 +54,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
         dispatchPrecondition(condition: .onQueue(queue))
 
         let href = href.anyURL.normalized
-        if let res = resources[equivalent: href] {
+        if let res = resources[href] {
             return res
         }
 

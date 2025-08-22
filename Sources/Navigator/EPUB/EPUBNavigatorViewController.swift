@@ -667,7 +667,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
                 : max(firstPositionIndex, Int(ceil(lastProgressionInLastResource * Double(positionsOfLastResource.count - 1))) - 1)
 
             location = await positionsOfFirstResource[firstPositionIndex].copy(
-                title: tableOfContentsTitleByHref[equivalent: link.url()],
+                title: tableOfContentsTitleByHref[link.url()],
                 locations: { $0.progression = firstProgressionInFirstResource }
             )
 

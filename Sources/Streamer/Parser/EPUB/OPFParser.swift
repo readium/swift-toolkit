@@ -192,7 +192,7 @@ final class OPFParser: Loggable {
     private func makeLink(manifestItem: ReadiumFuzi.XMLElement, spineItem: ReadiumFuzi.XMLElement?, isCover: Bool) -> Link? {
         guard
             let relativeHref = manifestItem.attr("href").flatMap(RelativeURL.init(epubHREF:)),
-            let href = baseURL.resolve(relativeHref)
+            let href = baseURL.resolve(relativeHref)?.normalized
         else {
             return nil
         }
@@ -212,7 +212,7 @@ final class OPFParser: Loggable {
 
         var properties = parseStringProperties(stringProperties)
 
-        if let encryption = encryptions[equivalent: href]?.json, !encryption.isEmpty {
+        if let encryption = encryptions[href]?.json, !encryption.isEmpty {
             properties["encrypted"] = encryption
         }
 

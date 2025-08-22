@@ -18,6 +18,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Fixed
 
+#### Streamer
+
+* [#639](https://github.com/readium/swift-toolkit/issues/639) Optimized the opening of really large LCP protected publications.
+
 #### Navigator
 
 * [#70](https://github.com/readium/swift-toolkit/issues/70) Fixed restoring the reading progression with RTL EPUB.

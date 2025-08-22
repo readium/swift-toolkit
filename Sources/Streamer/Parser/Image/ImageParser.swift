@@ -86,7 +86,7 @@ public final class ImageParser: PublicationParser {
                 container.entries
                     .compactMap { url -> (AnyURL, Format)? in
                         guard
-                            let format = formats[equivalent: url],
+                            let format = formats[url],
                             format.conformsToAny(bitmapSpecifications)
                         else {
                             return nil
