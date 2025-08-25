@@ -1,5 +1,5 @@
 # XCODEGEN VERSION
-2.43.0
+2.44.1
 
 # SPEC
 {
@@ -468,6 +468,7 @@
 ../../Sources/Navigator/EPUB/Preferences/EPUBPreferencesEditor.swift
 ../../Sources/Navigator/EPUB/Preferences/EPUBSettings.swift
 ../../Sources/Navigator/EPUB/Scripts
+../../Sources/Navigator/EPUB/Scripts/.DS_Store
 ../../Sources/Navigator/EPUB/Scripts/.eslintrc.json
 ../../Sources/Navigator/EPUB/Scripts/.gitignore
 ../../Sources/Navigator/EPUB/Scripts/.prettierignore
@@ -551,6 +552,7 @@
 ../../Sources/Navigator/Preferences/ProgressionStrategy.swift
 ../../Sources/Navigator/Preferences/ProxyPreference.swift
 ../../Sources/Navigator/Preferences/Types.swift
+../../Sources/Navigator/ReadingOrder.swift
 ../../Sources/Navigator/Resources
 ../../Sources/Navigator/Resources/en.lproj
 ../../Sources/Navigator/Resources/en.lproj/Localizable.strings
@@ -627,6 +629,7 @@
 ../../Sources/Shared/Publication/Extensions/Presentation/Presentation.swift
 ../../Sources/Shared/Publication/Extensions/Presentation/Properties+Presentation.swift
 ../../Sources/Shared/Publication/HREFNormalizer.swift
+../../Sources/Shared/Publication/Layout.swift
 ../../Sources/Shared/Publication/Link.swift
 ../../Sources/Shared/Publication/LinkRelation.swift
 ../../Sources/Shared/Publication/LocalizedString.swift
@@ -822,8 +825,8 @@
 ../../Sources/Streamer/Parser/EPUB/EPUBMetadataParser.swift
 ../../Sources/Streamer/Parser/EPUB/EPUBParser.swift
 ../../Sources/Streamer/Parser/EPUB/Extensions
+../../Sources/Streamer/Parser/EPUB/Extensions/Layout+EPUB.swift
 ../../Sources/Streamer/Parser/EPUB/Extensions/LinkRelation+EPUB.swift
-../../Sources/Streamer/Parser/EPUB/Extensions/Presentation+EPUB.swift
 ../../Sources/Streamer/Parser/EPUB/NavigationDocumentParser.swift
 ../../Sources/Streamer/Parser/EPUB/NCXParser.swift
 ../../Sources/Streamer/Parser/EPUB/OPFMeta.swift

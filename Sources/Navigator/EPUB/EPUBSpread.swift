@@ -7,70 +7,67 @@
 import Foundation
 import ReadiumShared
 
-/// A list of EPUB resources to be displayed together on the screen, as one-page or two-pages spread.
+/// A list of EPUB resources to be displayed together on the screen, as one-page
+/// or two-pages spread.
 struct EPUBSpread: Loggable {
     /// Indicates whether two pages are displayed side by side.
     var spread: Bool
 
-    /// Links for the resources displayed in the spread, in reading order.
-    /// Note: it's possible to have less links than the amount of `pageCount` available, because a single page might be displayed in a two-page spread (eg. with Properties.Page center, left or right)
-    var links: [Link]
+    /// Indices for the resources displayed in the spread, in reading order.
+    ///
+    /// Note: it's possible to have less links than the amount of `pageCount`
+    /// available, because a single page might be displayed in a two-page spread
+    /// (eg. with Properties.Page center, left or right).
+    var readingOrderIndices: ReadingOrderIndices
 
     /// Spread reading progression direction.
     var readingProgression: ReadingProgression
 
-    /// Rendition layout of the links in the spread.
-    var layout: EPUBLayout
-
-    init(spread: Bool, links: [Link], readingProgression: ReadingProgression, layout: EPUBLayout) {
-        precondition(!links.isEmpty, "A spread must have at least one page")
-        precondition(spread || links.count == 1, "A one-page spread must have only one page")
-        precondition(!spread || 1 ... 2 ~= links.count, "A two-pages spread must have one or two pages max")
+    init(spread: Bool, readingOrderIndices: ReadingOrderIndices, readingProgression: ReadingProgression) {
+        precondition(!readingOrderIndices.isEmpty, "A spread must have at least one page")
+        precondition(spread || readingOrderIndices.count == 1, "A one-page spread must have only one page")
+        precondition(!spread || 1 ... 2 ~= readingOrderIndices.count, "A two-pages spread must have one or two pages max")
         self.spread = spread
-        self.links = links
+        self.readingOrderIndices = readingOrderIndices
         self.readingProgression = readingProgression
-        self.layout = layout
     }
 
-    /// Links for the resources in the spread, from left to right.
-    var linksLTR: [Link] {
+    /// Returns the left-most reading order index in the spread.
+    var left: ReadingOrder.Index {
         switch readingProgression {
         case .ltr:
-            return links
+            readingOrderIndices.lowerBound
         case .rtl:
-            return links.reversed()
+            readingOrderIndices.upperBound
         }
     }
 
-    /// Returns the left-most resource link in the spread.
-    var left: Link {
-        linksLTR.first!
+    /// Returns the right-most reading order index in the spread.
+    var right: ReadingOrder.Index {
+        switch readingProgression {
+        case .ltr:
+            readingOrderIndices.upperBound
+        case .rtl:
+            readingOrderIndices.lowerBound
+        }
     }
 
-    /// Returns the right-most resource link in the spread.
-    var right: Link {
-        linksLTR.last!
+    /// Returns the leading reading order index in the reading progression.
+    var leading: ReadingOrder.Index {
+        readingOrderIndices.lowerBound
     }
 
-    /// Returns the leading resource link in the reading progression.
-    var leading: Link {
-        links.first!
+    /// Returns whether the spread contains the resource at the given reading
+    /// order index
+    func contains(index: ReadingOrder.Index) -> Bool {
+        readingOrderIndices.contains(index)
     }
 
-    /// Returns whether the spread contains a resource with the given href.
-    func contains<T: URLConvertible>(href: T) -> Bool {
-        links.firstWithHREF(href) != nil
-    }
-
-    /// Return the number of positions (as in `Publication.positionList`) contained in the spread.
-    func positionCount(in readingOrder: [Link], positionsByReadingOrder: [[Locator]]) -> Int {
-        links
-            .map {
-                if let index = readingOrder.firstIndexWithHREF($0.url()) {
-                    return positionsByReadingOrder[index].count
-                } else {
-                    return 0
-                }
+    /// Return the number of positions contained in the spread.
+    func positionCount(in readingOrder: ReadingOrder, positionsByReadingOrder: [[Locator]]) -> Int {
+        readingOrderIndices
+            .map { index in
+                positionsByReadingOrder[index].count
             }
             .reduce(0, +)
     }
@@ -81,10 +78,15 @@ struct EPUBSpread: Loggable {
     ///   - link: Link object of the resource in the Publication
     ///   - url: Full URL to the resource.
     ///   - page [left|center|right]: (optional) Page position of the linked resource in the spread.
-    func json(forBaseURL baseURL: HTTPURL) -> [[String: Any]] {
-        func makeLinkJSON(_ link: Link, page: Presentation.Page? = nil) -> [String: Any]? {
+    func json(forBaseURL baseURL: HTTPURL, readingOrder: ReadingOrder) -> [[String: Any]] {
+        func makeLinkJSON(_ index: ReadingOrder.Index, page: Properties.Page? = nil) -> [String: Any]? {
+            guard let link = readingOrder.getOrNil(index) else {
+                return nil
+            }
+
             let page = page ?? link.properties.page ?? readingProgression.startingPage
             return [
+                "index": index,
                 "link": link.json,
                 "url": link.url(relativeTo: baseURL).string,
                 "page": page.rawValue,
@@ -93,7 +95,7 @@ struct EPUBSpread: Loggable {
 
         var json: [[String: Any]?] = []
 
-        if links.count == 1 {
+        if readingOrderIndices.count == 1 {
             json.append(makeLinkJSON(leading))
         } else {
             json.append(makeLinkJSON(left, page: .left))
@@ -103,8 +105,8 @@ struct EPUBSpread: Loggable {
         return json.compactMap { $0 }
     }
 
-    func jsonString(forBaseURL baseURL: HTTPURL) -> String {
-        serializeJSONString(json(forBaseURL: baseURL)) ?? "[]"
+    func jsonString(forBaseURL baseURL: HTTPURL, readingOrder: ReadingOrder) -> String {
+        serializeJSONString(json(forBaseURL: baseURL, readingOrder: readingOrder)) ?? "[]"
     }
 
     /// Builds a list of spreads for the given Publication.
@@ -130,12 +132,11 @@ struct EPUBSpread: Loggable {
         readingOrder: [Link],
         readingProgression: ReadingProgression
     ) -> [EPUBSpread] {
-        readingOrder.map {
+        readingOrder.enumerated().map { index, _ in
             EPUBSpread(
                 spread: false,
-                links: [$0],
-                readingProgression: readingProgression,
-                layout: publication.metadata.presentation.layout(of: $0)
+                readingOrderIndices: index ... index,
+                readingProgression: readingProgression
             )
         }
     }
@@ -143,32 +144,31 @@ struct EPUBSpread: Loggable {
     /// Builds a list of two-page spreads for the given Publication.
     private static func makeTwoPagesSpreads(
         for publication: Publication,
-        readingOrder links: [Link],
+        readingOrder: [Link],
         readingProgression: ReadingProgression
     ) -> [EPUBSpread] {
         var spreads: [EPUBSpread] = []
 
         var index = 0
-        while index < links.count {
-            let first = links[index]
-            let layout = publication.metadata.presentation.layout(of: first)
+        while index < readingOrder.count {
+            let first = readingOrder[index]
 
             var spread = EPUBSpread(
                 spread: true,
-                links: [first],
-                readingProgression: readingProgression,
-                layout: layout
+                readingOrderIndices: index ... index,
+                readingProgression: readingProgression
             )
 
-            // To be displayed together, the two pages must have a fixed layout,
-            // and have consecutive position hints (Properties.Page).
+            let nextIndex = index + 1
+            // To be displayed together, two pages must be part of a fixed
+            // layout publication and have consecutive position hints
+            // (Properties.Page).
             if
-                let second = links.getOrNil(index + 1),
-                layout == .fixed,
-                layout == publication.metadata.presentation.layout(of: second),
+                let second = readingOrder.getOrNil(nextIndex),
+                publication.metadata.layout == .fixed,
                 publication.areConsecutive(first, second, index: index)
             {
-                spread.links.append(second)
+                spread.readingOrderIndices = index ... nextIndex
                 index += 1 // Skips the consumed "second" page
             }
 
@@ -182,10 +182,9 @@ struct EPUBSpread: Loggable {
 
 extension Array where Element == EPUBSpread {
     /// Returns the index of the first spread containing a resource with the given `href`.
-    func firstIndexWithHREF<T: URLConvertible>(_ href: T) -> Int? {
-        let href = href.anyURL.normalized
-        return firstIndex { spread in
-            spread.links.contains { $0.url().normalized.string == href.string }
+    func firstIndexWithReadingOrderIndex(_ index: ReadingOrder.Index) -> Int? {
+        firstIndex { spread in
+            spread.contains(index: index)
         }
     }
 }

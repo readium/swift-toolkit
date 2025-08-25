@@ -77,8 +77,18 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         guard isWrapperLoaded else {
             return
         }
-        // Insets the bounds by the notch area (eg. iPhone X) to make sure that the content is not overlapped by the screen notch.
-        let insets = notchAreaInsets
+
+        // Insets the bounds by the notch area (eg. iPhone X) to make sure that
+        // the content is not overlapped by the screen notch.
+        var insets = notchAreaInsets
+
+        // Use the same insets on the left and right side (the largest one) to
+        // keep the pages centered on the screen even if the notches are not
+        // symmetrical.
+        let horizontalInsets = max(insets.left, insets.right)
+        insets.left = horizontalInsets
+        insets.right = horizontalInsets
+
         let viewportSize = bounds.inset(by: insets).size
 
         webView.evaluateJavaScript("""
@@ -95,7 +105,11 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         }
         // We call this directly on the web view on purpose, because this needs
         // to be executed before the spread is loaded.
-        webView.evaluateJavaScript("spread.load(\(spread.jsonString(forBaseURL: viewModel.publicationBaseURL)));")
+        let spreadJSON = spread.jsonString(
+            forBaseURL: viewModel.publicationBaseURL,
+            readingOrder: viewModel.readingOrder
+        )
+        webView.evaluateJavaScript("spread.load(\(spreadJSON));")
     }
 
     override func spreadDidLoad() async {

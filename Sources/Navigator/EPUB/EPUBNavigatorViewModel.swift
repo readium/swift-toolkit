@@ -38,6 +38,8 @@ final class EPUBNavigatorViewModel: Loggable {
     /// `httpServer`. This is used to serve custom font files, for example.
     @Atomic private var servedFiles: [FileURL: HTTPURL] = [:]
 
+    var readingOrder: ReadingOrder { publication.readingOrder }
+
     convenience init(
         publication: Publication,
         config: EPUBNavigatorViewController.Configuration,
@@ -239,6 +241,7 @@ final class EPUBNavigatorViewModel: Loggable {
     var readingProgression: ReadingProgression { settings.readingProgression }
     var theme: Theme { settings.theme }
     var scroll: Bool { settings.scroll }
+    var verticalText: Bool { settings.verticalText }
     var spread: Spread { settings.spread }
 
     // MARK: Spread
@@ -285,7 +288,7 @@ final class EPUBNavigatorViewModel: Loggable {
         guard
             let link = publication.linkWithHREF(href),
             link.mediaType?.isHTML == true,
-            publication.metadata.presentation.layout(of: link) == .reflowable
+            publication.metadata.layout == .reflowable
         else {
             return resource
         }

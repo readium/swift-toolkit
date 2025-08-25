@@ -2,7 +2,34 @@
 
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Added
+
+#### Navigator
+
+* You can now access the `viewport` property of an `EPUBNavigatorViewController` to obtain information about the visible portion of the publication, including the visible positions and reading order indices.
+
+### Deprecated
+
+#### Shared
+
+* The Presentation Hints properties are deprecated from the Readium Web Publication Manifest models. [See the official documentation](https://readium.org/webpub-manifest/profiles/epub.html#appendix-b---deprecated-properties).
+
+### Fixed
+
+#### Streamer
+
+* [#639](https://github.com/readium/swift-toolkit/issues/639) Optimized the opening of really large LCP protected publications.
+
+#### Navigator
+
+* [#70](https://github.com/readium/swift-toolkit/issues/70) Fixed restoring the reading progression with RTL EPUB.
+* EPUB vertical text in scrolling mode:
+    * [#556](https://github.com/readium/swift-toolkit/issues/556) Fixed reporting and restoring the reading progression.
+    * Added support for decorations (highlights).
+* [#635](https://github.com/readium/swift-toolkit/issues/635) Fixed overlapping FXL pages in landscape orientation.
+
 
 ## [3.3.0]
 

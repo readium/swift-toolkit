@@ -41,6 +41,7 @@ class EPUBManifestParserTests: XCTestCase {
                     ],
                     authors: [Contributor(name: "Lewis Carroll")],
                     publishers: [Contributor(name: "D. Appleton and Co")],
+                    layout: .fixed,
                     readingProgression: .rtl,
                     description: "The book description.",
                     numberOfPages: 42,
@@ -61,13 +62,9 @@ class EPUBManifestParserTests: XCTestCase {
                             "http://my.url/#refine2": "Refine 2",
                         ],
                         "http://purl.org/dc/terms/format": "application/epub+zip",
-                        "presentation": [
-                            "continuous": false,
-                            "spread": "both",
-                            "overflow": "scrolled",
-                            "orientation": "landscape",
-                            "layout": "fixed",
-                        ] as [String: Any],
+                        "http://www.idpf.org/vocab/rendition/#flow": "scrolled-doc",
+                        "http://www.idpf.org/vocab/rendition/#orientation": "landscape",
+                        "http://www.idpf.org/vocab/rendition/#spread": "both",
                     ]
                 ),
                 readingOrder: [

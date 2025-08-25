@@ -11,13 +11,18 @@ import SwiftSoup
 import UIKit
 import WebKit
 
-public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate, SelectableNavigatorDelegate {
+@MainActor public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate, SelectableNavigatorDelegate {
+    /// Called when the viewport is updated.
+    func navigator(_ navigator: EPUBNavigatorViewController, viewportDidChange viewport: EPUBNavigatorViewController.Viewport?)
+
     // MARK: - WebView Customization
 
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController)
 }
 
 public extension EPUBNavigatorDelegate {
+    func navigator(_ navigator: EPUBNavigatorViewController, viewportDidChange viewport: EPUBNavigatorViewController.Viewport?) {}
+
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController) {}
 }
 
@@ -116,6 +121,28 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     }
 
     public weak var delegate: EPUBNavigatorDelegate?
+
+    /// Information about the visible portion of the publication, when rendered.
+    public private(set) var viewport: Viewport? {
+        didSet {
+            if oldValue != viewport {
+                delegate?.navigator(self, viewportDidChange: viewport)
+            }
+        }
+    }
+
+    /// Information about the visible portion of the publication.
+    public struct Viewport: Equatable {
+        /// Visible reading order resources.
+        public var readingOrder: [AnyURL]
+
+        /// Range of visible scroll progressions for each visible reading order
+        /// resource.
+        public var progressions: [AnyURL: ClosedRange<Double>]
+
+        /// Range of visible positions.
+        public var positions: ClosedRange<Int>?
+    }
 
     /// Navigation state.
     private enum State: Equatable {
@@ -488,15 +515,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         paginationView?.currentIndex ?? 0
     }
 
-    // Reading order index of the left-most resource in the visible spread.
-    private var currentResourceIndex: Int? {
-        guard spreads.indices.contains(currentSpreadIndex) else {
-            return nil
-        }
-
-        return readingOrder.firstIndexWithHREF(spreads[currentSpreadIndex].left.url())
-    }
-
     private var reloadSpreadsContinuations = [CheckedContinuation<Void, Never>]()
     private var needsReloadSpreads = false
 
@@ -542,8 +560,12 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             spread: viewModel.spreadEnabled
         )
 
-        let initialIndex: Int = {
-            if let href = locator?.href, let foundIndex = self.spreads.firstIndexWithHREF(href) {
+        let initialIndex: ReadingOrder.Index = {
+            if
+                let href = locator?.href,
+                let index = readingOrder.firstIndexWithHREF(href),
+                let foundIndex = self.spreads.firstIndexWithReadingOrderIndex(index)
+            {
                 return foundIndex
             } else {
                 return 0
@@ -561,9 +583,16 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     }
 
     private func loadedSpreadViewForHREF<T: URLConvertible>(_ href: T) -> EPUBSpreadView? {
-        paginationView?.loadedViews
+        guard
+            let loadedViews = paginationView?.loadedViews,
+            let index = readingOrder.firstIndexWithHREF(href)
+        else {
+            return nil
+        }
+
+        return loadedViews
             .compactMap { _, view in view as? EPUBSpreadView }
-            .first { $0.spread.links.firstWithHREF(href) != nil }
+            .first { $0.spread.contains(index: index) }
     }
 
     // MARK: - Navigator
@@ -582,45 +611,80 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         )
     }
 
-    private func computeCurrentLocation() async -> Locator? {
+    private func computeCurrentLocationAndViewport() async -> (Locator?, Viewport?) {
         if case .initializing = state {
             assertionFailure("Cannot update current location when initializing the navigator")
-            return nil
+            return (nil, nil)
         }
 
         // Returns any pending locator to prevent returning invalid locations
         // while loading it.
         if let pendingLocator = state.pendingLocator {
-            return pendingLocator
+            return (pendingLocator, nil)
         }
 
         guard let spreadView = paginationView?.currentView as? EPUBSpreadView else {
-            return nil
+            return (nil, nil)
         }
 
-        let link = spreadView.focusedResource ?? spreadView.spread.leading
-        let href = link.url()
-        let progression = min(max(spreadView.progression(in: href), 0.0), 1.0)
+        let visibleReadingOrder: [(index: Int, href: AnyURL)] = spreadView.spread.readingOrderIndices
+            .map { ($0, readingOrder[$0].url()) }
+
+        var viewport = Viewport(
+            readingOrder: visibleReadingOrder.map(\.href),
+            progressions: visibleReadingOrder.reduce([:]) { progressions, i in
+                var progressions = progressions
+                progressions[i.href] = spreadView.progression(in: i.index)
+                return progressions
+            },
+            positions: nil
+        )
+
+        let firstIndex = spreadView.spread.readingOrderIndices.lowerBound
+        let lastIndex = spreadView.spread.readingOrderIndices.upperBound
+        let progressionOfFirstResource = spreadView.progression(in: firstIndex)
+        let progressionOfLastResource = spreadView.progression(in: lastIndex)
+        let firstProgressionInFirstResource = min(max(progressionOfFirstResource.lowerBound, 0.0), 1.0)
+        let lastProgressionInLastResource = min(max(progressionOfLastResource.upperBound, 0.0), 1.0)
+
+        let link = readingOrder[firstIndex]
+        let location: Locator?
 
         if
             // The positions are not always available, for example a Readium
             // WebPub doesn't have any unless a Publication Positions Web
             // Service is provided
-            let index = readingOrder.firstIndexWithHREF(href),
-            let positionList = positionsByReadingOrder.getOrNil(index),
-            positionList.count > 0
+            let positionsOfFirstResource = positionsByReadingOrder.getOrNil(firstIndex),
+            let positionsOfLastResource = positionsByReadingOrder.getOrNil(lastIndex),
+            !positionsOfFirstResource.isEmpty,
+            !positionsOfLastResource.isEmpty
         {
-            // Gets the current locator from the positionList, and fill its missing data.
-            let positionIndex = Int(ceil(progression * Double(positionList.count - 1)))
-            return await positionList[positionIndex].copy(
-                title: tableOfContentsTitleByHref[equivalent: href],
-                locations: { $0.progression = progression }
+            // Gets the current locator from the positions, and fill its missing
+            // data.
+            let firstPositionIndex = Int(ceil(firstProgressionInFirstResource * Double(positionsOfFirstResource.count - 1)))
+            let lastPositionIndex = (lastProgressionInLastResource == 1.0)
+                ? positionsOfLastResource.count - 1
+                : max(firstPositionIndex, Int(ceil(lastProgressionInLastResource * Double(positionsOfLastResource.count - 1))) - 1)
+
+            location = await positionsOfFirstResource[firstPositionIndex].copy(
+                title: tableOfContentsTitleByHref[link.url()],
+                locations: { $0.progression = firstProgressionInFirstResource }
             )
+
+            if
+                let firstPosition = location?.locations.position,
+                let lastPosition = positionsOfLastResource[lastPositionIndex].locations.position
+            {
+                viewport.positions = firstPosition ... lastPosition
+            }
+
         } else {
-            return await publication.locate(link)?.copy(
-                locations: { $0.progression = progression }
+            location = await publication.locate(link)?.copy(
+                locations: { $0.progression = firstProgressionInFirstResource }
             )
         }
+
+        return (location, viewport)
     }
 
     public func firstVisibleElementLocator() async -> Locator? {
@@ -643,7 +707,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             return
         }
 
-        currentLocation = await computeCurrentLocation()
+        (currentLocation, viewport) = await computeCurrentLocationAndViewport()
 
         if
             let delegate = delegate,
@@ -660,7 +724,8 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         guard
             let paginationView = paginationView,
-            let spreadIndex = spreads.firstIndexWithHREF(locator.href),
+            let index = readingOrder.firstIndexWithHREF(locator.href),
+            let spreadIndex = spreads.firstIndexWithReadingOrderIndex(index),
             on(.jump(locator))
         else {
             return false
@@ -900,7 +965,8 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
                 for (_, view) in paginationView.loadedViews {
                     guard
                         let view = view as? EPUBSpreadView,
-                        view.spread.links.firstWithHREF(href) != nil
+                        let index = readingOrder.firstIndexWithHREF(href),
+                        view.spread.contains(index: index)
                     else {
                         continue
                     }
@@ -943,7 +1009,10 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             }
             .joined(separator: "\n")
 
-        for link in spreadView.spread.links {
+        let links = spreadView.spread.readingOrderIndices
+            .compactMap { readingOrder.getOrNil($0) }
+
+        for link in links {
             let href = link.url()
             for (group, decorations) in decorations {
                 let decorations = decorations
@@ -1133,7 +1202,7 @@ extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
 extension EPUBNavigatorViewController: PaginationViewDelegate {
     func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int) -> (UIView & PageView)? {
         let spread = spreads[index]
-        let spreadViewType = (spread.layout == .fixed) ? EPUBFixedSpreadView.self : EPUBReflowableSpreadView.self
+        let spreadViewType = (publication.metadata.layout == .fixed) ? EPUBFixedSpreadView.self : EPUBReflowableSpreadView.self
         let spreadView = spreadViewType.init(
             viewModel: viewModel,
             spread: spread,

@@ -206,7 +206,7 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         }
 
         public init(publication: Publication) {
-            let isFixedLayout = publication.metadata.presentation.layout == .fixed
+            let isFixedLayout = publication.metadata.layout == .fixed
             let a11y = publication.metadata.accessibility ?? Accessibility()
 
             visualAdjustments = {

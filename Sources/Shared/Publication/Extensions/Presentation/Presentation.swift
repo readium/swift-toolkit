@@ -16,6 +16,7 @@ import ReadiumInternal
 /// These properties are nullable to avoid having default values when it doesn't make sense for a
 /// given `Publication`. If a navigator needs a default value when not specified,
 /// `Presentation.defaultX` and `Presentation.X.default` can be used.
+@available(*, unavailable, message: "This was removed from RWPM. You can still use the EPUB extensibility to access the original values.")
 public struct Presentation: Equatable {
     /// Specifies whether or not the parts of a linked resource that flow out of the viewport are
     /// clipped.
@@ -83,14 +84,6 @@ public struct Presentation: Equatable {
             "spread": encodeRawIfNotNil(spread),
             "layout": encodeRawIfNotNil(layout),
         ])
-    }
-
-    /// Determines the layout of the given resource in this publication.
-    /// Default layout is reflowable.
-    public func layout(of link: Link) -> EPUBLayout {
-        link.properties.layout
-            ?? layout
-            ?? .reflowable
     }
 
     /// Suggested method for constraining a resource inside the viewport.
