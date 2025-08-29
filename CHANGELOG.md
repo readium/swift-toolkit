@@ -16,6 +16,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 * The Presentation Hints properties are deprecated from the Readium Web Publication Manifest models. [See the official documentation](https://readium.org/webpub-manifest/profiles/epub.html#appendix-b---deprecated-properties).
 
+### Changed
+
+#### Streamer
+
+* EPUB series added with Calibre now take precedence over the native EPUB ones in the `belongsToSeries` RWPM property.
+
 ### Fixed
 
 #### Streamer

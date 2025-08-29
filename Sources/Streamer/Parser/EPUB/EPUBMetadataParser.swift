@@ -449,6 +449,21 @@ final class EPUBMetadataParser: Loggable {
 
     /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#collections-and-series
     private lazy var belongsToSeries: [Metadata.Collection] = {
+        let calibrePosition = metas["series_index", in: .calibre].first
+            .flatMap { Double($0.content) }
+
+        let calibreSeries = metas["series", in: .calibre]
+            .map { meta in
+                Metadata.Collection(
+                    name: meta.content,
+                    position: calibrePosition
+                )
+            }
+
+        if !calibreSeries.isEmpty {
+            return calibreSeries
+        }
+
         let epub3Series = metas["belongs-to-collection"]
             // `collection-type` should be "series"
             .filter { meta in
@@ -459,20 +474,7 @@ final class EPUBMetadataParser: Loggable {
             }
             .compactMap(collection(from:))
 
-        if !epub3Series.isEmpty {
-            return epub3Series
-        }
-
-        let epub2Position = metas["series_index", in: .calibre].first
-            .flatMap { Double($0.content) }
-
-        return metas["series", in: .calibre]
-            .map { meta in
-                Metadata.Collection(
-                    name: meta.content,
-                    position: epub2Position
-                )
-            }
+        return epub3Series
     }()
 
     private func collection(from meta: OPFMeta) -> Metadata.Collection? {
