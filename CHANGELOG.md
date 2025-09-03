@@ -2,7 +2,9 @@
 
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
-## [Unreleased]
+<!-- ## [Unreleased] -->
+
+## [3.4.0]
 
 ### Added
 
@@ -964,3 +966,4 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [3.1.0]: https://github.com/readium/swift-toolkit/compare/3.0.0...3.1.0
 [3.2.0]: https://github.com/readium/swift-toolkit/compare/3.1.0...3.2.0
 [3.3.0]: https://github.com/readium/swift-toolkit/compare/3.2.0...3.3.0
+[3.4.0]: https://github.com/readium/swift-toolkit/compare/3.3.0...3.4.0
