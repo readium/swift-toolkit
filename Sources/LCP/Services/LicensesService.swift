@@ -102,11 +102,6 @@ final class LicensesService: Loggable {
             throw LCPError.missingPassphrase
         }
 
-        // Check the license status error if there's any
-        // Note: Right now we don't want to return a License if it fails the Status check, that's why we attempt to get the DRM context. But it could change if we want to access, for example, the License metadata or perform an LSD interaction, but without being able to decrypt the book. In which case, we could remove this line.
-        // Note2: The License already gets in this state when we perform a `return` successfully. We can't decrypt anymore but we still have access to the License Documents and LSD interactions.
-        _ = try documents.getContext()
-
         return License(documents: documents, client: client, validation: validation, licenses: licenses, device: device, httpClient: httpClient)
     }
 

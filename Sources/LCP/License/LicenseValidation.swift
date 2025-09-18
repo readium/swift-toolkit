@@ -23,27 +23,18 @@ private let supportedProfiles = [
     "http://readium.org/lcp/profile-2.9",
 ]
 
-typealias Context = Either<LCPClientContext, StatusError>
+typealias Context = Result<LCPClientContext, StatusError>
 
 // Holds the License/Status Documents and the DRM context, once validated.
 struct ValidatedDocuments {
     let license: LicenseDocument
-    fileprivate let context: Context
+    let context: Context
     let status: StatusDocument?
 
     fileprivate init(_ license: LicenseDocument, _ context: Context, _ status: StatusDocument? = nil) {
         self.license = license
         self.context = context
         self.status = status
-    }
-
-    func getContext() throws -> LCPClientContext {
-        switch context {
-        case let .left(context):
-            return context
-        case let .right(error):
-            throw error
-        }
     }
 }
 
@@ -195,7 +186,7 @@ extension LicenseValidation {
             // 4. Check the dates and license status
             case let (.checkLicenseStatus(license, status, _), .checkedLicenseStatus(error)):
                 if let error = error {
-                    self = .valid(ValidatedDocuments(license, .right(error), status))
+                    self = .valid(ValidatedDocuments(license, .failure(error), status))
                 } else {
                     self = .requestPassphrase(license, status)
                 }
@@ -210,7 +201,7 @@ extension LicenseValidation {
 
             // 6. Validate the license integrity
             case let (.validateIntegrity(license, status, _), .validatedIntegrity(context)):
-                let documents = ValidatedDocuments(license, .left(context), status)
+                let documents = ValidatedDocuments(license, .success(context), status)
                 if let link = status?.link(for: .register) {
                     self = .registerDevice(documents, link)
                 } else {

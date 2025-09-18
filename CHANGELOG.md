@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Changed
+
+#### LCP
+
+* The LCP License Document is now accessible via `publication.lcpLicense?.license`, even if the license validation fails with a status error. This is useful for checking the end date of an expired license, for example.
+
 
 ## [3.4.0]
 
