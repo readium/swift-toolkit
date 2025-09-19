@@ -156,7 +156,7 @@ private final class LCPContentProtectionService: ContentProtectionService {
 
     init(license: LCPLicense? = nil, error: Error? = nil) {
         self.license = license
-        self.error = error ?? license?.error.map { LCPError.licenseStatus($0) }
+        self.error = error ?? license?.error
     }
 
     convenience init(result: Result<LCPLicense, LCPError>) {

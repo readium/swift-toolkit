@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### LCP
 
-* The LCP License Document is now accessible via `publication.lcpLicense?.license`, even if the license validation fails with a status error. This is useful for checking the end date of an expired license, for example.
+* The LCP License Document is now accessible via `publication.lcpLicense?.license`, even if the license validation fails with a status error or missing passphrase. This is useful for checking the end date of an expired license or renew a license.
 
 
 ## [3.4.0]

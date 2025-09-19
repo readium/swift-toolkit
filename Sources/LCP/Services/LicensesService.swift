@@ -98,9 +98,7 @@ final class LicensesService: Loggable {
             onLicenseValidated: onLicenseValidated
         )
 
-        guard let documents = try await validation.validate(.license(initialData)) else {
-            throw LCPError.missingPassphrase
-        }
+        let documents = try await validation.validate(.license(initialData))
 
         return License(documents: documents, client: client, validation: validation, licenses: licenses, device: device, httpClient: httpClient)
     }

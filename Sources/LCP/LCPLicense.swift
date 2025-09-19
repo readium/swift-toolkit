@@ -17,9 +17,10 @@ public protocol LCPLicense: UserRights {
     /// The license is restricted if there is a status error.
     var isRestricted: Bool { get }
 
-    /// Status error detected while validating the license, e.g. if the license
-    /// is expired or revoked.
-    var error: StatusError? { get }
+    /// Error detected after validating the license, which prevents the user
+    /// from decrypting the book. For example, the license is expired/revoked
+    /// or the passphrase was not provided.
+    var error: LCPError? { get }
 
     /// Deciphers the given encrypted data to be displayed in the reader.
     func decipher(_ data: Data) throws -> Data?

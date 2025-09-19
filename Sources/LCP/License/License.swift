@@ -28,7 +28,7 @@ final class License: Loggable {
         self.httpClient = httpClient
 
         validation.observe { [weak self] result in
-            if case let .success(documents) = result, let documents = documents {
+            if case let .success(documents) = result {
                 self?.documents = documents
             }
         }
@@ -46,15 +46,22 @@ extension License: LCPLicense {
     }
 
     public var isRestricted: Bool {
-        error != nil
+        documents.context.getOrNil() == nil
     }
 
-    public var error: StatusError? {
+    public var error: LCPError? {
         switch documents.context {
         case .success:
             return nil
         case let .failure(error):
-            return error
+            switch error {
+            // We don't report the missingPassphrase case as an error
+            // because in this case the user cancelled the passphrase prompt.
+            case .missingPassphrase:
+                return nil
+            default:
+                return error
+            }
         }
     }
 
