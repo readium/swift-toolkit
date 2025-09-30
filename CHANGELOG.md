@@ -10,6 +10,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 * The LCP License Document is now accessible via `publication.lcpLicense?.license`, even if the license validation fails with a status error or missing passphrase. This is useful for checking the end date of an expired license or renew a license.
 
+### Fixed
+
+#### Navigator
+
+* The safe area insets strategy was adjusted to take into account changes in iOS/iPadOS 26.
+
 
 ## [3.4.0]
 

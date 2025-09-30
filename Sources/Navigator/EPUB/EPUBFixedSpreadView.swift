@@ -78,9 +78,10 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
             return
         }
 
-        // Insets the bounds by the notch area (eg. iPhone X) to make sure that
-        // the content is not overlapped by the screen notch.
-        var insets = notchAreaInsets
+        // We use the window's safeAreaInsets instead of the view's because we
+        // only want to take into account the device notch and status bar, not
+        // the application's bars.
+        var insets = window?.safeAreaInsets ?? UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
 
         // Use the same insets on the left and right side (the largest one) to
         // keep the pages centered on the screen even if the notches are not
