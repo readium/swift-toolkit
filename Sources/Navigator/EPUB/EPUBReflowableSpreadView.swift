@@ -89,8 +89,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         // We use the window's safeAreaInsets instead of the view's because we
         // only want to take into account the device notch and status bar, not
         // the application's bars.
-        let safeAreaInsets = window?.safeAreaInsets ?? UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-        
+        let safeAreaInsets = window?.safeAreaInsets ?? .zero
+
         if viewModel.scroll {
             topConstraint.constant = 0
             bottomConstraint.constant = 0

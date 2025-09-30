@@ -43,7 +43,7 @@ public final class PDFDocumentView: PDFView {
         // We use the window's safeAreaInsets instead of the view's because we
         // only want to take into account the device notch and status bar, not
         // the application's bars.
-        let insets = window?.safeAreaInsets ?? UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        let insets = window?.safeAreaInsets ?? .zero
 
         firstScrollView?.contentInset.top = insets.top
         firstScrollView?.contentInset.bottom = insets.bottom
