@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * The safe area insets strategy was adjusted to take into account changes in iOS/iPadOS 26.
+* Fixed the lost progression with the EPUB navigator when the application becomes active again after the system terminated the WebKit process.
 
 
 ## [3.4.0]

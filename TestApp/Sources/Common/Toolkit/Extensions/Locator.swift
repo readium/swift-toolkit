@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumShared
 
-extension Locator: Codable {
+extension Locator: @retroactive Codable {
     public init(from decoder: Decoder) throws {
         let json = try decoder.singleValueContainer().decode(String.self)
         try self.init(jsonString: json)!

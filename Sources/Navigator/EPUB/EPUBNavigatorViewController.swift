@@ -329,11 +329,29 @@ open class EPUBNavigatorViewController: InputObservableViewController,
                 self.delegate?.navigator(self, didReleaseKey: event)
             }
         )
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(didBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(willResignActive),
+            name: UIApplication.willResignActiveNotification,
+            object: nil
+        )
     }
 
     @available(*, unavailable)
     public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
     override open func viewDidLoad() {
@@ -345,6 +363,21 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         Task {
             await initialize()
+        }
+    }
+
+    private var isActive = true
+
+    @objc private func willResignActive() {
+        isActive = false
+    }
+
+    @objc private func didBecomeActive() {
+        isActive = true
+
+        if needsReloadSpreadsOnActive {
+            needsReloadSpreadsOnActive = false
+            reloadSpreads(force: true)
         }
     }
 
@@ -365,7 +398,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         applySettings()
 
-        _reloadSpreads(at: currentLocation, force: false)
+        _reloadSpreads(force: true)
 
         onInitializedCallbacks.complete()
     }
@@ -404,9 +437,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         viewModel.viewSizeWillChange(size)
 
         coordinator.animate(alongsideTransition: nil) { [weak self] _ in
-            Task {
-                await self?.reloadSpreads(force: false)
-            }
+            self?.reloadSpreads(force: false)
         }
     }
 
@@ -499,13 +530,13 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         return view
     }
 
-    private func invalidatePaginationView() async {
+    private func invalidatePaginationView() {
         guard let paginationView = paginationView else {
             return
         }
 
         paginationView.isScrollEnabled = isPaginationViewScrollingEnabled
-        await reloadSpreads(force: true)
+        reloadSpreads(force: true)
     }
 
     private var spreads: [EPUBSpread] = []
@@ -515,34 +546,22 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         paginationView?.currentIndex ?? 0
     }
 
-    private var reloadSpreadsContinuations = [CheckedContinuation<Void, Never>]()
-    private var needsReloadSpreads = false
+    private var needsReloadSpreadsOnActive = false
 
-    private func reloadSpreads(at locator: Locator? = nil, force: Bool) async {
-        guard state != .initializing, isViewLoaded else {
+    private func reloadSpreads(force: Bool) {
+        guard
+            state != .initializing,
+            isViewLoaded,
+            isActive
+        else {
             return
         }
 
-        guard !needsReloadSpreads else {
-            await withCheckedContinuation { continuation in
-                reloadSpreadsContinuations.append(continuation)
-            }
-            return
-        }
-
-        needsReloadSpreads = true
-
-        _reloadSpreads(at: locator, force: force)
-        for continuation in reloadSpreadsContinuations {
-            continuation.resume()
-        }
-        reloadSpreadsContinuations.removeAll()
-
-        needsReloadSpreads = false
+        _reloadSpreads(force: force)
     }
 
-    private func _reloadSpreads(at locator: Locator? = nil, force: Bool) {
-        let locator = locator ?? currentLocation
+    private func _reloadSpreads(force: Bool) {
+        let locator = currentLocation
 
         guard
             let paginationView = paginationView,
@@ -935,9 +954,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
 extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
     func epubNavigatorViewModelInvalidatePaginationView(_ viewModel: EPUBNavigatorViewModel) {
-        Task {
-            await invalidatePaginationView()
-        }
+        invalidatePaginationView()
     }
 
     func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel, runScript script: String, in scope: EPUBScriptScope) {
@@ -1179,8 +1196,14 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     }
 
     func spreadViewDidTerminate() {
-        Task {
-            await reloadSpreads(force: true)
+        if !isActive {
+            // If we reload the spreads while the app is in the background, the
+            // web view will reset to progression 0 instead of the current one.
+            // We need to wait for the application to return to the foreground
+            // to maintain the current location.
+            needsReloadSpreadsOnActive = true
+        } else {
+            reloadSpreads(force: true)
         }
     }
 }
