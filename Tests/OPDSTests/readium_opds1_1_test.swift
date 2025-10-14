@@ -46,6 +46,7 @@ class readium_opds1_1_test: XCTestCase {
     }
 
     func testMetadata() {
+        XCTAssert(feed!.metadata.identifier == "urn:uuid:433a5d6a-0b8c-4933-af65-4ca4f02763eb")
         XCTAssert(feed!.metadata.title == "Unpopular Publications")
         // TODO: add more tests...
     }

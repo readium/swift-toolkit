@@ -93,6 +93,8 @@ public class OPDS1Parser: Loggable {
         }
         let feed = Feed(title: title)
 
+        feed.metadata.identifier = root.firstChild(tag: "id")?.stringValue
+
         if let tmpDate = root.firstChild(tag: "updated")?.stringValue,
            let date = tmpDate.dateFromISO8601
         {
