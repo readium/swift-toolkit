@@ -105,6 +105,13 @@ public class OPDS1Parser: Loggable {
             feed.metadata.itemsPerPage = Int(itemsPerPage)
         }
 
+        if let iconValue = root.firstChild(tag: "icon")?.stringValue,
+           let href = URLHelper.getAbsolute(href: iconValue, base: feedURL)
+        {
+            let iconLink = Link(href: href, rel: .icon)
+            feed.links.append(iconLink)
+        }
+
         for entry in root.children(tag: "entry") {
             var isNavigation = true
             var collectionLink: Link?
