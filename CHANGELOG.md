@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
+### Added
+
+#### LCP
+
+* Added an initializer parameter to pass a custom device id.
+
 ### Changed
 
 #### LCP

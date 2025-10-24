@@ -13,26 +13,28 @@ final class DeviceService {
 
     /// Returns the device's name.
     var name: String
+    /// Returns the device's ID
+    var id: String
 
     init(
         deviceName: String,
+        deviceId: String?,
         repository: LCPLicenseRepository,
         httpClient: HTTPClient
     ) {
         name = deviceName
+        if let providedId = deviceId {
+            id = providedId
+        } else if let savedId = defaults.string(forKey: "lcp_device_id") {
+            id = savedId
+        } else {
+            let generatedId = UUID().uuidString
+            defaults.set(generatedId, forKey: "lcp_device_id")
+            id = generatedId
+        }
+
         self.repository = repository
         self.httpClient = httpClient
-    }
-
-    /// Returns the device ID, creates it if needed.
-    var id: String {
-        let defaults = UserDefaults.standard
-        guard let deviceId = defaults.string(forKey: "lcp_device_id") else {
-            let deviceId = UUID().description
-            defaults.set(deviceId.description, forKey: "lcp_device_id")
-            return deviceId.description
-        }
-        return deviceId
     }
 
     // Device ID and name as query parameters for HTTP requests.
