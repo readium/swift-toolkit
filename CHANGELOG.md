@@ -16,7 +16,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * `EPUBNavigatorViewController.Configuration.contentInset` now expects values that already include the safe area insets.
-	* If you previously supplied content-only margins, update them to add the safe-area values to preserve the same visible layout.
+    * If you previously supplied content-only margins, update them to add the safe-area values to preserve the same visible layout.
     * Alternatively, implement `VisualNavigatorDelegate.navigatorContentInset(_:)` to compute and return the full insets (content + safe area), helping avoid layout shifts when system UI (e.g., the status bar) appears or disappears.
 
 #### LCP
