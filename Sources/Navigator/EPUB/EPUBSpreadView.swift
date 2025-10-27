@@ -9,6 +9,9 @@ import SwiftSoup
 @preconcurrency import WebKit
 
 protocol EPUBSpreadViewDelegate: AnyObject {
+    /// Returns the content inset the spread view should use.
+    func spreadViewContentInset(_ spreadView: EPUBSpreadView) -> UIEdgeInsets
+
     /// Called when the spread view finished loading.
     func spreadViewDidLoad(_ spreadView: EPUBSpreadView) async
 

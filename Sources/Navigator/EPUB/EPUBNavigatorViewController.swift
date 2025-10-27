@@ -65,9 +65,17 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         /// Disables horizontal page turning when scroll is enabled.
         public var disablePageTurnsWhileScrolling: Bool
 
-        /// Content insets used to add some vertical margins around reflowable EPUB publications.
-        /// The insets can be configured for each size class to allow smaller margins on compact
-        /// screens.
+        /// Content insets used to add some vertical margins around reflowable
+        /// EPUB publications. Note that the margins include the safe area
+        /// insets. To avoid any "jump" when toggling the status bar, provide
+        /// values large enough.
+        ///
+        /// The insets can be configured for each size class to allow smaller
+        /// margins on compact screens.
+        ///
+        /// For more control, implement the `navigatorContentInset()` delegate
+        /// method, which takes precedence over this configuration property
+        /// when implemented.
         public var contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
 
         /// Number of positions (as in `Publication.positionList`) to preload before the current page.
@@ -96,8 +104,8 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             editingActions: [EditingAction] = EditingAction.defaultActions,
             disablePageTurnsWhileScrolling: Bool = false,
             contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets] = [
-                .compact: (top: 20, bottom: 20),
-                .regular: (top: 44, bottom: 44),
+                .compact: (top: 34, bottom: 34),
+                .regular: (top: 62, bottom: 62),
             ],
             preloadPreviousPositionCount: Int = 2,
             preloadNextPositionCount: Int = 6,
@@ -117,6 +125,13 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             self.fontFamilyDeclarations = fontFamilyDeclarations
             self.readiumCSSRSProperties = readiumCSSRSProperties
             self.debugState = debugState
+        }
+
+        func contentInset(for sizeClass: UIUserInterfaceSizeClass) -> EPUBContentInsets {
+            contentInset[sizeClass]
+                ?? contentInset[.regular]
+                ?? contentInset[.unspecified]
+                ?? (top: 0, bottom: 0)
         }
     }
 
@@ -1006,6 +1021,25 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
 }
 
 extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
+    func spreadViewContentInset(_ spreadView: EPUBSpreadView) -> UIEdgeInsets {
+        if let inset = delegate?.navigatorContentInset(self) {
+            return inset
+        }
+
+        // We use the window's safeAreaInsets instead of the view's because we
+        // only want to take into account the device notch and status bar, not
+        // the application's bars.
+        var insets = view.window?.safeAreaInsets ?? .zero
+
+        if publication.metadata.layout != .fixed {
+            let configInset = config.contentInset(for: view.traitCollection.verticalSizeClass)
+            insets.top = max(insets.top, configInset.top)
+            insets.bottom = max(insets.bottom, configInset.bottom)
+        }
+
+        return insets
+    }
+
     func spreadViewDidLoad(_ spreadView: EPUBSpreadView) async {
         let templates = config.decorationTemplates.reduce(into: [:]) { styles, item in
             styles[item.key.rawValue] = item.value.json

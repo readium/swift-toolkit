@@ -6,11 +6,24 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Added
 
+#### Navigator
+
+* Added `VisualNavigatorDelegate.navigatorContentInset(_:)` to customize the content and safe-area insets used by the navigator.
+    * By default, the navigator uses the window's `safeAreaInsets`, which can cause content to shift when the status bar is shown or hidden (since those insets change). To avoid this, implement `navigatorContentInset(_:)` and return insets that remain stable across status bar visibility changes — for example, a top inset large enough to accommodate the maximum expected status bar height.
+
 #### LCP
 
-* Added an initializer parameter to pass a custom device id.
+* Added an initializer parameter for providing a custom device identifier (contributed by [@dewantawsif](https://github.com/readium/swift-toolkit/pull/661)).
+    * You must ensure the identifier is unique and stable for the device (persist and reuse across app launches).
+    * Recommended: generate an app-scoped UUID and store it securely (e.g., in the Keychain); avoid hardware or advertising identifiers.
 
 ### Changed
+
+#### Navigator
+
+* `EPUBNavigatorViewController.Configuration.contentInset` now expects values that already include the safe area insets.
+    * If you previously supplied content-only margins, update them to add the safe-area values to preserve the same visible layout.
+    * Alternatively, implement `VisualNavigatorDelegate.navigatorContentInset(_:)` to compute and return the full insets (content + safe area), helping avoid layout shifts when system UI (e.g., the status bar) appears or disappears.
 
 #### LCP
 
