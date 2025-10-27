@@ -12,9 +12,9 @@ final class DeviceService {
     private let httpClient: HTTPClient
 
     /// Returns the device's name.
-    var name: String
+    let name: String
     /// Returns the device's ID
-    var id: String
+    let id: String
 
     init(
         deviceName: String,
@@ -23,13 +23,14 @@ final class DeviceService {
         httpClient: HTTPClient
     ) {
         name = deviceName
+
         if let providedId = deviceId {
             id = providedId
-        } else if let savedId = defaults.string(forKey: "lcp_device_id") {
+        } else if let savedId = UserDefaults.standard.string(forKey: "lcp_device_id") {
             id = savedId
         } else {
             let generatedId = UUID().uuidString
-            defaults.set(generatedId, forKey: "lcp_device_id")
+            UserDefaults.standard.set(generatedId, forKey: "lcp_device_id")
             id = generatedId
         }
 

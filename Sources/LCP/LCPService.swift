@@ -24,7 +24,9 @@ public final class LCPService: Loggable {
     /// - Parameter deviceName: Device name used when registering a license to an LSD server.
     ///   If not provided, the device name will be the default `UIDevice.current.name`.
     /// - Parameter deviceId: Device ID used when registering a license to an LSD server.
-    ///   If not provided, the device id will be generated as a random UUID.
+    ///   You must ensure the identifier is unique and stable for the device (persist and
+    ///   reuse across app launches). If not provided, the device ID will be generated as
+    ///   a random UUID.
     public init(
         client: LCPClient,
         licenseRepository: LCPLicenseRepository,
