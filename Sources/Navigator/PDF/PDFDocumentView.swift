@@ -7,11 +7,21 @@
 import Foundation
 import PDFKit
 
+protocol PDFDocumentViewDelegate: AnyObject {
+    func pdfDocumentViewContentInset(_ pdfDocumentView: PDFDocumentView) -> UIEdgeInsets?
+}
+
 public final class PDFDocumentView: PDFView {
     var editingActions: EditingActionsController
+    private weak var documentViewDelegate: PDFDocumentViewDelegate?
 
-    init(frame: CGRect, editingActions: EditingActionsController) {
+    init(
+        frame: CGRect,
+        editingActions: EditingActionsController,
+        documentViewDelegate: PDFDocumentViewDelegate
+    ) {
         self.editingActions = editingActions
+        self.documentViewDelegate = documentViewDelegate
 
         super.init(frame: frame)
 
@@ -40,11 +50,7 @@ public final class PDFDocumentView: PDFView {
     }
 
     private func updateContentInset() {
-        // We use the window's safeAreaInsets instead of the view's because we
-        // only want to take into account the device notch and status bar, not
-        // the application's bars.
-        let insets = window?.safeAreaInsets ?? .zero
-
+        let insets = documentViewDelegate?.pdfDocumentViewContentInset(self) ?? window?.safeAreaInsets ?? .zero
         firstScrollView?.contentInset.top = insets.top
         firstScrollView?.contentInset.bottom = insets.bottom
     }

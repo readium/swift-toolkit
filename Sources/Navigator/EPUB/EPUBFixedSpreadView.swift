@@ -78,10 +78,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
             return
         }
 
-        // We use the window's safeAreaInsets instead of the view's because we
-        // only want to take into account the device notch and status bar, not
-        // the application's bars.
-        var insets = window?.safeAreaInsets ?? .zero
+        var insets = delegate?.spreadViewContentInset(self) ?? .zero
 
         // Use the same insets on the left and right side (the largest one) to
         // keep the pages centered on the screen even if the notches are not

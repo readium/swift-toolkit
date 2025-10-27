@@ -86,30 +86,16 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
 
     private func updateContentInset() {
-        // We use the window's safeAreaInsets instead of the view's because we
-        // only want to take into account the device notch and status bar, not
-        // the application's bars.
-        let safeAreaInsets = window?.safeAreaInsets ?? .zero
+        let contentInset = delegate?.spreadViewContentInset(self) ?? .zero
 
         if viewModel.scroll {
             topConstraint.constant = 0
             bottomConstraint.constant = 0
-            scrollView.contentInset = UIEdgeInsets(top: safeAreaInsets.top, left: 0, bottom: safeAreaInsets.bottom, right: 0)
+            scrollView.contentInset = contentInset
 
         } else {
-            let contentInset = viewModel.config.contentInset
-            var insets = contentInset[traitCollection.verticalSizeClass]
-                ?? contentInset[.regular]
-                ?? contentInset[.unspecified]
-                ?? (top: 0, bottom: 0)
-
-            // Increases the insets by the window's safe area insets area to
-            // make sure that the content is not overlapped by the screen notch.
-            insets.top += safeAreaInsets.top
-            insets.bottom += safeAreaInsets.bottom
-
-            topConstraint.constant = insets.top
-            bottomConstraint.constant = -insets.bottom
+            topConstraint.constant = contentInset.top
+            bottomConstraint.constant = -contentInset.bottom
             scrollView.contentInset = .zero
         }
     }
