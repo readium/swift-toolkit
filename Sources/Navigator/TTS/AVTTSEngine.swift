@@ -49,6 +49,19 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
 
     public lazy var availableVoices: [TTSVoice] =
         AVSpeechSynthesisVoice.speechVoices()
+            .filter { voice in
+                // Remove novelty and eloquence voices, as they are not a good
+                // fit to read publications.
+                if
+                    #available(iOS 17.0, *),
+                    voice.voiceTraits.contains(.isNoveltyVoice) ||
+                    voice.voiceTraits.contains(.isPersonalVoice)
+                {
+                    return false
+                }
+
+                return !voice.identifier.contains(".eloquence.")
+            }
             .map { TTSVoice(voice: $0) }
 
     public func voiceWithIdentifier(_ id: String) -> TTSVoice? {
@@ -360,12 +373,18 @@ private extension TTSVoice.Quality {
     init?(voice: AVSpeechSynthesisVoice) {
         switch voice.quality {
         case .default:
-            self = .medium
+            if voice.identifier.contains(".compact.") {
+                self = .low
+            } else if voice.identifier.contains(".super-compact.") {
+                self = .lower
+            } else {
+                self = .medium
+            }
         case .enhanced:
             self = .high
         #if swift(>=5.7)
             case .premium:
-                self = .high
+                self = .higher
         #endif
         @unknown default:
             return nil
