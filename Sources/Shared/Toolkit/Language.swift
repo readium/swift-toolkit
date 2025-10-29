@@ -33,6 +33,26 @@ public struct Language: Hashable, Sendable {
 
     public let code: Code
 
+    public struct Region: Hashable, Sendable, ExpressibleByStringLiteral {
+        public let code: String
+
+        public init(code: String) {
+            self.code = code
+        }
+
+        public init(stringLiteral value: StringLiteralType) {
+            self.init(code: value)
+        }
+
+        public func localizedName(in targetLocale: Locale = Locale.current) -> String? {
+            targetLocale.localizedString(forRegionCode: code)
+        }
+    }
+
+    public var region: Region? {
+        locale.regionCode.flatMap { Region(code: $0) }
+    }
+
     public var locale: Locale { Locale(identifier: code.bcp47) }
 
     public func localizedDescription(in locale: Locale = Locale.current) -> String {
