@@ -15,6 +15,16 @@ public final class PDFDocumentView: PDFView {
     var editingActions: EditingActionsController
     private weak var documentViewDelegate: PDFDocumentViewDelegate?
 
+    override public var document: PDFDocument? {
+        didSet {
+            // Remove annotation menu interactions after document is set, as PDFKit
+            // may add them during document loading
+            if #available(iOS 16.0, *) {
+                removeAnnotationMenuInteractions()
+            }
+        }
+    }
+
     init(
         frame: CGRect,
         editingActions: EditingActionsController,
@@ -32,6 +42,32 @@ public final class PDFDocumentView: PDFView {
         // Thefore, we will handle the adjustement manually by only taking the notch area into
         // account.
         firstScrollView?.contentInsetAdjustmentBehavior = .never
+
+        // Prevent the default annotation context menu from appearing.
+        // We use our own custom color picker menu for annotations.
+        if #available(iOS 16.0, *) {
+            removeAnnotationMenuInteractions()
+        }
+    }
+
+    @available(iOS 16.0, *)
+    private func removeAnnotationMenuInteractions() {
+        // Remove all UIEditMenuInteraction instances which are responsible for
+        // showing the annotation context menu on tap
+        for interaction in interactions where interaction is UIEditMenuInteraction {
+            removeInteraction(interaction)
+        }
+    }
+
+    override public func addInteraction(_ interaction: UIInteraction) {
+        // Prevent PDFKit from adding UIEditMenuInteraction which shows
+        // the default annotation context menu. We use our own custom menu.
+        if #available(iOS 16.0, *) {
+            guard !(interaction is UIEditMenuInteraction) else {
+                return
+            }
+        }
+        super.addInteraction(interaction)
     }
 
     @available(*, unavailable)
@@ -55,8 +91,22 @@ public final class PDFDocumentView: PDFView {
         firstScrollView?.contentInset.bottom = insets.bottom
     }
 
+    /// Reader customization: gate system actions so only our custom highlight command remains.
     override public func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
-        super.canPerformAction(action, withSender: sender) && editingActions.canPerformAction(action)
+        if editingActions.handlesAction(action) {
+            return editingActions.canPerformAction(action)
+        }
+        let disallowedSelectors: [Selector] = [
+            #selector(UIResponderStandardEditActions.cut(_:)),
+            #selector(UIResponderStandardEditActions.copy(_:)),
+            #selector(UIResponderStandardEditActions.paste(_:)),
+            #selector(UIResponderStandardEditActions.delete(_:)),
+            #selector(UIResponderStandardEditActions.selectAll(_:))
+        ]
+        if disallowedSelectors.contains(action) {
+            return false
+        }
+        return super.canPerformAction(action, withSender: sender)
     }
 
     override public func copy(_ sender: Any?) {
@@ -69,5 +119,25 @@ public final class PDFDocumentView: PDFView {
     override public func buildMenu(with builder: UIMenuBuilder) {
         editingActions.buildMenu(with: builder)
         super.buildMenu(with: builder)
+    }
+
+    /// Reader customization: forward the highlight selector to the hosting container instead of PDFKit.
+    override public func target(forAction action: Selector, withSender sender: Any?) -> Any? {
+        guard editingActions.handlesAction(action) else {
+            return super.target(forAction: action, withSender: sender)
+        }
+
+        // Traverse the responder chain manually to find the first responder
+        // that implements the action. Returning `next` is not sufficient
+        // because UIKit will still send the action back to this view.
+        var responder = next
+        while let currentResponder = responder {
+            if currentResponder.responds(to: action) {
+                return currentResponder
+            }
+            responder = currentResponder.next
+        }
+
+        return nil
     }
 }

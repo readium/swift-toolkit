@@ -135,6 +135,12 @@ final class EditingActionsController {
         return delegate?.editingActions(self, canPerformAction: action, for: selection) ?? true
     }
 
+    /// Reader customization: surface whether a selector is owned by the custom menu so
+    /// PDF views can short‑circuit built-in responder handling.
+    func handlesAction(_ selector: Selector) -> Bool {
+        actions.contains { $0.actions.contains(selector) }
+    }
+
     /// Verifies that the user has the rights to use the given `action`.
     private func isActionAllowed(_ action: EditingAction) -> Bool {
         switch action {
@@ -158,9 +164,45 @@ final class EditingActionsController {
         // Expansion setting which allows to copy the selection.
         // To reproduce, comment out and select Japanese text on a PDF.
         builder.remove(menu: .learn)
+
+        // Reader customization: build the modern edit menu using UICommand so the system menu
+        // shows only our Highlight entry on iOS 16+.
+        let highlightElements: [UIMenuElement] = actions.compactMap { action in
+            switch action.kind {
+            case let .custom(menuItem):
+                return UICommand(title: menuItem.title, image: nil, action: menuItem.action, propertyList: nil)
+            case .native:
+                return nil
+            }
+        }
+
+        guard !highlightElements.isEmpty else {
+            return
+        }
+
+        let hasNativeActions = actions.contains {
+            if case .native = $0.kind {
+                return true
+            }
+            return false
+        }
+
+        var standardChildren = builder.menu(for: .standardEdit)?.children ?? []
+        if hasNativeActions {
+            standardChildren.insert(contentsOf: highlightElements, at: 0)
+        } else {
+            standardChildren = highlightElements
+        }
+
+        builder.replaceChildren(ofMenu: .standardEdit) { _ in standardChildren }
     }
 
     func updateSharedMenuController() {
+        if #available(iOS 16.0, *) {
+            // Reader customization: rely exclusively on UIEditMenuInteraction for modern devices.
+            UIMenuController.shared.menuItems = nil
+            return
+        }
         var items: [UIMenuItem] = []
         if isEnabled, let selection = selection {
             items = actions
