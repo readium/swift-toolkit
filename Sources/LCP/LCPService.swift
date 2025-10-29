@@ -80,6 +80,18 @@ public final class LCPService: Loggable {
         }
     }
 
+    /// Injects a `licenseDocument` into a publication package at `url`.
+    ///
+    /// This is useful if you downloaded the publication yourself instead of using `acquirePublication`.
+    public func injectLicense(
+        _ license: LicenseDocument,
+        in url : FileURL
+    ) async -> Result<Void, LCPError> {
+        await wrap {
+            try await licenses.injectLicense(license, in: url)
+        }
+    }
+
     /// Opens the LCP license of a protected publication, to access its DRM
     /// metadata and decipher its content.
     ///

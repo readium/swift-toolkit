@@ -120,26 +120,47 @@ final class LicensesService: Loggable {
             onProgress: { onProgress(.percent(Float($0))) }
         ).get()
 
-        var hints = FormatHints()
-        if let type = license.link(for: .publication)?.mediaType {
-            hints.mediaTypes.append(type)
-        }
-        if let type = download.mediaType {
-            hints.mediaTypes.append(type)
-        }
-
-        let asset = try await assetRetriever.retrieve(url: download.location, hints: hints)
-            .mapError { LCPError.licenseContainer(ContainerError.openFailed($0)) }
-            .get()
-
-        try await injectLicense(license, in: asset)
+        let format = try await injectLicenseAndGetFormat(
+            license,
+            in: download.location,
+            mediaTypeHint: download.mediaType
+        )
 
         return LCPAcquiredPublication(
             localURL: download.location,
-            format: asset.format,
-            suggestedFilename: asset.format.fileExtension.appendedToFilename(license.id),
+            format: format,
+            suggestedFilename: format.fileExtension.appendedToFilename(license.id),
             licenseDocument: license
         )
+    }
+
+    func injectLicense(
+        _ license: LicenseDocument,
+        in url: FileURL
+    ) async throws {
+        let _ = try await injectLicenseAndGetFormat(license, in: url, mediaTypeHint: nil)
+    }
+
+    private func injectLicenseAndGetFormat(
+        _ license: LicenseDocument,
+        in url: FileURL,
+        mediaTypeHint: MediaType? = nil
+    ) async throws -> Format {
+        var formatHints = FormatHints()
+        if let type = license.publicationLink.mediaType {
+            formatHints.mediaTypes.append(type)
+        }
+        if let type = mediaTypeHint {
+            formatHints.mediaTypes.append(type)
+        }
+    
+        let asset = try await assetRetriever.retrieve(url: url, hints: formatHints)
+            .mapError { LCPError.licenseContainer(ContainerError.openFailed($0)) }
+            .get()
+    
+        try await injectLicense(license, in: asset)
+    
+        return asset.format
     }
 
     private func readLicense(from lcpl: LicenseDocumentSource) async throws -> LicenseDocument? {
