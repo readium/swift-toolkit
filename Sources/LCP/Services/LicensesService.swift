@@ -134,7 +134,7 @@ final class LicensesService: Loggable {
         )
     }
 
-    func injectLicense(
+    func injectLicenseDocument(
         _ license: LicenseDocument,
         in url: FileURL
     ) async throws {

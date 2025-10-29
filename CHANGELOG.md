@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file. Take a look
 * Added an initializer parameter for providing a custom device identifier (contributed by [@dewantawsif](https://github.com/readium/swift-toolkit/pull/661)).
     * You must ensure the identifier is unique and stable for the device (persist and reuse across app launches).
     * Recommended: generate an app-scoped UUID and store it securely (e.g., in the Keychain); avoid hardware or advertising identifiers.
+* You can use `LCPService.injectLicenseDocument(_:in)` to insert an LCPL into a package, if you downloaded it manually instead of using `LCPService.acquirePublication()`.
 
 ### Changed
 
