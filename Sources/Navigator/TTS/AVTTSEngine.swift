@@ -50,8 +50,8 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     public lazy var availableVoices: [TTSVoice] =
         AVSpeechSynthesisVoice.speechVoices()
             .filter { voice in
-                // Remove novelty and eloquence voices, as they are not a good
-                // fit to read publications.
+                // Remove novelty, eloquence and "classic" voices, as they are
+                // not a good modern fit to read publications.
                 if
                     #available(iOS 17.0, *),
                     voice.voiceTraits.contains(.isNoveltyVoice) ||
@@ -61,6 +61,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
                 }
 
                 return !voice.identifier.contains(".eloquence.")
+                    && !voice.identifier.starts(with: "com.apple.speech.synthesis.voice.")
             }
             .map { TTSVoice(voice: $0) }
 
