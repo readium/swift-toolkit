@@ -175,13 +175,8 @@ public extension [TTSVoice] {
 
 private extension Locale {
     static var preferredRegions: [ReadiumShared.Language.Region] {
-        if #available(iOS 26.0, *) {
-            preferredLocales
-                .compactMap { $0.regionCode.flatMap { ReadiumShared.Language.Region(code: $0) } }
-                .removingDuplicates()
-        } else {
-            Array(ofNotNil: current.regionCode.flatMap { ReadiumShared.Language.Region(code: $0) })
-        }
+        preferredLanguages
+            .compactMap { ReadiumShared.Language(code: .bcp47($0)).region }
     }
 }
 

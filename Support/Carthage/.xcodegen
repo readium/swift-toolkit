@@ -468,7 +468,6 @@
 ../../Sources/Navigator/EPUB/Preferences/EPUBPreferencesEditor.swift
 ../../Sources/Navigator/EPUB/Preferences/EPUBSettings.swift
 ../../Sources/Navigator/EPUB/Scripts
-../../Sources/Navigator/EPUB/Scripts/.DS_Store
 ../../Sources/Navigator/EPUB/Scripts/.eslintrc.json
 ../../Sources/Navigator/EPUB/Scripts/.gitignore
 ../../Sources/Navigator/EPUB/Scripts/.prettierignore
@@ -577,6 +576,7 @@
 ../../Sources/Navigator/TTS/AVTTSEngine.swift
 ../../Sources/Navigator/TTS/PublicationSpeechSynthesizer.swift
 ../../Sources/Navigator/TTS/TTSEngine.swift
+../../Sources/Navigator/TTS/TTSVoice.swift
 ../../Sources/Navigator/VisualNavigator.swift
 ../../Sources/OPDS
 ../../Sources/OPDS/OPDS1Parser.swift

@@ -127,6 +127,7 @@
 		4D4915BB3847EF285362CF50 /* LCPLicenseFormatSniffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D342CCDB55C0E7089F905C /* LCPLicenseFormatSniffer.swift */; };
 		4D5315A9EE860F43CBD2B5BC /* ReadiumGCDWebServer.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6536C07F5A50F7F25FDBF69C /* ReadiumGCDWebServer.xcframework */; };
 		4D8286AD1564A2F35F190139 /* PDFDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF89316F77F23DACA2E04696 /* PDFDocument.swift */; };
+		4D9F2AB189F120EC612C416B /* TTSVoice.swift in Sources */ = {isa = PBXBuildFile; fileRef = A098A2EFAC6DF78E64BBA50B /* TTSVoice.swift */; };
 		4DAD724BAB72A5C6D2473770 /* Collection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F89BC365BDD19BE84F4D3B5 /* Collection.swift */; };
 		4DB4C10CB9AB5D38C56C1609 /* StringEncoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB11EA964FBB42D44C3E4A50 /* StringEncoding.swift */; };
 		4E84353322A4CDBBCAD6C070 /* TailCachingResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571BBA35C6F496B007C5158C /* TailCachingResource.swift */; };
@@ -721,6 +722,7 @@
 		9F8A0C50FD8E808C7A9F4D87 /* JSONFormatSniffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONFormatSniffer.swift; sourceTree = "<group>"; };
 		9FAAD26EE52713DB9F103610 /* Group.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Group.swift; sourceTree = "<group>"; };
 		A02248F01B66C1151614EF15 /* LCPDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDialog.swift; sourceTree = "<group>"; };
+		A098A2EFAC6DF78E64BBA50B /* TTSVoice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TTSVoice.swift; sourceTree = "<group>"; };
 		A0A5959877EC9688CB0C370E /* Signature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Signature.swift; sourceTree = "<group>"; };
 		A214B5DC13576FB36935B5EA /* LCPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPClient.swift; sourceTree = "<group>"; };
 		A266D398324C20079B0780BC /* LCPError+wrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LCPError+wrap.swift"; sourceTree = "<group>"; };
@@ -1803,6 +1805,7 @@
 				B15C9123EA383ED81DE0393A /* AVTTSEngine.swift */,
 				99DE4955327D8C2DE6F866D3 /* PublicationSpeechSynthesizer.swift */,
 				D88E58FF0AC7D506273FD8D9 /* TTSEngine.swift */,
+				A098A2EFAC6DF78E64BBA50B /* TTSVoice.swift */,
 			);
 			path = TTS;
 			sourceTree = "<group>";
@@ -2436,6 +2439,7 @@
 				6C3C96A32EA2439AAEFD4967 /* ReadiumNavigatorLocalizedString.swift in Sources */,
 				5EC24799194926173FEA2F70 /* SelectableNavigator.swift in Sources */,
 				C1FE3D17C59E10E63F81DF70 /* TTSEngine.swift in Sources */,
+				4D9F2AB189F120EC612C416B /* TTSVoice.swift in Sources */,
 				E12A731DD41BD2BC3C8076F8 /* TargetAction.swift in Sources */,
 				4A5F53CCC083D3E348379963 /* Types.swift in Sources */,
 				D8C9C54CC84D1C0810343D9E /* UIColor.swift in Sources */,
