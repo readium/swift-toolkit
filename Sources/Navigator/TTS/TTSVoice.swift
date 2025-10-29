@@ -50,13 +50,30 @@ public struct TTSVoice: Hashable {
 }
 
 public extension [TTSVoice] {
+    /// Filter voices by language.
+    ///
+    /// If the input language includes a region (e.g., "en-US"), only voices
+    /// with that exact language and region combination will be returned.
+    /// If the input language has no region (e.g., "en"), all voices matching
+    /// the base language will be returned, regardless of their region.
+    func filterByLanguage(_ language: Language) -> [TTSVoice] {
+        if language.region != nil {
+            // Exact match: language code and region must both match
+            return filter { $0.language == language }
+        } else {
+            // Base language match: filter by language code only, ignoring region
+            return filter { $0.language.removingRegion() == language }
+        }
+    }
+
     /// Sort the voices according to the following specification:
     /// 1. Order by region:
     ///   - Use the regions of the devices at the top of the list.
     ///   - If missing, use a default region per language.
     ///   - Then order the remaining regions alphabetically.
-    /// 2. Order by quality from highest to lowest.
-    /// 3. Order by gender: female > male > unspecified.
+    /// 2. Order by voice quality from highest to lowest.
+    /// 3. Order by voice gender: female > male > unspecified.
+    /// 4. Order by voice name alphabetically.
     func sorted(
         preferredRegions: [Language.Region]? = nil,
         displayLocale: Locale = .current

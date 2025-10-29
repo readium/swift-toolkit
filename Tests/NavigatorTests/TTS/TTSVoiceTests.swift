@@ -27,6 +27,84 @@ class TTSVoiceTests: XCTestCase {
         )
     }
 
+    // MARK: - Filtering by Language
+
+    func testFiltersByBaseLanguage() {
+        let voices = [
+            makeVoice(language: "en-US"),
+            makeVoice(language: "en-GB"),
+            makeVoice(language: "en"),
+            makeVoice(language: "fr-FR"),
+            makeVoice(language: "en-CA"),
+            makeVoice(language: "de-DE"),
+        ]
+
+        let filtered = voices.filterByLanguage(Language(code: .bcp47("en")))
+
+        XCTAssertEqual(filtered.map(\.language.code.bcp47), ["en-US", "en-GB", "en", "en-CA"])
+    }
+
+    func testFiltersByExactLanguageAndRegion() {
+        let voices = [
+            makeVoice(language: "en-US"),
+            makeVoice(language: "en-GB"),
+            makeVoice(language: "en"),
+            makeVoice(language: "fr-FR"),
+            makeVoice(language: "en-CA"),
+        ]
+
+        let filtered = voices.filterByLanguage(Language(code: .bcp47("en-US")))
+
+        XCTAssertEqual(filtered.map(\.language.code.bcp47), ["en-US"])
+    }
+
+    func testFilterByLanguageWithNoMatchesReturnsEmpty() {
+        let voices = [
+            makeVoice(language: "en-US"),
+            makeVoice(language: "en-GB"),
+            makeVoice(language: "fr-FR"),
+        ]
+
+        let filtered = voices.filterByLanguage(Language(code: .bcp47("de")))
+
+        XCTAssertTrue(filtered.isEmpty)
+    }
+
+    func testFilterByLanguageOnEmptyArrayReturnsEmpty() {
+        let voices: [TTSVoice] = []
+
+        let filtered = voices.filterByLanguage(Language(code: .bcp47("en")))
+
+        XCTAssertTrue(filtered.isEmpty)
+    }
+
+    func testFilterByLanguagePreservesOrder() {
+        let voices = [
+            makeVoice(identifier: "voice-1", language: "en-GB"),
+            makeVoice(identifier: "voice-2", language: "fr-FR"),
+            makeVoice(identifier: "voice-3", language: "en-US"),
+            makeVoice(identifier: "voice-4", language: "en-CA"),
+        ]
+
+        let filtered = voices.filterByLanguage(Language(code: .bcp47("en")))
+
+        XCTAssertEqual(filtered.map(\.identifier), ["voice-1", "voice-3", "voice-4"])
+    }
+
+    func testFilterByLanguageWithMultipleMatchesForSameRegion() {
+        let voices = [
+            makeVoice(identifier: "voice-1", language: "en-US", name: "Voice 1"),
+            makeVoice(identifier: "voice-2", language: "en-US", name: "Voice 2"),
+            makeVoice(identifier: "voice-3", language: "en-GB", name: "Voice 3"),
+            makeVoice(identifier: "voice-4", language: "en-US", name: "Voice 4"),
+        ]
+
+        let filtered = voices.filterByLanguage(Language(code: .bcp47("en-US")))
+
+        XCTAssertEqual(filtered.count, 3)
+        XCTAssertEqual(filtered.map(\.identifier), ["voice-1", "voice-2", "voice-4"])
+    }
+
     // MARK: - Sorting by Language
 
     func testSortsByLanguageAlphabetically() {
