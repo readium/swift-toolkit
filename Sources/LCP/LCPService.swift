@@ -85,7 +85,7 @@ public final class LCPService: Loggable {
     /// This is useful if you downloaded the publication yourself instead of using `acquirePublication`.
     public func injectLicense(
         _ license: LicenseDocument,
-        in url : FileURL
+        in url: FileURL
     ) async -> Result<Void, LCPError> {
         await wrap {
             try await licenses.injectLicense(license, in: url)

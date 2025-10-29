@@ -153,13 +153,13 @@ final class LicensesService: Loggable {
         if let type = mediaTypeHint {
             formatHints.mediaTypes.append(type)
         }
-    
+
         let asset = try await assetRetriever.retrieve(url: url, hints: formatHints)
             .mapError { LCPError.licenseContainer(ContainerError.openFailed($0)) }
             .get()
-    
+
         try await injectLicense(license, in: asset)
-    
+
         return asset.format
     }
 
