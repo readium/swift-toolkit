@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Added `VisualNavigatorDelegate.navigatorContentInset(_:)` to customize the content and safe-area insets used by the navigator.
     * By default, the navigator uses the window's `safeAreaInsets`, which can cause content to shift when the status bar is shown or hidden (since those insets change). To avoid this, implement `navigatorContentInset(_:)` and return insets that remain stable across status bar visibility changes — for example, a top inset large enough to accommodate the maximum expected status bar height.
+* Added `[TTSVoice].filterByLanguage(_:)` to filter TTS voices by language and region.
+* Added `[TTSVoice].sorted()` to sort TTS voices by region, quality, and gender.
 
 #### LCP
 
