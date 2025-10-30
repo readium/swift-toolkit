@@ -30,7 +30,8 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
         preferencesStore: AnyUserPreferencesStore<EPUBPreferences>,
         httpServer: HTTPServer
     ) throws {
-        var templates = HTMLDecorationTemplate.defaultTemplates()
+        // Create default templates, but make highlights opaque with experimental positioning.
+        var templates = HTMLDecorationTemplate.defaultTemplates(alpha: 1.0, experimentalPositioning: true)
         templates[.pageList] = .pageList
 
         let resources = FileURL(url: Bundle.main.resourceURL!)!

@@ -101,9 +101,10 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             ],
             preloadPreviousPositionCount: Int = 2,
             preloadNextPositionCount: Int = 6,
-            decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate] = HTMLDecorationTemplate.defaultTemplates(),
+            decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate] = [:],
             fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration] = [],
             readiumCSSRSProperties: CSSRSProperties = CSSRSProperties(),
+            experimentalDecorationPositioning: Bool = false,
             debugState: Bool = false
         ) {
             self.preferences = preferences
@@ -117,6 +118,10 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             self.fontFamilyDeclarations = fontFamilyDeclarations
             self.readiumCSSRSProperties = readiumCSSRSProperties
             self.debugState = debugState
+
+            if (decorationTemplates.isEmpty) {
+                self.decorationTemplates = HTMLDecorationTemplate.defaultTemplates(experimentalPositioning: experimentalDecorationPositioning)
+            }
         }
     }
 
