@@ -26,6 +26,7 @@ public struct EPUBSettings: ConfigurableSettings {
     public var ligatures: Bool?
     public var lineLength: Double
     public var lineHeight: Double?
+    public var pageGutter: Double?
     public var paragraphIndent: Double?
     public var paragraphSpacing: Double?
     public var readingProgression: ReadingProgression
@@ -60,6 +61,7 @@ public struct EPUBSettings: ConfigurableSettings {
         ligatures: Bool?,
         lineLength: Double,
         lineHeight: Double?,
+        pageGutter: Double?,
         paragraphIndent: Double?,
         paragraphSpacing: Double?,
         readingProgression: ReadingProgression,
@@ -87,6 +89,7 @@ public struct EPUBSettings: ConfigurableSettings {
         self.ligatures = ligatures
         self.lineLength = lineLength
         self.lineHeight = lineHeight
+        self.pageGutter = pageGutter
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing
         self.readingProgression = readingProgression
@@ -164,6 +167,8 @@ public struct EPUBSettings: ConfigurableSettings {
                 ?? 1.0,
             lineHeight: preferences.lineHeight
                 ?? defaults.lineHeight,
+            pageGutter: preferences.pageGutter
+                ?? defaults.pageGutter,
             paragraphIndent: preferences.paragraphIndent
                 ?? defaults.paragraphIndent,
             paragraphSpacing: preferences.paragraphSpacing
@@ -242,6 +247,7 @@ public struct EPUBDefaults {
     public var ligatures: Bool?
     public var lineLength: Double?
     public var lineHeight: Double?
+    public var pageGutter: Double?
     public var paragraphIndent: Double?
     public var paragraphSpacing: Double?
     public var readingProgression: ReadingProgression?
@@ -261,6 +267,7 @@ public struct EPUBDefaults {
         ligatures: Bool? = nil,
         lineLength: Double? = nil,
         lineHeight: Double? = nil,
+        pageGutter: Double? = nil,
         paragraphIndent: Double? = nil,
         paragraphSpacing: Double? = nil,
         readingProgression: ReadingProgression? = nil,
@@ -280,6 +287,7 @@ public struct EPUBDefaults {
         self.ligatures = ligatures
         self.lineLength = lineLength
         self.lineHeight = lineHeight
+        self.pageGutter = pageGutter
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing
         self.readingProgression = readingProgression

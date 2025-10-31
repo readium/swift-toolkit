@@ -25,6 +25,25 @@ extension ReadiumCSS {
     mutating func update(with settings: EPUBSettings) {
         layout = settings.cssLayout
 
+        // Configure Reading System properties with custom overrides
+        var rsOverrides: [String: String?] = [:]
+
+        // Add page gutter (horizontal padding) using viewport width units
+        if let pageGutter = settings.pageGutter {
+            let vwValue = pageGutter * 100 // Convert 0.05 to 5vw
+            rsOverrides["--RS__pageGutter"] = String(format: "%.2fvw", vwValue)
+        }
+
+        // Add top padding to body element for better spacing at page top
+        // Using a fixed rem value so it doesn't scale too much on large screens
+        rsOverrides["padding-top"] = "2.5rem"
+
+        rsProperties = CSSRSProperties(
+            flowSpacing: CSSRemLength(1.5), // Additional top spacing for flow content
+            maxLineLength: CSSRemLength(45), // Reasonable default max line length
+            overrides: rsOverrides
+        )
+
         var overrides: [String: String] = [
             // See https://github.com/readium/css/issues/183
             "--RS__disableOverflow": "readium-noOverflow-on",

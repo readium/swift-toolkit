@@ -56,6 +56,9 @@ public struct EPUBPreferences: ConfigurablePreferences {
     /// Leading line height.
     public var lineHeight: Double?
 
+    /// Horizontal page margins/padding (as a percentage, e.g., 0.05 = 5%).
+    public var pageGutter: Double?
+
     /// Text indentation for paragraphs.
     public var paragraphIndent: Double?
 
@@ -110,6 +113,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
         ligatures: Bool? = nil,
         lineLength: Double? = nil,
         lineHeight: Double? = nil,
+        pageGutter: Double? = nil,
         paragraphIndent: Double? = nil,
         paragraphSpacing: Double? = nil,
         readingProgression: ReadingProgression? = nil,
@@ -137,6 +141,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
         self.ligatures = ligatures
         self.lineLength = lineLength.map { max($0, 0) }
         self.lineHeight = lineHeight
+        self.pageGutter = pageGutter?.clamped(to: 0.0 ... 1.0)
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }
         self.readingProgression = readingProgression
@@ -167,6 +172,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
             ligatures: other.ligatures ?? ligatures,
             lineLength: other.lineLength ?? lineLength,
             lineHeight: other.lineHeight ?? lineHeight,
+            pageGutter: other.pageGutter ?? pageGutter,
             paragraphIndent: other.paragraphIndent ?? paragraphIndent,
             paragraphSpacing: other.paragraphSpacing ?? paragraphSpacing,
             readingProgression: other.readingProgression ?? readingProgression,
