@@ -68,6 +68,15 @@ public final class PDFParser: PublicationParser, Loggable {
                 ),
                 container: container,
                 servicesBuilder: PublicationServicesBuilder(
+                    // ContentService enables TTS (Text-to-Speech) for PDFs by extracting
+                    // text content from PDF pages. This allows PublicationSpeechSynthesizer
+                    // to work with PDF publications that have extractable text.
+                    // See PDFResourceContentIterator for the implementation.
+                    content: DefaultContentService.makeFactory(
+                        resourceContentIteratorFactories: [
+                            PDFResourceContentIterator.Factory(pdfFactory: pdfFactory)
+                        ]
+                    ),
                     cover: document.cover().map(GeneratedCoverService.makeFactory(cover:)),
                     positions: PDFPositionsService.makeFactory()
                 )
