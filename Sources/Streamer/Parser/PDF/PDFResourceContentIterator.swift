@@ -221,9 +221,74 @@ public class PDFResourceContentIterator: ContentIterator {
 
                     // Create TextContentElement for this page
                     // Split page text into paragraphs for better TTS granularity
-                    let paragraphs = pageText.components(separatedBy: "\n\n")
+                    // PDF text extraction doesn't always preserve paragraph separators,
+                    // so we try multiple approaches:
+                    var paragraphs = pageText.components(separatedBy: "\n\n")
                         .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                         .filter { !$0.isEmpty }
+
+                    // If no double newlines found, try single newlines
+                    // First, split by single newlines WITHOUT filtering empty strings
+                    // so we can detect paragraph breaks (empty lines)
+                    if paragraphs.count <= 1 {
+                        let allLines = pageText.components(separatedBy: "\n")
+
+                        // Group consecutive non-empty lines into paragraphs
+                        // A paragraph break occurs when we encounter an empty line
+                        var grouped: [String] = []
+                        var currentGroup: [String] = []
+
+                        for line in allLines {
+                            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+                            if trimmed.isEmpty {
+                                // Empty line = paragraph break
+                                if !currentGroup.isEmpty {
+                                    grouped.append(currentGroup.joined(separator: " "))
+                                    currentGroup = []
+                                }
+                            } else {
+                                currentGroup.append(trimmed)
+                            }
+                        }
+
+                        // Add the last group if any
+                        if !currentGroup.isEmpty {
+                            grouped.append(currentGroup.joined(separator: " "))
+                        }
+
+                        if grouped.count > 1 {
+                            paragraphs = grouped
+                        } else {
+                            // If no paragraph breaks found, use sentence-based splitting as fallback
+                            // Split by sentence endings and group sentences
+                            let sentences = pageText.components(separatedBy: CharacterSet(charactersIn: ".!?"))
+                                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                                .filter { !$0.isEmpty }
+
+                            if sentences.count > 3 {
+                                // Group every 3-5 sentences into a paragraph for better granularity
+                                let sentencesPerParagraph = max(3, min(5, max(3, sentences.count / 15 + 1)))
+                                var sentenceGroups: [String] = []
+                                var currentSentenceGroup: [String] = []
+
+                                for sentence in sentences {
+                                    currentSentenceGroup.append(sentence)
+                                    if currentSentenceGroup.count >= sentencesPerParagraph {
+                                        sentenceGroups.append(currentSentenceGroup.joined(separator: ". ") + ".")
+                                        currentSentenceGroup = []
+                                    }
+                                }
+
+                                if !currentSentenceGroup.isEmpty {
+                                    sentenceGroups.append(currentSentenceGroup.joined(separator: ". ") + ".")
+                                }
+
+                                if sentenceGroups.count > 1 {
+                                    paragraphs = sentenceGroups
+                                }
+                            }
+                        }
+                    }
 
                     if paragraphs.isEmpty {
                         // Single element for the entire page
@@ -277,13 +342,59 @@ public class PDFResourceContentIterator: ContentIterator {
 
                 // Calculate start index based on locator
                 let startIndex: Int = {
-                    if let position = locator.locations.position {
-                        // Find first element matching the page position
+                    // Priority 1: Match by position AND paragraphIndex (most precise)
+                    if let position = locator.locations.position,
+                       let savedParaIndex = locator.locations.otherLocations["paragraphIndex"] as? Int
+                    {
+                        // First try to find exact match by paragraphIndex
+                        if let index = elements.firstIndex(where: { element in
+                            element.locator.locations.position == position &&
+                                element.locator.locations.otherLocations["paragraphIndex"] as? Int == savedParaIndex
+                        }) {
+                            return index
+                        }
+                        // Fallback: find first element on the same page
                         return elements.firstIndex { element in
+                            element.locator.locations.position == position
+                        } ?? 0
+                    }
+
+                    // Priority 2: Match by position only (page number)
+                    if let position = locator.locations.position {
+                        // Find all elements on this page
+                        let pageElements = elements.enumerated().filter { _, element in
+                            element.locator.locations.position == position
+                        }
+
+                        // If we have a saved progression and multiple elements on the page,
+                        // try to find the closest match by progression
+                        if pageElements.count > 1,
+                           let savedProgression = locator.locations.progression,
+                           savedProgression > 0, savedProgression < 1
+                        {
+                            if let closest = pageElements.min(by: { lhs, rhs in
+                                let lhsProg = abs((lhs.element.locator.locations.progression ?? 0) - savedProgression)
+                                let rhsProg = abs((rhs.element.locator.locations.progression ?? 0) - savedProgression)
+                                return lhsProg < rhsProg
+                            }) {
+                                return closest.offset
+                            }
+                        }
+
+                        // Fallback: use first element on the page
+                        return pageElements.first?.offset ?? elements.firstIndex { element in
                             element.locator.locations.position == position
                         } ?? 0
                     } else if let progression = locator.locations.progression {
                         // Find element closest to the progression
+                        if let closest = elements.enumerated().min(by: { lhs, rhs in
+                            let lhsProg = abs((lhs.element.locator.locations.progression ?? 0) - progression)
+                            let rhsProg = abs((rhs.element.locator.locations.progression ?? 0) - progression)
+                            return lhsProg < rhsProg
+                        }) {
+                            return closest.offset
+                        }
+                        // Fallback to lastIndex method
                         return elements.lastIndex { element in
                             (element.locator.locations.progression ?? 0) < progression
                         } ?? 0
@@ -318,6 +429,7 @@ public class PDFResourceContentIterator: ContentIterator {
             }
 
             // Update the `startIndex` if a particular progression was requested.
+            // But only if startIndex wasn't already calculated (i.e., it's 0 and we're using progression matching)
             if
                 elements.startIndex == 0,
                 locator.locations.position == nil,
