@@ -129,7 +129,6 @@ class RelativeURLTests: XCTestCase {
         XCTAssertEqual(RelativeURL(string: "foo")!.removingLastPathSegment().string, "./")
         XCTAssertEqual(RelativeURL(string: "foo/bar")!.removingLastPathSegment().string, "foo/")
         XCTAssertEqual(RelativeURL(string: "foo/bar/")!.removingLastPathSegment().string, "foo/")
-        XCTAssertEqual(RelativeURL(string: "/")!.removingLastPathSegment().string, "/../")
         XCTAssertEqual(RelativeURL(string: "/foo")!.removingLastPathSegment().string, "/")
         XCTAssertEqual(RelativeURL(string: "/foo/bar")!.removingLastPathSegment().string, "/foo/")
         XCTAssertEqual(RelativeURL(string: "/foo/bar/")!.removingLastPathSegment().string, "/foo/")

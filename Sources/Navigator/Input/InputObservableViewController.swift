@@ -33,6 +33,18 @@ open class InputObservableViewController: UIViewController, InputObservable {
 
     override open var canBecomeFirstResponder: Bool { true }
 
+    override open func resignFirstResponder() -> Bool {
+        // Force end editing of the view to make sure any subview is also
+        // resigning its first responder status.
+        // This is helpful in the EPUB navigator because the web views may be
+        // first responders to intercept keyboard events.
+        if isViewLoaded {
+            view.endEditing(true)
+        }
+
+        return super.resignFirstResponder()
+    }
+
     override open func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         if isFirstResponder {
             on(.down, presses: presses, with: event)

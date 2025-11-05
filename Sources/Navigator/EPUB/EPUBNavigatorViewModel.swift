@@ -288,7 +288,7 @@ final class EPUBNavigatorViewModel: Loggable {
         guard
             let link = publication.linkWithHREF(href),
             link.mediaType?.isHTML == true,
-            publication.metadata.presentation.layout(of: link) == .reflowable
+            publication.metadata.layout == .reflowable
         else {
             return resource
         }

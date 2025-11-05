@@ -29,11 +29,6 @@ final class EPUBMetadataParser: Loggable {
 
     /// Parses the Metadata in the XML <metadata> element.
     func parse() throws -> Metadata {
-        var otherMetadata = metas.otherMetadata
-        if !presentation.json.isEmpty {
-            otherMetadata["presentation"] = presentation.json
-        }
-
         let contributorsWithRoles = findContributorElements()
             .compactMap { createContributor(from: $0) }
 
@@ -64,13 +59,14 @@ final class EPUBMetadataParser: Loggable {
             narrators: contributorsForRole(role: "nrt"),
             contributors: contributorsForRole(role: nil),
             publishers: contributorsForRole(role: "pbl"),
+            layout: layout(),
             readingProgression: readingProgression,
             description: description,
             numberOfPages: numberOfPages,
             belongsToCollections: belongsToCollections,
             belongsToSeries: belongsToSeries,
             tdm: tdm(),
-            otherMetadata: otherMetadata
+            otherMetadata: metas.otherMetadata
         )
     }
 
@@ -103,13 +99,7 @@ final class EPUBMetadataParser: Loggable {
     private lazy var numberOfPages: Int? = metas["numberOfPages", in: .schema]
         .first.flatMap { Int($0.content) }
 
-    /// Extracts the Presentation properties from the XML element metadata and fill
-    /// them into the Metadata object instance.
-    private lazy var presentation: Presentation = {
-        func renditionMetadata(_ property: String) -> String {
-            metas[property, in: .rendition].last?.content ?? ""
-        }
-
+    private func layout() -> Layout {
         func displayOption(_ name: String) -> String? {
             // https://readium.org/architecture/streamer/parser/metadata#epub-2x-10
             guard let platform = displayOptions?.firstChild(xpath: "platform[@name='*']")
@@ -122,32 +112,11 @@ final class EPUBMetadataParser: Loggable {
             return platform.firstChild(xpath: "option[@name='\(name)']")?.stringValue
         }
 
-        return Presentation(
-            continuous: renditionMetadata("flow") == "scrolled-continuous",
-            orientation: .init(
-                epub: renditionMetadata("orientation"),
-                fallback: {
-                    let orientationLock = displayOption("orientation-lock") ?? ""
-                    switch orientationLock {
-                    case "none":
-                        return .auto
-                    case "landscape-only":
-                        return .landscape
-                    case "portrait-only":
-                        return .portrait
-                    default:
-                        return nil
-                    }
-                }()
-            ),
-            overflow: .init(epub: renditionMetadata("flow")),
-            spread: .init(epub: renditionMetadata("spread")),
-            layout: .init(
-                epub: renditionMetadata("layout"),
-                fallback: (displayOption("fixed-layout") == "true") ? .fixed : nil
-            )
-        )
-    }()
+        let layoutMetadata = metas["layout", in: .rendition].last?.content ?? ""
+
+        return Layout(epub: layoutMetadata)
+            ?? ((displayOption("fixed-layout") == "true") ? .fixed : .reflowable)
+    }
 
     /// Finds all the `<dc:title> element matching the given `title-type`.
     /// The elements are then sorted by the `display-seq` refines, when available.
@@ -480,6 +449,21 @@ final class EPUBMetadataParser: Loggable {
 
     /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#collections-and-series
     private lazy var belongsToSeries: [Metadata.Collection] = {
+        let calibrePosition = metas["series_index", in: .calibre].first
+            .flatMap { Double($0.content) }
+
+        let calibreSeries = metas["series", in: .calibre]
+            .map { meta in
+                Metadata.Collection(
+                    name: meta.content,
+                    position: calibrePosition
+                )
+            }
+
+        if !calibreSeries.isEmpty {
+            return calibreSeries
+        }
+
         let epub3Series = metas["belongs-to-collection"]
             // `collection-type` should be "series"
             .filter { meta in
@@ -490,20 +474,7 @@ final class EPUBMetadataParser: Loggable {
             }
             .compactMap(collection(from:))
 
-        if !epub3Series.isEmpty {
-            return epub3Series
-        }
-
-        let epub2Position = metas["series_index", in: .calibre].first
-            .flatMap { Double($0.content) }
-
-        return metas["series", in: .calibre]
-            .map { meta in
-                Metadata.Collection(
-                    name: meta.content,
-                    position: epub2Position
-                )
-            }
+        return epub3Series
     }()
 
     private func collection(from meta: OPFMeta) -> Metadata.Collection? {

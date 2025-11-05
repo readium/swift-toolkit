@@ -23,27 +23,18 @@ private let supportedProfiles = [
     "http://readium.org/lcp/profile-2.9",
 ]
 
-typealias Context = Either<LCPClientContext, StatusError>
+typealias Context = Result<LCPClientContext, LCPError>
 
 // Holds the License/Status Documents and the DRM context, once validated.
 struct ValidatedDocuments {
     let license: LicenseDocument
-    fileprivate let context: Context
+    let context: Context
     let status: StatusDocument?
 
     fileprivate init(_ license: LicenseDocument, _ context: Context, _ status: StatusDocument? = nil) {
         self.license = license
         self.context = context
         self.status = status
-    }
-
-    func getContext() throws -> LCPClientContext {
-        switch context {
-        case let .left(context):
-            return context
-        case let .right(error):
-            throw error
-        }
     }
 }
 
@@ -107,7 +98,7 @@ final actor LicenseValidation: Loggable {
 
     /// Validates the given License or Status Document.
     /// If a validation is already running, `LCPError.licenseIsBusy` will be reported.
-    func validate(_ document: Document) async throws -> ValidatedDocuments? {
+    func validate(_ document: Document) async throws -> ValidatedDocuments {
         let event: Event
         switch document {
         case let .license(data):
@@ -195,7 +186,7 @@ extension LicenseValidation {
             // 4. Check the dates and license status
             case let (.checkLicenseStatus(license, status, _), .checkedLicenseStatus(error)):
                 if let error = error {
-                    self = .valid(ValidatedDocuments(license, .right(error), status))
+                    self = .valid(ValidatedDocuments(license, .failure(.licenseStatus(error)), status))
                 } else {
                     self = .requestPassphrase(license, status)
                 }
@@ -205,12 +196,12 @@ extension LicenseValidation {
                 self = .validateIntegrity(license, status, passphrase: passphrase)
             case let (.requestPassphrase, .failed(error)):
                 self = .failure(error)
-            case (.requestPassphrase, .cancelled):
-                self = .start
+            case let (.requestPassphrase(license, status), .passphraseNotFound):
+                self = .valid(ValidatedDocuments(license, .failure(.missingPassphrase), status))
 
             // 6. Validate the license integrity
             case let (.validateIntegrity(license, status, _), .validatedIntegrity(context)):
-                let documents = ValidatedDocuments(license, .left(context), status)
+                let documents = ValidatedDocuments(license, .success(context), status)
                 if let link = status?.link(for: .register) {
                     self = .registerDevice(documents, link)
                 } else {
@@ -263,8 +254,8 @@ extension LicenseValidation {
         case registeredDevice(Data?)
         // Raised when any error occurs during the validation workflow.
         case failed(Error)
-        // Raised when the user cancelled the validation.
-        case cancelled
+        // Raised when no passphrase could be found or given by the user.
+        case passphraseNotFound
     }
 
     /// Should be called by the state handlers once they're done, to go to the next State.
@@ -367,7 +358,7 @@ extension LicenseValidation {
         ) {
             try await raise(.retrievedPassphrase(passphrase))
         } else {
-            try await raise(.cancelled)
+            try await raise(.passphraseNotFound)
         }
     }
 
@@ -395,8 +386,8 @@ extension LicenseValidation {
         do {
             switch state {
             case .start:
-                // We are back to start? It means the validation was cancelled by the user.
-                notifyObservers(.success(nil))
+                // We are back to start? This should not happen.
+                throw LCPError.runtime("Unexpected license validation state")
             case let .validateLicense(data, _):
                 try await validateLicense(data: data)
             case let .fetchStatus(license):
@@ -426,7 +417,7 @@ extension LicenseValidation {
 
 /// Validation observers
 extension LicenseValidation {
-    typealias Observer = (Result<ValidatedDocuments?, Error>) -> Void
+    typealias Observer = (Result<ValidatedDocuments, Error>) -> Void
 
     enum ObserverPolicy {
         // The observer is automatically removed when called.
@@ -459,7 +450,7 @@ extension LicenseValidation {
         observers.append((observer, policy))
     }
 
-    func observe() async throws -> ValidatedDocuments? {
+    func observe() async throws -> ValidatedDocuments {
         try await withCheckedThrowingContinuation { continuation in
             observe(.once) { result in
                 continuation.resume(with: result)
@@ -467,7 +458,7 @@ extension LicenseValidation {
         }
     }
 
-    private func notifyObservers(_ result: Result<ValidatedDocuments?, Error>) {
+    private func notifyObservers(_ result: Result<ValidatedDocuments, Error>) {
         for observer in observers {
             observer.callback(result)
         }

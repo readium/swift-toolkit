@@ -54,6 +54,11 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
     /// as defined in a [W3C Community Group Report](https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/).
     public var tdm: TDM?
 
+    /// Hint about the nature of the layout for the publication.
+    ///
+    /// https://readium.org/webpub-manifest/contexts/default/#layout-and-reading-progression
+    public var layout: Layout?
+
     public var readingProgression: ReadingProgression
 
     /// Additional properties for extensions.
@@ -90,6 +95,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
         contributors: [Contributor] = [],
         publishers: [Contributor] = [],
         imprints: [Contributor] = [],
+        layout: Layout? = nil,
         readingProgression: ReadingProgression = .auto,
         description: String? = nil,
         duration: Double? = nil,
@@ -125,6 +131,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
         self.contributors = contributors
         self.publishers = publishers
         self.imprints = imprints
+        self.layout = layout
         self.readingProgression = readingProgression
         self.description = description
         self.duration = duration
@@ -180,6 +187,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
         contributors = [Contributor](json: json.pop("contributor"), warnings: warnings)
         publishers = [Contributor](json: json.pop("publisher"), warnings: warnings)
         imprints = [Contributor](json: json.pop("imprint"), warnings: warnings)
+        layout = parseRaw(json.pop("layout"))
         readingProgression = parseRaw(json.pop("readingProgression")) ?? .auto
         description = json.pop("description") as? String
         duration = parsePositiveDouble(json.pop("duration"))
@@ -217,6 +225,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
             "contributor": encodeIfNotEmpty(contributors.json),
             "publisher": encodeIfNotEmpty(publishers.json),
             "imprint": encodeIfNotEmpty(imprints.json),
+            "layout": encodeIfNotNil(layout?.rawValue),
             "readingProgression": readingProgression.rawValue,
             "description": encodeIfNotNil(description),
             "duration": encodeIfNotNil(duration),

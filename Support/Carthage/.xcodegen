@@ -1,5 +1,5 @@
 # XCODEGEN VERSION
-2.43.0
+2.44.1
 
 # SPEC
 {
@@ -576,6 +576,7 @@
 ../../Sources/Navigator/TTS/AVTTSEngine.swift
 ../../Sources/Navigator/TTS/PublicationSpeechSynthesizer.swift
 ../../Sources/Navigator/TTS/TTSEngine.swift
+../../Sources/Navigator/TTS/TTSVoice.swift
 ../../Sources/Navigator/VisualNavigator.swift
 ../../Sources/OPDS
 ../../Sources/OPDS/OPDS1Parser.swift
@@ -628,6 +629,7 @@
 ../../Sources/Shared/Publication/Extensions/Presentation/Presentation.swift
 ../../Sources/Shared/Publication/Extensions/Presentation/Properties+Presentation.swift
 ../../Sources/Shared/Publication/HREFNormalizer.swift
+../../Sources/Shared/Publication/Layout.swift
 ../../Sources/Shared/Publication/Link.swift
 ../../Sources/Shared/Publication/LinkRelation.swift
 ../../Sources/Shared/Publication/LocalizedString.swift
@@ -823,8 +825,8 @@
 ../../Sources/Streamer/Parser/EPUB/EPUBMetadataParser.swift
 ../../Sources/Streamer/Parser/EPUB/EPUBParser.swift
 ../../Sources/Streamer/Parser/EPUB/Extensions
+../../Sources/Streamer/Parser/EPUB/Extensions/Layout+EPUB.swift
 ../../Sources/Streamer/Parser/EPUB/Extensions/LinkRelation+EPUB.swift
-../../Sources/Streamer/Parser/EPUB/Extensions/Presentation+EPUB.swift
 ../../Sources/Streamer/Parser/EPUB/NavigationDocumentParser.swift
 ../../Sources/Streamer/Parser/EPUB/NCXParser.swift
 ../../Sources/Streamer/Parser/EPUB/OPFMeta.swift

@@ -49,3 +49,20 @@ public struct Properties: Hashable, Loggable, WarningLogger, Sendable {
         otherPropertiesJSON.json.merge(properties, uniquingKeysWith: { _, second in second })
     }
 }
+
+/// Core properties
+///
+/// https://github.com/readium/webpub-manifest/blob/master/properties.md#core-properties
+public extension Properties {
+    /// Indicates how the linked resource should be displayed in a reading
+    /// environment that displays synthetic spreads.
+    var page: Page? {
+        parseRaw(otherProperties["page"])
+    }
+
+    /// Indicates how the linked resource should be displayed in a reading
+    /// environment that displays synthetic spreads.
+    enum Page: String {
+        case left, right, center
+    }
+}

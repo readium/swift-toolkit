@@ -21,7 +21,12 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         metadata: Metadata,
         defaults: EPUBDefaults
     ) {
-        layout = metadata.presentation.layout ?? .reflowable
+        switch metadata.layout {
+        case .fixed:
+            layout = .fixed
+        default:
+            layout = .reflowable
+        }
         self.defaults = defaults
 
         super.init(

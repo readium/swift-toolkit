@@ -310,7 +310,7 @@ struct OPFMetaList {
             "conformsTo",
         ],
         .media: ["duration"],
-        .rendition: ["flow", "layout", "orientation", "spread"],
+        .rendition: ["layout"],
         .schema: [
             "numberOfPages", "accessMode", "accessModeSufficient",
             "accessibilitySummary", "accessibilityFeature", "accessibilityHazard",
