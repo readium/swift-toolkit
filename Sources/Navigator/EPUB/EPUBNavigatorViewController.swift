@@ -109,10 +109,9 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             ],
             preloadPreviousPositionCount: Int = 2,
             preloadNextPositionCount: Int = 6,
-            decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate] = [:],
+            decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate] = HTMLDecorationTemplate.defaultTemplates(),
             fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration] = [],
             readiumCSSRSProperties: CSSRSProperties = CSSRSProperties(),
-            experimentalDecorationPositioning: Bool = false,
             debugState: Bool = false
         ) {
             self.preferences = preferences
@@ -126,10 +125,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             self.fontFamilyDeclarations = fontFamilyDeclarations
             self.readiumCSSRSProperties = readiumCSSRSProperties
             self.debugState = debugState
-
-            if decorationTemplates.isEmpty {
-                self.decorationTemplates = HTMLDecorationTemplate.defaultTemplates(experimentalPositioning: experimentalDecorationPositioning)
-            }
         }
 
         func contentInset(for sizeClass: UIUserInterfaceSizeClass) -> EPUBContentInsets {
