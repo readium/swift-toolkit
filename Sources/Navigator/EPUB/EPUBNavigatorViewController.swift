@@ -127,7 +127,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             self.readiumCSSRSProperties = readiumCSSRSProperties
             self.debugState = debugState
 
-            if (decorationTemplates.isEmpty) {
+            if decorationTemplates.isEmpty {
                 self.decorationTemplates = HTMLDecorationTemplate.defaultTemplates(experimentalPositioning: experimentalDecorationPositioning)
             }
         }

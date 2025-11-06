@@ -71,11 +71,11 @@ public struct HTMLDecorationTemplate {
 
     /// Creates a new decoration template for the `highlight` style.
     public static func highlight(defaultTint: UIColor, padding: UIEdgeInsets, lineWeight: Int, cornerRadius: Int, alpha: Double, experimentalPositioning: Bool = false) -> HTMLDecorationTemplate {
-      makeTemplate(asHighlight: true, defaultTint: defaultTint, padding: padding, lineWeight: lineWeight, cornerRadius: cornerRadius, alpha: alpha, experimentalPositioning: experimentalPositioning)
+        makeTemplate(asHighlight: true, defaultTint: defaultTint, padding: padding, lineWeight: lineWeight, cornerRadius: cornerRadius, alpha: alpha, experimentalPositioning: experimentalPositioning)
     }
 
     /// Creates a new decoration template for the `underline` style.
-    public static func underline(defaultTint: UIColor, padding: UIEdgeInsets, lineWeight: Int, cornerRadius: Int,    alpha: Double, experimentalPositioning: Bool = false) -> HTMLDecorationTemplate {
+    public static func underline(defaultTint: UIColor, padding: UIEdgeInsets, lineWeight: Int, cornerRadius: Int, alpha: Double, experimentalPositioning: Bool = false) -> HTMLDecorationTemplate {
         makeTemplate(asHighlight: false, defaultTint: defaultTint, padding: padding, lineWeight: lineWeight, cornerRadius: cornerRadius, alpha: alpha, experimentalPositioning: experimentalPositioning)
     }
 
@@ -95,7 +95,7 @@ public struct HTMLDecorationTemplate {
                 if !asHighlight || isActive {
                     css += "--underline-color: \(tint.cssValue());"
                 }
-                if (experimentalPositioning) {
+                if experimentalPositioning {
                     // Experimental positioning:
                     // Decoration is placed behind the publication's text, to prevent it from affecting text-color.
                     css += "--decoration-z-index: -1;"
