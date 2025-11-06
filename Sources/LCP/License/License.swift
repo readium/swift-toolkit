@@ -28,7 +28,7 @@ final class License: Loggable {
         self.httpClient = httpClient
 
         validation.observe { [weak self] result in
-            if case let .success(documents) = result, let documents = documents {
+            if case let .success(documents) = result {
                 self?.documents = documents
             }
         }
@@ -45,16 +45,38 @@ extension License: LCPLicense {
         documents.status
     }
 
+    public var isRestricted: Bool {
+        documents.context.getOrNil() == nil
+    }
+
+    public var error: LCPError? {
+        switch documents.context {
+        case .success:
+            return nil
+        case let .failure(error):
+            switch error {
+            // We don't report the missingPassphrase case as an error
+            // because in this case the user cancelled the passphrase prompt.
+            case .missingPassphrase:
+                return nil
+            default:
+                return error
+            }
+        }
+    }
+
     public var encryptionProfile: String? {
         license.encryption.profile
     }
 
     public func decipher(_ data: Data) throws -> Data? {
-        let context = try documents.getContext()
+        let context = try documents.context.get()
         return client.decrypt(data: data, using: context)
     }
 
     func charactersToCopyLeft() async -> Int? {
+        guard !isRestricted else { return 0 }
+
         do {
             return try await licenses.userRights(for: license.id).copy
         } catch {
@@ -64,6 +86,8 @@ extension License: LCPLicense {
     }
 
     func canCopy(text: String) async -> Bool {
+        guard !isRestricted else { return false }
+
         guard let charactersLeft = await charactersToCopyLeft() else {
             return true
         }
@@ -71,6 +95,8 @@ extension License: LCPLicense {
     }
 
     func copy(text: String) async -> Bool {
+        guard !isRestricted else { return false }
+
         do {
             var allowed = true
             try await licenses.updateUserRights(for: license.id) { rights in
@@ -94,6 +120,8 @@ extension License: LCPLicense {
     }
 
     func pagesToPrintLeft() async -> Int? {
+        guard !isRestricted else { return 0 }
+
         do {
             return try await licenses.userRights(for: license.id).print
         } catch {
@@ -103,6 +131,8 @@ extension License: LCPLicense {
     }
 
     func canPrint(pageCount: Int) async -> Bool {
+        guard !isRestricted else { return false }
+
         guard let pageLeft = await pagesToPrintLeft() else {
             return true
         }
@@ -110,6 +140,8 @@ extension License: LCPLicense {
     }
 
     func print(pageCount: Int) async -> Bool {
+        guard !isRestricted else { return false }
+
         do {
             var allowed = true
             try await licenses.updateUserRights(for: license.id) { rights in

@@ -86,9 +86,21 @@ public struct VisualNavigatorPresentation {
 }
 
 @MainActor public protocol VisualNavigatorDelegate: NavigatorDelegate {
+    /// Returns the content insets that the navigator applies to its view.
+    ///
+    /// Implement this method to customize the margins around the publication
+    /// content and to control which areas may be covered by the app's UI or
+    /// system bars.
+    ///
+    /// Consider the view's safe area insets to prevent notches, the status bar,
+    /// or other overlays from obscuring the content.
+    ///
+    /// - Returns: The insets to apply, or `nil` to use the navigator’s default behavior.
+    func navigatorContentInset(_ navigator: VisualNavigator) -> UIEdgeInsets?
+
     /// Called when the navigator presentation changed, for example after
     /// applying a new set of preferences.
-    func navigator(_ navigator: Navigator, presentationDidChange presentation: VisualNavigatorPresentation)
+    func navigator(_ navigator: VisualNavigator, presentationDidChange presentation: VisualNavigatorPresentation)
 
     /// Called when the user tapped the publication, and it didn't trigger any
     /// internal action. The point is relative to the navigator's view.
@@ -110,7 +122,11 @@ public struct VisualNavigatorPresentation {
 }
 
 public extension VisualNavigatorDelegate {
-    func navigator(_ navigator: Navigator, presentationDidChange presentation: VisualNavigatorPresentation) {
+    func navigatorContentInset(_ navigator: VisualNavigator) -> UIEdgeInsets? {
+        nil
+    }
+
+    func navigator(_ navigator: VisualNavigator, presentationDidChange presentation: VisualNavigatorPresentation) {
         // Optional
     }
 

@@ -93,6 +93,8 @@ public class OPDS1Parser: Loggable {
         }
         let feed = Feed(title: title)
 
+        feed.metadata.identifier = root.firstChild(tag: "id")?.stringValue
+
         if let tmpDate = root.firstChild(tag: "updated")?.stringValue,
            let date = tmpDate.dateFromISO8601
         {
@@ -103,6 +105,13 @@ public class OPDS1Parser: Loggable {
         }
         if let itemsPerPage = root.firstChild(tag: "ItemsPerPage")?.stringValue {
             feed.metadata.itemsPerPage = Int(itemsPerPage)
+        }
+
+        if let iconValue = root.firstChild(tag: "icon")?.stringValue,
+           let href = URLHelper.getAbsolute(href: iconValue, base: feedURL)
+        {
+            let iconLink = Link(href: href, rel: .icon)
+            feed.links.append(iconLink)
         }
 
         for entry in root.children(tag: "entry") {

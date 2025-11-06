@@ -9,6 +9,7 @@ import Foundation
 /// OPDS metadata properties.
 public class OpdsMetadata {
     public var title: String
+    public var identifier: String?
     public var numberOfItem: Int?
     public var itemsPerPage: Int?
     public var currentPage: Int?

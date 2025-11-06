@@ -62,38 +62,3 @@ public struct TTSUtterance {
         }
     }
 }
-
-/// Represents a voice provided by the TTS engine which can speak an utterance.
-public struct TTSVoice: Hashable {
-    public enum Gender: Hashable {
-        case female, male, unspecified
-    }
-
-    public enum Quality: Hashable {
-        case low, medium, high
-    }
-
-    /// Unique and stable identifier for this voice. Can be used to store and retrieve the voice from the user
-    /// preferences.
-    public let identifier: String
-
-    /// Human-friendly name for this voice, when available.
-    public let name: String?
-
-    /// Language (and region) this voice belongs to.
-    public let language: Language
-
-    /// Voice gender.
-    public let gender: Gender
-
-    /// Voice quality.
-    public let quality: Quality?
-
-    public init(identifier: String, language: Language, name: String, gender: Gender, quality: Quality?) {
-        self.identifier = identifier
-        self.language = language
-        self.name = name
-        self.gender = gender
-        self.quality = quality
-    }
-}

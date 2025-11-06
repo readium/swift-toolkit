@@ -241,7 +241,11 @@ open class PDFNavigatorViewController:
         }
 
         currentResourceIndex = nil
-        let pdfView = PDFDocumentView(frame: view.bounds, editingActions: editingActions)
+        let pdfView = PDFDocumentView(
+            frame: view.bounds,
+            editingActions: editingActions,
+            documentViewDelegate: self
+        )
         self.pdfView = pdfView
         pdfView.delegate = self
         pdfView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -656,6 +660,12 @@ extension PDFNavigatorViewController: PDFViewDelegate {
 
     public func pdfViewParentViewController() -> UIViewController {
         self
+    }
+}
+
+extension PDFNavigatorViewController: PDFDocumentViewDelegate {
+    func pdfDocumentViewContentInset(_ pdfDocumentView: PDFDocumentView) -> UIEdgeInsets? {
+        delegate?.navigatorContentInset(self)
     }
 }
 

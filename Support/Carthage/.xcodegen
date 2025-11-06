@@ -1,5 +1,5 @@
 # XCODEGEN VERSION
-2.43.0
+2.44.1
 
 # SPEC
 {
@@ -408,11 +408,9 @@
 ../../Sources/Navigator/EditingAction.swift
 ../../Sources/Navigator/EPUB
 ../../Sources/Navigator/EPUB/Assets
-../../Sources/Navigator/EPUB/Assets/.DS_Store
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-one.html
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-two.html
 ../../Sources/Navigator/EPUB/Assets/Static
-../../Sources/Navigator/EPUB/Assets/Static/.DS_Store
 ../../Sources/Navigator/EPUB/Assets/Static/fonts
 ../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-Bold.otf
 ../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-BoldItalic.otf
@@ -578,6 +576,7 @@
 ../../Sources/Navigator/TTS/AVTTSEngine.swift
 ../../Sources/Navigator/TTS/PublicationSpeechSynthesizer.swift
 ../../Sources/Navigator/TTS/TTSEngine.swift
+../../Sources/Navigator/TTS/TTSVoice.swift
 ../../Sources/Navigator/VisualNavigator.swift
 ../../Sources/OPDS
 ../../Sources/OPDS/OPDS1Parser.swift

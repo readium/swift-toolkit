@@ -68,6 +68,8 @@ public struct LinkRelation: Sendable {
     public static let next = LinkRelation("next")
     /// Refers to a resource that provides a preview of the link's context.
     public static let preview = LinkRelation("preview")
+    /// Refers to an icon representing the link's context.
+    public static let icon = LinkRelation("icon")
 
     // OPDS – https://specs.opds.io/opds-1.2.html
 
