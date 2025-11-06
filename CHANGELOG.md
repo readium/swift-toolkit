@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file. Take a look
 * Added `[TTSVoice].filterByLanguage(_:)` to filter TTS voices by language and region.
 * Added `[TTSVoice].sorted()` to sort TTS voices by region, quality, and gender.
 * New experimental positioning of EPUB decorations that places highlights behind text to improve legibility with opaque decorations (contributed by [@ddfreiling](https://github.com/readium/swift-toolkit/pull/665)).
-    * To opt-in, use initialize the `EPUBNavigatorViewController.Configuration` object with `decorationTemplates: HTMLDecorationTemplate.defaultTemplates(alpha: 1.0, experimentalPositioning: true)`.
+    * To opt-in, initialize the `EPUBNavigatorViewController.Configuration` object with `decorationTemplates: HTMLDecorationTemplate.defaultTemplates(alpha: 1.0, experimentalPositioning: true)`.
 
 #### LCP
 
