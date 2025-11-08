@@ -54,8 +54,12 @@ final class TTSViewModel: ObservableObject, Loggable {
 
     init?(navigator: Navigator, publication: Publication) {
         guard let synthesizer = PublicationSpeechSynthesizer(publication: publication) else {
+            print("⚠️ TTS: PublicationSpeechSynthesizer could not be created for publication: \(publication.metadata.title ?? "Unknown")")
             return nil
         }
+        print("🔊 TTS: Successfully initialized for publication: \(publication.metadata.title ?? "Unknown")")
+        print("🔊 TTS: Available voices: \(synthesizer.availableVoices.count)")
+
         self.synthesizer = synthesizer
         settings = Settings(synthesizer: synthesizer)
         self.navigator = navigator

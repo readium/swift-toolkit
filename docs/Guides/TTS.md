@@ -1,7 +1,7 @@
 # Text-to-speech
 
 > [!NOTE]
-> TTS is not yet implemented for all formats.
+> TTS is currently supported for EPUB and PDF publications with extractable text. PDF support requires PDFKit (iOS, macOS, Mac Catalyst).
 
 Text-to-speech can be used to read aloud a publication using a synthetic voice. The Readium toolkit ships with a TTS implementation based on the native [Apple Speech Synthesis](https://developer.apple.com/documentation/avfoundation/speech_synthesis), but it is opened for extension if you want to use a different TTS engine.
 
@@ -183,5 +183,55 @@ let synthesizer = PublicationSpeechSynthesizer(
     publication: publication,
     engineFactory: { MyCustomEngine() }
 )
+```
+
+## PDF Text-to-Speech
+
+PDF publications with extractable text can be read aloud using TTS. The implementation uses PDFKit to extract text content from PDF pages.
+
+### Requirements
+
+- **PDFKit availability**: PDF TTS requires PDFKit and is only available on iOS, macOS, and Mac Catalyst.
+- **Extractable text**: The PDF must contain actual text (not scanned images). OCR is not performed automatically.
+- **Parser integration**: The `PDFParser` automatically registers the `PDFResourceContentIterator` to enable TTS support.
+
+### Text Extraction Strategy
+
+The `PDFResourceContentIterator` extracts text from PDFs with intelligent paragraph detection:
+
+1. **Double newlines** - Splits by `\n\n` for clear paragraph breaks
+2. **Single newlines with empty lines** - Groups consecutive non-empty lines, treating empty lines as paragraph breaks
+3. **Sentence grouping** - Falls back to grouping 3-5 sentences when paragraph breaks aren't detected
+
+This approach provides better TTS granularity, allowing users to skip between meaningful text chunks rather than entire pages.
+
+### Locator Precision
+
+The PDF TTS implementation provides precise navigation:
+
+- **Page-level positioning** - Each text element includes the page number (1-based)
+- **Paragraph-level positioning** - When paragraphs are detected, each has a `paragraphIndex` in `otherLocations`
+- **Progression values** - Accurate progression values within pages for smooth navigation
+
+### Limitations
+
+- **Scanned PDFs** - PDFs containing only images (scanned documents) cannot be read unless they have been OCR'd
+- **Complex layouts** - Text extraction from PDFs with complex layouts (multi-column, tables) may not preserve the intended reading order
+- **Memory usage** - The entire PDF is loaded into memory for text extraction, which may impact performance with very large files
+
+### Example
+
+```swift
+// Parse a PDF publication
+let asset = FileAsset(url: pdfURL)
+let publication = try await Streamer().open(asset: asset, allowUserInteraction: false).get()
+
+// Create TTS synthesizer - works automatically if PDF has extractable text
+if let synthesizer = PublicationSpeechSynthesizer(publication: publication) {
+    synthesizer.start()
+    // The synthesizer will read the PDF text aloud
+} else {
+    // PDF has no extractable text or TTS is not supported for this publication
+}
 ```
 
