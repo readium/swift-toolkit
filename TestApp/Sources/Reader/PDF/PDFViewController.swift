@@ -26,23 +26,11 @@ final class PDFViewController: VisualReaderViewController<PDFNavigatorViewContro
     ) throws {
         self.preferencesStore = preferencesStore
 
-        let customActions = [
-            EditingAction(
-                title: "Highlight",
-                action: #selector(highlightSelection)
-            )
-        ] + EditingAction.defaultActions
-
-        print("📄 PDFViewController: customActions: \(customActions)")
-
         let navigator = try PDFNavigatorViewController(
             publication: publication,
             initialLocation: locator,
             config: PDFNavigatorViewController.Configuration(
-                preferences: initialPreferences,
-                editingActions: customActions,
-                enableCustomActionRouting: true, // Enable routing for our custom Highlight action
-                preventDefaultAnnotationMenu: true // We have our own color picker menu
+                preferences: initialPreferences
             ),
             httpServer: httpServer
         )
@@ -57,21 +45,6 @@ final class PDFViewController: VisualReaderViewController<PDFNavigatorViewContro
         } else {
             print("❌ PDF TTS: Text-to-Speech not available (PDF may be scanned or have no extractable text)")
         }
-    }
-
-    @objc func highlightSelection() {
-        guard let selection = navigator.currentSelection else {
-            return
-        }
-
-        let highlight = Highlight(
-            bookId: bookId,
-            locator: selection.locator,
-            color: .yellow
-        )
-
-        saveHighlight(highlight)
-        navigator.clearSelection()
     }
 
     override func presentUserPreferences() {
