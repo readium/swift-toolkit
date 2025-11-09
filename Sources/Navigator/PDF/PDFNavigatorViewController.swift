@@ -689,6 +689,227 @@ extension PDFNavigatorViewController: UIGestureRecognizerDelegate {
     }
 }
 
+extension PDFNavigatorViewController: DecorableNavigator {
+    /// Storage for decorations by group name
+    private var decorations: [String: [DiffableDecoration]] {
+        get { objc_getAssociatedObject(self, &decorationsKey) as? [String: [DiffableDecoration]] ?? [:] }
+        set { objc_setAssociatedObject(self, &decorationsKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
+    }
+
+    /// Storage for PDF annotations mapped by decoration ID
+    private var annotationsByDecorationId: [Decoration.Id: [PDFKit.PDFAnnotation]] {
+        get { objc_getAssociatedObject(self, &annotationsKey) as? [Decoration.Id: [PDFKit.PDFAnnotation]] ?? [:] }
+        set { objc_setAssociatedObject(self, &annotationsKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
+    }
+
+    /// Storage for decoration interaction callbacks by group
+    private var decorationCallbacks: [String: [OnActivatedCallback]] {
+        get { objc_getAssociatedObject(self, &callbacksKey) as? [String: [OnActivatedCallback]] ?? [:] }
+        set { objc_setAssociatedObject(self, &callbacksKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
+    }
+
+    public func supports(decorationStyle style: Decoration.Style.Id) -> Bool {
+        // PDF supports highlight and underline decoration styles
+        return style == .highlight || style == .underline
+    }
+
+    public func apply(decorations newDecorations: [Decoration], in group: String) {
+        guard let pdfView = pdfView, let document = pdfView.document else {
+            return
+        }
+
+        // Normalize locators and convert to diffable decorations
+        let target = newDecorations.map {
+            var d = $0
+            d.locator = publication.normalizeLocator(d.locator)
+            return DiffableDecoration(decoration: d)
+        }
+
+        let source = decorations[group] ?? []
+        decorations[group] = target
+
+        // Calculate changes
+        let changes = target.changesByHREF(from: source)
+
+        // Apply changes to PDF annotations
+        for (_, changeList) in changes {
+            for change in changeList {
+                switch change {
+                case let .add(decoration):
+                    addAnnotation(for: decoration, in: document)
+                case let .remove(id):
+                    removeAnnotation(withId: id, from: document)
+                case let .update(decoration):
+                    removeAnnotation(withId: decoration.id, from: document)
+                    addAnnotation(for: decoration, in: document)
+                }
+            }
+        }
+    }
+
+    public func observeDecorationInteractions(inGroup group: String, onActivated: @escaping OnActivatedCallback) {
+        var callbacks = decorationCallbacks[group] ?? []
+        callbacks.append(onActivated)
+        decorationCallbacks[group] = callbacks
+    }
+
+    // MARK: - Private Helpers
+
+    private func addAnnotation(for decoration: Decoration, in document: PDFKit.PDFDocument) {
+        guard let page = findPage(for: decoration.locator, in: document) else {
+            log(.warning, "Could not find page for decoration \(decoration.id)")
+            return
+        }
+
+        let boundsArray = boundsForLines(for: decoration.locator, on: page)
+        guard !boundsArray.isEmpty else {
+            log(.warning, "Could not find bounds for decoration \(decoration.id)")
+            return
+        }
+
+        var createdAnnotations: [PDFKit.PDFAnnotation] = []
+        for bounds in boundsArray {
+            let annotation = createAnnotation(for: decoration.style, bounds: bounds, decorationId: decoration.id)
+            page.addAnnotation(annotation)
+            createdAnnotations.append(annotation)
+        }
+
+        annotationsByDecorationId[decoration.id] = createdAnnotations
+    }
+
+    private func removeAnnotation(withId id: Decoration.Id, from document: PDFKit.PDFDocument) {
+        guard let annotations = annotationsByDecorationId[id] else {
+            return
+        }
+
+        for annotation in annotations {
+            guard let page = annotation.page else { continue }
+            page.removeAnnotation(annotation)
+        }
+
+        annotationsByDecorationId[id] = nil
+    }
+
+    private func createAnnotation(for style: Decoration.Style, bounds: CGRect, decorationId: Decoration.Id) -> PDFKit.PDFAnnotation {
+        let annotation: PDFKit.PDFAnnotation
+
+        // Extract highlight config if available
+        let config = style.config as? Decoration.Style.HighlightConfig
+        let tint = config?.tint ?? .yellow
+        let isActive = config?.isActive ?? false
+
+        switch style.id {
+        case .highlight:
+            annotation = PDFKit.PDFAnnotation(bounds: bounds, forType: .highlight, withProperties: nil)
+            annotation.color = tint.withAlphaComponent(isActive ? 0.5 : 0.3)
+
+        case .underline:
+            annotation = PDFKit.PDFAnnotation(bounds: bounds, forType: .underline, withProperties: nil)
+            annotation.color = tint
+
+        default:
+            // Fallback to highlight for unknown styles
+            annotation = PDFKit.PDFAnnotation(bounds: bounds, forType: .highlight, withProperties: nil)
+            annotation.color = tint.withAlphaComponent(0.3)
+        }
+
+        // Store decoration ID for later lookup
+        annotation.setValue(decorationId, forAnnotationKey: .name)
+
+        return annotation
+    }
+
+    private func findPage(for locator: Locator, in document: PDFKit.PDFDocument) -> PDFKit.PDFPage? {
+        guard let pageNumber = pageNumber(for: locator) else {
+            return nil
+        }
+
+        // PDFKit uses 0-based indexing
+        let pageIndex = pageNumber - 1
+        return document.page(at: pageIndex)
+    }
+
+    /// Returns an array of CGRect bounds, one for each line of the highlighted text.
+    /// This ensures precise highlighting that follows text flow across multiple lines.
+    private func boundsForLines(for locator: Locator, on page: PDFKit.PDFPage) -> [CGRect] {
+        // Get the highlighted text from the locator
+        guard let highlightedText = locator.text.highlight, !highlightedText.isEmpty else {
+            // No text specified - return a default highlight area
+            let pageBounds = page.bounds(for: .mediaBox)
+            let defaultRect = CGRect(
+                x: pageBounds.minX + pageBounds.width * 0.1,
+                y: pageBounds.maxY - pageBounds.height * 0.15,
+                width: pageBounds.width * 0.8,
+                height: 20
+            )
+            return [defaultRect]
+        }
+
+        // Get the page's full text to search within it
+        guard let pageText = page.string else {
+            return []
+        }
+
+        // Find the text in the page content
+        guard let range = pageText.range(of: highlightedText, options: .caseInsensitive) else {
+            // Text not found - return default
+            let pageBounds = page.bounds(for: .mediaBox)
+            let defaultRect = CGRect(
+                x: pageBounds.minX + pageBounds.width * 0.1,
+                y: pageBounds.maxY - pageBounds.height * 0.15,
+                width: pageBounds.width * 0.8,
+                height: 20
+            )
+            return [defaultRect]
+        }
+
+        // Convert the String range to NSRange for PDFPage API
+        let nsRange = NSRange(range, in: pageText)
+
+        // Create a selection from the character range
+        guard let selection = page.selection(for: nsRange) else {
+            return []
+        }
+
+        // Split selection into individual lines for precise highlighting
+        let lineSelections = selection.selectionsByLine()
+
+        var bounds: [CGRect] = []
+        for lineSelection in lineSelections {
+            let lineBounds = lineSelection.bounds(for: page)
+            // Only add valid, non-empty bounds
+            guard !lineBounds.isNull, !lineBounds.isEmpty else { continue }
+            bounds.append(lineBounds)
+        }
+
+        // Fallback: if we couldn't get line-by-line bounds, use the full selection bounds
+        if bounds.isEmpty {
+            let fullBounds = selection.bounds(for: page)
+            if !fullBounds.isNull, !fullBounds.isEmpty {
+                bounds.append(fullBounds)
+            }
+        }
+
+        return bounds
+    }
+
+    /// Notifies all registered callbacks for the decoration's group that the decoration was activated.
+    private func notifyDecorationActivated(_ event: OnDecorationActivatedEvent) {
+        guard let callbacks = decorationCallbacks[event.group] else {
+            return
+        }
+
+        for callback in callbacks {
+            callback(event)
+        }
+    }
+}
+
+// Associated object keys for decoration storage
+private var decorationsKey: UInt8 = 0
+private var annotationsKey: UInt8 = 0
+private var callbacksKey: UInt8 = 0
+
 private extension Axis {
     var displayDirection: PDFDisplayDirection {
         switch self {
