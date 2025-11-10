@@ -10,12 +10,14 @@ public extension InputObserving where Self == DragPointerObserver {
     static func drag(
         onStart: @MainActor @escaping (PointerEvent) -> Bool = { _ in false },
         onMove: @MainActor @escaping (PointerEvent) -> Bool = { _ in false },
-        onEnd: @MainActor @escaping (PointerEvent) -> Bool = { _ in false }
+        onEnd: @MainActor @escaping (PointerEvent) -> Bool = { _ in false },
+        onCancel: @MainActor @escaping (PointerEvent) -> Bool = { _ in false }
     ) -> DragPointerObserver {
         DragPointerObserver(
             onStart: onStart,
             onMove: onMove,
-            onEnd: onEnd
+            onEnd: onEnd,
+            onCancel: onCancel
         )
     }
 }
@@ -25,15 +27,18 @@ public extension InputObserving where Self == DragPointerObserver {
     private let onStart: @MainActor (PointerEvent) -> Bool
     private let onMove: @MainActor (PointerEvent) -> Bool
     private let onEnd: @MainActor (PointerEvent) -> Bool
+    private let onCancel: @MainActor (PointerEvent) -> Bool
 
     public init(
         onStart: @MainActor @escaping (PointerEvent) -> Bool,
         onMove: @MainActor @escaping (PointerEvent) -> Bool,
-        onEnd: @MainActor @escaping (PointerEvent) -> Bool
+        onEnd: @MainActor @escaping (PointerEvent) -> Bool,
+        onCancel: @MainActor @escaping (PointerEvent) -> Bool
     ) {
         self.onStart = onStart
         self.onMove = onMove
         self.onEnd = onEnd
+        self.onCancel = onCancel
     }
 
     private var state: State = .idle
@@ -41,14 +46,15 @@ public extension InputObserving where Self == DragPointerObserver {
     private enum State {
         case idle
         case pending(id: AnyHashable, startLocation: CGPoint)
-        case dragging(id: AnyHashable, lastLocation: CGPoint)
+        case dragging(id: AnyHashable, lastEvent: PointerEvent)
         case failed(activePointers: Set<AnyHashable>)
     }
 
     private enum Action {
-        case start
-        case move
-        case end
+        case start(PointerEvent)
+        case move(PointerEvent)
+        case end(PointerEvent)
+        case cancel(PointerEvent)
         case none
     }
 
@@ -61,12 +67,14 @@ public extension InputObserving where Self == DragPointerObserver {
         state = newState
 
         switch action {
-        case .start:
+        case let .start(event):
             return onStart(event)
-        case .move:
+        case let .move(event):
             return onMove(event)
-        case .end:
+        case let .end(event):
             return onEnd(event)
+        case let .cancel(event):
+            return onCancel(event)
         case .none:
             return false
         }
@@ -88,7 +96,7 @@ public extension InputObserving where Self == DragPointerObserver {
         case let (.pending(pendingID, startLocation), .move) where pendingID == id:
             // Check if pointer has moved enough to start dragging.
             if abs(startLocation.x - event.location.x) > 1 || abs(startLocation.y - event.location.y) > 1 {
-                return (.dragging(id: pendingID, lastLocation: event.location), .start)
+                return (.dragging(id: pendingID, lastEvent: event), .start(event))
             } else {
                 return (.pending(id: pendingID, startLocation: startLocation), .none)
             }
@@ -97,17 +105,18 @@ public extension InputObserving where Self == DragPointerObserver {
             // Pointer went up without moving - this is a tap, not a drag.
             return (.idle, .none)
 
-        case let (.dragging(draggingID, _), .down) where draggingID != id:
-            return (.failed(activePointers: [draggingID, id]), .none)
+        case let (.dragging(draggingID, lastEvent), .down) where draggingID != id:
+            // Second pointer detected during drag - cancel the drag
+            return (.failed(activePointers: [draggingID, id]), .cancel(lastEvent))
 
-        case let (.dragging(draggingID, _), .cancel) where draggingID == id:
-            return (.idle, .none)
+        case let (.dragging(draggingID, lastEvent), .cancel) where draggingID == id:
+            return (.idle, .cancel(lastEvent))
 
         case let (.dragging(draggingID, _), .move) where draggingID == id:
-            return (.dragging(id: draggingID, lastLocation: event.location), .move)
+            return (.dragging(id: draggingID, lastEvent: event), .move(event))
 
         case let (.dragging(draggingID, _), .up) where draggingID == id:
-            return (.idle, .end)
+            return (.idle, .end(event))
 
         case var (.failed(activePointers), .down):
             activePointers.insert(id)

@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Navigator
 
+* Added `DragPointerObserver` to recognize drag gestures with pointer events.
 * Added `DirectionalNavigationAdapter.onNavigation` callback to be notified when a navigation action is triggered.
     * This callback is called before executing any navigation action.
     * Useful for hiding UI elements when the user navigates, or implementing analytics.
