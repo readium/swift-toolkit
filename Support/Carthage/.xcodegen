@@ -532,6 +532,7 @@
 ../../Sources/Navigator/Input/Key/KeyObserver.swift
 ../../Sources/Navigator/Input/Pointer
 ../../Sources/Navigator/Input/Pointer/ActivatePointerObserver.swift
+../../Sources/Navigator/Input/Pointer/DragPointerObserver.swift
 ../../Sources/Navigator/Input/Pointer/PointerEvent.swift
 ../../Sources/Navigator/Navigator.swift
 ../../Sources/Navigator/PDF

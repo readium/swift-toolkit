@@ -29,6 +29,7 @@
 		0B9AC6EF44DA518E9F37FB49 /* ContentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E809378D79D09192A0AAE1 /* ContentService.swift */; };
 		0BFCDAEC82CFF09AFC53A5D0 /* LCPDFTableOfContentsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94414130EC3731CD9920F27D /* LCPDFTableOfContentsService.swift */; };
 		0C038E3525BB600EF6815EB9 /* ReadiumFuzi.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2828D89EBB52CCA782ED1146 /* ReadiumFuzi.xcframework */; };
+		0D13BEAB1495151C30D87B41 /* DragPointerObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24FF3141286A0CF40643D32D /* DragPointerObserver.swift */; };
 		0ECE94F27E005FC454EA9D12 /* DecorableNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 626CFFF131E0E840B76428F1 /* DecorableNavigator.swift */; };
 		0F1AAB56A6ADEDDE2AD7E41E /* Content.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1039900AC78465AD989D7464 /* Content.swift */; };
 		1004CE1C72C85CC3702C09C0 /* Asset.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC811653B33761089E270C4A /* Asset.swift */; };
@@ -540,6 +541,7 @@
 		21944E1DABB61C2CF2EA89C5 /* Sequence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sequence.swift; sourceTree = "<group>"; };
 		230985A228FA74F24735D6BB /* LCPRenewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPRenewDelegate.swift; sourceTree = "<group>"; };
 		239A56BB0E6DAF17E0A13447 /* CBZNavigatorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBZNavigatorViewController.swift; sourceTree = "<group>"; };
+		24FF3141286A0CF40643D32D /* DragPointerObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragPointerObserver.swift; sourceTree = "<group>"; };
 		251275D0DF87F85158A5FEA9 /* Assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Assets; path = ../../Sources/Navigator/EPUB/Assets; sourceTree = SOURCE_ROOT; };
 		258351CE21165EDED7F87878 /* URLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLProtocol.swift; sourceTree = "<group>"; };
 		2732AFC91AB15FA09C60207A /* Locator+Audio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Locator+Audio.swift"; sourceTree = "<group>"; };
@@ -2050,6 +2052,7 @@
 			isa = PBXGroup;
 			children = (
 				8F485F9F15CF41925D2D3D5C /* ActivatePointerObserver.swift */,
+				24FF3141286A0CF40643D32D /* DragPointerObserver.swift */,
 				F76073E8E6DACE7F9D22E0DD /* PointerEvent.swift */,
 			);
 			path = Pointer;
@@ -2391,6 +2394,7 @@
 				6BE745329D68EE0533E42D14 /* DiffableDecoration+HTML.swift in Sources */,
 				A2B9CE5A5A7F999B4D849C1F /* DiffableDecoration.swift in Sources */,
 				8029C2773AF704561B09BA99 /* DirectionalNavigationAdapter.swift in Sources */,
+				0D13BEAB1495151C30D87B41 /* DragPointerObserver.swift in Sources */,
 				2E518C960D386F13E0A5E9B7 /* EPUBFixedSpreadView.swift in Sources */,
 				B912ABB7DE8FC1A7A8EC1D84 /* EPUBNavigatorViewController.swift in Sources */,
 				9DB9674C11DF356966CBFA79 /* EPUBNavigatorViewModel.swift in Sources */,
