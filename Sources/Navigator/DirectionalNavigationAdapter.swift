@@ -100,7 +100,7 @@ public final class DirectionalNavigationAdapter {
     private let pointerPolicy: PointerPolicy
     private let keyboardPolicy: KeyboardPolicy
     private let animatedTransition: Bool
-    private let onNavigation: () -> Void
+    private let onNavigation: @MainActor () -> Void
 
     @available(*, deprecated, message: "Use `bind(to:)` instead of notifying the event yourself. See the migration guide.")
     private weak var navigator: VisualNavigator?
@@ -117,7 +117,7 @@ public final class DirectionalNavigationAdapter {
         pointerPolicy: PointerPolicy = PointerPolicy(),
         keyboardPolicy: KeyboardPolicy = KeyboardPolicy(),
         animatedTransition: Bool = false,
-        onNavigation: @escaping () -> Void = {},
+        onNavigation: @escaping @MainActor () -> Void = {}
     ) {
         self.pointerPolicy = pointerPolicy
         self.keyboardPolicy = keyboardPolicy
@@ -220,23 +220,23 @@ public final class DirectionalNavigationAdapter {
         }
     }
 
-    private func goBackward(in navigator: VisualNavigator) async -> Bool {
+    @MainActor private func goBackward(in navigator: VisualNavigator) async -> Bool {
         await go { await navigator.goBackward(options: $0) }
     }
 
-    private func goForward(in navigator: VisualNavigator) async -> Bool {
+    @MainActor private func goForward(in navigator: VisualNavigator) async -> Bool {
         await go { await navigator.goForward(options: $0) }
     }
 
-    private func goLeft(in navigator: VisualNavigator) async -> Bool {
+    @MainActor private func goLeft(in navigator: VisualNavigator) async -> Bool {
         await go { await navigator.goLeft(options: $0) }
     }
 
-    private func goRight(in navigator: VisualNavigator) async -> Bool {
+    @MainActor private func goRight(in navigator: VisualNavigator) async -> Bool {
         await go { await navigator.goRight(options: $0) }
     }
 
-    private func go(_ action: (NavigatorGoOptions) async -> Bool) async -> Bool {
+    @MainActor private func go(_ action: (NavigatorGoOptions) async -> Bool) async -> Bool {
         onNavigation()
         let options = NavigatorGoOptions(animated: animatedTransition)
         return await action(options)
