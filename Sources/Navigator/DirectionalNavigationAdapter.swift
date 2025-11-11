@@ -100,7 +100,9 @@ public final class DirectionalNavigationAdapter {
     private let pointerPolicy: PointerPolicy
     private let keyboardPolicy: KeyboardPolicy
     private let animatedTransition: Bool
+    private let onNavigation: @MainActor () -> Void
 
+    @available(*, deprecated, message: "Use `bind(to:)` instead of notifying the event yourself. See the migration guide.")
     private weak var navigator: VisualNavigator?
 
     /// Initializes a new `DirectionalNavigationAdapter`.
@@ -110,14 +112,17 @@ public final class DirectionalNavigationAdapter {
     ///  - keyboardPolicy: Policy on page turns using the keyboard.
     ///  - animatedTransition: Indicates whether the page turns should be
     ///    animated.
+    ///  - onNavigation: Callback called when a navigation is triggered.
     public init(
         pointerPolicy: PointerPolicy = PointerPolicy(),
         keyboardPolicy: KeyboardPolicy = KeyboardPolicy(),
-        animatedTransition: Bool = false
+        animatedTransition: Bool = false,
+        onNavigation: @escaping @MainActor () -> Void = {}
     ) {
         self.pointerPolicy = pointerPolicy
         self.keyboardPolicy = keyboardPolicy
         self.animatedTransition = animatedTransition
+        self.onNavigation = onNavigation
     }
 
     /// Binds the adapter to the given visual navigator.
@@ -162,7 +167,6 @@ public final class DirectionalNavigationAdapter {
         }
 
         let bounds = navigator.view.bounds
-        let options = NavigatorGoOptions(animated: animatedTransition)
 
         if pointerPolicy.edges.contains(.horizontal) {
             let horizontalEdgeSize = pointerPolicy.horizontalEdgeThresholdPercent
@@ -172,9 +176,9 @@ public final class DirectionalNavigationAdapter {
             let rightRange = (bounds.width - horizontalEdgeSize) ... bounds.width
 
             if rightRange.contains(point.x) {
-                return await navigator.goRight(options: options)
+                return await goRight(in: navigator)
             } else if leftRange.contains(point.x) {
-                return await navigator.goLeft(options: options)
+                return await goLeft(in: navigator)
             }
         }
 
@@ -186,9 +190,9 @@ public final class DirectionalNavigationAdapter {
             let bottomRange = (bounds.height - verticalEdgeSize) ... bounds.height
 
             if bottomRange.contains(point.y) {
-                return await navigator.goForward(options: options)
+                return await goForward(in: navigator)
             } else if topRange.contains(point.y) {
-                return await navigator.goBackward(options: options)
+                return await goBackward(in: navigator)
             }
         }
 
@@ -200,22 +204,42 @@ public final class DirectionalNavigationAdapter {
             return false
         }
 
-        let options = NavigatorGoOptions(animated: animatedTransition)
-
         switch event.key {
         case .arrowUp where keyboardPolicy.handleArrowKeys:
-            return await navigator.goBackward(options: options)
+            return await goBackward(in: navigator)
         case .arrowDown where keyboardPolicy.handleArrowKeys:
-            return await navigator.goForward(options: options)
+            return await goForward(in: navigator)
         case .arrowLeft where keyboardPolicy.handleArrowKeys:
-            return await navigator.goLeft(options: options)
+            return await goLeft(in: navigator)
         case .arrowRight where keyboardPolicy.handleArrowKeys:
-            return await navigator.goRight(options: options)
+            return await goRight(in: navigator)
         case .space where keyboardPolicy.handleSpaceKey:
-            return await navigator.goForward(options: options)
+            return await goForward(in: navigator)
         default:
             return false
         }
+    }
+
+    @MainActor private func goBackward(in navigator: VisualNavigator) async -> Bool {
+        await go { await navigator.goBackward(options: $0) }
+    }
+
+    @MainActor private func goForward(in navigator: VisualNavigator) async -> Bool {
+        await go { await navigator.goForward(options: $0) }
+    }
+
+    @MainActor private func goLeft(in navigator: VisualNavigator) async -> Bool {
+        await go { await navigator.goLeft(options: $0) }
+    }
+
+    @MainActor private func goRight(in navigator: VisualNavigator) async -> Bool {
+        await go { await navigator.goRight(options: $0) }
+    }
+
+    @MainActor private func go(_ action: (NavigatorGoOptions) async -> Bool) async -> Bool {
+        onNavigation()
+        let options = NavigatorGoOptions(animated: animatedTransition)
+        return await action(options)
     }
 
     @available(*, deprecated, message: "Use the new initializer without the navigator parameter and call `bind(to:)`. See the migration guide.")
@@ -240,6 +264,7 @@ public final class DirectionalNavigationAdapter {
         )
         keyboardPolicy = KeyboardPolicy()
         self.animatedTransition = animatedTransition
+        onNavigation = {}
     }
 
     @available(*, deprecated, message: "Use `bind(to:)` instead of notifying the event yourself. See the migration guide.")
