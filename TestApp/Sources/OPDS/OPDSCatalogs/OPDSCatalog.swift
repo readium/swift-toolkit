@@ -6,7 +6,7 @@
 
 import Foundation
 
-struct OPDSCatalog: Identifiable, Equatable {
+struct OPDSCatalog: Identifiable, Equatable, Hashable {
     let id: String
     var title: String
     var url: URL

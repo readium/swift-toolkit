@@ -17,16 +17,6 @@ final class OPDSFactory {
     private let storyboard = UIStoryboard(name: "OPDS", bundle: nil)
 }
 
-extension OPDSFactory: OPDSRootTableViewControllerFactory {
-    func make(feedURL: URL, indexPath: IndexPath?) -> OPDSRootTableViewController {
-        let controller = storyboard.instantiateViewController(withIdentifier: "OPDSRootTableViewController") as! OPDSRootTableViewController
-        controller.factory = self
-        controller.originalFeedURL = feedURL
-        controller.originalFeedIndexPath = nil
-        return controller
-    }
-}
-
 extension OPDSFactory: OPDSPublicationInfoViewControllerFactory {
     func make(publication: Publication) -> OPDSPublicationInfoViewController {
         let controller = storyboard.instantiateViewController(withIdentifier: "OPDSPublicationInfoViewController") as! OPDSPublicationInfoViewController

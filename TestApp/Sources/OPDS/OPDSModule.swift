@@ -46,21 +46,21 @@ final class OPDSModule: OPDSModuleAPI {
     private(set) lazy var rootViewController: UINavigationController = {
         let viewModel = OPDSCatalogsViewModel()
 
-        let catalogViewController = UIHostingController(
-            rootView: OPDSCatalogsView(viewModel: viewModel)
-        )
-
-        let navigationController = UINavigationController(
-            rootViewController: catalogViewController
-        )
-
-        viewModel.openCatalog = { [weak navigationController] url, indexPath in
-            let viewController = OPDSFactory.shared.make(
-                feedURL: url,
-                indexPath: indexPath
-            )
-            navigationController?.pushViewController(viewController, animated: true)
+        let rootView = NavigationStack {
+            OPDSCatalogsView(viewModel: viewModel)
+                .navigationDestination(for: OPDSCatalog.self) { catalog in
+                    OPDSFeedView(
+                        feedURL: catalog.url,
+                        delegate: self.delegate
+                    )
+                }
         }
+
+        let catalogViewController = UIHostingController(rootView: rootView)
+
+        let navigationController = UINavigationController(rootViewController: catalogViewController)
+
+        viewModel.openCatalog = nil
 
         return navigationController
     }()

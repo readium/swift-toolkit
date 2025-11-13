@@ -1,0 +1,270 @@
+//
+//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
+//
+
+import ReadiumShared
+import SwiftUI
+
+struct OPDSFeedView: View {
+    @StateObject private var viewModel: OPDSFeedViewModel
+
+    private var delegate: OPDSModuleDelegate?
+
+    @State private var facetNavigationURL: URL?
+
+    struct NavigablePublication: Identifiable, Hashable {
+        let id = UUID()
+        let publication: ReadiumShared.Publication
+
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(id)
+        }
+
+        static func == (lhs: NavigablePublication, rhs: NavigablePublication) -> Bool {
+            lhs.id == rhs.id
+        }
+    }
+
+    init(feedURL: URL, delegate: OPDSModuleDelegate?) {
+        _viewModel = StateObject(wrappedValue: OPDSFeedViewModel(feedURL: feedURL, delegate: delegate))
+        self.delegate = delegate
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                NavigationLink(
+                    destination: facetDestinationView(),
+                    isActive: Binding(
+                        get: { facetNavigationURL != nil },
+                        set: { isActive in
+                            if !isActive { facetNavigationURL = nil }
+                        }
+                    )
+                ) { EmptyView() }
+
+                mainContent
+            }
+            .navigationTitle(viewModel.feed?.metadata.title ?? "Loading...")
+            .navigationBarTitleDisplayMode(.inline) // Keeps title small
+            .onAppear {
+                if viewModel.feed == nil {
+                    viewModel.parseFeed()
+                }
+            }
+            .navigationDestination(for: URL.self) { url in
+                OPDSFeedView(feedURL: url, delegate: delegate)
+            }
+            .navigationDestination(for: NavigablePublication.self) { navPublication in
+                OPDSPublicationInfoView(publication: navPublication.publication)
+            }
+            .toolbar {
+                buildToolbar()
+            }
+            .sheet(isPresented: $viewModel.isShowingFacets) {
+                buildFacetView()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var mainContent: some View {
+        Group {
+            if viewModel.browsingState == .Publication {
+                buildPublicationOnlyView(viewModel.publications)
+            } else {
+                buildListView()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func facetDestinationView() -> some View {
+        if let url = facetNavigationURL {
+            OPDSFeedView(feedURL: url, delegate: delegate)
+        } else {
+            EmptyView()
+        }
+    }
+
+    //
+    // MARK: - Toolbar & Sheet Builders
+
+    //
+
+    @ToolbarContentBuilder
+    private func buildToolbar() -> some ToolbarContent {
+        ToolbarItem(placement: .navigationBarTrailing) {
+            if !(viewModel.feed?.facets.isEmpty ?? true) {
+                Button {
+                    viewModel.isShowingFacets = true
+                } label: {
+                    Text(NSLocalizedString("filter_button", comment: "Filter the OPDS feed"))
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func buildFacetView() -> some View {
+        OPDSFacetView(facets: viewModel.feed?.facets ?? []) { link in
+            if let url = URL(string: link.href) {
+                facetNavigationURL = url
+            }
+        }
+    }
+
+    //
+    // MARK: - List View Builders
+
+    //
+
+    @ViewBuilder
+    private func buildListView() -> some View {
+        List {
+            if viewModel.feed != nil {
+                switch viewModel.browsingState {
+                case .Navigation:
+                    buildNavigationSection(viewModel.navigation)
+
+                case .MixedGroup:
+                    buildGroupsSection(viewModel.groups)
+
+                case .MixedNavigationPublication:
+                    Group {
+                        buildNavigationSection(viewModel.navigation)
+                        if let group = viewModel.publicationsAsGroup {
+                            buildGroupsSection([group])
+                        }
+                    }
+
+                case .MixedNavigationGroup:
+                    Group {
+                        buildNavigationSection(viewModel.navigation)
+                        buildGroupsSection(viewModel.groups)
+                    }
+
+                case .MixedNavigationGroupPublication:
+                    Group {
+                        buildNavigationSection(viewModel.navigation)
+                        buildGroupsSection(viewModel.groups)
+                        if let group = viewModel.publicationsAsGroup {
+                            buildGroupsSection([group])
+                        }
+                    }
+
+                case .None:
+                    buildNoneView()
+
+                default:
+                    Text("This feed type is not implemented yet.")
+                }
+            } else if viewModel.error != nil {
+                Text("Failed to load feed. Please try again.")
+            } else {
+                ProgressView()
+            }
+        }
+        .listStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func buildNoneView() -> some View {
+        if let error = viewModel.error {
+            Text("Failed to load feed: \(error.localizedDescription)")
+        } else {
+            Text("No content in this feed.")
+        }
+    }
+
+    //
+    // MARK: - Publication Grid Builder
+
+    //
+
+    @ViewBuilder
+    private func buildPublicationOnlyView(_ publications: [ReadiumShared.Publication]) -> some View {
+        let columns = [
+            GridItem(.adaptive(minimum: 140), spacing: 16),
+        ]
+        let navPublications = publications.map(NavigablePublication.init)
+
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: 20) {
+                ForEach(navPublications) { navPublication in
+                    NavigationLink(value: navPublication) {
+                        OPDSPublicationItemView(publication: navPublication.publication)
+                    }
+                    .buttonStyle(.plain)
+                    .onAppear {
+                        if navPublication == navPublications.last {
+                            viewModel.loadNextPage()
+                        }
+                    }
+                }
+            }
+            .padding()
+
+            if viewModel.isLoadingNextPage {
+                ProgressView()
+                    .padding()
+            }
+        }
+    }
+
+    //
+    // MARK: - Section Builders
+
+    //
+
+    @ViewBuilder
+    private func buildNavigationSection(_ navigation: [ReadiumShared.Link]) -> some View {
+        Section(header: Text(NSLocalizedString("opds_browse_title", comment: "Title of the section displaying the feeds"))) {
+            ForEach(navigation.indices, id: \.self) { index in
+                OPDSNavigationRow(link: navigation[index])
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func buildGroupsSection(_ groups: [ReadiumShared.Group]) -> some View {
+        ForEach(groups, id: \.metadata.title) { group in
+            Section {
+                let navPublications = group.publications.map(NavigablePublication.init)
+
+                OPDSGroupRow(
+                    group: group,
+                    publications: navPublications,
+                    isLoading: viewModel.isLoadingNextPage,
+                    onLastItemAppeared: {
+                        viewModel.loadNextPage()
+                    }
+                )
+                .listRowInsets(EdgeInsets())
+
+            } header: {
+                HStack {
+                    Text(group.metadata.title)
+                        .font(.system(size: 13, weight: .bold))
+                        .textCase(nil)
+
+                    Spacer()
+
+                    if let moreLink = group.links.first {
+                        Button {
+                            if let url = URL(string: moreLink.href) {
+                                facetNavigationURL = url
+                            }
+                        } label: {
+                            Text(NSLocalizedString("opds_more_button", comment: "Button to expand a feed gallery"))
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

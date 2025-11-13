@@ -15,24 +15,23 @@ struct OPDSCatalogsView: View {
 
     var body: some View {
         List(viewModel.catalogs) { catalog in
-            OPDSCatalogRow(title: catalog.title)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    viewModel.onCatalogTap(id: catalog.id)
+            NavigationLink(value: catalog) {
+                OPDSCatalogRow(title: catalog.title)
+            }
+            .contentShape(Rectangle())
+            .swipeActions(allowsFullSwipe: false) {
+                Button(role: .destructive) {
+                    viewModel.onDeleteCatalogTap(id: catalog.id)
+                } label: {
+                    Label("Delete", systemImage: "trash")
                 }
-                .swipeActions(allowsFullSwipe: false) {
-                    Button(role: .destructive) {
-                        viewModel.onDeleteCatalogTap(id: catalog.id)
-                    } label: {
-                        Label("Delete", systemImage: "trash")
-                    }
 
-                    Button {
-                        viewModel.onEditCatalogTap(id: catalog.id)
-                    } label: {
-                        Label("Edit", systemImage: "pencil")
-                    }
+                Button {
+                    viewModel.onEditCatalogTap(id: catalog.id)
+                } label: {
+                    Label("Edit", systemImage: "pencil")
                 }
+            }
         }
         .listStyle(.plain)
         .onAppear {
