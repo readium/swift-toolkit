@@ -76,9 +76,11 @@ struct OPDSFeedView: View {
     @ViewBuilder
     private var mainContent: some View {
         Group {
-            if viewModel.browsingState == .Publication {
+            // If the feed is only publications, show a grid.
+            if viewModel.isPublicationOnly {
                 buildPublicationOnlyView(viewModel.publications)
             } else {
+                // Otherwise, show a list view.
                 buildListView()
             }
         }
@@ -130,47 +132,23 @@ struct OPDSFeedView: View {
         ScrollView {
             LazyVStack(spacing: 0) {
                 if viewModel.feed != nil {
-                    switch viewModel.browsingState {
-                    case .Navigation:
+                    if !viewModel.navigation.isEmpty {
                         buildNavigationSection(viewModel.navigation)
+                    }
 
-                    case .MixedGroup:
+                    if !viewModel.groups.isEmpty {
                         buildGroupsSection(viewModel.groups)
+                    }
 
-                    case .MixedNavigationPublication:
-                        Group {
-                            buildNavigationSection(viewModel.navigation)
-                            Divider().frame(height: 50)
-                            if let group = viewModel.publicationsAsGroup {
-                                buildGroupsSection([group])
-                            }
-                        }
+                    if let group = viewModel.rootPublicationsGroup {
+                        buildGroupsSection([group])
+                    }
 
-                    case .MixedNavigationGroup:
-                        Group {
-                            buildNavigationSection(viewModel.navigation)
-                            Divider().frame(height: 50)
-                            buildGroupsSection(viewModel.groups)
-                        }
-
-                    case .MixedNavigationGroupPublication:
-                        Group {
-                            buildNavigationSection(viewModel.navigation)
-                            Divider().frame(height: 50)
-                            buildGroupsSection(viewModel.groups)
-                            if let group = viewModel.publicationsAsGroup {
-                                buildGroupsSection([group])
-                            }
-                        }
-
-                    case .None:
+                    if !viewModel.hasContent {
                         buildNoneView()
                             .padding()
-
-                    default:
-                        Text("This feed type is not implemented yet.")
-                            .padding()
                     }
+
                 } else if viewModel.error != nil {
                     Text("Failed to load feed. Please try again.")
                         .padding()
@@ -235,7 +213,7 @@ struct OPDSFeedView: View {
     private func buildNavigationSection(_ navigation: [ReadiumShared.Link]) -> some View {
         HStack {
             Text(NSLocalizedString("opds_browse_title", comment: "Title of the section displaying the feeds"))
-                .font(.title3)
+                .font(.title3.bold())
                 .textCase(nil)
             Spacer()
         }
@@ -243,18 +221,10 @@ struct OPDSFeedView: View {
         .padding(.top, 16)
         .padding(.bottom, 8)
 
-        ForEach(navigation.indices, id: \.self) { index in
-            let link = navigation[index]
+        Divider()
+            .padding(.horizontal)
 
-            if let url = URL(string: link.href) {
-                NavigationLink(value: url) {
-                    OPDSNavigationRow(link: link)
-                        .padding(.horizontal)
-                }
-            }
-
-            Divider().padding(.leading).padding(.trailing)
-        }
+        buildNavigationList(navigation, isRootList: true)
     }
 
     @ViewBuilder
@@ -262,7 +232,7 @@ struct OPDSFeedView: View {
         ForEach(groups, id: \.metadata.title) { group in
             HStack {
                 Text(group.metadata.title)
-                    .font(.title3)
+                    .font(.title3.bold())
                     .textCase(nil)
 
                 Spacer()
@@ -274,7 +244,7 @@ struct OPDSFeedView: View {
                         }
                     } label: {
                         Text(NSLocalizedString("opds_more_button", comment: "Button to expand a feed gallery"))
-                            .font(.title3)
+                            .font(.title3.bold())
                             .foregroundColor(.secondary)
                     }
                 }
@@ -295,20 +265,33 @@ struct OPDSFeedView: View {
                     }
                 )
             } else if !group.navigation.isEmpty {
-                ForEach(group.navigation.indices, id: \.self) { index in
-                    let link = group.navigation[index]
+                Divider()
+                    .padding(.horizontal)
 
-                    if let url = URL(string: link.href) {
-                        NavigationLink(value: url) {
-                            OPDSNavigationRow(link: link)
-                                .padding(.horizontal)
-                        }
-                    }
-                    Divider().padding(.leading)
+                buildNavigationList(group.navigation, isRootList: false)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func buildNavigationList(_ navigation: [ReadiumShared.Link], isRootList: Bool) -> some View {
+        ForEach(navigation.indices, id: \.self) { index in
+            let link = navigation[index]
+
+            if let url = URL(string: link.href) {
+                NavigationLink(value: url) {
+                    OPDSNavigationRow(link: link)
+                        .padding(.horizontal)
+                }
+                .buttonStyle(.plain)
+                if isRootList {
+                    Divider()
+                        .padding(.horizontal)
+                } else {
+                    Divider()
+                        .padding(.leading)
                 }
             }
-
-            Divider().frame(height: 50)
         }
     }
 }

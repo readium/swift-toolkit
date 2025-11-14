@@ -19,20 +19,20 @@ struct OPDSNavigationRow: View {
     private var rowContent: some View {
         HStack {
             Text(link.title ?? "Untitled")
-                .font(.title3)
-                .padding(.vertical, 8)
+                .font(.body)
+                .padding(.vertical, 12)
                 .lineLimit(1)
 
             Spacer()
 
             if let count = link.properties.numberOfItems {
                 Text("\(count)")
-                    .font(.caption)
+                    .font(.body)
                     .foregroundColor(.secondary)
             }
 
             Image(systemName: "chevron.right")
-                .font(.caption.weight(.bold))
+                .font(.body.weight(.bold))
                 .foregroundColor(Color(uiColor: .tertiaryLabel))
         }
         .contentShape(Rectangle())
