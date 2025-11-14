@@ -15,7 +15,13 @@ struct OPDSFeedView: View {
     @State private var facetNavigationURL: URL?
 
     struct NavigablePublication: Identifiable, Hashable {
-        let id = UUID()
+        var id: String {
+            publication.links.first(where: { $0.rels.contains(.self) })?.href
+                ?? publication.metadata.identifier
+                ?? publication.metadata.title
+                ?? UUID().uuidString // Last resort fallback
+        }
+
         let publication: ReadiumShared.Publication
 
         func hash(into hasher: inout Hasher) {
@@ -33,39 +39,37 @@ struct OPDSFeedView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                NavigationLink(
-                    destination: facetDestinationView(),
-                    isActive: Binding(
-                        get: { facetNavigationURL != nil },
-                        set: { isActive in
-                            if !isActive { facetNavigationURL = nil }
-                        }
-                    )
-                ) { EmptyView() }
+        ZStack {
+            NavigationLink(
+                destination: facetDestinationView(),
+                isActive: Binding(
+                    get: { facetNavigationURL != nil },
+                    set: { isActive in
+                        if !isActive { facetNavigationURL = nil }
+                    }
+                )
+            ) { EmptyView() }
 
-                mainContent
+            mainContent
+        }
+        .navigationTitle(viewModel.feed?.metadata.title ?? "Loading...")
+        .navigationBarTitleDisplayMode(.inline) // Keeps title small
+        .onAppear {
+            if viewModel.feed == nil {
+                viewModel.parseFeed()
             }
-            .navigationTitle(viewModel.feed?.metadata.title ?? "Loading...")
-            .navigationBarTitleDisplayMode(.inline) // Keeps title small
-            .onAppear {
-                if viewModel.feed == nil {
-                    viewModel.parseFeed()
-                }
-            }
-            .navigationDestination(for: URL.self) { url in
-                OPDSFeedView(feedURL: url, delegate: delegate)
-            }
-            .navigationDestination(for: NavigablePublication.self) { navPublication in
-                OPDSPublicationInfoView(publication: navPublication.publication)
-            }
-            .toolbar {
-                buildToolbar()
-            }
-            .sheet(isPresented: $viewModel.isShowingFacets) {
-                buildFacetView()
-            }
+        }
+        .navigationDestination(for: URL.self) { url in
+            OPDSFeedView(feedURL: url, delegate: delegate)
+        }
+        .navigationDestination(for: NavigablePublication.self) { navPublication in
+            OPDSPublicationInfoView(publication: navPublication.publication)
+        }
+        .toolbar {
+            buildToolbar()
+        }
+        .sheet(isPresented: $viewModel.isShowingFacets) {
+            buildFacetView()
         }
     }
 
@@ -123,51 +127,59 @@ struct OPDSFeedView: View {
 
     @ViewBuilder
     private func buildListView() -> some View {
-        List {
-            if viewModel.feed != nil {
-                switch viewModel.browsingState {
-                case .Navigation:
-                    buildNavigationSection(viewModel.navigation)
-
-                case .MixedGroup:
-                    buildGroupsSection(viewModel.groups)
-
-                case .MixedNavigationPublication:
-                    Group {
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                if viewModel.feed != nil {
+                    switch viewModel.browsingState {
+                    case .Navigation:
                         buildNavigationSection(viewModel.navigation)
-                        if let group = viewModel.publicationsAsGroup {
-                            buildGroupsSection([group])
-                        }
-                    }
 
-                case .MixedNavigationGroup:
-                    Group {
-                        buildNavigationSection(viewModel.navigation)
+                    case .MixedGroup:
                         buildGroupsSection(viewModel.groups)
-                    }
 
-                case .MixedNavigationGroupPublication:
-                    Group {
-                        buildNavigationSection(viewModel.navigation)
-                        buildGroupsSection(viewModel.groups)
-                        if let group = viewModel.publicationsAsGroup {
-                            buildGroupsSection([group])
+                    case .MixedNavigationPublication:
+                        Group {
+                            buildNavigationSection(viewModel.navigation)
+                            Divider().frame(height: 50)
+                            if let group = viewModel.publicationsAsGroup {
+                                buildGroupsSection([group])
+                            }
                         }
+
+                    case .MixedNavigationGroup:
+                        Group {
+                            buildNavigationSection(viewModel.navigation)
+                            Divider().frame(height: 50)
+                            buildGroupsSection(viewModel.groups)
+                        }
+
+                    case .MixedNavigationGroupPublication:
+                        Group {
+                            buildNavigationSection(viewModel.navigation)
+                            Divider().frame(height: 50)
+                            buildGroupsSection(viewModel.groups)
+                            if let group = viewModel.publicationsAsGroup {
+                                buildGroupsSection([group])
+                            }
+                        }
+
+                    case .None:
+                        buildNoneView()
+                            .padding()
+
+                    default:
+                        Text("This feed type is not implemented yet.")
+                            .padding()
                     }
-
-                case .None:
-                    buildNoneView()
-
-                default:
-                    Text("This feed type is not implemented yet.")
+                } else if viewModel.error != nil {
+                    Text("Failed to load feed. Please try again.")
+                        .padding()
+                } else {
+                    ProgressView()
+                        .padding()
                 }
-            } else if viewModel.error != nil {
-                Text("Failed to load feed. Please try again.")
-            } else {
-                ProgressView()
             }
         }
-        .listStyle(.plain)
     }
 
     @ViewBuilder
@@ -221,17 +233,57 @@ struct OPDSFeedView: View {
 
     @ViewBuilder
     private func buildNavigationSection(_ navigation: [ReadiumShared.Link]) -> some View {
-        Section(header: Text(NSLocalizedString("opds_browse_title", comment: "Title of the section displaying the feeds"))) {
-            ForEach(navigation.indices, id: \.self) { index in
-                OPDSNavigationRow(link: navigation[index])
+        HStack {
+            Text(NSLocalizedString("opds_browse_title", comment: "Title of the section displaying the feeds"))
+                .font(.title3)
+                .textCase(nil)
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.top, 16)
+        .padding(.bottom, 8)
+
+        ForEach(navigation.indices, id: \.self) { index in
+            let link = navigation[index]
+
+            if let url = URL(string: link.href) {
+                NavigationLink(value: url) {
+                    OPDSNavigationRow(link: link)
+                        .padding(.horizontal)
+                }
             }
+
+            Divider().padding(.leading).padding(.trailing)
         }
     }
 
     @ViewBuilder
     private func buildGroupsSection(_ groups: [ReadiumShared.Group]) -> some View {
         ForEach(groups, id: \.metadata.title) { group in
-            Section {
+            HStack {
+                Text(group.metadata.title)
+                    .font(.title3)
+                    .textCase(nil)
+
+                Spacer()
+
+                if let moreLink = group.links.first {
+                    Button {
+                        if let url = URL(string: moreLink.href) {
+                            facetNavigationURL = url
+                        }
+                    } label: {
+                        Text(NSLocalizedString("opds_more_button", comment: "Button to expand a feed gallery"))
+                            .font(.title3)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .padding(.horizontal)
+            .padding(.top, 16)
+            .padding(.bottom, 8)
+
+            if !group.publications.isEmpty {
                 let navPublications = group.publications.map(NavigablePublication.init)
 
                 OPDSGroupRow(
@@ -242,29 +294,21 @@ struct OPDSFeedView: View {
                         viewModel.loadNextPage()
                     }
                 )
-                .listRowInsets(EdgeInsets())
+            } else if !group.navigation.isEmpty {
+                ForEach(group.navigation.indices, id: \.self) { index in
+                    let link = group.navigation[index]
 
-            } header: {
-                HStack {
-                    Text(group.metadata.title)
-                        .font(.system(size: 13, weight: .bold))
-                        .textCase(nil)
-
-                    Spacer()
-
-                    if let moreLink = group.links.first {
-                        Button {
-                            if let url = URL(string: moreLink.href) {
-                                facetNavigationURL = url
-                            }
-                        } label: {
-                            Text(NSLocalizedString("opds_more_button", comment: "Button to expand a feed gallery"))
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundColor(.secondary)
+                    if let url = URL(string: link.href) {
+                        NavigationLink(value: url) {
+                            OPDSNavigationRow(link: link)
+                                .padding(.horizontal)
                         }
                     }
+                    Divider().padding(.leading)
                 }
             }
+
+            Divider().frame(height: 50)
         }
     }
 }

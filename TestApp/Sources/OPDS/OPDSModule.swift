@@ -47,7 +47,7 @@ final class OPDSModule: OPDSModuleAPI {
         let viewModel = OPDSCatalogsViewModel()
 
         let rootView = NavigationStack {
-            OPDSCatalogsView(viewModel: viewModel)
+            OPDSCatalogsView(viewModel: viewModel, delegate: self.delegate)
                 .navigationDestination(for: OPDSCatalog.self) { catalog in
                     OPDSFeedView(
                         feedURL: catalog.url,
@@ -59,6 +59,8 @@ final class OPDSModule: OPDSModuleAPI {
         let catalogViewController = UIHostingController(rootView: rootView)
 
         let navigationController = UINavigationController(rootViewController: catalogViewController)
+
+        navigationController.isNavigationBarHidden = true
 
         viewModel.openCatalog = nil
 

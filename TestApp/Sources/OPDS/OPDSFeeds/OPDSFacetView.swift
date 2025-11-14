@@ -18,7 +18,7 @@ struct OPDSFacetView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 ForEach(facets, id: \.metadata.title) { facet in
                     Section(header: Text(facet.metadata.title)) {

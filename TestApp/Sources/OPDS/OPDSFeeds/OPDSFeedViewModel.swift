@@ -119,7 +119,7 @@ class OPDSFeedViewModel: ObservableObject {
             return .None
         }
     }
-    
+
     // MARK: - View-Ready Computed Properties
 
     /// Provides the navigation links, or an empty array.
@@ -136,7 +136,7 @@ class OPDSFeedViewModel: ObservableObject {
     var publications: [ReadiumShared.Publication] {
         feed?.publications ?? []
     }
-    
+
     var publicationsAsGroup: ReadiumShared.Group? {
         guard let feed = feed, !feed.publications.isEmpty else {
             return nil

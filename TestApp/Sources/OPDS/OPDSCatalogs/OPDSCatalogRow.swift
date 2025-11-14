@@ -14,11 +14,6 @@ struct OPDSCatalogRow: View {
             Image(systemName: "books.vertical.fill")
                 .foregroundColor(.accentColor)
             Text(title)
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .foregroundColor(.gray)
         }
     }
 }

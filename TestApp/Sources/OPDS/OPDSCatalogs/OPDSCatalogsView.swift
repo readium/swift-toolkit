@@ -9,8 +9,11 @@ import SwiftUI
 struct OPDSCatalogsView: View {
     @State private var viewModel: OPDSCatalogsViewModel
 
-    init(viewModel: OPDSCatalogsViewModel) {
+    private var delegate: OPDSModuleDelegate?
+
+    init(viewModel: OPDSCatalogsViewModel, delegate: OPDSModuleDelegate?) {
         self.viewModel = viewModel
+        self.delegate = delegate
     }
 
     var body: some View {
@@ -55,5 +58,7 @@ struct OPDSCatalogsView: View {
 }
 
 #Preview {
-    OPDSCatalogsView(viewModel: OPDSCatalogsViewModel())
+    NavigationStack {
+        OPDSCatalogsView(viewModel: OPDSCatalogsViewModel(), delegate: nil)
+    }
 }

@@ -34,8 +34,10 @@ struct OPDSGroupRow: View {
                 }
 
                 if isLoading {
-                    ProgressView()
-                        .frame(width: 140, height: rowHeight)
+                    ZStack {
+                        ProgressView()
+                    }
+                    .frame(width: 140, height: rowHeight)
                 }
             }
             .padding(.horizontal)

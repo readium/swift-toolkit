@@ -13,12 +13,20 @@ struct OPDSPublicationItemView: View {
     private let coverHeight: CGFloat = 200
     private let coverWidth: CGFloat = 140
 
+    private var imageURL: URL? {
+        let primaryURL = publication.coverLink?.url(relativeTo: publication.baseURL).httpURL?.url
+
+        let fallbackURL = publication.images.first?.url(relativeTo: publication.baseURL).httpURL?.url
+
+        return primaryURL ?? fallbackURL
+    }
+
     var body: some View {
         VStack(alignment: .leading) {
-            AsyncImage(url: publication.coverLink?.url(relativeTo: publication.baseURL).httpURL?.url) { image in
+            AsyncImage(url: imageURL) { image in
                 image
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
+                    .aspectRatio(contentMode: .fill)
             } placeholder: {
                 Color.gray.opacity(0.3)
                     .overlay(Image(systemName: "book.closed"))
