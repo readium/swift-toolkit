@@ -15,14 +15,17 @@ struct OPDSFeedView: View {
     @State private var facetNavigationURL: URL?
 
     struct NavigablePublication: Identifiable, Hashable {
-        var id: String {
-            publication.links.first(where: { $0.rels.contains(.self) })?.href
+        let id: String
+        let publication: ReadiumShared.Publication
+
+        init(publication: ReadiumShared.Publication) {
+            self.publication = publication
+
+            id = publication.links.first(where: { $0.rels.contains(.self) })?.href
                 ?? publication.metadata.identifier
                 ?? publication.metadata.title
-                ?? UUID().uuidString // Last resort fallback
+                ?? UUID().uuidString
         }
-
-        let publication: ReadiumShared.Publication
 
         func hash(into hasher: inout Hasher) {
             hasher.combine(id)
@@ -39,38 +42,28 @@ struct OPDSFeedView: View {
     }
 
     var body: some View {
-        ZStack {
-            NavigationLink(
-                destination: facetDestinationView(),
-                isActive: Binding(
-                    get: { facetNavigationURL != nil },
-                    set: { isActive in
-                        if !isActive { facetNavigationURL = nil }
-                    }
-                )
-            ) { EmptyView() }
-
-            mainContent
-        }
-        .navigationTitle(viewModel.feed?.metadata.title ?? "Loading...")
-        .navigationBarTitleDisplayMode(.inline) // Keeps title small
-        .onAppear {
-            if viewModel.feed == nil {
-                viewModel.parseFeed()
+        mainContent
+            .navigationTitle(viewModel.feed?.metadata.title ?? "Loading...")
+            .navigationBarTitleDisplayMode(.inline) // Keeps title small
+            .onAppear {
+                if viewModel.feed == nil {
+                    viewModel.parseFeed()
+                }
             }
-        }
-        .navigationDestination(for: URL.self) { url in
-            OPDSFeedView(feedURL: url, delegate: delegate)
-        }
-        .navigationDestination(for: NavigablePublication.self) { navPublication in
-            OPDSPublicationInfoView(publication: navPublication.publication)
-        }
-        .toolbar {
-            buildToolbar()
-        }
-        .sheet(isPresented: $viewModel.isShowingFacets) {
-            buildFacetView()
-        }
+            .toolbar {
+                buildToolbar()
+            }
+            .sheet(isPresented: $viewModel.isShowingFacets) {
+                buildFacetView()
+            }
+            .navigationDestination(
+                isPresented: Binding(
+                    get: { facetNavigationURL != nil },
+                    set: { if !$0 { facetNavigationURL = nil } }
+                )
+            ) {
+                facetDestinationView()
+            }
     }
 
     @ViewBuilder
@@ -179,7 +172,7 @@ struct OPDSFeedView: View {
         let columns = [
             GridItem(.adaptive(minimum: 140), spacing: 16),
         ]
-        let navPublications = publications.map(NavigablePublication.init)
+        let navPublications = publications.map(NavigablePublication.init).unique()
 
         ScrollView {
             LazyVGrid(columns: columns, spacing: 20) {
@@ -250,11 +243,11 @@ struct OPDSFeedView: View {
                 }
             }
             .padding(.horizontal)
-            .padding(.top, 16)
+            .padding(.top, 32)
             .padding(.bottom, 8)
 
             if !group.publications.isEmpty {
-                let navPublications = group.publications.map(NavigablePublication.init)
+                let navPublications = group.publications.map(NavigablePublication.init).unique()
 
                 OPDSGroupRow(
                     group: group,
@@ -293,5 +286,13 @@ struct OPDSFeedView: View {
                 }
             }
         }
+    }
+}
+
+extension Sequence where Element: Hashable {
+    /// Returns an array containing only the unique elements of the sequence.
+    func unique() -> [Element] {
+        var seen = Set<Element>()
+        return filter { seen.insert($0).inserted }
     }
 }

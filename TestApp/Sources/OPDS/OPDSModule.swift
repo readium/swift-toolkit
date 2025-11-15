@@ -54,6 +54,12 @@ final class OPDSModule: OPDSModuleAPI {
                         delegate: self.delegate
                     )
                 }
+                .navigationDestination(for: URL.self) { url in
+                    OPDSFeedView(feedURL: url, delegate: self.delegate)
+                }
+                .navigationDestination(for: OPDSFeedView.NavigablePublication.self) { navPublication in
+                    OPDSPublicationInfoView(publication: navPublication.publication)
+                }
         }
 
         let catalogViewController = UIHostingController(rootView: rootView)
