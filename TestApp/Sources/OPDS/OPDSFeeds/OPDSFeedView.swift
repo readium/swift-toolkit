@@ -88,10 +88,7 @@ struct OPDSFeedView: View {
         }
     }
 
-    //
     // MARK: - Toolbar & Sheet Builders
-
-    //
 
     @ToolbarContentBuilder
     private func buildToolbar() -> some ToolbarContent {
@@ -115,10 +112,7 @@ struct OPDSFeedView: View {
         }
     }
 
-    //
     // MARK: - List View Builders
-
-    //
 
     @ViewBuilder
     private func buildListView() -> some View {
@@ -162,10 +156,7 @@ struct OPDSFeedView: View {
         }
     }
 
-    //
     // MARK: - Publication Grid Builder
-
-    //
 
     @ViewBuilder
     private func buildPublicationOnlyView(_ publications: [ReadiumShared.Publication]) -> some View {
@@ -197,10 +188,7 @@ struct OPDSFeedView: View {
         }
     }
 
-    //
     // MARK: - Section Builders
-
-    //
 
     @ViewBuilder
     private func buildNavigationSection(_ navigation: [ReadiumShared.Link]) -> some View {
