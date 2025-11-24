@@ -13,6 +13,12 @@ All notable changes to this project will be documented in this file. Take a look
     * This callback is called before executing any navigation action.
     * Useful for hiding UI elements when the user navigates, or implementing analytics.
 
+### Changed
+
+#### Streamer
+
+* Support for asynchronous callbacks with `onCreatePublication` (contributed by [@smoores-dev](https://github.com/readium/swift-toolkit/pull/673)).
+
 
 ## [3.5.0]
 
