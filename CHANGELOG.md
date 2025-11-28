@@ -19,6 +19,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Support for asynchronous callbacks with `onCreatePublication` (contributed by [@smoores-dev](https://github.com/readium/swift-toolkit/pull/673)).
 
+### Fixed
+
+#### LCP
+
+* Fixed crash when an EPUB resource is declared as LCP-encrypted in the manifest but contains unencrypted data.
+
 
 ## [3.5.0]
 
