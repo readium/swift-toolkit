@@ -21,6 +21,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Fixed
 
+#### Navigator
+
+* Fixed EPUB fixed-layout spread settings not updating after device rotation when the app was in the background.
+
 #### LCP
 
 * Fixed crash when an EPUB resource is declared as LCP-encrypted in the manifest but contains unencrypted data.

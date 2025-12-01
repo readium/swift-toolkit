@@ -390,6 +390,12 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     @objc private func didBecomeActive() {
         isActive = true
 
+        // The device may have rotated since the last time the app was active.
+        // We may need to refresh the spreads in this situation. Unfortunately,
+        // the `viewWillTransition(to:with:)` API is called before we receive
+        // the `didBecomeActive` notification, so we cannot rely on it here.
+        viewModel.viewSizeWillChange(view.bounds.size)
+
         if needsReloadSpreadsOnActive {
             needsReloadSpreadsOnActive = false
             reloadSpreads(force: true)
@@ -449,10 +455,8 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
 
-        viewModel.viewSizeWillChange(size)
-
-        coordinator.animate(alongsideTransition: nil) { [weak self] _ in
-            self?.reloadSpreads(force: false)
+        if isActive {
+            viewModel.viewSizeWillChange(size)
         }
     }
 
@@ -566,9 +570,17 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     private func reloadSpreads(force: Bool) {
         guard
             state != .initializing,
-            isViewLoaded,
-            isActive
+            isViewLoaded
         else {
+            return
+        }
+
+        guard isActive else {
+            // If we reload the spreads while the app is in the background, the
+            // web view will reset to progression 0 instead of the current one.
+            // We need to wait for the application to return to the foreground
+            // to maintain the current location.
+            needsReloadSpreadsOnActive = true
             return
         }
 
@@ -1230,15 +1242,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     }
 
     func spreadViewDidTerminate() {
-        if !isActive {
-            // If we reload the spreads while the app is in the background, the
-            // web view will reset to progression 0 instead of the current one.
-            // We need to wait for the application to return to the foreground
-            // to maintain the current location.
-            needsReloadSpreadsOnActive = true
-        } else {
-            reloadSpreads(force: true)
-        }
+        reloadSpreads(force: true)
     }
 }
 
