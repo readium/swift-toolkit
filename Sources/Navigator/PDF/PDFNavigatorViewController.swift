@@ -76,6 +76,8 @@ open class PDFNavigatorViewController:
     // Holds a reference to make sure they are not garbage-collected.
     private var tapGestureController: PDFTapGestureController?
     private var clickGestureController: PDFTapGestureController?
+    private var swipeLeftGestureRecognizer: UISwipeGestureRecognizer?
+    private var swipeRightGestureRecognizer: UISwipeGestureRecognizer?
 
     private let server: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
@@ -263,6 +265,8 @@ open class PDFNavigatorViewController:
             target: self,
             action: #selector(didClick)
         )
+        swipeLeftGestureRecognizer = recognizeSwipe(in: pdfView, direction: .left)
+        swipeRightGestureRecognizer = recognizeSwipe(in: pdfView, direction: .right)
 
         apply(settings: settings, to: pdfView)
         delegate?.navigator(self, setupPDFView: pdfView)
@@ -341,6 +345,10 @@ open class PDFNavigatorViewController:
         }
         pdfView.backgroundColor = settings.backgroundColor?.uiColor
             ?? pdfViewDefaultBackgroundColor
+
+        let enableSwipes = !settings.scroll && spread
+        swipeLeftGestureRecognizer?.isEnabled = enableSwipes
+        swipeRightGestureRecognizer?.isEnabled = enableSwipes
     }
 
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
@@ -365,6 +373,25 @@ open class PDFNavigatorViewController:
         }
 
         delegate?.navigator(self, didTapAt: location)
+    }
+
+    private func recognizeSwipe(in view: UIView, direction: UISwipeGestureRecognizer.Direction) -> UISwipeGestureRecognizer {
+        let recognizer = UISwipeGestureRecognizer(target: self, action: #selector(didSwipe))
+        recognizer.direction = direction
+        recognizer.numberOfTouchesRequired = 1
+        view.addGestureRecognizer(recognizer)
+        return recognizer
+    }
+
+    @objc private func didSwipe(_ gesture: UISwipeGestureRecognizer) {
+        switch gesture.direction {
+        case .left:
+            Task { await goRight(options: .animated) }
+        case .right:
+            Task { await goLeft(options: .animated) }
+        default:
+            break
+        }
     }
 
     @objc private func pageDidChange() {
