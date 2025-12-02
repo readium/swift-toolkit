@@ -12,6 +12,13 @@ All notable changes to this project will be documented in this file. Take a look
 * Added `DirectionalNavigationAdapter.onNavigation` callback to be notified when a navigation action is triggered.
     * This callback is called before executing any navigation action.
     * Useful for hiding UI elements when the user navigates, or implementing analytics.
+* Added swipe gesture support for navigating in PDF paginated spread mode.
+
+### Deprecated
+
+#### Navigator
+
+* `PDFNavigatorViewController.scalesDocumentToFit` is now deprecated and non-functional. The navigator always scales the document to fit the viewport.
 
 ### Changed
 
@@ -24,6 +31,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * Fixed EPUB fixed-layout spread settings not updating after device rotation when the app was in the background.
+* Fixed zoom-to-fit scaling in PDF paginated spread mode when `offsetFirstPage` is enabled.
 
 #### LCP
 
