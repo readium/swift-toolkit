@@ -50,9 +50,29 @@ public final class PDFDocumentView: PDFView {
     }
 
     private func updateContentInset() {
-        let insets = documentViewDelegate?.pdfDocumentViewContentInset(self) ?? window?.safeAreaInsets ?? .zero
+        let insets = contentInset
         firstScrollView?.contentInset.top = insets.top
         firstScrollView?.contentInset.bottom = insets.bottom
+    }
+
+    private var contentInset: UIEdgeInsets {
+        if let contentInset = documentViewDelegate?.pdfDocumentViewContentInset(self) {
+            return contentInset
+        }
+
+        // We apply the window's safe area insets (representing the system
+        // status bar, but ignoring app bars) on iPhones only because in most
+        // cases we prefer to display the content edge-to-edge.
+        // iPhones are a special case because they are the only devices with a
+        // physical notch (or Dynamic Island) which is included in the window's
+        // safe area insets. Therefore, we must always take it into account to
+        // avoid hiding the content.
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            return window?.safeAreaInsets ?? .zero
+        } else {
+            // Edge-to-edge on macOS and iPadOS.
+            return .zero
+        }
     }
 
     override public func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
@@ -81,8 +101,8 @@ public final class PDFDocumentView: PDFView {
 
     /// Returns whether the document is currently zoomed to match the given
     /// `fit`.
-    func isAtScaleFactor(for fit: Fit, contentInset: UIEdgeInsets) -> Bool {
-        let scaleFactorToFit = scaleFactor(for: fit, contentInset: contentInset)
+    func isAtScaleFactor(for fit: Fit) -> Bool {
+        let scaleFactorToFit = scaleFactor(for: fit)
         // 1% tolerance for floating point comparison
         let tolerance: CGFloat = 0.01
         return abs(scaleFactor - scaleFactorToFit) < tolerance
@@ -92,7 +112,7 @@ public final class PDFDocumentView: PDFView {
     ///
     /// Only used in scroll mode, as the paginated mode doesn't support custom
     /// scale factors without visual hiccups when swiping pages.
-    func scaleFactor(for fit: Fit, contentInset: UIEdgeInsets) -> CGFloat {
+    func scaleFactor(for fit: Fit) -> CGFloat {
         // While a `width` fit works in scroll mode, the pagination mode has
         // critical limitations when zooming larger than the page fit, so it
         // does not support a `width` fit.
@@ -106,9 +126,7 @@ public final class PDFDocumentView: PDFView {
         //
         // So we only support a `page` fit in paginated mode.
         if isPaginated {
-            return scaleFactorForSizeToFitVisiblePages(
-                contentInset: contentInset
-            )
+            return scaleFactorForSizeToFitVisiblePages
         }
 
         switch fit {
@@ -116,15 +134,13 @@ public final class PDFDocumentView: PDFView {
             // Use PDFKit's default auto-fit behavior
             return scaleFactorForSizeToFit
         case .page:
-            return scaleFactorForLargestPage(contentInset: contentInset)
+            return scaleFactorForLargestPage
         }
     }
 
     /// Calculates the scale factor to fit the visible pages (by area) to the
     /// viewport.
-    private func scaleFactorForSizeToFitVisiblePages(
-        contentInset: UIEdgeInsets
-    ) -> CGFloat {
+    private var scaleFactorForSizeToFitVisiblePages: CGFloat {
         // The native `scaleFactorForSizeToFit` is incorrect when displaying
         // paginated spreads, so we need to use a custom implementation.
         if !isPaginated || !isSpreadEnabled {
@@ -133,27 +149,26 @@ public final class PDFDocumentView: PDFView {
             calculateScale(
                 for: spreadSize(for: visiblePages),
                 viewSize: bounds.size,
-                contentInset: contentInset
+                insets: contentInset
             )
         }
     }
 
     /// Calculates the scale factor to fit the largest page or spread (by area)
     /// to the viewport.
-    private func scaleFactorForLargestPage(
-        contentInset: UIEdgeInsets
-    ) -> CGFloat {
+    private var scaleFactorForLargestPage: CGFloat {
         guard let document = document else {
             return 1.0
         }
 
         // Check cache before expensive calculation
         let viewSize = bounds.size
+        let insets = contentInset
         if
             let cached = cachedScaleFactorForLargestPage,
             cached.document == ObjectIdentifier(document),
             cached.viewSize == viewSize,
-            cached.contentInset == contentInset,
+            cached.contentInset == insets,
             cached.spread == isSpreadEnabled,
             cached.displaysAsBook == displaysAsBook
         {
@@ -223,14 +238,14 @@ public final class PDFDocumentView: PDFView {
         let scale = calculateScale(
             for: maxSize,
             viewSize: viewSize,
-            contentInset: contentInset
+            insets: insets
         )
 
         cachedScaleFactorForLargestPage = (
             document: ObjectIdentifier(document),
             scaleFactor: scale,
             viewSize: viewSize,
-            contentInset: contentInset,
+            contentInset: insets,
             spread: isSpreadEnabled,
             displaysAsBook: displaysAsBook
         )
@@ -263,15 +278,15 @@ public final class PDFDocumentView: PDFView {
     private func calculateScale(
         for contentSize: CGSize,
         viewSize: CGSize,
-        contentInset: UIEdgeInsets
+        insets: UIEdgeInsets
     ) -> CGFloat {
         guard contentSize.width > 0, contentSize.height > 0 else {
             return 1.0
         }
 
         let availableSize = CGSize(
-            width: viewSize.width - contentInset.left - contentInset.right,
-            height: viewSize.height - contentInset.top - contentInset.bottom
+            width: viewSize.width - insets.left - insets.right,
+            height: viewSize.height - insets.top - insets.bottom
         )
 
         let widthScale = availableSize.width / contentSize.width

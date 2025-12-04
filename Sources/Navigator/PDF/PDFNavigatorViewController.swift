@@ -84,10 +84,6 @@ open class PDFNavigatorViewController:
     private let publicationEndpoint: HTTPServerEndpoint?
     private var publicationBaseURL: HTTPURL!
 
-    private var contentInset: UIEdgeInsets {
-        delegate?.navigatorContentInset(self) ?? .zero
-    }
-
     public init(
         publication: Publication,
         initialLocation: Locator?,
@@ -205,10 +201,7 @@ open class PDFNavigatorViewController:
         if let pdfView = pdfView {
             // Makes sure that the PDF is always properly scaled when rotating
             // the screen, if the user didn't set a custom zoom.
-            let isAtScaleFactor = pdfView.isAtScaleFactor(
-                for: settings.fit,
-                contentInset: contentInset
-            )
+            let isAtScaleFactor = pdfView.isAtScaleFactor(for: settings.fit)
 
             coordinator.animate(alongsideTransition: { _ in
                 self.updateScaleFactors(zoomToFit: isAtScaleFactor)
@@ -499,10 +492,7 @@ open class PDFNavigatorViewController:
             return
         }
 
-        let scaleFactorToFit = pdfView.scaleFactor(
-            for: settings.fit,
-            contentInset: contentInset
-        )
+        let scaleFactorToFit = pdfView.scaleFactor(for: settings.fit)
 
         if settings.scroll {
             // Allow zooming out to 25% in scroll mode.
