@@ -411,7 +411,8 @@ open class PDFNavigatorViewController:
 
     @objc private func visiblePagesDidChange() {
         // In paginated mode, we want to refresh the scale factors to properly
-        // fit the newly visible pages.
+        // fit the newly visible pages. This is especially important for
+        // paginated spreads.
         if !settings.scroll {
             updateScaleFactors(zoomToFit: true)
         }

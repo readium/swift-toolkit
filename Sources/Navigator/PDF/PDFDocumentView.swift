@@ -75,6 +75,10 @@ public final class PDFDocumentView: PDFView {
         isUsingPageViewController || displayMode == .twoUp || displayMode == .singlePage
     }
 
+    var isSpreadEnabled: Bool {
+        displayMode == .twoUp || displayMode == .twoUpContinuous
+    }
+
     /// Returns whether the document is currently zoomed to match the given
     /// `fit`.
     func isAtScaleFactor(for fit: Fit, contentInset: UIEdgeInsets) -> Bool {
@@ -89,8 +93,9 @@ public final class PDFDocumentView: PDFView {
     /// Only used in scroll mode, as the paginated mode doesn't support custom
     /// scale factors without visual hiccups when swiping pages.
     func scaleFactor(for fit: Fit, contentInset: UIEdgeInsets) -> CGFloat {
-        // While a custom fit works in scroll mode, the paginated mode has
-        // critical limitations when zooming larger than the page fit.
+        // While a `width` fit works in scroll mode, the pagination mode has
+        // critical limitations when zooming larger than the page fit, so it
+        // does not support a `width` fit.
         //
         // - Visual snap: There is no API to pre-set the zoom scale for the next
         //   page. ⁠PDFView resets the scale per page, causing a visible snap
@@ -98,8 +103,12 @@ public final class PDFDocumentView: PDFView {
         // - Incorrect anchoring: When zooming larger than the page fit, the
         //   viewport centers vertically instead of showing the top. The API to
         //   fix this works in scroll mode but is ignored in paginated mode.
-        guard !isPaginated else {
-            return scaleFactorForSizeToFit
+        //
+        // So we only support a `page` fit in paginated mode.
+        if isPaginated {
+            return scaleFactorForSizeToFitVisiblePages(
+                contentInset: contentInset
+            )
         }
 
         switch fit {
@@ -108,6 +117,24 @@ public final class PDFDocumentView: PDFView {
             return scaleFactorForSizeToFit
         case .page:
             return scaleFactorForLargestPage(contentInset: contentInset)
+        }
+    }
+
+    /// Calculates the scale factor to fit the visible pages (by area) to the
+    /// viewport.
+    private func scaleFactorForSizeToFitVisiblePages(
+        contentInset: UIEdgeInsets
+    ) -> CGFloat {
+        // The native `scaleFactorForSizeToFit` is incorrect when displaying
+        // paginated spreads, so we need to use a custom implementation.
+        if !isPaginated || !isSpreadEnabled {
+            scaleFactorForSizeToFit
+        } else {
+            calculateScale(
+                for: spreadSize(for: visiblePages),
+                viewSize: bounds.size,
+                contentInset: contentInset
+            )
         }
     }
 
@@ -120,8 +147,6 @@ public final class PDFDocumentView: PDFView {
             return 1.0
         }
 
-        let spread = (displayMode == .twoUp || displayMode == .twoUpContinuous)
-
         // Check cache before expensive calculation
         let viewSize = bounds.size
         if
@@ -129,7 +154,7 @@ public final class PDFDocumentView: PDFView {
             cached.document == ObjectIdentifier(document),
             cached.viewSize == viewSize,
             cached.contentInset == contentInset,
-            cached.spread == spread,
+            cached.spread == isSpreadEnabled,
             cached.displaysAsBook == displaysAsBook
         {
             return cached.scaleFactor
@@ -138,7 +163,7 @@ public final class PDFDocumentView: PDFView {
         var maxSize: CGSize = .zero
         var maxArea: CGFloat = 0
 
-        if !spread {
+        if !isSpreadEnabled {
             // No spreads: find largest individual page
             for pageIndex in 0 ..< document.pageCount {
                 guard let page = document.page(at: pageIndex) else { continue }
@@ -173,23 +198,19 @@ public final class PDFDocumentView: PDFView {
                 let rightIndex = pageIndex + 1
 
                 guard let leftPage = document.page(at: leftIndex) else { continue }
-                let leftSize = leftPage.bounds(for: displayBox).size
 
                 if rightIndex < pageCount, let rightPage = document.page(at: rightIndex) {
                     // Two-page spread
-                    let rightSize = rightPage.bounds(for: displayBox).size
-                    let spreadSize = CGSize(
-                        width: leftSize.width + rightSize.width,
-                        height: max(leftSize.height, rightSize.height)
-                    )
-                    let spreadArea = spreadSize.width * spreadSize.height
+                    let currentSpreadSize = spreadSize(for: [leftPage, rightPage])
+                    let spreadArea = currentSpreadSize.width * currentSpreadSize.height
 
                     if spreadArea > maxArea {
                         maxArea = spreadArea
-                        maxSize = spreadSize
+                        maxSize = currentSpreadSize
                     }
                 } else {
                     // Last page alone (odd page count)
+                    let leftSize = leftPage.bounds(for: displayBox).size
                     let singleArea = leftSize.width * leftSize.height
                     if singleArea > maxArea {
                         maxArea = singleArea
@@ -199,27 +220,18 @@ public final class PDFDocumentView: PDFView {
             }
         }
 
-        var scale: CGFloat = 1.0
-        if maxSize.width > 0, maxSize.height > 0 {
-            // Account for content insets
-            let availableSize = CGSize(
-                width: viewSize.width - contentInset.left - contentInset.right,
-                height: viewSize.height - contentInset.top - contentInset.bottom
-            )
-
-            let widthScale = availableSize.width / maxSize.width
-            let heightScale = availableSize.height / maxSize.height
-
-            // Use the smaller scale to ensure both dimensions fit
-            scale = min(widthScale, heightScale)
-        }
+        let scale = calculateScale(
+            for: maxSize,
+            viewSize: viewSize,
+            contentInset: contentInset
+        )
 
         cachedScaleFactorForLargestPage = (
             document: ObjectIdentifier(document),
             scaleFactor: scale,
             viewSize: viewSize,
             contentInset: contentInset,
-            spread: spread,
+            spread: isSpreadEnabled,
             displaysAsBook: displaysAsBook
         )
         return scale
@@ -234,4 +246,38 @@ public final class PDFDocumentView: PDFView {
         spread: Bool,
         displaysAsBook: Bool
     )?
+
+    /// Calculates the combined size of pages laid out side-by-side horizontally.
+    private func spreadSize(for pages: [PDFPage]) -> CGSize {
+        var size = CGSize.zero
+        for page in pages {
+            let pageBounds = page.bounds(for: displayBox)
+            size.height = max(size.height, pageBounds.height)
+            size.width += pageBounds.width
+        }
+        return size
+    }
+
+    /// Calculates the scale factor needed to fit the given content size within
+    /// the available viewport, accounting for content insets.
+    private func calculateScale(
+        for contentSize: CGSize,
+        viewSize: CGSize,
+        contentInset: UIEdgeInsets
+    ) -> CGFloat {
+        guard contentSize.width > 0, contentSize.height > 0 else {
+            return 1.0
+        }
+
+        let availableSize = CGSize(
+            width: viewSize.width - contentInset.left - contentInset.right,
+            height: viewSize.height - contentInset.top - contentInset.bottom
+        )
+
+        let widthScale = availableSize.width / contentSize.width
+        let heightScale = availableSize.height / contentSize.height
+
+        // Use the smaller scale to ensure both dimensions fit
+        return min(widthScale, heightScale)
+    }
 }
