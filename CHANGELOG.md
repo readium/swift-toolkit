@@ -13,6 +13,8 @@ All notable changes to this project will be documented in this file. Take a look
     * This callback is called before executing any navigation action.
     * Useful for hiding UI elements when the user navigates, or implementing analytics.
 * Added swipe gesture support for navigating in PDF paginated spread mode.
+* Added `fit` preference for PDF documents to control how pages are scaled within the viewport.
+    * Only effective in scroll mode. Paginated mode always uses page fit due to PDFKit limitations.
 
 ### Deprecated
 
@@ -25,6 +27,15 @@ All notable changes to this project will be documented in this file. Take a look
 #### Streamer
 
 * Support for asynchronous callbacks with `onCreatePublication` (contributed by [@smoores-dev](https://github.com/readium/swift-toolkit/pull/673)).
+
+#### Navigator
+
+* The `Fit` enum has been redesigned to fit the PDF implementation.
+    * **Breaking change:** Update any code using the old `Fit` enum values.
+* The PDF navigator's content inset behavior has changed:
+    * iPhone: Continues to apply window safe area insets (to account for notch/Dynamic Island).
+    * iPad/macOS: Now displays edge-to-edge with no automatic safe area insets.
+    * You can customize this behavior with `VisualNavigatorDelegate.navigatorContentInset(_:)`.
 
 ### Fixed
 
