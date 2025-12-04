@@ -75,6 +75,15 @@ public final class PDFDocumentView: PDFView {
         isUsingPageViewController || displayMode == .twoUp || displayMode == .singlePage
     }
 
+    /// Returns whether the document is currently zoomed to match the given
+    /// `fit`.
+    func isAtScaleFactor(for fit: Fit, contentInset: UIEdgeInsets) -> Bool {
+        let scaleFactorToFit = scaleFactor(for: fit, contentInset: contentInset)
+        // 1% tolerance for floating point comparison
+        let tolerance: CGFloat = 0.01
+        return abs(scaleFactor - scaleFactorToFit) < tolerance
+    }
+
     /// Calculates the appropriate scale factor based on the fit preference.
     ///
     /// Only used in scroll mode, as the paginated mode doesn't support custom
