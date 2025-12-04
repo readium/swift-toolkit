@@ -32,6 +32,18 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
             isEffective: { $0.preferences.backgroundColor != nil }
         )
 
+    /// Method for fitting the pages within the viewport.
+    ///
+    /// Only effective when `scroll` is on.
+    public lazy var fit: AnyEnumPreference<Fit> =
+        enumPreference(
+            preference: \.fit,
+            setting: \.fit,
+            defaultEffectiveValue: defaults.fit ?? .auto,
+            isEffective: { $0.settings.scroll },
+            supportedValues: [.auto, .page, .width]
+        )
+
     /// Indicates if the first page should be displayed in its own spread.
     ///
     /// Only effective when `spread` is not off.

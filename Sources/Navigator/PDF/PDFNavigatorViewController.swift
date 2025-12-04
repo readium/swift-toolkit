@@ -201,9 +201,10 @@ open class PDFNavigatorViewController:
         if let pdfView = pdfView {
             // Makes sure that the PDF is always properly scaled down when
             // rotating the screen, if the user didn't zoom in.
-            let isAtMinScaleFactor = (pdfView.scaleFactor == pdfView.minScaleFactor)
+            let isAtMinScale = (pdfView.scaleFactor == pdfView.minScaleFactor)
+
             coordinator.animate(alongsideTransition: { _ in
-                self.updateScaleFactors(zoomToFit: isAtMinScaleFactor)
+                self.updateScaleFactors(zoomToFit: isAtMinScale)
 
                 // Reset the PDF view to update the spread if needed.
                 if self.settings.spread == .auto {
@@ -489,11 +490,23 @@ open class PDFNavigatorViewController:
         guard let pdfView = pdfView else {
             return
         }
-        pdfView.minScaleFactor = pdfView.scaleFactorForSizeToFit
+
+        let scaleFactorToFit = pdfView.scaleFactor(
+            for: settings.fit,
+            contentInset: delegate?.navigatorContentInset(self) ?? .zero
+        )
+
+        if settings.scroll {
+            // Allow zooming out to 25% in scroll mode.
+            pdfView.minScaleFactor = 0.25
+        } else {
+            pdfView.minScaleFactor = scaleFactorToFit
+        }
+
         pdfView.maxScaleFactor = 4.0
 
         if zoomToFit {
-            pdfView.scaleFactor = pdfView.minScaleFactor
+            pdfView.scaleFactor = scaleFactorToFit
         }
     }
 
