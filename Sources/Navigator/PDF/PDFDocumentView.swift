@@ -118,7 +118,7 @@ public final class PDFDocumentView: PDFView {
         // does not support a `width` fit.
         //
         // - Visual snap: There is no API to pre-set the zoom scale for the next
-        //   page. ⁠PDFView resets the scale per page, causing a visible snap
+        //   page. PDFView resets the scale per page, causing a visible snap
         //   when swiping. We don’t see the issue with edge taps.
         // - Incorrect anchoring: When zooming larger than the page fit, the
         //   viewport centers vertically instead of showing the top. The API to
