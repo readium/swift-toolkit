@@ -48,12 +48,16 @@
     <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>
     <item id="css" href="style.css" media-type="text/css"/>
     <item id="titlepage" href="titlepage.xhtml" media-type="application/xhtml+xml" />
+    <item id="toc" href="toc.xhtml" media-type="application/xhtml+xml" />
     <item id="chapter01" href="chapter01.xhtml" media-type="application/xhtml+xml"/>
+    <item id="chapter02" href="chapter02.xhtml" media-type="application/xhtml+xml"/>
     <item id="img01a" href="images/alice01a.gif" media-type="image/gif" properties="cover-image"/>
     <item id="img02a" href="images/alice02a.gif" media-type="image/gif"/>
   </manifest>
   <spine page-progression-direction="rtl">
     <itemref idref="titlepage"/>
+    <itemref idref="toc"/>
     <itemref idref="chapter01"/>
+    <itemref idref="chapter02"/>
   </spine>
 </package>

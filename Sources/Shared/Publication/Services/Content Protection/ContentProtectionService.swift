@@ -84,12 +84,6 @@ public extension Publication {
         contentProtectionService?.rights ?? UnrestrictedUserRights()
     }
 
-    @available(*, unavailable, message: "Derive the name yourself from the DRM scheme")
-    var protectionLocalizedName: LocalizedString? { fatalError() }
-
-    @available(*, unavailable, message: "Derive the name yourself from the DRM scheme")
-    var protectionName: String? { fatalError() }
-
     private var contentProtectionService: ContentProtectionService? {
         findService(ContentProtectionService.self)
     }

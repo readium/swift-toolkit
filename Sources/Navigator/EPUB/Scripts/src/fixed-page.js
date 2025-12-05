@@ -52,8 +52,6 @@ export function FixedPage(iframeId) {
     _iframe.style.height = _pageSize.height + "px";
     _iframe.style.marginTop =
       _safeAreaInsets.top - _safeAreaInsets.bottom + "px";
-    _iframe.style.marginLeft =
-      _safeAreaInsets.left - _safeAreaInsets.right + "px";
 
     // Calculates the zoom scale required to fit the content to the viewport.
     var widthRatio = _viewportSize.width / _pageSize.width;

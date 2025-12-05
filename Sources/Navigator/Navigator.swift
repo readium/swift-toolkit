@@ -97,26 +97,6 @@ public extension Navigator {
     func goBackward(options: NavigatorGoOptions = NavigatorGoOptions()) async -> Bool {
         await goBackward(options: options)
     }
-
-    @available(*, unavailable, message: "Use the async variant")
-    func go(to locator: Locator, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant")
-    func go(to link: Link, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant")
-    func goForward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant")
-    func goBackward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        fatalError()
-    }
 }
 
 @MainActor public protocol NavigatorDelegate: AnyObject {
@@ -151,6 +131,8 @@ public extension Navigator {
 }
 
 public extension NavigatorDelegate {
+    func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {}
+
     func navigator(_ navigator: Navigator, didJumpTo locator: Locator) {}
 
     func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
@@ -163,7 +145,7 @@ public extension NavigatorDelegate {
         true
     }
 
-    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: String, withError error: ReadError) {}
+    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: RelativeURL, withError error: ReadError) {}
 }
 
 public enum NavigatorError: Error {

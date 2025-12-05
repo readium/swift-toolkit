@@ -72,11 +72,7 @@ public struct EPUBFormatSniffer: FormatSniffer {
                     return format
                 }
 
-                let namespaces: [XMLNamespace] = [
-                    (prefix: "enc", uri: "http://www.w3.org/2001/04/xmlenc#"),
-                    (prefix: "sig", uri: "http://www.w3.org/2000/09/xmldsig#"),
-                    (prefix: "adept", uri: "http://ns.adobe.com/adept"),
-                ]
+                let namespaces: [XMLNamespace] = [.enc, .sig, .adept]
 
                 if
                     document

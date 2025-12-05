@@ -109,10 +109,6 @@ public class Publication: Closeable, Loggable {
         services.filter { $0 is T } as! [T]
     }
 
-    /// Sets the URL where this `Publication`'s RWPM manifest is served.
-    @available(*, unavailable, message: "Not used anymore")
-    public func setSelfLink(href: String?) { fatalError() }
-
     /// Historically, we used to have "absolute" HREFs in the manifest:
     ///  - starting with a `/` for packaged publications.
     ///  - resolved to the `self` link for remote publications.
@@ -160,25 +156,6 @@ public class Publication: Closeable, Loggable {
         public static let pdf = Profile("https://readium.org/webpub-manifest/profiles/pdf")
     }
 
-    /// Errors occurring while opening a Publication.
-    @available(*, unavailable, message: "Not used anymore")
-    public enum OpeningError: Error {
-        /// The file format could not be recognized by any parser.
-        case unsupportedFormat
-        /// The publication file was not found on the file system.
-        case notFound
-        /// The publication parser failed with the given underlying error.
-        case parsingFailed(Error)
-        /// We're not allowed to open the publication at all, for example because it expired.
-        case forbidden(Error?)
-        /// The publication can't be opened at the moment, for example because of a networking error.
-        /// This error is generally temporary, so the operation may be retried or postponed.
-        case unavailable(Error?)
-        /// The provided credentials are incorrect and we can't open the publication in a
-        /// `restricted` state (e.g. for a password-protected ZIP).
-        case incorrectCredentials
-    }
-
     /// Holds the components of a `Publication` to build it.
     ///
     /// A `Publication`'s construction is distributed over the Streamer and its
@@ -224,48 +201,5 @@ public class Publication: Closeable, Loggable {
                 servicesBuilder: servicesBuilder
             )
         }
-    }
-
-    /// Format of the publication, if specified.
-    @available(*, unavailable, message: "Use publication.conforms(to:) to check the profile of a Publication")
-    public var format: Format { fatalError() }
-    /// Version of the publication's format, eg. 3 for EPUB 3
-    @available(*, unavailable, message: "This API will be removed in a future version. If you still need it, please explain your use case at https://github.com/readium/swift-toolkit/issues/new")
-    public var formatVersion: String? { fatalError() }
-
-    @available(*, unavailable, message: "Use publication.conforms(to:) to check the profile of a Publication")
-    public enum Format: Equatable, Hashable {
-        /// Formats natively supported by Readium.
-        case cbz, epub, pdf, webpub
-        /// Default value when the format is not specified.
-        case unknown
-    }
-
-    @available(*, unavailable, message: "Take a look at the migration guide to migrate to the new Preferences API")
-    public var userProperties: UserProperties { fatalError() }
-
-    @available(*, unavailable, message: "Take a look at the migration guide to migrate to the new Preferences API")
-    public var userSettingsUIPreset: [AnyHashable: Bool]? {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Take a look at the migration guide to migrate to the new Preferences API")
-    public var userSettingsUIPresetUpdated: (([AnyHashable: Bool]?) -> Void)? {
-        fatalError()
-    }
-
-    @available(*, unavailable, renamed: "linkWithHREF")
-    public func link(withHREF href: String) -> Link? {
-        fatalError()
-    }
-
-    @available(*, unavailable, renamed: "linkWithRel")
-    public func link(withRel rel: LinkRelation) -> Link? {
-        fatalError()
-    }
-
-    @available(*, unavailable, renamed: "linksWithRel")
-    public func links(withRel rel: LinkRelation) -> [Link] {
-        fatalError()
     }
 }

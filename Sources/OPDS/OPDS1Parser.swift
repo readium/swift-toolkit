@@ -80,9 +80,9 @@ public class OPDS1Parser: Loggable {
     /// - parameter document: The XMLDocument data
     /// - Returns: The resulting Feed
     private static func parse(document: ReadiumFuzi.XMLDocument, feedURL: URL) throws -> Feed {
-        document.definePrefix("thr", forNamespace: "http://purl.org/syndication/thread/1.0")
-        document.definePrefix("dcterms", forNamespace: "http://purl.org/dc/terms/")
-        document.definePrefix("opds", forNamespace: "http://opds-spec.org/2010/catalog")
+        document.defineNamespace(.thr)
+        document.defineNamespace(.dcterms)
+        document.defineNamespace(.opds)
 
         guard let root = document.root else {
             throw OPDS1ParserError.rootNotFound
@@ -92,6 +92,8 @@ public class OPDS1Parser: Loggable {
             throw OPDS1ParserError.missingTitle
         }
         let feed = Feed(title: title)
+
+        feed.metadata.identifier = root.firstChild(tag: "id")?.stringValue
 
         if let tmpDate = root.firstChild(tag: "updated")?.stringValue,
            let date = tmpDate.dateFromISO8601
@@ -103,6 +105,13 @@ public class OPDS1Parser: Loggable {
         }
         if let itemsPerPage = root.firstChild(tag: "ItemsPerPage")?.stringValue {
             feed.metadata.itemsPerPage = Int(itemsPerPage)
+        }
+
+        if let iconValue = root.firstChild(tag: "icon")?.stringValue,
+           let href = URLHelper.getAbsolute(href: iconValue, base: feedURL)
+        {
+            let iconLink = Link(href: href, rel: .icon)
+            feed.links.append(iconLink)
         }
 
         for entry in root.children(tag: "entry") {

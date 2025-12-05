@@ -278,64 +278,6 @@ class EPUBPositionsServiceTests: XCTestCase {
         ]]))
     }
 
-    func testFromMixedLayouts() async {
-        let service = makeService(
-            layout: .fixed,
-            readingOrder: [
-                (20000, Link(href: "chap1"), nil),
-                (60, Link(href: "chap2", properties: makeProperties(layout: .reflowable)), nil),
-                (20000, Link(href: "chap3", properties: makeProperties(layout: .fixed)), nil),
-            ],
-            reflowableStrategy: .archiveEntryLength(pageLength: 50)
-        )
-
-        let result = await service.positionsByReadingOrder()
-        XCTAssertEqual(result, .success([
-            [
-                Locator(
-                    href: "chap1",
-                    mediaType: .html,
-                    locations: Locator.Locations(
-                        progression: 0.0,
-                        totalProgression: 0.0,
-                        position: 1
-                    )
-                ),
-            ],
-            [
-                Locator(
-                    href: "chap2",
-                    mediaType: .html,
-                    locations: Locator.Locations(
-                        progression: 0.0,
-                        totalProgression: 1.0 / 4.0,
-                        position: 2
-                    )
-                ),
-                Locator(
-                    href: "chap2",
-                    mediaType: .html,
-                    locations: Locator.Locations(
-                        progression: 0.5,
-                        totalProgression: 2.0 / 4.0,
-                        position: 3
-                    )
-                ),
-            ],
-            [
-                Locator(
-                    href: "chap3",
-                    mediaType: .html,
-                    locations: Locator.Locations(
-                        progression: 0.0,
-                        totalProgression: 3.0 / 4.0,
-                        position: 4
-                    )
-                ),
-            ],
-        ]))
-    }
-
     func testArchiveEntryLengthStrategy() async {
         let service = makeService(
             layout: .reflowable,
@@ -383,10 +325,10 @@ class EPUBPositionsServiceTests: XCTestCase {
     }
 }
 
-func makeService(layout: EPUBLayout? = nil, readingOrder: [(UInt64, Link, ArchiveProperties?)], reflowableStrategy: EPUBPositionsService.ReflowableStrategy = .archiveEntryLength(pageLength: 50)) -> EPUBPositionsService {
+func makeService(layout: Layout? = nil, readingOrder: [(UInt64, Link, ArchiveProperties?)], reflowableStrategy: EPUBPositionsService.ReflowableStrategy = .archiveEntryLength(pageLength: 50)) -> EPUBPositionsService {
     EPUBPositionsService(
         readingOrder: readingOrder.map { _, l, _ in l },
-        presentation: Presentation(layout: layout),
+        layout: layout,
         container: MockContainer(readingOrder: readingOrder),
         reflowableStrategy: reflowableStrategy
     )

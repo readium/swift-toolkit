@@ -69,8 +69,21 @@ public struct RelativeURL: URLProtocol, Hashable {
         resolvedComponents.fragment = otherComponents.fragment
         resolvedComponents.query = otherComponents.query
 
-        guard let resolvedURL = resolvedComponents.url?.standardized else {
+        guard var resolvedURL = resolvedComponents.url?.standardized else {
             return nil
+        }
+
+        // Since iOS 26, resolving an `other` URL moving upwards in the
+        // hierarchy can result in an URL starting with a `/`, which is not
+        // what we want.
+        if
+            !path.hasPrefix("/"),
+            !other.path.hasPrefix("/"),
+            resolvedURL.path.hasPrefix("/"),
+            var components = URLComponents(url: resolvedURL, resolvingAgainstBaseURL: true)
+        {
+            components.path.removeFirst()
+            resolvedURL = components.url ?? resolvedURL
         }
 
         return RelativeURL(url: resolvedURL)

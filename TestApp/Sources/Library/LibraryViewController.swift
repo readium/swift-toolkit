@@ -11,6 +11,7 @@ import ReadiumNavigator
 import ReadiumOPDS
 import ReadiumShared
 import ReadiumStreamer
+import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
 import WebKit
@@ -20,9 +21,6 @@ protocol LibraryViewControllerFactory {
 }
 
 class LibraryViewController: UIViewController, Loggable {
-    typealias Factory = DetailsTableViewControllerFactory
-
-    var factory: Factory!
     private var books: [Book] = []
 
     weak var lastFlippedCell: PublicationCollectionViewCell?
@@ -51,7 +49,6 @@ class LibraryViewController: UIViewController, Loggable {
 
     @IBOutlet var collectionView: UICollectionView! {
         didSet {
-            collectionView.backgroundColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
             collectionView.contentInset = UIEdgeInsets(top: 15, left: 20,
                                                        bottom: 20, right: 20)
             collectionView.register(UINib(nibName: "PublicationCollectionViewCell", bundle: nil),
@@ -338,7 +335,7 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
         present(removePublicationAlert, animated: true, completion: nil)
     }
 
-    func displayInformation(forCellAt indexPath: IndexPath) {
+    func presentMetadata(forCellAt indexPath: IndexPath) {
         let book = books[indexPath.row]
 
         Task {
@@ -346,9 +343,9 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
                 guard let pub = try await library.openBook(book, sender: self) else {
                     return
                 }
-                let detailsViewController = self.factory.make(publication: pub)
-                detailsViewController.modalPresentationStyle = .popover
-                self.navigationController?.pushViewController(detailsViewController, animated: true)
+                let pubMetadataViewController = UIHostingController(rootView: PublicationMetadataView(publication: pub))
+                pubMetadataViewController.modalPresentationStyle = .popover
+                self.navigationController?.pushViewController(pubMetadataViewController, animated: true)
             } catch {
                 libraryDelegate?.presentError(UserError(error), from: self)
             }

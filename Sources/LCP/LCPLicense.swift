@@ -14,6 +14,14 @@ public protocol LCPLicense: UserRights {
     var license: LicenseDocument { get }
     var status: StatusDocument? { get }
 
+    /// The license is restricted if there is a status error.
+    var isRestricted: Bool { get }
+
+    /// Error detected after validating the license, which prevents the user
+    /// from decrypting the book. For example, the license is expired/revoked
+    /// or the passphrase was not provided.
+    var error: LCPError? { get }
+
     /// Deciphers the given encrypted data to be displayed in the reader.
     func decipher(_ data: Data) throws -> Data?
 
@@ -51,15 +59,5 @@ public protocol LCPLicense: UserRights {
 public extension LCPLicense {
     func renewLoan(with delegate: LCPRenewDelegate) async -> Result<Void, LCPError> {
         await renewLoan(with: delegate, prefersWebPage: false)
-    }
-
-    @available(*, unavailable, message: "Use the async variant.")
-    func renewLoan(with delegate: LCPRenewDelegate, prefersWebPage: Bool, completion: @escaping (CancellableResult<Void, LCPError>) -> Void) {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant.")
-    func returnPublication(completion: @escaping (LCPError?) -> Void) {
-        fatalError()
     }
 }

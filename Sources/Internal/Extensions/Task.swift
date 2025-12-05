@@ -37,3 +37,17 @@ public extension Task where Success == Never, Failure == Never {
         try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
     }
 }
+
+public extension Task<Void, Never>? {
+    /// Cancels the current task and starts a new one.
+    mutating func replace(@_implicitSelfCapture with operation: sending @escaping @isolated(any) () async -> Void) {
+        self?.cancel()
+        self = Task(operation: operation)
+    }
+
+    /// Cancels and nils out the task.
+    mutating func cancel() {
+        self?.cancel()
+        self = nil
+    }
+}

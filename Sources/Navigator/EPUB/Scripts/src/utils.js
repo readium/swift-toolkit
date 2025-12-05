@@ -25,21 +25,27 @@ window.addEventListener(
 window.addEventListener(
   "load",
   function () {
+    var pendingResize;
     const observer = new ResizeObserver(() => {
-      appendVirtualColumnIfNeeded();
-      onScroll();
+      if (pendingResize) {
+        window.cancelAnimationFrame(pendingResize);
+      }
+
+      pendingResize = window.requestAnimationFrame(function () {
+        onViewportWidthChanged();
+        onScroll();
+      });
     });
     observer.observe(document.body);
-
-    // on page load
-    window.addEventListener("orientationchange", function () {
-      orientationChanged();
-      snapCurrentPosition();
-    });
-    orientationChanged();
   },
   false
 );
+
+function onViewportWidthChanged() {
+  viewportWidth = window.innerWidth;
+  appendVirtualColumnIfNeeded();
+  snapCurrentPosition();
+}
 
 /**
  * Having an odd number of columns when displaying two columns per screen causes snapping and page
@@ -69,15 +75,16 @@ function appendVirtualColumnIfNeeded() {
   }
 }
 
-var last_known_scrollX_position = 0;
-var last_known_scrollY_position = 0;
+var lastKnownProgressions;
 var ticking = false;
-var maxScreenX = 0;
+var viewportWidth = 0;
 
-// Position in range [0 - 1].
-function update(position) {
-  var positionString = position.toString();
-  webkit.messageHandlers.progressionChanged.postMessage(positionString);
+/**
+ * First and last progressions in range [0 - 1].
+ * Expects an object {first, last}
+ */
+function notifyProgressions(progressions) {
+  webkit.messageHandlers.progressionChanged.postMessage(progressions);
 }
 
 window.addEventListener("scroll", onScroll);
@@ -87,28 +94,37 @@ function onScroll() {
     return;
   }
 
-  last_known_scrollY_position =
-    window.scrollY / document.scrollingElement.scrollHeight;
-  // Using Math.abs because for RTL books, the value will be negative.
-  last_known_scrollX_position = Math.abs(
-    window.scrollX / document.scrollingElement.scrollWidth
-  );
+  let root = document.scrollingElement;
+  if (isScrollModeEnabled() && !isVerticalWritingMode()) {
+    const scrollY = window.scrollY;
+    const viewportHeight = window.innerHeight;
+    const totalContentHeight = root.scrollHeight;
+    lastKnownProgressions = {
+      first: scrollY / totalContentHeight,
+      last: (scrollY + viewportHeight) / totalContentHeight,
+    };
+  } else {
+    let scrollX = window.scrollX;
+    const viewportWidth = window.innerWidth;
+    const totalContentWidth = root.scrollWidth;
+
+    if (isRTL()) {
+      scrollX = Math.abs(scrollX);
+    }
+    lastKnownProgressions = {
+      first: scrollX / totalContentWidth,
+      last: (scrollX + viewportWidth) / totalContentWidth,
+    };
+  }
 
   // Window is hidden
-  if (
-    document.scrollingElement.scrollWidth === 0 ||
-    document.scrollingElement.scrollHeight === 0
-  ) {
+  if (root.scrollWidth === 0 || root.scrollHeight === 0) {
     return;
   }
 
   if (!ticking) {
     window.requestAnimationFrame(function () {
-      update(
-        isScrollModeEnabled()
-          ? last_known_scrollY_position
-          : last_known_scrollX_position
-      );
+      notifyProgressions(lastKnownProgressions);
       ticking = false;
     });
   }
@@ -122,13 +138,6 @@ document.addEventListener(
   })
 );
 
-function orientationChanged() {
-  maxScreenX =
-    window.orientation === 0 || window.orientation == 180
-      ? screen.width
-      : screen.height;
-}
-
 export function getColumnCountPerScreen() {
   return parseInt(
     window
@@ -140,6 +149,21 @@ export function getColumnCountPerScreen() {
 export function isScrollModeEnabled() {
   const style = document.documentElement.style;
   return style.getPropertyValue("--USER__view").trim() == "readium-scroll-on";
+}
+
+export function isVerticalWritingMode() {
+  const writingMode = window
+    .getComputedStyle(document.documentElement)
+    .getPropertyValue("writing-mode");
+  return writingMode.startsWith("vertical");
+}
+
+export function isRTL() {
+  const style = window.getComputedStyle(document.documentElement);
+  return (
+    style.getPropertyValue("direction") == "rtl" ||
+    style.getPropertyValue("writing-mode") == "vertical-rl"
+  );
 }
 
 // Scroll to the given TagId in document and snap.
@@ -155,16 +179,21 @@ export function scrollToId(id) {
 
 // Position must be in the range [0 - 1], 0-100%.
 export function scrollToPosition(position, dir) {
-  console.log("ScrollToPosition");
   if (position < 0 || position > 1) {
-    console.log("InvalidPosition");
+    console.error(
+      `Expected a valid progression in scrollToPosition, got ${position}`
+    );
     return;
   }
 
   if (isScrollModeEnabled()) {
-    let offset = document.scrollingElement.scrollHeight * position;
-    document.scrollingElement.scrollTop = offset;
-    // window.scrollTo(0, offset);
+    if (!isVerticalWritingMode()) {
+      let offset = document.scrollingElement.scrollHeight * position;
+      document.scrollingElement.scrollTop = offset;
+    } else {
+      let offset = document.scrollingElement.scrollWidth * position;
+      document.scrollingElement.scrollLeft = -offset;
+    }
   } else {
     var documentWidth = document.scrollingElement.scrollWidth;
     var factor = dir == "rtl" ? -1 : 1;
@@ -234,9 +263,9 @@ function scrollToOffset(offset) {
 
 // Snap the offset to the screen width (page width).
 function snapOffset(offset) {
-  var value = offset + 1;
-
-  return value - (value % maxScreenX);
+  const delta = isRTL() ? -1 : 1;
+  const value = offset + delta;
+  return value - (value % viewportWidth);
 }
 
 function snapCurrentPosition() {

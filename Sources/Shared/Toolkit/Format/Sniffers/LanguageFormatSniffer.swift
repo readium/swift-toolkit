@@ -7,6 +7,8 @@
 import Foundation
 
 public class LanguageFormatSniffer: FormatSniffer {
+    public init() {}
+
     public func sniffHints(_ hints: FormatHints) -> Format? {
         // JavaScript
         if

@@ -229,6 +229,21 @@ class HTMLResourceContentIteratorTest: XCTestCase {
         XCTAssertEqual(elements[0], result)
     }
 
+    func testStartingFromProgression() async throws {
+        func next(from progression: Double) async throws -> AnyEquatableContentElement? {
+            try await iterator(html, start: locator(progression: progression)).next()?.equatable()
+        }
+
+        var result = try await next(from: 0.5)
+        XCTAssertEqual(result, elements[2])
+
+        result = try await next(from: 0.21)
+        XCTAssertEqual(result, elements[1])
+
+        result = try await next(from: 0.81)
+        XCTAssertEqual(result, elements[4])
+    }
+
     func testStartingFromCSSSelector() async throws {
         let iter = iterator(html, start: locator(selector: "#pgepubid00498 > p:nth-child(3)"))
 

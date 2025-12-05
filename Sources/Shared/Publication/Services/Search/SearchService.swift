@@ -55,18 +55,6 @@ public extension SearchIterator {
 
         return await next()
     }
-
-    @available(*, unavailable, message: "Use the async variant")
-    @discardableResult
-    func forEach(_ block: @escaping (LocatorCollection) throws -> Void, completion: @escaping (SearchResult<Void>) -> Void) -> Cancellable {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant")
-    @discardableResult
-    func next(completion: @escaping (SearchResult<LocatorCollection?>) -> Void) -> Cancellable {
-        fatalError()
-    }
 }
 
 /// Holds the available search options and their current values.
@@ -159,19 +147,6 @@ public extension Publication {
     }
 }
 
-public extension Publication {
-    @available(*, unavailable, renamed: "isSearchable")
-    var _isSearchable: Bool { fatalError() }
-
-    @available(*, unavailable, renamed: "searchOptions")
-    var _searchOptions: SearchOptions { fatalError() }
-
-    @available(*, unavailable, message: "Use the async variant")
-    func _search(query: String, options: SearchOptions? = nil, completion: @escaping (SearchResult<SearchIterator>) -> Void) -> Cancellable {
-        fatalError()
-    }
-}
-
 // MARK: PublicationServicesBuilder Helpers
 
 public extension PublicationServicesBuilder {
@@ -183,6 +158,3 @@ public extension PublicationServicesBuilder {
         }
     }
 }
-
-@available(*, unavailable, renamed: "SearchService")
-public typealias _SearchService = SearchService

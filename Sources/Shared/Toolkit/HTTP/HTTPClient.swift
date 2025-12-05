@@ -148,59 +148,6 @@ public extension HTTPClient {
             return .failure(error)
         }
     }
-
-    @available(*, unavailable, message: "Use the async variant.")
-    func stream(_ request: HTTPRequestConvertible, receiveResponse: ((HTTPResponse) -> Void)?, consume: @escaping (_ chunk: Data, _ progress: Double?) -> Void, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant.")
-    func stream(_ request: HTTPRequestConvertible, consume: @escaping (Data, Double?) -> Void, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant.")
-    func fetch(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<HTTPResponse>) -> Void) -> Cancellable {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant.")
-    func fetchSync(_ request: HTTPRequestConvertible) -> HTTPResult<HTTPResponse> {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant.")
-    func fetch<T>(
-        _ request: HTTPRequestConvertible,
-        decoder: @escaping (HTTPResponse, Data) throws -> T?,
-        completion: @escaping (HTTPResult<T>) -> Void
-    ) -> Cancellable {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant.")
-    func fetchJSON(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<[String: Any]>) -> Void) -> Cancellable {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant.")
-    func fetchString(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<String>) -> Void) -> Cancellable {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant.")
-    func fetchImage(_ request: HTTPRequestConvertible, completion: @escaping (HTTPResult<UIImage>) -> Void) -> Cancellable {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use the async variant.")
-    func download(
-        _ request: HTTPRequestConvertible,
-        onProgress: @escaping (Double) -> Void,
-        completion: @escaping (HTTPResult<HTTPDownload>) -> Void
-    ) -> Cancellable {
-        fatalError()
-    }
 }
 
 /// Status code of an HTTP response.
@@ -259,9 +206,6 @@ public struct HTTPResponse: Equatable {
 
     /// HTTP status code returned by the server.
     public let status: HTTPStatus
-
-    @available(*, unavailable, renamed: "status.rawValue")
-    public var statusCode: HTTPStatus { fatalError() }
 
     /// HTTP response headers, indexed by their name.
     public let headers: [String: String]

@@ -8,6 +8,8 @@ import Foundation
 
 /// Sniffs OPDS documents.
 public class OPDSFormatSniffer: FormatSniffer {
+    public init() {}
+
     public func sniffHints(_ hints: FormatHints) -> Format? {
         if hints.hasMediaType("application/atom+xml;type=entry;profile=opds-catalog") {
             return opds1Entry
@@ -36,7 +38,7 @@ public class OPDSFormatSniffer: FormatSniffer {
                     guard let document = $0 else {
                         return nil
                     }
-                    let namespaces = [(prefix: "atom", uri: "http://www.w3.org/2005/Atom")]
+                    let namespaces = [XMLNamespace.atom]
                     if document.first("/atom:feed", with: namespaces) != nil {
                         return opds1Catalog
                     } else if document.first("/atom:entry", with: namespaces) != nil {

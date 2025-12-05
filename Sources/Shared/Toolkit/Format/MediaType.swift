@@ -53,22 +53,6 @@ public struct MediaType: Hashable, Loggable, Sendable {
         parameters["charset"].flatMap { String.Encoding(charset: $0) }
     }
 
-    /// Returns the canonical version of this media type, if it is known.
-    ///
-    /// This is useful to find the name and file extension of a known media type, or to get the canonical media type
-    /// from an alias. For example, `application/x-cbz` is an alias of the canonical `application/vnd.comicbook+zip`.
-    ///
-    /// Non-significant parameters are also discarded.
-    @available(*, unavailable, message: "Use a FormatSniffer instead.")
-    public var canonicalized: MediaType {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "File extension was moved to `Format`")
-    public var fileExtension: String {
-        fatalError()
-    }
-
     /// Returns the UTI (Uniform Type Identifier) matching this media type, if any.
     public var uti: String? {
         UTI.findFrom(mediaTypes: [string], fileExtensions: [])?.string
@@ -220,13 +204,6 @@ public struct MediaType: Hashable, Loggable, Sendable {
     /// Returns whether this media type is of a Readium Web Publication Manifest.
     public var isRWPM: Bool {
         matchesAny(.readiumWebPubManifest, .readiumAudiobookManifest, .divinaManifest)
-    }
-
-    /// Returns whether this media type is declared in the Document Types section of the app's main
-    /// bundle.
-    @available(*, unavailable)
-    public var isSupportedDocumentType: Bool {
-        fatalError()
     }
 
     // MARK: Known Media Types

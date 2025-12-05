@@ -2,9 +2,118 @@
 
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
-**Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
-
 <!-- ## [Unreleased] -->
+
+## [3.5.0]
+
+### Added
+
+#### Navigator
+
+* Added `VisualNavigatorDelegate.navigatorContentInset(_:)` to customize the content and safe-area insets used by the navigator.
+    * By default, the navigator uses the window's `safeAreaInsets`, which can cause content to shift when the status bar is shown or hidden (since those insets change). To avoid this, implement `navigatorContentInset(_:)` and return insets that remain stable across status bar visibility changes — for example, a top inset large enough to accommodate the maximum expected status bar height.
+* Added `[TTSVoice].filterByLanguage(_:)` to filter TTS voices by language and region.
+* Added `[TTSVoice].sorted()` to sort TTS voices by region, quality, and gender.
+* New experimental positioning of EPUB decorations that places highlights behind text to improve legibility with opaque decorations (contributed by [@ddfreiling](https://github.com/readium/swift-toolkit/pull/665)).
+    * To opt-in, initialize the `EPUBNavigatorViewController.Configuration` object with `decorationTemplates: HTMLDecorationTemplate.defaultTemplates(alpha: 1.0, experimentalPositioning: true)`.
+
+#### LCP
+
+* Added an initializer parameter for providing a custom device identifier (contributed by [@dewantawsif](https://github.com/readium/swift-toolkit/pull/661)).
+    * You must ensure the identifier is unique and stable for the device (persist and reuse across app launches).
+    * Recommended: generate an app-scoped UUID and store it securely (e.g., in the Keychain); avoid hardware or advertising identifiers.
+* You can use `LCPService.injectLicenseDocument(_:in)` to insert an LCPL into a package, if you downloaded it manually instead of using `LCPService.acquirePublication()`.
+
+### Changed
+
+#### Navigator
+
+* `EPUBNavigatorViewController.Configuration.contentInset` now expects values that already include the safe area insets.
+    * If you previously supplied content-only margins, update them to add the safe-area values to preserve the same visible layout.
+    * Alternatively, implement `VisualNavigatorDelegate.navigatorContentInset(_:)` to compute and return the full insets (content + safe area), helping avoid layout shifts when system UI (e.g., the status bar) appears or disappears.
+* Eloquence and novelty TTS voices are removed from the `PublicationSpeechSynthesizer` API, as they are not a good fit to read publications.
+
+#### LCP
+
+* The LCP License Document is now accessible via `publication.lcpLicense?.license`, even if the license validation fails with a status error or missing passphrase. This is useful for checking the end date of an expired license or renew a license.
+
+### Fixed
+
+#### Navigator
+
+* The safe area insets strategy was adjusted to take into account changes in iOS/iPadOS 26.
+* Fixed the lost progression with the EPUB navigator when the application becomes active again after the system terminated the WebKit process.
+
+
+## [3.4.0]
+
+### Added
+
+#### Navigator
+
+* You can now access the `viewport` property of an `EPUBNavigatorViewController` to obtain information about the visible portion of the publication, including the visible positions and reading order indices.
+
+### Deprecated
+
+#### Shared
+
+* The Presentation Hints properties are deprecated from the Readium Web Publication Manifest models. [See the official documentation](https://readium.org/webpub-manifest/profiles/epub.html#appendix-b---deprecated-properties).
+
+### Changed
+
+#### Streamer
+
+* EPUB series added with Calibre now take precedence over the native EPUB ones in the `belongsToSeries` RWPM property.
+
+### Fixed
+
+#### Streamer
+
+* [#639](https://github.com/readium/swift-toolkit/issues/639) Optimized the opening of really large LCP protected publications.
+
+#### Navigator
+
+* [#70](https://github.com/readium/swift-toolkit/issues/70) Fixed restoring the reading progression with RTL EPUB.
+* EPUB vertical text in scrolling mode:
+    * [#556](https://github.com/readium/swift-toolkit/issues/556) Fixed reporting and restoring the reading progression.
+    * Added support for decorations (highlights).
+* [#635](https://github.com/readium/swift-toolkit/issues/635) Fixed overlapping FXL pages in landscape orientation.
+
+
+## [3.3.0]
+
+### Added
+
+#### Shared
+
+* Implementation of the [W3C Accessibility Metadata Display Guide](https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/) specification to facilitate displaying accessibility metadata to users. [See the dedicated user guide](docs/Guides/Accessibility.md).
+* Support for starting from a progression in the HTML content iterator.
+* New link `rels` in the `readingOrder` and EPUB `landmarks` to mark:
+    * `cover`: the title page
+    * `contents`: the table of contents
+    * `start`: the first actual chapter
+
+#### Navigator
+
+* A new `InputObserving` API has been added to enable more flexible gesture recognition and support for mouse pointers. [See the dedicated user guide](docs/Guides/Navigator/Input.md).
+
+#### Streamer
+
+* The EPUB 2 `<guide>` element is now parsed into the RWPM `landmarks` subcollection when no EPUB 3 `landmarks` navigation document is declared.
+
+#### LCP
+
+* A brand new LCP authentication dialog for SwiftUI applications. [See the accompanying user guide](docs/Guides/Readium%20LCP.md).
+
+### Fixed
+
+#### Navigator
+
+* Fixed several issues with the EPUB navigator cursor and pointer events.
+    * Fixed the cursor shape on iPadOS when using a physical trackpad or mouse.
+    * Fixed multiple tap events broadcasted while running on macOS.
+* [#449](https://github.com/readium/swift-toolkit/issues/449) Fixed misaligned EPUB navigator when it does not span the full screen width.
+
 
 ## [3.2.0]
 
@@ -897,3 +1006,6 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [3.0.0-beta.2]: https://github.com/readium/swift-toolkit/compare/3.0.0-beta.1...3.0.0-beta.2
 [3.1.0]: https://github.com/readium/swift-toolkit/compare/3.0.0...3.1.0
 [3.2.0]: https://github.com/readium/swift-toolkit/compare/3.1.0...3.2.0
+[3.3.0]: https://github.com/readium/swift-toolkit/compare/3.2.0...3.3.0
+[3.4.0]: https://github.com/readium/swift-toolkit/compare/3.3.0...3.4.0
+[3.5.0]: https://github.com/readium/swift-toolkit/compare/3.4.0...3.5.0

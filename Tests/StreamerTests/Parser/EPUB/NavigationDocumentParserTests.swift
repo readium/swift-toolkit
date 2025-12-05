@@ -33,8 +33,8 @@ class NavigationDocumentParserTests: XCTestCase {
         let sut = document.links(for: .landmarks)
 
         XCTAssertEqual(sut, [
-            Link(href: "/base/nav.xhtml#toc", title: "Table of Contents"),
-            Link(href: "/base/ch1.xhtml", title: "Begin Reading"),
+            Link(href: "/base/nav.xhtml#toc", title: "Table of Contents", rel: .contents),
+            Link(href: "/base/ch1.xhtml", title: "Begin Reading", rel: .start),
         ])
     }
 
@@ -60,8 +60,11 @@ class NavigationDocumentParserTests: XCTestCase {
         let sut = document.links(for: .landmarks)
 
         XCTAssertEqual(sut, [
-            Link(href: "/base/nav.xhtml#toc", title: "Table of Contents"),
-            Link(href: "/base/ch1.xhtml", title: "Begin Reading"),
+            Link(href: "/base/cover.xhtml", title: "Cover", rel: .cover),
+            Link(href: "/base/nav.xhtml#toc", title: "Table of Contents", rel: .contents),
+            Link(href: "/base/ch1.xhtml", title: "Begin Reading", rel: .start),
+            Link(href: "/base/index.xhtml", title: "Index", rel: "http://idpf.org/epub/vocab/structure/#index"),
+            Link(href: "/base/glossary.xhtml", title: "Glossary", rel: "http://idpf.org/epub/vocab/structure/#glossary"),
         ])
     }
 

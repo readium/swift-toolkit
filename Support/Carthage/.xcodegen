@@ -1,5 +1,5 @@
 # XCODEGEN VERSION
-2.38.0
+2.44.1
 
 # SPEC
 {
@@ -327,22 +327,23 @@
 ../../Sources/Internal/Extensions/UInt64.swift
 ../../Sources/Internal/Extensions/URL.swift
 ../../Sources/Internal/JSON.swift
-../../Sources/Internal/Memoize.swift
+../../Sources/Internal/Measure.swift
 ../../Sources/Internal/UTI.swift
 ../../Sources/LCP
 ../../Sources/LCP/Authentications
 ../../Sources/LCP/Authentications/Base.lproj
 ../../Sources/LCP/Authentications/Base.lproj/LCPDialogViewController.xib
 ../../Sources/LCP/Authentications/LCPAuthenticating.swift
+../../Sources/LCP/Authentications/LCPDialog.swift
 ../../Sources/LCP/Authentications/LCPDialogAuthentication.swift
 ../../Sources/LCP/Authentications/LCPDialogViewController.swift
+../../Sources/LCP/Authentications/LCPObservableAuthentication.swift
 ../../Sources/LCP/Authentications/LCPPassphraseAuthentication.swift
 ../../Sources/LCP/Content Protection
 ../../Sources/LCP/Content Protection/EncryptionParser.swift
 ../../Sources/LCP/Content Protection/LCPContentProtection.swift
 ../../Sources/LCP/Content Protection/LCPDecryptor.swift
 ../../Sources/LCP/LCPAcquiredPublication.swift
-../../Sources/LCP/LCPAcquisition.swift
 ../../Sources/LCP/LCPClient.swift
 ../../Sources/LCP/LCPError.swift
 ../../Sources/LCP/LCPLicense.swift
@@ -517,8 +518,21 @@
 ../../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/xpath.js
 ../../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/README.md
 ../../Sources/Navigator/EPUB/Scripts/webpack.config.js
-../../Sources/Navigator/EPUB/UserSettings.swift
-../../Sources/Navigator/KeyEvent.swift
+../../Sources/Navigator/Input
+../../Sources/Navigator/Input/CompositeInputObserver.swift
+../../Sources/Navigator/Input/InputObservable.swift
+../../Sources/Navigator/Input/InputObservable+Legacy.swift
+../../Sources/Navigator/Input/InputObservableViewController.swift
+../../Sources/Navigator/Input/InputObserving.swift
+../../Sources/Navigator/Input/InputObservingGestureRecognizerAdapter.swift
+../../Sources/Navigator/Input/Key
+../../Sources/Navigator/Input/Key/Key.swift
+../../Sources/Navigator/Input/Key/KeyEvent.swift
+../../Sources/Navigator/Input/Key/KeyModifiers.swift
+../../Sources/Navigator/Input/Key/KeyObserver.swift
+../../Sources/Navigator/Input/Pointer
+../../Sources/Navigator/Input/Pointer/ActivatePointerObserver.swift
+../../Sources/Navigator/Input/Pointer/PointerEvent.swift
 ../../Sources/Navigator/Navigator.swift
 ../../Sources/Navigator/PDF
 ../../Sources/Navigator/PDF/PDFDocumentHolder.swift
@@ -537,6 +551,7 @@
 ../../Sources/Navigator/Preferences/ProgressionStrategy.swift
 ../../Sources/Navigator/Preferences/ProxyPreference.swift
 ../../Sources/Navigator/Preferences/Types.swift
+../../Sources/Navigator/ReadingOrder.swift
 ../../Sources/Navigator/Resources
 ../../Sources/Navigator/Resources/en.lproj
 ../../Sources/Navigator/Resources/en.lproj/Localizable.strings
@@ -561,6 +576,7 @@
 ../../Sources/Navigator/TTS/AVTTSEngine.swift
 ../../Sources/Navigator/TTS/PublicationSpeechSynthesizer.swift
 ../../Sources/Navigator/TTS/TTSEngine.swift
+../../Sources/Navigator/TTS/TTSVoice.swift
 ../../Sources/Navigator/VisualNavigator.swift
 ../../Sources/OPDS
 ../../Sources/OPDS/OPDS1Parser.swift
@@ -568,6 +584,7 @@
 ../../Sources/OPDS/OPDSParser.swift
 ../../Sources/OPDS/ParseData.swift
 ../../Sources/OPDS/URLHelper.swift
+../../Sources/OPDS/XMLNamespace.swift
 ../../Sources/Shared
 ../../Sources/Shared/Logger
 ../../Sources/Shared/Logger/Loggable.swift
@@ -584,10 +601,10 @@
 ../../Sources/Shared/OPDS/OpdsMetadata.swift
 ../../Sources/Shared/OPDS/OPDSPrice.swift
 ../../Sources/Shared/Publication
-../../Sources/Shared/Publication/Accessibility.swift
-../../Sources/Shared/Publication/Asset
-../../Sources/Shared/Publication/Asset/FileAsset.swift
-../../Sources/Shared/Publication/Asset/PublicationAsset.swift
+../../Sources/Shared/Publication/Accessibility
+../../Sources/Shared/Publication/Accessibility/Accessibility.swift
+../../Sources/Shared/Publication/Accessibility/AccessibilityDisplayString+Generated.swift
+../../Sources/Shared/Publication/Accessibility/AccessibilityMetadataDisplayGuide.swift
 ../../Sources/Shared/Publication/Contributor.swift
 ../../Sources/Shared/Publication/Extensions
 ../../Sources/Shared/Publication/Extensions/Archive
@@ -612,6 +629,7 @@
 ../../Sources/Shared/Publication/Extensions/Presentation/Presentation.swift
 ../../Sources/Shared/Publication/Extensions/Presentation/Properties+Presentation.swift
 ../../Sources/Shared/Publication/HREFNormalizer.swift
+../../Sources/Shared/Publication/Layout.swift
 ../../Sources/Shared/Publication/Link.swift
 ../../Sources/Shared/Publication/LinkRelation.swift
 ../../Sources/Shared/Publication/LocalizedString.swift
@@ -627,7 +645,6 @@
 ../../Sources/Shared/Publication/Protection/ContentProtection.swift
 ../../Sources/Shared/Publication/Protection/FallbackContentProtection.swift
 ../../Sources/Shared/Publication/Publication.swift
-../../Sources/Shared/Publication/Publication+Deprecated.swift
 ../../Sources/Shared/Publication/PublicationCollection.swift
 ../../Sources/Shared/Publication/ReadingProgression.swift
 ../../Sources/Shared/Publication/Services
@@ -660,21 +677,17 @@
 ../../Sources/Shared/Publication/Services/Table Of Contents/TableOfContentsService.swift
 ../../Sources/Shared/Publication/Subject.swift
 ../../Sources/Shared/Publication/TDM.swift
-../../Sources/Shared/Publication/User Settings
-../../Sources/Shared/Publication/User Settings/UserProperties.swift
-../../Sources/Shared/Publication/User Settings/UserSettings.swift
-../../Sources/Shared/RootFile.swift
+../../Sources/Shared/Resources
+../../Sources/Shared/Resources/en-US.lproj
+../../Sources/Shared/Resources/en-US.lproj/W3CAccessibilityMetadataDisplayGuide.strings
 ../../Sources/Shared/Toolkit
 ../../Sources/Shared/Toolkit/Archive
-../../Sources/Shared/Toolkit/Archive/Archive.swift
 ../../Sources/Shared/Toolkit/Archive/ArchiveOpener.swift
 ../../Sources/Shared/Toolkit/Archive/ArchiveProperties.swift
 ../../Sources/Shared/Toolkit/Archive/CompositeArchiveOpener.swift
 ../../Sources/Shared/Toolkit/Archive/DefaultArchiveOpener.swift
-../../Sources/Shared/Toolkit/Archive/ExplodedArchive.swift
 ../../Sources/Shared/Toolkit/Atomic.swift
 ../../Sources/Shared/Toolkit/Cancellable.swift
-../../Sources/Shared/Toolkit/CancellableResult.swift
 ../../Sources/Shared/Toolkit/Closeable.swift
 ../../Sources/Shared/Toolkit/ControlFlow.swift
 ../../Sources/Shared/Toolkit/Data
@@ -683,7 +696,6 @@
 ../../Sources/Shared/Toolkit/Data/Asset/AssetRetriever.swift
 ../../Sources/Shared/Toolkit/Data/Container
 ../../Sources/Shared/Toolkit/Data/Container/Container.swift
-../../Sources/Shared/Toolkit/Data/Container/Fetcher.swift
 ../../Sources/Shared/Toolkit/Data/Container/SingleResourceContainer.swift
 ../../Sources/Shared/Toolkit/Data/Container/TransformingContainer.swift
 ../../Sources/Shared/Toolkit/Data/ReadError.swift
@@ -693,7 +705,6 @@
 ../../Sources/Shared/Toolkit/Data/Resource/CachingResource.swift
 ../../Sources/Shared/Toolkit/Data/Resource/DataResource.swift
 ../../Sources/Shared/Toolkit/Data/Resource/FailureResource.swift
-../../Sources/Shared/Toolkit/Data/Resource/LazyResource.swift
 ../../Sources/Shared/Toolkit/Data/Resource/Resource.swift
 ../../Sources/Shared/Toolkit/Data/Resource/ResourceContentExtractor.swift
 ../../Sources/Shared/Toolkit/Data/Resource/ResourceFactory.swift
@@ -702,17 +713,15 @@
 ../../Sources/Shared/Toolkit/Data/Resource/TransformingResource.swift
 ../../Sources/Shared/Toolkit/Data/Streamable.swift
 ../../Sources/Shared/Toolkit/DebugError.swift
-../../Sources/Shared/Toolkit/Deferred.swift
 ../../Sources/Shared/Toolkit/DocumentTypes.swift
-../../Sources/Shared/Toolkit/DownloadSession.swift
 ../../Sources/Shared/Toolkit/Either.swift
 ../../Sources/Shared/Toolkit/Extensions
 ../../Sources/Shared/Toolkit/Extensions/Bundle.swift
 ../../Sources/Shared/Toolkit/Extensions/Optional.swift
 ../../Sources/Shared/Toolkit/Extensions/Range.swift
+../../Sources/Shared/Toolkit/Extensions/String.swift
 ../../Sources/Shared/Toolkit/Extensions/StringEncoding.swift
 ../../Sources/Shared/Toolkit/Extensions/UIImage.swift
-../../Sources/Shared/Toolkit/Extensions/URL.swift
 ../../Sources/Shared/Toolkit/File
 ../../Sources/Shared/Toolkit/File/DirectoryContainer.swift
 ../../Sources/Shared/Toolkit/File/FileContainer.swift
@@ -725,7 +734,6 @@
 ../../Sources/Shared/Toolkit/Format/FormatSniffer.swift
 ../../Sources/Shared/Toolkit/Format/FormatSnifferBlob.swift
 ../../Sources/Shared/Toolkit/Format/MediaType.swift
-../../Sources/Shared/Toolkit/Format/MediaTypeSniffer.swift
 ../../Sources/Shared/Toolkit/Format/Sniffers
 ../../Sources/Shared/Toolkit/Format/Sniffers/AudiobookFormatSniffer.swift
 ../../Sources/Shared/Toolkit/Format/Sniffers/AudioFormatSniffer.swift
@@ -745,7 +753,6 @@
 ../../Sources/Shared/Toolkit/Format/Sniffers/RWPMFormatSniffer.swift
 ../../Sources/Shared/Toolkit/Format/Sniffers/XMLFormatSniffer.swift
 ../../Sources/Shared/Toolkit/Format/Sniffers/ZIPFormatSniffer.swift
-../../Sources/Shared/Toolkit/HREF.swift
 ../../Sources/Shared/Toolkit/HTTP
 ../../Sources/Shared/Toolkit/HTTP/DefaultHTTPClient.swift
 ../../Sources/Shared/Toolkit/HTTP/HTTPClient.swift
@@ -770,7 +777,6 @@
 ../../Sources/Shared/Toolkit/PDF/PDFKit.swift
 ../../Sources/Shared/Toolkit/PDF/PDFOutlineNode.swift
 ../../Sources/Shared/Toolkit/ReadiumLocalizedString.swift
-../../Sources/Shared/Toolkit/ResourcesServer.swift
 ../../Sources/Shared/Toolkit/Tokenizer
 ../../Sources/Shared/Toolkit/Tokenizer/TextTokenizer.swift
 ../../Sources/Shared/Toolkit/Tokenizer/Tokenizer.swift
@@ -815,10 +821,12 @@
 ../../Sources/Streamer/Parser/EPUB
 ../../Sources/Streamer/Parser/EPUB/EPUBContainerParser.swift
 ../../Sources/Streamer/Parser/EPUB/EPUBEncryptionParser.swift
+../../Sources/Streamer/Parser/EPUB/EPUBManifestParser.swift
 ../../Sources/Streamer/Parser/EPUB/EPUBMetadataParser.swift
 ../../Sources/Streamer/Parser/EPUB/EPUBParser.swift
 ../../Sources/Streamer/Parser/EPUB/Extensions
-../../Sources/Streamer/Parser/EPUB/Extensions/Presentation+EPUB.swift
+../../Sources/Streamer/Parser/EPUB/Extensions/Layout+EPUB.swift
+../../Sources/Streamer/Parser/EPUB/Extensions/LinkRelation+EPUB.swift
 ../../Sources/Streamer/Parser/EPUB/NavigationDocumentParser.swift
 ../../Sources/Streamer/Parser/EPUB/NCXParser.swift
 ../../Sources/Streamer/Parser/EPUB/OPFMeta.swift
@@ -827,6 +835,7 @@
 ../../Sources/Streamer/Parser/EPUB/Resource Transformers/EPUBDeobfuscator.swift
 ../../Sources/Streamer/Parser/EPUB/Services
 ../../Sources/Streamer/Parser/EPUB/Services/EPUBPositionsService.swift
+../../Sources/Streamer/Parser/EPUB/XMLNamespace.swift
 ../../Sources/Streamer/Parser/Image
 ../../Sources/Streamer/Parser/Image/ImageParser.swift
 ../../Sources/Streamer/Parser/PDF
@@ -839,10 +848,6 @@
 ../../Sources/Streamer/Parser/Readium
 ../../Sources/Streamer/Parser/Readium/ReadiumWebPubParser.swift
 ../../Sources/Streamer/PublicationOpener.swift
-../../Sources/Streamer/Server
-../../Sources/Streamer/Server/PublicationServer.swift
-../../Sources/Streamer/Server/WebServerResourceResponse.swift
-../../Sources/Streamer/Streamer.swift
 ../../Sources/Streamer/Toolkit
 ../../Sources/Streamer/Toolkit/DataCompression.swift
 ../../Sources/Streamer/Toolkit/Extensions

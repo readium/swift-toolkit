@@ -169,7 +169,6 @@ public struct EPUBSettings: ConfigurableSettings {
             readingProgression: readingProgression,
             scroll: scroll,
             spread: preferences.spread
-                ?? Spread(metadata.presentation.spread)
                 ?? defaults.spread
                 ?? .auto,
             textAlign: preferences.textAlign

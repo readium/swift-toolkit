@@ -6,36 +6,36 @@ settings:
 
 dependencies:
   '@juggle/resize-observer':
-    specifier: ^3.3.1
+    specifier: ^3.4.0
     version: 3.4.0
   approx-string-match:
     specifier: ^1.1.0
     version: 1.1.0
   css-selector-generator:
-    specifier: ^3.6.1
+    specifier: ^3.6.6
     version: 3.6.6
   string.prototype.matchall:
-    specifier: ^4.0.5
+    specifier: ^4.0.10
     version: 4.0.10
 
 devDependencies:
   '@babel/core':
-    specifier: ^7.16.0
+    specifier: ^7.23.9
     version: 7.23.9
   '@babel/preset-env':
-    specifier: ^7.16.0
+    specifier: ^7.23.9
     version: 7.23.9(@babel/core@7.23.9)
   babel-loader:
-    specifier: ^8.2.3
+    specifier: ^8.3.0
     version: 8.3.0(@babel/core@7.23.9)(webpack@5.90.1)
   eslint:
-    specifier: ^7.29.0
+    specifier: ^7.32.0
     version: 7.32.0
   prettier:
     specifier: 2.3.1
     version: 2.3.1
   webpack:
-    specifier: ^5.88.2
+    specifier: ^5.90.1
     version: 5.90.1(webpack-cli@5.1.4)
   webpack-cli:
     specifier: ^5.1.4
@@ -1675,7 +1675,7 @@ packages:
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
     dependencies:
-      caniuse-lite: 1.0.30001587
+      caniuse-lite: 1.0.30001717
       electron-to-chromium: 1.4.665
       node-releases: 2.0.14
       update-browserslist-db: 1.0.13(browserslist@4.22.3)
@@ -1700,8 +1700,8 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /caniuse-lite@1.0.30001587:
-    resolution: {integrity: sha512-HMFNotUmLXn71BQxg8cijvqxnIAofforZOwGsxyXJ0qugTdspUF4sPSJ2vhgprHCB996tIDzEq1ubumPDV8ULA==}
+  /caniuse-lite@1.0.30001717:
+    resolution: {integrity: sha512-auPpttCq6BDEG8ZAuHJIplGw6GODhjw+/11e7IjpnYCxZcW/ONgPs0KVBJ0d1bY3e2+7PRe5RCLyP+PfwVgkYw==}
     dev: true
 
   /chalk@2.4.2:

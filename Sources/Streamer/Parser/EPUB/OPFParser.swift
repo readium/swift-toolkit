@@ -48,7 +48,7 @@ final class OPFParser: Loggable {
     init(baseURL: RelativeURL, data: Data, displayOptionsData: Data? = nil, encryptions: [RelativeURL: Encryption]) throws {
         self.baseURL = baseURL
         document = try ReadiumFuzi.XMLDocument(data: data)
-        document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
+        document.defineNamespace(.opf)
         displayOptions = (displayOptionsData.map { try? ReadiumFuzi.XMLDocument(data: $0) }) ?? nil
         metas = OPFMetaList(document: document)
         self.encryptions = encryptions
@@ -77,18 +77,27 @@ final class OPFParser: Loggable {
         )
     }
 
+    struct Package {
+        let version: String
+        let metadata: Metadata
+        let readingOrder: [Link]
+        let resources: [Link]
+        let epub2Guide: [Link]
+    }
+
     /// Parse the OPF file of the EPUB container and return a `Publication`.
     /// It also complete the informations stored in the container.
-    func parsePublication() throws -> (version: String, metadata: Metadata, readingOrder: [Link], resources: [Link]) {
+    func parsePublication() throws -> Package {
         let links = parseLinks()
         let (resources, readingOrder) = splitResourcesAndReadingOrderLinks(links)
         let metadata = EPUBMetadataParser(document: document, displayOptions: displayOptions, metas: metas)
 
-        return try (
+        return try Package(
             version: parseEPUBVersion(),
             metadata: metadata.parse(),
             readingOrder: readingOrder,
-            resources: resources
+            resources: resources,
+            epub2Guide: parseEPUB2Guide()
         )
     }
 
@@ -97,6 +106,27 @@ final class OPFParser: Loggable {
         // Default EPUB Version value, used when no version hes been specified (see OPF_2.0.1_draft 1.3.2).
         let defaultVersion = "1.2"
         return document.firstChild(xpath: "/opf:package")?.attr("version") ?? defaultVersion
+    }
+
+    /// Parses EPUB 2 <guide> element into a list of `Link`.
+    ///
+    /// https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#TOC2.6
+    private func parseEPUB2Guide() -> [Link] {
+        document.xpath("/opf:package/opf:guide/opf:reference")
+            .compactMap { node -> Link? in
+                guard
+                    let relativeHref = node.attr("href").flatMap(RelativeURL.init(epubHREF:)),
+                    let href = baseURL.resolve(relativeHref)
+                else {
+                    return nil
+                }
+
+                return Link(
+                    href: href.string,
+                    title: node.attr("title")?.orNilIfBlank(),
+                    rel: node.attr("type").flatMap(LinkRelation.init(epub2Type:))
+                )
+            }
     }
 
     /// Parses XML elements of the <Manifest> in the package.opf file as a list of `Link`.
@@ -162,7 +192,7 @@ final class OPFParser: Loggable {
     private func makeLink(manifestItem: ReadiumFuzi.XMLElement, spineItem: ReadiumFuzi.XMLElement?, isCover: Bool) -> Link? {
         guard
             let relativeHref = manifestItem.attr("href").flatMap(RelativeURL.init(epubHREF:)),
-            let href = baseURL.resolve(relativeHref)
+            let href = baseURL.resolve(relativeHref)?.normalized
         else {
             return nil
         }
@@ -182,7 +212,7 @@ final class OPFParser: Loggable {
 
         var properties = parseStringProperties(stringProperties)
 
-        if let encryption = encryptions[equivalent: href]?.json, !encryption.isEmpty {
+        if let encryption = encryptions[href]?.json, !encryption.isEmpty {
             properties["encrypted"] = encryption
         }
 
@@ -203,11 +233,7 @@ final class OPFParser: Loggable {
     /// Parse string properties into an `otherProperties` dictionary.
     private func parseStringProperties(_ properties: [String]) -> [String: Any] {
         var contains: [String] = []
-        var layout: EPUBLayout?
-        var orientation: Presentation.Orientation?
-        var overflow: Presentation.Overflow?
-        var page: Presentation.Page?
-        var spread: Presentation.Spread?
+        var page: Properties.Page?
 
         for property in properties {
             switch property {
@@ -231,37 +257,6 @@ final class OPFParser: Loggable {
                 page = .right
             case "page-spread-center", "rendition:page-spread-center":
                 page = .center
-            // Spread
-            case "rendition:spread-none", "rendition:spread-auto":
-                // If we don't qualify `.none` here it sets it to `nil`.
-                spread = Presentation.Spread.none
-            case "rendition:spread-landscape":
-                spread = .landscape
-            case "rendition:spread-portrait":
-                // `portrait` is deprecated and should fallback to `both`.
-                // See. https://readium.org/architecture/streamer/parser/metadata#epub-3x-11
-                spread = .both
-            case "rendition:spread-both":
-                spread = .both
-            // Layout
-            case "rendition:layout-reflowable":
-                layout = .reflowable
-            case "rendition:layout-pre-paginated":
-                layout = .fixed
-            // Orientation
-            case "rendition:orientation-auto":
-                orientation = .auto
-            case "rendition:orientation-landscape":
-                orientation = .landscape
-            case "rendition:orientation-portrait":
-                orientation = .portrait
-            // Rendition
-            case "rendition:flow-auto":
-                overflow = .auto
-            case "rendition:flow-paginated":
-                overflow = .paginated
-            case "rendition:flow-scrolled-continuous", "rendition:flow-scrolled-doc":
-                overflow = .scrolled
             default:
                 continue
             }
@@ -271,20 +266,8 @@ final class OPFParser: Loggable {
         if !contains.isEmpty {
             otherProperties["contains"] = contains
         }
-        if let layout = layout {
-            otherProperties["layout"] = layout.rawValue
-        }
-        if let orientation = orientation {
-            otherProperties["orientation"] = orientation.rawValue
-        }
-        if let overflow = overflow {
-            otherProperties["overflow"] = overflow.rawValue
-        }
         if let page = page {
             otherProperties["page"] = page.rawValue
-        }
-        if let spread = spread {
-            otherProperties["spread"] = spread.rawValue
         }
 
         return otherProperties

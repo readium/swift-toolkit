@@ -77,8 +77,16 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         guard isWrapperLoaded else {
             return
         }
-        // Insets the bounds by the notch area (eg. iPhone X) to make sure that the content is not overlapped by the screen notch.
-        let insets = notchAreaInsets
+
+        var insets = delegate?.spreadViewContentInset(self) ?? .zero
+
+        // Use the same insets on the left and right side (the largest one) to
+        // keep the pages centered on the screen even if the notches are not
+        // symmetrical.
+        let horizontalInsets = max(insets.left, insets.right)
+        insets.left = horizontalInsets
+        insets.right = horizontalInsets
+
         let viewportSize = bounds.inset(by: insets).size
 
         webView.evaluateJavaScript("""
@@ -93,14 +101,16 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         guard isWrapperLoaded else {
             return
         }
-        Task {
-            await super.evaluateScript("spread.load(\(spread.jsonString(forBaseURL: viewModel.publicationBaseURL)));")
-        }
+        // We call this directly on the web view on purpose, because this needs
+        // to be executed before the spread is loaded.
+        let spreadJSON = spread.jsonString(
+            forBaseURL: viewModel.publicationBaseURL,
+            readingOrder: viewModel.readingOrder
+        )
+        webView.evaluateJavaScript("spread.load(\(spreadJSON));")
     }
 
-    override func spreadDidLoad() {
-        super.spreadDidLoad()
-
+    override func spreadDidLoad() async {
         for continuation in goToContinuations {
             continuation.resume()
         }
@@ -108,7 +118,6 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
     }
 
     override func evaluateScript(_ script: String, inHREF href: AnyURL? = nil) async -> Result<Any, any Error> {
-        await spreadLoaded()
         let href = href?.string ?? ""
         let script = "spread.eval('\(href)', `\(script.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "`", with: "\\`"))`);"
         return await super.evaluateScript(script)
@@ -149,7 +158,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         // Fixed layout resources are always fully visible so we don't use the
         // location.
 
-        if spreadLoaded {
+        if isSpreadLoaded {
             return
         } else {
             await withCheckedContinuation { continuation in

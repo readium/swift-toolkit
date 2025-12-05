@@ -28,29 +28,3 @@ public protocol Resource: Streamable {
     /// This is opened for extensions.
     func properties() async -> ReadResult<ResourceProperties>
 }
-
-public extension Resource {
-    @available(*, unavailable, message: "Not available anymore in a Resource")
-    var link: Link { fatalError() }
-
-    @available(*, unavailable, message: "Use the async variant")
-    var length: ResourceResult<UInt64> { fatalError() }
-
-    @available(*, unavailable, renamed: "sourceURL")
-    var file: FileURL? { fatalError() }
-
-    @available(*, unavailable, message: "Use the async variant")
-    func read(range: Range<UInt64>?) -> ResourceResult<Data> { fatalError() }
-
-    @available(*, unavailable, message: "Use the async variant")
-    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void, completion: @escaping (ReadResult<Void>) -> Void) -> Cancellable {
-        fatalError()
-    }
-}
-
-/// Errors occurring while accessing a resource.
-@available(*, unavailable, renamed: "ReadError")
-public typealias ResourceError = ReadError
-
-@available(*, unavailable, renamed: "ReadResult")
-public typealias ResourceResult<Success> = ReadResult<Success>

@@ -1,6 +1,6 @@
 # Readium Test App (Swift/iOS)
 
-This sample application demonstrates how to integrate the Readium Swift toolkit in your own reading app. Stable versions are [published on TestFlight](https://testflight.apple.com/join/lYEMEfBr).
+This sample application demonstrates how to integrate the Readium Swift toolkit in your own reading app.
 
 ## Features
 

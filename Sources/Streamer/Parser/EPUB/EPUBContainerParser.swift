@@ -14,7 +14,7 @@ final class EPUBContainerParser: Loggable {
 
     init(data: Data) throws {
         document = try XMLDocument(data: data)
-        document.definePrefix("cn", forNamespace: "urn:oasis:names:tc:opendocument:xmlns:container")
+        document.defineNamespace(.cn)
     }
 
     convenience init(container: Container) async throws {

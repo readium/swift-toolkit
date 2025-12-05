@@ -16,10 +16,10 @@ The Readium toolkit comes with several `Navigator` implementations for different
 | `CBZNavigatorViewController`  | `divina`    | Zipped Comic Book (`cbz`), Readium Divina (`.divina`)                 |
 | `AudioNavigator`              | `audiobook` | Zipped Audio Book (`.zab`), Readium Audiobook (`.audiobook`, `.lcpa`) |
 
-To find out which Navigator is compatible with a publication, refer to its [profile](https://readium.org/webpub-manifest/profiles/). Use `publication.conformsTo()` to identify the publication's profile.
+To find out which Navigator is compatible with a publication, refer to its [profile](https://readium.org/webpub-manifest/profiles/). Use `publication.conforms(to:)` to identify the publication's profile.
 
 ```swift
-if publication.conformsTo(.epub) {
+if publication.conforms(to: .epub) {
     let navigator = try EPUBNavigatorViewController(
         publication: publication,
         initialLocation: lastReadLocation,

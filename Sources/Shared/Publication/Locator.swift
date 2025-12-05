@@ -24,9 +24,6 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
     /// Textual context of the locator.
     public var text: Text
 
-    @available(*, unavailable, renamed: "mediaType")
-    public var type: String { mediaType.string }
-
     public init<T: URLConvertible>(href: T, mediaType: MediaType, title: String? = nil, locations: Locations = .init(), text: Text = .init()) {
         self.href = href.anyURL
         self.mediaType = mediaType
@@ -94,9 +91,6 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
             text: Text(json: jsonObject["text"], warnings: warnings)
         )
     }
-
-    @available(*, unavailable, message: "This may create an incorrect `Locator` if the link `type` is missing. Use `publication.locate(Link)` instead.")
-    public init(link: Link) { fatalError() }
 
     public var json: JSONDictionary.Wrapped {
         makeJSON([
@@ -341,9 +335,6 @@ public extension Array where Element == Locator {
         map(\.json)
     }
 }
-
-@available(*, unavailable, renamed: "LocatorCollection")
-public typealias _LocatorCollection = LocatorCollection
 
 /// Represents a sequential list of `Locator` objects.
 ///

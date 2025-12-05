@@ -19,10 +19,6 @@ public enum GCDHTTPServerError: Error {
 
 /// Implementation of `HTTPServer` using ReadiumGCDWebServer under the hood.
 public class GCDHTTPServer: HTTPServer, Loggable {
-    /// Shared instance of the HTTP server.
-    @available(*, unavailable, message: "Create your own shared instance")
-    public static var shared: GCDHTTPServer { fatalError() }
-
     /// The actual underlying HTTP server instance.
     private let server = ReadiumGCDWebServer()
 

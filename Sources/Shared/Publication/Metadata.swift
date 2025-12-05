@@ -54,6 +54,11 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
     /// as defined in a [W3C Community Group Report](https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/).
     public var tdm: TDM?
 
+    /// Hint about the nature of the layout for the publication.
+    ///
+    /// https://readium.org/webpub-manifest/contexts/default/#layout-and-reading-progression
+    public var layout: Layout?
+
     public var readingProgression: ReadingProgression
 
     /// Additional properties for extensions.
@@ -90,6 +95,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
         contributors: [Contributor] = [],
         publishers: [Contributor] = [],
         imprints: [Contributor] = [],
+        layout: Layout? = nil,
         readingProgression: ReadingProgression = .auto,
         description: String? = nil,
         duration: Double? = nil,
@@ -125,6 +131,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
         self.contributors = contributors
         self.publishers = publishers
         self.imprints = imprints
+        self.layout = layout
         self.readingProgression = readingProgression
         self.description = description
         self.duration = duration
@@ -180,6 +187,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
         contributors = [Contributor](json: json.pop("contributor"), warnings: warnings)
         publishers = [Contributor](json: json.pop("publisher"), warnings: warnings)
         imprints = [Contributor](json: json.pop("imprint"), warnings: warnings)
+        layout = parseRaw(json.pop("layout"))
         readingProgression = parseRaw(json.pop("readingProgression")) ?? .auto
         description = json.pop("description") as? String
         duration = parsePositiveDouble(json.pop("duration"))
@@ -217,6 +225,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
             "contributor": encodeIfNotEmpty(contributors.json),
             "publisher": encodeIfNotEmpty(publishers.json),
             "imprint": encodeIfNotEmpty(imprints.json),
+            "layout": encodeIfNotNil(layout?.rawValue),
             "readingProgression": readingProgression.rawValue,
             "description": encodeIfNotNil(description),
             "duration": encodeIfNotNil(duration),
@@ -232,82 +241,5 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
 
     public var belongsToSeries: [Collection] {
         belongsTo["series"] ?? []
-    }
-
-    @available(*, unavailable, renamed: "readingProgression")
-    public var effectiveReadingProgression: ReadingProgression { fatalError() }
-
-    /// Makes a copy of the `Metadata`, after modifying some of its properties.
-    @available(*, unavailable, message: "Make a mutable copy of the struct instead")
-    public func copy(
-        identifier: String?? = nil,
-        type: String?? = nil,
-        conformsTo: [Publication.Profile]? = nil,
-        title: LocalizedStringConvertible? = nil,
-        subtitle: LocalizedStringConvertible?? = nil,
-        accessibility: Accessibility?? = nil,
-        modified: Date?? = nil,
-        published: Date?? = nil,
-        languages: [String]? = nil,
-        sortAs: String?? = nil,
-        subjects: [Subject]? = nil,
-        authors: [Contributor]? = nil,
-        translators: [Contributor]? = nil,
-        editors: [Contributor]? = nil,
-        artists: [Contributor]? = nil,
-        illustrators: [Contributor]? = nil,
-        letterers: [Contributor]? = nil,
-        pencilers: [Contributor]? = nil,
-        colorists: [Contributor]? = nil,
-        inkers: [Contributor]? = nil,
-        narrators: [Contributor]? = nil,
-        contributors: [Contributor]? = nil,
-        publishers: [Contributor]? = nil,
-        imprints: [Contributor]? = nil,
-        readingProgression: ReadingProgression? = nil,
-        description: String?? = nil,
-        duration: Double?? = nil,
-        numberOfPages: Int?? = nil,
-        belongsTo: [String: [Collection]]? = nil,
-        belongsToCollections: [Collection]? = nil,
-        belongsToSeries: [Collection]? = nil,
-        tdm: TDM? = nil,
-        otherMetadata: JSONDictionary.Wrapped? = nil
-    ) -> Metadata {
-        Metadata(
-            identifier: identifier ?? self.identifier,
-            type: type ?? self.type,
-            conformsTo: conformsTo ?? self.conformsTo,
-            title: title ?? localizedTitle,
-            subtitle: subtitle ?? localizedSubtitle,
-            accessibility: accessibility ?? self.accessibility,
-            modified: modified ?? self.modified,
-            published: published ?? self.published,
-            languages: languages ?? self.languages,
-            sortAs: sortAs ?? self.sortAs,
-            subjects: subjects ?? self.subjects,
-            authors: authors ?? self.authors,
-            translators: translators ?? self.translators,
-            editors: editors ?? self.editors,
-            artists: artists ?? self.artists,
-            illustrators: illustrators ?? self.illustrators,
-            letterers: letterers ?? self.letterers,
-            pencilers: pencilers ?? self.pencilers,
-            colorists: colorists ?? self.colorists,
-            inkers: inkers ?? self.inkers,
-            narrators: narrators ?? self.narrators,
-            contributors: contributors ?? self.contributors,
-            publishers: publishers ?? self.publishers,
-            imprints: imprints ?? self.imprints,
-            readingProgression: readingProgression ?? self.readingProgression,
-            description: description ?? self.description,
-            duration: duration ?? self.duration,
-            numberOfPages: numberOfPages ?? self.numberOfPages,
-            belongsTo: belongsTo ?? self.belongsTo,
-            belongsToCollections: belongsToCollections ?? self.belongsToCollections,
-            belongsToSeries: belongsToSeries ?? self.belongsToSeries,
-            tdm: tdm ?? self.tdm,
-            otherMetadata: otherMetadata ?? self.otherMetadata
-        )
     }
 }

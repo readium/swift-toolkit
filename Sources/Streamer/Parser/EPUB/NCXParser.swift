@@ -31,7 +31,7 @@ final class NCXParser {
 
     private lazy var document: ReadiumFuzi.XMLDocument? = {
         let document = try? XMLDocument(data: data)
-        document?.definePrefix("ncx", forNamespace: "http://www.daisy.org/z3986/2005/ncx/")
+        document?.defineNamespace(.ncx)
         return document
     }()
 
@@ -65,6 +65,7 @@ final class NCXParser {
         NavigationDocumentParser.makeLink(
             title: element.firstChild(xpath: "ncx:navLabel/ncx:text")?.stringValue,
             href: element.firstChild(xpath: "ncx:content")?.attr("src").flatMap(RelativeURL.init(epubHREF:)),
+            rel: nil,
             children: links(in: element, nodeTagName: nodeTagName),
             baseURL: url
         )
