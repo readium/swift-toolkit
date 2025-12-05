@@ -70,6 +70,18 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             supportedValues: [.auto, .one, .two]
         )
 
+    /// Method for fitting the content within the viewport.
+    ///
+    /// Only effective with fixed-layout publications.
+    public lazy var fit: AnyEnumPreference<Fit> =
+        enumPreference(
+            preference: \.fit,
+            setting: \.fit,
+            defaultEffectiveValue: defaults.fit ?? .auto,
+            isEffective: { [layout] _ in layout == .fixed },
+            supportedValues: [.auto, .page, .width]
+        )
+
     /// Default typeface for the text.
     ///
     /// Only effective with reflowable publications.

@@ -123,6 +123,7 @@ struct UserPreferences<
                         fixedLayoutUserPreferences(
                             commit: commit,
                             backgroundColor: editor.backgroundColor,
+                            fit: editor.fit,
                             language: editor.language,
                             readingProgression: editor.readingProgression,
                             spread: editor.spread

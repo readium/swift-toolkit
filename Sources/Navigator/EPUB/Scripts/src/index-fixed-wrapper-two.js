@@ -6,12 +6,12 @@
 
 // Script used for the single spread wrapper HTML page for fixed layout resources.
 
-import { FixedPage } from "./fixed-page";
+import { FixedPage, PageType } from "./fixed-page";
 
 var pages = {
-  left: FixedPage("page-left"),
-  right: FixedPage("page-right"),
-  center: FixedPage("page-center"),
+  left: FixedPage("page-left", PageType.SPREAD_LEFT),
+  right: FixedPage("page-right", PageType.SPREAD_RIGHT),
+  center: FixedPage("page-center", PageType.SPREAD_CENTER),
 };
 
 function forEachPage(callback) {
@@ -76,28 +76,40 @@ global.spread = {
   },
 
   // Updates the available viewport to display the resources.
-  setViewport: function (viewportSize, safeAreaInsets) {
+  setViewport: function (viewportSize, safeAreaInsets, fit) {
     viewportSize.width /= 2;
 
-    pages.left.setViewport(viewportSize, {
-      top: safeAreaInsets.top,
-      right: 0,
-      bottom: safeAreaInsets.bottom,
-      left: safeAreaInsets.left,
-    });
+    pages.left.setViewport(
+      viewportSize,
+      {
+        top: safeAreaInsets.top,
+        right: 0,
+        bottom: safeAreaInsets.bottom,
+        left: safeAreaInsets.left,
+      },
+      fit
+    );
 
-    pages.right.setViewport(viewportSize, {
-      top: safeAreaInsets.top,
-      right: safeAreaInsets.right,
-      bottom: safeAreaInsets.bottom,
-      left: 0,
-    });
+    pages.right.setViewport(
+      viewportSize,
+      {
+        top: safeAreaInsets.top,
+        right: safeAreaInsets.right,
+        bottom: safeAreaInsets.bottom,
+        left: 0,
+      },
+      fit
+    );
 
-    pages.center.setViewport(viewportSize, {
-      top: safeAreaInsets.top,
-      right: 0,
-      bottom: safeAreaInsets.bottom,
-      left: 0,
-    });
+    pages.center.setViewport(
+      viewportSize,
+      {
+        top: safeAreaInsets.top,
+        right: 0,
+        bottom: safeAreaInsets.bottom,
+        left: 0,
+      },
+      fit
+    );
   },
 };

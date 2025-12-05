@@ -220,6 +220,7 @@ final class EPUBNavigatorViewModel: Loggable {
                 || oldSettings.verticalText != newSettings.verticalText
                 || oldSettings.scroll != newSettings.scroll
                 || oldSettings.spread != newSettings.spread
+                || oldSettings.fit != newSettings.fit
 
         // We don't commit the CSS changes if we invalidate the pagination, as
         // the resources will be reloaded anyway.

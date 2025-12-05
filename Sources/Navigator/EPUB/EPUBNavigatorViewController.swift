@@ -1043,10 +1043,23 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         // the application's bars.
         var insets = view.window?.safeAreaInsets ?? .zero
 
-        if publication.metadata.layout != .fixed {
+        switch publication.metadata.layout ?? .reflowable {
+        case .fixed:
+            // With iPadOS and macOS, we aim to display content edge-to-edge
+            // since there are no physical notches or Dynamic Island like on the
+            // iPhone.
+            if UIDevice.current.userInterfaceIdiom != .phone {
+                insets = .zero
+            }
+
+        case .reflowable:
             let configInset = config.contentInset(for: view.traitCollection.verticalSizeClass)
             insets.top = max(insets.top, configInset.top)
             insets.bottom = max(insets.bottom, configInset.bottom)
+
+        case .scrolled:
+            // Not supported with EPUB.
+            break
         }
 
         return insets
