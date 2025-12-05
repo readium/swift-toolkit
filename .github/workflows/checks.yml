@@ -7,17 +7,17 @@ on:
 
 env:
   platform: ${{ 'iOS Simulator' }}
-  device: ${{ 'iPhone 12' }}
+  device: ${{ 'iPhone SE (3rd generation)' }}
   commit_sha: ${{ github.sha }}
+  DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
 
 jobs:
   build:
     name: Build
-    runs-on: macos-12
+    runs-on: macos-14
     if: ${{ !github.event.pull_request.draft }}
     env:
       scheme: ${{ 'Readium-Package' }}
-      DEVELOPER_DIR: /Applications/Xcode_13.4.1.app/Contents/Developer
 
     steps:
       - name: Checkout
@@ -42,7 +42,7 @@ jobs:
 
   lint:
     name: Lint
-    runs-on: macos-12
+    runs-on: macos-14
     if: ${{ !github.event.pull_request.draft }}
     env:
       scripts: ${{ 'Sources/Navigator/EPUB/Scripts' }}
@@ -76,7 +76,7 @@ jobs:
 
   int-dev:
     name: Integration (Local)
-    runs-on: macos-12
+    runs-on: macos-14
     if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
@@ -98,7 +98,7 @@ jobs:
 
   int-spm:
     name: Integration (Swift Package Manager)
-    runs-on: macos-12
+    runs-on: macos-14
     if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
@@ -126,8 +126,8 @@ jobs:
 
   int-carthage:
     name: Integration (Carthage)
-    runs-on: macos-12
-    if: ${{ !github.event.pull_request.draft }}
+    runs-on: macos-14
+    if: ${{ !github.event.pull_request.draft && github.ref == 'refs/heads/main' }}
     defaults:
       run:
         working-directory: TestApp
@@ -152,26 +152,3 @@ jobs:
           set -eo pipefail
           xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
-  # Warning: This job cannot actually test the state of the current commit,
-  # but will check that the latest branch/tag set in the Podspecs are valid.
-  int-cocoapods:
-    name: Integration (CocoaPods)
-    if: github.event_name == 'push'
-    runs-on: macos-12
-    defaults:
-      run:
-        working-directory: TestApp
-    environment: LCP
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Install dependencies
-        run: |
-          brew update
-          brew install xcodegen
-      - name: Generate project
-        run: make cocoapods lcp=${{ secrets.LCP_URL_COCOAPODS }} commit=$commit_sha
-      - name: Build
-        run: |
-          set -eo pipefail
-          xcodebuild build -workspace TestApp.xcworkspace -scheme TestApp -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi

@@ -1,5 +1,5 @@
 //
-//  Copyright 2021 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -18,6 +18,20 @@ const ResizeObserver = window.ResizeObserver || ResizeObserverPolyfill;
 let styles = new Map();
 let groups = new Map();
 var lastGroupId = 0;
+
+/**
+ * Returns the document body's writing mode.
+ */
+function getDocumentWritingMode() {
+  return getComputedStyle(document.body).writingMode;
+}
+
+/**
+ * Returns the closest element ancestor of the given node.
+ */
+function getContainingElement(node) {
+  return node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+}
 
 /**
  * Registers a list of additional supported Decoration Templates.
@@ -59,31 +73,7 @@ export function getDecorations(groupName) {
  * Returns whether a decoration matched this event.
  */
 export function handleDecorationClickEvent(event, clickEvent) {
-  if (groups.size === 0) {
-    return false;
-  }
-
-  function findTarget() {
-    for (const [group, groupContent] of groups) {
-      if (!groupContent.isActivable()) {
-        continue;
-      }
-
-      for (const item of groupContent.items.reverse()) {
-        if (!item.clickableElements) {
-          continue;
-        }
-        for (const element of item.clickableElements) {
-          let rect = element.getBoundingClientRect().toJSON();
-          if (rectContainsPoint(rect, event.clientX, event.clientY, 1)) {
-            return { group, item, element, rect };
-          }
-        }
-      }
-    }
-  }
-
-  let target = findTarget();
+  let target = findDecorationTarget(event);
   if (!target) {
     return false;
   }
@@ -94,6 +84,34 @@ export function handleDecorationClickEvent(event, clickEvent) {
     click: clickEvent,
   });
   return true;
+}
+
+/**
+ * Finds any Decoration under the given pointer event, if any.
+ */
+export function findDecorationTarget(event) {
+  if (groups.size === 0) {
+    return null;
+  }
+
+  for (const [group, groupContent] of groups) {
+    if (!groupContent.isActivable()) {
+      continue;
+    }
+
+    for (const item of groupContent.items.reverse()) {
+      if (!item.clickableElements) {
+        continue;
+      }
+      for (const element of item.clickableElements) {
+        let rect = element.getBoundingClientRect().toJSON();
+        if (rectContainsPoint(rect, event.clientX, event.clientY, 1)) {
+          return { group, item, element, rect };
+        }
+      }
+    }
+  }
+  return null;
 }
 
 /**
@@ -187,46 +205,108 @@ export function DecorationGroup(groupId, groupName) {
     }
 
     let itemContainer = document.createElement("div");
-    itemContainer.setAttribute("id", item.id);
-    itemContainer.setAttribute("data-style", item.decoration.style);
-    itemContainer.style.setProperty("pointer-events", "none");
+    itemContainer.id = item.id;
+    itemContainer.dataset.style = item.decoration.style;
+    itemContainer.style.pointerEvents = "none";
 
-    let viewportWidth = window.innerWidth;
-    let columnCount = parseInt(
-      getComputedStyle(document.documentElement).getPropertyValue(
-        "column-count"
-      )
-    );
-    let pageWidth = viewportWidth / (columnCount || 1);
-    let scrollingElement = document.scrollingElement;
-    let xOffset = scrollingElement.scrollLeft;
-    let yOffset = scrollingElement.scrollTop;
+    const documentWritingMode = getDocumentWritingMode();
+    const isVertical =
+      documentWritingMode === "vertical-rl" ||
+      documentWritingMode === "vertical-lr";
 
-    function positionElement(element, rect, boundingRect) {
+    const scrollingElement = document.scrollingElement;
+    const { scrollLeft: xOffset, scrollTop: yOffset } = scrollingElement;
+    const viewportWidth = isVertical ? window.innerHeight : window.innerWidth;
+    const viewportHeight = isVertical ? window.innerWidth : window.innerHeight;
+
+    const columnCount =
+      parseInt(
+        getComputedStyle(document.documentElement).getPropertyValue(
+          "column-count"
+        )
+      ) || 1;
+    const pageSize =
+      (isVertical ? viewportHeight : viewportWidth) / columnCount;
+
+    function positionElement(element, rect, boundingRect, writingMode) {
       element.style.position = "absolute";
+      const isVerticalRL = writingMode === "vertical-rl";
+      const isVerticalLR = writingMode === "vertical-lr";
 
-      if (style.width === "wrap") {
-        element.style.width = `${rect.width}px`;
-        element.style.height = `${rect.height}px`;
-        element.style.left = `${rect.left + xOffset}px`;
-        element.style.top = `${rect.top + yOffset}px`;
-      } else if (style.width === "viewport") {
-        element.style.width = `${viewportWidth}px`;
-        element.style.height = `${rect.height}px`;
-        let left = Math.floor(rect.left / viewportWidth) * viewportWidth;
-        element.style.left = `${left + xOffset}px`;
-        element.style.top = `${rect.top + yOffset}px`;
-      } else if (style.width === "bounds") {
-        element.style.width = `${boundingRect.width}px`;
-        element.style.height = `${rect.height}px`;
-        element.style.left = `${boundingRect.left + xOffset}px`;
-        element.style.top = `${rect.top + yOffset}px`;
-      } else if (style.width === "page") {
-        element.style.width = `${pageWidth}px`;
-        element.style.height = `${rect.height}px`;
-        let left = Math.floor(rect.left / pageWidth) * pageWidth;
-        element.style.left = `${left + xOffset}px`;
-        element.style.top = `${rect.top + yOffset}px`;
+      if (isVerticalRL || isVerticalLR) {
+        if (style.width === "wrap") {
+          element.style.width = `${rect.width}px`;
+          element.style.height = `${rect.height}px`;
+          if (isVerticalRL) {
+            element.style.right = `${
+              -rect.right - xOffset + scrollingElement.clientWidth
+            }px`;
+          } else {
+            // vertical-lr
+            element.style.left = `${rect.left + xOffset}px`;
+          }
+          element.style.top = `${rect.top + yOffset}px`;
+        } else if (style.width === "viewport") {
+          element.style.width = `${rect.height}px`;
+          element.style.height = `${viewportWidth}px`;
+          const top = Math.floor(rect.top / viewportWidth) * viewportWidth;
+          if (isVerticalRL) {
+            element.style.right = `${-rect.right - xOffset}px`;
+          } else {
+            // vertical-lr
+            element.style.left = `${rect.left + xOffset}px`;
+          }
+          element.style.top = `${top + yOffset}px`;
+        } else if (style.width === "bounds") {
+          element.style.width = `${boundingRect.height}px`;
+          element.style.height = `${viewportWidth}px`;
+          if (isVerticalRL) {
+            element.style.right = `${
+              -boundingRect.right - xOffset + scrollingElement.clientWidth
+            }px`;
+          } else {
+            // vertical-lr
+            element.style.left = `${boundingRect.left + xOffset}px`;
+          }
+          element.style.top = `${boundingRect.top + yOffset}px`;
+        } else if (style.width === "page") {
+          element.style.width = `${rect.height}px`;
+          element.style.height = `${pageSize}px`;
+          const top = Math.floor(rect.top / pageSize) * pageSize;
+          if (isVerticalRL) {
+            element.style.right = `${
+              -rect.right - xOffset + scrollingElement.clientWidth
+            }px`;
+          } else {
+            // vertical-lr
+            element.style.left = `${rect.left + xOffset}px`;
+          }
+          element.style.top = `${top + yOffset}px`;
+        }
+      } else {
+        if (style.width === "wrap") {
+          element.style.width = `${rect.width}px`;
+          element.style.height = `${rect.height}px`;
+          element.style.left = `${rect.left + xOffset}px`;
+          element.style.top = `${rect.top + yOffset}px`;
+        } else if (style.width === "viewport") {
+          element.style.width = `${viewportWidth}px`;
+          element.style.height = `${rect.height}px`;
+          const left = Math.floor(rect.left / viewportWidth) * viewportWidth;
+          element.style.left = `${left + xOffset}px`;
+          element.style.top = `${rect.top + yOffset}px`;
+        } else if (style.width === "bounds") {
+          element.style.width = `${boundingRect.width}px`;
+          element.style.height = `${rect.height}px`;
+          element.style.left = `${boundingRect.left + xOffset}px`;
+          element.style.top = `${rect.top + yOffset}px`;
+        } else if (style.width === "page") {
+          element.style.width = `${pageSize}px`;
+          element.style.height = `${rect.height}px`;
+          const left = Math.floor(rect.left / pageSize) * pageSize;
+          element.style.left = `${left + xOffset}px`;
+          element.style.top = `${rect.top + yOffset}px`;
+        }
       }
     }
 
@@ -245,32 +325,38 @@ export function DecorationGroup(groupId, groupName) {
     }
 
     if (style.layout === "boxes") {
-      let doNotMergeHorizontallyAlignedRects = true;
-      let clientRects = getClientRectsNoOverlap(
+      const doNotMergeHorizontallyAlignedRects =
+        !documentWritingMode.startsWith("vertical");
+      const startElement = getContainingElement(item.range.startContainer);
+      // Decorated text may have a different writingMode from document body
+      const decoratorWritingMode = getComputedStyle(startElement).writingMode;
+
+      const clientRects = getClientRectsNoOverlap(
         item.range,
         doNotMergeHorizontallyAlignedRects
-      );
-
-      clientRects = clientRects.sort((r1, r2) => {
-        if (r1.top < r2.top) {
-          return -1;
-        } else if (r1.top > r2.top) {
-          return 1;
+      ).sort((r1, r2) => {
+        if (r1.top !== r2.top) return r1.top - r2.top;
+        if (decoratorWritingMode === "vertical-rl") {
+          return r2.left - r1.left;
+        } else if (decoratorWritingMode === "vertical-lr") {
+          return r1.left - r2.left;
         } else {
-          return 0;
+          return r1.left - r2.left;
         }
       });
 
       for (let clientRect of clientRects) {
         const line = elementTemplate.cloneNode(true);
-        line.style.setProperty("pointer-events", "none");
-        positionElement(line, clientRect, boundingRect);
+        line.style.pointerEvents = "none";
+        line.dataset.writingMode = decoratorWritingMode;
+        positionElement(line, clientRect, boundingRect, documentWritingMode);
         itemContainer.append(line);
       }
     } else if (style.layout === "bounds") {
       const bounds = elementTemplate.cloneNode(true);
-      bounds.style.setProperty("pointer-events", "none");
-      positionElement(bounds, boundingRect, boundingRect);
+      bounds.style.pointerEvents = "none";
+      bounds.dataset.writingMode = documentWritingMode;
+      positionElement(bounds, boundingRect, boundingRect, documentWritingMode);
 
       itemContainer.append(bounds);
     }
@@ -291,9 +377,9 @@ export function DecorationGroup(groupId, groupName) {
   function requireContainer() {
     if (!container) {
       container = document.createElement("div");
-      container.setAttribute("id", groupId);
-      container.setAttribute("data-group", groupName);
-      container.style.setProperty("pointer-events", "none");
+      container.id = groupId;
+      container.dataset.group = groupName;
+      container.style.pointerEvents = "none";
 
       requestAnimationFrame(function () {
         if (container != null) {

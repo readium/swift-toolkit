@@ -1,13 +1,13 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Combine
 import Foundation
-import R2Navigator
-import R2Shared
+import ReadiumNavigator
+import ReadiumShared
 import SwiftUI
 import UIKit
 
@@ -17,6 +17,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 
     private let ttsViewModel: TTSViewModel?
     private let ttsControlsViewController: UIHostingController<TTSControls>?
+    private var positionCount: Int?
 
     init(
         navigator: N,
@@ -39,9 +40,69 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             bookmarks: bookmarks
         )
 
+        setupUserInteraction()
         addHighlightDecorationsObserverOnce()
         updateHighlightDecorations()
-        updatePageListDecorations()
+
+        Task {
+            self.positionCount = try? await publication.positions().get().count
+
+            await updatePageListDecorations()
+        }
+    }
+
+    /// Setups the user interaction (e.g. taps) with the navigator.
+    private func setupUserInteraction() {
+        guard let navigator = navigator as? VisualNavigator else {
+            return
+        }
+
+        // Show a red dot at the location where the user tapped.
+//        navigator.addObserver(.tap { [weak self] event in
+//            guard let self else { return false }
+//
+//            let tapView = UIView(frame: .init(x: 0, y: 0, width: 50, height: 50))
+//            view.addSubview(tapView)
+//            tapView.backgroundColor = .red
+//            tapView.center = event.location
+//            tapView.layer.cornerRadius = 25
+//            tapView.layer.masksToBounds = true
+//            UIView.animate(withDuration: 0.8, animations: {
+//                tapView.alpha = 0
+//            }) { _ in
+//                tapView.removeFromSuperview()
+//            }
+//
+//            return false
+//        })
+
+        /// This adapter will automatically turn pages when the user taps the
+        /// screen edges or press arrow keys.
+        ///
+        /// Bind it to the navigator before adding your own observers to prevent
+        /// triggering your actions when turning pages.
+        DirectionalNavigationAdapter(
+            pointerPolicy: .init(types: [.mouse, .touch])
+        ).bind(to: navigator)
+
+        // Clear the current search highlight on tap.
+        navigator.addObserver(.activate { [weak self] _ in
+            guard
+                let searchViewModel = self?.searchViewModel,
+                searchViewModel.selectedLocator != nil
+            else {
+                return false
+            }
+
+            searchViewModel.selectedLocator = nil
+            return true
+        })
+
+        // Toggle the navigation bar on tap, if nothing else took precedence.
+        navigator.addObserver(.activate { [weak self] _ in
+            self?.toggleNavigationBar()
+            return true
+        })
     }
 
     @available(*, unavailable)
@@ -77,6 +138,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 
         if let state = ttsViewModel?.$state, let controls = ttsControlsViewController {
             controls.view.backgroundColor = .clear
+            controls.view.isHidden = true
 
             addChild(controls)
             controls.view.translatesAutoresizingMaskIntoConstraints = false
@@ -88,6 +150,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             controls.didMove(toParent: self)
 
             state
+                .receive(on: DispatchQueue.main)
                 .sink { state in
                     controls.view.isHidden = !state.showControls
                 }
@@ -143,32 +206,14 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
         super.navigator(navigator, locationDidChange: locator)
 
         positionLabel.text = {
-            if let position = locator.locations.position {
-                return "\(position) / \(publication.positions.count)"
+            if let positionCount = positionCount, let position = locator.locations.position {
+                return "\(position) / \(positionCount)"
             } else if let progression = locator.locations.totalProgression {
                 return "\(progression)%"
             } else {
                 return nil
             }
         }()
-    }
-
-    func navigator(_ navigator: VisualNavigator, didTapAt point: CGPoint) {
-        // Turn pages when tapping the edge of the screen.
-        guard !DirectionalNavigationAdapter(navigator: navigator).didTap(at: point) else {
-            return
-        }
-        // clear a current search highlight
-        if let decorator = self.navigator as? DecorableNavigator {
-            decorator.apply(decorations: [], in: "search")
-        }
-
-        toggleNavigationBar()
-    }
-
-    func navigator(_ navigator: VisualNavigator, didPressKey event: KeyEvent) {
-        // Turn pages when pressing the arrow keys.
-        DirectionalNavigationAdapter(navigator: navigator).didPressKey(event: event)
     }
 
     // MARK: - Highlights
@@ -225,7 +270,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             .assertNoFailure()
             .sink { [weak self] highlights in
                 if let self = self, let decorator = self.navigator as? DecorableNavigator {
-                    let decorations = highlights.map { Decoration(id: $0.id, locator: $0.locator, style: .highlight(tint: $0.color.uiColor, isActive: false)) }
+                    let decorations = highlights.map { Decoration(id: $0.id!.string, locator: $0.locator, style: .highlight(tint: $0.color.uiColor, isActive: false)) }
                     decorator.apply(decorations: decorations, in: self.highlightDecorationGroup)
                 }
             }
@@ -235,7 +280,8 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
     private func activateDecoration(_ event: OnDecorationActivatedEvent) {
         guard let highlights = highlights else { return }
 
-        currentHighlightCancellable = highlights.highlight(for: event.decoration.id).sink { _ in
+        let id = event.decoration.highlightID
+        currentHighlightCancellable = highlights.highlight(for: id).sink { _ in
         } receiveValue: { [weak self] highlight in
             guard let self = self else { return }
             self.activateDecoration(for: highlight, on: event)
@@ -252,14 +298,14 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 
         menuView.selectedColorPublisher.sink { [weak self] color in
             self?.currentHighlightCancellable?.cancel()
-            self?.updateHighlight(event.decoration.id, withColor: color)
+            self?.updateHighlight(event.decoration.highlightID, withColor: color)
             self?.highlightContextMenu?.dismiss(animated: true, completion: nil)
         }
         .store(in: &subscriptions)
 
         menuView.selectedDeletePublisher.sink { [weak self] _ in
             self?.currentHighlightCancellable?.cancel()
-            self?.deleteHighlight(event.decoration.id)
+            self?.deleteHighlight(event.decoration.highlightID)
             self?.highlightContextMenu?.dismiss(animated: true, completion: nil)
         }
         .store(in: &subscriptions)
@@ -280,6 +326,12 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
     }
 }
 
+extension Decoration {
+    var highlightID: Highlight.Id {
+        Highlight.Id(string: id)!
+    }
+}
+
 // MARK: - Page list decorations
 
 // This is an example on how to use custom decoration style to display the
@@ -291,26 +343,28 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 extension VisualReaderViewController {
     /// Will take the `publication.pageList` and create a `Decoration` for each
     /// label.
-    private func updatePageListDecorations() {
+    private func updatePageListDecorations() async {
         guard let navigator = navigator as? DecorableNavigator else {
             return
         }
 
-        let decorations: [Decoration] = publication.pageList.enumerated().compactMap { index, link in
-            guard let title = link.title,
-                  let locator = self.publication.locate(link)
+        var decorations: [Decoration] = []
+        for (index, link) in publication.pageList.enumerated() {
+            guard
+                let title = link.title,
+                let locator = await publication.locate(link)
             else {
-                return nil
+                continue
             }
 
-            return Decoration(
+            decorations.append(Decoration(
                 id: "page-list-\(index)",
                 locator: locator,
                 style: Decoration.Style(
                     id: .pageList,
                     config: PageListConfig(label: title)
                 )
-            )
+            ))
         }
         navigator.apply(decorations: decorations, in: "page-list")
     }

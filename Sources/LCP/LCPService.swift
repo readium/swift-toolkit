@@ -1,11 +1,12 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
+import UIKit
 
 /// Service used to acquire and open publications protected with LCP.
 ///
@@ -18,9 +19,23 @@ import R2Shared
 /// when presenting a dialog, for example.
 public final class LCPService: Loggable {
     private let licenses: LicensesService
-    private let passphrases: PassphrasesRepository
+    private let assetRetriever: AssetRetriever
 
-    public init(client: LCPClient, httpClient: HTTPClient = DefaultHTTPClient()) {
+    /// - Parameter deviceName: Device name used when registering a license to an LSD server.
+    ///   If not provided, the device name will be the default `UIDevice.current.name`.
+    /// - Parameter deviceId: Device ID used when registering a license to an LSD server.
+    ///   You must ensure the identifier is unique and stable for the device (persist and
+    ///   reuse across app launches). If not provided, the device ID will be generated as
+    ///   a random UUID.
+    public init(
+        client: LCPClient,
+        licenseRepository: LCPLicenseRepository,
+        passphraseRepository: LCPPassphraseRepository,
+        assetRetriever: AssetRetriever,
+        httpClient: HTTPClient,
+        deviceName: String? = nil,
+        deviceId: String? = nil
+    ) {
         // Determine whether the embedded liblcp.a is in production mode, by attempting to open a production license.
         let isProduction: Bool = {
             guard
@@ -33,55 +48,83 @@ public final class LCPService: Loggable {
             return client.findOneValidPassphrase(jsonLicense: prodLicense, hashedPassphrases: [passphrase]) == passphrase
         }()
 
-        let db = Database.shared
-        passphrases = db.transactions
         licenses = LicensesService(
             isProduction: isProduction,
             client: client,
-            licenses: db.licenses,
+            licenses: licenseRepository,
             crl: CRLService(httpClient: httpClient),
-            device: DeviceService(repository: db.licenses, httpClient: httpClient),
+            device: DeviceService(
+                deviceName: deviceName ?? UIDevice.current.name,
+                deviceId: deviceId,
+                repository: licenseRepository,
+                httpClient: httpClient
+            ),
+            assetRetriever: assetRetriever,
             httpClient: httpClient,
-            passphrases: PassphrasesService(client: client, repository: passphrases)
+            passphrases: PassphrasesService(
+                client: client,
+                repository: passphraseRepository
+            )
         )
+
+        self.assetRetriever = assetRetriever
     }
 
-    /// Returns whether the given `file` is protected by LCP.
-    public func isLCPProtected(_ file: URL) -> Bool {
-        warnIfMainThread()
-        return makeLicenseContainerSync(for: file)?.containsLicense() == true
+    /// Acquires a protected publication from an LCPL.
+    public func acquirePublication(
+        from lcpl: LicenseDocumentSource,
+        onProgress: @escaping (LCPProgress) -> Void = { _ in }
+    ) async -> Result<LCPAcquiredPublication, LCPError> {
+        await wrap {
+            try await licenses.acquirePublication(from: lcpl, onProgress: onProgress)
+        }
     }
 
-    /// Acquires a protected publication from a standalone LCPL file.
+    /// Injects a `licenseDocument` into a publication package at `url`.
     ///
-    /// You can cancel the on-going download with `acquisition.cancel()`.
-    @discardableResult
-    public func acquirePublication(from lcpl: URL, onProgress: @escaping (LCPAcquisition.Progress) -> Void = { _ in }, completion: @escaping (CancellableResult<LCPAcquisition.Publication, LCPError>) -> Void) -> LCPAcquisition {
-        licenses.acquirePublication(from: lcpl, onProgress: onProgress, completion: completion)
+    /// This is useful if you downloaded the publication yourself instead of using `acquirePublication`.
+    public func injectLicenseDocument(
+        _ license: LicenseDocument,
+        in url: FileURL
+    ) async -> Result<Void, LCPError> {
+        await wrap {
+            try await licenses.injectLicenseDocument(license, in: url)
+        }
     }
 
-    /// Opens the LCP license of a protected publication, to access its DRM metadata and decipher
-    /// its content.
+    /// Opens the LCP license of a protected publication, to access its DRM
+    /// metadata and decipher its content.
     ///
-    /// Returns `nil` if the publication is not protected with LCP.
+    /// If the updated license cannot be stored into the ``Asset``, you'll get
+    /// an exception if the license points to a LSD server that cannot be
+    /// reached, for instance because no Internet gateway is available.
+    ///
+    /// Updated licenses can currently be stored only into ``Asset``s whose
+    /// source property points to a `file://` URL.
     ///
     /// - Parameters:
-    ///   - authentication: Used to retrieve the user passphrase if it is not already known.
-    ///     The request will be cancelled if no passphrase is found in the LCP passphrase storage
-    ///     and in the given `authentication`.
-    ///   - allowUserInteraction: Indicates whether the user can be prompted for their passphrase.
-    ///   - sender: Free object that can be used by reading apps to give some UX context when
-    ///     presenting dialogs with `LCPAuthenticating`.
+    ///   - authentication: Used to retrieve the user passphrase if it is not
+    ///     already known. The request will be cancelled if no passphrase is
+    ///     found in the LCP passphrase storage and in the given
+    ///     `authentication`.
+    ///   - allowUserInteraction: Indicates whether the user can be prompted
+    ///     for their passphrase.
+    ///   - sender: Free object that can be used by reading apps to give some
+    ///     UX context when presenting dialogs with ``LCPAuthenticating``.
     public func retrieveLicense(
-        from publication: URL,
-        authentication: LCPAuthenticating = LCPDialogAuthentication(),
-        allowUserInteraction: Bool = true,
-        sender: Any? = nil,
-        completion: @escaping (CancellableResult<LCPLicense?, LCPError>) -> Void
-    ) {
-        licenses.retrieve(from: publication, authentication: authentication, allowUserInteraction: allowUserInteraction, sender: sender)
-            .map { $0 as LCPLicense? }
-            .resolve(completion)
+        from asset: Asset,
+        authentication: LCPAuthenticating,
+        allowUserInteraction: Bool,
+        sender: Any?
+    ) async -> Result<LCPLicense, LCPError> {
+        await wrap {
+            try await licenses.retrieve(
+                from: asset,
+                authentication: authentication,
+                allowUserInteraction: allowUserInteraction,
+                sender: sender
+            )
+        }
     }
 
     /// Creates a `ContentProtection` instance which can be used with a `Streamer` to unlock
@@ -90,7 +133,27 @@ public final class LCPService: Loggable {
     /// The provided `authentication` will be used to retrieve the user passphrase when opening an
     /// LCP license. The default implementation `LCPDialogAuthentication` presents a dialog to the
     /// user to enter their passphrase.
-    public func contentProtection(with authentication: LCPAuthenticating = LCPDialogAuthentication()) -> ContentProtection {
-        LCPContentProtection(service: self, authentication: authentication)
+    public func contentProtection(with authentication: LCPAuthenticating) -> ContentProtection {
+        LCPContentProtection(service: self, authentication: authentication, assetRetriever: assetRetriever)
     }
+
+    private func wrap<Success>(_ block: () async throws -> Success) async -> Result<Success, LCPError> {
+        do {
+            return try await .success(block())
+        } catch {
+            return .failure(.wrap(error))
+        }
+    }
+}
+
+/// Source of an LCP License Document (LCPL) file.
+public enum LicenseDocumentSource {
+    /// Raw bytes of the LCPL.
+    case data(Data)
+
+    /// LCPL or LCP protected package stored on the file system.
+    case file(FileURL)
+
+    /// LCPL already parsed to a ``LicenseDocument``.
+    case licenseDocument(LicenseDocument)
 }

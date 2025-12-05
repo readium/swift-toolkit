@@ -1,11 +1,11 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 
 /// Layout axis.
@@ -23,20 +23,6 @@ public enum Spread: String, Codable, Hashable {
     case never
     /// The publication should always be displayed in a spread.
     case always
-
-    init?(_ spread: R2Shared.Presentation.Spread?) {
-        guard let spread = spread else {
-            return nil
-        }
-        switch spread {
-        case .both:
-            self = .always
-        case .none:
-            self = .never
-        case .auto, .landscape:
-            self = .auto
-        }
-    }
 }
 
 /// Direction of the reading progression across resources.
@@ -44,7 +30,7 @@ public enum ReadingProgression: String, Codable, Hashable {
     case ltr
     case rtl
 
-    init?(_ readingProgression: R2Shared.ReadingProgression) {
+    init?(_ readingProgression: ReadiumShared.ReadingProgression) {
         switch readingProgression {
         case .ltr: self = .ltr
         case .rtl: self = .rtl
@@ -52,18 +38,18 @@ public enum ReadingProgression: String, Codable, Hashable {
         }
     }
 
-    /// Returns the leading Page for the reading progression.
-    var leadingPage: Presentation.Page {
+    /// Returns the starting page for the reading progression.
+    var startingPage: Properties.Page {
         switch self {
         case .ltr:
-            return .left
-        case .rtl:
             return .right
+        case .rtl:
+            return .left
         }
     }
 }
 
-extension R2Shared.ReadingProgression {
+extension ReadiumShared.ReadingProgression {
     init(_ readingProgression: ReadingProgression) {
         switch readingProgression {
         case .ltr: self = .ltr

@@ -1,11 +1,11 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// A Link to a resource.
 public struct Link {
@@ -50,27 +50,22 @@ public struct Link {
 
     /// Gets the valid URL if possible, applying the given template context as query parameters if the link is templated.
     /// eg. http://url{?id,name} + [id: x, name: y] -> http://url?id=x&name=y
-    func url(with parameters: [String: LosslessStringConvertible]) -> URL? {
+    public func url(parameters: [String: LosslessStringConvertible] = [:]) -> HTTPURL? {
         var href = href
 
         if templated {
             href = URITemplate(href).expand(with: parameters.mapValues { String(describing: $0) })
         }
 
-        return URL(string: href)
+        return HTTPURL(string: href)
     }
 
-    /// Expands the href without any template context.
-    var url: URL? {
-        url(with: [:])
-    }
-
-    var mediaType: MediaType {
-        type.flatMap { MediaType.of(mediaType: $0) } ?? .binary
+    public var mediaType: MediaType? {
+        type.flatMap { MediaType($0) }
     }
 
     /// List of URI template parameter keys, if the `Link` is templated.
-    var templateParameters: Set<String> {
+    public var templateParameters: Set<String> {
         guard templated else {
             return []
         }

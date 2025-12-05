@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -15,7 +15,12 @@ final class PDFTapGestureController: NSObject {
     private let tapAction: TargetAction
     private var tapRecognizer: UITapGestureRecognizer!
 
-    init(pdfView: PDFView, target: AnyObject, action: Selector) {
+    init(
+        pdfView: PDFView,
+        touchTypes: [UITouch.TouchType],
+        target: AnyObject,
+        action: Selector
+    ) {
         assert(pdfView.superview != nil, "The PDFView must be in the view hierarchy")
 
         self.pdfView = pdfView
@@ -24,24 +29,22 @@ final class PDFTapGestureController: NSObject {
         super.init()
 
         tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(didTap))
+        tapRecognizer.allowedTouchTypes = touchTypes.map { NSNumber(value: $0.rawValue) }
+        tapRecognizer.requiresExclusiveTouchType = true
 
-        if #available(iOS 13.0, *) {
-            // If we add the gesture on the superview on iOS 13, then it will be triggered when
-            // taping a link.
-            // The delegate will be used to make sure that this recognizer has a lower precedence
-            // over the default tap recognizer of the `PDFView`, which is used to handle links.
-            tapRecognizer.delegate = self
-            pdfView.addGestureRecognizer(tapRecognizer)
-
-        } else {
-            // Before iOS 13, the gesture must be on the superview to prevent conflicts.
-            pdfView.superview?.addGestureRecognizer(tapRecognizer)
-        }
+        // If we add the gesture on the superview on iOS 13, then it will be
+        // triggered when taping a link.
+        //
+        // The delegate will be used to make sure that this recognizer has a
+        // lower precedence over the default tap recognizer of the `PDFView`,
+        // which is used to handle links.
+        tapRecognizer.delegate = self
+        pdfView.addGestureRecognizer(tapRecognizer)
     }
 
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
-        // On iOS 13, the tap to clear text selection is broken by adding the tap recognizer, so
-        // we clear it manually.
+        // On iOS 13, the tap to clear text selection is broken by adding the
+        // tap recognizer, so we clear it manually.
         guard pdfView.currentSelection == nil else {
             pdfView.clearSelection()
             return

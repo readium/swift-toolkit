@@ -1,11 +1,11 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Editor for a set of `EPUBPreferences`.
 ///
@@ -21,7 +21,12 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         metadata: Metadata,
         defaults: EPUBDefaults
     ) {
-        layout = metadata.presentation.layout ?? .reflowable
+        switch metadata.layout {
+        case .fixed:
+            layout = .fixed
+        default:
+            layout = .reflowable
+        }
         self.defaults = defaults
 
         super.init(
@@ -304,7 +309,9 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.scroll,
             setting: \.scroll,
             defaultEffectiveValue: defaults.scroll ?? false,
-            isEffective: { [layout] _ in layout == .reflowable }
+            isEffective: { [layout] in
+                layout == .reflowable && !$0.settings.verticalText
+            }
         )
 
     /// Indicates if the fixed-layout publication should be rendered with a

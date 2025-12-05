@@ -1,28 +1,27 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 
-/// Base implementation of `SearchService` iterating through the content of Publication's resources.
+/// Base implementation of `SearchService` iterating through the content of
+/// Publication's resources.
 ///
-/// To stay media-type-agnostic, `StringSearchService` relies on `ResourceContentExtractor` implementations to retrieve
-/// the pure text content from markups (e.g. HTML) or binary (e.g. PDF) resources.
+/// To stay media-type-agnostic, `StringSearchService` relies on
+/// `ResourceContentExtractor` implementations to retrieve the pure text
+/// content from markups (e.g. HTML) or binary (e.g. PDF) resources.
 ///
 /// The actual search is implemented by the provided `searchAlgorithm`.
-///
-/// **WARNING:** This API is experimental and may change or be removed in a future release without
-/// notice. Use with caution.
-public class _StringSearchService: _SearchService {
+public class StringSearchService: SearchService {
     public static func makeFactory(
         snippetLength: Int = 200,
         searchAlgorithm: StringSearchAlgorithm = BasicStringSearchAlgorithm(),
         extractorFactory: _ResourceContentExtractorFactory = _DefaultResourceContentExtractorFactory()
-    ) -> (PublicationServiceContext) -> _StringSearchService? {
+    ) -> (PublicationServiceContext) -> StringSearchService? {
         { context in
-            _StringSearchService(
+            StringSearchService(
                 publication: context.publication,
                 language: context.manifest.metadata.language,
                 snippetLength: snippetLength,
@@ -52,27 +51,20 @@ public class _StringSearchService: _SearchService {
         self.options = options
     }
 
-    public func search(query: String, options: SearchOptions?, completion: @escaping (SearchResult<SearchIterator>) -> Void) -> Cancellable {
-        let cancellable = CancellableObject()
-
-        DispatchQueue.main.async(unlessCancelled: cancellable) { [self] in
-            guard let publication = publication() else {
-                completion(.failure(.cancelled))
-                return
-            }
-
-            completion(.success(Iterator(
-                publication: publication,
-                language: language,
-                snippetLength: snippetLength,
-                searchAlgorithm: searchAlgorithm,
-                extractorFactory: extractorFactory,
-                query: query,
-                options: options
-            )))
+    public func search(query: String, options: SearchOptions?) async -> SearchResult<any SearchIterator> {
+        guard let publication = publication() else {
+            return .failure(.publicationNotSearchable)
         }
 
-        return cancellable
+        return .success(Iterator(
+            publication: publication,
+            language: language,
+            snippetLength: snippetLength,
+            searchAlgorithm: searchAlgorithm,
+            extractorFactory: extractorFactory,
+            query: query,
+            options: options
+        ))
     }
 
     private class Iterator: SearchIterator, Loggable {
@@ -107,59 +99,49 @@ public class _StringSearchService: _SearchService {
         /// Index of the last reading order resource searched in.
         private var index = -1
 
-        func next(completion: @escaping (SearchResult<_LocatorCollection?>) -> Void) -> Cancellable {
-            let cancellable = CancellableObject()
-            DispatchQueue.global().async(unlessCancelled: cancellable) {
-                self.findNext(cancellable) { result in
-                    DispatchQueue.main.async(unlessCancelled: cancellable) {
-                        completion(result)
-                    }
-                }
-            }
-            return cancellable
-        }
+        func next() async -> SearchResult<LocatorCollection?> {
+            while index < publication.readingOrder.count - 1 {
+                index += 1
 
-        private func findNext(_ cancellable: CancellableObject, _ completion: @escaping (SearchResult<_LocatorCollection?>) -> Void) {
-            guard index < publication.readingOrder.count - 1 else {
-                completion(.success(nil))
-                return
-            }
+                let link = publication.readingOrder[index]
 
-            index += 1
-
-            let link = publication.readingOrder[index]
-            let resource = publication.get(link)
-
-            do {
-                guard let extractor = extractorFactory.makeExtractor(for: resource) else {
+                guard
+                    let resource = publication.get(link),
+                    let mediaType = link.mediaType,
+                    let extractor = extractorFactory.makeExtractor(for: resource, mediaType: mediaType)
+                else {
                     log(.warning, "Cannot extract text from resource: \(link.href)")
-                    return findNext(cancellable, completion)
-                }
-                let text = try extractor.extractText(of: resource).get()
-
-                let locators = findLocators(in: link, resourceIndex: index, text: text, cancellable: cancellable)
-                // If no occurrences were found in the current resource, skip to the next one automatically.
-                guard !locators.isEmpty else {
-                    return findNext(cancellable, completion)
+                    continue
                 }
 
-                resultCount = (resultCount ?? 0) + locators.count
-                completion(.success(_LocatorCollection(locators: locators)))
+                switch await extractor.extractText(of: resource) {
+                case let .success(text):
+                    let locators = await findLocators(in: link, resourceIndex: index, text: text)
+                    // If no occurrences were found in the current resource, skip to the next one automatically.
+                    guard !locators.isEmpty else {
+                        continue
+                    }
 
-            } catch {
-                completion(.failure(.wrap(error)))
+                    resultCount = (resultCount ?? 0) + locators.count
+                    return .success(LocatorCollection(locators: locators))
+
+                case let .failure(error):
+                    return .failure(.reading(error))
+                }
             }
+
+            return .success(nil)
         }
 
-        private func findLocators(in link: Link, resourceIndex: Int, text: String, cancellable: CancellableObject) -> [Locator] {
+        private func findLocators(in link: Link, resourceIndex: Int, text: String) async -> [Locator] {
             guard
                 !text.isEmpty,
-                var resourceLocator = publication.locate(link)
+                var resourceLocator = await publication.locate(link)
             else {
                 return []
             }
 
-            let title = publication.tableOfContents.titleMatchingHREF(link.href)
+            let title = await publication.tableOfContents().getOrNil()?.titleMatchingHREF(link.href)
             resourceLocator = resourceLocator.copy(
                 title: Optional(title ?? link.title)
             )
@@ -168,22 +150,22 @@ public class _StringSearchService: _SearchService {
 
             let currentLanguage = options.language ?? language
 
-            for range in searchAlgorithm.findRanges(of: query, options: options, in: text, language: currentLanguage, cancellable: cancellable) {
-                guard !cancellable.isCancelled else {
+            for range in await searchAlgorithm.findRanges(of: query, options: options, in: text, language: currentLanguage) {
+                guard !Task.isCancelled else {
                     return locators
                 }
 
-                locators.append(makeLocator(resourceIndex: index, resourceLocator: resourceLocator, text: text, range: range))
+                await locators.append(makeLocator(resourceIndex: index, resourceLocator: resourceLocator, text: text, range: range))
             }
 
             return locators
         }
 
-        private func makeLocator(resourceIndex: Int, resourceLocator: Locator, text: String, range: Range<String.Index>) -> Locator {
+        private func makeLocator(resourceIndex: Int, resourceLocator: Locator, text: String, range: Range<String.Index>) async -> Locator {
             let progression = max(0.0, min(1.0, Double(range.lowerBound.utf16Offset(in: text)) / Double(text.endIndex.utf16Offset(in: text))))
 
             var totalProgression: Double? = nil
-            let positions = publication.positionsByReadingOrder
+            let positions = await publication.positionsByReadingOrder().getOrNil() ?? []
             if let resourceStartTotalProg = positions.getOrNil(resourceIndex)?.first?.locations.totalProgression {
                 let resourceEndTotalProg = positions.getOrNil(resourceIndex + 1)?.first?.locations.totalProgression ?? 1.0
                 totalProgression = resourceStartTotalProg + progression * (resourceEndTotalProg - resourceStartTotalProg)
@@ -240,9 +222,12 @@ public protocol StringSearchAlgorithm {
     var options: SearchOptions { get }
 
     /// Finds all the ranges of occurrences of the given `query` in the `text`.
-    ///
-    /// Implementers should check `cancellable.isCancelled` frequently to abort the search if needed.
-    func findRanges(of query: String, options: SearchOptions, in text: String, language: Language?, cancellable: CancellableObject) -> [Range<String.Index>]
+    func findRanges(
+        of query: String,
+        options: SearchOptions,
+        in text: String,
+        language: Language?
+    ) async -> [Range<String.Index>]
 }
 
 /// A basic `StringSearchAlgorithm` using the native `String.range(of:)` APIs.
@@ -256,7 +241,12 @@ public class BasicStringSearchAlgorithm: StringSearchAlgorithm {
 
     public init() {}
 
-    public func findRanges(of query: String, options: SearchOptions, in text: String, language: Language?, cancellable: CancellableObject) -> [Range<Swift.String.Index>] {
+    public func findRanges(
+        of query: String,
+        options: SearchOptions,
+        in text: String,
+        language: Language?
+    ) async -> [Range<String.Index>] {
         var compareOptions: NSString.CompareOptions = []
         if options.regularExpression ?? false {
             compareOptions.insert(.regularExpression)
@@ -274,7 +264,7 @@ public class BasicStringSearchAlgorithm: StringSearchAlgorithm {
         var ranges: [Range<String.Index>] = []
         var index = text.startIndex
         while
-            !cancellable.isCancelled,
+            !Task.isCancelled,
             index < text.endIndex,
             let range = text.range(of: query, options: compareOptions, range: index ..< text.endIndex, locale: language?.locale),
             !range.isEmpty

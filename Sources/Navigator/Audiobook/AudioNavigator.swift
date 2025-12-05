@@ -1,12 +1,12 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import AVFoundation
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Status of a played media resource.
 public enum MediaPlaybackState {
@@ -50,7 +50,7 @@ public struct MediaPlaybackInfo {
     }
 }
 
-public protocol AudioNavigatorDelegate: NavigatorDelegate {
+@MainActor public protocol AudioNavigatorDelegate: NavigatorDelegate {
     /// Called when the playback updates.
     func navigator(_ navigator: AudioNavigator, playbackDidChange info: MediaPlaybackInfo)
 
@@ -75,7 +75,7 @@ public extension AudioNavigatorDelegate {
 ///
 /// * Readium Audiobook
 /// * ZAB (Zipped Audio Book)
-open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
+public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
     public weak var delegate: AudioNavigatorDelegate?
 
     public struct Configuration {
@@ -108,7 +108,7 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
         }
     }
 
-    public let publication: Publication
+    public nonisolated let publication: Publication
     private let initialLocation: Locator?
     private let config: Configuration
 
@@ -121,7 +121,6 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
     ) {
         self.publication = publication
         self.initialLocation = initialLocation
-            ?? publication.readingOrder.first.flatMap { publication.locate($0) }
         self.config = config
 
         let durations = publication.readingOrder.map { $0.duration ?? 0 }
@@ -137,6 +136,11 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
     }
 
     deinit {
+        if let timeObserver = timeObserver {
+            player.removeTimeObserver(timeObserver)
+        }
+
+        playTask?.cancel()
         AudioSession.shared.end(for: self)
     }
 
@@ -182,14 +186,26 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
         player.currentTime().secondsOrZero
     }
 
+    private var playTask: Task<Void, Never>? {
+        willSet {
+            playTask?.cancel()
+        }
+    }
+
     /// Resumes or start the playback.
     public func play() {
-        AudioSession.shared.start(with: self, isPlaying: false)
+        playTask = Task { @MainActor in
+            AudioSession.shared.start(with: self, isPlaying: false)
 
-        if player.currentItem == nil, let location = initialLocation {
-            go(to: location)
+            if player.currentItem == nil {
+                if let location = initialLocation {
+                    await go(to: location)
+                } else if let link = publication.readingOrder.first {
+                    await go(to: link)
+                }
+            }
+            player.playImmediately(atRate: Float(settings.speed))
         }
-        player.playImmediately(atRate: Float(settings.speed))
     }
 
     /// Pauses the playback.
@@ -208,18 +224,26 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
     }
 
     /// Seeks to the given time in the current resource.
-    public func seek(to time: Double) {
-        player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
+    public func seek(to time: Double) async {
+        let wasPlaying = (state == .playing)
+        pause()
+
+        await player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
+
+        if wasPlaying {
+            play()
+        }
     }
 
     /// Seeks relatively from the current time in the current resource.
-    public func seek(by delta: Double) {
-        seek(to: currentTime + delta)
+    public func seek(by delta: Double) async {
+        await seek(to: currentTime + delta)
     }
 
     private var rateObserver: NSKeyValueObservation?
     private var timeControlStatusObserver: NSKeyValueObservation?
     private var currentItemObserver: NSKeyValueObservation?
+    private var timeObserver: Any?
 
     private lazy var mediaLoader = PublicationMediaLoader(publication: publication)
 
@@ -229,7 +253,7 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
         player.automaticallyWaitsToMinimizeStalling = false
         player.volume = Float(settings.volume)
 
-        player.addPeriodicTimeObserver(
+        timeObserver = player.addPeriodicTimeObserver(
             forInterval: CMTime(
                 seconds: config.playbackRefreshInterval,
                 preferredTimescale: 1000
@@ -276,8 +300,10 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
             }
 
             self.shouldPlayNextResource { playNext in
-                if playNext, self.goForward() {
-                    self.play()
+                Task {
+                    if playNext, await self.goForward() {
+                        self.play()
+                    }
                 }
             }
         }
@@ -300,7 +326,9 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
         if let time = time {
             let locator = makeLocator(forTime: time)
             currentLocation = locator
-            delegate?.navigator(self, locationDidChange: locator)
+            Task { @MainActor in
+                delegate?.navigator(self, locationDidChange: locator)
+            }
         }
 
         makePlaybackInfo(forTime: time) { info in
@@ -310,7 +338,7 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
 
     /// A deadlock can occur when loading HTTP assets and creating the playback info from the main thread.
     /// To fix this, this is an asynchronous operation.
-    private func makePlaybackInfo(forTime time: Double? = nil, completion: @escaping (MediaPlaybackInfo) -> Void) {
+    private func makePlaybackInfo(forTime time: Double? = nil, completion: @escaping @MainActor (MediaPlaybackInfo) -> Void) {
         DispatchQueue.global(qos: .userInteractive).async {
             let info = MediaPlaybackInfo(
                 resourceIndex: self.resourceIndex,
@@ -339,8 +367,8 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
         }
 
         return Locator(
-            href: link.href,
-            type: link.type ?? "audio/*",
+            href: link.url(),
+            mediaType: link.mediaType ?? MediaType("audio/*")!,
             title: link.title,
             locations: Locator.Locations(
                 fragments: ["t=\(time)"],
@@ -373,16 +401,20 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
         }
 
         self.lastLoadedTimeRanges = ranges
-        self.delegate?.navigator(self, loadedTimeRangesDidChange: ranges)
+        Task { @MainActor in
+            self.delegate?.navigator(self, loadedTimeRangesDidChange: ranges)
+        }
     }
 
     // MARK: - Navigator
 
     public private(set) var currentLocation: Locator?
 
-    @discardableResult
-    public func go(to locator: Locator, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        guard let newResourceIndex = publication.readingOrder.firstIndex(withHREF: locator.href) else {
+    public func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool {
+        let wasPlaying = (state == .playing)
+        pause()
+
+        guard let newResourceIndex = publication.readingOrder.firstIndexWithHREF(locator.href) else {
             return false
         }
         let link = publication.readingOrder[newResourceIndex]
@@ -396,30 +428,34 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
                 player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
                 resourceIndex = newResourceIndex
                 loadedTimeRangesTimer.fire()
-                delegate?.navigator(self, loadedTimeRangesDidChange: [])
+                await delegate?.navigator(self, loadedTimeRangesDidChange: [])
             }
 
             // Seeks to time
             let time = locator.locations.time?.begin ?? ((resourceDuration ?? 0) * (locator.locations.progression ?? 0))
-            player.seek(to: CMTime(seconds: time, preferredTimescale: 1000)) { [weak self] finished in
-                if let self = self, finished {
-                    self.delegate?.navigator(self, didJumpTo: locator)
-                }
-                DispatchQueue.main.async(execute: completion)
+
+            let finished = await player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
+            if finished {
+                await delegate?.navigator(self, didJumpTo: locator)
             }
+
+            if wasPlaying {
+                play()
+            }
+
             return true
+
         } catch {
             log(.error, error)
             return false
         }
     }
 
-    @discardableResult
-    public func go(to link: Link, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        guard let locator = publication.locate(link) else {
+    public func go(to link: Link, options: NavigatorGoOptions) async -> Bool {
+        guard let locator = await publication.locate(link) else {
             return false
         }
-        return go(to: locator, animated: animated, completion: completion)
+        return await go(to: locator, options: options)
     }
 
     /// Indicates whether the navigator can go to the next content portion
@@ -434,22 +470,20 @@ open class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
         publication.readingOrder.indices.contains(resourceIndex - 1)
     }
 
-    @discardableResult
-    public func goForward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        goToResourceIndex(resourceIndex + 1, animated: animated, completion: completion)
+    public func goForward(options: NavigatorGoOptions) async -> Bool {
+        await goToResourceIndex(resourceIndex + 1, options: options)
+    }
+
+    public func goBackward(options: NavigatorGoOptions) async -> Bool {
+        await goToResourceIndex(resourceIndex - 1, options: options)
     }
 
     @discardableResult
-    public func goBackward(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        goToResourceIndex(resourceIndex - 1, animated: animated, completion: completion)
-    }
-
-    @discardableResult
-    private func goToResourceIndex(_ index: Int, animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+    private func goToResourceIndex(_ index: Int, options: NavigatorGoOptions) async -> Bool {
         guard publication.readingOrder.indices ~= index else {
             return false
         }
-        return go(to: publication.readingOrder[index], animated: animated, completion: completion)
+        return await go(to: publication.readingOrder[index], options: options)
     }
 
     // MARK: - Configurable
@@ -499,15 +533,3 @@ private extension CMTime {
         isNumeric ? seconds : 0
     }
 }
-
-@available(*, unavailable, renamed: "AudioNavigator")
-public typealias _AudioNavigator = AudioNavigator
-
-@available(*, unavailable, renamed: "AudioNavigatorDelegate")
-public typealias _AudioNavigatorDelegate = AudioNavigatorDelegate
-
-@available(*, unavailable, renamed: "AudioNavigator")
-public typealias _MediaNavigator = AudioNavigator
-
-@available(*, unavailable, renamed: "AudioNavigatorDelegate")
-public typealias _MediaNavigatorDelegate = AudioNavigatorDelegate

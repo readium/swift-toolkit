@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -16,6 +16,7 @@ import ReadiumInternal
 /// These properties are nullable to avoid having default values when it doesn't make sense for a
 /// given `Publication`. If a navigator needs a default value when not specified,
 /// `Presentation.defaultX` and `Presentation.X.default` can be used.
+@available(*, unavailable, message: "This was removed from RWPM. You can still use the EPUB extensibility to access the original values.")
 public struct Presentation: Equatable {
     /// Specifies whether or not the parts of a linked resource that flow out of the viewport are
     /// clipped.
@@ -85,14 +86,6 @@ public struct Presentation: Equatable {
         ])
     }
 
-    /// Determines the layout of the given resource in this publication.
-    /// Default layout is reflowable.
-    public func layout(of link: Link) -> EPUBLayout {
-        link.properties.layout
-            ?? layout
-            ?? .reflowable
-    }
-
     /// Suggested method for constraining a resource inside the viewport.
     public enum Fit: String {
         /// The content is centered and scaled to fit both dimensions into the viewport.
@@ -119,9 +112,6 @@ public struct Presentation: Equatable {
         case scrolled
         /// The User Agent can decide how overflow should be handled.
         case auto
-
-        @available(*, unavailable, message: "Use `Presentation.continuous` instead")
-        static let scrolledContinuous: Overflow = .scrolled
     }
 
     /// Indicates how the linked resource should be displayed in a reading environment that

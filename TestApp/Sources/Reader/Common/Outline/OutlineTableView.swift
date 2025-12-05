@@ -1,11 +1,11 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Combine
-import R2Shared
+import ReadiumShared
 import SwiftUI
 
 typealias OutlineTableViewAdapter = (UIHostingController<OutlineTableView>, AnyPublisher<Locator, Never>)
@@ -25,26 +25,26 @@ struct OutlineTableView: View {
     @State private var selectedSection: OutlineSection = .tableOfContents
 
     // Outlines (list of links) to display for each section.
-    private var outlines: [OutlineSection: [(level: Int, link: R2Shared.Link)]] = [:]
+    @State private var outlines: [OutlineSection: [(level: Int, link: ReadiumShared.Link)]] = [:]
 
     init(publication: Publication, bookId: Book.Id, bookmarkRepository: BookmarkRepository, highlightRepository: HighlightRepository) {
         self.publication = publication
         bookmarksModel = BookmarksViewModel(bookId: bookId, repository: bookmarkRepository)
         highlightsModel = HighlightsViewModel(bookId: bookId, repository: highlightRepository)
 
-        func flatten(_ links: [R2Shared.Link], level: Int = 0) -> [(level: Int, link: R2Shared.Link)] {
-            links.flatMap { [(level, $0)] + flatten($0.children, level: level + 1) }
-        }
-
         outlines = [
-            .tableOfContents: flatten(
-                !publication.tableOfContents.isEmpty
-                    ? publication.tableOfContents
-                    : publication.readingOrder
-            ),
+            .tableOfContents: [],
             .landmarks: flatten(publication.landmarks),
             .pageList: flatten(publication.pageList),
         ]
+    }
+
+    private func loadTableOfContents() async {
+        guard let toc = try? await publication.tableOfContents().get() else {
+            return
+        }
+
+        outlines[.tableOfContents] = flatten(!toc.isEmpty ? toc : publication.readingOrder)
     }
 
     var body: some View {
@@ -60,13 +60,13 @@ struct OutlineTableView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .contentShape(Rectangle())
                             .onTapGesture {
-                                if let locator = publication.locate(item.link) {
-                                    locatorSubject.send(locator)
+                                Task {
+                                    if let locator = await publication.locate(item.link) {
+                                        locatorSubject.send(locator)
+                                    }
                                 }
                             }
                     }
-                } else {
-                    preconditionFailure("Outline \(selectedSection) can't be nil!")
                 }
 
             case .bookmarks:
@@ -91,6 +91,11 @@ struct OutlineTableView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .onAppear {
+            Task {
+                await loadTableOfContents()
+            }
+        }
     }
 
     private let locatorSubject = PassthroughSubject<Locator, Never>()
@@ -120,4 +125,8 @@ enum OutlineTableViewConstants {
     static let tabPagelist = NSLocalizedString("reader_outline_tab_pagelist", comment: "Outline pagelist tab name")
     static let tabLandmarks = NSLocalizedString("reader_outline_tab_landmarks", comment: "Outline landmarks tab name")
     static let tabHighlights = NSLocalizedString("reader_outline_tab_highlights", comment: "Outline highlights tab name")
+}
+
+private func flatten(_ links: [ReadiumShared.Link], level: Int = 0) -> [(level: Int, link: ReadiumShared.Link)] {
+    links.flatMap { [(level, $0)] + flatten($0.children, level: level + 1) }
 }

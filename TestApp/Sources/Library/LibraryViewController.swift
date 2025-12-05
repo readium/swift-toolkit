@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -7,10 +7,11 @@
 import Combine
 import Kingfisher
 import MobileCoreServices
-import R2Navigator
-import R2Shared
-import R2Streamer
+import ReadiumNavigator
 import ReadiumOPDS
+import ReadiumShared
+import ReadiumStreamer
+import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
 import WebKit
@@ -20,30 +21,34 @@ protocol LibraryViewControllerFactory {
 }
 
 class LibraryViewController: UIViewController, Loggable {
-    typealias Factory = DetailsTableViewControllerFactory
-
-    var factory: Factory!
     private var books: [Book] = []
 
     weak var lastFlippedCell: PublicationCollectionViewCell?
 
-    var library: LibraryService! {
-        didSet {
-            oldValue?.delegate = nil
-            library.delegate = self
-        }
-    }
+    var library: LibraryService!
 
     weak var libraryDelegate: LibraryModuleDelegate?
 
     private var subscriptions = Set<AnyCancellable>()
 
     lazy var loadingIndicator = PublicationIndicator()
-    private lazy var addBookButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addBookFromDevice))
+
+    private lazy var addBookButton = UIBarButtonItem(
+        systemItem: .add,
+        menu: UIMenu(
+            children: [
+                UIAction(title: "Import local publication") { [weak self] _ in
+                    self?.addBookFromDevice()
+                },
+                UIAction(title: "Stream publication over HTTP") { [weak self] _ in
+                    self?.addBookForStreaming()
+                },
+            ]
+        )
+    )
 
     @IBOutlet var collectionView: UICollectionView! {
         didSet {
-            collectionView.backgroundColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
             collectionView.contentInset = UIEdgeInsets(top: 15, left: 20,
                                                        bottom: 20, right: 20)
             collectionView.register(UINib(nibName: "PublicationCollectionViewCell", bundle: nil),
@@ -60,7 +65,7 @@ class LibraryViewController: UIViewController, Loggable {
             .receive(on: DispatchQueue.main)
             .sink { completion in
                 if case let .failure(error) = completion {
-                    self.libraryDelegate?.presentError(error, from: self)
+                    self.libraryDelegate?.presentError(UserError(error), from: self)
                 }
             } receiveValue: { newBooks in
                 self.books = newBooks
@@ -132,13 +137,48 @@ class LibraryViewController: UIViewController, Loggable {
 
     @objc func addBookFromDevice() {
         var types = DocumentTypes.main.supportedUTTypes
-        if let type = UTType(String(kUTTypeText)) {
-            types.append(type)
-        }
+        types.append(UTType.text)
 
         let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: types)
         documentPicker.delegate = self
         present(documentPicker, animated: true, completion: nil)
+    }
+
+    @objc func addBookForStreaming() {
+        let ac = UIAlertController(title: "Stream publication", message: nil, preferredStyle: .alert)
+        ac.addTextField { tf in
+            tf.placeholder = "HTTP URL"
+        }
+
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
+
+        let addAction = UIAlertAction(title: "Add", style: .default) { [unowned ac, weak self] _ in
+            guard
+                let urlText = ac.textFields?.getOrNil(0)?.text,
+                let url = HTTPURL(string: urlText)
+            else {
+                self?.addBookForStreaming()
+                return
+            }
+
+            self?.importPublication(from: url)
+        }
+
+        ac.addAction(cancelAction)
+        ac.addAction(addAction)
+        ac.preferredAction = addAction
+
+        present(ac, animated: true)
+    }
+
+    private func importPublication(from url: HTTPURL) {
+        Task {
+            do {
+                try await library.importPublication(from: url, sender: self, progress: { _ in })
+            } catch {
+                alert(UserError(error))
+            }
+        }
     }
 }
 
@@ -172,7 +212,7 @@ extension LibraryViewController: UIDocumentPickerDelegate {
             do {
                 try await library.importPublications(from: urls, sender: self)
             } catch {
-                libraryDelegate?.presentError(error, from: self)
+                libraryDelegate?.presentError(UserError(error), from: self)
             }
         }
     }
@@ -212,7 +252,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         // Load image and then apply the shadow.
         if
             let coverURL = book.cover,
-            let data = try? Data(contentsOf: coverURL),
+            let data = try? Data(contentsOf: coverURL.url),
             let cover = UIImage(data: data)
         {
             cell.coverImageView.image = cover
@@ -251,17 +291,21 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
             cell.contentView.addSubview(self.loadingIndicator)
             collectionView.isUserInteractionEnabled = false
 
+            defer {
+                loadingIndicator.removeFromSuperview()
+                collectionView.isUserInteractionEnabled = true
+            }
+
             let book = books[indexPath.item]
 
             do {
-                let pub = try await library.openBook(book, sender: self)
+                guard let pub = try await library.openBook(book, sender: self) else {
+                    return
+                }
                 libraryDelegate.libraryDidSelectPublication(pub, book: book)
             } catch {
-                libraryDelegate.presentError(error, from: self)
+                libraryDelegate.presentError(UserError(error), from: self)
             }
-
-            loadingIndicator.removeFromSuperview()
-            collectionView.isUserInteractionEnabled = true
         }
     }
 }
@@ -280,7 +324,7 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
                 do {
                     try await self.library.remove(book)
                 } catch {
-                    self.libraryDelegate?.presentError(error, from: self)
+                    self.libraryDelegate?.presentError(UserError(error), from: self)
                 }
             }
         })
@@ -291,17 +335,19 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
         present(removePublicationAlert, animated: true, completion: nil)
     }
 
-    func displayInformation(forCellAt indexPath: IndexPath) {
+    func presentMetadata(forCellAt indexPath: IndexPath) {
         let book = books[indexPath.row]
 
         Task {
             do {
-                let pub = try await library.openBook(book, sender: self)
-                let detailsViewController = self.factory.make(publication: pub)
-                detailsViewController.modalPresentationStyle = .popover
-                self.navigationController?.pushViewController(detailsViewController, animated: true)
+                guard let pub = try await library.openBook(book, sender: self) else {
+                    return
+                }
+                let pubMetadataViewController = UIHostingController(rootView: PublicationMetadataView(publication: pub))
+                pubMetadataViewController.modalPresentationStyle = .popover
+                self.navigationController?.pushViewController(pubMetadataViewController, animated: true)
             } catch {
-                libraryDelegate?.presentError(error, from: self)
+                libraryDelegate?.presentError(UserError(error), from: self)
             }
         }
     }
@@ -311,30 +357,6 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
     func cellFlipped(_ cell: PublicationCollectionViewCell) {
         lastFlippedCell?.flipMenu()
         lastFlippedCell = cell
-    }
-}
-
-extension LibraryViewController: LibraryServiceDelegate {
-    func confirmImportingDuplicatePublication(withTitle title: String) async -> Bool {
-        await withCheckedContinuation { cont in
-            let confirmAction = UIAlertAction(title: NSLocalizedString("add_button", comment: "Confirmation button to import a duplicated publication"), style: .default) { _ in
-                cont.resume(returning: true)
-            }
-
-            let cancelAction = UIAlertAction(title: NSLocalizedString("cancel_button", comment: "Cancel the confirmation alert"), style: .cancel) { _ in
-                cont.resume(returning: false)
-            }
-
-            let alert = UIAlertController(
-                title: NSLocalizedString("library_duplicate_alert_title", comment: "Title of the import confirmation alert when the publication already exists in the library"),
-                message: NSLocalizedString("library_duplicate_alert_message", comment: "Message of the import confirmation alert when the publication already exists in the library"),
-                preferredStyle: .alert
-            )
-            alert.addAction(confirmAction)
-            alert.addAction(cancelAction)
-
-            self.present(alert, animated: true)
-        }
     }
 }
 

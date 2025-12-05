@@ -17,12 +17,8 @@
     <!-- dc:contributor is by default a Contributor -->
     <dc:contributor>Contributor 1</dc:contributor>
 
-    <!-- The refined roles override the tag, so Author 2 is not considered a Publisher -->
-    <dc:publisher id="author-2">Author 2</dc:publisher>
+    <dc:contributor id="author-2">Author 2</dc:contributor>
     <meta refines="#author-2" property="role">aut</meta>
-
-    <dc:contributor id="author-3">Author 3</dc:contributor>
-    <meta refines="#author-3" property="role">aut</meta>
 
     <dc:contributor id="translator">Translator</dc:contributor> 
     <meta refines="#translator" property="role">trl</meta>
@@ -51,16 +47,16 @@
     <dc:contributor id="unknown">Unknown</dc:contributor> 
     <meta refines="#unknown" property="role">unknown</meta>
 
-    <!-- Contributor with several roles -->
-    <dc:contributor id="cameleon-1">Cameleon 1</dc:contributor> 
+    <!-- Only the first role is used -->
+    <dc:contributor id="cameleon-1">Cameleon 1</dc:contributor>
     <meta refines="#cameleon-1" property="role">aut</meta>
     <meta refines="#cameleon-1" property="role">pbl</meta>
 
     <!-- Without namespace prefix -->
-    <creator xmlns="http://purl.org/dc/elements/1.1/">Author 4</creator>
+    <creator xmlns="http://purl.org/dc/elements/1.1/">Author 3</creator>
 
     <!-- With a "non-standard" namespace prefix -->
-    <dc-alias:creator>Author 5</dc-alias:creator>
+    <dc-alias:creator>Author 4</dc-alias:creator>
 
 
     <!-- EPUB 3 contributors -->
@@ -72,17 +68,13 @@
     <!-- dcterms:contributor is by default a Contributor -->
     <meta property="dcterms:contributor">Contributor A</meta>
 
-    <!-- The refined roles override the tag, so Author B is not considered a Publisher -->
-    <meta id="author-b" property="dcterms:publisher">Author B</meta>
-    <meta refines="#author-b" property="role">aut</meta>
-
-    <meta id="author-c" property="dcterms:publisher">Author C</meta>
-    <meta refines="#author-c" property="role">aut</meta>
+    <meta id="publisher—b" property="dcterms:publisher">Publisher B</meta>
+    <meta refines="#publisher-b" property="role">aut</meta>
 
     <!-- sortAs and role as attributes -->
     <meta property="dcterms:contributor" opf:file-as="sorting" opf:role="ill">Illustrator A</meta> 
 
-    <!-- Contributor with several roles -->
+    <!-- Only the first role is used -->
     <meta id="cameleon-a" property="dcterms:contributor">Cameleon A</meta>
     <meta refines="#cameleon-a" property="role">aut</meta>
     <meta refines="#cameleon-a" property="role">pbl</meta>

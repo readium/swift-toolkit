@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -29,7 +29,12 @@ public func throttle(duration: TimeInterval = 0, on queue: DispatchQueue = .main
 /// seconds until `condition` gets true.
 ///
 /// Additional calls are ignored while polling the condition.
-public func execute(when condition: @escaping () -> Bool, pollingInterval: TimeInterval = 0, on queue: DispatchQueue = .main, _ block: @escaping () -> Void) -> () -> Void {
+public func execute(
+    when condition: @escaping () -> Bool,
+    pollingInterval: TimeInterval = 0,
+    on queue: DispatchQueue = .main,
+    _ block: @escaping () async -> Void
+) -> () -> Void {
     var polling = false
     return {
         guard !polling else {
@@ -43,7 +48,9 @@ public func execute(when condition: @escaping () -> Bool, pollingInterval: TimeI
                 return
             }
             polling = false
-            block()
+            Task {
+                await block()
+            }
         }
 
         poll()

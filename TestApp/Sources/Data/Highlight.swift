@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -7,8 +7,8 @@
 import Combine
 import Foundation
 import GRDB
-import R2Navigator
-import R2Shared
+import ReadiumNavigator
+import ReadiumShared
 import UIKit
 
 enum HighlightColor: UInt8, Codable, SQLExpressible {
@@ -34,9 +34,9 @@ extension HighlightColor {
 }
 
 struct Highlight: Codable {
-    typealias Id = String
+    struct Id: EntityId { let rawValue: Int64 }
 
-    let id: Id
+    let id: Id?
     /// Foreign key to the publication.
     var bookId: Book.Id
     /// Location in the publication.
@@ -48,7 +48,13 @@ struct Highlight: Codable {
     /// Total progression in the publication.
     var progression: Double?
 
-    init(id: Id = UUID().uuidString, bookId: Book.Id, locator: Locator, color: HighlightColor, created: Date = Date()) {
+    init(
+        id: Id? = nil,
+        bookId: Book.Id,
+        locator: Locator,
+        color: HighlightColor,
+        created: Date = Date()
+    ) {
         self.id = id
         self.bookId = bookId
         self.locator = locator
@@ -95,7 +101,7 @@ final class HighlightRepository {
     func add(_ highlight: Highlight) async throws -> Highlight.Id {
         try await db.write { db in
             try highlight.insert(db)
-            return highlight.id
+            return Highlight.Id(rawValue: db.lastInsertedRowID)
         }
     }
 

@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -9,7 +9,7 @@ import Foundation
 /// Holds the information about an HTTP request performed by an `HTTPClient`.
 public struct HTTPRequest: Equatable {
     /// Address of the remote resource to request.
-    public var url: URL
+    public var url: HTTPURL
 
     /// HTTP method to use for the request.
     public var method: Method
@@ -47,7 +47,7 @@ public struct HTTPRequest: Equatable {
     public var userInfo: [AnyHashable: AnyHashable]
 
     public init(
-        url: URL,
+        url: HTTPURL,
         method: Method = .get,
         headers: [String: String] = [:],
         body: Body? = nil,
@@ -81,9 +81,10 @@ public struct HTTPRequest: Equatable {
     /// Issue a byte range request. Use -1 to download until the end.
     public mutating func setRange(_ range: Range<UInt64>) {
         let start = max(0, range.lowerBound)
+        let end = range.upperBound - 1
         var value = "\(start)-"
-        if range.upperBound >= start {
-            value += "\(range.upperBound)"
+        if end >= start {
+            value += "\(end)"
         }
         headers["Range"] = "bytes=\(value)"
     }
@@ -120,7 +121,7 @@ public struct HTTPRequest: Equatable {
 
 extension HTTPRequest: CustomStringConvertible {
     public var description: String {
-        "\(method) \(url.absoluteString), headers: \(headers)"
+        "\(method) \(url.string), headers: \(headers)"
     }
 }
 
@@ -130,7 +131,7 @@ public protocol HTTPRequestConvertible {
 }
 
 public enum HTTPRequestError: Error {
-    case invalidURL(CustomStringConvertible)
+    case invalidURL(CustomStringConvertible & Sendable)
 }
 
 extension HTTPRequest: HTTPRequestConvertible {
@@ -145,35 +146,44 @@ extension Result: HTTPRequestConvertible where Success == HTTPRequest, Failure =
     }
 }
 
-extension URL: HTTPRequestConvertible {
+extension HTTPURL: HTTPRequestConvertible {
     public func httpRequest() -> HTTPResult<HTTPRequest> {
         .success(HTTPRequest(url: self))
+    }
+}
+
+extension URL: HTTPRequestConvertible {
+    public func httpRequest() -> HTTPResult<HTTPRequest> {
+        guard let url = HTTPURL(url: self) else {
+            return .failure(.malformedRequest(url: absoluteString))
+        }
+        return url.httpRequest()
     }
 }
 
 extension URLComponents: HTTPRequestConvertible {
     public func httpRequest() -> HTTPResult<HTTPRequest> {
         guard let url = url else {
-            return .failure(HTTPError(kind: .malformedRequest(url: description)))
+            return .failure(.malformedRequest(url: description))
         }
-        return .success(HTTPRequest(url: url))
+        return url.httpRequest()
     }
 }
 
 extension String: HTTPRequestConvertible {
     public func httpRequest() -> HTTPResult<HTTPRequest> {
-        guard let url = URL(string: self) else {
-            return .failure(HTTPError(kind: .malformedRequest(url: self)))
+        guard let url = HTTPURL(string: self) else {
+            return .failure(.malformedRequest(url: self))
         }
-        return .success(HTTPRequest(url: url))
+        return url.httpRequest()
     }
 }
 
 extension Link: HTTPRequestConvertible {
     public func httpRequest() -> HTTPResult<HTTPRequest> {
-        guard let url = url(relativeTo: nil) else {
-            return .failure(HTTPError(kind: .malformedRequest(url: href)))
+        guard let url = url().httpURL else {
+            return .failure(.malformedRequest(url: href))
         }
-        return .success(HTTPRequest(url: url))
+        return url.httpRequest()
     }
 }

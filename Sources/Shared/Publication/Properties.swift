@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -9,14 +9,17 @@ import ReadiumInternal
 
 /// Link Properties
 /// https://readium.org/webpub-manifest/schema/properties.schema.json
-public struct Properties: Hashable, Loggable, WarningLogger {
+public struct Properties: Hashable, Loggable, WarningLogger, Sendable {
     /// Additional properties for extensions.
-    public var otherProperties: [String: Any] { otherPropertiesJSON.json }
+    public var otherProperties: JSONDictionary.Wrapped {
+        get { otherPropertiesJSON.json }
+        set { otherPropertiesJSON = JSONDictionary(newValue) ?? JSONDictionary() }
+    }
 
-    // Trick to keep the struct equatable despite [String: Any]
-    private let otherPropertiesJSON: JSONDictionary
+    // Trick to keep the struct equatable despite JSONDictionary.Wrapped
+    private var otherPropertiesJSON: JSONDictionary
 
-    public init(_ otherProperties: [String: Any] = [:]) {
+    public init(_ otherProperties: JSONDictionary.Wrapped = [:]) {
         otherPropertiesJSON = JSONDictionary(otherProperties) ?? JSONDictionary()
     }
 
@@ -31,8 +34,8 @@ public struct Properties: Hashable, Loggable, WarningLogger {
         otherPropertiesJSON = jsonDictionary
     }
 
-    public var json: [String: Any] {
-        makeJSON(otherProperties)
+    public var json: JSONDictionary.Wrapped {
+        makeJSON(otherProperties as [String: Any])
     }
 
     /// Syntactic sugar to access the `otherProperties` values by subscripting `Properties` directly.
@@ -41,8 +44,25 @@ public struct Properties: Hashable, Loggable, WarningLogger {
         otherProperties[key]
     }
 
-    /// Makes a copy of this `Properties` after merging in the given additional other `properties`.
-    public func adding(_ properties: [String: Any]) -> Properties {
-        Properties(otherProperties.merging(properties, uniquingKeysWith: { _, second in second }))
+    /// Merges in the given additional other `properties`.
+    public mutating func add(_ properties: JSONDictionary.Wrapped) {
+        otherPropertiesJSON.json.merge(properties, uniquingKeysWith: { _, second in second })
+    }
+}
+
+/// Core properties
+///
+/// https://github.com/readium/webpub-manifest/blob/master/properties.md#core-properties
+public extension Properties {
+    /// Indicates how the linked resource should be displayed in a reading
+    /// environment that displays synthetic spreads.
+    var page: Page? {
+        parseRaw(otherProperties["page"])
+    }
+
+    /// Indicates how the linked resource should be displayed in a reading
+    /// environment that displays synthetic spreads.
+    enum Page: String {
+        case left, right, center
     }
 }

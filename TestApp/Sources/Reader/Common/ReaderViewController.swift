@@ -1,12 +1,12 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Combine
-import R2Navigator
-import R2Shared
+import ReadiumNavigator
+import ReadiumShared
 import SafariServices
 import SwiftUI
 import UIKit
@@ -25,7 +25,7 @@ class ReaderViewController<N: Navigator>: UIViewController,
 
     var subscriptions = Set<AnyCancellable>()
 
-    private var searchViewModel: SearchViewModel?
+    private(set) var searchViewModel: SearchViewModel?
     private var searchViewController: UIHostingController<SearchView>?
 
     init(
@@ -59,6 +59,22 @@ class ReaderViewController<N: Navigator>: UIViewController,
         navigationItem.rightBarButtonItems = makeNavigationBarButtons()
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        if #available(iOS 18.0, *) {
+            tabBarController?.isTabBarHidden = true
+        }
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+
+        if #available(iOS 18.0, *) {
+            tabBarController?.isTabBarHidden = false
+        }
+    }
+
     // MARK: - Navigation bar
 
     func makeNavigationBarButtons() -> [UIBarButtonItem] {
@@ -76,7 +92,7 @@ class ReaderViewController<N: Navigator>: UIViewController,
         // Bookmarks
         buttons.append(UIBarButtonItem(image: #imageLiteral(resourceName: "bookmark"), style: .plain, target: self, action: #selector(bookmarkCurrentPosition)))
         // Search
-        if publication._isSearchable {
+        if publication.isSearchable {
             buttons.append(UIBarButtonItem(image: UIImage(systemName: "magnifyingglass"), style: .plain, target: self, action: #selector(showSearchUI)))
         }
 
@@ -90,7 +106,7 @@ class ReaderViewController<N: Navigator>: UIViewController,
             do {
                 try await books.saveProgress(for: bookId, locator: locator)
             } catch {
-                moduleDelegate?.presentError(error, from: self)
+                moduleDelegate?.presentError(UserError(error), from: self)
             }
         }
     }
@@ -104,10 +120,10 @@ class ReaderViewController<N: Navigator>: UIViewController,
     }
 
     func navigator(_ navigator: Navigator, presentError error: NavigatorError) {
-        moduleDelegate?.presentError(error, from: self)
+        moduleDelegate?.presentError(UserError(error), from: self)
     }
 
-    func navigator(_ navigator: any Navigator, didFailToLoadResourceAt href: String, withError error: ResourceError) {
+    func navigator(_ navigator: any Navigator, didFailToLoadResourceAt href: RelativeURL, withError error: ReadError) {
         log(.error, "Failed to load resource at \(href): \(error)")
     }
 
@@ -130,7 +146,8 @@ class ReaderViewController<N: Navigator>: UIViewController,
 
         locatorPublisher
             .sink(receiveValue: { [weak self] locator in
-                self?.navigator.go(to: locator, animated: false) {
+                Task {
+                    await self?.navigator.go(to: locator, options: NavigatorGoOptions(animated: false))
                     self?.dismiss(animated: true)
                 }
             })
@@ -164,17 +181,32 @@ class ReaderViewController<N: Navigator>: UIViewController,
     @objc func showSearchUI() {
         if searchViewModel == nil {
             searchViewModel = SearchViewModel(publication: publication)
-            searchViewModel?.$selectedLocator.sink(receiveValue: { [weak self] locator in
-                self?.searchViewController?.dismiss(animated: true, completion: nil)
-                if let self = self, let locator = locator {
-                    self.navigator.go(to: locator, animated: true) {
-                        if let decorator = self.navigator as? DecorableNavigator {
-                            let decoration = Decoration(id: "selectedSearchResult", locator: locator, style: Decoration.Style.highlight(tint: .yellow, isActive: false))
-                            decorator.apply(decorations: [decoration], in: "search")
-                        }
+            searchViewModel?.$selectedLocator.sink { [weak self] locator in
+                guard let self else { return }
+
+                self.searchViewController?.dismiss(animated: true, completion: nil)
+                if let locator = locator {
+                    Task {
+                        await self.navigator.go(
+                            to: locator,
+                            options: NavigatorGoOptions(animated: true)
+                        )
                     }
                 }
-            }).store(in: &subscriptions)
+
+                if let decorator = self.navigator as? DecorableNavigator {
+                    var decorations: [Decoration] = []
+                    if let locator = locator {
+                        decorations.append(Decoration(
+                            id: "selectedSearchResult",
+                            locator: locator,
+                            style: .highlight(tint: .yellow, isActive: false)
+                        ))
+                    }
+                    decorator.apply(decorations: decorations, in: "search")
+                }
+            }
+            .store(in: &subscriptions)
         }
 
         let searchView = SearchView(viewModel: searchViewModel!)

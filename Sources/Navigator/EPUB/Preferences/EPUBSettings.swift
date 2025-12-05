@@ -1,11 +1,11 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// Setting values of the `EPUBNavigatorViewController`.
 ///
@@ -124,6 +124,16 @@ public struct EPUBSettings: ConfigurableSettings {
             ?? language?.verticalText(for: readingProgression)
             ?? false
 
+        var scroll = preferences.scroll
+            ?? defaults.scroll
+            ?? false
+
+        /// We disable pagination with vertical text, because CSS columns don't support it properly.
+        /// See https://github.com/readium/swift-toolkit/discussions/370
+        if verticalText {
+            scroll = true
+        }
+
         self.init(
             backgroundColor: preferences.backgroundColor,
             columnCount: preferences.columnCount
@@ -157,11 +167,8 @@ public struct EPUBSettings: ConfigurableSettings {
                 ?? defaults.publisherStyles
                 ?? true,
             readingProgression: readingProgression,
-            scroll: preferences.scroll
-                ?? defaults.scroll
-                ?? false,
+            scroll: scroll,
             spread: preferences.spread
-                ?? Spread(metadata.presentation.spread)
                 ?? defaults.spread
                 ?? .auto,
             textAlign: preferences.textAlign

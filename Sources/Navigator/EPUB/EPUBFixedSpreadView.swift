@@ -1,11 +1,11 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 import WebKit
 
@@ -54,13 +54,11 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         {
             wrapperPage = wrapperPage.replacingOccurrences(
                 of: "{{ASSETS_URL}}",
-                with: viewModel.useLegacySettings
-                    ? "/r2-navigator/epub"
-                    : viewModel.assetsURL.absoluteString
+                with: viewModel.assetsURL.string
             )
 
             // The publication's base URL is used to make sure we can access the resources through the iframe with JavaScript.
-            webView.loadHTMLString(wrapperPage, baseURL: viewModel.publicationBaseURL)
+            webView.loadHTMLString(wrapperPage, baseURL: viewModel.publicationBaseURL.url)
         }
     }
 
@@ -79,8 +77,16 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         guard isWrapperLoaded else {
             return
         }
-        // Insets the bounds by the notch area (eg. iPhone X) to make sure that the content is not overlapped by the screen notch.
-        let insets = notchAreaInsets
+
+        var insets = delegate?.spreadViewContentInset(self) ?? .zero
+
+        // Use the same insets on the left and right side (the largest one) to
+        // keep the pages centered on the screen even if the notches are not
+        // symmetrical.
+        let horizontalInsets = max(insets.left, insets.right)
+        insets.left = horizontalInsets
+        insets.right = horizontalInsets
+
         let viewportSize = bounds.inset(by: insets).size
 
         webView.evaluateJavaScript("""
@@ -95,18 +101,26 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         guard isWrapperLoaded else {
             return
         }
-        super.evaluateScript("spread.load(\(spread.jsonString(forBaseURL: viewModel.publicationBaseURL)));")
+        // We call this directly on the web view on purpose, because this needs
+        // to be executed before the spread is loaded.
+        let spreadJSON = spread.jsonString(
+            forBaseURL: viewModel.publicationBaseURL,
+            readingOrder: viewModel.readingOrder
+        )
+        webView.evaluateJavaScript("spread.load(\(spreadJSON));")
     }
 
-    override func spreadDidLoad() {
-        super.spreadDidLoad()
-        goToCompletions.complete()
+    override func spreadDidLoad() async {
+        for continuation in goToContinuations {
+            continuation.resume()
+        }
+        goToContinuations.removeAll()
     }
 
-    override func evaluateScript(_ script: String, inHREF href: String?, completion: ((Result<Any, Error>) -> Void)?) {
-        let href = href ?? ""
+    override func evaluateScript(_ script: String, inHREF href: AnyURL? = nil) async -> Result<Any, any Error> {
+        let href = href?.string ?? ""
         let script = "spread.eval('\(href)', `\(script.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "`", with: "\\`"))`);"
-        super.evaluateScript(script, completion: completion)
+        return await super.evaluateScript(script)
     }
 
     override func convertPointToNavigatorSpace(_ point: CGPoint) -> CGPoint {
@@ -138,18 +152,18 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
 
     // MARK: - Location and progression
 
-    private let goToCompletions = CompletionList()
+    private var goToContinuations: [CheckedContinuation<Void, Never>] = []
 
-    override func go(to location: PageLocation, completion: (() -> Void)?) {
-        // Fixed layout resources are always fully visible so we don't use the location.
-        guard let completion = completion else {
+    override func go(to location: PageLocation) async {
+        // Fixed layout resources are always fully visible so we don't use the
+        // location.
+
+        if isSpreadLoaded {
             return
-        }
-
-        if spreadLoaded {
-            DispatchQueue.main.async(execute: completion)
         } else {
-            goToCompletions.add(completion)
+            await withCheckedContinuation { continuation in
+                goToContinuations.append(continuation)
+            }
         }
     }
 }

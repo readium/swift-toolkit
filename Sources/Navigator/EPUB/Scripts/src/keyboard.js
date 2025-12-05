@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -12,7 +12,7 @@ window.addEventListener("keydown", (event) => {
   }
 
   preventDefault(event);
-  sendPressKeyMessage(event, "keydown");
+  sendKeyEvent("down", event);
 });
 
 window.addEventListener("keyup", (event) => {
@@ -21,7 +21,7 @@ window.addEventListener("keyup", (event) => {
   }
 
   preventDefault(event);
-  sendPressKeyMessage(event, "keyup");
+  sendKeyEvent("up", event);
 });
 
 function shouldIgnoreEvent(event) {
@@ -38,10 +38,10 @@ function preventDefault(event) {
   event.preventDefault();
 }
 
-function sendPressKeyMessage(event, keyType) {
+function sendKeyEvent(phase, event) {
   if (event.repeat) return;
-  webkit.messageHandlers.pressKey.postMessage({
-    type: keyType,
+  webkit.messageHandlers.keyEventReceived.postMessage({
+    phase: phase,
     code: event.code,
     // We use a deprecated `keyCode` property, because the value of `event.key`
     // changes depending on which modifier is pressed, while `event.code` shows

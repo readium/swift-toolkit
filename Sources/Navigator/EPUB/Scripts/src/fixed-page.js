@@ -1,5 +1,5 @@
 //
-//  Copyright 2022 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -52,8 +52,6 @@ export function FixedPage(iframeId) {
     _iframe.style.height = _pageSize.height + "px";
     _iframe.style.marginTop =
       _safeAreaInsets.top - _safeAreaInsets.bottom + "px";
-    _iframe.style.marginLeft =
-      _safeAreaInsets.left - _safeAreaInsets.right + "px";
 
     // Calculates the zoom scale required to fit the content to the viewport.
     var widthRatio = _viewportSize.width / _pageSize.width;

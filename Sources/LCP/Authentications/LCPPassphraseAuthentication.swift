@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -19,16 +19,15 @@ public class LCPPassphraseAuthentication: LCPAuthenticating {
         self.fallback = fallback
     }
 
-    public func retrievePassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, allowUserInteraction: Bool, sender: Any?, completion: @escaping (String?) -> Void) {
+    public func retrievePassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, allowUserInteraction: Bool, sender: Any?) async -> String? {
         guard reason == .passphraseNotFound else {
             if let fallback = fallback {
-                fallback.retrievePassphrase(for: license, reason: reason, allowUserInteraction: allowUserInteraction, sender: sender, completion: completion)
+                return await fallback.retrievePassphrase(for: license, reason: reason, allowUserInteraction: allowUserInteraction, sender: sender)
             } else {
-                completion(nil)
+                return nil
             }
-            return
         }
 
-        completion(passphrase)
+        return passphrase
     }
 }

@@ -1,11 +1,11 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import R2Shared
-@testable import R2Streamer
+import ReadiumShared
+@testable import ReadiumStreamer
 import XCTest
 
 class NavigationDocumentParserTests: XCTestCase {
@@ -33,8 +33,8 @@ class NavigationDocumentParserTests: XCTestCase {
         let sut = document.links(for: .landmarks)
 
         XCTAssertEqual(sut, [
-            Link(href: "/base/nav.xhtml#toc", title: "Table of Contents"),
-            Link(href: "/base/ch1.xhtml", title: "Begin Reading"),
+            Link(href: "/base/nav.xhtml#toc", title: "Table of Contents", rel: .contents),
+            Link(href: "/base/ch1.xhtml", title: "Begin Reading", rel: .start),
         ])
     }
 
@@ -60,8 +60,11 @@ class NavigationDocumentParserTests: XCTestCase {
         let sut = document.links(for: .landmarks)
 
         XCTAssertEqual(sut, [
-            Link(href: "/base/nav.xhtml#toc", title: "Table of Contents"),
-            Link(href: "/base/ch1.xhtml", title: "Begin Reading"),
+            Link(href: "/base/cover.xhtml", title: "Cover", rel: .cover),
+            Link(href: "/base/nav.xhtml#toc", title: "Table of Contents", rel: .contents),
+            Link(href: "/base/ch1.xhtml", title: "Begin Reading", rel: .start),
+            Link(href: "/base/index.xhtml", title: "Index", rel: "http://idpf.org/epub/vocab/structure/#index"),
+            Link(href: "/base/glossary.xhtml", title: "Glossary", rel: "http://idpf.org/epub/vocab/structure/#glossary"),
         ])
     }
 
@@ -69,6 +72,6 @@ class NavigationDocumentParserTests: XCTestCase {
 
     func parseNavDocument(_ name: String) -> NavigationDocumentParser {
         let data = fixtures.data(at: "\(name).xhtml")
-        return NavigationDocumentParser(data: data, at: "/base/nav.xhtml")
+        return NavigationDocumentParser(data: data, at: RelativeURL(path: "/base/nav.xhtml")!)
     }
 }

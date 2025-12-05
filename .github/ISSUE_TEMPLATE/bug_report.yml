@@ -1,7 +1,7 @@
 name: Bug report
 description: File a bug report to help improve the Readium toolkit
-title: "[Bug] "
-labels: ["bug", "triage"]
+labels: ["triage"]
+type: "Bug"
 body:
   - type: markdown
     attributes:

@@ -1,0 +1,57 @@
+{
+  "configurations" : [
+    {
+      "id" : "8C854D1A-8E77-4ADF-98B5-287FB5B8B996",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:TestApp.xcodeproj",
+      "identifier" : "BED194980D56484BC288A866",
+      "name" : "TestApp"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:..",
+        "identifier" : "ReadiumInternalTests",
+        "name" : "ReadiumInternalTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:..",
+        "identifier" : "ReadiumOPDSTests",
+        "name" : "ReadiumOPDSTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:..",
+        "identifier" : "ReadiumNavigatorTests",
+        "name" : "ReadiumNavigatorTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:..",
+        "identifier" : "ReadiumSharedTests",
+        "name" : "ReadiumSharedTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:..",
+        "identifier" : "ReadiumStreamerTests",
+        "name" : "ReadiumStreamerTests"
+      }
+    }
+  ],
+  "version" : 1
+}

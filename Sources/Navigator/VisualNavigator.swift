@@ -1,24 +1,20 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 import UIKit
 
 /// A navigator rendering the publication visually on-screen.
-public protocol VisualNavigator: Navigator {
+public protocol VisualNavigator: Navigator, InputObservable {
     /// Viewport view.
     var view: UIView! { get }
 
     /// Current presentation rendered by the navigator.
     var presentation: VisualNavigatorPresentation { get }
-
-    /// Current reading progression direction.
-    @available(*, deprecated, message: "Use `presentation.readingProgression` instead", renamed: "presentation.readingProgression")
-    var readingProgression: R2Shared.ReadingProgression { get }
 
     /// Moves to the left content portion (eg. page) relative to the reading
     /// progression direction.
@@ -28,7 +24,7 @@ public protocol VisualNavigator: Navigator {
     ///   content portion. The completion block is only called if true was
     ///   returned.
     @discardableResult
-    func goLeft(animated: Bool, completion: @escaping () -> Void) -> Bool
+    func goLeft(options: NavigatorGoOptions) async -> Bool
 
     /// Moves to the right content portion (eg. page) relative to the reading
     /// progression direction.
@@ -38,37 +34,35 @@ public protocol VisualNavigator: Navigator {
     ///   content portion. The completion block is only called if true was
     ///   returned.
     @discardableResult
-    func goRight(animated: Bool, completion: @escaping () -> Void) -> Bool
+    func goRight(options: NavigatorGoOptions) async -> Bool
 
     /// Returns the `Locator` to the first content element that begins on the
     /// current screen.
-    func firstVisibleElementLocator(completion: @escaping (Locator?) -> Void)
+    func firstVisibleElementLocator() async -> Locator?
 }
 
 public extension VisualNavigator {
-    func firstVisibleElementLocator(completion: @escaping (Locator?) -> Void) {
-        DispatchQueue.main.async {
-            completion(self.currentLocation)
+    func firstVisibleElementLocator() async -> Locator? {
+        currentLocation
+    }
+
+    @discardableResult
+    func goLeft(options: NavigatorGoOptions) async -> Bool {
+        switch presentation.readingProgression {
+        case .ltr:
+            return await goBackward(options: options)
+        case .rtl:
+            return await goForward(options: options)
         }
     }
 
     @discardableResult
-    func goLeft(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
+    func goRight(options: NavigatorGoOptions) async -> Bool {
         switch presentation.readingProgression {
         case .ltr:
-            return goBackward(animated: animated, completion: completion)
+            return await goForward(options: options)
         case .rtl:
-            return goForward(animated: animated, completion: completion)
-        }
-    }
-
-    @discardableResult
-    func goRight(animated: Bool = false, completion: @escaping () -> Void = {}) -> Bool {
-        switch presentation.readingProgression {
-        case .ltr:
-            return goForward(animated: animated, completion: completion)
-        case .rtl:
-            return goBackward(animated: animated, completion: completion)
+            return await goBackward(options: options)
         }
     }
 }
@@ -91,10 +85,22 @@ public struct VisualNavigatorPresentation {
     }
 }
 
-public protocol VisualNavigatorDelegate: NavigatorDelegate {
+@MainActor public protocol VisualNavigatorDelegate: NavigatorDelegate {
+    /// Returns the content insets that the navigator applies to its view.
+    ///
+    /// Implement this method to customize the margins around the publication
+    /// content and to control which areas may be covered by the app's UI or
+    /// system bars.
+    ///
+    /// Consider the view's safe area insets to prevent notches, the status bar,
+    /// or other overlays from obscuring the content.
+    ///
+    /// - Returns: The insets to apply, or `nil` to use the navigator’s default behavior.
+    func navigatorContentInset(_ navigator: VisualNavigator) -> UIEdgeInsets?
+
     /// Called when the navigator presentation changed, for example after
     /// applying a new set of preferences.
-    func navigator(_ navigator: Navigator, presentationDidChange presentation: VisualNavigatorPresentation)
+    func navigator(_ navigator: VisualNavigator, presentationDidChange presentation: VisualNavigatorPresentation)
 
     /// Called when the user tapped the publication, and it didn't trigger any
     /// internal action. The point is relative to the navigator's view.
@@ -116,7 +122,11 @@ public protocol VisualNavigatorDelegate: NavigatorDelegate {
 }
 
 public extension VisualNavigatorDelegate {
-    func navigator(_ navigator: Navigator, presentationDidChange presentation: VisualNavigatorPresentation) {
+    func navigatorContentInset(_ navigator: VisualNavigator) -> UIEdgeInsets? {
+        nil
+    }
+
+    func navigator(_ navigator: VisualNavigator, presentationDidChange presentation: VisualNavigatorPresentation) {
         // Optional
     }
 

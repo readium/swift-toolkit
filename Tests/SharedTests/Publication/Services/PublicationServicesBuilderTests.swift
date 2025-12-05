@@ -1,10 +1,10 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import R2Shared
+@testable import ReadiumShared
 import XCTest
 
 protocol FooService: PublicationService {}
@@ -19,13 +19,13 @@ class PublicationServicesBuilderTests: XCTestCase {
     private let context = PublicationServiceContext(
         publication: Weak<Publication>(),
         manifest: Manifest(metadata: Metadata(title: "")),
-        fetcher: EmptyFetcher()
+        container: EmptyContainer()
     )
 
     func testInitWithCustomFactories() {
         let builder = PublicationServicesBuilder(
             cover: GeneratedCoverService.makeFactory(cover: UIImage()),
-            positions: PerResourcePositionsService.makeFactory(fallbackMediaType: "")
+            positions: PerResourcePositionsService.makeFactory(fallbackMediaType: .text)
         )
 
         let services = builder.build(context: context)

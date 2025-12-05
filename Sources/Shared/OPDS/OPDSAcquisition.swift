@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -13,7 +13,7 @@ public struct OPDSAcquisition: Equatable {
     public var type: String
     public var children: [OPDSAcquisition] = []
 
-    public var mediaType: MediaType { MediaType.of(mediaType: type) ?? .binary }
+    public var mediaType: MediaType? { MediaType(type) }
 
     public init(type: String, children: [OPDSAcquisition] = []) {
         self.type = type

@@ -1,10 +1,11 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
+import ReadiumShared
 import XCTest
 
 #if !SWIFT_PACKAGE
@@ -20,12 +21,12 @@ class Fixtures {
         self.path = path
     }
 
-    func url(for filepath: String) -> URL {
-        try! XCTUnwrap(Bundle.module.resourceURL?.appendingPathComponent("Fixtures/\(path ?? "")/\(filepath)"))
+    func url(for filepath: String) -> FileURL {
+        FileURL(url: Bundle.module.resourceURL!.appendingPathComponent("Fixtures/\(path ?? "")/\(filepath)"))!
     }
 
     func data(at filepath: String) -> Data {
-        try! XCTUnwrap(try? Data(contentsOf: url(for: filepath)))
+        try! XCTUnwrap(try? Data(contentsOf: url(for: filepath).url))
     }
 
     func json<T>(at filepath: String) -> T {

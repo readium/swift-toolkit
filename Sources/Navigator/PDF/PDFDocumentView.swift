@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -7,11 +7,21 @@
 import Foundation
 import PDFKit
 
+protocol PDFDocumentViewDelegate: AnyObject {
+    func pdfDocumentViewContentInset(_ pdfDocumentView: PDFDocumentView) -> UIEdgeInsets?
+}
+
 public final class PDFDocumentView: PDFView {
     var editingActions: EditingActionsController
+    private weak var documentViewDelegate: PDFDocumentViewDelegate?
 
-    init(frame: CGRect, editingActions: EditingActionsController) {
+    init(
+        frame: CGRect,
+        editingActions: EditingActionsController,
+        documentViewDelegate: PDFDocumentViewDelegate
+    ) {
         self.editingActions = editingActions
+        self.documentViewDelegate = documentViewDelegate
 
         super.init(frame: frame)
 
@@ -40,9 +50,9 @@ public final class PDFDocumentView: PDFView {
     }
 
     private func updateContentInset() {
-        // Setting the horizontal values triggers shifts the content incorrectly, somehow.
-        firstScrollView?.contentInset.top = notchAreaInsets.top
-        firstScrollView?.contentInset.bottom = notchAreaInsets.bottom
+        let insets = documentViewDelegate?.pdfDocumentViewContentInset(self) ?? window?.safeAreaInsets ?? .zero
+        firstScrollView?.contentInset.top = insets.top
+        firstScrollView?.contentInset.bottom = insets.bottom
     }
 
     override public func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
@@ -50,7 +60,9 @@ public final class PDFDocumentView: PDFView {
     }
 
     override public func copy(_ sender: Any?) {
-        editingActions.copy()
+        Task {
+            await editingActions.copy()
+        }
     }
 
     @available(iOS 13.0, *)

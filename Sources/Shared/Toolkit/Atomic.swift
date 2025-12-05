@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -35,7 +35,7 @@ public final class Atomic<Value> {
     ///
     /// We could use a serial queue but that would impact performances as concurrent reads would not be
     /// possible. To make sure we don't get data races, writes are done using a `.barrier` flag.
-    private let queue = DispatchQueue(label: "org.readium.Atomic", attributes: .concurrent)
+    private let queue = DispatchQueue(label: "org.readium.swift-toolkit.Atomic", attributes: .concurrent)
 
     public init(wrappedValue value: Value) {
         self.value = value

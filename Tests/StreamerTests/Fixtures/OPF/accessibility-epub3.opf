@@ -5,6 +5,8 @@
 
     <dc:conformsTo>any profile</dc:conformsTo>
     <dc:conformsTo>http://idpf.org/epub/a11y/accessibility-20170105.html#wcag-a</dc:conformsTo>
+    <dc:conformsTo>EPUB Accessibility 1.1 - WCAG 2.0 Level AAA</dc:conformsTo>
+    <dc:conformsTo>EPUB Accessibility 1.1 - WCAG 2.1 Level AA</dc:conformsTo>
     <meta property="schema:accessibilitySummary">The publication contains structural and page navigation.</meta>
 
     <meta property="schema:accessMode">textual</meta>
@@ -23,7 +25,10 @@
     <meta property="a11y:certifierCredential" refines="#certifier">DAISY OK</meta>
     <link rel="a11y:certifierReport" refines="#certifier2" href="https://example.com/fakereport"/>
     <link rel="a11y:certifierReport" refines="#certifier" href="https://example.com/a11y-report/"/>
-
+    
+    <meta property="a11y:exemption">eaa-microenterprise</meta>
+    <meta property="a11y:exemption">eaa-fundamental-alteration</meta>
+    <meta property="a11y:exemption">eaa-disproportionate-burden</meta>
   </metadata>
   <manifest>
     <item id="titlepage" href="titlepage.xhtml"/>

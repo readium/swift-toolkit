@@ -1,12 +1,12 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import Fuzi
-import R2Shared
+import ReadiumFuzi
+import ReadiumShared
 
 // http://www.idpf.org/epub/30/spec/epub30-publications.html#title-type
 // the six basic values of the "title-type" property specified by EPUB 3:
@@ -30,63 +30,74 @@ public enum OPFParserError: Error {
 /// OPF: Open Packaging Format.
 final class OPFParser: Loggable {
     /// Relative path to the OPF in the EPUB container
-    private let basePath: String
+    private let baseURL: RelativeURL
 
     /// DOM representation of the OPF file.
-    private let document: Fuzi.XMLDocument
-
-    /// EPUB title which will be used as a fallback if we can't parse one. Title is mandatory in
-    /// RWPM.
-    private let fallbackTitle: String
+    private let document: ReadiumFuzi.XMLDocument
 
     /// iBooks Display Options XML file to use as a fallback for metadata.
     /// See https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#epub-2x-9
-    private let displayOptions: Fuzi.XMLDocument?
+    private let displayOptions: ReadiumFuzi.XMLDocument?
 
     /// List of metadata declared in the package.
     private let metas: OPFMetaList
 
     /// Encryption information, indexed by resource HREF.
-    private let encryptions: [String: Encryption]
+    private let encryptions: [RelativeURL: Encryption]
 
-    init(basePath: String, data: Data, fallbackTitle: String, displayOptionsData: Data? = nil, encryptions: [String: Encryption]) throws {
-        self.basePath = basePath
-        self.fallbackTitle = fallbackTitle
-        document = try Fuzi.XMLDocument(data: data)
-        document.definePrefix("opf", forNamespace: "http://www.idpf.org/2007/opf")
-        displayOptions = (displayOptionsData.map { try? Fuzi.XMLDocument(data: $0) }) ?? nil
+    init(baseURL: RelativeURL, data: Data, displayOptionsData: Data? = nil, encryptions: [RelativeURL: Encryption]) throws {
+        self.baseURL = baseURL
+        document = try ReadiumFuzi.XMLDocument(data: data)
+        document.defineNamespace(.opf)
+        displayOptions = (displayOptionsData.map { try? ReadiumFuzi.XMLDocument(data: $0) }) ?? nil
         metas = OPFMetaList(document: document)
         self.encryptions = encryptions
     }
 
-    convenience init(fetcher: Fetcher, opfHREF: String, fallbackTitle: String, encryptions: [String: Encryption] = [:]) throws {
-        try self.init(
-            basePath: opfHREF,
-            data: fetcher.readData(at: opfHREF),
-            fallbackTitle: fallbackTitle,
+    convenience init(container: Container, opfHREF: RelativeURL, encryptions: [RelativeURL: Encryption] = [:]) async throws {
+        guard let data = try? await container.readData(at: opfHREF) else {
+            throw EPUBParserError.missingFile(path: opfHREF.string)
+        }
+
+        try await self.init(
+            baseURL: opfHREF,
+            data: data,
             displayOptionsData: {
-                let iBooksPath = "/META-INF/com.apple.ibooks.display-options.xml"
-                let koboPath = "/META-INF/com.kobobooks.display-options.xml"
-                return (try? fetcher.readData(at: iBooksPath))
-                    ?? (try? fetcher.readData(at: koboPath))
-                    ?? nil
+                let iBooksHREF = AnyURL(string: "META-INF/com.apple.ibooks.display-options.xml")!
+                let koboHREF = AnyURL(string: "META-INF/com.kobobooks.display-options.xml")!
+                if let data = try? await container.readData(at: iBooksHREF) {
+                    return data
+                } else if let data = try? await container.readData(at: koboHREF) {
+                    return data
+                } else {
+                    return nil
+                }
             }(),
             encryptions: encryptions
         )
     }
 
+    struct Package {
+        let version: String
+        let metadata: Metadata
+        let readingOrder: [Link]
+        let resources: [Link]
+        let epub2Guide: [Link]
+    }
+
     /// Parse the OPF file of the EPUB container and return a `Publication`.
     /// It also complete the informations stored in the container.
-    func parsePublication() throws -> (version: String, metadata: Metadata, readingOrder: [Link], resources: [Link]) {
+    func parsePublication() throws -> Package {
         let links = parseLinks()
         let (resources, readingOrder) = splitResourcesAndReadingOrderLinks(links)
-        let metadata = EPUBMetadataParser(document: document, fallbackTitle: fallbackTitle, displayOptions: displayOptions, metas: metas)
+        let metadata = EPUBMetadataParser(document: document, displayOptions: displayOptions, metas: metas)
 
-        return try (
+        return try Package(
             version: parseEPUBVersion(),
             metadata: metadata.parse(),
             readingOrder: readingOrder,
-            resources: resources
+            resources: resources,
+            epub2Guide: parseEPUB2Guide()
         )
     }
 
@@ -95,6 +106,27 @@ final class OPFParser: Loggable {
         // Default EPUB Version value, used when no version hes been specified (see OPF_2.0.1_draft 1.3.2).
         let defaultVersion = "1.2"
         return document.firstChild(xpath: "/opf:package")?.attr("version") ?? defaultVersion
+    }
+
+    /// Parses EPUB 2 <guide> element into a list of `Link`.
+    ///
+    /// https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#TOC2.6
+    private func parseEPUB2Guide() -> [Link] {
+        document.xpath("/opf:package/opf:guide/opf:reference")
+            .compactMap { node -> Link? in
+                guard
+                    let relativeHref = node.attr("href").flatMap(RelativeURL.init(epubHREF:)),
+                    let href = baseURL.resolve(relativeHref)
+                else {
+                    return nil
+                }
+
+                return Link(
+                    href: href.string,
+                    title: node.attr("title")?.orNilIfBlank(),
+                    rel: node.attr("type").flatMap(LinkRelation.init(epub2Type:))
+                )
+            }
     }
 
     /// Parses XML elements of the <Manifest> in the package.opf file as a list of `Link`.
@@ -157,12 +189,13 @@ final class OPFParser: Loggable {
         return (resources, readingOrder)
     }
 
-    private func makeLink(manifestItem: Fuzi.XMLElement, spineItem: Fuzi.XMLElement?, isCover: Bool) -> Link? {
-        guard var href = manifestItem.attr("href")?.removingPercentEncoding else {
+    private func makeLink(manifestItem: ReadiumFuzi.XMLElement, spineItem: ReadiumFuzi.XMLElement?, isCover: Bool) -> Link? {
+        guard
+            let relativeHref = manifestItem.attr("href").flatMap(RelativeURL.init(epubHREF:)),
+            let href = baseURL.resolve(relativeHref)?.normalized
+        else {
             return nil
         }
-
-        href = HREF(href, relativeTo: basePath).string
 
         // Merges the string properties found in the manifest and spine items.
         let stringProperties = "\(manifestItem.attr("properties") ?? "") \(spineItem?.attr("properties") ?? "")"
@@ -184,34 +217,23 @@ final class OPFParser: Loggable {
         }
 
         let type = manifestItem.attr("media-type")
-        var duration: Double?
 
         if let id = manifestItem.attr("id") {
             properties["id"] = id
-
-            // If the link references a SMIL resource, retrieves and fills its duration.
-            if MediaType.smil.matches(type), let durationMeta = metas["duration", in: .media, refining: id].first {
-                duration = Double(SMILParser.smilTimeToSeconds(durationMeta.content))
-            }
         }
 
         return Link(
-            href: href,
-            type: type,
+            href: href.string,
+            mediaType: type.flatMap { MediaType($0) },
             rels: rels,
-            properties: Properties(properties),
-            duration: duration
+            properties: Properties(properties)
         )
     }
 
     /// Parse string properties into an `otherProperties` dictionary.
     private func parseStringProperties(_ properties: [String]) -> [String: Any] {
         var contains: [String] = []
-        var layout: EPUBLayout?
-        var orientation: Presentation.Orientation?
-        var overflow: Presentation.Overflow?
-        var page: Presentation.Page?
-        var spread: Presentation.Spread?
+        var page: Properties.Page?
 
         for property in properties {
             switch property {
@@ -235,37 +257,6 @@ final class OPFParser: Loggable {
                 page = .right
             case "page-spread-center", "rendition:page-spread-center":
                 page = .center
-            // Spread
-            case "rendition:spread-none", "rendition:spread-auto":
-                // If we don't qualify `.none` here it sets it to `nil`.
-                spread = Presentation.Spread.none
-            case "rendition:spread-landscape":
-                spread = .landscape
-            case "rendition:spread-portrait":
-                // `portrait` is deprecated and should fallback to `both`.
-                // See. https://readium.org/architecture/streamer/parser/metadata#epub-3x-11
-                spread = .both
-            case "rendition:spread-both":
-                spread = .both
-            // Layout
-            case "rendition:layout-reflowable":
-                layout = .reflowable
-            case "rendition:layout-pre-paginated":
-                layout = .fixed
-            // Orientation
-            case "rendition:orientation-auto":
-                orientation = .auto
-            case "rendition:orientation-landscape":
-                orientation = .landscape
-            case "rendition:orientation-portrait":
-                orientation = .portrait
-            // Rendition
-            case "rendition:flow-auto":
-                overflow = .auto
-            case "rendition:flow-paginated":
-                overflow = .paginated
-            case "rendition:flow-scrolled-continuous", "rendition:flow-scrolled-doc":
-                overflow = .scrolled
             default:
                 continue
             }
@@ -275,20 +266,8 @@ final class OPFParser: Loggable {
         if !contains.isEmpty {
             otherProperties["contains"] = contains
         }
-        if let layout = layout {
-            otherProperties["layout"] = layout.rawValue
-        }
-        if let orientation = orientation {
-            otherProperties["orientation"] = orientation.rawValue
-        }
-        if let overflow = overflow {
-            otherProperties["overflow"] = overflow.rawValue
-        }
         if let page = page {
             otherProperties["page"] = page.rawValue
-        }
-        if let spread = spread {
-            otherProperties["spread"] = spread.rawValue
         }
 
         return otherProperties

@@ -1,18 +1,15 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
 
-public typealias SearchServiceFactory = (PublicationServiceContext) -> _SearchService?
+public typealias SearchServiceFactory = (PublicationServiceContext) -> SearchService?
 
 /// Provides a way to search terms in a publication.
-///
-/// **WARNING:** This API is experimental and may change or be removed in a future release without
-/// notice. Use with caution.
-public protocol _SearchService: PublicationService {
+public protocol SearchService: PublicationService {
     /// Default value for the search options of this service.
     ///
     /// If an option does not have a value, it is not supported by the service.
@@ -21,11 +18,11 @@ public protocol _SearchService: PublicationService {
     /// Starts a new search through the publication content, with the given `query`.
     /// If an option is nil when calling search(), its value is assumed to be the default one.
     @discardableResult
-    func search(query: String, options: SearchOptions?, completion: @escaping (SearchResult<SearchIterator>) -> Void) -> Cancellable
+    func search(query: String, options: SearchOptions?) async -> SearchResult<SearchIterator>
 }
 
 /// Iterates through search results.
-public protocol SearchIterator: AnyObject {
+public protocol SearchIterator: AnyObject, Closeable {
     /// Number of matches for this search, if known.
     ///
     /// Depending on the search algorithm, it may not be possible to know the result count until reaching the end of the
@@ -38,45 +35,26 @@ public protocol SearchIterator: AnyObject {
     ///
     /// Returns nil when reaching the end of the publication, or an error in case of failure.
     @discardableResult
-    func next(completion: @escaping (SearchResult<_LocatorCollection?>) -> Void) -> Cancellable
-
-    /// Closes any resources allocated for the search query, such as a cursor.
-    /// To be called when the user dismisses the search.
-    func close()
+    func next() async -> SearchResult<LocatorCollection?>
 }
 
 public extension SearchIterator {
     /// Iterates over all the search results, calling the given `block` for each page.
     @discardableResult
-    func forEach(_ block: @escaping (_LocatorCollection) throws -> Void, completion: @escaping (SearchResult<Void>) -> Void) -> Cancellable {
-        let mediator = MediatorCancellable()
-
-        func next() {
-            let cancellable = self.next { result in
-                switch result {
-                case let .success(locators):
-                    if let locators = locators {
-                        do {
-                            try block(locators)
-                            next()
-                        } catch {
-                            completion(.failure(.wrap(error)))
-                        }
-                    } else {
-                        completion(.success(()))
-                    }
-                case let .failure(error):
-                    completion(.failure(error))
+    func forEach(_ block: @escaping (LocatorCollection) -> Void) async -> SearchResult<Void> {
+        func next() async -> SearchResult<Void> {
+            await self.next().asyncFlatMap { locators in
+                if let locators = locators {
+                    block(locators)
+                    return await next()
+                } else {
+                    return .success(())
                 }
             }
-            mediator.mediate(cancellable)
         }
 
-        next()
-        return mediator
+        return await next()
     }
-
-    func close() {}
 }
 
 /// Holds the available search options and their current values.
@@ -132,95 +110,40 @@ public struct SearchOptions: Hashable {
 public typealias SearchResult<Success> = Result<Success, SearchError>
 
 /// Represents an error which might occur during a search activity.
-public enum SearchError: LocalizedError {
+public enum SearchError: Error {
     /// The publication is not searchable.
     case publicationNotSearchable
 
     /// The provided search query cannot be handled by the service.
-    case badQuery(LocalizedError)
+    case badQuery(Error)
 
     /// An error occurred while accessing one of the publication's resources.
-    case resourceError(ResourceError)
-
-    /// An error occurred while performing an HTTP request.
-    case networkError(HTTPError)
-
-    /// The search was cancelled by the caller.
-    ///
-    /// For example, when a network request is cancelled.
-    case cancelled
-
-    /// For any other custom service error.
-    case other(Error)
-
-    public static func wrap(_ error: Error) -> SearchError {
-        switch error {
-        case let error as SearchError:
-            return error
-        case let error as ResourceError:
-            return .resourceError(error)
-        case let error as HTTPError:
-            return .networkError(error)
-        default:
-            return .other(error)
-        }
-    }
-
-    public var errorDescription: String? {
-        switch self {
-        case .publicationNotSearchable:
-            return R2SharedLocalizedString("Publication.SearchError.publicationNotSearchable")
-        case let .badQuery(error):
-            return error.errorDescription
-        case let .resourceError(error):
-            return error.errorDescription
-        case let .networkError(error):
-            return error.errorDescription
-        case .cancelled:
-            return R2SharedLocalizedString("Publication.SearchError.cancelled")
-        case .other:
-            return R2SharedLocalizedString("Publication.SearchError.other")
-        }
-    }
+    case reading(ReadError)
 }
 
 // MARK: Publication Helpers
 
 public extension Publication {
-    private var searchService: _SearchService? { findService(_SearchService.self) }
+    private var searchService: SearchService? { findService(SearchService.self) }
 
     /// Indicates whether the content of this publication can be searched.
-    ///
-    /// **WARNING:** This API is experimental and may change or be removed in a future release without
-    /// notice. Use with caution.
-    var _isSearchable: Bool {
+    var isSearchable: Bool {
         searchService != nil
     }
 
     /// Default value for the search options of this publication.
-    ///
-    /// **WARNING:** This API is experimental and may change or be removed in a future release without
-    /// notice. Use with caution.
-    var _searchOptions: SearchOptions {
+    var searchOptions: SearchOptions {
         searchService?.options ?? SearchOptions()
     }
 
     /// Starts a new search through the publication content, with the given `query`.
     /// If an option is nil when calling search(), its value is assumed to be the default one for the search service.
-    ///
-    /// **WARNING:** This API is experimental and may change or be removed in a future release without
-    /// notice. Use with caution.
     @discardableResult
-    func _search(query: String, options: SearchOptions? = nil, completion: @escaping (SearchResult<SearchIterator>) -> Void) -> Cancellable {
+    func search(query: String, options: SearchOptions? = nil) async -> SearchResult<SearchIterator> {
         guard let service = searchService else {
-            let cancellable = CancellableObject()
-            DispatchQueue.main.async(unlessCancelled: cancellable) {
-                completion(.failure(.publicationNotSearchable))
-            }
-            return cancellable
+            return .failure(.publicationNotSearchable)
         }
-
-        return service.search(query: query, options: options, completion: completion)
+        return await service.search(query: query, options: options)
     }
 }
 
@@ -229,9 +152,9 @@ public extension Publication {
 public extension PublicationServicesBuilder {
     mutating func setSearchServiceFactory(_ factory: SearchServiceFactory?) {
         if let factory = factory {
-            set(_SearchService.self, factory)
+            set(SearchService.self, factory)
         } else {
-            remove(_SearchService.self)
+            remove(SearchService.self)
         }
     }
 }

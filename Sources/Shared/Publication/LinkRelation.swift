@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -7,7 +7,7 @@
 import Foundation
 
 /// Link relations as defined in https://readium.org/webpub-manifest/relationships.html
-public struct LinkRelation {
+public struct LinkRelation: Sendable {
     /// The string representation of this link relation.
     public let string: String
 
@@ -49,6 +49,8 @@ public struct LinkRelation {
     public static let search = LinkRelation("search")
     /// Conveys an identifier for the link's context.
     public static let `self` = LinkRelation("self")
+    /// Refers to the start of the actual content in a publication.
+    public static let start = LinkRelation("start")
 
     // IANA – https://www.iana.org/assignments/link-relations/link-relations.xhtml
 
@@ -66,6 +68,8 @@ public struct LinkRelation {
     public static let next = LinkRelation("next")
     /// Refers to a resource that provides a preview of the link's context.
     public static let preview = LinkRelation("preview")
+    /// Refers to an icon representing the link's context.
+    public static let icon = LinkRelation("icon")
 
     // OPDS – https://specs.opds.io/opds-1.2.html
 

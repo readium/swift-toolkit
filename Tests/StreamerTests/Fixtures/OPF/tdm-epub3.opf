@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package xmlns="http://www.idpf.org/2007/opf" prefix="tdm: http://www.w3.org/ns/tdmrep#" unique-identifier="pub-id" version="3.0" xml:lang="en">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/">
+    <dc:title>Alice's Adventures in Wonderland</dc:title>
+
+    <meta property="tdm:reservation">1</meta>
+    <meta property="tdm:policy">https://provider.com/policies/policy.json</meta>
+  </metadata>
+  <manifest>
+    <item id="titlepage" href="titlepage.xhtml"/>
+  </manifest>
+  <spine>
+    <itemref idref="titlepage"/>
+  </spine>
+</package>

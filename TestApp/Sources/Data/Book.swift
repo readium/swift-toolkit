@@ -1,5 +1,5 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -7,7 +7,7 @@
 import Combine
 import Foundation
 import GRDB
-import R2Shared
+import ReadiumShared
 
 struct Book: Codable {
     struct Id: EntityId { let rawValue: Int64 }
@@ -21,8 +21,9 @@ struct Book: Codable {
     var authors: String?
     /// Media type associated to the publication.
     var type: String
-    /// Location of the packaged publication or a manifest.
-    var path: String
+    /// Location of the packaged publication or a manifest. It can be a relative
+    /// path to the Documents/ folder, or an absolute URL.
+    var url: String
     /// Location of the cover.
     var coverPath: String?
     /// Last read location in the publication.
@@ -38,7 +39,7 @@ struct Book: Codable {
     /// reading progression, spreads).
     var preferencesJSON: String?
 
-    var mediaType: MediaType { MediaType.of(mediaType: type) ?? .binary }
+    var mediaType: MediaType { MediaType(type) ?? .binary }
 
     init(
         id: Id? = nil,
@@ -46,7 +47,7 @@ struct Book: Codable {
         title: String,
         authors: String? = nil,
         type: String,
-        path: String,
+        url: AnyURL,
         coverPath: String? = nil,
         locator: Locator? = nil,
         created: Date = Date(),
@@ -57,7 +58,7 @@ struct Book: Codable {
         self.title = title
         self.authors = authors
         self.type = type
-        self.path = path
+        self.url = url.string
         self.coverPath = coverPath
         self.locator = locator
         progression = locator?.locations.totalProgression ?? 0
@@ -65,8 +66,8 @@ struct Book: Codable {
         self.preferencesJSON = preferencesJSON
     }
 
-    var cover: URL? {
-        coverPath.map { Paths.covers.appendingPathComponent($0) }
+    var cover: FileURL? {
+        coverPath.map { Paths.covers.appendingPath($0, isDirectory: false) }
     }
 
     func preferences<P: Decodable>() throws -> P? {
@@ -84,7 +85,7 @@ struct Book: Codable {
 
 extension Book: TableRecord, FetchableRecord, PersistableRecord {
     enum Columns: String, ColumnExpression {
-        case id, identifier, title, type, path, coverPath, locator, progression, created, preferencesJSON
+        case id, identifier, title, type, url, coverPath, locator, progression, created, preferencesJSON
     }
 }
 

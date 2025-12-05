@@ -1,15 +1,16 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-import R2Shared
+import ReadiumShared
 
 /// A text-to-speech engine synthesizes text utterances (e.g. sentence).
 ///
-/// Implement this interface to support third-party engines with `PublicationSpeechSynthesizer`.
+/// Implement this interface to support third-party engines with
+/// ``PublicationSpeechSynthesizer``.
 public protocol TTSEngine: AnyObject {
     /// List of available synthesizer voices.
     var availableVoices: [TTSVoice] { get }
@@ -22,9 +23,8 @@ public protocol TTSEngine: AnyObject {
     /// `onSpeakRange` is called repeatedly while the engine plays portions (e.g. words) of the utterance.
     func speak(
         _ utterance: TTSUtterance,
-        onSpeakRange: @escaping (Range<String.Index>) -> Void,
-        completion: @escaping (Result<Void, TTSError>) -> Void
-    ) -> Cancellable
+        onSpeakRange: @escaping (Range<String.Index>) -> Void
+    ) async -> Result<Void, TTSError>
 }
 
 public extension TTSEngine {
@@ -60,40 +60,5 @@ public struct TTSUtterance {
         case let .right(language):
             return language
         }
-    }
-}
-
-/// Represents a voice provided by the TTS engine which can speak an utterance.
-public struct TTSVoice: Hashable {
-    public enum Gender: Hashable {
-        case female, male, unspecified
-    }
-
-    public enum Quality: Hashable {
-        case low, medium, high
-    }
-
-    /// Unique and stable identifier for this voice. Can be used to store and retrieve the voice from the user
-    /// preferences.
-    public let identifier: String
-
-    /// Human-friendly name for this voice, when available.
-    public let name: String?
-
-    /// Language (and region) this voice belongs to.
-    public let language: Language
-
-    /// Voice gender.
-    public let gender: Gender
-
-    /// Voice quality.
-    public let quality: Quality?
-
-    public init(identifier: String, language: Language, name: String, gender: Gender, quality: Quality?) {
-        self.identifier = identifier
-        self.language = language
-        self.name = name
-        self.gender = gender
-        self.quality = quality
     }
 }

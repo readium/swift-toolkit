@@ -154,7 +154,7 @@
                             <outlet property="delegate" destination="duT-a7-PRx" id="hrs-X6-NrJ"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="About R2 Reader" id="4Jb-8m-jtJ"/>
+                    <navigationItem key="navigationItem" title="About the Readium Swift Toolkit" id="4Jb-8m-jtJ"/>
                     <connections>
                         <outlet property="buildNumberCell" destination="SgV-X4-gg2" id="CdD-2J-p3L"/>
                         <outlet property="versionNumberCell" destination="0IZ-gc-Ya0" id="C92-Ba-if5"/>

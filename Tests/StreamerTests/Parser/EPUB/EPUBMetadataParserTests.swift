@@ -1,12 +1,12 @@
 //
-//  Copyright 2024 Readium Foundation. All rights reserved.
+//  Copyright 2025 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
-import Fuzi
-import R2Shared
-@testable import R2Streamer
+import ReadiumFuzi
+import ReadiumShared
+@testable import ReadiumStreamer
 import XCTest
 
 class EPUBMetadataParserTests: XCTestCase {
@@ -34,6 +34,7 @@ class EPUBMetadataParserTests: XCTestCase {
             ],
             authors: [Contributor(name: "Lewis Carroll")],
             publishers: [Contributor(name: "D. Appleton and Co")],
+            layout: .fixed,
             readingProgression: .rtl,
             description: "The book description.",
             numberOfPages: 42,
@@ -54,13 +55,9 @@ class EPUBMetadataParserTests: XCTestCase {
                     "http://my.url/#refine2": "Refine 2",
                 ],
                 "http://purl.org/dc/terms/format": "application/epub+zip",
-                "presentation": [
-                    "continuous": false,
-                    "spread": "both",
-                    "overflow": "scrolled",
-                    "orientation": "landscape",
-                    "layout": "fixed",
-                ] as [String: Any],
+                "http://www.idpf.org/vocab/rendition/#flow": "scrolled-doc",
+                "http://www.idpf.org/vocab/rendition/#orientation": "landscape",
+                "http://www.idpf.org/vocab/rendition/#spread": "both",
             ]
         ))
     }
@@ -71,15 +68,7 @@ class EPUBMetadataParserTests: XCTestCase {
         XCTAssertEqual(sut, Metadata(
             conformsTo: [.epub],
             title: "Alice's Adventures in Wonderland",
-            otherMetadata: [
-                "presentation": [
-                    "continuous": false,
-                    "spread": "auto",
-                    "overflow": "auto",
-                    "orientation": "auto",
-                    "layout": "reflowable",
-                ] as [String: Any],
-            ]
+            layout: .reflowable
         ))
     }
 
@@ -89,15 +78,7 @@ class EPUBMetadataParserTests: XCTestCase {
         XCTAssertEqual(sut, Metadata(
             conformsTo: [.epub],
             title: "Alice's Adventures in Wonderland",
-            otherMetadata: [
-                "presentation": [
-                    "continuous": false,
-                    "spread": "auto",
-                    "overflow": "auto",
-                    "orientation": "auto",
-                    "layout": "reflowable",
-                ] as [String: Any],
-            ]
+            layout: .reflowable
         ))
     }
 
@@ -169,29 +150,26 @@ class EPUBMetadataParserTests: XCTestCase {
             title: "Alice's Adventures in Wonderland",
             authors: [
                 Contributor(name: "Author 1"),
+                Contributor(name: "Author 3"),
                 Contributor(name: "Author 4"),
-                Contributor(name: "Author 5"),
                 Contributor(name: "Author A"),
-                Contributor(name: "Author 2", roles: ["aut"]),
-                Contributor(name: "Author B", roles: ["aut"]),
-                Contributor(name: "Author C", roles: ["aut"]),
-                Contributor(name: "Author 3", roles: ["aut"]),
-                Contributor(name: "Cameleon 1", roles: ["aut", "pbl"]),
-                Contributor(name: "Cameleon A", roles: ["aut", "pbl"]),
+                Contributor(name: "Author 2"),
+                Contributor(name: "Cameleon 1"),
+                Contributor(name: "Cameleon A"),
             ],
-            translators: [Contributor(name: "Translator", roles: ["trl"])],
-            editors: [Contributor(name: "Editor", roles: ["edt"])],
-            artists: [Contributor(name: "Artist", roles: ["art"])],
+            translators: [Contributor(name: "Translator")],
+            editors: [Contributor(name: "Editor")],
+            artists: [Contributor(name: "Artist")],
             illustrators: [
-                Contributor(name: "Illustrator 1", roles: ["ill"]),
-                Contributor(name: "Illustrator 2", sortAs: "sorting", roles: ["ill"]),
-                Contributor(name: "Illustrator A", sortAs: "sorting", roles: ["ill"]),
+                Contributor(name: "Illustrator 1"),
+                Contributor(name: "Illustrator 2", sortAs: "sorting"),
+                Contributor(name: "Illustrator A", sortAs: "sorting"),
             ],
             letterers: [],
             pencilers: [],
-            colorists: [Contributor(name: "Colorist", roles: ["clr"])],
+            colorists: [Contributor(name: "Colorist")],
             inkers: [],
-            narrators: [Contributor(name: "Narrator", roles: ["nrt"])],
+            narrators: [Contributor(name: "Narrator")],
             contributors: [
                 Contributor(name: "Contributor 1"),
                 Contributor(name: "Unknown", roles: ["unknown"]),
@@ -200,20 +178,11 @@ class EPUBMetadataParserTests: XCTestCase {
             publishers: [
                 Contributor(name: "Publisher 1"),
                 Contributor(name: "Publisher A"),
-                Contributor(name: "Publisher 2", roles: ["pbl"]),
-                Contributor(name: "Cameleon 1", roles: ["aut", "pbl"]),
-                Contributor(name: "Cameleon A", roles: ["aut", "pbl"]),
+                Contributor(name: "Publisher B"),
+                Contributor(name: "Publisher 2"),
             ],
             imprints: [],
-            otherMetadata: [
-                "presentation": [
-                    "continuous": false,
-                    "spread": "auto",
-                    "overflow": "auto",
-                    "orientation": "auto",
-                    "layout": "reflowable",
-                ] as [String: Any],
-            ]
+            layout: .reflowable
         ))
     }
 
@@ -299,16 +268,7 @@ class EPUBMetadataParserTests: XCTestCase {
 
     func testParseRenditionFallbackWithDisplayOptions() throws {
         let sut = try parseMetadata("minimal", displayOptions: "displayOptions")
-        AssertJSONEqual(
-            sut.otherMetadata["presentation"],
-            [
-                "continuous": false,
-                "spread": "auto",
-                "overflow": "auto",
-                "orientation": "landscape",
-                "layout": "fixed",
-            ] as [String: Any]
-        )
+        XCTAssertEqual(sut.layout, .fixed)
     }
 
     func testParseEPUB2Accessibility() throws {
@@ -316,7 +276,7 @@ class EPUBMetadataParserTests: XCTestCase {
         XCTAssertEqual(
             sut.accessibility,
             Accessibility(
-                conformsTo: [.epubA11y10WCAG20A],
+                conformsTo: [.epubA11y10WCAG20A, .epubA11y11WCAG20AAA, .epubA11y11WCAG21AA],
                 certification: Accessibility.Certification(
                     certifiedBy: "Accessibility Testers Group",
                     credential: "DAISY OK",
@@ -326,10 +286,12 @@ class EPUBMetadataParserTests: XCTestCase {
                 accessModes: [.textual, .visual],
                 accessModesSufficient: [[.textual], [.textual, .visual]],
                 features: [.structuralNavigation, .alternativeText],
-                hazards: [.motionSimulation, .noSoundHazard]
+                hazards: [.motionSimulation, .noSoundHazard],
+                exemptions: [.eaaMicroenterprise, .eaaFundamentalAlteration, .eaaDisproportionateBurden]
             )
         )
-        XCTAssertEqual(Array(sut.otherMetadata.keys), ["presentation"])
+        // Checks that the a11y metadata are not added to otherMetadata.
+        XCTAssertTrue(sut.otherMetadata.isEmpty)
     }
 
     func testParseEPUB3Accessibility() throws {
@@ -337,7 +299,7 @@ class EPUBMetadataParserTests: XCTestCase {
         XCTAssertEqual(
             sut.accessibility,
             Accessibility(
-                conformsTo: [.epubA11y10WCAG20A],
+                conformsTo: [.epubA11y10WCAG20A, .epubA11y11WCAG20AAA, .epubA11y11WCAG21AA],
                 certification: Accessibility.Certification(
                     certifiedBy: "Accessibility Testers Group",
                     credential: "DAISY OK",
@@ -347,23 +309,46 @@ class EPUBMetadataParserTests: XCTestCase {
                 accessModes: [.textual, .visual],
                 accessModesSufficient: [[.textual], [.textual, .visual]],
                 features: [.structuralNavigation, .alternativeText],
-                hazards: [.motionSimulation, .noSoundHazard]
+                hazards: [.motionSimulation, .noSoundHazard],
+                exemptions: [.eaaMicroenterprise, .eaaFundamentalAlteration, .eaaDisproportionateBurden]
             )
         )
-        XCTAssertEqual(Array(sut.otherMetadata.keys), ["presentation"])
+        // Checks that the a11y metadata are not added to otherMetadata.
+        XCTAssertTrue(sut.otherMetadata.isEmpty)
+    }
+
+    func testParseEPUB2TDM() throws {
+        let sut = try parseMetadata("tdm-epub2")
+        XCTAssertEqual(
+            sut.tdm,
+            TDM(
+                reservation: .all,
+                policy: HTTPURL(string: "https://provider.com/policies/policy.json")!
+            )
+        )
+    }
+
+    func testParseEPUB3TDM() throws {
+        let sut = try parseMetadata("tdm-epub3")
+        XCTAssertEqual(
+            sut.tdm,
+            TDM(
+                reservation: .all,
+                policy: HTTPURL(string: "https://provider.com/policies/policy.json")!
+            )
+        )
     }
 
     // MARK: - Toolkit
 
     func parseMetadata(_ name: String, displayOptions: String? = nil) throws -> Metadata {
-        func parseDocument(named name: String, type: String) throws -> Fuzi.XMLDocument {
+        func parseDocument(named name: String, type: String) throws -> ReadiumFuzi.XMLDocument {
             try XMLDocument(data: fixtures.data(at: "\(name).\(type)"))
         }
 
         let document = try parseDocument(named: name, type: "opf")
         return try EPUBMetadataParser(
             document: document,
-            fallbackTitle: "title",
             displayOptions: displayOptions.map { try parseDocument(named: $0, type: "xml") },
             metas: OPFMetaList(document: document)
         ).parse()
