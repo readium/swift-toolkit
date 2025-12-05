@@ -542,7 +542,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             frame: .zero,
             preloadPreviousPositionCount: hasPositions ? config.preloadPreviousPositionCount : 0,
             preloadNextPositionCount: hasPositions ? config.preloadNextPositionCount : 0,
-            isScrollEnabled: isPaginationViewScrollingEnabled,
+            isScrollEnabled: isPaginationViewScrollingEnabled
             pageChanged: pageChanged
         )
         view.delegate = self
