@@ -29,6 +29,9 @@ protocol EPUBSpreadViewDelegate: AnyObject {
 
     /// Called when the pages visible in the spread changed.
     func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView)
+    
+    /// Called when spread view's scroll view ends decelerating.
+    func spreadViewDidEndDecelerating(_ spreadView: EPUBSpreadView)
 
     /// Called when the spread view needs to present a view controller.
     func spreadView(_ spreadView: EPUBSpreadView, present viewController: UIViewController)
@@ -546,6 +549,10 @@ extension EPUBSpreadView: UIScrollViewDelegate {
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         // Do not remove, overridden in subclasses.
+    }
+    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        delegate?.spreadViewDidEndDecelerating(self)
     }
 }
 

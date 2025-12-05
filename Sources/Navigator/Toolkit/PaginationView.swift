@@ -92,20 +92,21 @@ final class PaginationView: UIView, Loggable {
     }
 
     private let scrollView = UIScrollView()
+    private var pageChanged: ((CGFloat, CGFloat, Int?)->())?
 
     /// Allows the scroll view to scroll.
     var isScrollEnabled: Bool {
         didSet { scrollView.isScrollEnabled = isScrollEnabled }
     }
 
-    init(
-        frame: CGRect,
-        preloadPreviousPositionCount: Int,
-        preloadNextPositionCount: Int,
-        isScrollEnabled: Bool
-    ) {
+    init(frame: CGRect, 
+         preloadPreviousPositionCount: Int,
+         preloadNextPositionCount: Int,
+         isScrollEnabled: Bool,
+         pageChanged: ((CGFloat, CGFloat, Int?)->())?) {
         self.preloadPreviousPositionCount = preloadPreviousPositionCount
         self.preloadNextPositionCount = preloadNextPositionCount
+        self.pageChanged = pageChanged
         self.isScrollEnabled = isScrollEnabled
 
         super.init(frame: frame)
@@ -314,6 +315,11 @@ final class PaginationView: UIView, Loggable {
             await scrollToView(at: index, location: location)
         } else {
             await fadeToView(at: index, location: location, animated: options.animated)
+        }
+        if let currentSpread = currentView as? EPUBSpreadView {
+            DispatchQueue.main.asyncAfter(deadline: .now()+0.1) { [weak self] in
+                self?.pageChanged?(currentSpread.scrollView.contentOffset.x, currentSpread.scrollView.contentSize.width, index)
+            }
         }
         return true
     }
