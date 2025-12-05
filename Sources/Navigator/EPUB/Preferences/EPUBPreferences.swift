@@ -20,6 +20,9 @@ public struct EPUBPreferences: ConfigurablePreferences {
 
     /// Method for fitting the content of a fixed-layout publication within the
     /// viewport.
+    ///
+    /// - `auto` or `page`: Fit entire page within viewport (default).
+    /// - `width`: Fit page width, allow vertical scrolling if needed.
     public var fit: Fit?
 
     /// Default typeface for the text.
