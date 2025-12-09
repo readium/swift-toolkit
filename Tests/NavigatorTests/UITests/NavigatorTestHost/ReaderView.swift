@@ -38,8 +38,8 @@ struct ReaderView: View {
     }
 }
 
-@MainActor final class ReaderViewModel: ObservableObject, @MainActor Identifiable {
-    var id: ObjectIdentifier { ObjectIdentifier(self) }
+@MainActor final class ReaderViewModel: ObservableObject, Identifiable {
+    nonisolated var id: ObjectIdentifier { ObjectIdentifier(self) }
 
     let navigator: VisualNavigator & UIViewController
 

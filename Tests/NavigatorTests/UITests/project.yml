@@ -19,7 +19,7 @@ targets:
     deploymentTarget: 15.0
     sources:
       - path: NavigatorTestHost
-      - path: ../../Fixtures
+      - path: ../../Publications/Publications
         type: folder
         buildPhase: resources
     dependencies:

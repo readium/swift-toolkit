@@ -75,7 +75,7 @@ class FixtureListViewModel: ObservableObject {
             let epubURL = Bundle.main.url(
                 forResource: components[0],
                 withExtension: components[1],
-                subdirectory: "Fixtures"
+                subdirectory: "Publications"
             )
         else {
             throw FixtureError.notFound(fixture)
@@ -96,8 +96,8 @@ enum FixtureError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .notFound:
-            return "Test EPUB fixture not found in bundle"
+        case let .notFound(fixture):
+            return "Test fixture \(fixture.filename) not found in bundle"
         }
     }
 }
