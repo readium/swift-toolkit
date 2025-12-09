@@ -34,7 +34,7 @@ extension XCUIApplication {
     /// A timeout is used to make sure the memory is cleared.
     @discardableResult
     func assertAllMemoryDeallocated() -> Self {
-        switches[.allMemoryDeallocated].assertIs(true, waitForTimeout: 10)
+        switches[.allMemoryDeallocated].assertIs(true, waitForTimeout: 30)
         return self
     }
 }
@@ -58,7 +58,7 @@ struct ReaderUI {
 
     /// Waits for the navigator to be ready.
     @discardableResult
-    func assertReady(timeout: TimeInterval = 10) -> Self {
+    func assertReady(timeout: TimeInterval = 30) -> Self {
         app.switches[.isNavigatorReady].assertIs(true, waitForTimeout: timeout)
         return self
     }

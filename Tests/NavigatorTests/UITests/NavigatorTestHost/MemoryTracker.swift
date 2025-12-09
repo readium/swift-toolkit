@@ -52,12 +52,8 @@ import ReadiumNavigator
     }
 
     private func pollAllocations() {
-        var deallocated = true
-
-        refs.removeAll { ref in
-            deallocated = deallocated && ref.isDeallocated
-            return ref.isDeallocated
-        }
+        refs.removeAll { $0.isDeallocated }
+        let deallocated = refs.isEmpty
 
         if allDeallocated != deallocated {
             allDeallocated = deallocated
