@@ -101,7 +101,10 @@ let package = Package(
         .testTarget(
             name: "ReadiumNavigatorTests",
             dependencies: ["ReadiumNavigator"],
-            path: "Tests/NavigatorTests"
+            path: "Tests/NavigatorTests",
+            exclude: [
+                "UITests",
+            ]
         ),
 
         .target(
@@ -140,7 +143,7 @@ let package = Package(
         //     dependencies: ["ReadiumLCP"],
         //     path: "Tests/LCPTests",
         //     resources: [
-        //         .copy("Fixtures"),
+        //         .copy("../Fixtures"),
         //     ]
         // ),
 

@@ -15,6 +15,10 @@ carthage-project:
 	rm -rf $(SCRIPTS_PATH)/node_modules/
 	xcodegen -s Support/Carthage/project.yml --use-cache --cache-path Support/Carthage/.xcodegen
 
+.PHONY: navigator-ui-tests-project
+navigator-ui-tests-project:
+	xcodegen -s Tests/NavigatorTests/UITests/project.yml
+
 .PHONY: scripts
 scripts:
 	@which corepack >/dev/null 2>&1 || (echo "ERROR: corepack is required, please install it first\nhttps://pnpm.io/installation#using-corepack"; exit 1)
@@ -31,11 +35,6 @@ scripts:
 update-scripts:
 	@which corepack >/dev/null 2>&1 || (echo "ERROR: corepack is required, please install it first\nhttps://pnpm.io/installation#using-corepack"; exit 1)
 	pnpm install --dir "$(SCRIPTS_PATH)"
-
-.PHONY: test
-test:
-	# To limit to a particular test suite: -only-testing:ReadiumSharedTests
-	xcodebuild test -scheme "Readium-Package" -destination "platform=iOS Simulator,name=iPhone 15" | xcbeautify -q
 
 .PHONY: lint-format
 lint-format:
