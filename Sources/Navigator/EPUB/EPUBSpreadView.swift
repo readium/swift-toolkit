@@ -377,8 +377,27 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
+    enum VerticalDirection: CustomStringConvertible {
+        case up
+        case down
+
+        var description: String {
+            switch self {
+            case .up: return "up"
+            case .down: return "down"
+            }
+        }
+    }
+
     func go(to direction: Direction, options: NavigatorGoOptions) async -> Bool {
         // The default implementation of a spread view considers that its content is entirely visible on screen.
+        false
+    }
+
+    /// Scrolls vertically within the spread.
+    /// Returns false if reached the bounds (top/bottom), triggering Level 2 navigation.
+    func scrollVertical(to direction: VerticalDirection, options: NavigatorGoOptions) async -> Bool {
+        // The default implementation considers that vertical scrolling is not supported.
         false
     }
 

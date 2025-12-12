@@ -46,13 +46,23 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     override func setupWebView() {
         super.setupWebView()
 
-        scrollView.bounces = false
-        // Since iOS 16, the default value of alwaysBounceX seems to be true
-        // for web views.
-        scrollView.alwaysBounceVertical = false
-        scrollView.alwaysBounceHorizontal = false
+        // Configure scroll behavior based on mode
+        let isVerticalScrollMode = viewModel.config.verticalScrollMode
 
-        scrollView.isPagingEnabled = !viewModel.scroll
+        if isVerticalScrollMode {
+            // Vertical scroll mode: Enable vertical scrolling, disable bounces for clean gesture pass-through
+            scrollView.bounces = false
+            scrollView.alwaysBounceVertical = false
+            scrollView.alwaysBounceHorizontal = false
+            scrollView.isPagingEnabled = false  // No paging within WebView
+            scrollView.isScrollEnabled = true   // Enable vertical scrolling
+        } else {
+            // Horizontal pagination mode: Original behavior
+            scrollView.bounces = false
+            scrollView.alwaysBounceVertical = false
+            scrollView.alwaysBounceHorizontal = false
+            scrollView.isPagingEnabled = !viewModel.scroll
+        }
 
         webView.translatesAutoresizingMaskIntoConstraints = false
         topConstraint = webView.topAnchor.constraint(equalTo: topAnchor)
@@ -196,6 +206,51 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         // animation.
         // TODO: completion should be implemented using scroll view delegates
         try? await Task.sleep(seconds: 0.3)
+
+        return true
+    }
+
+    /// Scrolls vertically within the chapter.
+    /// Returns false when reaching top/bottom bounds, triggering snap to next/previous chapter.
+    override func scrollVertical(to direction: EPUBSpreadView.VerticalDirection, options: NavigatorGoOptions) async -> Bool {
+        let scrollView = self.scrollView
+
+        // Edge case: Chapter shorter than screen height - can't scroll
+        guard scrollView.contentSize.height > scrollView.bounds.height else {
+            return false
+        }
+
+        // Calculate scroll amount (80% of screen height)
+        let scrollAmount = scrollView.bounds.height * 0.8
+        let factor: CGFloat = (direction == .up) ? -1 : 1
+
+        var newOffset = scrollView.contentOffset
+        newOffset.y += scrollAmount * factor
+
+        // Calculate bounds
+        let minY: CGFloat = 0
+        let maxY = scrollView.contentSize.height - scrollView.bounds.height
+        let tolerance: CGFloat = 10
+
+        // Check if already at bounds
+        let currentY = scrollView.contentOffset.y
+        if direction == .up && currentY <= minY + tolerance {
+            return false  // At top, trigger previous chapter
+        }
+        if direction == .down && currentY >= maxY - tolerance {
+            return false  // At bottom, trigger next chapter
+        }
+
+        // Clamp to bounds
+        newOffset.y = max(minY, min(maxY, newOffset.y))
+
+        // Scroll within bounds
+        scrollView.setContentOffset(newOffset, animated: options.animated)
+
+        // Wait for animation to complete
+        if options.animated {
+            try? await Task.sleep(seconds: 0.3)
+        }
 
         return true
     }

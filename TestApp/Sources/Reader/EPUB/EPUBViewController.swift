@@ -45,7 +45,7 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
                         title: "Highlight",
                         action: #selector(highlightSelection)
                     )),
-                decorationTemplates: templates,
+                verticalScrollMode: true, decorationTemplates: templates,
                 fontFamilyDeclarations: [
                     CSSFontFamilyDeclaration(
                         fontFamily: .literata,

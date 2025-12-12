@@ -65,6 +65,11 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         /// Disables horizontal page turning when scroll is enabled.
         public var disablePageTurnsWhileScrolling: Bool
 
+        /// Enables vertical scroll mode with snap-to-chapter behavior.
+        /// When true, users can scroll vertically within chapters and snap to next/previous chapter at bounds.
+        /// When false, uses the default horizontal pagination.
+        public var verticalScrollMode: Bool
+
         /// Content insets used to add some vertical margins around reflowable
         /// EPUB publications. Note that the margins include the safe area
         /// insets. To avoid any "jump" when toggling the status bar, provide
@@ -103,6 +108,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             defaults: EPUBDefaults = EPUBDefaults(),
             editingActions: [EditingAction] = EditingAction.defaultActions,
             disablePageTurnsWhileScrolling: Bool = false,
+            verticalScrollMode: Bool = false,
             contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets] = [
                 .compact: (top: 34, bottom: 34),
                 .regular: (top: 62, bottom: 62),
@@ -118,6 +124,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             self.defaults = defaults
             self.editingActions = editingActions
             self.disablePageTurnsWhileScrolling = disablePageTurnsWhileScrolling
+            self.verticalScrollMode = verticalScrollMode
             self.contentInset = contentInset
             self.preloadPreviousPositionCount = preloadPreviousPositionCount
             self.preloadNextPositionCount = preloadNextPositionCount
@@ -533,6 +540,39 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         return moved
     }
 
+    /// Scrolls vertically within the current chapter, or snaps to next/previous chapter.
+    /// This implements the 2-level navigation for vertical scroll mode.
+    private func goVertical(to direction: EPUBSpreadView.VerticalDirection, options: NavigatorGoOptions) async -> Bool {
+        guard
+            let paginationView = paginationView,
+            on(.move(direction == .down ? .right : .left))  // Reuse existing state machine
+        else {
+            return false
+        }
+
+        // Level 1: Try scrolling within current chapter
+        if
+            let spreadView = paginationView.currentView as? EPUBSpreadView,
+            await spreadView.scrollVertical(to: direction, options: options)
+        {
+            on(.moved)
+            return true
+        }
+
+        // Level 2: Reached bounds, snap to next/previous chapter
+        let delta = (direction == .down) ? 1 : -1
+        let location: PageLocation = (direction == .down) ? .start : .end
+
+        let moved = await paginationView.goToIndex(
+            currentSpreadIndex + delta,
+            location: location,
+            options: options
+        )
+
+        on(.moved)
+        return moved
+    }
+
     // MARK: - Pagination and spreads
 
     private var paginationView: PaginationView?
@@ -546,6 +586,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         )
         view.delegate = self
         view.backgroundColor = .clear
+        view.layoutMode = config.verticalScrollMode ? .vertical : .horizontal
         return view
     }
 
@@ -794,28 +835,36 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     @discardableResult
     public func goForward(options: NavigatorGoOptions) async -> Bool {
-        let direction: EPUBSpreadView.Direction = {
-            switch viewModel.readingProgression {
-            case .ltr:
-                return .right
-            case .rtl:
-                return .left
-            }
-        }()
-        return await go(to: direction, options: options)
+        if config.verticalScrollMode {
+            return await goVertical(to: .down, options: options)
+        } else {
+            let direction: EPUBSpreadView.Direction = {
+                switch viewModel.readingProgression {
+                case .ltr:
+                    return .right
+                case .rtl:
+                    return .left
+                }
+            }()
+            return await go(to: direction, options: options)
+        }
     }
 
     @discardableResult
     public func goBackward(options: NavigatorGoOptions) async -> Bool {
-        let direction: EPUBSpreadView.Direction = {
-            switch viewModel.readingProgression {
-            case .ltr:
-                return .left
-            case .rtl:
-                return .right
-            }
-        }()
-        return await go(to: direction, options: options)
+        if config.verticalScrollMode {
+            return await goVertical(to: .up, options: options)
+        } else {
+            let direction: EPUBSpreadView.Direction = {
+                switch viewModel.readingProgression {
+                case .ltr:
+                    return .left
+                case .rtl:
+                    return .right
+                }
+            }()
+            return await go(to: direction, options: options)
+        }
     }
 
     // MARK: - SelectableNavigator
