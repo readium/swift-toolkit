@@ -8,16 +8,15 @@
 import PackageDescription
 
 let package = Package(
-    name: "Readium",
+    name: "GogReadium",
     defaultLocalization: "en",
     platforms: [.iOS("13.4")],
     products: [
-        .library(name: "ReadiumShared", targets: ["ReadiumShared"]),
-        .library(name: "ReadiumStreamer", targets: ["ReadiumStreamer"]),
-        .library(name: "ReadiumNavigator", targets: ["ReadiumNavigator"]),
-        .library(name: "ReadiumOPDS", targets: ["ReadiumOPDS"]),
-        .library(name: "ReadiumLCP", targets: ["ReadiumLCP"]),
-
+        .library(name: "GogReadiumShared", targets: ["GogReadiumShared"]),
+        .library(name: "GogReadiumStreamer", targets: ["GogReadiumStreamer"]),
+        .library(name: "GogReadiumNavigator", targets: ["GogReadiumNavigator"]),
+        .library(name: "GogReadiumOPDS", targets: ["GogReadiumOPDS"]),
+        .library(name: "GogReadiumLCP", targets: ["GogReadiumLCP"]),
         // Adapters to third-party dependencies.
         .library(name: "ReadiumAdapterGCDWebServer", targets: ["ReadiumAdapterGCDWebServer"]),
         .library(name: "ReadiumAdapterLCPSQLite", targets: ["ReadiumAdapterLCPSQLite"]),
@@ -34,9 +33,9 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "ReadiumShared",
+            name: "GogReadiumShared",
             dependencies: [
-                "ReadiumInternal",
+                "GogReadiumInternal",
                 "SwiftSoup",
                 "Zip",
                 .product(name: "ReadiumFuzi", package: "Fuzi"),
@@ -52,9 +51,9 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "ReadiumSharedTests",
+            name: "GogReadiumSharedTests",
             dependencies: [
-                "ReadiumShared",
+                "GogReadiumShared",
                 "TestPublications",
             ],
             path: "Tests/SharedTests",
@@ -64,10 +63,10 @@ let package = Package(
         ),
 
         .target(
-            name: "ReadiumStreamer",
+            name: "GogReadiumStreamer",
             dependencies: [
                 "CryptoSwift",
-                "ReadiumShared",
+                "GogReadiumShared",
                 .product(name: "ReadiumFuzi", package: "Fuzi"),
             ],
             path: "Sources/Streamer",
@@ -76,8 +75,8 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "ReadiumStreamerTests",
-            dependencies: ["ReadiumStreamer"],
+            name: "GogReadiumStreamerTests",
+            dependencies: ["GogReadiumStreamer"],
             path: "Tests/StreamerTests",
             resources: [
                 .copy("Fixtures"),
@@ -85,10 +84,10 @@ let package = Package(
         ),
 
         .target(
-            name: "ReadiumNavigator",
+            name: "GogReadiumNavigator",
             dependencies: [
-                "ReadiumInternal",
-                "ReadiumShared",
+                "GogReadiumInternal",
+                "GogReadiumShared",
                 "DifferenceKit",
                 "SwiftSoup",
             ],
@@ -102,8 +101,8 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "ReadiumNavigatorTests",
-            dependencies: ["ReadiumNavigator"],
+            name: "GogReadiumNavigatorTests",
+            dependencies: ["GogReadiumNavigator"],
             path: "Tests/NavigatorTests",
             exclude: [
                 "UITests",
@@ -111,16 +110,16 @@ let package = Package(
         ),
 
         .target(
-            name: "ReadiumOPDS",
+            name: "GogReadiumOPDS",
             dependencies: [
-                "ReadiumShared",
+                "GogReadiumShared",
                 .product(name: "ReadiumFuzi", package: "Fuzi"),
             ],
             path: "Sources/OPDS"
         ),
         .testTarget(
-            name: "ReadiumOPDSTests",
-            dependencies: ["ReadiumOPDS"],
+            name: "GogReadiumOPDSTests",
+            dependencies: ["GogReadiumOPDS"],
             path: "Tests/OPDSTests",
             resources: [
                 .copy("Samples"),
@@ -128,10 +127,10 @@ let package = Package(
         ),
 
         .target(
-            name: "ReadiumLCP",
+            name: "GogReadiumLCP",
             dependencies: [
                 "CryptoSwift",
-                "ReadiumShared",
+                "GogReadiumShared",
                 .product(name: "ReadiumZIPFoundation", package: "ZIPFoundation"),
             ],
             path: "Sources/LCP",
@@ -169,12 +168,12 @@ let package = Package(
         ),
 
         .target(
-            name: "ReadiumInternal",
+            name: "GogReadiumInternal",
             path: "Sources/Internal"
         ),
         .testTarget(
-            name: "ReadiumInternalTests",
-            dependencies: ["ReadiumInternal"],
+            name: "GogReadiumInternalTests",
+            dependencies: ["GogReadiumInternal"],
             path: "Tests/InternalTests"
         ),
 
