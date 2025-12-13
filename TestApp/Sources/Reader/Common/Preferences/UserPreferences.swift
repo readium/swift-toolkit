@@ -79,6 +79,7 @@ struct UserPreferences<
                 case let editor as PDFPreferencesEditor:
                     fixedLayoutUserPreferences(
                         commit: commit,
+                        fit: editor.fit,
                         offsetFirstPage: editor.offsetFirstPage,
                         pageSpacing: editor.pageSpacing,
                         readingProgression: editor.readingProgression,
@@ -122,6 +123,7 @@ struct UserPreferences<
                         fixedLayoutUserPreferences(
                             commit: commit,
                             backgroundColor: editor.backgroundColor,
+                            fit: editor.fit,
                             language: editor.language,
                             readingProgression: editor.readingProgression,
                             spread: editor.spread
@@ -272,10 +274,9 @@ struct UserPreferences<
                     commit: commit,
                     formatValue: { v in
                         switch v {
-                        case .cover: return "Cover"
-                        case .contain: return "Contain"
+                        case .auto: return "Auto"
+                        case .page: return "Page"
                         case .width: return "Width"
-                        case .height: return "Height"
                         }
                     }
                 )

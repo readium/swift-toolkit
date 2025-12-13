@@ -53,7 +53,10 @@ let package = Package(
         ),
         .testTarget(
             name: "ReadiumSharedTests",
-            dependencies: ["ReadiumShared"],
+            dependencies: [
+                "ReadiumShared",
+                "TestPublications",
+            ],
             path: "Tests/SharedTests",
             resources: [
                 .copy("Fixtures"),
@@ -101,7 +104,10 @@ let package = Package(
         .testTarget(
             name: "ReadiumNavigatorTests",
             dependencies: ["ReadiumNavigator"],
-            path: "Tests/NavigatorTests"
+            path: "Tests/NavigatorTests",
+            exclude: [
+                "UITests",
+            ]
         ),
 
         .target(
@@ -140,7 +146,7 @@ let package = Package(
         //     dependencies: ["ReadiumLCP"],
         //     path: "Tests/LCPTests",
         //     resources: [
-        //         .copy("Fixtures"),
+        //         .copy("../Fixtures"),
         //     ]
         // ),
 
@@ -170,6 +176,15 @@ let package = Package(
             name: "ReadiumInternalTests",
             dependencies: ["ReadiumInternal"],
             path: "Tests/InternalTests"
+        ),
+
+        // Shared test publications used across multiple test targets.
+        .target(
+            name: "TestPublications",
+            path: "Tests/Publications",
+            resources: [
+                .copy("Publications"),
+            ]
         ),
     ]
 )

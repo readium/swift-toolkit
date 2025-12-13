@@ -93,7 +93,7 @@ public class PublicationOpener {
         switch await parser.parse(asset: asset, warnings: warnings) {
         case var .success(builder):
             for transform in builderTransforms {
-                builder.apply(transform)
+                await builder.apply(transform)
             }
             return .success(builder.build())
 

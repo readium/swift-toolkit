@@ -14,6 +14,9 @@ public struct PDFPreferences: ConfigurablePreferences {
     /// Background color behind the document pages.
     public var backgroundColor: Color?
 
+    /// Method for fitting the pages within the viewport.
+    public var fit: Fit?
+
     /// Indicates if the first page should be displayed in its own spread.
     public var offsetFirstPage: Bool?
 
@@ -41,6 +44,7 @@ public struct PDFPreferences: ConfigurablePreferences {
 
     public init(
         backgroundColor: Color? = nil,
+        fit: Fit? = nil,
         offsetFirstPage: Bool? = nil,
         pageSpacing: Double? = nil,
         readingProgression: ReadingProgression? = nil,
@@ -51,6 +55,7 @@ public struct PDFPreferences: ConfigurablePreferences {
     ) {
         precondition(pageSpacing == nil || pageSpacing! >= 0)
         self.backgroundColor = backgroundColor
+        self.fit = fit
         self.offsetFirstPage = offsetFirstPage
         self.pageSpacing = pageSpacing
         self.readingProgression = readingProgression
@@ -63,6 +68,7 @@ public struct PDFPreferences: ConfigurablePreferences {
     public func merging(_ other: PDFPreferences) -> PDFPreferences {
         PDFPreferences(
             backgroundColor: other.backgroundColor ?? backgroundColor,
+            fit: other.fit ?? fit,
             offsetFirstPage: other.offsetFirstPage ?? offsetFirstPage,
             pageSpacing: other.pageSpacing ?? pageSpacing,
             readingProgression: other.readingProgression ?? readingProgression,

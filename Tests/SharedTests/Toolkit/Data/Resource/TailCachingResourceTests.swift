@@ -5,6 +5,7 @@
 //
 
 @testable import ReadiumShared
+import TestPublications
 import XCTest
 
 class TailCachingResourceTests: XCTestCase {
@@ -50,7 +51,7 @@ class TailCachingResourceTests: XCTestCase {
         }
     }
 
-    private let file = Fixtures(path: "Fetcher").url(for: "epub.epub")
+    private let file = FileURL(url: TestPublications.url(for: "childrens-literature.epub"))!
     private lazy var data = try! Data(contentsOf: file.url)
     private lazy var resource = FileResource(file: file)
 
