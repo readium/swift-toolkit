@@ -18,13 +18,9 @@ struct OPDSFeedView: View {
         let id: String
         let publication: ReadiumShared.Publication
 
-        init(publication: ReadiumShared.Publication) {
+        init(id: String, publication: ReadiumShared.Publication) {
+            self.id = id
             self.publication = publication
-
-            id = publication.links.first(where: { $0.rels.contains(.self) })?.href
-                ?? publication.metadata.identifier
-                ?? publication.metadata.title
-                ?? UUID().uuidString
         }
 
         func hash(into hasher: inout Hasher) {
@@ -163,7 +159,9 @@ struct OPDSFeedView: View {
         let columns = [
             GridItem(.adaptive(minimum: 140), spacing: 16),
         ]
-        let navPublications = publications.map(NavigablePublication.init).unique()
+        let navPublications = publications.enumerated().map { index, publication in
+            NavigablePublication(id: "\(index)", publication: publication)
+        }
 
         ScrollView {
             LazyVGrid(columns: columns, spacing: 20) {
@@ -210,7 +208,7 @@ struct OPDSFeedView: View {
 
     @ViewBuilder
     private func buildGroupsSection(_ groups: [ReadiumShared.Group]) -> some View {
-        ForEach(groups, id: \.metadata.title) { group in
+        ForEach(Array(groups.enumerated()), id: \.element.metadata.title) { groupIndex, group in
             HStack {
                 Text(group.metadata.title)
                     .font(.title3.bold())
@@ -235,7 +233,9 @@ struct OPDSFeedView: View {
             .padding(.bottom, 8)
 
             if !group.publications.isEmpty {
-                let navPublications = group.publications.map(NavigablePublication.init).unique()
+                let navPublications = group.publications.enumerated().map { pubIndex, publication in
+                    NavigablePublication(id: "\(groupIndex)-\(pubIndex)", publication: publication)
+                }
 
                 OPDSGroupRow(
                     group: group,
@@ -274,13 +274,5 @@ struct OPDSFeedView: View {
                 }
             }
         }
-    }
-}
-
-extension Sequence where Element: Hashable {
-    /// Returns an array containing only the unique elements of the sequence.
-    func unique() -> [Element] {
-        var seen = Set<Element>()
-        return filter { seen.insert($0).inserted }
     }
 }
