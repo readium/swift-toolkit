@@ -58,12 +58,15 @@ extension ReadiumShared.ReadingProgression {
     }
 }
 
-/// Method for constraining a resource inside the viewport.
+/// Method for fitting the content within the viewport.
 public enum Fit: String, Codable, Hashable {
-    case cover
-    case contain
+    /// Use the best fitting strategy depending on the current settings and
+    /// content.
+    case auto
+    /// The content is scaled to fit both dimensions within the viewport.
+    case page
+    /// The content is scaled to fit the viewport width.
     case width
-    case height
 }
 
 /// Reader theme for reflowable documents.

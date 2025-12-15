@@ -40,6 +40,23 @@ jobs:
           set -eo pipefail
           xcodebuild test-without-building -scheme "$scheme" -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
+  navigator-ui-tests:
+    name: Navigator UI Tests
+    runs-on: macos-14
+    if: ${{ !github.event.pull_request.draft }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install xcodegen
+      - name: Test
+        run: |
+          set -eo pipefail
+          make navigator-ui-tests-project
+          xcodebuild test -project Tests/NavigatorTests/UITests/NavigatorUITests.xcodeproj -scheme NavigatorTestHost -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+
   lint:
     name: Lint
     runs-on: macos-14

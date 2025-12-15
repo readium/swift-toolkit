@@ -57,7 +57,8 @@ open class PDFNavigatorViewController:
     }
 
     /// Whether the pages is always scaled to fit the screen, unless the user zoomed in.
-    public var scalesDocumentToFit = true
+    @available(*, unavailable, message: "This API is deprecated")
+    public var scalesDocumentToFit: Bool { true }
 
     public weak var delegate: PDFNavigatorDelegate?
     public private(set) var pdfView: PDFDocumentView?
@@ -76,6 +77,8 @@ open class PDFNavigatorViewController:
     // Holds a reference to make sure they are not garbage-collected.
     private var tapGestureController: PDFTapGestureController?
     private var clickGestureController: PDFTapGestureController?
+    private var swipeLeftGestureRecognizer: UISwipeGestureRecognizer?
+    private var swipeRightGestureRecognizer: UISwipeGestureRecognizer?
 
     private let server: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
@@ -184,7 +187,7 @@ open class PDFNavigatorViewController:
         super.viewWillAppear(animated)
 
         // Hack to layout properly the first page when opening the PDF.
-        if let pdfView = pdfView, scalesDocumentToFit {
+        if let pdfView = pdfView {
             pdfView.scaleFactor = pdfView.minScaleFactor
             if let page = pdfView.currentPage {
                 pdfView.go(to: page.bounds(for: pdfView.displayBox), on: page)
@@ -195,14 +198,13 @@ open class PDFNavigatorViewController:
     override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
 
-        if let pdfView = pdfView, scalesDocumentToFit {
-            // Makes sure that the PDF is always properly scaled down when rotating the screen, if the user didn't zoom in.
-            let isAtMinScaleFactor = (pdfView.scaleFactor == pdfView.minScaleFactor)
+        if let pdfView = pdfView {
+            // Makes sure that the PDF is always properly scaled when rotating
+            // the screen, if the user didn't set a custom zoom.
+            let isAtScaleFactor = pdfView.isAtScaleFactor(for: settings.fit)
+
             coordinator.animate(alongsideTransition: { _ in
-                self.updateScaleFactors()
-                if isAtMinScaleFactor {
-                    pdfView.scaleFactor = pdfView.minScaleFactor
-                }
+                self.updateScaleFactors(zoomToFit: isAtScaleFactor)
 
                 // Reset the PDF view to update the spread if needed.
                 if self.settings.spread == .auto {
@@ -263,11 +265,14 @@ open class PDFNavigatorViewController:
             target: self,
             action: #selector(didClick)
         )
+        swipeLeftGestureRecognizer = recognizeSwipe(in: pdfView, direction: .left)
+        swipeRightGestureRecognizer = recognizeSwipe(in: pdfView, direction: .right)
 
         apply(settings: settings, to: pdfView)
         delegate?.navigator(self, setupPDFView: pdfView)
 
         NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: .PDFViewPageChanged, object: pdfView)
+        NotificationCenter.default.addObserver(self, selector: #selector(visiblePagesDidChange), name: .PDFViewVisiblePagesChanged, object: pdfView)
         NotificationCenter.default.addObserver(self, selector: #selector(selectionDidChange), name: .PDFViewSelectionChanged, object: pdfView)
 
         if let locator = locator {
@@ -328,7 +333,7 @@ open class PDFNavigatorViewController:
 
         pdfView.displaysRTL = isRTL
         pdfView.displaysPageBreaks = true
-        pdfView.autoScales = !scalesDocumentToFit
+        pdfView.autoScales = false
 
         if let scrollView = pdfView.firstScrollView {
             let showScrollbar = settings.visibleScrollbar
@@ -341,6 +346,10 @@ open class PDFNavigatorViewController:
         }
         pdfView.backgroundColor = settings.backgroundColor?.uiColor
             ?? pdfViewDefaultBackgroundColor
+
+        let enableSwipes = !settings.scroll && spread
+        swipeLeftGestureRecognizer?.isEnabled = enableSwipes
+        swipeRightGestureRecognizer?.isEnabled = enableSwipes
     }
 
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
@@ -367,11 +376,39 @@ open class PDFNavigatorViewController:
         delegate?.navigator(self, didTapAt: location)
     }
 
+    private func recognizeSwipe(in view: UIView, direction: UISwipeGestureRecognizer.Direction) -> UISwipeGestureRecognizer {
+        let recognizer = UISwipeGestureRecognizer(target: self, action: #selector(didSwipe))
+        recognizer.direction = direction
+        recognizer.numberOfTouchesRequired = 1
+        view.addGestureRecognizer(recognizer)
+        return recognizer
+    }
+
+    @objc private func didSwipe(_ gesture: UISwipeGestureRecognizer) {
+        switch gesture.direction {
+        case .left:
+            Task { await goRight(options: .animated) }
+        case .right:
+            Task { await goLeft(options: .animated) }
+        default:
+            break
+        }
+    }
+
     @objc private func pageDidChange() {
         guard let locator = currentPosition else {
             return
         }
         delegate?.navigator(self, locationDidChange: locator)
+    }
+
+    @objc private func visiblePagesDidChange() {
+        // In paginated mode, we want to refresh the scale factors to properly
+        // fit the newly visible pages. This is especially important for
+        // paginated spreads.
+        if !settings.scroll {
+            updateScaleFactors(zoomToFit: true)
+        }
     }
 
     @discardableResult
@@ -426,7 +463,7 @@ open class PDFNavigatorViewController:
             currentResourceIndex = index
             documentHolder.set(document, at: href)
             pdfView.document = document
-            updateScaleFactors()
+            updateScaleFactors(zoomToFit: true)
         }
 
         guard let document = pdfView.document else {
@@ -446,12 +483,29 @@ open class PDFNavigatorViewController:
         return true
     }
 
-    private func updateScaleFactors() {
-        guard let pdfView = pdfView, scalesDocumentToFit else {
+    /// Updates the scale factors to match the currently visible pages.
+    ///
+    /// - Parameter zoomToFit: When true, the document will be zoomed to fit the
+    ///   visible pages.
+    private func updateScaleFactors(zoomToFit: Bool) {
+        guard let pdfView = pdfView else {
             return
         }
-        pdfView.minScaleFactor = pdfView.scaleFactorForSizeToFit
+
+        let scaleFactorToFit = pdfView.scaleFactor(for: settings.fit)
+
+        if settings.scroll {
+            // Allow zooming out to 25% in scroll mode.
+            pdfView.minScaleFactor = 0.25
+        } else {
+            pdfView.minScaleFactor = scaleFactorToFit
+        }
+
         pdfView.maxScaleFactor = 4.0
+
+        if zoomToFit {
+            pdfView.scaleFactor = scaleFactorToFit
+        }
     }
 
     private func pageNumber(for locator: Locator) -> Int? {

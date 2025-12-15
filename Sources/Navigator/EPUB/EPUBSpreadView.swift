@@ -95,6 +95,13 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     deinit {
         NotificationCenter.default.removeObserver(self)
+        clear()
+    }
+
+    /// Called when the spread view is removed from the view hierarchy, to
+    /// clear pending operations and retain cycles.
+    func clear() {
+        // Disable JS messages to break WKUserContentController reference.
         disableJSMessages()
     }
 
@@ -126,14 +133,18 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         webView.scrollView
     }
 
+    override func willMove(toSuperview newSuperview: UIView?) {
+        super.willMove(toSuperview: newSuperview)
+
+        if newSuperview == nil {
+            clear()
+        }
+    }
+
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
 
-        if superview == nil {
-            disableJSMessages()
-            // Fixing an iOS 9 bug by explicitly clearing scrollView.delegate before deinitialization
-            scrollView.delegate = nil
-        } else {
+        if superview != nil {
             enableJSMessages()
             scrollView.delegate = self
         }

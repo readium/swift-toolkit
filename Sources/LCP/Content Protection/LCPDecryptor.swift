@@ -9,7 +9,6 @@ import ReadiumInternal
 import ReadiumShared
 
 private let lcpScheme = "http://readium.org/2014/01/lcp"
-private let AESBlockSize: UInt64 = 16 // bytes
 
 /// Decrypts a resource protected with LCP.
 final class LCPDecryptor {
@@ -117,7 +116,7 @@ final class LCPDecryptor {
                 guard let length = length else {
                     return failure(.requiredEstimatedLength)
                 }
-                guard length >= 2 * AESBlockSize else {
+                guard length.isValidAESChunk else {
                     return failure(.invalidCBCData)
                 }
 
@@ -207,6 +206,10 @@ final class LCPDecryptor {
 private extension LCPLicense {
     func decryptFully(data: ReadResult<Data>, isDeflated: Bool) async -> ReadResult<Data> {
         data.flatMap {
+            guard UInt64($0.count).isValidAESChunk else {
+                return .failure(.decoding(LCPDecryptor.Error.invalidCBCData))
+            }
+
             do {
                 // Decrypts the resource.
                 guard var data = try self.decipher($0) else {
@@ -240,5 +243,17 @@ private extension ReadiumShared.Encryption {
 
     var isCbcEncrypted: Bool {
         algorithm == "http://www.w3.org/2001/04/xmlenc#aes256-cbc"
+    }
+}
+
+private let AESBlockSize: UInt64 = 16 // bytes
+
+private extension UInt64 {
+    /// Checks if this number is a valid CBC length - i.e. a multiple of AES
+    /// block size and at least 2 blocks (IV + data).
+    /// If not, the file is likely not actually encrypted despite being declared
+    /// as such.
+    var isValidAESChunk: Bool {
+        self >= 2 * AESBlockSize && self % AESBlockSize == 0
     }
 }

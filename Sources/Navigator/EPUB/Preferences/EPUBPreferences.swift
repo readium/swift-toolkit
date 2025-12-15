@@ -18,6 +18,13 @@ public struct EPUBPreferences: ConfigurablePreferences {
     /// spread).
     public var columnCount: ColumnCount?
 
+    /// Method for fitting the content of a fixed-layout publication within the
+    /// viewport.
+    ///
+    /// - `auto` or `page`: Fit entire page within viewport (default).
+    /// - `width`: Fit page width, allow vertical scrolling if needed.
+    public var fit: Fit?
+
     /// Default typeface for the text.
     public var fontFamily: FontFamily?
 
@@ -97,6 +104,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
     public init(
         backgroundColor: Color? = nil,
         columnCount: ColumnCount? = nil,
+        fit: Fit? = nil,
         fontFamily: FontFamily? = nil,
         fontSize: Double? = nil,
         fontWeight: Double? = nil,
@@ -123,6 +131,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
     ) {
         self.backgroundColor = backgroundColor
         self.columnCount = columnCount
+        self.fit = fit
         self.fontFamily = fontFamily
         self.fontSize = fontSize.map { max($0, 0) }
         self.fontWeight = fontWeight?.clamped(to: 0.0 ... 2.5)
@@ -152,6 +161,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
         EPUBPreferences(
             backgroundColor: other.backgroundColor ?? backgroundColor,
             columnCount: other.columnCount ?? columnCount,
+            fit: other.fit ?? fit,
             fontFamily: other.fontFamily ?? fontFamily,
             fontSize: other.fontSize ?? fontSize,
             fontWeight: other.fontWeight ?? fontWeight,

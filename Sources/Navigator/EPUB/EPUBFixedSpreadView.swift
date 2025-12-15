@@ -88,11 +88,13 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         insets.right = horizontalInsets
 
         let viewportSize = bounds.inset(by: insets).size
+        let fitString = viewModel.settings.fit.rawValue
 
         webView.evaluateJavaScript("""
             spread.setViewport(
                 {'width': \(Int(viewportSize.width)), 'height': \(Int(viewportSize.height))},
-                {'top': \(Int(insets.top)), 'left': \(Int(insets.left)), 'bottom': \(Int(insets.bottom)), 'right': \(Int(insets.right))}
+                {'top': \(Int(insets.top)), 'left': \(Int(insets.left)), 'bottom': \(Int(insets.bottom)), 'right': \(Int(insets.right))},
+                '\(fitString)'
             );
         """)
     }

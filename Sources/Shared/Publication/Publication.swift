@@ -169,7 +169,7 @@ public class Publication: Closeable, Loggable {
             _ manifest: inout Manifest,
             _ container: inout Container,
             _ services: inout PublicationServicesBuilder
-        ) -> Void
+        ) async -> Void
 
         private var manifest: Manifest
         private var container: Container
@@ -185,12 +185,12 @@ public class Publication: Closeable, Loggable {
             self.servicesBuilder = servicesBuilder
         }
 
-        public mutating func apply(_ transform: Transform?) {
+        public mutating func apply(_ transform: Transform?) async {
             guard let transform = transform else {
                 return
             }
 
-            transform(&manifest, &container, &servicesBuilder)
+            await transform(&manifest, &container, &servicesBuilder)
         }
 
         /// Builds the `Publication` from its parts.

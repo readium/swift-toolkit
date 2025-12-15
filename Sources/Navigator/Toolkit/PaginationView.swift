@@ -150,6 +150,18 @@ final class PaginationView: UIView, Loggable {
         scrollView.contentOffset.x = xOffsetForIndex(currentIndex)
     }
 
+    override func willMove(toSuperview newSuperview: UIView?) {
+        super.willMove(toSuperview: newSuperview)
+
+        if newSuperview == nil {
+            // Remove all spread views to break retain cycles
+            for (_, view) in loadedViews {
+                view.removeFromSuperview()
+            }
+            loadedViews.removeAll()
+        }
+    }
+
     override func didMoveToWindow() {
         super.didMoveToWindow()
 
