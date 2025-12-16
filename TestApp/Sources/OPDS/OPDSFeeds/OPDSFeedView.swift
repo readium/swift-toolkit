@@ -18,9 +18,9 @@ struct OPDSFeedView: View {
         let id: String
         let publication: ReadiumShared.Publication
 
-        init(id: String, publication: ReadiumShared.Publication) {
-            self.id = id
+        init(publication: ReadiumShared.Publication, index: Int) {
             self.publication = publication
+            id = "\(publication.manifest.hashValue)-\(index)"
         }
 
         func hash(into hasher: inout Hasher) {
@@ -29,6 +29,14 @@ struct OPDSFeedView: View {
 
         static func == (lhs: NavigablePublication, rhs: NavigablePublication) -> Bool {
             lhs.id == rhs.id
+        }
+    }
+
+    /// Converts publications to NavigablePublications with unique IDs.
+    /// Each publication gets an ID in the format: hash-index
+    private func makeNavigablePublications(_ publications: [ReadiumShared.Publication]) -> [NavigablePublication] {
+        publications.enumerated().map { index, publication in
+            NavigablePublication(publication: publication, index: index)
         }
     }
 
@@ -159,9 +167,7 @@ struct OPDSFeedView: View {
         let columns = [
             GridItem(.adaptive(minimum: 140), spacing: 16),
         ]
-        let navPublications = publications.enumerated().map { index, publication in
-            NavigablePublication(id: "\(index)", publication: publication)
-        }
+        let navPublications = makeNavigablePublications(publications)
 
         ScrollView {
             LazyVGrid(columns: columns, spacing: 20) {
@@ -208,7 +214,7 @@ struct OPDSFeedView: View {
 
     @ViewBuilder
     private func buildGroupsSection(_ groups: [ReadiumShared.Group]) -> some View {
-        ForEach(Array(groups.enumerated()), id: \.element.metadata.title) { groupIndex, group in
+        ForEach(Array(groups.enumerated()), id: \.element.metadata.title) { _, group in
             HStack {
                 Text(group.metadata.title)
                     .font(.title3.bold())
@@ -216,12 +222,8 @@ struct OPDSFeedView: View {
 
                 Spacer()
 
-                if let moreLink = group.links.first {
-                    Button {
-                        if let url = URL(string: moreLink.href) {
-                            facetNavigationURL = url
-                        }
-                    } label: {
+                if let moreLink = group.links.first, let url = URL(string: moreLink.href) {
+                    NavigationLink(value: url) {
                         Text(NSLocalizedString("opds_more_button", comment: "Button to expand a feed gallery"))
                             .font(.title3.bold())
                             .foregroundColor(.secondary)
@@ -233,9 +235,7 @@ struct OPDSFeedView: View {
             .padding(.bottom, 8)
 
             if !group.publications.isEmpty {
-                let navPublications = group.publications.enumerated().map { pubIndex, publication in
-                    NavigablePublication(id: "\(groupIndex)-\(pubIndex)", publication: publication)
-                }
+                let navPublications = makeNavigablePublications(group.publications)
 
                 OPDSGroupRow(
                     group: group,

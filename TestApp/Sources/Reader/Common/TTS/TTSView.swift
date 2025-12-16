@@ -125,7 +125,7 @@ private extension Optional where Wrapped == TTSVoice {
         guard case let .some(voice) = self else {
             return "Default"
         }
-        var desc = voice.name ?? "Voice"
+        var desc = voice.name
         if let region = voice.language.localizedRegion() {
             desc += " (\(region))"
         }
