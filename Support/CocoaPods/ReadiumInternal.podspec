@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name          = "ReadiumInternal"
-  s.version       = "3.5.0"
+  s.version       = "3.6.0"
   s.license       = "BSD 3-Clause License"
   s.summary       = "Private utilities used by the Readium modules"
   s.homepage      = "http://readium.github.io"
