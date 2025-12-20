@@ -310,11 +310,13 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return await scroll(toLocator: locator)
             // TODO: find the first fragment matching a tag ID (need a regex)
         } else if let id = locator.locations.fragments.first, !id.isEmpty {
-            return await scroll(toTagID: id)
-        } else {
-            let progression = locator.locations.progression ?? 0
-            return await scroll(toProgression: progression)
+            if await scroll(toTagID: id) {
+                return true
+            }
         }
+        
+        let progression = locator.locations.progression ?? 0
+        return await scroll(toProgression: progression)
     }
 
     /// Scrolls at given progression (from 0.0 to 1.0)
