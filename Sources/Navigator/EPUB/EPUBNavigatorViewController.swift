@@ -1102,11 +1102,9 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             }
 
         case .reflowable:
-            let minMargin: CGFloat = 20
-            insets.top = max(insets.top, minMargin)
-            insets.bottom = max(insets.bottom, minMargin)
-            insets.left = max(insets.left, minMargin)
-            insets.right = max(insets.right, minMargin)
+            let configInset = config.contentInset(for: view.traitCollection.verticalSizeClass)
+            insets.top = max(insets.top, configInset.top)
+            insets.bottom = max(insets.bottom, configInset.bottom)
 
         case .scrolled:
             // Not supported with EPUB.
