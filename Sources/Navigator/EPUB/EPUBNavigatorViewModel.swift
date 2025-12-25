@@ -16,7 +16,7 @@ protocol EPUBNavigatorViewModelDelegate: AnyObject {
 
 enum EPUBScriptScope {
     case currentResource
-    case loadedResources
+    case loadedfontsDir
     case resource(href: AnyURL)
 }
 
@@ -81,7 +81,7 @@ final class EPUBNavigatorViewModel: Loggable {
         }
 
         if let endpoint = publicationEndpoint {
-            try httpServer.transformResources(at: endpoint) { [weak self] href, resource in
+            try httpServer.transformfontsDir(at: endpoint) { [weak self] href, resource in
                 self?.injectReadiumCSS(in: resource, at: href) ?? resource
             }
         }
@@ -97,7 +97,7 @@ final class EPUBNavigatorViewModel: Loggable {
         var config = config
 
         if let fontsDir = Bundle.module.resourceURL?.fileURL?.appendingPath("Assets/Static/fonts", isDirectory: true) {
-            config.fontFamilyDeclarations.append(
+            config.fontFamilyDeclarations.append(contentsOf: [
                 CSSFontFamilyDeclaration(
                     fontFamily: .openDyslexic,
                     fontFaces: [
@@ -118,8 +118,252 @@ final class EPUBNavigatorViewModel: Loggable {
                             style: .italic, weight: .standard(.bold)
                         ),
                     ]
-                ).eraseToAnyHTMLFontFamilyDeclaration()
-            )
+                ).eraseToAnyHTMLFontFamilyDeclaration(),
+                
+                CSSFontFamilyDeclaration(
+                                        fontFamily: .literata,
+                                        fontFaces: [
+                                            // Literata is a variable font family, so we can provide a font weight range.
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/Literata-VariableFont_opsz,wght.ttf", isDirectory: false),
+                                                style: .normal, weight: .variable(200 ... 900)
+                                            ),
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/Literata-Italic-VariableFont_opsz,wght.ttf", isDirectory: false),
+                                                style: .italic, weight: .variable(200 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .alegreya,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/Alegreya-VariableFont_wght.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .ebGaramond,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/EBGaramond-VariableFont_wght.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .ibmPlexSans,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/IBMPlexSans-VariableFont_wdth,wght.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .inter,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/Inter-VariableFont_opsz,wght.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .lora,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/Lora-VariableFont_wght.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900),
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .merriweather,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/Merriweather-VariableFont_opsz,wdth,wght.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .montserrat,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/Montserrat-VariableFont_wght.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .notoSans,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/NotoSans-VariableFont_wdth,wght.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .notoSerif,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/NotoSerif-VariableFont_wdth,wght.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .nunitoSans,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(200 ... 1000)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .openSans,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/OpenSans-VariableFont_wdth,wght.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .roboto,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/Roboto-VariableFont_wdth,wght.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .sourceSans3,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/SourceSans3-VariableFont_wght.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(200 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .vollkorn,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/Vollkorn-VariableFont_wght.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .workSans,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/WorkSans-VariableFont_wght.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+                                    
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .lato,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/Lato-Regular.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .libreBaskerville,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/LibreBaskerville-Regular.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .ptSerif,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/PTSerif-Regular.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .sourceSerif4,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/SourceSerif4-Regular.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/SourceSerif4-Bold.ttf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration(),
+                                    
+                                    CSSFontFamilyDeclaration(
+                                        fontFamily: .sourceHanSerifSC,
+                                        fontFaces: [
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/SourceHanSerifSC-Regular.otf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                            CSSFontFace(
+                                                file: fontsDir.appendingPath("Fonts/SourceHanSerifSC-Bold.otf", isDirectory: false),
+                                                style: .normal,
+                                                weight: .variable(100 ... 900)
+                                            ),
+                                        ]
+                                    ).eraseToAnyHTMLFontFamilyDeclaration()
+            ])
         }
 
         self.publication = publication
@@ -223,7 +467,7 @@ final class EPUBNavigatorViewModel: Loggable {
                 || oldSettings.fit != newSettings.fit
 
         // We don't commit the CSS changes if we invalidate the pagination, as
-        // the resources will be reloaded anyway.
+        // the fontsDir will be reloaded anyway.
         updateCSS(with: settings, commitNow: !needsInvalidation)
 
         if needsInvalidation {
@@ -347,7 +591,7 @@ final class EPUBNavigatorViewModel: Loggable {
             delegate?.epubNavigatorViewModel(
                 self,
                 runScript: "readium.setCSSProperties(\(json));",
-                in: .loadedResources
+                in: .loadedfontsDir
             )
         }
     }
