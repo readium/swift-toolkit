@@ -244,7 +244,7 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
                                 weight: .variable(100 ... 900)
                             ),
                         ]
-                    ).eraseToAnyHTMLFontFamilyDeclaration(),C
+                    ).eraseToAnyHTMLFontFamilyDeclaration(),
                     
                     CSSFontFamilyDeclaration(
                         fontFamily: .lato,

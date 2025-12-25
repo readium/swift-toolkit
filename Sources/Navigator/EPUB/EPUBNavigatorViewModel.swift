@@ -16,7 +16,7 @@ protocol EPUBNavigatorViewModelDelegate: AnyObject {
 
 enum EPUBScriptScope {
     case currentResource
-    case loadedfontsDir
+    case loadedResources
     case resource(href: AnyURL)
 }
 
@@ -81,7 +81,7 @@ final class EPUBNavigatorViewModel: Loggable {
         }
 
         if let endpoint = publicationEndpoint {
-            try httpServer.transformfontsDir(at: endpoint) { [weak self] href, resource in
+            try httpServer.transformResources(at: endpoint) { [weak self] href, resource in
                 self?.injectReadiumCSS(in: resource, at: href) ?? resource
             }
         }
@@ -591,7 +591,7 @@ final class EPUBNavigatorViewModel: Loggable {
             delegate?.epubNavigatorViewModel(
                 self,
                 runScript: "readium.setCSSProperties(\(json));",
-                in: .loadedfontsDir
+                in: .loadedResources
             )
         }
     }
