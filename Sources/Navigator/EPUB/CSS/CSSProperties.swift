@@ -760,6 +760,8 @@ public enum CSSTextAlign: String, CSSConvertible {
     case left
     case right
     case justify
+    case end
+    case center
 
     public func css() -> String? { rawValue }
 }

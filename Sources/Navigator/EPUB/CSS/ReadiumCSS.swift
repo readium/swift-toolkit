@@ -54,7 +54,9 @@ extension ReadiumCSS {
                 case .justify: return .justify
                 case .left: return .left
                 case .right: return .right
-                case .start, .center, .end: return .start
+                case .start: return .start
+                case .end: return .end
+                case .center: return .center
                 default: return nil
                 }
             }(),
