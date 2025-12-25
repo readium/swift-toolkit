@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name          = "ReadiumLCP"
-  s.version       = "3.6.4"
+  s.version       = "3.6.5"
   s.license       = "BSD 3-Clause License"
   s.summary       = "Readium LCP"
   s.homepage      = "http://readium.github.io"
@@ -20,8 +20,8 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = "13.4"
   s.xcconfig      = { 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2'}
 
-  s.dependency 'ReadiumShared' , '~> 3.6.4'
-  s.dependency 'ReadiumInternal', '~> 3.6.4'
+  s.dependency 'ReadiumShared' , '~> 3.6.5'
+  s.dependency 'ReadiumInternal', '~> 3.6.5'
   s.dependency 'ReadiumZIPFoundation', '~> 3.0.1'
   s.dependency 'CryptoSwift', '~> 1.8.0'
 end
