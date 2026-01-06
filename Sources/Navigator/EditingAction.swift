@@ -19,7 +19,7 @@ import UIKit
 public struct EditingAction: Hashable {
     /// Default editing actions enabled in the navigator.
     public static var defaultActions: [EditingAction] {
-        [copy, share, lookup, translate]
+        [translate]
     }
 
     /// Copy the text selection.

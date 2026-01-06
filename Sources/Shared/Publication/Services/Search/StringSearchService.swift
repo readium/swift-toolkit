@@ -175,6 +175,7 @@ public class StringSearchService: SearchService {
                 locations: {
                     $0.progression = progression
                     $0.totalProgression = totalProgression
+                    // $0.position = resourceIndex + 1
                 },
                 text: {
                     $0 = self.makeSnippet(text: text, range: range)
