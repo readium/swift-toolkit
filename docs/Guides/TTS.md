@@ -93,7 +93,7 @@ While `PublicationSpeechSynthesizer` is completely independent from `Navigator` 
 `PublicationSpeechSynthesizer.start()` takes a starting `Locator` for parameter. You can use it to begin the playback from the currently visible page in a `VisualNavigator` using `firstVisibleElementLocator()`.
 
 ```swift
-navigator.firstVisibleElementLocator { start in
+if let start = await navigator.firstVisibleElementLocator() {
     synthesizer.start(from: start)
 }
 ```

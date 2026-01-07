@@ -523,8 +523,8 @@ All notable changes to this project will be documented in this file. Take a look
 
 * New `VisualNavigatorDelegate` APIs to handle keyboard events (contributed by [@lukeslu](https://github.com/readium/swift-toolkit/pull/267)).
     * This can be used to turn pages with the arrow keys, for example.
-* [Support for custom fonts with the EPUB navigator](docs/Guides/EPUB%20Fonts.md).
-* A brand new user preferences API for configuring the EPUB and PDF Navigators. This new API is easier and safer to use. To learn how to integrate it in your app, [please refer to the user guide](docs/Guides/Navigator%20Preferences.md) and [migration guide](docs/Migration%20Guide.md).
+* [Support for custom fonts with the EPUB navigator](docs/Guides/Navigator/EPUB%20Fonts.md).
+* A brand new user preferences API for configuring the EPUB and PDF Navigators. This new API is easier and safer to use. To learn how to integrate it in your app, [please refer to the user guide](docs/Guides/Navigator/Preferences.md) and [migration guide](docs/Migration%20Guide.md).
     * New EPUB user preferences:
         * `fontWeight` - Base text font weight.
         * `textNormalization` - Normalize font style, weight and variants, which improves accessibility.
