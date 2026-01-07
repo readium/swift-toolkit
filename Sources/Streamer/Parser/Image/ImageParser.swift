@@ -54,7 +54,7 @@ public final class ImageParser: PublicationParser {
         return makeBuilder(
             container: container,
             readingOrder: [(container.entry, asset.format)],
-            title: nil
+            fallbackTitle: nil
         )
     }
 
@@ -66,14 +66,32 @@ public final class ImageParser: PublicationParser {
             return .failure(.formatNotSupported)
         }
 
+        // Parse ComicInfo.xml metadata if present
+        let comicInfo = await parseComicInfo(from: asset.container, warnings: warnings)
+        let fallbackTitle = asset.container.guessTitle(ignoring: ignores)
+
         return await makeReadingOrder(for: asset.container)
             .flatMap { readingOrder in
                 makeBuilder(
                     container: asset.container,
                     readingOrder: readingOrder,
-                    title: asset.container.guessTitle(ignoring: ignores)
+                    fallbackTitle: fallbackTitle,
+                    comicInfo: comicInfo
                 )
             }
+    }
+
+    /// Finds and parses the ComicInfo.xml file from the container.
+    private func parseComicInfo(from container: Container, warnings: WarningLogger?) async -> ComicInfo? {
+        // Look for ComicInfo.xml at the root or in a subdirectory
+        guard
+            let url = container.entries.first(where: { $0.lastPathSegment?.lowercased() == "comicinfo.xml" }),
+            let data = try? await container.readData(at: url)
+        else {
+            return nil
+        }
+
+        return ComicInfoParser.parse(data: data, warnings: warnings)
     }
 
     private func makeReadingOrder(for container: Container) async -> Result<[(AnyURL, Format)], PublicationParseError> {
@@ -113,7 +131,8 @@ public final class ImageParser: PublicationParser {
     private func makeBuilder(
         container: Container,
         readingOrder: [(AnyURL, Format)],
-        title: String?
+        fallbackTitle: String?,
+        comicInfo: ComicInfo? = nil
     ) -> Result<Publication.Builder, PublicationParseError> {
         guard !readingOrder.isEmpty else {
             return .failure(.reading(.decoding("No bitmap resources found in the publication")))
@@ -126,15 +145,42 @@ public final class ImageParser: PublicationParser {
             )
         }
 
-        // First valid resource is the cover.
-        readingOrder[0].rels = [.cover]
+        // Determine cover page index
+        let coverIndex: Int
+        if
+            let coverPage = comicInfo?.firstPageWithType(.frontCover),
+            coverPage.image >= 0,
+            coverPage.image < readingOrder.count
+        {
+            coverIndex = coverPage.image
+        } else {
+            // Default: first resource is the cover
+            coverIndex = 0
+        }
+        readingOrder[coverIndex].rels.append(.cover)
+
+        // Determine story start index (where actual content begins)
+        // Only set if different from cover page (prefer .cover if same page)
+        if
+            let storyPage = comicInfo?.firstPageWithType(.story),
+            storyPage.image >= 0,
+            storyPage.image < readingOrder.count,
+            storyPage.image != coverIndex
+        {
+            readingOrder[storyPage.image].rels.append(.start)
+        }
+
+        // Build metadata from ComicInfo or use defaults
+        var metadata = comicInfo?.toMetadata() ?? Metadata()
+        metadata.conformsTo = [.divina]
+
+        if metadata.localizedTitle == nil, let fallbackTitle = fallbackTitle {
+            metadata.localizedTitle = .nonlocalized(fallbackTitle)
+        }
 
         return .success(Publication.Builder(
             manifest: Manifest(
-                metadata: Metadata(
-                    conformsTo: [.divina],
-                    title: title
-                ),
+                metadata: metadata,
                 readingOrder: readingOrder
             ),
             container: container,

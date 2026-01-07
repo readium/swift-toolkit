@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Added
+
+#### Streamer
+
+* The `ImageParser` now extracts metadata from `ComicInfo.xml` files in CBZ archives.
+
 
 ## [3.6.0]
 
