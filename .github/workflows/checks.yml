@@ -9,12 +9,12 @@ env:
   platform: ${{ 'iOS Simulator' }}
   device: ${{ 'iPhone SE (3rd generation)' }}
   commit_sha: ${{ github.sha }}
-  DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
+  DEVELOPER_DIR: /Applications/Xcode_16.3.app/Contents/Developer
 
 jobs:
   build:
     name: Build
-    runs-on: macos-14
+    runs-on: macos-15
     if: ${{ !github.event.pull_request.draft }}
     env:
       scheme: ${{ 'Readium-Package' }}
@@ -42,7 +42,7 @@ jobs:
 
   navigator-ui-tests:
     name: Navigator UI Tests
-    runs-on: macos-14
+    runs-on: macos-15
     if: ${{ !github.event.pull_request.draft }}
     steps:
       - name: Checkout
@@ -59,7 +59,7 @@ jobs:
 
   lint:
     name: Lint
-    runs-on: macos-14
+    runs-on: macos-15
     if: ${{ !github.event.pull_request.draft }}
     env:
       scripts: ${{ 'Sources/Navigator/EPUB/Scripts' }}
@@ -93,7 +93,7 @@ jobs:
 
   int-dev:
     name: Integration (Local)
-    runs-on: macos-14
+    runs-on: macos-15
     if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
@@ -115,7 +115,7 @@ jobs:
 
   int-spm:
     name: Integration (Swift Package Manager)
-    runs-on: macos-14
+    runs-on: macos-15
     if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
@@ -143,7 +143,7 @@ jobs:
 
   int-carthage:
     name: Integration (Carthage)
-    runs-on: macos-14
+    runs-on: macos-15
     if: ${{ !github.event.pull_request.draft && github.ref == 'refs/heads/main' }}
     defaults:
       run:
