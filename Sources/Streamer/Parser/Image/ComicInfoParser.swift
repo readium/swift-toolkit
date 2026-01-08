@@ -213,7 +213,6 @@ struct ComicInfo {
 
         return Metadata(
             identifier: gtin,
-            conformsTo: [.divina],
             title: title,
             published: published,
             languages: languageISO.map { [$0] } ?? [],
