@@ -44,6 +44,7 @@
 		14BDA1321CFDC946E840A5E9 /* HTTPRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7214B2366A4E024517FF8C76 /* HTTPRequest.swift */; };
 		14CEE9163A37EBD75C93820D /* Locator+Audio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2732AFC91AB15FA09C60207A /* Locator+Audio.swift */; };
 		1574884ABA50F0E3A05051B8 /* Atomic.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBB57FCAEE605484A7290DBB /* Atomic.swift */; };
+		15CD611A4A806F4A3350AA34 /* ComicInfoParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8471465B269CB080E6585E2A /* ComicInfoParser.swift */; };
 		1600DB04CEACF97EE8AD9CEE /* URLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258351CE21165EDED7F87878 /* URLProtocol.swift */; };
 		17108D46A0353A254DA193B0 /* Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7D002FDDAD1A21AC5BB84CE /* Container.swift */; };
 		1752D756BED37325D6D4ED29 /* ReadiumInternal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 42FD63C2720614E558522675 /* ReadiumInternal.framework */; };
@@ -680,6 +681,7 @@
 		819D931708B3EE95CF9ADFED /* OPDSCopies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSCopies.swift; sourceTree = "<group>"; };
 		8240F845F35439807CE8AF65 /* ContentProtectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentProtectionService.swift; sourceTree = "<group>"; };
 		8456BF3665A9B9C0AE4CC158 /* Locator+HTML.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Locator+HTML.swift"; sourceTree = "<group>"; };
+		8471465B269CB080E6585E2A /* ComicInfoParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComicInfoParser.swift; sourceTree = "<group>"; };
 		85F7D914B293DF0A912613D2 /* DirectionalNavigationAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectionalNavigationAdapter.swift; sourceTree = "<group>"; };
 		868A38C213F1D0BAF276CF97 /* SingleResourceContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleResourceContainer.swift; sourceTree = "<group>"; };
 		87629BF68F1EDBF06FC0AD54 /* ImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageViewController.swift; sourceTree = "<group>"; };
@@ -1958,6 +1960,7 @@
 		E830BA9857151F8B2BA9705D /* Image */ = {
 			isa = PBXGroup;
 			children = (
+				8471465B269CB080E6585E2A /* ComicInfoParser.swift */,
 				37087C0D0B36FE7F20F1C891 /* ImageParser.swift */,
 			);
 			path = Image;
@@ -2462,6 +2465,7 @@
 				57583D27AB12063C3D114A47 /* AudioParser.swift in Sources */,
 				A9DFAA4F1D752E15B432FFAB /* AudioPublicationManifestAugmentor.swift in Sources */,
 				61BBCC98965E362FA840DBB8 /* Bundle.swift in Sources */,
+				15CD611A4A806F4A3350AA34 /* ComicInfoParser.swift in Sources */,
 				D8B99CCB17F5E71AB3F7CE84 /* CompositePublicationParser.swift in Sources */,
 				17108D46A0353A254DA193B0 /* Container.swift in Sources */,
 				694AAAD5C14BC33891458A4C /* DataCompression.swift in Sources */,

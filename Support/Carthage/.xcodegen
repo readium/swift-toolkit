@@ -391,6 +391,7 @@
 ../../Sources/LCP/Toolkit/ReadiumLCPLocalizedString.swift
 ../../Sources/LCP/Toolkit/Streamable.swift
 ../../Sources/Navigator
+../../Sources/Navigator/.DS_Store
 ../../Sources/Navigator/Audiobook
 ../../Sources/Navigator/Audiobook/AudioNavigator.swift
 ../../Sources/Navigator/Audiobook/Preferences
@@ -411,12 +412,14 @@
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-one.html
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-two.html
 ../../Sources/Navigator/EPUB/Assets/Static
+../../Sources/Navigator/EPUB/Assets/Static/.DS_Store
 ../../Sources/Navigator/EPUB/Assets/Static/fonts
 ../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-Bold.otf
 ../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-BoldItalic.otf
 ../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-Italic.otf
 ../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-Regular.otf
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css
+../../Sources/Navigator/EPUB/Assets/Static/readium-css/.DS_Store
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-horizontal
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-horizontal/ReadiumCSS-after.css
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-horizontal/ReadiumCSS-before.css
@@ -536,6 +539,7 @@
 ../../Sources/Navigator/Input/Pointer/PointerEvent.swift
 ../../Sources/Navigator/Navigator.swift
 ../../Sources/Navigator/PDF
+../../Sources/Navigator/PDF/.DS_Store
 ../../Sources/Navigator/PDF/PDFDocumentHolder.swift
 ../../Sources/Navigator/PDF/PDFDocumentView.swift
 ../../Sources/Navigator/PDF/PDFNavigatorViewController.swift
@@ -838,6 +842,7 @@
 ../../Sources/Streamer/Parser/EPUB/Services/EPUBPositionsService.swift
 ../../Sources/Streamer/Parser/EPUB/XMLNamespace.swift
 ../../Sources/Streamer/Parser/Image
+../../Sources/Streamer/Parser/Image/ComicInfoParser.swift
 ../../Sources/Streamer/Parser/Image/ImageParser.swift
 ../../Sources/Streamer/Parser/PDF
 ../../Sources/Streamer/Parser/PDF/PDFParser.swift
