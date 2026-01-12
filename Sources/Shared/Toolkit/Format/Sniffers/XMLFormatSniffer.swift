@@ -22,7 +22,11 @@ public struct XMLFormatSniffer: FormatSniffer {
     }
 
     public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
-        await blob.readAsXML()
+        guard !format.hasSpecification else {
+            return .success(nil)
+        }
+
+        return await blob.readAsXML()
             .map {
                 guard $0 != nil else {
                     return nil

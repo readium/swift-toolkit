@@ -22,8 +22,12 @@ public struct ZIPFormatSniffer: FormatSniffer {
     }
 
     public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
+        guard !format.hasSpecification else {
+            return .success(nil)
+        }
+
         // https://en.wikipedia.org/wiki/List_of_file_signatures
-        await blob.read(range: 0 ..< 4)
+        return await blob.read(range: 0 ..< 4)
             .map { data in
                 guard
                     data == Data([0x50, 0x4B, 0x03, 0x04]) ||

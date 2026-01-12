@@ -28,7 +28,11 @@ public struct JSONFormatSniffer: FormatSniffer {
     }
 
     public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
-        await blob.readAsJSON()
+        guard !format.hasSpecification else {
+            return .success(nil)
+        }
+
+        return await blob.readAsJSON()
             .map {
                 guard $0 != nil else {
                     return nil

@@ -22,8 +22,12 @@ public struct RARFormatSniffer: FormatSniffer {
     }
 
     public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
+        guard !format.hasSpecification else {
+            return .success(nil)
+        }
+
         // https://en.wikipedia.org/wiki/List_of_file_signatures
-        await blob.read(range: 0 ..< 8)
+        return await blob.read(range: 0 ..< 8)
             .map { data in
                 guard
                     data.count > 8,
