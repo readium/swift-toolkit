@@ -54,10 +54,19 @@ public struct Properties: Hashable, Loggable, WarningLogger, Sendable {
 ///
 /// https://github.com/readium/webpub-manifest/blob/master/properties.md#core-properties
 public extension Properties {
+    private static var pageKey: String { "page" }
+
     /// Indicates how the linked resource should be displayed in a reading
     /// environment that displays synthetic spreads.
     var page: Page? {
-        parseRaw(otherProperties["page"])
+        get { parseRaw(otherProperties[Self.pageKey]) }
+        set {
+            if let newValue = newValue {
+                otherProperties[Self.pageKey] = newValue.rawValue
+            } else {
+                otherProperties.removeValue(forKey: Self.pageKey)
+            }
+        }
     }
 
     /// Indicates how the linked resource should be displayed in a reading

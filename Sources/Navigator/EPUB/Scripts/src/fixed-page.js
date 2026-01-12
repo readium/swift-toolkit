@@ -38,19 +38,32 @@ export function FixedPage(iframeId, pageType) {
 
   // iFrame containing the page.
   var _iframe = document.getElementById(iframeId);
-  _iframe.addEventListener("load", loadPageSize);
+  _iframe.addEventListener("load", onLoad);
 
   // Viewport element containing the iFrame.
   var _viewport = _iframe.closest(".viewport");
 
+  function onLoad() {
+    // Parses the page size from the viewport meta tag of the loaded resource,
+    // or extracts natural dimensions from images loaded directly in the iframe.
+    // As a fallback, we consider that the page spans the size of the viewport.
+    _pageSize =
+      parsePageSizeFromViewportMetaTag() ??
+      parsePageSizeFromEmbeddedImage() ??
+      _viewportSize;
+
+    layoutPage();
+  }
+
   // Parses the page size from the viewport meta tag of the loaded resource.
-  function loadPageSize() {
+  function parsePageSizeFromViewportMetaTag() {
     var viewport = _iframe.contentWindow.document.querySelector(
       "meta[name=viewport]"
     );
     if (!viewport) {
-      return;
+      return null;
     }
+
     var regex = /(\w+) *= *([^\s,]+)/g;
     var properties = {};
     var match;
@@ -59,10 +72,23 @@ export function FixedPage(iframeId, pageType) {
     }
     var width = Number.parseFloat(properties.width);
     var height = Number.parseFloat(properties.height);
-    if (width && height) {
-      _pageSize = { width: width, height: height };
-      layoutPage();
+    if (!width || !height) {
+      return null;
     }
+
+    return { width: width, height: height };
+  }
+
+  // Parses the page size from the natural dimensions of images loaded directly in the iframe.
+  //
+  // When a browser loads an image URL in an iframe, it renders the image
+  // in a minimal HTML document with an <img> element.
+  function parsePageSizeFromEmbeddedImage() {
+    var img = _iframe.contentWindow.document.querySelector("img");
+    if (!img || !img.naturalWidth || !img.naturalHeight) {
+      return null;
+    }
+    return { width: img.naturalWidth, height: img.naturalHeight };
   }
 
   // Layouts the page iframe and scale it according to the current fit mode.

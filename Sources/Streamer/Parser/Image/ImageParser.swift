@@ -173,10 +173,14 @@ public final class ImageParser: PublicationParser {
         // Build metadata from ComicInfo or use defaults
         var metadata = comicInfo?.toMetadata() ?? Metadata()
         metadata.conformsTo = [.divina]
+        metadata.layout = .fixed
 
         if metadata.localizedTitle == nil, let fallbackTitle = fallbackTitle {
             metadata.localizedTitle = .nonlocalized(fallbackTitle)
         }
+
+        // Display the first page on its own by default.
+        readingOrder[0].properties.page = .center
 
         return .success(Publication.Builder(
             manifest: Manifest(
