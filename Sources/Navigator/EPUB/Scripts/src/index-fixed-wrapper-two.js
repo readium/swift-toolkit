@@ -77,10 +77,13 @@ global.spread = {
 
   // Updates the available viewport to display the resources.
   setViewport: function (viewportSize, safeAreaInsets, fit) {
-    viewportSize.width /= 2;
+    var halfViewportSize = {
+      width: viewportSize.width / 2,
+      height: viewportSize.height,
+    };
 
     pages.left.setViewport(
-      viewportSize,
+      halfViewportSize,
       {
         top: safeAreaInsets.top,
         right: 0,
@@ -91,7 +94,7 @@ global.spread = {
     );
 
     pages.right.setViewport(
-      viewportSize,
+      halfViewportSize,
       {
         top: safeAreaInsets.top,
         right: safeAreaInsets.right,
@@ -101,13 +104,14 @@ global.spread = {
       fit
     );
 
+    // Center pages use the full viewport to fit the screen.
     pages.center.setViewport(
       viewportSize,
       {
         top: safeAreaInsets.top,
-        right: 0,
+        right: safeAreaInsets.right,
         bottom: safeAreaInsets.bottom,
-        left: 0,
+        left: safeAreaInsets.left,
       },
       fit
     );
