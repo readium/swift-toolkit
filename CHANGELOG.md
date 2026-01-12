@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Added
 
+#### Navigator
+
+* Support for displaying Divina (image-based publications like CBZ) in the fixed-layout EPUB navigator.
+
 #### Streamer
 
 * The `ImageParser` now extracts metadata from `ComicInfo.xml` files in CBZ archives.
