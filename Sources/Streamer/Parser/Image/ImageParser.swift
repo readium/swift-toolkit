@@ -182,6 +182,15 @@ public final class ImageParser: PublicationParser {
         // Display the first page on its own by default.
         readingOrder[0].properties.page = .center
 
+        // Apply center page layout for double-page spreads
+        if let pages = comicInfo?.pages {
+            for pageInfo in pages where pageInfo.doublePage == true {
+                if readingOrder.indices.contains(pageInfo.image) {
+                    readingOrder[pageInfo.image].properties.page = .center
+                }
+            }
+        }
+
         return .success(Publication.Builder(
             manifest: Manifest(
                 metadata: metadata,
