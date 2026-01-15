@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * PDF documents are now opened off the main thread, preventing UI freezes with large files.
+* Fixed providing a custom reading order to the `EPUBNavigatorViewController` (contributed by [@lbeus](https://github.com/readium/swift-toolkit/pull/694)).
 
 
 ## [3.6.0]
