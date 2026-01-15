@@ -279,7 +279,7 @@ function generateImageWrapper(imageUrl, altText) {
   let style = doc.createElement("style");
   style.textContent =
     "body { margin: 0; }\n" +
-    "img { display: block; width: 100%; height: 100%; }";
+    "img { display: block; width: 100%; height: 100%; object-fit: contain; }";
   doc.head.appendChild(style);
 
   let img = doc.createElement("img");

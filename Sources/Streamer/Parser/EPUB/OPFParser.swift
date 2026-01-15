@@ -257,12 +257,10 @@ final class OPFParser: Loggable {
                 let fallbackIndex = items.firstIndex(where: { $0.id == fallbackId })
             {
                 let fallbackItem = items.remove(at: fallbackIndex)
-                var (primary, alternate) = resolveFallbackChain(
+                spineLink = resolveFallbackChain(
                     spineLink: spineLink,
                     fallbackLink: fallbackItem.link
                 )
-                primary.alternates = [alternate]
-                spineLink = primary
             }
 
             readingOrder.append(spineLink)
@@ -322,14 +320,17 @@ final class OPFParser: Loggable {
     private func resolveFallbackChain(
         spineLink: Link,
         fallbackLink: Link
-    ) -> (primary: Link, alternate: Link) {
+    ) -> Link {
+        var link = spineLink
         // If fallback is a bitmap and spine is HTML, swap them.
         if spineLink.mediaType?.isHTML == true, fallbackLink.mediaType?.isBitmap == true {
-            var primary = fallbackLink
+            link = fallbackLink
             // Transfer spine properties (like page spread) to the image
-            primary.properties = spineLink.properties
-            return (primary, spineLink)
+            link.properties = spineLink.properties
+            link.alternates = [spineLink]
+        } else {
+            link.alternates = [fallbackLink]
         }
-        return (spineLink, fallbackLink)
+        return link
     }
 }
