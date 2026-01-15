@@ -120,7 +120,7 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
         case .epub:
             // EPUB needs to be explicitly indicated in `conformsTo`, otherwise
             // it could be a regular Web Publication.
-            return readingOrder.allAreHTML && metadata.conformsTo.contains(.epub)
+            return metadata.conformsTo.contains(.epub)
         case .pdf:
             return readingOrder.allMatchingMediaType(.pdf)
         default:

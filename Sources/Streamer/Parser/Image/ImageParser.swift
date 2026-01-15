@@ -179,9 +179,6 @@ public final class ImageParser: PublicationParser {
             metadata.localizedTitle = .nonlocalized(fallbackTitle)
         }
 
-        // Display the first page on its own by default.
-        readingOrder[0].properties.page = .center
-
         // Apply center page layout for double-page spreads
         if let pages = comicInfo?.pages {
             for pageInfo in pages where pageInfo.doublePage == true {

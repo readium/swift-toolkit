@@ -167,10 +167,7 @@ class ImageParserTests: XCTestCase {
     func testDoublePageSpreadSetsCenterPage() async throws {
         let publication = try await parser.parse(asset: cbzWithComicInfoAsset, warnings: nil).get().build()
 
-        // Page 0 (cover) should have center page property (default behavior)
-        XCTAssertEqual(publication.readingOrder[0].properties.page, .center)
-
-        // Page 1 should not have center page property
+        XCTAssertNil(publication.readingOrder[0].properties.page)
         XCTAssertNil(publication.readingOrder[1].properties.page)
 
         // Page 2 has DoublePage="True" in ComicInfo.xml, should have center page

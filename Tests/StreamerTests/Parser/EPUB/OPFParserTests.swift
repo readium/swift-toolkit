@@ -111,7 +111,119 @@ class OPFParserTests: XCTestCase {
         ])
     }
 
-    // MARK: - Toolkit
+    // MARK: - Fallback Handling
+
+    /// When an image is in the spine with an HTML fallback, the image should be
+    /// in readingOrder and HTML should be added as an alternate.
+    func testParseImageInSpineWithHTMLFallback() throws {
+        let sut = try parseManifest("fallback-image-in-spine", at: "EPUB/content.opf").manifest
+
+        XCTAssertEqual(sut.readingOrder.count, 2)
+
+        // First image in spine
+        XCTAssertEqual(sut.readingOrder[0].href, "EPUB/page1.jpg")
+        XCTAssertEqual(sut.readingOrder[0].mediaType, .jpeg)
+        XCTAssertEqual(sut.readingOrder[0].alternates, [
+            Link(href: "EPUB/page1.xhtml", mediaType: .xhtml),
+        ])
+
+        // Second image in spine
+        XCTAssertEqual(sut.readingOrder[1].href, "EPUB/page2.png")
+        XCTAssertEqual(sut.readingOrder[1].mediaType, .png)
+        XCTAssertEqual(sut.readingOrder[1].alternates, [
+            Link(href: "EPUB/page2.xhtml", mediaType: .xhtml),
+        ])
+
+        // HTML fallbacks should not be in resources
+        XCTAssertTrue(sut.resources.isEmpty)
+    }
+
+    /// When HTML is in the spine with an image fallback, we swap: the image
+    /// should be in readingOrder and HTML should be added as an alternate.
+    func testParseHTMLInSpineWithImageFallback() throws {
+        let sut = try parseManifest("fallback-html-in-spine", at: "EPUB/content.opf").manifest
+
+        XCTAssertEqual(sut.readingOrder.count, 2)
+
+        // First item: image swapped into readingOrder, HTML as alternate
+        XCTAssertEqual(sut.readingOrder[0].href, "EPUB/page1.jpg")
+        XCTAssertEqual(sut.readingOrder[0].mediaType, .jpeg)
+        XCTAssertEqual(sut.readingOrder[0].alternates, [
+            Link(href: "EPUB/page1.xhtml", mediaType: .xhtml),
+        ])
+
+        // Second item: image swapped into readingOrder, HTML as alternate
+        XCTAssertEqual(sut.readingOrder[1].href, "EPUB/page2.png")
+        XCTAssertEqual(sut.readingOrder[1].mediaType, .png)
+        XCTAssertEqual(sut.readingOrder[1].alternates, [
+            Link(href: "EPUB/page2.xhtml", mediaType: .xhtml),
+        ])
+
+        // Fallback images should not be in resources
+        XCTAssertTrue(sut.resources.isEmpty)
+    }
+
+    /// General fallback handling: any fallback should be translated to an
+    /// alternate.
+    func testParseGeneralFallbackAsAlternate() throws {
+        let sut = try parseManifest("fallback-general", at: "EPUB/content.opf").manifest
+
+        XCTAssertEqual(sut.readingOrder.count, 2)
+
+        // First item: XHTML with XHTML fallback
+        XCTAssertEqual(sut.readingOrder[0].href, "EPUB/chapter1.xhtml")
+        XCTAssertEqual(sut.readingOrder[0].mediaType, .xhtml)
+        XCTAssertEqual(sut.readingOrder[0].alternates, [
+            Link(href: "EPUB/chapter1-alt.xhtml", mediaType: .xhtml),
+        ])
+
+        // Second item: XHTML with PDF fallback
+        XCTAssertEqual(sut.readingOrder[1].href, "EPUB/chapter2.xhtml")
+        XCTAssertEqual(sut.readingOrder[1].mediaType, .xhtml)
+        XCTAssertEqual(sut.readingOrder[1].alternates, [
+            Link(href: "EPUB/chapter2.pdf", mediaType: .pdf),
+        ])
+
+        // Fallback resources should not be in resources
+        XCTAssertTrue(sut.resources.isEmpty)
+    }
+
+    // MARK: - Divina Inference
+
+    /// When all spine items are bitmaps, the metadata should have:
+    /// - `layout = .fixed` to use the FXL navigator
+    /// - `.divina` added to `conformsTo`
+    func testParseAllImagesInSpineSetsFixedLayoutAndDivinaProfile() throws {
+        let sut = try parseManifest("all-images-in-spine", at: "EPUB/content.opf").manifest
+
+        // Should have fixed layout
+        XCTAssertEqual(sut.metadata.layout, .fixed)
+
+        // Should conform to both EPUB and Divina
+        XCTAssertTrue(sut.metadata.conformsTo.contains(.epub))
+        XCTAssertTrue(sut.metadata.conformsTo.contains(.divina))
+
+        // Reading order should contain all images
+        XCTAssertEqual(sut.readingOrder.count, 3)
+        XCTAssertEqual(sut.readingOrder[0].mediaType, .jpeg)
+        XCTAssertEqual(sut.readingOrder[1].mediaType, .png)
+        XCTAssertEqual(sut.readingOrder[2].mediaType, .gif)
+    }
+
+    /// When not all spine items are bitmaps, the metadata should NOT have
+    /// `.divina` profile and layout should remain reflowable.
+    func testParseMixedSpineDoesNotSetDivinaProfile() throws {
+        let sut = try parseManifest("fallback-image-html-mixed", at: "EPUB/content.opf").manifest
+
+        // Should have reflowable layout (default)
+        XCTAssertEqual(sut.metadata.layout, .reflowable)
+
+        // Should only conform to EPUB, not Divina
+        XCTAssertTrue(sut.metadata.conformsTo.contains(.epub))
+        XCTAssertFalse(sut.metadata.conformsTo.contains(.divina))
+    }
+
+    // MARK: - Helpers
 
     func parseManifest(_ name: String, at path: String = "EPUB/content.opf", displayOptions: String? = nil) throws -> (manifest: Manifest, version: String) {
         let parts = try OPFParser(

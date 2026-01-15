@@ -194,7 +194,7 @@ export function FixedPage(iframeId, pageType) {
       }
 
       _iframe.addEventListener("load", loaded);
-      _iframe.src = resource.url;
+      _iframe.src = resourceUrl(resource);
     },
 
     // Resets the page and empty its contents.
@@ -235,4 +235,46 @@ export function FixedPage(iframeId, pageType) {
       _viewport.style.display = "none";
     },
   };
+}
+
+// Returns the URL to load for the given resource.
+// Bitmap images are wrapped in an HTML document with alt text for accessibility.
+function resourceUrl(resource) {
+  if (isBitmapMediaType(resource.link.type)) {
+    let altText = resource.link.alternate?.[0]?.title ?? "";
+    let html = generateImageWrapper(resource.url, altText);
+    let blob = new Blob([html], { type: "text/html" });
+    return URL.createObjectURL(blob);
+  } else {
+    return resource.url;
+  }
+}
+
+// Helper to detect bitmap media types.
+function isBitmapMediaType(type) {
+  if (!type) return false;
+  return type.startsWith("image/") && !type.includes("svg");
+}
+
+// Generate an HTML wrapper with alt text for the bitmap at `imageUrl`.
+function generateImageWrapper(imageUrl, altText) {
+  let doc = document.implementation.createHTMLDocument("");
+
+  let meta = doc.createElement("meta");
+  meta.name = "viewport";
+  meta.content = "width=device-width, height=device-height";
+  doc.head.appendChild(meta);
+
+  let style = doc.createElement("style");
+  style.textContent =
+    "body { margin: 0; }\n" +
+    "img { display: block; width: 100%; height: 100%; }";
+  doc.head.appendChild(style);
+
+  let img = doc.createElement("img");
+  img.src = imageUrl;
+  img.alt = altText;
+  doc.body.appendChild(img);
+
+  return "<!DOCTYPE html>\n" + doc.documentElement.outerHTML;
 }

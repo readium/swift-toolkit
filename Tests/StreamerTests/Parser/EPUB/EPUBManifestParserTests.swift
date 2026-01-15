@@ -130,6 +130,8 @@ class EPUBManifestParserTests: XCTestCase {
         )
     }
 
+    // MARK: - Helpers
+
     private func parser(files: [String: String]) -> EPUBManifestParser {
         EPUBManifestParser(
             container: FileContainer(files: files.reduce(into: [:]) { files, item in
