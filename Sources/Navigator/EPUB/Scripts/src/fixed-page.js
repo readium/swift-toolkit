@@ -156,6 +156,15 @@ export function FixedPage(iframeId, pageType) {
     viewport.content = "initial-scale=" + scale + ", minimum-scale=" + scale;
   }
 
+  // Sets the iframe source URL.
+  function setIframeSrc(url) {
+    // Release the memory of a previously created blob URL, if needed.
+    if (_iframe.src.startsWith("blob:")) {
+      URL.revokeObjectURL(_iframe.src);
+    }
+    _iframe.src = url;
+  }
+
   return {
     // Returns whether the page is currently loading its contents.
     isLoading: false,
@@ -194,17 +203,20 @@ export function FixedPage(iframeId, pageType) {
       }
 
       _iframe.addEventListener("load", loaded);
-      _iframe.src = resourceUrl(resource);
+
+      var url = resourceUrl(resource);
+      setIframeSrc(url);
     },
 
-    // Resets the page and empty its contents.
+    // Resets the page and empties its contents.
     reset: function () {
       if (!this.link) {
         return;
       }
       this.link = null;
       _pageSize = null;
-      _iframe.src = "about:blank";
+
+      setIframeSrc("about:blank");
     },
 
     // Evaluates a script in the context of the page.
@@ -241,8 +253,7 @@ export function FixedPage(iframeId, pageType) {
 // Bitmap images are wrapped in an HTML document with alt text for accessibility.
 function resourceUrl(resource) {
   if (isBitmapMediaType(resource.link.type)) {
-    let altText = resource.link.alternate?.[0]?.title ?? "";
-    let html = generateImageWrapper(resource.url, altText);
+    let html = generateImageWrapper(resource.url, resource.link.title);
     let blob = new Blob([html], { type: "text/html" });
     return URL.createObjectURL(blob);
   } else {
@@ -273,7 +284,9 @@ function generateImageWrapper(imageUrl, altText) {
 
   let img = doc.createElement("img");
   img.src = imageUrl;
-  img.alt = altText;
+  if (altText) {
+    img.alt = altText;
+  }
   doc.body.appendChild(img);
 
   return "<!DOCTYPE html>\n" + doc.documentElement.outerHTML;
