@@ -68,17 +68,17 @@ class EPUBManifestParserTests: XCTestCase {
                     ]
                 ),
                 readingOrder: [
-                    link(id: "titlepage", href: "EPUB/titlepage.xhtml", mediaType: .xhtml),
-                    link(id: "toc", href: "EPUB/toc.xhtml", mediaType: .xhtml),
-                    link(id: "chapter01", href: "EPUB/chapter01.xhtml", mediaType: .xhtml),
-                    link(id: "chapter02", href: "EPUB/chapter02.xhtml", mediaType: .xhtml),
+                    link(href: "EPUB/titlepage.xhtml", mediaType: .xhtml),
+                    link(href: "EPUB/toc.xhtml", mediaType: .xhtml),
+                    link(href: "EPUB/chapter01.xhtml", mediaType: .xhtml),
+                    link(href: "EPUB/chapter02.xhtml", mediaType: .xhtml),
                 ],
                 resources: [
-                    link(id: "font0", href: "EPUB/fonts/MinionPro.otf", mediaType: MediaType("application/vnd.ms-opentype")!),
-                    link(id: "nav", href: "EPUB/nav.xhtml", mediaType: .xhtml, rels: [.contents]),
-                    link(id: "css", href: "EPUB/style.css", mediaType: .css),
-                    link(id: "img01a", href: "EPUB/images/alice01a.gif", mediaType: .gif, rels: [.cover]),
-                    link(id: "img02a", href: "EPUB/images/alice02a.gif", mediaType: .gif),
+                    link(href: "EPUB/fonts/MinionPro.otf", mediaType: MediaType("application/vnd.ms-opentype")!),
+                    link(href: "EPUB/nav.xhtml", mediaType: .xhtml, rels: [.contents]),
+                    link(href: "EPUB/style.css", mediaType: .css),
+                    link(href: "EPUB/images/alice01a.gif", mediaType: .gif, rels: [.cover]),
+                    link(href: "EPUB/images/alice02a.gif", mediaType: .gif),
                 ]
             )
         )
@@ -96,10 +96,10 @@ class EPUBManifestParserTests: XCTestCase {
         XCTAssertEqual(
             manifest.readingOrder,
             [
-                link(id: "titlepage", href: "EPUB/titlepage.xhtml", mediaType: .xhtml, rels: [.cover]),
-                link(id: "toc", href: "EPUB/toc.xhtml", mediaType: .xhtml, rels: [.contents]),
-                link(id: "chapter01", href: "EPUB/chapter01.xhtml", mediaType: .xhtml, rels: [.start]),
-                link(id: "chapter02", href: "EPUB/chapter02.xhtml", mediaType: .xhtml),
+                link(href: "EPUB/titlepage.xhtml", mediaType: .xhtml, rels: [.cover]),
+                link(href: "EPUB/toc.xhtml", mediaType: .xhtml, rels: [.contents]),
+                link(href: "EPUB/chapter01.xhtml", mediaType: .xhtml, rels: [.start]),
+                link(href: "EPUB/chapter02.xhtml", mediaType: .xhtml),
             ]
         )
     }
@@ -124,11 +124,13 @@ class EPUBManifestParserTests: XCTestCase {
         XCTAssertEqual(
             manifest.readingOrder,
             [
-                link(id: "titlepage", href: "EPUB/titlepage.xhtml", mediaType: .xhtml),
-                link(id: "beginpage", href: "EPUB/beginpage.xhtml", mediaType: .xhtml, rels: [.start]),
+                link(href: "EPUB/titlepage.xhtml", mediaType: .xhtml),
+                link(href: "EPUB/beginpage.xhtml", mediaType: .xhtml, rels: [.start]),
             ]
         )
     }
+
+    // MARK: - Helpers
 
     private func parser(files: [String: String]) -> EPUBManifestParser {
         EPUBManifestParser(
@@ -140,7 +142,6 @@ class EPUBManifestParserTests: XCTestCase {
     }
 
     private func link(
-        id: String? = nil,
         href: String,
         mediaType: MediaType? = nil,
         templated: Bool = false,
@@ -149,10 +150,6 @@ class EPUBManifestParserTests: XCTestCase {
         properties: Properties = .init(),
         children: [Link] = []
     ) -> Link {
-        var properties = properties.otherProperties
-        if let id = id {
-            properties["id"] = id
-        }
-        return Link(href: href, mediaType: mediaType, templated: templated, title: title, rels: rels, properties: Properties(properties), children: children)
+        Link(href: href, mediaType: mediaType, templated: templated, title: title, rels: rels, properties: properties, children: children)
     }
 }

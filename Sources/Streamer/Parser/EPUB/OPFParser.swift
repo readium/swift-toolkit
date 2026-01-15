@@ -29,6 +29,13 @@ public enum OPFParserError: Error {
 /// EpubParser support class, able to parse the OPF package document.
 /// OPF: Open Packaging Format.
 final class OPFParser: Loggable {
+    /// Internal representation of a manifest item during parsing.
+    private struct ManifestItem {
+        let id: String
+        let link: Link
+        let fallbackId: String?
+    }
+
     /// Relative path to the OPF in the EPUB container
     private let baseURL: RelativeURL
 
@@ -88,13 +95,19 @@ final class OPFParser: Loggable {
     /// Parse the OPF file of the EPUB container and return a `Publication`.
     /// It also complete the informations stored in the container.
     func parsePublication() throws -> Package {
-        let links = parseLinks()
-        let (resources, readingOrder) = splitResourcesAndReadingOrderLinks(links)
-        let metadata = EPUBMetadataParser(document: document, displayOptions: displayOptions, metas: metas)
+        let manifestItems = parseManifestItems()
+        let (resources, readingOrder) = splitResourcesAndReadingOrderLinks(manifestItems)
+        var metadata = try EPUBMetadataParser(document: document, displayOptions: displayOptions, metas: metas).parse()
 
-        return try Package(
+        // If all reading order items are bitmaps, we infer a Divina.
+        if readingOrder.allAreBitmap {
+            metadata.layout = .fixed
+            metadata.conformsTo.append(.divina)
+        }
+
+        return Package(
             version: parseEPUBVersion(),
-            metadata: metadata.parse(),
+            metadata: metadata,
             readingOrder: readingOrder,
             resources: resources,
             epub2Guide: parseEPUB2Guide()
@@ -129,8 +142,8 @@ final class OPFParser: Loggable {
             }
     }
 
-    /// Parses XML elements of the <Manifest> in the package.opf file as a list of `Link`.
-    private func parseLinks() -> [Link] {
+    /// Parses XML elements of the <Manifest> in the package.opf file.
+    private func parseManifestItems() -> [ManifestItem] {
         // Read meta to see if any Link is referenced as the Cover.
         let coverId = metas["cover"].first?.content
 
@@ -152,44 +165,21 @@ final class OPFParser: Loggable {
 
             let isCover = (id == coverId)
 
-            guard let link = makeLink(manifestItem: manifestItem, spineItem: spineItems[id], isCover: isCover) else {
+            guard let item = makeManifestItem(id: id, manifestItem: manifestItem, spineItem: spineItems[id], isCover: isCover) else {
                 log(.warning, "Can't parse link with ID \(id)")
                 return nil
             }
 
-            return link
+            return item
         }
     }
 
-    /// Parses XML elements of the <spine> in the package.opf file.
-    /// They are only composed of an `idref` referencing one of the previously parsed resource (XML: idref -> id).
-    ///
-    /// - Parameter manifestLinks: The `Link` parsed in the manifest items.
-    /// - Returns: The `Link` in `resources` and in `readingOrder`, taken from the `manifestLinks`.
-    private func splitResourcesAndReadingOrderLinks(_ manifestLinks: [Link]) -> (resources: [Link], readingOrder: [Link]) {
-        var resources = manifestLinks
-        var readingOrder: [Link] = []
-
-        let spineItems = document.xpath("/opf:package/opf:spine/opf:itemref")
-        for item in spineItems {
-            // Find the `Link` that `idref` is referencing to from the `manifestLinks`.
-            guard let idref = item.attr("idref"),
-                  let index = resources.firstIndex(where: { $0.properties["id"] as? String == idref }),
-                  // Only linear items are added to the readingOrder.
-                  item.attr("linear")?.lowercased() != "no"
-            else {
-                continue
-            }
-
-            readingOrder.append(resources[index])
-            // `resources` should only contain the links that are not already in `readingOrder`.
-            resources.remove(at: index)
-        }
-
-        return (resources, readingOrder)
-    }
-
-    private func makeLink(manifestItem: ReadiumFuzi.XMLElement, spineItem: ReadiumFuzi.XMLElement?, isCover: Bool) -> Link? {
+    private func makeManifestItem(
+        id: String,
+        manifestItem: ReadiumFuzi.XMLElement,
+        spineItem: ReadiumFuzi.XMLElement?,
+        isCover: Bool
+    ) -> ManifestItem? {
         guard
             let relativeHref = manifestItem.attr("href").flatMap(RelativeURL.init(epubHREF:)),
             let href = baseURL.resolve(relativeHref)?.normalized
@@ -216,18 +206,68 @@ final class OPFParser: Loggable {
             properties["encrypted"] = encryption
         }
 
-        let type = manifestItem.attr("media-type")
-
-        if let id = manifestItem.attr("id") {
-            properties["id"] = id
-        }
-
-        return Link(
+        let link = Link(
             href: href.string,
-            mediaType: type.flatMap { MediaType($0) },
+            mediaType: manifestItem.attr("media-type").flatMap { MediaType($0) },
             rels: rels,
             properties: Properties(properties)
         )
+
+        return ManifestItem(
+            id: id,
+            link: link,
+            fallbackId: manifestItem.attr("fallback")
+        )
+    }
+
+    /// Parses XML elements of the spine in the package.opf file.
+    ///
+    /// They are only composed of an `idref` referencing one of the previously
+    /// parsed resource (XML: idref -> id).
+    ///
+    /// Handles image spine items with HTML fallbacks (and vice versa) by
+    /// putting the image in the reading order and the HTML in `alternates`.
+    /// This is because we prefer treating it as a Divina to render it.
+    ///
+    /// - Parameter manifestItems: The items parsed from the manifest.
+    /// - Returns: The `Link` in `resources` and in `readingOrder`.
+    private func splitResourcesAndReadingOrderLinks(_ manifestItems: [ManifestItem]) -> (resources: [Link], readingOrder: [Link]) {
+        var items = manifestItems
+        var readingOrder: [Link] = []
+
+        let spineItems = document.xpath("/opf:package/opf:spine/opf:itemref")
+        for spineItem in spineItems {
+            // Find the item that `idref` is referencing.
+            guard
+                let idref = spineItem.attr("idref"),
+                let index = items.firstIndex(where: { $0.id == idref }),
+                // Only linear items are added to the readingOrder.
+                spineItem.attr("linear")?.lowercased() != "no"
+            else {
+                continue
+            }
+
+            let item = items.remove(at: index)
+            var spineLink = item.link
+
+            // Resolve fallback: prefer bitmaps as primary to treat image-based
+            // EPUBs as Divina
+            if
+                let fallbackId = item.fallbackId,
+                let fallbackIndex = items.firstIndex(where: { $0.id == fallbackId })
+            {
+                let fallbackItem = items.remove(at: fallbackIndex)
+                spineLink = resolveFallbackChain(
+                    spineLink: spineLink,
+                    fallbackLink: fallbackItem.link
+                )
+            }
+
+            readingOrder.append(spineLink)
+        }
+
+        let resources = items.map(\.link)
+        return (resources, readingOrder)
     }
 
     /// Parse string properties into an `otherProperties` dictionary.
@@ -271,5 +311,26 @@ final class OPFParser: Loggable {
         }
 
         return otherProperties
+    }
+
+    /// Resolves which link should be primary vs alternate when a fallback is
+    /// present.
+    ///
+    /// We prefer bitmaps as primary to treat image-based EPUBs as Divina.
+    private func resolveFallbackChain(
+        spineLink: Link,
+        fallbackLink: Link
+    ) -> Link {
+        var link = spineLink
+        // If fallback is a bitmap and spine is HTML, swap them.
+        if spineLink.mediaType?.isHTML == true, fallbackLink.mediaType?.isBitmap == true {
+            link = fallbackLink
+            // Transfer spine properties (like page spread) to the image
+            link.properties = spineLink.properties
+            link.alternates = [spineLink]
+        } else {
+            link.alternates = [fallbackLink]
+        }
+        return link
     }
 }

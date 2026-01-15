@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="pub-id" version="3.0">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:title>Image and XHTML in Spine Test</dc:title>
+  </metadata>
+  <manifest>
+    <item id="page1" href="page1.jpg" media-type="image/jpeg" fallback="page1-fallback"/>
+    <item id="page1-fallback" href="page1.xhtml" media-type="application/xhtml+xml"/>
+    <item id="page2" href="page2.xhtml" media-type="application/xhtml+xml"/>
+  </manifest>
+  <spine>
+    <itemref idref="page1"/>
+    <itemref idref="page2"/>
+  </spine>
+</package>

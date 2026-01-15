@@ -9,10 +9,26 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * Support for displaying Divina (image-based publications like CBZ) in the fixed-layout EPUB navigator.
+* Bitmap images in the EPUB reading order are now supported as a fixed layout resource.
 
 #### Streamer
 
 * The `ImageParser` now extracts metadata from `ComicInfo.xml` files in CBZ archives.
+* EPUB manifest item fallbacks are now exposed as `alternates` in the corresponding `Link`.
+* EPUBs with only bitmap images in the spine are now treated as Divina publications with fixed layout.
+    * When an EPUB spine item is HTML with a bitmap image fallback (or vice versa), the image is preferred as the primary link.
+
+### Deprecated
+
+#### Streamer
+
+* The EPUB manifest item `id` attribute is no longer exposed in `Link.properties`.
+
+### Fixed
+
+#### Navigator
+
+* PDF documents are now opened off the main thread, preventing UI freezes with large files.
 
 
 ## [3.6.0]
