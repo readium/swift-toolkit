@@ -296,6 +296,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         let viewModel = try EPUBNavigatorViewModel(
             publication: publication,
+            readingOrder: readingOrder ?? publication.readingOrder,
             config: config,
             httpServer: httpServer
         )

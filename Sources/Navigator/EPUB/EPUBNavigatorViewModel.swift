@@ -38,10 +38,11 @@ final class EPUBNavigatorViewModel: Loggable {
     /// `httpServer`. This is used to serve custom font files, for example.
     @Atomic private var servedFiles: [FileURL: HTTPURL] = [:]
 
-    var readingOrder: ReadingOrder { publication.readingOrder }
+    let readingOrder: ReadingOrder
 
     convenience init(
         publication: Publication,
+        readingOrder: ReadingOrder,
         config: EPUBNavigatorViewController.Configuration,
         httpServer: HTTPServer
     ) throws {
@@ -55,6 +56,7 @@ final class EPUBNavigatorViewModel: Loggable {
 
         try self.init(
             publication: publication,
+            readingOrder: readingOrder,
             config: config,
             httpServer: httpServer,
             publicationEndpoint: publicationEndpoint,
@@ -89,6 +91,7 @@ final class EPUBNavigatorViewModel: Loggable {
 
     private init(
         publication: Publication,
+        readingOrder: ReadingOrder,
         config: EPUBNavigatorViewController.Configuration,
         httpServer: HTTPServer?,
         publicationEndpoint: HTTPServerEndpoint?,
@@ -123,6 +126,7 @@ final class EPUBNavigatorViewModel: Loggable {
         }
 
         self.publication = publication
+        self.readingOrder = readingOrder
         self.config = config
         editingActions = EditingActionsController(
             actions: config.editingActions,
