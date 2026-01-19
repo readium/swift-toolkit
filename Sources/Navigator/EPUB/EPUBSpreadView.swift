@@ -385,9 +385,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     func findFirstVisibleElementLocator() async -> Locator? {
         let result = await evaluateScript("readium.findFirstVisibleLocator()")
         do {
-            let resource = viewModel.readingOrder[spread.leading]
+            let link = spread.first.link
             let locator = try Locator(json: result.get())?
-                .copy(href: resource.url(), mediaType: resource.mediaType ?? .xhtml)
+                .copy(href: link.url(), mediaType: link.mediaType ?? .xhtml)
             return locator
         } catch {
             log(.error, error)
@@ -614,7 +614,7 @@ private extension EPUBSpreadView {
                 return
             }
 
-            trace("stopping activity indicator because spread \(viewModel.readingOrder[spread.leading].href) did not load")
+            trace("stopping activity indicator because spread \(spread.first.link.href) did not load")
             activityIndicatorView?.stopAnimating()
         }
 

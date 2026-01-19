@@ -399,7 +399,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         if needsReloadSpreadsOnActive {
             needsReloadSpreadsOnActive = false
-            reloadSpreads(force: true)
+            reloadSpreads()
         }
     }
 
@@ -420,7 +420,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         applySettings()
 
-        _reloadSpreads(force: true)
+        _reloadSpreads()
 
         onInitializedCallbacks.complete()
     }
@@ -556,7 +556,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         }
 
         paginationView.isScrollEnabled = isPaginationViewScrollingEnabled
-        reloadSpreads(force: true)
+        reloadSpreads()
     }
 
     private var spreads: [EPUBSpread] = []
@@ -568,7 +568,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     private var needsReloadSpreadsOnActive = false
 
-    private func reloadSpreads(force: Bool) {
+    private func reloadSpreads() {
         guard
             state != .initializing,
             isViewLoaded
@@ -585,16 +585,14 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             return
         }
 
-        _reloadSpreads(force: force)
+        _reloadSpreads()
     }
 
-    private func _reloadSpreads(force: Bool) {
+    private func _reloadSpreads() {
         let locator = currentLocation
 
         guard
             let paginationView = paginationView,
-            // Already loaded with the expected amount of spreads?
-            force || spreads.first?.spread != viewModel.spreadEnabled,
             on(.load(locator))
         else {
             return
@@ -1257,7 +1255,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     }
 
     func spreadViewDidTerminate() {
-        reloadSpreads(force: true)
+        reloadSpreads()
     }
 }
 
