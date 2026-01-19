@@ -7,9 +7,10 @@
 import Foundation
 import ReadiumShared
 
+/// Common interface for spread types.
 protocol EPUBSpreadProtocol {
     /// Returns whether the spread contains the resource at the given reading
-    /// order index
+    /// order index.
     func contains(index: ReadingOrder.Index) -> Bool
 
     /// Return the number of positions contained in the spread.
@@ -28,9 +29,12 @@ protocol EPUBSpreadProtocol {
 /// Represents a spread of EPUB resources displayed in the viewport. A spread
 /// can contain one or two resources (for FXL).
 enum EPUBSpread: EPUBSpreadProtocol {
+    /// A spread displaying a single resource.
     case single(EPUBSingleSpread)
+    /// A spread displaying two resources side by side (FXL only).
     case double(EPUBDoubleSpread)
 
+    /// Range of reading order indices contained in this spread.
     var readingOrderIndices: ReadingOrderIndices {
         switch self {
         case let .single(spread):
@@ -40,6 +44,7 @@ enum EPUBSpread: EPUBSpreadProtocol {
         }
     }
 
+    /// The leading resource in the reading progression.
     var first: EPUBSpreadResource {
         switch self {
         case let .single(spread):
@@ -49,7 +54,7 @@ enum EPUBSpread: EPUBSpreadProtocol {
         }
     }
 
-    var spread: EPUBSpreadProtocol {
+    private var spread: EPUBSpreadProtocol {
         switch self {
         case let .single(spread):
             return spread
@@ -180,10 +185,14 @@ enum EPUBSpread: EPUBSpreadProtocol {
     }
 }
 
+/// A resource displayed in a spread, with its reading order index.
 struct EPUBSpreadResource {
+    /// Index of the resource in the reading order.
     let index: ReadingOrder.Index
+    /// Link to the resource.
     let link: Link
 
+    /// Returns a JSON representation of the resource for the spread scripts.
     func json(forBaseURL baseURL: HTTPURL, page: Properties.Page) -> [String: Any] {
         [
             "index": index,
@@ -194,7 +203,9 @@ struct EPUBSpreadResource {
     }
 }
 
+/// A spread displaying a single resource.
 struct EPUBSingleSpread: EPUBSpreadProtocol, Loggable {
+    /// The resource displayed in the spread.
     var resource: EPUBSpreadResource
 
     func contains(index: ReadingOrder.Index) -> Bool {
@@ -215,8 +226,11 @@ struct EPUBSingleSpread: EPUBSpreadProtocol, Loggable {
     }
 }
 
+/// A spread displaying two resources side by side (FXL only).
 struct EPUBDoubleSpread: EPUBSpreadProtocol, Loggable {
+    /// The leading resource in the reading progression.
     var first: EPUBSpreadResource
+    /// The trailing resource in the reading progression.
     var second: EPUBSpreadResource
 
     /// Returns the left resource in the spread.
