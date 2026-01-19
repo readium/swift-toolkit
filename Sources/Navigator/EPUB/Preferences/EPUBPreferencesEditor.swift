@@ -232,6 +232,25 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             format: { $0.formatDecimal(maximumFractionDigits: 5) }
         )
 
+    /// Indicates whether the first page should be displayed alone and centered
+    /// instead of alongside the second page.
+    ///
+    /// When `nil`, the publication metadata is used to determine if the first
+    /// page will be displayed alone.
+    ///
+    /// Only effective when:
+    ///  - the publication is fixed-layout
+    ///  - `spread` is not `.never`
+    public lazy var offsetFirstPage: AnyPreference<Bool?> =
+        preference(
+            preference: \.offsetFirstPage,
+            setting: \.offsetFirstPage,
+            isEffective: { [layout] in
+                layout == .fixed
+                    && $0.settings.spread != .never
+            }
+        )
+
     /// Factor applied to horizontal margins. Default to 1.
     ///
     /// Only effective with reflowable publications.

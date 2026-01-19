@@ -44,7 +44,8 @@ public final class PDFPreferencesEditor: StatefulPreferencesEditor<PDFPreference
             supportedValues: [.auto, .page, .width]
         )
 
-    /// Indicates if the first page should be displayed in its own spread.
+    /// Indicates whether the first page should be displayed alone instead of
+    /// alongside the second page.
     ///
     /// Only effective when `spread` is not off.
     public lazy var offsetFirstPage: AnyPreference<Bool> =

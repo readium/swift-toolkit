@@ -52,6 +52,12 @@ public struct EPUBPreferences: ConfigurablePreferences {
     /// Leading line height.
     public var lineHeight: Double?
 
+    /// Indicates whether the first page should be displayed alone and centered
+    /// instead of alongside the second page.
+    ///
+    /// This is only effective if spreads are enabled.
+    public var offsetFirstPage: Bool?
+
     /// Factor applied to horizontal margins.
     public var pageMargins: Double?
 
@@ -114,6 +120,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
         lineHeight: Double? = nil,
+        offsetFirstPage: Bool? = nil,
         pageMargins: Double? = nil,
         paragraphIndent: Double? = nil,
         paragraphSpacing: Double? = nil,
@@ -141,6 +148,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
         self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
         self.lineHeight = lineHeight
+        self.offsetFirstPage = offsetFirstPage
         self.pageMargins = pageMargins.map { max($0, 0) }
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }
@@ -171,6 +179,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
             letterSpacing: other.letterSpacing ?? letterSpacing,
             ligatures: other.ligatures ?? ligatures,
             lineHeight: other.lineHeight ?? lineHeight,
+            offsetFirstPage: other.offsetFirstPage ?? offsetFirstPage,
             pageMargins: other.pageMargins ?? pageMargins,
             paragraphIndent: other.paragraphIndent ?? paragraphIndent,
             paragraphSpacing: other.paragraphSpacing ?? paragraphSpacing,
@@ -193,6 +202,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
     public func filterSharedPreferences() -> EPUBPreferences {
         var prefs = self
         prefs.language = nil
+        prefs.offsetFirstPage = nil
         prefs.readingProgression = nil
         prefs.spread = nil
         prefs.verticalText = nil
@@ -204,6 +214,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
     public func filterPublicationPreferences() -> EPUBPreferences {
         EPUBPreferences(
             language: language,
+            offsetFirstPage: offsetFirstPage,
             readingProgression: readingProgression,
             spread: spread,
             verticalText: verticalText

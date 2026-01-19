@@ -604,7 +604,8 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             for: publication,
             readingOrder: readingOrder,
             readingProgression: viewModel.readingProgression,
-            spread: viewModel.spreadEnabled
+            spread: viewModel.spreadEnabled,
+            offsetFirstPage: viewModel.offsetFirstPage
         )
 
         let initialIndex: ReadingOrder.Index = {

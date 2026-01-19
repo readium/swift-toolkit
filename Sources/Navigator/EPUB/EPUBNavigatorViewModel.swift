@@ -225,6 +225,7 @@ final class EPUBNavigatorViewModel: Loggable {
                 || oldSettings.scroll != newSettings.scroll
                 || oldSettings.spread != newSettings.spread
                 || oldSettings.fit != newSettings.fit
+                || oldSettings.offsetFirstPage != newSettings.offsetFirstPage
 
         // We don't commit the CSS changes if we invalidate the pagination, as
         // the resources will be reloaded anyway.
@@ -248,6 +249,7 @@ final class EPUBNavigatorViewModel: Loggable {
     var scroll: Bool { settings.scroll }
     var verticalText: Bool { settings.verticalText }
     var spread: Spread { settings.spread }
+    var offsetFirstPage: Bool? { settings.offsetFirstPage }
 
     // MARK: Spread
 

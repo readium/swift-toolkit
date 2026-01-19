@@ -115,14 +115,16 @@ struct EPUBSpread: Loggable {
     ///   - publication: The Publication to build the spreads for.
     ///   - readingProgression: Reading progression direction used to layout the pages.
     ///   - spread: Indicates whether two pages are displayed side-by-side.
+    ///   - offsetFirstPage: Indicates if the first page should be displayed in its own spread.
     static func makeSpreads(
         for publication: Publication,
         readingOrder: [Link],
         readingProgression: ReadingProgression,
-        spread: Bool
+        spread: Bool,
+        offsetFirstPage: Bool? = nil
     ) -> [EPUBSpread] {
         spread
-            ? makeTwoPagesSpreads(for: publication, readingOrder: readingOrder, readingProgression: readingProgression)
+            ? makeTwoPagesSpreads(for: publication, readingOrder: readingOrder, readingProgression: readingProgression, offsetFirstPage: offsetFirstPage)
             : makeOnePageSpreads(for: publication, readingOrder: readingOrder, readingProgression: readingProgression)
     }
 
@@ -145,7 +147,8 @@ struct EPUBSpread: Loggable {
     private static func makeTwoPagesSpreads(
         for publication: Publication,
         readingOrder: [Link],
-        readingProgression: ReadingProgression
+        readingProgression: ReadingProgression,
+        offsetFirstPage: Bool?
     ) -> [EPUBSpread] {
         var spreads: [EPUBSpread] = []
 
@@ -166,7 +169,7 @@ struct EPUBSpread: Loggable {
             if
                 let second = readingOrder.getOrNil(nextIndex),
                 publication.metadata.layout == .fixed,
-                publication.areConsecutive(first, second, index: index)
+                publication.areConsecutive(first, second, index: index, offsetFirstPage: offsetFirstPage)
             {
                 spread.readingOrderIndices = index ... nextIndex
                 index += 1 // Skips the consumed "second" page
@@ -192,9 +195,22 @@ extension Array where Element == EPUBSpread {
 private extension Publication {
     /// Two resources are consecutive if their position hint (Properties.Page)
     /// are paired according to the reading progression.
-    func areConsecutive(_ first: Link, _ second: Link, index: Int) -> Bool {
-        guard index > 0 || first.properties.page != nil else {
-            return false
+    func areConsecutive(_ first: Link, _ second: Link, index: Int, offsetFirstPage: Bool?) -> Bool {
+        // Handle first page (index 0) based on offsetFirstPage setting
+        if index == 0 {
+            switch offsetFirstPage {
+            case true:
+                // Explicit true: always show first page alone
+                return false
+            case false:
+                // Explicit false: allow pairing (skip the metadata check)
+                break
+            case nil:
+                // Nil: use page metadata - if no metadata, show alone (current behavior)
+                guard first.properties.page != nil else {
+                    return false
+                }
+            }
         }
 
         // Here we use the default publication reading progression instead

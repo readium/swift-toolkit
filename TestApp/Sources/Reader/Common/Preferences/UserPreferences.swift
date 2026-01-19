@@ -125,6 +125,7 @@ struct UserPreferences<
                             backgroundColor: editor.backgroundColor,
                             fit: editor.fit,
                             language: editor.language,
+                            nullableOffsetFirstPage: editor.offsetFirstPage,
                             readingProgression: editor.readingProgression,
                             spread: editor.spread
                         )
@@ -174,6 +175,7 @@ struct UserPreferences<
         fit: AnyEnumPreference<ReadiumNavigator.Fit>? = nil,
         language: AnyPreference<Language?>? = nil,
         offsetFirstPage: AnyPreference<Bool>? = nil,
+        nullableOffsetFirstPage: AnyPreference<Bool?>? = nil,
         pageSpacing: AnyRangePreference<Double>? = nil,
         readingProgression: AnyEnumPreference<ReadiumNavigator.ReadingProgression>? = nil,
         scroll: AnyPreference<Bool>? = nil,
@@ -255,14 +257,22 @@ struct UserPreferences<
                         }
                     }
                 )
-            }
 
-            if let offsetFirstPage = offsetFirstPage {
-                toggleRow(
-                    title: "Offset first page",
-                    preference: offsetFirstPage,
-                    commit: commit
-                )
+                if let offsetFirstPage = offsetFirstPage {
+                    toggleRow(
+                        title: "Offset first page",
+                        preference: offsetFirstPage,
+                        commit: commit
+                    )
+                }
+
+                if let nullableOffsetFirstPage = nullableOffsetFirstPage {
+                    nullableBoolPickerRow(
+                        title: "Offset first page",
+                        preference: nullableOffsetFirstPage,
+                        commit: commit
+                    )
+                }
             }
         }
 
@@ -648,6 +658,28 @@ struct UserPreferences<
             onClear: onClear
         ) {
             Toggle(title, isOn: value)
+        }
+    }
+
+    /// Component for a nullable boolean `Preference` displayed in a `Picker` view
+    /// with three options: Auto, Yes, No.
+    @ViewBuilder func nullableBoolPickerRow(
+        title: String,
+        preference: AnyPreference<Bool?>,
+        commit: @escaping () -> Void
+    ) -> some View {
+        preferenceRow(
+            isActive: preference.isEffective,
+            onClear: { preference.clear(); commit() }
+        ) {
+            Picker(title, selection: Binding(
+                get: { preference.value ?? preference.effectiveValue },
+                set: { preference.set($0); commit() }
+            )) {
+                Text("Auto").tag(nil as Bool?)
+                Text("Yes").tag(true as Bool?)
+                Text("No").tag(false as Bool?)
+            }
         }
     }
 

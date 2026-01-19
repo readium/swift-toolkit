@@ -23,6 +23,7 @@ public struct EPUBSettings: ConfigurableSettings {
     public var letterSpacing: Double?
     public var ligatures: Bool?
     public var lineHeight: Double?
+    public var offsetFirstPage: Bool?
     public var pageMargins: Double
     public var paragraphIndent: Double?
     public var paragraphSpacing: Double?
@@ -57,6 +58,7 @@ public struct EPUBSettings: ConfigurableSettings {
         letterSpacing: Double?,
         ligatures: Bool?,
         lineHeight: Double?,
+        offsetFirstPage: Bool?,
         pageMargins: Double,
         paragraphIndent: Double?,
         paragraphSpacing: Double?,
@@ -84,6 +86,7 @@ public struct EPUBSettings: ConfigurableSettings {
         self.letterSpacing = letterSpacing
         self.ligatures = ligatures
         self.lineHeight = lineHeight
+        self.offsetFirstPage = offsetFirstPage
         self.pageMargins = pageMargins
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing
@@ -162,6 +165,8 @@ public struct EPUBSettings: ConfigurableSettings {
                 ?? defaults.ligatures,
             lineHeight: preferences.lineHeight
                 ?? defaults.lineHeight,
+            offsetFirstPage: preferences.offsetFirstPage
+                ?? defaults.offsetFirstPage,
             pageMargins: preferences.pageMargins
                 ?? defaults.pageMargins
                 ?? 1.0,
@@ -211,6 +216,7 @@ public struct EPUBDefaults {
     public var letterSpacing: Double?
     public var ligatures: Bool?
     public var lineHeight: Double?
+    public var offsetFirstPage: Bool?
     public var pageMargins: Double?
     public var paragraphIndent: Double?
     public var paragraphSpacing: Double?
@@ -234,6 +240,7 @@ public struct EPUBDefaults {
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
         lineHeight: Double? = nil,
+        offsetFirstPage: Bool? = nil,
         pageMargins: Double? = nil,
         paragraphIndent: Double? = nil,
         paragraphSpacing: Double? = nil,
@@ -256,6 +263,7 @@ public struct EPUBDefaults {
         self.letterSpacing = letterSpacing
         self.ligatures = ligatures
         self.lineHeight = lineHeight
+        self.offsetFirstPage = offsetFirstPage
         self.pageMargins = pageMargins
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing
