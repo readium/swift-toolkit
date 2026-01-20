@@ -6,6 +6,8 @@ on:
   pull_request:
 
 env:
+  platform: ${{ 'iOS Simulator' }}
+  device: ${{ 'iPhone 17' }}
   commit_sha: ${{ github.sha }}
   DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
 
@@ -32,11 +34,11 @@ jobs:
       - name: Build
         run: |
           set -eo pipefail
-          xcodebuild build-for-testing -scheme "$scheme" -destination "generic/platform=iOS" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+          xcodebuild build-for-testing -scheme "$scheme" -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
       - name: Test
         run: |
           set -eo pipefail
-          xcodebuild test-without-building -scheme "$scheme" -destination "generic/platform=iOS" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+          xcodebuild test-without-building -scheme "$scheme" -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
   navigator-ui-tests:
     name: Navigator UI Tests
@@ -53,7 +55,7 @@ jobs:
         run: |
           set -eo pipefail
           make navigator-ui-tests-project
-          xcodebuild test -project Tests/NavigatorTests/UITests/NavigatorUITests.xcodeproj -scheme NavigatorTestHost -destination "generic/platform=iOS" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+          xcodebuild test -project Tests/NavigatorTests/UITests/NavigatorUITests.xcodeproj -scheme NavigatorTestHost -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
   lint:
     name: Lint
@@ -109,7 +111,7 @@ jobs:
       - name: Build
         run: |
           set -eo pipefail
-          xcodebuild build -scheme TestApp -destination "generic/platform=iOS" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
   int-spm:
     name: Integration (Swift Package Manager)
@@ -137,7 +139,7 @@ jobs:
       - name: Build
         run: |
           set -eo pipefail
-          xcodebuild build -scheme TestApp -destination "generic/platform=iOS" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
   int-carthage:
     name: Integration (Carthage)
@@ -165,5 +167,5 @@ jobs:
       - name: Build
         run: |
           set -eo pipefail
-          xcodebuild build -scheme TestApp -destination "generic/platform=iOS" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
