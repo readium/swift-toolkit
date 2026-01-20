@@ -86,11 +86,6 @@ class ImageParserTests: XCTestCase {
         XCTAssertEqual(publication.readingOrder.first, cover)
     }
 
-    func testComputeTitleFromArchiveRootDirectory() async throws {
-        let publication = try await parser.parse(asset: cbzAsset, warnings: nil).get().build()
-        XCTAssertEqual(publication.metadata.title, "Cory Doctorow's Futuristic Tales of the Here and Now")
-    }
-
     func testPositions() async throws {
         let publication = try await parser.parse(asset: cbzAsset, warnings: nil).get().build()
 

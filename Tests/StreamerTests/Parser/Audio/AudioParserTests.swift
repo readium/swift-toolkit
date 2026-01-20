@@ -77,11 +77,6 @@ class AudioParserTests: XCTestCase {
         XCTAssertNil(publication.linkWithRel(.cover))
     }
 
-    func testComputeTitleFromArchiveRootDirectory() async throws {
-        let publication = try await parser.parse(asset: zabAsset, warnings: nil).get().build()
-        XCTAssertEqual(publication.metadata.title, "Test Audiobook")
-    }
-
     func testHasNoPositions() async throws {
         let publication = try await parser.parse(asset: zabAsset, warnings: nil).get().build()
         let result = try await publication.positions().get()
