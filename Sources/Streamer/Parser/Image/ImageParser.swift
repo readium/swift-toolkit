@@ -53,8 +53,7 @@ public final class ImageParser: PublicationParser {
         let container = SingleResourceContainer(publication: asset)
         return makeBuilder(
             container: container,
-            readingOrder: [(container.entry, asset.format)],
-            fallbackTitle: nil
+            readingOrder: [(container.entry, asset.format)]
         )
     }
 
@@ -68,14 +67,12 @@ public final class ImageParser: PublicationParser {
 
         // Parse ComicInfo.xml metadata if present
         let comicInfo = await parseComicInfo(from: asset.container, warnings: warnings)
-        let fallbackTitle = asset.container.guessTitle(ignoring: ignores)
 
         return await makeReadingOrder(for: asset.container)
             .flatMap { readingOrder in
                 makeBuilder(
                     container: asset.container,
                     readingOrder: readingOrder,
-                    fallbackTitle: fallbackTitle,
                     comicInfo: comicInfo
                 )
             }
@@ -131,7 +128,6 @@ public final class ImageParser: PublicationParser {
     private func makeBuilder(
         container: Container,
         readingOrder: [(AnyURL, Format)],
-        fallbackTitle: String?,
         comicInfo: ComicInfo? = nil
     ) -> Result<Publication.Builder, PublicationParseError> {
         guard !readingOrder.isEmpty else {
@@ -174,10 +170,6 @@ public final class ImageParser: PublicationParser {
         var metadata = comicInfo?.toMetadata() ?? Metadata()
         metadata.conformsTo = [.divina]
         metadata.layout = .fixed
-
-        if metadata.localizedTitle == nil, let fallbackTitle = fallbackTitle {
-            metadata.localizedTitle = .nonlocalized(fallbackTitle)
-        }
 
         // Apply center page layout for double-page spreads
         if let pages = comicInfo?.pages {

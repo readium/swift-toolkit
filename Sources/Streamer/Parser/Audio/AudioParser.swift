@@ -76,7 +76,7 @@ public final class AudioParser: PublicationParser {
                 await makeBuilder(
                     container: asset.container,
                     readingOrder: readingOrder,
-                    title: asset.container.guessTitle(ignoring: ignores)
+                    title: nil
                 )
             }
     }

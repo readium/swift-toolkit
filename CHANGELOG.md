@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Streamer
 
 * The EPUB manifest item `id` attribute is no longer exposed in `Link.properties`.
+* Removed title inference based on folder names within image and audio archives. Use the archive's filename instead.
 
 ### Fixed
 

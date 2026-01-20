@@ -116,17 +116,24 @@ final class LibraryService: Loggable {
         }
 
         let (pub, format) = try await openPublication(at: url, allowUserInteraction: false, sender: sender)
+        let title = pub.metadata.title ?? url.url.deletingPathExtension().lastPathComponent
         let coverPath = try await importCover(of: pub)
 
         if let file = url.fileURL {
             url = try moveToDocuments(
                 from: file,
-                title: pub.metadata.title ?? file.lastPathSegment,
+                title: title,
                 format: format
             )
         }
 
-        return try await insertBook(at: url, publication: pub, mediaType: format.mediaType, coverPath: coverPath)
+        return try await insertBook(
+            at: url,
+            publication: pub,
+            mediaType: format.mediaType,
+            title: title,
+            coverPath: coverPath
+        )
     }
 
     /// Fulfills the given `url` if it's a DRM license file.
@@ -177,13 +184,19 @@ final class LibraryService: Loggable {
     }
 
     /// Inserts the given `book` in the bookshelf.
-    private func insertBook(at url: AbsoluteURL, publication: Publication, mediaType: MediaType?, coverPath: String?) async throws -> Book {
+    private func insertBook(
+        at url: AbsoluteURL,
+        publication: Publication,
+        mediaType: MediaType?,
+        title: String,
+        coverPath: String?
+    ) async throws -> Book {
         // Makes the URL relative to the Documents/ folder if possible.
         let url: AnyURL = Paths.documents.relativize(url)?.anyURL ?? url.anyURL
 
         let book = Book(
             identifier: publication.metadata.identifier,
-            title: publication.metadata.title ?? url.lastPathSegment ?? "Untitled",
+            title: title,
             authors: publication.metadata.authors
                 .map(\.name)
                 .joined(separator: ", "),
