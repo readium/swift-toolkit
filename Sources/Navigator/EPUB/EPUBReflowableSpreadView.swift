@@ -317,6 +317,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     private var progression: ClosedRange<Double>?
     // To check if a progression change was cancelled or not.
     private var previousProgression: ClosedRange<Double>?
+    // Previous scroll offset for determining scroll direction.
+    private var previousScrollOffset: CGPoint?
 
     // Called by the javascript code to notify that scrolling ended.
     private func progressionDidChange(_ body: Any) {
@@ -380,5 +382,20 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         super.scrollViewDidScroll(scrollView)
         setNeedsNotifyPagesDidChange()
+
+        let currentOffset = scrollView.contentOffset
+        if let previousOffset = previousScrollOffset {
+            // Determine direction based on scroll axis (vertical vs horizontal)
+            let direction: ScrollDirection
+            if viewModel.scroll, !viewModel.verticalText {
+                // Vertical scrolling mode
+                direction = currentOffset.y > previousOffset.y ? .forward : .backward
+            } else {
+                // Horizontal scrolling/pagination mode
+                direction = currentOffset.x > previousOffset.x ? .forward : .backward
+            }
+            delegate?.spreadView(self, didScrollIn: direction)
+        }
+        previousScrollOffset = currentOffset
     }
 }

@@ -1250,6 +1250,12 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         }
     }
 
+    func spreadView(_ spreadView: EPUBSpreadView, didScrollIn direction: ScrollDirection) {
+        if paginationView?.currentView == spreadView {
+            delegate?.navigator(self, didScrollIn: direction)
+        }
+    }
+
     func spreadView(_ spreadView: EPUBSpreadView, present viewController: UIViewController) {
         present(viewController, animated: true)
     }

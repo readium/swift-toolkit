@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. Take a look
 * Support for displaying Divina (image-based publications like CBZ) in the fixed-layout EPUB navigator.
 * Bitmap images in the EPUB reading order are now supported as a fixed layout resource.
 * Added `offsetFirstPage` preference for fixed-layout EPUBs to control whether the first page is displayed alone or alongside the second page when spreads are enabled.
+* Added `func navigator(_ navigator: VisualNavigator, didScrollIn direction: ScrollDirection)` to `VisualNavigatorDelegate` protocol
 
 #### Streamer
 

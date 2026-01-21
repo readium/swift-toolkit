@@ -85,6 +85,14 @@ public struct VisualNavigatorPresentation {
     }
 }
 
+/// Direction of a scroll event.
+public enum ScrollDirection {
+    /// Scrolling up (vertical) or left (horizontal).
+    case backward
+    /// Scrolling down (vertical) or right (horizontal).
+    case forward
+}
+
 @MainActor public protocol VisualNavigatorDelegate: NavigatorDelegate {
     /// Returns the content insets that the navigator applies to its view.
     ///
@@ -119,6 +127,12 @@ public struct VisualNavigatorPresentation {
     /// Return `true` to navigate to the link, or `false` if you intend to
     /// present the link yourself
     func navigator(_ navigator: VisualNavigator, shouldNavigateToLink link: Link) -> Bool
+
+    /// Called when the user scrolls through the content.
+    ///
+    /// - Parameter direction: The direction of the scroll (forward = down/right,
+    ///   backward = up/left).
+    func navigator(_ navigator: VisualNavigator, didScrollIn direction: ScrollDirection)
 }
 
 public extension VisualNavigatorDelegate {
@@ -144,5 +158,9 @@ public extension VisualNavigatorDelegate {
 
     func navigator(_ navigator: VisualNavigator, shouldNavigateToLink link: Link) -> Bool {
         true
+    }
+
+    func navigator(_ navigator: VisualNavigator, didScrollIn direction: ScrollDirection) {
+        // Optional
     }
 }
