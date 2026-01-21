@@ -283,6 +283,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     /// Called by the javascript code when the spread contents is fully loaded.
     /// The JS message `spreadLoaded` needs to be emitted by a subclass script, EPUBSpreadView's scripts don't.
     private func spreadDidLoad(_ body: Any) {
+        spreadLoadTask?.cancel()
         spreadLoadTask = Task { @MainActor in
             isSpreadLoaded = true
             applySettings()
