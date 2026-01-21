@@ -25,6 +25,7 @@ public struct ComicFormatSniffer: FormatSniffer {
         "jfif",
         "jpg",
         "jpeg",
+        "jxl",
         "png",
         "tif",
         "tiff",

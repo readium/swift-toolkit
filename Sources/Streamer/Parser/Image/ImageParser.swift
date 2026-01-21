@@ -25,6 +25,7 @@ public final class ImageParser: PublicationParser {
         .bmp,
         .gif,
         .jpeg,
+        .jxl,
         .png,
         .tiff,
         .webp,

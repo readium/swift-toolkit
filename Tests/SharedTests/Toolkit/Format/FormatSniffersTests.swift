@@ -157,6 +157,11 @@ class FormatSniffersTests: XCTestCase {
         XCTAssertEqual(sut.sniffHints(fileExtension: "jfi"), jpeg)
         XCTAssertEqual(sut.sniffHints(mediaType: "image/jpeg"), jpeg)
 
+        // JXL
+        let jxl = Format(specifications: .jxl, mediaType: .jxl, fileExtension: "jxl")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "jxl"), jxl)
+        XCTAssertEqual(sut.sniffHints(mediaType: "image/jxl"), jxl)
+
         // PNG
         let png = Format(specifications: .png, mediaType: .png, fileExtension: "png")
         XCTAssertEqual(sut.sniffHints(fileExtension: "png"), png)

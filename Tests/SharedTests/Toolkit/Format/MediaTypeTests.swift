@@ -300,9 +300,10 @@ class MediaTypeTests: XCTestCase {
         XCTAssertTrue(MediaType("image/bmp")!.isBitmap)
         XCTAssertTrue(MediaType("image/gif")!.isBitmap)
         XCTAssertTrue(MediaType("image/jpeg")!.isBitmap)
+        XCTAssertTrue(MediaType("image/jxl")!.isBitmap)
         XCTAssertTrue(MediaType("image/png")!.isBitmap)
         XCTAssertTrue(MediaType("image/tiff")!.isBitmap)
-        XCTAssertTrue(MediaType("image/tiff")!.isBitmap)
+        XCTAssertTrue(MediaType("image/webp")!.isBitmap)
         XCTAssertTrue(MediaType("image/tiff;charset=utf-8")!.isBitmap)
     }
 

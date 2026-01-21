@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Added
 
+#### Shared
+
+* Added support for JXL (JPEG XL) bitmap images. JXL is decoded natively on iOS 17+.
+
 #### Navigator
 
 * Support for displaying Divina (image-based publications like CBZ) in the fixed-layout EPUB navigator.

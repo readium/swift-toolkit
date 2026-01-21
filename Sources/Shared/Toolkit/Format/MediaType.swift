@@ -188,7 +188,7 @@ public struct MediaType: Hashable, Loggable, Sendable {
 
     /// Returns whether this media type is of a bitmap image, so excluding vectorial formats.
     public var isBitmap: Bool {
-        matchesAny(.bmp, .gif, .jpeg, .png, .tiff, .webp)
+        matchesAny(.bmp, .gif, .jpeg, .jxl, .png, .tiff, .webp)
     }
 
     /// Returns whether this media type is of an audio clip.
@@ -228,6 +228,7 @@ public struct MediaType: Hashable, Loggable, Sendable {
     public static let javascript = MediaType("text/javascript")!
     public static let jpeg = MediaType("image/jpeg")!
     public static let json = MediaType("application/json")!
+    public static let jxl = MediaType("image/jxl")!
     public static let lcpLicenseDocument = MediaType("application/vnd.readium.lcp.license.v1.0+json")!
     public static let lcpProtectedAudiobook = MediaType("application/audiobook+lcp")!
     public static let lcpProtectedPDF = MediaType("application/pdf+lcp")!
