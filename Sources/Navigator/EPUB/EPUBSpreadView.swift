@@ -167,9 +167,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
         log(.trace, "Evaluate script: \(script)")
         return await withCheckedContinuation { continuation in
-            webView.evaluateJavaScript(script) { res, error in
+            webView.evaluateJavaScript(script) { [weak self] res, error in
                 if let error = error {
-                    self.log(.error, error)
+                    self?.log(.error, error)
                     continuation.resume(returning: .failure(error))
                 } else {
                     continuation.resume(returning: .success(res ?? ()))
