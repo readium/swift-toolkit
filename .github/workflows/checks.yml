@@ -7,7 +7,7 @@ on:
 
 env:
   platform: ${{ 'iOS Simulator' }}
-  device: ${{ 'iPad (A16)' }}
+  device: ${{ 'iPhone 16 Pro' }}
   commit_sha: ${{ github.sha }}
   DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
 
@@ -33,6 +33,7 @@ jobs:
           git diff --exit-code Support/Carthage/Readium.xcodeproj
       - name: Build
         run: |
+          xcrun simctl list
           set -eo pipefail
           xcodebuild build-for-testing -scheme "$scheme" -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
       - name: Test
@@ -55,6 +56,7 @@ jobs:
         run: |
           set -eo pipefail
           make navigator-ui-tests-project
+          xcrun simctl list
           xcodebuild test -project Tests/NavigatorTests/UITests/NavigatorUITests.xcodeproj -scheme NavigatorTestHost -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
   lint:
