@@ -60,6 +60,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     private var activityIndicatorStopWorkItem: DispatchWorkItem?
 
     private(set) var isSpreadLoaded = false
+    private var spreadLoadTask: Task<Void, Never>?
 
     required init(
         viewModel: EPUBNavigatorViewModel,
@@ -101,6 +102,11 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     /// Called when the spread view is removed from the view hierarchy, to
     /// clear pending operations and retain cycles.
     func clear() {
+        webView.stopLoading()
+
+        spreadLoadTask?.cancel()
+        spreadLoadTask = nil
+
         // Disable JS messages to break WKUserContentController reference.
         disableJSMessages()
     }
@@ -277,7 +283,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     /// Called by the javascript code when the spread contents is fully loaded.
     /// The JS message `spreadLoaded` needs to be emitted by a subclass script, EPUBSpreadView's scripts don't.
     private func spreadDidLoad(_ body: Any) {
-        Task { @MainActor in
+        spreadLoadTask = Task { @MainActor in
             isSpreadLoaded = true
             applySettings()
             await spreadDidLoad()
