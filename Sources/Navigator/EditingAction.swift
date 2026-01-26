@@ -135,6 +135,18 @@ final class EditingActionsController {
         return delegate?.editingActions(self, canPerformAction: action, for: selection) ?? true
     }
 
+    /// Checks whether a given selector is handled by any of the configured editing actions.
+    ///
+    /// This is useful for custom responder chain handling, particularly in PDF views
+    /// where you need to distinguish between actions managed by this controller
+    /// and system actions.
+    ///
+    /// - Parameter selector: The selector to check.
+    /// - Returns: `true` if any editing action handles this selector, `false` otherwise.
+    func handlesAction(_ selector: Selector) -> Bool {
+        actions.contains { $0.actions.contains(selector) }
+    }
+
     /// Verifies that the user has the rights to use the given `action`.
     private func isActionAllowed(_ action: EditingAction) -> Bool {
         switch action {
@@ -158,9 +170,76 @@ final class EditingActionsController {
         // Expansion setting which allows to copy the selection.
         // To reproduce, comment out and select Japanese text on a PDF.
         builder.remove(menu: .learn)
+
+        // iOS 16+ enhancement: Add custom actions as UICommand items to the edit menu.
+        // This ensures custom actions (like "Highlight") appear properly in the modern
+        // UIEditMenuInteraction on iOS 16+, fixing the issue where custom actions
+        // wouldn't show up or wouldn't route correctly to the responder chain.
+        if #available(iOS 16.0, *) {
+            addCustomActionsToMenu(builder)
+        }
+    }
+
+    /// Adds custom editing actions to the menu builder for iOS 16+.
+    ///
+    /// This method converts custom `UIMenuItem` actions into `UICommand` items,
+    /// which properly integrate with iOS 16's `UIEditMenuInteraction` system.
+    /// It maintains backward compatibility by only affecting iOS 16+ behavior.
+    @available(iOS 16.0, *)
+    private func addCustomActionsToMenu(_ builder: UIMenuBuilder) {
+        // Extract custom actions and convert them to UICommand
+        let customElements: [UIMenuElement] = actions.compactMap { action in
+            switch action.kind {
+            case let .custom(menuItem):
+                return UICommand(
+                    title: menuItem.title,
+                    image: nil,
+                    action: menuItem.action,
+                    propertyList: nil
+                )
+            case .native:
+                return nil
+            }
+        }
+
+        guard !customElements.isEmpty else {
+            return
+        }
+
+        // Check if we have any native actions (copy, lookup, translate, share)
+        let hasNativeActions = actions.contains {
+            if case .native = $0.kind {
+                return true
+            }
+            return false
+        }
+
+        // Get existing menu items
+        var standardChildren = builder.menu(for: .standardEdit)?.children ?? []
+
+        if hasNativeActions {
+            // If we have native actions, prepend custom actions to preserve
+            // standard system actions (copy, lookup, etc.)
+            standardChildren.insert(contentsOf: customElements, at: 0)
+        } else {
+            // If only custom actions, replace the menu to avoid clutter
+            // This gives integrators full control when they don't use native actions
+            standardChildren = customElements
+        }
+
+        builder.replaceChildren(ofMenu: .standardEdit) { _ in standardChildren }
     }
 
     func updateSharedMenuController() {
+        if #available(iOS 16.0, *) {
+            // On iOS 16+, UIMenuController is deprecated in favor of UIEditMenuInteraction.
+            // Clear the shared menu items to avoid conflicts between the old and new systems.
+            // Custom actions are now handled via buildMenu(with:) and UICommand.
+            UIMenuController.shared.menuItems = nil
+            return
+        }
+
+        // iOS 15 and earlier: Use legacy UIMenuController system
         var items: [UIMenuItem] = []
         if isEnabled, let selection = selection {
             items = actions
