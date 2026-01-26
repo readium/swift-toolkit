@@ -4,6 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import Combine
 import Foundation
 import PDFKit
 import ReadiumShared
@@ -37,14 +38,54 @@ open class PDFNavigatorViewController:
         /// The default set of editing actions is `EditingAction.defaultActions`.
         public var editingActions: [EditingAction]
 
+        /// Controls custom action routing behavior for PDF text selection menus.
+        ///
+        /// When `true`, custom editing actions (created via `EditingAction(title:action:)`)
+        /// will be routed up the responder chain to the parent view controller instead of
+        /// being handled by PDFKit's PDFView. This is necessary for custom actions like
+        /// "Highlight" to work properly, especially on iOS 16+ where they need to reach
+        /// the view controller implementing the action.
+        ///
+        /// **Default**: `true` when custom actions are present, `false` otherwise.
+        ///
+        /// Set to `false` if you want to handle actions within the PDFView itself or
+        /// need the legacy behavior.
+        public var enableCustomActionRouting: Bool
+
+        /// Controls whether to prevent PDFKit's default annotation context menu on iOS 16+.
+        ///
+        /// When `true`, blocks `UIEditMenuInteraction` instances that PDFKit automatically
+        /// adds for showing annotation context menus (e.g., when tapping existing highlights).
+        /// This is useful when you want to provide your own custom annotation UI.
+        ///
+        /// **Default**: `false` (preserves PDFKit's default annotation menus).
+        ///
+        /// Set to `true` if you're implementing custom annotation management and want to
+        /// prevent PDFKit's built-in annotation menus from appearing.
+        public var preventDefaultAnnotationMenu: Bool
+
         public init(
             preferences: PDFPreferences = PDFPreferences(),
             defaults: PDFDefaults = PDFDefaults(),
-            editingActions: [EditingAction] = EditingAction.defaultActions
+            editingActions: [EditingAction] = EditingAction.defaultActions,
+            enableCustomActionRouting: Bool? = nil,
+            preventDefaultAnnotationMenu: Bool = false
         ) {
             self.preferences = preferences
             self.defaults = defaults
             self.editingActions = editingActions
+
+            // Default to true if there are custom actions, false otherwise
+            if let enableCustomActionRouting = enableCustomActionRouting {
+                self.enableCustomActionRouting = enableCustomActionRouting
+            } else {
+                self.enableCustomActionRouting = editingActions.contains { action in
+                    guard case .custom = action.kind else { return false }
+                    return true
+                }
+            }
+
+            self.preventDefaultAnnotationMenu = preventDefaultAnnotationMenu
         }
     }
 
@@ -246,7 +287,9 @@ open class PDFNavigatorViewController:
         let pdfView = PDFDocumentView(
             frame: view.bounds,
             editingActions: editingActions,
-            documentViewDelegate: self
+            documentViewDelegate: self,
+            enableCustomActionRouting: config.enableCustomActionRouting,
+            preventDefaultAnnotationMenu: config.preventDefaultAnnotationMenu
         )
         self.pdfView = pdfView
         pdfView.delegate = self
@@ -274,6 +317,7 @@ open class PDFNavigatorViewController:
         NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: .PDFViewPageChanged, object: pdfView)
         NotificationCenter.default.addObserver(self, selector: #selector(visiblePagesDidChange), name: .PDFViewVisiblePagesChanged, object: pdfView)
         NotificationCenter.default.addObserver(self, selector: #selector(selectionDidChange), name: .PDFViewSelectionChanged, object: pdfView)
+        NotificationCenter.default.addObserver(self, selector: #selector(annotationWasHit), name: .PDFViewAnnotationHit, object: pdfView)
 
         if let locator = locator {
             await go(to: locator, isJump: false)
@@ -520,15 +564,17 @@ open class PDFNavigatorViewController:
             }
         }
 
-        guard
-            let positions = positionsByReadingOrder,
-            var position = locator.locations.position
-        else {
+        guard var position = locator.locations.position else {
             return nil
         }
 
+        // For multi-resource publications, adjust position relative to the resource's first page.
+        // This requires positionsByReadingOrder to be loaded. For single-resource publications
+        // or when positions aren't loaded yet, we can use the position directly since it
+        // represents the absolute page number within that resource.
         if
             publication.readingOrder.count > 1,
+            let positions = positionsByReadingOrder,
             let index = publication.readingOrder.firstIndexWithHREF(locator.href),
             let firstPosition = positions[index].first?.locations.position
         {
@@ -603,12 +649,68 @@ open class PDFNavigatorViewController:
             return
         }
 
+        // Build locator with anchor data
+        var updatedLocator = locator.copy(text: { $0.highlight = text })
+
+        // Extract and attach PDF anchor for precise repositioning
+        if let anchorData = PDFAnchorExtractor.extractAnchor(from: selection, on: page) {
+            updatedLocator = updatedLocator.copy(locations: { locations in
+                var otherLocations = locations.otherLocations
+                otherLocations["pdfAnchor"] = anchorData
+                locations.otherLocations = otherLocations
+            })
+        }
+
         editingActions.selection = Selection(
-            locator: locator.copy(text: { $0.highlight = text }),
+            locator: updatedLocator,
             frame: pdfView.convert(selection.bounds(for: page), from: page)
                 // Makes it slightly bigger to have more room when displaying a popover.
                 .insetBy(dx: -8, dy: -8)
         )
+    }
+
+    @MainActor @objc private func annotationWasHit(_ notification: Notification) {
+        guard let annotation = notification.userInfo?["PDFAnnotationHit"] as? PDFAnnotation else {
+            return
+        }
+
+        // Get the decoration ID from the annotation
+        guard let decorationId = annotation.value(forAnnotationKey: .name) as? String else {
+            return
+        }
+
+        // Find the decoration and group that owns this annotation
+        var foundDecoration: Decoration?
+        var foundGroup: String?
+
+        for (group, decorationList) in decorations {
+            if let diffableDecoration = decorationList.first(where: { $0.decoration.id == decorationId }) {
+                foundDecoration = diffableDecoration.decoration
+                foundGroup = group
+                break
+            }
+        }
+
+        guard let decoration = foundDecoration, let group = foundGroup, let pdfView = pdfView else {
+            return
+        }
+
+        // Get the bounds of the annotation in the view's coordinate space
+        guard let page = annotation.page else {
+            return
+        }
+
+        let annotationBounds = annotation.bounds
+        let viewBounds = pdfView.convert(annotationBounds, from: page)
+
+        let event = OnDecorationActivatedEvent(
+            decoration: decoration,
+            group: group,
+            rect: viewBounds,
+            point: nil
+        )
+
+        notifyDecorationActivated(event)
     }
 
     /// From iOS 13 to 15, the Share menu action is impossible to remove without
@@ -742,6 +844,264 @@ extension PDFNavigatorViewController: UIGestureRecognizerDelegate {
         true
     }
 }
+
+// MARK: - DecorableNavigator
+
+extension PDFNavigatorViewController: DecorableNavigator {
+    // MARK: - Highlight Appearance Constants
+
+    /// Default tint color for highlights when no custom color is specified.
+    private static var defaultHighlightTint: UIColor { .yellow }
+
+    /// Alpha value for active (selected) highlights.
+    private static var activeHighlightAlpha: CGFloat { 0.5 }
+
+    /// Alpha value for inactive highlights.
+    private static var inactiveHighlightAlpha: CGFloat { 0.3 }
+
+    // MARK: - Associated Object Storage
+
+    /// Storage for decorations by group name
+    private var decorations: [String: [DiffableDecoration]] {
+        get { objc_getAssociatedObject(self, &decorationsKey) as? [String: [DiffableDecoration]] ?? [:] }
+        set { objc_setAssociatedObject(self, &decorationsKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
+    }
+
+    /// Storage for PDF annotations mapped by decoration ID
+    private var annotationsByDecorationId: [Decoration.Id: [PDFKit.PDFAnnotation]] {
+        get { objc_getAssociatedObject(self, &annotationsKey) as? [Decoration.Id: [PDFKit.PDFAnnotation]] ?? [:] }
+        set { objc_setAssociatedObject(self, &annotationsKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
+    }
+
+    /// Storage for decoration interaction callbacks by group, with tokens for removal
+    private var decorationCallbacks: [String: [(token: UUID, callback: OnActivatedCallback)]] {
+        get { objc_getAssociatedObject(self, &callbacksKey) as? [String: [(token: UUID, callback: OnActivatedCallback)]] ?? [:] }
+        set { objc_setAssociatedObject(self, &callbacksKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
+    }
+
+    public func supports(decorationStyle style: Decoration.Style.Id) -> Bool {
+        // PDF supports highlight and underline decoration styles
+        return style == .highlight || style == .underline
+    }
+
+    public func apply(decorations newDecorations: [Decoration], in group: String) {
+        // Thread safety: Associated object storage uses OBJC_ASSOCIATION_RETAIN_NONATOMIC,
+        // which is not thread-safe. PDFKit also requires main thread access.
+        // TODO: Consider adding @MainActor isolation when migrating to Swift 6.
+        dispatchPrecondition(condition: .onQueue(.main))
+
+        log(.debug, "PDF DecorableNavigator.apply called: \(newDecorations.count) decorations in group '\(group)'")
+
+        guard let pdfView = pdfView, let document = pdfView.document else {
+            log(.warning, "PDF DecorableNavigator.apply: pdfView or document is nil")
+            return
+        }
+
+        // Normalize locators and convert to diffable decorations
+        let target = newDecorations.map {
+            var d = $0
+            d.locator = publication.normalizeLocator(d.locator)
+            return DiffableDecoration(decoration: d)
+        }
+
+        let source = decorations[group] ?? []
+        decorations[group] = target
+
+        // Calculate changes
+        let changes = target.changesByHREF(from: source)
+
+        // Apply changes to PDF annotations
+        for (_, changeList) in changes {
+            for change in changeList {
+                switch change {
+                case .add(let decoration):
+                    addAnnotation(for: decoration, in: document)
+                case .remove(let id):
+                    removeAnnotation(withId: id, from: document)
+                case .update(let decoration):
+                    removeAnnotation(withId: decoration.id, from: document)
+                    addAnnotation(for: decoration, in: document)
+                }
+            }
+        }
+    }
+
+    /// Protocol conformance - registers a callback for decoration interactions.
+    ///
+    /// For cancellation support, use `observeDecorationInteractionsCancellable(inGroup:onActivated:)` instead.
+    ///
+    /// - Parameters:
+    ///   - group: The decoration group to observe.
+    ///   - onActivated: Callback invoked when a decoration in this group is tapped.
+    ///
+    /// - Important: Callers should use `[weak self]` in callbacks to avoid retain cycles.
+    public func observeDecorationInteractions(
+        inGroup group: String,
+        onActivated: @escaping OnActivatedCallback
+    ) {
+        _ = observeDecorationInteractionsCancellable(inGroup: group, onActivated: onActivated)
+    }
+
+    /// Observes decoration interactions with cancellation support.
+    ///
+    /// Returns an `AnyCancellable` that removes the callback when cancelled or deallocated.
+    /// Store the cancellable to maintain the observation, or call `cancel()` to stop observing.
+    ///
+    /// - Parameters:
+    ///   - group: The decoration group to observe.
+    ///   - onActivated: Callback invoked when a decoration in this group is tapped.
+    /// - Returns: A cancellable that removes the callback when deallocated or cancelled.
+    ///
+    /// ## Example
+    /// ```swift
+    /// private var cancellables = Set<AnyCancellable>()
+    ///
+    /// func setupHighlights() {
+    ///     navigator.observeDecorationInteractionsCancellable(inGroup: "highlights") { [weak self] event in
+    ///         self?.handleHighlightTapped(event)
+    ///     }
+    ///     .store(in: &cancellables)
+    /// }
+    /// ```
+    ///
+    /// - Important: Callers should still use `[weak self]` in callbacks to avoid retain cycles
+    ///   if the cancellable is stored on the same object that holds the navigator.
+    @discardableResult
+    public func observeDecorationInteractionsCancellable(
+        inGroup group: String,
+        onActivated: @escaping OnActivatedCallback
+    ) -> AnyCancellable {
+        let token = UUID()
+        var callbacks = decorationCallbacks[group] ?? []
+        callbacks.append((token: token, callback: onActivated))
+        decorationCallbacks[group] = callbacks
+
+        return AnyCancellable { [weak self] in
+            // Must be called on main thread to safely modify decorationCallbacks
+            dispatchPrecondition(condition: .onQueue(.main))
+            guard let self = self else { return }
+            var callbacks = self.decorationCallbacks[group] ?? []
+            callbacks.removeAll { $0.token == token }
+            self.decorationCallbacks[group] = callbacks.isEmpty ? nil : callbacks
+        }
+    }
+
+    // MARK: - Private Helpers
+
+    private func addAnnotation(for decoration: Decoration, in document: PDFKit.PDFDocument) {
+        log(.debug, "addAnnotation: id=\(decoration.id), position=\(decoration.locator.locations.position ?? -1), text=\(decoration.locator.text.highlight?.prefix(30) ?? "nil")")
+
+        guard let page = findPage(for: decoration.locator, in: document) else {
+            log(.warning, "Could not find page for decoration \(decoration.id) - position: \(decoration.locator.locations.position ?? -1)")
+            return
+        }
+
+        let boundsArray = self.boundsForLines(for: decoration.locator, on: page)
+        guard !boundsArray.isEmpty else {
+            log(.warning, "Could not find bounds for decoration \(decoration.id) - text: '\(decoration.locator.text.highlight?.prefix(50) ?? "nil")'")
+            return
+        }
+
+        log(.debug, "Creating \(boundsArray.count) PDF annotations for TTS highlight")
+        var createdAnnotations: [PDFKit.PDFAnnotation] = []
+        for bounds in boundsArray {
+            let annotation = createAnnotation(for: decoration.style, bounds: bounds, decorationId: decoration.id)
+            page.addAnnotation(annotation)
+            createdAnnotations.append(annotation)
+        }
+
+        annotationsByDecorationId[decoration.id] = createdAnnotations
+    }
+
+    private func removeAnnotation(withId id: Decoration.Id, from document: PDFKit.PDFDocument) {
+        guard let annotations = annotationsByDecorationId[id] else {
+            return
+        }
+
+        for annotation in annotations {
+            guard let page = annotation.page else { continue }
+            page.removeAnnotation(annotation)
+        }
+
+        annotationsByDecorationId[id] = nil
+    }
+
+    private func createAnnotation(for style: Decoration.Style, bounds: CGRect, decorationId: Decoration.Id) -> PDFKit.PDFAnnotation {
+        let annotation: PDFKit.PDFAnnotation
+
+        // Extract highlight config if available
+        let config = style.config as? Decoration.Style.HighlightConfig
+        let tint = config?.tint ?? Self.defaultHighlightTint
+        let isActive = config?.isActive ?? false
+        let alpha = isActive ? Self.activeHighlightAlpha : Self.inactiveHighlightAlpha
+
+        switch style.id {
+        case .highlight:
+            annotation = PDFKit.PDFAnnotation(bounds: bounds, forType: .highlight, withProperties: nil)
+            annotation.color = tint.withAlphaComponent(alpha)
+
+        case .underline:
+            annotation = PDFKit.PDFAnnotation(bounds: bounds, forType: .underline, withProperties: nil)
+            annotation.color = tint
+
+        default:
+            // Fallback to highlight for unknown styles
+            annotation = PDFKit.PDFAnnotation(bounds: bounds, forType: .highlight, withProperties: nil)
+            annotation.color = tint.withAlphaComponent(Self.inactiveHighlightAlpha)
+        }
+
+        // Store decoration ID for later lookup
+        annotation.setValue(decorationId, forAnnotationKey: .name)
+
+        return annotation
+    }
+
+    private func findPage(for locator: Locator, in document: PDFKit.PDFDocument) -> PDFKit.PDFPage? {
+        guard let pageNumber = pageNumber(for: locator) else {
+            return nil
+        }
+
+        // PDFKit uses 0-based indexing
+        let pageIndex = pageNumber - 1
+        return document.page(at: pageIndex)
+    }
+
+    /// Returns an array of CGRect bounds, one for each line of the highlighted text.
+    /// This ensures precise highlighting that follows text flow across multiple lines.
+    ///
+    /// Uses PDFAnchorResolver for priority-based resolution:
+    /// 1. Quads (pixel-perfect coordinates)
+    /// 2. Character range (text offset based)
+    /// 3. Context-aware text search (fallback)
+    private func boundsForLines(for locator: Locator, on page: PDFKit.PDFPage) -> [CGRect] {
+        // Use the anchor resolver for precise positioning
+        let bounds = PDFAnchorResolver.resolveBounds(from: locator, on: page)
+
+        if !bounds.isEmpty {
+            return bounds
+        }
+
+        // Final fallback: return empty (don't show misleading default rectangle)
+        log(.warning, "Could not resolve bounds for PDF highlight")
+        return []
+    }
+
+    /// Notifies all registered callbacks for the decoration's group that the decoration was activated.
+    private func notifyDecorationActivated(_ event: OnDecorationActivatedEvent) {
+        guard let callbacks = decorationCallbacks[event.group] else {
+            return
+        }
+
+        for (_, callback) in callbacks {
+            callback(event)
+        }
+    }
+}
+
+// Associated object keys for decoration storage
+private var decorationsKey: UInt8 = 0
+private var annotationsKey: UInt8 = 0
+private var callbacksKey: UInt8 = 0
 
 private extension Axis {
     var displayDirection: PDFDisplayDirection {

@@ -26,11 +26,21 @@ final class PDFViewController: VisualReaderViewController<PDFNavigatorViewContro
     ) throws {
         self.preferencesStore = preferencesStore
 
+        let customActions = [
+            EditingAction(
+                title: "Highlight",
+                action: #selector(highlightSelection)
+            )
+        ] + EditingAction.defaultActions
+
         let navigator = try PDFNavigatorViewController(
             publication: publication,
             initialLocation: locator,
             config: PDFNavigatorViewController.Configuration(
-                preferences: initialPreferences
+                preferences: initialPreferences,
+                editingActions: customActions,
+                enableCustomActionRouting: true, // Enable routing for our custom Highlight action
+                preventDefaultAnnotationMenu: true // We have our own color picker menu
             ),
             httpServer: httpServer
         )

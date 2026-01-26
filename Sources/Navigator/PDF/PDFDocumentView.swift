@@ -6,6 +6,7 @@
 
 import Foundation
 import PDFKit
+import UIKit
 
 protocol PDFDocumentViewDelegate: AnyObject {
     func pdfDocumentViewContentInset(_ pdfDocumentView: PDFDocumentView) -> UIEdgeInsets?
@@ -15,13 +16,41 @@ public final class PDFDocumentView: PDFView {
     var editingActions: EditingActionsController
     private weak var documentViewDelegate: PDFDocumentViewDelegate?
 
+    /// When `true`, routes custom editing actions up the responder chain instead of
+    /// letting PDFView handle them. Required for custom actions like "Highlight" to work.
+    private let enableCustomActionRouting: Bool
+
+    /// When `true`, prevents PDFKit's default annotation context menu from appearing.
+    ///
+    /// - Warning: This removes **all** `UIEditMenuInteraction` instances from the PDF view,
+    ///   which may affect text selection menus (Copy, Look Up) and accessibility features.
+    ///   Only enable if you're providing a complete custom menu implementation.
+    ///
+    /// If you experience issues with text selection or VoiceOver, consider disabling this
+    /// option and using `buildMenu(with:)` to selectively remove unwanted menu items instead.
+    private let preventDefaultAnnotationMenu: Bool
+
+    override public var document: PDFDocument? {
+        didSet {
+            // Remove annotation menu interactions after document is set, as PDFKit
+            // may add them during document loading
+            if preventDefaultAnnotationMenu, #available(iOS 16.0, *) {
+                removeAnnotationMenuInteractions()
+            }
+        }
+    }
+
     init(
         frame: CGRect,
         editingActions: EditingActionsController,
-        documentViewDelegate: PDFDocumentViewDelegate
+        documentViewDelegate: PDFDocumentViewDelegate,
+        enableCustomActionRouting: Bool = true,
+        preventDefaultAnnotationMenu: Bool = false
     ) {
         self.editingActions = editingActions
         self.documentViewDelegate = documentViewDelegate
+        self.enableCustomActionRouting = enableCustomActionRouting
+        self.preventDefaultAnnotationMenu = preventDefaultAnnotationMenu
 
         super.init(frame: frame)
 
@@ -32,6 +61,37 @@ public final class PDFDocumentView: PDFView {
         // Thefore, we will handle the adjustement manually by only taking the notch area into
         // account.
         firstScrollView?.contentInsetAdjustmentBehavior = .never
+
+        // Optionally prevent the default annotation context menu from appearing.
+        // Only applies when preventDefaultAnnotationMenu is true.
+        if preventDefaultAnnotationMenu, #available(iOS 16.0, *) {
+            removeAnnotationMenuInteractions()
+        }
+    }
+
+    /// Removes all `UIEditMenuInteraction` instances from the view.
+    ///
+    /// This is an aggressive approach that may affect more than just annotation menus.
+    /// See `preventDefaultAnnotationMenu` documentation for limitations and alternatives.
+    @available(iOS 16.0, *)
+    private func removeAnnotationMenuInteractions() {
+        for interaction in interactions where interaction is UIEditMenuInteraction {
+            removeInteraction(interaction)
+        }
+    }
+
+    /// Intercepts interaction additions to block `UIEditMenuInteraction` when
+    /// `preventDefaultAnnotationMenu` is enabled.
+    ///
+    /// This prevents PDFKit from re-adding edit menu interactions after document
+    /// changes or view updates. See `preventDefaultAnnotationMenu` for limitations.
+    override public func addInteraction(_ interaction: UIInteraction) {
+        if preventDefaultAnnotationMenu, #available(iOS 16.0, *) {
+            guard !(interaction is UIEditMenuInteraction) else {
+                return
+            }
+        }
+        super.addInteraction(interaction)
     }
 
     @available(*, unavailable)
@@ -76,7 +136,14 @@ public final class PDFDocumentView: PDFView {
     }
 
     override public func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
-        super.canPerformAction(action, withSender: sender) && editingActions.canPerformAction(action)
+        // When custom action routing is enabled and the action is handled by EditingActionsController,
+        // delegate the decision to the controller. This ensures custom actions are properly authorized.
+        if enableCustomActionRouting, editingActions.handlesAction(action) {
+            return editingActions.canPerformAction(action)
+        }
+
+        // Standard behavior: check with EditingActionsController first, then defer to super
+        return super.canPerformAction(action, withSender: sender) && editingActions.canPerformAction(action)
     }
 
     override public func copy(_ sender: Any?) {
@@ -119,7 +186,7 @@ public final class PDFDocumentView: PDFView {
         //
         // - Visual snap: There is no API to pre-set the zoom scale for the next
         //   page. PDFView resets the scale per page, causing a visible snap
-        //   when swiping. We don’t see the issue with edge taps.
+        //   when swiping. We don't see the issue with edge taps.
         // - Incorrect anchoring: When zooming larger than the page fit, the
         //   viewport centers vertically instead of showing the top. The API to
         //   fix this works in scroll mode but is ignored in paginated mode.
@@ -294,5 +361,27 @@ public final class PDFDocumentView: PDFView {
 
         // Use the smaller scale to ensure both dimensions fit
         return min(widthScale, heightScale)
+    }
+
+    override public func target(forAction action: Selector, withSender sender: Any?) -> Any? {
+        // When custom action routing is enabled, route custom actions up the responder chain.
+        // This ensures custom actions (like "Highlight") reach the parent view controller
+        // instead of being handled by PDFView, which is necessary for them to work properly.
+        guard enableCustomActionRouting, editingActions.handlesAction(action) else {
+            return super.target(forAction: action, withSender: sender)
+        }
+
+        // Traverse the responder chain manually to find the first responder
+        // that implements the action. Simply returning `next` is not sufficient
+        // because UIKit will still send the action back to this view.
+        var responder = next
+        while let currentResponder = responder {
+            if currentResponder.responds(to: action) {
+                return currentResponder
+            }
+            responder = currentResponder.next
+        }
+
+        return nil
     }
 }
