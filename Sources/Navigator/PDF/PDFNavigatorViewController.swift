@@ -874,9 +874,9 @@ extension PDFNavigatorViewController: DecorableNavigator {
         set { objc_setAssociatedObject(self, &decorationsKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
     }
 
-    /// Storage for PDF annotations mapped by decoration ID
-    private var annotationsByDecorationId: [Decoration.Id: [PDFKit.PDFAnnotation]] {
-        get { objc_getAssociatedObject(self, &annotationsKey) as? [Decoration.Id: [PDFKit.PDFAnnotation]] ?? [:] }
+    /// Storage for PDF annotations mapped by (group, decoration ID) composite key
+    private var annotationsByKey: [DecorationKey: [PDFKit.PDFAnnotation]] {
+        get { objc_getAssociatedObject(self, &annotationsKey) as? [DecorationKey: [PDFKit.PDFAnnotation]] ?? [:] }
         set { objc_setAssociatedObject(self, &annotationsKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
     }
 
@@ -895,7 +895,7 @@ extension PDFNavigatorViewController: DecorableNavigator {
         // Thread safety: Associated object storage uses OBJC_ASSOCIATION_RETAIN_NONATOMIC,
         // which is not thread-safe. PDFKit also requires main thread access.
         // TODO: Consider adding @MainActor isolation when migrating to Swift 6.
-        dispatchPrecondition(condition: .onQueue(.main))
+        assert(Thread.isMainThread, "apply(decorations:in:) must be called on main thread")
 
         log(.debug, "PDF DecorableNavigator.apply called: \(newDecorations.count) decorations in group '\(group)'")
 
@@ -922,12 +922,12 @@ extension PDFNavigatorViewController: DecorableNavigator {
             for change in changeList {
                 switch change {
                 case .add(let decoration):
-                    addAnnotation(for: decoration, in: document)
+                    addAnnotation(for: decoration, in: document, group: group)
                 case .remove(let id):
-                    removeAnnotation(withId: id, from: document)
+                    removeAnnotation(withId: id, from: document, group: group)
                 case .update(let decoration):
-                    removeAnnotation(withId: decoration.id, from: document)
-                    addAnnotation(for: decoration, in: document)
+                    removeAnnotation(withId: decoration.id, from: document, group: group)
+                    addAnnotation(for: decoration, in: document, group: group)
                 }
             }
         }
@@ -984,32 +984,40 @@ extension PDFNavigatorViewController: DecorableNavigator {
         decorationCallbacks[group] = callbacks
 
         return AnyCancellable { [weak self] in
-            // Must be called on main thread to safely modify decorationCallbacks
-            dispatchPrecondition(condition: .onQueue(.main))
-            guard let self = self else { return }
-            var callbacks = self.decorationCallbacks[group] ?? []
-            callbacks.removeAll { $0.token == token }
-            self.decorationCallbacks[group] = callbacks.isEmpty ? nil : callbacks
+            guard let self else { return }
+
+            if Thread.isMainThread {
+                var callbacks = self.decorationCallbacks[group] ?? []
+                callbacks.removeAll { $0.token == token }
+                self.decorationCallbacks[group] = callbacks.isEmpty ? nil : callbacks
+            } else {
+                DispatchQueue.main.async { [weak self] in
+                    guard let self else { return }
+                    var callbacks = self.decorationCallbacks[group] ?? []
+                    callbacks.removeAll { $0.token == token }
+                    self.decorationCallbacks[group] = callbacks.isEmpty ? nil : callbacks
+                }
+            }
         }
     }
 
     // MARK: - Private Helpers
 
-    private func addAnnotation(for decoration: Decoration, in document: PDFKit.PDFDocument) {
-        log(.debug, "addAnnotation: id=\(decoration.id), position=\(decoration.locator.locations.position ?? -1), text=\(decoration.locator.text.highlight?.prefix(30) ?? "nil")")
+    private func addAnnotation(for decoration: Decoration, in document: PDFKit.PDFDocument, group: String) {
+        log(.debug, "addAnnotation: group='\(group)', id=\(decoration.id), position=\(decoration.locator.locations.position ?? -1), text=\(decoration.locator.text.highlight?.prefix(30) ?? "nil")")
 
         guard let page = findPage(for: decoration.locator, in: document) else {
-            log(.warning, "Could not find page for decoration \(decoration.id) - position: \(decoration.locator.locations.position ?? -1)")
+            log(.warning, "Could not find page for decoration \(decoration.id) in group '\(group)' - position: \(decoration.locator.locations.position ?? -1)")
             return
         }
 
         let boundsArray = self.boundsForLines(for: decoration.locator, on: page)
         guard !boundsArray.isEmpty else {
-            log(.warning, "Could not find bounds for decoration \(decoration.id) - text: '\(decoration.locator.text.highlight?.prefix(50) ?? "nil")'")
+            log(.warning, "Could not find bounds for decoration \(decoration.id) in group '\(group)' - text: '\(decoration.locator.text.highlight?.prefix(50) ?? "nil")'")
             return
         }
 
-        log(.debug, "Creating \(boundsArray.count) PDF annotations for TTS highlight")
+        log(.debug, "Creating \(boundsArray.count) PDF annotations for decoration \(decoration.id) in group '\(group)'")
         var createdAnnotations: [PDFKit.PDFAnnotation] = []
         for bounds in boundsArray {
             let annotation = createAnnotation(for: decoration.style, bounds: bounds, decorationId: decoration.id)
@@ -1017,11 +1025,13 @@ extension PDFNavigatorViewController: DecorableNavigator {
             createdAnnotations.append(annotation)
         }
 
-        annotationsByDecorationId[decoration.id] = createdAnnotations
+        let key = DecorationKey(group: group, id: decoration.id)
+        annotationsByKey[key] = createdAnnotations
     }
 
-    private func removeAnnotation(withId id: Decoration.Id, from document: PDFKit.PDFDocument) {
-        guard let annotations = annotationsByDecorationId[id] else {
+    private func removeAnnotation(withId id: Decoration.Id, from document: PDFKit.PDFDocument, group: String) {
+        let key = DecorationKey(group: group, id: id)
+        guard let annotations = annotationsByKey[key] else {
             return
         }
 
@@ -1030,7 +1040,7 @@ extension PDFNavigatorViewController: DecorableNavigator {
             page.removeAnnotation(annotation)
         }
 
-        annotationsByDecorationId[id] = nil
+        annotationsByKey[key] = nil
     }
 
     private func createAnnotation(for style: Decoration.Style, bounds: CGRect, decorationId: Decoration.Id) -> PDFKit.PDFAnnotation {
@@ -1103,6 +1113,13 @@ extension PDFNavigatorViewController: DecorableNavigator {
             callback(event)
         }
     }
+}
+
+/// Composite key for annotation storage to handle decoration IDs that may
+/// be duplicated across different groups.
+private struct DecorationKey: Hashable {
+    let group: String
+    let id: Decoration.Id
 }
 
 // Associated object keys for decoration storage

@@ -382,6 +382,8 @@ public final class PDFDocumentView: PDFView {
             responder = currentResponder.next
         }
 
-        return nil
+        // If no responder in the chain handles this action, fall back to default
+        // PDFView behavior to preserve native actions (copy, share, lookup, etc.)
+        return super.target(forAction: action, withSender: sender)
     }
 }

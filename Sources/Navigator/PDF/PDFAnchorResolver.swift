@@ -101,10 +101,15 @@ public struct PDFAnchorResolver: Loggable {
 
         return quadsArray.compactMap { quad -> [CGPoint]? in
             guard quad.count == 4 else { return nil }
-            return quad.compactMap { point -> CGPoint? in
+
+            let points = quad.compactMap { point -> CGPoint? in
                 guard let x = point["x"], let y = point["y"] else { return nil }
                 return CGPoint(x: x, y: y)
             }
+
+            // Require exactly 4 valid points
+            guard points.count == 4 else { return nil }
+            return points
         }
     }
 
@@ -115,7 +120,7 @@ public struct PDFAnchorResolver: Loggable {
             return nil
         }
 
-        return quads.compactMap { quad -> CGRect? in
+        let bounds = quads.compactMap { quad -> CGRect? in
             guard quad.count == 4 else { return nil }
 
             // Convert quad points to bounding rect
@@ -128,6 +133,10 @@ public struct PDFAnchorResolver: Loggable {
             guard !rect.isEmpty else { return nil }
             return rect
         }
+
+        // Return nil if no valid bounds were produced
+        guard !bounds.isEmpty else { return nil }
+        return bounds
     }
 
     private static func resolveFromCharacterRange(
@@ -348,6 +357,11 @@ public struct PDFAnchorResolver: Loggable {
         normalizedPrefix: String,
         matchLength: Int
     ) -> Range<String.Index>? {
+        // Early return for degenerate cases
+        guard matchLength > 0, !originalText.isEmpty else {
+            return nil
+        }
+
         // Walk through original text, tracking position in normalized space
         var normalizedPosition = 0
         var originalStart: String.Index?
