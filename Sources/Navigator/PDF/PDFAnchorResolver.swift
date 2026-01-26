@@ -39,7 +39,7 @@ public struct PDFAnchorResolver: Loggable {
         }
 
         // Strategy 1: Try quads first (pixel-perfect)
-        if let bounds = resolveFromQuads(anchor) {
+        if let bounds = resolveFromQuads(anchor.quads) {
             log(.debug, "Resolved PDF highlight from quads")
             return bounds
         }
@@ -60,9 +60,11 @@ public struct PDFAnchorResolver: Loggable {
         return []
     }
 
-    // MARK: - Private Resolution Methods
+    // MARK: - Resolution Methods (internal for testing)
 
-    private static func parseAnchor(_ data: Any) -> ParsedAnchor? {
+    /// Parses anchor data from dictionary or JSON string format.
+    /// - Note: Internal for testing.
+    static func parseAnchor(_ data: Any) -> ParsedAnchor? {
         // Handle both dictionary and JSON string formats
         let dict: [String: Any]
         if let d = data as? [String: Any] {
@@ -90,7 +92,9 @@ public struct PDFAnchorResolver: Loggable {
         )
     }
 
-    private static func parseQuads(_ data: Any?) -> [[CGPoint]]? {
+    /// Parses quad coordinate data.
+    /// - Note: Internal for testing.
+    static func parseQuads(_ data: Any?) -> [[CGPoint]]? {
         guard let quadsArray = data as? [[[String: Double]]] else {
             return nil
         }
@@ -104,8 +108,10 @@ public struct PDFAnchorResolver: Loggable {
         }
     }
 
-    private static func resolveFromQuads(_ anchor: ParsedAnchor) -> [CGRect]? {
-        guard let quads = anchor.quads, !quads.isEmpty else {
+    /// Resolves bounds from quad coordinates.
+    /// - Note: Internal for testing.
+    static func resolveFromQuads(_ quads: [[CGPoint]]?) -> [CGRect]? {
+        guard let quads = quads, !quads.isEmpty else {
             return nil
         }
 
@@ -182,8 +188,8 @@ public struct PDFAnchorResolver: Loggable {
 
         // Multiple occurrences: score by context match
         let bestRange = ranges.max { range1, range2 in
-            contextScore(for: range1, anchor: anchor, in: pageText) <
-            contextScore(for: range2, anchor: anchor, in: pageText)
+            contextScore(for: range1, textBefore: anchor.textBefore, textAfter: anchor.textAfter, in: pageText) <
+            contextScore(for: range2, textBefore: anchor.textBefore, textAfter: anchor.textAfter, in: pageText)
         }
 
         guard let best = bestRange else { return nil }
@@ -196,14 +202,17 @@ public struct PDFAnchorResolver: Loggable {
         return boundsFromSelection(selection, page: page)
     }
 
-    private static func contextScore(
+    /// Calculates a score for how well a range matches the expected context.
+    /// - Note: Internal for testing.
+    static func contextScore(
         for range: Range<String.Index>,
-        anchor: ParsedAnchor,
+        textBefore: String?,
+        textAfter: String?,
         in text: String
     ) -> Int {
         var score = 0
 
-        if let before = anchor.textBefore {
+        if let before = textBefore {
             let contextLength = before.count
             let contextStart = text.index(
                 range.lowerBound,
@@ -221,7 +230,7 @@ public struct PDFAnchorResolver: Loggable {
             }
         }
 
-        if let after = anchor.textAfter {
+        if let after = textAfter {
             let contextLength = after.count
             let contextEnd = text.index(
                 range.upperBound,
@@ -318,14 +327,16 @@ public struct PDFAnchorResolver: Loggable {
         return []
     }
 
-    /// Normalizes whitespace by collapsing multiple spaces/newlines into single spaces
-    private static func normalizeWhitespace(_ text: String) -> String {
+    /// Normalizes whitespace by collapsing multiple spaces/newlines into single spaces.
+    /// - Note: Internal for testing.
+    static func normalizeWhitespace(_ text: String) -> String {
         let components = text.components(separatedBy: .whitespacesAndNewlines)
         return components.filter { !$0.isEmpty }.joined(separator: " ")
     }
 
-    /// Extracts the first N words from text
-    private static func extractFirstWords(from text: String, count: Int) -> String {
+    /// Extracts the first N words from text.
+    /// - Note: Internal for testing.
+    static func extractFirstWords(from text: String, count: Int) -> String {
         let words = text.split(separator: " ", omittingEmptySubsequences: true)
         let firstWords = words.prefix(count)
         return firstWords.joined(separator: " ")
@@ -382,7 +393,9 @@ public struct PDFAnchorResolver: Loggable {
 
     // MARK: - Internal Types
 
-    private struct ParsedAnchor {
+    /// Parsed anchor data structure.
+    /// - Note: Internal for testing.
+    struct ParsedAnchor {
         let pageIndex: Int?
         let quads: [[CGPoint]]?
         let characterStart: Int?

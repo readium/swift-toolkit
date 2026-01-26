@@ -153,7 +153,8 @@ public struct PDFAnchorExtractor: Loggable {
     }
 
     /// Extracts text context around the given range.
-    private static func extractContext(
+    /// - Note: Internal for testing.
+    static func extractContext(
         around range: Range<Int>,
         in text: String,
         contextLength: Int
@@ -184,7 +185,8 @@ public struct PDFAnchorExtractor: Loggable {
     }
 
     /// Checks if two bounds are approximately equal within a tolerance.
-    private static func boundsApproximatelyEqual(
+    /// - Note: Internal for testing.
+    static func boundsApproximatelyEqual(
         _ a: CGRect,
         _ b: CGRect,
         tolerance: CGFloat
