@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -47,7 +47,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         scrollView.backgroundColor = UIColor.clear
 
         // Loads the wrapper page into the web view.
-        let spreadFile = "fxl-spread-\(spread.spread ? "two" : "one")"
+        let spreadFile = "fxl-spread-\(viewModel.spreadEnabled ? "two" : "one")"
         if
             let wrapperPageURL = Bundle.module.url(forResource: spreadFile, withExtension: "html", subdirectory: "Assets"),
             var wrapperPage = try? String(contentsOf: wrapperPageURL, encoding: .utf8)
@@ -107,7 +107,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         // to be executed before the spread is loaded.
         let spreadJSON = spread.jsonString(
             forBaseURL: viewModel.publicationBaseURL,
-            readingOrder: viewModel.readingOrder
+            readingProgression: viewModel.readingProgression
         )
         webView.evaluateJavaScript("spread.load(\(spreadJSON));")
     }

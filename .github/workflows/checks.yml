@@ -7,14 +7,14 @@ on:
 
 env:
   platform: ${{ 'iOS Simulator' }}
-  device: ${{ 'iPhone SE (3rd generation)' }}
+  device: ${{ 'iPhone 16 Pro' }}
   commit_sha: ${{ github.sha }}
-  DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
+  DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
 
 jobs:
   build:
     name: Build
-    runs-on: macos-14
+    runs-on: macos-15
     if: ${{ !github.event.pull_request.draft }}
     env:
       scheme: ${{ 'Readium-Package' }}
@@ -33,6 +33,7 @@ jobs:
           git diff --exit-code Support/Carthage/Readium.xcodeproj
       - name: Build
         run: |
+          xcrun simctl list
           set -eo pipefail
           xcodebuild build-for-testing -scheme "$scheme" -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
       - name: Test
@@ -42,7 +43,7 @@ jobs:
 
   navigator-ui-tests:
     name: Navigator UI Tests
-    runs-on: macos-14
+    runs-on: macos-15
     if: ${{ !github.event.pull_request.draft }}
     steps:
       - name: Checkout
@@ -55,11 +56,12 @@ jobs:
         run: |
           set -eo pipefail
           make navigator-ui-tests-project
+          xcrun simctl list
           xcodebuild test -project Tests/NavigatorTests/UITests/NavigatorUITests.xcodeproj -scheme NavigatorTestHost -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
   lint:
     name: Lint
-    runs-on: macos-14
+    runs-on: macos-15
     if: ${{ !github.event.pull_request.draft }}
     env:
       scripts: ${{ 'Sources/Navigator/EPUB/Scripts' }}
@@ -93,7 +95,7 @@ jobs:
 
   int-dev:
     name: Integration (Local)
-    runs-on: macos-14
+    runs-on: macos-15
     if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
@@ -115,7 +117,7 @@ jobs:
 
   int-spm:
     name: Integration (Swift Package Manager)
-    runs-on: macos-14
+    runs-on: macos-15
     if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
@@ -143,7 +145,7 @@ jobs:
 
   int-carthage:
     name: Integration (Carthage)
-    runs-on: macos-14
+    runs-on: macos-15
     if: ${{ !github.event.pull_request.draft && github.ref == 'refs/heads/main' }}
     defaults:
       run:

@@ -167,30 +167,21 @@ To find the total positions in the publication, use `publication.positions.count
 
 ## Navigating with edge taps and keyboard arrows
 
-Readium provides a `DirectionalNavigationAdapter` helper to turn pages using arrow and space keys or screen taps.
+Readium provides a `DirectionalNavigationAdapter` helper to turn pages when the user taps the edge of the screen or presses the arrow or space keys.
 
-You can use it from your `VisualNavigatorDelegate` implementation:
+Bind it to your `Navigator` instance before adding your own input observers, so it takes precedence.
 
 ```swift
-extension MyReader: VisualNavigatorDelegate {
+DirectionalNavigationAdapter().bind(to: navigator)
 
-    func navigator(_ navigator: VisualNavigator, didTapAt point: CGPoint) {
-        // Turn pages when tapping the edge of the screen.
-        guard !DirectionalNavigationAdapter(navigator: navigator).didTap(at: point) else {
-            return
-        }
-
-        toggleNavigationBar()
-    }
-
-    func navigator(_ navigator: VisualNavigator, didPressKey event: KeyEvent) {
-        // Turn pages when pressing the arrow keys.
-        DirectionalNavigationAdapter(navigator: navigator).didPressKey(event: event)
-    }
-}
+// Toggle the navigation bar when the user taps outside the edge zones.
+navigator.addObserver(.tap { [weak self] _ in
+    self?.toggleNavigationBar()
+    return true
+})
 ```
 
-`DirectionalNavigationAdapter` offers a lot of customization options. Take a look at its API.
+`DirectionalNavigationAdapter` offers many customization options. Take a look at its API.
 
 ## User preferences
 

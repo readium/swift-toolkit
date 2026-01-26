@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -296,6 +296,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         let viewModel = try EPUBNavigatorViewModel(
             publication: publication,
+            readingOrder: readingOrder ?? publication.readingOrder,
             config: config,
             httpServer: httpServer
         )
@@ -303,7 +304,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         self.init(
             viewModel: viewModel,
             initialLocation: initialLocation,
-            readingOrder: readingOrder ?? publication.readingOrder,
+            readingOrder: viewModel.readingOrder,
             positionsByReadingOrder:
             // Positions and total progression only make sense in the context
             // of the publication's actual reading order. Therefore when
@@ -398,7 +399,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         if needsReloadSpreadsOnActive {
             needsReloadSpreadsOnActive = false
-            reloadSpreads(force: true)
+            reloadSpreads()
         }
     }
 
@@ -419,7 +420,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         applySettings()
 
-        _reloadSpreads(force: true)
+        _reloadSpreads()
 
         onInitializedCallbacks.complete()
     }
@@ -555,7 +556,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         }
 
         paginationView.isScrollEnabled = isPaginationViewScrollingEnabled
-        reloadSpreads(force: true)
+        reloadSpreads()
     }
 
     private var spreads: [EPUBSpread] = []
@@ -567,7 +568,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     private var needsReloadSpreadsOnActive = false
 
-    private func reloadSpreads(force: Bool) {
+    private func reloadSpreads() {
         guard
             state != .initializing,
             isViewLoaded
@@ -584,16 +585,14 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             return
         }
 
-        _reloadSpreads(force: force)
+        _reloadSpreads()
     }
 
-    private func _reloadSpreads(force: Bool) {
+    private func _reloadSpreads() {
         let locator = currentLocation
 
         guard
             let paginationView = paginationView,
-            // Already loaded with the expected amount of spreads?
-            force || spreads.first?.spread != viewModel.spreadEnabled,
             on(.load(locator))
         else {
             return
@@ -603,7 +602,8 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             for: publication,
             readingOrder: readingOrder,
             readingProgression: viewModel.readingProgression,
-            spread: viewModel.spreadEnabled
+            spread: viewModel.spreadEnabled,
+            offsetFirstPage: viewModel.offsetFirstPage
         )
 
         let initialIndex: ReadingOrder.Index = {
@@ -1255,7 +1255,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     }
 
     func spreadViewDidTerminate() {
-        reloadSpreads(force: true)
+        reloadSpreads()
     }
 }
 

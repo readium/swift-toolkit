@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -28,7 +28,11 @@ public struct JSONFormatSniffer: FormatSniffer {
     }
 
     public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
-        await blob.readAsJSON()
+        guard !format.hasSpecification else {
+            return .success(nil)
+        }
+
+        return await blob.readAsJSON()
             .map {
                 guard $0 != nil else {
                     return nil

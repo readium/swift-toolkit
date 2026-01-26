@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -21,11 +21,10 @@ final class EPUBManifestParser {
 
         // Extracts metadata and links from the OPF.
         let opfPackage = try await OPFParser(container: container, opfHREF: opfHREF, encryptions: encryptions).parsePublication()
-        let metadata = opfPackage.metadata
         let links = opfPackage.readingOrder + opfPackage.resources
 
         var manifest = await Manifest(
-            metadata: metadata,
+            metadata: opfPackage.metadata,
             readingOrder: opfPackage.readingOrder,
             resources: opfPackage.resources,
             subcollections: parseCollections(in: container, package: opfPackage, links: links)

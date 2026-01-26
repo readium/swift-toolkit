@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -300,9 +300,10 @@ class MediaTypeTests: XCTestCase {
         XCTAssertTrue(MediaType("image/bmp")!.isBitmap)
         XCTAssertTrue(MediaType("image/gif")!.isBitmap)
         XCTAssertTrue(MediaType("image/jpeg")!.isBitmap)
+        XCTAssertTrue(MediaType("image/jxl")!.isBitmap)
         XCTAssertTrue(MediaType("image/png")!.isBitmap)
         XCTAssertTrue(MediaType("image/tiff")!.isBitmap)
-        XCTAssertTrue(MediaType("image/tiff")!.isBitmap)
+        XCTAssertTrue(MediaType("image/webp")!.isBitmap)
         XCTAssertTrue(MediaType("image/tiff;charset=utf-8")!.isBitmap)
     }
 

@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -156,6 +156,11 @@ class FormatSniffersTests: XCTestCase {
         XCTAssertEqual(sut.sniffHints(fileExtension: "jfif"), jpeg)
         XCTAssertEqual(sut.sniffHints(fileExtension: "jfi"), jpeg)
         XCTAssertEqual(sut.sniffHints(mediaType: "image/jpeg"), jpeg)
+
+        // JXL
+        let jxl = Format(specifications: .jxl, mediaType: .jxl, fileExtension: "jxl")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "jxl"), jxl)
+        XCTAssertEqual(sut.sniffHints(mediaType: "image/jxl"), jxl)
 
         // PNG
         let png = Format(specifications: .png, mediaType: .png, fileExtension: "png")

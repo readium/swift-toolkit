@@ -38,19 +38,32 @@ export function FixedPage(iframeId, pageType) {
 
   // iFrame containing the page.
   var _iframe = document.getElementById(iframeId);
-  _iframe.addEventListener("load", loadPageSize);
+  _iframe.addEventListener("load", onLoad);
 
   // Viewport element containing the iFrame.
   var _viewport = _iframe.closest(".viewport");
 
+  function onLoad() {
+    // Parses the page size from the viewport meta tag of the loaded resource,
+    // or extracts natural dimensions from images loaded directly in the iframe.
+    // As a fallback, we consider that the page spans the size of the viewport.
+    _pageSize =
+      parsePageSizeFromViewportMetaTag() ??
+      parsePageSizeFromEmbeddedImage() ??
+      _viewportSize;
+
+    layoutPage();
+  }
+
   // Parses the page size from the viewport meta tag of the loaded resource.
-  function loadPageSize() {
+  function parsePageSizeFromViewportMetaTag() {
     var viewport = _iframe.contentWindow.document.querySelector(
       "meta[name=viewport]"
     );
     if (!viewport) {
-      return;
+      return null;
     }
+
     var regex = /(\w+) *= *([^\s,]+)/g;
     var properties = {};
     var match;
@@ -59,10 +72,23 @@ export function FixedPage(iframeId, pageType) {
     }
     var width = Number.parseFloat(properties.width);
     var height = Number.parseFloat(properties.height);
-    if (width && height) {
-      _pageSize = { width: width, height: height };
-      layoutPage();
+    if (!width || !height) {
+      return null;
     }
+
+    return { width: width, height: height };
+  }
+
+  // Parses the page size from the natural dimensions of images loaded directly in the iframe.
+  //
+  // When a browser loads an image URL in an iframe, it renders the image
+  // in a minimal HTML document with an <img> element.
+  function parsePageSizeFromEmbeddedImage() {
+    var img = _iframe.contentWindow.document.querySelector("img");
+    if (!img || !img.naturalWidth || !img.naturalHeight) {
+      return null;
+    }
+    return { width: img.naturalWidth, height: img.naturalHeight };
   }
 
   // Layouts the page iframe and scale it according to the current fit mode.
@@ -130,6 +156,15 @@ export function FixedPage(iframeId, pageType) {
     viewport.content = "initial-scale=" + scale + ", minimum-scale=" + scale;
   }
 
+  // Sets the iframe source URL.
+  function setIframeSrc(url) {
+    // Release the memory of a previously created blob URL, if needed.
+    if (_iframe.src.startsWith("blob:")) {
+      URL.revokeObjectURL(_iframe.src);
+    }
+    _iframe.src = url;
+  }
+
   return {
     // Returns whether the page is currently loading its contents.
     isLoading: false,
@@ -168,17 +203,20 @@ export function FixedPage(iframeId, pageType) {
       }
 
       _iframe.addEventListener("load", loaded);
-      _iframe.src = resource.url;
+
+      var url = resourceUrl(resource);
+      setIframeSrc(url);
     },
 
-    // Resets the page and empty its contents.
+    // Resets the page and empties its contents.
     reset: function () {
       if (!this.link) {
         return;
       }
       this.link = null;
       _pageSize = null;
-      _iframe.src = "about:blank";
+
+      setIframeSrc("about:blank");
     },
 
     // Evaluates a script in the context of the page.
@@ -209,4 +247,47 @@ export function FixedPage(iframeId, pageType) {
       _viewport.style.display = "none";
     },
   };
+}
+
+// Returns the URL to load for the given resource.
+// Bitmap images are wrapped in an HTML document with alt text for accessibility.
+function resourceUrl(resource) {
+  if (isBitmapMediaType(resource.link.type)) {
+    let html = generateImageWrapper(resource.url, resource.link.title);
+    let blob = new Blob([html], { type: "text/html" });
+    return URL.createObjectURL(blob);
+  } else {
+    return resource.url;
+  }
+}
+
+// Helper to detect bitmap media types.
+function isBitmapMediaType(type) {
+  if (!type) return false;
+  return type.startsWith("image/") && !type.includes("svg");
+}
+
+// Generate an HTML wrapper with alt text for the bitmap at `imageUrl`.
+function generateImageWrapper(imageUrl, altText) {
+  let doc = document.implementation.createHTMLDocument("");
+
+  let meta = doc.createElement("meta");
+  meta.name = "viewport";
+  meta.content = "width=device-width, height=device-height";
+  doc.head.appendChild(meta);
+
+  let style = doc.createElement("style");
+  style.textContent =
+    "body { margin: 0; }\n" +
+    "img { display: block; width: 100%; height: 100%; object-fit: contain; }";
+  doc.head.appendChild(style);
+
+  let img = doc.createElement("img");
+  img.src = imageUrl;
+  if (altText) {
+    img.alt = altText;
+  }
+  doc.body.appendChild(img);
+
+  return "<!DOCTYPE html>\n" + doc.documentElement.outerHTML;
 }

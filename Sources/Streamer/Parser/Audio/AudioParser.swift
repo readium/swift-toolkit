@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -76,7 +76,7 @@ public final class AudioParser: PublicationParser {
                 await makeBuilder(
                     container: asset.container,
                     readingOrder: readingOrder,
-                    title: asset.container.guessTitle(ignoring: ignores)
+                    title: nil
                 )
             }
     }

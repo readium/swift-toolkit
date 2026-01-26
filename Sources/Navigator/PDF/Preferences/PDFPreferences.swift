@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -17,7 +17,10 @@ public struct PDFPreferences: ConfigurablePreferences {
     /// Method for fitting the pages within the viewport.
     public var fit: Fit?
 
-    /// Indicates if the first page should be displayed in its own spread.
+    /// Indicates whether the first page should be displayed alone instead of
+    /// alongside the second page.
+    ///
+    /// This is only effective if spreads are enabled.
     public var offsetFirstPage: Bool?
 
     /// Spacing between pages in points.

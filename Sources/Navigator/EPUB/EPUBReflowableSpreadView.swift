@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -81,8 +81,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             log(.error, "Only one document at a time can be displayed in a reflowable spread")
             return
         }
-        let link = viewModel.readingOrder[spread.leading]
-        let url = viewModel.url(to: link)
+        let url = viewModel.url(to: spread.first.link)
         webView.load(URLRequest(url: url.url))
     }
 
@@ -135,7 +134,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     override func progression(in index: ReadingOrder.Index) -> ClosedRange<Double> {
         guard
-            spread.leading == index,
+            spread.first.index == index,
             let progression = progression
         else {
             return 0 ... 0
@@ -144,10 +143,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
 
     override func spreadDidLoad() async {
-        if
-            let link = viewModel.readingOrder.getOrNil(spread.leading),
-            let linkJSON = serializeJSONString(link.json)
-        {
+        let link = spread.first.link
+        if let linkJSON = serializeJSONString(link.json) {
             await evaluateScript("readium.link = \(linkJSON);")
         }
 

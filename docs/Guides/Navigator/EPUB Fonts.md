@@ -67,7 +67,7 @@ To offer more choices to your users, you must embed and declare custom font fami
     ```
 4. Configure the EPUB navigator with a declaration of the font faces for all the additional font families.
     ```swift
-    let resources = Bundle.main.resourceURL!
+    let resources = FileURL(url: Bundle.main.resourceURL!)!
     let navigator = try EPUBNavigatorViewController(
         publication: publication,
         initialLocation: locator,
@@ -79,11 +79,11 @@ To offer more choices to your users, you must embed and declare custom font fami
                         // Literata is a variable font family, so we can provide a font weight range.
                         // https://fonts.google.com/knowledge/glossary/variable_fonts
                         CSSFontFace(
-                            file: resources.appendingPathComponent("Literata-VariableFont_opsz,wght.ttf"),
+                            file: resources.appendingPath("Literata-VariableFont_opsz,wght.ttf", isDirectory: false),
                             style: .normal, weight: .variable(200...900)
                         ),
                         CSSFontFace(
-                            file: resources.appendingPathComponent("Literata-Italic-VariableFont_opsz,wght.ttf"),
+                            file: resources.appendingPath("Literata-Italic-VariableFont_opsz,wght.ttf", isDirectory: false),
                             style: .italic, weight: .variable(200...900)
                         )
                     ]
@@ -93,19 +93,19 @@ To offer more choices to your users, you must embed and declare custom font fami
                     fontFamily: .atkinsonHyperlegible,
                     fontFaces: [
                         CSSFontFace(
-                            file: resources.appendingPathComponent("Atkinson-Hyperlegible-Regular.ttf"),
+                            file: resources.appendingPath("Atkinson-Hyperlegible-Regular.ttf", isDirectory: false),
                             style: .normal, weight: .standard(.normal)
                         ),
                         CSSFontFace(
-                            file: resources.appendingPathComponent("Atkinson-Hyperlegible-Italic.ttf"),
+                            file: resources.appendingPath("Atkinson-Hyperlegible-Italic.ttf", isDirectory: false),
                             style: .italic, weight: .standard(.normal)
                         ),
                         CSSFontFace(
-                            file: resources.appendingPathComponent("Atkinson-Hyperlegible-Bold.ttf"),
+                            file: resources.appendingPath("Atkinson-Hyperlegible-Bold.ttf", isDirectory: false),
                             style: .normal, weight: .standard(.bold)
                         ),
                         CSSFontFace(
-                            file: resources.appendingPathComponent("Atkinson-Hyperlegible-BoldItalic.ttf"),
+                            file: resources.appendingPath("Atkinson-Hyperlegible-BoldItalic.ttf", isDirectory: false),
                             style: .italic, weight: .standard(.bold)
                         ),
                     ]

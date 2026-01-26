@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -499,7 +499,7 @@ open class PDFNavigatorViewController:
         }
 
         if currentResourceIndex != index {
-            guard let document = PDFDocument(url: url.url) else {
+            guard let document = await makeDocument(at: url) else {
                 log(.error, "Can't open PDF document at \(url)")
                 return false
             }
@@ -525,6 +525,13 @@ open class PDFNavigatorViewController:
         }
 
         return true
+    }
+
+    private func makeDocument(at url: AbsoluteURL) async -> PDFKit.PDFDocument? {
+        let task = Task.detached(priority: .userInitiated) {
+            PDFDocument(url: url.url)
+        }
+        return await task.value
     }
 
     /// Updates the scale factors to match the currently visible pages.

@@ -2,7 +2,41 @@
 
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Added
+
+#### Shared
+
+* Added support for JXL (JPEG XL) bitmap images. JXL is decoded natively on iOS 17+.
+
+#### Navigator
+
+* Support for displaying Divina (image-based publications like CBZ) in the fixed-layout EPUB navigator.
+* Bitmap images in the EPUB reading order are now supported as a fixed layout resource.
+* Added `offsetFirstPage` preference for fixed-layout EPUBs to control whether the first page is displayed alone or alongside the second page when spreads are enabled.
+
+#### Streamer
+
+* The `ImageParser` now extracts metadata from `ComicInfo.xml` files in CBZ archives.
+* EPUB manifest item fallbacks are now exposed as `alternates` in the corresponding `Link`.
+* EPUBs with only bitmap images in the spine are now treated as Divina publications with fixed layout.
+    * When an EPUB spine item is HTML with a bitmap image fallback (or vice versa), the image is preferred as the primary link.
+
+### Deprecated
+
+#### Streamer
+
+* The EPUB manifest item `id` attribute is no longer exposed in `Link.properties`.
+* Removed title inference based on folder names within image and audio archives. Use the archive's filename instead.
+
+### Fixed
+
+#### Navigator
+
+* PDF documents are now opened off the main thread, preventing UI freezes with large files.
+* Fixed providing a custom reading order to the `EPUBNavigatorViewController` (contributed by [@lbeus](https://github.com/readium/swift-toolkit/pull/694)).
+
 
 ## [3.6.0]
 
@@ -523,8 +557,8 @@ All notable changes to this project will be documented in this file. Take a look
 
 * New `VisualNavigatorDelegate` APIs to handle keyboard events (contributed by [@lukeslu](https://github.com/readium/swift-toolkit/pull/267)).
     * This can be used to turn pages with the arrow keys, for example.
-* [Support for custom fonts with the EPUB navigator](docs/Guides/EPUB%20Fonts.md).
-* A brand new user preferences API for configuring the EPUB and PDF Navigators. This new API is easier and safer to use. To learn how to integrate it in your app, [please refer to the user guide](docs/Guides/Navigator%20Preferences.md) and [migration guide](docs/Migration%20Guide.md).
+* [Support for custom fonts with the EPUB navigator](docs/Guides/Navigator/EPUB%20Fonts.md).
+* A brand new user preferences API for configuring the EPUB and PDF Navigators. This new API is easier and safer to use. To learn how to integrate it in your app, [please refer to the user guide](docs/Guides/Navigator/Preferences.md) and [migration guide](docs/Migration%20Guide.md).
     * New EPUB user preferences:
         * `fontWeight` - Base text font weight.
         * `textNormalization` - Normalize font style, weight and variants, which improves accessibility.

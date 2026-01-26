@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -24,8 +24,12 @@ public struct PDFFormatSniffer: FormatSniffer {
     }
 
     public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
+        guard !format.hasSpecification else {
+            return .success(nil)
+        }
+
         // https://en.wikipedia.org/wiki/List_of_file_signatures
-        await blob.read(range: 0 ..< 5)
+        return await blob.read(range: 0 ..< 5)
             .map { data in
                 guard String(data: data, encoding: .utf8) == "%PDF-" else {
                     return nil

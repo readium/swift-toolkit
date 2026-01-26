@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -13,6 +13,7 @@ class ImageParserTests: XCTestCase {
     var parser: ImageParser!
 
     var cbzAsset: Asset!
+    var cbzWithComicInfoAsset: Asset!
     var jpgAsset: Asset!
 
     override func setUp() async throws {
@@ -20,6 +21,11 @@ class ImageParserTests: XCTestCase {
 
         cbzAsset = try await .container(ZIPArchiveOpener().open(
             resource: FileResource(file: fixtures.url(for: "futuristic_tales.cbz")),
+            format: Format(specifications: .zip, .informalComic, mediaType: .cbz, fileExtension: "cbz")
+        ).get())
+
+        cbzWithComicInfoAsset = try await .container(ZIPArchiveOpener().open(
+            resource: FileResource(file: fixtures.url(for: "test-comicinfo.cbz")),
             format: Format(specifications: .zip, .informalComic, mediaType: .cbz, fileExtension: "cbz")
         ).get())
 
@@ -80,11 +86,6 @@ class ImageParserTests: XCTestCase {
         XCTAssertEqual(publication.readingOrder.first, cover)
     }
 
-    func testComputeTitleFromArchiveRootDirectory() async throws {
-        let publication = try await parser.parse(asset: cbzAsset, warnings: nil).get().build()
-        XCTAssertEqual(publication.metadata.title, "Cory Doctorow's Futuristic Tales of the Here and Now")
-    }
-
     func testPositions() async throws {
         let publication = try await parser.parse(asset: cbzAsset, warnings: nil).get().build()
 
@@ -131,5 +132,40 @@ class ImageParserTests: XCTestCase {
                 )
             ),
         ])
+    }
+
+    func testParsesMetadataFromComicInfo() async throws {
+        let publication = try await parser.parse(asset: cbzWithComicInfoAsset, warnings: nil).get().build()
+
+        XCTAssertEqual(publication.metadata.conformsTo, [.divina])
+        XCTAssertEqual(publication.metadata.title, "Test Comic Issue")
+        XCTAssertEqual(publication.metadata.publishers.map(\.name), ["Test Publisher"])
+        XCTAssertEqual(publication.metadata.languages, ["en"])
+        XCTAssertEqual(publication.metadata.description, "A test comic for unit testing.")
+        XCTAssertEqual(publication.metadata.subjects.map(\.name), ["Action", "Adventure"])
+        XCTAssertEqual(publication.metadata.belongsToSeries.count, 1)
+        XCTAssertEqual(publication.metadata.belongsToSeries.first?.name, "Test Series")
+        XCTAssertEqual(publication.metadata.belongsToSeries.first?.position, 5.0)
+        XCTAssertEqual(publication.metadata.authors.map(\.name), ["Test Writer"])
+        XCTAssertEqual(publication.metadata.pencilers.map(\.name), ["Test Artist"])
+
+        let coverLink = publication.linkWithRel(.cover)
+        XCTAssertNotNil(coverLink)
+        XCTAssertEqual(coverLink?.href, "TestComic/page-01.png")
+
+        // Story starts at page-02 (index 1), which is different from cover (index 0)
+        let startLink = publication.linkWithRel(.start)
+        XCTAssertNotNil(startLink)
+        XCTAssertEqual(startLink?.href, "TestComic/page-02.png")
+    }
+
+    func testDoublePageSpreadSetsCenterPage() async throws {
+        let publication = try await parser.parse(asset: cbzWithComicInfoAsset, warnings: nil).get().build()
+
+        XCTAssertNil(publication.readingOrder[0].properties.page)
+        XCTAssertNil(publication.readingOrder[1].properties.page)
+
+        // Page 2 has DoublePage="True" in ComicInfo.xml, should have center page
+        XCTAssertEqual(publication.readingOrder[2].properties.page, .center)
     }
 }
