@@ -23,6 +23,16 @@ All notable changes to this project will be documented in this file. Take a look
 * EPUBs with only bitmap images in the spine are now treated as Divina publications with fixed layout.
     * When an EPUB spine item is HTML with a bitmap image fallback (or vice versa), the image is preferred as the primary link.
 
+### Changed
+
+* The iOS minimum deployment target is now iOS 15.0.
+
+#### LCP
+
+* The LCP dialog used by `LCPDialogAuthentication` has been redesigned.
+    * **Breaking:** The LCP dialog localization string keys have been renamed. If you overrode these strings in your app, you must update them. [See the migration guide](docs/Migration%20Guide.md) for the key mapping.
+* LCP localized strings are now sourced from the [thorium-locales](https://github.com/edrlab/thorium-locales/) repository. Contributions are welcome on [Weblate](https://hosted.weblate.org/projects/thorium-reader/readium-lcp/).
+
 ### Deprecated
 
 #### Streamer

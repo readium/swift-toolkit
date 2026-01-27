@@ -2,7 +2,41 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
-<!-- ## Unreleased -->
+## Unreleased
+
+### LCP Dialog Localization Keys
+
+The LCP dialog localization string keys have been renamed to align with the [thorium-locales](https://github.com/edrlab/thorium-locales/) repository. Contributions are welcome on [Weblate](https://hosted.weblate.org/projects/thorium-reader/readium-lcp/).
+
+If you overrode any of these strings in your app's `Localizable.strings`, you must update them to use the new keys:
+
+| Old Key                                       | New Key                                        |
+|-----------------------------------------------|------------------------------------------------|
+| `ReadiumLCP.dialog.cancel`                    | `ReadiumLCP.dialog.actions.cancel`             |
+| `ReadiumLCP.dialog.continue`                  | `ReadiumLCP.dialog.actions.continue`           |
+| `ReadiumLCP.dialog.forgotYourPassphrase`      | `ReadiumLCP.dialog.actions.recoverPassphrase`  |
+| `ReadiumLCP.dialog.hint`                      | `ReadiumLCP.dialog.passphrase.hint`            |
+| `ReadiumLCP.dialog.header`                    | `ReadiumLCP.dialog.message`                    |
+| `ReadiumLCP.dialog.details.title`             | `ReadiumLCP.dialog.info.title`                 |
+| `ReadiumLCP.dialog.details.body`              | `ReadiumLCP.dialog.info.body`                  |
+| `ReadiumLCP.dialog.details.more`              | `ReadiumLCP.dialog.info.more`                  |
+| `ReadiumLCP.dialog.error.incorrectPassphrase` | `ReadiumLCP.dialog.errors.incorrectPassphrase` |
+
+The following legacy strings from the old UIKit-based dialog have been removed entirely:
+
+* `ReadiumLCP.dialog.prompt.message1`
+* `ReadiumLCP.dialog.prompt.message2`
+* `ReadiumLCP.dialog.reason.passphraseNotFound`
+* `ReadiumLCP.dialog.reason.invalidPassphrase`
+* `ReadiumLCP.dialog.prompt.forgotPassphrase`
+* `ReadiumLCP.dialog.prompt.support`
+* `ReadiumLCP.dialog.prompt.continue`
+* `ReadiumLCP.dialog.prompt.passphrase`
+* `ReadiumLCP.dialog.support`
+* `ReadiumLCP.dialog.support.website`
+* `ReadiumLCP.dialog.support.phone`
+* `ReadiumLCP.dialog.support.mail`
+
 
 ## 3.3.0
 
