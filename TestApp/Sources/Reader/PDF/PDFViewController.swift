@@ -50,6 +50,21 @@ final class PDFViewController: VisualReaderViewController<PDFNavigatorViewContro
         navigator.delegate = self
     }
 
+    @objc func highlightSelection() {
+        guard let selection = navigator.currentSelection else {
+            return
+        }
+
+        let highlight = Highlight(
+            bookId: bookId,
+            locator: selection.locator,
+            color: .yellow
+        )
+
+        saveHighlight(highlight)
+        navigator.clearSelection()
+    }
+
     override func presentUserPreferences() {
         Task {
             let userPrefs = await UserPreferences(
