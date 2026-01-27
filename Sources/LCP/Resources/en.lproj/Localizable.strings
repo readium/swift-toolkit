@@ -1,13 +1,13 @@
 // DO NOT EDIT. File generated automatically from the en JSON strings of https://github.com/edrlab/thorium-locales/.
 
-"ReadiumLCP.dialog.actions.cancel" = "Cancel";
-"ReadiumLCP.dialog.actions.continue" = "Continue";
-"ReadiumLCP.dialog.actions.recoverPassphrase" = "Forgot Your Password?";
-"ReadiumLCP.dialog.errors.incorrectPassphrase" = "Incorrect password.";
-"ReadiumLCP.dialog.info.body" = "This publication is protected by LCP (Licensed Content Protection), a DRM technology that prevents unauthorized copying while keeping your reading experience simple. LCP is an open standard that balances user-friendliness with the needs of publishers.";
-"ReadiumLCP.dialog.info.more" = "Learn more…";
-"ReadiumLCP.dialog.info.title" = "What is LCP?";
-"ReadiumLCP.dialog.message" = "This publication requires an LCP password to open, which is provided by your library or bookstore. Enter it once, and you're all set to read on this device.";
-"ReadiumLCP.dialog.passphrase.hint" = "**Hint:** %1$@";
-"ReadiumLCP.dialog.passphrase.placeholder" = "Password";
-"ReadiumLCP.dialog.title" = "Enter Password";
+"readium.lcp.dialog.actions.cancel" = "Cancel";
+"readium.lcp.dialog.actions.continue" = "Continue";
+"readium.lcp.dialog.actions.recoverPassphrase" = "Forgot Your Password?";
+"readium.lcp.dialog.errors.incorrectPassphrase" = "Incorrect password.";
+"readium.lcp.dialog.info.body" = "This publication is protected by LCP (Licensed Content Protection), a DRM technology that prevents unauthorized copying while keeping your reading experience simple. LCP is an open standard that balances user-friendliness with the needs of publishers.";
+"readium.lcp.dialog.info.more" = "Learn more…";
+"readium.lcp.dialog.info.title" = "What is LCP?";
+"readium.lcp.dialog.message" = "This publication requires an LCP password to open, which is provided by your library or bookstore. Enter it once, and you're all set to read on this device.";
+"readium.lcp.dialog.passphrase.hint" = "**Hint:** %1$@";
+"readium.lcp.dialog.passphrase.placeholder" = "Password";
+"readium.lcp.dialog.title" = "Enter Password";

@@ -10,17 +10,19 @@ The LCP dialog localization string keys have been renamed to align with the [tho
 
 If you overrode any of these strings in your app's `Localizable.strings`, you must update them to use the new keys:
 
-| Old Key                                       | New Key                                        |
-|-----------------------------------------------|------------------------------------------------|
-| `ReadiumLCP.dialog.cancel`                    | `ReadiumLCP.dialog.actions.cancel`             |
-| `ReadiumLCP.dialog.continue`                  | `ReadiumLCP.dialog.actions.continue`           |
-| `ReadiumLCP.dialog.forgotYourPassphrase`      | `ReadiumLCP.dialog.actions.recoverPassphrase`  |
-| `ReadiumLCP.dialog.hint`                      | `ReadiumLCP.dialog.passphrase.hint`            |
-| `ReadiumLCP.dialog.header`                    | `ReadiumLCP.dialog.message`                    |
-| `ReadiumLCP.dialog.details.title`             | `ReadiumLCP.dialog.info.title`                 |
-| `ReadiumLCP.dialog.details.body`              | `ReadiumLCP.dialog.info.body`                  |
-| `ReadiumLCP.dialog.details.more`              | `ReadiumLCP.dialog.info.more`                  |
-| `ReadiumLCP.dialog.error.incorrectPassphrase` | `ReadiumLCP.dialog.errors.incorrectPassphrase` |
+| Old Key                                       | New Key                                         |
+|-----------------------------------------------|-------------------------------------------------|
+| `ReadiumLCP.dialog.cancel`                    | `readium.lcp.dialog.actions.cancel`             |
+| `ReadiumLCP.dialog.continue`                  | `readium.lcp.dialog.actions.continue`           |
+| `ReadiumLCP.dialog.forgotYourPassphrase`      | `readium.lcp.dialog.actions.recoverPassphrase`  |
+| `ReadiumLCP.dialog.hint`                      | `readium.lcp.dialog.passphrase.hint`            |
+| `ReadiumLCP.dialog.header`                    | `readium.lcp.dialog.message`                    |
+| `ReadiumLCP.dialog.details.title`             | `readium.lcp.dialog.info.title`                 |
+| `ReadiumLCP.dialog.details.body`              | `readium.lcp.dialog.info.body`                  |
+| `ReadiumLCP.dialog.details.more`              | `readium.lcp.dialog.info.more`                  |
+| `ReadiumLCP.dialog.error.incorrectPassphrase` | `readium.lcp.dialog.errors.incorrectPassphrase` |
+| `ReadiumLCP.dialog.title`                     | `readium.lcp.dialog.title`                      |
+| `ReadiumLCP.dialog.passphrase.placeholder`    | `readium.lcp.dialog.passphrase.placeholder`     |
 
 The following legacy strings from the old UIKit-based dialog have been removed entirely:
 
