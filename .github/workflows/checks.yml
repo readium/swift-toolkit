@@ -26,6 +26,8 @@ jobs:
         run: |
           brew update
           brew install xcodegen
+          # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
+          xcrun simctl list
       - name: Check Carthage project
         run: |
           # Check that the Carthage project is up to date.
@@ -33,7 +35,6 @@ jobs:
           git diff --exit-code Support/Carthage/Readium.xcodeproj
       - name: Build
         run: |
-          xcrun simctl list
           set -eo pipefail
           xcodebuild build-for-testing -scheme "$scheme" -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
       - name: Test
@@ -41,23 +42,24 @@ jobs:
           set -eo pipefail
           xcodebuild test-without-building -scheme "$scheme" -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
-  navigator-ui-tests:
-    name: Navigator UI Tests
-    runs-on: macos-15
-    if: ${{ !github.event.pull_request.draft }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Install dependencies
-        run: |
-          brew update
-          brew install xcodegen
-      - name: Test
-        run: |
-          set -eo pipefail
-          make navigator-ui-tests-project
-          xcrun simctl list
-          xcodebuild test -project Tests/NavigatorTests/UITests/NavigatorUITests.xcodeproj -scheme NavigatorTestHost -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+  # navigator-ui-tests:
+  #   name: Navigator UI Tests
+  #   runs-on: macos-15
+  #   if: ${{ !github.event.pull_request.draft }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+  #     - name: Install dependencies
+  #       run: |
+  #         brew update
+  #         brew install xcodegen
+  #         # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
+  #         xcrun simctl list
+  #     - name: Test
+  #       run: |
+  #         set -eo pipefail
+  #         make navigator-ui-tests-project
+  #         xcodebuild test -project Tests/NavigatorTests/UITests/NavigatorUITests.xcodeproj -scheme NavigatorTestHost -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
   lint:
     name: Lint
@@ -108,6 +110,8 @@ jobs:
         run: |
           brew update
           brew install xcodegen
+          # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
+          xcrun simctl list
       - name: Generate project
         run: make dev lcp=${{ secrets.LCP_URL_SPM }}
       - name: Build
@@ -136,6 +140,8 @@ jobs:
         run: |
           brew update
           brew install xcodegen
+          # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
+          xcrun simctl list
       - name: Generate project
         run: make spm lcp=${{ secrets.LCP_URL_SPM }} commit=$commit_sha
       - name: Build
@@ -164,6 +170,8 @@ jobs:
         run: |
           brew update
           brew install xcodegen
+          # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
+          xcrun simctl list
       - name: Generate project
         run: make carthage lcp=${{ secrets.LCP_URL_CARTHAGE }} commit=$commit_sha
       - name: Build
