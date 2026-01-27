@@ -54,7 +54,7 @@ public struct LCPDialog: View {
         var string: String {
             switch self {
             case .incorrectPassphrase:
-                ReadiumLCPLocalizedString("dialog.error.incorrectPassphrase")
+                ReadiumLCPLocalizedString("dialog.errors.incorrectPassphrase")
             }
         }
     }
@@ -125,7 +125,7 @@ public struct LCPDialog: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(ReadiumLCPLocalizedStringKey("dialog.cancel"), role: .cancel) {
+                    Button(ReadiumLCPLocalizedStringKey("dialog.actions.cancel"), role: .cancel) {
                         dismiss()
                     }
                 }
@@ -142,20 +142,20 @@ public struct LCPDialog: View {
                         .foregroundStyle(.blue)
                         .font(.system(size: 70))
 
-                    Text(ReadiumLCPLocalizedStringKey("dialog.header"))
+                    Text(ReadiumLCPLocalizedStringKey("dialog.message"))
                         .multilineTextAlignment(.center)
                         .padding(.bottom, 16)
                 }
                 Spacer()
             }
 
-            DisclosureGroup(ReadiumLCPLocalizedStringKey("dialog.details.title")) {
+            DisclosureGroup(ReadiumLCPLocalizedStringKey("dialog.info.title")) {
                 VStack {
-                    Text(ReadiumLCPLocalizedStringKey("dialog.details.body"))
+                    Text(ReadiumLCPLocalizedStringKey("dialog.info.body"))
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Text("[\(ReadiumLCPLocalizedString("dialog.details.more"))](https://www.edrlab.org/readium-lcp/)")
+                    Text("[\(ReadiumLCPLocalizedString("dialog.info.more"))](https://www.edrlab.org/readium-lcp/)")
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
@@ -194,7 +194,7 @@ public struct LCPDialog: View {
 
     @ViewBuilder private var buttons: some View {
         Section {
-            Button(ReadiumLCPLocalizedStringKey("dialog.continue")) {
+            Button(ReadiumLCPLocalizedStringKey("dialog.actions.continue")) {
                 submit()
             }
             .bold()
@@ -205,13 +205,13 @@ public struct LCPDialog: View {
 
         if let onForgotPassphrase = onForgotPassphrase {
             Section {
-                Button(ReadiumLCPLocalizedStringKey("dialog.forgotYourPassphrase"), role: .destructive) {
+                Button(ReadiumLCPLocalizedStringKey("dialog.actions.recoverPassphrase"), role: .destructive) {
                     onForgotPassphrase()
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
             } footer: {
                 if let hint = hint {
-                    Text(ReadiumLCPLocalizedStringKey("dialog.hint", hint))
+                    Text(ReadiumLCPLocalizedStringKey("dialog.passphrase.hint", hint))
                 }
             }
         }

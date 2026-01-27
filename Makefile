@@ -7,7 +7,7 @@ help:
 	  test\t\t\tRun unit tests\n\
 	  lint-format\t\tVerify formatting\n\
 	  format\t\tFormat sources\n\
-	  update-a11y-l10n\tUpdate the Accessibility Metadata Display Guide localization files\n\
+	  update-locales\tUpdate the localization files\n\
 	"
 
 .PHONY: carthage-project
@@ -45,11 +45,27 @@ f: format
 format:
 	swift run --package-path BuildTools swiftformat .
 
-.PHONY: update-a11y-l10n
-update-a11y-l10n:
+.PHONY: update-locales
+update-locales: update-a11y-locales update-thorium-locales
+
+.PHONY: update-a11y-locales
+update-a11y-locales:
 	@which node >/dev/null 2>&1 || (echo "ERROR: node is required, please install it first"; exit 1)
 	rm -rf publ-a11y-display-guide-localizations
 	git clone https://github.com/w3c/publ-a11y-display-guide-localizations.git
 	node BuildTools/Scripts/convert-a11y-display-guide-localizations.js publ-a11y-display-guide-localizations apple Sources/Shared readium.a11y.
 	rm -rf publ-a11y-display-guide-localizations
 
+BRANCH ?= main
+
+.PHONY: update-thorium-locales
+update-thorium-locales:
+	@which node >/dev/null 2>&1 || (echo "ERROR: node is required, please install it first"; exit 1)
+ifndef DIR
+	rm -rf thorium-locales
+	git clone -b $(BRANCH) --single-branch --depth 1 https://github.com/edrlab/thorium-locales.git
+endif
+	node BuildTools/Scripts/convert-thorium-localizations.js thorium-locales apple
+ifndef DIR
+	rm -rf thorium-locales
+endif

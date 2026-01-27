@@ -1,0 +1,15 @@
+{
+    "dialog.cancel": "Cancel",
+    "dialog.prompt.message1": "This publication is protected by Readium LCP.",
+    "dialog.prompt.message2": "In order to open it, we need to know the passphrase required by:\n\n{{ provider }}\n\nTo help you remember it, the following hint is available:",
+    "dialog.prompt.forgotPassphrase": "Forgot your passphrase?",
+    "dialog.prompt.support": "Need more help?",
+    "dialog.prompt.continue": "Continue",
+    "dialog.prompt.passphrase": "Passphrase",
+    "dialog.reason.passphraseNotFound": "Passphrase Required",
+    "dialog.reason.invalidPassphrase": "Incorrect Passphrase",
+    "dialog.support": "Support",
+    "dialog.support.website": "Website",
+    "dialog.support.phone": "Phone",
+    "dialog.support.mail": "Mail"
+}

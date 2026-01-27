@@ -56,3 +56,6 @@ playground.xcworkspace
 ## IntelliJ
 out/
 
+## Claude Code
+.claude
+CLAUDE.md
