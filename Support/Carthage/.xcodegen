@@ -331,8 +331,6 @@
 ../../Sources/Internal/UTI.swift
 ../../Sources/LCP
 ../../Sources/LCP/Authentications
-../../Sources/LCP/Authentications/Base.lproj
-../../Sources/LCP/Authentications/Base.lproj/LCPDialogViewController.xib
 ../../Sources/LCP/Authentications/LCPAuthenticating.swift
 ../../Sources/LCP/Authentications/LCPDialog.swift
 ../../Sources/LCP/Authentications/LCPDialogAuthentication.swift
@@ -379,6 +377,8 @@
 ../../Sources/LCP/Resources
 ../../Sources/LCP/Resources/en.lproj
 ../../Sources/LCP/Resources/en.lproj/Localizable.strings
+../../Sources/LCP/Resources/fr.lproj
+../../Sources/LCP/Resources/fr.lproj/Localizable.strings
 ../../Sources/LCP/Resources/prod-license.lcpl
 ../../Sources/LCP/Services
 ../../Sources/LCP/Services/CRLService.swift
@@ -391,7 +391,6 @@
 ../../Sources/LCP/Toolkit/ReadiumLCPLocalizedString.swift
 ../../Sources/LCP/Toolkit/Streamable.swift
 ../../Sources/Navigator
-../../Sources/Navigator/.DS_Store
 ../../Sources/Navigator/Audiobook
 ../../Sources/Navigator/Audiobook/AudioNavigator.swift
 ../../Sources/Navigator/Audiobook/Preferences
@@ -412,14 +411,12 @@
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-one.html
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-two.html
 ../../Sources/Navigator/EPUB/Assets/Static
-../../Sources/Navigator/EPUB/Assets/Static/.DS_Store
 ../../Sources/Navigator/EPUB/Assets/Static/fonts
 ../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-Bold.otf
 ../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-BoldItalic.otf
 ../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-Italic.otf
 ../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-Regular.otf
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css
-../../Sources/Navigator/EPUB/Assets/Static/readium-css/.DS_Store
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-horizontal
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-horizontal/ReadiumCSS-after.css
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-horizontal/ReadiumCSS-before.css
@@ -539,7 +536,6 @@
 ../../Sources/Navigator/Input/Pointer/PointerEvent.swift
 ../../Sources/Navigator/Navigator.swift
 ../../Sources/Navigator/PDF
-../../Sources/Navigator/PDF/.DS_Store
 ../../Sources/Navigator/PDF/PDFDocumentHolder.swift
 ../../Sources/Navigator/PDF/PDFDocumentView.swift
 ../../Sources/Navigator/PDF/PDFNavigatorViewController.swift

@@ -375,7 +375,6 @@
 		ED67A0EFAE830F72846BF9C0 /* Range.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3231F989F7D7E560DD5364B9 /* Range.swift */; };
 		EDDAB394E312B7A7AE5BB758 /* Publication+OPDS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BB5D42EEF0083D833E2A572 /* Publication+OPDS.swift */; };
 		EE16BE486539BC9B3C3C6896 /* ReadiumInternal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 42FD63C2720614E558522675 /* ReadiumInternal.framework */; };
-		EE951A131E38E316BF7A1129 /* LCPDialogViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = ED5C6546C24E5E619E4CC9D1 /* LCPDialogViewController.xib */; };
 		EF15E9163EBC82672B22F6E0 /* ImageParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37087C0D0B36FE7F20F1C891 /* ImageParser.swift */; };
 		EF26968E6A2087142F5334AF /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4C94659A8749299DBE3628D /* HTTPClient.swift */; };
 		EF2BE6AFC79525FD9760CD9B /* OPDSPrice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C22408FE1FA81400DE8D5F7 /* OPDSPrice.swift */; };
@@ -508,6 +507,7 @@
 		06C4BDFF128C774BCD660419 /* ReadiumCSS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadiumCSS.swift; sourceTree = "<group>"; };
 		07B5469E40752E598C070E5B /* OPDSParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSParser.swift; sourceTree = "<group>"; };
 		0812058DB4FBFDF0A862E57E /* KeyModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyModifiers.swift; sourceTree = "<group>"; };
+		0885992D0F70AD0B493985CE /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
 		0918DA360AAB646144E435D5 /* TransformingContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransformingContainer.swift; sourceTree = "<group>"; };
 		093629E752DE17264B97C598 /* LCPLicense.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPLicense.swift; sourceTree = "<group>"; };
 		0977FA3A6BDEDE2F91A7C444 /* BitmapFormatSniffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitmapFormatSniffer.swift; sourceTree = "<group>"; };
@@ -658,7 +658,6 @@
 		72922E22040CEFB3B7BBCDAF /* LoggerStub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggerStub.swift; sourceTree = "<group>"; };
 		739566E777BA37891BCECB95 /* Streamable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Streamable.swift; sourceTree = "<group>"; };
 		74F646B746EB27124F9456F8 /* ReadingProgression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingProgression.swift; sourceTree = "<group>"; };
-		75DFA22C741A09C81E23D084 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LCPDialogViewController.xib; sourceTree = "<group>"; };
 		761D7DFCF307078B7283A14E /* TextTokenizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTokenizer.swift; sourceTree = "<group>"; };
 		76638D3D1220E4C2620B9A80 /* Properties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Properties.swift; sourceTree = "<group>"; };
 		76E46B10FD5B26A2F41718E0 /* EPUBMetadataParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBMetadataParser.swift; sourceTree = "<group>"; };
@@ -1575,7 +1574,6 @@
 				A02248F01B66C1151614EF15 /* LCPDialog.swift */,
 				77392C999C0EFF83C8F2A47F /* LCPDialogAuthentication.swift */,
 				0BB64178365BFA9ED75C7078 /* LCPDialogViewController.swift */,
-				ED5C6546C24E5E619E4CC9D1 /* LCPDialogViewController.xib */,
 				791CEAC3DA5ED971DAE984CB /* LCPObservableAuthentication.swift */,
 				1D5053C2151DDDE4E8F06513 /* LCPPassphraseAuthentication.swift */,
 			);
@@ -2307,6 +2305,7 @@
 				Base,
 				en,
 				"en-US",
+				fr,
 			);
 			mainGroup = 2C63ECC3CC1230CCA416F55F;
 			minimizedProjectReferenceProxies = 1;
@@ -2331,7 +2330,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EE951A131E38E316BF7A1129 /* LCPDialogViewController.xib in Resources */,
 				D7FB0CC13190A17DAB7D7DB1 /* Localizable.strings in Resources */,
 				F96C29471F3EF0CEE568AA53 /* prod-license.lcpl in Resources */,
 			);
@@ -2859,16 +2857,9 @@
 			isa = PBXVariantGroup;
 			children = (
 				B7C9D54352714641A87F64A0 /* en */,
+				0885992D0F70AD0B493985CE /* fr */,
 			);
 			name = Localizable.strings;
-			sourceTree = "<group>";
-		};
-		ED5C6546C24E5E619E4CC9D1 /* LCPDialogViewController.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				75DFA22C741A09C81E23D084 /* Base */,
-			);
-			name = LCPDialogViewController.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
