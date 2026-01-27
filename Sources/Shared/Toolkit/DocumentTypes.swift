@@ -51,7 +51,7 @@ public struct DocumentTypes {
             .flatMap(\.utis)
             .removingDuplicates()
 
-        let utis = supportedUTIs.map(UTI.init(stringLiteral:))
+        let utis = supportedUTIs.compactMap { UTI($0) }
 
         let utisMediaTypes = utis
             .flatMap { $0.tags(withClass: .mediaType) }
@@ -127,7 +127,7 @@ public struct DocumentType: Equatable, Loggable {
 
         self.name = name
         self.utis = (dictionary["LSItemContentTypes"] as? [String] ?? [])
-        let utis = utis.map(UTI.init(stringLiteral:))
+        let utis = utis.compactMap { UTI($0) }
 
         let fileExtensions =
             utis.flatMap { $0.tags(withClass: .fileExtension) } +

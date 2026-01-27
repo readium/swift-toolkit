@@ -4,56 +4,77 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import CoreServices
 import Foundation
+import UniformTypeIdentifiers
 
 /// Uniform Type Identifier.
-public struct UTI: ExpressibleByStringLiteral {
-    /// Type tag class, eg. kUTTagClassMIMEType.
+public struct UTI {
+    /// Type tag class, eg. UTTagClass.mimeType.
     public enum TagClass {
         case mediaType, fileExtension
+    }
 
-        var rawString: CFString {
-            switch self {
-            case .mediaType:
-                return kUTTagClassMIMEType
-            case .fileExtension:
-                return kUTTagClassFilenameExtension
-            }
+    public let type: UTType
+
+    public init(type: UTType) {
+        self.type = type
+    }
+
+    public init?(_ identifier: String) {
+        guard let type = UTType(identifier) else {
+            return nil
         }
+        self.init(type: type)
     }
 
-    public let string: String
-
-    public init(stringLiteral value: StringLiteralType) {
-        string = value
+    public init?(mediaType: String) {
+        guard let type = UTType(mimeType: mediaType) else {
+            return nil
+        }
+        self.init(type: type)
     }
 
-    public var name: String? {
-        UTTypeCopyDescription(string as CFString)?.takeRetainedValue() as String?
+    public init?(fileExtension: String) {
+        guard let type = UTType(filenameExtension: fileExtension) else {
+            return nil
+        }
+        self.init(type: type)
     }
+
+    public var name: String? { type.localizedDescription }
+
+    public var string: String { type.identifier }
 
     /// Returns the preferred tag for this `UTI`, with the given type `tagClass`.
     public func preferredTag(withClass tagClass: TagClass) -> String? {
-        UTTypeCopyPreferredTagWithClass(string as CFString, tagClass.rawString)?.takeRetainedValue() as String?
+        switch tagClass {
+        case .mediaType:
+            return type.preferredMIMEType
+        case .fileExtension:
+            return type.preferredFilenameExtension
+        }
     }
 
     /// Returns all tags for this `UTI`, with the given type `tagClass`.
     public func tags(withClass tagClass: TagClass) -> [String] {
-        UTTypeCopyAllTagsWithClass(string as CFString, tagClass.rawString)?.takeRetainedValue() as? [String]
-            ?? []
+        switch tagClass {
+        case .mediaType:
+            return type.tags[.mimeType] ?? []
+        case .fileExtension:
+            return type.tags[.filenameExtension] ?? []
+        }
     }
 
     /// Finds the first `UTI` recognizing any of the given `mediaTypes` or `fileExtensions`.
     public static func findFrom(mediaTypes: [String], fileExtensions: [String]) -> UTI? {
         for mediaType in mediaTypes {
-            if let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, mediaType as CFString, nil)?.takeUnretainedValue() {
-                return UTI(stringLiteral: uti as String)
+            if let uti = UTI(mediaType: mediaType) {
+                return uti
             }
         }
         for fileExtension in fileExtensions {
-            if let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, fileExtension as CFString, nil)?.takeUnretainedValue() {
-                return UTI(stringLiteral: uti as String)
+            if let uti = UTI(fileExtension: fileExtension) {
+                return uti
             }
         }
         return nil
