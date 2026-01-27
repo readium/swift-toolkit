@@ -46,7 +46,6 @@ import SwiftUI
 ///    }
 /// }
 /// ```
-@available(iOS 16.0, *)
 public struct LCPDialog: View {
     public enum ErrorMessage {
         case incorrectPassphrase
@@ -65,6 +64,7 @@ public struct LCPDialog: View {
     private let errorMessage: ErrorMessage?
     private let onSubmit: (String) -> Void
     private let onForgotPassphrase: (() -> Void)?
+    private let onCancel: (() -> Void)?
 
     private let openButtonId = "open"
 
@@ -72,12 +72,14 @@ public struct LCPDialog: View {
         hint: String?,
         errorMessage: ErrorMessage?,
         onSubmit: @escaping (String) -> Void,
-        onForgotPassphrase: (() -> Void)?
+        onForgotPassphrase: (() -> Void)?,
+        onCancel: (() -> Void)? = nil
     ) {
         self.hint = hint
         self.errorMessage = errorMessage
         self.onSubmit = onSubmit
         self.onForgotPassphrase = onForgotPassphrase
+        self.onCancel = onCancel
     }
 
     public init(
@@ -100,7 +102,7 @@ public struct LCPDialog: View {
     @State private var passphrase: String = ""
 
     public var body: some View {
-        NavigationStack {
+        NavigationView {
             ScrollViewReader { scrollProxy in
                 Form {
                     header
@@ -120,17 +122,19 @@ public struct LCPDialog: View {
                     }
                 }
             }
-            .scrollDismissesKeyboard(.interactively)
+            .scrollDismissesKeyboardIfAvailable()
             .navigationTitle(ReadiumLCPLocalizedStringKey("dialog.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(ReadiumLCPLocalizedStringKey("dialog.actions.cancel"), role: .cancel) {
+                        onCancel?()
                         dismiss()
                     }
                 }
             }
         }
+        .navigationViewStyle(.stack)
     }
 
     @ViewBuilder private var header: some View {
@@ -160,9 +164,7 @@ public struct LCPDialog: View {
                 }
             }
         }
-        .alignmentGuide(.listRowSeparatorLeading) { _ in
-            0
-        }
+        .alignListRowSeparatorLeading()
         .font(.callout)
     }
 
@@ -188,6 +190,10 @@ public struct LCPDialog: View {
                     .font(.callout)
                 }
             }
+        } footer: {
+            if let hint = hint {
+                Text(ReadiumLCPLocalizedStringKey("dialog.passphrase.hint", hint))
+            }
         }
         .listRowSeparator(.hidden)
     }
@@ -197,7 +203,7 @@ public struct LCPDialog: View {
             Button(ReadiumLCPLocalizedStringKey("dialog.actions.continue")) {
                 submit()
             }
-            .bold()
+            .boldIfAvailable()
             .id(openButtonId)
             .disabled(passphrase.isEmpty)
             .frame(maxWidth: .infinity, alignment: .center)
@@ -209,10 +215,6 @@ public struct LCPDialog: View {
                     onForgotPassphrase()
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
-            } footer: {
-                if let hint = hint {
-                    Text(ReadiumLCPLocalizedStringKey("dialog.passphrase.hint", hint))
-                }
             }
         }
     }
@@ -224,6 +226,35 @@ public struct LCPDialog: View {
 
         onSubmit(passphrase)
         dismiss()
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func scrollDismissesKeyboardIfAvailable() -> some View {
+        if #available(iOS 16.0, *) {
+            scrollDismissesKeyboard(.interactively)
+        } else {
+            self
+        }
+    }
+
+    @ViewBuilder
+    func alignListRowSeparatorLeading() -> some View {
+        if #available(iOS 16.0, *) {
+            alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
+        } else {
+            self
+        }
+    }
+
+    @ViewBuilder
+    func boldIfAvailable() -> some View {
+        if #available(iOS 16.0, *) {
+            bold()
+        } else {
+            self
+        }
     }
 }
 

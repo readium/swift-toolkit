@@ -11,20 +11,3 @@
 "ReadiumLCP.dialog.passphrase.hint" = "**Hint:** %1$@";
 "ReadiumLCP.dialog.passphrase.placeholder" = "Password";
 "ReadiumLCP.dialog.title" = "Enter Password";
-
-// MARK: - Legacy Dialog Strings
-// These strings are maintained in the swift-toolkit repository.
-
-"ReadiumLCP.dialog.cancel" = "Cancel";
-"ReadiumLCP.dialog.prompt.message1" = "This publication is protected by Readium LCP.";
-"ReadiumLCP.dialog.prompt.message2" = "In order to open it, we need to know the passphrase required by:\n\n%1$@\n\nTo help you remember it, the following hint is available:";
-"ReadiumLCP.dialog.prompt.forgotPassphrase" = "Forgot your passphrase?";
-"ReadiumLCP.dialog.prompt.support" = "Need more help?";
-"ReadiumLCP.dialog.prompt.continue" = "Continue";
-"ReadiumLCP.dialog.prompt.passphrase" = "Passphrase";
-"ReadiumLCP.dialog.reason.passphraseNotFound" = "Passphrase Required";
-"ReadiumLCP.dialog.reason.invalidPassphrase" = "Incorrect Passphrase";
-"ReadiumLCP.dialog.support" = "Support";
-"ReadiumLCP.dialog.support.website" = "Website";
-"ReadiumLCP.dialog.support.phone" = "Phone";
-"ReadiumLCP.dialog.support.mail" = "Mail";

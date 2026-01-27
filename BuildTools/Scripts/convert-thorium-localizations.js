@@ -20,10 +20,9 @@ class LocaleConfig {
      * @param {string} stripPrefix - Prefix to strip from JSON keys
      * @param {string} outputPrefix - Prefix to add to output keys
      * @param {string} outputFolder - Output folder for .lproj directories
-     * @param {string|null} [legacyFolder] - Optional legacy strings folder that will be combined in the output .lproj
      * @param {string[]|null} [includePrefixes] - Optional prefixes to include (if null, include all)
      */
-    constructor({ folder, stripPrefix, outputPrefix, outputFolder, legacyFolder = null, includePrefixes = null }) {
+    constructor({ folder, stripPrefix, outputPrefix, outputFolder, includePrefixes = null }) {
         if (!folder || !stripPrefix || !outputPrefix || !outputFolder) {
             throw new Error('LocaleConfig requires folder, stripPrefix, outputPrefix, and outputFolder');
         }
@@ -31,7 +30,6 @@ class LocaleConfig {
         this.stripPrefix = stripPrefix;
         this.outputPrefix = outputPrefix;
         this.outputFolder = outputFolder;
-        this.legacyFolder = legacyFolder;
         this.includePrefixes = includePrefixes;
     }
 }
@@ -46,7 +44,6 @@ const PROJECTS = {
         stripPrefix: 'lcp.',
         outputPrefix: 'ReadiumLCP.',
         outputFolder: 'Sources/LCP/Resources',
-        legacyFolder: 'Sources/LCP/Resources/Legacy',
         includePrefixes: ['lcp.dialog']
     })
 };
@@ -126,29 +123,14 @@ function convertApple(lang, keys, config, write, placeholderMappings) {
         [key, config.outputPrefix + stripKeyPrefix(key, config.stripPrefix), value]
     );
 
-    // Load legacy strings and build their placeholder mappings from English
-    const legacyStrings = loadLegacyStrings(lang, config.legacyFolder);
-    const legacyEnglish = loadLegacyStrings('en', config.legacyFolder);
-    const legacyPlaceholderMappings = {};
-    for (const [key, value] of Object.entries(legacyEnglish)) {
-        const mapping = extractPlaceholderMapping(value);
-        if (Object.keys(mapping).length > 0) {
-            legacyPlaceholderMappings[key] = mapping;
-        }
-    }
-
-    const legacyEntries = Object.entries(legacyStrings).map(([key, value]) =>
-        [key, config.outputPrefix + key, value]
-    );
-
     // Generate Localizable.strings
-    write(path.join(lproj, 'Localizable.strings'), generateAppleStrings(lang, allEntries, placeholderMappings, legacyEntries, legacyPlaceholderMappings));
+    write(path.join(lproj, 'Localizable.strings'), generateAppleStrings(lang, allEntries, placeholderMappings));
 }
 
 /**
  * Generates an Apple .strings file content from a list of [originalKey, prefixedKey, value] entries.
  */
-function generateAppleStrings(lang, entries, placeholderMappings, legacyEntries = [], legacyPlaceholderMappings = {}) {
+function generateAppleStrings(lang, entries, placeholderMappings) {
     const disclaimer = `DO NOT EDIT. File generated automatically from the ${lang} JSON strings of https://github.com/edrlab/thorium-locales/.`;
     let output = `// ${disclaimer}\n\n`;
     for (const [originalKey, prefixedKey, value] of entries) {
@@ -158,18 +140,6 @@ function generateAppleStrings(lang, entries, placeholderMappings, legacyEntries 
         const escapedValue = escapeForAppleStrings(value);
         const convertedValue = convertPlaceholders(escapedValue, mapping);
         output += `"${convertKebabToCamelCase(prefixedKey)}" = "${convertedValue}";\n`;
-    }
-
-    // Append legacy strings if present
-    if (legacyEntries.length > 0) {
-        output += '\n// MARK: - Legacy Dialog Strings\n';
-        output += '// These strings are maintained in the swift-toolkit repository.\n\n';
-        for (const [originalKey, prefixedKey, value] of legacyEntries) {
-            const mapping = legacyPlaceholderMappings[originalKey] || {};
-            const escapedValue = escapeForAppleStrings(value);
-            const convertedValue = convertPlaceholders(escapedValue, mapping);
-            output += `"${convertKebabToCamelCase(prefixedKey)}" = "${convertedValue}";\n`;
-        }
     }
 
     return output;
@@ -280,29 +250,6 @@ function writeFile(baseFolder, relativePath, content) {
 
     fs.writeFileSync(outputPath, content, 'utf8');
     console.log(`Wrote ${outputPath}`);
-}
-
-/**
- * Loads legacy strings for a language from JSON.
- */
-function loadLegacyStrings(lang, legacyFolder) {
-    if (!legacyFolder) {
-        return {};
-    }
-
-    let legacyPath = path.join(legacyFolder, `${lang}.json`);
-    if (!fs.existsSync(legacyPath)) {
-        return {};
-    }
-
-    try {
-        const data = fs.readFileSync(legacyPath, 'utf8');
-        const jsonData = JSON.parse(data);
-        return parseJsonKeys(jsonData);
-    } catch (err) {
-        console.error(`Warning: failed to load legacy strings from ${legacyPath}: ${err.message}`);
-        return {};
-    }
 }
 
 /**
