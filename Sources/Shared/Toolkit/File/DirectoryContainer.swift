@@ -42,7 +42,7 @@ public struct DirectoryContainer: Container, Loggable {
             includingPropertiesForKeys: [.isRegularFileKey],
             options: options
         ) {
-            for case let url as URL in enumerator {
+            for case let url as URL in enumerator.allObjects {
                 do {
                     let fileAttributes = try url.resourceValues(forKeys: [.isRegularFileKey])
                     if fileAttributes.isRegularFile == true, let entry = directory.relativize(url.anyURL) {
