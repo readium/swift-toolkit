@@ -55,7 +55,8 @@ ifndef DIR
 	rm -rf thorium-locales
 	git clone -b $(BRANCH) --single-branch --depth 1 https://github.com/edrlab/thorium-locales.git
 endif
-	node BuildTools/Scripts/convert-thorium-localizations.js thorium-locales apple
+	node BuildTools/Scripts/convert-thorium-localizations.js thorium-locales
 ifndef DIR
 	rm -rf thorium-locales
 endif
+	make format

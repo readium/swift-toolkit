@@ -13,23 +13,96 @@ const path = require('path');
 const { generateAccessibilityDisplayStringExtensions } = require('./generate-a11y-extensions');
 
 /**
+ * Plural suffixes used in thorium-locales JSON files (underscore format).
+ */
+const PLURAL_SUFFIXES = ['_zero', '_one', '_two', '_few', '_many', '_other'];
+
+/**
+ * Languages to process from thorium-locales.
+ */
+const LANGUAGES = ['en', 'fr', 'it'];
+
+/**
+ * Represents a localization key with support for plural forms.
+ */
+class LocalizationKey {
+    constructor(base, pluralForm = null) {
+        this.base = base;
+        this.pluralForm = pluralForm;
+    }
+
+    stripPrefix(prefix) {
+        if (!prefix || !this.base.startsWith(prefix)) {
+            return this;
+        }
+        return new LocalizationKey(this.base.slice(prefix.length), this.pluralForm);
+    }
+
+    toCamelCase() {
+        const camel = this.base
+            .split('-')
+            .map((word, index) => (index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)))
+            .join('');
+        return new LocalizationKey(camel, this.pluralForm);
+    }
+
+    matchesAnyPrefix(prefixes) {
+        return prefixes.some(prefix => this.base.startsWith(prefix));
+    }
+
+    toString() {
+        return this.base;
+    }
+}
+
+/**
+ * Represents a localization entry (key-value pair).
+ */
+class LocalizationEntry {
+    constructor(key, value, sourceKey = null) {
+        this.key = key;
+        this.value = value;
+        this.sourceKey = sourceKey;
+        this._placeholders = null;
+    }
+
+    get placeholders() {
+        if (this._placeholders === null) {
+            const regex = /\{\{\s*(\w+)\s*\}\}/g;
+            const found = [];
+            let match;
+            while ((match = regex.exec(this.value)) !== null) {
+                if (!found.includes(match[1])) {
+                    found.push(match[1]);
+                }
+            }
+            this._placeholders = found;
+        }
+        return this._placeholders;
+    }
+
+    get hasPlaceholders() {
+        return this.placeholders.length > 0;
+    }
+}
+
+/**
  * Configuration for a thorium-locales project.
  */
 class LocaleConfig {
-    /**
-     * @param {string} folder - The folder name in thorium-locales
-     * @param {string} stripPrefix - Prefix to strip from JSON keys
-     * @param {string} outputPrefix - Prefix to add to output keys
-     * @param {string} outputFolder - Output folder for .lproj directories
-     * @param {string[]|null} [includePrefixes] - Optional prefixes to include (if null, include all)
-     * @param {string} [tableName] - Output .strings file name (default: 'Localizable')
-     * @param {function|null} [keyTransform] - Optional function to transform keys: (key) => transformedKey
-     * @param {function|null} [postProcess] - Optional function called after writing .strings: (lang, keys, config, write) => void
-     * @param {boolean} [convertKeysToCamelCase] - Whether to convert output keys to camelCase (default: true)
-     */
-    constructor({ folder, stripPrefix = '', outputPrefix = '', outputFolder, includePrefixes = null, tableName = 'Localizable', keyTransform = null, postProcess = null, convertKeysToCamelCase = true }) {
+    constructor({
+        folder,
+        stripPrefix = '',
+        outputPrefix = '',
+        outputFolder,
+        includePrefixes = null,
+        tableName = 'Localizable',
+        keyTransform = null,
+        postProcess = null,
+        convertKeysToCamelCase = true
+    }) {
         if (!folder || !outputFolder) {
-            throw new Error('LocaleConfig requires folder, stripPrefix, outputPrefix, and outputFolder');
+            throw new Error('LocaleConfig requires folder and outputFolder');
         }
         this.folder = folder;
         this.stripPrefix = stripPrefix;
@@ -41,12 +114,217 @@ class LocaleConfig {
         this.postProcess = postProcess;
         this.convertKeysToCamelCase = convertKeysToCamelCase;
     }
+
+    transformEntry(entry) {
+        const sourceKey = entry.key;
+        let base = sourceKey.base;
+
+        if (this.stripPrefix && base.startsWith(this.stripPrefix)) {
+            base = base.slice(this.stripPrefix.length);
+        }
+        if (this.keyTransform) {
+            base = this.keyTransform(base);
+        }
+        if (this.outputPrefix) {
+            base = this.outputPrefix + base;
+        }
+
+        const newKey = new LocalizationKey(base, sourceKey.pluralForm);
+        return new LocalizationEntry(newKey, entry.value, sourceKey);
+    }
+
+    shouldInclude(entry) {
+        if (!this.includePrefixes) {
+            return true;
+        }
+        return entry.key.matchesAnyPrefix(this.includePrefixes);
+    }
 }
 
+// ============================================================================
+// Apple Strings Converter
+// ============================================================================
+
 /**
- * Configuration for each thorium-locales project.
- * Add new projects here as needed.
+ * Converts localization entries to Apple .strings format.
  */
+class AppleStringsConverter {
+    constructor(referenceEntries) {
+        this._placeholderMappings = this._buildPlaceholderMappings(referenceEntries);
+    }
+
+    /**
+     * Generates .strings file content for the given entries.
+     */
+    generate(lang, entries, config) {
+        const outputEntries = entries.map(entry => config.transformEntry(entry));
+
+        const disclaimer = `DO NOT EDIT. File generated automatically from the ${lang} JSON strings of https://github.com/edrlab/thorium-locales/.`;
+        let content = `// ${disclaimer}\n\n`;
+
+        for (const entry of outputEntries) {
+            content += this._formatEntry(entry, config.convertKeysToCamelCase) + '\n';
+        }
+
+        // Extract output keys for postProcess
+        const outputKeys = outputEntries.map(entry =>
+            this._formatKey(entry.key.stripPrefix(config.outputPrefix))
+        );
+
+        return { content, outputKeys };
+    }
+
+    _buildPlaceholderMappings(entries) {
+        const mappings = new Map();
+        for (const entry of entries) {
+            if (!entry.hasPlaceholders) continue;
+            const baseKey = entry.key.base;
+            if (mappings.has(baseKey)) continue;
+
+            const mapping = {};
+            entry.placeholders.forEach((name, index) => {
+                mapping[name] = index + 1;
+            });
+            mappings.set(baseKey, mapping);
+        }
+        return mappings;
+    }
+
+    _getPlaceholderMapping(key) {
+        return this._placeholderMappings.get(key.base) || {};
+    }
+
+    _formatEntry(entry, convertToCamelCase) {
+        const transformedKey = convertToCamelCase ? entry.key.toCamelCase() : entry.key;
+        const outputKey = this._formatKey(transformedKey);
+        const lookupKey = entry.sourceKey || entry.key;
+        const mapping = this._getPlaceholderMapping(lookupKey);
+        const escapedValue = this._escape(entry.value);
+        const convertedValue = this._convertPlaceholders(escapedValue, mapping);
+        return `"${outputKey}" = "${convertedValue}";`;
+    }
+
+    _formatKey(key) {
+        if (key.pluralForm) {
+            return `${key.base}@${key.pluralForm}`;
+        }
+        return key.base;
+    }
+
+    _escape(value) {
+        return value
+            .replace(/\\/g, '\\\\')
+            .replace(/"/g, '\\"')
+            .replace(/\n/g, '\\n')
+            .replace(/%/g, '%%');
+    }
+
+    _convertPlaceholders(value, mapping) {
+        if (Object.keys(mapping).length === 0) {
+            return value;
+        }
+        return value.replace(/\{\{\s*(\w+)\s*\}\}/g, (match, name) => {
+            const position = mapping[name];
+            if (position === undefined) {
+                return match;
+            }
+            const formatSpec = name === 'count' ? 'd' : '@';
+            return `%${position}$${formatSpec}`;
+        });
+    }
+}
+
+// ============================================================================
+// Utility Functions
+// ============================================================================
+
+function fail(message) {
+    console.error(`Error: ${message}`);
+    process.exit(1);
+}
+
+function writeFile(relativePath, content) {
+    const outputDir = path.dirname(relativePath);
+
+    try {
+        fs.mkdirSync(outputDir, { recursive: true });
+        fs.writeFileSync(relativePath, content, 'utf8');
+        console.log(`Wrote ${relativePath}`);
+    } catch (err) {
+        fail(`Failed to write ${relativePath}: ${err.message}`);
+    }
+}
+
+// ============================================================================
+// JSON Parsing
+// ============================================================================
+
+function parseJsonEntries(obj, prefix = '') {
+    const entries = [];
+
+    for (const [key, value] of Object.entries(obj)) {
+        const fullKey = prefix ? `${prefix}.${key}` : key;
+
+        if (typeof value === 'string') {
+            const pluralSuffix = PLURAL_SUFFIXES.find(suffix => fullKey.endsWith(suffix));
+            if (pluralSuffix) {
+                const baseKey = fullKey.slice(0, -pluralSuffix.length);
+                const pluralForm = pluralSuffix.slice(1);
+                entries.push(new LocalizationEntry(new LocalizationKey(baseKey, pluralForm), value));
+            } else {
+                entries.push(new LocalizationEntry(new LocalizationKey(fullKey), value));
+            }
+        } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            entries.push(...parseJsonEntries(value, fullKey));
+        } else {
+            console.warn(`Warning: Skipping unexpected value type for key "${fullKey}": ${typeof value}`);
+        }
+    }
+
+    return entries;
+}
+
+async function loadLanguageEntries(inputFolder, localeFolder) {
+    const languageEntries = new Map();
+    const folderPath = path.join(inputFolder, localeFolder);
+
+    if (!fs.existsSync(folderPath)) {
+        fail(`the ${localeFolder} folder was not found at ${folderPath}`);
+    }
+
+    console.log(`Processing folder: ${localeFolder}`);
+
+    const files = await fsPromises.readdir(folderPath);
+
+    for (const file of files) {
+        if (path.extname(file) !== '.json') continue;
+
+        const lang = path.basename(file, '.json').replace(/_/g, '-');
+        if (!LANGUAGES.includes(lang)) continue;
+
+        const filePath = path.join(folderPath, file);
+
+        try {
+            const data = await fsPromises.readFile(filePath, 'utf8');
+            const jsonData = JSON.parse(data);
+            const entries = parseJsonEntries(jsonData);
+
+            if (!languageEntries.has(lang)) {
+                languageEntries.set(lang, []);
+            }
+            languageEntries.get(lang).push(...entries);
+        } catch (err) {
+            fail(`processing ${file}: ${err.message}`);
+        }
+    }
+
+    return languageEntries;
+}
+
+// ============================================================================
+// Entry Point
+// ============================================================================
+
 const PROJECTS = {
     lcp: new LocaleConfig({
         folder: 'lcp',
@@ -64,44 +342,38 @@ const PROJECTS = {
         tableName: 'W3CAccessibilityMetadataDisplayGuide',
         keyTransform: key => key.replace(/\./g, '-'),
         convertKeysToCamelCase: false,
-        postProcess: (lang, keys, config, writeRoot) => {
-            // Only generate Swift extension for base language (English)
+        postProcess: (lang, keys, config) => {
             if (lang === 'en') {
                 generateAccessibilityDisplayStringExtensions(
                     keys,
                     'Sources/Shared/Publication/Accessibility/AccessibilityDisplayString+Generated.swift',
                     config.outputPrefix,
-                    writeRoot
+                    writeFile
                 );
             }
         }
     })
 };
 
-/**
- * Languages to process from thorium-locales.
- * Only these languages will be included in the output.
- */
-const LANGUAGES = ['en', 'fr', 'it'];
-
-// Parse arguments
 const args = process.argv.slice(2);
-const [inputFolder, outputFormat, ...projectNames] = args;
+const [inputFolder, ...projectNames] = args;
 
-// If no projects specified, process all configured projects
+if (!inputFolder) {
+    console.error('Usage: node convert-thorium-localizations.js <input-folder> [project...]');
+    console.error('');
+    console.error('Arguments:');
+    console.error('  input-folder    Path to the cloned thorium-locales repository');
+    console.error('  project         Optional project name(s) to process (default: all)');
+    console.error('');
+    console.error(`Available projects: ${Object.keys(PROJECTS).join(', ')}`);
+    process.exit(1);
+}
+
 const projectsToProcess = projectNames.length > 0
     ? projectNames
     : Object.keys(PROJECTS);
 
-/**
- * Ends the script with the given error message.
- */
-function fail(message) {
-    console.error(`Error: ${message}`);
-    process.exit(1);
-}
-
-async function processLocales() {
+async function processLocales(inputFolder, projectsToProcess) {
     for (const projectName of projectsToProcess) {
         const config = PROJECTS[projectName];
         if (!config) {
@@ -110,325 +382,31 @@ async function processLocales() {
 
         console.log(`\nProcessing project: ${projectName}`);
 
-        const languageKeys = await loadLanguageKeys(inputFolder, config.folder);
+        const languageEntries = await loadLanguageEntries(inputFolder, config.folder);
 
-        // Filter keys if includePrefixes is specified
-        if (config.includePrefixes) {
-            for (const [lang, keys] of languageKeys) {
-                const filteredKeys = {};
-                for (const [key, value] of Object.entries(keys)) {
-                    // Check if key starts with any of the allowed prefixes
-                    // Also handle plural keys by checking the base key (before @suffix)
-                    const baseKey = getBaseKey(key);
-                    if (config.includePrefixes.some(prefix => baseKey.startsWith(prefix))) {
-                        filteredKeys[key] = value;
-                    }
-                }
-                languageKeys.set(lang, filteredKeys);
-            }
+        // Filter entries
+        for (const [lang, entries] of languageEntries) {
+            const filtered = entries.filter(entry => config.shouldInclude(entry));
+            languageEntries.set(lang, filtered);
         }
 
-        const placeholderMappings = buildPlaceholderMappings(languageKeys);
+        // Create converter with English entries as reference
+        const englishEntries = languageEntries.get('en') || [];
+        const converter = new AppleStringsConverter(englishEntries);
 
-        const writeForProject = (relativePath, content) => {
-            writeFile(config.outputFolder, relativePath, content);
-        };
+        for (const [lang, entries] of languageEntries) {
+            const { content, outputKeys } = converter.generate(lang, entries, config);
 
-        for (const [lang, keys] of languageKeys) {
-            convert(lang, keys, config, writeForProject, placeholderMappings);
-        }
-    }
-}
+            // Write .strings file
+            const outputPath = path.join(config.outputFolder, `${lang}.lproj`, `${config.tableName}.strings`);
+            writeFile(outputPath, content);
 
-processLocales().catch(err => fail(err.message));
-
-/**
- * Converter for Apple localized strings.
- */
-function convertApple(lang, keys, config, write, placeholderMappings) {
-    const lproj = `${lang}.lproj`;
-    // Store both original key (for mapping lookup) and prefixed key (for output)
-    // Strip the configured prefix since the output prefix already indicates the context
-    const allEntries = Object.entries(keys).map(([key, value]) => {
-        let outputKey = stripKeyPrefix(key, config.stripPrefix);
-        // Apply custom key transformation if provided
-        if (config.keyTransform) {
-            outputKey = config.keyTransform(outputKey);
-        }
-        return [key, config.outputPrefix + outputKey, value];
-    });
-
-    // Generate .strings file using tableName (default: Localizable)
-    const tableName = config.tableName || 'Localizable';
-    write(path.join(lproj, `${tableName}.strings`), generateAppleStrings(lang, allEntries, placeholderMappings, config));
-
-    // Call postProcess if defined
-    if (config.postProcess) {
-        // Extract output keys (without prefix) for postProcess
-        const outputKeys = allEntries.map(([, prefixedKey]) =>
-            stripKeyPrefix(prefixedKey, config.outputPrefix)
-        );
-        // Provide a root-relative write function for postProcess
-        const writeRoot = (relativePath, content) => writeFile('.', relativePath, content);
-        config.postProcess(lang, outputKeys, config, writeRoot);
-    }
-}
-
-/**
- * Generates an Apple .strings file content from a list of [originalKey, prefixedKey, value] entries.
- */
-function generateAppleStrings(lang, entries, placeholderMappings, config) {
-    const disclaimer = `DO NOT EDIT. File generated automatically from the ${lang} JSON strings of https://github.com/edrlab/thorium-locales/.`;
-    let output = `// ${disclaimer}\n\n`;
-    const shouldConvertToCamelCase = config.convertKeysToCamelCase !== false;
-    for (const [originalKey, prefixedKey, value] of entries) {
-        // Use original key (without prefix) to look up placeholder mapping
-        const baseKey = getBaseKey(originalKey);
-        const mapping = placeholderMappings[originalKey] || placeholderMappings[baseKey] || {};
-        const escapedValue = escapeForAppleStrings(value);
-        const convertedValue = convertPlaceholders(escapedValue, mapping);
-        const outputKey = shouldConvertToCamelCase ? convertKebabToCamelCase(prefixedKey) : prefixedKey;
-        output += `"${outputKey}" = "${convertedValue}";\n`;
-    }
-
-    return output;
-}
-
-const converters = {
-    apple: convertApple
-};
-
-if (!inputFolder || !outputFormat) {
-    console.error('Usage: node convert-thorium-localizations.js <input-folder> <output-format> [project...]');
-    console.error('');
-    console.error('Arguments:');
-    console.error('  input-folder    Path to the cloned thorium-locales repository');
-    console.error('  output-format   Output format (apple)');
-    console.error('  project         Optional project name(s) to process (default: all)');
-    console.error('');
-    console.error(`Available projects: ${Object.keys(PROJECTS).join(', ')}`);
-    process.exit(1);
-}
-
-const convert = converters[outputFormat];
-if (!convert) {
-    fail(`unrecognized output format: ${outputFormat}, try: ${Object.keys(converters).join(', ')}.`);
-}
-
-/**
- * Loads all JSON locale files from the specified folder and returns a Map of language -> keys.
- */
-async function loadLanguageKeys(inputFolder, localeFolder) {
-    const languageKeys = new Map();
-    const folderPath = path.join(inputFolder, localeFolder);
-
-    if (!fs.existsSync(folderPath)) {
-        fail(`the ${localeFolder} folder was not found at ${folderPath}`);
-    }
-
-    console.log(`Processing folder: ${localeFolder}`);
-
-    const files = await fsPromises.readdir(folderPath);
-
-    for (const file of files) {
-        if (path.extname(file) !== '.json') continue;
-
-        // Normalize locale to BCP 47 format (hyphens) to merge keys from
-        // files like pt_PT.json and pt-PT.json into a single locale entry.
-        const lang = path.basename(file, '.json').replace(/_/g, '-');
-
-        // Skip languages not in the allowed list
-        if (!LANGUAGES.includes(lang)) {
-            continue;
-        }
-
-        const filePath = path.join(folderPath, file);
-
-        try {
-            const data = await fsPromises.readFile(filePath, 'utf8');
-            const jsonData = JSON.parse(data);
-            const keys = parseJsonKeys(jsonData);
-
-            if (!languageKeys.has(lang)) {
-                languageKeys.set(lang, {});
-            }
-            Object.assign(languageKeys.get(lang), keys);
-        } catch (err) {
-            fail(`processing ${file}: ${err.message}`);
-        }
-    }
-
-    return languageKeys;
-}
-
-/**
- * Builds placeholder-to-position mappings from English keys.
- * This ensures consistent argument ordering across all languages.
- */
-function buildPlaceholderMappings(languageKeys) {
-    const placeholderMappings = {};
-    const englishKeys = languageKeys.get('en');
-
-    if (englishKeys) {
-        for (const [key, value] of Object.entries(englishKeys)) {
-            const mapping = extractPlaceholderMapping(value);
-            if (Object.keys(mapping).length > 0) {
-                // For pluralized keys (ending with @one, @other, etc.), use the base key for mapping
-                const baseKey = getBaseKey(key);
-                // Only set if not already set (first plural form encountered sets the mapping)
-                if (!placeholderMappings[baseKey]) {
-                    placeholderMappings[baseKey] = mapping;
-                }
+            // Run postProcess hook
+            if (config.postProcess) {
+                config.postProcess(lang, outputKeys, config);
             }
         }
     }
-
-    return placeholderMappings;
 }
 
-/**
- * Writes the given content to the file path relative to the specified base folder.
- */
-function writeFile(baseFolder, relativePath, content) {
-    const outputPath = path.join(baseFolder, relativePath);
-    const outputDir = path.dirname(outputPath);
-
-    if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir, { recursive: true });
-    }
-
-    fs.writeFileSync(outputPath, content, 'utf8');
-    console.log(`Wrote ${outputPath}`);
-}
-
-/**
- * Strips the plural suffix from a key (e.g., @one, @other).
- */
-function getBaseKey(key) {
-    return key.replace(/@(zero|one|two|few|many|other)$/, '');
-}
-
-/**
- * Strips a prefix from a key.
- */
-function stripKeyPrefix(key, prefix) {
-    return key.startsWith(prefix) ? key.slice(prefix.length) : key;
-}
-
-/**
- * Recursively collects the JSON translation keys using dot notation and special handling for pluralization patterns.
- * Plural keys use flat format with underscore suffix (e.g., key_one, key_other) which are converted to @ suffix.
- */
-function parseJsonKeys(obj, prefix = '') {
-    const keys = {};
-    const pluralSuffixes = ['_zero', '_one', '_two', '_few', '_many', '_other'];
-
-    for (const [key, value] of Object.entries(obj)) {
-        const fullKey = prefix ? `${prefix}.${key}` : key;
-
-        if (typeof value === 'object' && value !== null) {
-            // Recursively process nested objects
-            Object.assign(keys, parseJsonKeys(value, fullKey));
-        } else {
-            // Check for plural suffix and convert underscore to @ notation
-            const pluralSuffix = pluralSuffixes.find(suffix => fullKey.endsWith(suffix));
-            if (pluralSuffix) {
-                const baseKey = fullKey.slice(0, -pluralSuffix.length);
-                const pluralForm = pluralSuffix.slice(1); // Remove leading underscore
-                keys[`${baseKey}@${pluralForm}`] = value;
-            } else {
-                // Simple key-value pair
-                keys[fullKey] = value;
-            }
-        }
-    }
-
-    return keys;
-}
-
-function convertKebabToCamelCase(string) {
-    return string
-        .split('-')
-        .map((word, index) => {
-            if (index === 0) {
-                return word;
-            }
-            return word.charAt(0).toUpperCase() + word.slice(1);
-        })
-        .join('');
-}
-
-/**
- * Extracts placeholders from a string and builds a mapping from placeholder name to position index.
- * Returns an object with placeholder names as keys and their positional index (1-based) as values.
- * Placeholders are assigned positions based on their order of appearance.
- */
-function extractPlaceholderMapping(value) {
-    const placeholderRegex = /\{\{\s*(\w+)\s*\}\}/g;
-    const placeholders = [];
-    let match;
-
-    while ((match = placeholderRegex.exec(value)) !== null) {
-        const name = match[1];
-        if (!placeholders.includes(name)) {
-            placeholders.push(name);
-        }
-    }
-
-    if (placeholders.length === 0) {
-        return {};
-    }
-
-    const mapping = {};
-    let position = 1;
-    for (const name of placeholders) {
-        mapping[name] = position++;
-    }
-
-    return mapping;
-}
-
-/**
- * Escapes special characters for iOS .strings format.
- * Must be called before placeholder conversion.
- *
- * - \ -> \\
- * - " -> \"
- * - newlines -> \n
- * - % -> %%
- */
-function escapeForAppleStrings(value) {
-    return value
-        // Escape backslashes first (before other escapes add more backslashes)
-        .replace(/\\/g, '\\\\')
-        // Escape double quotes
-        .replace(/"/g, '\\"')
-        // Escape newlines
-        .replace(/\n/g, '\\n')
-        // Escape literal % characters
-        .replace(/%/g, '%%');
-}
-
-/**
- * Converts Mustache-style placeholders to iOS format specifiers using the provided mapping.
- * Placeholders become `%N$@` (string format) or `%N$d` (integer format) for `count`.
- * Using %d for `count` allows the GenerateLocalizedUserString.swift script to identify the
- * count offset to resolve the pluralization form.
- */
-function convertPlaceholders(value, placeholderMap) {
-    if (Object.keys(placeholderMap).length === 0) {
-        return value;
-    }
-
-    return value.replace(/\{\{\s*(\w+)\s*\}\}/g, (match, name) => {
-        const position = placeholderMap[name];
-        if (position === undefined) {
-            // Placeholder not in mapping, leave unchanged
-            return match;
-        }
-
-        // Use %d for `count` placeholder, %@ for everything else
-        const formatSpec = (name === 'count') ? 'd' : '@';
-        return `%${position}$${formatSpec}`;
-    });
-}
+processLocales(inputFolder, projectsToProcess).catch(err => fail(err.message));
