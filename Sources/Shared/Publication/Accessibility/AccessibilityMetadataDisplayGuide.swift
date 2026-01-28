@@ -997,9 +997,14 @@ public struct AccessibilityDisplayString: RawRepresentable, ExpressibleByStringL
     /// - Parameter descriptive: When true, will return the long descriptive
     ///   statement.
     public func localized(descriptive: Bool) -> NSAttributedString {
-        NSAttributedString(string: bundleString("\(rawValue)-\(descriptive ? "descriptive" : "compact")")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        )
+        // Try the suffixed key first, then fall back to the unsuffixed key
+        // for strings where compact and descriptive variants are identical.
+        let suffixedKey = "\(rawValue)-\(descriptive ? "descriptive" : "compact")"
+        var string = bundleString(suffixedKey)
+        if string == suffixedKey {
+            string = bundleString(rawValue)
+        }
+        return NSAttributedString(string: string.trimmingCharacters(in: .whitespacesAndNewlines))
     }
 
     private func bundleString(_ key: String, _ values: CVarArg...) -> String {

@@ -30,6 +30,32 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
         )
     }
 
+    /// Tests the fallback behavior for strings without -compact/-descriptive
+    /// suffixes.
+    /// Some strings in thorium-locales have identical compact and descriptive
+    /// values, so they are stored with only the base key.
+    func testDisplayStatementLocalizedStringFallbackToBaseKey() {
+        // Test hazardsNoMetadata
+        XCTAssertEqual(
+            AccessibilityDisplayString.hazardsNoMetadata.localized(descriptive: false).string,
+            "No information is available"
+        )
+        XCTAssertEqual(
+            AccessibilityDisplayString.hazardsNoMetadata.localized(descriptive: true).string,
+            "No information is available"
+        )
+
+        // Test conformanceNo
+        XCTAssertEqual(
+            AccessibilityDisplayString.additionalAccessibilityInformationRubyAnnotations.localized(descriptive: false).string,
+            "Some Ruby annotations"
+        )
+        XCTAssertEqual(
+            AccessibilityDisplayString.additionalAccessibilityInformationRubyAnnotations.localized(descriptive: true).string,
+            "Some Ruby annotations"
+        )
+    }
+
     func testDisplayStatementCustomLocalizedString() {
         let statement = AccessibilityDisplayStatement(
             string: .waysOfReadingNonvisualReadingReadable,
