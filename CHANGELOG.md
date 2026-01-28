@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file. Take a look
 * EPUB manifest item fallbacks are now exposed as `alternates` in the corresponding `Link`.
 * EPUBs with only bitmap images in the spine are now treated as Divina publications with fixed layout.
     * When an EPUB spine item is HTML with a bitmap image fallback (or vice versa), the image is preferred as the primary link.
+* Standalone audio files (e.g. MP3) metadata extraction now includes `narrators` (from the composer metadata fields) and merges artist metadata into `authors`, following conventions used by common audiobook tools.
 
 ### Changed
 

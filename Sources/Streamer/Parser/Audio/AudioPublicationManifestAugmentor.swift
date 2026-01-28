@@ -52,16 +52,32 @@ public final class AVAudioPublicationManifestAugmentor: AudioPublicationManifest
         metadata.published = avMetadata.filter([.commonIdentifierCreationDate, .id3MetadataDate]).first(where: { $0.dateValue })
         metadata.languages = avMetadata.filter([.commonIdentifierLanguage, .id3MetadataLanguage]).compactMap(\.stringValue).removingDuplicates()
         metadata.subjects = avMetadata.filter([.commonIdentifierSubject]).compactMap(\.stringValue).removingDuplicates().map { Subject(name: $0) }
-        metadata.authors = avMetadata.filter([.commonIdentifierAuthor, .iTunesMetadataAuthor]).compactMap(\.stringValue).removingDuplicates().map { Contributor(name: $0) }
-        metadata.artists = avMetadata.filter([.commonIdentifierArtist, .id3MetadataOriginalArtist, .iTunesMetadataArtist, .iTunesMetadataOriginalArtist]).compactMap(\.stringValue).removingDuplicates().map { Contributor(name: $0) }
+        // Authors are often stored as "artist":
+        // - https://www.audiobookshelf.org/docs/#book-audio-metadata
+        // - https://github.com/denizsafak/abogen#about-metadata-tags
+        metadata.authors = avMetadata.filter(
+            [
+                .commonIdentifierAuthor,
+                .iTunesMetadataAuthor,
+                .commonIdentifierArtist,
+                .id3MetadataOriginalArtist,
+                .iTunesMetadataArtist,
+                .iTunesMetadataOriginalArtist,
+            ]
+        ).compactMap(\.stringValue).removingDuplicates().map { Contributor(name: $0) }
         metadata.illustrators = avMetadata.filter([.iTunesMetadataAlbumArtist]).compactMap(\.stringValue).removingDuplicates().map { Contributor(name: $0) }
         metadata.contributors = avMetadata.filter([.commonIdentifierContributor]).compactMap(\.stringValue).removingDuplicates().map { Contributor(name: $0) }
         metadata.publishers = avMetadata.filter([.commonIdentifierPublisher, .id3MetadataPublisher, .iTunesMetadataPublisher]).compactMap(\.stringValue).removingDuplicates().map { Contributor(name: $0) }
+        // Narrators are often stored as "composer":
+        // - https://www.audiobookshelf.org/docs/#book-audio-metadata
+        // - https://github.com/denizsafak/abogen#about-metadata-tags
+        metadata.narrators = avMetadata.filter([.id3MetadataComposer, .iTunesMetadataComposer]).compactMap(\.stringValue).removingDuplicates().map { Contributor(name: $0) }
         metadata.description = avMetadata.filter([.commonIdentifierDescription, .iTunesMetadataDescription]).first?.stringValue
         metadata.duration = avAssets.reduce(0) { duration, avAsset in
             guard let duration = duration, let avAsset = avAsset else { return nil }
             return duration + avAsset.duration.seconds
         }
+
         manifest.metadata = metadata
         let cover = avMetadata.filter([.commonIdentifierArtwork, .id3MetadataAttachedPicture, .iTunesMetadataCoverArt]).first(where: { $0.dataValue.flatMap(UIImage.init(data:)) })
         return .init(manifest: manifest, cover: cover)
