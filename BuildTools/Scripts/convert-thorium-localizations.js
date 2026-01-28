@@ -10,6 +10,7 @@
 const fs = require('fs');
 const fsPromises = fs.promises;
 const path = require('path');
+const { generateAccessibilityDisplayStringExtensions } = require('./generate-a11y-extensions');
 
 /**
  * Configuration for a thorium-locales project.
@@ -21,9 +22,13 @@ class LocaleConfig {
      * @param {string} outputPrefix - Prefix to add to output keys
      * @param {string} outputFolder - Output folder for .lproj directories
      * @param {string[]|null} [includePrefixes] - Optional prefixes to include (if null, include all)
+     * @param {string} [tableName] - Output .strings file name (default: 'Localizable')
+     * @param {function|null} [keyTransform] - Optional function to transform keys: (key) => transformedKey
+     * @param {function|null} [postProcess] - Optional function called after writing .strings: (lang, keys, config, write) => void
+     * @param {boolean} [convertKeysToCamelCase] - Whether to convert output keys to camelCase (default: true)
      */
-    constructor({ folder, stripPrefix, outputPrefix, outputFolder, includePrefixes = null }) {
-        if (!folder || !stripPrefix || !outputPrefix || !outputFolder) {
+    constructor({ folder, stripPrefix = '', outputPrefix = '', outputFolder, includePrefixes = null, tableName = 'Localizable', keyTransform = null, postProcess = null, convertKeysToCamelCase = true }) {
+        if (!folder || !outputFolder) {
             throw new Error('LocaleConfig requires folder, stripPrefix, outputPrefix, and outputFolder');
         }
         this.folder = folder;
@@ -31,6 +36,10 @@ class LocaleConfig {
         this.outputPrefix = outputPrefix;
         this.outputFolder = outputFolder;
         this.includePrefixes = includePrefixes;
+        this.tableName = tableName;
+        this.keyTransform = keyTransform;
+        this.postProcess = postProcess;
+        this.convertKeysToCamelCase = convertKeysToCamelCase;
     }
 }
 
@@ -41,10 +50,31 @@ class LocaleConfig {
 const PROJECTS = {
     lcp: new LocaleConfig({
         folder: 'lcp',
-        stripPrefix: 'lcp.',
-        outputPrefix: 'ReadiumLCP.',
+        outputPrefix: 'readium.',
         outputFolder: 'Sources/LCP/Resources',
         includePrefixes: ['lcp.dialog']
+    }),
+
+    a11y: new LocaleConfig({
+        folder: 'publication-metadata',
+        stripPrefix: 'publication.metadata.accessibility.display-guide.',
+        outputPrefix: 'readium.a11y.',
+        outputFolder: 'Sources/Shared/Resources',
+        includePrefixes: ['publication.metadata.accessibility.display-guide'],
+        tableName: 'W3CAccessibilityMetadataDisplayGuide',
+        keyTransform: key => key.replace(/\./g, '-'),
+        convertKeysToCamelCase: false,
+        postProcess: (lang, keys, config, writeRoot) => {
+            // Only generate Swift extension for base language (English)
+            if (lang === 'en') {
+                generateAccessibilityDisplayStringExtensions(
+                    keys,
+                    'Sources/Shared/Publication/Accessibility/AccessibilityDisplayString+Generated.swift',
+                    config.outputPrefix,
+                    writeRoot
+                );
+            }
+        }
     })
 };
 
@@ -119,27 +149,46 @@ function convertApple(lang, keys, config, write, placeholderMappings) {
     const lproj = `${lang}.lproj`;
     // Store both original key (for mapping lookup) and prefixed key (for output)
     // Strip the configured prefix since the output prefix already indicates the context
-    const allEntries = Object.entries(keys).map(([key, value]) =>
-        [key, config.outputPrefix + stripKeyPrefix(key, config.stripPrefix), value]
-    );
+    const allEntries = Object.entries(keys).map(([key, value]) => {
+        let outputKey = stripKeyPrefix(key, config.stripPrefix);
+        // Apply custom key transformation if provided
+        if (config.keyTransform) {
+            outputKey = config.keyTransform(outputKey);
+        }
+        return [key, config.outputPrefix + outputKey, value];
+    });
 
-    // Generate Localizable.strings
-    write(path.join(lproj, 'Localizable.strings'), generateAppleStrings(lang, allEntries, placeholderMappings));
+    // Generate .strings file using tableName (default: Localizable)
+    const tableName = config.tableName || 'Localizable';
+    write(path.join(lproj, `${tableName}.strings`), generateAppleStrings(lang, allEntries, placeholderMappings, config));
+
+    // Call postProcess if defined
+    if (config.postProcess) {
+        // Extract output keys (without prefix) for postProcess
+        const outputKeys = allEntries.map(([, prefixedKey]) =>
+            stripKeyPrefix(prefixedKey, config.outputPrefix)
+        );
+        // Provide a root-relative write function for postProcess
+        const writeRoot = (relativePath, content) => writeFile('.', relativePath, content);
+        config.postProcess(lang, outputKeys, config, writeRoot);
+    }
 }
 
 /**
  * Generates an Apple .strings file content from a list of [originalKey, prefixedKey, value] entries.
  */
-function generateAppleStrings(lang, entries, placeholderMappings) {
+function generateAppleStrings(lang, entries, placeholderMappings, config) {
     const disclaimer = `DO NOT EDIT. File generated automatically from the ${lang} JSON strings of https://github.com/edrlab/thorium-locales/.`;
     let output = `// ${disclaimer}\n\n`;
+    const shouldConvertToCamelCase = config.convertKeysToCamelCase !== false;
     for (const [originalKey, prefixedKey, value] of entries) {
         // Use original key (without prefix) to look up placeholder mapping
         const baseKey = getBaseKey(originalKey);
         const mapping = placeholderMappings[originalKey] || placeholderMappings[baseKey] || {};
         const escapedValue = escapeForAppleStrings(value);
         const convertedValue = convertPlaceholders(escapedValue, mapping);
-        output += `"${convertKebabToCamelCase(prefixedKey)}" = "${convertedValue}";\n`;
+        const outputKey = shouldConvertToCamelCase ? convertKebabToCamelCase(prefixedKey) : prefixedKey;
+        output += `"${outputKey}" = "${convertedValue}";\n`;
     }
 
     return output;

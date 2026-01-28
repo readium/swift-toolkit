@@ -384,13 +384,13 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         public var statements: [AccessibilityDisplayStatement] {
             Array {
                 if extendedAltTextDescriptions {
-                    $0.append(.richContentExtended)
+                    $0.append(.richContentExtendedDescriptions)
                 }
                 if mathFormula {
                     $0.append(.richContentAccessibleMathDescribed)
                 }
                 if mathFormulaAsMathML {
-                    $0.append(.richContentAccessibleMathAsMathml)
+                    $0.append(.richContentMathAsMathml)
                 }
                 if mathFormulaAsLaTeX {
                     $0.append(.richContentAccessibleMathAsLatex)
@@ -1023,4 +1023,14 @@ private extension Array where Element == AccessibilityDisplayStatement {
     mutating func append(_ string: AccessibilityDisplayString) {
         append(AccessibilityDisplayStatement(string: string))
     }
+}
+
+// MARK: - Deprecated Aliases
+
+public extension AccessibilityDisplayString {
+    @available(*, deprecated, renamed: "richContentExtendedDescriptions")
+    static var richContentExtended: Self { richContentExtendedDescriptions }
+
+    @available(*, deprecated, renamed: "richContentMathAsMathml")
+    static var richContentAccessibleMathAsMathml: Self { richContentMathAsMathml }
 }

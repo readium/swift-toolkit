@@ -433,9 +433,9 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 transcript: true
             ).statements.map(\.id),
             [
-                .richContentExtended,
+                .richContentExtendedDescriptions,
                 .richContentAccessibleMathDescribed,
-                .richContentAccessibleMathAsMathml,
+                .richContentMathAsMathml,
                 .richContentAccessibleMathAsLatex,
                 .richContentAccessibleChemistryAsMathml,
                 .richContentAccessibleChemistryAsLatex,
@@ -459,7 +459,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 transcript: false
             ).statements.map(\.id),
             [
-                .richContentExtended,
+                .richContentExtendedDescriptions,
             ]
         )
 
@@ -493,7 +493,7 @@ class AccessibilityMetadataDisplayGuideTests: XCTestCase {
                 transcript: false
             ).statements.map(\.id),
             [
-                .richContentAccessibleMathAsMathml,
+                .richContentMathAsMathml,
             ]
         )
 

@@ -679,8 +679,12 @@
 ../../Sources/Shared/Publication/Subject.swift
 ../../Sources/Shared/Publication/TDM.swift
 ../../Sources/Shared/Resources
-../../Sources/Shared/Resources/en-US.lproj
-../../Sources/Shared/Resources/en-US.lproj/W3CAccessibilityMetadataDisplayGuide.strings
+../../Sources/Shared/Resources/en.lproj
+../../Sources/Shared/Resources/en.lproj/W3CAccessibilityMetadataDisplayGuide.strings
+../../Sources/Shared/Resources/fr.lproj
+../../Sources/Shared/Resources/fr.lproj/W3CAccessibilityMetadataDisplayGuide.strings
+../../Sources/Shared/Resources/it.lproj
+../../Sources/Shared/Resources/it.lproj/W3CAccessibilityMetadataDisplayGuide.strings
 ../../Sources/Shared/Toolkit
 ../../Sources/Shared/Toolkit/Archive
 ../../Sources/Shared/Toolkit/Archive/ArchiveOpener.swift
