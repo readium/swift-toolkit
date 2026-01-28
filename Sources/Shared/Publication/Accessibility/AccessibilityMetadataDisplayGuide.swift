@@ -384,13 +384,13 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
         public var statements: [AccessibilityDisplayStatement] {
             Array {
                 if extendedAltTextDescriptions {
-                    $0.append(.richContentExtended)
+                    $0.append(.richContentExtendedDescriptions)
                 }
                 if mathFormula {
                     $0.append(.richContentAccessibleMathDescribed)
                 }
                 if mathFormulaAsMathML {
-                    $0.append(.richContentAccessibleMathAsMathml)
+                    $0.append(.richContentMathAsMathml)
                 }
                 if mathFormulaAsLaTeX {
                     $0.append(.richContentAccessibleMathAsLatex)
@@ -997,9 +997,14 @@ public struct AccessibilityDisplayString: RawRepresentable, ExpressibleByStringL
     /// - Parameter descriptive: When true, will return the long descriptive
     ///   statement.
     public func localized(descriptive: Bool) -> NSAttributedString {
-        NSAttributedString(string: bundleString("\(rawValue)-\(descriptive ? "descriptive" : "compact")")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        )
+        // Try the suffixed key first, then fall back to the unsuffixed key
+        // for strings where compact and descriptive variants are identical.
+        let suffixedKey = "\(rawValue)-\(descriptive ? "descriptive" : "compact")"
+        var string = bundleString(suffixedKey)
+        if string == suffixedKey {
+            string = bundleString(rawValue)
+        }
+        return NSAttributedString(string: string.trimmingCharacters(in: .whitespacesAndNewlines))
     }
 
     private func bundleString(_ key: String, _ values: CVarArg...) -> String {
@@ -1023,4 +1028,14 @@ private extension Array where Element == AccessibilityDisplayStatement {
     mutating func append(_ string: AccessibilityDisplayString) {
         append(AccessibilityDisplayStatement(string: string))
     }
+}
+
+// MARK: - Deprecated Aliases
+
+public extension AccessibilityDisplayString {
+    @available(*, deprecated, renamed: "richContentExtendedDescriptions")
+    static var richContentExtended: Self { richContentExtendedDescriptions }
+
+    @available(*, deprecated, renamed: "richContentMathAsMathml")
+    static var richContentAccessibleMathAsMathml: Self { richContentMathAsMathml }
 }
