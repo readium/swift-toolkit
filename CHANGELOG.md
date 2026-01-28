@@ -27,6 +27,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 * The iOS minimum deployment target is now iOS 15.0.
 
+#### Shared
+
+* Accessibility display strings are now sourced from the [thorium-locales](https://github.com/edrlab/thorium-locales/) repository (instead of W3C's repository). Contributions are welcome on [Weblate](https://hosted.weblate.org/projects/thorium-reader/publication-metadata/).
+
 #### LCP
 
 * The LCP dialog used by `LCPDialogAuthentication` has been redesigned.
