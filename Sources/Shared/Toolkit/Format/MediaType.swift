@@ -188,7 +188,7 @@ public struct MediaType: Hashable, Loggable, Sendable {
 
     /// Returns whether this media type is of a bitmap image, so excluding vectorial formats.
     public var isBitmap: Bool {
-        matchesAny(.bmp, .gif, .jpeg, .jxl, .png, .tiff, .webp)
+        matchesAny(.avif, .bmp, .gif, .jpeg, .jxl, .png, .tiff, .webp)
     }
 
     /// Returns whether this media type is of an audio clip.

@@ -80,10 +80,12 @@ class ImageParserTests: XCTestCase {
         ])
     }
 
-    func testFirstReadingOrderItemIsCover() async throws {
+    /// When no ComicInfo.xml declares a cover, no `cover` rel should be set.
+    /// The cover will be determined at runtime with the default
+    /// `ResourceCoverService`.
+    func testNoCoverRelWhenNoExplicitCover() async throws {
         let publication = try await parser.parse(asset: cbzAsset, warnings: nil).get().build()
-        let cover = try XCTUnwrap(publication.linkWithRel(.cover))
-        XCTAssertEqual(publication.readingOrder.first, cover)
+        XCTAssertNil(publication.linkWithRel(.cover))
     }
 
     func testPositions() async throws {

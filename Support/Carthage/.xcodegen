@@ -662,6 +662,7 @@
 ../../Sources/Shared/Publication/Services/Cover
 ../../Sources/Shared/Publication/Services/Cover/CoverService.swift
 ../../Sources/Shared/Publication/Services/Cover/GeneratedCoverService.swift
+../../Sources/Shared/Publication/Services/Cover/ResourceCoverService.swift
 ../../Sources/Shared/Publication/Services/Locator
 ../../Sources/Shared/Publication/Services/Locator/DefaultLocatorService.swift
 ../../Sources/Shared/Publication/Services/Locator/LocatorService.swift
