@@ -142,19 +142,16 @@ public final class ImageParser: PublicationParser {
             )
         }
 
-        // Determine cover page index
-        let coverIndex: Int
+        // Set cover if explicitly declared in ComicInfo.xml
+        var coverIndex: Int?
         if
             let coverPage = comicInfo?.firstPageWithType(.frontCover),
             coverPage.image >= 0,
             coverPage.image < readingOrder.count
         {
             coverIndex = coverPage.image
-        } else {
-            // Default: first resource is the cover
-            coverIndex = 0
+            readingOrder[coverPage.image].rels.append(.cover)
         }
-        readingOrder[coverIndex].rels.append(.cover)
 
         // Determine story start index (where actual content begins)
         // Only set if different from cover page (prefer .cover if same page)
