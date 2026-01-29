@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Shared
 
 * Added support for JXL (JPEG XL) bitmap images. JXL is decoded natively on iOS 17+.
+* `Publication.cover()` now falls back on the first reading order resource if it's a bitmap image and no cover is declared.
 
 #### Navigator
 
