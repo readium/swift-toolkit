@@ -7,53 +7,67 @@
 
 ## Features
 
-✅ Implemented &nbsp;&nbsp;&nbsp;&nbsp; 🚧 Partially implemented  &nbsp;&nbsp;&nbsp;&nbsp; 📆 Planned &nbsp;&nbsp;&nbsp;&nbsp; 👀 Want to do &nbsp;&nbsp;&nbsp;&nbsp; ❓ Not planned
+✅ Implemented &nbsp;&nbsp;&nbsp;&nbsp; 🚧 Partially implemented  &nbsp;&nbsp;&nbsp;&nbsp; 📆 Planned &nbsp;&nbsp;&nbsp;&nbsp; 👀 Want to do &nbsp;&nbsp;&nbsp;&nbsp; ❌ Not planned
 
 ### Formats
 
-| Format | Status |
-|---|:---:|
-| EPUB 2 | ✅ |
-| EPUB 3 | ✅ |
-| Readium Web Publication | 🚧 |
-| PDF | ✅ |
-| Readium Audiobook | ✅ |
-| Zipped Audiobook | ✅ |
-| Standalone audio files (MP3, AAC, etc.) | ✅ |
-| Readium Divina | 🚧 |
-| CBZ (Comic Book ZIP) | 🚧 |
-| CBR (Comic Book RAR) | ❓ |
-| [DAISY](https://daisy.org/activities/standards/daisy/) | 👀 |
+#### Ebook and Document Formats
+
+| Format                                                 | Status |
+|--------------------------------------------------------|:------:|
+| EPUB (reflowable)                                      |   ✅   |
+| EPUB (fixed-layout)                                    |   ✅   |
+| PDF                                                    |   ✅   |
+| Readium Web Publication                                |   🚧   |
+| [DAISY](https://daisy.org/activities/standards/daisy/) |   👀   |
+
+#### Audiobook Formats
+
+| Format                                                 | Status |
+|--------------------------------------------------------|:------:|
+| Readium Audiobook                                      |   ✅   |
+| Zipped Audiobook                                       |   ✅   |
+| Standalone audio files (MP3, AAC, etc.)                |   ✅   |
+| [DAISY](https://daisy.org/activities/standards/daisy/) |   👀   |
+
+#### Comic Formats
+
+| Format               | Status |
+|----------------------|:------:|
+| Readium Divina       |   ✅   |
+| CBZ (Comic Book ZIP) |   ✅   |
+| CBR (Comic Book RAR) |   ❌   |
 
 ### Features
 
 A number of features are implemented only for some publication formats.
 
-| Feature | EPUB (reflow) | EPUB (FXL) | PDF |
-|---|:---:|:---:|:---:|
-| Pagination | ✅ | ✅ | ✅ |
-| Scrolling | ✅ | 👀 | ✅ |
-| Right-to-left (RTL) | ✅ | ✅ |  ✅ |
-| Search in textual content | ✅ | ✅ | 👀 |
-| Highlighting (Decoration API) | ✅ | ✅ | 👀 |
-| Text-to-speech (TTS) | ✅ | ✅ | 👀 |
-| Media overlays | 📆 | 📆 | |
+| Feature                       | EPUB (reflow) | EPUB (FXL) | PDF |
+|-------------------------------|:-------------:|:----------:|:---:|
+| Pagination                    |       ✅      |     ✅     |  ✅ |
+| Scrolling                     |       ✅      |     👀     |  ✅ |
+| Right-to-left (RTL)           |       ✅      |     ✅     |  ✅ |
+| Search in textual content     |       ✅      |     ✅     |  👀 |
+| Highlighting (Decoration API) |       ✅      |     ✅     |  👀 |
+| Text-to-speech (TTS)          |       ✅      |     ✅     |  👀 |
+| Media overlays                |       📆      |     📆     |     |
 
 ### OPDS Support
 
-| Feature | Status |
-|---|:---:|
-| [OPDS Catalog 1.2](https://specs.opds.io/opds-1.2) | ✅ | 
-| [OPDS Catalog 2.0](https://drafts.opds.io/opds-2.0) | ✅ | 
-| [Authentication for OPDS](https://drafts.opds.io/authentication-for-opds-1.0.html) | 📆 |
-| [Readium LCP Automatic Key Retrieval](https://readium.org/lcp-specs/notes/lcp-key-retrieval.html) | 📆 |
+| Feature                                                                                           | Status |
+|---------------------------------------------------------------------------------------------------|:------:|
+| [OPDS Catalog 1.2](https://specs.opds.io/opds-1.2)                                                |   ✅   |
+| [OPDS Catalog 2.0](https://drafts.opds.io/opds-2.0)                                               |   ✅   |
+| [Authentication for OPDS](https://drafts.opds.io/authentication-for-opds-1.0.html)                |   📆   |
+| [OPDS Progression](https://github.com/opds-community/drafts/pull/91)                              |   📆   |
+| [Readium LCP Automatic Key Retrieval](https://readium.org/lcp-specs/notes/lcp-key-retrieval.html) |   📆   |
 
 ### DRM Support
 
-| Feature | Status |
-|---|:---:|
-| [Readium LCP](https://www.edrlab.org/projects/readium-lcp/) | ✅ |
-| [Adobe ACS](https://www.adobe.com/fr/solutions/ebook/content-server.html) | ❓ |
+| Feature                                                                   | Status |
+|---------------------------------------------------------------------------|:------:|
+| [Readium LCP](https://www.edrlab.org/projects/readium-lcp/)               |   ✅   |
+| [Adobe ACS](https://www.adobe.com/fr/solutions/ebook/content-server.html) |   ❌   |
 
 
 ## User Guides
