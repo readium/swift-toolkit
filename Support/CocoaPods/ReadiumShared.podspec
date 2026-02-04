@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.source_files  = "Sources/Shared/**/*.{m,h,swift}"
   s.swift_version = '5.10'
   s.platform     = :ios
-  s.ios.deployment_target = "13.4"
+  s.ios.deployment_target = "15.0"
   s.frameworks   = "CoreServices"
   s.libraries =  "xml2"
   s.xcconfig = { 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2' }
