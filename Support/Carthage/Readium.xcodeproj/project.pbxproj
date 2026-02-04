@@ -700,6 +700,7 @@
 		8DC02496961068F28D1B2A52 /* Key.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Key.swift; sourceTree = "<group>"; };
 		8EA0008AF1B9B97962824D85 /* FallbackContentProtection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FallbackContentProtection.swift; sourceTree = "<group>"; };
 		8F485F9F15CF41925D2D3D5C /* ActivatePointerObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivatePointerObserver.swift; sourceTree = "<group>"; };
+		8FC5570EB4530B7BD60A6A88 /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Localizable.strings; sourceTree = "<group>"; };
 		91F34B9B08BC6FB84CE54A26 /* LCPProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPProgress.swift; sourceTree = "<group>"; };
 		9234A0351FDE626D8D242223 /* ContainerLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerLicenseContainer.swift; sourceTree = "<group>"; };
 		925CDE3176715EBEBF40B21F /* GeneratedCoverService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratedCoverService.swift; sourceTree = "<group>"; };
@@ -2864,6 +2865,7 @@
 			children = (
 				B7C9D54352714641A87F64A0 /* en */,
 				0885992D0F70AD0B493985CE /* fr */,
+				8FC5570EB4530B7BD60A6A88 /* it */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";

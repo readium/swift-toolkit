@@ -379,6 +379,8 @@
 ../../Sources/LCP/Resources/en.lproj/Localizable.strings
 ../../Sources/LCP/Resources/fr.lproj
 ../../Sources/LCP/Resources/fr.lproj/Localizable.strings
+../../Sources/LCP/Resources/it.lproj
+../../Sources/LCP/Resources/it.lproj/Localizable.strings
 ../../Sources/LCP/Resources/prod-license.lcpl
 ../../Sources/LCP/Services
 ../../Sources/LCP/Services/CRLService.swift
