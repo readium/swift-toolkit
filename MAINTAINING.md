@@ -25,28 +25,30 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
     4. Bump the version numbers in `TestApp/Sources/Info.plist`.
     5. Close the version in the `CHANGELOG.md`, [for example](https://github.com/readium/swift-toolkit/pull/353/commits/a0714589b3da928dd923ba78f379116715797333#diff-06572a96a58dc510037d5efa622f9bec8519bc1beab13c9f251e97e657a9d4ed).
     6. Create a PR to merge in `develop` and verify the CI workflows.
-    7. Squash and merge the PR.
-    8. Tag the new version from `develop`.
-        ```shell
-        git checkout develop
-        git pull
-        git tag -a 3.0.1 -m 3.0.1
-        git push --tags
-        ```
-    9. Release the updated Podspecs:
+    7. Release the updated Podspecs:
         ```shell
         cd Support/CocoaPods
 
         pod repo add readium git@github.com:readium/podspecs.git
 
         pod repo push readium ReadiumInternal.podspec
+
         pod repo push readium ReadiumShared.podspec
+        
         pod repo push readium ReadiumStreamer.podspec
         pod repo push readium ReadiumNavigator.podspec
         pod repo push readium ReadiumOPDS.podspec
         pod repo push readium ReadiumLCP.podspec
         pod repo push readium ReadiumAdapterGCDWebServer.podspec
         pod repo push readium ReadiumAdapterLCPSQLite.podspec
+        ```
+    8. Squash and merge the PR.
+    9. Tag the new version from `develop`.
+        ```shell
+        git checkout develop
+        git pull
+        git tag -a 3.0.1 -m 3.0.1
+        git push --tags
         ```
 7. Verify you can fetch the new version from the latest Test App with `make spm|carthage|cocoapods version=3.0.1`
 8. Announce the release.
