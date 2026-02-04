@@ -75,7 +75,7 @@
 "readium.a11y.hazards-title" = "Points d'attention";
 "readium.a11y.hazards-unknown" = "La présence de risques est inconnue";
 "readium.a11y.legal-considerations-exempt-compact" = "Déclare être sous le coup d'une exemption dans certaines juridictions";
-"readium.a11y.legal-considerations-exempt-descriptive" = "Cette publication dééclare être sous le coup d'une exemption dans certaines juridictions";
+"readium.a11y.legal-considerations-exempt-descriptive" = "Cette publication déclare être sous le coup d'une exemption dans certaines juridictions";
 "readium.a11y.legal-considerations-no-metadata" = "Aucune information disponible";
 "readium.a11y.legal-considerations-title" = "Considérations légales";
 "readium.a11y.navigation-index-compact" = "Index";

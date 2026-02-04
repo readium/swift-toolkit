@@ -81,7 +81,7 @@
           "target" : "ReadiumInternal"
         }
       ],
-      "deploymentTarget" : "13.4",
+      "deploymentTarget" : "15.0",
       "platform" : "iOS",
       "settings" : {
         "INFOPLIST_FILE" : "Info.plist",
@@ -106,7 +106,7 @@
           "target" : "ReadiumLCP"
         }
       ],
-      "deploymentTarget" : "13.4",
+      "deploymentTarget" : "15.0",
       "platform" : "iOS",
       "settings" : {
         "INFOPLIST_FILE" : "Info.plist",
@@ -120,7 +120,7 @@
       "type" : "framework"
     },
     "ReadiumInternal" : {
-      "deploymentTarget" : "13.4",
+      "deploymentTarget" : "15.0",
       "platform" : "iOS",
       "settings" : {
         "INFOPLIST_FILE" : "Info.plist",
@@ -151,7 +151,7 @@
           "target" : "ReadiumInternal"
         }
       ],
-      "deploymentTarget" : "13.4",
+      "deploymentTarget" : "15.0",
       "platform" : "iOS",
       "settings" : {
         "INFOPLIST_FILE" : "Info.plist",
@@ -182,7 +182,7 @@
           "target" : "ReadiumInternal"
         }
       ],
-      "deploymentTarget" : "13.4",
+      "deploymentTarget" : "15.0",
       "platform" : "iOS",
       "settings" : {
         "INFOPLIST_FILE" : "Info.plist",
@@ -215,7 +215,7 @@
           "target" : "ReadiumInternal"
         }
       ],
-      "deploymentTarget" : "13.4",
+      "deploymentTarget" : "15.0",
       "platform" : "iOS",
       "settings" : {
         "INFOPLIST_FILE" : "Info.plist",
@@ -249,7 +249,7 @@
           "sdk" : "CoreServices.framework"
         }
       ],
-      "deploymentTarget" : "13.4",
+      "deploymentTarget" : "15.0",
       "platform" : "iOS",
       "settings" : {
         "INFOPLIST_FILE" : "Info.plist",
@@ -277,7 +277,7 @@
           "target" : "ReadiumInternal"
         }
       ],
-      "deploymentTarget" : "13.4",
+      "deploymentTarget" : "15.0",
       "platform" : "iOS",
       "settings" : {
         "INFOPLIST_FILE" : "Info.plist",
@@ -379,6 +379,8 @@
 ../../Sources/LCP/Resources/en.lproj/Localizable.strings
 ../../Sources/LCP/Resources/fr.lproj
 ../../Sources/LCP/Resources/fr.lproj/Localizable.strings
+../../Sources/LCP/Resources/it.lproj
+../../Sources/LCP/Resources/it.lproj/Localizable.strings
 ../../Sources/LCP/Resources/prod-license.lcpl
 ../../Sources/LCP/Services
 ../../Sources/LCP/Services/CRLService.swift

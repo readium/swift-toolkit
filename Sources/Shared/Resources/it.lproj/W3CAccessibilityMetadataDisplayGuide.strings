@@ -28,7 +28,7 @@
 "readium.a11y.conformance-a-compact" = "Questa pubblicazione soddisfa gli standard minimi di accessibilità";
 "readium.a11y.conformance-a-descriptive" = "La pubblicazione contiene una dichiarazione di conformità che attesta il rispetto degli standard EPUB Accessibility e WCAG 2 Livello A";
 "readium.a11y.conformance-aa-compact" = "Questa pubblicazione soddisfa gli standard di accessibilità accettati";
-"readium.a11y.conformance-aa-descriptive" = "La pubblicazione contiene una dichiarazione di conformità che attesta il rispetto degli standard EPUB Accessibility e WCAG 2 Livello AAA";
+"readium.a11y.conformance-aa-descriptive" = "La pubblicazione contiene una dichiarazione di conformità che attesta il rispetto degli standard EPUB Accessibility e WCAG 2 Livello AA";
 "readium.a11y.conformance-aaa-compact" = "Questa pubblicazione supera gli standard di accessibilità";
 "readium.a11y.conformance-aaa-descriptive" = "La pubblicazione contiene una dichiarazione di conformità che attesta il rispetto degli standard EPUB Accessibility e WCAG 2 Livello AAA";
 "readium.a11y.conformance-certifier" = "La pubblicazione è stata certificata da ";
