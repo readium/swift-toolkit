@@ -14,8 +14,10 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
         ```
     4. Try to run the Test App, adjusting the integration if needed.
     5. Delete the Git tag created previously.
-3. Update the [migration guide](Documentation/Migration%20Guide.md) in case of breaking changes.
-4. Issue the new release.
+3. Update the localized strings (`make update-locales`).
+4. Review the list of supported features in `README.md`.
+5. Update the [migration guide](Documentation/Migration%20Guide.md) in case of breaking changes.
+6. Issue the new release.
     1. Create a branch with the same name as the future tag, from `develop`.
     2. Bump the version numbers in the `Support/CocoaPods/*.podspec` files.
         * :warning: Don't forget to bump the version numbers of the Readium dependencies as well.
@@ -46,10 +48,9 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
         pod repo push readium ReadiumAdapterGCDWebServer.podspec
         pod repo push readium ReadiumAdapterLCPSQLite.podspec
         ```
-5. Verify you can fetch the new version from the latest Test App with `make spm|carthage|cocoapods version=3.0.1`
-7. Announce the release.
+7. Verify you can fetch the new version from the latest Test App with `make spm|carthage|cocoapods version=3.0.1`
+8. Announce the release.
     1. Create a new release on GitHub.
-    2. Publish a new TestFlight beta with LCP enabled.
-        * Click on "External Groups" > "Public Beta", then add the new build so that it's available to everyone.
-8. Merge `develop` into `main`.
-
+    2. Write a high-level summary of the changelog for the blog.
+    3. Post the blog summary on Discord's `#announcement`, with a link to the GitHub release.
+9. Merge `develop` into `main`.
