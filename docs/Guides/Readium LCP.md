@@ -177,11 +177,10 @@ A file required by the LCP library needs to be downloaded from an insecure HTTP 
 
 `ReadiumLCP` offers an `LCPService` object that exposes its API. Since the `ReadiumLCP` package is not linked with `R2LCPClient`, you need to create your own adapter when setting up the `LCPService`.
 
-The `LCPService` expects repositories to store the opened licenses and passphrases. While you can implement your own persistence layer, the `ReadiumAdapterLCPSQLite` module provides default implementations based on an SQLite database.
+The `LCPService` expects repositories to store the opened licenses and passphrases. `ReadiumLCP` provides built-in Keychain-based implementations that store data securely in the iOS/macOS Keychain. Unlike database-based storage, Keychain data persists across app reinstalls and can optionally be synchronized across the user's devices via iCloud Keychain.
 
 ```swift
 import R2LCPClient
-import ReadiumAdapterLCPSQLite
 import ReadiumLCP
 
 let httpClient = DefaultHTTPClient()
@@ -192,8 +191,8 @@ let assetRetriever = AssetRetriever(
 
 let lcpService = LCPService(
     client: LCPClientAdapter(),
-    licenseRepository: try LCPSQLiteLicenseRepository(),
-    passphraseRepository: try LCPSQLitePassphraseRepository(),
+    licenseRepository: LCPKeychainLicenseRepository(),
+    passphraseRepository: LCPKeychainPassphraseRepository(),
     assetRetriever: assetRetriever,
     httpClient: httpClient
 )
@@ -213,6 +212,10 @@ class LCPClientAdapter: ReadiumLCP.LCPClient {
     }
 }
 ```
+
+To disable iCloud synchronization, pass `synchronizable: false` when creating the repositories.
+
+You may also implement your own persistence layer by conforming to `LCPLicenseRepository` and `LCPPassphraseRepository`.
 
 ## Acquiring a publication from a License Document (LCPL)
 
