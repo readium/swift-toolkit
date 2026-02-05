@@ -9,7 +9,6 @@ import ReadiumShared
 
 #if LCP
     import R2LCPClient
-    import ReadiumAdapterLCPSQLite
     import ReadiumLCP
 #endif
 

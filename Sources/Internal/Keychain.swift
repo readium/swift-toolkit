@@ -26,7 +26,7 @@ public enum KeychainError: Error {
 ///
 /// This class handles low-level Security framework calls for storing, retrieving,
 /// updating, and deleting data from the iOS/macOS Keychain.
-public final class Keychain {
+public final class Keychain: Sendable {
     private let serviceName: String
     private let synchronizable: Bool
 

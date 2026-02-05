@@ -128,7 +128,7 @@ public class LCPSQLiteLicenseRepository: LCPLicenseRepository, Loggable {
     /// added to the target repository when each publication is opened
     /// for the first time after migration.
     ///
-    /// - Returns: `true` if all the passphrases were migrated successfully.
+    /// - Returns: `true` if all the licenses were migrated successfully.
     @discardableResult
     public func migrate(to target: LCPKeychainLicenseRepository) async throws -> Bool {
         let allLicenseData = try db.prepare(licenses).map { row in
