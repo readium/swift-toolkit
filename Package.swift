@@ -131,6 +131,7 @@ let package = Package(
             name: "ReadiumLCP",
             dependencies: [
                 "CryptoSwift",
+                "ReadiumInternal",
                 "ReadiumShared",
                 .product(name: "ReadiumZIPFoundation", package: "ZIPFoundation"),
             ],

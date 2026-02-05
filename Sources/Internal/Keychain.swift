@@ -22,11 +22,11 @@ public enum KeychainError: Error {
     case unhandledError(OSStatus)
 }
 
-/// Internal utility for managing Keychain operations for LCP data storage.
+/// Utility for managing Keychain operations.
 ///
 /// This class handles low-level Security framework calls for storing, retrieving,
 /// updating, and deleting data from the iOS/macOS Keychain.
-final class Keychain {
+public final class Keychain {
     private let serviceName: String
     private let synchronizable: Bool
 
@@ -35,7 +35,7 @@ final class Keychain {
     /// - Parameters:
     ///   - serviceName: The service identifier for Keychain items.
     ///   - synchronizable: Whether items should sync via iCloud Keychain.
-    init(
+    public init(
         serviceName: String,
         synchronizable: Bool = true
     ) {
@@ -48,8 +48,8 @@ final class Keychain {
     /// - Parameters:
     ///   - data: The data to save.
     ///   - key: The account identifier.
-    func save(data: Data, forKey key: String) throws (KeychainError) {
-        var query = baseQuery(forKey: key)
+    public func save(data: Data, forKey key: String) throws (KeychainError) {
+        var query = baseQuery(forKey: key, forAdding: true)
         query[kSecValueData as String] = data
 
         let status = SecItemAdd(query as CFDictionary, nil)
@@ -63,8 +63,8 @@ final class Keychain {
     ///
     /// - Parameter key: The account identifier.
     /// - Returns: The data if found, or `nil` if no item exists with this key.
-    func load(forKey key: String) throws (KeychainError) -> Data? {
-        var query = baseQuery(forKey: key)
+    public func load(forKey key: String) throws (KeychainError) -> Data? {
+        var query = baseQuery(forKey: key, forAdding: false)
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
 
@@ -91,8 +91,8 @@ final class Keychain {
     /// - Parameters:
     ///   - data: The new data to save.
     ///   - key: The account identifier.
-    func update(data: Data, forKey key: String) throws (KeychainError) {
-        let query = baseQuery(forKey: key)
+    public func update(data: Data, forKey key: String) throws (KeychainError) {
+        let query = baseQuery(forKey: key, forAdding: false)
         let attributesToUpdate: [String: Any] = [
             kSecValueData as String: data,
         ]
@@ -107,8 +107,8 @@ final class Keychain {
     /// Deletes an item from the Keychain for the specified key.
     ///
     /// - Parameter key: The account identifier.
-    func delete(forKey key: String) throws (KeychainError) {
-        let query = baseQuery(forKey: key)
+    public func delete(forKey key: String) throws (KeychainError) {
+        let query = baseQuery(forKey: key, forAdding: false)
         let status = SecItemDelete(query as CFDictionary)
 
         // Success or item not found are both acceptable
@@ -118,10 +118,11 @@ final class Keychain {
     }
 
     /// Deletes all items for this service from the Keychain.
-    func deleteAll() throws (KeychainError) {
+    public func deleteAll() throws (KeychainError) {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: serviceName,
+            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny,
         ]
         let status = SecItemDelete(query as CFDictionary)
 
@@ -133,10 +134,11 @@ final class Keychain {
     /// Returns all account identifiers (keys) stored for this service.
     ///
     /// - Returns: An array of account identifiers.
-    func allKeys() throws (KeychainError) -> [String] {
+    public func allKeys() throws (KeychainError) -> [String] {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: serviceName,
+            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny,
             kSecReturnAttributes as String: true,
             kSecMatchLimit as String: kSecMatchLimitAll,
         ]
@@ -163,10 +165,11 @@ final class Keychain {
     ///
     /// - Returns: A dictionary where keys are account identifiers and values are
     ///   the stored data.
-    func allItems() throws (KeychainError) -> [String: Data] {
+    public func allItems() throws (KeychainError) -> [String: Data] {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: serviceName,
+            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny,
             kSecReturnAttributes as String: true,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitAll,
@@ -202,7 +205,12 @@ final class Keychain {
     // MARK: - Private Helpers
 
     /// Creates the base query dictionary for Keychain operations.
-    private func baseQuery(forKey key: String) -> [String: Any] {
+    ///
+    /// - Parameters:
+    ///   - key: The account identifier.
+    ///   - forAdding: If `true`, uses the boolean `synchronizable` value for adding items.
+    ///     If `false`, uses `kSecAttrSynchronizableAny` for queries/updates/deletes.
+    private func baseQuery(forKey key: String, forAdding: Bool) -> [String: Any] {
         var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: serviceName,
@@ -210,7 +218,11 @@ final class Keychain {
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
         ]
 
-        query[kSecAttrSynchronizable as String] = synchronizable
+        if forAdding {
+            query[kSecAttrSynchronizable as String] = synchronizable
+        } else {
+            query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
+        }
 
         return query
     }

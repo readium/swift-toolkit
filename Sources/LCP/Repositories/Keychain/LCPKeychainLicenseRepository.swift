@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 import ReadiumShared
 
 /// Errors occurring in ``LCPKeychainLicenseRepository``.
@@ -168,7 +169,7 @@ public actor LCPKeychainLicenseRepository: LCPLicenseRepository, Loggable {
         for licenseID: LicenseDocument.ID,
         rights: LCPConsumableUserRights,
         registered: Bool
-    ) throws {
+    ) async throws {
         // We don't overwrite the rights if the license already exists.
         guard try getLicense(for: licenseID) == nil else {
             return

@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 import ReadiumShared
 
 /// Errors occurring in ``LCPKeychainPassphraseRepository``.
