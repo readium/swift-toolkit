@@ -9,6 +9,7 @@ import ReadiumLCP
 import ReadiumShared
 import SQLite
 
+@available(*, deprecated, message: "Use LCPKeychainPassphraseRepository from ReadiumLCP instead")
 public class LCPSQLitePassphraseRepository: LCPPassphraseRepository, Loggable {
     let transactions = Table("Transactions")
     let licenseId = SQLite.Expression<String>("licenseId")
