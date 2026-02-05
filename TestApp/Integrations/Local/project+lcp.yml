@@ -50,8 +50,6 @@ targets:
       - package: Readium
         product: ReadiumAdapterGCDWebServer
       - package: Readium
-        product: ReadiumAdapterLCPSQLite
-      - package: Readium
         product: ReadiumOPDS
       - package: Readium
         product: ReadiumLCP

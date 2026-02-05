@@ -2,7 +2,55 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
-<!-- ## Unreleased -->
+## Unreleased
+
+### Migrating LCP Repositories from SQLite to the Keychain
+
+The `ReadiumAdapterLCPSQLite` module is now deprecated. `ReadiumLCP` provides built-in Keychain-based repositories that are more secure, persist across app reinstalls, and optionally synchronize across devices via iCloud Keychain.
+
+#### Updating the `LCPService` initialization
+
+Replace the SQLite repositories with their Keychain equivalents:
+
+```diff
+-import ReadiumAdapterLCPSQLite
+ import ReadiumLCP
+
+ let lcpService = LCPService(
+     client: LCPClient(),
+-    licenseRepository: try! LCPSQLiteLicenseRepository(),
+-    passphraseRepository: try! LCPSQLitePassphraseRepository(),
++    licenseRepository: LCPKeychainLicenseRepository(),
++    passphraseRepository: LCPKeychainPassphraseRepository(),
+     assetRetriever: assetRetriever,
+     httpClient: httpClient
+ )
+```
+
+Then remove `ReadiumAdapterLCPSQLite` from your project dependencies:
+
+* **Swift Package Manager:** Remove the `ReadiumAdapterLCPSQLite` product from your target dependencies.
+* **Carthage:** Remove `ReadiumAdapterLCPSQLite.xcframework` and `SQLite.xcframework` from your project.
+* **CocoaPods:** Remove `pod 'ReadiumAdapterLCPSQLite'` from your `Podfile` and run `pod install`.
+
+#### Migrating existing data
+
+If your app already stores LCP data in the SQLite database, you can migrate it to the Keychain using the built-in migration helpers. Run this migration once, for example during an app update:
+
+```swift
+import ReadiumAdapterLCPSQLite
+import ReadiumLCP
+
+let keychainLicenseRepository = LCPKeychainLicenseRepository()
+let keychainPassphraseRepository = LCPKeychainPassphraseRepository()
+
+let sqliteLicenseRepository = try LCPSQLiteLicenseRepository()
+let sqlitePassphraseRepository = try LCPSQLitePassphraseRepository()
+
+try await sqliteLicenseRepository.migrate(to: keychainLicenseRepository)
+try await sqlitePassphraseRepository.migrate(to: keychainPassphraseRepository)
+```
+
 
 ## 3.7.0
 

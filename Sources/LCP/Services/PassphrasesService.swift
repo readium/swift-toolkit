@@ -38,12 +38,7 @@ final class PassphrasesService {
             return passphrase
         }
 
-        // Look for alternative candidates based on the provider and user ID.
-        let candidates = try await repository.passphrasesMatching(
-            userID: license.user.id,
-            provider: license.provider
-        )
-        var passphrase: LCPPassphraseHash? = findValidPassphrase(in: candidates, for: license)
+        var passphrase = try await findAlternatePassphrase(for: license)
 
         // Fallback on the provided `LCPAuthenticating` implementation.
         if passphrase == nil, let authentication = authentication {
@@ -62,6 +57,22 @@ final class PassphrasesService {
         }
 
         return passphrase
+    }
+
+    private func findAlternatePassphrase(for license: LicenseDocument) async throws -> LCPPassphraseHash? {
+        // Look for alternative candidates based on the provider and user ID.
+        let candidates = try await repository.passphrasesMatching(
+            userID: license.user.id,
+            provider: license.provider
+        )
+        if let passphrase = findValidPassphrase(in: candidates, for: license) {
+            return passphrase
+        }
+
+        // The legacy SQLite database did not save all the new (passphrase,
+        // userID, provider) tuples. So we need to fall back on checking all the
+        // saved passphrases for a match.
+        return try await findValidPassphrase(in: repository.passphrases(), for: license)
     }
 
     private func findValidPassphrase(in hashes: [LCPPassphraseHash], for license: LicenseDocument) -> LCPPassphraseHash? {

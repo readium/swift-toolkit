@@ -327,6 +327,7 @@
 ../../Sources/Internal/Extensions/UInt64.swift
 ../../Sources/Internal/Extensions/URL.swift
 ../../Sources/Internal/JSON.swift
+../../Sources/Internal/Keychain.swift
 ../../Sources/Internal/Measure.swift
 ../../Sources/Internal/UTI.swift
 ../../Sources/LCP
@@ -374,6 +375,10 @@
 ../../Sources/LCP/License/Model/Components/LSD/PotentialRights.swift
 ../../Sources/LCP/License/Model/LicenseDocument.swift
 ../../Sources/LCP/License/Model/StatusDocument.swift
+../../Sources/LCP/Repositories
+../../Sources/LCP/Repositories/Keychain
+../../Sources/LCP/Repositories/Keychain/LCPKeychainLicenseRepository.swift
+../../Sources/LCP/Repositories/Keychain/LCPKeychainPassphraseRepository.swift
 ../../Sources/LCP/Resources
 ../../Sources/LCP/Resources/en.lproj
 ../../Sources/LCP/Resources/en.lproj/Localizable.strings

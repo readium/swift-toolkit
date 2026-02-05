@@ -120,6 +120,7 @@
 		44152DBECE34F063AD0E93BC /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE3E6442F0C7FE2098D71F27 /* Link.swift */; };
 		448374F2605586249A6CB4C8 /* FailureResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78FFDF8CF77437EDB41E4547 /* FailureResource.swift */; };
 		47125BFFEC67DEB2C3D1B48C /* AudioNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCE34D74E282834684E1C999 /* AudioNavigator.swift */; };
+		483307A27A07B086D5FA8500 /* LCPKeychainPassphraseRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCD5904F9B9E29E2C1CA1CB5 /* LCPKeychainPassphraseRepository.swift */; };
 		4977279900B4BA602D92B5C4 /* ReadiumFuzi.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2828D89EBB52CCA782ED1146 /* ReadiumFuzi.xcframework */; };
 		4A5F53CCC083D3E348379963 /* Types.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF64D7C05A790D9CA5DD442 /* Types.swift */; };
 		4AD286114A634A74BE78B1A0 /* LicenseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15980B67505AAF10642B56C8 /* LicenseContainer.swift */; };
@@ -179,6 +180,7 @@
 		6B08C5FB1ABF696CDB6EDB03 /* LCPObservableAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791CEAC3DA5ED971DAE984CB /* LCPObservableAuthentication.swift */; };
 		6BE745329D68EE0533E42D14 /* DiffableDecoration+HTML.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01265194649A8E2A821CC2A4 /* DiffableDecoration+HTML.swift */; };
 		6C3C96A32EA2439AAEFD4967 /* ReadiumNavigatorLocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FBFAC2D57DE7EBB4E2F31BE /* ReadiumNavigatorLocalizedString.swift */; };
+		6CEB7B8167884E863116A1E0 /* LCPKeychainLicenseRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = B65A22BA2FF8230955BC7C06 /* LCPKeychainLicenseRepository.swift */; };
 		6D3BCAFF29D91DCA08809D71 /* CRLService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93B0556DAAAF429893B0692 /* CRLService.swift */; };
 		6DD5A5F5F08C76DA690FFB41 /* Contributor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 456192DBCB3A29ADA9C3CCB9 /* Contributor.swift */; };
 		6F01765B4C03EC36C95D02E3 /* CGPDF.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6EB7CAF6D058380A2AB711A /* CGPDF.swift */; };
@@ -313,6 +315,7 @@
 		C368C73C819F65CE3409D35D /* Fuzi.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFE34EA8AF2D815F7169CA45 /* Fuzi.swift */; };
 		C3F4CBE80D741D4158CA8407 /* ReadiumInternal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 42FD63C2720614E558522675 /* ReadiumInternal.framework */; };
 		C4F0A98562FDDB478F7DD0A9 /* LCPLicense.swift in Sources */ = {isa = PBXBuildFile; fileRef = 093629E752DE17264B97C598 /* LCPLicense.swift */; };
+		C5D80E7716B243980FD3DFE6 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491E1402A31F88054442D58F /* Keychain.swift */; };
 		C73D876AC0852AE89D6AC3A1 /* ManifestTransformer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D33BD0E923EACCCDB91362C /* ManifestTransformer.swift */; };
 		C77A30C7519839AA94996549 /* SQLite.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F07214E263C6589987A561F9 /* SQLite.xcframework */; };
 		C8786D16C8EDCC0AECCA36E4 /* CoverService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4F0C112656C4786F3861973 /* CoverService.swift */; };
@@ -603,6 +606,7 @@
 		47B9196192A22B8AB80E6B2F /* LCPDFPositionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDFPositionsService.swift; sourceTree = "<group>"; };
 		48435C1A16C23C5BBB9C590C /* DirectoryContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectoryContainer.swift; sourceTree = "<group>"; };
 		48856E9AB402E2907B5230F3 /* CGRect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGRect.swift; sourceTree = "<group>"; };
+		491E1402A31F88054442D58F /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		4944D2DB99CC59F945FDA2CA /* Bundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bundle.swift; sourceTree = "<group>"; };
 		4BB5D42EEF0083D833E2A572 /* Publication+OPDS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publication+OPDS.swift"; sourceTree = "<group>"; };
 		4BCDF341872EEFB88B6674DE /* HTTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPServer.swift; sourceTree = "<group>"; };
@@ -757,6 +761,7 @@
 		B22A0E76866F626D79F0A64C /* SQLiteLCPPassphraseRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteLCPPassphraseRepository.swift; sourceTree = "<group>"; };
 		B53B841C2F5A59BA3B161258 /* Resource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Resource.swift; sourceTree = "<group>"; };
 		B5CE464C519852D38F873ADB /* PotentialRights.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PotentialRights.swift; sourceTree = "<group>"; };
+		B65A22BA2FF8230955BC7C06 /* LCPKeychainLicenseRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPKeychainLicenseRepository.swift; sourceTree = "<group>"; };
 		B7457AD096857CA307F6ED6A /* InputObservable+Legacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InputObservable+Legacy.swift"; sourceTree = "<group>"; };
 		B7C9D54352714641A87F64A0 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		BAA7CEF568A02BA2CB4AAD7F /* OPDSFormatSniffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSFormatSniffer.swift; sourceTree = "<group>"; };
@@ -788,6 +793,7 @@
 		CAD79372361D085CA0500CF4 /* Properties+OPDS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Properties+OPDS.swift"; sourceTree = "<group>"; };
 		CBB57FCAEE605484A7290DBB /* Atomic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Atomic.swift; sourceTree = "<group>"; };
 		CC925E451D875E5F74748EDC /* Optional.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Optional.swift; sourceTree = "<group>"; };
+		CCD5904F9B9E29E2C1CA1CB5 /* LCPKeychainPassphraseRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPKeychainPassphraseRepository.swift; sourceTree = "<group>"; };
 		CDA8111A330AB4D7187DD743 /* LocatorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocatorService.swift; sourceTree = "<group>"; };
 		CF31AEFB5FF0E7892C6D903E /* EPUBPreferences+Legacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EPUBPreferences+Legacy.swift"; sourceTree = "<group>"; };
 		CFE1142A6C038A35C527CE84 /* URITemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URITemplate.swift; sourceTree = "<group>"; };
@@ -1370,6 +1376,7 @@
 			isa = PBXGroup;
 			children = (
 				529B55BE6996FCDC1082BF0A /* JSON.swift */,
+				491E1402A31F88054442D58F /* Keychain.swift */,
 				4FEE01FAD273864D0908C358 /* Measure.swift */,
 				218BE3110D2886B252A769A2 /* UTI.swift */,
 				40D18A37080F5B1D114CE2E1 /* Extensions */,
@@ -1539,6 +1546,14 @@
 				2CDB1B325928A873012E6149 /* XML.swift */,
 			);
 			path = XML;
+			sourceTree = "<group>";
+		};
+		747E6C3EE93B2F8240970E94 /* Repositories */ = {
+			isa = PBXGroup;
+			children = (
+				D0B5292E979486B3745DC1BD /* Keychain */,
+			);
+			path = Repositories;
 			sourceTree = "<group>";
 		};
 		75C5238287B0D2F1DF6889DB /* Protection */ = {
@@ -1895,6 +1910,15 @@
 			path = Parser;
 			sourceTree = "<group>";
 		};
+		D0B5292E979486B3745DC1BD /* Keychain */ = {
+			isa = PBXGroup;
+			children = (
+				B65A22BA2FF8230955BC7C06 /* LCPKeychainLicenseRepository.swift */,
+				CCD5904F9B9E29E2C1CA1CB5 /* LCPKeychainPassphraseRepository.swift */,
+			);
+			path = Keychain;
+			sourceTree = "<group>";
+		};
 		D4358DF9D15D9ADE4F9E8BE4 /* LCP */ = {
 			isa = PBXGroup;
 			children = (
@@ -1910,6 +1934,7 @@
 				7F42F058A2DC364B554BF7F2 /* Authentications */,
 				F9064CEF2968AEDCDCCFD399 /* Content Protection */,
 				2C4C6FBF69B19C83DFCCF835 /* License */,
+				747E6C3EE93B2F8240970E94 /* Repositories */,
 				F389B1290B1CAA8E5F65573B /* Resources */,
 				11502B18FA9A9C92352052CE /* Services */,
 				B25D1AE9818E91E1D1497ABB /* Toolkit */,
@@ -2511,6 +2536,7 @@
 				330690F62A5F240B77A14337 /* Date+ISO8601.swift in Sources */,
 				674BEEF110667C3051296E9B /* Double.swift in Sources */,
 				DDD0C8AC27EF8D1A893DF6CC /* JSON.swift in Sources */,
+				C5D80E7716B243980FD3DFE6 /* Keychain.swift in Sources */,
 				E8C3B837B9FB2ABCB5F82380 /* Measure.swift in Sources */,
 				F631EA324143E669070523F3 /* NSRegularExpression.swift in Sources */,
 				606EBE8AC2096BC681F92908 /* Number.swift in Sources */,
@@ -2559,6 +2585,8 @@
 				B066F9DDCD00A8917478CB6C /* LCPDialogViewController.swift in Sources */,
 				25349166318EB00EE8A0765C /* LCPError+wrap.swift in Sources */,
 				98702AFB56F9C50F7246CDDA /* LCPError.swift in Sources */,
+				6CEB7B8167884E863116A1E0 /* LCPKeychainLicenseRepository.swift in Sources */,
+				483307A27A07B086D5FA8500 /* LCPKeychainPassphraseRepository.swift in Sources */,
 				C4F0A98562FDDB478F7DD0A9 /* LCPLicense.swift in Sources */,
 				9A463F872E1B05B64E026EBB /* LCPLicenseRepository.swift in Sources */,
 				6B08C5FB1ABF696CDB6EDB03 /* LCPObservableAuthentication.swift in Sources */,

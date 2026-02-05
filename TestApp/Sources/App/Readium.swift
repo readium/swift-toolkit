@@ -12,7 +12,6 @@ import ReadiumStreamer
 
 #if LCP
     import R2LCPClient
-    import ReadiumAdapterLCPSQLite
     import ReadiumLCP
 #endif
 
@@ -45,8 +44,8 @@ final class Readium {
 
         lazy var lcpService = LCPService(
             client: LCPClient(),
-            licenseRepository: try! LCPSQLiteLicenseRepository(),
-            passphraseRepository: try! LCPSQLitePassphraseRepository(),
+            licenseRepository: LCPKeychainLicenseRepository(),
+            passphraseRepository: LCPKeychainPassphraseRepository(),
             assetRetriever: assetRetriever,
             httpClient: httpClient
         )

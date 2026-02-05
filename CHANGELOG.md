@@ -2,7 +2,23 @@
 
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Added
+
+#### LCP
+
+* New Keychain-based implementations of the LCP license and passphrase repositories: `LCPKeychainLicenseRepository` and `LCPKeychainPassphraseRepository`.
+    * Stored securely in the iOS/macOS Keychain.
+    * Persist across app reinstalls.
+    * Optionally synchronized across devices via iCloud Keychain.
+
+### Deprecated
+
+#### LCP
+
+* `ReadiumAdapterLCPSQLite` is now deprecated in favor of the built-in Keychain repositories. See [the migration guide](docs/Migration%20Guide.md) for instructions.
+
 
 ## [3.7.0]
 
