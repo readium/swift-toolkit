@@ -57,6 +57,13 @@ public class LCPSQLitePassphraseRepository: LCPPassphraseRepository, Loggable {
         }
     }
 
+    public func passphrases() async throws -> [LCPPassphraseHash] {
+        try logAndRethrow {
+            try db.prepare(transactions.select(passphrase))
+                .compactMap { try $0.get(passphrase) }
+        }
+    }
+
     public func addPassphrase(_ hash: LCPPassphraseHash, for licenseID: LicenseDocument.ID, userID: User.ID?, provider: LicenseDocument.Provider) async throws {
         try logAndRethrow {
             try db.run(
@@ -79,5 +86,48 @@ public class LCPSQLitePassphraseRepository: LCPPassphraseRepository, Loggable {
             log(.error, error)
             return []
         }
+    }
+
+    /// Migrates all passphrases from this SQLite repository to the target
+    /// repository.
+    ///
+    /// - Returns: `true` if all the passphrases were migrated successfully.
+    @discardableResult
+    public func migrate(to target: LCPPassphraseRepository) async throws -> Bool {
+        let allPassphraseData = try db.prepare(transactions).map { row in
+            try (
+                licenseId: row.get(licenseId),
+                passphrase: row.get(passphrase),
+                provider: row.get(provider),
+                userId: row.get(userId)
+            )
+        }
+
+        var successCount = 0
+        var failureCount = 0
+
+        for passphraseData in allPassphraseData {
+            do {
+                try await target.addPassphrase(
+                    passphraseData.passphrase,
+                    for: passphraseData.licenseId,
+                    userID: passphraseData.userId,
+                    provider: passphraseData.provider
+                )
+                successCount += 1
+            } catch {
+                failureCount += 1
+                // Log error but continue with other passphrases
+                log(.error, "Failed to migrate passphrase for license \(passphraseData.licenseId): \(error)")
+            }
+        }
+
+        if failureCount > 0 {
+            log(.info, "Passphrase migration completed with \(successCount) succeeded, \(failureCount) failed")
+        } else {
+            log(.info, "Passphrase migration completed successfully: \(successCount) passphrases migrated")
+        }
+
+        return failureCount == 0
     }
 }

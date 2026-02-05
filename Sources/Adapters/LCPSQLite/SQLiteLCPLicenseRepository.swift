@@ -6,9 +6,10 @@
 
 import Foundation
 import ReadiumLCP
+import ReadiumShared
 import SQLite
 
-public class LCPSQLiteLicenseRepository: LCPLicenseRepository {
+public class LCPSQLiteLicenseRepository: LCPLicenseRepository, Loggable {
     let licenses = Table("Licenses")
     let id = SQLite.Expression<String>("id")
     let printsLeft = SQLite.Expression<Int?>("printsLeft")
@@ -116,5 +117,58 @@ public class LCPSQLiteLicenseRepository: LCPLicenseRepository {
             print: get(printsLeft, for: id),
             copy: get(copiesLeft, for: id)
         )
+    }
+
+    /// Migrates all licenses from this SQLite repository to the target
+    /// keychain repository.
+    ///
+    /// This migration transfers consumable rights (print/copy counts) and
+    /// device registration status to the target repository. The full
+    /// ``LicenseDocument`` is not stored in SQLite and will be automatically
+    /// added to the target repository when each publication is opened
+    /// for the first time after migration.
+    ///
+    /// - Returns: `true` if all the passphrases were migrated successfully.
+    @discardableResult
+    public func migrate(to target: LCPKeychainLicenseRepository) async throws -> Bool {
+        let allLicenseData = try db.prepare(licenses).map { row in
+            try (
+                id: row.get(id),
+                printsLeft: row.get(printsLeft),
+                copiesLeft: row.get(copiesLeft),
+                registered: row.get(registered)
+            )
+        }
+
+        var successCount = 0
+        var failureCount = 0
+
+        for licenseData in allLicenseData {
+            do {
+                let rights = LCPConsumableUserRights(
+                    print: licenseData.printsLeft,
+                    copy: licenseData.copiesLeft
+                )
+
+                try await target.importLicenseRights(
+                    for: licenseData.id,
+                    rights: rights,
+                    registered: licenseData.registered
+                )
+
+                successCount += 1
+            } catch {
+                failureCount += 1
+                log(.error, "Failed to migrate license \(licenseData.id): \(error)")
+            }
+        }
+
+        if failureCount > 0 {
+            log(.info, "License migration completed with \(successCount) succeeded, \(failureCount) failed")
+        } else {
+            log(.info, "License migration completed successfully: \(successCount) licenses migrated")
+        }
+
+        return failureCount == 0
     }
 }
