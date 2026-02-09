@@ -110,6 +110,9 @@ enum EPUBSpread: EPUBSpreadProtocol {
     }
 
     /// Builds a list of two-page spreads for the given Publication.
+    ///
+    /// - Parameter offsetFirstPage: User preference to offset the first
+    ///   resource.
     private static func makeTwoPagesSpreads(
         for publication: Publication,
         readingOrder: [Link],
@@ -122,12 +125,22 @@ enum EPUBSpread: EPUBSpreadProtocol {
         while index < readingOrder.count {
             var first = readingOrder[index]
 
-            // If the `offsetFirstPage` is set, we override the default
-            // position of the first resource to display it either:
-            // - (true) on its own and centered
-            // - (false) next to the second resource
-            if index == 0, let offsetFirstPage = offsetFirstPage {
-                first.properties.page = offsetFirstPage ? .center : nil
+            // The first resource (often the cover) has special rules for its
+            // position in the spread.
+            if index == 0 {
+                if let offsetFirstPage = offsetFirstPage {
+                    // User explicitly chose to offset (or not) the first page.
+                    first.properties.page = offsetFirstPage ? .center : nil
+                } else if first.properties.page == nil, publication.metadata.layout == .fixed {
+                    // For FXL publications, default to displaying the first
+                    // page (typically a cover) on its own when the publication
+                    // doesn't provide an explicit page position. This is the
+                    // behavior of Apple Books, so it's expected by publishers.
+                    //
+                    // We display it centered rather than on the left or right
+                    // to ensure it fills the entire viewport in portrait mode.
+                    first.properties.page = .center
+                }
             }
 
             let nextIndex = index + 1
