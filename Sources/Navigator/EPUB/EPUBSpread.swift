@@ -220,9 +220,25 @@ struct EPUBSingleSpread: EPUBSpreadProtocol, Loggable {
         [
             resource.json(
                 forBaseURL: baseURL,
-                page: resource.link.properties.page ?? readingProgression.startingPage
+                page: resource.link.properties.page ?? defaultPage(in: readingProgression)
             ),
         ]
+    }
+
+    /// Returns the default spread position (left or right) for the single
+    /// resource, in the given reading progression.
+    ///
+    /// The first page (typically a cover) defaults to the starting page (right
+    /// for LTR). Other unpaired pages default to the leading position they
+    /// would have had in a spread pair.
+    private func defaultPage(in readingProgression: ReadingProgression) -> Properties.Page {
+        let isFirstPage = (resource.index == 0)
+        return switch readingProgression {
+        case .ltr:
+            isFirstPage ? .right : .left
+        case .rtl:
+            isFirstPage ? .left : .right
+        }
     }
 }
 

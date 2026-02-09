@@ -37,16 +37,6 @@ public enum ReadingProgression: String, Codable, Hashable {
         default: return nil
         }
     }
-
-    /// Returns the starting page for the reading progression.
-    var startingPage: Properties.Page {
-        switch self {
-        case .ltr:
-            return .right
-        case .rtl:
-            return .left
-        }
-    }
 }
 
 extension ReadiumShared.ReadingProgression {
