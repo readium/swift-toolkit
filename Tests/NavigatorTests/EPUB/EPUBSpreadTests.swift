@@ -270,21 +270,21 @@ import Testing
 
     @Suite enum Properties {
         @Suite struct SingleSpread {
-            func readingOrderIndices() {
+            @Test func readingOrderIndices() {
                 let spread = EPUBSpread.single(EPUBSingleSpread(
                     resource: EPUBSpreadResource(index: 3, link: link("p.html"))
                 ))
                 #expect(spread.readingOrderIndices == 3 ... 3)
             }
 
-            func first() {
+            @Test func first() {
                 let resource = EPUBSpreadResource(index: 5, link: link("p.html"))
                 let spread = EPUBSpread.single(EPUBSingleSpread(resource: resource))
                 #expect(spread.first.index == 5)
                 #expect(spread.first.link.href == "p.html")
             }
 
-            func containsIndex() {
+            @Test func containsIndex() {
                 let single = EPUBSpread.single(EPUBSingleSpread(
                     resource: EPUBSpreadResource(index: 2, link: link("p.html"))
                 ))
@@ -295,7 +295,7 @@ import Testing
         }
 
         @Suite struct DoubleSpread {
-            func readingOrderIndices() {
+            @Test func readingOrderIndices() {
                 let spread = EPUBSpread.double(EPUBDoubleSpread(
                     first: EPUBSpreadResource(index: 2, link: link("p1.html")),
                     second: EPUBSpreadResource(index: 3, link: link("p2.html"))
@@ -303,7 +303,7 @@ import Testing
                 #expect(spread.readingOrderIndices == 2 ... 3)
             }
 
-            func first() {
+            @Test func first() {
                 let spread = EPUBSpread.double(EPUBDoubleSpread(
                     first: EPUBSpreadResource(index: 1, link: link("p1.html")),
                     second: EPUBSpreadResource(index: 2, link: link("p2.html"))
@@ -312,7 +312,7 @@ import Testing
                 #expect(spread.first.link.href == "p1.html")
             }
 
-            func containsIndex() {
+            @Test func containsIndex() {
                 let double = EPUBSpread.double(EPUBDoubleSpread(
                     first: EPUBSpreadResource(index: 4, link: link("p1.html")),
                     second: EPUBSpreadResource(index: 5, link: link("p2.html"))

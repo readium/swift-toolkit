@@ -176,7 +176,8 @@ enum EPUBSpread: EPUBSpreadProtocol {
     }
 
     /// Two resources are consecutive if their position hint (Properties.Page)
-    /// are paired according to the reading progression.
+    /// are paired according to the reading progression from the publication
+    /// (not user preferences).
     private static func areConsecutive(
         _ first: Link,
         _ second: Link,
