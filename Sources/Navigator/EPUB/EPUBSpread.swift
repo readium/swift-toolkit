@@ -110,6 +110,9 @@ enum EPUBSpread: EPUBSpreadProtocol {
     }
 
     /// Builds a list of two-page spreads for the given Publication.
+    ///
+    /// `offsetFirstPage` is the user preference used to control if the first
+    /// resource is displayed on its own.
     private static func makeTwoPagesSpreads(
         for publication: Publication,
         readingOrder: [Link],
@@ -122,12 +125,22 @@ enum EPUBSpread: EPUBSpreadProtocol {
         while index < readingOrder.count {
             var first = readingOrder[index]
 
-            // If the `offsetFirstPage` is set, we override the default
-            // position of the first resource to display it either:
-            // - (true) on its own and centered
-            // - (false) next to the second resource
-            if index == 0, let offsetFirstPage = offsetFirstPage {
-                first.properties.page = offsetFirstPage ? .center : nil
+            // The first resource (often the cover) has special rules for its
+            // position in the spread.
+            if index == 0 {
+                if let offsetFirstPage = offsetFirstPage {
+                    // User explicitly chose to offset (or not) the first page.
+                    first.properties.page = offsetFirstPage ? .center : nil
+                } else if first.properties.page == nil, publication.metadata.layout == .fixed {
+                    // For FXL publications, default to displaying the first
+                    // page (typically a cover) on its own when the publication
+                    // doesn't provide an explicit page position. This is the
+                    // behavior of Apple Books, so it's expected by publishers.
+                    //
+                    // We display it centered rather than on the left or right
+                    // to ensure it fills the entire viewport in portrait mode.
+                    first.properties.page = .center
+                }
             }
 
             let nextIndex = index + 1
@@ -163,7 +176,8 @@ enum EPUBSpread: EPUBSpreadProtocol {
     }
 
     /// Two resources are consecutive if their position hint (Properties.Page)
-    /// are paired according to the reading progression.
+    /// are paired according to the reading progression from the publication
+    /// (not user preferences).
     private static func areConsecutive(
         _ first: Link,
         _ second: Link,
@@ -220,9 +234,25 @@ struct EPUBSingleSpread: EPUBSpreadProtocol, Loggable {
         [
             resource.json(
                 forBaseURL: baseURL,
-                page: resource.link.properties.page ?? readingProgression.startingPage
+                page: resource.link.properties.page ?? defaultPage(in: readingProgression)
             ),
         ]
+    }
+
+    /// Returns the default spread position (left or right) for the single
+    /// resource, in the given reading progression.
+    ///
+    /// The first page (typically a cover) defaults to the starting page (right
+    /// for LTR). Other unpaired pages default to the leading position they
+    /// would have had in a spread pair.
+    private func defaultPage(in readingProgression: ReadingProgression) -> Properties.Page {
+        let isFirstPage = (resource.index == 0)
+        return switch readingProgression {
+        case .ltr:
+            isFirstPage ? .right : .left
+        case .rtl:
+            isFirstPage ? .left : .right
+        }
     }
 }
 
