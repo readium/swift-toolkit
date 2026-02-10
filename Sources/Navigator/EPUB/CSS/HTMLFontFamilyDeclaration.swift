@@ -109,8 +109,10 @@ public struct CSSFontFace {
     /// Returns a new CSSFontFace after adding a linked source for this font
     /// face.
     ///
-    /// - Parameter preload: Indicates whether this source will be declared for
-    /// preloading in the HTML using `<link rel="preload">`.
+    /// - Parameters:
+    ///   - file: The URL to the font file to be added as a source.
+    ///   - preload: Indicates whether this source will be declared for
+    ///     preloading in the HTML using `<link rel="preload">`.
     public func addingSource(file: FileURL, preload: Bool = false) -> Self {
         var copy = self
         copy.sources.append((file, preload))

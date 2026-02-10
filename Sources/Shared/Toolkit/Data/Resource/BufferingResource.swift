@@ -26,7 +26,9 @@ public actor BufferingResource: Resource, Loggable {
     /// `Resource`, with the range it covers.
     private var buffer: Buffer
 
-    /// - Parameter bufferSize: Size of the buffer chunks to read.
+    /// - Parameters:
+    ///   - resource: The underlying `Resource` to be read.
+    ///   - bufferSize: Size of the buffer chunks to read, in bytes.
     public init(resource: Resource, bufferSize: Int = 8192) {
         precondition(bufferSize > 0)
         self.resource = resource

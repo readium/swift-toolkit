@@ -22,8 +22,6 @@ public protocol LCPAuthenticating {
     ///     quickly by sending `nil` to the completion block.
     ///   - sender: Free object that can be used by reading apps to give some UX context when
     ///     presenting dialogs. For example, the host `UIViewController`.
-    ///   - completion: Used to return the retrieved passphrase. If the user cancelled, send nil.
-    ///     The passphrase may be already hashed.
     @MainActor
     func retrievePassphrase(
         for license: LCPAuthenticatedLicense,

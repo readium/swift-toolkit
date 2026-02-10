@@ -73,17 +73,26 @@ public protocol XMLElement: XMLNode {
 public protocol XMLDocumentFactory {
     /// Opens an XML document from a local file path.
     ///
-    /// - Parameter namespaces: List of namespace prefixes to declare in the document.
+    /// - Parameters:
+    ///   - file: The local file URL of the XML document.
+    ///   - namespaces: List of namespace prefixes to declare in the document.
+    /// - Throws: An error if the file cannot be read or the XML is malformed.
     func open(file: FileURL, namespaces: [XMLNamespace]) async throws -> XMLDocument
 
     /// Opens an XML document from its raw data content.
     ///
-    /// - Parameter namespaces: List of namespace prefixes to declare in the document.
+    /// - Parameters:
+    ///   - data: The raw data containing the XML content.
+    ///   - namespaces: List of namespace prefixes to declare in the document.
+    /// - Throws: An error if the XML parsing fails.
     func open(data: Data, namespaces: [XMLNamespace]) async throws -> XMLDocument
 
     /// Opens an XML document from its raw string content.
     ///
-    /// - Parameter namespaces: List of namespace prefixes to declare in the document.
+    /// - Parameters:
+    ///   - string: The string containing the XML content.
+    ///   - namespaces: List of namespace prefixes to declare in the document.
+    /// - Throws: An error if the XML parsing fails.
     func open(string: String, namespaces: [XMLNamespace]) async throws -> XMLDocument
 }
 

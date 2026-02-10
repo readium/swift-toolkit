@@ -21,12 +21,18 @@ public final class LCPService: Loggable {
     private let licenses: LicensesService
     private let assetRetriever: AssetRetriever
 
-    /// - Parameter deviceName: Device name used when registering a license to an LSD server.
-    ///   If not provided, the device name will be the default `UIDevice.current.name`.
-    /// - Parameter deviceId: Device ID used when registering a license to an LSD server.
-    ///   You must ensure the identifier is unique and stable for the device (persist and
-    ///   reuse across app launches). If not provided, the device ID will be generated as
-    ///   a random UUID.
+    /// - Parameters:
+    ///   - client: The LCP client used for core license operations.
+    ///   - licenseRepository: Repository for managing stored licenses.
+    ///   - passphraseRepository: Repository for managing user passphrases.
+    ///   - assetRetriever: The retriever used to fetch protected assets.
+    ///   - httpClient: The HTTP client used for network requests to LSD/LCP servers.
+    ///   - deviceName: Device name used when registering a license to an LSD server.
+    ///     If not provided, the device name will be the default `UIDevice.current.name`.
+    ///   - deviceId: Device ID used when registering a license to an LSD server.
+    ///     You must ensure the identifier is unique and stable for the device (persist and
+    ///     reuse across app launches). If not provided, the device ID will be generated as
+    ///     a random UUID.
     public init(
         client: LCPClient,
         licenseRepository: LCPLicenseRepository,

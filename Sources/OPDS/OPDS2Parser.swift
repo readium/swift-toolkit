@@ -22,7 +22,10 @@ public enum OPDS2ParserError: Error {
 public class OPDS2Parser: Loggable {
     /// Parse an OPDS feed or publication.
     /// Feed can only be v2 (JSON).
-    /// - parameter url: The feed URL
+    /// - Parameters:
+    ///   - url: The feed URL.
+    ///   - completion: A closure called when the parsing is complete, returning the
+    ///     parsed `ParseData` on success, or an `Error` if the operation failed.
     public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, let response = response else {
@@ -78,8 +81,11 @@ public class OPDS2Parser: Loggable {
 
     /// Parse an OPDS feed.
     /// Feed can only be v2 (JSON).
-    /// - parameter jsonDict: The json top level dictionary
-    /// - Returns: The resulting Feed
+    /// - Parameters:
+    ///   - feedURL: The URL of the feed being parsed, used to resolve relative links.
+    ///   - jsonDict: The JSON top-level dictionary.
+    /// - Returns: The resulting `Feed` object.
+    /// - Throws: An error if the JSON structure is invalid or missing required OPDS fields.
     public static func parse(feedURL: URL, jsonDict: [String: Any]) throws -> Feed {
         guard let metadataDict = jsonDict["metadata"] as? [String: Any] else {
             throw OPDS2ParserError.metadataNotFound
