@@ -930,7 +930,7 @@ public struct AccessibilityDisplayStatement: Sendable, Equatable, Identifiable {
     ///   family and font size, spaces between paragraphs, sentences, words, and
     ///   letters, as well as color of background and text)
     ///
-    /// Some statements contain HTTP links; so we use an ``NSAttributedString``.
+    /// Some statements contain HTTP links; so we use an `NSAttributedString`.
     ///
     /// - Parameter descriptive: When true, will return the long descriptive
     ///   statement.

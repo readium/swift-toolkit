@@ -9,7 +9,7 @@ import ReadiumShared
 
 /// Parses a Publication from an asset.
 public protocol PublicationParser {
-    /// Constructs a ``Publication.Builder`` to build a ``Publication`` from a
+    /// Constructs a `Publication.Builder` to build a `Publication` from a
     /// publication asset.
     ///
     /// - Parameters:

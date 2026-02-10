@@ -17,7 +17,7 @@ public enum AnyURL: URLProtocol {
     /// A relative URL.
     case relative(RelativeURL)
 
-    /// Creates an ``AnyURL`` from a Foundation ``URL``.
+    /// Creates an ``AnyURL`` from a Foundation `URL`.
     public init(url: URL) {
         if let url = RelativeURL(url: url) {
             self = .relative(url)

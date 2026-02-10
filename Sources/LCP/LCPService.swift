@@ -101,14 +101,15 @@ public final class LCPService: Loggable {
     /// Opens the LCP license of a protected publication, to access its DRM
     /// metadata and decipher its content.
     ///
-    /// If the updated license cannot be stored into the ``Asset``, you'll get
+    /// If the updated license cannot be stored into the `Asset`, you'll get
     /// an exception if the license points to a LSD server that cannot be
     /// reached, for instance because no Internet gateway is available.
     ///
-    /// Updated licenses can currently be stored only into ``Asset``s whose
+    /// Updated licenses can currently be stored only into `Asset`s whose
     /// source property points to a `file://` URL.
     ///
     /// - Parameters:
+    ///   - asset: The asset whose license is to be retrieved.
     ///   - authentication: Used to retrieve the user passphrase if it is not
     ///     already known. The request will be cancelled if no passphrase is
     ///     found in the LCP passphrase storage and in the given
