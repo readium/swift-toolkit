@@ -9,10 +9,10 @@ import ReadiumInternal
 
 /// A type that can represent a URL.
 public protocol URLProtocol: URLConvertible, Sendable, CustomStringConvertible {
-    /// Creates a new instance of this type from a Foundation ``URL``.
+    /// Creates a new instance of this type from a Foundation `URL`.
     init?(url: URL)
 
-    /// Returns a foundation ``URL`` for this URL representation.
+    /// Returns a foundation `URL` for this URL representation.
     var url: URL { get }
 }
 

@@ -9,19 +9,19 @@ import Foundation
 /// A type broadcasting user input events (e.g. touch or keyboard events) to
 /// a set of observers.
 @MainActor public protocol InputObservable {
-    /// Registers a new ``InputObserver`` for the observable receiver.
+    /// Registers a new `InputObserver` for the observable receiver.
     ///
     /// - Returns: An opaque token which can be used to remove the observer with
     ///   `removeInputObserver`.
     @discardableResult
     func addObserver(_ observer: InputObserving) -> InputObservableToken
 
-    /// Unregisters an ``InputObserver`` from this receiver using the given
+    /// Unregisters an `InputObserver` from this receiver using the given
     /// `token` returned by `addInputObserver`.
     func removeObserver(_ token: InputObservableToken)
 }
 
-/// A token which can be used to remove an ``InputObserver`` from an
+/// A token which can be used to remove an `InputObserver` from an
 /// ``InputObservable``.
 public struct InputObservableToken: Hashable, Identifiable {
     public let id: AnyHashable
