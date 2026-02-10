@@ -111,8 +111,8 @@ enum EPUBSpread: EPUBSpreadProtocol {
 
     /// Builds a list of two-page spreads for the given Publication.
     ///
-    /// - Parameter offsetFirstPage: User preference to offset the first
-    ///   resource.
+    /// `offsetFirstPage` is the user preference used to control if the first
+    /// resource is displayed on its own.
     private static func makeTwoPagesSpreads(
         for publication: Publication,
         readingOrder: [Link],
