@@ -59,3 +59,7 @@ out/
 ## Claude Code
 .claude
 CLAUDE.md
+
+# DocC generation
+.build-docs
+docs-site
