@@ -23,9 +23,12 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
     private let httpClient: HTTPClient
     private let epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy
 
-    /// - Parameter epubReflowablePositionsStrategy: Strategy used to calculate
-    ///   the number of positions in a reflowable resource of a web publication
-    ///   conforming to the EPUB profile.
+    /// - Parameters:
+    ///   - pdfFactory: Factory used to open PDF documents, if available.
+    ///   - httpClient: The HTTP client used to fetch remote resources.
+    ///   - epubReflowablePositionsStrategy: Strategy used to calculate
+    ///     the number of positions in a reflowable resource of a web publication
+    ///     conforming to the EPUB profile.
     public init(pdfFactory: PDFDocumentFactory?, httpClient: HTTPClient, epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy = .recommended) {
         self.pdfFactory = pdfFactory
         self.httpClient = httpClient

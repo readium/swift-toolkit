@@ -11,7 +11,11 @@ public typealias ContentTokenizer = Tokenizer<ContentElement, ContentElement>
 
 /// A `ContentTokenizer` using a `TextTokenizer` to split the text of the `Content`.
 ///
-/// - Parameter contextSnippetLength: Length of `before` and `after` snippets in the produced `Locator`s.
+/// - Parameters:
+///   - defaultLanguage: The language used by the tokenizer if the content doesn't specify one.
+///   - contextSnippetLength: Length of `before` and `after` snippets in the produced `Locator`s.
+///   - textTokenizerFactory: A closure providing the underlying `TextTokenizer` to use
+///     for a given language.
 public func makeTextContentTokenizer(
     defaultLanguage: Language?,
     contextSnippetLength: Int = 50,

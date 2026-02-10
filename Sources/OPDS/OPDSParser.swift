@@ -17,7 +17,10 @@ public enum OPDSParser {
 
     /// Parse an OPDS feed or publication.
     /// Feed can be v1 (XML) or v2 (JSON).
-    /// - parameter url: The feed URL
+    /// - Parameters:
+    ///   - url: The feed URL.
+    ///   - completion: A closure called when the parsing is complete, returning the
+    ///     parsed `ParseData` on success, or an `Error` if the operation failed.
     public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
         feedURL = url
 

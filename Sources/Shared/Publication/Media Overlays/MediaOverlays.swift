@@ -76,7 +76,7 @@ public class MediaOverlays {
 
     /// Return the `MediaOverlayNode` found for the given 'fragment id'.
     ///
-    /// - Parameter forFragment: The SMIL fragment identifier.
+    /// - Parameter id: The SMIL fragment identifier.
     /// - Returns: The node associated to the fragment.
     public func node(forFragmentId id: String?) throws -> MediaOverlayNode {
         guard let node = _findNode(forFragment: id, inNodes: nodes) else {
@@ -88,7 +88,7 @@ public class MediaOverlays {
     /// Return the `MediaOverlayNode` right after the node found for the given
     /// 'fragment id'.
     ///
-    /// - Parameter forFragment: The SMIL fragment identifier.
+    /// - Parameter id: The SMIL fragment identifier.
     /// - Returns: The node right after the node associated to the fragment.
     public func node(nextAfterFragmentId id: String?) throws -> MediaOverlayNode {
         let ret = _findNextNode(forFragment: id, inNodes: nodes)

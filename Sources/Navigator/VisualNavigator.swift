@@ -19,7 +19,7 @@ public protocol VisualNavigator: Navigator, InputObservable {
     /// Moves to the left content portion (eg. page) relative to the reading
     /// progression direction.
     ///
-    /// - Parameter completion: Called when the transition is completed.
+    /// - Parameter options: Options for moving the content to the left.
     /// - Returns: Whether the navigator is able to move to the previous
     ///   content portion. The completion block is only called if true was
     ///   returned.
@@ -29,7 +29,7 @@ public protocol VisualNavigator: Navigator, InputObservable {
     /// Moves to the right content portion (eg. page) relative to the reading
     /// progression direction.
     ///
-    /// - Parameter completion: Called when the transition is completed.
+    /// - Parameter options: Options for moving the content to the right.
     /// - Returns: Whether the navigator is able to move to the previous
     ///   content portion. The completion block is only called if true was
     ///   returned.
