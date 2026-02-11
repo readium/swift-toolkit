@@ -153,7 +153,7 @@ extension License: LCPLicense {
                     return
                 }
 
-                rights.copy = max(0, printLeft - pageCount)
+                rights.print = max(0, printLeft - pageCount)
             }
 
             return allowed
