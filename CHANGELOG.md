@@ -20,6 +20,10 @@ All notable changes to this project will be documented in this file. Take a look
 * The first resource of a fixed-layout EPUB is now displayed on its own by default, matching Apple Books behavior.
 * Fixed the default spread position for single fixed-layout EPUB spreads that are not the first page.
 
+#### LCP
+
+* Fixed the `print` method consuming copy rights instead of print rights.
+
 ### Deprecated
 
 #### LCP
