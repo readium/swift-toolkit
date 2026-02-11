@@ -30,8 +30,11 @@ final class EPUBNavigatorViewModel: Loggable {
     let editingActions: EditingActionsController
     private let httpServer: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
-    private(set) var publicationBaseURL: HTTPURL!
+    private(set) var publicationBaseURL: AbsoluteURL!
     let assetsURL: HTTPURL
+    /// The scheme handler used to serve publication resources to the web view,
+    /// when not using the HTTP server.
+    private(set) var publicationSchemeHandler: PublicationSchemeHandler?
     weak var delegate: EPUBNavigatorViewModelDelegate?
 
     /// Local file URL associated to the HTTP URL used to serve the file on the
@@ -46,44 +49,50 @@ final class EPUBNavigatorViewModel: Loggable {
         config: EPUBNavigatorViewController.Configuration,
         httpServer: HTTPServer
     ) throws {
-        let uuidEndpoint: HTTPServerEndpoint = UUID().uuidString
-        let publicationEndpoint: HTTPServerEndpoint?
-        if publication.baseURL != nil {
-            publicationEndpoint = nil
-        } else {
-            publicationEndpoint = uuidEndpoint
-        }
-
-        try self.init(
-            publication: publication,
-            readingOrder: readingOrder,
-            config: config,
-            httpServer: httpServer,
-            publicationEndpoint: publicationEndpoint,
-            assetsURL: httpServer.serve(
-                at: "readium",
-                contentsOf: Bundle.module.resourceURL!.fileURL!
-                    .appendingPath("Assets/Static", isDirectory: true)
-            )
+        let assetsURL = try httpServer.serve(
+            at: "readium",
+            contentsOf: Bundle.module.resourceURL!.fileURL!
+                .appendingPath("Assets/Static", isDirectory: true)
         )
 
         if let url = publication.baseURL {
-            publicationBaseURL = url
-        } else {
-            publicationBaseURL = try httpServer.serve(
-                at: uuidEndpoint, // serving the chapters endpoint
+            // The publication already has an HTTP base URL (e.g. served
+            // remotely). Use it directly without a scheme handler.
+            try self.init(
                 publication: publication,
-                onFailure: { [weak self] request, error in
-                    guard let self = self, let href = request.href else {
-                        return
-                    }
-                    self.delegate?.epubNavigatorViewModel(self, didFailToLoadResourceAt: href, withError: error)
-                }
+                readingOrder: readingOrder,
+                config: config,
+                httpServer: httpServer,
+                publicationEndpoint: nil,
+                publicationSchemeHandler: nil,
+                assetsURL: assetsURL
             )
-        }
 
-        if let endpoint = publicationEndpoint {
-            try httpServer.transformResources(at: endpoint) { [weak self] href, resource in
+            publicationBaseURL = url
+
+        } else {
+            // Use a custom scheme handler to serve publication resources.
+            let uuid = UUID().uuidString
+            let baseURL = AnyURL(string: "readium://\(uuid)/")!.absoluteURL!
+
+            let schemeHandler = PublicationSchemeHandler(
+                publication: publication,
+                baseURL: baseURL
+            )
+
+            try self.init(
+                publication: publication,
+                readingOrder: readingOrder,
+                config: config,
+                httpServer: httpServer,
+                publicationEndpoint: nil,
+                publicationSchemeHandler: schemeHandler,
+                assetsURL: assetsURL
+            )
+
+            publicationBaseURL = baseURL
+
+            schemeHandler.transformResources { [weak self] href, resource in
                 self?.injectReadiumCSS(in: resource, at: href) ?? resource
             }
         }
@@ -95,6 +104,7 @@ final class EPUBNavigatorViewModel: Loggable {
         config: EPUBNavigatorViewController.Configuration,
         httpServer: HTTPServer?,
         publicationEndpoint: HTTPServerEndpoint?,
+        publicationSchemeHandler: PublicationSchemeHandler?,
         assetsURL: HTTPURL
     ) {
         var config = config
@@ -134,6 +144,7 @@ final class EPUBNavigatorViewModel: Loggable {
         )
         self.httpServer = httpServer
         self.publicationEndpoint = publicationEndpoint
+        self.publicationSchemeHandler = publicationSchemeHandler
         self.assetsURL = assetsURL
 
         preferences = config.preferences
@@ -165,7 +176,7 @@ final class EPUBNavigatorViewModel: Loggable {
     }
 
     func url(to link: Link) -> AnyURL {
-        link.url(relativeTo: publicationBaseURL)
+        link.url(relativeTo: publicationBaseURL.anyURL)
     }
 
     private func serveFile(at file: FileURL, baseEndpoint: HTTPServerEndpoint) throws -> HTTPURL {

@@ -71,7 +71,14 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         self.viewModel = viewModel
         self.spread = spread
         self.animatedLoad = animatedLoad
-        webView = WebView(editingActions: viewModel.editingActions)
+
+        if let schemeHandler = viewModel.publicationSchemeHandler {
+            let config = WKWebViewConfiguration()
+            config.setURLSchemeHandler(schemeHandler, forURLScheme: schemeHandler.scheme)
+            webView = WebView(editingActions: viewModel.editingActions, configuration: config)
+        } else {
+            webView = WebView(editingActions: viewModel.editingActions)
+        }
 
         super.init(frame: .zero)
 
@@ -533,12 +540,14 @@ extension EPUBSpreadView: WKNavigationDelegate {
         var policy: WKNavigationActionPolicy = .allow
 
         if navigationAction.navigationType == .linkActivated {
-            if let url = navigationAction.request.url?.httpURL {
+            if let url = navigationAction.request.url {
+                let anyURL = AnyURL(url: url)
+
                 // Check if url is internal or external
-                if let relativeURL = viewModel.publicationBaseURL.relativize(url) {
+                if let relativeURL = viewModel.publicationBaseURL.relativize(anyURL) {
                     delegate?.spreadView(self, didTapOnInternalLink: relativeURL.string, clickEvent: lastClick)
                 } else {
-                    delegate?.spreadView(self, didTapOnExternalURL: url.url)
+                    delegate?.spreadView(self, didTapOnExternalURL: url)
                 }
 
                 policy = .cancel
