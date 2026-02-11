@@ -73,6 +73,22 @@ echo "   • Target: $TARGET_TRIPLE"
 # -----------------------------------------------------------------------------
 # 5. Build & Symbol Generation
 # -----------------------------------------------------------------------------
+echo "🔧  Patching Package.swift for macOS compatibility..."
+# Define a cleanup function to restore the original file on exit/error
+restore_package() {
+    if [ -f Package.swift.orig ]; then
+        mv Package.swift.orig Package.swift
+    fi
+}
+trap restore_package EXIT
+
+# Back up the original file
+cp Package.swift Package.swift.orig
+
+# Inject .macOS(.v11) into the platforms array
+# This satisfies the dependency graph validation for ReadiumZIPFoundation
+sed -i '' 's/\.iOS("15.0")]/.iOS("15.0"), .macOS(.v11)]/' Package.swift
+
 echo "🧹  Cleaning build artifacts..."
 # Delete the .build folder to force SwiftPM to re-emit symbol graphs.
 # If this isn't done, incremental builds might skip the documentation step.
@@ -177,7 +193,48 @@ $DOCC_EXEC convert "$DOCC_CATALOG_DIR" \
 echo "✅  Documentation generated at: $SITE_DIR"
 
 # -----------------------------------------------------------------------------
-# 10. Local Preview
+# 10. Add SPA Routing (Fixes Root & Deep Links)
+# -----------------------------------------------------------------------------
+echo "twisted_rightwards_arrows  Adding 404 redirect for SPA routing..."
+
+# This script handles the redirect for both the root path AND deep links.
+cat <<EOF > "$SITE_DIR/404.html"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Redirecting...</title>
+    <script>
+        // 1. If we are at the root (/swift-toolkit/), go to the main documentation page.
+        var path = window.location.pathname;
+        var repoName = "/$REPO_NAME";
+        
+        // Remove trailing slash if present for cleaner comparison
+        if (path.endsWith('/')) {
+            path = path.slice(0, -1);
+        }
+
+        if (path === repoName || path === "") {
+            window.location.href = repoName + "/documentation/readium";
+        }
+        // 2. If we are at a deep link that 404s, let DocC handle the routing (optional enhancement)
+        else {
+            // For simple setups, just redirecting to root is often safest:
+            window.location.href = repoName + "/documentation/readium";
+        }
+    </script>
+    <meta http-equiv="refresh" content="0; url=/$REPO_NAME/documentation/readium">
+</head>
+<body>
+    <p>Redirecting to documentation...</p>
+</body>
+</html>
+EOF
+
+cp "$SITE_DIR/404.html" "$SITE_DIR/index.html"
+
+# -----------------------------------------------------------------------------
+# 11. Local Preview
 # -----------------------------------------------------------------------------
 if [ "$SERVE_SITE" = true ]; then
     URL="http://localhost:8080/$REPO_NAME/documentation/readium"
