@@ -50,8 +50,7 @@ public extension ResourceProperties {
     /// Known media type for this resource.
     var mediaType: MediaType? {
         get {
-            (properties[mediaTypeKey] as? String)
-                .flatMap { MediaType($0) }
+            properties[mediaTypeKey] as? MediaType
         }
         set {
             if let mediaType = newValue {

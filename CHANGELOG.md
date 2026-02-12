@@ -15,6 +15,8 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Fixed
 
+* ResourceProperties mediaType getter wrong type casting
+
 #### Navigator
 
 * The first resource of a fixed-layout EPUB is now displayed on its own by default, matching Apple Books behavior.
