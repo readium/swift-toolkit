@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Fixed
 
-* ResourceProperties mediaType getter wrong type casting
+* Fixed casting of `ResourceProperties`'s `mediaType` (contributed by [@lbeus](https://github.com/readium/swift-toolkit/pull/719)).
 
 #### Navigator
 
