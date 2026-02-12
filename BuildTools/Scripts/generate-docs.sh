@@ -16,6 +16,12 @@ set -e # Exit immediately if any command exits with a non-zero status.
 # -----------------------------------------------------------------------------
 # 1. Configuration
 # -----------------------------------------------------------------------------
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+cd "$PROJECT_ROOT"
+
+echo "📂  Working directory set to: $(pwd)"
+
 REPO_NAME="swift-toolkit"
 # The final folder where the static HTML site will be generated.
 OUTPUT_ROOT="docs-site"
@@ -87,7 +93,7 @@ cp Package.swift Package.swift.orig
 
 # Inject .macOS(.v11) into the platforms array
 # This satisfies the dependency graph validation for ReadiumZIPFoundation
-sed -i '' 's/\.iOS("15.0")]/.iOS("15.0"), .macOS(.v11)]/' Package.swift
+sed -i '' 's/\(\.iOS("[^"]*")\)]/\1, .macOS(.v11)]/' Package.swift
 
 echo "🧹  Cleaning build artifacts..."
 # Delete the .build folder to force SwiftPM to re-emit symbol graphs.

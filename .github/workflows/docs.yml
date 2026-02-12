@@ -21,14 +21,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      # If a specific version is needed:
-      # - name: Select Xcode 15.4
-      #   run: sudo xcode-select -s /Applications/Xcode_15.4.app
-
       - name: Generate Documentation
         run: |
-          chmod +x generate-docs.sh
-          ./generate-docs.sh
+          chmod +x BuildTools/Scripts/generate-docs.sh
+          ./BuildTools/Scripts/generate-docs.sh
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
