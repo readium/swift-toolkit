@@ -111,13 +111,13 @@ class MyNavigatorDelegate: NavigatorDelegate {
 
     override func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
         if let position = locator.locations.position {
-            print("At position \(position) on \(publication.positions.count)")
+            print("At position \(position)")
         }
         if let progression = locator.locations.progression {
-            print("Progression in the current resource: \(progression)%")
+            print("Progression in the current resource: \(progression.formatted(.percent))")
         }
         if let totalProgression = locator.locations.totalProgression {
-            print("Total progression in the publication: \(totalProgression)%")
+            print("Total progression in the publication: \(totalProgression.formatted(.percent))")
         }
 
         // Save the position in your bookshelf database
@@ -161,9 +161,7 @@ if let locator = await publication.locate(progression: 0.5) {
 > [!NOTE]
 > Readium does not have the concept of pages, as they are not useful when dealing with reflowable publications across different screen sizes. Instead, we use [**positions**](https://readium.org/architecture/models/locators/positions/) which remain stable even when the user changes the font size or device.
 
-Not all Navigators provide positions, but most `VisualNavigator` implementations do. Verify if `publication.positions` is not empty to determine if it is supported.
-
-To find the total positions in the publication, use `try await publication.positions().get().count`. You can get the current position with `navigator.currentLocation?.locations.position`.
+Not all Navigators provide positions, but most `VisualNavigator` implementations do. To find the total positions in the publication, use `try await publication.positions().get().count`. You can get the current position with `navigator.currentLocation?.locations.position`.
 
 ## Navigating with edge taps and keyboard arrows
 
