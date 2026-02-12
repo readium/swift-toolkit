@@ -112,7 +112,7 @@ let assetRetriever = AssetRetriever(
     httpClient: httpClient
 )
 let publicationOpener = PublicationOpener(
-    publicationParser: DefaultPublicationParser(
+    parser: DefaultPublicationParser(
         httpClient: httpClient,
         assetRetriever: assetRetriever,
         pdfFactory: DefaultPDFDocumentFactory()
