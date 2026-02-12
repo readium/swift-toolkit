@@ -224,8 +224,8 @@ Users need to import a License Document into your application to download the pr
 The `LCPService` offers an API to retrieve the full publication from an LCPL on the filesystem.
 
 ```swift
-let acquisition = lcpService.acquirePublication(
-    from: lcplURL,
+let result = await lcpService.acquirePublication(
+    from: .file(lcplURL),
     onProgress: { progress in
         switch progress {
             case .indefinite:
@@ -233,21 +233,16 @@ let acquisition = lcpService.acquirePublication(
             case .percent(let percent):
                 // Display a progress bar with percent from 0 to 1.
         }
-    },
-    completion: { result in
-        switch result {
-        case let .success(publication):
-            // Import the `publication.localURL` file as any publication.
-        case let .failure(error):
-            // Display the error message
-        case .cancelled:
-            // The acquisition was cancelled before completion.
-        }
     }
 )
-```
 
-If the user wants to cancel the download, call `cancel()` on the object returned by `LCPService.acquirePublication()`.
+switch result {
+case let .success(publication):
+    // Import the `publication.localURL` file as any publication.
+case let .failure(error):
+    // Display the error message.
+}
+```
 
 After the download is completed, import the `publication.localURL` file into the bookshelf like any other publication file.
 
@@ -308,7 +303,7 @@ The `allowUserInteraction` and `sender` arguments are forwarded to the `LCPAuthe
 When importing the publication to the bookshelf, set `allowUserInteraction` to `false` as you don't need the passphrase for accessing the publication metadata and cover. If you intend to present the publication using a Navigator, set `allowUserInteraction` to `true` as decryption will be required.
 
 > [!TIP]
-> To check if a publication is protected with LCP before opening it, you can use `LCPService.isLCPProtected()`.
+> To check if an asset is protected with LCP before opening it, you can use `asset.format.conformsTo(.lcp)`.
 
 ### Using the opened `Publication`
 
@@ -370,36 +365,30 @@ An LCP License Document contains metadata such as its expiration date, the remai
 Use the `LCPService` to retrieve the `LCPLicense` instance for a publication.
 
 ```swift
-lcpService.retrieveLicense(
-    from: publicationURL,
+let result = await lcpService.retrieveLicense(
+    from: asset,
     authentication: LCPDialogAuthentication(),
     allowUserInteraction: true,
     sender: hostViewController
-) { result in
-    switch result {
-    case .success(let lcpLicense):
-        if let lcpLicense = lcpLicense {
-            if let user = lcpLicense.license.user.name {
-                print("The publication was acquired by \(user)")
-            }
-            if let endDate = lcpLicense.license.rights.end {
-                print("The loan expires on \(endDate)")
-            }
-            if let copyLeft = lcpLicense.charactersToCopyLeft {
-                print("You can copy up to \(copyLeft) characters remaining.")
-            }
-        } else {
-            // The file was not protected by LCP.
-        }
-    case .failure(let error):
-        // Display the error.
-    case .cancelled:
-        // The operation was cancelled.
+)
+
+switch result {
+case .success(let lcpLicense):
+    if let user = lcpLicense.license.user.name {
+        print("The publication was acquired by \(user)")
     }
+    if let endDate = lcpLicense.license.rights.end {
+        print("The loan expires on \(endDate)")
+    }
+    if let copyLeft = await lcpLicense.charactersToCopyLeft() {
+        print("You can copy up to \(copyLeft) characters remaining.")
+    }
+case .failure(let error):
+    // Display the error.
 }
 ```
 
-If you have already opened a `Publication` with the `Streamer`, you can directly obtain the `LCPLicense` using `publication.lcpLicense`.
+If you have already opened a `Publication` with the `PublicationOpener`, you can directly obtain the `LCPLicense` using `publication.lcpLicense`.
 
 ## Managing a loan
 
@@ -410,12 +399,12 @@ Readium LCP allows borrowing publications for a specific period. Use the `LCPLic
 Some loans can be returned before the end date. You can confirm this by using `lcpLicense.canReturnPublication`. To return the publication, execute:
 
 ```swift
-lcpLicense.returnPublication { error in
-    if let error = error {
-        // Present the error.
-    } else {
-        // The publication was returned.
-    }
+let result = await lcpLicense.returnPublication()
+switch result {
+case .success:
+    // The publication was returned.
+case .failure(let error):
+    // Present the error.
 }
 ```
 
@@ -431,17 +420,17 @@ Readium LCP supports [two types of renewal interactions](https://readium.org/lcp
 You need to support both interactions by implementing the `LCPRenewDelegate` protocol. A default implementation is available with `LCPDefaultRenewDelegate`.
 
 ```swift
-lcpLicense.renewLoan(
+let result = await lcpLicense.renewLoan(
     with: LCPDefaultRenewDelegate(
         presentingViewController: hostViewController
     )
-) { result in
-    switch result {
-    case .success, .cancelled:
-        // The publication was renewed.
-    case let .failure(error):
-        // Display the error.
-    }
+)
+
+switch result {
+case .success:
+    // The publication was renewed.
+case let .failure(error):
+    // Display the error.
 }
 ```
 
@@ -453,7 +442,7 @@ For an example, [take a look at the Test App](https://github.com/readium/swift-t
 
 ## Using the SwiftUI LCP Authentication dialog
 
-If your application is built using SwiftUI, you cannot use `LCPAuthenticationDialog` because it requires a UIKit view controller as its host. Instead, use an `LCPObservableAuthentication` combined with our SwiftUI `LCPDialog` presented as a sheet.
+If your application is built using SwiftUI, you cannot use `LCPDialogAuthentication` because it requires a UIKit view controller as its host. Instead, use an `LCPObservableAuthentication` combined with our SwiftUI `LCPDialog` presented as a sheet.
 
 ```swift
 @main

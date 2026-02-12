@@ -114,10 +114,10 @@ class MyNavigatorDelegate: NavigatorDelegate {
             print("At position \(position) on \(publication.positions.count)")
         }
         if let progression = locator.locations.progression {
-            return "Progression in the current resource: \(progression)%"
+            print("Progression in the current resource: \(progression)%")
         }
         if let totalProgression = locator.locations.totalProgression {
-            return "Total progression in the publication: \(progression)%"
+            print("Total progression in the publication: \(totalProgression)%")
         }
 
         // Save the position in your bookshelf database
@@ -151,8 +151,8 @@ To display a percentage-based progression slider, use the `locations.totalProgre
 Given a progression from 0 to 1, you can obtain a `Locator` object from the `Publication`. This can be used to navigate to a specific percentage within the publication.
 
 ```swift
-if let locator = publication.locate(progression: 0.5) {
-    navigator.go(to: locator)
+if let locator = await publication.locate(progression: 0.5) {
+    await navigator.go(to: locator)
 }
 ```
 
@@ -163,7 +163,7 @@ if let locator = publication.locate(progression: 0.5) {
 
 Not all Navigators provide positions, but most `VisualNavigator` implementations do. Verify if `publication.positions` is not empty to determine if it is supported.
 
-To find the total positions in the publication, use `publication.positions.count`. You can get the current position with `navigator.currentLocation?.locations.position`.
+To find the total positions in the publication, use `try await publication.positions().get().count`. You can get the current position with `navigator.currentLocation?.locations.position`.
 
 ## Navigating with edge taps and keyboard arrows
 

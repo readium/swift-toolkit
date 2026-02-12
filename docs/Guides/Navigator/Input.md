@@ -12,12 +12,12 @@ Here's an example of a simple `InputObserving` implementation that logs all key 
 navigator.addObserver(InputObserver())
 
 @MainActor final class InputObserver: InputObserving {
-    func didReceive(_ event: PointerEvent) -> Bool {
+    func didReceive(_ event: PointerEvent) async -> Bool {
         print("Received pointer event: \(event)")
         return false
     }
-    
-    func didReceive(_ event: KeyEvent) -> Bool {
+
+    func didReceive(_ event: KeyEvent) async -> Bool {
         print("Received key event: \(event)")
         return false
     }
@@ -47,7 +47,7 @@ navigator.addObserver(.click(modifiers: [.shift]) { event in
 
 ## Observing keyboard events
 
-Similarly, the `KeyboardObserver` implementation provides an easy method to intercept keyboard events.
+Similarly, the `KeyObserver` implementation provides an easy method to intercept keyboard events.
 
 ```swift
 navigator.addObserver(.key { event in
