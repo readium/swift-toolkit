@@ -72,13 +72,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         self.spread = spread
         self.animatedLoad = animatedLoad
 
-        if let schemeHandler = viewModel.publicationSchemeHandler {
-            let config = WKWebViewConfiguration()
-            config.setURLSchemeHandler(schemeHandler, forURLScheme: schemeHandler.scheme)
-            webView = WebView(editingActions: viewModel.editingActions, configuration: config)
-        } else {
-            webView = WebView(editingActions: viewModel.editingActions)
-        }
+        let config = WKWebViewConfiguration()
+        config.setURLSchemeHandler(viewModel.schemeHandler, forURLScheme: viewModel.schemeHandler.scheme)
+        webView = WebView(editingActions: viewModel.editingActions, configuration: config)
 
         super.init(frame: .zero)
 

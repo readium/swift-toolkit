@@ -21,91 +21,88 @@ enum EPUBScriptScope {
 }
 
 final class EPUBNavigatorViewModel: Loggable {
-    enum Error: Swift.Error {
-        case noHTTPServer
-    }
-
     let publication: Publication
     let config: EPUBNavigatorViewController.Configuration
     let editingActions: EditingActionsController
-    private let httpServer: HTTPServer?
-    private let publicationEndpoint: HTTPServerEndpoint?
     private(set) var publicationBaseURL: AbsoluteURL!
-    let assetsURL: HTTPURL
-    /// The scheme handler used to serve publication resources to the web view,
-    /// when not using the HTTP server.
-    private(set) var publicationSchemeHandler: PublicationSchemeHandler?
+    let assetsBaseURL: any AbsoluteURL
+    /// The scheme handler used to serve publication resources and static
+    /// assets to the web view.
+    let schemeHandler: ReadiumSchemeHandler
     weak var delegate: EPUBNavigatorViewModelDelegate?
-
-    /// Local file URL associated to the HTTP URL used to serve the file on the
-    /// `httpServer`. This is used to serve custom font files, for example.
-    @Atomic private var servedFiles: [FileURL: HTTPURL] = [:]
 
     let readingOrder: ReadingOrder
 
     convenience init(
         publication: Publication,
         readingOrder: ReadingOrder,
-        config: EPUBNavigatorViewController.Configuration,
-        httpServer: HTTPServer
-    ) throws {
-        let assetsURL = try httpServer.serve(
-            at: "readium",
-            contentsOf: Bundle.module.resourceURL!.fileURL!
-                .appendingPath("Assets/Static", isDirectory: true)
-        )
+        config: EPUBNavigatorViewController.Configuration
+    ) {
+        let assetsDirectory = Bundle.module.resourceURL!.fileURL!
+            .appendingPath("Assets/Static", isDirectory: true)
+
+        let assetsBaseURL = AnyURL(string: "readium://assets/")!.absoluteURL!
+
+        let publicationBaseURL: AbsoluteURL
+        let servedPublication: Publication?
 
         if let url = publication.baseURL {
             // The publication already has an HTTP base URL (e.g. served
-            // remotely). Use it directly without a scheme handler.
-            try self.init(
-                publication: publication,
-                readingOrder: readingOrder,
-                config: config,
-                httpServer: httpServer,
-                publicationEndpoint: nil,
-                publicationSchemeHandler: nil,
-                assetsURL: assetsURL
-            )
-
+            // remotely). Use it directly; the scheme handler only needs
+            // to serve assets.
             publicationBaseURL = url
-
+            servedPublication = nil
         } else {
             // Use a custom scheme handler to serve publication resources.
             let uuid = UUID().uuidString
-            let baseURL = AnyURL(string: "readium://\(uuid)/")!.absoluteURL!
+            publicationBaseURL = AnyURL(string: "readium://\(uuid)/")!.absoluteURL!
+            servedPublication = publication
+        }
 
-            let schemeHandler = PublicationSchemeHandler(
-                publication: publication,
-                baseURL: baseURL
-            )
+        let schemeHandler = ReadiumSchemeHandler(
+            publication: servedPublication,
+            publicationBaseURL: servedPublication != nil ? publicationBaseURL : nil,
+            assetsBaseURL: assetsBaseURL,
+            assetsDirectory: assetsDirectory
+        )
 
-            try self.init(
-                publication: publication,
-                readingOrder: readingOrder,
-                config: config,
-                httpServer: httpServer,
-                publicationEndpoint: nil,
-                publicationSchemeHandler: schemeHandler,
-                assetsURL: assetsURL
-            )
+        self.init(
+            publication: publication,
+            readingOrder: readingOrder,
+            config: config,
+            schemeHandler: schemeHandler,
+            publicationBaseURL: publicationBaseURL,
+            assetsBaseURL: assetsBaseURL
+        )
 
-            publicationBaseURL = baseURL
-
+        if servedPublication != nil {
             schemeHandler.transformResources { [weak self] href, resource in
                 self?.injectReadiumCSS(in: resource, at: href) ?? resource
             }
         }
     }
 
+    @available(*, deprecated, message: "The HTTP server is no longer needed for the EPUB navigator.")
+    convenience init(
+        publication: Publication,
+        readingOrder: ReadingOrder,
+        config: EPUBNavigatorViewController.Configuration,
+        httpServer: HTTPServer
+    ) throws {
+        self.init(
+            publication: publication,
+            readingOrder: readingOrder,
+            config: config
+        )
+    }
+
     private init(
         publication: Publication,
         readingOrder: ReadingOrder,
         config: EPUBNavigatorViewController.Configuration,
-        httpServer: HTTPServer?,
-        publicationEndpoint: HTTPServerEndpoint?,
-        publicationSchemeHandler: PublicationSchemeHandler?,
-        assetsURL: HTTPURL
+        schemeHandler: ReadiumSchemeHandler,
+        publicationBaseURL: AbsoluteURL,
+        assetsBaseURL: any AbsoluteURL
     ) {
         var config = config
 
@@ -142,10 +139,9 @@ final class EPUBNavigatorViewModel: Loggable {
             actions: config.editingActions,
             publication: publication
         )
-        self.httpServer = httpServer
-        self.publicationEndpoint = publicationEndpoint
-        self.publicationSchemeHandler = publicationSchemeHandler
-        self.assetsURL = assetsURL
+        self.schemeHandler = schemeHandler
+        self.publicationBaseURL = publicationBaseURL
+        self.assetsBaseURL = assetsBaseURL
 
         preferences = config.preferences
         settings = EPUBSettings(publication: publication, config: config)
@@ -153,7 +149,7 @@ final class EPUBNavigatorViewModel: Loggable {
         css = ReadiumCSS(
             layout: CSSLayout(),
             rsProperties: config.readiumCSSRSProperties,
-            baseURL: assetsURL.appendingPath("readium-css", isDirectory: true),
+            baseURL: assetsBaseURL.appendingPath("readium-css", isDirectory: true),
             fontFamilyDeclarations: config.fontFamilyDeclarations
         )
 
@@ -169,28 +165,10 @@ final class EPUBNavigatorViewModel: Loggable {
 
     deinit {
         NotificationCenter.default.removeObserver(self)
-
-        if let endpoint = publicationEndpoint {
-            try? httpServer?.remove(at: endpoint)
-        }
     }
 
     func url(to link: Link) -> AnyURL {
         link.url(relativeTo: publicationBaseURL.anyURL)
-    }
-
-    private func serveFile(at file: FileURL, baseEndpoint: HTTPServerEndpoint) throws -> HTTPURL {
-        if let url = servedFiles[file] {
-            return url
-        }
-
-        guard let httpServer = httpServer else {
-            throw Error.noHTTPServer
-        }
-        let endpoint = baseEndpoint.addingSuffix("/") + file.lastPathSegment
-        let url = try httpServer.serve(at: endpoint, contentsOf: file)
-        $servedFiles.write { $0[file] = url }
-        return url
     }
 
     private var needsInvalidatePagination = false
@@ -298,8 +276,8 @@ final class EPUBNavigatorViewModel: Loggable {
 
     private var css: ReadiumCSS
 
-    private func serveFont(at file: FileURL) throws -> HTTPURL {
-        try serveFile(at: file, baseEndpoint: "custom-fonts/\(UUID().uuidString)")
+    private func serveFont(at file: FileURL) -> any AbsoluteURL {
+        schemeHandler.serveFont(at: file)
     }
 
     func injectReadiumCSS<HREF: URLConvertible>(in resource: Resource, at href: HREF) -> Resource {

@@ -43,8 +43,7 @@ final class EPUBModule: ReaderFormatModule {
             bookmarks: bookmarks,
             highlights: highlights,
             initialPreferences: preferencesStore.preferences(for: bookId),
-            preferencesStore: preferencesStore,
-            httpServer: readium.httpServer
+            preferencesStore: preferencesStore
         )
         epubViewController.moduleDelegate = delegate
         return epubViewController
