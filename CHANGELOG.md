@@ -13,6 +13,12 @@ All notable changes to this project will be documented in this file. Take a look
     * Persist across app reinstalls.
     * Optionally synchronized across devices via iCloud Keychain.
 
+### Deprecated
+
+#### LCP
+
+* `ReadiumAdapterLCPSQLite` is now deprecated in favor of the built-in Keychain repositories. See [the migration guide](docs/Migration%20Guide.md) for instructions.
+
 ### Fixed
 
 #### Navigator
@@ -23,12 +29,6 @@ All notable changes to this project will be documented in this file. Take a look
 #### LCP
 
 * Fixed the `print` method consuming copy rights instead of print rights.
-
-### Deprecated
-
-#### LCP
-
-* `ReadiumAdapterLCPSQLite` is now deprecated in favor of the built-in Keychain repositories. See [the migration guide](docs/Migration%20Guide.md) for instructions.
 
 
 ## [3.7.0]

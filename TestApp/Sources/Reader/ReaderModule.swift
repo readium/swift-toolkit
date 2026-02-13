@@ -48,7 +48,6 @@ final class ReaderModule: ReaderModuleAPI {
 
         formatModules = [
             AudiobookModule(delegate: self),
-            CBZModule(delegate: self),
             EPUBModule(delegate: self),
             PDFModule(delegate: self),
         ]
