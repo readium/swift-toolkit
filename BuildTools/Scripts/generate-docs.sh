@@ -22,12 +22,13 @@ cd "$PROJECT_ROOT"
 
 echo "📂  Working directory set to: $(pwd)"
 
+DOC_VERSION="${1:-latest}"
 REPO_NAME="swift-toolkit"
 # The final folder where the static HTML site will be generated.
 OUTPUT_ROOT="docs-site"
 # The site inside is nested in a folder matching the repo name.
 # This emulates GitHub Pages URL structure (e.g., username.github.io/swift-toolkit/).
-SITE_DIR="$OUTPUT_ROOT/$REPO_NAME"
+SITE_DIR="$OUTPUT_ROOT/$REPO_NAME/$DOC_VERSION"
 # A temporary directory for intermediate build artifacts.
 TEMP_DIR=".build-docs"
 # The location of the "virtual" DocC catalog.
@@ -50,11 +51,11 @@ done
 # -----------------------------------------------------------------------------
 # Remove previous outputs to ensure a clean build.
 # This prevents stale files or old symbols from appearing in the new site.
-rm -rf "$OUTPUT_ROOT"
-rm -rf "$TEMP_DIR"
+# rm -rf "$OUTPUT_ROOT"
+rm -rf "$SITE_DIR"
 mkdir -p "$DOCC_CATALOG_DIR"
 mkdir -p "$SYMBOL_GRAPHS_DIR"
-mkdir -p "$OUTPUT_ROOT"
+mkdir -p "$SITE_DIR"
 
 echo "⚙️  Configuring build environment..."
 
@@ -194,7 +195,7 @@ $DOCC_EXEC convert "$DOCC_CATALOG_DIR" \
     --output-dir "$SITE_DIR" \
     --fallback-display-name "Readium" \
     --transform-for-static-hosting \
-    --hosting-base-path "$REPO_NAME"
+    --hosting-base-path "$REPO_NAME/$DOC_VERSION"
 
 echo "✅  Documentation generated at: $SITE_DIR"
 
@@ -211,25 +212,14 @@ cat <<EOF > "$SITE_DIR/404.html"
     <meta charset="utf-8">
     <title>Redirecting...</title>
     <script>
-        // 1. If we are at the root (/swift-toolkit/), go to the main documentation page.
-        var path = window.location.pathname;
-        var repoName = "/$REPO_NAME";
+        // The path we expect for this specific version
+        var versionPath = "/$REPO_NAME/$DOC_VERSION";
+        var destination = versionPath + "/documentation/readium";
         
-        // Remove trailing slash if present for cleaner comparison
-        if (path.endsWith('/')) {
-            path = path.slice(0, -1);
-        }
-
-        if (path === repoName || path === "") {
-            window.location.href = repoName + "/documentation/readium";
-        }
-        // 2. If we are at a deep link that 404s, let DocC handle the routing (optional enhancement)
-        else {
-            // For simple setups, just redirecting to root is often safest:
-            window.location.href = repoName + "/documentation/readium";
-        }
+        // Redirect to the version's root documentation page
+        window.location.href = destination;
     </script>
-    <meta http-equiv="refresh" content="0; url=/$REPO_NAME/documentation/readium">
+    <meta http-equiv="refresh" content="0; url=/$REPO_NAME/$DOC_VERSION/documentation/readium">
 </head>
 <body>
     <p>Redirecting to documentation...</p>
