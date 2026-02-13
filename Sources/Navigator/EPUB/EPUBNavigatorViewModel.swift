@@ -31,9 +31,9 @@ enum EPUBScriptScope {
     /// The base URL for Readium assets (CSS, scripts, etc.) and fonts.
     let assetsBaseURL: any AbsoluteURL
 
-    /// The scheme handler used to serve publication resources and static
-    /// assets to the web view.
-    let schemeHandler: WebSchemeHandler
+    /// The server used to serve publication resources and static assets to
+    /// the web view.
+    let server: WebViewServer
 
     weak var delegate: EPUBNavigatorViewModelDelegate?
 
@@ -47,44 +47,42 @@ enum EPUBScriptScope {
         let assetsDirectory = Bundle.module.resourceURL!.fileURL!
             .appendingPath("Assets/Static", isDirectory: true)
 
-        let assetsBaseURL = AnyURL(string: "readium://assets/")!.absoluteURL!
+        let server = WebViewServer(scheme: "readium")
+
+        // Serve static assets directory.
+        let assetsBaseURL = server.serve(directory: assetsDirectory, at: "assets")
 
         let publicationBaseURL: AbsoluteURL
-        let servedPublication: Publication?
-
+        let publicationRoute: String?
         if let url = publication.baseURL {
             // The publication already has an HTTP base URL (e.g. served
-            // remotely). Use it directly; the scheme handler only needs
-            // to serve assets.
+            // remotely). Use it directly; the server only needs to serve
+            // assets.
             publicationBaseURL = url
-            servedPublication = nil
+            publicationRoute = nil
         } else {
-            // Use a custom scheme handler to serve publication resources.
             let uuid = UUID().uuidString
             publicationBaseURL = AnyURL(string: "readium://\(uuid)/")!.absoluteURL!
-            servedPublication = publication
+            publicationRoute = uuid
         }
-
-        let schemeHandler = WebSchemeHandler(
-            scheme: "readium",
-            publication: servedPublication,
-            publicationBaseURL: servedPublication != nil ? publicationBaseURL : nil,
-            assetsBaseURL: assetsBaseURL,
-            assetsDirectory: assetsDirectory
-        )
 
         self.init(
             publication: publication,
             readingOrder: readingOrder,
             config: config,
-            schemeHandler: schemeHandler,
+            server: server,
             publicationBaseURL: publicationBaseURL,
             assetsBaseURL: assetsBaseURL
         )
 
-        if servedPublication != nil {
-            schemeHandler.transformResources { [weak self] href, resource in
-                self?.injectReadiumCSS(in: resource, at: href) ?? resource
+        // Serve publication resources (after self.init so [weak self] works).
+        if let publicationRoute {
+            server.serve(at: publicationRoute) { [weak self] relativeURL in
+                guard var resource = publication.get(relativeURL) else { return nil }
+                if let self {
+                    resource = self.injectReadiumCSS(in: resource, at: relativeURL.anyURL)
+                }
+                return resource
             }
         }
     }
@@ -93,7 +91,7 @@ enum EPUBScriptScope {
         publication: Publication,
         readingOrder: ReadingOrder,
         config: EPUBNavigatorViewController.Configuration,
-        schemeHandler: WebSchemeHandler,
+        server: WebViewServer,
         publicationBaseURL: AbsoluteURL,
         assetsBaseURL: any AbsoluteURL
     ) {
@@ -132,7 +130,7 @@ enum EPUBScriptScope {
             actions: config.editingActions,
             publication: publication
         )
-        self.schemeHandler = schemeHandler
+        self.server = server
         self.publicationBaseURL = publicationBaseURL
         self.assetsBaseURL = assetsBaseURL
 
@@ -288,7 +286,11 @@ enum EPUBScriptScope {
                 for ff in config.fontFamilyDeclarations {
                     content = try ff.inject(
                         in: content,
-                        servingFile: { [schemeHandler] in schemeHandler.serveFont(at: $0) }
+                        servingFile: { [server] file in
+                            let id = UUID().uuidString
+                            let name = file.lastPathSegment ?? "font"
+                            return server.serve(file: file, at: "assets/fonts/\(id)/\(name)")
+                        }
                     )
                 }
                 return content

@@ -9,33 +9,95 @@ import ReadiumShared
 import UniformTypeIdentifiers
 import WebKit
 
-/// A `WKURLSchemeHandler` serving publication resources and static assets
-/// using a custom URL scheme (e.g. `readium://`).
+/// A generic `WKURLSchemeHandler` that serves files, directories, and
+/// arbitrary resources at named routes using a custom URL scheme (e.g.
+/// `readium://`).
 ///
-/// URL routing:
-///   - `readium://{pub-uuid}/path` - publication resource
-///   - `readium://assets/path` - static asset from the framework bundle
-///   - `readium://assets/fonts/{id}/file` - custom font file
-@MainActor final class WebSchemeHandler: NSObject, WKURLSchemeHandler, Loggable {
+/// Callers compose the behavior they need using three simple APIs:
+///   - `serve(file:at:)` – serve a single local file
+///   - `serve(directory:at:)` – serve all files under a directory
+///   - `serve(at:handler:)` – serve resources via a callback
+@MainActor final class WebViewServer: NSObject, WKURLSchemeHandler, Loggable {
     /// The custom scheme used to serve the content.
     let scheme: String
 
-    /// Publication to serve resources from (nil for remote publications).
-    private let publication: Publication?
+    init(scheme: String) {
+        self.scheme = scheme
+        super.init()
+    }
 
-    /// Base URL for publication resources (e.g. `readium://{uuid}/`).
-    private let publicationBaseURL: AbsoluteURL?
+    // MARK: - Route registration
 
-    /// Base URL for static assets (`readium://assets/`).
-    let assetsBaseURL: AbsoluteURL
+    private enum RouteHandler {
+        case file(FileURL)
+        case directory(FileURL)
+        case resources(@MainActor (RelativeURL) -> Resource?)
+    }
 
-    /// Local directory containing the framework's static assets.
-    private let assetsDirectory: FileURL
+    /// Registered routes, sorted by descending path length for
+    /// longest-prefix matching.
+    private var routes: [(path: String, baseURL: AbsoluteURL, handler: RouteHandler)] = []
 
-    private var transformers: [ResourceTransformer] = []
+    /// Serves a single local file at the given route.
+    ///
+    /// Returns the full URL (e.g. `readium://assets/fonts/abc/Font.otf`).
+    @discardableResult
+    func serve(file: FileURL, at route: String) -> AbsoluteURL {
+        let route = normalizedRoute(route)
+        let baseURL = AnyURL(string: "\(scheme)://\(route)")!.absoluteURL!
+        insertRoute((path: route, baseURL: baseURL, handler: .file(file)))
+        return baseURL
+    }
 
-    /// Registered custom font files, keyed by a unique path ID.
-    @Atomic private var fontFiles: [String: FileURL] = [:]
+    /// Serves a local directory at the given route.
+    ///
+    /// All files under the directory are accessible.
+    /// Returns the base URL (e.g. `readium://assets/`).
+    @discardableResult
+    func serve(directory: FileURL, at route: String) -> AbsoluteURL {
+        let route = normalizedRoute(route, isDirectory: true)
+        let baseURL = AnyURL(string: "\(scheme)://\(route)")!.absoluteURL!
+        insertRoute((path: route, baseURL: baseURL, handler: .directory(directory)))
+        return baseURL
+    }
+
+    /// Serves resources at the given route using a handler callback.
+    ///
+    /// The handler receives a relative URL and returns a `Resource`, or
+    /// `nil` for 404. Returned resources are automatically wrapped in a
+    /// `BufferingResource` cache.
+    ///
+    /// Returns the base URL (e.g. `readium://{uuid}/`).
+    @discardableResult
+    func serve(at route: String, handler: @escaping @MainActor (RelativeURL) -> Resource?) -> AbsoluteURL {
+        let route = normalizedRoute(route, isDirectory: true)
+        let baseURL = AnyURL(string: "\(scheme)://\(route)")!.absoluteURL!
+        insertRoute((path: route, baseURL: baseURL, handler: .resources(handler)))
+        return baseURL
+    }
+
+    /// Removes the handler at the given route.
+    func remove(at route: String) {
+        let route = normalizedRoute(route)
+        routes.removeAll { $0.path.hasPrefix(route) }
+    }
+
+    private func normalizedRoute(_ route: String, isDirectory: Bool = false) -> String {
+        var r = route
+        if r.hasPrefix("/") { r = String(r.dropFirst()) }
+        if isDirectory, !r.hasSuffix("/") { r += "/" }
+        return r
+    }
+
+    private func insertRoute(_ entry: (path: String, baseURL: AbsoluteURL, handler: RouteHandler)) {
+        // Remove any existing route with the same path.
+        routes.removeAll { $0.path == entry.path }
+        routes.append(entry)
+        // Sort by descending path length for longest-prefix matching.
+        routes.sort { $0.path.count > $1.path.count }
+    }
+
+    // MARK: - Active tasks & caching
 
     /// Tracks active tasks for cancellation support.
     /// Only accessed from the main thread (WebKit calls start/stop on main).
@@ -48,57 +110,7 @@ import WebKit
     /// optimization instead of decompressing from offset 0 on every request.
     ///
     /// Oldest entries are evicted when the cache exceeds its capacity.
-    @Atomic private var resourceCache = BoundedResourceCache()
-
-    /// - Parameters:
-    ///   - publication: The publication to serve resources from, or `nil` for
-    ///     remote publications that don't need local resource serving.
-    ///   - publicationBaseURL: The base URL for publication resources (e.g.
-    ///     `readium://{uuid}/`). Required when `publication` is non-nil.
-    ///   - assetsBaseURL: The base URL for static assets (e.g.
-    ///     `readium://assets/`).
-    ///   - assetsDirectory: Local directory containing the framework's bundled
-    ///     assets (Readium CSS, scripts, fonts).
-    init(
-        scheme: String,
-        publication: Publication?,
-        publicationBaseURL: AbsoluteURL?,
-        assetsBaseURL: AbsoluteURL,
-        assetsDirectory: FileURL
-    ) {
-        precondition(
-            publication == nil || publicationBaseURL != nil,
-            "publicationBaseURL is required when publication is provided"
-        )
-        self.scheme = scheme
-        self.publication = publication
-        self.publicationBaseURL = publicationBaseURL
-        self.assetsBaseURL = assetsBaseURL
-        self.assetsDirectory = assetsDirectory
-
-        super.init()
-    }
-
-    /// Registers a resource transformer applied to all served publication
-    /// resources.
-    func transformResources(with transformer: @escaping ResourceTransformer) {
-        transformers.append(transformer)
-    }
-
-    /// Registers a local font file and returns a URL that can be used to
-    /// reference it from the web view.
-    ///
-    /// The returned URL has the form
-    /// `readium://assets/fonts/{id}/{filename}`.
-    func serveFont(at file: FileURL) -> AbsoluteURL {
-        let id = UUID().uuidString
-        $fontFiles.write { $0[id] = file }
-        let fileName = file.lastPathSegment ?? "font"
-        return assetsBaseURL
-            .appendingPath("fonts", isDirectory: true)
-            .appendingPath(id, isDirectory: true)
-            .appendingPath(fileName, isDirectory: false)
-    }
+    private var resourceCache = BoundedResourceCache()
 
     // MARK: - WKURLSchemeHandler
 
@@ -127,61 +139,71 @@ import WebKit
 
         let anyURL = AnyURL(url: requestURL)
 
-        // Route: assets (readium://assets/…)
-        if let relativePath = assetsBaseURL.relativize(anyURL) {
-            await serveAsset(urlSchemeTask, at: relativePath, requestURL: requestURL)
-            return
+        // Find the matching route (longest prefix wins).
+        for route in routes {
+            switch route.handler {
+            case let .file(file):
+                // File routes match on exact URL equality since
+                // relativize returns nil for identical URLs.
+                guard anyURL == route.baseURL.anyURL else {
+                    continue
+                }
+                await serveFile(urlSchemeTask, at: file, requestURL: requestURL)
+                return
+
+            case let .directory(directory):
+                guard
+                    let relativeURL = route.baseURL.relativize(anyURL),
+                    let file = directory.resolve(relativeURL)?.fileURL
+                else {
+                    continue
+                }
+                await serveFile(urlSchemeTask, at: file, requestURL: requestURL)
+                return
+
+            case let .resources(handler):
+                guard let relativeURL = route.baseURL.relativize(anyURL) else {
+                    continue
+                }
+                await serveResource(
+                    urlSchemeTask,
+                    relativeURL: relativeURL,
+                    handler: handler,
+                    requestURL: requestURL
+                )
+                return
+            }
         }
 
-        // Route: publication resources (readium://{uuid}/…)
-        guard
-            let publicationBaseURL = publicationBaseURL,
-            let publication = publication,
-            let relativeURL = publicationBaseURL.relativize(anyURL)
-        else {
-            await fail(urlSchemeTask, with: URLError(.fileDoesNotExist))
-            return
-        }
-
-        await servePublicationResource(
-            urlSchemeTask,
-            publication: publication,
-            relativeURL: relativeURL,
-            requestURL: requestURL
-        )
+        await fail(urlSchemeTask, with: URLError(.fileDoesNotExist))
     }
 
-    /// Serves a publication resource.
-    private func servePublicationResource(
+    /// Serves a resource from a handler callback, with caching.
+    private func serveResource(
         _ urlSchemeTask: WKURLSchemeTask,
-        publication: Publication,
         relativeURL: RelativeURL,
+        handler: @MainActor (RelativeURL) -> Resource?,
         requestURL: URL
     ) async {
-        // Look up the link for media type information.
-        let link = publication.linkWithHREF(relativeURL)
-
         // Reuse a cached buffered resource to benefit from forward-seek
         // optimization and read-ahead buffering, or create and cache a new
         // one.
         let resource: BufferingResource
-        if let cached = $resourceCache.read()[relativeURL] {
+        if let cached = resourceCache[relativeURL] {
             resource = cached
         } else {
-            guard var res: Resource = publication.get(relativeURL) else {
+            guard let res = await handler(relativeURL) else {
                 await fail(urlSchemeTask, with: URLError(.fileDoesNotExist))
                 return
             }
-            let href = relativeURL.anyURL
-            for transformer in transformers {
-                res = transformer(href, res)
-            }
             let buffered = BufferingResource(source: res)
-            $resourceCache.write { $0.set(relativeURL, buffered) }
+            resourceCache.set(relativeURL, buffered)
             resource = buffered
         }
 
-        let mediaType = link?.mediaType?.string ?? "application/octet-stream"
+        let mediaType = relativeURL.pathExtension
+            .flatMap { UTType(filenameExtension: $0.rawValue)?.preferredMIMEType }
+            ?? "application/octet-stream"
 
         // Try to serve a byte range if the client requested one and the
         // resource length is known.
@@ -210,37 +232,6 @@ import WebKit
             log(.error, "Failed to read resource \(relativeURL): \(error)")
             await fail(urlSchemeTask, with: URLError(.resourceUnavailable))
         }
-    }
-
-    /// Serves a static asset or custom font file.
-    private func serveAsset(
-        _ urlSchemeTask: WKURLSchemeTask,
-        at relativePath: RelativeURL,
-        requestURL: URL
-    ) async {
-        let pathSegments = relativePath.pathSegments
-
-        // Font files: fonts/{id}/filename
-        if
-            pathSegments.count >= 3,
-            pathSegments[0] == "fonts"
-        {
-            let fontID = pathSegments[1]
-            guard let file = fontFiles[fontID] else {
-                await fail(urlSchemeTask, with: URLError(.fileDoesNotExist))
-                return
-            }
-            await serveFile(urlSchemeTask, at: file, requestURL: requestURL)
-            return
-        }
-
-        // Static assets from the bundle directory.
-        let file = assetsDirectory.resolve(relativePath)
-        guard let fileURL = file?.fileURL else {
-            await fail(urlSchemeTask, with: URLError(.fileDoesNotExist))
-            return
-        }
-        await serveFile(urlSchemeTask, at: fileURL, requestURL: requestURL)
     }
 
     /// Reads a local file and sends it as a response.

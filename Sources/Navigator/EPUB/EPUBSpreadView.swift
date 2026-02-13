@@ -73,7 +73,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         self.animatedLoad = animatedLoad
 
         let config = WKWebViewConfiguration()
-        config.setURLSchemeHandler(viewModel.schemeHandler, forURLScheme: viewModel.schemeHandler.scheme)
+        config.setURLSchemeHandler(viewModel.server, forURLScheme: viewModel.server.scheme)
         config.mediaTypesRequiringUserActionForPlayback = .all
 
         // Disable the Apple Intelligence Writing tools in the web views.

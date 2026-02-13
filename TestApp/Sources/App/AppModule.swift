@@ -57,7 +57,7 @@ final class AppModule {
         opds = OPDSModule(delegate: self)
 
         // Set Readium 2's logging minimum level.
-        ReadiumEnableLog(withMinimumSeverityLevel: .info)
+        ReadiumEnableLog(withMinimumSeverityLevel: .debug)
     }
 
     private(set) lazy var aboutViewController: UIViewController = {
