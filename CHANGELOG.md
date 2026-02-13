@@ -15,6 +15,11 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Deprecated
 
+#### Navigator
+
+* `CBZNavigatorViewController` is now deprecated.
+    * Open CBZ publications with `EPUBNavigatorViewController` instead, which has more configuration options and preferences.
+
 #### LCP
 
 * `ReadiumAdapterLCPSQLite` is now deprecated in favor of the built-in Keychain repositories. See [the migration guide](docs/Migration%20Guide.md) for instructions.
