@@ -57,7 +57,7 @@ public extension AbsoluteURL {
     ///     self: http://example.com/foo
     ///     other: http://example.com/foo/bar/baz
     ///     returns bar/baz
-    func relativize<T: URLConvertible>(_ other: T) -> RelativeURL? {
+    func relativize(_ other: URLConvertible) -> RelativeURL? {
         guard
             let absoluteURL = other.anyURL.absoluteURL,
             scheme == absoluteURL.scheme,

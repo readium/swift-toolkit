@@ -211,7 +211,7 @@ struct EPUBSpreadResource {
         [
             "index": index,
             "link": link.json,
-            "url": link.url(relativeTo: baseURL.anyURL).string,
+            "url": link.url(relativeTo: baseURL).string,
             "page": page.rawValue,
         ]
     }

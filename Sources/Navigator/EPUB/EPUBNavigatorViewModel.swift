@@ -20,15 +20,21 @@ enum EPUBScriptScope {
     case resource(href: AnyURL)
 }
 
-final class EPUBNavigatorViewModel: Loggable {
+@MainActor final class EPUBNavigatorViewModel: Loggable {
     let publication: Publication
     let config: EPUBNavigatorViewController.Configuration
     let editingActions: EditingActionsController
+
+    /// The base URL for the publication resources.
     private(set) var publicationBaseURL: AbsoluteURL!
+
+    /// The base URL for Readium assets (CSS, scripts, etc.) and fonts.
     let assetsBaseURL: any AbsoluteURL
+
     /// The scheme handler used to serve publication resources and static
     /// assets to the web view.
-    let schemeHandler: ReadiumSchemeHandler
+    let schemeHandler: WebSchemeHandler
+
     weak var delegate: EPUBNavigatorViewModelDelegate?
 
     let readingOrder: ReadingOrder
@@ -59,7 +65,8 @@ final class EPUBNavigatorViewModel: Loggable {
             servedPublication = publication
         }
 
-        let schemeHandler = ReadiumSchemeHandler(
+        let schemeHandler = WebSchemeHandler(
+            scheme: "readium",
             publication: servedPublication,
             publicationBaseURL: servedPublication != nil ? publicationBaseURL : nil,
             assetsBaseURL: assetsBaseURL,
@@ -82,25 +89,11 @@ final class EPUBNavigatorViewModel: Loggable {
         }
     }
 
-    @available(*, deprecated, message: "The HTTP server is no longer needed for the EPUB navigator.")
-    convenience init(
-        publication: Publication,
-        readingOrder: ReadingOrder,
-        config: EPUBNavigatorViewController.Configuration,
-        httpServer: HTTPServer
-    ) throws {
-        self.init(
-            publication: publication,
-            readingOrder: readingOrder,
-            config: config
-        )
-    }
-
     private init(
         publication: Publication,
         readingOrder: ReadingOrder,
         config: EPUBNavigatorViewController.Configuration,
-        schemeHandler: ReadiumSchemeHandler,
+        schemeHandler: WebSchemeHandler,
         publicationBaseURL: AbsoluteURL,
         assetsBaseURL: any AbsoluteURL
     ) {
@@ -168,7 +161,7 @@ final class EPUBNavigatorViewModel: Loggable {
     }
 
     func url(to link: Link) -> AnyURL {
-        link.url(relativeTo: publicationBaseURL.anyURL)
+        link.url(relativeTo: publicationBaseURL)
     }
 
     private var needsInvalidatePagination = false
@@ -276,10 +269,6 @@ final class EPUBNavigatorViewModel: Loggable {
 
     private var css: ReadiumCSS
 
-    private func serveFont(at file: FileURL) -> any AbsoluteURL {
-        schemeHandler.serveFont(at: file)
-    }
-
     func injectReadiumCSS<HREF: URLConvertible>(in resource: Resource, at href: HREF) -> Resource {
         guard
             let link = publication.linkWithHREF(href),
@@ -297,7 +286,10 @@ final class EPUBNavigatorViewModel: Loggable {
             do {
                 var content = try css.inject(in: content)
                 for ff in config.fontFamilyDeclarations {
-                    content = try ff.inject(in: content, servingFile: serveFont)
+                    content = try ff.inject(
+                        in: content,
+                        servingFile: { [schemeHandler] in schemeHandler.serveFont(at: $0) }
+                    )
                 }
                 return content
             } catch {

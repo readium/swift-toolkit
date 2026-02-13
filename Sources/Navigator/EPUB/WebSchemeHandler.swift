@@ -16,8 +16,9 @@ import WebKit
 ///   - `readium://{pub-uuid}/path` - publication resource
 ///   - `readium://assets/path` - static asset from the framework bundle
 ///   - `readium://assets/fonts/{id}/file` - custom font file
-final class ReadiumSchemeHandler: NSObject, WKURLSchemeHandler, Loggable {
-    let scheme = "readium"
+@MainActor final class WebSchemeHandler: NSObject, WKURLSchemeHandler, Loggable {
+    /// The custom scheme used to serve the content.
+    let scheme: String
 
     /// Publication to serve resources from (nil for remote publications).
     private let publication: Publication?
@@ -59,6 +60,7 @@ final class ReadiumSchemeHandler: NSObject, WKURLSchemeHandler, Loggable {
     ///   - assetsDirectory: Local directory containing the framework's bundled
     ///     assets (Readium CSS, scripts, fonts).
     init(
+        scheme: String,
         publication: Publication?,
         publicationBaseURL: AbsoluteURL?,
         assetsBaseURL: AbsoluteURL,
@@ -68,10 +70,12 @@ final class ReadiumSchemeHandler: NSObject, WKURLSchemeHandler, Loggable {
             publication == nil || publicationBaseURL != nil,
             "publicationBaseURL is required when publication is provided"
         )
+        self.scheme = scheme
         self.publication = publication
         self.publicationBaseURL = publicationBaseURL
         self.assetsBaseURL = assetsBaseURL
         self.assetsDirectory = assetsDirectory
+
         super.init()
     }
 
@@ -103,7 +107,7 @@ final class ReadiumSchemeHandler: NSObject, WKURLSchemeHandler, Loggable {
         activeTasks[taskID] = Task {
             await serve(urlSchemeTask)
             await MainActor.run { [weak self] in
-                self?.activeTasks.removeValue(forKey: taskID)
+                _ = self?.activeTasks.removeValue(forKey: taskID)
             }
         }
     }
