@@ -435,16 +435,16 @@ let navigator = try EPUBNavigatorViewController(
 
 ### Upgrading to the new Preferences API
 
-The 2.5.0 release introduces a brand new user preferences API for configuring the EPUB and PDF Navigators. This new API is easier and safer to use. To learn how to integrate it in your app, [please refer to the user guide](Guides/Navigator%20Preferences.md).
+The 2.5.0 release introduces a brand new user preferences API for configuring the EPUB and PDF Navigators. This new API is easier and safer to use. To learn how to integrate it in your app, [please refer to the user guide](Guides/Navigator/Preferences.md).
 
 If you integrated the EPUB navigator from a previous version, follow these steps to migrate:
 
-1. Get familiar with [the concepts of this new API](Guides/Navigator%20Preferences.md#overview).
+1. Get familiar with [the concepts of this new API](Guides/Navigator/Preferences.md#overview).
 2. Migrate the local HTTP server from your app, [as explained in the previous section](#migrating-the-http-server).
-3. Adapt your user settings interface to the new API using preferences editors. The [Test App](https://github.com/readium/swift-toolkit/blob/2.5.0/TestApp/Sources/Reader/Common/Preferences/UserPreferences.swift) and the [user guide](Guides/Navigator%20Preferences.md#build-a-user-settings-interface) contain examples using SwiftUI.
-4. [Handle the persistence of the user preferences](Guides/Navigator%20Preferences.md#save-and-restore-the-user-preferences). The settings are not stored in the User Defaults by the toolkit anymore. Instead, you are responsible for persisting and restoring the user preferences as you see fit (e.g. as a JSON file).
+3. Adapt your user settings interface to the new API using preferences editors. The [Test App](https://github.com/readium/swift-toolkit/blob/2.5.0/TestApp/Sources/Reader/Common/Preferences/UserPreferences.swift) and the [user guide](Guides/Navigator/Preferences.md#build-a-user-settings-interface) contain examples using SwiftUI.
+4. [Handle the persistence of the user preferences](Guides/Navigator/Preferences.md#save-and-restore-the-user-preferences). The settings are not stored in the User Defaults by the toolkit anymore. Instead, you are responsible for persisting and restoring the user preferences as you see fit (e.g. as a JSON file).
     * If you want to migrate the legacy EPUB settings, you can use the helper `EPUBPreferences.fromLegacyPreferences()` which will create a new `EPUBPreferences` object after translating the existing user settings.
-5. Make sure you [restore the stored user preferences](Guides/Navigator%20Preferences.md#setting-the-initial-navigator-preferences-and-app-defaults) when initializing the EPUB navigator.
+5. Make sure you [restore the stored user preferences](Guides/Navigator/Preferences.md#setting-the-initial-navigator-preferences-and-app-defaults) when initializing the EPUB navigator.
 
 Please refer to the following table for the correspondence between legacy settings (from `UserSettings`) and new ones (`EPUBPreferences`).
 
