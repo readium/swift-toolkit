@@ -17,7 +17,7 @@ final class EPUBModule: ReaderFormatModule {
     }
 
     func supports(_ publication: Publication) -> Bool {
-        publication.conforms(to: .epub) || publication.readingOrder.allAreHTML
+        publication.conforms(to: .epub) || publication.conforms(to: .divina) || publication.readingOrder.allAreHTML
     }
 
     @MainActor
@@ -30,10 +30,6 @@ final class EPUBModule: ReaderFormatModule {
         highlights: HighlightRepository,
         readium: Readium
     ) async throws -> UIViewController {
-        guard publication.metadata.identifier != nil else {
-            throw ReaderError.epubNotValid
-        }
-
         let preferencesStore = makePreferencesStore(books: books)
         let epubViewController = try await EPUBViewController(
             publication: publication,
