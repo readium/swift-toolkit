@@ -16,11 +16,11 @@ import Foundation
 ///
 /// You can either provide a `transform` closure during construction, or extend
 /// `TransformingResource` and override `transform()`.
-open class TransformingResource: Resource {
+open class TransformingResource: Resource, @unchecked Sendable {
     private let resource: Resource
-    private let _transform: ((ReadResult<Data>) async -> ReadResult<Data>)?
+    private let _transform: (@Sendable (ReadResult<Data>) async -> ReadResult<Data>)?
 
-    public init(_ resource: Resource, transform: ((ReadResult<Data>) async -> ReadResult<Data>)? = nil) {
+    public init(_ resource: Resource, transform: (@Sendable (ReadResult<Data>) async -> ReadResult<Data>)? = nil) {
         self.resource = resource
         _transform = transform
     }
@@ -43,7 +43,7 @@ open class TransformingResource: Resource {
         await resource.properties()
     }
 
-    public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+    public func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         await data().map { data in
             if let range = range?.clamped(to: 0 ..< UInt64(data.count)) {
                 consume(data[range])
@@ -54,23 +54,28 @@ open class TransformingResource: Resource {
         }
     }
 
+    private let lock = NSLock()
     private var _data: ReadResult<Data>?
 
     private func data() async -> ReadResult<Data> {
-        if _data == nil {
-            _data = await transform(data: resource.read())
+        let cached: ReadResult<Data>? = lock.withLock { _data }
+        if let cached = cached {
+            return cached
         }
-        return _data!
+        
+        let data = await transform(data: resource.read())
+        lock.withLock { _data = data }
+        return data
     }
 }
 
 /// Convenient shortcuts to create a `TransformingResource`.
 public extension Resource {
-    func map(transform: @escaping (Data) async -> Data) -> Resource {
+    func map(transform: @escaping @Sendable (Data) async -> Data) -> Resource {
         TransformingResource(self, transform: { await $0.asyncMap(transform) })
     }
 
-    func mapAsString(encoding: String.Encoding = .utf8, transform: @escaping (String) -> String) -> Resource {
+    func mapAsString(encoding: String.Encoding = .utf8, transform: @escaping @Sendable (String) -> String) -> Resource {
         TransformingResource(self) {
             $0.map { data in
                 let string = String(data: data, encoding: encoding) ?? ""

@@ -18,22 +18,32 @@ public func ReadiumEnableLog(withMinimumSeverityLevel level: SeverityLevel, cust
 }
 
 /// The Logger protocol.
-public protocol LoggerType {
+public protocol LoggerType: Sendable {
     func log(level: SeverityLevel, value: Any?, file: String, line: Int)
 }
 
 /// Logger singleton.
-public final class Logger {
+public final class Logger: @unchecked Sendable {
     /// The active logger is responssible for displaying the log message
     /// throughout the framework. There is a default implementation `StubLogger`
     /// available. You can define your own implementation by applying the
     /// `Loggable` protocol to your xLogger class.
-    internal var activeLogger: LoggerType?
+    private var _activeLogger: LoggerType?
+    internal var activeLogger: LoggerType? {
+        get { lock.withLock { _activeLogger } }
+        set { lock.withLock { _activeLogger = newValue } }
+    }
 
     /// The minimum severity level for logs to be displayed.
-    internal var minimumSeverityLevel: SeverityLevel?
+    private var _minimumSeverityLevel: SeverityLevel?
+    internal var minimumSeverityLevel: SeverityLevel? {
+        get { lock.withLock { _minimumSeverityLevel } }
+        set { lock.withLock { _minimumSeverityLevel = newValue } }
+    }
 
-    private(set) static var sharedInstance = Logger()
+    private let lock = NSLock()
+
+    public static let sharedInstance = Logger()
 
     // MARK: - Public methods.
 
@@ -46,8 +56,10 @@ public final class Logger {
     public func setupLogger(logger: LoggerType,
                             withMinimumSeverityLevel severityLevel: SeverityLevel? = .warning)
     {
-        activeLogger = logger
-        minimumSeverityLevel = severityLevel
+        lock.withLock {
+            _activeLogger = logger
+            _minimumSeverityLevel = severityLevel
+        }
     }
 
     /// Allow the framework user to set the minimum severity level for the logs

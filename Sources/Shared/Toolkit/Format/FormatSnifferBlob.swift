@@ -14,7 +14,7 @@ public actor FormatSnifferBlob {
     private var length: ReadResult<UInt64?>?
     private var bytes: ReadResult<Data?>?
     private var string: ReadResult<String?>?
-    private var json: ReadResult<Any?>?
+    private var json: ReadResult<Data?>?
     private var xml: ReadResult<XMLDocument?>?
 
     public init(source: Streamable) {
@@ -34,15 +34,18 @@ public actor FormatSnifferBlob {
     /// If the resource is too large to be read in memory, will return nil.
     func read() async -> ReadResult<Data?> {
         if bytes == nil {
-            bytes = await length()
-                .asyncFlatMap { length in
-                    guard let length = length, length < 5 * 1000 * 1000 else {
-                        return .success(nil)
-                    }
-
-                    return await source.read()
-                        .map { $0 as Data? }
+            let lengthResult = await length()
+            
+            switch lengthResult {
+            case .success(let len):
+                if let len = len, len >= 5 * 1000 * 1000 {
+                    bytes = .success(nil)
+                } else {
+                    bytes = await source.read().map { $0 as Data? }
                 }
+            case .failure(let error):
+                bytes = .failure(error)
+            }
         }
         return bytes!
     }
@@ -58,12 +61,14 @@ public actor FormatSnifferBlob {
     }
 
     /// Reads the whole content as JSON.
-    func readAsJSON() async -> ReadResult<Any?> {
+    func readAsJSON() async -> ReadResult<Data?> {
         if json == nil {
-            json = await read().map {
-                $0.flatMap {
-                    try? JSONSerialization.jsonObject(with: $0)
+            json = await read().map { data in
+                guard let data = data,
+                      (try? JSONSerialization.jsonObject(with: data)) != nil else {
+                    return nil
                 }
+                return data
             }
         }
         return json!
@@ -72,10 +77,17 @@ public actor FormatSnifferBlob {
     /// Reads the whole content as an XML document.
     func readAsXML() async -> ReadResult<XMLDocument?> {
         if xml == nil {
-            xml = await read().asyncMap {
-                await $0.asyncFlatMap {
-                    try? await xmlDocumentFactory.open(data: $0, namespaces: [])
+            let dataResult = await read()
+            
+            switch dataResult {
+            case .success(let data):
+                if let data = data {
+                    xml = .success(try? await xmlDocumentFactory.open(data: data, namespaces: []))
+                } else {
+                    xml = .success(nil)
                 }
+            case .failure(let error):
+                xml = .failure(error)
             }
         }
         return xml!

@@ -14,19 +14,24 @@ import Foundation
 /// content from markups (e.g. HTML) or binary (e.g. PDF) resources.
 ///
 /// The actual search is implemented by the provided `searchAlgorithm`.
-public class StringSearchService: SearchService {
+public class StringSearchService: SearchService, @unchecked Sendable {
     public static func makeFactory(
         snippetLength: Int = 200,
         searchAlgorithm: StringSearchAlgorithm = BasicStringSearchAlgorithm(),
         extractorFactory: _ResourceContentExtractorFactory = _DefaultResourceContentExtractorFactory()
-    ) -> (PublicationServiceContext) -> StringSearchService? {
-        { context in
+    ) -> @Sendable (PublicationServiceContext) -> StringSearchService? {
+        struct Captures: @unchecked Sendable {
+            let searchAlgorithm: StringSearchAlgorithm
+            let extractorFactory: _ResourceContentExtractorFactory
+        }
+        let captures = Captures(searchAlgorithm: searchAlgorithm, extractorFactory: extractorFactory)
+        return { context in
             StringSearchService(
                 publication: context.publication,
                 language: context.manifest.metadata.language,
                 snippetLength: snippetLength,
-                searchAlgorithm: searchAlgorithm,
-                extractorFactory: extractorFactory
+                searchAlgorithm: captures.searchAlgorithm,
+                extractorFactory: captures.extractorFactory
             )
         }
     }
@@ -36,8 +41,8 @@ public class StringSearchService: SearchService {
     private let publication: Weak<Publication>
     private let language: Language?
     private let snippetLength: Int
-    private let searchAlgorithm: StringSearchAlgorithm
-    private let extractorFactory: _ResourceContentExtractorFactory
+    private let searchAlgorithm: any StringSearchAlgorithm
+    private let extractorFactory: any _ResourceContentExtractorFactory
 
     public init(publication: Weak<Publication>, language: Language?, snippetLength: Int, searchAlgorithm: StringSearchAlgorithm, extractorFactory: _ResourceContentExtractorFactory) {
         self.publication = publication

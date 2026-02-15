@@ -10,7 +10,7 @@ import Foundation
 /// This is a trick to keep the Web Publication structs equatable without having to override `==` and compare all the other properties.
 public struct JSONDictionary: Sendable {
     public typealias Key = String
-    public typealias Value = Sendable
+    public typealias Value = any Sendable
     public typealias Wrapped = [Key: Value]
 
     public var json: Wrapped
@@ -20,7 +20,7 @@ public struct JSONDictionary: Sendable {
     }
 
     public init?(_ json: Any?) {
-        guard let json = json as? Wrapped else {
+        guard let json = JSONDictionary.makeSendable(json) as? Wrapped else {
             return nil
         }
         self.json = json
@@ -28,6 +28,43 @@ public struct JSONDictionary: Sendable {
 
     public mutating func pop(_ key: Key) -> Value? {
         json.removeValue(forKey: key)
+    }
+
+    private static func makeSendable(_ json: Any?) -> (any Sendable)? {
+        guard let json = json else {
+            return nil
+        }
+        if let string = json as? String {
+            return string
+        }
+        if let number = json as? NSNumber {
+            return number
+        }
+        if let int = json as? Int {
+            return int
+        }
+        if let double = json as? Double {
+            return double
+        }
+        if let bool = json as? Bool {
+            return bool
+        }
+        if json is NSNull {
+            return NSNull()
+        }
+        if let array = json as? [Any] {
+            return array.compactMap { makeSendable($0) }
+        }
+        if let dict = json as? [String: Any] {
+            var result = [String: any Sendable]()
+            for (key, value) in dict {
+                if let sendableValue = makeSendable(value) {
+                    result[key] = sendableValue
+                }
+            }
+            return result
+        }
+        return nil
     }
 }
 
@@ -133,17 +170,17 @@ public func makeJSON(_ object: JSONDictionary.Wrapped, additional: JSONDictionar
 }
 
 /// Returns the value if not nil, or NSNull.
-public func encodeIfNotNil(_ value: Any?) -> Any {
+public func encodeIfNotNil(_ value: (any Sendable)?) -> any Sendable {
     value ?? NSNull()
 }
 
 /// Returns the raw representable's raw value if not nil, or NSNull. To be used with optional Enum.
-public func encodeRawIfNotNil<T: RawRepresentable>(_ value: T?) -> Any {
+public func encodeRawIfNotNil<T: RawRepresentable>(_ value: T?) -> any Sendable where T.RawValue: Sendable {
     value?.rawValue ?? NSNull()
 }
 
 /// Returns the collection if not empty, or NSNull.
-public func encodeIfNotEmpty<T: Collection>(_ collection: T?) -> Any {
+public func encodeIfNotEmpty<T: Collection & Sendable>(_ collection: T?) -> any Sendable {
     guard let collection = collection else {
         return NSNull()
     }

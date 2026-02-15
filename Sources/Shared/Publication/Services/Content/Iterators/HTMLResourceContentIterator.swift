@@ -59,7 +59,7 @@ public class HTMLResourceContentIterator: ContentIterator {
 
     public init(
         resource: Resource,
-        totalProgressionRange: @escaping () async -> ClosedRange<Double>?,
+        totalProgressionRange: @escaping @Sendable () async -> ClosedRange<Double>?,
         locator: Locator
     ) {
         self.resource = resource
@@ -94,19 +94,22 @@ public class HTMLResourceContentIterator: ContentIterator {
     private var currentIndex: Int?
 
     private func elements() async throws -> ParsedElements {
-        try await elementsTask.value.get()
+        try await elementsTask.value
     }
-
-    private lazy var elementsTask = Task {
-        await resource
+    
+    private lazy var elementsTask = Task { [resource, locator, beforeMaxLength, totalProgressionRange] in
+        let range = await totalProgressionRange.value
+        
+        let result = await resource
             .readAsString()
             .eraseToAnyError()
             .tryMap { try SwiftSoup.parse($0) }
-            .tryMap { try parse(document: $0, locator: locator, beforeMaxLength: beforeMaxLength) }
-            .asyncMap { await adjustProgressions(of: $0) }
+            .tryMap { try HTMLResourceContentIterator.parse(document: $0, locator: locator, beforeMaxLength: beforeMaxLength) }
+            .asyncMap { await HTMLResourceContentIterator.adjustProgressions(of: $0, totalProgressionRange: range, locator: locator) }
+        return try result.get()
     }
 
-    private func parse(document: Document, locator: Locator, beforeMaxLength: Int) throws -> ParsedElements {
+    private static func parse(document: Document, locator: Locator, beforeMaxLength: Int) throws -> ParsedElements {
         let parser = try ContentParser(
             baseLocator: locator,
             startElement: locator.locations.cssSelector
@@ -124,7 +127,7 @@ public class HTMLResourceContentIterator: ContentIterator {
         return parser.result
     }
 
-    private func adjustProgressions(of elements: ParsedElements) async -> ParsedElements {
+    private static func adjustProgressions(of elements: ParsedElements, totalProgressionRange: ClosedRange<Double>?, locator: Locator) async -> ParsedElements {
         let count = Double(elements.elements.count)
         guard count > 0 else {
             return elements
@@ -133,9 +136,9 @@ public class HTMLResourceContentIterator: ContentIterator {
         var elements = elements
         elements.elements = await elements.elements.enumerated().asyncMap { index, element in
             let progression = Double(index) / count
-            return await element.copy(
+            return element.copy(
                 progression: progression,
-                totalProgression: totalProgressionRange.value.map { range in
+                totalProgression: totalProgressionRange.map { range in
                     range.lowerBound + progression * (range.upperBound - range.lowerBound)
                 }
             )
@@ -162,7 +165,7 @@ public class HTMLResourceContentIterator: ContentIterator {
     ///
     /// The `startIndex` will be calculated from the element matched by the
     /// base `locator`, if possible. Defaults to 0.
-    private struct ParsedElements {
+    private struct ParsedElements: Sendable {
         var elements: [ContentElement] = []
         var startIndex: Int = 0
     }
@@ -240,7 +243,7 @@ public class HTMLResourceContentIterator: ContentIterator {
                 lazy var elementLocator: Locator = baseLocator.copy(
                     locations: {
                         $0.otherLocations = [
-                            "cssSelector": parent.cssSelector as Any,
+                            "cssSelector": parent.cssSelector as (any Sendable),
                         ]
                     }
                 )
@@ -368,7 +371,7 @@ public class HTMLResourceContentIterator: ContentIterator {
                 TextContentElement(
                     locator: baseLocator.copy(
                         locations: {
-                            $0.otherLocations["cssSelector"] = parent?.cssSelector as Any
+                            $0.otherLocations["cssSelector"] = parent?.cssSelector as (any Sendable)
                         },
                         text: {
                             $0 = Locator.Text.trimming(
@@ -412,7 +415,7 @@ public class HTMLResourceContentIterator: ContentIterator {
                     locator: baseLocator.copy(
                         locations: {
                             $0.otherLocations = [
-                                "cssSelector": parent?.cssSelector as Any,
+                                "cssSelector": parent?.cssSelector as (any Sendable),
                             ]
                         },
                         text: { [self] in

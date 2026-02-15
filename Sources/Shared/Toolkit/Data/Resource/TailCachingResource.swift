@@ -33,14 +33,19 @@ actor TailCachingResource: Resource, Loggable {
 
     func stream(
         range: Range<UInt64>?,
-        consume: @escaping (Data) -> Void
+        consume: @escaping @Sendable (Data) -> Void
     ) async -> ReadResult<Void> {
         guard cacheFromOffset <= range?.lowerBound ?? 0 else {
             return await resource.stream(range: range, consume: consume)
         }
+        
+        let tailResult = await cachedTail()
 
-        return await cachedTail()
-            .asyncFlatMap { data in
+        switch tailResult {
+            case .failure(let error):
+                return .failure(error)
+                
+            case .success(let data):
                 guard let data = data else {
                     return await resource.stream(range: range, consume: consume)
                 }
@@ -49,10 +54,14 @@ actor TailCachingResource: Resource, Loggable {
                     let range = range.clampedToInt()
                     let lower = Int(range.lowerBound) - Int(cacheFromOffset)
                     let upper = min(lower + range.count, data.count)
+                    
                     guard lower >= 0 else {
-                        return .failure(.decoding("Cannot satisty requested range from the cached tail"))
+                        return .failure(.decoding("Cannot satisfy requested range from the cached tail"))
                     }
-                    consume(data[lower ..< upper])
+                    
+                    if lower < upper {
+                        consume(data[lower ..< upper])
+                    }
                 } else {
                     consume(data)
                 }
@@ -68,20 +77,46 @@ actor TailCachingResource: Resource, Loggable {
             return cache
         }
 
-        return await estimatedLength()
-            .asyncFlatMap { length in
-                let length = length ?? .max
-                guard cacheFromOffset < length else {
-                    cache = .success(nil)
-                    return cache!
-                }
-
-                var data = Data()
-                cache = await resource.stream(range: cacheFromOffset ..< length) { chunk in
-                    data.append(chunk)
-                }.map { data }
-
-                return cache!
+        let lengthResult = await estimatedLength()
+        
+        switch lengthResult {
+        case .failure(let error):
+            return .failure(error)
+            
+        case .success(let length):
+            let length = length ?? .max
+            guard cacheFromOffset < length else {
+                let result: ReadResult<Data?> = .success(nil)
+                cache = result
+                return result
             }
+
+            let buffer = ThreadSafeBuffer()
+
+            let streamResult = await resource.stream(range: cacheFromOffset ..< length) { chunk in
+                buffer.append(chunk)
+            }
+            
+            let result = streamResult.map { buffer.data as Data? }
+            cache = result
+            return result
+        }
+    }
+}
+
+private final class ThreadSafeBuffer: @unchecked Sendable {
+    private var _data = Data()
+    private let lock = NSLock()
+
+    var data: Data {
+        lock.lock()
+        defer { lock.unlock() }
+        return _data
+    }
+
+    func append(_ chunk: Data) {
+        lock.lock()
+        defer { lock.unlock() }
+        _data.append(chunk)
     }
 }

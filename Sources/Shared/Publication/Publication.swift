@@ -9,8 +9,14 @@ import Foundation
 import ReadiumInternal
 
 /// Shared model for a Readium Publication.
-public class Publication: Closeable, Loggable {
-    public var manifest: Manifest
+public class Publication: Closeable, Loggable, @unchecked Sendable {
+    private let lock = NSLock()
+    private var _manifest: Manifest
+    public var manifest: Manifest {
+        get { lock.withLock { _manifest } }
+        set { lock.withLock { _manifest = newValue } }
+    }
+
     private let container: Container
     private let services: [PublicationService]
 
@@ -40,7 +46,7 @@ public class Publication: Closeable, Loggable {
         )
         manifest.links.append(contentsOf: services.flatMap(\.links))
 
-        self.manifest = manifest
+        self._manifest = manifest
         self.container = container
         self.services = services
 
@@ -161,11 +167,11 @@ public class Publication: Closeable, Loggable {
     /// A `Publication`'s construction is distributed over the Streamer and its
     /// parsers, and since `Publication` is immutable, it's useful to pass the
     /// parts around before actually building it.
-    public struct Builder {
+    public struct Builder: @unchecked Sendable {
         /// Transform which can be used to modify a `Publication`'s components
         /// before building it. For example, to add Publication Services or
         /// wrap the root Container.
-        public typealias Transform = (
+        public typealias Transform = @Sendable (
             _ manifest: inout Manifest,
             _ container: inout Container,
             _ services: inout PublicationServicesBuilder

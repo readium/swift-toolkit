@@ -11,12 +11,19 @@ import Foundation
 /// Get the reference by calling `weakVar()`.
 /// Conveniently, the reference can be reset by setting the `ref` property.
 @dynamicCallable
-public class Weak<T: AnyObject> {
+public class Weak<T: AnyObject>: @unchecked Sendable {
+    fileprivate let lock = NSLock()
+
     // Weakly held reference.
-    public weak var ref: T?
+    fileprivate weak var _ref: T?
+
+    public var ref: T? {
+        get { lock.withLock { _ref } }
+        set { lock.withLock { _ref = newValue } }
+    }
 
     public init(_ ref: T? = nil) {
-        self.ref = ref
+        self._ref = ref
     }
 
     public func dynamicallyCall(withArguments args: [Any]) -> T? {
@@ -30,10 +37,12 @@ public class _Strong<T: AnyObject>: Weak<T> {
     private var strongRef: T?
 
     override public var ref: T? {
-        get { super.ref }
+        get { lock.withLock { strongRef } }
         set {
-            super.ref = newValue
-            strongRef = newValue
+            lock.withLock {
+                _ref = newValue
+                strongRef = newValue
+            }
         }
     }
 

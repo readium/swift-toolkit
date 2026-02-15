@@ -85,11 +85,11 @@ public extension DefaultHTTPClientDelegate {
 }
 
 /// An implementation of `HTTPClient` using native APIs.
-public final class DefaultHTTPClient: HTTPClient, Loggable {
+public final class DefaultHTTPClient: HTTPClient, Loggable, @unchecked Sendable {
     /// Returns the default user agent used when issuing requests.
     ///
     /// For example, TestApp/1.3 x86_64 iOS/15.0 CFNetwork/1312 Darwin/20.6.0
-    public static var defaultUserAgent: String = {
+    public nonisolated(unsafe) static var defaultUserAgent: String = {
         var sysinfo = utsname()
         uname(&sysinfo)
 
@@ -108,9 +108,20 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         let appInfo = Bundle.main.infoDictionary
         let appName = appInfo?["CFBundleName"] as? String ?? "Unknown App"
         let appVersion = appInfo?["CFBundleShortVersionString"] as? String ?? "0"
-        let device = UIDevice.current
+        
+        let deviceSystemName: String
+        let deviceSystemVersion: String
+        if Thread.isMainThread {
+            (deviceSystemName, deviceSystemVersion) = MainActor.assumeIsolated {
+                let device = UIDevice.current
+                return (device.systemName, device.systemVersion)
+            }
+        } else {
+            deviceSystemName = "iOS"
+            deviceSystemVersion = "0.0"
+        }
 
-        return "\(appName)/\(appVersion) \(deviceName) \(device.systemName)/\(device.systemVersion) CFNetwork/\(cfNetworkVersion) Darwin/\(darwinVersion)"
+        return "\(appName)/\(appVersion) \(deviceName) \(deviceSystemName)/\(deviceSystemVersion) CFNetwork/\(cfNetworkVersion) Darwin/\(darwinVersion)"
     }()
 
     /// Creates a `DefaultHTTPClient` with common configuration settings.
@@ -151,11 +162,16 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         self.init(configuration: config, userAgent: userAgent, delegate: delegate)
     }
 
-    public weak var delegate: DefaultHTTPClientDelegate? = nil
+    private weak var _delegate: DefaultHTTPClientDelegate? = nil
+    public var delegate: DefaultHTTPClientDelegate? {
+        get { lock.withLock { _delegate } }
+        set { lock.withLock { _delegate = newValue } }
+    }
 
     private let tasks: HTTPTaskManager
     private let session: URLSession
     private let userAgent: String
+    private let lock = NSLock()
 
     /// Creates a `DefaultHTTPClient` with a custom configuration.
     ///
@@ -169,7 +185,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         let tasks = HTTPTaskManager()
 
         self.userAgent = userAgent ?? DefaultHTTPClient.defaultUserAgent
-        self.delegate = delegate
+        self._delegate = delegate
         self.tasks = tasks
         // Note that URLSession keeps a strong reference to its delegate, so we
         // don't use the DefaultHTTPClient itself as its delegate.
@@ -182,7 +198,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
 
     public func stream(
         request: any HTTPRequestConvertible,
-        consume: @escaping (Data, Double?) -> HTTPResult<Void>
+        consume: @escaping @Sendable (Data, Double?) -> HTTPResult<Void>
     ) async -> HTTPResult<HTTPResponse> {
         await request.httpRequest()
             .asyncFlatMap(willStartRequest)
@@ -203,18 +219,20 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         if request.userAgent == nil {
             request.userAgent = userAgent
         }
+        
+        let finalRequest = request
 
         let result = await tasks.start(
             request: request,
             task: session.dataTask(with: request.urlRequest),
             receiveResponse: { [weak self] response in
                 if let self = self {
-                    self.delegate?.httpClient(self, request: request, didReceiveResponse: response)
+                    self.delegate?.httpClient(self, request: finalRequest, didReceiveResponse: response)
                 }
             },
             receiveChallenge: { [weak self] challenge in
                 if let self = self, let delegate = self.delegate {
-                    return await delegate.httpClient(self, request: request, didReceive: challenge)
+                    return await delegate.httpClient(self, request: finalRequest, didReceive: challenge)
                 } else {
                     return .performDefaultHandling
                 }
@@ -246,8 +264,14 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
             return .failure(error)
         }
     }
+    
+    // Internal helper to wrap non-Sendable items safely for use in Tasks
+    private struct UncheckedSendable<T>: @unchecked Sendable {
+        let value: T
+        init(_ value: T) { self.value = value }
+    }
 
-    private class HTTPTaskManager: NSObject, URLSessionDataDelegate {
+    private class HTTPTaskManager: NSObject, URLSessionDataDelegate, @unchecked Sendable {
         /// On-going tasks.
         @Atomic private var tasks: [HTTPTask] = []
 
@@ -272,7 +296,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                     task.start(with: continuation)
                 }
             } onCancel: {
-                task.cancel()
+                sessionTask.cancel()
             }
 
             $tasks.write { $0.removeAll { $0.task == sessionTask } }
@@ -317,11 +341,11 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
     }
 
     /// Represents an on-going HTTP task.
-    private class HTTPTask: Cancellable, Loggable {
+    private class HTTPTask: Cancellable, Loggable, @unchecked Sendable {
         typealias Continuation = CheckedContinuation<HTTPResult<HTTPResponse>, Never>
-        typealias ReceiveResponse = (HTTPResponse) -> Void
-        typealias ReceiveChallenge = (URLAuthenticationChallenge) async -> URLAuthenticationChallengeResponse
-        typealias Consume = (Data, Double?) -> HTTPResult<Void>
+        typealias ReceiveResponse = @Sendable (HTTPResponse) -> Void
+        typealias ReceiveChallenge = @Sendable (URLAuthenticationChallenge) async -> URLAuthenticationChallengeResponse
+        typealias Consume = @Sendable (Data, Double?) -> HTTPResult<Void>
 
         private let request: HTTPRequest
         fileprivate let task: URLSessionTask
@@ -495,17 +519,18 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         }
 
         func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completion: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+            let completionBox = UncheckedSendable(completion)
             Task {
                 let response = await receiveChallenge(challenge)
                 switch response {
                 case let .useCredential(credential):
-                    completion(.useCredential, credential)
+                    completionBox.value(.useCredential, credential)
                 case .performDefaultHandling:
-                    completion(.performDefaultHandling, nil)
+                    completionBox.value(.performDefaultHandling, nil)
                 case .cancelAuthenticationChallenge:
-                    completion(.cancelAuthenticationChallenge, nil)
+                    completionBox.value(.cancelAuthenticationChallenge, nil)
                 case .rejectProtectionSpace:
-                    completion(.rejectProtectionSpace, nil)
+                    completionBox.value(.rejectProtectionSpace, nil)
                 }
             }
         }

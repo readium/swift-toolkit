@@ -10,7 +10,7 @@ import UIKit
 /// An HTTP client performs HTTP requests.
 ///
 /// You may provide a custom implementation, or use the `DefaultHTTPClient` one which relies on native APIs.
-public protocol HTTPClient: Loggable {
+public protocol HTTPClient: Loggable, Sendable {
     /// Streams a resource from the given `request`.
     ///
     /// - Parameters:
@@ -21,18 +21,18 @@ public protocol HTTPClient: Loggable {
     ///     to abort the request.
     func stream(
         request: HTTPRequestConvertible,
-        consume: @escaping (_ chunk: Data, _ progress: Double?) -> HTTPResult<Void>
+        consume: @escaping @Sendable (_ chunk: Data, _ progress: Double?) -> HTTPResult<Void>
     ) async -> HTTPResult<HTTPResponse>
 }
 
 public extension HTTPClient {
     /// Fetches the resource from the given `request`.
     func fetch(_ request: HTTPRequestConvertible) async -> HTTPResult<HTTPResponse> {
-        var data = Data()
+        let buffer = ThreadSafeBuffer()
         let response = await stream(
             request: request,
             consume: { chunk, _ in
-                data.append(chunk)
+                buffer.append(chunk)
                 return .success(())
             }
         )
@@ -40,7 +40,7 @@ public extension HTTPClient {
         return response
             .map {
                 var response = $0
-                response.body = data
+                response.body = buffer.data
                 return response
             }
     }
@@ -50,7 +50,7 @@ public extension HTTPClient {
     /// If the decoder fails, a `malformedResponse` HTTP error is returned.
     func fetch<T>(
         _ request: HTTPRequestConvertible,
-        decoder: @escaping (HTTPResponse, Data) throws -> T?
+        decoder: @escaping @Sendable (HTTPResponse, Data) throws -> T?
     ) async -> HTTPResult<T> {
         await fetch(request)
             .flatMap { response in
@@ -96,7 +96,7 @@ public extension HTTPClient {
     /// You are responsible for moving or deleting the downloaded file in the `completion` block.
     func download(
         _ request: HTTPRequestConvertible,
-        onProgress: @escaping (Double) -> Void
+        onProgress: @escaping @Sendable (Double) -> Void
     ) async -> HTTPResult<HTTPDownload> {
         let location = await FileURL(
             url: URL(
@@ -151,7 +151,7 @@ public extension HTTPClient {
 }
 
 /// Status code of an HTTP response.
-public struct HTTPStatus: Equatable, RawRepresentable, ExpressibleByIntegerLiteral {
+public struct HTTPStatus: Equatable, RawRepresentable, ExpressibleByIntegerLiteral, Sendable {
     public let rawValue: Int
 
     public init(rawValue: RawValue) {
@@ -197,7 +197,7 @@ public struct HTTPStatus: Equatable, RawRepresentable, ExpressibleByIntegerLiter
 }
 
 /// Represents a successful HTTP response received from a server.
-public struct HTTPResponse: Equatable {
+public struct HTTPResponse: Equatable, @unchecked Sendable {
     /// Request associated with the response.
     public let request: HTTPRequest
 
@@ -299,5 +299,22 @@ public struct HTTPDownload {
         self.location = location
         self.suggestedFilename = suggestedFilename
         self.mediaType = mediaType
+    }
+}
+
+private final class ThreadSafeBuffer: @unchecked Sendable {
+    private var _data = Data()
+    private let lock = NSLock()
+
+    var data: Data {
+        lock.lock()
+        defer { lock.unlock() }
+        return _data
+    }
+
+    func append(_ chunk: Data) {
+        lock.lock()
+        defer { lock.unlock() }
+        _data.append(chunk)
     }
 }

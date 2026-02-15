@@ -8,23 +8,28 @@ import Foundation
 import ReadiumShared
 
 /// Locator service for audio publications.
-final class AudioLocatorService: DefaultLocatorService {
-    static func makeFactory() -> (PublicationServiceContext) -> AudioLocatorService {
-        { context in AudioLocatorService(publication: context.publication) }
+final class AudioLocatorService: DefaultLocatorService, @unchecked Sendable {
+    static func makeFactory() -> @Sendable (PublicationServiceContext) -> AudioLocatorService {
+        { context in
+            AudioLocatorService(
+                publication: context.publication,
+                readingOrder: context.manifest.readingOrder
+            )
+        }
     }
 
-    private lazy var readingOrder: [Link] =
-        publication()?.readingOrder ?? []
+    private let readingOrder: [Link]
+    private let durations: [Double]
+    private let totalDuration: Double?
 
-    /// Duration per reading order index.
-    private lazy var durations: [Double] =
-        readingOrder.map { $0.duration ?? 0 }
-
-    /// Total duration of the publication.
-    private lazy var totalDuration: Double? = {
+    init(publication: Weak<Publication>, readingOrder: [Link]) {
+        self.readingOrder = readingOrder
+        self.durations = readingOrder.map { $0.duration ?? 0 }
         let totalDuration = durations.reduce(0, +)
-        return (totalDuration > 0) ? totalDuration : nil
-    }()
+        self.totalDuration = (totalDuration > 0) ? totalDuration : nil
+        
+        super.init(publication: publication)
+    }
 
     override func locate(progression: Double) async -> Locator? {
         guard let totalDuration = totalDuration else {

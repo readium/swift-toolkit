@@ -7,7 +7,7 @@
 import Foundation
 
 /// Acts as a proxy to an actual data source by handling read access.
-public protocol Streamable: Closeable {
+public protocol Streamable: Closeable, Sendable {
     /// Returns data length from metadata if available.
     ///
     /// This value must be treated as a hint, as it might not reflect the
@@ -24,7 +24,7 @@ public protocol Streamable: Closeable {
     ///     are responsible to accumulate the data if needed.
     func stream(
         range: Range<UInt64>?,
-        consume: @escaping (Data) -> Void
+        consume: @escaping @Sendable (Data) -> Void
     ) async -> ReadResult<Void>
 }
 
@@ -34,7 +34,7 @@ public extension Streamable {
     /// - Parameters:
     ///   - consume: Callback called for each chunk of data received. Callers
     ///     are responsible to accumulate the data if needed.
-    func stream(consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+    func stream(consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         await stream(range: nil, consume: consume)
     }
 
@@ -48,11 +48,11 @@ public extension Streamable {
     /// When `range` is null, the whole content is returned. Out-of-range
     /// indexes are clamped to the available length automatically.
     func read(range: Range<UInt64>?) async -> ReadResult<Data> {
-        var data = Data()
+        let accumulator = StreamableAccumulator()
         let result = await stream(range: range) {
-            data += $0
+            accumulator.append($0)
         }
-        return result.map { data }
+        return result.map { accumulator.data }
     }
 
     /// Reads the whole content as a `String`.
@@ -82,5 +82,13 @@ public extension Streamable {
     /// Reads the whole content as a JSON object.
     func readAsJSONObject(options: JSONSerialization.ReadingOptions = []) async -> ReadResult<[String: Any]> {
         await readAsJSON()
+    }
+}
+
+private class StreamableAccumulator: @unchecked Sendable {
+    var data = Data()
+    
+    func append(_ other: Data) {
+        data.append(other)
     }
 }

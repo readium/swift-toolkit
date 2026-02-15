@@ -7,8 +7,10 @@
 import Foundation
 import ReadiumZIPFoundation
 
+extension ZIPFoundationArchiveFactory: @unchecked Sendable {}
+
 /// A ZIP ``Container`` using the ZIPFoundation library.
-final class ZIPFoundationContainer: Container, Loggable {
+final class ZIPFoundationContainer: Container, Loggable, @unchecked Sendable {
     enum MakeError: Error {
         case notAZIP
         case reading(ReadError)
@@ -101,10 +103,11 @@ private actor ZIPFoundationResource: Resource, Loggable {
         })
     }
 
-    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
-        if range != nil {}
+    func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
+        let archiveResult = await archive()
 
-        return await archive().asyncFlatMap { archive in
+        switch archiveResult {
+        case .success(let archive):
             do {
                 if let range = range {
                     try await archive.extractRange(range, of: entry) { data in
@@ -119,6 +122,8 @@ private actor ZIPFoundationResource: Resource, Loggable {
             } catch {
                 return .failure(.decoding(error))
             }
+        case .failure(let error):
+            return .failure(error)
         }
     }
 
