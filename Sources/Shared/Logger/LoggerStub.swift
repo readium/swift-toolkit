@@ -8,7 +8,7 @@ import Foundation
 
 /// A Logger implementation of the Loggable protocol.
 /// Used as default
-public class LoggerStub: LoggerType {
+public class LoggerStub: LoggerType, @unchecked Sendable {
     public init() {}
 
     /// Log `message` with a severity of `level`.

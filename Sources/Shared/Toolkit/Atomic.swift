@@ -28,7 +28,7 @@ import Foundation
 /// }
 /// ```
 @propertyWrapper
-public final class Atomic<Value> {
+public final class Atomic<Value>: @unchecked Sendable {
     private var value: Value
 
     /// Queue used to protect accesses to `value`.

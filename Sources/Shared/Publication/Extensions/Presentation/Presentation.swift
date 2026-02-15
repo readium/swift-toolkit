@@ -83,7 +83,7 @@ public struct Presentation: Equatable {
             "overflow": encodeRawIfNotNil(overflow),
             "spread": encodeRawIfNotNil(spread),
             "layout": encodeRawIfNotNil(layout),
-        ])
+        ] as [String: any Sendable])
     }
 
     /// Suggested method for constraining a resource inside the viewport.

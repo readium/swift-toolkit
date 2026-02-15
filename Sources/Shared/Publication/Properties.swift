@@ -35,7 +35,7 @@ public struct Properties: Hashable, Loggable, WarningLogger, Sendable {
     }
 
     public var json: JSONDictionary.Wrapped {
-        makeJSON(otherProperties as [String: Any])
+        makeJSON(otherProperties as [String: any Sendable])
     }
 
     /// Syntactic sugar to access the `otherProperties` values by subscripting `Properties` directly.

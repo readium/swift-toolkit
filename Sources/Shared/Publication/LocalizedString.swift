@@ -45,7 +45,7 @@ public enum LocalizedString: Hashable, Sendable {
     }
 
     /// Returns the JSON representation for this localized string.
-    public var json: Any {
+    public var json: any Sendable {
         switch self {
         case let .nonlocalized(string):
             return string

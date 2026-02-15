@@ -40,7 +40,7 @@ public actor CachingResource: Resource {
 
     public func stream(
         range: Range<UInt64>?,
-        consume: @escaping (Data) -> Void
+        consume: @escaping @Sendable (Data) -> Void
     ) async -> ReadResult<Void> {
         await data().map { data in
             let length = UInt64(data.count)

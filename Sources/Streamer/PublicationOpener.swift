@@ -15,7 +15,7 @@ import ReadiumShared
 ///   - onCreatePublication: Called on every parsed `Publication.Builder`. It
 ///   can be used to modify the manifest, the root container or the list of
 ///   service factories of a ``Publication``.
-public class PublicationOpener {
+public class PublicationOpener: @unchecked Sendable {
     private let parser: PublicationParser
     private let contentProtections: [ContentProtection]
     private let onCreatePublication: Publication.Builder.Transform

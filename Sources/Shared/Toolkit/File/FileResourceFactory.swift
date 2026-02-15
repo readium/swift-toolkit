@@ -8,7 +8,7 @@ import Foundation
 
 /// Creates ``FileResource`` instances granting access to `file://` URLs stored
 /// on the file system.
-public class FileResourceFactory: ResourceFactory {
+public class FileResourceFactory: ResourceFactory, @unchecked Sendable {
     public func make(url: any AbsoluteURL) async -> Result<any Resource, ResourceMakeError> {
         guard let file = url.fileURL else {
             return .failure(.schemeNotSupported(url.scheme))

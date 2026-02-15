@@ -7,7 +7,7 @@
 import Foundation
 
 /// Sniffs bitmap formats.
-public class BitmapFormatSniffer: FormatSniffer {
+public class BitmapFormatSniffer: FormatSniffer, @unchecked Sendable {
     public init() {}
 
     public func sniffHints(_ hints: FormatHints) -> Format? {

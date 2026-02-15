@@ -44,7 +44,7 @@ public struct ArchiveProperties: Equatable {
         [
             "entryLength": entryLength as NSNumber,
             "isEntryCompressed": isEntryCompressed,
-        ]
+        ] as [String: any Sendable]
     }
 }
 

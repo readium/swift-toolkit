@@ -7,7 +7,7 @@
 import Foundation
 
 /// A container provides access to a list of `Resource` entries.
-public protocol Container: Closeable {
+public protocol Container: Closeable, Sendable {
     /// URL locating this container, when available.
     ///
     /// This can be used to optimize access to a container's content for the
@@ -44,7 +44,7 @@ public struct EmptyContainer: Container {
 /// sources.
 ///
 /// The `containers` will be tested in the given order.
-public class CompositeContainer: Container {
+public class CompositeContainer: Container, @unchecked Sendable {
     private let containers: [Container]
 
     public convenience init(_ containers: Container...) {

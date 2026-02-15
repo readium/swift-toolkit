@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumShared
 
-final class DeviceService {
+final class DeviceService: Sendable {
     private let repository: LCPLicenseRepository
     private let httpClient: HTTPClient
 

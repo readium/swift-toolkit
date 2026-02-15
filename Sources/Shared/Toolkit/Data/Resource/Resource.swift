@@ -7,7 +7,7 @@
 import Foundation
 
 /// Acts as a proxy to an actual resource by handling read access.
-public protocol Resource: Streamable {
+public protocol Resource: Streamable, Sendable {
     /// URL locating this resource, when available.
     ///
     /// This can be used to optimize access to a resource's content for the

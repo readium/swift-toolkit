@@ -14,7 +14,7 @@ import ReadiumInternal
 
 /// Provides a convenient access layer to the Document Types declared in the `Info.plist`,
 /// under `CFBundleDocumentTypes`.
-public struct DocumentTypes {
+public struct DocumentTypes: Sendable {
     /// Default `DocumentTypes` instance extracted from the main bundle's Info.plist.
     public static let main = DocumentTypes(bundle: .main)
 
@@ -90,7 +90,7 @@ public struct DocumentTypes {
 }
 
 /// Metadata about a Document Type declared in `CFBundleDocumentTypes`.
-public struct DocumentType: Equatable, Loggable {
+public struct DocumentType: Equatable, Loggable, Sendable {
     // Abstract name for the document type, used to refer to the type.
     public let name: String
 

@@ -92,7 +92,7 @@ public extension Array where Element == Contributor {
         }
     }
 
-    var json: [[String: Any]] {
+    var json: [[String: any Sendable]] {
         map(\.json)
     }
 }

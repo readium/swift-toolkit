@@ -7,7 +7,7 @@
 import Foundation
 
 /// Holds the information about an HTTP request performed by an `HTTPClient`.
-public struct HTTPRequest: Equatable {
+public struct HTTPRequest: Equatable, @unchecked Sendable {
     /// Address of the remote resource to request.
     public var url: HTTPURL
 

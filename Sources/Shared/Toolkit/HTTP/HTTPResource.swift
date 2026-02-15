@@ -61,7 +61,7 @@ public actor HTTPResource: Resource {
         return _headResponse!
     }
 
-    public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+    public func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         let request = {
             var request = HTTPRequest(url: url)
             if let range = range {

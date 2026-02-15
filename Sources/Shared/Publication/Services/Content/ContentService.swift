@@ -6,7 +6,7 @@
 
 import Foundation
 
-public typealias ContentServiceFactory = (PublicationServiceContext) -> ContentService?
+public typealias ContentServiceFactory = @Sendable (PublicationServiceContext) -> ContentService?
 
 /// Provides a way to extract the raw `Content` of a `Publication`.
 public protocol ContentService: PublicationService {
@@ -18,16 +18,16 @@ public protocol ContentService: PublicationService {
 }
 
 /// Default implementation of `ContentService`, delegating the content parsing to `ResourceContentIteratorFactory`.
-public class DefaultContentService: ContentService {
+public class DefaultContentService: ContentService, @unchecked Sendable {
     private let publication: Weak<Publication>
-    private let resourceContentIteratorFactories: [ResourceContentIteratorFactory]
+    private let resourceContentIteratorFactories: [any ResourceContentIteratorFactory & Sendable]
 
-    public init(publication: Weak<Publication>, resourceContentIteratorFactories: [ResourceContentIteratorFactory]) {
+    public init(publication: Weak<Publication>, resourceContentIteratorFactories: [any ResourceContentIteratorFactory & Sendable]) {
         self.publication = publication
         self.resourceContentIteratorFactories = resourceContentIteratorFactories
     }
 
-    public static func makeFactory(resourceContentIteratorFactories: [ResourceContentIteratorFactory]) -> (PublicationServiceContext) -> DefaultContentService? {
+    public static func makeFactory(resourceContentIteratorFactories: [any ResourceContentIteratorFactory & Sendable]) -> ContentServiceFactory {
         { context in
             DefaultContentService(publication: context.publication, resourceContentIteratorFactories: resourceContentIteratorFactories)
         }
@@ -43,9 +43,9 @@ public class DefaultContentService: ContentService {
     private class DefaultContent: Content {
         let publication: Publication
         let start: Locator?
-        let resourceContentIteratorFactories: [ResourceContentIteratorFactory]
+        let resourceContentIteratorFactories: [any ResourceContentIteratorFactory & Sendable]
 
-        init(publication: Publication, start: Locator?, resourceContentIteratorFactories: [ResourceContentIteratorFactory]) {
+        init(publication: Publication, start: Locator?, resourceContentIteratorFactories: [any ResourceContentIteratorFactory & Sendable]) {
             self.publication = publication
             self.start = start
             self.resourceContentIteratorFactories = resourceContentIteratorFactories

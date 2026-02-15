@@ -226,7 +226,7 @@ extension CGPDFDocument: PDFDocument {
 }
 
 /// Creates a `PDFDocument` using Core Graphics.
-public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
+public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable, @unchecked Sendable {
     public func open(file: FileURL, password: String?) async throws -> PDFDocument {
         guard let document = CGPDFDocument(file.url as CFURL) else {
             throw PDFDocumentError.openFailed
@@ -235,7 +235,7 @@ public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
         return try open(document: document, password: password)
     }
 
-    private class DataHolder {
+    private final class DataHolder: @unchecked Sendable {
         var data: Data = .init()
     }
 
@@ -330,7 +330,7 @@ public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
         return document
     }
 
-    private class ResourceContext {
+    private final class ResourceContext: @unchecked Sendable {
         let resource: Resource
         var offset: UInt64 = 0
         let length: UInt64

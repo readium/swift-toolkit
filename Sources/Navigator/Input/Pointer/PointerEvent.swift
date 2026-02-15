@@ -7,7 +7,7 @@
 import Foundation
 
 /// Represents a pointer event (e.g. touch, mouse) emitted by a navigator.
-public struct PointerEvent: Equatable {
+public struct PointerEvent: Equatable, Sendable {
     /// Pointer causing this event.
     public var pointer: Pointer
 
@@ -21,7 +21,7 @@ public struct PointerEvent: Equatable {
     public var modifiers: KeyModifiers
 
     /// Phase of a pointer event.
-    public enum Phase: Equatable, CustomStringConvertible {
+    public enum Phase: Equatable, CustomStringConvertible, Sendable {
         /// Fired when a pointer becomes active.
         case down
 
@@ -48,7 +48,7 @@ public struct PointerEvent: Equatable {
 }
 
 /// Represents a pointer device, such as a mouse or a physical touch.
-public enum Pointer: Equatable, CustomStringConvertible {
+public enum Pointer: Equatable, CustomStringConvertible, Sendable {
     case touch(TouchPointer)
     case mouse(MousePointer)
 
@@ -79,13 +79,13 @@ public enum Pointer: Equatable, CustomStringConvertible {
 }
 
 /// Type of a pointer.
-public enum PointerType: Equatable, CaseIterable {
+public enum PointerType: Equatable, CaseIterable, Sendable {
     case touch
     case mouse
 }
 
 /// Represents a physical touch pointer.
-public struct TouchPointer: Identifiable, Equatable {
+public struct TouchPointer: Identifiable, Equatable, Sendable {
     /// Unique identifier for this pointer.
     public let id: AnyHashable
 
@@ -95,7 +95,7 @@ public struct TouchPointer: Identifiable, Equatable {
 }
 
 /// Represents a mouse pointer.
-public struct MousePointer: Identifiable, Equatable {
+public struct MousePointer: Identifiable, Equatable, Sendable {
     /// Unique identifier for this pointer.
     public let id: AnyHashable
 
@@ -111,7 +111,7 @@ public struct MousePointer: Identifiable, Equatable {
 /// Represents a set of mouse buttons.
 ///
 /// The values are derived from https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/buttons#value
-public struct MouseButtons: OptionSet, Equatable, CustomStringConvertible {
+public struct MouseButtons: OptionSet, Equatable, CustomStringConvertible, Sendable {
     /// Main button, usually the left button.
     public static let main = MouseButtons(rawValue: 1 << 0)
 

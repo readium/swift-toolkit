@@ -15,7 +15,7 @@ public struct PublicationServicesBuilder {
     public init(
         content: ContentServiceFactory? = nil,
         contentProtection: ContentProtectionServiceFactory? = nil,
-        cover: CoverServiceFactory? = ResourceCoverService.makeFactory(),
+        cover: CoverServiceFactory? = { context in ResourceCoverService.makeFactory()(context) },
         locator: LocatorServiceFactory? = { DefaultLocatorService(publication: $0.publication) },
         positions: PositionsServiceFactory? = nil,
         search: SearchServiceFactory? = nil,

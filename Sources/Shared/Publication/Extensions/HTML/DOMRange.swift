@@ -52,7 +52,7 @@ public struct DOMRange: JSONEquatable {
         makeJSON([
             "start": encodeIfNotEmpty(start.json),
             "end": encodeIfNotEmpty(end?.json),
-        ])
+        ] as [String: any Sendable])
     }
 
     /// A serializable representation of a boundary point in a DOM Range.
@@ -101,12 +101,12 @@ public struct DOMRange: JSONEquatable {
             )
         }
 
-        public var json: [String: Any] {
+        public var json: [String: any Sendable] {
             makeJSON([
                 "cssSelector": cssSelector,
                 "textNodeIndex": textNodeIndex,
                 "charOffset": encodeIfNotNil(charOffset),
-            ])
+            ] as [String: any Sendable])
         }
     }
 }

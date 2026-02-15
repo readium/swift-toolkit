@@ -6,7 +6,7 @@
 
 import Foundation
 
-public typealias ContentProtectionServiceFactory = (PublicationServiceContext) -> ContentProtectionService?
+public typealias ContentProtectionServiceFactory = @Sendable (PublicationServiceContext) -> ContentProtectionService?
 
 /// Provides information about a publication's content protection and manages
 /// user rights.

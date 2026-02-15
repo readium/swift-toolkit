@@ -6,7 +6,7 @@
 
 import Foundation
 
-public typealias PositionsServiceFactory = (PublicationServiceContext) -> PositionsService?
+public typealias PositionsServiceFactory = @Sendable (PublicationServiceContext) -> PositionsService?
 
 /// Provides a list of discrete locations in the publication, no matter what the original format is.
 public protocol PositionsService: PublicationService {
@@ -41,10 +41,10 @@ public extension PositionsService {
     }
 }
 
-private class PositionsResource: Resource {
-    private let positions: () async -> ReadResult<[Locator]>
+private class PositionsResource: Resource, @unchecked Sendable {
+    private let positions: @Sendable () async -> ReadResult<[Locator]>
 
-    init(positions: @escaping () async -> ReadResult<[Locator]>) {
+    init(positions: @escaping @Sendable () async -> ReadResult<[Locator]>) {
         self.positions = positions
     }
 
@@ -58,9 +58,9 @@ private class PositionsResource: Resource {
         .success(ResourceProperties())
     }
 
-    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+    func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         await positions().flatMap { positions in
-            let response: [String: Any] = [
+            let response: [String: any Sendable] = [
                 "total": positions.count,
                 "positions": positions.json,
             ]

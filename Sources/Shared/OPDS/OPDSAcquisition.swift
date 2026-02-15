@@ -53,7 +53,7 @@ public extension Array where Element == OPDSAcquisition {
         append(contentsOf: acquisitions)
     }
 
-    var json: [[String: Any]] {
+    var json: [[String: any Sendable]] {
         map(\.json)
     }
 }

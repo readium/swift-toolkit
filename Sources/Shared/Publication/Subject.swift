@@ -8,7 +8,7 @@ import Foundation
 import ReadiumInternal
 
 // https://github.com/readium/webpub-manifest/tree/master/contexts/default#subjects
-public struct Subject: Hashable, Sendable {
+public struct Subject: Hashable, @unchecked Sendable {
     public var localizedName: LocalizedString
     public var name: String { localizedName.string }
     public var sortAs: String?
@@ -51,7 +51,7 @@ public struct Subject: Hashable, Sendable {
             "scheme": encodeIfNotNil(scheme),
             "code": encodeIfNotNil(code),
             "links": encodeIfNotEmpty(links.json),
-        ])
+        ] as [String: any Sendable])
     }
 }
 
@@ -72,7 +72,7 @@ public extension Array where Element == Subject {
         }
     }
 
-    var json: [[String: Any]] {
+    var json: [[String: any Sendable]] {
         map(\.json)
     }
 }

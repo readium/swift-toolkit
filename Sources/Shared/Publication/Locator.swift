@@ -99,7 +99,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
             "title": encodeIfNotNil(title),
             "locations": encodeIfNotEmpty(locations.json),
             "text": encodeIfNotEmpty(text.json),
-        ])
+        ] as [String: any Sendable])
     }
 
     public var jsonString: String? {
@@ -220,7 +220,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
                 "progression": encodeIfNotNil(progression),
                 "totalProgression": encodeIfNotNil(totalProgression),
                 "position": encodeIfNotNil(position),
-            ], additional: otherLocations)
+            ] as [String: any Sendable], additional: otherLocations)
         }
 
         public var jsonString: String? { serializeJSONString(json) }
@@ -272,7 +272,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
                 "after": encodeIfNotNil(after),
                 "before": encodeIfNotNil(before),
                 "highlight": encodeIfNotNil(highlight),
-            ])
+            ] as [String: any Sendable])
         }
 
         public var jsonString: String? { serializeJSONString(json) }
@@ -370,7 +370,7 @@ public struct LocatorCollection: Hashable {
             "metadata": encodeIfNotEmpty(metadata.json),
             "links": encodeIfNotEmpty(links.json),
             "locators": locators.json,
-        ])
+        ] as [String: any Sendable])
     }
 
     /// Holds the metadata of a `LocatorCollection`.
@@ -417,7 +417,7 @@ public struct LocatorCollection: Hashable {
             makeJSON([
                 "title": encodeIfNotNil(localizedTitle?.json),
                 "numberOfItems": encodeIfNotNil(numberOfItems),
-            ], additional: otherMetadata)
+            ] as [String: any Sendable], additional: otherMetadata)
         }
     }
 }

@@ -7,7 +7,7 @@
 import Foundation
 
 /// Manages consumption of user rights and permissions.
-public protocol UserRights {
+public protocol UserRights: Sendable {
     /// Returns whether the user is allowed to copy the given text to the pasteboard.
     ///
     /// It may return `false` if the given text exceeds the allowed amount of characters to copy.
@@ -35,7 +35,7 @@ public protocol UserRights {
 }
 
 /// A `UserRights` without any restriction.
-public class UnrestrictedUserRights: UserRights {
+public class UnrestrictedUserRights: UserRights, @unchecked Sendable {
     public init() {}
 
     public func canCopy(text: String) async -> Bool { true }
@@ -46,7 +46,7 @@ public class UnrestrictedUserRights: UserRights {
 }
 
 /// A `UserRights` which forbids all rights.
-public class AllRestrictedUserRights: UserRights {
+public class AllRestrictedUserRights: UserRights, @unchecked Sendable {
     public init() {}
 
     public func canCopy(text: String) async -> Bool { false }

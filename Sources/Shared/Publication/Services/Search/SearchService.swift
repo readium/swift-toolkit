@@ -6,7 +6,7 @@
 
 import Foundation
 
-public typealias SearchServiceFactory = (PublicationServiceContext) -> SearchService?
+public typealias SearchServiceFactory = @Sendable (PublicationServiceContext) -> SearchService?
 
 /// Provides a way to search terms in a publication.
 public protocol SearchService: PublicationService {

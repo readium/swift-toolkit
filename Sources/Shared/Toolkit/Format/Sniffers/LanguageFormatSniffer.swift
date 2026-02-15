@@ -6,7 +6,7 @@
 
 import Foundation
 
-public class LanguageFormatSniffer: FormatSniffer {
+public class LanguageFormatSniffer: FormatSniffer, @unchecked Sendable {
     public init() {}
 
     public func sniffHints(_ hints: FormatHints) -> Format? {

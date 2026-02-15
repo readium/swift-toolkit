@@ -232,7 +232,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
             "numberOfPages": encodeIfNotNil(numberOfPages),
             "belongsTo": encodeIfNotEmpty(belongsTo.mapValues { $0.json }),
             "tdm": encodeIfNotEmpty(tdm?.json),
-        ], additional: otherMetadata)
+        ] as [String: any Sendable], additional: otherMetadata)
     }
 
     public var belongsToCollections: [Collection] {

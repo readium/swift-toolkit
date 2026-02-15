@@ -7,7 +7,7 @@
 import Foundation
 
 /// The license repository stores registered licenses with their consumed rights (e.g. copy).
-public protocol LCPLicenseRepository {
+public protocol LCPLicenseRepository: Sendable {
     /// Adds a new `licenseDocument` to the repository, using `licenseDocument.id` as the
     /// primary key.
     ///
@@ -34,7 +34,7 @@ public protocol LCPLicenseRepository {
     /// Updates the consumable user rights for the license with given `id`.
     func updateUserRights(
         for id: LicenseDocument.ID,
-        with changes: (inout LCPConsumableUserRights) -> Void
+        with changes: @Sendable (inout LCPConsumableUserRights) -> Void
     ) async throws
 }
 

@@ -10,7 +10,7 @@ import ReadiumShared
 import SQLite
 
 @available(*, deprecated, message: "Use LCPKeychainLicenseRepository from ReadiumLCP instead")
-public class LCPSQLiteLicenseRepository: LCPLicenseRepository, Loggable {
+public class LCPSQLiteLicenseRepository: LCPLicenseRepository, Loggable, @unchecked Sendable {
     let licenses = Table("Licenses")
     let id = SQLite.Expression<String>("id")
     let printsLeft = SQLite.Expression<Int?>("printsLeft")
@@ -73,7 +73,7 @@ public class LCPSQLiteLicenseRepository: LCPLicenseRepository, Loggable {
         try getRights(for: id)
     }
 
-    public func updateUserRights(for id: LicenseDocument.ID, with changes: (inout LCPConsumableUserRights) -> Void) async throws {
+    public func updateUserRights(for id: LicenseDocument.ID, with changes: @Sendable (inout LCPConsumableUserRights) -> Void) async throws {
         try db.transaction {
             let rights = try getRights(for: id)
 

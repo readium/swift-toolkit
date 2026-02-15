@@ -8,7 +8,7 @@ import Foundation
 import ReadiumShared
 
 /// Parses a Publication from an asset.
-public protocol PublicationParser {
+public protocol PublicationParser: Sendable {
     /// Constructs a ``Publication.Builder`` to build a ``Publication`` from a
     /// publication asset.
     ///

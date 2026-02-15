@@ -9,7 +9,7 @@ import Foundation
 /// Holds an observable value.
 /// You can either get the value directly with `value`, or subscribe to its updates with `observe`.
 @available(*, unavailable, message: "This is not used anymore in the toolkit")
-public class Observable<Value> {
+public class Observable<Value>: @unchecked Sendable {
     fileprivate var _value: Value {
         didSet {
             for observer in observers {

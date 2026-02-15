@@ -8,19 +8,19 @@ import Foundation
 import ReadiumShared
 import UIKit
 
-protocol EPUBNavigatorViewModelDelegate: AnyObject {
+@MainActor protocol EPUBNavigatorViewModelDelegate: AnyObject {
     func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel, runScript script: String, in scope: EPUBScriptScope)
     func epubNavigatorViewModelInvalidatePaginationView(_ viewModel: EPUBNavigatorViewModel)
     func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel, didFailToLoadResourceAt href: RelativeURL, withError error: ReadError)
 }
 
-enum EPUBScriptScope {
+enum EPUBScriptScope: Sendable {
     case currentResource
     case loadedResources
     case resource(href: AnyURL)
 }
 
-final class EPUBNavigatorViewModel: Loggable {
+@MainActor final class EPUBNavigatorViewModel: Loggable {
     enum Error: Swift.Error {
         case noHTTPServer
     }

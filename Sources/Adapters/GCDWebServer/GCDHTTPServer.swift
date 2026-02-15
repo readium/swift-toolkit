@@ -18,7 +18,7 @@ public enum GCDHTTPServerError: Error {
 }
 
 /// Implementation of `HTTPServer` using ReadiumGCDWebServer under the hood.
-public class GCDHTTPServer: HTTPServer, Loggable {
+public class GCDHTTPServer: HTTPServer, Loggable, @unchecked Sendable {
     /// The actual underlying HTTP server instance.
     private let server = ReadiumGCDWebServer()
 

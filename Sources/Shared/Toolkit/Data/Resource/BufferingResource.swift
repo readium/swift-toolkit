@@ -55,7 +55,7 @@ public actor BufferingResource: Resource, Loggable {
 
     public func stream(
         range: Range<UInt64>?,
-        consume: @escaping (Data) -> Void
+        consume: @escaping @Sendable (Data) -> Void
     ) async -> ReadResult<Void> {
         guard
             // Reading the whole resource bypasses buffering to keep things simple.

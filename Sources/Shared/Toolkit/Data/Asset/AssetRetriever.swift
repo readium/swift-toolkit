@@ -32,7 +32,7 @@ public enum AssetRetrieveURLError: Error {
 /// Retrieves an ``Asset`` instance that provides read-only access to the
 /// resource(s) of an asset stored at a given ``AbsoluteURL`` and its
 /// ``Format``.
-public final class AssetRetriever {
+public final class AssetRetriever: Sendable {
     private let formatSniffer: FormatSniffer
     private let resourceFactory: ResourceFactory
     private let archiveOpener: ArchiveOpener

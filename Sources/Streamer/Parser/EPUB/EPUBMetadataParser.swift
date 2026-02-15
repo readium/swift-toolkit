@@ -66,7 +66,7 @@ final class EPUBMetadataParser: Loggable {
             belongsToCollections: belongsToCollections,
             belongsToSeries: belongsToSeries,
             tdm: tdm(),
-            otherMetadata: metas.otherMetadata
+            otherMetadata: metas.otherMetadata.compactMapValues { $0 as? any Sendable }
         )
     }
 

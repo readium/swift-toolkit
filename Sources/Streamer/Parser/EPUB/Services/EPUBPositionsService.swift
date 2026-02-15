@@ -16,7 +16,7 @@ import ReadiumShared
 /// https://github.com/readium/architecture/issues/101
 ///
 public actor EPUBPositionsService: PositionsService {
-    public static func makeFactory(reflowableStrategy: ReflowableStrategy = .recommended) -> (PublicationServiceContext) -> EPUBPositionsService? {
+    public static func makeFactory(reflowableStrategy: ReflowableStrategy = .recommended) -> @Sendable (PublicationServiceContext) -> EPUBPositionsService? {
         { context in
             EPUBPositionsService(
                 readingOrder: context.manifest.readingOrder,
@@ -30,7 +30,7 @@ public actor EPUBPositionsService: PositionsService {
     /// Strategy used to calculate the number of positions in a reflowable resource.
     ///
     /// Note that a fixed-layout resource always has a single position.
-    public enum ReflowableStrategy {
+    public enum ReflowableStrategy: Sendable {
         /// Use the archive entry length (whether it is compressed or stored) and split it by the given `pageLength`.
         case archiveEntryLength(pageLength: Int)
 
@@ -38,7 +38,7 @@ public actor EPUBPositionsService: PositionsService {
         ///
         /// This strategy is used by Adobe RMSDK as well.
         /// See https://github.com/readium/architecture/issues/123
-        public static var recommended = archiveEntryLength(pageLength: 1024)
+        public static let recommended = archiveEntryLength(pageLength: 1024)
 
         /// Returns the number of positions in the given `resource` according to the strategy.
         func positionCount(for link: Link, resource: Resource) async -> Int {

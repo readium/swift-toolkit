@@ -9,7 +9,7 @@ import ReadiumInternal
 import ReadiumShared
 import SafariServices
 
-public protocol Navigator: AnyObject {
+@MainActor public protocol Navigator: AnyObject {
     /// Publication being rendered.
     var publication: Publication { get }
 
@@ -49,7 +49,7 @@ public protocol Navigator: AnyObject {
     func goBackward(options: NavigatorGoOptions) async -> Bool
 }
 
-public struct NavigatorGoOptions {
+public struct NavigatorGoOptions: Sendable {
     /// Indicates whether the move should be animated when possible.
     public var animated: Bool = false
 

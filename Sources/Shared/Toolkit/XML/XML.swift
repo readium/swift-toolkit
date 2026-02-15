@@ -6,7 +6,7 @@
 
 import Foundation
 
-public struct XMLNamespace {
+public struct XMLNamespace: Sendable {
     public let prefix: String
     public let uri: String
 
@@ -31,7 +31,7 @@ public struct XMLNamespace {
     public static let xhtml2 = XMLNamespace(prefix: "xhtml2", uri: "http://www.w3.org/2002/06/xhtml2")
 }
 
-public protocol XMLNode {
+public protocol XMLNode: Sendable {
     /// Concatenated string content of all descendants.
     var textContent: String? { get }
 
@@ -52,12 +52,12 @@ public extension XMLNode {
     }
 }
 
-public protocol XMLDocument: XMLNode {
+public protocol XMLDocument: XMLNode, Sendable {
     /// Root element in the XML document.
     var documentElement: XMLElement? { get }
 }
 
-public protocol XMLElement: XMLNode {
+public protocol XMLElement: XMLNode, Sendable {
     /// Returns the element tag name without its prefix, and with the original case.
     /// You should uppercase/lowercase it to perform comparisons.
     var localName: String { get }
@@ -70,7 +70,7 @@ public protocol XMLElement: XMLNode {
     func attribute(named localName: String, namespace: String?) -> String?
 }
 
-public protocol XMLDocumentFactory {
+public protocol XMLDocumentFactory: Sendable {
     /// Opens an XML document from a local file path.
     ///
     /// - Parameter namespaces: List of namespace prefixes to declare in the document.
@@ -87,7 +87,7 @@ public protocol XMLDocumentFactory {
     func open(string: String, namespaces: [XMLNamespace]) async throws -> XMLDocument
 }
 
-public class DefaultXMLDocumentFactory: XMLDocumentFactory, Loggable {
+public final class DefaultXMLDocumentFactory: XMLDocumentFactory, Sendable, Loggable {
     public init() {}
 
     public func open(file: FileURL, namespaces: [XMLNamespace]) async throws -> XMLDocument {

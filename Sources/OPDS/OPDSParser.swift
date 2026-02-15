@@ -13,14 +13,10 @@ public enum OPDSParserError: Error {
 }
 
 public enum OPDSParser {
-    static var feedURL: URL?
-
     /// Parse an OPDS feed or publication.
     /// Feed can be v1 (XML) or v2 (JSON).
     /// - parameter url: The feed URL
     public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
-        feedURL = url
-
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, let response = response else {
                 completion(nil, error ?? OPDSParserError.documentNotFound)

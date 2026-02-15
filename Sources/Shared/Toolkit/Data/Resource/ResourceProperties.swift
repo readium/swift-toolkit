@@ -7,7 +7,7 @@
 import Foundation
 
 /// Properties associated to a resource.
-public struct ResourceProperties {
+public struct ResourceProperties: @unchecked Sendable {
     public var properties: [String: Any]
 
     public init(_ properties: [String: Any] = [:]) {

@@ -7,7 +7,7 @@
 import Foundation
 
 /// A factory to create ``Container``s from archive ``Resource``s.
-public protocol ArchiveOpener {
+public protocol ArchiveOpener: Sendable {
     /// Creates a new ``ContainerAsset`` to access the entries of an archive
     /// with a known `format`.
     func open(resource: Resource, format: Format) async -> Result<ContainerAsset, ArchiveOpenError>

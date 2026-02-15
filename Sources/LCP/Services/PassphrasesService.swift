@@ -9,7 +9,7 @@ import Foundation
 import ReadiumInternal
 import ReadiumShared
 
-final class PassphrasesService {
+final class PassphrasesService: Sendable {
     private let client: LCPClient
     private let repository: LCPPassphraseRepository
 

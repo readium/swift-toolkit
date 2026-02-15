@@ -7,7 +7,7 @@
 import Foundation
 import SQLite
 
-final class Database {
+final class Database: @unchecked Sendable {
     /// Shared instance.
     static let shared: Swift.Result<Database, Error> = {
         do {

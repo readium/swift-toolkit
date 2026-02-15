@@ -6,7 +6,7 @@
 
 import Foundation
 
-public typealias LocatorServiceFactory = (PublicationServiceContext) -> LocatorService?
+public typealias LocatorServiceFactory = @Sendable (PublicationServiceContext) -> LocatorService?
 
 /// Locates the destination of various sources (e.g. locators, progression, etc.) in the
 /// publication.

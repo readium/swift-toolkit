@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import ReadiumFuzi
+@preconcurrency import ReadiumFuzi
 
 final class FuziXMLDocument: XMLDocument, Loggable {
     enum ParseError: Error {
@@ -31,8 +31,9 @@ final class FuziXMLDocument: XMLDocument, Loggable {
         self.document = document
     }
 
-    lazy var documentElement: XMLElement? =
+    var documentElement: XMLElement? {
         document.root.map { FuziXMLElement(document: document, element: $0) }
+    }
 
     var textContent: String? {
         document.root?.stringValue

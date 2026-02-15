@@ -8,7 +8,7 @@ import Foundation
 import ReadiumShared
 
 /// List of OPDS versions compliant with the parser.
-public enum Version {
+public enum Version: Sendable {
     /// OPDS 1.x must be an XML ressource
     case OPDS1
     /// OPDS 2.x must be a JSON ressource
@@ -17,7 +17,7 @@ public enum Version {
 
 /// An intermediate structure return when the generic helper method public static
 /// func parseURL(url: URL, completion: (ParseData?, Error?) -> Void) from OPDSParser class is called.
-public struct ParseData {
+public struct ParseData: Sendable {
     /// The ressource URL
     public var url: URL
 

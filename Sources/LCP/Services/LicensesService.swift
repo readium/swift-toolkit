@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumShared
 
-final class LicensesService: Loggable {
+final class LicensesService: Loggable, Sendable {
     // Mapping between an unprotected format to the matching LCP protected format.
     private let mediaTypesMapping: [MediaType: MediaType] = [
         .readiumAudiobook: .lcpProtectedAudiobook,

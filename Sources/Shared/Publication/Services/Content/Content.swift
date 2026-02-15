@@ -40,7 +40,7 @@ public extension Content {
 }
 
 /// Represents a single semantic content element part of a publication.
-public protocol ContentElement: ContentAttributesHolder {
+public protocol ContentElement: ContentAttributesHolder, Sendable {
     /// Locator targeting this element in the Publication.
     var locator: Locator { get }
 
@@ -164,7 +164,7 @@ public struct TextContentElement: Hashable, TextualContentElement {
     }
 
     /// Represents a purpose of an element in the broader context of the document.
-    public enum Role: Hashable {
+    public enum Role: Hashable, Sendable {
         /// Title of a section with its level (1 being the highest).
         case heading(level: Int)
 
@@ -183,7 +183,7 @@ public struct TextContentElement: Hashable, TextualContentElement {
     /// @param locator Locator to the segment of text.
     /// @param text Text in the segment.
     /// @param attributes Attributes associated with this segment, e.g. language.
-    public struct Segment: Hashable, ContentAttributesHolder {
+    public struct Segment: Hashable, ContentAttributesHolder, Sendable {
         public var locator: Locator
         public var text: String
         public var attributes: [ContentAttribute]
@@ -199,7 +199,7 @@ public struct TextContentElement: Hashable, TextualContentElement {
 /// An attribute key identifies uniquely a type of attribute.
 ///
 /// The `V` phantom type is there to perform static type checking when requesting an attribute.
-public struct ContentAttributeKey<V>: Hashable {
+public struct ContentAttributeKey<V>: Hashable, Sendable {
     public static var accessibilityLabel: ContentAttributeKey<String> { .init("accessibilityLabel") }
     public static var language: ContentAttributeKey<Language> { .init("language") }
 
@@ -209,11 +209,11 @@ public struct ContentAttributeKey<V>: Hashable {
     }
 }
 
-public struct ContentAttribute: Hashable {
+public struct ContentAttribute: Hashable, @unchecked Sendable {
     public let key: String
     public let value: AnyHashable
 
-    public init<T: Hashable>(key: ContentAttributeKey<T>, value: T) {
+    public init<T: Hashable & Sendable>(key: ContentAttributeKey<T>, value: T) {
         self.key = key.key
         self.value = value
     }

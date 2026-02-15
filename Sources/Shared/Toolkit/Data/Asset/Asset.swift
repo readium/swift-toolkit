@@ -6,7 +6,7 @@
 
 import Foundation
 
-public protocol AssetProtocol: Closeable {
+public protocol AssetProtocol: Closeable, Sendable {
     /// Format of the asset.
     var format: Format { get }
 }
@@ -41,7 +41,7 @@ public enum Asset: AssetProtocol {
 }
 
 /// A single resource asset.
-public struct ResourceAsset: AssetProtocol {
+public struct ResourceAsset: AssetProtocol, Sendable {
     public var resource: Resource
     public var format: Format
 
@@ -52,7 +52,7 @@ public struct ResourceAsset: AssetProtocol {
 }
 
 /// A container asset providing access to several resources.
-public struct ContainerAsset: AssetProtocol {
+public struct ContainerAsset: AssetProtocol, Sendable {
     public var container: Container
     public var format: Format
 

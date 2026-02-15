@@ -32,7 +32,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     VisualNavigator, SelectableNavigator, DecorableNavigator,
     Configurable, Loggable
 {
-    public enum EPUBError: Error {
+    public enum EPUBError: Error, Sendable {
         /// The provided publication is restricted. Check that any DRM was
         /// properly unlocked using a Content Protection.
         case publicationRestricted
@@ -46,7 +46,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         case serverFailure(Error)
     }
 
-    public struct Configuration {
+    public struct Configuration: Sendable {
         /// Initial set of setting preferences.
         public var preferences: EPUBPreferences
 

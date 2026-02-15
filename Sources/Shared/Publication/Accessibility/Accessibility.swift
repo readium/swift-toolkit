@@ -587,7 +587,7 @@ public struct Accessibility: Hashable, Sendable {
         )
     }
 
-    public var json: [String: Any] {
+    public var json: [String: any Sendable] {
         makeJSON([
             "conformsTo": encodeIfNotEmpty(conformsTo.map(\.uri)),
             "certification": encodeIfNotEmpty(certification.map {

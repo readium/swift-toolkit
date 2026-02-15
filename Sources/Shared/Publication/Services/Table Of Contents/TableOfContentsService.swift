@@ -6,7 +6,7 @@
 
 import Foundation
 
-public typealias TableOfContentsServiceFactory = (PublicationServiceContext) -> TableOfContentsService?
+public typealias TableOfContentsServiceFactory = @Sendable (PublicationServiceContext) -> TableOfContentsService?
 
 /// Returns or computes a table of contents for the publication.
 public protocol TableOfContentsService: PublicationService {

@@ -6,7 +6,7 @@
 
 import Foundation
 
-public protocol LCPAuthenticating {
+public protocol LCPAuthenticating: Sendable {
     /// Retrieves the passphrase to decrypt the given license.
     ///
     /// If `allowUserInteraction` is true, the reading app can prompt the user to enter the

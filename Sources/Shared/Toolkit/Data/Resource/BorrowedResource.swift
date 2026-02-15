@@ -18,7 +18,7 @@ public extension Resource {
 }
 
 @available(*, deprecated, message: "Resources are closed on deallocation now.")
-private class BorrowedResource: Resource {
+private class BorrowedResource: Resource, @unchecked Sendable {
     private let resource: Resource
 
     init(resource: Resource) {
@@ -37,7 +37,7 @@ private class BorrowedResource: Resource {
         await resource.properties()
     }
 
-    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+    func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         await resource.stream(range: range, consume: consume)
     }
 }

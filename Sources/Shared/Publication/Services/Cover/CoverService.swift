@@ -7,7 +7,7 @@
 import Foundation
 import UIKit
 
-public typealias CoverServiceFactory = (PublicationServiceContext) -> CoverService?
+public typealias CoverServiceFactory = @Sendable (PublicationServiceContext) -> CoverService?
 
 /// Provides an easy access to a bitmap version of the publication cover.
 ///
