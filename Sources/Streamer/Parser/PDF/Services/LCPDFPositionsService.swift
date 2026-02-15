@@ -84,12 +84,17 @@ final class LCPDFPositionsService: PositionsService, PDFPublicationService, Logg
         }
     }
 
-    static func makeFactory(pdfFactory: PDFDocumentFactory) -> (PublicationServiceContext) -> LCPDFPositionsService? {
-        { context in
+    static func makeFactory(pdfFactory: PDFDocumentFactory) -> @Sendable (PublicationServiceContext) -> LCPDFPositionsService? {
+        struct Captures: @unchecked Sendable {
+            let pdfFactory: PDFDocumentFactory
+        }
+        let captures = Captures(pdfFactory: pdfFactory)
+        
+        return { context in
             LCPDFPositionsService(
                 readingOrder: context.manifest.readingOrder,
                 container: context.container,
-                pdfFactory: pdfFactory
+                pdfFactory: captures.pdfFactory
             )
         }
     }

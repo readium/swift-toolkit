@@ -255,7 +255,7 @@ struct OPFMetaList {
 
     /// Returns the JSON representation of the unknown metadata
     /// (for RWPM's `Metadata.otherMetadata`)
-    var otherMetadata: [String: Any] {
+    var otherMetadata: [String: any Sendable] {
         var metadata: [String: NSMutableOrderedSet] = [:]
 
         for meta in metas {
@@ -269,13 +269,19 @@ struct OPFMetaList {
         }
 
         return metadata.compactMapValues { values in
+            func toSendable(_ value: Any) -> (any Sendable)? {
+                if let v = value as? String { return v }
+                if let v = value as? [String: any Sendable] { return v }
+                return nil
+            }
+            
             switch values.count {
             case 0:
                 return nil
             case 1:
-                return values[0]
+                return toSendable(values[0])
             default:
-                return values.array
+                return values.array.compactMap(toSendable)
             }
         }
     }
@@ -289,7 +295,7 @@ struct OPFMetaList {
         if let id = meta.id {
             let refines = metas.filter { $0.refines == id }
             if !refines.isEmpty {
-                var value: [String: Any] = ["@value": meta.content]
+                var value: [String: any Sendable] = ["@value": meta.content]
                 for refine in refines {
                     value[refine.vocabularyURI + refine.property] = refine.content
                 }

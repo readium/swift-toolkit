@@ -206,7 +206,7 @@ struct ComicInfo {
         }
 
         // Build other metadata with specification URL prefix
-        var rwpmOtherMetadata: [String: Any] = [:]
+        var rwpmOtherMetadata: [String: any Sendable] = [:]
         for (key, value) in otherMetadata {
             rwpmOtherMetadata[Self.otherMetadataPrefix + key.lowercased()] = value
         }

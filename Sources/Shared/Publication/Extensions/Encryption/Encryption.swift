@@ -9,7 +9,7 @@ import ReadiumInternal
 
 /// Indicates that a resource is encrypted/obfuscated and provides relevant information for
 /// decryption.
-public struct Encryption: Equatable {
+public struct Encryption: Equatable, Sendable {
     /// Identifies the algorithm used to encrypt the resource.
     public let algorithm: String // URI
 

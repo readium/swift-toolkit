@@ -38,7 +38,7 @@ final class LCPDFTableOfContentsService: TableOfContentsService, PDFPublicationS
             let manifest = captures.manifest
             let container = captures.container
             let pdfFactory = captures.pdfFactory
-            
+
             guard
                 manifest.tableOfContents.isEmpty,
                 manifest.readingOrder.count == 1,
@@ -61,12 +61,17 @@ final class LCPDFTableOfContentsService: TableOfContentsService, PDFPublicationS
         await tableOfContentsTask.value
     }
 
-    static func makeFactory(pdfFactory: PDFDocumentFactory) -> (PublicationServiceContext) -> LCPDFTableOfContentsService? {
-        { context in
+    static func makeFactory(pdfFactory: PDFDocumentFactory) -> @Sendable (PublicationServiceContext) -> LCPDFTableOfContentsService? {
+        struct Captures: @unchecked Sendable {
+            let pdfFactory: PDFDocumentFactory
+        }
+        let captures = Captures(pdfFactory: pdfFactory)
+        
+        return { context in
             LCPDFTableOfContentsService(
                 manifest: context.manifest,
                 container: context.container,
-                pdfFactory: pdfFactory
+                pdfFactory: captures.pdfFactory
             )
         }
     }

@@ -86,8 +86,10 @@ public actor EPUBPositionsService: PositionsService {
 
     private func computePositionsByReadingOrder() async -> [[Locator]] {
         var lastPositionOfPreviousResource = 0
-        var positions = await readingOrder.asyncMap { link -> [Locator] in
-            let (lastPosition, positions): (Int, [Locator]) = await {
+        var positions: [[Locator]] = []
+
+        for link in readingOrder {
+            let (lastPosition, resourcePositions): (Int, [Locator]) = await {
                 switch layout {
                 case .fixed:
                     return makePositions(ofFixedResource: link, from: lastPositionOfPreviousResource)
@@ -96,7 +98,7 @@ public actor EPUBPositionsService: PositionsService {
                 }
             }()
             lastPositionOfPreviousResource = lastPosition
-            return positions
+            positions.append(resourcePositions)
         }
 
         // Calculates totalProgression

@@ -20,7 +20,7 @@ import SwiftSoup
 /// characters.
 public class HTMLResourceContentIterator: ContentIterator {
     /// Factory for an `HTMLResourceContentIterator`.
-    public class Factory: ResourceContentIteratorFactory {
+    public final class Factory: ResourceContentIteratorFactory, Sendable {
         public init() {}
 
         public func make(

@@ -10,7 +10,7 @@ import ReadiumShared
 
 /// Deobfuscates EPUB resources.
 /// https://www.w3.org/publishing/epub3/epub-ocf.html#sec-resource-obfuscation
-final class EPUBDeobfuscator {
+final class EPUBDeobfuscator: Sendable {
     /// Supported obfuscation algorithms.
     private let algorithms: [ObfuscationAlgorithm] = [IDPFAlgorithm(), AdobeAlgorithm()]
 
@@ -67,14 +67,22 @@ final class EPUBDeobfuscator {
             await resource.properties()
         }
 
-        func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
-            var readPosition = range?.lowerBound ?? 0
-            let obfuscatedLength = algorithm.obfuscatedLength
+        func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
+            class StreamContext: @unchecked Sendable {
+                var readPosition: UInt64
+                init(readPosition: UInt64) {
+                    self.readPosition = readPosition
+                }
+            }
+            
+            let context = StreamContext(readPosition: range?.lowerBound ?? 0)
+            let obfuscatedLength = UInt64(algorithm.obfuscatedLength)
 
             return await resource.stream(
                 range: range,
                 consume: { data in
                     var data = data
+                    let readPosition = context.readPosition
 
                     if readPosition < obfuscatedLength {
                         for i in 0 ..< data.count {
@@ -85,7 +93,7 @@ final class EPUBDeobfuscator {
                         }
                     }
 
-                    readPosition += UInt64(data.count)
+                    context.readPosition += UInt64(data.count)
 
                     consume(data)
                 }

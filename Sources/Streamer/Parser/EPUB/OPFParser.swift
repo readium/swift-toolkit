@@ -203,7 +203,13 @@ final class OPFParser: Loggable {
         var properties = parseStringProperties(stringProperties)
 
         if let encryption = encryptions[href]?.json, !encryption.isEmpty {
-            properties["encrypted"] = encryption
+            properties["encrypted"] = encryption.compactMapValues { value -> (any Sendable)? in
+                if let v = value as? String { return v }
+                if let v = value as? Int { return v }
+                if let v = value as? Double { return v }
+                if let v = value as? Bool { return v }
+                return nil
+            }
         }
 
         let link = Link(
@@ -271,9 +277,9 @@ final class OPFParser: Loggable {
     }
 
     /// Parse string properties into an `otherProperties` dictionary.
-    private func parseStringProperties(_ properties: [String]) -> [String: Any] {
+    private func parseStringProperties(_ properties: [String]) -> [String: any Sendable] {
         var contains: [String] = []
-        var page: Properties.Page?
+        var page: String?
 
         for property in properties {
             switch property {
@@ -292,22 +298,22 @@ final class OPFParser: Loggable {
                 contains.append("remote-resources")
             // Page
             case "page-spread-left":
-                page = .left
+                page = "left"
             case "page-spread-right":
-                page = .right
+                page = "right"
             case "page-spread-center", "rendition:page-spread-center":
-                page = .center
+                page = "center"
             default:
                 continue
             }
         }
 
-        var otherProperties: [String: Any] = [:]
+        var otherProperties: [String: any Sendable] = [:]
         if !contains.isEmpty {
             otherProperties["contains"] = contains
         }
         if let page = page {
-            otherProperties["page"] = page.rawValue
+            otherProperties["page"] = page
         }
 
         return otherProperties
