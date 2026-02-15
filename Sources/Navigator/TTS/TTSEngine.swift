@@ -23,7 +23,7 @@ public protocol TTSEngine: AnyObject {
     /// `onSpeakRange` is called repeatedly while the engine plays portions (e.g. words) of the utterance.
     func speak(
         _ utterance: TTSUtterance,
-        onSpeakRange: @escaping (Range<String.Index>) -> Void
+        onSpeakRange: @escaping @Sendable (Range<String.Index>) -> Void
     ) async -> Result<Void, TTSError>
 }
 
@@ -42,7 +42,7 @@ public enum TTSError: Error {
 }
 
 /// An utterance is an arbitrary text (e.g. sentence) that can be synthesized by the TTS engine.
-public struct TTSUtterance {
+public struct TTSUtterance: Sendable {
     /// Text to be spoken.
     public let text: String
 

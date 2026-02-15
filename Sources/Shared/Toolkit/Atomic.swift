@@ -58,7 +58,7 @@ public final class Atomic<Value>: @unchecked Sendable {
     }
 
     /// Reads the current value asynchronously.
-    public func read(completion: @escaping (Value) -> Void) {
+    public func read(completion: @escaping @Sendable (Value) -> Void) {
         queue.async {
             completion(self.value)
         }

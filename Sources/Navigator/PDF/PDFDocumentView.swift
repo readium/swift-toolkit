@@ -7,6 +7,7 @@
 import Foundation
 import PDFKit
 
+@MainActor
 protocol PDFDocumentViewDelegate: AnyObject {
     func pdfDocumentViewContentInset(_ pdfDocumentView: PDFDocumentView) -> UIEdgeInsets?
 }

@@ -8,7 +8,7 @@ import Foundation
 import ReadiumShared
 
 /// Preferences for the `AudioNavigator`.
-public struct AudioPreferences: ConfigurablePreferences {
+public struct AudioPreferences: ConfigurablePreferences, Sendable {
     public static let empty: AudioPreferences = .init()
 
     /// Volume of playback, from 0.0 to 1.0.

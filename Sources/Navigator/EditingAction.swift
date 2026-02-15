@@ -76,6 +76,7 @@ public struct EditingAction: Hashable {
     }
 }
 
+@MainActor
 protocol EditingActionsControllerDelegate: AnyObject {
     func editingActionsDidPreventCopy(_ editingActions: EditingActionsController)
     func editingActions(_ editingActions: EditingActionsController, shouldShowMenuForSelection selection: Selection) -> Bool
@@ -83,6 +84,7 @@ protocol EditingActionsControllerDelegate: AnyObject {
 }
 
 /// Handles the authorization and check of editing actions.
+@MainActor
 final class EditingActionsController {
     weak var delegate: EditingActionsControllerDelegate?
 

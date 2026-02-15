@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import PDFKit
+@preconcurrency import PDFKit
 import ReadiumShared
 import UIKit
 

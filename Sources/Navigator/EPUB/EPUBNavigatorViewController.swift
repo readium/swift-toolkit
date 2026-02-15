@@ -746,22 +746,29 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     private lazy var updateCurrentLocation = execute(
         // If we're not in an `idle` state, we postpone the notification.
-        when: { [weak self] in self?.state == .idle },
+        when: { [weak self] in
+            MainActor.assumeIsolated { self?.state == .idle }
+        },
         pollingInterval: 0.1
     ) { [weak self] in
         guard let self = self else {
             return
         }
 
-        (currentLocation, viewport) = await computeCurrentLocationAndViewport()
+        let (currentLocation, viewport) = await computeCurrentLocationAndViewport()
 
-        if
-            let delegate = delegate,
-            let location = currentLocation,
-            location != notifiedCurrentLocation
-        {
-            notifiedCurrentLocation = location
-            delegate.navigator(self, locationDidChange: location)
+        await MainActor.run {
+            self.currentLocation = currentLocation
+            self.viewport = viewport
+
+            if
+                let delegate = delegate,
+                let location = currentLocation,
+                location != notifiedCurrentLocation
+            {
+                notifiedCurrentLocation = location
+                delegate.navigator(self, locationDidChange: location)
+            }
         }
     }
 

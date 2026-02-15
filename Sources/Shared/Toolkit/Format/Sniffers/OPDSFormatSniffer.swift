@@ -50,8 +50,11 @@ public class OPDSFormatSniffer: FormatSniffer, @unchecked Sendable {
 
         } else if format.conformsTo(.json) {
             return await blob.readAsJSON()
-                .map { json in
-                    guard let json = json as? [String: Any] else {
+                .map { data in
+                    guard
+                        let data = data,
+                        let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+                    else {
                         return nil
                     }
 

@@ -8,6 +8,7 @@ import Foundation
 import PDFKit
 import ReadiumShared
 
+@MainActor
 final class PDFDocumentHolder {
     private var href: AnyURL?
     private var document: PDFKit.PDFDocument?

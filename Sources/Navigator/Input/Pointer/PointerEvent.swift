@@ -85,7 +85,7 @@ public enum PointerType: Equatable, CaseIterable, Sendable {
 }
 
 /// Represents a physical touch pointer.
-public struct TouchPointer: Identifiable, Equatable, Sendable {
+public struct TouchPointer: Identifiable, Equatable, @unchecked Sendable {
     /// Unique identifier for this pointer.
     public let id: AnyHashable
 
@@ -95,7 +95,7 @@ public struct TouchPointer: Identifiable, Equatable, Sendable {
 }
 
 /// Represents a mouse pointer.
-public struct MousePointer: Identifiable, Equatable, Sendable {
+public struct MousePointer: Identifiable, Equatable, @unchecked Sendable {
     /// Unique identifier for this pointer.
     public let id: AnyHashable
 

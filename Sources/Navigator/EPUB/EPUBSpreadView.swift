@@ -8,6 +8,7 @@ import ReadiumShared
 import SwiftSoup
 @preconcurrency import WebKit
 
+@MainActor
 protocol EPUBSpreadViewDelegate: AnyObject {
     /// Returns the content inset the spread view should use.
     func spreadViewContentInset(_ spreadView: EPUBSpreadView) -> UIEdgeInsets

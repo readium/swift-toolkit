@@ -48,7 +48,7 @@ public class Observable<Value>: @unchecked Sendable {
 }
 
 @available(*, unavailable, message: "This is not used anymore in the toolkit")
-public class MutableObservable<Value>: Observable<Value> {
+public class MutableObservable<Value>: Observable<Value>, @unchecked Sendable {
     override public var value: Value {
         get {
             _value

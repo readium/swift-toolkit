@@ -9,6 +9,7 @@ import ReadiumShared
 import UIKit
 
 /// A navigator able to render arbitrary decorations over a publication.
+@MainActor
 public protocol DecorableNavigator {
     /// Declares the current state of the decorations in the given decoration `group`.
     ///
@@ -52,7 +53,7 @@ public struct OnDecorationActivatedEvent {
 /// a discrete `locator` in the publication.
 ///
 /// For example, decorations can be used to draw highlights, images or buttons.
-public struct Decoration: Hashable {
+public struct Decoration: Hashable, @unchecked Sendable {
     /// An identifier for this decoration. It must be unique in the group the decoration is applied to.
     public var id: Id
 
@@ -79,9 +80,9 @@ public struct Decoration: Hashable {
     ///
     /// It is media type agnostic, meaning that each Navigator will translate the style into a set of rendering
     /// instructions which makes sense for the resource type.
-    public struct Style: Hashable {
+    public struct Style: Hashable, @unchecked Sendable {
         /// Unique ID for a style.
-        public struct Id: RawRepresentable, ExpressibleByStringLiteral, Hashable {
+        public struct Id: RawRepresentable, ExpressibleByStringLiteral, Hashable, Sendable {
             public let rawValue: String
             public init(rawValue: String) {
                 self.rawValue = rawValue
@@ -105,7 +106,7 @@ public struct Decoration: Hashable {
             .init(id: .underline, config: HighlightConfig(tint: tint, isActive: isActive))
         }
 
-        public struct HighlightConfig: Hashable {
+        public struct HighlightConfig: Hashable, @unchecked Sendable {
             public var tint: UIColor?
             public var isActive: Bool
             public init(tint: UIColor? = nil, isActive: Bool = false) {

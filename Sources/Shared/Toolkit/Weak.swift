@@ -33,7 +33,7 @@ public class Weak<T: AnyObject>: @unchecked Sendable {
 
 /// Smart pointer passing as a Weak reference but preventing the reference from being lost.
 /// Mainly useful for the unit test suite.
-public class _Strong<T: AnyObject>: Weak<T> {
+public class _Strong<T: AnyObject>: Weak<T>, @unchecked Sendable {
     private var strongRef: T?
 
     override public var ref: T? {

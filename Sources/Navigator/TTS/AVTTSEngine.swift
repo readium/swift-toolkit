@@ -8,6 +8,7 @@ import AVFoundation
 import Foundation
 import ReadiumShared
 
+@MainActor
 public protocol AVTTSEngineDelegate: AnyObject {
     /// Called when the engine created a new utterance to be played.
     /// You can customize additional properties of the utterance.
@@ -15,6 +16,7 @@ public protocol AVTTSEngineDelegate: AnyObject {
 }
 
 /// Implementation of a `TTSEngine` using Apple AVFoundation's `AVSpeechSynthesizer`.
+@MainActor
 public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Loggable {
     /// Range of valid values for an AVUtterance rate.
     ///

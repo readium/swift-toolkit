@@ -17,7 +17,7 @@ public final class DirectionalNavigationAdapter {
     public typealias TapEdges = Edges
 
     /// Indicates which viewport edges trigger page turns on pointer activation.
-    public struct Edges: OptionSet {
+    public struct Edges: OptionSet, Sendable {
         /// The user can turn pages when tapping on the edges of both the
         /// horizontal and vertical axes.
         public static let all: Edges = [.horizontal, .vertical]
@@ -33,7 +33,7 @@ public final class DirectionalNavigationAdapter {
         }
     }
 
-    public struct PointerPolicy {
+    public struct PointerPolicy: Sendable {
         /// The types of pointer that will trigger page turns.
         public var types: [PointerType]
 
@@ -81,7 +81,7 @@ public final class DirectionalNavigationAdapter {
         }
     }
 
-    public struct KeyboardPolicy {
+    public struct KeyboardPolicy: Sendable {
         /// Indicates whether arrow keys should turn pages.
         public var handleArrowKeys: Bool
 

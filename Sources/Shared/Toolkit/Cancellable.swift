@@ -13,7 +13,7 @@ public protocol Cancellable {
 }
 
 /// A `Cancellable` object saving its cancelled state.
-public final class CancellableObject: Cancellable {
+public final class CancellableObject: Cancellable, @unchecked Sendable {
     public private(set) var isCancelled = false
     private let onCancel: () -> Void
 
@@ -32,7 +32,7 @@ public final class CancellableObject: Cancellable {
 }
 
 extension DispatchQueue {
-    func async(unlessCancelled cancellable: CancellableObject, execute work: @escaping () -> Void) {
+    func async(unlessCancelled cancellable: CancellableObject, execute work: @escaping @Sendable () -> Void) {
         async {
             guard !cancellable.isCancelled else {
                 return

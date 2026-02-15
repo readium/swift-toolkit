@@ -11,6 +11,8 @@ public enum Either<L, R> {
     case right(R)
 }
 
+extension Either: Sendable where L: Sendable, R: Sendable {}
+
 extension Either: CustomStringConvertible {
     public var description: String {
         switch self {

@@ -75,6 +75,7 @@ public extension AudioNavigatorDelegate {
 ///
 /// * Readium Audiobook
 /// * ZAB (Zipped Audio Book)
+@MainActor
 public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
     public weak var delegate: AudioNavigatorDelegate?
 
@@ -260,8 +261,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             ),
             queue: .main
         ) { [weak self] time in
-            if let self = self {
-                let time = time.secondsOrZero
+            guard let self = self else { return }
+            let time = time.secondsOrZero
+            Task { @MainActor in
                 self.playbackDidChange(time)
             }
         }
@@ -271,38 +273,49 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 return
             }
 
-            let session = AudioSession.shared
-            switch player.timeControlStatus {
-            case .paused:
-                session.user(self, didChangePlaying: false)
-            case .waitingToPlayAtSpecifiedRate, .playing:
-                session.user(self, didChangePlaying: true)
-            @unknown default:
-                break
+            Task { @MainActor in
+                let session = AudioSession.shared
+                switch player.timeControlStatus {
+                case .paused:
+                    session.user(self, didChangePlaying: false)
+                case .waitingToPlayAtSpecifiedRate, .playing:
+                    session.user(self, didChangePlaying: true)
+                @unknown default:
+                    break
+                }
             }
         }
 
         timeControlStatusObserver = player.observe(\.timeControlStatus, options: [.new, .old]) { [weak self] _, _ in
-            self?.playbackDidChange()
+            Task { @MainActor in
+                self?.playbackDidChange()
+            }
         }
 
         currentItemObserver = player.observe(\.currentItem, options: [.new, .old]) { [weak self] _, _ in
-            self?.playbackDidChange()
+            Task { @MainActor in
+                self?.playbackDidChange()
+            }
         }
 
         NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: nil, queue: .main) { [weak self] notification in
-            guard
-                let self = self,
-                let currentItem = player.currentItem,
-                currentItem == (notification.object as? AVPlayerItem)
-            else {
+            guard let self = self else {
                 return
             }
 
-            self.shouldPlayNextResource { playNext in
-                Task {
-                    if playNext, await self.goForward() {
-                        self.play()
+            Task { @MainActor in
+                guard
+                    let currentItem = self.player.currentItem,
+                    currentItem == (notification.object as? AVPlayerItem)
+                else {
+                    return
+                }
+
+                self.shouldPlayNextResource { playNext in
+                    Task {
+                        if playNext, await self.goForward() {
+                            self.play()
+                        }
                     }
                 }
             }
@@ -336,15 +349,32 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         }
     }
 
+    private struct Unchecked<T>: @unchecked Sendable { let value: T }
+
     /// A deadlock can occur when loading HTTP assets and creating the playback info from the main thread.
     /// To fix this, this is an asynchronous operation.
     private func makePlaybackInfo(forTime time: Double? = nil, completion: @escaping @MainActor (MediaPlaybackInfo) -> Void) {
+        let player = Unchecked(value: self.player)
+        let resourceIndex = self.resourceIndex
+        let publication = self.publication
+
         DispatchQueue.global(qos: .userInteractive).async {
+            let player = player.value
+            let state = MediaPlaybackState(player.timeControlStatus)
+            let currentTime = time ?? player.currentTime().secondsOrZero
+
+            var resourceDuration: Double?
+            if let duration = player.currentItem?.duration, duration.isNumeric {
+                resourceDuration = duration.secondsOrZero
+            } else {
+                resourceDuration = publication.readingOrder[resourceIndex].duration
+            }
+
             let info = MediaPlaybackInfo(
-                resourceIndex: self.resourceIndex,
-                state: self.state,
-                time: time ?? self.currentTime,
-                duration: self.resourceDuration
+                resourceIndex: resourceIndex,
+                state: state,
+                time: currentTime,
+                duration: resourceDuration
             )
 
             DispatchQueue.main.async {
@@ -383,25 +413,25 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     private var lastLoadedTimeRanges: [Range<Double>] = []
 
     private lazy var loadedTimeRangesTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] timer in
-        guard let self = self else {
-            timer.invalidate()
-            return
-        }
-
-        let ranges: [Range<Double>] = (self.player.currentItem?.loadedTimeRanges ?? [])
-            .map { value in
-                let range = value.timeRangeValue
-                let start = range.start.secondsOrZero
-                let duration = range.duration.secondsOrZero
-                return start ..< (start + duration)
+        Task { @MainActor [weak self] in
+            guard let self = self else {
+                timer.invalidate()
+                return
             }
 
-        guard ranges != self.lastLoadedTimeRanges else {
-            return
-        }
+            let ranges: [Range<Double>] = (self.player.currentItem?.loadedTimeRanges ?? [])
+                .map { value in
+                    let range = value.timeRangeValue
+                    let start = range.start.secondsOrZero
+                    let duration = range.duration.secondsOrZero
+                    return start ..< (start + duration)
+                }
 
-        self.lastLoadedTimeRanges = ranges
-        Task { @MainActor in
+            guard ranges != self.lastLoadedTimeRanges else {
+                return
+            }
+
+            self.lastLoadedTimeRanges = ranges
             self.delegate?.navigator(self, loadedTimeRangesDidChange: ranges)
         }
     }

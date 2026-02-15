@@ -9,6 +9,7 @@ import Foundation
 /// Interactive editor of preferences.
 ///
 /// This can be used as a helper for a user preferences screen.
+@MainActor
 public protocol PreferencesEditor: AnyObject {
     associatedtype Preferences: ConfigurablePreferences
 
@@ -21,6 +22,7 @@ public protocol PreferencesEditor: AnyObject {
 
 /// This base class can be used to build a mutable `PreferencesEditor` with
 /// a more declarative API.
+@MainActor
 public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Settings: ConfigurableSettings>: PreferencesEditor {
     struct State {
         var preferences: Preferences

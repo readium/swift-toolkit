@@ -9,9 +9,9 @@ import SwiftSoup
 import UIKit
 
 /// An `HTMLDecorationTemplate` renders a `Decoration` into a set of HTML elements and associated stylesheet.
-public struct HTMLDecorationTemplate {
+public struct HTMLDecorationTemplate: Sendable {
     /// Determines the number of created HTML elements and their position relative to the matching DOM range.
-    public enum Layout: String {
+    public enum Layout: String, Sendable {
         /// A single HTML element covering the smallest region containing all CSS border boxes.
         case bounds
         /// One HTML element for each CSS border box (e.g. line of text).
@@ -19,7 +19,7 @@ public struct HTMLDecorationTemplate {
     }
 
     /// Indicates how the width of each created HTML element expands in the viewport.
-    public enum Width: String {
+    public enum Width: String, Sendable {
         /// Smallest width fitting the CSS border box.
         case wrap
         /// Fills the bounds layout.
@@ -32,10 +32,10 @@ public struct HTMLDecorationTemplate {
 
     let layout: Layout
     let width: Width
-    let element: (Decoration) -> String
+    let element: @Sendable (Decoration) -> String
     let stylesheet: String?
 
-    public init(layout: Layout, width: Width = .wrap, element: @escaping (Decoration) -> String = { _ in "<div/>" }, stylesheet: String? = nil) {
+    public init(layout: Layout, width: Width = .wrap, element: @escaping @Sendable (Decoration) -> String = { _ in "<div/>" }, stylesheet: String? = nil) {
         self.layout = layout
         self.width = width
         self.element = element

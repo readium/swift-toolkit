@@ -7,4 +7,4 @@
 import Foundation
 
 /// A tokenizer splits a content into a list of tokens.
-public typealias Tokenizer<Data, Token> = (_ data: Data) throws -> [Token]
+public typealias Tokenizer<Data, Token> = @Sendable (_ data: Data) throws -> [Token]
