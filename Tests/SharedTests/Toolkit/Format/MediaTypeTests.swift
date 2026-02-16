@@ -224,7 +224,7 @@ class MediaTypeTests: XCTestCase {
         XCTAssertTrue(mediaType ~= .json)
         XCTAssertTrue(try XCTUnwrap(MediaType("application/json")) ~= .json)
         XCTAssertTrue(try XCTUnwrap(MediaType("application/json;charset=utf-8")) ~= .json)
-        XCTAssertFalse(try XCTUnwrap(MediaType("application/opds+json")? ~= .json))
+        XCTAssertFalse(try XCTUnwrap(MediaType("application/opds+json") ~= .json))
     }
 
     func testPatternMatchEqualMediaType() throws {

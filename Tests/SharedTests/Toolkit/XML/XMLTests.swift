@@ -97,7 +97,7 @@ class FuziTests: XCTestCase {
     }
 
     func testParseInvalidXML() {
-        tester.testParseValidXML()
+        tester.testParseInvalidXML()
     }
 
     func testParseValidXML() {

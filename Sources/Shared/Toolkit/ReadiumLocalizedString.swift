@@ -29,7 +29,7 @@ public func ReadiumLocalizedString(
     _ values: [CVarArg]
 ) -> String {
     let defaultValue = localizedString(forKey: key, in: bundle, table: table)
-    var string = Bundle.main.localizedString(forKey: key, value: defaultValue, table: nil)
+    var string = Bundle.main.localizedString(forKey: key, value: defaultValue, table: table)
     if !values.isEmpty {
         let locale = bundle.preferredLocalizations.first.map(Locale.init(identifier:)) ?? .current
         string = String(format: string, locale: locale, arguments: values)
