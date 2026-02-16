@@ -92,9 +92,9 @@ class ImageParserTests: XCTestCase {
         let publication = try await parser.parse(asset: cbzAsset, warnings: nil).get().build()
 
         let result = try await publication.positions().get()
-        XCTAssertEqual(result, [
+        XCTAssertEqual(result, try [
             Locator(
-                href: AnyURL(string: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/a-fc.jpg")!,
+                href: XCTUnwrap(AnyURL(string: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/a-fc.jpg")),
                 mediaType: .jpeg,
                 locations: .init(
                     totalProgression: 0,
@@ -102,7 +102,7 @@ class ImageParserTests: XCTestCase {
                 )
             ),
             Locator(
-                href: AnyURL(string: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-002.jpg")!,
+                href: XCTUnwrap(AnyURL(string: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-002.jpg")),
                 mediaType: .jpeg,
                 locations: .init(
                     totalProgression: 1 / 5.0,
@@ -110,7 +110,7 @@ class ImageParserTests: XCTestCase {
                 )
             ),
             Locator(
-                href: AnyURL(string: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-003.jpg")!,
+                href: XCTUnwrap(AnyURL(string: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-003.jpg")),
                 mediaType: .jpeg,
                 locations: .init(
                     totalProgression: 2 / 5.0,
@@ -118,7 +118,7 @@ class ImageParserTests: XCTestCase {
                 )
             ),
             Locator(
-                href: AnyURL(string: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-153.jpg")!,
+                href: XCTUnwrap(AnyURL(string: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/x-153.jpg")),
                 mediaType: .jpeg,
                 locations: .init(
                     totalProgression: 3 / 5.0,
@@ -126,7 +126,7 @@ class ImageParserTests: XCTestCase {
                 )
             ),
             Locator(
-                href: AnyURL(string: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/z-bc.jpg")!,
+                href: XCTUnwrap(AnyURL(string: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/z-bc.jpg")),
                 mediaType: .jpeg,
                 locations: .init(
                     totalProgression: 4 / 5.0,

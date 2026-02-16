@@ -321,9 +321,9 @@ class EPUBMetadataParserTests: XCTestCase {
         let sut = try parseMetadata("tdm-epub2")
         XCTAssertEqual(
             sut.tdm,
-            TDM(
+            try TDM(
                 reservation: .all,
-                policy: HTTPURL(string: "https://provider.com/policies/policy.json")!
+                policy: XCTUnwrap(HTTPURL(string: "https://provider.com/policies/policy.json"))
             )
         )
     }
@@ -332,9 +332,9 @@ class EPUBMetadataParserTests: XCTestCase {
         let sut = try parseMetadata("tdm-epub3")
         XCTAssertEqual(
             sut.tdm,
-            TDM(
+            try TDM(
                 reservation: .all,
-                policy: HTTPURL(string: "https://provider.com/policies/policy.json")!
+                policy: XCTUnwrap(HTTPURL(string: "https://provider.com/policies/policy.json"))
             )
         )
     }

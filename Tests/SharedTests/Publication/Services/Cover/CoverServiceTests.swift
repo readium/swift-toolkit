@@ -89,8 +89,8 @@ class CoverServiceTests: XCTestCase {
     }
 
     /// `ResourceCoverService` prioritizes explicit `.cover` links over first reading order item.
-    func testResourceCoverServicePrioritizesExplicitCoverLink() async {
-        let publication = Publication(
+    func testResourceCoverServicePrioritizesExplicitCoverLink() async throws {
+        let publication = try Publication(
             manifest: Manifest(
                 metadata: Metadata(title: "title"),
                 readingOrder: [
@@ -103,11 +103,11 @@ class CoverServiceTests: XCTestCase {
             container: CompositeContainer(
                 SingleResourceContainer(
                     resource: FileResource(file: fixtures.url(for: "cover.jpg")),
-                    at: AnyURL(string: "page1.jpg")!
+                    at: XCTUnwrap(AnyURL(string: "page1.jpg"))
                 ),
                 SingleResourceContainer(
                     resource: FileResource(file: fixtures.url(for: "cover2.jpg")),
-                    at: AnyURL(string: "cover2.jpg")!
+                    at: XCTUnwrap(AnyURL(string: "cover2.jpg"))
                 )
             )
         )

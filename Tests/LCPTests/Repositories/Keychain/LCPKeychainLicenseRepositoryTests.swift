@@ -381,6 +381,33 @@ import Testing
         #expect(rights.print == 90)
     }
 
+    // MARK: - Clear Tests
+
+    @Test func clearRemovesAllLicenses() async throws {
+        defer { try? cleanupAllTestData() }
+
+        let license1 = try createTestLicenseDocument(id: "clear-1")
+        let license2 = try createTestLicenseDocument(id: "clear-2")
+        let license3 = try createTestLicenseDocument(id: "clear-3")
+
+        try await repository.addLicense(license1)
+        try await repository.addLicense(license2)
+        try await repository.addLicense(license3)
+
+        try await repository.clear()
+
+        // Verify all licenses are gone
+        #expect(try await repository.license(for: "clear-1") == nil)
+        #expect(try await repository.license(for: "clear-2") == nil)
+        #expect(try await repository.license(for: "clear-3") == nil)
+    }
+
+    @Test func clearOnEmptyRepositorySucceeds() async throws {
+        defer { try? cleanupAllTestData() }
+
+        try await repository.clear()
+    }
+
     // MARK: - Multiple License Tests
 
     @Test func multipleLicenses() async throws {

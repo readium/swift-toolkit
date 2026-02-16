@@ -130,11 +130,11 @@ final class PaginationView: UIView, Loggable {
     }
 
     @available(*, unavailable)
-    public required init?(coder aDecoder: NSCoder) {
+    required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override public func layoutSubviews() {
+    override func layoutSubviews() {
         guard !loadedViews.isEmpty else {
             scrollView.contentSize = bounds.size
             return
@@ -372,11 +372,11 @@ final class PaginationView: UIView, Loggable {
 }
 
 extension PaginationView: UIScrollViewDelegate {
-    /// We disable the scroll once the user releases the drag to prevent scrolling through more than 1 resource at a
-    /// time. Otherwise, because the pagination view's scroll view would have the focus during the scroll gesture, the
-    /// scrollable content of the resources would be skipped.
-    /// Note: using this approach might provide a better experience:
-    /// https://oleb.net/blog/2014/05/scrollviews-inside-scrollviews/
+    // We disable the scroll once the user releases the drag to prevent scrolling through more than 1 resource at a
+    // time. Otherwise, because the pagination view's scroll view would have the focus during the scroll gesture, the
+    // scrollable content of the resources would be skipped.
+    // Note: using this approach might provide a better experience:
+    // https://oleb.net/blog/2014/05/scrollviews-inside-scrollviews/
 
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         scrollView.isScrollEnabled = false
@@ -392,7 +392,7 @@ extension PaginationView: UIScrollViewDelegate {
         }
     }
 
-    public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         scrollView.isScrollEnabled = isScrollEnabled
 
         let currentOffset = (readingProgression == .rtl)

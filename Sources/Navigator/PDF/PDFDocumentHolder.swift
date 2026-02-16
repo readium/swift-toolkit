@@ -26,7 +26,7 @@ extension PDFDocumentHolder: ReadiumShared.PDFDocumentFactory {
         return document
     }
 
-    public func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> ReadiumShared.PDFDocument {
+    func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> ReadiumShared.PDFDocument {
         guard let document = document, self.href == href.anyURL else {
             throw PDFDocumentError.openFailed
         }

@@ -27,7 +27,7 @@ class HTMLElementTests: XCTestCase {
         XCTAssertEqual(body.locate(.start, in: html), nil)
     }
 
-    func testLocateStart() {
+    func testLocateStart() throws {
         let html =
             """
             <html>
@@ -37,12 +37,12 @@ class HTMLElementTests: XCTestCase {
                </body>
             </html>
             """
-        let target = html.firstIndex(of: "📍")!
+        let target = try XCTUnwrap(html.firstIndex(of: "📍"))
 
         XCTAssertEqual(body.locate(.start, in: html), target)
     }
 
-    func testLocateStartIsCaseInsensitive() {
+    func testLocateStartIsCaseInsensitive() throws {
         let html =
             """
             <html>
@@ -52,12 +52,12 @@ class HTMLElementTests: XCTestCase {
                </BODY>
             </html>
             """
-        let target = html.firstIndex(of: "📍")!
+        let target = try XCTUnwrap(html.firstIndex(of: "📍"))
 
         XCTAssertEqual(body.locate(.start, in: html), target)
     }
 
-    func testLocateStartIgnoresAttributesAndNewlines() {
+    func testLocateStartIgnoresAttributesAndNewlines() throws {
         let html =
             """
             <html>
@@ -69,12 +69,12 @@ class HTMLElementTests: XCTestCase {
                </body>
             </html>
             """
-        let target = html.firstIndex(of: "📍")!
+        let target = try XCTUnwrap(html.firstIndex(of: "📍"))
 
         XCTAssertEqual(body.locate(.start, in: html), target)
     }
 
-    func testLocateEnd() {
+    func testLocateEnd() throws {
         let html =
             """
             <html>
@@ -84,13 +84,13 @@ class HTMLElementTests: XCTestCase {
                📍</body>
             </html>
             """
-        let target = html.firstIndex(of: "📍")
-            .map { html.index($0, offsetBy: 1) }!
+        let target = try XCTUnwrap(html.firstIndex(of: "📍")
+            .map { html.index($0, offsetBy: 1) })
 
         XCTAssertEqual(body.locate(.end, in: html), target)
     }
 
-    func testLocateEndIsCaseInsensitive() {
+    func testLocateEndIsCaseInsensitive() throws {
         let html =
             """
             <html>
@@ -100,13 +100,13 @@ class HTMLElementTests: XCTestCase {
                📍</BODY>
             </html>
             """
-        let target = html.firstIndex(of: "📍")
-            .map { html.index($0, offsetBy: 1) }!
+        let target = try XCTUnwrap(html.firstIndex(of: "📍")
+            .map { html.index($0, offsetBy: 1) })
 
         XCTAssertEqual(body.locate(.end, in: html), target)
     }
 
-    func testLocateEndIgnoresWhitespaces() {
+    func testLocateEndIgnoresWhitespaces() throws {
         let html =
             """
             <html>
@@ -117,8 +117,8 @@ class HTMLElementTests: XCTestCase {
                 >
             </html>
             """
-        let target = html.firstIndex(of: "📍")
-            .map { html.index($0, offsetBy: 1) }!
+        let target = try XCTUnwrap(html.firstIndex(of: "📍")
+            .map { html.index($0, offsetBy: 1) })
 
         XCTAssertEqual(body.locate(.end, in: html), target)
     }

@@ -12,7 +12,7 @@ import Foundation
 /// Conveniently, the reference can be reset by setting the `ref` property.
 @dynamicCallable
 public class Weak<T: AnyObject> {
-    // Weakly held reference.
+    /// Weakly held reference.
     public weak var ref: T?
 
     public init(_ ref: T? = nil) {

@@ -29,7 +29,7 @@ class EPUBDeobfuscatorTests: XCTestCase {
         XCTAssertEqual(result, .success(font))
     }
 
-    // Fix for https://github.com/readium/r2-streamer-swift/issues/208
+    /// Fix for https://github.com/readium/r2-streamer-swift/issues/208
     func testEmptyPublicationID() async throws {
         let file = fixtures.data(at: "nav.xhtml")
 

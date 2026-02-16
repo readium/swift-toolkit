@@ -72,7 +72,7 @@ struct UserPreferences<
         userPreferences(editor: model.editor, commit: model.commit)
     }
 
-    @ViewBuilder func userPreferences<PE: PreferencesEditor>(editor: PE, commit: @escaping () -> Void) -> some View {
+    func userPreferences<PE: PreferencesEditor>(editor: PE, commit: @escaping () -> Void) -> some View {
         NavigationView {
             List {
                 switch editor {
@@ -608,7 +608,7 @@ struct UserPreferences<
     }
 
     /// User preferences screen for an audiobook.
-    @ViewBuilder func audioUserPreferences(
+    func audioUserPreferences(
         commit: @escaping () -> Void,
         volume: AnyRangePreference<Double>? = nil,
         speed: AnyRangePreference<Double>? = nil
@@ -633,7 +633,7 @@ struct UserPreferences<
     }
 
     /// Component for a boolean `Preference` switchable with a `Toggle` button.
-    @ViewBuilder func toggleRow(
+    func toggleRow(
         title: String,
         preference: AnyPreference<Bool>,
         commit: @escaping () -> Void
@@ -647,7 +647,7 @@ struct UserPreferences<
     }
 
     /// Component for a boolean `Preference` switchable with a `Toggle` button.
-    @ViewBuilder func toggleRow(
+    func toggleRow(
         title: String,
         value: Binding<Bool>,
         isActive: Bool,
@@ -663,7 +663,7 @@ struct UserPreferences<
 
     /// Component for a nullable boolean `Preference` displayed in a `Picker` view
     /// with three options: Auto, Yes, No.
-    @ViewBuilder func nullableBoolPickerRow(
+    func nullableBoolPickerRow(
         title: String,
         preference: AnyPreference<Bool?>,
         commit: @escaping () -> Void
@@ -684,7 +684,7 @@ struct UserPreferences<
     }
 
     /// Component for an `EnumPreference` displayed in a `Picker` view.
-    @ViewBuilder func pickerRow<V: Hashable>(
+    func pickerRow<V: Hashable>(
         title: String,
         preference: AnyEnumPreference<V>,
         commit: @escaping () -> Void,
@@ -701,7 +701,7 @@ struct UserPreferences<
     }
 
     /// Component for an `EnumPreference` displayed in a `Picker` view.
-    @ViewBuilder func pickerRow<V: Hashable>(
+    func pickerRow<V: Hashable>(
         title: String,
         value: Binding<V>,
         values: [V],
@@ -722,7 +722,7 @@ struct UserPreferences<
     }
 
     /// Component for a `RangePreference` modifiable by a `Stepper` view.
-    @ViewBuilder func stepperRow<V: Comparable>(
+    func stepperRow<V: Comparable>(
         title: String,
         preference: AnyRangePreference<V>,
         commit: @escaping () -> Void
@@ -738,7 +738,7 @@ struct UserPreferences<
     }
 
     /// Component for a `RangePreference` modifiable by a `Stepper` view.
-    @ViewBuilder func stepperRow(
+    func stepperRow(
         title: String,
         value: String,
         isActive: Bool,
@@ -762,7 +762,7 @@ struct UserPreferences<
     }
 
     /// Component for a `Preference` holding a `Language` value.
-    @ViewBuilder func languageRow(
+    func languageRow(
         title: String,
         preference: AnyPreference<Language?>,
         commit: @escaping () -> Void
@@ -783,7 +783,7 @@ struct UserPreferences<
     }
 
     /// Component for a `Preference` holding a `Color` value.
-    @ViewBuilder func colorRow(
+    func colorRow(
         title: String,
         preference: AnyPreference<ReadiumNavigator.Color>,
         commit: @escaping () -> Void
@@ -803,7 +803,7 @@ struct UserPreferences<
     }
 
     /// Component for a `Preference` holding a `Color` value.
-    @ViewBuilder func colorRow(
+    func colorRow(
         title: String,
         value: Binding<SwiftUI.Color>,
         isActive: Bool,
@@ -820,7 +820,7 @@ struct UserPreferences<
     }
 
     /// Layout for a preference row.
-    @ViewBuilder func preferenceRow<V: View>(
+    func preferenceRow<V: View>(
         isActive: Bool,
         onClear: @escaping () -> Void,
         content: @escaping () -> V

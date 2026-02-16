@@ -162,7 +162,7 @@ public struct CSSUserProperties: CSSProperties {
     /// Requires: fontOverride
     public var a11yNormalize: Bool?
 
-    // Additional overrides for extensions and adjustments.
+    /// Additional overrides for extensions and adjustments.
     public var overrides: [String: String?]
 
     public init(
@@ -394,7 +394,7 @@ public struct CSSRSProperties: CSSProperties {
     /// The value can be another variable e.g. var(-RS__monospaceTf).
     public var codeFontFamily: [String]?
 
-    // Additional overrides for extensions and adjustments.
+    /// Additional overrides for extensions and adjustments.
     public var overrides: [String: String?]
 
     public init(
@@ -534,7 +534,9 @@ public enum CSSView: String, CSSConvertible {
     case paged = "readium-paged-on"
     case scroll = "readium-scroll-on"
 
-    public func css() -> String? { rawValue }
+    public func css() -> String? {
+        rawValue
+    }
 }
 
 public enum CSSColCount: String, CSSConvertible {
@@ -542,14 +544,18 @@ public enum CSSColCount: String, CSSConvertible {
     case one = "1"
     case two = "2"
 
-    public func css() -> String? { rawValue }
+    public func css() -> String? {
+        rawValue
+    }
 }
 
 public enum CSSAppearance: String, CSSConvertible {
     case night = "readium-night-on"
     case sepia = "readium-sepia-on"
 
-    public func css() -> String? { rawValue }
+    public func css() -> String? {
+        rawValue
+    }
 }
 
 public protocol CSSColor: CSSConvertible {}
@@ -580,7 +586,9 @@ public struct CSSHexColor: CSSColor {
         self.color = color
     }
 
-    public func css() -> String? { color }
+    public func css() -> String? {
+        color
+    }
 }
 
 public struct CSSIntColor: CSSColor {
@@ -607,7 +615,9 @@ public struct CSSCmLength: CSSAbsoluteLength {
         self.value = value
     }
 
-    public func css() -> String? { value.css(unit: "cm") }
+    public func css() -> String? {
+        value.css(unit: "cm")
+    }
 }
 
 /// Millimeters
@@ -618,7 +628,9 @@ public struct CSSMmLength: CSSAbsoluteLength {
         self.value = value
     }
 
-    public func css() -> String? { value.css(unit: "mm") }
+    public func css() -> String? {
+        value.css(unit: "mm")
+    }
 }
 
 /// Inches
@@ -629,7 +641,9 @@ public struct CSSInLength: CSSAbsoluteLength {
         self.value = value
     }
 
-    public func css() -> String? { value.css(unit: "in") }
+    public func css() -> String? {
+        value.css(unit: "in")
+    }
 }
 
 /// Pixels
@@ -640,7 +654,9 @@ public struct CSSPxLength: CSSAbsoluteLength {
         self.value = value
     }
 
-    public func css() -> String? { value.css(unit: "px") }
+    public func css() -> String? {
+        value.css(unit: "px")
+    }
 }
 
 /// Points
@@ -651,7 +667,9 @@ public struct CSSPtLength: CSSAbsoluteLength {
         self.value = value
     }
 
-    public func css() -> String? { value.css(unit: "pt") }
+    public func css() -> String? {
+        value.css(unit: "pt")
+    }
 }
 
 /// Picas
@@ -662,7 +680,9 @@ public struct CSSPcLength: CSSAbsoluteLength {
         self.value = value
     }
 
-    public func css() -> String? { value.css(unit: "pc") }
+    public func css() -> String? {
+        value.css(unit: "pc")
+    }
 }
 
 public protocol CSSRelativeLength: CSSLength {}
@@ -675,7 +695,9 @@ public struct CSSEmLength: CSSRelativeLength {
         self.value = value
     }
 
-    public func css() -> String? { value.css(unit: "em") }
+    public func css() -> String? {
+        value.css(unit: "em")
+    }
 }
 
 /// Relative to the width of the "0" (zero).
@@ -686,7 +708,9 @@ public struct CSSChLength: CSSRelativeLength {
         self.value = value
     }
 
-    public func css() -> String? { value.css(unit: "ch") }
+    public func css() -> String? {
+        value.css(unit: "ch")
+    }
 }
 
 /// Relative to font-size of the root element.
@@ -697,7 +721,9 @@ public struct CSSRemLength: CSSRelativeLength {
         self.value = value
     }
 
-    public func css() -> String? { value.css(unit: "rem") }
+    public func css() -> String? {
+        value.css(unit: "rem")
+    }
 }
 
 /// Relative to 1% of the width of the viewport.
@@ -708,7 +734,9 @@ public struct CSSVwLength: CSSRelativeLength {
         self.value = value
     }
 
-    public func css() -> String? { value.css(unit: "vw") }
+    public func css() -> String? {
+        value.css(unit: "vw")
+    }
 }
 
 /// Relative to 1% of the height of the viewport.
@@ -719,7 +747,9 @@ public struct CSSVhLength: CSSRelativeLength {
         self.value = value
     }
 
-    public func css() -> String? { value.css(unit: "vh") }
+    public func css() -> String? {
+        value.css(unit: "vh")
+    }
 }
 
 /// Relative to 1% of viewport's smaller dimension.
@@ -730,7 +760,9 @@ public struct CSSVMinLength: CSSRelativeLength {
         self.value = value
     }
 
-    public func css() -> String? { value.css(unit: "vmin") }
+    public func css() -> String? {
+        value.css(unit: "vmin")
+    }
 }
 
 /// Relative to 1% of viewport's larger dimension.
@@ -741,7 +773,9 @@ public struct CSSVMaxLength: CSSRelativeLength {
         self.value = value
     }
 
-    public func css() -> String? { value.css(unit: "vmax") }
+    public func css() -> String? {
+        value.css(unit: "vmax")
+    }
 }
 
 /// Relative to the parent element.
@@ -752,7 +786,9 @@ public struct CSSPercentLength: CSSRelativeLength {
         self.value = value
     }
 
-    public func css() -> String? { (value * 100).css(unit: "%") }
+    public func css() -> String? {
+        (value * 100).css(unit: "%")
+    }
 }
 
 public enum CSSTextAlign: String, CSSConvertible {
@@ -761,7 +797,9 @@ public enum CSSTextAlign: String, CSSConvertible {
     case right
     case justify
 
-    public func css() -> String? { rawValue }
+    public func css() -> String? {
+        rawValue
+    }
 }
 
 /// Line height supports unitless numbers.
@@ -783,21 +821,27 @@ public enum CSSHyphens: String, CSSConvertible {
     case none
     case auto
 
-    public func css() -> String? { rawValue }
+    public func css() -> String? {
+        rawValue
+    }
 }
 
 public enum CSSLigatures: String, CSSConvertible {
     case none
     case common = "common-ligatures"
 
-    public func css() -> String? { rawValue }
+    public func css() -> String? {
+        rawValue
+    }
 }
 
 public enum CSSBoxSizing: String, CSSConvertible {
     case contentBox = "content-box"
     case borderBox = "border-box"
 
-    public func css() -> String? { rawValue }
+    public func css() -> String? {
+        rawValue
+    }
 }
 
 private extension Double {

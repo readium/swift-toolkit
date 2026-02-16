@@ -197,7 +197,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         return true
     }
 
-    // Location to scroll to in the resource once the page is loaded.
+    /// Location to scroll to in the resource once the page is loaded.
     private var pendingLocation: PageLocation = .start
 
     override func go(to location: PageLocation) async {
@@ -313,12 +313,12 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     // MARK: - Progression
 
-    // Current progression range in the page.
+    /// Current progression range in the page.
     private var progression: ClosedRange<Double>?
-    // To check if a progression change was cancelled or not.
+    /// To check if a progression change was cancelled or not.
     private var previousProgression: ClosedRange<Double>?
 
-    // Called by the javascript code to notify that scrolling ended.
+    /// Called by the javascript code to notify that scrolling ended.
     private func progressionDidChange(_ body: Any) {
         guard
             isSpreadLoaded,

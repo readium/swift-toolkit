@@ -21,7 +21,9 @@ actor TailCachingResource: Resource, Loggable {
         self.cacheFromOffset = cacheFromOffset
     }
 
-    nonisolated var sourceURL: AbsoluteURL? { resource.sourceURL }
+    nonisolated var sourceURL: AbsoluteURL? {
+        resource.sourceURL
+    }
 
     func properties() async -> ReadResult<ResourceProperties> {
         await resource.properties()
@@ -61,7 +63,7 @@ actor TailCachingResource: Resource, Loggable {
             }
     }
 
-    private var cache: ReadResult<Data?>? = nil
+    private var cache: ReadResult<Data?>?
 
     private func cachedTail() async -> ReadResult<Data?> {
         if let cache = cache {

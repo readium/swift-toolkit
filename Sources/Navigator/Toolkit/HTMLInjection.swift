@@ -17,7 +17,9 @@ protocol HTMLInjectable {
 }
 
 extension HTMLInjectable {
-    func willInject(in html: String) -> String { html }
+    func willInject(in html: String) -> String {
+        html
+    }
 
     /// Injects the receiver in the given `html` document.
     func inject(in html: String) throws -> String {

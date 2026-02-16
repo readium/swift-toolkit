@@ -151,7 +151,7 @@ public class MediaOverlays {
         // For each node of the current scope..
         for node in nodes {
             guard !previousNodeFoundFlag else {
-                /// If the node is a section, we get the first non section child.
+                // If the node is a section, we get the first non section child.
                 if node.role.contains("section") {
                     if let validChild = getFirstNonSectionChild(of: node) {
                         return (validChild, false)
@@ -160,7 +160,7 @@ public class MediaOverlays {
                         continue
                     }
                 }
-                /// Else we just return it.
+                // Else we just return it.
                 return (node, false)
             }
             // If the node is a "section" (<seq> sequence element)..

@@ -36,10 +36,6 @@ class ReaderViewController: UIViewController {
 struct ReaderViewControllerWrapper: UIViewControllerRepresentable {
     let navigator: VisualNavigator & UIViewController
 
-    init(navigator: VisualNavigator & UIViewController) {
-        self.navigator = navigator
-    }
-
     func makeUIViewController(context: Context) -> ReaderViewController {
         ReaderViewController(navigator: navigator)
     }

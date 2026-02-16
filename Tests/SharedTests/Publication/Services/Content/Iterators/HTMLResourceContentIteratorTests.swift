@@ -440,7 +440,7 @@ class HTMLResourceContentIteratorTest: XCTestCase {
         </html>
         """
 
-        let expectedElements: [AnyEquatableContentElement] = [
+        let expectedElements: [AnyEquatableContentElement] = try [
             VideoContentElement(
                 locator: locator(progression: 0.0, selector: "html > body > video:nth-child(1)"),
                 embeddedLink: Link(href: "dir/video.mp4"),
@@ -450,8 +450,8 @@ class HTMLResourceContentIteratorTest: XCTestCase {
                 locator: locator(progression: 0.5, selector: "html > body > video:nth-child(2)"),
                 embeddedLink: Link(
                     href: "dir/video.mp4",
-                    mediaType: MediaType("video/mp4")!,
-                    alternates: [Link(href: "dir/video.m4v", mediaType: MediaType("video/x-m4v")!)]
+                    mediaType: XCTUnwrap(MediaType("video/mp4")),
+                    alternates: [Link(href: "dir/video.m4v", mediaType: XCTUnwrap(MediaType("video/x-m4v")))]
                 ),
                 attributes: []
             ).equatable(),

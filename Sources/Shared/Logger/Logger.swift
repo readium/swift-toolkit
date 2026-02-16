@@ -28,10 +28,10 @@ public final class Logger {
     /// throughout the framework. There is a default implementation `StubLogger`
     /// available. You can define your own implementation by applying the
     /// `Loggable` protocol to your xLogger class.
-    internal var activeLogger: LoggerType?
+    var activeLogger: LoggerType?
 
     /// The minimum severity level for logs to be displayed.
-    internal var minimumSeverityLevel: SeverityLevel?
+    var minimumSeverityLevel: SeverityLevel?
 
     private(set) static var sharedInstance = Logger()
 
@@ -63,7 +63,7 @@ public final class Logger {
 
     // MARK: - Internal methods.
 
-    internal func log(_ value: Any?, at level: SeverityLevel, file: String, line: Int) {
+    func log(_ value: Any?, at level: SeverityLevel, file: String, line: Int) {
         if let minimumSeverityLevel = minimumSeverityLevel {
             guard level.numericValue >= minimumSeverityLevel.numericValue else {
                 return

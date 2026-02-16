@@ -124,16 +124,16 @@ public struct LinkRelation: Sendable {
 
     // Authentication for OPDS – https://drafts.opds.io/authentication-for-opds-1.0.html
 
-    // Location where a client can authenticate the user with OAuth.
+    /// Location where a client can authenticate the user with OAuth.
     public static let opdsAuthenticate = LinkRelation("authenticate")
-    // Location where a client can refresh the Access Token by sending a Refresh Token.
+    /// Location where a client can refresh the Access Token by sending a Refresh Token.
     public static let opdsRefresh = LinkRelation("refresh")
 
-    // Logo associated to the Catalog provider.
+    /// Logo associated to the Catalog provider.
     public static let opdsLogo = LinkRelation("logo")
-    // Location where a user can register.
+    /// Location where a user can register.
     public static let opdsRegister = LinkRelation("register")
-    // Support resources for the user (either a website, an email or a telephone number).
+    /// Support resources for the user (either a website, an email or a telephone number).
     public static let opdsHelp = LinkRelation("help")
 }
 

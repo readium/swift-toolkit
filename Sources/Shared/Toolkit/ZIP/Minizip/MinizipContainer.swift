@@ -49,8 +49,11 @@ final class MinizipContainer: Container, Loggable {
     private let file: FileURL
     private let entriesMetadata: [RelativeURL: MinizipEntryMetadata]
 
-    public var sourceURL: AbsoluteURL? { file }
-    public let entries: Set<AnyURL>
+    var sourceURL: AbsoluteURL? {
+        file
+    }
+
+    let entries: Set<AnyURL>
 
     private init(file: FileURL, entries: [RelativeURL: MinizipEntryMetadata]) {
         self.file = file
@@ -98,7 +101,7 @@ private actor MinizipResource: Resource, Loggable {
         }
     }
 
-    public let sourceURL: AbsoluteURL? = nil
+    let sourceURL: AbsoluteURL? = nil
 
     func estimatedLength() async -> ReadResult<UInt64?> {
         .success(metadata.length)
@@ -149,7 +152,7 @@ private final class MinizipFile {
         case readFailed
     }
 
-    // Holds an entry's metadata.
+    /// Holds an entry's metadata.
     enum Entry {
         case file(String, length: UInt64, compressedLength: UInt64?)
         case directory(String)
@@ -160,7 +163,9 @@ private final class MinizipFile {
     /// Information about the currently opened entry.
     private(set) var openedEntry: (path: String, offset: UInt64)?
     /// Length of the buffer used when reading an entry's data.
-    private var bufferLength: Int { 1024 * 32 }
+    private var bufferLength: Int {
+        1024 * 32
+    }
 
     init?(url: URL) {
         guard let file = unzOpen64(url.path) else {

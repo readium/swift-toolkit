@@ -156,7 +156,7 @@ public class PublicationSpeechSynthesizer: Loggable {
         )
     }
 
-    private var currentTask: Task<Void, Never>? = nil
+    private var currentTask: Task<Void, Never>?
 
     private lazy var engine: TTSEngine = engineFactory()
 
@@ -177,7 +177,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     }
 
     /// Cache for the last requested voice, for performance.
-    private var lastUsedVoice: TTSVoice? = nil
+    private var lastUsedVoice: TTSVoice?
 
     /// (Re)starts the synthesizer from the given locator or the beginning of the publication.
     public func start(from startLocator: Locator? = nil) {
@@ -245,7 +245,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     }
 
     /// `Content.Iterator` used to iterate through the `publication`.
-    private var publicationIterator: ContentIterator? = nil {
+    private var publicationIterator: ContentIterator? {
         didSet {
             utterances = CursorList()
         }
@@ -320,8 +320,7 @@ public class PublicationSpeechSynthesizer: Loggable {
             return .right(utterance.language
                 ?? config.defaultLanguage
                 ?? publication.metadata.language
-                ?? Language.current
-            )
+                ?? Language.current)
         }
     }
 

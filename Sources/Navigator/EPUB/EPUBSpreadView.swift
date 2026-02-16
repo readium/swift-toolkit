@@ -51,7 +51,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     let webView: WebView
 
-    private var lastClick: ClickEvent? = nil
+    private var lastClick: ClickEvent?
 
     /// If YES, the content will be faded in once loaded.
     let animatedLoad: Bool
@@ -393,9 +393,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         let result = await evaluateScript("readium.findFirstVisibleLocator()")
         do {
             let link = spread.first.link
-            let locator = try Locator(json: result.get())?
+            return try Locator(json: result.get())?
                 .copy(href: link.url(), mediaType: link.mediaType ?? .xhtml)
-            return locator
         } catch {
             log(.error, error)
             return nil
@@ -444,7 +443,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
-    // Removes message handlers (preventing strong reference cycle).
+    /// Removes message handlers (preventing strong reference cycle).
     private func disableJSMessages() {
         guard JSMessagesEnabled else {
             return
@@ -763,7 +762,6 @@ private extension KeyEvent {
             key = .tab
         case "Space":
             key = .space
-
         case "ArrowDown":
             key = .arrowDown
         case "ArrowLeft":
@@ -772,7 +770,6 @@ private extension KeyEvent {
             key = .arrowRight
         case "ArrowUp":
             key = .arrowUp
-
         case "End":
             key = .end
         case "Home":
@@ -781,7 +778,6 @@ private extension KeyEvent {
             key = .pageDown
         case "PageUp":
             key = .pageUp
-
         case "MetaLeft", "MetaRight":
             key = .command
         case "ControlLeft", "ControlRight":
@@ -790,12 +786,10 @@ private extension KeyEvent {
             key = .option
         case "ShiftLeft", "ShiftRight":
             key = .shift
-
         case "Backspace":
             key = .backspace
         case "Escape":
             key = .escape
-
         default:
             guard let char = dict["key"] as? String else {
                 return nil
