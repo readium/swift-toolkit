@@ -1008,18 +1008,7 @@ public struct AccessibilityDisplayString: RawRepresentable, ExpressibleByStringL
     }
 
     private func bundleString(_ key: String, _ values: CVarArg...) -> String {
-        bundleString(key, in: Bundle.module, table: "W3CAccessibilityMetadataDisplayGuide", values)
-    }
-
-    /// Returns the localized string in the main bundle, or fallback on the given
-    /// bundle if not found.
-    private func bundleString(_ key: String, in bundle: Bundle, table: String? = nil, _ values: [CVarArg]) -> String {
-        let defaultValue = bundle.localizedString(forKey: key, value: nil, table: table)
-        var string = Bundle.main.localizedString(forKey: key, value: defaultValue, table: nil)
-        if !values.isEmpty {
-            string = String(format: string, locale: .current, arguments: values)
-        }
-        return string
+        ReadiumLocalizedString(key, in: Bundle.module, table: "W3CAccessibilityMetadataDisplayGuide", values)
     }
 }
 
