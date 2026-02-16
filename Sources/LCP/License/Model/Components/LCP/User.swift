@@ -6,7 +6,7 @@
 
 import Foundation
 
-public struct User {
+public struct User: @unchecked Sendable {
     public typealias ID = String
 
     /// Unique identifier for the User at a specific Provider.

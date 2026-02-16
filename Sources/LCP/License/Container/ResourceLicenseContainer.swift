@@ -9,7 +9,7 @@ import ReadiumShared
 
 /// Access to a License Document packaged as a standalone LCPL file in a
 /// ``Resource`` asset.
-final class ResourceLicenseContainer: LicenseContainer {
+final class ResourceLicenseContainer: LicenseContainer, Sendable {
     private let asset: ResourceAsset
 
     init(asset: ResourceAsset) {

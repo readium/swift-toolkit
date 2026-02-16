@@ -181,7 +181,8 @@ class AudioLocatorServiceTests: XCTestCase {
         AudioLocatorService(
             publication: _Strong(Publication(
                 manifest: Manifest(metadata: Metadata(title: ""), readingOrder: readingOrder)
-            ))
+            )),
+            readingOrder: readingOrder
         )
     }
 }

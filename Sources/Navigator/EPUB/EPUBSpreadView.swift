@@ -44,6 +44,7 @@ protocol EPUBSpreadViewDelegate: AnyObject {
     func spreadViewDidTerminate()
 }
 
+@MainActor
 class EPUBSpreadView: UIView, Loggable, PageView {
     weak var delegate: EPUBSpreadViewDelegate?
     let viewModel: EPUBNavigatorViewModel
@@ -97,7 +98,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     deinit {
         NotificationCenter.default.removeObserver(self)
-        clear()
     }
 
     /// Called when the spread view is removed from the view hierarchy, to
@@ -314,7 +314,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     /// Executes the given `callback` when the spread is fully loaded.
-    func whenSpreadLoaded(_ callback: @escaping () -> Void) {
+    func whenSpreadLoaded(_ callback: @escaping @MainActor @Sendable () -> Void) {
         let callback = onSpreadLoadedCallbacks.add(callback)
         if isSpreadLoaded {
             callback()
@@ -529,7 +529,7 @@ extension EPUBSpreadView: WKNavigationDelegate {
         setNeedsStopActivityIndicator()
     }
 
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
         var policy: WKNavigationActionPolicy = .allow
 
         if navigationAction.navigationType == .linkActivated {

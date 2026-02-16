@@ -10,6 +10,7 @@ import UIKit
 import WebKit
 
 /// A view rendering a spread of resources with a fixed layout.
+@MainActor
 final class EPUBFixedSpreadView: EPUBSpreadView {
     /// Whether the host wrapper page is loaded or not. The wrapper page contains the iframe that will display the resource.
     private var isWrapperLoaded = false

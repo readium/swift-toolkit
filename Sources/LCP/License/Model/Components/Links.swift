@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumShared
 
-public struct Links {
+public struct Links: Sendable {
     private let links: [Link]
 
     init(json: [[String: Any]]) throws {

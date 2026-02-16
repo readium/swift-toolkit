@@ -8,9 +8,9 @@ import Foundation
 import ReadiumShared
 import ReadiumZIPFoundation
 
-final class License: Loggable {
+final class License: Loggable, @unchecked Sendable {
     /// Last Documents which passed the integrity checks.
-    private var documents: ValidatedDocuments
+    private let documents: Atomic<ValidatedDocuments>
 
     // Dependencies
     private let client: LCPClient
@@ -20,7 +20,7 @@ final class License: Loggable {
     private let httpClient: HTTPClient
 
     init(documents: ValidatedDocuments, client: LCPClient, validation: LicenseValidation, licenses: LCPLicenseRepository, device: DeviceService, httpClient: HTTPClient) {
-        self.documents = documents
+        self.documents = Atomic(wrappedValue: documents)
         self.client = client
         self.validation = validation
         self.licenses = licenses
@@ -29,7 +29,7 @@ final class License: Loggable {
 
         validation.observe { [weak self] result in
             if case let .success(documents) = result {
-                self?.documents = documents
+                self?.documents.write { $0 = documents }
             }
         }
     }
@@ -38,19 +38,19 @@ final class License: Loggable {
 /// Public API
 extension License: LCPLicense {
     var license: LicenseDocument {
-        documents.license
+        documents.read().license
     }
 
     var status: StatusDocument? {
-        documents.status
+        documents.read().status
     }
 
     var isRestricted: Bool {
-        documents.context.getOrNil() == nil
+        documents.read().context.getOrNil() == nil
     }
 
     var error: LCPError? {
-        switch documents.context {
+        switch documents.read().context {
         case .success:
             return nil
         case let .failure(error):
@@ -70,7 +70,7 @@ extension License: LCPLicense {
     }
 
     func decipher(_ data: Data) throws -> Data? {
-        let context = try documents.context.get()
+        let context = try documents.read().context.get()
         return client.decrypt(data: data, using: context)
     }
 
@@ -98,20 +98,20 @@ extension License: LCPLicense {
         guard !isRestricted else { return false }
 
         do {
-            var allowed = true
+            let allowed = Atomic(wrappedValue: true)
             try await licenses.updateUserRights(for: license.id) { rights in
                 guard let copyLeft = rights.copy else {
                     return
                 }
                 guard text.count <= copyLeft else {
-                    allowed = false
+                    allowed.write { $0 = false }
                     return
                 }
 
                 rights.copy = max(0, copyLeft - text.count)
             }
 
-            return allowed
+            return allowed.read()
 
         } catch {
             log(.error, error)
@@ -143,20 +143,20 @@ extension License: LCPLicense {
         guard !isRestricted else { return false }
 
         do {
-            var allowed = true
+            let allowed = Atomic(wrappedValue: true)
             try await licenses.updateUserRights(for: license.id) { rights in
                 guard let printLeft = rights.print else {
                     return
                 }
                 guard pageCount <= printLeft else {
-                    allowed = false
+                    allowed.write { $0 = false }
                     return
                 }
 
                 rights.print = max(0, printLeft - pageCount)
             }
 
-            return allowed
+            return allowed.read()
 
         } catch {
             log(.error, error)
@@ -187,7 +187,7 @@ extension License: LCPLicense {
 
         /// Finds the renew link according to `prefersWebPage`.
         func findRenewLink() -> Link? {
-            guard let status = documents.status else {
+            guard let status = documents.read().status else {
                 return nil
             }
 
@@ -284,7 +284,7 @@ extension License: LCPLicense {
 
     func returnPublication() async -> Result<Void, LCPError> {
         guard
-            let status = documents.status,
+            let status = documents.read().status,
             let url = try? status.url(
                 for: .return,
                 preferredType: .lcpStatusDocument,

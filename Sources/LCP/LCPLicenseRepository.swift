@@ -39,7 +39,7 @@ public protocol LCPLicenseRepository: Sendable {
 }
 
 /// Holds the current state of consumable user rights for a license.
-public struct LCPConsumableUserRights {
+public struct LCPConsumableUserRights: Sendable {
     /// Maximum number of pages left to be printed.
     ///
     /// If `nil`, there is no limit.

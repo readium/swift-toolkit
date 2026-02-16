@@ -26,7 +26,7 @@ private let supportedProfiles = [
 typealias Context = Result<LCPClientContext, LCPError>
 
 /// Holds the License/Status Documents and the DRM context, once validated.
-struct ValidatedDocuments {
+struct ValidatedDocuments: @unchecked Sendable {
     let license: LicenseDocument
     let context: Context
     let status: StatusDocument?
@@ -48,7 +48,13 @@ final actor LicenseValidation: Loggable {
     fileprivate let client: LCPClient
     fileprivate let authentication: LCPAuthenticating?
     fileprivate let allowUserInteraction: Bool
-    fileprivate let sender: Any?
+    
+    struct Unchecked<T>: @unchecked Sendable {
+        let value: T
+    }
+    
+    fileprivate let uncheckedSender: Unchecked<Any?>
+    
     fileprivate let crl: CRLService
     fileprivate let device: DeviceService
     fileprivate let httpClient: HTTPClient
@@ -76,11 +82,11 @@ final actor LicenseValidation: Loggable {
         device: DeviceService,
         httpClient: HTTPClient,
         passphrases: PassphrasesService,
-        onLicenseValidated: @escaping (LicenseDocument) async throws -> Void
+        onLicenseValidated: @escaping @Sendable (LicenseDocument) async throws -> Void
     ) {
         self.authentication = authentication
         self.allowUserInteraction = allowUserInteraction
-        self.sender = sender
+        self.uncheckedSender = Unchecked(value: sender)
         self.isProduction = isProduction
         self.client = client
         self.crl = crl
@@ -110,6 +116,13 @@ final actor LicenseValidation: Loggable {
         async let _ = raise(event)
         return try await observe()
     }
+    
+    /// Should be called by the state handlers once they're done, to go to the next State.
+    fileprivate func raise(_ event: Event) async throws {
+        log(.debug, "-> on \(event)")
+        try state.transition(event)
+        await handle(state)
+    }
 }
 
 /// Validation statechart
@@ -119,7 +132,7 @@ final actor LicenseValidation: Loggable {
 /// This allows to decouple the flow decision from the services doing the actual work.
 /// More information about statecharts: https://statecharts.github.io
 extension LicenseValidation {
-    enum State {
+    enum State: @unchecked Sendable {
         case start
 
         // Validation steps
@@ -243,7 +256,7 @@ extension LicenseValidation {
         }
     }
 
-    fileprivate enum Event {
+    fileprivate enum Event: @unchecked Sendable {
         /// Raised when reading the License from its container, or when updating it from an LCP server.
         case retrievedLicenseData(Data)
         /// Raised when the License Document is parsed and its structure is validated.
@@ -264,13 +277,6 @@ extension LicenseValidation {
         case failed(Error)
         /// Raised when no passphrase could be found or given by the user.
         case passphraseNotFound
-    }
-
-    /// Should be called by the state handlers once they're done, to go to the next State.
-    private func raise(_ event: Event) async throws {
-        log(.debug, "-> on \(event)")
-        try state.transition(event)
-        await handle(state)
     }
 }
 
@@ -362,7 +368,7 @@ extension LicenseValidation {
             for: license,
             authentication: authentication,
             allowUserInteraction: allowUserInteraction,
-            sender: sender
+            sender: uncheckedSender.value
         ) {
             try await raise(.retrievedPassphrase(passphrase))
         } else {
@@ -385,7 +391,8 @@ extension LicenseValidation {
     }
 
     private func registerDevice(for license: LicenseDocument, at link: Link) async throws {
-        let data = try await device.registerLicense(license, at: link)
+        let uncheckedLink = Unchecked(value: link)
+        let data = try await device.registerLicense(license, at: uncheckedLink.value)
         try await raise(.registeredDevice(data))
     }
 
@@ -425,7 +432,7 @@ extension LicenseValidation {
 
 /// Validation observers
 extension LicenseValidation {
-    typealias Observer = (Result<ValidatedDocuments, Error>) -> Void
+    typealias Observer = @Sendable (Result<ValidatedDocuments, Error>) -> Void
 
     enum ObserverPolicy {
         /// The observer is automatically removed when called.

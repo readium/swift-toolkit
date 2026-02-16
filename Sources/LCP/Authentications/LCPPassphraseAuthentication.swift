@@ -10,7 +10,7 @@ import Foundation
 /// passphrase.
 ///
 /// If the provided `passphrase` is incorrect, the given `fallback` authentication is used.
-public class LCPPassphraseAuthentication: LCPAuthenticating {
+public final class LCPPassphraseAuthentication: LCPAuthenticating {
     private let passphrase: String
     private let fallback: LCPAuthenticating?
 

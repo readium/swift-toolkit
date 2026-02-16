@@ -12,7 +12,7 @@ import Foundation
 ///
 /// This takes into account the reading progression of the navigator to turn
 /// pages in the right direction.
-public final class DirectionalNavigationAdapter {
+@MainActor public final class DirectionalNavigationAdapter {
     @available(*, deprecated, renamed: "Edges")
     public typealias TapEdges = Edges
 

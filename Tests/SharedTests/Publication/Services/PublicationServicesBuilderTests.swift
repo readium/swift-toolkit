@@ -9,7 +9,7 @@ import XCTest
 
 protocol FooService: PublicationService {}
 struct FooServiceA: FooService {}
-class FooServiceB: FooService {}
+final class FooServiceB: FooService, Sendable {}
 struct FooServiceC: FooService { let wrapped: FooService? }
 
 protocol BarService: PublicationService {}

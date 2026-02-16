@@ -335,7 +335,7 @@ func makeService(layout: Layout? = nil, readingOrder: [(UInt64, Link, ArchivePro
 }
 
 private func makeProperties(layout: EPUBLayout? = nil, originalLength: Int? = nil) -> Properties {
-    var props: [String: Any] = [:]
+    var props: [String: any Sendable] = [:]
     if let layout = layout {
         props["layout"] = layout.rawValue
     }
@@ -343,12 +343,12 @@ private func makeProperties(layout: EPUBLayout? = nil, originalLength: Int? = ni
         props["encrypted"] = [
             "algorithm": "algo",
             "originalLength": originalLength,
-        ] as [String: Any]
+        ] as [String: any Sendable]
     }
     return Properties(props)
 }
 
-private class MockContainer: Container {
+private final class MockContainer: Container, @unchecked Sendable {
     private let readingOrder: [(UInt64, Link, ArchiveProperties?)]
 
     init(readingOrder: [(UInt64, Link, ArchiveProperties?)]) {
@@ -389,7 +389,7 @@ private class MockContainer: Container {
             .success(_properties)
         }
 
-        func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+        func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
             consume(Data())
             return .success(())
         }

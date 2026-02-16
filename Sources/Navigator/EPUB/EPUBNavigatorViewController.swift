@@ -449,7 +449,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         }
     }
 
-    private func whenInitialized(_ callback: @escaping () -> Void) {
+    private func whenInitialized(_ callback: @escaping @MainActor @Sendable () -> Void) {
         let callback = onInitializedCallbacks.add(callback)
         if state != .initializing {
             callback()

@@ -6,7 +6,7 @@
 
 import Foundation
 
-public struct Rights {
+public struct Rights: @unchecked Sendable {
     /// Maximum number of pages that can be printed over the lifetime of the license.
     public let print: Int?
     /// Maximum number of characters that can be copied to the clipboard over the lifetime of the license.

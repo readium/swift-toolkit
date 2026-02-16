@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import ReadiumGCDWebServer
+@preconcurrency import ReadiumGCDWebServer
 import ReadiumInternal
 import ReadiumShared
 import UIKit
@@ -90,7 +90,14 @@ public class GCDHTTPServer: HTTPServer, Loggable, @unchecked Sendable {
     }
 
     private func handle(request: ReadiumGCDWebServerRequest, completion: @escaping ReadiumGCDWebServerCompletionBlock) {
+        struct CompletionBox: @unchecked Sendable {
+            let block: ReadiumGCDWebServerCompletionBlock
+        }
+        let textCompletion = CompletionBox(block: completion)
+
         responseResource(for: request) { httpServerRequest, httpServerResponse, failureHandler in
+            let byteRange = request.hasByteRange() ? request.byteRange : nil
+
             Task {
                 let response: ReadiumGCDWebServerResponse
                 let resource = httpServerResponse.resource
@@ -109,14 +116,14 @@ public class GCDHTTPServer: HTTPServer, Loggable, @unchecked Sendable {
                     response = await ResourceResponse(
                         resource: httpServerResponse.resource,
                         length: length,
-                        range: request.hasByteRange() ? request.byteRange : nil,
+                        range: byteRange,
                         mediaType: httpServerResponse.mediaType(using: self.assetRetriever)
                     )
                 case let .failure(error):
                     response = fail(error)
                 }
 
-                completion(response) // goes back to ReadiumGCDWebServerConnection.m
+                textCompletion.block(response) // goes back to ReadiumGCDWebServerConnection.m
             }
         }
     }

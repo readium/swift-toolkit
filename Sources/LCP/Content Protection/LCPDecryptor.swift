@@ -11,7 +11,7 @@ import ReadiumShared
 private let lcpScheme = "http://readium.org/2014/01/lcp"
 
 /// Decrypts a resource protected with LCP.
-final class LCPDecryptor {
+final class LCPDecryptor: Sendable {
     enum Error: Swift.Error {
         case emptyDecryptedData
         case invalidCBCData
@@ -62,7 +62,7 @@ final class LCPDecryptor {
     ///
     /// Can be used when it's impossible to map a read range (byte range request) to the encrypted
     /// resource, for example when the resource is deflated before encryption.
-    private class FullLCPResource: TransformingResource {
+    private final class FullLCPResource: TransformingResource {
         private let license: LCPLicense
         private let encryption: ReadiumShared.Encryption
 
@@ -84,10 +84,12 @@ final class LCPDecryptor {
     /// A LCP resource used to read content encrypted with the CBC algorithm.
     ///
     /// Supports random access for byte range requests, but the resource MUST NOT be deflated.
-    private class CBCLCPResource: Resource {
+    private final class CBCLCPResource: Resource, @unchecked Sendable {
         private let resource: Resource
         private let license: LCPLicense
         private let encryption: ReadiumShared.Encryption
+
+        private let plainTextSizeTask: Task<ReadiumShared.ReadResult<UInt64?>, Never>
 
         init(_ resource: Resource, license: LCPLicense, encryption: ReadiumShared.Encryption) {
             assert(!encryption.isDeflated)
@@ -95,53 +97,53 @@ final class LCPDecryptor {
             self.resource = resource
             self.license = license
             self.encryption = encryption
-        }
-
-        let sourceURL: AbsoluteURL? = nil
-
-        func properties() async -> ReadResult<ResourceProperties> {
-            .success(ResourceProperties())
-        }
-
-        func estimatedLength() async -> ReadResult<UInt64?> {
-            await plainTextSize
-        }
-
-        private var plainTextSize: ReadResult<UInt64?> {
-            get async { await plainTextSizeTask.value }
-        }
-
-        private lazy var plainTextSizeTask = Task<ReadResult<UInt64?>, Never> {
-            await resource.estimatedLength().asyncFlatMap { length in
-                guard let length = length else {
-                    return failure(.requiredEstimatedLength)
-                }
-                guard length.isValidAESChunk else {
-                    return failure(.invalidCBCData)
-                }
-
-                let readPosition = length - 2 * AESBlockSize
-                return await resource.read(range: readPosition ..< length)
-                    .flatMap { encryptedData in
-                        do {
-                            guard let data = try license.decipher(encryptedData) else {
-                                return failure(.emptyDecryptedData)
-                            }
-
-                            let paddingSize = UInt64(data.last ?? 0)
-
-                            let result = length
-                                - AESBlockSize // Minus IV or previous block
-                                - paddingSize // Minus padding part
-                            return .success(result)
-                        } catch {
-                            return .failure(.decoding(error))
-                        }
+            
+            self.plainTextSizeTask = Task {
+                 await resource.estimatedLength().asyncFlatMap { length in
+                    guard let length = length else {
+                        return .failure(.decoding(LCPDecryptor.Error.requiredEstimatedLength))
                     }
+                    guard length.isValidAESChunk else {
+                        return .failure(.decoding(LCPDecryptor.Error.invalidCBCData))
+                    }
+
+                    let readPosition = length - 2 * AESBlockSize
+                    return await resource.read(range: readPosition ..< length)
+                        .flatMap { encryptedData in
+                            do {
+                                guard let data = try license.decipher(encryptedData) else {
+                                    return .failure(.decoding(LCPDecryptor.Error.emptyDecryptedData))
+                                }
+
+                                let paddingSize = UInt64(data.last ?? 0)
+
+                                let result = length
+                                    - AESBlockSize // Minus IV or previous block
+                                    - paddingSize // Minus padding part
+                                return .success(result)
+                            } catch {
+                                return .failure(.decoding(error))
+                            }
+                        }
+                }
             }
         }
 
-        func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+        var sourceURL: AbsoluteURL? { resource.sourceURL }
+
+        func estimatedLength() async -> ReadResult<UInt64?> {
+            await plainTextSizeTask.value
+        }
+
+        func properties() async -> ReadResult<ResourceProperties> {
+            await resource.properties()
+        }
+
+        func close() {
+            resource.close()
+        }
+
+        func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
             guard let range = range else {
                 return await license.decryptFully(data: resource.read(), isDeflated: encryption.isDeflated)
                     .map {
@@ -163,9 +165,10 @@ final class LCPDecryptor {
                 let encryptedStart = rangeFirst.floorMultiple(of: AESBlockSize)
                 let encryptedEndExclusive = (rangeLast + 1).ceilMultiple(of: AESBlockSize) + AESBlockSize
 
+                let plainTextSizeResult = await plainTextSizeTask.value
                 return await resource.read(range: encryptedStart ..< encryptedEndExclusive)
-                    .combine(plainTextSize)
-                    .flatMap { encryptedData, plainTextSize in
+                    .flatMap { encryptedData in
+                        plainTextSizeResult.flatMap { plainTextSize in
                         do {
                             guard let plainTextSize = plainTextSize else {
                                 return failure(.noPlainTextSize)
@@ -194,6 +197,7 @@ final class LCPDecryptor {
                             return .failure(.decoding(error))
                         }
                     }
+                }
             }
         }
 

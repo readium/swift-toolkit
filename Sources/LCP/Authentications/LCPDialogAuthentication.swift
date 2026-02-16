@@ -13,7 +13,7 @@ import UIKit
 /// For this authentication to trigger, you must provide a `sender` parameter of type
 /// `UIViewController` to `Streamer.open()` or `LCPService.retrieveLicense()`. It will be used
 /// as the presenting view controller for the dialog.
-public class LCPDialogAuthentication: LCPAuthenticating, Loggable {
+public final class LCPDialogAuthentication: LCPAuthenticating, Loggable {
     private let animated: Bool
     private let modalPresentationStyle: UIModalPresentationStyle
     private let modalTransitionStyle: UIModalTransitionStyle

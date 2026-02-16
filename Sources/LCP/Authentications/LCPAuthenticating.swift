@@ -33,14 +33,14 @@ public protocol LCPAuthenticating: Sendable {
     ) async -> String?
 }
 
-public enum LCPAuthenticationReason {
+public enum LCPAuthenticationReason: Sendable {
     /// No matching passphrase was found.
     case passphraseNotFound
     /// The provided passphrase was invalid.
     case invalidPassphrase
 }
 
-public struct LCPAuthenticatedLicense {
+public struct LCPAuthenticatedLicense: Sendable {
     /// A hint to be displayed to the User to help them remember the User Passphrase.
     public var hint: String {
         document.encryption.userKey.textHint

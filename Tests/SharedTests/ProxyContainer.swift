@@ -8,9 +8,9 @@ import Foundation
 import ReadiumShared
 
 final class ProxyContainer: Container {
-    private let retrieve: (AnyURL) -> Resource?
+    private let retrieve: @Sendable (AnyURL) -> (any Resource)?
 
-    init(entries: Set<AnyURL> = [], _ retrieve: @escaping (AnyURL) -> Resource?) {
+    init(entries: Set<AnyURL> = [], _ retrieve: @escaping @Sendable (AnyURL) -> Resource?) {
         self.entries = Set(entries.map(\.normalized))
         self.retrieve = retrieve
     }

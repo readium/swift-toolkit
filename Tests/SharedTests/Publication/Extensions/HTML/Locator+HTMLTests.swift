@@ -35,7 +35,7 @@ class LocatorLocationsHTMLTests: XCTestCase {
                     "start": [
                         "cssSelector": "p",
                         "textNodeIndex": 4,
-                    ] as [String: Any],
+                    ] as [String: any Sendable],
                 ],
             ]).domRange,
             DOMRange(start: .init(cssSelector: "p", textNodeIndex: 4))

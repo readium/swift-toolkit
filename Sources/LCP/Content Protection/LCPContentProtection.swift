@@ -133,7 +133,7 @@ final class LCPContentProtection: ContentProtection, Loggable {
 
                 let decryptor = LCPDecryptor(license: license.getOrNil(), encryptionData: encryptionData)
                 asset.container = asset.container
-                    .map(transform: decryptor.decrypt(at:resource:))
+                    .map(transform: { [decryptor] in decryptor.decrypt(at: $0, resource: $1) })
 
                 let cpAsset = ContentProtectionAsset(
                     asset: .container(asset),

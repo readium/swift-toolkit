@@ -11,6 +11,7 @@ import UIKit
 import WebKit
 
 /// A view rendering a spread of resources with a reflowable layout.
+@MainActor
 final class EPUBReflowableSpreadView: EPUBSpreadView {
     private var topConstraint: NSLayoutConstraint!
     private var bottomConstraint: NSLayoutConstraint!

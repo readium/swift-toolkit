@@ -73,7 +73,7 @@ public final class LCPService: Loggable, Sendable {
     /// Acquires a protected publication from an LCPL.
     public func acquirePublication(
         from lcpl: LicenseDocumentSource,
-        onProgress: @escaping (LCPProgress) -> Void = { _ in }
+        onProgress: @escaping @Sendable (LCPProgress) -> Void = { _ in }
     ) async -> Result<LCPAcquiredPublication, LCPError> {
         await wrap {
             try await licenses.acquirePublication(from: lcpl, onProgress: onProgress)

@@ -15,36 +15,32 @@ public typealias ContentTokenizer = Tokenizer<ContentElement, ContentElement>
 public func makeTextContentTokenizer(
     defaultLanguage: Language?,
     contextSnippetLength: Int = 50,
-    textTokenizerFactory: @escaping (Language?) -> TextTokenizer
+    textTokenizerFactory: @escaping @Sendable (Language?) -> TextTokenizer
 ) -> ContentTokenizer {
-    func tokenize(segment: TextContentElement.Segment) throws -> [TextContentElement.Segment] {
-        let tokenize = textTokenizerFactory(segment.language ?? defaultLanguage)
-
-        return try tokenize(segment.text)
-            .map { range in
-                var segment = segment
-                segment.locator = segment.locator.copy(text: {
-                    $0 = extractTextContext(
-                        in: segment.text,
-                        for: range,
-                        contextSnippetLength: contextSnippetLength
-                    )
-                })
-                segment.text = String(segment.text[range])
-                return segment
-            }
-    }
-
-    func tokenize(_ content: ContentElement) throws -> [ContentElement] {
+    { [textTokenizerFactory, contextSnippetLength, defaultLanguage] content in
         if var content = content as? TextContentElement {
-            content.segments = try content.segments.flatMap(tokenize(segment:))
+            content.segments = try content.segments.flatMap { segment in
+                let tokenize = textTokenizerFactory(segment.language ?? defaultLanguage)
+
+                return try tokenize(segment.text)
+                    .map { range in
+                        var segment = segment
+                        segment.locator = segment.locator.copy(text: {
+                            $0 = extractTextContext(
+                                in: segment.text,
+                                for: range,
+                                contextSnippetLength: contextSnippetLength
+                            )
+                        })
+                        segment.text = String(segment.text[range])
+                        return segment
+                    }
+            }
             return [content]
         } else {
             return [content]
         }
     }
-
-    return tokenize
 }
 
 private func extractTextContext(in string: String, for range: Range<String.Index>, contextSnippetLength: Int) -> Locator.Text {

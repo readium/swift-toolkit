@@ -101,7 +101,7 @@ struct TestContentProtectionService: ContentProtectionService {
     }
 }
 
-final class TestUserRights: UserRights {
+final class TestUserRights: UserRights, @unchecked Sendable {
     var copyCount: Int
     var printCount: Int
 

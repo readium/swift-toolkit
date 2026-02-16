@@ -6,7 +6,7 @@
 
 import Foundation
 
-public struct Encryption {
+public struct Encryption: Sendable {
     /// Identifies the Encryption Profile used by this LCP-protected Publication.
     public let profile: String
     /// Used to encrypt the Publication Resources.

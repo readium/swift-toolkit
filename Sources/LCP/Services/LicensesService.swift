@@ -23,6 +23,10 @@ final class LicensesService: Loggable, Sendable {
     private let httpClient: HTTPClient
     private let passphrases: PassphrasesService
 
+    struct Unchecked<T>: @unchecked Sendable {
+        let value: T
+    }
+
     init(
         isProduction: Bool,
         client: LCPClient,
@@ -65,7 +69,7 @@ final class LicensesService: Loggable, Sendable {
     ) async throws -> License {
         let initialData = try await container.read()
 
-        func onLicenseValidated(of license: LicenseDocument) async throws {
+        @Sendable func onLicenseValidated(of license: LicenseDocument) async throws {
             // Any errors are ignored to avoid blocking the publication.
 
             do {
@@ -85,10 +89,11 @@ final class LicensesService: Loggable, Sendable {
             }
         }
 
+        let uncheckedSender = Unchecked(value: sender)
         let validation = LicenseValidation(
             authentication: authentication,
             allowUserInteraction: allowUserInteraction,
-            sender: sender,
+            sender: uncheckedSender.value,
             isProduction: isProduction,
             client: client,
             crl: crl,
@@ -105,7 +110,7 @@ final class LicensesService: Loggable, Sendable {
 
     func acquirePublication(
         from lcpl: LicenseDocumentSource,
-        onProgress: @escaping (LCPProgress) -> Void
+        onProgress: @escaping @Sendable (LCPProgress) -> Void
     ) async throws -> LCPAcquiredPublication {
         guard let license = try await readLicense(from: lcpl) else {
             throw LCPError.notALicenseDocument(lcpl)

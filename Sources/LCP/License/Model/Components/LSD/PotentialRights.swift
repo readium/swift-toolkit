@@ -6,7 +6,7 @@
 
 import Foundation
 
-public struct PotentialRights {
+public struct PotentialRights: Sendable {
     /// Time and Date when the license ends.
     public let end: Date?
 

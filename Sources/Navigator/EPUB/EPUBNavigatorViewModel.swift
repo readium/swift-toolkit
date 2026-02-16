@@ -77,14 +77,45 @@ enum EPUBScriptScope: Sendable {
                     guard let self = self, let href = request.href else {
                         return
                     }
-                    self.delegate?.epubNavigatorViewModel(self, didFailToLoadResourceAt: href, withError: error)
+                    Task {
+                        await MainActor.run {
+                            self.delegate?.epubNavigatorViewModel(self, didFailToLoadResourceAt: href, withError: error)
+                        }
+                    }
                 }
             )
         }
 
         if let endpoint = publicationEndpoint {
-            try httpServer.transformResources(at: endpoint) { [weak self] href, resource in
-                self?.injectReadiumCSS(in: resource, at: href) ?? resource
+            let cssAtomic = _css
+            let servedFilesAtomic = _servedFiles
+            let fontDeclarations = config.fontFamilyDeclarations
+            // Use the local httpServer parameter from init, which is non-optional
+            
+            try httpServer.transformResources(at: endpoint) { href, resource in
+                let css = cssAtomic.read()
+                
+                let serveFont: @Sendable (FileURL) throws -> HTTPURL = { file in
+                    if let url = servedFilesAtomic.read()[file] {
+                        return url
+                    }
+                    
+                    // We use a random UUID to avoid conflicts if the same file is served multiple times.
+                    // This logic mirrors the previous serveFont/serveFile implementation.
+                    let endpoint = "custom-fonts/\(UUID().uuidString)/" + file.lastPathSegment
+                    let url = try httpServer.serve(at: endpoint, contentsOf: file)
+                    servedFilesAtomic.write { $0[file] = url }
+                    return url
+                }
+                
+                return Self.injectReadiumCSS(
+                    in: resource,
+                    at: href,
+                    publication: publication,
+                    css: css,
+                    fontFamilyDeclarations: fontDeclarations,
+                    serveFont: serveFont
+                )
             }
         }
     }
@@ -139,14 +170,14 @@ enum EPUBScriptScope: Sendable {
         preferences = config.preferences
         settings = EPUBSettings(publication: publication, config: config)
 
-        css = ReadiumCSS(
+        _css = Atomic(wrappedValue: ReadiumCSS(
             layout: CSSLayout(),
             rsProperties: config.readiumCSSRSProperties,
             baseURL: assetsURL.appendingPath("readium-css", isDirectory: true),
             fontFamilyDeclarations: config.fontFamilyDeclarations
-        )
+        ))
 
-        css.update(with: settings)
+        $css.write { $0.update(with: settings) }
 
         NotificationCenter.default.addObserver(
             self,
@@ -168,19 +199,7 @@ enum EPUBScriptScope: Sendable {
         link.url(relativeTo: publicationBaseURL)
     }
 
-    private func serveFile(at file: FileURL, baseEndpoint: HTTPServerEndpoint) throws -> HTTPURL {
-        if let url = servedFiles[file] {
-            return url
-        }
 
-        guard let httpServer = httpServer else {
-            throw Error.noHTTPServer
-        }
-        let endpoint = baseEndpoint.addingSuffix("/") + file.lastPathSegment
-        let url = try httpServer.serve(at: endpoint, contentsOf: file)
-        $servedFiles.write { $0[file] = url }
-        return url
-    }
 
     private var needsInvalidatePagination = false
     private func setNeedsInvalidatePagination() {
@@ -302,13 +321,18 @@ enum EPUBScriptScope: Sendable {
 
     // MARK: - Readium CSS
 
-    private var css: ReadiumCSS
+    @Atomic private var css: ReadiumCSS
 
-    private func serveFont(at file: FileURL) throws -> HTTPURL {
-        try serveFile(at: file, baseEndpoint: "custom-fonts/\(UUID().uuidString)")
-    }
 
-    func injectReadiumCSS<HREF: URLConvertible>(in resource: Resource, at href: HREF) -> Resource {
+
+    nonisolated static func injectReadiumCSS<HREF: URLConvertible>(
+        in resource: Resource,
+        at href: HREF,
+        publication: Publication,
+        css: ReadiumCSS,
+        fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration],
+        serveFont: @escaping @Sendable (FileURL) throws -> HTTPURL
+    ) -> Resource {
         guard
             let link = publication.linkWithHREF(href),
             link.mediaType?.isHTML == true,
@@ -317,14 +341,10 @@ enum EPUBScriptScope: Sendable {
             return resource
         }
 
-        return resource.mapAsString { [weak self] content in
-            guard let self = self else {
-                return content
-            }
-
+        return resource.mapAsString { content in
             do {
                 var content = try css.inject(in: content)
-                for ff in config.fontFamilyDeclarations {
+                for ff in fontFamilyDeclarations {
                     content = try ff.inject(in: content, servingFile: serveFont)
                 }
                 return content
@@ -337,7 +357,7 @@ enum EPUBScriptScope: Sendable {
 
     private func updateCSS(with settings: EPUBSettings, commitNow: Bool) {
         let previous = css
-        css.update(with: settings)
+        $css.write { $0.update(with: settings) }
 
         if commitNow {
             commitCSSChange(from: previous, to: css)

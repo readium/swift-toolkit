@@ -9,8 +9,8 @@ import ReadiumShared
 
 /// Document that contains information about the history of a License Document, along with its current status and available interactions.
 /// https://github.com/readium/lcp-specs/blob/master/schema/status.schema.json
-public struct StatusDocument {
-    public enum Status: String {
+public struct StatusDocument: @unchecked Sendable {
+    public enum Status: String, Sendable {
         /// The License Document is available, but the user hasn't accessed the License and/or Status Document yet.
         case ready
         /// The license is active, and a device has been successfully registered for this license. This is the default value if the License Document does not contain a registration link, or a registration mechanism through the license itself.
@@ -40,7 +40,7 @@ public struct StatusDocument {
     public let licenseUpdated: Date
     /// Time and Date when the Status Document was last updated.
     public let updated: Date
-    public let links: Links
+    public let links: [Link]
     /// Potential changes allowed for a License Document.
     public let potentialRights: PotentialRights?
     /// Ordered list of events related to the change in status of a License Document.
@@ -69,7 +69,7 @@ public struct StatusDocument {
         self.message = message
         self.licenseUpdated = licenseUpdated
         self.updated = statusUpdated
-        self.links = try Links(json: links)
+        self.links = try links.map(Link.init)
 
         if let potentialRights = json["potential_rights"] as? [String: Any] {
             self.potentialRights = try PotentialRights(json: potentialRights)
@@ -86,16 +86,22 @@ public struct StatusDocument {
 
     /// Returns the first link containing the given rel.
     public func link(for rel: Rel, type: MediaType? = nil) -> Link? {
-        links.firstWithRel(rel.rawValue, type: type)
+        links.first {
+            $0.rel.contains(rel.rawValue) && (type?.matches($0.mediaType) ?? true)
+        }
     }
 
     /// Returns all the links containing the given rel.
     public func links(for rel: Rel, type: MediaType? = nil) -> [Link] {
-        links.filterWithRel(rel.rawValue, type: type)
+        links.filter {
+            $0.rel.contains(rel.rawValue) && (type?.matches($0.mediaType) ?? true)
+        }
     }
 
     func linkWithNoType(for rel: Rel) -> Link? {
-        links.firstWithRelAndNoType(rel.rawValue)
+        links.first {
+            $0.rel.contains(rel.rawValue) && $0.mediaType == nil
+        }
     }
 
     /// Gets and expands the URL for the given rel, if it exits.

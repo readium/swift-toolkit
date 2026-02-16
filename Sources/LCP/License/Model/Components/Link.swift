@@ -8,7 +8,7 @@ import Foundation
 import ReadiumShared
 
 /// A Link to a resource.
-public struct Link {
+public struct Link: Sendable {
     /// The link destination.
     public let href: String
     /// Indicates the relationship between the resource and its containing collection.

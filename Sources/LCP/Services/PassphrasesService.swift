@@ -13,7 +13,11 @@ final class PassphrasesService: Sendable {
     private let client: LCPClient
     private let repository: LCPPassphraseRepository
 
-    private let sha256Predicate = NSPredicate(format: "SELF MATCHES[c] %@", "^([a-f0-9]{64})$")
+    struct Unchecked<T>: @unchecked Sendable {
+        let value: T
+    }
+
+
 
     init(client: LCPClient, repository: LCPPassphraseRepository) {
         self.client = client
@@ -91,11 +95,12 @@ final class PassphrasesService: Sendable {
         sender: Any?
     ) async throws -> LCPPassphraseHash? {
         let authenticatedLicense = LCPAuthenticatedLicense(document: license)
+        let uncheckedSender = Unchecked(value: sender)
         guard let clearPassphrase = await authentication.retrievePassphrase(
             for: authenticatedLicense,
             reason: reason,
             allowUserInteraction: allowUserInteraction,
-            sender: sender
+            sender: uncheckedSender.value
         ) else {
             return nil
         }
@@ -104,7 +109,7 @@ final class PassphrasesService: Sendable {
         var passphrases = [hashedPassphrase]
         // Note: The C++ LCP lib crashes if we provide a passphrase that is not a valid
         // SHA-256 hash. So we check this beforehand.
-        if sha256Predicate.evaluate(with: clearPassphrase) {
+        if NSPredicate(format: "SELF MATCHES[c] %@", "^([a-f0-9]{64})$").evaluate(with: clearPassphrase) {
             passphrases.append(clearPassphrase)
         }
 

@@ -18,14 +18,15 @@ import Foundation
 ///     ...
 /// }
 /// ```
+@MainActor
 final class CompletionList {
-    private var blocks: [() -> Void] = []
+    private var blocks: [@MainActor @Sendable () -> Void] = []
 
     /// Adds the given `completion` block the list.
     ///
     /// - Returns: A new block that will call all the registered completion blocks.
     @discardableResult
-    func add(_ completion: (() -> Void)?) -> () -> Void {
+    func add(_ completion: (@MainActor @Sendable () -> Void)?) -> @MainActor @Sendable () -> Void {
         if let completion = completion {
             blocks.append(completion)
         }
@@ -37,11 +38,9 @@ final class CompletionList {
 
     /// Calls all the registered completion blocks.
     func complete() {
-        DispatchQueue.main.async {
-            for block in self.blocks {
-                block()
-            }
-            self.blocks.removeAll()
+        for block in self.blocks {
+            block()
         }
+        self.blocks.removeAll()
     }
 }

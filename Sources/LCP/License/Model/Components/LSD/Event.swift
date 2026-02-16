@@ -7,7 +7,7 @@
 import Foundation
 
 /// Event related to the change in status of a License Document.
-public struct Event {
+public struct Event: Sendable {
     public enum EventType: String {
         /// Signals a successful registration event by a device.
         case register
