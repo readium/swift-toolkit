@@ -82,7 +82,9 @@ public extension AbsoluteURL {
 
 /// Implements ``URLConvertible``.
 public extension AbsoluteURL {
-    var anyURL: AnyURL { .absolute(self) }
+    var anyURL: AnyURL {
+        .absolute(self)
+    }
 }
 
 /// A URL scheme, e.g. http or file.
@@ -100,5 +102,7 @@ public struct URLScheme: RawRepresentable, CustomStringConvertible, Hashable, Se
         self.rawValue = rawValue.lowercased()
     }
 
-    public var description: String { rawValue }
+    public var description: String {
+        rawValue
+    }
 }

@@ -293,7 +293,9 @@ public struct MediaType: Hashable, Loggable, Sendable {
 }
 
 extension MediaType: RawRepresentable {
-    public var rawValue: String { string }
+    public var rawValue: String {
+        string
+    }
 
     public init?(rawValue: String) {
         self.init(rawValue)

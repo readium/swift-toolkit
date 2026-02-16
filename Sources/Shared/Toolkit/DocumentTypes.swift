@@ -91,18 +91,18 @@ public struct DocumentTypes {
 
 /// Metadata about a Document Type declared in `CFBundleDocumentTypes`.
 public struct DocumentType: Equatable, Loggable {
-    // Abstract name for the document type, used to refer to the type.
+    /// Abstract name for the document type, used to refer to the type.
     public let name: String
 
-    // Uniform Type Identifiers supported by this document type.
+    /// Uniform Type Identifiers supported by this document type.
     public let utis: [String]
 
-    // The preferred media type used to identify this document type.
+    /// The preferred media type used to identify this document type.
     public let preferredMediaType: MediaType?
 
-    // Media (MIME) types recognized by this document type.
+    /// Media (MIME) types recognized by this document type.
     public let mediaTypes: [MediaType]
-    // File extensions recognized by this document type.
+    /// File extensions recognized by this document type.
     public let fileExtensions: [String]
 
     init(

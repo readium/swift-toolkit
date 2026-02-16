@@ -65,10 +65,10 @@ class _HTMLResourceContentExtractor: _ResourceContentExtractor {
             }
     }
 
-    // Parse the HTML resource as a strict XML document.
-    //
-    // This is much more efficient than using SwiftSoup, but will fail when encountering
-    // invalid HTML documents.
+    /// Parse the HTML resource as a strict XML document.
+    ///
+    /// This is much more efficient than using SwiftSoup, but will fail when encountering
+    /// invalid HTML documents.
     private func parse(xml: String) async -> String? {
         guard let document = try? await xmlFactory.open(string: xml, namespaces: [.xhtml]) else {
             return nil
@@ -77,9 +77,9 @@ class _HTMLResourceContentExtractor: _ResourceContentExtractor {
         return document.first("/xhtml:html/xhtml:body")?.textContent
     }
 
-    // Parse the HTML resource with SwiftSoup.
-    //
-    // This may be slow but will recover from broken HTML documents.
+    /// Parse the HTML resource with SwiftSoup.
+    ///
+    /// This may be slow but will recover from broken HTML documents.
     private func parse(html: String) -> String? {
         try? SwiftSoup.parse(html).body()?.text()
     }

@@ -11,18 +11,18 @@ import ReadiumShared
 /// Package vocabularies used for `property`, `properties`, `scheme` and `rel`.
 /// http://www.idpf.org/epub/301/spec/epub-publications.html#sec-metadata-assoc
 enum OPFVocabulary: String {
-    // Fallback prefixes for metadata's properties and links' rels.
+    /// Fallback prefixes for metadata's properties and links' rels.
     case defaultMetadata, defaultLinkRel
 
-    // Reserved prefixes
-    // https://idpf.github.io/epub-prefixes/packages/
+    /// Reserved prefixes
+    /// https://idpf.github.io/epub-prefixes/packages/
     case a11y, dcterms, epubsc, marc, media, onix, rendition, schema, xsd
 
-    // Additional prefixes used in the streamer.
+    /// Additional prefixes used in the streamer.
     case calibre
 
-    // New TDM Reservation Protocol
-    // https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/
+    /// New TDM Reservation Protocol
+    /// https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/
     case tdm
 
     var uri: String {

@@ -110,7 +110,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 
         public let id: AccessibilityDisplayString = .waysOfReadingTitle
 
-        public var localizedTitle: String { id.localized }
+        public var localizedTitle: String {
+            id.localized
+        }
 
         /// "Ways of reading" should be rendered even if there is no metadata.
         public let shouldDisplay: Bool = true
@@ -267,7 +269,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
     public struct Navigation: AccessibilityDisplayField {
         /// Indicates whether no information about navigation features is
         /// available.
-        public var noMetadata: Bool { !tableOfContents && !index && !headings && !page }
+        public var noMetadata: Bool {
+            !tableOfContents && !index && !headings && !page
+        }
 
         /// Table of contents to all chapters of the text via links.
         public var tableOfContents: Bool
@@ -283,9 +287,13 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 
         public let id: AccessibilityDisplayString = .navigationTitle
 
-        public var localizedTitle: String { id.localized }
+        public var localizedTitle: String {
+            id.localized
+        }
 
-        public var shouldDisplay: Bool { !noMetadata }
+        public var shouldDisplay: Bool {
+            !noMetadata
+        }
 
         public var statements: [AccessibilityDisplayStatement] {
             Array {
@@ -377,9 +385,13 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 
         public let id: AccessibilityDisplayString = .richContentTitle
 
-        public var localizedTitle: String { id.localized }
+        public var localizedTitle: String {
+            id.localized
+        }
 
-        public var shouldDisplay: Bool { !noMetadata }
+        public var shouldDisplay: Bool {
+            !noMetadata
+        }
 
         public var statements: [AccessibilityDisplayStatement] {
             Array {
@@ -507,9 +519,13 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 
         public let id: AccessibilityDisplayString = .additionalAccessibilityInformationTitle
 
-        public var localizedTitle: String { id.localized }
+        public var localizedTitle: String {
+            id.localized
+        }
 
-        public var shouldDisplay: Bool { !noMetadata }
+        public var shouldDisplay: Bool {
+            !noMetadata
+        }
 
         public var statements: [AccessibilityDisplayStatement] {
             Array {
@@ -649,9 +665,13 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 
         public let id: AccessibilityDisplayString = .hazardsTitle
 
-        public var localizedTitle: String { id.localized }
+        public var localizedTitle: String {
+            id.localized
+        }
 
-        public var shouldDisplay: Bool { !noMetadata }
+        public var shouldDisplay: Bool {
+            !noMetadata
+        }
 
         public var statements: [AccessibilityDisplayStatement] {
             Array {
@@ -766,7 +786,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 
         public let id: AccessibilityDisplayString = .conformanceTitle
 
-        public var localizedTitle: String { id.localized }
+        public var localizedTitle: String {
+            id.localized
+        }
 
         /// "Conformance" should be rendered even if there is no metadata.
         public let shouldDisplay: Bool = true
@@ -818,7 +840,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
     /// https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/#legal-considerations
     public struct Legal: AccessibilityDisplayField {
         /// No information is available.
-        public var noMetadata: Bool { !exemption }
+        public var noMetadata: Bool {
+            !exemption
+        }
 
         /// This publication claims an accessibility exemption in some
         /// jurisdictions.
@@ -826,9 +850,13 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 
         public let id: AccessibilityDisplayString = .legalConsiderationsTitle
 
-        public var localizedTitle: String { id.localized }
+        public var localizedTitle: String {
+            id.localized
+        }
 
-        public var shouldDisplay: Bool { !noMetadata }
+        public var shouldDisplay: Bool {
+            !noMetadata
+        }
 
         public var statements: [AccessibilityDisplayStatement] {
             Array {
@@ -865,9 +893,13 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 
         public let id: AccessibilityDisplayString = .accessibilitySummaryTitle
 
-        public var localizedTitle: String { id.localized }
+        public var localizedTitle: String {
+            id.localized
+        }
 
-        public var shouldDisplay: Bool { summary != nil }
+        public var shouldDisplay: Bool {
+            summary != nil
+        }
 
         public var statements: [AccessibilityDisplayStatement] {
             Array {
@@ -966,7 +998,7 @@ public struct AccessibilityDisplayStatement: Sendable, Equatable, Identifiable {
 ///
 /// See https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/draft/localizations/
 public struct AccessibilityDisplayString: RawRepresentable, ExpressibleByStringLiteral, Sendable, Hashable {
-    // Special key for the provided summary, which is not localized.
+    /// Special key for the provided summary, which is not localized.
     static let accessibilitySummary: Self = "readium.a11y.accessibility-summary"
 
     public let rawValue: String
@@ -1012,7 +1044,7 @@ public struct AccessibilityDisplayString: RawRepresentable, ExpressibleByStringL
     }
 }
 
-// Syntactic sugar
+/// Syntactic sugar
 private extension Array where Element == AccessibilityDisplayStatement {
     mutating func append(_ string: AccessibilityDisplayString) {
         append(AccessibilityDisplayStatement(string: string))
@@ -1023,8 +1055,12 @@ private extension Array where Element == AccessibilityDisplayStatement {
 
 public extension AccessibilityDisplayString {
     @available(*, deprecated, renamed: "richContentExtendedDescriptions")
-    static var richContentExtended: Self { richContentExtendedDescriptions }
+    static var richContentExtended: Self {
+        richContentExtendedDescriptions
+    }
 
     @available(*, deprecated, renamed: "richContentMathAsMathml")
-    static var richContentAccessibleMathAsMathml: Self { richContentMathAsMathml }
+    static var richContentAccessibleMathAsMathml: Self {
+        richContentMathAsMathml
+    }
 }

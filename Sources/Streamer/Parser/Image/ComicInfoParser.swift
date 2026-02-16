@@ -13,7 +13,7 @@ import ReadiumShared
 /// ComicInfo.xml is a metadata format originating from the ComicRack
 /// application.
 /// See: https://anansi-project.github.io/docs/comicinfo/documentation
-struct ComicInfoParser {
+enum ComicInfoParser {
     /// Parses ComicInfo.xml data and returns the parsed metadata.
     static func parse(data: Data, warnings: WarningLogger?) -> ComicInfo? {
         guard let document = try? XMLDocument(data: data) else {
@@ -33,8 +33,13 @@ struct ComicInfoParser {
 /// Warning raised when parsing a ComicInfo.xml file.
 struct ComicInfoWarning: Warning {
     let message: String
-    var severity: WarningSeverityLevel { .minor }
-    var tag: String { "comicinfo" }
+    var severity: WarningSeverityLevel {
+        .minor
+    }
+
+    var tag: String {
+        "comicinfo"
+    }
 }
 
 /// Parsed representation of ComicInfo.xml data.
@@ -165,7 +170,6 @@ struct ComicInfo {
             case "Summary": summary = value
             case "Title": title = value
             case "Year": year = Int(value)
-
             // Contributors
             case "Colorist": colorists = value.splitComma()
             case "CoverArtist": coverArtists = value.splitComma()
@@ -175,7 +179,6 @@ struct ComicInfo {
             case "Penciller": pencillers = value.splitComma()
             case "Translator": translators = value.splitComma()
             case "Writer": writers = value.splitComma()
-
             // Everything else goes to otherMetadata
             default: otherMetadata[tag] = value
             }

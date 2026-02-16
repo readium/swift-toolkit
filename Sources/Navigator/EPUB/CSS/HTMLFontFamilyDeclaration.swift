@@ -30,8 +30,13 @@ public struct AnyHTMLFontFamilyDeclaration: HTMLFontFamilyDeclaration {
     private let _alternates: () -> [FontFamily]
     private let _inject: (String, (FileURL) throws -> HTTPURL) throws -> String
 
-    public var fontFamily: FontFamily { _fontFamily() }
-    public var alternates: [FontFamily] { _alternates() }
+    public var fontFamily: FontFamily {
+        _fontFamily()
+    }
+
+    public var alternates: [FontFamily] {
+        _alternates()
+    }
 
     public init<T: HTMLFontFamilyDeclaration>(_ declaration: T) {
         _fontFamily = { declaration.fontFamily }

@@ -195,16 +195,19 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             // All events are ignored when loading spreads, except for `loaded` and `load`.
             case (.loading, .loaded):
                 self = .idle
+
             case (.loading, _):
                 return false
 
             case let (.idle, .jump(locator)):
                 self = .jumping(pendingLocator: locator)
+
             case let (.idle, .move(direction)):
                 self = .moving(direction: direction)
 
             case (.jumping, .jumped):
                 self = .idle
+
             // Moving or jumping to another locator is not allowed during a pending jump.
             case (.jumping, .jump),
                  (.jumping, .move):
@@ -212,6 +215,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
             case (.moving, .moved):
                 self = .idle
+
             // Moving or jumping to another locator is not allowed during a pending move.
             case (.moving, .jump),
                  (.moving, .move):
@@ -266,9 +270,13 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     private var positionsByReadingOrder: [[Locator]] = []
 
     private let viewModel: EPUBNavigatorViewModel
-    public var publication: Publication { viewModel.publication }
+    public var publication: Publication {
+        viewModel.publication
+    }
 
-    var config: Configuration { viewModel.config }
+    var config: Configuration {
+        viewModel.config
+    }
 
     /// Creates a new instance of `EPUBNavigatorViewController`.
     ///
@@ -917,7 +925,9 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     // MARK: - Configurable
 
-    public var settings: EPUBSettings { viewModel.settings }
+    public var settings: EPUBSettings {
+        viewModel.settings
+    }
 
     public func submitPreferences(_ preferences: EPUBPreferences) {
         viewModel.submitPreferences(preferences)

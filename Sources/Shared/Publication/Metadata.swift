@@ -18,10 +18,14 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
     public var conformsTo: [Publication.Profile]
 
     public var localizedTitle: LocalizedString?
-    public var title: String? { localizedTitle?.string }
+    public var title: String? {
+        localizedTitle?.string
+    }
 
     public var localizedSubtitle: LocalizedString?
-    public var subtitle: String? { localizedSubtitle?.string }
+    public var subtitle: String? {
+        localizedSubtitle?.string
+    }
 
     public var accessibility: Accessibility?
     public var modified: Date?
@@ -67,7 +71,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
         set { otherMetadataJSON = JSONDictionary(newValue) ?? JSONDictionary() }
     }
 
-    // Trick to keep the struct equatable despite [String: Any]
+    /// Trick to keep the struct equatable despite [String: Any]
     private var otherMetadataJSON: JSONDictionary
 
     public init(

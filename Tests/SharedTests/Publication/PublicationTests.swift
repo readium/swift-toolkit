@@ -91,80 +91,80 @@ class PublicationTests: XCTestCase {
         )
     }
 
-    func testLinkWithHREFInReadingOrder() {
+    func testLinkWithHREFInReadingOrder() throws {
         XCTAssertEqual(
-            makePublication(readingOrder: [
+            try makePublication(readingOrder: [
                 Link(href: "l1"),
                 Link(href: "l2"),
-            ]).linkWithHREF(AnyURL(string: "l2")!)?.href,
+            ]).linkWithHREF(XCTUnwrap(AnyURL(string: "l2")))?.href,
             "l2"
         )
     }
 
-    func testLinkWithHREFInLinks() {
+    func testLinkWithHREFInLinks() throws {
         XCTAssertEqual(
-            makePublication(links: [
+            try makePublication(links: [
                 Link(href: "l1"),
                 Link(href: "l2"),
-            ]).linkWithHREF(AnyURL(string: "l2")!)?.href,
+            ]).linkWithHREF(XCTUnwrap(AnyURL(string: "l2")))?.href,
             "l2"
         )
     }
 
-    func testLinkWithHREFInResources() {
+    func testLinkWithHREFInResources() throws {
         XCTAssertEqual(
-            makePublication(resources: [
+            try makePublication(resources: [
                 Link(href: "l1"),
                 Link(href: "l2"),
-            ]).linkWithHREF(AnyURL(string: "l2")!)?.href,
+            ]).linkWithHREF(XCTUnwrap(AnyURL(string: "l2")))?.href,
             "l2"
         )
     }
 
-    func testLinkWithHREFInAlternate() {
+    func testLinkWithHREFInAlternate() throws {
         XCTAssertEqual(
-            makePublication(resources: [
+            try makePublication(resources: [
                 Link(href: "l1", alternates: [
                     Link(href: "l2", alternates: [
                         Link(href: "l3"),
                     ]),
                 ]),
-            ]).linkWithHREF(AnyURL(string: "l3")!)?.href,
+            ]).linkWithHREF(XCTUnwrap(AnyURL(string: "l3")))?.href,
             "l3"
         )
     }
 
-    func testLinkWithHREFInChildren() {
+    func testLinkWithHREFInChildren() throws {
         XCTAssertEqual(
-            makePublication(resources: [
+            try makePublication(resources: [
                 Link(href: "l1", children: [
                     Link(href: "l2", children: [
                         Link(href: "l3"),
                     ]),
                 ]),
-            ]).linkWithHREF(AnyURL(string: "l3")!)?.href,
+            ]).linkWithHREF(XCTUnwrap(AnyURL(string: "l3")))?.href,
             "l3"
         )
     }
 
-    func testLinkWithHREFIgnoresQuery() {
+    func testLinkWithHREFIgnoresQuery() throws {
         let publication = makePublication(links: [
             Link(href: "l1?q=a"),
             Link(href: "l2"),
         ])
 
-        XCTAssertEqual(publication.linkWithHREF(AnyURL(string: "l1?q=a")!)?.href, "l1?q=a")
-        XCTAssertEqual(publication.linkWithHREF(AnyURL(string: "l2?q=b")!)?.href, "l2")
+        XCTAssertEqual(try publication.linkWithHREF(XCTUnwrap(AnyURL(string: "l1?q=a")))?.href, "l1?q=a")
+        XCTAssertEqual(try publication.linkWithHREF(XCTUnwrap(AnyURL(string: "l2?q=b")))?.href, "l2")
     }
 
-    func testLinkWithHREFIgnoresAnchor() {
+    func testLinkWithHREFIgnoresAnchor() throws {
         let publication = makePublication(links: [
             Link(href: "l1#a"),
             Link(href: "l2"),
         ])
 
-        XCTAssertEqual(publication.linkWithHREF(AnyURL(string: "l1#a")!)?.href, "l1#a")
-        XCTAssertEqual(publication.linkWithHREF(AnyURL(string: "l2#b")!)?.href, "l2")
+        XCTAssertEqual(try publication.linkWithHREF(XCTUnwrap(AnyURL(string: "l1#a")))?.href, "l1#a")
+        XCTAssertEqual(try publication.linkWithHREF(XCTUnwrap(AnyURL(string: "l2#b")))?.href, "l2")
     }
 
     func testLinkWithRelInReadingOrder() {

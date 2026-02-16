@@ -69,5 +69,7 @@ public struct URITemplate: CustomStringConvertible {
 
     // MARK: CustomStringConvertible
 
-    public var description: String { uri }
+    public var description: String {
+        uri
+    }
 }

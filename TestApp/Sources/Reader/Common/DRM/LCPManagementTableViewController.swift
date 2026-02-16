@@ -29,7 +29,7 @@ import UIKit
         @IBOutlet var renewButton: UIButton!
         @IBOutlet var returnButton: UIButton!
 
-        public var viewModel: LCPViewModel!
+        var viewModel: LCPViewModel!
 
         weak var moduleDelegate: ReaderModuleDelegate?
 
@@ -99,7 +99,7 @@ import UIKit
             present(alert, animated: true)
         }
 
-        internal func reload() {
+        func reload() {
             typeLabel.text = "Readium LCP"
             stateLabel.text = viewModel.state
             providerLabel.text = viewModel.provider

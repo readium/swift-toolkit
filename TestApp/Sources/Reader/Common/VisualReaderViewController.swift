@@ -76,11 +76,11 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 //            return false
 //        })
 
-        /// This adapter will automatically turn pages when the user taps the
-        /// screen edges or press arrow keys.
-        ///
-        /// Bind it to the navigator before adding your own observers to prevent
-        /// triggering your actions when turning pages.
+        // This adapter will automatically turn pages when the user taps the
+        // screen edges or press arrow keys.
+        //
+        // Bind it to the navigator before adding your own observers to prevent
+        // triggering your actions when turning pages.
         DirectionalNavigationAdapter(
             pointerPolicy: .init(types: [.mouse, .touch])
         ).bind(to: navigator)
