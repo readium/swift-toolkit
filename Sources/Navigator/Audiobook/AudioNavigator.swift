@@ -478,7 +478,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
                 resourceIndex = newResourceIndex
                 loadedTimeRangesTimer.fire()
-                await delegate?.navigator(self, loadedTimeRangesDidChange: [])
+                delegate?.navigator(self, loadedTimeRangesDidChange: [])
             }
 
             // Seeks to time
@@ -486,7 +486,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
             let finished = await player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
             if finished {
-                await delegate?.navigator(self, didJumpTo: locator)
+                delegate?.navigator(self, didJumpTo: locator)
             }
 
             if wasPlaying {

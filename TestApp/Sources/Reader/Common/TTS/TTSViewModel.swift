@@ -10,6 +10,7 @@ import MediaPlayer
 import ReadiumNavigator
 import ReadiumShared
 
+@MainActor
 final class TTSViewModel: ObservableObject, Loggable {
     struct State: Equatable {
         /// Whether the TTS was enabled by the user.
@@ -18,6 +19,7 @@ final class TTSViewModel: ObservableObject, Loggable {
         var isPlaying: Bool = false
     }
 
+    @MainActor
     struct Settings: Equatable {
         /// Currently selected user preferences.
         let config: PublicationSpeechSynthesizer.Configuration

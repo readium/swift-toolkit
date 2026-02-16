@@ -9,7 +9,7 @@ import ReadiumShared
 
 /// Default implementation of ``PublicationParser`` handling all the
 /// publication formats supported by Readium.
-public final class DefaultPublicationParser: CompositePublicationParser {
+public final class DefaultPublicationParser: CompositePublicationParser, @unchecked Sendable {
     public init(
         httpClient: HTTPClient,
         assetRetriever: AssetRetriever,

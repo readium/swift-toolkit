@@ -77,6 +77,7 @@ public class AVTTSEngine: NSObject, TTSEngine, Loggable {
         _ utterance: TTSUtterance,
         onSpeakRange: @escaping (Range<String.Index>) -> Void
     ) async -> Result<Void, TTSError> {
+        
         let task = UtteranceTask(
             utterance: utterance,
             onSpeakRange: onSpeakRange

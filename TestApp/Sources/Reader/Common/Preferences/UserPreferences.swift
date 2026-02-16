@@ -10,6 +10,7 @@ import ReadiumNavigator
 import ReadiumShared
 import SwiftUI
 
+@MainActor
 final class UserPreferencesViewModel<
     S: ConfigurableSettings,
     P: ConfigurablePreferences,

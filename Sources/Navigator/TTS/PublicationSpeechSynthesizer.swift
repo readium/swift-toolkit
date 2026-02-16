@@ -92,9 +92,9 @@ public class PublicationSpeechSynthesizer: Loggable {
                 AudioSession.shared.user(audioSessionUser, didChangePlaying: state.isPlaying)
             }
 
-            Task {
-                await delegate?.publicationSpeechSynthesizer(self, stateDidChange: state)
-            }
+//            Task {
+                delegate?.publicationSpeechSynthesizer(self, stateDidChange: state)
+//            }
         }
     }
 
@@ -307,7 +307,7 @@ public class PublicationSpeechSynthesizer: Loggable {
             await playNextUtterance(.forward)
         case let .failure(error):
             state = .paused(utterance)
-            await delegate?.publicationSpeechSynthesizer(self, utterance: utterance, didFailWithError: .engine(error))
+            delegate?.publicationSpeechSynthesizer(self, utterance: utterance, didFailWithError: .engine(error))
         }
     }
 

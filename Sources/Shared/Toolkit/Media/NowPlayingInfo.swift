@@ -64,8 +64,14 @@ import UIKit
             guard oldValue != media else {
                 return
             }
-            mpArtwork = media?.artwork.map { image in
-                MPMediaItemArtwork(boundsSize: image.size, requestHandler: { _ in image })
+            if let image = media?.artwork {
+                let size = image.size
+                let imageToReturn = image
+                self.mpArtwork = MPMediaItemArtwork(boundsSize: size) { @Sendable _ in
+                    return imageToReturn
+                }
+            } else {
+                self.mpArtwork = nil
             }
             playback.clear()
             update()
