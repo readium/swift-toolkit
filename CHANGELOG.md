@@ -13,6 +13,17 @@ All notable changes to this project will be documented in this file. Take a look
     * Persist across app reinstalls.
     * Optionally synchronized across devices via iCloud Keychain.
 
+### Deprecated
+
+#### Navigator
+
+* `CBZNavigatorViewController` is now deprecated.
+    * Open CBZ publications with `EPUBNavigatorViewController` instead, which has more configuration options and preferences.
+
+#### LCP
+
+* `ReadiumAdapterLCPSQLite` is now deprecated in favor of the built-in Keychain repositories. See [the migration guide](docs/Migration%20Guide.md) for instructions.
+
 ### Fixed
 
 * Fixed casting of `ResourceProperties`'s `mediaType` (contributed by [@lbeus](https://github.com/readium/swift-toolkit/pull/719)).
@@ -25,12 +36,6 @@ All notable changes to this project will be documented in this file. Take a look
 #### LCP
 
 * Fixed the `print` method consuming copy rights instead of print rights.
-
-### Deprecated
-
-#### LCP
-
-* `ReadiumAdapterLCPSQLite` is now deprecated in favor of the built-in Keychain repositories. See [the migration guide](docs/Migration%20Guide.md) for instructions.
 
 
 ## [3.7.0]
