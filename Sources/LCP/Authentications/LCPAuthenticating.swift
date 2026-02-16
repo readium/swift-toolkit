@@ -68,8 +68,4 @@ public struct LCPAuthenticatedLicense {
 
     /// License Document being opened.
     public let document: LicenseDocument
-
-    init(document: LicenseDocument) {
-        self.document = document
-    }
 }

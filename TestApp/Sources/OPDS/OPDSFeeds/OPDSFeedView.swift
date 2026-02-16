@@ -70,7 +70,6 @@ struct OPDSFeedView: View {
             }
     }
 
-    @ViewBuilder
     private var mainContent: some View {
         Group {
             // If the feed is only publications, show a grid.
@@ -107,7 +106,6 @@ struct OPDSFeedView: View {
         }
     }
 
-    @ViewBuilder
     private func buildFacetView() -> some View {
         OPDSFacetView(facets: viewModel.feed?.facets ?? []) { link in
             if let url = URL(string: link.href) {
@@ -118,7 +116,6 @@ struct OPDSFeedView: View {
 
     // MARK: - List View Builders
 
-    @ViewBuilder
     private func buildListView() -> some View {
         ScrollView {
             LazyVStack(spacing: 0) {
@@ -212,7 +209,6 @@ struct OPDSFeedView: View {
         buildNavigationList(navigation, isRootList: true)
     }
 
-    @ViewBuilder
     private func buildGroupsSection(_ groups: [ReadiumShared.Group]) -> some View {
         ForEach(Array(groups.enumerated()), id: \.element.metadata.title) { _, group in
             HStack {
@@ -254,7 +250,6 @@ struct OPDSFeedView: View {
         }
     }
 
-    @ViewBuilder
     private func buildNavigationList(_ navigation: [ReadiumShared.Link], isRootList: Bool) -> some View {
         ForEach(navigation.indices, id: \.self) { index in
             let link = navigation[index]

@@ -5,33 +5,31 @@
 //
 
 import Foundation
-
-import Foundation
 @testable import ReadiumShared
 import XCTest
 
 class RelativeURLTests: XCTestCase {
-    func testEquality() {
+    func testEquality() throws {
         XCTAssertEqual(
-            RelativeURL(string: "dir/file")!,
-            RelativeURL(string: "dir/file")!
+            RelativeURL(string: "dir/file"),
+            RelativeURL(string: "dir/file")
         )
         XCTAssertNotEqual(
-            RelativeURL(string: "dir/file/")!,
-            RelativeURL(string: "dir/file")!
+            try XCTUnwrap(RelativeURL(string: "dir/file/")),
+            try XCTUnwrap(RelativeURL(string: "dir/file"))
         )
         XCTAssertNotEqual(
-            RelativeURL(string: "dir")!,
-            RelativeURL(string: "dir/file")!
+            try XCTUnwrap(RelativeURL(string: "dir")),
+            try XCTUnwrap(RelativeURL(string: "dir/file"))
         )
     }
 
     // MARK: - URLProtocol
 
-    func testCreateFromURL() {
-        XCTAssertNil(RelativeURL(url: URL(string: "https://domain.com")!))
+    func testCreateFromURL() throws {
+        XCTAssertNil(try RelativeURL(url: XCTUnwrap(URL(string: "https://domain.com"))))
         XCTAssertNil(RelativeURL(url: URL(fileURLWithPath: "/dir/file")))
-        XCTAssertEqual(RelativeURL(url: URL(string: "/dir/file")!)?.string, "/dir/file")
+        XCTAssertEqual(try RelativeURL(url: XCTUnwrap(URL(string: "/dir/file")))?.string, "/dir/file")
     }
 
     func testCreateFromPath() {
@@ -70,7 +68,7 @@ class RelativeURLTests: XCTestCase {
     }
 
     func testURL() {
-        XCTAssertEqual(RelativeURL(string: "foo/bar?query#fragment")?.url, URL(string: "foo/bar?query#fragment")!)
+        XCTAssertEqual(RelativeURL(string: "foo/bar?query#fragment")?.url, URL(string: "foo/bar?query#fragment"))
     }
 
     func testString() {
@@ -87,8 +85,8 @@ class RelativeURLTests: XCTestCase {
         XCTAssertEqual(RelativeURL(string: "?query")?.path, "")
     }
 
-    func testAppendingPath() {
-        var base = RelativeURL(string: "foo/bar")!
+    func testAppendingPath() throws {
+        var base = try XCTUnwrap(RelativeURL(string: "foo/bar"))
         XCTAssertEqual(base.appendingPath("", isDirectory: false).string, "foo/bar")
         XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false).string, "foo/bar/baz/quz")
         XCTAssertEqual(base.appendingPath("/baz/quz", isDirectory: false).string, "foo/bar/baz/quz")
@@ -102,7 +100,7 @@ class RelativeURLTests: XCTestCase {
         XCTAssertEqual(base.appendingPath("baz/quz/", isDirectory: false).string, "foo/bar/baz/quz")
 
         // With trailing slash.
-        base = RelativeURL(string: "foo/bar/")!
+        base = try XCTUnwrap(RelativeURL(string: "foo/bar/"))
         XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false).string, "foo/bar/baz/quz")
     }
 
@@ -126,12 +124,12 @@ class RelativeURLTests: XCTestCase {
     }
 
     func testRemovingLastPathSegment() {
-        XCTAssertEqual(RelativeURL(string: "foo")!.removingLastPathSegment().string, "./")
-        XCTAssertEqual(RelativeURL(string: "foo/bar")!.removingLastPathSegment().string, "foo/")
-        XCTAssertEqual(RelativeURL(string: "foo/bar/")!.removingLastPathSegment().string, "foo/")
-        XCTAssertEqual(RelativeURL(string: "/foo")!.removingLastPathSegment().string, "/")
-        XCTAssertEqual(RelativeURL(string: "/foo/bar")!.removingLastPathSegment().string, "/foo/")
-        XCTAssertEqual(RelativeURL(string: "/foo/bar/")!.removingLastPathSegment().string, "/foo/")
+        XCTAssertEqual(RelativeURL(string: "foo")?.removingLastPathSegment().string, "./")
+        XCTAssertEqual(RelativeURL(string: "foo/bar")?.removingLastPathSegment().string, "foo/")
+        XCTAssertEqual(RelativeURL(string: "foo/bar/")?.removingLastPathSegment().string, "foo/")
+        XCTAssertEqual(RelativeURL(string: "/foo")?.removingLastPathSegment().string, "/")
+        XCTAssertEqual(RelativeURL(string: "/foo/bar")?.removingLastPathSegment().string, "/foo/")
+        XCTAssertEqual(RelativeURL(string: "/foo/bar/")?.removingLastPathSegment().string, "/foo/")
     }
 
     func testPathExtension() {
@@ -142,11 +140,11 @@ class RelativeURLTests: XCTestCase {
     }
 
     func testReplacingPathExtension() {
-        XCTAssertEqual(RelativeURL(string: "/foo/bar")!.replacingPathExtension("xml").string, "/foo/bar.xml")
-        XCTAssertEqual(RelativeURL(string: "/foo/bar.txt")!.replacingPathExtension("xml").string, "/foo/bar.xml")
-        XCTAssertEqual(RelativeURL(string: "/foo/bar.txt")!.replacingPathExtension(nil).string, "/foo/bar")
-        XCTAssertEqual(RelativeURL(string: "/foo/bar/")!.replacingPathExtension("xml").string, "/foo/bar/")
-        XCTAssertEqual(RelativeURL(string: "/foo/bar/")!.replacingPathExtension(nil).string, "/foo/bar/")
+        XCTAssertEqual(RelativeURL(string: "/foo/bar")?.replacingPathExtension("xml").string, "/foo/bar.xml")
+        XCTAssertEqual(RelativeURL(string: "/foo/bar.txt")?.replacingPathExtension("xml").string, "/foo/bar.xml")
+        XCTAssertEqual(RelativeURL(string: "/foo/bar.txt")?.replacingPathExtension(nil).string, "/foo/bar")
+        XCTAssertEqual(RelativeURL(string: "/foo/bar/")?.replacingPathExtension("xml").string, "/foo/bar/")
+        XCTAssertEqual(RelativeURL(string: "/foo/bar/")?.replacingPathExtension(nil).string, "/foo/bar/")
     }
 
     func testQuery() {
@@ -158,8 +156,8 @@ class RelativeURLTests: XCTestCase {
     }
 
     func testRemovingQuery() {
-        XCTAssertEqual(RelativeURL(string: "foo/bar")?.removingQuery(), RelativeURL(string: "foo/bar")!)
-        XCTAssertEqual(RelativeURL(string: "foo/bar?param=quz%20baz")?.removingQuery(), RelativeURL(string: "foo/bar")!)
+        XCTAssertEqual(RelativeURL(string: "foo/bar")?.removingQuery(), RelativeURL(string: "foo/bar"))
+        XCTAssertEqual(RelativeURL(string: "foo/bar?param=quz%20baz")?.removingQuery(), RelativeURL(string: "foo/bar"))
     }
 
     func testFragment() {
@@ -168,59 +166,59 @@ class RelativeURLTests: XCTestCase {
     }
 
     func testRemovingFragment() {
-        XCTAssertEqual(RelativeURL(string: "foo/bar")?.removingFragment(), RelativeURL(string: "foo/bar")!)
-        XCTAssertEqual(RelativeURL(string: "foo/bar#quz%20baz")?.removingFragment(), RelativeURL(string: "foo/bar")!)
+        XCTAssertEqual(RelativeURL(string: "foo/bar")?.removingFragment(), RelativeURL(string: "foo/bar"))
+        XCTAssertEqual(RelativeURL(string: "foo/bar#quz%20baz")?.removingFragment(), RelativeURL(string: "foo/bar"))
     }
 
     // MARK: - RelativeURL
 
-    func testResolveURLConvertible() {
-        let base = RelativeURL(string: "foo/bar")!
-        XCTAssertEqual(base.resolve(AnyURL(string: "quz")!)?.string, "foo/quz")
-        XCTAssertEqual(base.resolve(HTTPURL(string: "http://domain.com")!)!.string, "http://domain.com")
-        XCTAssertEqual(base.resolve(FileURL(string: "file:///foo")!)!.string, "file:///foo")
+    func testResolveURLConvertible() throws {
+        let base = try XCTUnwrap(RelativeURL(string: "foo/bar"))
+        XCTAssertEqual(try base.resolve(XCTUnwrap(AnyURL(string: "quz")))?.string, "foo/quz")
+        XCTAssertEqual(try base.resolve(XCTUnwrap(HTTPURL(string: "http://domain.com")))?.string, "http://domain.com")
+        XCTAssertEqual(try base.resolve(XCTUnwrap(FileURL(string: "file:///foo")))?.string, "file:///foo")
     }
 
-    func testResolveRelativeURL() {
-        var base = RelativeURL(string: "foo/bar")!
-        XCTAssertEqual(base.resolve(RelativeURL(string: "quz/baz")!)!, RelativeURL(string: "foo/quz/baz")!)
-        XCTAssertEqual(base.resolve(RelativeURL(string: "../quz/baz")!)!, RelativeURL(string: "quz/baz")!)
-        XCTAssertEqual(base.resolve(RelativeURL(string: "/quz/baz")!)!, RelativeURL(string: "/quz/baz")!)
-        XCTAssertEqual(base.resolve(RelativeURL(string: "#fragment")!)!, RelativeURL(string: "foo/bar#fragment")!)
+    func testResolveRelativeURL() throws {
+        var base = try XCTUnwrap(RelativeURL(string: "foo/bar"))
+        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "quz/baz"))), RelativeURL(string: "foo/quz/baz"))
+        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "../quz/baz"))), RelativeURL(string: "quz/baz"))
+        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "/quz/baz"))), RelativeURL(string: "/quz/baz"))
+        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "#fragment"))), RelativeURL(string: "foo/bar#fragment"))
 
         // With trailing slash
-        base = RelativeURL(string: "foo/bar/")!
-        XCTAssertEqual(base.resolve(RelativeURL(string: "quz/baz")!)!, RelativeURL(string: "foo/bar/quz/baz")!)
-        XCTAssertEqual(base.resolve(RelativeURL(string: "../quz/baz")!)!, RelativeURL(string: "foo/quz/baz")!)
+        base = try XCTUnwrap(RelativeURL(string: "foo/bar/"))
+        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "quz/baz"))), RelativeURL(string: "foo/bar/quz/baz"))
+        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "../quz/baz"))), RelativeURL(string: "foo/quz/baz"))
 
         // With starting slash
-        base = RelativeURL(string: "/foo/bar")!
-        XCTAssertEqual(base.resolve(RelativeURL(string: "quz/baz")!)!, RelativeURL(string: "/foo/quz/baz")!)
-        XCTAssertEqual(base.resolve(RelativeURL(string: "/quz/baz")!)!, RelativeURL(string: "/quz/baz")!)
+        base = try XCTUnwrap(RelativeURL(string: "/foo/bar"))
+        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "quz/baz"))), RelativeURL(string: "/foo/quz/baz"))
+        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "/quz/baz"))), RelativeURL(string: "/quz/baz"))
     }
 
-    func testRelativize() {
-        var base = RelativeURL(string: "foo")!
+    func testRelativize() throws {
+        var base = try XCTUnwrap(RelativeURL(string: "foo"))
 
-        XCTAssertEqual(base.relativize(AnyURL(string: "foo/quz/baz")!)!, RelativeURL(string: "quz/baz")!)
-        XCTAssertEqual(base.relativize(AnyURL(string: "foo#fragment")!)!, RelativeURL(string: "#fragment")!)
-        XCTAssertNil(base.relativize(AnyURL(string: "quz/baz")!))
-        XCTAssertNil(base.relativize(AnyURL(string: "/foo/bar")!))
+        XCTAssertEqual(try base.relativize(XCTUnwrap(AnyURL(string: "foo/quz/baz"))), RelativeURL(string: "quz/baz"))
+        XCTAssertEqual(try base.relativize(XCTUnwrap(AnyURL(string: "foo#fragment"))), RelativeURL(string: "#fragment"))
+        XCTAssertNil(try base.relativize(XCTUnwrap(AnyURL(string: "quz/baz"))))
+        XCTAssertNil(try base.relativize(XCTUnwrap(AnyURL(string: "/foo/bar"))))
 
         // With trailing slash
-        base = RelativeURL(string: "foo/")!
-        XCTAssertEqual(base.relativize(AnyURL(string: "foo/quz/baz")!)!, RelativeURL(string: "quz/baz")!)
+        base = try XCTUnwrap(RelativeURL(string: "foo/"))
+        XCTAssertEqual(try base.relativize(XCTUnwrap(AnyURL(string: "foo/quz/baz"))), RelativeURL(string: "quz/baz"))
 
         // With starting slash
-        base = RelativeURL(string: "/foo")!
-        XCTAssertEqual(base.relativize(AnyURL(string: "/foo/quz/baz")!)!, RelativeURL(string: "quz/baz")!)
-        XCTAssertNil(base.relativize(AnyURL(string: "foo/quz")!))
-        XCTAssertNil(base.relativize(AnyURL(string: "/quz/baz")!))
+        base = try XCTUnwrap(RelativeURL(string: "/foo"))
+        XCTAssertEqual(try base.relativize(XCTUnwrap(AnyURL(string: "/foo/quz/baz"))), RelativeURL(string: "quz/baz"))
+        XCTAssertNil(try base.relativize(XCTUnwrap(AnyURL(string: "foo/quz"))))
+        XCTAssertNil(try base.relativize(XCTUnwrap(AnyURL(string: "/quz/baz"))))
     }
 
-    func testRelativizeAbsoluteURL() {
-        let base = RelativeURL(string: "foo")!
-        XCTAssertNil(base.relativize(HTTPURL(string: "http://example.com/foo/bar")!))
-        XCTAssertNil(base.relativize(FileURL(string: "file:///foo")!))
+    func testRelativizeAbsoluteURL() throws {
+        let base = try XCTUnwrap(RelativeURL(string: "foo"))
+        XCTAssertNil(try base.relativize(XCTUnwrap(HTTPURL(string: "http://example.com/foo/bar"))))
+        XCTAssertNil(try base.relativize(XCTUnwrap(FileURL(string: "file:///foo"))))
     }
 }

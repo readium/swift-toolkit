@@ -31,7 +31,9 @@ open class InputObservableViewController: UIViewController, InputObservable {
 
     // MARK: - UIResponder
 
-    override open var canBecomeFirstResponder: Bool { true }
+    override open var canBecomeFirstResponder: Bool {
+        true
+    }
 
     override open func resignFirstResponder() -> Bool {
         // Force end editing of the view to make sure any subview is also
@@ -197,7 +199,6 @@ extension Key {
             self = .shift
         case .keyboardEscape:
             self = .escape
-
         default:
             let character = key.charactersIgnoringModifiers
             guard character != "" else {

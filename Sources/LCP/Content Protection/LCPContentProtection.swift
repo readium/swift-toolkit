@@ -56,7 +56,6 @@ final class LCPContentProtection: ContentProtection, Loggable {
         return await asset.resource.readAsLCPL()
             .mapError { .reading($0) }
             .asyncFlatMap { licenseDocument in
-
                 await assetRetriever.retrieve(link: licenseDocument.publicationLink)
                     .flatMap { publicationAsset in
                         switch publicationAsset {

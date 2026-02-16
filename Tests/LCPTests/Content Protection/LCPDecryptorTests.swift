@@ -34,7 +34,7 @@ class LCPDecryptorTests: XCTestCase {
     }
 
     /// Checks that we can decrypt the full content successfully.
-    func testDecryptFull() throws {
+    func testDecryptFull() {
         retrieveLicense(path: "daisy.lcpdf", passphrase: "test") { license in
             let decryptedResource = LCPDecryptor(license: license).decrypt(resource: self.encryptedResource)
 
@@ -43,7 +43,7 @@ class LCPDecryptorTests: XCTestCase {
     }
 
     /// Checks that we can decrypt various ranges successfully.
-    func testDecryptRanges() throws {
+    func testDecryptRanges() {
         retrieveLicense(path: "daisy.lcpdf", passphrase: "test") { license in
             let decryptedResource = LCPDecryptor(license: license).decrypt(resource: self.encryptedResource)
 

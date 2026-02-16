@@ -58,7 +58,9 @@ open class PDFNavigatorViewController:
 
     /// Whether the pages is always scaled to fit the screen, unless the user zoomed in.
     @available(*, unavailable, message: "This API is deprecated")
-    public var scalesDocumentToFit: Bool { true }
+    public var scalesDocumentToFit: Bool {
+        true
+    }
 
     public weak var delegate: PDFNavigatorDelegate?
     public private(set) var pdfView: PDFDocumentView?
@@ -589,7 +591,9 @@ open class PDFNavigatorViewController:
 
     // MARK: - SelectableNavigator
 
-    public var currentSelection: Selection? { editingActions.selection }
+    public var currentSelection: Selection? {
+        editingActions.selection
+    }
 
     public func clearSelection() {
         pdfView?.clearSelection()
@@ -658,7 +662,7 @@ open class PDFNavigatorViewController:
 
     public var currentLocation: Locator? {
         currentPosition?.copy(text: { [weak self] in
-            /// Adds some context for bookmarking
+            // Adds some context for bookmarking
             if let page = self?.pdfView?.currentPage {
                 $0 = .init(highlight: String(page.string?.prefix(280) ?? ""))
             }

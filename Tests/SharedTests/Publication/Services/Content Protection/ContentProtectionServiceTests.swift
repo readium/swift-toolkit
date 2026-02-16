@@ -8,17 +8,17 @@
 import XCTest
 
 class ContentProtectionServiceTests: XCTestCase {
-    func testGetUnknown() {
+    func testGetUnknown() throws {
         let service = TestContentProtectionService()
 
-        let resource = service.get(AnyURL(string: "/unknown")!)
+        let resource = try service.get(XCTUnwrap(AnyURL(string: "/unknown")))
 
         XCTAssertNil(resource)
     }
 
     /// The Publication helpers will use the `ContentProtectionService` if there's one.
-    func testPublicationHelpers() async {
-        let scheme = ContentProtectionScheme(rawValue: HTTPURL(string: "https://domain.com/drm")!)
+    func testPublicationHelpers() async throws {
+        let scheme = try ContentProtectionScheme(rawValue: XCTUnwrap(HTTPURL(string: "https://domain.com/drm")))
         let publication = makePublication(service: { _ in
             TestContentProtectionService(
                 scheme: scheme,
@@ -87,10 +87,10 @@ class ContentProtectionServiceTests: XCTestCase {
 struct TestContentProtectionService: ContentProtectionService {
     var scheme: ContentProtectionScheme = .init(rawValue: HTTPURL(string: "https://domain.com/drm")!)
     var isRestricted: Bool = false
-    var error: Error? = nil
-    var credentials: String? = nil
+    var error: Error?
+    var credentials: String?
     var rights: UserRights = UnrestrictedUserRights()
-    var name: LocalizedString? = nil
+    var name: LocalizedString?
 
     func getCopy(text: String, peek: Bool) throws -> Resource {
         try XCTUnwrap(get(AnyURL(string: "~readium/rights/copy?text=\(text)&peek=\(peek)")!))

@@ -29,8 +29,8 @@ open class TransformingResource: Resource {
         await _transform!(data)
     }
 
-    // As the resource is transformed, we can't use the original source URL
-    // as reference.
+    /// As the resource is transformed, we can't use the original source URL
+    /// as reference.
     public let sourceURL: AbsoluteURL? = nil
 
     open func estimatedLength() async -> ReadResult<UInt64?> {

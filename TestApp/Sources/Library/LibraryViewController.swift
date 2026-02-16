@@ -199,11 +199,11 @@ extension LibraryViewController {
 // MARK: - UIDocumentPickerDelegate.
 
 extension LibraryViewController: UIDocumentPickerDelegate {
-    public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         importFiles(at: urls)
     }
 
-    public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
         importFiles(at: [url])
     }
 
@@ -266,7 +266,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         return cell
     }
 
-    internal func defaultCover(layout: UICollectionViewFlowLayout?, description: String) -> UITextView {
+    func defaultCover(layout: UICollectionViewFlowLayout?, description: String) -> UITextView {
         let width = layout?.itemSize.width ?? 0
         let height = layout?.itemSize.height ?? 0
         let titleTextView = UITextView(frame: CGRect(x: 0, y: 0, width: width, height: height))
@@ -352,8 +352,8 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
         }
     }
 
-    // Used to reset ui of the last flipped cell, we must not have two cells
-    // flipped at the same time
+    /// Used to reset ui of the last flipped cell, we must not have two cells
+    /// flipped at the same time
     func cellFlipped(_ cell: PublicationCollectionViewCell) {
         lastFlippedCell?.flipMenu()
         lastFlippedCell = cell

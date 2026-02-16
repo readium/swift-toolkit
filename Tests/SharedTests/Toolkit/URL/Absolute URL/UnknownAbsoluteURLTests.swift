@@ -9,21 +9,21 @@ import Foundation
 import XCTest
 
 class UnknownAbsoluteURLTests: XCTestCase {
-    func testEquality() {
+    func testEquality() throws {
         XCTAssertEqual(
-            UnknownAbsoluteURL(string: "opds://domain.com")!,
-            UnknownAbsoluteURL(string: "opds://domain.com")!
+            UnknownAbsoluteURL(string: "opds://domain.com"),
+            UnknownAbsoluteURL(string: "opds://domain.com")
         )
         XCTAssertNotEqual(
-            UnknownAbsoluteURL(string: "opds://domain.com")!,
-            UnknownAbsoluteURL(string: "opds://domain.com#fragment")!
+            try XCTUnwrap(UnknownAbsoluteURL(string: "opds://domain.com")),
+            try XCTUnwrap(UnknownAbsoluteURL(string: "opds://domain.com#fragment"))
         )
     }
 
     // MARK: - URLProtocol
 
-    func testCreateFromURL() {
-        XCTAssertEqual(UnknownAbsoluteURL(url: URL(string: "opds://callback")!)?.string, "opds://callback")
+    func testCreateFromURL() throws {
+        XCTAssertEqual(try UnknownAbsoluteURL(url: XCTUnwrap(URL(string: "opds://callback")))?.string, "opds://callback")
     }
 
     func testCreateFromString() {
@@ -36,7 +36,7 @@ class UnknownAbsoluteURLTests: XCTestCase {
     }
 
     func testURL() {
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar?query#fragment")?.url, URL(string: "opds://foo/bar?query#fragment")!)
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar?query#fragment")?.url, URL(string: "opds://foo/bar?query#fragment"))
     }
 
     func testString() {
@@ -52,8 +52,8 @@ class UnknownAbsoluteURLTests: XCTestCase {
         XCTAssertEqual(UnknownAbsoluteURL(string: "opds://host?query")?.path, "")
     }
 
-    func testAppendingPath() {
-        var base = UnknownAbsoluteURL(string: "opds://foo/bar")!
+    func testAppendingPath() throws {
+        var base = try XCTUnwrap(UnknownAbsoluteURL(string: "opds://foo/bar"))
         XCTAssertEqual(base.appendingPath("", isDirectory: false).string, "opds://foo/bar")
         XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false).string, "opds://foo/bar/baz/quz")
         XCTAssertEqual(base.appendingPath("/baz/quz", isDirectory: false).string, "opds://foo/bar/baz/quz")
@@ -67,7 +67,7 @@ class UnknownAbsoluteURLTests: XCTestCase {
         XCTAssertEqual(base.appendingPath("baz/quz/", isDirectory: false).string, "opds://foo/bar/baz/quz")
 
         // With trailing slash.
-        base = UnknownAbsoluteURL(string: "opds://foo/bar/")!
+        base = try XCTUnwrap(UnknownAbsoluteURL(string: "opds://foo/bar/"))
         XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false).string, "opds://foo/bar/baz/quz")
     }
 
@@ -90,10 +90,10 @@ class UnknownAbsoluteURLTests: XCTestCase {
     }
 
     func testRemovingLastPathSegment() {
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://")!.removingLastPathSegment().string, "opds://")
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo")!.removingLastPathSegment().string, "opds://foo")
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar")!.removingLastPathSegment().string, "opds://foo/")
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar/baz")!.removingLastPathSegment().string, "opds://foo/bar/")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://")?.removingLastPathSegment().string, "opds://")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo")?.removingLastPathSegment().string, "opds://foo")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar")?.removingLastPathSegment().string, "opds://foo/")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar/baz")?.removingLastPathSegment().string, "opds://foo/bar/")
     }
 
     func testPathExtension() {
@@ -104,12 +104,12 @@ class UnknownAbsoluteURLTests: XCTestCase {
     }
 
     func testReplacingPathExtension() {
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar")!.replacingPathExtension("xml").string, "opds://foo/bar.xml")
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar.txt")!.replacingPathExtension("xml").string, "opds://foo/bar.xml")
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar.txt")!.replacingPathExtension(nil).string, "opds://foo/bar")
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar/")!.replacingPathExtension("xml").string, "opds://foo/bar/")
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar/")!.replacingPathExtension(nil).string, "opds://foo/bar/")
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo")!.replacingPathExtension("xml").string, "opds://foo")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar")?.replacingPathExtension("xml").string, "opds://foo/bar.xml")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar.txt")?.replacingPathExtension("xml").string, "opds://foo/bar.xml")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar.txt")?.replacingPathExtension(nil).string, "opds://foo/bar")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar/")?.replacingPathExtension("xml").string, "opds://foo/bar/")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar/")?.replacingPathExtension(nil).string, "opds://foo/bar/")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo")?.replacingPathExtension("xml").string, "opds://foo")
     }
 
     func testQuery() {
@@ -121,8 +121,8 @@ class UnknownAbsoluteURLTests: XCTestCase {
     }
 
     func testRemovingQuery() {
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar")?.removingQuery(), UnknownAbsoluteURL(string: "opds://foo/bar")!)
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar?param=quz%20baz")?.removingQuery(), UnknownAbsoluteURL(string: "opds://foo/bar")!)
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar")?.removingQuery(), UnknownAbsoluteURL(string: "opds://foo/bar"))
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar?param=quz%20baz")?.removingQuery(), UnknownAbsoluteURL(string: "opds://foo/bar"))
     }
 
     func testFragment() {
@@ -131,8 +131,8 @@ class UnknownAbsoluteURLTests: XCTestCase {
     }
 
     func testRemovingFragment() {
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar")?.removingFragment(), UnknownAbsoluteURL(string: "opds://foo/bar")!)
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar#quz%20baz")?.removingFragment(), UnknownAbsoluteURL(string: "opds://foo/bar")!)
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar")?.removingFragment(), UnknownAbsoluteURL(string: "opds://foo/bar"))
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://foo/bar#quz%20baz")?.removingFragment(), UnknownAbsoluteURL(string: "opds://foo/bar"))
     }
 
     // MARK: - AbsoluteURL
@@ -143,74 +143,74 @@ class UnknownAbsoluteURLTests: XCTestCase {
     }
 
     func testHost() {
-        XCTAssertNil(UnknownAbsoluteURL(string: "opds://")!.host)
-        XCTAssertNil(UnknownAbsoluteURL(string: "opds:///")!.host)
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://domain")!.host, "domain")
-        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://domain/path")!.host, "domain")
+        XCTAssertNil(UnknownAbsoluteURL(string: "opds://")?.host)
+        XCTAssertNil(UnknownAbsoluteURL(string: "opds:///")?.host)
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://domain")?.host, "domain")
+        XCTAssertEqual(UnknownAbsoluteURL(string: "opds://domain/path")?.host, "domain")
     }
 
     func testOrigin() {
-        XCTAssertNil(UnknownAbsoluteURL(string: "opds://foo/bar")!.origin)
+        XCTAssertNil(UnknownAbsoluteURL(string: "opds://foo/bar")?.origin)
     }
 
-    func testResolveAbsoluteURL() {
-        let base = UnknownAbsoluteURL(string: "opds://host/foo/bar")!
-        XCTAssertEqual(base.resolve(UnknownAbsoluteURL(string: "opds://other")!)!.string, "opds://other")
-        XCTAssertEqual(base.resolve(HTTPURL(string: "http://domain.com")!)!.string, "http://domain.com")
-        XCTAssertEqual(base.resolve(FileURL(string: "file:///foo")!)!.string, "file:///foo")
+    func testResolveAbsoluteURL() throws {
+        let base = try XCTUnwrap(UnknownAbsoluteURL(string: "opds://host/foo/bar"))
+        XCTAssertEqual(try base.resolve(XCTUnwrap(UnknownAbsoluteURL(string: "opds://other")))?.string, "opds://other")
+        XCTAssertEqual(try base.resolve(XCTUnwrap(HTTPURL(string: "http://domain.com")))?.string, "http://domain.com")
+        XCTAssertEqual(try base.resolve(XCTUnwrap(FileURL(string: "file:///foo")))?.string, "file:///foo")
     }
 
-    func testResolveRelativeURL() {
-        var base = UnknownAbsoluteURL(string: "opds://host/foo/bar")!
-        XCTAssertEqual(base.resolve(RelativeURL(string: "quz/baz")!)!, UnknownAbsoluteURL(string: "opds://host/foo/quz/baz")!)
-        XCTAssertEqual(base.resolve(RelativeURL(string: "../quz/baz")!)!, UnknownAbsoluteURL(string: "opds://host/quz/baz")!)
-        XCTAssertEqual(base.resolve(RelativeURL(string: "/quz/baz")!)!, UnknownAbsoluteURL(string: "opds://host/quz/baz")!)
-        XCTAssertEqual(base.resolve(RelativeURL(string: "#fragment")!)!, UnknownAbsoluteURL(string: "opds://host/foo/bar#fragment")!)
+    func testResolveRelativeURL() throws {
+        var base = try XCTUnwrap(UnknownAbsoluteURL(string: "opds://host/foo/bar"))
+        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "quz/baz"))), UnknownAbsoluteURL(string: "opds://host/foo/quz/baz"))
+        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "../quz/baz"))), UnknownAbsoluteURL(string: "opds://host/quz/baz"))
+        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "/quz/baz"))), UnknownAbsoluteURL(string: "opds://host/quz/baz"))
+        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "#fragment"))), UnknownAbsoluteURL(string: "opds://host/foo/bar#fragment"))
 
         // With trailing slash
-        base = UnknownAbsoluteURL(string: "opds://host/foo/bar/")!
-        XCTAssertEqual(base.resolve(RelativeURL(string: "quz/baz")!)!, UnknownAbsoluteURL(string: "opds://host/foo/bar/quz/baz")!)
-        XCTAssertEqual(base.resolve(RelativeURL(string: "../quz/baz")!)!, UnknownAbsoluteURL(string: "opds://host/foo/quz/baz")!)
+        base = try XCTUnwrap(UnknownAbsoluteURL(string: "opds://host/foo/bar/"))
+        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "quz/baz"))), UnknownAbsoluteURL(string: "opds://host/foo/bar/quz/baz"))
+        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "../quz/baz"))), UnknownAbsoluteURL(string: "opds://host/foo/quz/baz"))
     }
 
-    func testRelativize() {
-        var base = UnknownAbsoluteURL(string: "opds://host/foo")!
+    func testRelativize() throws {
+        var base = try XCTUnwrap(UnknownAbsoluteURL(string: "opds://host/foo"))
 
-        XCTAssertNil(base.relativize(AnyURL(string: "opds://host/foo")!))
-        XCTAssertEqual(base.relativize(AnyURL(string: "opds://host/foo/quz/baz")!)!, RelativeURL(string: "quz/baz")!)
-        XCTAssertEqual(base.relativize(AnyURL(string: "opds://host/foo#fragment")!)!, RelativeURL(string: "#fragment")!)
-        XCTAssertNil(base.relativize(AnyURL(string: "opds://host/quz/baz")!))
-        XCTAssertNil(base.relativize(AnyURL(string: "opds://host//foo/bar")!))
+        XCTAssertNil(try base.relativize(XCTUnwrap(AnyURL(string: "opds://host/foo"))))
+        XCTAssertEqual(try base.relativize(XCTUnwrap(AnyURL(string: "opds://host/foo/quz/baz"))), RelativeURL(string: "quz/baz"))
+        XCTAssertEqual(try base.relativize(XCTUnwrap(AnyURL(string: "opds://host/foo#fragment"))), RelativeURL(string: "#fragment"))
+        XCTAssertNil(try base.relativize(XCTUnwrap(AnyURL(string: "opds://host/quz/baz"))))
+        XCTAssertNil(try base.relativize(XCTUnwrap(AnyURL(string: "opds://host//foo/bar"))))
 
         // With trailing slash
-        base = UnknownAbsoluteURL(string: "opds://host/foo/")!
-        XCTAssertEqual(base.relativize(AnyURL(string: "opds://host/foo/quz/baz")!)!, RelativeURL(string: "quz/baz")!)
+        base = try XCTUnwrap(UnknownAbsoluteURL(string: "opds://host/foo/"))
+        XCTAssertEqual(try base.relativize(XCTUnwrap(AnyURL(string: "opds://host/foo/quz/baz"))), RelativeURL(string: "quz/baz"))
     }
 
-    func testRelativizeRelativeURL() {
-        let base = UnknownAbsoluteURL(string: "opds://host/foo")!
-        XCTAssertNil(base.relativize(RelativeURL(string: "host/foo/bar")!))
+    func testRelativizeRelativeURL() throws {
+        let base = try XCTUnwrap(UnknownAbsoluteURL(string: "opds://host/foo"))
+        XCTAssertNil(try base.relativize(XCTUnwrap(RelativeURL(string: "host/foo/bar"))))
     }
 
-    func testRelativizeAbsoluteURLWithDifferentScheme() {
-        let base = UnknownAbsoluteURL(string: "opds://host/foo")!
-        XCTAssertNil(base.relativize(HTTPURL(string: "http://host/foo/bar")!))
-        XCTAssertNil(base.relativize(FileURL(string: "file://host/foo/bar")!))
+    func testRelativizeAbsoluteURLWithDifferentScheme() throws {
+        let base = try XCTUnwrap(UnknownAbsoluteURL(string: "opds://host/foo"))
+        XCTAssertNil(try base.relativize(XCTUnwrap(HTTPURL(string: "http://host/foo/bar"))))
+        XCTAssertNil(try base.relativize(XCTUnwrap(FileURL(string: "file://host/foo/bar"))))
     }
 
-    func testIsRelative() {
+    func testIsRelative() throws {
         // Always relative if same scheme.
-        let url = UnknownAbsoluteURL(string: "opds://host/foo/bar")!
-        XCTAssertTrue(url.isRelative(to: UnknownAbsoluteURL(string: "opds://host/foo")!))
-        XCTAssertTrue(url.isRelative(to: UnknownAbsoluteURL(string: "opds://host/foo/bar")!))
-        XCTAssertTrue(url.isRelative(to: UnknownAbsoluteURL(string: "opds://host/foo/bar/baz")!))
-        XCTAssertTrue(url.isRelative(to: UnknownAbsoluteURL(string: "opds://host/bar")!))
-        XCTAssertTrue(url.isRelative(to: UnknownAbsoluteURL(string: "opds://other-host")!))
+        let url = try XCTUnwrap(UnknownAbsoluteURL(string: "opds://host/foo/bar"))
+        XCTAssertTrue(try url.isRelative(to: XCTUnwrap(UnknownAbsoluteURL(string: "opds://host/foo"))))
+        XCTAssertTrue(try url.isRelative(to: XCTUnwrap(UnknownAbsoluteURL(string: "opds://host/foo/bar"))))
+        XCTAssertTrue(try url.isRelative(to: XCTUnwrap(UnknownAbsoluteURL(string: "opds://host/foo/bar/baz"))))
+        XCTAssertTrue(try url.isRelative(to: XCTUnwrap(UnknownAbsoluteURL(string: "opds://host/bar"))))
+        XCTAssertTrue(try url.isRelative(to: XCTUnwrap(UnknownAbsoluteURL(string: "opds://other-host"))))
 
         // Different scheme
-        XCTAssertFalse(url.isRelative(to: UnknownAbsoluteURL(string: "other://host/foo")!))
-        XCTAssertFalse(url.isRelative(to: HTTPURL(string: "http://foo")!))
+        XCTAssertFalse(try url.isRelative(to: XCTUnwrap(UnknownAbsoluteURL(string: "other://host/foo"))))
+        XCTAssertFalse(try url.isRelative(to: XCTUnwrap(HTTPURL(string: "http://foo"))))
         // Relative path
-        XCTAssertFalse(url.isRelative(to: RelativeURL(path: "foo/bar")!))
+        XCTAssertFalse(try url.isRelative(to: XCTUnwrap(RelativeURL(path: "foo/bar"))))
     }
 }

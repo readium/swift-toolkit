@@ -11,17 +11,17 @@ import ReadiumShared
 /// https://github.com/readium/lcp-specs/blob/master/schema/status.schema.json
 public struct StatusDocument {
     public enum Status: String {
-        // The License Document is available, but the user hasn't accessed the License and/or Status Document yet.
+        /// The License Document is available, but the user hasn't accessed the License and/or Status Document yet.
         case ready
-        // The license is active, and a device has been successfully registered for this license. This is the default value if the License Document does not contain a registration link, or a registration mechanism through the license itself.
+        /// The license is active, and a device has been successfully registered for this license. This is the default value if the License Document does not contain a registration link, or a registration mechanism through the license itself.
         case active
-        // The license is no longer active, it has been invalidated by the Issuer.
+        /// The license is no longer active, it has been invalidated by the Issuer.
         case revoked
-        // The license is no longer active, it has been invalidated by the User.
+        /// The license is no longer active, it has been invalidated by the User.
         case returned
-        // The license is no longer active because it was cancelled prior to activation.
+        /// The license is no longer active because it was cancelled prior to activation.
         case cancelled
-        // The license is no longer active because it has expired.
+        /// The license is no longer active because it has expired.
         case expired
     }
 

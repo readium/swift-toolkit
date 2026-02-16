@@ -69,7 +69,7 @@ public struct ComicFormatSniffer: FormatSniffer {
         return nil
     }
 
-    public func sniffContainer<C>(_ container: C, refining format: Format) async -> ReadResult<Format?> where C: Container {
+    public func sniffContainer<C: Container>(_ container: C, refining format: Format) async -> ReadResult<Format?> {
         let entries = container.entries
             .filter {
                 $0.lastPathSegment?.hasPrefix(".") == false &&

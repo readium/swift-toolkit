@@ -49,7 +49,9 @@ public struct JSONWarning: Warning {
     /// Source JSON object.
     public let source: Any?
     public let severity: WarningSeverityLevel
-    public var tag: String { "json" }
+    public var tag: String {
+        "json"
+    }
 
     public var message: String {
         "JSON \(modelType): \(reason)"

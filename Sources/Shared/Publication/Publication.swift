@@ -14,14 +14,31 @@ public class Publication: Closeable, Loggable {
     private let container: Container
     private let services: [PublicationService]
 
-    public var context: [String] { manifest.context }
-    public var metadata: Metadata { manifest.metadata }
-    public var links: [Link] { manifest.links }
+    public var context: [String] {
+        manifest.context
+    }
+
+    public var metadata: Metadata {
+        manifest.metadata
+    }
+
+    public var links: [Link] {
+        manifest.links
+    }
+
     /// Identifies a list of resources in reading order for the publication.
-    public var readingOrder: [Link] { manifest.readingOrder }
+    public var readingOrder: [Link] {
+        manifest.readingOrder
+    }
+
     /// Identifies resources that are necessary for rendering the publication.
-    public var resources: [Link] { manifest.resources }
-    public var subcollections: [String: [PublicationCollection]] { manifest.subcollections }
+    public var resources: [Link] {
+        manifest.resources
+    }
+
+    public var subcollections: [String: [PublicationCollection]] {
+        manifest.subcollections
+    }
 
     public init(
         manifest: Manifest,
@@ -66,7 +83,9 @@ public class Publication: Closeable, Loggable {
     /// The URL where this publication is served, computed from the `Link` with `self` relation.
     ///
     /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
-    public var baseURL: HTTPURL? { manifest.baseURL }
+    public var baseURL: HTTPURL? {
+        manifest.baseURL
+    }
 
     /// Finds the first Link having the given `href` in the publication's links.
     public func linkWithHREF<T: URLConvertible>(_ href: T) -> Link? {

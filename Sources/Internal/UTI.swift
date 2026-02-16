@@ -41,9 +41,13 @@ public struct UTI {
         self.init(type: type)
     }
 
-    public var name: String? { type.localizedDescription }
+    public var name: String? {
+        type.localizedDescription
+    }
 
-    public var string: String { type.identifier }
+    public var string: String {
+        type.identifier
+    }
 
     /// Returns the preferred tag for this `UTI`, with the given type `tagClass`.
     public func preferredTag(withClass tagClass: TagClass) -> String? {

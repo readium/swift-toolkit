@@ -63,9 +63,13 @@ public struct AnyEquatableContentElement: Equatable, ContentElement {
         self.element = element
     }
 
-    public var locator: Locator { element.locator }
+    public var locator: Locator {
+        element.locator
+    }
 
-    public var attributes: [ContentAttribute] { element.attributes }
+    public var attributes: [ContentAttribute] {
+        element.attributes
+    }
 
     public func isEqualTo(_ other: ContentElement) -> Bool {
         element.isEqualTo(other)
@@ -85,7 +89,9 @@ public protocol TextualContentElement: ContentElement {
 }
 
 public extension TextualContentElement {
-    var text: String? { accessibilityLabel }
+    var text: String? {
+        accessibilityLabel
+    }
 }
 
 /// An element referencing an embedded external resource.
@@ -200,8 +206,13 @@ public struct TextContentElement: Hashable, TextualContentElement {
 ///
 /// The `V` phantom type is there to perform static type checking when requesting an attribute.
 public struct ContentAttributeKey<V>: Hashable {
-    public static var accessibilityLabel: ContentAttributeKey<String> { .init("accessibilityLabel") }
-    public static var language: ContentAttributeKey<Language> { .init("language") }
+    public static var accessibilityLabel: ContentAttributeKey<String> {
+        .init("accessibilityLabel")
+    }
+
+    public static var language: ContentAttributeKey<Language> {
+        .init("language")
+    }
 
     public let key: String
     public init(_ key: String) {
@@ -231,8 +242,13 @@ public protocol ContentAttributesHolder {
 }
 
 public extension ContentAttributesHolder {
-    var language: Language? { self[.language] }
-    var accessibilityLabel: String? { self[.accessibilityLabel] }
+    var language: Language? {
+        self[.language]
+    }
+
+    var accessibilityLabel: String? {
+        self[.accessibilityLabel]
+    }
 
     /// Gets the first attribute with the given `key`.
     subscript<T>(_ key: ContentAttributeKey<T>) -> T? {

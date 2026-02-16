@@ -4,10 +4,9 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+@testable import ReadiumOPDS
 import ReadiumShared
 import XCTest
-
-@testable import ReadiumOPDS
 
 class readium_opds2_0_test: XCTestCase {
     var feed: Feed?

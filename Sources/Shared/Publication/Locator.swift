@@ -169,7 +169,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
             set { otherLocationsJSON = JSONDictionary(newValue) ?? JSONDictionary() }
         }
 
-        // Trick to keep the struct equatable despite [String: Any]
+        /// Trick to keep the struct equatable despite [String: Any]
         private var otherLocationsJSON: JSONDictionary
 
         public init(fragments: [String] = [], progression: Double? = nil, totalProgression: Double? = nil, position: Int? = nil, otherLocations: JSONDictionary.Wrapped = [:]) {
@@ -212,7 +212,9 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
             }
         }
 
-        public var isEmpty: Bool { json.isEmpty }
+        public var isEmpty: Bool {
+            json.isEmpty
+        }
 
         public var json: JSONDictionary.Wrapped {
             makeJSON([
@@ -223,11 +225,15 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
             ], additional: otherLocations)
         }
 
-        public var jsonString: String? { serializeJSONString(json) }
+        public var jsonString: String? {
+            serializeJSONString(json)
+        }
 
         /// Syntactic sugar to access the `otherLocations` values by subscripting `Locations` directly.
         /// locations["cssSelector"] == locations.otherLocations["cssSelector"]
-        public subscript(key: String) -> Any? { otherLocations[key] }
+        public subscript(key: String) -> Any? {
+            otherLocations[key]
+        }
     }
 
     public struct Text: Hashable, Loggable, Sendable {
@@ -275,7 +281,9 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
             ])
         }
 
-        public var jsonString: String? { serializeJSONString(json) }
+        public var jsonString: String? {
+            serializeJSONString(json)
+        }
 
         /// Returns a copy of this text after sanitizing its content for user display.
         public func sanitized() -> Locator.Text {
@@ -376,7 +384,9 @@ public struct LocatorCollection: Hashable {
     /// Holds the metadata of a `LocatorCollection`.
     public struct Metadata: Hashable {
         public var localizedTitle: LocalizedString?
-        public var title: String? { localizedTitle?.string }
+        public var title: String? {
+            localizedTitle?.string
+        }
 
         /// Indicates the total number of locators in the collection.
         public var numberOfItems: Int?
@@ -387,7 +397,7 @@ public struct LocatorCollection: Hashable {
             set { otherMetadataJSON = JSONDictionary(newValue) ?? JSONDictionary() }
         }
 
-        // Trick to keep the struct equatable despite [String: Any]
+        /// Trick to keep the struct equatable despite [String: Any]
         private var otherMetadataJSON: JSONDictionary
 
         public init(

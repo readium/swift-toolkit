@@ -224,12 +224,29 @@ enum EPUBScriptScope {
         )
     }
 
-    var readingProgression: ReadingProgression { settings.readingProgression }
-    var theme: Theme { settings.theme }
-    var scroll: Bool { settings.scroll }
-    var verticalText: Bool { settings.verticalText }
-    var spread: Spread { settings.spread }
-    var offsetFirstPage: Bool? { settings.offsetFirstPage }
+    var readingProgression: ReadingProgression {
+        settings.readingProgression
+    }
+
+    var theme: Theme {
+        settings.theme
+    }
+
+    var scroll: Bool {
+        settings.scroll
+    }
+
+    var verticalText: Bool {
+        settings.verticalText
+    }
+
+    var spread: Spread {
+        settings.spread
+    }
+
+    var offsetFirstPage: Bool? {
+        settings.offsetFirstPage
+    }
 
     // MARK: Spread
 

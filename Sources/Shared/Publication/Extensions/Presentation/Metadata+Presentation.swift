@@ -9,5 +9,7 @@ import Foundation
 /// Presentation extensions for `Metadata`.
 public extension Metadata {
     @available(*, unavailable, message: "This was removed from RWPM. You can still use the EPUB extensibility to access the original values.")
-    var presentation: Presentation { fatalError() }
+    var presentation: Presentation {
+        fatalError()
+    }
 }

@@ -26,6 +26,8 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Fixed
 
+* Fixed casting of `ResourceProperties`'s `mediaType` (contributed by [@lbeus](https://github.com/readium/swift-toolkit/pull/719)).
+
 #### Navigator
 
 * The first resource of a fixed-layout EPUB is now displayed on its own by default, matching Apple Books behavior.

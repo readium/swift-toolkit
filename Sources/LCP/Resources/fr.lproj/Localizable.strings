@@ -1,2 +1,13 @@
 // DO NOT EDIT. File generated automatically from the fr JSON strings of https://github.com/edrlab/thorium-locales/.
 
+"readium.lcp.dialog.actions.cancel" = "Annuler";
+"readium.lcp.dialog.actions.continue" = "Continuer";
+"readium.lcp.dialog.actions.recoverPassphrase" = "Mot de passe oublié ?";
+"readium.lcp.dialog.errors.incorrectPassphrase" = "Mot de passe incorrect.";
+"readium.lcp.dialog.info.body" = "Cette publication est protégée par LCP (Licensed Content Protection), une technologie DRM qui empêche la copie non autorisée tout en simplifiant votre expérience de lecture. LCP est un standard ouvert qui équilibre la facilité d'utilisation et les besoins des éditeurs.";
+"readium.lcp.dialog.info.more" = "En savoir plus…";
+"readium.lcp.dialog.info.title" = "Qu'est-ce que LCP ?";
+"readium.lcp.dialog.message" = "Cette publication est protégée par LCP. Veuillez saisir le mot de passe fourni par votre bibliothèque ou votre libraire pour l'ouvrir.";
+"readium.lcp.dialog.passphrase.hint" = "**Indice :** %1$@";
+"readium.lcp.dialog.passphrase.placeholder" = "Mot de passe";
+"readium.lcp.dialog.title" = "Saisir le mot de passe";

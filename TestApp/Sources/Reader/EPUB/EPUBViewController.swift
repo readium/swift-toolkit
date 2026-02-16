@@ -12,7 +12,7 @@ import UIKit
 import WebKit
 
 public extension FontFamily {
-    // Example of adding a custom font embedded in the application.
+    /// Example of adding a custom font embedded in the application.
     static let literata: FontFamily = "Literata"
 }
 
