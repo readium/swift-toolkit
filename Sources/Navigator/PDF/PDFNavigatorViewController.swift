@@ -711,7 +711,7 @@ open class PDFNavigatorViewController:
     }
 }
 
-extension PDFNavigatorViewController: PDFViewDelegate {
+extension PDFNavigatorViewController: @preconcurrency PDFViewDelegate {
     public func pdfViewWillClick(onLink sender: PDFView, with url: URL) {
         log(.debug, "Click URL: \(url)")
 

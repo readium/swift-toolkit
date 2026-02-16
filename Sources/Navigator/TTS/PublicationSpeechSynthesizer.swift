@@ -20,8 +20,9 @@ public protocol PublicationSpeechSynthesizerDelegate: AnyObject {
 
 /// `PublicationSpeechSynthesizer` orchestrates the rendition of a `Publication` by iterating through its content,
 /// splitting it into individual utterances using a `ContentTokenizer`, then using a `TTSEngine` to read them aloud.
+@MainActor
 public class PublicationSpeechSynthesizer: Loggable {
-    public typealias EngineFactory = @Sendable () -> TTSEngine
+    public typealias EngineFactory = @MainActor @Sendable () -> TTSEngine
     public typealias TokenizerFactory = @Sendable (_ defaultLanguage: Language?) -> ContentTokenizer
 
     /// Returns whether the `publication` can be played with a `PublicationSpeechSynthesizer`.
@@ -53,7 +54,7 @@ public class PublicationSpeechSynthesizer: Loggable {
 
     /// An utterance is an arbitrary text (e.g. sentence) extracted from the publication, that can be synthesized by
     /// the TTS engine.
-    public struct Utterance: Equatable {
+    public struct Utterance: Equatable, Sendable {
         /// Text to be spoken.
         public let text: String
         /// Locator to the utterance in the publication.
@@ -156,7 +157,7 @@ public class PublicationSpeechSynthesizer: Loggable {
         )
     }
 
-    private var currentTask: Task<Void, Never>? = nil
+    private var currentTask: Task<Void, Never>?
 
     private lazy var engine: TTSEngine = engineFactory()
 
@@ -177,7 +178,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     }
 
     /// Cache for the last requested voice, for performance.
-    private var lastUsedVoice: TTSVoice? = nil
+    private var lastUsedVoice: TTSVoice?
 
     /// (Re)starts the synthesizer from the given locator or the beginning of the publication.
     public func start(from startLocator: Locator? = nil) {
@@ -245,7 +246,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     }
 
     /// `Content.Iterator` used to iterate through the `publication`.
-    private var publicationIterator: ContentIterator? = nil {
+    private var publicationIterator: ContentIterator? {
         didSet {
             utterances = CursorList()
         }
@@ -274,24 +275,26 @@ public class PublicationSpeechSynthesizer: Loggable {
                 voiceOrLanguage: voiceOrLanguage(for: utterance)
             ),
             onSpeakRange: { [weak self] range in
-                guard let self = self else {
-                    return
-                }
+                Task { @MainActor in
+                    guard let self = self else {
+                        return
+                    }
 
-                self.state = .playing(
-                    utterance,
-                    range: utterance.locator.copy(
-                        text: { text in
-                            guard
-                                let highlight = text.highlight,
-                                highlight.startIndex <= range.lowerBound, highlight.endIndex >= range.upperBound
-                            else {
-                                return
+                    self.state = .playing(
+                        utterance,
+                        range: utterance.locator.copy(
+                            text: { text in
+                                guard
+                                    let highlight = text.highlight,
+                                    highlight.startIndex <= range.lowerBound, highlight.endIndex >= range.upperBound
+                                else {
+                                    return
+                                }
+                                text = text[range]
                             }
-                            text = text[range]
-                        }
+                        )
                     )
-                )
+                }
             }
         )
 

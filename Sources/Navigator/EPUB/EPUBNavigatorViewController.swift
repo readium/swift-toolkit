@@ -147,7 +147,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     }
 
     /// Information about the visible portion of the publication.
-    public struct Viewport: Equatable {
+    public struct Viewport: Equatable, Sendable {
         /// Visible reading order resources.
         public var readingOrder: [AnyURL]
 
@@ -195,16 +195,19 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             // All events are ignored when loading spreads, except for `loaded` and `load`.
             case (.loading, .loaded):
                 self = .idle
+
             case (.loading, _):
                 return false
 
             case let (.idle, .jump(locator)):
                 self = .jumping(pendingLocator: locator)
+
             case let (.idle, .move(direction)):
                 self = .moving(direction: direction)
 
             case (.jumping, .jumped):
                 self = .idle
+
             // Moving or jumping to another locator is not allowed during a pending jump.
             case (.jumping, .jump),
                  (.jumping, .move):
@@ -212,6 +215,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
             case (.moving, .moved):
                 self = .idle
+
             // Moving or jumping to another locator is not allowed during a pending move.
             case (.moving, .jump),
                  (.moving, .move):
@@ -266,9 +270,13 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     private var positionsByReadingOrder: [[Locator]] = []
 
     private let viewModel: EPUBNavigatorViewModel
-    public var publication: Publication { viewModel.publication }
+    public var publication: Publication {
+        viewModel.publication
+    }
 
-    var config: Configuration { viewModel.config }
+    var config: Configuration {
+        viewModel.config
+    }
 
     /// Creates a new instance of `EPUBNavigatorViewController`.
     ///
@@ -301,17 +309,23 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             httpServer: httpServer
         )
 
+        let positionsProvider: () async -> ReadResult<[[Locator]]>
+        if readingOrder != nil {
+            positionsProvider = { .success([] as [[Locator]]) }
+        } else {
+            positionsProvider = publication.positionsByReadingOrder
+        }
+
         self.init(
             viewModel: viewModel,
             initialLocation: initialLocation,
             readingOrder: viewModel.readingOrder,
-            positionsByReadingOrder:
             // Positions and total progression only make sense in the context
             // of the publication's actual reading order. Therefore when
             // provided with a different reading order, we should assume the
             // positions list is empty, and also not compute the
             // totalProgression when calculating the current locator.
-            (readingOrder != nil) ? { .success([]) } : publication.positionsByReadingOrder
+            positionsByReadingOrder: positionsProvider
         )
     }
 
@@ -332,15 +346,15 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         viewModel.editingActions.delegate = self
 
         setupLegacyInputCallbacks(
-            onTap: { [weak self] point in
+            onTap: { [weak self] (point: CGPoint) in
                 guard let self else { return }
                 self.delegate?.navigator(self, didTapAt: point)
             },
-            onPressKey: { [weak self] event in
+            onPressKey: { [weak self] (event: KeyEvent) in
                 guard let self else { return }
                 self.delegate?.navigator(self, didPressKey: event)
             },
-            onReleaseKey: { [weak self] event in
+            onReleaseKey: { [weak self] (event: KeyEvent) in
                 guard let self else { return }
                 self.delegate?.navigator(self, didReleaseKey: event)
             }
@@ -871,8 +885,9 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
                 if decorations.isEmpty {
                     for (_, pageView) in paginationView.loadedViews {
+                        guard let spreadView = pageView as? EPUBSpreadView else { continue }
                         tasks.addTask {
-                            await (pageView as? EPUBSpreadView)?.evaluateScript(
+                            await spreadView.evaluateScriptSafe(
                                 // The updates command are using `requestAnimationFrame()`, so we need it for
                                 // `clear()` as well otherwise we might recreate a highlight after it has been
                                 // cleared.
@@ -885,14 +900,19 @@ open class EPUBNavigatorViewController: InputObservableViewController,
                         guard let script = changes.javascript(forGroup: group, styles: config.decorationTemplates) else {
                             continue
                         }
-                        tasks.addTask { @MainActor [weak self] in
-                            guard
-                                let spreadView = self?.loadedSpreadViewForHREF(href),
-                                spreadView.isSpreadLoaded
-                            else {
-                                return
+                        guard let spreadView = self.loadedSpreadViewForHREF(href),
+                              spreadView.isSpreadLoaded
+                        else {
+                            continue
+                        }
+
+                        let hrefString = href.string
+
+                        tasks.addTask {
+                            // Reconstruct the URL inside the task using the Sendable string
+                            if let url = AnyURL(string: hrefString) {
+                                await spreadView.evaluateScriptSafe(script, inHREF: url)
                             }
-                            await spreadView.evaluateScript(script, inHREF: href)
                         }
                     }
                 }
@@ -914,8 +934,9 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
             await withTaskGroup(of: Void.self) { tasks in
                 for (_, view) in paginationView.loadedViews {
+                    guard let spreadView = view as? EPUBSpreadView else { continue }
                     tasks.addTask {
-                        await (view as? EPUBSpreadView)?.evaluateScript("readium.getDecorations('\(group)').setActivable();")
+                        await spreadView.evaluateScriptSafe("readium.getDecorations('\(group)').setActivable();")
                     }
                 }
             }
@@ -924,7 +945,9 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     // MARK: - Configurable
 
-    public var settings: EPUBSettings { viewModel.settings }
+    public var settings: EPUBSettings {
+        viewModel.settings
+    }
 
     public func submitPreferences(_ preferences: EPUBPreferences) {
         viewModel.submitPreferences(preferences)
@@ -1001,13 +1024,14 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
 
             switch scope {
             case .currentResource:
-                await (paginationView.currentView as? EPUBSpreadView)?.evaluateScript(script)
+                await (paginationView.currentView as? EPUBSpreadView)?.evaluateScriptSafe(script)
 
             case .loadedResources:
                 await withTaskGroup(of: Void.self) { tasks in
                     for (_, view) in paginationView.loadedViews {
+                        guard let spreadView = view as? EPUBSpreadView else { continue }
                         tasks.addTask {
-                            await (view as? EPUBSpreadView)?.evaluateScript(script)
+                            await spreadView.evaluateScriptSafe(script)
                         }
                     }
                 }
@@ -1021,7 +1045,7 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
                     else {
                         continue
                     }
-                    await view.evaluateScript(script, inHREF: href)
+                    await view.evaluateScriptSafe(script, inHREF: href)
                     return
                 }
             }
@@ -1307,5 +1331,11 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
 
     func paginationView(_ paginationView: PaginationView, positionCountAtIndex index: Int) -> Int {
         spreads[index].positionCount(in: readingOrder, positionsByReadingOrder: positionsByReadingOrder)
+    }
+}
+
+private extension EPUBSpreadView {
+    func evaluateScriptSafe(_ script: String, inHREF href: AnyURL? = nil) async {
+        _ = await evaluateScript(script, inHREF: href)
     }
 }

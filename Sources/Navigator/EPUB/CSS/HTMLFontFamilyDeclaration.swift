@@ -25,15 +25,15 @@ public protocol HTMLFontFamilyDeclaration {
 }
 
 /// A type-erasing `HTMLFontFamilyDeclaration` object
-public struct AnyHTMLFontFamilyDeclaration: HTMLFontFamilyDeclaration {
-    private let _fontFamily: () -> FontFamily
-    private let _alternates: () -> [FontFamily]
-    private let _inject: (String, (FileURL) throws -> HTTPURL) throws -> String
+public struct AnyHTMLFontFamilyDeclaration: HTMLFontFamilyDeclaration, Sendable {
+    private let _fontFamily: @Sendable () -> FontFamily
+    private let _alternates: @Sendable () -> [FontFamily]
+    private let _inject: @Sendable (String, (FileURL) throws -> HTTPURL) throws -> String
 
     public var fontFamily: FontFamily { _fontFamily() }
     public var alternates: [FontFamily] { _alternates() }
 
-    public init<T: HTMLFontFamilyDeclaration>(_ declaration: T) {
+    public init<T: HTMLFontFamilyDeclaration & Sendable>(_ declaration: T) {
         _fontFamily = { declaration.fontFamily }
         _alternates = { declaration.alternates }
         _inject = { try declaration.inject(in: $0, servingFile: $1) }
@@ -46,13 +46,13 @@ public struct AnyHTMLFontFamilyDeclaration: HTMLFontFamilyDeclaration {
 
 public extension HTMLFontFamilyDeclaration {
     /// Returns a type-erased version of this object.
-    func eraseToAnyHTMLFontFamilyDeclaration() -> AnyHTMLFontFamilyDeclaration {
+    func eraseToAnyHTMLFontFamilyDeclaration() -> AnyHTMLFontFamilyDeclaration where Self: Sendable {
         AnyHTMLFontFamilyDeclaration(self)
     }
 }
 
 /// A font family declaration.
-public struct CSSFontFamilyDeclaration: HTMLFontFamilyDeclaration {
+public struct CSSFontFamilyDeclaration: HTMLFontFamilyDeclaration, Sendable {
     public let fontFamily: FontFamily
     public let alternates: [FontFamily]
 
@@ -84,7 +84,7 @@ public struct CSSFontFamilyDeclaration: HTMLFontFamilyDeclaration {
 }
 
 /// Represents a single `@font-face` CSS rule.
-public struct CSSFontFace {
+public struct CSSFontFace: Sendable {
     /// Represents an individual font file.
     ///
     /// `preload` indicates whether this source will be declared for preloading
@@ -154,13 +154,13 @@ public struct CSSFontFace {
 }
 
 /// Styles that a font can be styled with.
-public enum CSSFontStyle: String, Codable {
+public enum CSSFontStyle: String, Codable, Sendable {
     case normal
     case italic
 }
 
 /// Weight (or boldness) of a font.
-public enum CSSFontWeight: Codable {
+public enum CSSFontWeight: Codable, Sendable {
     case standard(CSSStandardFontWeight)
     case variable(ClosedRange<Int>)
 }
@@ -168,7 +168,7 @@ public enum CSSFontWeight: Codable {
 /// Standard weights (or boldness) of a font.
 ///
 /// See https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight#common_weight_name_mapping
-public enum CSSStandardFontWeight: Int, Codable {
+public enum CSSStandardFontWeight: Int, Codable, Sendable {
     case thin = 100
     case extraLight = 200
     case light = 300

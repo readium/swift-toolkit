@@ -168,12 +168,12 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
         log(.trace, "Evaluate script: \(script)")
         return await withCheckedContinuation { continuation in
-            webView.evaluateJavaScript(script) { [weak self] res, error in
+            webView.evaluateJavaScript(script) { @MainActor [weak self] res, error in
                 if let error = error {
                     self?.log(.error, error)
                     continuation.resume(returning: .failure(error))
                 } else {
-                    continuation.resume(returning: .success(res ?? ()))
+                    continuation.resume(returning: .success(SendableWrapper(value: res ?? ())))
                 }
             }
         }
@@ -825,4 +825,8 @@ private extension KeyEvent.Phase {
         default: return nil
         }
     }
+}
+
+private struct SendableWrapper: @unchecked Sendable {
+    let value: Any
 }

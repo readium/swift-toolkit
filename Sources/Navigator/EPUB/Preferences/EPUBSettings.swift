@@ -205,7 +205,7 @@ public struct EPUBSettings: ConfigurableSettings {
 /// takes precedence.
 ///
 /// See `EPUBPreferences`.
-public struct EPUBDefaults {
+public struct EPUBDefaults: Sendable {
     public var columnCount: ColumnCount?
     public var fit: Fit?
     public var fontSize: Double?

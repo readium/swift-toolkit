@@ -17,7 +17,7 @@ public protocol AVTTSEngineDelegate: AnyObject {
 
 /// Implementation of a `TTSEngine` using Apple AVFoundation's `AVSpeechSynthesizer`.
 @MainActor
-public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Loggable {
+public class AVTTSEngine: NSObject, TTSEngine, Loggable {
     /// Range of valid values for an AVUtterance rate.
     ///
     /// > The speech rate is a decimal representation within the range of `AVSpeechUtteranceMinimumSpeechRate` and
@@ -77,7 +77,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         _ utterance: TTSUtterance,
         onSpeakRange: @escaping (Range<String.Index>) -> Void
     ) async -> Result<Void, TTSError> {
-        let task = Task(
+        let task = UtteranceTask(
             utterance: utterance,
             onSpeakRange: onSpeakRange
         )
@@ -88,12 +88,15 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
                 on(.play(task))
             }
         } onCancel: {
-            task.cancel()
-            on(.stop(task))
+            Task { @MainActor in
+                task.cancel()
+                self.on(.stop(task))
+            }
         }
     }
 
-    private class Task: Equatable, CustomStringConvertible {
+    @MainActor
+    fileprivate class UtteranceTask: Equatable, CustomStringConvertible {
         let utterance: TTSUtterance
         private let onSpeakRange: (Range<String.Index>) -> Void
         var continuation: CheckedContinuation<Result<Void, TTSError>, Never>!
@@ -104,11 +107,11 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
             self.onSpeakRange = onSpeakRange
         }
 
-        var description: String {
+        nonisolated var description: String {
             utterance.text
         }
 
-        static func == (lhs: Task, rhs: Task) -> Bool {
+        nonisolated static func == (lhs: UtteranceTask, rhs: UtteranceTask) -> Bool {
             ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
         }
 
@@ -128,7 +131,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         }
     }
 
-    private func taskUtterance(with task: Task) -> TaskUtterance {
+    private func taskUtterance(with task: UtteranceTask) -> TaskUtterance {
         let utter = TaskUtterance(task: task)
 //        utter.rate = rateMultiplierToAVRate(task.utterance.rateMultiplier)
 //        utter.pitchMultiplier = Float(task.utterance.pitchMultiplier)
@@ -138,10 +141,10 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         return utter
     }
 
-    private class TaskUtterance: AVSpeechUtterance {
-        let task: Task
+    fileprivate class TaskUtterance: AVSpeechUtterance {
+        let task: UtteranceTask
 
-        init(task: Task) {
+        init(task: UtteranceTask) {
             self.task = task
             super.init(string: task.utterance.text)
         }
@@ -150,41 +153,6 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         required init?(coder: NSCoder) {
             fatalError("Not supported")
         }
-    }
-
-    // MARK: AVSpeechSynthesizerDelegate
-
-    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
-        guard let task = (utterance as? TaskUtterance)?.task else {
-            return
-        }
-        on(.didStart(task))
-    }
-
-    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
-        guard let task = (utterance as? TaskUtterance)?.task else {
-            return
-        }
-        on(.didFinish(task))
-    }
-
-    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        guard let task = (utterance as? TaskUtterance)?.task else {
-            return
-        }
-        on(.didFinish(task))
-    }
-
-    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance avUtterance: AVSpeechUtterance) {
-        guard
-            let task = (avUtterance as? TaskUtterance)?.task,
-            characterRange.upperBound <= task.utterance.text.count,
-            let range = Range(characterRange, in: task.utterance.text)
-        else {
-            return
-        }
-
-        on(.willSpeakRange(range, task: task))
     }
 
     // MARK: State machine
@@ -224,25 +192,25 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         /// The TTS engine is waiting for the next utterance to play.
         case stopped
         /// A new utterance is being processed by the TTS engine, we wait for didStart.
-        case starting(Task)
+        case starting(UtteranceTask)
         /// The utterance is currently playing and the engine is ready to process other commands.
-        case playing(Task)
+        case playing(UtteranceTask)
         /// The engine was stopped while processing the previous utterance, we wait for didStart
         /// and/or didFinish. The queued utterance will be played once the engine is successfully stopped.
-        case stopping(Task, queued: Task?)
+        case stopping(UtteranceTask, queued: UtteranceTask?)
     }
 
     /// State machine events triggered by the `AVSpeechSynthesizer` or the client
     /// of `AVTTSEngine`.
-    private enum Event: Equatable {
+    fileprivate enum Event: Equatable {
         // AVTTSEngine commands
-        case play(Task)
-        case stop(Task)
+        case play(UtteranceTask)
+        case stop(UtteranceTask)
 
         // AVSpeechSynthesizer delegate events
-        case didStart(Task)
-        case willSpeakRange(Range<String.Index>, task: Task)
-        case didFinish(Task)
+        case didStart(UtteranceTask)
+        case willSpeakRange(Range<String.Index>, task: UtteranceTask)
+        case didFinish(UtteranceTask)
     }
 
     private var state: State = .stopped {
@@ -254,7 +222,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
     }
 
     /// Raises a TTS event triggering a state change and handles its side effects.
-    private func on(_ event: Event) {
+    fileprivate func on(_ event: Event) {
         assert(Thread.isMainThread, "Raising AVTTSEngine events must be done from the main thread")
 
         if debug {
@@ -323,7 +291,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         }
     }
 
-    private func startEngine(with task: Task) {
+    private func startEngine(with task: UtteranceTask) {
         synthesizer.speak(taskUtterance(with: task))
     }
 
@@ -338,6 +306,43 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
         case let .right(language):
             return AVSpeechSynthesisVoice(language: language)
         }
+    }
+}
+
+// MARK: AVSpeechSynthesizerDelegate
+
+extension AVTTSEngine: @preconcurrency AVSpeechSynthesizerDelegate {
+    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
+        guard let task = (utterance as? TaskUtterance)?.task else {
+            return
+        }
+        on(.didStart(task))
+    }
+
+    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        guard let task = (utterance as? TaskUtterance)?.task else {
+            return
+        }
+        on(.didFinish(task))
+    }
+
+    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        guard let task = (utterance as? TaskUtterance)?.task else {
+            return
+        }
+        on(.didFinish(task))
+    }
+
+    public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance avUtterance: AVSpeechUtterance) {
+        guard
+            let task = (avUtterance as? TaskUtterance)?.task,
+            characterRange.upperBound <= task.utterance.text.count,
+            let range = Range(characterRange, in: task.utterance.text)
+        else {
+            return
+        }
+
+        on(.willSpeakRange(range, task: task))
     }
 }
 

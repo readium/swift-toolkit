@@ -167,7 +167,8 @@ final class PaginationView: UIView, Loggable {
         super.didMoveToWindow()
 
         if window == nil {
-            loadPagesTask.cancel()
+            loadPagesTask?.cancel()
+            loadPagesTask = nil
         } else {
             loadPages()
         }
@@ -236,7 +237,8 @@ final class PaginationView: UIView, Loggable {
     }
 
     private func loadPages() {
-        loadPagesTask.replace { @MainActor in
+        loadPagesTask?.cancel()
+        loadPagesTask = Task { @MainActor in
             await loadNextPage()
             delegate?.paginationViewDidUpdateViews(self)
         }

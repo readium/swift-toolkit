@@ -7,6 +7,7 @@
 import Foundation
 import SwiftSoup
 import UIKit
+import Atomics
 
 /// An `HTMLDecorationTemplate` renders a `Decoration` into a set of HTML elements and associated stylesheet.
 public struct HTMLDecorationTemplate: Sendable {
@@ -46,11 +47,11 @@ public struct HTMLDecorationTemplate: Sendable {
         self.init(layout: layout, width: width, element: { _ in element }, stylesheet: stylesheet)
     }
 
-    public var json: [String: Any] {
+    public var json: [String: any Sendable] {
         [
             "layout": layout.rawValue,
             "width": width.rawValue,
-            "stylesheet": stylesheet as Any,
+            "stylesheet": stylesheet as (any Sendable),
         ]
     }
 
@@ -133,9 +134,9 @@ public struct HTMLDecorationTemplate: Sendable {
         )
     }
 
-    private static var classNamesId = 0
+    private static let classNamesId = ManagedAtomic<Int>(0)
     private static func makeUniqueClassName(key: String) -> String {
-        classNamesId += 1
-        return "readium-\(key)-\(classNamesId)"
+        let id = classNamesId.wrappingIncrementThenLoad(ordering: .relaxed)
+        return "readium-\(key)-\(id)"
     }
 }

@@ -8,6 +8,7 @@ import Foundation
 import UIKit
 
 /// Represents a couple (`target`, `action`) which can be invoked from a `sender`.
+@MainActor
 final class TargetAction {
     private weak var target: AnyObject?
     private let action: Selector
