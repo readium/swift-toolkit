@@ -397,9 +397,9 @@ import Testing
         try await repository.clear()
 
         // Verify all licenses are gone
-        #expecttry await (repository.license(for: "clear-1") == nil)
-        #expecttry await (repository.license(for: "clear-2") == nil)
-        #expecttry await (repository.license(for: "clear-3") == nil)
+        #expect(try await repository.license(for: "clear-1") == nil)
+        #expect(try await repository.license(for: "clear-2") == nil)
+        #expect(try await repository.license(for: "clear-3") == nil)
     }
 
     @Test func clearOnEmptyRepositorySucceeds() async throws {

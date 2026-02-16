@@ -284,8 +284,8 @@ import Testing
         try await repository.clear()
 
         // Verify all passphrases are gone
-        #expecttry await (repository.passphrase(for: "license-clear-1") == nil)
-        #expecttry await (repository.passphrase(for: "license-clear-2") == nil)
+        #expect(try await repository.passphrase(for: "license-clear-1") == nil)
+        #expect(try await repository.passphrase(for: "license-clear-2") == nil)
         let all = try await repository.passphrases()
         #expect(all.isEmpty)
     }
