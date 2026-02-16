@@ -12,11 +12,6 @@ import WebKit
 /// A generic `WKURLSchemeHandler` that serves files, directories, and
 /// arbitrary resources at named routes using a custom URL scheme (e.g.
 /// `readium://`).
-///
-/// Callers compose the behavior they need using three simple APIs:
-///   - `serve(file:at:)` – serve a single local file
-///   - `serve(directory:at:)` – serve all files under a directory
-///   - `serve(at:handler:)` – serve resources via a callback
 @MainActor final class WebViewServer: NSObject, WKURLSchemeHandler, Loggable {
     /// The custom scheme used to serve the content.
     let scheme: String
@@ -34,13 +29,14 @@ import WebKit
         case resources(@MainActor (RelativeURL) -> Resource?)
     }
 
-    /// Registered routes, sorted by descending path length for
-    /// longest-prefix matching.
+    /// Registered routes, sorted by reverse alphabetical order to ensure
+    /// longest-prefix matching of routes sharing a common prefix.
     private var routes: [(path: String, baseURL: AbsoluteURL, handler: RouteHandler)] = []
 
     /// Serves a single local file at the given route.
     ///
-    /// Returns the full URL (e.g. `readium://assets/fonts/abc/Font.otf`).
+    /// - Returns: The absolute URL (e.g. `readium://assets/fonts/abc/Font.otf`)
+    ///   to the served file.
     @discardableResult
     func serve(file: FileURL, at route: String) -> AbsoluteURL {
         let route = normalizedRoute(route)
@@ -52,7 +48,9 @@ import WebKit
     /// Serves a local directory at the given route.
     ///
     /// All files under the directory are accessible.
-    /// Returns the base URL (e.g. `readium://assets/`).
+    ///
+    /// - Returns: The absolute base URL (e.g. `readium://assets/`) to the
+    ///   served directory.
     @discardableResult
     func serve(directory: FileURL, at route: String) -> AbsoluteURL {
         let route = normalizedRoute(route, isDirectory: true)
@@ -83,9 +81,10 @@ import WebKit
     }
 
     private func normalizedRoute(_ route: String, isDirectory: Bool = false) -> String {
-        var r = route
-        if r.hasPrefix("/") { r = String(r.dropFirst()) }
-        if isDirectory, !r.hasSuffix("/") { r += "/" }
+        var r = route.removingPrefix("/")
+        if isDirectory {
+            r = r.addingSuffix("/")
+        }
         return r
     }
 
@@ -93,8 +92,9 @@ import WebKit
         // Remove any existing route with the same path.
         routes.removeAll { $0.path == entry.path }
         routes.append(entry)
-        // Sort by descending path length for longest-prefix matching.
-        routes.sort { $0.path.count > $1.path.count }
+        // Reverse alphabetical order ensures longest-prefix matching:
+        // routes sharing a common prefix are grouped with longer ones first.
+        routes.sort { $0.path > $1.path }
     }
 
     // MARK: - Active tasks & caching
@@ -429,7 +429,9 @@ private actor BufferingResource: Resource, Loggable {
         self.readAheadSize = readAheadSize
     }
 
-    nonisolated var sourceURL: AbsoluteURL? { source.sourceURL }
+    nonisolated var sourceURL: AbsoluteURL? {
+        source.sourceURL
+    }
 
     func estimatedLength() async -> ReadResult<UInt64?> {
         await source.estimatedLength()

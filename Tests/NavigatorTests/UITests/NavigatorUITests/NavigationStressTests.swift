@@ -22,7 +22,7 @@ final class NavigationStressTests: XCTestCase {
     /// Stress tests verifying that rapid navigation does not crash the app due to
     /// `WKURLSchemeTask` cancellation races.
     /// See https://github.com/readium/r2-navigator-swift/pull/160
-    func testRapidNavigationDoesNotCrashOnEPUB() throws {
+    func testRapidNavigationDoesNotCrashOnEPUB() {
         let reader = app.open(.childrensLiteratureEPUB, waitUntilReady: true)
 
         app.buttons[.runStressTest].tap()
