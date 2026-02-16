@@ -8,7 +8,7 @@ import Foundation
 import UIKit
 
 public enum Key: Equatable, CustomStringConvertible, Sendable {
-    // Printable character.
+    /// Printable character.
     case character(String)
 
     // Whitespace keys.

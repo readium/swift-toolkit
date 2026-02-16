@@ -13,7 +13,9 @@ public struct OPDSAcquisition: Equatable, Sendable {
     public var type: String
     public var children: [OPDSAcquisition] = []
 
-    public var mediaType: MediaType? { MediaType(type) }
+    public var mediaType: MediaType? {
+        MediaType(type)
+    }
 
     public init(type: String, children: [OPDSAcquisition] = []) {
         self.type = type

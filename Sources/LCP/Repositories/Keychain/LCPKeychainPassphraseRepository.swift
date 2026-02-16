@@ -112,9 +112,18 @@ public actor LCPKeychainPassphraseRepository: LCPPassphraseRepository, Loggable 
         }
     }
 
+    /// Removes all passphrases from the repository.
+    public func clear() async throws {
+        do {
+            try keychain.deleteAll()
+        } catch {
+            throw LCPKeychainPassphraseRepositoryError.keychain(error)
+        }
+    }
+
     // MARK: - Keychain Access
 
-    private func getAllPassphrases() async throws (LCPKeychainPassphraseRepositoryError) -> [Passphrase] {
+    private func getAllPassphrases() async throws(LCPKeychainPassphraseRepositoryError) -> [Passphrase] {
         try getAllFromKeychain()
             .compactMap { _, data in
                 guard let passphrase = try? decoder.decode(Passphrase.self, from: data) else {
@@ -125,7 +134,7 @@ public actor LCPKeychainPassphraseRepository: LCPPassphraseRepository, Loggable 
     }
 
     /// Gets a passphrase from the Keychain for the given license ID.
-    private func getPassphrase(for licenseID: LicenseDocument.ID) throws (LCPKeychainPassphraseRepositoryError) -> Passphrase? {
+    private func getPassphrase(for licenseID: LicenseDocument.ID) throws(LCPKeychainPassphraseRepositoryError) -> Passphrase? {
         guard let data = try getFromKeychain(id: licenseID) else {
             return nil
         }
@@ -134,12 +143,12 @@ public actor LCPKeychainPassphraseRepository: LCPPassphraseRepository, Loggable 
     }
 
     /// Adds a new passphrase to the Keychain.
-    private func addPassphrase(_ passphrase: Passphrase, for id: LicenseDocument.ID) throws (LCPKeychainPassphraseRepositoryError) {
+    private func addPassphrase(_ passphrase: Passphrase, for id: LicenseDocument.ID) throws(LCPKeychainPassphraseRepositoryError) {
         try addToKeychain(data: encode(passphrase), for: id)
     }
 
     /// Updates an existing passphrase in the Keychain.
-    private func updatePassphrase(_ passphrase: Passphrase, for id: LicenseDocument.ID) throws (LCPKeychainPassphraseRepositoryError) {
+    private func updatePassphrase(_ passphrase: Passphrase, for id: LicenseDocument.ID) throws(LCPKeychainPassphraseRepositoryError) {
         var passphrase = passphrase
         passphrase.updated = Date()
         let data = try encode(passphrase)
@@ -148,7 +157,7 @@ public actor LCPKeychainPassphraseRepository: LCPPassphraseRepository, Loggable 
 
     // MARK: - Low-Level Helpers
 
-    private func getFromKeychain(id: LicenseDocument.ID) throws (LCPKeychainPassphraseRepositoryError) -> Data? {
+    private func getFromKeychain(id: LicenseDocument.ID) throws(LCPKeychainPassphraseRepositoryError) -> Data? {
         do {
             return try keychain.load(forKey: id)
         } catch {
@@ -156,7 +165,7 @@ public actor LCPKeychainPassphraseRepository: LCPPassphraseRepository, Loggable 
         }
     }
 
-    private func getAllFromKeychain() throws (LCPKeychainPassphraseRepositoryError) -> [String: Data] {
+    private func getAllFromKeychain() throws(LCPKeychainPassphraseRepositoryError) -> [String: Data] {
         do {
             return try keychain.allItems()
         } catch {
@@ -164,7 +173,7 @@ public actor LCPKeychainPassphraseRepository: LCPPassphraseRepository, Loggable 
         }
     }
 
-    private func addToKeychain(data: Data, for id: LicenseDocument.ID) throws (LCPKeychainPassphraseRepositoryError) {
+    private func addToKeychain(data: Data, for id: LicenseDocument.ID) throws(LCPKeychainPassphraseRepositoryError) {
         do {
             try keychain.save(data: data, forKey: id)
         } catch {
@@ -172,7 +181,7 @@ public actor LCPKeychainPassphraseRepository: LCPPassphraseRepository, Loggable 
         }
     }
 
-    private func updateKeychain(data: Data, for id: LicenseDocument.ID) throws (LCPKeychainPassphraseRepositoryError) {
+    private func updateKeychain(data: Data, for id: LicenseDocument.ID) throws(LCPKeychainPassphraseRepositoryError) {
         do {
             try keychain.update(data: data, forKey: id)
         } catch {
@@ -180,7 +189,7 @@ public actor LCPKeychainPassphraseRepository: LCPPassphraseRepository, Loggable 
         }
     }
 
-    private func decode(_ data: Data) throws (LCPKeychainPassphraseRepositoryError) -> Passphrase {
+    private func decode(_ data: Data) throws(LCPKeychainPassphraseRepositoryError) -> Passphrase {
         do {
             return try decoder.decode(Passphrase.self, from: data)
         } catch {
@@ -188,7 +197,7 @@ public actor LCPKeychainPassphraseRepository: LCPPassphraseRepository, Loggable 
         }
     }
 
-    private func encode(_ passphrase: Passphrase) throws (LCPKeychainPassphraseRepositoryError) -> Data {
+    private func encode(_ passphrase: Passphrase) throws(LCPKeychainPassphraseRepositoryError) -> Data {
         do {
             return try encoder.encode(passphrase)
         } catch {

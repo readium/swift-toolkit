@@ -14,23 +14,41 @@ import PDFKit
 ///
 /// Use `PDFKitPDFDocumentFactory` to create a `PDFDocument` from a `Resource`.
 extension PDFKit.PDFDocument: PDFDocument {
-    public func pageCount() async throws -> Int { pageCount }
+    public func pageCount() async throws -> Int {
+        pageCount
+    }
 
-    public func identifier() async throws -> String? { try await documentRef?.identifier() }
+    public func identifier() async throws -> String? {
+        try await documentRef?.identifier()
+    }
 
-    public func cover() async throws -> UIImage? { try await documentRef?.cover() }
+    public func cover() async throws -> UIImage? {
+        try await documentRef?.cover()
+    }
 
-    public func readingProgression() async throws -> ReadingProgression? { try await documentRef?.readingProgression() }
+    public func readingProgression() async throws -> ReadingProgression? {
+        try await documentRef?.readingProgression()
+    }
 
-    public func title() async throws -> String? { try await documentRef?.title() }
+    public func title() async throws -> String? {
+        try await documentRef?.title()
+    }
 
-    public func author() async throws -> String? { try await documentRef?.author() }
+    public func author() async throws -> String? {
+        try await documentRef?.author()
+    }
 
-    public func subject() async throws -> String? { try await documentRef?.subject() }
+    public func subject() async throws -> String? {
+        try await documentRef?.subject()
+    }
 
-    public func keywords() async throws -> [String] { try await documentRef?.keywords() ?? [] }
+    public func keywords() async throws -> [String] {
+        try await documentRef?.keywords() ?? []
+    }
 
-    public func tableOfContents() async throws -> [PDFOutlineNode] { try await documentRef?.tableOfContents() ?? [] }
+    public func tableOfContents() async throws -> [PDFOutlineNode] {
+        try await documentRef?.tableOfContents() ?? []
+    }
 }
 
 /// Creates a `PDFDocument` using PDFKit.

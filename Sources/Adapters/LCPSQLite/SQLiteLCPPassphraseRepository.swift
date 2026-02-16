@@ -33,19 +33,17 @@ public class LCPSQLitePassphraseRepository: LCPPassphraseRepository, Loggable, @
     public func passphrase(for licenseID: LicenseDocument.ID) async throws -> LCPPassphraseHash? {
         try logAndRethrow {
             try db.prepare(transactions.select(passphrase)
-                .filter(self.licenseId == licenseID)
-            )
-            .compactMap { try $0.get(passphrase) }
-            .first
+                .filter(self.licenseId == licenseID))
+                .compactMap { try $0.get(passphrase) }
+                .first
         }
     }
 
     public func passphrasesMatching(userID: User.ID?, provider: LicenseDocument.Provider) async throws -> [LCPPassphraseHash] {
         try logAndRethrow {
             try db.prepare(transactions.select(passphrase)
-                .filter(self.userId == userID && self.provider == provider)
-            )
-            .compactMap { try $0.get(passphrase) }
+                .filter(self.userId == userID && self.provider == provider))
+                .compactMap { try $0.get(passphrase) }
         }
     }
 

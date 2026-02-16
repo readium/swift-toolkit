@@ -96,12 +96,35 @@ class FuziTests: XCTestCase {
         try FuziXMLDocument(string: xml, namespaces: namespaces)
     }
 
-    func testParseInvalidXML() { tester.testParseValidXML() }
-    func testParseValidXML() { tester.testParseValidXML() }
-    func testParseHTML5() { tester.testParseHTML5() }
-    func testDocumentElement() throws { try tester.testDocumentElement() }
-    func testFirstElement() throws { try tester.testFirstElement() }
-    func testAllElements() throws { try tester.testAllElements() }
-    func testLocalName() throws { try tester.testLocalName() }
-    func testAttribute() throws { try tester.testAttribute() }
+    func testParseInvalidXML() {
+        tester.testParseInvalidXML()
+    }
+
+    func testParseValidXML() {
+        tester.testParseValidXML()
+    }
+
+    func testParseHTML5() {
+        tester.testParseHTML5()
+    }
+
+    func testDocumentElement() throws {
+        try tester.testDocumentElement()
+    }
+
+    func testFirstElement() throws {
+        try tester.testFirstElement()
+    }
+
+    func testAllElements() throws {
+        try tester.testAllElements()
+    }
+
+    func testLocalName() throws {
+        try tester.testLocalName()
+    }
+
+    func testAttribute() throws {
+        try tester.testAttribute()
+    }
 }

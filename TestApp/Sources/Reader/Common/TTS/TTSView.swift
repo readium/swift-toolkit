@@ -95,7 +95,7 @@ struct TTSSettings: View {
         .navigationViewStyle(.stack)
     }
 
-    @ViewBuilder private func picker<T: Hashable>(
+    private func picker<T: Hashable>(
         caption: String,
         for keyPath: WritableKeyPath<Config, T>,
         choices: [T],

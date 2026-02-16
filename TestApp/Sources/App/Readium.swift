@@ -239,6 +239,7 @@ extension ReadiumNavigator.TTSError: UserErrorConvertible {
                     switch error {
                     case let .cancelled(date):
                         return "lcp_error_status_cancelled".localized(dateFormatter.string(from: date))
+
                     case let .returned(date):
                         return "lcp_error_status_returned".localized(dateFormatter.string(from: date))
 

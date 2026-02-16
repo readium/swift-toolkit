@@ -11,7 +11,9 @@ import ReadiumInternal
 public struct Contributor: Hashable, Sendable {
     /// The name of the contributor.
     public var localizedName: LocalizedString
-    public var name: String { localizedName.string }
+    public var name: String {
+        localizedName.string
+    }
 
     /// An unambiguous reference to this contributor.
     public var identifier: String?

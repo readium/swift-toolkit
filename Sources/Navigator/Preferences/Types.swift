@@ -214,7 +214,7 @@ public struct FontFamily: RawRepresentable, ExpressibleByStringLiteral, Codable,
     // Modern (serif)
     public static let athelas: FontFamily = "Athelas"
     public static let georgia: FontFamily = "Georgia"
-    // Neutral (sans)
+    /// Neutral (sans)
     public static let helveticaNeue: FontFamily = "Helvetica Neue"
     // Humanist (sans)
     public static let seravek: FontFamily = "Seravek"

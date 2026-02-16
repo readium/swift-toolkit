@@ -82,9 +82,17 @@ public extension Preference {
 
 /// A type-erasing `Preference` object.
 public class AnyPreference<Value>: Preference {
-    public var value: Value? { _value() }
-    public var effectiveValue: Value { _effectiveValue() }
-    public var isEffective: Bool { _isEffective() }
+    public var value: Value? {
+        _value()
+    }
+
+    public var effectiveValue: Value {
+        _effectiveValue()
+    }
+
+    public var isEffective: Bool {
+        _isEffective()
+    }
 
     private let _value: () -> Value?
     private let _effectiveValue: () -> Value
@@ -112,7 +120,9 @@ public extension EnumPreference {
 
 /// A type-erasing `EnumPreference` object.
 public class AnyEnumPreference<Value: Hashable>: AnyPreference<Value>, EnumPreference {
-    public var supportedValues: [Value] { _supportedValues() }
+    public var supportedValues: [Value] {
+        _supportedValues()
+    }
 
     private let _supportedValues: () -> [Value]
 
@@ -131,7 +141,9 @@ public extension RangePreference {
 
 /// A type-erasing `Preference` object.
 public class AnyRangePreference<Value: Comparable>: AnyPreference<Value>, RangePreference {
-    public var supportedRange: ClosedRange<Value> { _supportedRange() }
+    public var supportedRange: ClosedRange<Value> {
+        _supportedRange()
+    }
 
     private let _supportedRange: () -> ClosedRange<Value>
     private let _increment: () -> Void

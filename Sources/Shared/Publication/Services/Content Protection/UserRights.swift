@@ -38,20 +38,40 @@ public protocol UserRights: Sendable {
 public class UnrestrictedUserRights: UserRights, @unchecked Sendable {
     public init() {}
 
-    public func canCopy(text: String) async -> Bool { true }
-    public func copy(text: String) async -> Bool { true }
+    public func canCopy(text: String) async -> Bool {
+        true
+    }
 
-    public func canPrint(pageCount: Int) async -> Bool { true }
-    public func print(pageCount: Int) async -> Bool { true }
+    public func copy(text: String) async -> Bool {
+        true
+    }
+
+    public func canPrint(pageCount: Int) async -> Bool {
+        true
+    }
+
+    public func print(pageCount: Int) async -> Bool {
+        true
+    }
 }
 
 /// A `UserRights` which forbids all rights.
 public class AllRestrictedUserRights: UserRights, @unchecked Sendable {
     public init() {}
 
-    public func canCopy(text: String) async -> Bool { false }
-    public func copy(text: String) async -> Bool { false }
+    public func canCopy(text: String) async -> Bool {
+        false
+    }
 
-    public func canPrint(pageCount: Int) async -> Bool { false }
-    public func print(pageCount: Int) async -> Bool { false }
+    public func copy(text: String) async -> Bool {
+        false
+    }
+
+    public func canPrint(pageCount: Int) async -> Bool {
+        false
+    }
+
+    public func print(pageCount: Int) async -> Bool {
+        false
+    }
 }

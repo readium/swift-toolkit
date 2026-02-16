@@ -40,7 +40,9 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
         )
     }
 
-    public var preferences: Preferences { state.preferences }
+    public var preferences: Preferences {
+        state.preferences
+    }
 
     public func clear() {
         edit { $0 = .empty }

@@ -29,14 +29,14 @@ public final class Logger: @unchecked Sendable {
     /// available. You can define your own implementation by applying the
     /// `Loggable` protocol to your xLogger class.
     private var _activeLogger: LoggerType?
-    internal var activeLogger: LoggerType? {
+    var activeLogger: LoggerType? {
         get { lock.withLock { _activeLogger } }
         set { lock.withLock { _activeLogger = newValue } }
     }
 
     /// The minimum severity level for logs to be displayed.
     private var _minimumSeverityLevel: SeverityLevel?
-    internal var minimumSeverityLevel: SeverityLevel? {
+    var minimumSeverityLevel: SeverityLevel? {
         get { lock.withLock { _minimumSeverityLevel } }
         set { lock.withLock { _minimumSeverityLevel = newValue } }
     }
@@ -75,7 +75,7 @@ public final class Logger: @unchecked Sendable {
 
     // MARK: - Internal methods.
 
-    internal func log(_ value: Any?, at level: SeverityLevel, file: String, line: Int) {
+    func log(_ value: Any?, at level: SeverityLevel, file: String, line: Int) {
         if let minimumSeverityLevel = minimumSeverityLevel {
             guard level.numericValue >= minimumSeverityLevel.numericValue else {
                 return

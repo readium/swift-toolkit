@@ -9,16 +9,16 @@ import ReadiumFuzi
 import ReadiumShared
 
 public enum OPDS1ParserError: Error, Sendable {
-    // The title is missing from the feed.
+    /// The title is missing from the feed.
     case missingTitle
-    // Root is not found
+    /// Root is not found
     case rootNotFound
 }
 
 public enum OPDSParserOpenSearchHelperError: Error, Sendable {
-    // Search link not found in feed
+    /// Search link not found in feed
     case searchLinkNotFound
-    // OpenSearch document is invalid
+    /// OpenSearch document is invalid
     case searchDocumentIsInvalid
 }
 
@@ -301,7 +301,7 @@ public class OPDS1Parser: Loggable {
     }
 
     static func parseEntry(entry: ReadiumFuzi.XMLElement, feedURL: URL) -> Publication? {
-        // Shortcuts to get tag(s)' string value.
+        /// Shortcuts to get tag(s)' string value.
         func tag(_ name: String) -> String? {
             entry.firstChild(tag: name)?.stringValue
         }

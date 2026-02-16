@@ -21,7 +21,7 @@ class EPUBManifestParserTests: XCTestCase {
 
         XCTAssertEqual(
             manifest,
-            Manifest(
+            try Manifest(
                 metadata: Metadata(
                     identifier: "urn:uuid:7408D53A-5383-40AA-8078-5256C872AE41",
                     conformsTo: [.epub],
@@ -74,7 +74,7 @@ class EPUBManifestParserTests: XCTestCase {
                     link(href: "EPUB/chapter02.xhtml", mediaType: .xhtml),
                 ],
                 resources: [
-                    link(href: "EPUB/fonts/MinionPro.otf", mediaType: MediaType("application/vnd.ms-opentype")!),
+                    link(href: "EPUB/fonts/MinionPro.otf", mediaType: XCTUnwrap(MediaType("application/vnd.ms-opentype"))),
                     link(href: "EPUB/nav.xhtml", mediaType: .xhtml, rels: [.contents]),
                     link(href: "EPUB/style.css", mediaType: .css),
                     link(href: "EPUB/images/alice01a.gif", mediaType: .gif, rels: [.cover]),

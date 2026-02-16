@@ -16,7 +16,7 @@ public struct Properties: Hashable, Loggable, WarningLogger, Sendable {
         set { otherPropertiesJSON = JSONDictionary(newValue) ?? JSONDictionary() }
     }
 
-    // Trick to keep the struct equatable despite JSONDictionary.Wrapped
+    /// Trick to keep the struct equatable despite JSONDictionary.Wrapped
     private var otherPropertiesJSON: JSONDictionary
 
     public init(_ otherProperties: JSONDictionary.Wrapped = [:]) {
@@ -54,7 +54,9 @@ public struct Properties: Hashable, Loggable, WarningLogger, Sendable {
 ///
 /// https://github.com/readium/webpub-manifest/blob/master/properties.md#core-properties
 public extension Properties {
-    private static var pageKey: String { "page" }
+    private static var pageKey: String {
+        "page"
+    }
 
     /// Indicates how the linked resource should be displayed in a reading
     /// environment that displays synthetic spreads.

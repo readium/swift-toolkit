@@ -55,7 +55,7 @@ public extension ResourceProperties {
         }
         set {
             if let mediaType = newValue {
-                properties[mediaTypeKey] = mediaType
+                properties[mediaTypeKey] = mediaType.string
             } else {
                 properties.removeValue(forKey: mediaTypeKey)
             }

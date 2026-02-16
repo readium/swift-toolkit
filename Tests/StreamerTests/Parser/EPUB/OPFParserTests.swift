@@ -49,8 +49,8 @@ class OPFParserTests: XCTestCase {
             link(href: "titlepage.xhtml", mediaType: .xhtml),
             link(href: "EPUB/chapter01.xhtml", mediaType: .xhtml),
         ])
-        XCTAssertEqual(sut.resources, [
-            link(href: "EPUB/fonts/MinionPro.otf", mediaType: MediaType("application/vnd.ms-opentype")!),
+        XCTAssertEqual(sut.resources, try [
+            link(href: "EPUB/fonts/MinionPro.otf", mediaType: XCTUnwrap(MediaType("application/vnd.ms-opentype"))),
             link(href: "EPUB/nav.xhtml", mediaType: .xhtml, rels: [.contents]),
             link(href: "style.css", mediaType: .css),
             link(href: "EPUB/chapter02.xhtml", mediaType: .xhtml),

@@ -7,10 +7,13 @@
 import Foundation
 import ReadiumInternal
 
-// https://github.com/readium/webpub-manifest/tree/master/contexts/default#subjects
-public struct Subject: Hashable, @unchecked Sendable {
+/// https://github.com/readium/webpub-manifest/tree/master/contexts/default#subjects
+public struct Subject: Hashable, Sendable {
     public var localizedName: LocalizedString
-    public var name: String { localizedName.string }
+    public var name: String {
+        localizedName.string
+    }
+
     public var sortAs: String?
     public var scheme: String? // URI
     public var code: String?

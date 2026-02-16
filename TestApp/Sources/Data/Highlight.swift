@@ -118,5 +118,5 @@ final class HighlightRepository {
     }
 }
 
-// for the default SwiftUI support
+/// for the default SwiftUI support
 extension Highlight: Hashable {}

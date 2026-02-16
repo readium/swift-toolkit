@@ -149,9 +149,17 @@ public class MappedPreference<OldValue, NewValue>: Preference {
         self.to = to
     }
 
-    public var value: NewValue? { original.value.map(from) }
-    public var effectiveValue: NewValue { from(original.effectiveValue) }
-    public var isEffective: Bool { original.isEffective }
+    public var value: NewValue? {
+        original.value.map(from)
+    }
+
+    public var effectiveValue: NewValue {
+        from(original.effectiveValue)
+    }
+
+    public var isEffective: Bool {
+        original.isEffective
+    }
 
     public func set(_ value: NewValue?) {
         original.set(value.map(to))

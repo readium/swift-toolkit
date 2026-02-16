@@ -37,8 +37,13 @@ public protocol ContentProtectionService: PublicationService {
 }
 
 public extension ContentProtectionService {
-    var credentials: String? { nil }
-    var rights: UserRights { UnrestrictedUserRights() }
+    var credentials: String? {
+        nil
+    }
+
+    var rights: UserRights {
+        UnrestrictedUserRights()
+    }
 }
 
 // MARK: Publication Helpers

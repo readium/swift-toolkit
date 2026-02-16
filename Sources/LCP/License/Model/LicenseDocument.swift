@@ -13,17 +13,17 @@ public struct LicenseDocument {
     public typealias ID = String
     public typealias Provider = String
 
-    // The possible rel of Links.
+    /// The possible rel of Links.
     public enum Rel: String {
-        // Location where a Reading System can redirect a User looking for additional information about the User Passphrase.
+        /// Location where a Reading System can redirect a User looking for additional information about the User Passphrase.
         case hint
-        // Location where the Publication associated with the License Document can be downloaded
+        /// Location where the Publication associated with the License Document can be downloaded
         case publication
-        // As defined in the IANA registry of link relations: "Conveys an identifier for the link's context."
+        /// As defined in the IANA registry of link relations: "Conveys an identifier for the link's context."
         case `self`
-        // Support resources for the user (either a website, an email or a telephone number).
+        /// Support resources for the user (either a website, an email or a telephone number).
         case support
-        // Location to the Status Document for this license.
+        /// Location to the Status Document for this license.
         case status
     }
 
@@ -35,7 +35,7 @@ public struct LicenseDocument {
     public let issued: Date
     /// Date when the license was last updated.
     public let updated: Date
-    // Encryption object.
+    /// Encryption object.
     public let encryption: Encryption
     /// Used to associate the License Document with resources that are not locally available.
     public let links: Links
@@ -83,7 +83,7 @@ public struct LicenseDocument {
         jsonData = data
         self.jsonString = jsonString
 
-        /// Checks that `links` contains at least one link with `publication` relation.
+        // Checks that `links` contains at least one link with `publication` relation.
         guard link(for: .publication) != nil else {
             throw ParsingError.licenseDocument
         }

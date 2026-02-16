@@ -323,8 +323,7 @@ public class PublicationSpeechSynthesizer: Loggable {
             return .right(utterance.language
                 ?? config.defaultLanguage
                 ?? publication.metadata.language
-                ?? Language.current
-            )
+                ?? Language.current)
         }
     }
 

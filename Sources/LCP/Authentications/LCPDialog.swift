@@ -58,7 +58,9 @@ public struct LCPDialog: View {
         }
     }
 
-    public var id: LCPDialog { self }
+    public var id: LCPDialog {
+        self
+    }
 
     private let hint: String?
     private let errorMessage: ErrorMessage?
@@ -137,7 +139,7 @@ public struct LCPDialog: View {
         .navigationViewStyle(.stack)
     }
 
-    @ViewBuilder private var header: some View {
+    private var header: some View {
         Section {
             HStack {
                 Spacer()
@@ -168,7 +170,7 @@ public struct LCPDialog: View {
         .font(.callout)
     }
 
-    @ViewBuilder private var input: some View {
+    private var input: some View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
                 TextField(text: $passphrase) {

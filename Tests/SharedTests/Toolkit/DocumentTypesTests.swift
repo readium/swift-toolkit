@@ -19,31 +19,31 @@ class DocumentTypesTests: XCTestCase {
         let all = sut.all
 
         XCTAssertEqual(all.count, 3)
-        XCTAssertEqual(all[0], DocumentType(
+        XCTAssertEqual(all[0], try DocumentType(
             name: "Foo Format",
             utis: [],
-            preferredMediaType: MediaType("application/vnd.bar")!,
+            preferredMediaType: XCTUnwrap(MediaType("application/vnd.bar")),
             mediaTypes: [
-                MediaType("application/vnd.bar")!,
-                MediaType("application/vnd.bar2")!,
+                XCTUnwrap(MediaType("application/vnd.bar")),
+                XCTUnwrap(MediaType("application/vnd.bar2")),
             ],
             fileExtensions: ["foo", "foo2"]
         ))
-        XCTAssertEqual(all[1], DocumentType(
+        XCTAssertEqual(all[1], try DocumentType(
             name: "PDF Publication",
             utis: [],
-            preferredMediaType: MediaType("application/pdf")!,
+            preferredMediaType: XCTUnwrap(MediaType("application/pdf")),
             mediaTypes: [
-                MediaType("application/pdf")!,
+                XCTUnwrap(MediaType("application/pdf")),
             ],
             fileExtensions: ["pdff"]
         ))
-        XCTAssertEqual(all[2], DocumentType(
+        XCTAssertEqual(all[2], try DocumentType(
             name: "EPUB Publication",
             utis: ["org.idpf.epub-container"],
-            preferredMediaType: MediaType("application/epub+zip")!,
+            preferredMediaType: XCTUnwrap(MediaType("application/epub+zip")),
             mediaTypes: [
-                MediaType("application/epub+zip")!,
+                XCTUnwrap(MediaType("application/epub+zip")),
             ],
             fileExtensions: ["epub", "epub2"]
         ))
@@ -53,12 +53,12 @@ class DocumentTypesTests: XCTestCase {
         XCTAssertEqual(sut.supportedUTIs, ["org.idpf.epub-container"])
     }
 
-    func testSupportedMediaTypes() {
-        XCTAssertEqual(sut.supportedMediaTypes, [
-            MediaType("application/epub+zip")!,
-            MediaType("application/vnd.bar")!,
-            MediaType("application/vnd.bar2")!,
-            MediaType("application/pdf")!,
+    func testSupportedMediaTypes() throws {
+        XCTAssertEqual(sut.supportedMediaTypes, try [
+            XCTUnwrap(MediaType("application/epub+zip")),
+            XCTUnwrap(MediaType("application/vnd.bar")),
+            XCTUnwrap(MediaType("application/vnd.bar2")),
+            XCTUnwrap(MediaType("application/pdf")),
         ])
     }
 

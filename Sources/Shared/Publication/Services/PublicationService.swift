@@ -37,9 +37,13 @@ public protocol PublicationService: Closeable, Sendable {
 }
 
 public extension PublicationService {
-    var links: [Link] { [] }
+    var links: [Link] {
+        []
+    }
 
-    func get<T: URLConvertible>(_ href: T) -> Resource? { nil }
+    func get<T: URLConvertible>(_ href: T) -> Resource? {
+        nil
+    }
 }
 
 /// Factory used to create a `PublicationService`.

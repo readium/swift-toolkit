@@ -86,7 +86,9 @@ public enum LocalizedString: Hashable, Sendable {
 }
 
 extension LocalizedString: CustomStringConvertible {
-    public var description: String { string }
+    public var description: String {
+        string
+    }
 }
 
 /// Provides syntactic sugar when initializing a LocalizedString from a regular String (nonlocalized) or a [String: String] (localized).
@@ -107,5 +109,7 @@ extension LocalizedString: LocalizedStringConvertible {
 }
 
 extension Dictionary: LocalizedStringConvertible where Key == String, Value == String {
-    public var localizedString: LocalizedString { .localized(self) }
+    public var localizedString: LocalizedString {
+        .localized(self)
+    }
 }

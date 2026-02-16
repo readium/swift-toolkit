@@ -12,7 +12,7 @@ import ReadiumInternal
 public struct OPDSPrice: Equatable, Sendable {
     public var currency: String // eg. EUR
 
-    // Should only be used for display purposes, because of precision issues inherent with Double and the JSON parsing.
+    /// Should only be used for display purposes, because of precision issues inherent with Double and the JSON parsing.
     public var value: Double
 
     public init(currency: String, value: Double) {

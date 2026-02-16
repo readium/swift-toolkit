@@ -11,7 +11,10 @@ public struct DirectoryContainer: Container, Loggable {
     public struct NotADirectoryError: Error {}
 
     private let directoryURL: FileURL
-    public var sourceURL: AbsoluteURL? { directoryURL }
+    public var sourceURL: AbsoluteURL? {
+        directoryURL
+    }
+
     public let entries: Set<AnyURL>
 
     /// Creates a ``DirectoryContainer`` at `directory` serving only the given

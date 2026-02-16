@@ -10,12 +10,12 @@ import XCTest
 class URLTests: XCTestCase {
     func testAddingSchemeWhenMissing() {
         XCTAssertEqual(
-            URL(string: "//www.google.com/path")!.addingSchemeWhenMissing("test"),
-            URL(string: "test://www.google.com/path")!
+            URL(string: "//www.google.com/path")?.addingSchemeWhenMissing("test"),
+            URL(string: "test://www.google.com/path")
         )
         XCTAssertEqual(
-            URL(string: "http://www.google.com/path")!.addingSchemeWhenMissing("test"),
-            URL(string: "http://www.google.com/path")!
+            URL(string: "http://www.google.com/path")?.addingSchemeWhenMissing("test"),
+            URL(string: "http://www.google.com/path")
         )
     }
 }

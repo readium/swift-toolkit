@@ -340,7 +340,7 @@ class LocatorTextTests: XCTestCase {
         )
     }
 
-    func testSubstringFromRange() {
+    func testSubstringFromRange() throws {
         let highlight = "highlight"
         let text = Locator.Text(
             after: "after",
@@ -349,7 +349,7 @@ class LocatorTextTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            text[highlight.range(of: "h")!],
+            try text[XCTUnwrap(highlight.range(of: "h"))],
             Locator.Text(
                 after: "ighlightafter",
                 before: "before",
@@ -358,7 +358,7 @@ class LocatorTextTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            text[highlight.range(of: "lig")!],
+            try text[XCTUnwrap(highlight.range(of: "lig"))],
             Locator.Text(
                 after: "htafter",
                 before: "beforehigh",
@@ -367,7 +367,7 @@ class LocatorTextTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            text[highlight.range(of: "highlight")!],
+            try text[XCTUnwrap(highlight.range(of: "highlight"))],
             Locator.Text(
                 after: "after",
                 before: "before",
@@ -376,7 +376,7 @@ class LocatorTextTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            text[highlight.range(of: "ght")!],
+            try text[XCTUnwrap(highlight.range(of: "ght"))],
             Locator.Text(
                 after: "after",
                 before: "beforehighli",
@@ -405,15 +405,15 @@ class LocatorTextTests: XCTestCase {
         )
     }
 
-    func testSubstringFromARangeWithNilComponents() {
+    func testSubstringFromARangeWithNilComponents() throws {
         let highlight = "highlight"
 
         XCTAssertEqual(
-            Locator.Text(
+            try Locator.Text(
                 after: nil,
                 before: nil,
                 highlight: highlight
-            )[highlight.range(of: "ghl")!],
+            )[XCTUnwrap(highlight.range(of: "ghl"))],
             Locator.Text(
                 after: "ight",
                 before: "hi",
@@ -422,11 +422,11 @@ class LocatorTextTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            Locator.Text(
+            try Locator.Text(
                 after: "after",
                 before: nil,
                 highlight: highlight
-            )[highlight.range(of: "hig")!],
+            )[XCTUnwrap(highlight.range(of: "hig"))],
             Locator.Text(
                 after: "hlightafter",
                 before: nil,
@@ -435,11 +435,11 @@ class LocatorTextTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            Locator.Text(
+            try Locator.Text(
                 after: nil,
                 before: "before",
                 highlight: highlight
-            )[highlight.range(of: "light")!],
+            )[XCTUnwrap(highlight.range(of: "light"))],
             Locator.Text(
                 after: nil,
                 before: "beforehigh",
@@ -457,7 +457,7 @@ class LocatorCollectionTests: XCTestCase {
         )
     }
 
-    func testParseFullJSON() {
+    func testParseFullJSON() throws {
         XCTAssertEqual(
             LocatorCollection(json: [
                 "metadata": [
@@ -505,7 +505,7 @@ class LocatorCollectionTests: XCTestCase {
                     ],
                 ],
             ] as [String: Any]),
-            LocatorCollection(
+            try LocatorCollection(
                 metadata: LocatorCollection.Metadata(
                     title: LocalizedString.localized([
                         "en": "Searching <riddle> in Alice in Wonderlands - Page 1",
@@ -517,8 +517,8 @@ class LocatorCollectionTests: XCTestCase {
                     ]
                 ),
                 links: [
-                    Link(href: "/978-1503222687/search?query=apple", mediaType: MediaType("application/vnd.readium.locators+json")!, rel: "self"),
-                    Link(href: "/978-1503222687/search?query=apple&page=2", mediaType: MediaType("application/vnd.readium.locators+json")!, rel: "next"),
+                    Link(href: "/978-1503222687/search?query=apple", mediaType: XCTUnwrap(MediaType("application/vnd.readium.locators+json")), rel: "self"),
+                    Link(href: "/978-1503222687/search?query=apple&page=2", mediaType: XCTUnwrap(MediaType("application/vnd.readium.locators+json")), rel: "next"),
                 ],
                 locators: [
                     Locator(
@@ -576,8 +576,8 @@ class LocatorCollectionTests: XCTestCase {
         )
     }
 
-    func testGetFullJSON() {
-        AssertJSONEqual(
+    func testGetFullJSON() throws {
+        try AssertJSONEqual(
             LocatorCollection(
                 metadata: LocatorCollection.Metadata(
                     title: LocalizedString.localized([
@@ -590,8 +590,8 @@ class LocatorCollectionTests: XCTestCase {
                     ]
                 ),
                 links: [
-                    Link(href: "/978-1503222687/search?query=apple", mediaType: MediaType("application/vnd.readium.locators+json")!, rel: "self"),
-                    Link(href: "/978-1503222687/search?query=apple&page=2", mediaType: MediaType("application/vnd.readium.locators+json")!, rel: "next"),
+                    Link(href: "/978-1503222687/search?query=apple", mediaType: XCTUnwrap(MediaType("application/vnd.readium.locators+json")), rel: "self"),
+                    Link(href: "/978-1503222687/search?query=apple&page=2", mediaType: XCTUnwrap(MediaType("application/vnd.readium.locators+json")), rel: "next"),
                 ],
                 locators: [
                     Locator(

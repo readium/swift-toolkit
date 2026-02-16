@@ -46,9 +46,11 @@ public final class GeneratedCoverService: CoverService, @unchecked Sendable {
         await cachedCover().map { $0 as UIImage? }
     }
 
-    public var links: [Link] { [coverLink] }
+    public var links: [Link] {
+        [coverLink]
+    }
 
-    public func get<T>(_ href: T) -> (any Resource)? where T: URLConvertible {
+    public func get<T: URLConvertible>(_ href: T) -> (any Resource)? {
         guard href.anyURL.isEquivalentTo(coverLink.url()) else {
             return nil
         }
@@ -67,7 +69,7 @@ public final class GeneratedCoverService: CoverService, @unchecked Sendable {
     private class CoverResource: Resource, @unchecked Sendable {
         private let cover: @Sendable () async -> ReadResult<UIImage>
 
-        public init(cover: @escaping @Sendable () async -> ReadResult<UIImage>) {
+        init(cover: @escaping @Sendable () async -> ReadResult<UIImage>) {
             self.cover = cover
         }
 

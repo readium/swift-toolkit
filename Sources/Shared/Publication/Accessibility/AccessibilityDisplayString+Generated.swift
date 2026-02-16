@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-// DO NOT EDIT. File generated automatically from https://github.com/edrlab/thorium-locales/.
+/// DO NOT EDIT. File generated automatically from https://github.com/edrlab/thorium-locales/.
 public extension AccessibilityDisplayString {
     static let accessibilitySummaryNoMetadata: Self = "readium.a11y.accessibility-summary-no-metadata"
     static let accessibilitySummaryPublisherContact: Self = "readium.a11y.accessibility-summary-publisher-contact"

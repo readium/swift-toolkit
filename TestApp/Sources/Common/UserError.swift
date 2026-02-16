@@ -38,7 +38,9 @@ struct UserError: LocalizedError {
         self.init(message(), cause: cause)
     }
 
-    var errorDescription: String? { message }
+    var errorDescription: String? {
+        message
+    }
 }
 
 /// Convenience protocol for an object (usually an ``Error``) that can be converted

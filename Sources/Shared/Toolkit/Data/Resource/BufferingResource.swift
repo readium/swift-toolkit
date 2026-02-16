@@ -38,7 +38,9 @@ public actor BufferingResource: Resource, Loggable {
         self.init(resource: resource, bufferSize: Int(bufferSize))
     }
 
-    public nonisolated var sourceURL: AbsoluteURL? { resource.sourceURL }
+    public nonisolated var sourceURL: AbsoluteURL? {
+        resource.sourceURL
+    }
 
     public func properties() async -> ReadResult<ResourceProperties> {
         await resource.properties()

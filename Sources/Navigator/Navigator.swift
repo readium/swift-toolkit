@@ -25,7 +25,7 @@ import SafariServices
     @discardableResult
     func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool
 
-    /// Moves to the position in the publication targeted by the given link.
+    // Moves to the position in the publication targeted by the given link.
 
     /// - Returns: Whether the navigator is able to move to the locator. The
     ///   completion block is only called if true was returned.
@@ -59,7 +59,7 @@ public struct NavigatorGoOptions: Sendable {
         set { otherOptionsJSON = JSONDictionary(newValue) ?? JSONDictionary() }
     }
 
-    // Trick to keep the struct equatable despite [String: Any]
+    /// Trick to keep the struct equatable despite [String: Any]
     private var otherOptionsJSON: JSONDictionary
 
     public init(animated: Bool = false, otherOptions: [String: Any] = [:]) {

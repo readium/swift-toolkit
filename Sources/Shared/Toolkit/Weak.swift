@@ -14,7 +14,7 @@ import Foundation
 public class Weak<T: AnyObject>: @unchecked Sendable {
     fileprivate let lock = NSLock()
 
-    // Weakly held reference.
+    /// Weakly held reference.
     fileprivate weak var _ref: T?
 
     public var ref: T? {

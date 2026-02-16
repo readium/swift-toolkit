@@ -134,8 +134,8 @@ public struct EPUBSettings: ConfigurableSettings {
             ?? defaults.scroll
             ?? false
 
-        /// We disable pagination with vertical text, because CSS columns don't support it properly.
-        /// See https://github.com/readium/swift-toolkit/discussions/370
+        // We disable pagination with vertical text, because CSS columns don't support it properly.
+        // See https://github.com/readium/swift-toolkit/discussions/370
         if verticalText {
             scroll = true
         }
