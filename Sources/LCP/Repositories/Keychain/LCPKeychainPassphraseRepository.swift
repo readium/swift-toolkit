@@ -112,6 +112,15 @@ public actor LCPKeychainPassphraseRepository: LCPPassphraseRepository, Loggable 
         }
     }
 
+    /// Removes all passphrases from the repository.
+    public func clear() async throws {
+        do {
+            try keychain.deleteAll()
+        } catch {
+            throw LCPKeychainPassphraseRepositoryError.keychain(error)
+        }
+    }
+
     // MARK: - Keychain Access
 
     private func getAllPassphrases() async throws (LCPKeychainPassphraseRepositoryError) -> [Passphrase] {

@@ -263,6 +263,39 @@ import Testing
         }
     }
 
+    // MARK: - Clear Tests
+
+    @Test func clearRemovesAllPassphrases() async throws {
+        defer { try? cleanupAllTestData() }
+
+        try await repository.addPassphrase(
+            "hash-1",
+            for: "license-clear-1",
+            userID: "user-1",
+            provider: "https://provider.com"
+        )
+        try await repository.addPassphrase(
+            "hash-2",
+            for: "license-clear-2",
+            userID: "user-2",
+            provider: "https://provider.com"
+        )
+
+        try await repository.clear()
+
+        // Verify all passphrases are gone
+        #expecttry await (repository.passphrase(for: "license-clear-1") == nil)
+        #expecttry await (repository.passphrase(for: "license-clear-2") == nil)
+        let all = try await repository.passphrases()
+        #expect(all.isEmpty)
+    }
+
+    @Test func clearOnEmptyRepositorySucceeds() async throws {
+        defer { try? cleanupAllTestData() }
+
+        try await repository.clear()
+    }
+
     // MARK: - Special Characters Tests
 
     @Test func passphraseWithSpecialCharacters() async throws {

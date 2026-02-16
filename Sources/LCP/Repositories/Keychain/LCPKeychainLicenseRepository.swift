@@ -150,6 +150,15 @@ public actor LCPKeychainLicenseRepository: LCPLicenseRepository, Loggable {
         try updateLicense(license, for: id)
     }
 
+    /// Removes all licenses from the repository.
+    public func clear() async throws {
+        do {
+            try keychain.deleteAll()
+        } catch {
+            throw LCPKeychainLicenseRepositoryError.keychain(error)
+        }
+    }
+
     // MARK: - Migration Support
 
     /// Imports license rights from an external source without requiring the
