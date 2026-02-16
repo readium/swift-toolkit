@@ -16,10 +16,10 @@ import UIKit
 /// Then, implement the selector in one of your classes in the responder chain.
 /// Typically, in the `UIViewController` wrapping the navigator view
 /// controller.
-public struct EditingAction: Hashable {
+public struct EditingAction: Hashable, Sendable {
     /// Default editing actions enabled in the navigator.
     public static var defaultActions: [EditingAction] {
-        [copy, share, lookup, translate]
+        [.copy, .share, .lookup, .translate]
     }
 
     /// Copy the text selection.
@@ -43,12 +43,12 @@ public struct EditingAction: Hashable {
     /// responder chain. Typically, in the `UIViewController` wrapping the
     /// navigator view controller.
     public init(title: String, action: Selector) {
-        self.init(kind: .custom(UIMenuItem(title: title, action: action)))
+        self.init(kind: .custom(title: title, action: action))
     }
 
-    enum Kind: Hashable {
+    enum Kind: Hashable, Sendable {
         case native([String])
-        case custom(UIMenuItem)
+        case custom(title: String, action: Selector)
     }
 
     let kind: Kind
@@ -61,17 +61,18 @@ public struct EditingAction: Hashable {
         switch kind {
         case let .native(actions):
             return actions.map { Selector($0) }
-        case let .custom(item):
-            return [item.action]
+        case let .custom(_, action):
+            return [action]
         }
     }
 
+    @MainActor
     var menuItem: UIMenuItem? {
         switch kind {
         case .native:
             return nil
-        case let .custom(item):
-            return item
+        case let .custom(title, action):
+            return UIMenuItem(title: title, action: action)
         }
     }
 }
@@ -183,7 +184,6 @@ final class EditingActionsController {
     }
 
     /// Copies the authorized portion of the selection text into the pasteboard.
-    @MainActor
     func copy() async {
         guard let text = selection?.locator.text.highlight else {
             return

@@ -11,6 +11,7 @@ import ReadiumShared
 ///
 /// Implement this interface to support third-party engines with
 /// ``PublicationSpeechSynthesizer``.
+@MainActor
 public protocol TTSEngine: AnyObject {
     /// List of available synthesizer voices.
     var availableVoices: [TTSVoice] { get }
@@ -33,12 +34,12 @@ public extension TTSEngine {
     }
 }
 
-public enum TTSError: Error {
+public enum TTSError: Error, Sendable {
     /// Tried to synthesize an utterance with an unsupported language.
-    case languageNotSupported(language: Language, cause: Error?)
 
+    case languageNotSupported(language: Language, cause: (any Error)?)
     /// Other engine-specific errors.
-    case other(Error)
+    case other(any Error)
 }
 
 /// An utterance is an arbitrary text (e.g. sentence) that can be synthesized by the TTS engine.

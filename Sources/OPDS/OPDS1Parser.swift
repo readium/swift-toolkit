@@ -8,21 +8,21 @@ import Foundation
 import ReadiumFuzi
 import ReadiumShared
 
-public enum OPDS1ParserError: Error {
+public enum OPDS1ParserError: Error, Sendable {
     // The title is missing from the feed.
     case missingTitle
     // Root is not found
     case rootNotFound
 }
 
-public enum OPDSParserOpenSearchHelperError: Error {
+public enum OPDSParserOpenSearchHelperError: Error, Sendable {
     // Search link not found in feed
     case searchLinkNotFound
     // OpenSearch document is invalid
     case searchDocumentIsInvalid
 }
 
-struct MimeTypeParameters {
+struct MimeTypeParameters: Sendable {
     var type: String
     var parameters = [String: String]()
 }
@@ -31,7 +31,7 @@ public class OPDS1Parser: Loggable {
     /// Parse an OPDS feed or publication.
     /// Feed can only be v1 (XML).
     /// - parameter url: The feed URL
-    public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
+    public static func parseURL(url: URL, completion: @escaping @Sendable (ParseData?, (any Error)?) -> Void) {
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, let response = response else {
                 completion(nil, error ?? OPDSParserError.documentNotFound)
@@ -39,7 +39,7 @@ public class OPDS1Parser: Loggable {
             }
 
             do {
-                let parseData = try self.parse(xmlData: data, url: url, response: response)
+                let parseData = try parse(xmlData: data, url: url, response: response)
                 completion(parseData, nil)
             } catch {
                 completion(nil, error)
@@ -152,7 +152,7 @@ public class OPDS1Parser: Loggable {
                       let href = link.attr("href"),
                       let absoluteHref = URLHelper.getAbsolute(href: href, base: feedURL)
             {
-                var properties: [String: Any] = [:]
+                var properties: [String: any Sendable] = [:]
                 if let facetElementCount = link.attr("count").map(Int.init) {
                     properties["numberOfItems"] = facetElementCount
                 }
@@ -183,7 +183,7 @@ public class OPDS1Parser: Loggable {
             if let rel = link.attributes["rel"], !rel.isEmpty {
                 rels.append(.init(rel))
             }
-            var properties: [String: Any] = [:]
+            var properties: [String: any Sendable] = [:]
 
             let isFacet = rels.contains(.opdsFacet)
             if isFacet {
@@ -230,7 +230,7 @@ public class OPDS1Parser: Loggable {
 
     /// Fetch an Open Search template from an OPDS feed.
     /// - parameter feed: The OPDS feed
-    public static func fetchOpenSearchTemplate(feed: Feed, completion: @escaping (String?, Error?) -> Void) {
+    public static func fetchOpenSearchTemplate(feed: Feed, completion: @escaping @Sendable (String?, (any Error)?) -> Void) {
         guard let openSearchHref = feed.links.firstWithRel(.search)?.href,
               let openSearchURL = URL(string: openSearchHref)
         else {
@@ -346,7 +346,7 @@ public class OPDS1Parser: Loggable {
             description: tag("content") ?? tag("summary"),
             otherMetadata: [
                 "rights": tags("rights").joined(separator: " "),
-            ]
+            ] as [String: any Sendable]
         )
 
         // Links.
@@ -357,7 +357,7 @@ public class OPDS1Parser: Loggable {
                 continue
             }
 
-            var properties: [String: Any] = [:]
+            var properties: [String: any Sendable] = [:]
             if let price = parsePrice(link: linkElement)?.json, !price.isEmpty {
                 properties["price"] = price
             }

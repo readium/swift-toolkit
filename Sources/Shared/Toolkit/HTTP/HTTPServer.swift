@@ -118,7 +118,7 @@ public extension HTTPServer {
 public typealias HTTPServerEndpoint = String
 
 /// Request made to an `HTTPServer`.
-public struct HTTPServerRequest {
+public struct HTTPServerRequest: Sendable {
     /// Absolute URL on the server.
     public let url: HTTPURL
 
@@ -132,11 +132,11 @@ public struct HTTPServerRequest {
 }
 
 /// Response sent from the `HTTPServer` when receiving a request.
-public struct HTTPServerResponse {
-    public var resource: Resource
+public struct HTTPServerResponse: Sendable {
+    public var resource: any Resource
     public var mediaType: MediaType?
 
-    public init(resource: Resource, mediaType: MediaType?) {
+    public init(resource: any Resource, mediaType: MediaType?) {
         self.resource = resource
         self.mediaType = mediaType
     }

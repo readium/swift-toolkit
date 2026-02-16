@@ -9,7 +9,7 @@ import ReadiumInternal
 
 /// OPDS Acquisition Object
 /// https://drafts.opds.io/schema/acquisition-object.schema.json
-public struct OPDSAcquisition: Equatable {
+public struct OPDSAcquisition: Equatable, Sendable {
     public var type: String
     public var children: [OPDSAcquisition] = []
 
@@ -32,7 +32,7 @@ public struct OPDSAcquisition: Equatable {
         children = [OPDSAcquisition](json: jsonObject["child"], warnings: warnings)
     }
 
-    public var json: [String: Any] {
+    public var json: [String: any Sendable] {
         makeJSON([
             "type": type,
             "child": encodeIfNotEmpty(children.json),
