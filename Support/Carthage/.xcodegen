@@ -525,6 +525,7 @@
 ../../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/xpath.js
 ../../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/README.md
 ../../Sources/Navigator/EPUB/Scripts/webpack.config.js
+../../Sources/Navigator/EPUB/WebViewServer.swift
 ../../Sources/Navigator/Input
 ../../Sources/Navigator/Input/CompositeInputObserver.swift
 ../../Sources/Navigator/Input/InputObservable.swift
