@@ -11,8 +11,7 @@ import Foundation
 ///
 /// - Parameter customLogger: The Logger that will be used for printing logs.
 public func ReadiumEnableLog(withMinimumSeverityLevel level: SeverityLevel, customLogger: LoggerType = LoggerStub()) {
-    Logger.sharedInstance.setupLogger(logger: customLogger)
-    Logger.sharedInstance.setMinimumSeverityLevel(at: level)
+    Logger.sharedInstance.setupLogger(logger: customLogger, withMinimumSeverityLevel: level)
 
     print("\(SeverityLevel.info.symbol) Readium 2 Log enabled with minimum severity level of [\(level)].")
 }
@@ -23,26 +22,15 @@ public protocol LoggerType: Sendable {
 }
 
 /// Logger singleton.
-public final class Logger: @unchecked Sendable {
-    /// The active logger is responssible for displaying the log message
-    /// throughout the framework. There is a default implementation `StubLogger`
-    /// available. You can define your own implementation by applying the
-    /// `Loggable` protocol to your xLogger class.
-    private var _activeLogger: LoggerType?
-    var activeLogger: LoggerType? {
-        get { lock.withLock { _activeLogger } }
-        set { lock.withLock { _activeLogger = newValue } }
-    }
+public actor Logger {
+    /// The active logger is responsible for displaying the log message
+    /// throughout the framework.
+    private var activeLogger: LoggerType?
 
     /// The minimum severity level for logs to be displayed.
-    private var _minimumSeverityLevel: SeverityLevel?
-    var minimumSeverityLevel: SeverityLevel? {
-        get { lock.withLock { _minimumSeverityLevel } }
-        set { lock.withLock { _minimumSeverityLevel = newValue } }
-    }
+    private var minimumSeverityLevel: SeverityLevel?
 
-    private let lock = NSLock()
-
+    /// Singleton instance.
     public static let sharedInstance = Logger()
 
     // MARK: - Public methods.
@@ -53,34 +41,56 @@ public final class Logger: @unchecked Sendable {
     /// - Parameters:
     ///   - logger: The logger to be used as the `activeLogger`.
     ///   - severityLevel: The minimum severity level of displayed logs.
-    public func setupLogger(logger: LoggerType,
-                            withMinimumSeverityLevel severityLevel: SeverityLevel? = .warning)
+    public nonisolated func setupLogger(logger: LoggerType,
+                                        withMinimumSeverityLevel severityLevel: SeverityLevel? = .warning)
     {
-        lock.withLock {
-            _activeLogger = logger
-            _minimumSeverityLevel = severityLevel
+        Task {
+            await updateState(logger: logger, level: severityLevel)
         }
+    }
+
+    /// Internal helper to update state within the actor's isolation.
+    private func updateState(logger: LoggerType, level: SeverityLevel?) {
+        activeLogger = logger
+        minimumSeverityLevel = level
     }
 
     /// Allow the framework user to set the minimum severity level for the logs
     /// being displayed.
     ///
     /// - Parameter severityLevel: The value from the `SeverityLevel` enum.
-    public func setMinimumSeverityLevel(at severityLevel: SeverityLevel?) {
+    public nonisolated func setMinimumSeverityLevel(at severityLevel: SeverityLevel?) {
         guard let severityLevel = severityLevel else {
             return
         }
-        minimumSeverityLevel = severityLevel
+
+        Task {
+            await updateLevel(severityLevel)
+        }
+    }
+
+    private func updateLevel(_ level: SeverityLevel) {
+        minimumSeverityLevel = level
     }
 
     // MARK: - Internal methods.
 
-    func log(_ value: Any?, at level: SeverityLevel, file: String, line: Int) {
+    /// Logs a value.
+    nonisolated func log(_ value: Any?, at level: SeverityLevel, file: String, line: Int) {
+        let safeValue = String(describing: value ?? "")
+
+        Task {
+            await performLog(safeValue, at: level, file: file, line: line)
+        }
+    }
+
+    private func performLog(_ value: String, at level: SeverityLevel, file: String, line: Int) {
         if let minimumSeverityLevel = minimumSeverityLevel {
             guard level.numericValue >= minimumSeverityLevel.numericValue else {
                 return
             }
         }
+
         activeLogger?.log(level: level, value: value, file: file, line: line)
     }
 }

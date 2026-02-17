@@ -7,7 +7,7 @@
 import Foundation
 
 /// The different levels of log-severity available for logging.
-public enum SeverityLevel: String {
+public enum SeverityLevel: String, Sendable {
     case trace
     case debug
     case info
