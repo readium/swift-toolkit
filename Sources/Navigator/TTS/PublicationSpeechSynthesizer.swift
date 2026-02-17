@@ -93,7 +93,7 @@ public class PublicationSpeechSynthesizer: Loggable {
             }
 
 //            Task {
-                delegate?.publicationSpeechSynthesizer(self, stateDidChange: state)
+            delegate?.publicationSpeechSynthesizer(self, stateDidChange: state)
 //            }
         }
     }

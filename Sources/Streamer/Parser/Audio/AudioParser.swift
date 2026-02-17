@@ -16,6 +16,7 @@ public final class AudioParser: PublicationParser {
     private struct UncheckedSendable<T>: @unchecked Sendable {
         let value: T
     }
+
     private let manifestAugmentor: UncheckedSendable<AudioPublicationManifestAugmentor>
 
     public init(

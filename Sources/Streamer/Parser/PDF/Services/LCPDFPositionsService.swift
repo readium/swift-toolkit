@@ -26,8 +26,8 @@ final class LCPDFPositionsService: PositionsService, PDFPublicationService, Logg
             let pdfFactory: PDFDocumentFactory
         }
         let captures = Captures(readingOrder: readingOrder, container: container, pdfFactory: pdfFactory)
-        
-        self.positionsByReadingOrderTask = Task {
+
+        positionsByReadingOrderTask = Task {
             let readingOrder = captures.readingOrder
             let container = captures.container
             let pdfFactory = captures.pdfFactory
@@ -89,7 +89,7 @@ final class LCPDFPositionsService: PositionsService, PDFPublicationService, Logg
             let pdfFactory: PDFDocumentFactory
         }
         let captures = Captures(pdfFactory: pdfFactory)
-        
+
         return { context in
             LCPDFPositionsService(
                 readingOrder: context.manifest.readingOrder,

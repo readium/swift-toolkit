@@ -17,16 +17,16 @@ class GeneratedCoverServiceTests: XCTestCase {
     }
 
     /// `GeneratedCoverService` adds a custom `Link` with `cover` rel in `links`.
-    func testLinks() {
+    func testLinks() throws {
         let expectedLinks = [Link(href: "~readium/cover", mediaType: .png, rels: [.cover])]
-        let cover = self.cover
-        XCTAssertEqual(GeneratedCoverService(cover: cover!).links, expectedLinks)
+        let cover = cover
+        XCTAssertEqual(try GeneratedCoverService(cover: XCTUnwrap(cover)).links, expectedLinks)
         XCTAssertEqual(GeneratedCoverService(makeCover: { [cover] in .success(cover!) }).links, expectedLinks)
     }
 
     /// `GeneratedCoverService` serves the provided cover with `get()`.
     func testGetCover() async throws {
-        let cover = self.cover!
+        let cover = try XCTUnwrap(cover)
         for service in [
             GeneratedCoverService(cover: cover),
             GeneratedCoverService(makeCover: { .success(cover) }),

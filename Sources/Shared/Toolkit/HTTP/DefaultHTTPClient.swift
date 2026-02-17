@@ -108,7 +108,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable, @unchecked Sendable 
         let appInfo = Bundle.main.infoDictionary
         let appName = appInfo?["CFBundleName"] as? String ?? "Unknown App"
         let appVersion = appInfo?["CFBundleShortVersionString"] as? String ?? "0"
-        
+
         let deviceSystemName: String
         let deviceSystemVersion: String
         if Thread.isMainThread {
@@ -185,7 +185,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable, @unchecked Sendable 
         let tasks = HTTPTaskManager()
 
         self.userAgent = userAgent ?? DefaultHTTPClient.defaultUserAgent
-        self._delegate = delegate
+        _delegate = delegate
         self.tasks = tasks
         // Note that URLSession keeps a strong reference to its delegate, so we
         // don't use the DefaultHTTPClient itself as its delegate.
@@ -219,7 +219,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable, @unchecked Sendable 
         if request.userAgent == nil {
             request.userAgent = userAgent
         }
-        
+
         let finalRequest = request
 
         let result = await tasks.start(
@@ -264,11 +264,13 @@ public final class DefaultHTTPClient: HTTPClient, Loggable, @unchecked Sendable 
             return .failure(error)
         }
     }
-    
-    // Internal helper to wrap non-Sendable items safely for use in Tasks
+
+    /// Internal helper to wrap non-Sendable items safely for use in Tasks
     private struct UncheckedSendable<T>: @unchecked Sendable {
         let value: T
-        init(_ value: T) { self.value = value }
+        init(_ value: T) {
+            self.value = value
+        }
     }
 
     private class HTTPTaskManager: NSObject, URLSessionDataDelegate, @unchecked Sendable {

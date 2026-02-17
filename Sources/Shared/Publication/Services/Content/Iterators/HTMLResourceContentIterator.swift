@@ -96,10 +96,10 @@ public class HTMLResourceContentIterator: ContentIterator {
     private func elements() async throws -> ParsedElements {
         try await elementsTask.value
     }
-    
+
     private lazy var elementsTask = Task { [resource, locator, beforeMaxLength, totalProgressionRange] in
         let range = await totalProgressionRange.value
-        
+
         let result = await resource
             .readAsString()
             .eraseToAnyError()

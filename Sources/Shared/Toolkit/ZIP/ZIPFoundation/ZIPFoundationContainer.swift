@@ -110,7 +110,7 @@ private actor ZIPFoundationResource: Resource, Loggable {
         let archiveResult = await archive()
 
         switch archiveResult {
-        case .success(let archive):
+        case let .success(archive):
             do {
                 if let range = range {
                     try await archive.extractRange(range, of: entry) { data in
@@ -125,7 +125,7 @@ private actor ZIPFoundationResource: Resource, Loggable {
             } catch {
                 return .failure(.decoding(error))
             }
-        case .failure(let error):
+        case let .failure(error):
             return .failure(error)
         }
     }

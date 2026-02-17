@@ -23,7 +23,7 @@ public class Weak<T: AnyObject>: @unchecked Sendable {
     }
 
     public init(_ ref: T? = nil) {
-        self._ref = ref
+        _ref = ref
     }
 
     public func dynamicallyCall(withArguments args: [Any]) -> T? {

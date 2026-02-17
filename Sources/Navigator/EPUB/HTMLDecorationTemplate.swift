@@ -4,10 +4,10 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import Atomics
 import Foundation
 import SwiftSoup
 import UIKit
-import Atomics
 
 /// An `HTMLDecorationTemplate` renders a `Decoration` into a set of HTML elements and associated stylesheet.
 public struct HTMLDecorationTemplate: Sendable {

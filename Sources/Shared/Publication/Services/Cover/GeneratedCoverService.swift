@@ -34,7 +34,7 @@ public actor GeneratedCoverService: CoverService {
         if let cover = _cover {
             return cover
         }
-        
+
         let newCover = await makeCover()
         _cover = newCover
         return newCover

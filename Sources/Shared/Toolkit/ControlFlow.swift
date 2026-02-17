@@ -15,14 +15,13 @@ public func throttle(
     on queue: DispatchQueue = .main,
     _ block: @escaping @Sendable () -> Void
 ) -> @Sendable () -> Void {
-    
     actor State {
         var isThrottling = false
-        
+
         func attemptRun(duration: TimeInterval, queue: DispatchQueue, block: @escaping @Sendable () -> Void) {
             if isThrottling { return }
             isThrottling = true
-            
+
             queue.asyncAfter(deadline: .now() + duration) {
                 Task {
                     await self.reset()
@@ -30,12 +29,12 @@ public func throttle(
                 }
             }
         }
-        
+
         func reset() {
             isThrottling = false
         }
     }
-    
+
     let state = State()
     return {
         Task { await state.attemptRun(duration: duration, queue: queue, block: block) }
@@ -52,10 +51,9 @@ public func execute(
     on queue: DispatchQueue = .main,
     _ block: @escaping @Sendable () async -> Void
 ) -> @Sendable () -> Void {
-    
     actor State {
         var isPolling = false
-        
+
         func run(
             condition: @escaping @Sendable () -> Bool,
             pollingInterval: TimeInterval,
@@ -66,7 +64,7 @@ public func execute(
             isPolling = true
             poll(condition: condition, pollingInterval: pollingInterval, queue: queue, block: block)
         }
-        
+
         private func poll(
             condition: @escaping @Sendable () -> Bool,
             pollingInterval: TimeInterval,
@@ -90,7 +88,7 @@ public func execute(
             }
         }
     }
-    
+
     let state = State()
     return {
         Task { await state.run(condition: condition, pollingInterval: pollingInterval, queue: queue, block: block) }

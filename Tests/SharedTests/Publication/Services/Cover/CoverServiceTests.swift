@@ -16,7 +16,7 @@ class CoverServiceTests: XCTestCase {
 
     /// `Publication.cover` will use a custom `CoverService` if provided.
     func testCoverHelperUsesCustomCoverService() async {
-        let cover2 = self.cover2
+        let cover2 = cover2
         let publication = makePublication { _ in TestCoverService(cover: cover2) }
         let result = await publication.cover()
         AssertImageEqual(result, .success(cover2))
@@ -32,7 +32,7 @@ class CoverServiceTests: XCTestCase {
     /// `Publication.coverFitting` will use a custom `CoverService` if provided.
     func testCoverFittingHelperUsesCustomCoverService() async {
         let size = CGSize(width: 100, height: 100)
-        let cover2 = self.cover2
+        let cover2 = cover2
         let publication = makePublication { _ in TestCoverService(cover: cover2) }
         let result = await publication.coverFitting(maxSize: size)
         AssertImageEqual(result, .success(cover2.scaleToFit(maxSize: size)))

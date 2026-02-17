@@ -144,7 +144,7 @@ class PositionsServiceTests: XCTestCase {
 
     /// The Publication helpers will use the `PositionsService` if there's one.
     func testPublicationHelpersUsesPositionsService() async throws {
-        let positions = self.positions
+        let positions = positions
         let publication = makePublication(positions: { _ in TestPositionsService(positions) })
 
         let resultPositionsByReadingOrder = try await publication.positionsByReadingOrder().get()

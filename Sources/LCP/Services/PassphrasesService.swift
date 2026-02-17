@@ -17,8 +17,6 @@ final class PassphrasesService: Sendable {
         let value: T
     }
 
-
-
     init(client: LCPClient, repository: LCPPassphraseRepository) {
         self.client = client
         self.repository = repository

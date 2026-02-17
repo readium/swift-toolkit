@@ -67,11 +67,11 @@ import UIKit
             if let image = media?.artwork {
                 let size = image.size
                 let imageToReturn = image
-                self.mpArtwork = MPMediaItemArtwork(boundsSize: size) { @Sendable _ in
+                mpArtwork = MPMediaItemArtwork(boundsSize: size) { @Sendable _ in
                     return imageToReturn
                 }
             } else {
-                self.mpArtwork = nil
+                mpArtwork = nil
             }
             playback.clear()
             update()
@@ -103,7 +103,7 @@ import UIKit
     private lazy var update = throttle(duration: 1) { [weak self] in
         Task { @MainActor in
             guard let self = self else { return }
-            
+
             var info = [String: Any]()
             if let media = self.media {
                 info[MPMediaItemPropertyTitle] = media.title

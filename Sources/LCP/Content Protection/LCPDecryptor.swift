@@ -97,9 +97,9 @@ final class LCPDecryptor: Sendable {
             self.resource = resource
             self.license = license
             self.encryption = encryption
-            
-            self.plainTextSizeTask = Task {
-                 await resource.estimatedLength().asyncFlatMap { length in
+
+            plainTextSizeTask = Task {
+                await resource.estimatedLength().asyncFlatMap { length in
                     guard let length = length else {
                         return .failure(.decoding(LCPDecryptor.Error.requiredEstimatedLength))
                     }
@@ -128,12 +128,12 @@ final class LCPDecryptor: Sendable {
                 }
             }
         }
-        
-        deinit {
-            
-        }
 
-        var sourceURL: AbsoluteURL? { resource.sourceURL }
+        deinit {}
+
+        var sourceURL: AbsoluteURL? {
+            resource.sourceURL
+        }
 
         func estimatedLength() async -> ReadResult<UInt64?> {
             await plainTextSizeTask.value
@@ -169,35 +169,35 @@ final class LCPDecryptor: Sendable {
                 return await resource.read(range: encryptedStart ..< encryptedEndExclusive)
                     .flatMap { encryptedData in
                         plainTextSizeResult.flatMap { plainTextSize in
-                        do {
-                            guard let plainTextSize = plainTextSize else {
-                                return failure(.noPlainTextSize)
+                            do {
+                                guard let plainTextSize = plainTextSize else {
+                                    return failure(.noPlainTextSize)
+                                }
+                                guard let bytes = try license.decipher(encryptedData) else {
+                                    return failure(.emptyDecryptedData)
+                                }
+
+                                // Exclude the bytes added to match a multiple of AESBlockSize.
+                                let sliceStart = (rangeFirst - encryptedStart)
+
+                                let isLastBlockRead = encryptedLength - encryptedEndExclusive <= AESBlockSize
+                                let rangeLength = isLastBlockRead
+                                    // Use decrypted length to ensure `rangeLast` doesn't exceed decrypted length - 1.
+                                    ? min(rangeLast, plainTextSize - 1) - rangeFirst + 1
+                                    // The last block won't be read, so there's no need to compute the length
+                                    : rangeLast - rangeFirst + 1
+
+                                // Keep only enough bytes to fit the length-corrected request in order to never
+                                // include padding.
+                                let sliceEnd = sliceStart + rangeLength
+
+                                consume(bytes[sliceStart ..< sliceEnd])
+                                return .success(())
+                            } catch {
+                                return .failure(.decoding(error))
                             }
-                            guard let bytes = try license.decipher(encryptedData) else {
-                                return failure(.emptyDecryptedData)
-                            }
-
-                            // Exclude the bytes added to match a multiple of AESBlockSize.
-                            let sliceStart = (rangeFirst - encryptedStart)
-
-                            let isLastBlockRead = encryptedLength - encryptedEndExclusive <= AESBlockSize
-                            let rangeLength = isLastBlockRead
-                                // Use decrypted length to ensure `rangeLast` doesn't exceed decrypted length - 1.
-                                ? min(rangeLast, plainTextSize - 1) - rangeFirst + 1
-                                // The last block won't be read, so there's no need to compute the length
-                                : rangeLast - rangeFirst + 1
-
-                            // Keep only enough bytes to fit the length-corrected request in order to never
-                            // include padding.
-                            let sliceEnd = sliceStart + rangeLength
-
-                            consume(bytes[sliceStart ..< sliceEnd])
-                            return .success(())
-                        } catch {
-                            return .failure(.decoding(error))
                         }
                     }
-                }
             }
         }
 

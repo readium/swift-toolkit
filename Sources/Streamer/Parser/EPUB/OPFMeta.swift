@@ -274,7 +274,7 @@ struct OPFMetaList {
                 if let v = value as? [String: any Sendable] { return v }
                 return nil
             }
-            
+
             switch values.count {
             case 0:
                 return nil

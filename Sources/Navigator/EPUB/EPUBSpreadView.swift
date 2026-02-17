@@ -392,12 +392,12 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     func findFirstVisibleElementLocator() async -> Locator? {
         let scriptResult = await evaluateScript("readium.findFirstVisibleLocator()")
-        
-        switch scriptResult {
-        case .success(let wrappedValue):
 
+        switch scriptResult {
+        case let .success(wrappedValue):
             guard let wrapper = wrappedValue as? SendableWrapper,
-                  let dict = wrapper.value as? [String: Any] else {
+                  let dict = wrapper.value as? [String: Any]
+            else {
                 log(.error, "JS returned success, but data was not a valid Dictionary.")
                 return nil
             }
@@ -406,14 +406,14 @@ class EPUBSpreadView: UIView, Loggable, PageView {
                 log(.error, "Failed to initialize Locator from JS dictionary: \(dict)")
                 return nil
             }
-            
+
             let link = spread.first.link
             return locator.copy(
                 href: link.url(),
                 mediaType: link.mediaType ?? .xhtml
             )
-            
-        case .failure(let error):
+
+        case let .failure(error):
             log(.error, "Locator Bridge Error: \(error.localizedDescription)")
             return nil
         }

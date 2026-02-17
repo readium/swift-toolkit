@@ -91,15 +91,15 @@ enum EPUBScriptScope: Sendable {
             let servedFilesAtomic = _servedFiles
             let fontDeclarations = config.fontFamilyDeclarations
             // Use the local httpServer parameter from init, which is non-optional
-            
+
             try httpServer.transformResources(at: endpoint) { href, resource in
                 let css = cssAtomic.read()
-                
+
                 let serveFont: @Sendable (FileURL) throws -> HTTPURL = { file in
                     if let url = servedFilesAtomic.read()[file] {
                         return url
                     }
-                    
+
                     // We use a random UUID to avoid conflicts if the same file is served multiple times.
                     // This logic mirrors the previous serveFont/serveFile implementation.
                     let endpoint = "custom-fonts/\(UUID().uuidString)/" + file.lastPathSegment
@@ -107,7 +107,7 @@ enum EPUBScriptScope: Sendable {
                     servedFilesAtomic.write { $0[file] = url }
                     return url
                 }
-                
+
                 return Self.injectReadiumCSS(
                     in: resource,
                     at: href,
@@ -198,8 +198,6 @@ enum EPUBScriptScope: Sendable {
     func url(to link: Link) -> AnyURL {
         link.url(relativeTo: publicationBaseURL)
     }
-
-
 
     private var needsInvalidatePagination = false
     private func setNeedsInvalidatePagination() {
@@ -322,8 +320,6 @@ enum EPUBScriptScope: Sendable {
     // MARK: - Readium CSS
 
     @Atomic private var css: ReadiumCSS
-
-
 
     nonisolated static func injectReadiumCSS<HREF: URLConvertible>(
         in resource: Resource,

@@ -34,7 +34,7 @@ final class LCPDFTableOfContentsService: TableOfContentsService, PDFPublicationS
         }
         let captures = Captures(manifest: manifest, container: container, pdfFactory: pdfFactory)
 
-        self.tableOfContentsTask = Task {
+        tableOfContentsTask = Task {
             let manifest = captures.manifest
             let container = captures.container
             let pdfFactory = captures.pdfFactory
@@ -66,7 +66,7 @@ final class LCPDFTableOfContentsService: TableOfContentsService, PDFPublicationS
             let pdfFactory: PDFDocumentFactory
         }
         let captures = Captures(pdfFactory: pdfFactory)
-        
+
         return { context in
             LCPDFTableOfContentsService(
                 manifest: context.manifest,

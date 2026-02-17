@@ -87,7 +87,7 @@ public extension Streamable {
 
 private class StreamableAccumulator: @unchecked Sendable {
     var data = Data()
-    
+
     func append(_ other: Data) {
         data.append(other)
     }

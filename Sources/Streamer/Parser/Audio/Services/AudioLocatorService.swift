@@ -24,10 +24,10 @@ final class AudioLocatorService: DefaultLocatorService, @unchecked Sendable {
 
     init(publication: Weak<Publication>, readingOrder: [Link]) {
         self.readingOrder = readingOrder
-        self.durations = readingOrder.map { $0.duration ?? 0 }
+        durations = readingOrder.map { $0.duration ?? 0 }
         let totalDuration = durations.reduce(0, +)
         self.totalDuration = (totalDuration > 0) ? totalDuration : nil
-        
+
         super.init(publication: publication)
     }
 

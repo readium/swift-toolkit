@@ -35,15 +35,15 @@ public actor FormatSnifferBlob {
     func read() async -> ReadResult<Data?> {
         if bytes == nil {
             let lengthResult = await length()
-            
+
             switch lengthResult {
-            case .success(let len):
+            case let .success(len):
                 if let len = len, len >= 5 * 1000 * 1000 {
                     bytes = .success(nil)
                 } else {
                     bytes = await source.read().map { $0 as Data? }
                 }
-            case .failure(let error):
+            case let .failure(error):
                 bytes = .failure(error)
             }
         }
@@ -65,7 +65,8 @@ public actor FormatSnifferBlob {
         if json == nil {
             json = await read().map { data in
                 guard let data = data,
-                      (try? JSONSerialization.jsonObject(with: data)) != nil else {
+                      (try? JSONSerialization.jsonObject(with: data)) != nil
+                else {
                     return nil
                 }
                 return data
@@ -78,15 +79,15 @@ public actor FormatSnifferBlob {
     func readAsXML() async -> ReadResult<XMLDocument?> {
         if xml == nil {
             let dataResult = await read()
-            
+
             switch dataResult {
-            case .success(let data):
+            case let .success(data):
                 if let data = data {
-                    xml = .success(try? await xmlDocumentFactory.open(data: data, namespaces: []))
+                    xml = await .success(try? xmlDocumentFactory.open(data: data, namespaces: []))
                 } else {
                     xml = .success(nil)
                 }
-            case .failure(let error):
+            case let .failure(error):
                 xml = .failure(error)
             }
         }

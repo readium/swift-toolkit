@@ -138,7 +138,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             preferences: config.preferences,
             defaults: config.defaults
         )
-        
+
         _player = Unchecked(value: AVPlayer())
         setupPlayer()
     }
@@ -328,6 +328,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     private final class TimeObserverBox: @unchecked Sendable {
         var value: Any?
     }
+
     private let timeObserverBox = TimeObserverBox()
 
     private var timeObserver: Any? {
@@ -340,7 +341,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     private nonisolated let _player: Unchecked<AVPlayer>
 
     private var player: AVPlayer {
-         _player.value
+        _player.value
     }
 
     private func shouldPlayNextResource(completion: @escaping (Bool) -> Void) {
@@ -373,9 +374,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// A deadlock can occur when loading HTTP assets and creating the playback info from the main thread.
     /// To fix this, this is an asynchronous operation.
     private func makePlaybackInfo(forTime time: Double? = nil, completion: @escaping @MainActor (MediaPlaybackInfo) -> Void) {
-        let player = Unchecked(value: self.player)
-        let resourceIndex = self.resourceIndex
-        let publication = self.publication
+        let player = Unchecked(value: player)
+        let resourceIndex = resourceIndex
+        let publication = publication
 
         DispatchQueue.global(qos: .userInteractive).async {
             let player = player.value

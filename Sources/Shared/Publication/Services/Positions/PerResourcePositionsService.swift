@@ -34,10 +34,10 @@ public actor PerResourcePositionsService: PositionsService {
     private var _positions: [[Locator]]?
     private var positions: [[Locator]] {
         if let positions = _positions { return positions }
-        
+
         let count = readingOrder.count
         _pageCount = count
-        
+
         let positions: [[Locator]] = readingOrder.enumerated().map { index, link in
             [
                 Locator(

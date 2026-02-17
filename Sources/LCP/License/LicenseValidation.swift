@@ -48,13 +48,13 @@ final actor LicenseValidation: Loggable {
     fileprivate let client: LCPClient
     fileprivate let authentication: LCPAuthenticating?
     fileprivate let allowUserInteraction: Bool
-    
+
     struct Unchecked<T>: @unchecked Sendable {
         let value: T
     }
-    
+
     fileprivate let uncheckedSender: Unchecked<Any?>
-    
+
     fileprivate let crl: CRLService
     fileprivate let device: DeviceService
     fileprivate let httpClient: HTTPClient
@@ -86,7 +86,7 @@ final actor LicenseValidation: Loggable {
     ) {
         self.authentication = authentication
         self.allowUserInteraction = allowUserInteraction
-        self.uncheckedSender = Unchecked(value: sender)
+        uncheckedSender = Unchecked(value: sender)
         self.isProduction = isProduction
         self.client = client
         self.crl = crl
@@ -116,7 +116,7 @@ final actor LicenseValidation: Loggable {
         async let _ = raise(event)
         return try await observe()
     }
-    
+
     /// Should be called by the state handlers once they're done, to go to the next State.
     fileprivate func raise(_ event: Event) async throws {
         log(.debug, "-> on \(event)")

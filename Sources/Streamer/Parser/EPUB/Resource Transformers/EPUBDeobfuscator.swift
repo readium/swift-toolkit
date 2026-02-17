@@ -74,7 +74,7 @@ final class EPUBDeobfuscator: Sendable {
                     self.readPosition = readPosition
                 }
             }
-            
+
             let context = StreamContext(readPosition: range?.lowerBound ?? 0)
             let obfuscatedLength = UInt64(algorithm.obfuscatedLength)
 

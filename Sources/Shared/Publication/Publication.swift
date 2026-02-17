@@ -63,7 +63,7 @@ public class Publication: Closeable, Loggable, @unchecked Sendable {
         )
         manifest.links.append(contentsOf: services.flatMap(\.links))
 
-        self._manifest = manifest
+        _manifest = manifest
         self.container = container
         self.services = services
 

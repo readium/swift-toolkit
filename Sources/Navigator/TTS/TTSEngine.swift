@@ -35,7 +35,7 @@ public extension TTSEngine {
 }
 
 public enum TTSError: Error, Sendable {
-    /// Tried to synthesize an utterance with an unsupported language.
+    // Tried to synthesize an utterance with an unsupported language.
 
     case languageNotSupported(language: Language, cause: (any Error)?)
     /// Other engine-specific errors.

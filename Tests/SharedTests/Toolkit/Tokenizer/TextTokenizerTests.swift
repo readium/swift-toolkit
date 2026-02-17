@@ -60,6 +60,4 @@ class TextTokenizerTests: XCTestCase {
             ]
         )
     }
-
-
 }

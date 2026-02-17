@@ -38,9 +38,9 @@ final class CompletionList {
 
     /// Calls all the registered completion blocks.
     func complete() {
-        for block in self.blocks {
+        for block in blocks {
             block()
         }
-        self.blocks.removeAll()
+        blocks.removeAll()
     }
 }
