@@ -105,9 +105,9 @@ import WebKit
 
     /// Bounded cache of buffered resources keyed by publication-relative URL.
     ///
-    /// Reusing the same ``BufferingResource`` (and its underlying source)
-    /// across requests lets compressed ZIP resources benefit from forward-seek
-    /// optimization instead of decompressing from offset 0 on every request.
+    /// Reusing the same ``Resource`` across requests lets compressed ZIP
+    /// resources benefit from forward-seek optimization instead of
+    /// decompressing from offset 0 on every request.
     ///
     /// Oldest entries are evicted when the cache exceeds its capacity.
     private var resourceCache = BoundedResourceCache()
@@ -154,7 +154,8 @@ import WebKit
             case let .directory(directory):
                 guard
                     let relativeURL = route.baseURL.relativize(anyURL),
-                    let file = directory.resolve(relativeURL)?.fileURL
+                    let file = directory.resolve(relativeURL)?.fileURL,
+                    directory.isParent(of: file)
                 else {
                     continue
                 }
@@ -188,17 +189,17 @@ import WebKit
         // Reuse a cached buffered resource to benefit from forward-seek
         // optimization and read-ahead buffering, or create and cache a new
         // one.
-        let resource: BufferingResource
+        let resource: Resource
         if let cached = resourceCache[relativeURL] {
             resource = cached
         } else {
-            guard let res = await handler(relativeURL) else {
+            guard var res = handler(relativeURL) else {
                 await fail(urlSchemeTask, with: URLError(.fileDoesNotExist))
                 return
             }
-            let buffered = BufferingResource(source: res)
-            resourceCache.set(relativeURL, buffered)
-            resource = buffered
+            res = res.buffered(size: 256 * 1024)
+            resourceCache.set(relativeURL, res)
+            resource = res
         }
 
         let mediaType = relativeURL.pathExtension
@@ -374,21 +375,21 @@ import WebKit
     }
 }
 
-/// A simple bounded FIFO cache for ``BufferingResource`` instances.
+/// A simple bounded FIFO cache for ``Resource`` instances.
 ///
 /// Evicts the oldest entries when the number of cached resources exceeds
 /// ``capacity``, preventing unbounded memory growth as the user navigates
 /// through chapters.
 private struct BoundedResourceCache {
-    private let capacity = 16
-    private var entries: [RelativeURL: BufferingResource] = [:]
+    private let capacity = 8
+    private var entries: [RelativeURL: Resource] = [:]
     private var order: [RelativeURL] = []
 
-    subscript(key: RelativeURL) -> BufferingResource? {
+    subscript(key: RelativeURL) -> Resource? {
         entries[key]
     }
 
-    mutating func set(_ key: RelativeURL, _ value: BufferingResource) {
+    mutating func set(_ key: RelativeURL, _ value: Resource) {
         if entries[key] == nil {
             order.append(key)
         }
@@ -398,89 +399,5 @@ private struct BoundedResourceCache {
             let evicted = order.removeFirst()
             entries.removeValue(forKey: evicted)
         }
-    }
-}
-
-/// A `Resource` decorator that buffers reads from the source by reading
-/// ahead in larger chunks.
-///
-/// This efficiently serves the many small sequential range requests that
-/// WebKit sends via `WKURLSchemeHandler` for media resources. Instead of
-/// hitting the underlying resource (e.g. a compressed ZIP entry) for each
-/// tiny request, a single larger read fills the buffer and subsequent
-/// requests are served from memory.
-///
-/// The underlying source `Resource` (e.g. `MinizipResource`) also benefits
-/// from being reused: its internal decompression stream stays positioned at
-/// the last read offset, so forward reads only decompress the delta instead
-/// of starting over from the beginning of the entry.
-private actor BufferingResource: Resource, Loggable {
-    /// `nonisolated(unsafe)` is safe here because `source` is a `let`
-    /// constant set once in `init` and never mutated.
-    private nonisolated(unsafe) let source: Resource
-    private let readAheadSize: Int
-
-    /// Buffered data and the source offset it starts at.
-    private var buffer: Data = .init()
-    private var bufferStart: UInt64 = 0
-
-    init(source: Resource, readAheadSize: Int = 256 * 1024) {
-        self.source = source
-        self.readAheadSize = readAheadSize
-    }
-
-    nonisolated var sourceURL: AbsoluteURL? {
-        source.sourceURL
-    }
-
-    func estimatedLength() async -> ReadResult<UInt64?> {
-        await source.estimatedLength()
-    }
-
-    func properties() async -> ReadResult<ResourceProperties> {
-        await source.properties()
-    }
-
-    nonisolated func close() {
-        source.close()
-    }
-
-    func stream(
-        range: Range<UInt64>?,
-        consume: @escaping (Data) -> Void
-    ) async -> ReadResult<Void> {
-        // Full reads pass through to the source.
-        guard let range = range, !range.isEmpty else {
-            return await source.stream(range: range, consume: consume)
-        }
-
-        // Serve from the buffer if the request is fully covered.
-        let bufferEnd = bufferStart + UInt64(buffer.count)
-        if range.lowerBound >= bufferStart, range.upperBound <= bufferEnd {
-            let lo = Int(range.lowerBound - bufferStart)
-            let hi = Int(range.upperBound - bufferStart)
-            consume(buffer[lo ..< hi])
-            return .success(())
-        }
-
-        // Read ahead from the source to fill the buffer.
-        let readEnd = max(range.upperBound, range.lowerBound + UInt64(readAheadSize))
-        var data = Data()
-        let result = await source.stream(range: range.lowerBound ..< readEnd) {
-            data.append($0)
-        }
-
-        guard case .success = result else {
-            return result
-        }
-
-        buffer = data
-        bufferStart = range.lowerBound
-
-        let end = min(Int(range.count), data.count)
-        if end > 0 {
-            consume(data[0 ..< end])
-        }
-        return .success(())
     }
 }

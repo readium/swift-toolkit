@@ -52,37 +52,23 @@ enum EPUBScriptScope {
         // Serve static assets directory.
         let assetsBaseURL = server.serve(directory: assetsDirectory, at: "assets")
 
-        let publicationBaseURL: AbsoluteURL
-        let publicationRoute: String?
-        if let url = publication.baseURL {
-            // The publication already has an HTTP base URL (e.g. served
-            // remotely). Use it directly; the server only needs to serve
-            // assets.
-            publicationBaseURL = url
-            publicationRoute = nil
-        } else {
-            let uuid = UUID().uuidString
-            publicationBaseURL = AnyURL(string: "readium://\(uuid)/")!.absoluteURL!
-            publicationRoute = uuid
-        }
-
         self.init(
             publication: publication,
             readingOrder: readingOrder,
             config: config,
             server: server,
-            publicationBaseURL: publicationBaseURL,
             assetsBaseURL: assetsBaseURL
         )
 
-        // Serve publication resources (after self.init so [weak self] works).
-        if let publicationRoute {
-            server.serve(at: publicationRoute) { [weak self] relativeURL in
-                guard var resource = publication.get(relativeURL) else { return nil }
-                if let self {
-                    resource = self.injectReadiumCSS(in: resource, at: relativeURL.anyURL)
-                }
-                return resource
+        if let url = publication.baseURL {
+            // The publication already has an HTTP base URL (e.g. served
+            // remotely). Use it directly; the server only needs to serve
+            // assets.
+            publicationBaseURL = url
+        } else {
+            // Serve publication resources.
+            publicationBaseURL = server.serve(at: UUID().uuidString) { [weak self] in
+                self?.serve(href: $0)
             }
         }
     }
@@ -92,7 +78,6 @@ enum EPUBScriptScope {
         readingOrder: ReadingOrder,
         config: EPUBNavigatorViewController.Configuration,
         server: WebViewServer,
-        publicationBaseURL: AbsoluteURL,
         assetsBaseURL: any AbsoluteURL
     ) {
         var config = config
@@ -131,7 +116,6 @@ enum EPUBScriptScope {
             publication: publication
         )
         self.server = server
-        self.publicationBaseURL = publicationBaseURL
         self.assetsBaseURL = assetsBaseURL
 
         preferences = config.preferences
@@ -172,6 +156,15 @@ enum EPUBScriptScope {
             needsInvalidatePagination = false
             delegate?.epubNavigatorViewModelInvalidatePaginationView(self)
         }
+    }
+
+    // MARK: - Web View Server
+
+    private func serve(href: RelativeURL) -> Resource? {
+        guard let resource = publication.get(href) else {
+            return nil
+        }
+        return injectReadiumCSS(in: resource, at: href)
     }
 
     // MARK: - User preferences
