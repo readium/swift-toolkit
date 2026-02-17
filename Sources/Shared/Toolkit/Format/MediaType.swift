@@ -253,7 +253,7 @@ public struct MediaType: Hashable, Loggable, Sendable {
     public static let rar = MediaType("application/vnd.rar")!
     public static let readiumAudiobook = MediaType("application/audiobook+zip")!
     public static let readiumAudiobookManifest = MediaType("application/audiobook+json")!
-    public static let readiumGuidedNavigationDocument = MediaType("application/guided-navigation+json")
+    public static let readiumGuidedNavigationDocument = MediaType("application/guided-navigation+json")!
     public static let readiumWebPub = MediaType("application/webpub+zip")!
     public static let readiumWebPubManifest = MediaType("application/webpub+json")!
     public static let smil = MediaType("application/smil+xml")!

@@ -71,20 +71,22 @@ public struct GuidedNavigationObject: Hashable, Sendable {
 
         let refs = try Refs(json: json, warnings: warnings)
         let text = try Text(json: json["text"], warnings: warnings)
-        let children = try [GuidedNavigationObject](json: json["children"], warnings: warnings)
+        let children = [GuidedNavigationObject](json: json["children"], warnings: warnings)
 
         guard refs != nil || text != nil || !children.isEmpty else {
             warnings?.log("Guided Navigation Object requires at least one of audioref, imgref, textref, videoref, text, or children", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
 
-        try self.init(
+        let description = try Description(json: json["description"], warnings: warnings)
+
+        self.init(
             id: json["id"] as? String,
             refs: refs,
             text: text,
             role: (json["role"] as? [String])?.map(Role.init) ?? [],
             level: (json["level"] as? Int).flatMap { Level(rawValue: $0) },
-            description: Description(json: json["description"], warnings: warnings),
+            description: description,
             children: children
         )
     }
@@ -125,7 +127,7 @@ public struct GuidedNavigationObject: Hashable, Sendable {
                 if json == nil {
                     return nil
                 }
-                warnings?.log("Invalid Guided Navigation Object", model: Self.self, source: json, severity: .moderate)
+                warnings?.log("Invalid Guided Navigation Refs", model: Self.self, source: json, severity: .moderate)
                 throw JSONError.parsing(Self.self)
             }
             let text = (json["textref"] as? String).flatMap(AnyURL.init(string:))
@@ -169,6 +171,7 @@ public struct GuidedNavigationObject: Hashable, Sendable {
                 let plain = obj["plain"] as? String
                 let ssml = obj["ssml"] as? String
                 guard plain != nil || ssml != nil else {
+                    warnings?.log("Guided Navigation String requires at least one of plain, or ssml", model: Self.self, source: json, severity: .moderate)
                     return nil
                 }
 
@@ -530,7 +533,7 @@ public struct GuidedNavigationObject: Hashable, Sendable {
 // MARK: - Array Extension
 
 public extension Array where Element == GuidedNavigationObject {
-    init(json: Any?, warnings: WarningLogger? = nil) throws {
+    init(json: Any?, warnings: WarningLogger? = nil) {
         self.init()
         guard let json = json as? [Any] else {
             return
