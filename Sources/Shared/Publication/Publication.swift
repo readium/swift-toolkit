@@ -10,12 +10,7 @@ import ReadiumInternal
 
 /// Shared model for a Readium Publication.
 public class Publication: Closeable, Loggable, @unchecked Sendable {
-    private let lock = NSLock()
-    private var _manifest: Manifest
-    public var manifest: Manifest {
-        get { lock.withLock { _manifest } }
-        set { lock.withLock { _manifest = newValue } }
-    }
+    public let manifest: Manifest
 
     private let container: Container
     private let services: [PublicationService]
@@ -53,17 +48,20 @@ public class Publication: Closeable, Loggable, @unchecked Sendable {
     ) {
         let weakPublication = Weak<Publication>()
 
-        var manifest = manifest
+        var mutableManifest = manifest
+
         let services = servicesBuilder.build(
             context: PublicationServiceContext(
                 publication: weakPublication,
-                manifest: manifest,
+                manifest: mutableManifest,
                 container: container
             )
         )
-        manifest.links.append(contentsOf: services.flatMap(\.links))
 
-        _manifest = manifest
+        let serviceLinks = services.flatMap(\.links)
+        mutableManifest.links.append(contentsOf: serviceLinks)
+
+        self.manifest = mutableManifest
         self.container = container
         self.services = services
 
