@@ -5,8 +5,8 @@
 //
 
 import Foundation
+import ReadiumInternal
 import ReadiumShared
-import UniformTypeIdentifiers
 import WebKit
 
 /// A generic `WKURLSchemeHandler` that serves files, directories, and
@@ -15,6 +15,8 @@ import WebKit
 @MainActor final class WebViewServer: NSObject, WKURLSchemeHandler, Loggable {
     /// The custom scheme used to serve the content.
     let scheme: String
+
+    private let formatSniffer = DefaultFormatSniffer()
 
     init(scheme: String) {
         self.scheme = scheme
@@ -100,7 +102,6 @@ import WebKit
     // MARK: - Active tasks & caching
 
     /// Tracks active tasks for cancellation support.
-    /// Only accessed from the main thread (WebKit calls start/stop on main).
     private var activeTasks: [ObjectIdentifier: Task<Void, Never>] = [:]
 
     /// Bounded cache of buffered resources keyed by publication-relative URL.
@@ -118,9 +119,7 @@ import WebKit
         let taskID = ObjectIdentifier(urlSchemeTask)
         activeTasks[taskID] = Task {
             await serve(urlSchemeTask)
-            await MainActor.run { [weak self] in
-                _ = self?.activeTasks.removeValue(forKey: taskID)
-            }
+            _ = activeTasks.removeValue(forKey: taskID)
         }
     }
 
@@ -137,15 +136,11 @@ import WebKit
             return
         }
 
-        let anyURL = AnyURL(url: requestURL)
-
         // Find the matching route (longest prefix wins).
         for route in routes {
             switch route.handler {
             case let .file(file):
-                // File routes match on exact URL equality since
-                // relativize returns nil for identical URLs.
-                guard anyURL == route.baseURL.anyURL else {
+                guard route.baseURL.isEquivalentTo(requestURL) else {
                     continue
                 }
                 await serveFile(urlSchemeTask, at: file, requestURL: requestURL)
@@ -153,7 +148,7 @@ import WebKit
 
             case let .directory(directory):
                 guard
-                    let relativeURL = route.baseURL.relativize(anyURL),
+                    let relativeURL = route.baseURL.relativize(requestURL),
                     let file = directory.resolve(relativeURL)?.fileURL,
                     directory.isParent(of: file)
                 else {
@@ -163,7 +158,7 @@ import WebKit
                 return
 
             case let .resources(handler):
-                guard let relativeURL = route.baseURL.relativize(anyURL) else {
+                guard let relativeURL = route.baseURL.relativize(requestURL) else {
                     continue
                 }
                 await serveResource(
@@ -202,23 +197,48 @@ import WebKit
             resource = res
         }
 
-        let mediaType = relativeURL.pathExtension
-            .flatMap { UTType(filenameExtension: $0.rawValue)?.preferredMIMEType }
-            ?? "application/octet-stream"
+        let mediaType = await resource.properties().getOrNil()?.mediaType ?? mediaTypeFromURL(relativeURL)
 
+        await serveResource(
+            resource,
+            with: urlSchemeTask,
+            mediaType: mediaType,
+            requestURL: requestURL
+        )
+    }
+
+    /// Reads a local file and sends it as a response.
+    private func serveFile(
+        _ urlSchemeTask: WKURLSchemeTask,
+        at file: FileURL,
+        requestURL: URL
+    ) async {
+        await serveResource(
+            FileResource(file: file),
+            with: urlSchemeTask,
+            mediaType: mediaTypeFromURL(file),
+            requestURL: requestURL
+        )
+    }
+
+    private func serveResource(
+        _ resource: Resource,
+        with urlSchemeTask: WKURLSchemeTask,
+        mediaType: MediaType?,
+        requestURL: URL
+    ) async {
         // Try to serve a byte range if the client requested one and the
         // resource length is known.
-        let estimatedLength = await (try? resource.estimatedLength().get()).flatMap { $0 }
-
-        if let totalLength = estimatedLength,
-           let range = parseByteRange(from: urlSchemeTask.request, totalLength: totalLength)
+        if
+            let totalLength = await (try? resource.estimatedLength().get()).flatMap({ $0 }),
+            let range = urlSchemeTask.request.byteRange(in: totalLength)
         {
             let result = await resource.read(range: range)
             switch result {
             case let .success(data):
-                await respond(urlSchemeTask, with: data, range: range, totalLength: totalLength, mimeType: mediaType, url: requestURL)
+                await respond(urlSchemeTask, with: data, range: range, totalLength: totalLength, mediaType: mediaType, url: requestURL)
             case let .failure(error):
-                log(.error, "Failed to read resource \(relativeURL) range \(range): \(error)")
+                log(.error, "Failed to read resource \(requestURL.path) range \(range): \(error)")
                 await fail(urlSchemeTask, with: URLError(.resourceUnavailable))
             }
             return
@@ -228,49 +248,18 @@ import WebKit
         let result = await resource.read()
         switch result {
         case let .success(data):
-            await respond(urlSchemeTask, with: data, range: nil, totalLength: UInt64(data.count), mimeType: mediaType, url: requestURL)
+            await respond(urlSchemeTask, with: data, range: nil, totalLength: UInt64(data.count), mediaType: mediaType, url: requestURL)
         case let .failure(error):
-            log(.error, "Failed to read resource \(relativeURL): \(error)")
+            log(.error, "Failed to read resource \(requestURL.path): \(error)")
             await fail(urlSchemeTask, with: URLError(.resourceUnavailable))
         }
     }
 
-    /// Reads a local file and sends it as a response.
-    private func serveFile(
-        _ urlSchemeTask: WKURLSchemeTask,
-        at file: FileURL,
-        requestURL: URL
-    ) async {
-        let resource = FileResource(file: file)
-        let mimeType = file.pathExtension
-            .flatMap { UTType(filenameExtension: $0.rawValue)?.preferredMIMEType }
-            ?? "application/octet-stream"
-
-        // Try to serve a byte range if the client requested one and the
-        // file length is known.
-        if let totalLength = await (try? resource.estimatedLength().get()).flatMap({ $0 }),
-           let range = parseByteRange(from: urlSchemeTask.request, totalLength: totalLength)
-        {
-            let result = await resource.read(range: range)
-            switch result {
-            case let .success(data):
-                await respond(urlSchemeTask, with: data, range: range, totalLength: totalLength, mimeType: mimeType, url: requestURL)
-            case let .failure(error):
-                log(.error, "Failed to read file \(file) range \(range): \(error)")
-                await fail(urlSchemeTask, with: URLError(.fileDoesNotExist))
-            }
-            return
+    private func mediaTypeFromURL(_ url: URLConvertible) -> MediaType? {
+        guard let ext = url.anyURL.pathExtension else {
+            return nil
         }
-
-        // Full read fallback.
-        let result = await resource.read()
-        switch result {
-        case let .success(data):
-            await respond(urlSchemeTask, with: data, range: nil, totalLength: UInt64(data.count), mimeType: mimeType, url: requestURL)
-        case let .failure(error):
-            log(.error, "Failed to read file \(file): \(error)")
-            await fail(urlSchemeTask, with: URLError(.fileDoesNotExist))
-        }
+        return formatSniffer.sniffHints(FormatHints(fileExtension: ext))?.mediaType
     }
 
     // MARK: - Response helpers
@@ -288,14 +277,17 @@ import WebKit
         with data: Data,
         range: Range<UInt64>?,
         totalLength: UInt64,
-        mimeType: String,
+        mediaType: MediaType?,
         url: URL
     ) async {
         var headers: [String: String] = [
             "Content-Length": "\(data.count)",
-            "Content-Type": mimeType,
             "Accept-Ranges": "bytes",
         ]
+
+        if let mediaType {
+            headers["Content-Type"] = mediaType.string
+        }
 
         let statusCode: Int
         if let range = range {
@@ -315,63 +307,24 @@ import WebKit
             return
         }
 
-        // Deliver the response atomically on the main actor, guarding
-        // against task cancellation to avoid calling WKURLSchemeTask
+        // Guard against task cancellation to avoid calling WKURLSchemeTask
         // methods after WebKit has stopped the task.
-        await MainActor.run {
-            guard !Task.isCancelled else { return }
-            urlSchemeTask.didReceive(response)
-            urlSchemeTask.didReceive(data)
-            urlSchemeTask.didFinish()
-        }
+        guard !Task.isCancelled else { return }
+        urlSchemeTask.didReceive(response)
+        urlSchemeTask.didReceive(data)
+        urlSchemeTask.didFinish()
     }
 
     private func fail(_ urlSchemeTask: WKURLSchemeTask, with error: Error) async {
-        await MainActor.run {
-            guard !Task.isCancelled else { return }
-            urlSchemeTask.didFailWithError(error)
-        }
+        guard !Task.isCancelled else { return }
+        urlSchemeTask.didFailWithError(error)
     }
+}
 
-    /// Parses a `Range: bytes=X-Y` header from the request.
-    ///
-    /// Supports RFC 7233 byte range forms:
-    /// - `bytes=0-1023` → 0..<1024
-    /// - `bytes=1024-` → 1024..<totalLength
-    /// - `bytes=-512` → (totalLength-512)..<totalLength
-    ///
-    /// Returns `nil` if the header is absent or malformed.
-    private func parseByteRange(from request: URLRequest, totalLength: UInt64) -> Range<UInt64>? {
-        guard
-            let header = request.value(forHTTPHeaderField: "Range"),
-            header.hasPrefix("bytes=")
-        else {
-            return nil
-        }
-
-        let spec = header.dropFirst("bytes=".count)
-
-        // Suffix range: bytes=-N
-        if spec.hasPrefix("-") {
-            guard let suffix = UInt64(spec.dropFirst()), suffix > 0 else { return nil }
-            let start = totalLength > suffix ? totalLength - suffix : 0
-            return start ..< totalLength
-        }
-
-        let parts = spec.split(separator: "-", maxSplits: 1, omittingEmptySubsequences: false)
-        guard parts.count == 2, let start = UInt64(parts[0]) else { return nil }
-
-        if parts[1].isEmpty {
-            // Open-ended range: bytes=N-
-            guard start < totalLength else { return nil }
-            return start ..< totalLength
-        }
-
-        // Closed range: bytes=N-M
-        guard let end = UInt64(parts[1]), end >= start else { return nil }
-        let clampedEnd = min(end + 1, totalLength)
-        guard start < clampedEnd else { return nil }
-        return start ..< clampedEnd
+private extension URLRequest {
+    /// Parses an HTTP `Range` header value (RFC 7233) into a byte range.
+    func byteRange(in totalLength: UInt64) -> Range<UInt64>? {
+        Range(httpRange: value(forHTTPHeaderField: "Range") ?? "", in: totalLength)
     }
 }
 
