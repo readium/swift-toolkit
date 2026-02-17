@@ -9,12 +9,12 @@ import ReadiumInternal
 
 /// Caches in memory the tail of the given `resource`, starting from
 /// `cacheFromOffset`.
-///
-/// This is useful if the caller needs to often read the end of the resource,
-/// for example to read the Central Directory in a ZIP file.
 actor TailCachingResource: Resource, Loggable {
     private nonisolated let resource: Resource
     private let cacheFromOffset: UInt64
+
+    /// Coalesce concurrent requests into a single Task
+    private var cacheTask: Task<ReadResult<Data?>, Never>?
 
     init(resource: Resource, cacheFromOffset: UInt64) {
         self.resource = resource
@@ -37,7 +37,11 @@ actor TailCachingResource: Resource, Loggable {
         range: Range<UInt64>?,
         consume: @escaping @Sendable (Data) -> Void
     ) async -> ReadResult<Void> {
-        guard cacheFromOffset <= range?.lowerBound ?? 0 else {
+        // Default to a full range if none provided
+        let requestedRange = range ?? 0 ..< UInt64.max
+
+        // If the request starts before our cache offset, we can't fulfill it from cache.
+        guard cacheFromOffset <= requestedRange.lowerBound else {
             return await resource.stream(range: range, consume: consume)
         }
 
@@ -49,76 +53,72 @@ actor TailCachingResource: Resource, Loggable {
 
         case let .success(data):
             guard let data = data else {
+                // Cache was empty or offset was out of bounds; fallback to resource.
                 return await resource.stream(range: range, consume: consume)
             }
 
-            if let range = range {
-                let range = range.clampedToInt()
-                let lower = Int(range.lowerBound) - Int(cacheFromOffset)
-                let upper = min(lower + range.count, data.count)
+            // Safe UInt64 arithmetic to map file offsets to local buffer indices
+            let lowerBound64 = requestedRange.lowerBound - cacheFromOffset
 
-                guard lower >= 0 else {
-                    return .failure(.decoding("Cannot satisfy requested range from the cached tail"))
-                }
+            guard lowerBound64 < UInt64(data.count) else {
+                return .success(()) // Requested range is beyond actual resource end
+            }
 
-                if lower < upper {
-                    consume(data[lower ..< upper])
-                }
-            } else {
-                consume(data)
+            let requestedCount = requestedRange.upperBound - requestedRange.lowerBound
+            let availableCount = UInt64(data.count) - lowerBound64
+
+            // Only convert to Int once we are clamped to the size of 'Data'
+            let countToConsume = Int(min(requestedCount, availableCount))
+            let lower = Int(lowerBound64)
+
+            if countToConsume > 0 {
+                consume(data[lower ..< (lower + countToConsume)])
             }
 
             return .success(())
         }
     }
 
-    private var cache: ReadResult<Data?>?
-
     private func cachedTail() async -> ReadResult<Data?> {
-        if let cache = cache {
-            return cache
+        if let existingTask = cacheTask {
+            return await existingTask.value
         }
 
-        let lengthResult = await estimatedLength()
+        let task = Task<ReadResult<Data?>, Never> {
+            let lengthResult = await estimatedLength()
 
-        switch lengthResult {
-        case let .failure(error):
-            return .failure(error)
+            switch lengthResult {
+            case let .failure(error):
+                return .failure(error)
 
-        case let .success(length):
-            let length = length ?? .max
-            guard cacheFromOffset < length else {
-                let result: ReadResult<Data?> = .success(nil)
-                cache = result
-                return result
+            case let .success(length):
+                let length = length ?? .max
+                guard cacheFromOffset < length else {
+                    return .success(nil)
+                }
+
+                // Bridge the streaming closure to an AsyncStream for thread-safe collection
+                let (stream, continuation) = AsyncStream<Data>.makeStream()
+
+                let streamTask = Task {
+                    let result = await resource.stream(range: cacheFromOffset ..< length) { chunk in
+                        continuation.yield(chunk)
+                    }
+                    continuation.finish()
+                    return result
+                }
+
+                var accumulatedData = Data()
+                for await chunk in stream {
+                    accumulatedData.append(chunk)
+                }
+
+                let finalResult = await streamTask.value
+                return finalResult.map { _ in accumulatedData }
             }
-
-            let buffer = ThreadSafeBuffer()
-
-            let streamResult = await resource.stream(range: cacheFromOffset ..< length) { chunk in
-                buffer.append(chunk)
-            }
-
-            let result = streamResult.map { buffer.data as Data? }
-            cache = result
-            return result
         }
-    }
-}
 
-private final class ThreadSafeBuffer: @unchecked Sendable {
-    private var _data = Data()
-    private let lock = NSLock()
-
-    var data: Data {
-        lock.lock()
-        defer { lock.unlock() }
-        return _data
-    }
-
-    func append(_ chunk: Data) {
-        lock.lock()
-        defer { lock.unlock() }
-        _data.append(chunk)
+        cacheTask = task
+        return await task.value
     }
 }
