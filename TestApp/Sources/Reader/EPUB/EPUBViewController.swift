@@ -27,8 +27,7 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
         bookmarks: BookmarkRepository,
         highlights: HighlightRepository,
         initialPreferences: EPUBPreferences,
-        preferencesStore: AnyUserPreferencesStore<EPUBPreferences>,
-        httpServer: HTTPServer
+        preferencesStore: AnyUserPreferencesStore<EPUBPreferences>
     ) throws {
         // Create default templates, but make highlights opaque with experimental positioning.
         var templates = HTMLDecorationTemplate.defaultTemplates(alpha: 1.0, experimentalPositioning: true)
@@ -62,8 +61,7 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
                         ]
                     ).eraseToAnyHTMLFontFamilyDeclaration(),
                 ]
-            ),
-            httpServer: httpServer
+            )
         )
 
         self.preferencesStore = preferencesStore

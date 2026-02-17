@@ -54,7 +54,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         {
             wrapperPage = wrapperPage.replacingOccurrences(
                 of: "{{ASSETS_URL}}",
-                with: viewModel.assetsURL.string
+                with: viewModel.assetsBaseURL.string
             )
 
             // The publication's base URL is used to make sure we can access the resources through the iframe with JavaScript.

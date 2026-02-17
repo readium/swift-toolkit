@@ -43,6 +43,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         /// Failed to serve the publication or assets with the provided HTTP
         /// server.
+        @available(*, deprecated, message: "The HTTP server is no longer needed for the EPUB navigator.")
         case serverFailure(Error)
     }
 
@@ -287,14 +288,11 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     ///   - readingOrder: Custom order of resources to display. Used for example
     ///   to display a non-linear resource on its own.
     ///   - config: Additional navigator configuration.
-    ///   - httpServer: HTTP server used to serve the publication resources to
-    ///   the web views.
     public convenience init(
         publication: Publication,
         initialLocation: Locator?,
         readingOrder: [Link]? = nil,
-        config: Configuration = .init(),
-        httpServer: HTTPServer
+        config: Configuration = .init()
     ) throws {
         precondition(readingOrder.map { !$0.isEmpty } ?? true)
 
@@ -302,11 +300,10 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             throw EPUBError.publicationRestricted
         }
 
-        let viewModel = try EPUBNavigatorViewModel(
+        let viewModel = EPUBNavigatorViewModel(
             publication: publication,
             readingOrder: readingOrder ?? publication.readingOrder,
-            config: config,
-            httpServer: httpServer
+            config: config
         )
 
         self.init(
@@ -320,6 +317,23 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             // positions list is empty, and also not compute the
             // totalProgression when calculating the current locator.
             (readingOrder != nil) ? { .success([]) } : publication.positionsByReadingOrder
+        )
+    }
+
+    /// Creates a new instance of `EPUBNavigatorViewController`.
+    @available(*, deprecated, message: "The HTTP server is no longer needed for the EPUB navigator.")
+    public convenience init(
+        publication: Publication,
+        initialLocation: Locator?,
+        readingOrder: [Link]? = nil,
+        config: Configuration = .init(),
+        httpServer: HTTPServer
+    ) throws {
+        try self.init(
+            publication: publication,
+            initialLocation: initialLocation,
+            readingOrder: readingOrder,
+            config: config
         )
     }
 

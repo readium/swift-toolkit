@@ -71,7 +71,18 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         self.viewModel = viewModel
         self.spread = spread
         self.animatedLoad = animatedLoad
-        webView = WebView(editingActions: viewModel.editingActions)
+
+        let config = WKWebViewConfiguration()
+        config.setURLSchemeHandler(viewModel.server, forURLScheme: viewModel.server.scheme)
+        config.mediaTypesRequiringUserActionForPlayback = .all
+
+        // Disable the Apple Intelligence Writing tools in the web views.
+        // See https://github.com/readium/swift-toolkit/issues/509#issuecomment-2577780749
+        if #available(iOS 18.0, *) {
+            config.writingToolsBehavior = .none
+        }
+
+        webView = WebView(editingActions: viewModel.editingActions, configuration: config)
 
         super.init(frame: .zero)
 
@@ -532,12 +543,12 @@ extension EPUBSpreadView: WKNavigationDelegate {
         var policy: WKNavigationActionPolicy = .allow
 
         if navigationAction.navigationType == .linkActivated {
-            if let url = navigationAction.request.url?.httpURL {
+            if let url = navigationAction.request.url {
                 // Check if url is internal or external
                 if let relativeURL = viewModel.publicationBaseURL.relativize(url) {
                     delegate?.spreadView(self, didTapOnInternalLink: relativeURL.string, clickEvent: lastClick)
                 } else {
-                    delegate?.spreadView(self, didTapOnExternalURL: url.url)
+                    delegate?.spreadView(self, didTapOnExternalURL: url)
                 }
 
                 policy = .cancel

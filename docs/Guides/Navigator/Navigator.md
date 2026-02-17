@@ -22,8 +22,7 @@ To find out which Navigator is compatible with a publication, refer to its [prof
 if publication.conforms(to: .epub) {
     let navigator = try EPUBNavigatorViewController(
         publication: publication,
-        initialLocation: lastReadLocation,
-        httpServer: GCDHTTPServer.shared
+        initialLocation: lastReadLocation
     )
 
     hostViewController.present(navigator, animated: true)
@@ -65,15 +64,11 @@ The Visual Navigators are implemented as `UIViewController` and must be added to
 ```swift
 let navigator = try EPUBNavigatorViewController(
     publication: publication,
-    initialLocation: lastReadLocation,
-    httpServer: GCDHTTPServer.shared
+    initialLocation: lastReadLocation
 )
 
 hostViewController.present(navigator, animated: true)
 ```
-
-> [!NOTE]
-> The HTTP server is used to serve the publication resources to the Navigator. You may use your own implementation, or the recommended `GCDHTTPServer` which is part of the `ReadiumAdapterGCDWebServer` package.
 
 ### Audio Navigator
 
@@ -133,8 +128,7 @@ let lastReadLocation = Locator(jsonString: dabase.lastReadLocation())
 
 let navigator = try EPUBNavigatorViewController(
     publication: publication,
-    initialLocation: lastReadLocation,
-    httpServer: GCDHTTPServer.shared
+    initialLocation: lastReadLocation
 )
 ```
 

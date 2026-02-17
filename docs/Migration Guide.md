@@ -4,6 +4,23 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ## Unreleased
 
+### Removing the HTTP Server from the EPUB Navigator
+
+The EPUB navigator no longer requires an HTTP server. Publication resources are now served directly to the web views using a custom URL scheme handler.
+
+Remove the `httpServer` parameter when creating an `EPUBNavigatorViewController`:
+
+```diff
+ let navigator = try EPUBNavigatorViewController(
+     publication: publication,
+     initialLocation: lastReadLocation,
+-    httpServer: GCDHTTPServer.shared
+ )
+```
+
+> [!NOTE]
+> The PDF navigator still requires an HTTP server. If you are not using the PDF navigator, you can remove the `ReadiumAdapterGCDWebServer` dependency from your project.
+
 ### Migrating LCP Repositories from SQLite to the Keychain
 
 The `ReadiumAdapterLCPSQLite` module is now deprecated. `ReadiumLCP` provides built-in Keychain-based repositories that are more secure, persist across app reinstalls, and optionally synchronize across devices via iCloud Keychain.

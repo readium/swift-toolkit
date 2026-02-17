@@ -13,6 +13,13 @@ All notable changes to this project will be documented in this file. Take a look
     * Persist across app reinstalls.
     * Optionally synchronized across devices via iCloud Keychain.
 
+### Changed
+
+#### Navigator
+
+* The EPUB navigator no longer requires an HTTP server. Publication resources are now served directly to the web views using a custom URL scheme handler.
+    * The `httpServer` parameter of `EPUBNavigatorViewController` is deprecated and ignored.
+
 ### Deprecated
 
 #### Navigator
