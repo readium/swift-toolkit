@@ -9,7 +9,7 @@ import ReadiumShared
 
 /// Document that contains information about the history of a License Document, along with its current status and available interactions.
 /// https://github.com/readium/lcp-specs/blob/master/schema/status.schema.json
-public struct StatusDocument: @unchecked Sendable {
+public struct StatusDocument: Sendable {
     public enum Status: String, Sendable {
         /// The License Document is available, but the user hasn't accessed the License and/or Status Document yet.
         case ready

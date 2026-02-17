@@ -10,7 +10,7 @@ import UIKit.UIGestureRecognizerSubclass
 /// A ``UIGestureRecognizer`` that will forward the touch events to an
 /// ``InputObserving``. It will never recognize any gesture, only forward the
 /// events.
-final class InputObservingGestureRecognizerAdapter: UIGestureRecognizer, @unchecked Sendable {
+final class InputObservingGestureRecognizerAdapter: UIGestureRecognizer, Sendable {
     @MainActor let observer: InputObserving
 
     @MainActor init(observer: CompositeInputObserver) {

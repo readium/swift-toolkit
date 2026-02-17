@@ -197,7 +197,7 @@ public struct HTTPStatus: Equatable, RawRepresentable, ExpressibleByIntegerLiter
 }
 
 /// Represents a successful HTTP response received from a server.
-public struct HTTPResponse: Equatable, @unchecked Sendable {
+public struct HTTPResponse: Equatable, Sendable {
     /// Request associated with the response.
     public let request: HTTPRequest
 

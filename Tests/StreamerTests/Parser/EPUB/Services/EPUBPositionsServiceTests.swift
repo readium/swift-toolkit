@@ -348,7 +348,7 @@ private func makeProperties(layout: EPUBLayout? = nil, originalLength: Int? = ni
     return Properties(props)
 }
 
-private final class MockContainer: Container, @unchecked Sendable {
+private final class MockContainer: Container, Sendable {
     private let readingOrder: [(UInt64, Link, ArchiveProperties?)]
 
     init(readingOrder: [(UInt64, Link, ArchiveProperties?)]) {

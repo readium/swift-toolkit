@@ -10,6 +10,15 @@ import MediaPlayer
 import ReadiumNavigator
 import ReadiumShared
 
+struct Settings: Equatable, Sendable {
+    /// Currently selected user preferences.
+    let config: PublicationSpeechSynthesizer.Configuration
+    /// Languages supported by the synthesizer.
+    let availableLanguages: [Language]
+    /// Voices supported by the synthesizer, for the selected language.
+    let availableVoiceIds: [String]
+}
+
 @MainActor
 final class TTSViewModel: ObservableObject, Loggable {
     struct State: Equatable {
@@ -17,27 +26,6 @@ final class TTSViewModel: ObservableObject, Loggable {
         var showControls: Bool = false
         /// Whether the TTS is currently speaking.
         var isPlaying: Bool = false
-    }
-
-    @MainActor
-    struct Settings: Equatable {
-        /// Currently selected user preferences.
-        let config: PublicationSpeechSynthesizer.Configuration
-        /// Languages supported by the synthesizer.
-        let availableLanguages: [Language]
-        /// Voices supported by the synthesizer, for the selected language.
-        let availableVoiceIds: [String]
-
-        init(synthesizer: PublicationSpeechSynthesizer) {
-            let voicesByLanguage: [Language: [TTSVoice]] =
-                Dictionary(grouping: synthesizer.availableVoices, by: \.language)
-
-            config = synthesizer.config
-            availableLanguages = voicesByLanguage.keys.sorted { $0.localizedDescription() < $1.localizedDescription() }
-            availableVoiceIds = synthesizer.config.defaultLanguage
-                .flatMap { voicesByLanguage[$0]?.map(\.identifier) }
-                ?? []
-        }
     }
 
     @Published private(set) var state: State = .init()
@@ -202,5 +190,19 @@ extension TTSViewModel: PublicationSpeechSynthesizerDelegate {
     func publicationSpeechSynthesizer(_ synthesizer: PublicationSpeechSynthesizer, utterance: PublicationSpeechSynthesizer.Utterance, didFailWithError error: PublicationSpeechSynthesizer.Error) {
         // FIXME:
         log(.error, error)
+    }
+}
+
+@MainActor
+extension Settings {
+    init(synthesizer: PublicationSpeechSynthesizer) {
+        let voicesByLanguage: [Language: [TTSVoice]] =
+            Dictionary(grouping: synthesizer.availableVoices, by: \.language)
+
+        config = synthesizer.config
+        availableLanguages = voicesByLanguage.keys.sorted { $0.localizedDescription() < $1.localizedDescription() }
+        availableVoiceIds = synthesizer.config.defaultLanguage
+            .flatMap { voicesByLanguage[$0]?.map(\.identifier) }
+            ?? []
     }
 }

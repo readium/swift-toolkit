@@ -36,7 +36,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     }
 
     /// User configuration for the text-to-speech engine.
-    public struct Configuration: Equatable {
+    public struct Configuration: Equatable, Sendable {
         /// Language overriding the publication one.
         public var defaultLanguage: Language?
 

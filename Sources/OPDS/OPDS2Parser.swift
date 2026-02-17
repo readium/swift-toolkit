@@ -22,7 +22,7 @@ public class OPDS2Parser: Loggable {
     /// Parse an OPDS feed or publication.
     /// Feed can only be v2 (JSON).
     /// - parameter url: The feed URL
-    public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
+    public static func parseURL(url: URL, completion: @escaping @Sendable (ParseData?, Error?) -> Void) {
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, let response = response else {
                 completion(nil, error ?? OPDSParserError.documentNotFound)

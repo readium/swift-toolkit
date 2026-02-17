@@ -62,7 +62,7 @@ final class LCPDecryptor: Sendable {
     ///
     /// Can be used when it's impossible to map a read range (byte range request) to the encrypted
     /// resource, for example when the resource is deflated before encryption.
-    private final class FullLCPResource: TransformingResource {
+    private final class FullLCPResource: TransformingResource, @unchecked Sendable {
         private let license: LCPLicense
         private let encryption: ReadiumShared.Encryption
 
@@ -84,7 +84,7 @@ final class LCPDecryptor: Sendable {
     /// A LCP resource used to read content encrypted with the CBC algorithm.
     ///
     /// Supports random access for byte range requests, but the resource MUST NOT be deflated.
-    private final class CBCLCPResource: Resource, @unchecked Sendable {
+    private final class CBCLCPResource: Resource, Sendable {
         private let resource: Resource
         private let license: LCPLicense
         private let encryption: ReadiumShared.Encryption
@@ -128,6 +128,10 @@ final class LCPDecryptor: Sendable {
                 }
             }
         }
+        
+        deinit {
+            
+        }
 
         var sourceURL: AbsoluteURL? { resource.sourceURL }
 
@@ -137,10 +141,6 @@ final class LCPDecryptor: Sendable {
 
         func properties() async -> ReadResult<ResourceProperties> {
             await resource.properties()
-        }
-
-        func close() {
-            resource.close()
         }
 
         func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {

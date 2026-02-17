@@ -412,6 +412,7 @@ enum EPUBScriptScope: Sendable {
 }
 
 private extension EPUBSettings {
+    @MainActor
     init(
         preferences: EPUBPreferences? = nil,
         publication: Publication,

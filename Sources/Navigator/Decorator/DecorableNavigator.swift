@@ -106,7 +106,7 @@ public struct Decoration: Hashable, @unchecked Sendable {
             .init(id: .underline, config: HighlightConfig(tint: tint, isActive: isActive))
         }
 
-        public struct HighlightConfig: Hashable, @unchecked Sendable {
+        public struct HighlightConfig: Hashable, Sendable {
             public var tint: UIColor?
             public var isActive: Bool
             public init(tint: UIColor? = nil, isActive: Bool = false) {

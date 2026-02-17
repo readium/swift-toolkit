@@ -6,7 +6,7 @@
 
 import XCTest
 
-func AssertJSONEqual(_ json1: Any?, _ json2: Any?, file: StaticString = #file, line: UInt = #line) {
+func AssertJSONEqual(_ json1: Any?, _ json2: Any?, file: StaticString = #filePath, line: UInt = #line) {
     guard let j1 = json1, let j2 = json2 else {
         if json1 != nil || json2 != nil {
             XCTFail("JSONs are not equal")

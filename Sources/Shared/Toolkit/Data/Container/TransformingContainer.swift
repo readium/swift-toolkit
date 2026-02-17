@@ -15,7 +15,7 @@ public typealias ResourceTransformer = @Sendable (_ href: AnyURL, _ resource: Re
 
 /// Transforms the resources' content of a child fetcher using a list of `ResourceTransformer`
 /// functions.
-public final class TransformingContainer: Container, @unchecked Sendable {
+public final class TransformingContainer: Container, Sendable {
     private let container: Container
     private let transformers: [ResourceTransformer]
 

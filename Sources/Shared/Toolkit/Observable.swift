@@ -9,7 +9,7 @@ import Foundation
 /// Holds an observable value.
 /// You can either get the value directly with `value`, or subscribe to its updates with `observe`.
 @available(*, unavailable, message: "This is not used anymore in the toolkit")
-public class Observable<Value>: @unchecked Sendable {
+public class Observable<Value> {
     fileprivate var _value: Value {
         didSet {
             for observer in observers {
@@ -48,7 +48,7 @@ public class Observable<Value>: @unchecked Sendable {
 }
 
 @available(*, unavailable, message: "This is not used anymore in the toolkit")
-public class MutableObservable<Value>: Observable<Value>, @unchecked Sendable {
+public class MutableObservable<Value>: Observable<Value> {
     override public var value: Value {
         get {
             _value

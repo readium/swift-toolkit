@@ -14,7 +14,7 @@ import XCTest
     }
 #endif
 
-final class Fixtures: @unchecked Sendable {
+final class Fixtures: Sendable {
     let path: String?
 
     init(path: String? = nil) {

@@ -12,7 +12,7 @@ import ReadiumInternal
 /// as defined in a [W3C Community Group Report](https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/).
 ///
 /// https://github.com/readium/webpub-manifest/blob/master/schema/metadata.schema.json
-public struct TDM: Hashable, @unchecked Sendable {
+public struct TDM: Hashable, Sendable {
     public struct Reservation: RawRepresentable, Hashable, Sendable {
         public let rawValue: String
 

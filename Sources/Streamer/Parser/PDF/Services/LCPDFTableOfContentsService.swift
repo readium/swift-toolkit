@@ -27,7 +27,7 @@ final class LCPDFTableOfContentsService: TableOfContentsService, PDFPublicationS
         self.container = container
         self.pdfFactory = pdfFactory
 
-        struct Captures: @unchecked Sendable {
+        struct Captures: Sendable {
             let manifest: Manifest
             let container: Container
             let pdfFactory: PDFDocumentFactory
@@ -62,7 +62,7 @@ final class LCPDFTableOfContentsService: TableOfContentsService, PDFPublicationS
     }
 
     static func makeFactory(pdfFactory: PDFDocumentFactory) -> @Sendable (PublicationServiceContext) -> LCPDFTableOfContentsService? {
-        struct Captures: @unchecked Sendable {
+        struct Captures: Sendable {
             let pdfFactory: PDFDocumentFactory
         }
         let captures = Captures(pdfFactory: pdfFactory)

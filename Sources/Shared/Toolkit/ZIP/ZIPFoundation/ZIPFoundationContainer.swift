@@ -10,7 +10,7 @@ import ReadiumZIPFoundation
 extension ZIPFoundationArchiveFactory: @unchecked Sendable {}
 
 /// A ZIP ``Container`` using the ZIPFoundation library.
-final class ZIPFoundationContainer: Container, Loggable, @unchecked Sendable {
+final class ZIPFoundationContainer: Container, Loggable, Sendable {
     enum MakeError: Error {
         case notAZIP
         case reading(ReadError)

@@ -9,7 +9,7 @@ import Foundation
 public typealias PositionsServiceFactory = @Sendable (PublicationServiceContext) -> PositionsService?
 
 /// Provides a list of discrete locations in the publication, no matter what the original format is.
-public protocol PositionsService: PublicationService {
+public protocol PositionsService: PublicationService, Sendable {
     /// List of all the positions in the publication, grouped by the resource reading order index.
     func positionsByReadingOrder() async -> ReadResult<[[Locator]]>
 

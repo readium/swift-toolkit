@@ -7,7 +7,7 @@
 import Foundation
 
 /// Holds information about how the resource is stored in the archive.
-public struct ArchiveProperties: Equatable {
+public struct ArchiveProperties: Equatable, Sendable {
     /// The length of the entry stored in the archive. It might be a compressed
     /// length if the entry is deflated.
     public let entryLength: UInt64

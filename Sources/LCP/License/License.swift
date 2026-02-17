@@ -8,7 +8,7 @@ import Foundation
 import ReadiumShared
 import ReadiumZIPFoundation
 
-final class License: Loggable, @unchecked Sendable {
+final class License: Loggable, Sendable {
     /// Last Documents which passed the integrity checks.
     private let documents: Atomic<ValidatedDocuments>
 

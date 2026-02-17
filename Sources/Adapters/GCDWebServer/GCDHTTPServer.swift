@@ -130,9 +130,9 @@ public class GCDHTTPServer: HTTPServer, Loggable, @unchecked Sendable {
 
     private func responseResource(
         for request: ReadiumGCDWebServerRequest,
-        completion: @escaping (HTTPServerRequest, HTTPServerResponse, HTTPRequestHandler.OnFailure?) -> Void
+        completion: @escaping @Sendable (HTTPServerRequest, HTTPServerResponse, HTTPRequestHandler.OnFailure?) -> Void
     ) {
-        let completion = { request, resource, failureHandler in
+        let completion: @Sendable (HTTPServerRequest, HTTPServerResponse, HTTPRequestHandler.OnFailure?) -> Void = { request, resource, failureHandler in
             // Escape the queue to avoid deadlocks if something is using the
             // server in the handler.
             DispatchQueue.global().async {

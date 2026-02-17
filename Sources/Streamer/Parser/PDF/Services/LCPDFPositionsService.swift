@@ -20,7 +20,7 @@ final class LCPDFPositionsService: PositionsService, PDFPublicationService, Logg
         self.container = container
         self.pdfFactory = pdfFactory
 
-        struct Captures: @unchecked Sendable {
+        struct Captures: Sendable {
             let readingOrder: [Link]
             let container: Container
             let pdfFactory: PDFDocumentFactory
@@ -85,7 +85,7 @@ final class LCPDFPositionsService: PositionsService, PDFPublicationService, Logg
     }
 
     static func makeFactory(pdfFactory: PDFDocumentFactory) -> @Sendable (PublicationServiceContext) -> LCPDFPositionsService? {
-        struct Captures: @unchecked Sendable {
+        struct Captures: Sendable {
             let pdfFactory: PDFDocumentFactory
         }
         let captures = Captures(pdfFactory: pdfFactory)
