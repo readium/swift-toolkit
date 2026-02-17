@@ -211,8 +211,8 @@ import Testing
             ))
         }
 
-        @Test("returns nil when empty")
-        func nilWhenEmpty() throws {
+        @Test("throws when empty")
+        func throwsWhenEmpty() throws {
             #expect(throws: JSONError.self) {
                 try GuidedNavigationObject.Description(json: [
                     "id": "nothing",
