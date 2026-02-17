@@ -23,7 +23,7 @@ protocol EPUBSpreadProtocol {
     ///   - link: Link object of the resource in the Publication
     ///   - url: Full URL to the resource.
     ///   - page [left|center|right]: (optional) Page position of the linked resource in the spread.
-    func json(forBaseURL baseURL: HTTPURL, readingProgression: ReadingProgression) -> [[String: Any]]
+    func json(forBaseURL baseURL: AbsoluteURL, readingProgression: ReadingProgression) -> [[String: Any]]
 }
 
 /// Represents a spread of EPUB resources displayed in the viewport. A spread
@@ -71,11 +71,11 @@ enum EPUBSpread: EPUBSpreadProtocol {
         spread.positionCount(in: readingOrder, positionsByReadingOrder: positionsByReadingOrder)
     }
 
-    func json(forBaseURL baseURL: HTTPURL, readingProgression: ReadingProgression) -> [[String: Any]] {
+    func json(forBaseURL baseURL: AbsoluteURL, readingProgression: ReadingProgression) -> [[String: Any]] {
         spread.json(forBaseURL: baseURL, readingProgression: readingProgression)
     }
 
-    func jsonString(forBaseURL baseURL: HTTPURL, readingProgression: ReadingProgression) -> String {
+    func jsonString(forBaseURL baseURL: AbsoluteURL, readingProgression: ReadingProgression) -> String {
         serializeJSONString(json(forBaseURL: baseURL, readingProgression: readingProgression)) ?? "[]"
     }
 
@@ -207,7 +207,7 @@ struct EPUBSpreadResource {
     let link: Link
 
     /// Returns a JSON representation of the resource for the spread scripts.
-    func json(forBaseURL baseURL: HTTPURL, page: Properties.Page) -> [String: Any] {
+    func json(forBaseURL baseURL: AbsoluteURL, page: Properties.Page) -> [String: Any] {
         [
             "index": index,
             "link": link.json,
@@ -230,7 +230,7 @@ struct EPUBSingleSpread: EPUBSpreadProtocol, Loggable {
         positionsByReadingOrder.getOrNil(resource.index)?.count ?? 0
     }
 
-    func json(forBaseURL baseURL: HTTPURL, readingProgression: ReadingProgression) -> [[String: Any]] {
+    func json(forBaseURL baseURL: AbsoluteURL, readingProgression: ReadingProgression) -> [[String: Any]] {
         [
             resource.json(
                 forBaseURL: baseURL,
@@ -293,7 +293,7 @@ struct EPUBDoubleSpread: EPUBSpreadProtocol, Loggable {
         return firstPositions + secondPositions
     }
 
-    func json(forBaseURL baseURL: HTTPURL, readingProgression: ReadingProgression) -> [[String: Any]] {
+    func json(forBaseURL baseURL: AbsoluteURL, readingProgression: ReadingProgression) -> [[String: Any]] {
         [
             left(for: readingProgression).json(forBaseURL: baseURL, page: .left),
             right(for: readingProgression).json(forBaseURL: baseURL, page: .right),

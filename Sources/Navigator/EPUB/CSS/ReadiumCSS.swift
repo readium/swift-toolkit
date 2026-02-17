@@ -15,7 +15,7 @@ struct ReadiumCSS: Sendable {
     var userProperties: CSSUserProperties = .init()
 
     /// Base URL of the Readium CSS assets.
-    var baseURL: HTTPURL
+    var baseURL: any AbsoluteURL
 
     var fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration] = []
 }

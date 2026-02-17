@@ -21,115 +21,72 @@ enum EPUBScriptScope: Sendable {
 }
 
 @MainActor final class EPUBNavigatorViewModel: Loggable {
-    enum Error: Swift.Error {
-        case noHTTPServer
-    }
-
+    
     let publication: Publication
     let config: EPUBNavigatorViewController.Configuration
     let editingActions: EditingActionsController
-    private let httpServer: HTTPServer?
-    private let publicationEndpoint: HTTPServerEndpoint?
-    private(set) var publicationBaseURL: HTTPURL!
-    let assetsURL: HTTPURL
+    
+    /// The base URL for the publication resources.
+    private(set) var publicationBaseURL: AbsoluteURL!
+    
+    /// The base URL for Readium assets (CSS, scripts, etc.) and fonts.
+    let assetsBaseURL: any AbsoluteURL
+    
+    /// The server used to serve publication resources and static assets to
+    /// the web view.
+    let server: WebViewServer
+    
     weak var delegate: EPUBNavigatorViewModelDelegate?
-
+    
     /// Local file URL associated to the HTTP URL used to serve the file on the
-    /// `httpServer`. This is used to serve custom font files, for example.
-    @Atomic private var servedFiles: [FileURL: HTTPURL] = [:]
-
+    /// `server`. This is used to serve custom font files, for example.
+    @Atomic private var servedFonts: [FileURL: AbsoluteURL] = [:]
+    
     let readingOrder: ReadingOrder
-
+    
     convenience init(
         publication: Publication,
         readingOrder: ReadingOrder,
-        config: EPUBNavigatorViewController.Configuration,
-        httpServer: HTTPServer
-    ) throws {
-        let uuidEndpoint: HTTPServerEndpoint = UUID().uuidString
-        let publicationEndpoint: HTTPServerEndpoint?
-        if publication.baseURL != nil {
-            publicationEndpoint = nil
-        } else {
-            publicationEndpoint = uuidEndpoint
-        }
-
-        try self.init(
+        config: EPUBNavigatorViewController.Configuration
+    ) {
+        let assetsDirectory = Bundle.module.resourceURL!.fileURL!
+            .appendingPath("Assets/Static", isDirectory: true)
+        
+        let server = WebViewServer(scheme: "readium")
+        
+        // Serve static assets directory.
+        let assetsBaseURL = server.serve(directory: assetsDirectory, at: "assets")
+        
+        self.init(
             publication: publication,
             readingOrder: readingOrder,
             config: config,
-            httpServer: httpServer,
-            publicationEndpoint: publicationEndpoint,
-            assetsURL: httpServer.serve(
-                at: "readium",
-                contentsOf: Bundle.module.resourceURL!.fileURL!
-                    .appendingPath("Assets/Static", isDirectory: true)
-            )
+            server: server,
+            assetsBaseURL: assetsBaseURL
         )
-
+        
         if let url = publication.baseURL {
+            // The publication already has an HTTP base URL (e.g. served
+            // remotely). Use it directly; the server only needs to serve
+            // assets.
             publicationBaseURL = url
         } else {
-            publicationBaseURL = try httpServer.serve(
-                at: uuidEndpoint, // serving the chapters endpoint
-                publication: publication,
-                onFailure: { [weak self] request, error in
-                    guard let self = self, let href = request.href else {
-                        return
-                    }
-                    Task {
-                        await MainActor.run {
-                            self.delegate?.epubNavigatorViewModel(self, didFailToLoadResourceAt: href, withError: error)
-                        }
-                    }
-                }
-            )
-        }
-
-        if let endpoint = publicationEndpoint {
-            let cssAtomic = _css
-            let servedFilesAtomic = _servedFiles
-            let fontDeclarations = config.fontFamilyDeclarations
-            // Use the local httpServer parameter from init, which is non-optional
-
-            try httpServer.transformResources(at: endpoint) { href, resource in
-                let css = cssAtomic.read()
-
-                let serveFont: @Sendable (FileURL) throws -> HTTPURL = { file in
-                    if let url = servedFilesAtomic.read()[file] {
-                        return url
-                    }
-
-                    // We use a random UUID to avoid conflicts if the same file is served multiple times.
-                    // This logic mirrors the previous serveFont/serveFile implementation.
-                    let endpoint = "custom-fonts/\(UUID().uuidString)/" + file.lastPathSegment
-                    let url = try httpServer.serve(at: endpoint, contentsOf: file)
-                    servedFilesAtomic.write { $0[file] = url }
-                    return url
-                }
-
-                return Self.injectReadiumCSS(
-                    in: resource,
-                    at: href,
-                    publication: publication,
-                    css: css,
-                    fontFamilyDeclarations: fontDeclarations,
-                    serveFont: serveFont
-                )
+            // Serve publication resources.
+            publicationBaseURL = server.serve(at: UUID().uuidString) { [weak self] href in
+                self?.serve(href: href)
             }
         }
     }
-
+    
     private init(
         publication: Publication,
         readingOrder: ReadingOrder,
         config: EPUBNavigatorViewController.Configuration,
-        httpServer: HTTPServer?,
-        publicationEndpoint: HTTPServerEndpoint?,
-        assetsURL: HTTPURL
+        server: WebViewServer,
+        assetsBaseURL: any AbsoluteURL
     ) {
         var config = config
-
+        
         if let fontsDir = Bundle.module.resourceURL?.fileURL?.appendingPath("Assets/Static/fonts", isDirectory: true) {
             config.fontFamilyDeclarations.append(
                 CSSFontFamilyDeclaration(
@@ -155,7 +112,7 @@ enum EPUBScriptScope: Sendable {
                 ).eraseToAnyHTMLFontFamilyDeclaration()
             )
         }
-
+        
         self.publication = publication
         self.readingOrder = readingOrder
         self.config = config
@@ -163,22 +120,21 @@ enum EPUBScriptScope: Sendable {
             actions: config.editingActions,
             publication: publication
         )
-        self.httpServer = httpServer
-        self.publicationEndpoint = publicationEndpoint
-        self.assetsURL = assetsURL
-
+        self.server = server
+        self.assetsBaseURL = assetsBaseURL
+        
         preferences = config.preferences
         settings = EPUBSettings(publication: publication, config: config)
-
+        
         _css = Atomic(wrappedValue: ReadiumCSS(
             layout: CSSLayout(),
             rsProperties: config.readiumCSSRSProperties,
-            baseURL: assetsURL.appendingPath("readium-css", isDirectory: true),
+            baseURL: assetsBaseURL.appendingPath("readium-css", isDirectory: true),
             fontFamilyDeclarations: config.fontFamilyDeclarations
         ))
-
+        
         $css.write { $0.update(with: settings) }
-
+        
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(voiceOverStatusDidChange),
@@ -186,19 +142,15 @@ enum EPUBScriptScope: Sendable {
             object: nil
         )
     }
-
+    
     deinit {
         NotificationCenter.default.removeObserver(self)
-
-        if let endpoint = publicationEndpoint {
-            try? httpServer?.remove(at: endpoint)
-        }
     }
-
+    
     func url(to link: Link) -> AnyURL {
         link.url(relativeTo: publicationBaseURL)
     }
-
+    
     private var needsInvalidatePagination = false
     private func setNeedsInvalidatePagination() {
         guard !needsInvalidatePagination else {
@@ -210,20 +162,56 @@ enum EPUBScriptScope: Sendable {
             delegate?.epubNavigatorViewModelInvalidatePaginationView(self)
         }
     }
-
+    
+    // MARK: - Web View Server
+    
+    private func serve(href: RelativeURL) -> Resource? {
+        guard let resource = publication.get(href) else {
+            return nil
+        }
+        
+        let server = self.server
+        let servedFontsAtomic = _servedFonts
+        let cssAtomic = _css
+        let fontDeclarations = config.fontFamilyDeclarations
+        let publication = self.publication
+        
+        let serveFont: @Sendable (FileURL) throws -> AbsoluteURL = { file in
+            if let url = servedFontsAtomic.read()[file] {
+                return url
+            }
+            
+            let name = file.lastPathSegment ?? UUID().uuidString
+            let url = server.serve(file: file, at: "assets/fonts/\(name)")
+            servedFontsAtomic.write { $0[file] = url }
+            return url
+        }
+        
+        let css = cssAtomic.read()
+        
+        return Self.injectReadiumCSS(
+            in: resource,
+            at: href,
+            publication: publication,
+            css: css,
+            fontFamilyDeclarations: fontDeclarations,
+            serveFont: serveFont
+        )
+    }
+    
     // MARK: - User preferences
-
+    
     /// Currently applied settings.
     private(set) var settings: EPUBSettings
-
+    
     /// Last submitted preferences.
     private var preferences: EPUBPreferences
-
+    
     func submitPreferences(_ preferences: EPUBPreferences) {
         self.preferences = preferences
         applyPreferences()
     }
-
+    
     private func applyPreferences() {
         let oldSettings = settings
         let newSettings = EPUBSettings(
@@ -231,28 +219,28 @@ enum EPUBScriptScope: Sendable {
             publication: publication,
             config: config
         )
-
+        
         settings = newSettings
         updateSpread()
-
+        
         let needsInvalidation: Bool =
-            oldSettings.readingProgression != newSettings.readingProgression
-                || oldSettings.language != newSettings.language
-                || oldSettings.verticalText != newSettings.verticalText
-                || oldSettings.scroll != newSettings.scroll
-                || oldSettings.spread != newSettings.spread
-                || oldSettings.fit != newSettings.fit
-                || oldSettings.offsetFirstPage != newSettings.offsetFirstPage
-
+        oldSettings.readingProgression != newSettings.readingProgression
+        || oldSettings.language != newSettings.language
+        || oldSettings.verticalText != newSettings.verticalText
+        || oldSettings.scroll != newSettings.scroll
+        || oldSettings.spread != newSettings.spread
+        || oldSettings.fit != newSettings.fit
+        || oldSettings.offsetFirstPage != newSettings.offsetFirstPage
+        
         // We don't commit the CSS changes if we invalidate the pagination, as
         // the resources will be reloaded anyway.
         updateCSS(with: settings, commitNow: !needsInvalidation)
-
+        
         if needsInvalidation {
             setNeedsInvalidatePagination()
         }
     }
-
+    
     func editor(of preferences: EPUBPreferences) -> EPUBPreferencesEditor {
         EPUBPreferencesEditor(
             initialPreferences: preferences,
@@ -260,36 +248,36 @@ enum EPUBScriptScope: Sendable {
             defaults: config.defaults
         )
     }
-
+    
     var readingProgression: ReadingProgression {
         settings.readingProgression
     }
-
+    
     var theme: Theme {
         settings.theme
     }
-
+    
     var scroll: Bool {
         settings.scroll
     }
-
+    
     var verticalText: Bool {
         settings.verticalText
     }
-
+    
     var spread: Spread {
         settings.spread
     }
-
+    
     var offsetFirstPage: Bool? {
         settings.offsetFirstPage
     }
-
+    
     // MARK: Spread
-
+    
     private(set) var spreadEnabled: Bool = false
     private var viewSize: CGSize?
-
+    
     func viewSizeWillChange(_ newSize: CGSize) {
         guard viewSize != newSize else {
             return
@@ -297,12 +285,12 @@ enum EPUBScriptScope: Sendable {
         viewSize = newSize
         updateSpread()
     }
-
+    
     private func updateSpread() {
         let size = viewSize ?? .zero
         let isLandscape = size.width > size.height
         let oldEnabled = spreadEnabled
-
+        
         switch spread {
         case .never:
             spreadEnabled = false
@@ -311,23 +299,23 @@ enum EPUBScriptScope: Sendable {
         case .auto:
             spreadEnabled = isLandscape
         }
-
+        
         if oldEnabled != spreadEnabled {
             setNeedsInvalidatePagination()
         }
     }
-
+    
     // MARK: - Readium CSS
-
+    
     @Atomic private var css: ReadiumCSS
-
+    
     nonisolated static func injectReadiumCSS<HREF: URLConvertible>(
         in resource: Resource,
         at href: HREF,
         publication: Publication,
         css: ReadiumCSS,
         fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration],
-        serveFont: @escaping @Sendable (FileURL) throws -> HTTPURL
+        serveFont: @escaping @Sendable (FileURL) throws -> AbsoluteURL
     ) -> Resource {
         guard
             let link = publication.linkWithHREF(href),
@@ -336,7 +324,7 @@ enum EPUBScriptScope: Sendable {
         else {
             return resource
         }
-
+        
         return resource.mapAsString { content in
             do {
                 var content = try css.inject(in: content)
@@ -350,16 +338,16 @@ enum EPUBScriptScope: Sendable {
             }
         }
     }
-
+    
     private func updateCSS(with settings: EPUBSettings, commitNow: Bool) {
         let previous = css
         $css.write { $0.update(with: settings) }
-
+        
         if commitNow {
             commitCSSChange(from: previous, to: css)
         }
     }
-
+    
     private func commitCSSChange(from previous: ReadiumCSS, to new: ReadiumCSS) {
         var properties: [String: String?] = [:]
         let rsProperties = new.rsProperties.cssProperties()
@@ -382,7 +370,7 @@ enum EPUBScriptScope: Sendable {
                 log(.error, "Failed to serialize CSS properties to JSON")
                 return
             }
-
+            
             delegate?.epubNavigatorViewModel(
                 self,
                 runScript: "readium.setCSSProperties(\(json));",
@@ -390,18 +378,18 @@ enum EPUBScriptScope: Sendable {
             )
         }
     }
-
+    
     // MARK: - Accessibility
-
+    
     private var isVoiceOverRunning = UIAccessibility.isVoiceOverRunning
-
+    
     @objc private func voiceOverStatusDidChange() {
         // Avoids excessive settings refresh when the status didn't change.
         guard isVoiceOverRunning != UIAccessibility.isVoiceOverRunning else {
             return
         }
         isVoiceOverRunning = UIAccessibility.isVoiceOverRunning
-
+        
         // Re-apply preferences to force the scroll mode if needed.
         applyPreferences()
     }
@@ -419,7 +407,7 @@ private extension EPUBSettings {
             defaults: config.defaults,
             metadata: publication.metadata
         )
-
+        
         // Force-enables scroll when VoiceOver is running, because pagination
         // breaks the screen reader.
         if UIAccessibility.isVoiceOverRunning {

@@ -80,11 +80,11 @@ public extension Resource {
         TransformingResource(self, transform: { await $0.asyncMap(transform) })
     }
 
-    func mapAsString(encoding: String.Encoding = .utf8, transform: @escaping @Sendable (String) -> String) -> Resource {
+    func mapAsString(encoding: String.Encoding = .utf8, transform: @escaping @Sendable (String) async -> String) -> Resource {
         TransformingResource(self) {
-            $0.map { data in
+            await $0.asyncMap { data in
                 let string = String(data: data, encoding: encoding) ?? ""
-                return transform(string).data(using: .utf8) ?? Data()
+                return await transform(string).data(using: .utf8) ?? Data()
             }
         }
     }

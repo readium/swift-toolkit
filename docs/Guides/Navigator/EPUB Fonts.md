@@ -111,8 +111,7 @@ To offer more choices to your users, you must embed and declare custom font fami
                     ]
                 ).eraseToAnyHTMLFontFamilyDeclaration()
             ]
-        ),
-        httpServer: GCDHTTPServer.shared
+        )
     )
     ```
 
