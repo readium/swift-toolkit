@@ -34,6 +34,9 @@ public struct JSONDictionary: Sendable {
         guard let json = json else {
             return nil
         }
+        if let jsonDict = json as? JSONDictionary {
+            return jsonDict.json
+        }
         if let string = json as? String {
             return string
         }
