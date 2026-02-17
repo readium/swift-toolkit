@@ -276,6 +276,7 @@ enum EPUBScriptScope {
     // MARK: - Readium CSS
 
     private var css: ReadiumCSS
+    private var servedFonts: [FileURL: AbsoluteURL] = [:]
 
     func injectReadiumCSS<HREF: URLConvertible>(in resource: Resource, at href: HREF) -> Resource {
         guard
@@ -297,9 +298,13 @@ enum EPUBScriptScope {
                     content = try ff.inject(
                         in: content,
                         servingFile: { [server] file in
-                            let id = UUID().uuidString
-                            let name = file.lastPathSegment ?? "font"
-                            return server.serve(file: file, at: "assets/fonts/\(id)/\(name)")
+                            if let url = self.servedFonts[file] {
+                                return url
+                            }
+                            let name = file.lastPathSegment ?? UUID().uuidString
+                            let url = server.serve(file: file, at: "assets/fonts/\(name)")
+                            self.servedFonts[file] = url
+                            return url
                         }
                     )
                 }
