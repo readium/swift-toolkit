@@ -8,12 +8,11 @@ import Foundation
 import UIKit
 
 /// A `CoverService` which holds a lazily generated cover bitmap in memory.
-public final class GeneratedCoverService: CoverService, @unchecked Sendable {
+public actor GeneratedCoverService: CoverService {
     enum Error: Swift.Error {
         case generationFailed
     }
 
-    private let lock = NSLock()
     private var _cover: ReadResult<UIImage>?
     private let makeCover: @Sendable () async -> ReadResult<UIImage>
 
@@ -21,24 +20,23 @@ public final class GeneratedCoverService: CoverService, @unchecked Sendable {
         self.makeCover = makeCover
     }
 
-    public convenience init(cover: UIImage) {
+    public init(cover: UIImage) {
         self.init(makeCover: { .success(cover) })
     }
 
-    private let coverLink = Link(
+    private nonisolated let coverLink = Link(
         href: "~readium/cover",
         mediaType: .png,
         rel: .cover
     )
 
     private func cachedCover() async -> ReadResult<UIImage> {
-        let cover: ReadResult<UIImage>? = lock.withLock { _cover }
-        if let cover = cover {
+        if let cover = _cover {
             return cover
         }
         
         let newCover = await makeCover()
-        lock.withLock { _cover = newCover }
+        _cover = newCover
         return newCover
     }
 
@@ -46,16 +44,16 @@ public final class GeneratedCoverService: CoverService, @unchecked Sendable {
         await cachedCover().map { $0 as UIImage? }
     }
 
-    public var links: [Link] {
+    public nonisolated var links: [Link] {
         [coverLink]
     }
 
-    public func get<T: URLConvertible>(_ href: T) -> (any Resource)? {
+    public nonisolated func get<T: URLConvertible>(_ href: T) -> (any Resource)? {
         guard href.anyURL.isEquivalentTo(coverLink.url()) else {
             return nil
         }
 
-        return CoverResource(cover: cachedCover)
+        return CoverResource(service: self)
     }
 
     public static func makeFactory(makeCover: @escaping @Sendable () async -> ReadResult<UIImage>) -> CoverServiceFactory {
@@ -66,11 +64,11 @@ public final class GeneratedCoverService: CoverService, @unchecked Sendable {
         { _ in GeneratedCoverService(cover: cover) }
     }
 
-    private class CoverResource: Resource, @unchecked Sendable {
-        private let cover: @Sendable () async -> ReadResult<UIImage>
+    private final class CoverResource: Resource, Sendable {
+        private let service: GeneratedCoverService
 
-        init(cover: @escaping @Sendable () async -> ReadResult<UIImage>) {
-            self.cover = cover
+        init(service: GeneratedCoverService) {
+            self.service = service
         }
 
         let sourceURL: AbsoluteURL? = nil
@@ -84,7 +82,7 @@ public final class GeneratedCoverService: CoverService, @unchecked Sendable {
         }
 
         func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
-            await cover().flatMap {
+            await service.cachedCover().flatMap {
                 guard let data = $0.pngData() else {
                     return .failure(.decoding("Failed to convert the cover bitmap to PNG data"))
                 }

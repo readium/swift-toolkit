@@ -15,31 +15,30 @@ public func throttle(
     on queue: DispatchQueue = .main,
     _ block: @escaping @Sendable () -> Void
 ) -> @Sendable () -> Void {
-    final class State: @unchecked Sendable {
-        private var isThrottling = false
-        private let lock = NSLock()
+    
+    actor State {
+        var isThrottling = false
         
-        func run(duration: TimeInterval, queue: DispatchQueue, block: @escaping @Sendable () -> Void) {
-            lock.lock()
-            if isThrottling {
-                lock.unlock()
-                return
-            }
+        func attemptRun(duration: TimeInterval, queue: DispatchQueue, block: @escaping @Sendable () -> Void) {
+            if isThrottling { return }
             isThrottling = true
-            lock.unlock()
             
             queue.asyncAfter(deadline: .now() + duration) {
-                self.lock.lock()
-                self.isThrottling = false
-                self.lock.unlock()
-                block()
+                Task {
+                    await self.reset()
+                    block()
+                }
             }
+        }
+        
+        func reset() {
+            isThrottling = false
         }
     }
     
     let state = State()
     return {
-        state.run(duration: duration, queue: queue, block: block)
+        Task { await state.attemptRun(duration: duration, queue: queue, block: block) }
     }
 }
 
@@ -53,9 +52,9 @@ public func execute(
     on queue: DispatchQueue = .main,
     _ block: @escaping @Sendable () async -> Void
 ) -> @Sendable () -> Void {
-    final class State: @unchecked Sendable {
-        private var isPolling = false
-        private let lock = NSLock()
+    
+    actor State {
+        var isPolling = false
         
         func run(
             condition: @escaping @Sendable () -> Bool,
@@ -63,14 +62,8 @@ public func execute(
             queue: DispatchQueue,
             block: @escaping @Sendable () async -> Void
         ) {
-            lock.lock()
-            if isPolling {
-                lock.unlock()
-                return
-            }
+            if isPolling { return }
             isPolling = true
-            lock.unlock()
-            
             poll(condition: condition, pollingInterval: pollingInterval, queue: queue, block: block)
         }
         
@@ -81,21 +74,18 @@ public func execute(
             block: @escaping @Sendable () async -> Void
         ) {
             if condition() {
-                lock.lock()
                 isPolling = false
-                lock.unlock()
-                
-                Task {
-                    await block()
-                }
+                Task { await block() }
             } else {
                 queue.asyncAfter(deadline: .now() + pollingInterval) {
-                    self.poll(
-                        condition: condition,
-                        pollingInterval: pollingInterval,
-                        queue: queue,
-                        block: block
-                    )
+                    Task {
+                        await self.poll(
+                            condition: condition,
+                            pollingInterval: pollingInterval,
+                            queue: queue,
+                            block: block
+                        )
+                    }
                 }
             }
         }
@@ -103,6 +93,6 @@ public func execute(
     
     let state = State()
     return {
-        state.run(condition: condition, pollingInterval: pollingInterval, queue: queue, block: block)
+        Task { await state.run(condition: condition, pollingInterval: pollingInterval, queue: queue, block: block) }
     }
 }

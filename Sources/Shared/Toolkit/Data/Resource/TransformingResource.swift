@@ -19,6 +19,19 @@ import Foundation
 open class TransformingResource: Resource, @unchecked Sendable {
     private let resource: Resource
     private let _transform: (@Sendable (ReadResult<Data>) async -> ReadResult<Data>)?
+    
+    private actor Cache {
+        var data: ReadResult<Data>?
+        
+        func get(transform: @Sendable () async -> ReadResult<Data>) async -> ReadResult<Data> {
+            if let data = data { return data }
+            let newData = await transform()
+            data = newData
+            return newData
+        }
+    }
+    
+    private let cache = Cache()
 
     public init(_ resource: Resource, transform: (@Sendable (ReadResult<Data>) async -> ReadResult<Data>)? = nil) {
         self.resource = resource
@@ -54,18 +67,10 @@ open class TransformingResource: Resource, @unchecked Sendable {
         }
     }
 
-    private let lock = NSLock()
-    private var _data: ReadResult<Data>?
-
     private func data() async -> ReadResult<Data> {
-        let cached: ReadResult<Data>? = lock.withLock { _data }
-        if let cached = cached {
-            return cached
+        await cache.get {
+            await transform(data: resource.read())
         }
-        
-        let data = await transform(data: resource.read())
-        lock.withLock { _data = data }
-        return data
     }
 }
 
