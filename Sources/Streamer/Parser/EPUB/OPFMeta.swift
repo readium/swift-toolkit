@@ -309,7 +309,7 @@ struct OPFMetaList {
             "language", "modified", "publisher", "subject", "title",
             "conformsTo",
         ],
-        .media: ["duration", "active-class", "playback-active-class"],
+        .media: ["duration", "active-class", "playback-active-class", "narrator"],
         .rendition: ["layout"],
         .schema: [
             "numberOfPages", "accessMode", "accessModeSufficient",

@@ -364,6 +364,8 @@ class EPUBMetadataParserTests: XCTestCase {
         XCTAssertNil(sut.otherMetadata["\(mediaVocab)active-class"])
         XCTAssertNil(sut.otherMetadata["\(mediaVocab)playback-active-class"])
         XCTAssertNil(sut.otherMetadata["\(mediaVocab)duration"])
+        // The synthesized mediaOverlay key must be stored in otherMetadata
+        XCTAssertNotNil(sut.otherMetadata["mediaOverlay"])
     }
 
     // MARK: - Toolkit

@@ -19,13 +19,6 @@ public enum EPUBTitleType: String {
     case expanded
 }
 
-public enum OPFParserError: Error {
-    /// The Epub have no title. Title is mandatory.
-    case missingPublicationTitle
-    /// Smile resource couldn't be parsed.
-    case invalidSmilResource
-}
-
 /// EpubParser support class, able to parse the OPF package document.
 /// OPF: Open Packaging Format.
 final class OPFParser: Loggable {
