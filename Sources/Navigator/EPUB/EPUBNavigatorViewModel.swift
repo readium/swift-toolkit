@@ -170,6 +170,7 @@ enum EPUBScriptScope: Sendable {
         }
 
         let server = server
+        let scheme = server.scheme
         let servedFontsAtomic = _servedFonts
         let cssAtomic = _css
         let fontDeclarations = config.fontFamilyDeclarations
@@ -181,10 +182,16 @@ enum EPUBScriptScope: Sendable {
             }
 
             let name = file.lastPathSegment ?? UUID().uuidString
-            let url = MainActor.assumeIsolated {
-                server.serve(file: file, at: "assets/fonts/\(name)")
-            }
+            let path = "assets/fonts/\(name)"
+            let urlString = "\(scheme)://\(path)"
+            let url = AnyURL(string: urlString)!.absoluteURL!
+
             servedFontsAtomic.write { $0[file] = url }
+
+            Task { @MainActor in
+                server.serve(file: file, at: path)
+            }
+
             return url
         }
 
