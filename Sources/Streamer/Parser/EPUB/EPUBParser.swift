@@ -8,12 +8,6 @@ import Foundation
 import ReadiumFuzi
 import ReadiumShared
 
-/// Epub related constants.
-private enum EPUBConstant {
-    /// Media Overlays URL.
-    static let mediaOverlayURL = "media-overlay?resource="
-}
-
 /// Errors thrown during the parsing of the EPUB
 ///
 /// - wrongMimeType: The mimetype file is missing or its content differs from
