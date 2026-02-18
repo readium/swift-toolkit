@@ -15,7 +15,7 @@ public struct HTTPRequest: Equatable, @unchecked Sendable {
     public var method: Method
 
     /// Supported HTTP methods.
-    public enum Method: String, Equatable {
+    public enum Method: String, Equatable, Sendable {
         case delete = "DELETE"
         case get = "GET"
         case head = "HEAD"
@@ -32,7 +32,7 @@ public struct HTTPRequest: Equatable, @unchecked Sendable {
     public var body: Body?
 
     /// Supported body values.
-    public enum Body: Equatable {
+    public enum Body: Equatable, Sendable {
         case data(Data)
         case file(URL)
     }
@@ -44,7 +44,7 @@ public struct HTTPRequest: Equatable, @unchecked Sendable {
     public var allowUserInteraction: Bool
 
     /// Additional context data specific to a given implementation of `HTTPClient`.
-    public var userInfo: [AnyHashable: AnyHashable]
+    public var userInfo: [AnyHashable: any Sendable]
 
     public init(
         url: HTTPURL,
@@ -53,7 +53,7 @@ public struct HTTPRequest: Equatable, @unchecked Sendable {
         body: Body? = nil,
         timeoutInterval: TimeInterval? = nil,
         allowUserInteraction: Bool = false,
-        userInfo: [AnyHashable: AnyHashable] = [:]
+        userInfo: [AnyHashable: any Sendable] = [:]
     ) {
         self.url = url
         self.method = method
@@ -117,6 +117,19 @@ public struct HTTPRequest: Equatable, @unchecked Sendable {
                 ?? ""
         }
     }
+    
+    public static func == (lhs: HTTPRequest, rhs: HTTPRequest) -> Bool {
+        lhs.url.string == rhs.url.string &&
+        lhs.method == rhs.method &&
+        lhs.headers == rhs.headers &&
+        lhs.body == rhs.body &&
+        lhs.timeoutInterval == rhs.timeoutInterval &&
+        lhs.allowUserInteraction == rhs.allowUserInteraction &&
+        // We use NSDictionary to compare the userInfo dictionaries.
+        // This relies on the values being bridgeable to Objective-C or wrapped in _SwiftValue,
+        // and correctly implementing isEqual.
+        NSDictionary(dictionary: lhs.userInfo).isEqual(to: rhs.userInfo)
+    }
 }
 
 extension HTTPRequest: CustomStringConvertible {
@@ -126,7 +139,7 @@ extension HTTPRequest: CustomStringConvertible {
 }
 
 /// Convenience protocol to pass an URL or similar objects to an `HTTPClient`.
-public protocol HTTPRequestConvertible {
+public protocol HTTPRequestConvertible: Sendable {
     func httpRequest() -> HTTPResult<HTTPRequest>
 }
 

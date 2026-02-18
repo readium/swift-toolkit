@@ -21,26 +21,26 @@ public protocol HTTPClient: Loggable, Sendable {
     ///     to abort the request.
     func stream(
         request: HTTPRequestConvertible,
-        consume: @escaping @Sendable (_ chunk: Data, _ progress: Double?) -> HTTPResult<Void>
+        consume: @escaping @Sendable (_ chunk: Data, _ progress: Double?) async -> HTTPResult<Void>
     ) async -> HTTPResult<HTTPResponse>
 }
 
 public extension HTTPClient {
     /// Fetches the resource from the given `request`.
     func fetch(_ request: HTTPRequestConvertible) async -> HTTPResult<HTTPResponse> {
-        let buffer = ThreadSafeBuffer()
+        let buffer = Buffer()
         let response = await stream(
             request: request,
             consume: { chunk, _ in
-                buffer.append(chunk)
+                await buffer.append(chunk)
                 return .success(())
             }
         )
 
-        return response
-            .map {
+        return await response
+            .asyncMap {
                 var response = $0
-                response.body = buffer.data
+                response.body = await buffer.data
                 return response
             }
     }
@@ -284,7 +284,7 @@ public struct HTTPResponse: Equatable, Sendable {
 }
 
 /// Holds the information about a successful download.
-public struct HTTPDownload {
+public struct HTTPDownload: Sendable {
     /// The location of a temporary file where the server's response is stored.
     /// You are responsible for moving or deleting the downloaded file..
     public let location: FileURL
@@ -302,19 +302,9 @@ public struct HTTPDownload {
     }
 }
 
-private final class ThreadSafeBuffer: @unchecked Sendable {
-    private var _data = Data()
-    private let lock = NSLock()
-
-    var data: Data {
-        lock.lock()
-        defer { lock.unlock() }
-        return _data
-    }
-
+private actor Buffer {
+    var data = Data()
     func append(_ chunk: Data) {
-        lock.lock()
-        defer { lock.unlock() }
-        _data.append(chunk)
+        data.append(chunk)
     }
 }

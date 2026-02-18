@@ -9,7 +9,7 @@ import Foundation
 public typealias HTTPResult<Success> = Result<Success, HTTPError>
 
 /// Represents an error occurring during an `HTTPClient` activity.
-public enum HTTPError: Error, Loggable {
+public enum HTTPError: Error, Loggable, Sendable {
     /// The provided request was not valid.
     case malformedRequest(url: String?)
 
