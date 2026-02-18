@@ -637,6 +637,9 @@
 ../../Sources/Shared/Publication/Extensions/Presentation/Metadata+Presentation.swift
 ../../Sources/Shared/Publication/Extensions/Presentation/Presentation.swift
 ../../Sources/Shared/Publication/Extensions/Presentation/Properties+Presentation.swift
+../../Sources/Shared/Publication/GuidedNavigation
+../../Sources/Shared/Publication/GuidedNavigation/GuidedNavigationDocument.swift
+../../Sources/Shared/Publication/GuidedNavigation/GuidedNavigationObject.swift
 ../../Sources/Shared/Publication/HREFNormalizer.swift
 ../../Sources/Shared/Publication/Layout.swift
 ../../Sources/Shared/Publication/Link.swift

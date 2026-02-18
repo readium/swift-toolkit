@@ -45,6 +45,8 @@ public struct LinkRelation: Sendable {
     public static let cover = LinkRelation("cover")
     /// Links to a manifest.
     public static let manifest = LinkRelation("manifest")
+    /// Identifies a related resource.
+    public static let related = LinkRelation("related")
     /// Refers to a URI or templated URI that will perform a search.
     public static let search = LinkRelation("search")
     /// Conveys an identifier for the link's context.
