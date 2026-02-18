@@ -29,9 +29,6 @@ public struct GuidedNavigationObject: Hashable, Sendable {
     /// Convey the structural semantics of a publication.
     public let role: [Role]
 
-    /// Level associated with a `heading` role.
-    public let level: Level?
-
     /// Text, audio or image description for the current Guided Navigation
     /// Object.
     public let description: Description?
@@ -44,7 +41,6 @@ public struct GuidedNavigationObject: Hashable, Sendable {
         refs: Refs? = nil,
         text: Text? = nil,
         role: [Role] = [],
-        level: Level? = nil,
         description: Description? = nil,
         children: [GuidedNavigationObject] = []
     ) {
@@ -55,7 +51,6 @@ public struct GuidedNavigationObject: Hashable, Sendable {
         self.refs = refs
         self.text = text
         self.role = role
-        self.level = level
         self.description = description
         self.children = children
     }
@@ -85,7 +80,6 @@ public struct GuidedNavigationObject: Hashable, Sendable {
             refs: refs,
             text: text,
             role: (json["role"] as? [String])?.map(Role.init) ?? [],
-            level: (json["level"] as? Int).flatMap { Level(rawValue: $0) },
             description: description,
             children: children
         )
@@ -153,7 +147,7 @@ public struct GuidedNavigationObject: Hashable, Sendable {
             ssml: String? = nil,
             language: Language? = nil
         ) {
-            guard plain != nil || ssml != nil else {
+            guard plain?.isEmpty == false || ssml?.isEmpty == false else {
                 return nil
             }
             self.plain = plain
@@ -170,7 +164,7 @@ public struct GuidedNavigationObject: Hashable, Sendable {
             } else if let obj = json as? [String: Any] {
                 let plain = obj["plain"] as? String
                 let ssml = obj["ssml"] as? String
-                guard plain != nil || ssml != nil else {
+                guard plain?.isEmpty == false || ssml?.isEmpty == false else {
                     warnings?.log("Guided Navigation String requires at least one of plain, or ssml", model: Self.self, source: json, severity: .moderate)
                     return nil
                 }
@@ -237,6 +231,9 @@ public struct GuidedNavigationObject: Hashable, Sendable {
         public init(_ id: String) {
             self.id = id
         }
+
+        /// A sequential container for objects and/or child containers.
+        public static let sequence = Role("sequence")
 
         // MARK: Inherited from DPUB ARIA 1.0
 
@@ -437,7 +434,22 @@ public struct GuidedNavigationObject: Hashable, Sendable {
         public static let header = Role("header")
 
         /// A heading for a section of the page.
-        public static let heading = Role("heading")
+        public static let heading1 = Role("heading1")
+
+        /// A heading for a section of the page.
+        public static let heading2 = Role("heading2")
+
+        /// A heading for a section of the page.
+        public static let heading3 = Role("heading3")
+
+        /// A heading for a section of the page.
+        public static let heading4 = Role("heading4")
+
+        /// A heading for a section of the page.
+        public static let heading5 = Role("heading5")
+
+        /// A heading for a section of the page.
+        public static let heading6 = Role("heading6")
 
         /// An image.
         public static let image = Role("image")
@@ -518,15 +530,6 @@ public struct GuidedNavigationObject: Hashable, Sendable {
 
         /// A listing of video clips included in the work.
         public static let lov = Role("lov")
-    }
-
-    public enum Level: Int, Hashable, Sendable {
-        case one = 1
-        case two = 2
-        case three = 3
-        case four = 4
-        case five = 5
-        case six = 6
     }
 }
 

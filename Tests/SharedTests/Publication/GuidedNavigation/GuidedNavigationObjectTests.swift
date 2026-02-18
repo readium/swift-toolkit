@@ -14,8 +14,8 @@ import Testing
             let sut = try GuidedNavigationObject(json: [
                 "textref": "chapter1.html",
             ])
-            #expect(try sut == GuidedNavigationObject(
-                refs: .init(text: #require(AnyURL(string: "chapter1.html")))
+            #expect(sut == GuidedNavigationObject(
+                refs: .init(text: AnyURL(string: "chapter1.html"))
             ))
         }
 
@@ -28,8 +28,7 @@ import Testing
                 "textref": "chapter1.html",
                 "videoref": "video.mp4#t=10,30",
                 "text": ["plain": "Hello", "ssml": "<speak>Hello</speak>", "language": "en"],
-                "role": ["chapter", "heading"],
-                "level": 2,
+                "role": ["chapter", "heading2"],
                 "children": [
                     ["textref": "child.html"],
                 ],
@@ -39,17 +38,16 @@ import Testing
             #expect(try sut == GuidedNavigationObject(
                 id: "obj1",
                 refs: .init(
-                    text: #require(AnyURL(string: "chapter1.html")),
-                    img: #require(AnyURL(string: "page1.jpg")),
-                    audio: #require(AnyURL(string: "audio.mp3#t=0,20")),
-                    video: #require(AnyURL(string: "video.mp4#t=10,30"))
+                    text: AnyURL(string: "chapter1.html"),
+                    img: AnyURL(string: "page1.jpg"),
+                    audio: AnyURL(string: "audio.mp3#t=0,20"),
+                    video: AnyURL(string: "video.mp4#t=10,30")
                 ),
                 text: .init(plain: "Hello", ssml: "<speak>Hello</speak>", language: Language(code: .bcp47("en"))),
-                role: [.chapter, .heading],
-                level: .two,
-                description: .init(refs: .init(text: #require(AnyURL(string: "desc.html")))),
+                role: [.chapter, .heading2],
+                description: .init(refs: .init(text: AnyURL(string: "desc.html"))),
                 children: [
-                    #require(GuidedNavigationObject(refs: .init(text: #require(AnyURL(string: "child.html"))))),
+                    #require(GuidedNavigationObject(refs: .init(text: AnyURL(string: "child.html")))),
                 ]
             ))
         }
@@ -82,30 +80,6 @@ import Testing
                     "role": ["chapter"],
                 ])
             }
-        }
-
-        @Test("level in valid range 1-6 is accepted")
-        func levelValid() throws {
-            let sut = try GuidedNavigationObject(json: [
-                "textref": "c.html",
-                "level": 3,
-            ])
-            #expect(sut?.level == .three)
-        }
-
-        @Test("level out of range is silently ignored")
-        func levelOutOfRange() throws {
-            let sut0 = try GuidedNavigationObject(json: [
-                "textref": "c.html",
-                "level": 0,
-            ])
-            #expect(sut0?.level == nil)
-
-            let sut7 = try GuidedNavigationObject(json: [
-                "textref": "c.html",
-                "level": 7,
-            ])
-            #expect(sut7?.level == nil)
         }
 
         @Test("nested children parse correctly")
@@ -165,11 +139,11 @@ import Testing
                 "audioref": "track.mp3",
                 "videoref": "clip.mp4",
             ])
-            #expect(try sut == GuidedNavigationObject.Refs(
-                text: #require(AnyURL(string: "chapter.html")),
-                img: #require(AnyURL(string: "page.jpg")),
-                audio: #require(AnyURL(string: "track.mp3")),
-                video: #require(AnyURL(string: "clip.mp4"))
+            #expect(sut == GuidedNavigationObject.Refs(
+                text: AnyURL(string: "chapter.html"),
+                img: AnyURL(string: "page.jpg"),
+                audio: AnyURL(string: "track.mp3"),
+                video: AnyURL(string: "clip.mp4")
             ))
         }
 
@@ -206,8 +180,8 @@ import Testing
             let sut = try GuidedNavigationObject.Description(json: [
                 "imgref": "desc.jpg",
             ])
-            #expect(try sut == GuidedNavigationObject.Description(
-                refs: .init(img: #require(AnyURL(string: "desc.jpg")))
+            #expect(sut == GuidedNavigationObject.Description(
+                refs: .init(img: AnyURL(string: "desc.jpg"))
             ))
         }
 
@@ -223,27 +197,47 @@ import Testing
 
     @Suite("Text") struct TextTests {
         @Test("returns nil when both plain and ssml are nil")
-        func nilWhenEmpty() {
+        func nilWhenBothNil() {
             let text = GuidedNavigationObject.Text()
             #expect(text == nil)
         }
-    }
 
-    @Suite("Level") struct LevelTests {
-        @Test("all valid levels")
-        func allLevels() {
-            #expect(GuidedNavigationObject.Level(rawValue: 1) == .one)
-            #expect(GuidedNavigationObject.Level(rawValue: 2) == .two)
-            #expect(GuidedNavigationObject.Level(rawValue: 3) == .three)
-            #expect(GuidedNavigationObject.Level(rawValue: 4) == .four)
-            #expect(GuidedNavigationObject.Level(rawValue: 5) == .five)
-            #expect(GuidedNavigationObject.Level(rawValue: 6) == .six)
+        @Test("returns nil when plain is empty and ssml is nil")
+        func nilWhenPlainEmpty() {
+            let text = GuidedNavigationObject.Text(plain: "")
+            #expect(text == nil)
         }
 
-        @Test("invalid raw values return nil")
-        func invalidValues() {
-            #expect(GuidedNavigationObject.Level(rawValue: 0) == nil)
-            #expect(GuidedNavigationObject.Level(rawValue: 7) == nil)
+        @Test("returns nil when ssml is empty and plain is nil")
+        func nilWhenSsmlEmpty() {
+            let text = GuidedNavigationObject.Text(ssml: "")
+            #expect(text == nil)
+        }
+
+        @Test("returns nil when both plain and ssml are empty strings")
+        func nilWhenBothEmpty() {
+            let text = GuidedNavigationObject.Text(plain: "", ssml: "")
+            #expect(text == nil)
+        }
+
+        @Test("succeeds when only plain is non-empty")
+        func succeedsWithPlainOnly() {
+            let text = GuidedNavigationObject.Text(plain: "Hello")
+            #expect(text != nil)
+            #expect(text?.plain == "Hello")
+        }
+
+        @Test("succeeds when only ssml is non-empty")
+        func succeedsWithSsmlOnly() {
+            let text = GuidedNavigationObject.Text(ssml: "<speak>Hi</speak>")
+            #expect(text != nil)
+            #expect(text?.ssml == "<speak>Hi</speak>")
+        }
+
+        @Test("JSON object with empty plain and ssml returns nil")
+        func jsonObjectEmptyStringsReturnsNil() throws {
+            let sut = try GuidedNavigationObject.Text(json: ["plain": "", "ssml": ""])
+            #expect(sut == nil)
         }
     }
 }

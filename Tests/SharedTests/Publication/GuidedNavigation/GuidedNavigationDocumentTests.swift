@@ -19,7 +19,7 @@ import Testing
 
             #expect(try sut == GuidedNavigationDocument(
                 guided: [
-                    #require(GuidedNavigationObject(refs: .init(text: #require(AnyURL(string: "chapter1.html"))))),
+                    #require(GuidedNavigationObject(refs: .init(text: AnyURL(string: "chapter1.html")))),
                 ]
             ))
         }
