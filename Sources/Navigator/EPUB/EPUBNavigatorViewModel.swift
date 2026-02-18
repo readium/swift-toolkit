@@ -35,6 +35,10 @@ enum EPUBScriptScope {
     /// the web view.
     let server: WebViewServer
 
+    /// Format sniffer used to infer the media type of resources served with
+    /// the `server`.
+    let formatSniffer: FormatSniffer
+
     weak var delegate: EPUBNavigatorViewModelDelegate?
 
     let readingOrder: ReadingOrder
@@ -47,7 +51,8 @@ enum EPUBScriptScope {
         let assetsDirectory = Bundle.module.resourceURL!.fileURL!
             .appendingPath("Assets/Static", isDirectory: true)
 
-        let server = WebViewServer(scheme: "readium")
+        let formatSniffer = DefaultFormatSniffer()
+        let server = WebViewServer(scheme: "readium", formatSniffer: formatSniffer)
 
         // Serve static assets directory.
         let assetsBaseURL = server.serve(directory: assetsDirectory, at: "assets")
@@ -57,7 +62,8 @@ enum EPUBScriptScope {
             readingOrder: readingOrder,
             config: config,
             server: server,
-            assetsBaseURL: assetsBaseURL
+            assetsBaseURL: assetsBaseURL,
+            formatSniffer: formatSniffer
         )
 
         if let url = publication.baseURL {
@@ -68,7 +74,7 @@ enum EPUBScriptScope {
         } else {
             // Serve publication resources.
             publicationBaseURL = server.serve(at: UUID().uuidString) { [weak self] in
-                self?.serve(href: $0)
+                await self?.serve(href: $0)
             }
         }
     }
@@ -78,7 +84,8 @@ enum EPUBScriptScope {
         readingOrder: ReadingOrder,
         config: EPUBNavigatorViewController.Configuration,
         server: WebViewServer,
-        assetsBaseURL: any AbsoluteURL
+        assetsBaseURL: any AbsoluteURL,
+        formatSniffer: FormatSniffer
     ) {
         var config = config
 
@@ -117,6 +124,7 @@ enum EPUBScriptScope {
         )
         self.server = server
         self.assetsBaseURL = assetsBaseURL
+        self.formatSniffer = formatSniffer
 
         preferences = config.preferences
         settings = EPUBSettings(publication: publication, config: config)
@@ -160,11 +168,32 @@ enum EPUBScriptScope {
 
     // MARK: - Web View Server
 
-    private func serve(href: RelativeURL) -> Resource? {
-        guard let resource = publication.get(href) else {
+    private func serve(href: RelativeURL) async -> (Resource, MediaType)? {
+        guard var resource = publication.get(href) else {
             return nil
         }
-        return injectReadiumCSS(in: resource, at: href)
+        let mediaType = await resolveMediaType(for: resource, at: href)
+        resource = injectReadiumCSS(in: resource, at: href)
+        return (resource, mediaType)
+    }
+
+    /// Resolves the media type to use to serve the given `resource`.
+    ///
+    /// The media type declared in the manifest takes precedence, before falling
+    /// back on the `Resource` properties and sniffing the `href`.
+    ///
+    /// The manifest takes precedence because a file with a `.xml` extension
+    /// might be declared as `application/xhtml+xml` in the OPF.
+    private func resolveMediaType(for resource: Resource, at href: RelativeURL) async -> MediaType {
+        if let mediaType = publication.linkWithHREF(href)?.mediaType {
+            return mediaType
+        }
+        if let mediaType = await resource.properties().getOrNil()?.mediaType {
+            return mediaType
+        }
+
+        return href.pathExtension.flatMap { formatSniffer.sniffHints(.init(fileExtension: $0))?.mediaType }
+            ?? .binary
     }
 
     // MARK: - User preferences
