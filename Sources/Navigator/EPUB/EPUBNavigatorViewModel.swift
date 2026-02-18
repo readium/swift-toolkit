@@ -181,7 +181,9 @@ enum EPUBScriptScope: Sendable {
             }
 
             let name = file.lastPathSegment ?? UUID().uuidString
-            let url = server.serve(file: file, at: "assets/fonts/\(name)")
+            let url = MainActor.assumeIsolated {
+                server.serve(file: file, at: "assets/fonts/\(name)")
+            }
             servedFontsAtomic.write { $0[file] = url }
             return url
         }

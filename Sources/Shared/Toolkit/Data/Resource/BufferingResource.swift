@@ -97,14 +97,18 @@ public actor BufferingResource: Resource, Loggable {
 
         // Read from the original resource using stream to avoid materializing
         // more than needed.
-        var data = prefixData
-        let result = await resource.stream(range: fetchRange) { chunk in
-            data.append(chunk)
+        let result = await resource.read(range: fetchRange)
+        
+        let newData: Data
+        switch result {
+        case .success(let d):
+            newData = d
+        case .failure(let error):
+            return .failure(error)
         }
 
-        guard case .success = result else {
-            return result
-        }
+        var data = prefixData
+        data.append(newData)
 
         buffer.set(data, at: readRange.lowerBound)
 
