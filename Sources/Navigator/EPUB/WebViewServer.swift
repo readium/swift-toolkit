@@ -16,10 +16,12 @@ import WebKit
     /// The custom scheme used to serve the content.
     let scheme: String
 
-    private let formatSniffer = DefaultFormatSniffer()
+    /// Format sniffer used to infer the media type of served resources.
+    let formatSniffer: FormatSniffer
 
-    init(scheme: String) {
+    init(scheme: String, formatSniffer: FormatSniffer) {
         self.scheme = scheme
+        self.formatSniffer = formatSniffer
         super.init()
     }
 
@@ -28,7 +30,7 @@ import WebKit
     private enum RouteHandler {
         case file(FileURL)
         case directory(FileURL)
-        case resources(@MainActor (RelativeURL) -> Resource?)
+        case resources(@MainActor (RelativeURL) async -> (Resource, MediaType)?)
     }
 
     /// Registered routes, sorted by reverse alphabetical order to ensure
@@ -69,7 +71,7 @@ import WebKit
     ///
     /// Returns the base URL (e.g. `readium://{uuid}/`).
     @discardableResult
-    func serve(at route: String, handler: @escaping @MainActor (RelativeURL) -> Resource?) -> AbsoluteURL {
+    func serve(at route: String, handler: @escaping @MainActor (RelativeURL) async -> (Resource, MediaType)?) -> AbsoluteURL {
         let route = normalizedRoute(route, isDirectory: true)
         let baseURL = AnyURL(string: "\(scheme)://\(route)")!.absoluteURL!
         insertRoute((path: route, baseURL: baseURL, handler: .resources(handler)))
@@ -178,26 +180,26 @@ import WebKit
     private func serveResource(
         _ urlSchemeTask: WKURLSchemeTask,
         relativeURL: RelativeURL,
-        handler: @MainActor (RelativeURL) -> Resource?,
+        handler: @MainActor (RelativeURL) async -> (Resource, MediaType)?,
         requestURL: URL
     ) async {
         // Reuse a cached buffered resource to benefit from forward-seek
         // optimization and read-ahead buffering, or create and cache a new
         // one.
         let resource: Resource
-        if let cached = resourceCache[relativeURL] {
-            resource = cached
+        let mediaType: MediaType
+        if let (cachedResource, cachedMediaType) = resourceCache[relativeURL] {
+            resource = cachedResource
+            mediaType = cachedMediaType
         } else {
-            guard var res = handler(relativeURL) else {
+            guard let (newResource, newMediaType) = await handler(relativeURL) else {
                 await fail(urlSchemeTask, with: URLError(.fileDoesNotExist))
                 return
             }
-            res = res.buffered(size: 256 * 1024)
-            resourceCache.set(relativeURL, res)
-            resource = res
+            resource = newResource.buffered(size: 256 * 1024)
+            mediaType = newMediaType
+            resourceCache.set(relativeURL, resource: resource, mediaType: mediaType)
         }
-
-        let mediaType = await resource.properties().getOrNil()?.mediaType ?? mediaTypeFromURL(relativeURL)
 
         await serveResource(
             resource,
@@ -335,18 +337,18 @@ private extension URLRequest {
 /// through chapters.
 private struct BoundedResourceCache {
     private let capacity = 8
-    private var entries: [RelativeURL: Resource] = [:]
+    private var entries: [RelativeURL: (Resource, MediaType)] = [:]
     private var order: [RelativeURL] = []
 
-    subscript(key: RelativeURL) -> Resource? {
+    subscript(key: RelativeURL) -> (Resource, MediaType)? {
         entries[key]
     }
 
-    mutating func set(_ key: RelativeURL, _ value: Resource) {
+    mutating func set(_ key: RelativeURL, resource: Resource, mediaType: MediaType) {
         if entries[key] == nil {
             order.append(key)
         }
-        entries[key] = value
+        entries[key] = (resource, mediaType)
 
         while order.count > capacity {
             let evicted = order.removeFirst()

@@ -35,6 +35,10 @@ enum EPUBScriptScope: Sendable {
     /// the web view.
     let server: WebViewServer
 
+    /// Format sniffer used to infer the media type of resources served with
+    /// the `server`.
+    let formatSniffer: FormatSniffer
+
     weak var delegate: EPUBNavigatorViewModelDelegate?
 
     /// Local file URL associated to the HTTP URL used to serve the file on the
@@ -51,7 +55,8 @@ enum EPUBScriptScope: Sendable {
         let assetsDirectory = Bundle.module.resourceURL!.fileURL!
             .appendingPath("Assets/Static", isDirectory: true)
 
-        let server = WebViewServer(scheme: "readium")
+        let formatSniffer = DefaultFormatSniffer()
+        let server = WebViewServer(scheme: "readium", formatSniffer: formatSniffer)
 
         // Serve static assets directory.
         let assetsBaseURL = server.serve(directory: assetsDirectory, at: "assets")
@@ -61,7 +66,8 @@ enum EPUBScriptScope: Sendable {
             readingOrder: readingOrder,
             config: config,
             server: server,
-            assetsBaseURL: assetsBaseURL
+            assetsBaseURL: assetsBaseURL,
+            formatSniffer: formatSniffer
         )
 
         if let url = publication.baseURL {
@@ -72,7 +78,7 @@ enum EPUBScriptScope: Sendable {
         } else {
             // Serve publication resources.
             publicationBaseURL = server.serve(at: UUID().uuidString) { [weak self] href in
-                self?.serve(href: href)
+                await self?.serve(href: href)
             }
         }
     }
@@ -82,7 +88,8 @@ enum EPUBScriptScope: Sendable {
         readingOrder: ReadingOrder,
         config: EPUBNavigatorViewController.Configuration,
         server: WebViewServer,
-        assetsBaseURL: any AbsoluteURL
+        assetsBaseURL: any AbsoluteURL,
+        formatSniffer: FormatSniffer
     ) {
         var config = config
 
@@ -121,6 +128,7 @@ enum EPUBScriptScope: Sendable {
         )
         self.server = server
         self.assetsBaseURL = assetsBaseURL
+        self.formatSniffer = formatSniffer
 
         preferences = config.preferences
         settings = EPUBSettings(publication: publication, config: config)
@@ -164,10 +172,12 @@ enum EPUBScriptScope: Sendable {
 
     // MARK: - Web View Server
 
-    private func serve(href: RelativeURL) -> Resource? {
-        guard let resource = publication.get(href) else {
+    private func serve(href: RelativeURL) async -> (Resource, MediaType)? {
+        guard var resource = publication.get(href) else {
             return nil
         }
+
+        let mediaType = await resolveMediaType(for: resource, at: href)
 
         let server = server
         let scheme = server.scheme
@@ -197,7 +207,7 @@ enum EPUBScriptScope: Sendable {
 
         let css = cssAtomic.read()
 
-        return Self.injectReadiumCSS(
+        resource = Self.injectReadiumCSS(
             in: resource,
             at: href,
             publication: publication,
@@ -205,6 +215,20 @@ enum EPUBScriptScope: Sendable {
             fontFamilyDeclarations: fontDeclarations,
             serveFont: serveFont
         )
+
+        return (resource, mediaType)
+    }
+
+    private func resolveMediaType(for resource: Resource, at href: RelativeURL) async -> MediaType {
+        if let mediaType = publication.linkWithHREF(href)?.mediaType {
+            return mediaType
+        }
+        if let mediaType = await resource.properties().getOrNil()?.mediaType {
+            return mediaType
+        }
+
+        return href.pathExtension.flatMap { formatSniffer.sniffHints(.init(fileExtension: $0))?.mediaType }
+            ?? .binary
     }
 
     // MARK: - User preferences

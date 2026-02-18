@@ -625,6 +625,8 @@
 ../../Sources/Shared/Publication/Extensions/Encryption/Properties+Encryption.swift
 ../../Sources/Shared/Publication/Extensions/EPUB
 ../../Sources/Shared/Publication/Extensions/EPUB/EPUBLayout.swift
+../../Sources/Shared/Publication/Extensions/EPUB/EPUBMediaOverlay.swift
+../../Sources/Shared/Publication/Extensions/EPUB/Metadata+EPUB.swift
 ../../Sources/Shared/Publication/Extensions/EPUB/Properties+EPUB.swift
 ../../Sources/Shared/Publication/Extensions/EPUB/Publication+EPUB.swift
 ../../Sources/Shared/Publication/Extensions/HTML
@@ -637,6 +639,9 @@
 ../../Sources/Shared/Publication/Extensions/Presentation/Metadata+Presentation.swift
 ../../Sources/Shared/Publication/Extensions/Presentation/Presentation.swift
 ../../Sources/Shared/Publication/Extensions/Presentation/Properties+Presentation.swift
+../../Sources/Shared/Publication/GuidedNavigation
+../../Sources/Shared/Publication/GuidedNavigation/GuidedNavigationDocument.swift
+../../Sources/Shared/Publication/GuidedNavigation/GuidedNavigationObject.swift
 ../../Sources/Shared/Publication/HREFNormalizer.swift
 ../../Sources/Shared/Publication/Layout.swift
 ../../Sources/Shared/Publication/Link.swift
@@ -645,9 +650,6 @@
 ../../Sources/Shared/Publication/Locator.swift
 ../../Sources/Shared/Publication/Manifest.swift
 ../../Sources/Shared/Publication/ManifestTransformer.swift
-../../Sources/Shared/Publication/Media Overlays
-../../Sources/Shared/Publication/Media Overlays/MediaOverlayNode.swift
-../../Sources/Shared/Publication/Media Overlays/MediaOverlays.swift
 ../../Sources/Shared/Publication/Metadata.swift
 ../../Sources/Shared/Publication/Properties.swift
 ../../Sources/Shared/Publication/Protection
@@ -849,6 +851,7 @@
 ../../Sources/Streamer/Parser/EPUB/Resource Transformers/EPUBDeobfuscator.swift
 ../../Sources/Streamer/Parser/EPUB/Services
 ../../Sources/Streamer/Parser/EPUB/Services/EPUBPositionsService.swift
+../../Sources/Streamer/Parser/EPUB/SMILClockValue.swift
 ../../Sources/Streamer/Parser/EPUB/XMLNamespace.swift
 ../../Sources/Streamer/Parser/Image
 ../../Sources/Streamer/Parser/Image/ComicInfoParser.swift

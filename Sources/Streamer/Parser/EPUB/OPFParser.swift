@@ -19,13 +19,6 @@ public enum EPUBTitleType: String {
     case expanded
 }
 
-public enum OPFParserError: Error {
-    /// The Epub have no title. Title is mandatory.
-    case missingPublicationTitle
-    /// Smile resource couldn't be parsed.
-    case invalidSmilResource
-}
-
 /// EpubParser support class, able to parse the OPF package document.
 /// OPF: Open Packaging Format.
 final class OPFParser: Loggable {
@@ -212,11 +205,16 @@ final class OPFParser: Loggable {
             }
         }
 
+        let duration = metas["duration", in: .media, refining: id]
+            .first
+            .flatMap { parseSmilClockValue($0.content) }
+
         let link = Link(
             href: href.string,
             mediaType: manifestItem.attr("media-type").flatMap { MediaType($0) },
             rels: rels,
-            properties: Properties(properties)
+            properties: Properties(properties),
+            duration: duration
         )
 
         return ManifestItem(
