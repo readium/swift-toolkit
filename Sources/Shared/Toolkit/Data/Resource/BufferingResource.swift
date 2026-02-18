@@ -98,12 +98,12 @@ public actor BufferingResource: Resource, Loggable {
         // Read from the original resource using stream to avoid materializing
         // more than needed.
         let result = await resource.read(range: fetchRange)
-        
+
         let newData: Data
         switch result {
-        case .success(let d):
+        case let .success(d):
             newData = d
-        case .failure(let error):
+        case let .failure(error):
             return .failure(error)
         }
 
