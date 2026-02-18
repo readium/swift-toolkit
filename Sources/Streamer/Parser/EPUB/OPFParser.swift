@@ -206,11 +206,16 @@ final class OPFParser: Loggable {
             properties["encrypted"] = encryption
         }
 
+        let duration = metas["duration", in: .media, refining: id]
+            .first
+            .flatMap { parseSmilClockValue($0.content) }
+
         let link = Link(
             href: href.string,
             mediaType: manifestItem.attr("media-type").flatMap { MediaType($0) },
             rels: rels,
-            properties: Properties(properties)
+            properties: Properties(properties),
+            duration: duration
         )
 
         return ManifestItem(

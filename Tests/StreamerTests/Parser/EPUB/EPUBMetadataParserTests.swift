@@ -339,6 +339,33 @@ class EPUBMetadataParserTests: XCTestCase {
         )
     }
 
+    // MARK: - Media Overlays
+
+    func testParseMediaOverlaysDuration() throws {
+        let sut = try parseMetadata("media-overlays")
+        // 1h 32m 29s = 3600 + 1949 = 5549
+        XCTAssertEqual(sut.duration, 5549.0)
+    }
+
+    func testParseMediaOverlaysActiveClass() throws {
+        let sut = try parseMetadata("media-overlays")
+        XCTAssertEqual(sut.mediaOverlay?.activeClass, "-epub-media-overlay-active")
+    }
+
+    func testParseMediaOverlaysPlaybackActiveClass() throws {
+        let sut = try parseMetadata("media-overlays")
+        XCTAssertEqual(sut.mediaOverlay?.playbackActiveClass, "-epub-media-overlay-playing")
+    }
+
+    func testMediaOverlayNotInRawOtherMetadata() throws {
+        let sut = try parseMetadata("media-overlays")
+        // active-class and playback-active-class should be consumed, not in otherMetadata
+        let mediaVocab = "http://www.idpf.org/epub/vocab/overlays/#"
+        XCTAssertNil(sut.otherMetadata["\(mediaVocab)active-class"])
+        XCTAssertNil(sut.otherMetadata["\(mediaVocab)playback-active-class"])
+        XCTAssertNil(sut.otherMetadata["\(mediaVocab)duration"])
+    }
+
     // MARK: - Toolkit
 
     func parseMetadata(_ name: String, displayOptions: String? = nil) throws -> Metadata {

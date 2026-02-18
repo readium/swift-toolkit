@@ -39,6 +39,9 @@ final class EPUBMetadataParser: Loggable {
             contributorsByRole[role] ?? []
         }
 
+        var other = metas.otherMetadata
+        if let mo = mediaOverlay() { other["mediaOverlay"] = mo.json }
+
         return Metadata(
             identifier: uniqueIdentifier,
             conformsTo: [.epub],
@@ -62,11 +65,12 @@ final class EPUBMetadataParser: Loggable {
             layout: layout(),
             readingProgression: readingProgression,
             description: description,
+            duration: mediaDuration,
             numberOfPages: numberOfPages,
             belongsToCollections: belongsToCollections,
             belongsToSeries: belongsToSeries,
             tdm: tdm(),
-            otherMetadata: metas.otherMetadata
+            otherMetadata: other
         )
     }
 
@@ -281,6 +285,20 @@ final class EPUBMetadataParser: Loggable {
     private func accessibilityExemptions() -> [Accessibility.Exemption] {
         metas["exemption", in: .a11y]
             .map { Accessibility.Exemption($0.content) }
+    }
+
+    /// Publication-level SMIL duration (no `refines`).
+    private lazy var mediaDuration: Double? =
+        metas["duration", in: .media]
+            .first(where: { $0.refines == nil })
+            .flatMap { parseSmilClockValue($0.content) }
+
+    /// Media overlay CSS class names.
+    private func mediaOverlay() -> EPUBMediaOverlay? {
+        let active = metas["active-class", in: .media].first?.content
+        let playbackActive = metas["playback-active-class", in: .media].first?.content
+        guard active != nil || playbackActive != nil else { return nil }
+        return EPUBMediaOverlay(activeClass: active, playbackActiveClass: playbackActive)
     }
 
     /// https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/#sec-epub3
