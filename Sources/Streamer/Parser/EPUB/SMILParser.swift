@@ -84,7 +84,7 @@ private struct SMILGuidedNavigationDocumentParsing {
     let warnings: WarningLogger?
 
     func parse() -> GuidedNavigationDocument? {
-        guard let body = document.firstChild(xpath: "//smil:body") else {
+        guard let body = document.firstChild(xpath: "/smil:smil/smil:body") else {
             return nil
         }
 
@@ -132,14 +132,16 @@ private struct SMILGuidedNavigationDocumentParsing {
 
     private func parsePar(_ element: ReadiumFuzi.XMLElement) -> GuidedNavigationObject? {
         // A par MUST have a <smil:text> child - skip if absent.
-        guard let textElement = element.firstChild(xpath: "smil:text") else {
+        guard
+            let textElement = element.firstChild(xpath: "smil:text"),
+            let textURL = textElement.attr("src").flatMap({ resolveURL($0) })
+        else {
+            warnings?.log("<par> has no valid <text> element", model: GuidedNavigationObject.self, source: element, severity: .minor)
             return nil
         }
 
         let id = element.attr("id")
         let epubType = element.attr("type", namespace: .epub)
-
-        let textURL = textElement.attr("src").flatMap { resolveURL($0) }
 
         let audioRef: AnyURL? = element.firstChild(xpath: "smil:audio").flatMap(clipURL(from:))
         let videoRef: AnyURL? = element.firstChild(xpath: "smil:video").flatMap(clipURL(from:))
@@ -206,11 +208,15 @@ private struct SMILGuidedNavigationDocumentParsing {
 
     /// Formats a seconds value, stripping the `.0` suffix for integers.
     private func formatSeconds(_ seconds: TimeInterval) -> String {
-        if seconds.truncatingRemainder(dividingBy: 1) == 0 {
+        if seconds == floor(seconds) {
             return String(Int(seconds))
-        } else {
-            return String(seconds)
         }
+        var result = String(format: "%.3f", seconds)
+        while result.last == "0" {
+            result.removeLast()
+        }
+        if result.last == "." { result.removeLast() }
+        return result
     }
 
     /// Maps an `epub:type` attribute (space-separated tokens) to roles.
@@ -305,8 +311,8 @@ public struct SMILWarning: Warning {
     public let modelType: Any.Type
     /// Details about the failure.
     public let reason: String
-    /// Source XML element.
-    public let source: ReadiumFuzi.XMLElement?
+    /// String representation of the source XML element.
+    public let source: String?
     public let severity: WarningSeverityLevel
     public var tag: String {
         "smil"
@@ -319,6 +325,6 @@ public struct SMILWarning: Warning {
 
 private extension WarningLogger {
     func log(_ reason: String, model: Any.Type, source: ReadiumFuzi.XMLElement, severity: WarningSeverityLevel = .major) {
-        log(SMILWarning(modelType: model, reason: reason, source: source, severity: severity))
+        log(SMILWarning(modelType: model, reason: reason, source: source.rawXML, severity: severity))
     }
 }

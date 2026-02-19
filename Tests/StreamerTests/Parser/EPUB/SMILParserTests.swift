@@ -80,6 +80,22 @@ import Testing
             #expect(p4?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3"))
         }
 
+        @Test func audioClipEndTrailingZerosStripped() throws {
+            let doc = try SMILParserTests.parse("audio-clip-times.smil")
+            // s1/p5: clipEnd=0:00:05.100 → "5.100" formatted, trailing zeros stripped → "5.1"
+            let p5 = doc?.guided.first?.children[4]
+            #expect(p5?.id == "p5")
+            #expect(p5?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=,5.1"))
+        }
+
+        @Test func audioClipEndPartialTrailingZeroStripped() throws {
+            let doc = try SMILParserTests.parse("audio-clip-times.smil")
+            // s1/p6: clipEnd=0:00:05.120 → "5.120" formatted, one trailing zero stripped → "5.12"
+            let p6 = doc?.guided.first?.children[5]
+            #expect(p6?.id == "p6")
+            #expect(p6?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=,5.12"))
+        }
+
         @Test func videoWithBothClipTimes() throws {
             let doc = try SMILParserTests.parse("video-clip-times.smil")
             // s1/p1: clipBegin=0:00:00.000, clipEnd=0:00:05.123
@@ -110,6 +126,14 @@ import Testing
             let p4 = doc?.guided.first?.children[3]
             #expect(p4?.id == "p4")
             #expect(p4?.refs?.video == AnyURL(string: "OEBPS/video.mp4"))
+        }
+
+        @Test func parWithBothAudioAndVideo() throws {
+            let doc = try SMILParserTests.parse("par-audio-video.smil")
+            let p1 = doc?.guided.first?.children.first
+            #expect(p1?.id == "p1")
+            #expect(p1?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=0,5"))
+            #expect(p1?.refs?.video == AnyURL(string: "OEBPS/video.mp4#t=0,5"))
         }
 
         @Test func parWithoutTextIsSkipped() throws {
@@ -240,32 +264,125 @@ import Testing
         }
     }
 
-    // MARK: - parseClockValue
-
+    /// https://www.w3.org/TR/SMIL/smil-timing.html#Timing-ClockValueSyntax
     @Suite("parseClockValue") struct ParseClockValue {
-        @Test func fullClock() {
-            #expect(SMILParser.parseClockValue("1:32:29") == 5549.0)
+        @Suite("full clock: hh:mm:ss[.fraction]") struct FullClock {
+            @Test func basic() {
+                #expect(SMILParser.parseClockValue("1:32:29") == 5549.0)
+            }
+
+            @Test func zero() {
+                #expect(SMILParser.parseClockValue("0:00:00") == 0.0)
+            }
+
+            @Test func fractionalSeconds() {
+                #expect(SMILParser.parseClockValue("0:01:30.5") == 90.5)
+            }
+
+            @Test func largeHours() {
+                #expect(SMILParser.parseClockValue("100:00:00") == 360_000.0)
+            }
         }
 
-        @Test func partialClock() {
-            #expect(SMILParser.parseClockValue("0:01:30.5") == 90.5)
+        @Suite("partial clock: mm:ss[.fraction]") struct PartialClock {
+            @Test func basic() {
+                #expect(SMILParser.parseClockValue("23:45") == 1425.0)
+            }
+
+            @Test func zero() {
+                #expect(SMILParser.parseClockValue("0:00") == 0.0)
+            }
+
+            @Test func singleDigitMinutes() {
+                #expect(SMILParser.parseClockValue("8:44") == 524.0)
+            }
+
+            @Test func fractionalSeconds() {
+                #expect(SMILParser.parseClockValue("0:30.5") == 30.5)
+            }
         }
 
-        @Test func hours() {
-            #expect(SMILParser.parseClockValue("2h") == 7200.0)
+        @Suite("timecount values") struct Timecount {
+            @Test func hours() {
+                #expect(SMILParser.parseClockValue("2h") == 7200.0)
+            }
+
+            @Test func fractionalHours() {
+                #expect(SMILParser.parseClockValue("1.5h") == 5400.0)
+            }
+
+            @Test func minutes() {
+                #expect(SMILParser.parseClockValue("30min") == 1800.0)
+            }
+
+            @Test func fractionalMinutes() {
+                #expect(SMILParser.parseClockValue("0.5min") == 30.0)
+            }
+
+            @Test func seconds() {
+                #expect(SMILParser.parseClockValue("45s") == 45.0)
+            }
+
+            @Test func fractionalSeconds() {
+                #expect(SMILParser.parseClockValue("2.5s") == 2.5)
+            }
+
+            @Test func milliseconds() {
+                #expect(SMILParser.parseClockValue("500ms") == 0.5)
+            }
+
+            @Test("milliseconds suffix takes priority over seconds suffix")
+            func millisecondsPriority() {
+                #expect(SMILParser.parseClockValue("1000ms") == 1.0)
+            }
+
+            @Test func plainNumber() {
+                #expect(SMILParser.parseClockValue("120") == 120.0)
+            }
+
+            @Test func plainFractionalNumber() {
+                #expect(SMILParser.parseClockValue("1.5") == 1.5)
+            }
         }
 
-        @Test func milliseconds() {
-            #expect(SMILParser.parseClockValue("500ms") == 0.5)
+        @Suite("whitespace handling") struct Whitespace {
+            @Test func leadingAndTrailingSpaces() {
+                #expect(SMILParser.parseClockValue("  30s  ") == 30.0)
+            }
+
+            @Test func leadingAndTrailingSpacesOnClock() {
+                #expect(SMILParser.parseClockValue(" 1:30 ") == 90.0)
+            }
         }
 
-        @Test func plainNumber() {
-            #expect(SMILParser.parseClockValue("120") == 120.0)
-        }
+        @Suite("invalid input returns nil") struct Invalid {
+            @Test func empty() {
+                #expect(SMILParser.parseClockValue("") == nil)
+            }
 
-        @Test func invalidReturnsNil() {
-            #expect(SMILParser.parseClockValue("abc") == nil)
-            #expect(SMILParser.parseClockValue("") == nil)
+            @Test func whitespaceOnly() {
+                #expect(SMILParser.parseClockValue("   ") == nil)
+            }
+
+            @Test func letters() {
+                #expect(SMILParser.parseClockValue("abc") == nil)
+            }
+
+            @Test func unknownSuffix() {
+                #expect(SMILParser.parseClockValue("1m") == nil)
+            }
+
+            @Test func nonNumericHours() {
+                #expect(SMILParser.parseClockValue("x:00:00") == nil)
+            }
+
+            @Test func nonNumericMinutes() {
+                #expect(SMILParser.parseClockValue("1:xx:00") == nil)
+            }
+
+            @Test func nonNumericSeconds() {
+                #expect(SMILParser.parseClockValue("1:00:xx") == nil)
+            }
         }
     }
 }

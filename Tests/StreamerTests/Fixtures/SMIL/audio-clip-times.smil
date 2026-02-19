@@ -22,6 +22,16 @@
         <text src="chapter01.xhtml#id4"/>
         <audio src="audio.mp3"/>
       </par>
+      <!-- clipEnd with one significant decimal (trailing zeros stripped: "5.100" → "5.1") -->
+      <par id="p5">
+        <text src="chapter01.xhtml#id5"/>
+        <audio src="audio.mp3" clipEnd="0:00:05.100"/>
+      </par>
+      <!-- clipEnd with two significant decimals (one trailing zero stripped: "5.120" → "5.12") -->
+      <par id="p6">
+        <text src="chapter01.xhtml#id6"/>
+        <audio src="audio.mp3" clipEnd="0:00:05.120"/>
+      </par>
     </seq>
   </body>
 </smil>
