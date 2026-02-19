@@ -6,7 +6,7 @@
 
 import ReadiumShared
 
-internal extension Metadata {
+extension Metadata {
     var epubLayout: EPUBLayout {
         layout == .fixed ? .fixed : .reflowable
     }
