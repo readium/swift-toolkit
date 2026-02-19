@@ -851,7 +851,7 @@
 ../../Sources/Streamer/Parser/EPUB/Resource Transformers/EPUBDeobfuscator.swift
 ../../Sources/Streamer/Parser/EPUB/Services
 ../../Sources/Streamer/Parser/EPUB/Services/EPUBPositionsService.swift
-../../Sources/Streamer/Parser/EPUB/SMILClockValue.swift
+../../Sources/Streamer/Parser/EPUB/SMILParser.swift
 ../../Sources/Streamer/Parser/EPUB/XMLNamespace.swift
 ../../Sources/Streamer/Parser/Image
 ../../Sources/Streamer/Parser/Image/ComicInfoParser.swift
