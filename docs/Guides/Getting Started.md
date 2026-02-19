@@ -28,7 +28,7 @@ The toolkit has been designed following these core tenets:
 
 ### Adapters to third-party dependencies
 
-* `ReadiumAdapterGCDWebServer` provides an HTTP server built with [GCDWebServer](https://github.com/swisspol/GCDWebServer).
+* `ReadiumAdapterGCDWebServer` provides an HTTP server built with [GCDWebServer](https://github.com/swisspol/GCDWebServer), used by the PDF navigator.
 
 ## Overview of the shared models (`ReadiumShared`)
 
@@ -112,7 +112,7 @@ let assetRetriever = AssetRetriever(
     httpClient: httpClient
 )
 let publicationOpener = PublicationOpener(
-    publicationParser: DefaultPublicationParser(
+    parser: DefaultPublicationParser(
         httpClient: httpClient,
         assetRetriever: assetRetriever,
         pdfFactory: DefaultPDFDocumentFactory()

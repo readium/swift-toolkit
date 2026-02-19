@@ -55,6 +55,16 @@ public struct HTMLDecorationTemplate {
     }
 
     /// Creates the default list of decoration styles with associated HTML templates.
+    ///
+    /// - Parameters:
+    ///   - defaultTint: Default highlight/underline color when the decoration
+    ///     has no tint set.
+    ///   - lineWeight: Thickness in pixels of the underline stroke.
+    ///   - cornerRadius: Border radius in pixels applied to each decoration box.
+    ///   - alpha: Opacity of the highlight fill color (0–1).
+    ///   - experimentalPositioning: When true, places decorations behind the
+    ///     publication text using a negative z-index, preventing the highlight
+    ///     from affecting text color. This may not work with all publications.
     public static func defaultTemplates(
         defaultTint: UIColor = .yellow,
         lineWeight: Int = 2,

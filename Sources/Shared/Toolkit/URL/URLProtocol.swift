@@ -25,7 +25,9 @@ public extension URLProtocol {
     }
 
     /// Returns the string representation for this URL.
-    var string: String { url.absoluteString }
+    var string: String {
+        url.absoluteString
+    }
 
     /// Normalizes the URL using a subset of the RFC-3986 rules.
     /// https://datatracker.ietf.org/doc/html/rfc3986#section-6
@@ -104,7 +106,9 @@ public extension URLProtocol {
 
     /// Returns the decoded query parameters present in this URL, in the order
     /// they appear.
-    var query: URLQuery? { URLQuery(url: url) }
+    var query: URLQuery? {
+        URLQuery(url: url)
+    }
 
     /// Creates a copy of this URL after removing its query portion.
     func removingQuery() -> Self {
@@ -140,7 +144,9 @@ public extension URLProtocol {
 
 /// Implements `CustomStringConvertible`
 public extension URLProtocol {
-    var description: String { string }
+    var description: String {
+        string
+    }
 }
 
 private extension String {

@@ -14,7 +14,9 @@ public actor FileResource: Resource, Loggable {
         fileURL = file
     }
 
-    public nonisolated var sourceURL: AbsoluteURL? { fileURL }
+    public nonisolated var sourceURL: AbsoluteURL? {
+        fileURL
+    }
 
     private var _length: ReadResult<UInt64?>?
 

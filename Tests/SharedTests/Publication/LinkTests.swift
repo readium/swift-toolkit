@@ -224,33 +224,33 @@ class LinkTests: XCTestCase {
 
     func testURLRelativeToBaseURL() throws {
         XCTAssertEqual(
-            Link(href: "folder/file.html").url(relativeTo: AnyURL(string: "http://host/")!),
-            AnyURL(string: "http://host/folder/file.html")!
+            try Link(href: "folder/file.html").url(relativeTo: XCTUnwrap(AnyURL(string: "http://host/"))),
+            AnyURL(string: "http://host/folder/file.html")
         )
     }
 
     func testURLRelativeToBaseURLWithRootPrefix() throws {
         XCTAssertEqual(
-            Link(href: "file.html").url(relativeTo: AnyURL(string: "http://host/folder/")!),
-            AnyURL(string: "http://host/folder/file.html")!
+            try Link(href: "file.html").url(relativeTo: XCTUnwrap(AnyURL(string: "http://host/folder/"))),
+            AnyURL(string: "http://host/folder/file.html")
         )
     }
 
-    func testURLRelativeToNil() throws {
+    func testURLRelativeToNil() {
         XCTAssertEqual(
             Link(href: "http://example.com/folder/file.html").url(),
-            AnyURL(string: "http://example.com/folder/file.html")!
+            AnyURL(string: "http://example.com/folder/file.html")
         )
         XCTAssertEqual(
             Link(href: "folder/file.html").url(),
-            AnyURL(string: "folder/file.html")!
+            AnyURL(string: "folder/file.html")
         )
     }
 
     func testURLWithAbsoluteHREF() throws {
         XCTAssertEqual(
-            Link(href: "http://test.com/folder/file.html").url(relativeTo: AnyURL(string: "http://host/")!),
-            AnyURL(string: "http://test.com/folder/file.html")!
+            try Link(href: "http://test.com/folder/file.html").url(relativeTo: XCTUnwrap(AnyURL(string: "http://host/"))),
+            AnyURL(string: "http://test.com/folder/file.html")
         )
     }
 

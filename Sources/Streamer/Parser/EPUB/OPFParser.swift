@@ -8,8 +8,8 @@ import Foundation
 import ReadiumFuzi
 import ReadiumShared
 
-// http://www.idpf.org/epub/30/spec/epub30-publications.html#title-type
-// the six basic values of the "title-type" property specified by EPUB 3:
+/// http://www.idpf.org/epub/30/spec/epub30-publications.html#title-type
+/// the six basic values of the "title-type" property specified by EPUB 3:
 public enum EPUBTitleType: String {
     case main
     case subtitle
@@ -17,13 +17,6 @@ public enum EPUBTitleType: String {
     case collection
     case edition
     case expanded
-}
-
-public enum OPFParserError: Error {
-    /// The Epub have no title. Title is mandatory.
-    case missingPublicationTitle
-    /// Smile resource couldn't be parsed.
-    case invalidSmilResource
 }
 
 /// EpubParser support class, able to parse the OPF package document.
@@ -206,11 +199,16 @@ final class OPFParser: Loggable {
             properties["encrypted"] = encryption
         }
 
+        let duration = metas["duration", in: .media, refining: id]
+            .first
+            .flatMap { parseSmilClockValue($0.content) }
+
         let link = Link(
             href: href.string,
             mediaType: manifestItem.attr("media-type").flatMap { MediaType($0) },
             rels: rels,
-            properties: Properties(properties)
+            properties: Properties(properties),
+            duration: duration
         )
 
         return ManifestItem(

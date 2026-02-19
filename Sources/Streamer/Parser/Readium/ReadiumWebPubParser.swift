@@ -182,5 +182,7 @@ public struct RWPMWarning: Warning {
     public let message: String
     public let severity: WarningSeverityLevel
 
-    public var tag: String { "rwpm" }
+    public var tag: String {
+        "rwpm"
+    }
 }

@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="pub-id" version="3.0">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:title>Alice's Adventures in Wonderland</dc:title>
+    <meta property="media:duration">1:32:29</meta>
+    <meta property="media:duration" refines="#chapter01">0:23:45</meta>
+    <meta property="media:duration" refines="#chapter02">0:08:44</meta>
+    <meta property="media:active-class">-epub-media-overlay-active</meta>
+    <meta property="media:playback-active-class">-epub-media-overlay-playing</meta>
+  </metadata>
+  <manifest>
+    <item id="chapter01" href="chapter01.xhtml" media-type="application/xhtml+xml"/>
+    <item id="chapter02" href="chapter02.xhtml" media-type="application/xhtml+xml"/>
+  </manifest>
+  <spine>
+    <itemref idref="chapter01"/>
+    <itemref idref="chapter02"/>
+  </spine>
+</package>

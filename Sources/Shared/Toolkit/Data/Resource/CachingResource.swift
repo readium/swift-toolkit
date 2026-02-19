@@ -28,7 +28,9 @@ public actor CachingResource: Resource {
         return data!
     }
 
-    public nonisolated var sourceURL: AbsoluteURL? { resource.sourceURL }
+    public nonisolated var sourceURL: AbsoluteURL? {
+        resource.sourceURL
+    }
 
     public func properties() async -> ReadResult<ResourceProperties> {
         await resource.properties()

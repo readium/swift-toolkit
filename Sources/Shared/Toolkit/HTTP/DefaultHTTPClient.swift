@@ -152,7 +152,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         self.init(configuration: config, userAgent: userAgent, delegate: delegate)
     }
 
-    public weak var delegate: DefaultHTTPClientDelegate? = nil
+    public weak var delegate: DefaultHTTPClientDelegate?
 
     private let tasks: HTTPTaskManager
     private let session: URLSession
@@ -293,7 +293,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
 
         // MARK: - URLSessionDataDelegate
 
-        public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+        func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
             guard let task = findTask(for: dataTask) else {
                 completionHandler(.cancel)
                 return
@@ -301,11 +301,11 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
             task.urlSession(session, didReceive: response, completionHandler: completionHandler)
         }
 
-        public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
             findTask(for: dataTask)?.urlSession(session, didReceive: data)
         }
 
-        public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
             findTask(for: task)?.urlSession(session, didCompleteWithError: error)
         }
 

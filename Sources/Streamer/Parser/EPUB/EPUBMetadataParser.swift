@@ -39,6 +39,9 @@ final class EPUBMetadataParser: Loggable {
             contributorsByRole[role] ?? []
         }
 
+        var other = metas.otherMetadata
+        if let mo = mediaOverlay() { other["mediaOverlay"] = mo.json }
+
         return Metadata(
             identifier: uniqueIdentifier,
             conformsTo: [.epub],
@@ -62,11 +65,12 @@ final class EPUBMetadataParser: Loggable {
             layout: layout(),
             readingProgression: readingProgression,
             description: description,
+            duration: mediaDuration,
             numberOfPages: numberOfPages,
             belongsToCollections: belongsToCollections,
             belongsToSeries: belongsToSeries,
             tdm: tdm(),
-            otherMetadata: metas.otherMetadata
+            otherMetadata: other
         )
     }
 
@@ -140,16 +144,14 @@ final class EPUBMetadataParser: Loggable {
 
     /// Maps between an element ID and its `display-seq` refine, if there's any.
     /// eg. <meta refines="#creator01" property="display-seq">1</meta>
-    private lazy var displaySeqs: [String: String] = {
-        metas["display-seq"]
-            .reduce([:]) { displaySeqs, meta in
-                var displaySeqs = displaySeqs
-                if let id = meta.refines {
-                    displaySeqs[id] = meta.content
-                }
-                return displaySeqs
+    private lazy var displaySeqs: [String: String] = metas["display-seq"]
+        .reduce([:]) { displaySeqs, meta in
+            var displaySeqs = displaySeqs
+            if let id = meta.refines {
+                displaySeqs[id] = meta.content
             }
-    }()
+            return displaySeqs
+        }
 
     private lazy var mainTitleElement: ReadiumFuzi.XMLElement? = titleElements(ofType: .main).first
         ?? metas["title", in: .dcterms].first?.element
@@ -283,6 +285,20 @@ final class EPUBMetadataParser: Loggable {
     private func accessibilityExemptions() -> [Accessibility.Exemption] {
         metas["exemption", in: .a11y]
             .map { Accessibility.Exemption($0.content) }
+    }
+
+    /// Publication-level SMIL duration (no `refines`).
+    private lazy var mediaDuration: Double? =
+        metas["duration", in: .media]
+            .first(where: { $0.refines == nil })
+            .flatMap { parseSmilClockValue($0.content) }
+
+    /// Media overlay CSS class names.
+    private func mediaOverlay() -> EPUBMediaOverlay? {
+        let active = metas["active-class", in: .media].first?.content
+        let playbackActive = metas["playback-active-class", in: .media].first?.content
+        guard active != nil || playbackActive != nil else { return nil }
+        return EPUBMediaOverlay(activeClass: active, playbackActiveClass: playbackActive)
     }
 
     /// https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/#sec-epub3
@@ -435,17 +451,15 @@ final class EPUBMetadataParser: Loggable {
     }()
 
     /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#collections-and-series
-    private lazy var belongsToCollections: [Metadata.Collection] = {
-        metas["belongs-to-collection"]
-            // `collection-type` should not be "series"
-            .filter { meta in
-                if let id = meta.id {
-                    return metas["collection-type", refining: id].first?.content != "series"
-                }
-                return true
+    private lazy var belongsToCollections: [Metadata.Collection] = metas["belongs-to-collection"]
+        // `collection-type` should not be "series"
+        .filter { meta in
+            if let id = meta.id {
+                return metas["collection-type", refining: id].first?.content != "series"
             }
-            .compactMap(collection(from:))
-    }()
+            return true
+        }
+        .compactMap(collection(from:))
 
     /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#collections-and-series
     private lazy var belongsToSeries: [Metadata.Collection] = {
@@ -464,7 +478,7 @@ final class EPUBMetadataParser: Loggable {
             return calibreSeries
         }
 
-        let epub3Series = metas["belongs-to-collection"]
+        return metas["belongs-to-collection"]
             // `collection-type` should be "series"
             .filter { meta in
                 guard let id = meta.id else {
@@ -473,8 +487,6 @@ final class EPUBMetadataParser: Loggable {
                 return metas["collection-type", refining: id].first?.content == "series"
             }
             .compactMap(collection(from:))
-
-        return epub3Series
     }()
 
     private func collection(from meta: OPFMeta) -> Metadata.Collection? {

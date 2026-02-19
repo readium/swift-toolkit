@@ -150,6 +150,15 @@ public actor LCPKeychainLicenseRepository: LCPLicenseRepository, Loggable {
         try updateLicense(license, for: id)
     }
 
+    /// Removes all licenses from the repository.
+    public func clear() async throws {
+        do {
+            try keychain.deleteAll()
+        } catch {
+            throw LCPKeychainLicenseRepositoryError.keychain(error)
+        }
+    }
+
     // MARK: - Migration Support
 
     /// Imports license rights from an external source without requiring the
@@ -191,7 +200,7 @@ public actor LCPKeychainLicenseRepository: LCPLicenseRepository, Loggable {
 
     // MARK: - Keychain Access
 
-    private func requireLicense(for licenseID: LicenseDocument.ID) throws (LCPKeychainLicenseRepositoryError) -> License {
+    private func requireLicense(for licenseID: LicenseDocument.ID) throws(LCPKeychainLicenseRepositoryError) -> License {
         guard let license = try getLicense(for: licenseID) else {
             throw .licenseNotFound(id: licenseID)
         }
@@ -199,7 +208,7 @@ public actor LCPKeychainLicenseRepository: LCPLicenseRepository, Loggable {
     }
 
     /// Gets a license from the Keychain for the given license ID.
-    private func getLicense(for licenseID: LicenseDocument.ID) throws (LCPKeychainLicenseRepositoryError) -> License? {
+    private func getLicense(for licenseID: LicenseDocument.ID) throws(LCPKeychainLicenseRepositoryError) -> License? {
         guard let data = try getFromKeychain(id: licenseID) else {
             return nil
         }
@@ -208,12 +217,12 @@ public actor LCPKeychainLicenseRepository: LCPLicenseRepository, Loggable {
     }
 
     /// Adds a new license to the Keychain.
-    private func addLicense(_ license: License, for id: LicenseDocument.ID) throws (LCPKeychainLicenseRepositoryError) {
+    private func addLicense(_ license: License, for id: LicenseDocument.ID) throws(LCPKeychainLicenseRepositoryError) {
         try addToKeychain(data: encode(license), for: id)
     }
 
     /// Updates an existing license in the Keychain.
-    private func updateLicense(_ license: License, for id: LicenseDocument.ID) throws (LCPKeychainLicenseRepositoryError) {
+    private func updateLicense(_ license: License, for id: LicenseDocument.ID) throws(LCPKeychainLicenseRepositoryError) {
         var license = license
         license.updated = Date()
         let data = try encode(license)
@@ -222,7 +231,7 @@ public actor LCPKeychainLicenseRepository: LCPLicenseRepository, Loggable {
 
     // MARK: - Low-Level Helpers
 
-    private func getFromKeychain(id: LicenseDocument.ID) throws (LCPKeychainLicenseRepositoryError) -> Data? {
+    private func getFromKeychain(id: LicenseDocument.ID) throws(LCPKeychainLicenseRepositoryError) -> Data? {
         do {
             return try keychain.load(forKey: id)
         } catch {
@@ -230,7 +239,7 @@ public actor LCPKeychainLicenseRepository: LCPLicenseRepository, Loggable {
         }
     }
 
-    private func addToKeychain(data: Data, for id: LicenseDocument.ID) throws (LCPKeychainLicenseRepositoryError) {
+    private func addToKeychain(data: Data, for id: LicenseDocument.ID) throws(LCPKeychainLicenseRepositoryError) {
         do {
             try keychain.save(data: data, forKey: id)
         } catch {
@@ -238,7 +247,7 @@ public actor LCPKeychainLicenseRepository: LCPLicenseRepository, Loggable {
         }
     }
 
-    private func updateKeychain(data: Data, for id: LicenseDocument.ID) throws (LCPKeychainLicenseRepositoryError) {
+    private func updateKeychain(data: Data, for id: LicenseDocument.ID) throws(LCPKeychainLicenseRepositoryError) {
         do {
             try keychain.update(data: data, forKey: id)
         } catch {
@@ -246,7 +255,7 @@ public actor LCPKeychainLicenseRepository: LCPLicenseRepository, Loggable {
         }
     }
 
-    private func decode(_ data: Data) throws (LCPKeychainLicenseRepositoryError) -> License {
+    private func decode(_ data: Data) throws(LCPKeychainLicenseRepositoryError) -> License {
         do {
             return try decoder.decode(License.self, from: data)
         } catch {
@@ -254,7 +263,7 @@ public actor LCPKeychainLicenseRepository: LCPLicenseRepository, Loggable {
         }
     }
 
-    private func encode(_ license: License) throws (LCPKeychainLicenseRepositoryError) -> Data {
+    private func encode(_ license: License) throws(LCPKeychainLicenseRepositoryError) -> Data {
         do {
             return try encoder.encode(license)
         } catch {

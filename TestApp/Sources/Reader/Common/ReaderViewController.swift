@@ -227,7 +227,7 @@ class ReaderViewController<N: Navigator>: UIViewController,
 
     // MARK: - UIPopoverPresentationControllerDelegate
 
-    // Prevent the popOver to be presented fullscreen on iPhones.
+    /// Prevent the popOver to be presented fullscreen on iPhones.
     func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle {
         .none
     }

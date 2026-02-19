@@ -53,7 +53,9 @@ public struct Language: Hashable, Sendable {
         locale.regionCode.flatMap { Region(code: $0) }
     }
 
-    public var locale: Locale { Locale(identifier: code.bcp47) }
+    public var locale: Locale {
+        Locale(identifier: code.bcp47)
+    }
 
     public func localizedDescription(in locale: Locale = Locale.current) -> String {
         locale.localizedString(forIdentifier: code.bcp47)

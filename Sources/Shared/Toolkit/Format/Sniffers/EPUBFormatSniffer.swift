@@ -31,7 +31,7 @@ public struct EPUBFormatSniffer: FormatSniffer {
         return nil
     }
 
-    public func sniffContainer<C>(_ container: C, refining format: Format) async -> ReadResult<Format?> where C: Container {
+    public func sniffContainer<C: Container>(_ container: C, refining format: Format) async -> ReadResult<Format?> {
         guard let resource = container[AnyURL(path: "mimetype")!] else {
             return .success(nil)
         }

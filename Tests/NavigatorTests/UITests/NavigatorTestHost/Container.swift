@@ -61,8 +61,7 @@ import UIKit
         let navigator = try EPUBNavigatorViewController(
             publication: publication,
             initialLocation: nil,
-            config: EPUBNavigatorViewController.Configuration(),
-            httpServer: httpServer
+            config: EPUBNavigatorViewController.Configuration()
         )
         memoryTracker.track(navigator)
         return navigator

@@ -67,7 +67,9 @@ public class AnyConfigurable<
         _editor = configurable.editor(of:)
     }
 
-    public var settings: Settings { _settings() }
+    public var settings: Settings {
+        _settings()
+    }
 
     public func submitPreferences(_ preferences: Preferences) {
         _submitPreferences(preferences)

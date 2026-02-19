@@ -11,7 +11,7 @@ import XCTest
 class ComicInfoParserTests: XCTestCase {
     // MARK: - Basic Parsing
 
-    func testParseMinimalComicInfo() {
+    func testParseMinimalComicInfo() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -19,13 +19,13 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
 
         XCTAssertNotNil(result)
         XCTAssertEqual(result?.title, "Test Issue")
     }
 
-    func testParseCompleteComicInfo() {
+    func testParseCompleteComicInfo() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -52,7 +52,7 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
 
         XCTAssertNotNil(result)
         XCTAssertEqual(result?.title, "The Beginning")
@@ -77,15 +77,15 @@ class ComicInfoParserTests: XCTestCase {
         XCTAssertEqual(result?.gtin, "978-1234567890")
     }
 
-    func testParseReturnsNilForInvalidXML() {
+    func testParseReturnsNilForInvalidXML() throws {
         let xml = "not valid xml"
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
 
         XCTAssertNil(result)
     }
 
-    func testParseReturnsNilForWrongRootElement() {
+    func testParseReturnsNilForWrongRootElement() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <WrongRoot>
@@ -93,14 +93,14 @@ class ComicInfoParserTests: XCTestCase {
         </WrongRoot>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
 
         XCTAssertNil(result)
     }
 
     // MARK: - Other Metadata
 
-    func testOtherMetadataCollectsUnknownTags() {
+    func testOtherMetadataCollectsUnknownTags() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -112,7 +112,7 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
 
         XCTAssertEqual(result?.otherMetadata["Volume"], "2")
         XCTAssertEqual(result?.otherMetadata["Characters"], "Batman, Robin")
@@ -122,7 +122,7 @@ class ComicInfoParserTests: XCTestCase {
 
     // MARK: - Cover Page Detection
 
-    func testFirstPageWithTypeFrontCover() {
+    func testFirstPageWithTypeFrontCover() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -135,12 +135,12 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
 
         XCTAssertEqual(result?.firstPageWithType(.frontCover)?.image, 1)
     }
 
-    func testFirstPageWithTypeReturnsNilWhenNoCover() {
+    func testFirstPageWithTypeReturnsNilWhenNoCover() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -152,12 +152,12 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
 
         XCTAssertNil(result?.firstPageWithType(.frontCover))
     }
 
-    func testFirstPageWithTypeReturnsNilWhenNoPagesElement() {
+    func testFirstPageWithTypeReturnsNilWhenNoPagesElement() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -165,7 +165,7 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
 
         XCTAssertNil(result?.firstPageWithType(.frontCover))
     }
@@ -196,7 +196,7 @@ class ComicInfoParserTests: XCTestCase {
 
     // MARK: - PageInfo Parsing
 
-    func testPageInfoParsesAllAttributes() {
+    func testPageInfoParsesAllAttributes() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -206,7 +206,7 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
 
         XCTAssertEqual(result?.pages.count, 1)
         let page = result?.pages.first
@@ -220,7 +220,7 @@ class ComicInfoParserTests: XCTestCase {
         XCTAssertEqual(page?.imageHeight, 1200)
     }
 
-    func testPageInfoRequiresImageAttribute() {
+    func testPageInfoRequiresImageAttribute() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -231,14 +231,14 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
 
         // Only the page with Image attribute should be parsed
         XCTAssertEqual(result?.pages.count, 1)
         XCTAssertEqual(result?.pages.first?.image, 1)
     }
 
-    func testPageInfoWithMinimalAttributes() {
+    func testPageInfoWithMinimalAttributes() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -248,7 +248,7 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
 
         XCTAssertEqual(result?.pages.count, 1)
         let page = result?.pages.first
@@ -262,7 +262,7 @@ class ComicInfoParserTests: XCTestCase {
         XCTAssertNil(page?.imageHeight)
     }
 
-    func testPageInfoDoublePageBooleanParsing() {
+    func testPageInfoDoublePageBooleanParsing() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -276,7 +276,7 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
 
         XCTAssertEqual(result?.pages.count, 5)
         XCTAssertEqual(result?.pages[0].doublePage, true)
@@ -288,7 +288,7 @@ class ComicInfoParserTests: XCTestCase {
 
     // MARK: - Story Start Detection
 
-    func testFirstPageWithTypeStory() {
+    func testFirstPageWithTypeStory() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -301,13 +301,13 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
 
         XCTAssertEqual(result?.firstPageWithType(.frontCover)?.image, 0)
         XCTAssertEqual(result?.firstPageWithType(.story)?.image, 2)
     }
 
-    func testFirstPageWithTypeStoryReturnsNilWhenNoStoryPages() {
+    func testFirstPageWithTypeStoryReturnsNilWhenNoStoryPages() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -318,13 +318,13 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
 
         XCTAssertEqual(result?.firstPageWithType(.frontCover)?.image, 0)
         XCTAssertNil(result?.firstPageWithType(.story))
     }
 
-    func testFirstPageWithTypeStoryReturnsNilWhenNoPagesElement() {
+    func testFirstPageWithTypeStoryReturnsNilWhenNoPagesElement() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -332,14 +332,14 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
 
         XCTAssertNil(result?.firstPageWithType(.story))
     }
 
     // MARK: - Metadata Conversion
 
-    func testToMetadataWithSeriesAndNumber() {
+    func testToMetadataWithSeriesAndNumber() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -349,7 +349,7 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
         let metadata = result?.toMetadata()
 
         XCTAssertEqual(metadata?.title, "Issue 5")
@@ -358,7 +358,7 @@ class ComicInfoParserTests: XCTestCase {
         XCTAssertEqual(metadata?.belongsToSeries.first?.position, 5.0)
     }
 
-    func testToMetadataWithAlternateSeries() {
+    func testToMetadataWithAlternateSeries() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -370,7 +370,7 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
         let metadata = result?.toMetadata()
 
         XCTAssertEqual(metadata?.belongsToSeries.count, 2)
@@ -380,7 +380,7 @@ class ComicInfoParserTests: XCTestCase {
         XCTAssertEqual(metadata?.belongsToSeries[1].position, 3.0)
     }
 
-    func testToMetadataWithFractionalNumber() {
+    func testToMetadataWithFractionalNumber() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -390,13 +390,13 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
         let metadata = result?.toMetadata()
 
         XCTAssertEqual(metadata?.belongsToSeries.first?.position, 5.5)
     }
 
-    func testToMetadataWithNonNumericNumber() {
+    func testToMetadataWithNonNumericNumber() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -406,14 +406,14 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
         let metadata = result?.toMetadata()
 
         // Non-numeric number should result in nil position
         XCTAssertNil(metadata?.belongsToSeries.first?.position)
     }
 
-    func testToMetadataMangaYesAndRightToLeftSetsRTL() {
+    func testToMetadataMangaYesAndRightToLeftSetsRTL() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -422,13 +422,13 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
         let metadata = result?.toMetadata()
 
         XCTAssertEqual(metadata?.readingProgression, .rtl)
     }
 
-    func testToMetadataMangaYesDoesNotSetRTL() {
+    func testToMetadataMangaYesDoesNotSetRTL() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -437,13 +437,13 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
         let metadata = result?.toMetadata()
 
         XCTAssertEqual(metadata?.readingProgression, .auto)
     }
 
-    func testToMetadataMangaNoSetsAuto() {
+    func testToMetadataMangaNoSetsAuto() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -452,13 +452,13 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
         let metadata = result?.toMetadata()
 
         XCTAssertEqual(metadata?.readingProgression, .auto)
     }
 
-    func testToMetadataMangaCaseInsensitiveParsing() {
+    func testToMetadataMangaCaseInsensitiveParsing() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -467,13 +467,13 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
         let metadata = result?.toMetadata()
 
         XCTAssertEqual(metadata?.readingProgression, .rtl)
     }
 
-    func testToMetadataContributors() {
+    func testToMetadataContributors() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -484,7 +484,7 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
         let metadata = result?.toMetadata()
 
         XCTAssertEqual(metadata?.authors.count, 2)
@@ -496,7 +496,7 @@ class ComicInfoParserTests: XCTestCase {
         XCTAssertEqual(metadata?.contributors.first?.roles, ["cov"])
     }
 
-    func testToMetadataSubjects() {
+    func testToMetadataSubjects() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -505,14 +505,14 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
         let metadata = result?.toMetadata()
 
         XCTAssertEqual(metadata?.subjects.count, 3)
         XCTAssertEqual(metadata?.subjects.map(\.name), ["Superhero", "Action", "Adventure"])
     }
 
-    func testToMetadataPublishedDate() {
+    func testToMetadataPublishedDate() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -523,18 +523,18 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
         let metadata = result?.toMetadata()
 
         let calendar = Calendar(identifier: .gregorian)
-        let components = calendar.dateComponents([.year, .month, .day], from: metadata!.published!)
+        let components = try calendar.dateComponents([.year, .month, .day], from: XCTUnwrap(metadata?.published))
 
         XCTAssertEqual(components.year, 2020)
         XCTAssertEqual(components.month, 6)
         XCTAssertEqual(components.day, 15)
     }
 
-    func testToMetadataPublishedDateYearOnly() {
+    func testToMetadataPublishedDateYearOnly() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -543,18 +543,18 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
         let metadata = result?.toMetadata()
 
         let calendar = Calendar(identifier: .gregorian)
-        let components = calendar.dateComponents([.year, .month, .day], from: metadata!.published!)
+        let components = try calendar.dateComponents([.year, .month, .day], from: XCTUnwrap(metadata?.published))
 
         XCTAssertEqual(components.year, 2020)
         XCTAssertEqual(components.month, 1) // Default to January
         XCTAssertEqual(components.day, 1) // Default to 1st
     }
 
-    func testToMetadataOtherMetadata() {
+    func testToMetadataOtherMetadata() throws {
         let xml = """
         <?xml version="1.0" encoding="utf-8"?>
         <ComicInfo>
@@ -565,7 +565,7 @@ class ComicInfoParserTests: XCTestCase {
         </ComicInfo>
         """
 
-        let result = ComicInfoParser.parse(data: xml.data(using: .utf8)!, warnings: nil)
+        let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
         let metadata = result?.toMetadata()
 
         XCTAssertEqual(metadata?.otherMetadata["https://anansi-project.github.io/docs/comicinfo/documentation#volume"] as? String, "2")

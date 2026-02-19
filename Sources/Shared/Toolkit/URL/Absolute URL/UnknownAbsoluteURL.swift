@@ -31,7 +31,7 @@ struct UnknownAbsoluteURL: AbsoluteURL, Hashable {
     /// To ignore this warning, compare `UnknownAbsoluteURL.string` instead of
     /// `UnknownAbsoluteURL` itself.
     @available(*, deprecated, message: "Strict URL comparisons can be a source of bug. Use isEquivalent() instead.")
-    public static func == (lhs: UnknownAbsoluteURL, rhs: UnknownAbsoluteURL) -> Bool {
+    static func == (lhs: UnknownAbsoluteURL, rhs: UnknownAbsoluteURL) -> Bool {
         lhs.string == rhs.string
     }
 }

@@ -29,8 +29,8 @@ open class TransformingResource: Resource {
         await _transform!(data)
     }
 
-    // As the resource is transformed, we can't use the original source URL
-    // as reference.
+    /// As the resource is transformed, we can't use the original source URL
+    /// as reference.
     public let sourceURL: AbsoluteURL? = nil
 
     open func estimatedLength() async -> ReadResult<UInt64?> {
@@ -70,11 +70,11 @@ public extension Resource {
         TransformingResource(self, transform: { await $0.asyncMap(transform) })
     }
 
-    func mapAsString(encoding: String.Encoding = .utf8, transform: @escaping (String) -> String) -> Resource {
+    func mapAsString(encoding: String.Encoding = .utf8, transform: @escaping (String) async -> String) -> Resource {
         TransformingResource(self) {
-            $0.map { data in
+            await $0.asyncMap { data in
                 let string = String(data: data, encoding: encoding) ?? ""
-                return transform(string).data(using: .utf8) ?? Data()
+                return await transform(string).data(using: .utf8) ?? Data()
             }
         }
     }

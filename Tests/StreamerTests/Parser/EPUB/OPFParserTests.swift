@@ -49,13 +49,13 @@ class OPFParserTests: XCTestCase {
             link(href: "titlepage.xhtml", mediaType: .xhtml),
             link(href: "EPUB/chapter01.xhtml", mediaType: .xhtml),
         ])
-        XCTAssertEqual(sut.resources, [
-            link(href: "EPUB/fonts/MinionPro.otf", mediaType: MediaType("application/vnd.ms-opentype")!),
+        XCTAssertEqual(sut.resources, try [
+            link(href: "EPUB/fonts/MinionPro.otf", mediaType: XCTUnwrap(MediaType("application/vnd.ms-opentype"))),
             link(href: "EPUB/nav.xhtml", mediaType: .xhtml, rels: [.contents]),
             link(href: "style.css", mediaType: .css),
             link(href: "EPUB/chapter02.xhtml", mediaType: .xhtml),
             link(href: "EPUB/chapter01.smil", mediaType: .smil),
-            link(href: "EPUB/chapter02.smil", mediaType: .smil),
+            Link(href: "EPUB/chapter02.smil", mediaType: .smil, duration: 1949.0),
             link(href: "EPUB/images/alice01a.png", mediaType: .png, rels: [.cover]),
             link(href: "EPUB/images/alice02a.gif", mediaType: .gif),
             link(href: "EPUB/nomediatype.txt"),
@@ -221,6 +221,16 @@ class OPFParserTests: XCTestCase {
         // Should only conform to EPUB, not Divina
         XCTAssertTrue(sut.metadata.conformsTo.contains(.epub))
         XCTAssertFalse(sut.metadata.conformsTo.contains(.divina))
+    }
+
+    // MARK: - Media Overlays
+
+    func testParseMediaOverlaysDurationPerSpineItem() throws {
+        let sut = try parseManifest("media-overlays", at: "EPUB/content.opf").manifest
+        // chapter01: 0:23:45 = 23*60 + 45 = 1425
+        XCTAssertEqual(sut.readingOrder[0].duration, 1425.0)
+        // chapter02: 0:08:44 = 8*60 + 44 = 524
+        XCTAssertEqual(sut.readingOrder[1].duration, 524.0)
     }
 
     // MARK: - Helpers

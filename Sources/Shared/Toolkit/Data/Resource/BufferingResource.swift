@@ -29,7 +29,7 @@ public actor BufferingResource: Resource, Loggable {
     /// - Parameters:
     ///   - resource: The underlying `Resource` to be read.
     ///   - bufferSize: Size of the buffer chunks to read, in bytes.
-    public init(resource: Resource, bufferSize: Int = 8192) {
+    public init(resource: Resource, bufferSize: Int = 256 * 1024) {
         precondition(bufferSize > 0)
         self.resource = resource
         buffer = Buffer(maxSize: bufferSize)
@@ -40,7 +40,9 @@ public actor BufferingResource: Resource, Loggable {
         self.init(resource: resource, bufferSize: Int(bufferSize))
     }
 
-    public nonisolated var sourceURL: AbsoluteURL? { resource.sourceURL }
+    public nonisolated var sourceURL: AbsoluteURL? {
+        resource.sourceURL
+    }
 
     public func properties() async -> ReadResult<ResourceProperties> {
         await resource.properties()
@@ -49,83 +51,70 @@ public actor BufferingResource: Resource, Loggable {
     private var cachedLength: ReadResult<UInt64?>?
 
     public func estimatedLength() async -> ReadResult<UInt64?> {
-        if cachedLength == nil {
-            cachedLength = await resource.estimatedLength()
+        if let cachedLength {
+            return cachedLength
         }
-        return cachedLength!
+        let result = await resource.estimatedLength()
+        if case .success = result {
+            cachedLength = result
+        }
+        return result
     }
 
     public func stream(
         range: Range<UInt64>?,
         consume: @escaping (Data) -> Void
     ) async -> ReadResult<Void> {
-        guard
-            // Reading the whole resource bypasses buffering to keep things simple.
-            var requestedRange = range,
-            let optionalLength = await estimatedLength().getOrNil(),
-            let length = optionalLength
-        else {
+        // Reading the whole resource bypasses buffering to keep things simple.
+        guard let requestedRange = range, !requestedRange.isEmpty else {
             return await resource.stream(range: range, consume: consume)
         }
 
-        requestedRange = requestedRange.clamped(to: 0 ..< length)
-        guard !requestedRange.isEmpty else {
-            consume(Data())
-            return .success(())
-        }
+        // Serve from the buffer if the request is fully covered.
         if let data = buffer.get(range: requestedRange) {
-            log(.trace, "Used buffer for \(requestedRange) (\(requestedRange.count) bytes)")
             consume(data)
             return .success(())
         }
 
-        // Calculate the adjusted range to cover at least buffer.maxSize bytes.
-        // Adjust the start if near the end of the resource.
-        var adjustedStart = requestedRange.lowerBound
-        var adjustedEnd = requestedRange.upperBound
-        let missingBytesToMatchBufferSize = buffer.maxSize - requestedRange.count
-        if missingBytesToMatchBufferSize > 0 {
-            adjustedEnd = min(adjustedEnd + UInt64(missingBytesToMatchBufferSize), length)
-        }
-        if adjustedEnd - adjustedStart < buffer.maxSize {
-            adjustedStart = UInt64(max(0, Int(adjustedEnd) - buffer.maxSize))
-        }
-        let adjustedRange = adjustedStart ..< adjustedEnd
-        log(.trace, "Requested \(requestedRange) (\(requestedRange.count) bytes), adjusted to \(adjustedRange) (\(adjustedRange.count) bytes) of resource with length \(length)")
+        // Read ahead from the request start to fill the buffer.
+        let readAheadEnd = requestedRange.lowerBound + UInt64(buffer.maxSize)
+        let readRange = requestedRange.lowerBound ..< max(requestedRange.upperBound, readAheadEnd)
 
-        var data = Data()
-
-        // Range that will need to be read from the original resource.
-        var readRange = adjustedRange
+        // Range that will actually need to be read from the original resource,
+        // after reusing any overlap with the current buffer.
+        var fetchRange = readRange
+        var prefixData = Data()
 
         // Checks if the beginning of the range to read is already buffered.
         // This is an optimization particularly useful with LCP, where we need
         // to go backward for every read to get the previous block of data.
         if
-            readRange.lowerBound < buffer.range.upperBound,
-            readRange.upperBound > buffer.range.upperBound,
-            let dataPrefix = buffer.get(range: readRange.lowerBound ..< buffer.range.upperBound)
+            fetchRange.lowerBound < buffer.range.upperBound,
+            fetchRange.upperBound > buffer.range.upperBound,
+            let dataPrefix = buffer.get(range: fetchRange.lowerBound ..< buffer.range.upperBound)
         {
-            log(.trace, "Found \(dataPrefix.count) bytes to reuse at the end of the buffer")
-            data.append(dataPrefix)
-            readRange = buffer.range.upperBound ..< readRange.upperBound
+            prefixData = Data(dataPrefix)
+            fetchRange = buffer.range.upperBound ..< fetchRange.upperBound
         }
 
-        log(.trace, "Will read \(readRange) (\(readRange.count) bytes)")
+        // Read from the original resource using stream to avoid materializing
+        // more than needed.
+        var data = prefixData
+        let result = await resource.stream(range: fetchRange) { chunk in
+            data.append(chunk)
+        }
 
-        // Fallback on reading the requested range from the original resource.
-        return await resource.read(range: readRange)
-            .flatMap { readData in
-                data.append(readData)
-                buffer.set(data, at: adjustedRange.lowerBound)
+        guard case .success = result else {
+            return result
+        }
 
-                guard let data = data[requestedRange, offsetBy: adjustedRange.lowerBound] else {
-                    return .failure(.decoding("Cannot extract the requested range from the read range"))
-                }
+        buffer.set(data, at: readRange.lowerBound)
 
-                consume(data)
-                return .success(())
-            }
+        let end = min(Int(requestedRange.count), data.count)
+        if end > 0 {
+            consume(data[0 ..< end])
+        }
+        return .success(())
     }
 
     private struct Buffer {
@@ -164,7 +153,13 @@ public actor BufferingResource: Resource, Loggable {
 public extension Resource {
     /// Wraps this resource in a `BufferingResource` to improve reading
     /// performances.
-    func buffered(size: Int = 8192) -> BufferingResource {
+    func buffered() -> BufferingResource {
+        BufferingResource(resource: self)
+    }
+
+    /// Wraps this resource in a `BufferingResource` to improve reading
+    /// performances.
+    func buffered(size: Int) -> BufferingResource {
         BufferingResource(resource: self, bufferSize: size)
     }
 

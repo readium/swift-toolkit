@@ -13,18 +13,36 @@ All notable changes to this project will be documented in this file. Take a look
     * Persist across app reinstalls.
     * Optionally synchronized across devices via iCloud Keychain.
 
+### Changed
+
+#### Navigator
+
+* The EPUB navigator no longer requires an HTTP server. Publication resources are now served directly to the web views using a custom URL scheme handler.
+    * The `httpServer` parameter of `EPUBNavigatorViewController` is deprecated and ignored.
+
+### Deprecated
+
+#### Navigator
+
+* `CBZNavigatorViewController` is now deprecated.
+    * Open CBZ publications with `EPUBNavigatorViewController` instead, which has more configuration options and preferences.
+
+#### LCP
+
+* `ReadiumAdapterLCPSQLite` is now deprecated in favor of the built-in Keychain repositories. See [the migration guide](docs/Migration%20Guide.md) for instructions.
+
 ### Fixed
+
+* Fixed casting of `ResourceProperties`'s `mediaType` (contributed by [@lbeus](https://github.com/readium/swift-toolkit/pull/719)).
 
 #### Navigator
 
 * The first resource of a fixed-layout EPUB is now displayed on its own by default, matching Apple Books behavior.
 * Fixed the default spread position for single fixed-layout EPUB spreads that are not the first page.
 
-### Deprecated
-
 #### LCP
 
-* `ReadiumAdapterLCPSQLite` is now deprecated in favor of the built-in Keychain repositories. See [the migration guide](docs/Migration%20Guide.md) for instructions.
+* Fixed the `print` method consuming copy rights instead of print rights.
 
 
 ## [3.7.0]

@@ -227,7 +227,7 @@ public class HTMLResourceContentIterator: ContentIterator {
             }
         }
 
-        public func head(_ node: Node, _ depth: Int) throws {
+        func head(_ node: Node, _ depth: Int) throws {
             if let node = node as? Element {
                 let parent = ParentElement(element: node)
                 if node.isBlock() {

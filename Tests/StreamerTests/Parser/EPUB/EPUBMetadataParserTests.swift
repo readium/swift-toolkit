@@ -321,9 +321,9 @@ class EPUBMetadataParserTests: XCTestCase {
         let sut = try parseMetadata("tdm-epub2")
         XCTAssertEqual(
             sut.tdm,
-            TDM(
+            try TDM(
                 reservation: .all,
-                policy: HTTPURL(string: "https://provider.com/policies/policy.json")!
+                policy: XCTUnwrap(HTTPURL(string: "https://provider.com/policies/policy.json"))
             )
         )
     }
@@ -332,11 +332,40 @@ class EPUBMetadataParserTests: XCTestCase {
         let sut = try parseMetadata("tdm-epub3")
         XCTAssertEqual(
             sut.tdm,
-            TDM(
+            try TDM(
                 reservation: .all,
-                policy: HTTPURL(string: "https://provider.com/policies/policy.json")!
+                policy: XCTUnwrap(HTTPURL(string: "https://provider.com/policies/policy.json"))
             )
         )
+    }
+
+    // MARK: - Media Overlays
+
+    func testParseMediaOverlaysDuration() throws {
+        let sut = try parseMetadata("media-overlays")
+        // 1h 32m 29s = 3600 + 1949 = 5549
+        XCTAssertEqual(sut.duration, 5549.0)
+    }
+
+    func testParseMediaOverlaysActiveClass() throws {
+        let sut = try parseMetadata("media-overlays")
+        XCTAssertEqual(sut.mediaOverlay?.activeClass, "-epub-media-overlay-active")
+    }
+
+    func testParseMediaOverlaysPlaybackActiveClass() throws {
+        let sut = try parseMetadata("media-overlays")
+        XCTAssertEqual(sut.mediaOverlay?.playbackActiveClass, "-epub-media-overlay-playing")
+    }
+
+    func testMediaOverlayNotInRawOtherMetadata() throws {
+        let sut = try parseMetadata("media-overlays")
+        // active-class and playback-active-class should be consumed, not in otherMetadata
+        let mediaVocab = "http://www.idpf.org/epub/vocab/overlays/#"
+        XCTAssertNil(sut.otherMetadata["\(mediaVocab)active-class"])
+        XCTAssertNil(sut.otherMetadata["\(mediaVocab)playback-active-class"])
+        XCTAssertNil(sut.otherMetadata["\(mediaVocab)duration"])
+        // The synthesized mediaOverlay key must be stored in otherMetadata
+        XCTAssertNotNil(sut.otherMetadata["mediaOverlay"])
     }
 
     // MARK: - Toolkit

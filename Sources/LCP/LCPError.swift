@@ -81,50 +81,50 @@ public enum StatusError: Error {
 
 /// Errors while renewing a loan.
 public enum RenewError: Error {
-    // Your publication could not be renewed properly.
+    /// Your publication could not be renewed properly.
     case renewFailed
-    // Incorrect renewal period, your publication could not be renewed.
+    /// Incorrect renewal period, your publication could not be renewed.
     case invalidRenewalPeriod(maxRenewDate: Date?)
-    // An unexpected error has occurred on the licensing server.
+    /// An unexpected error has occurred on the licensing server.
     case unexpectedServerError(HTTPError)
 }
 
 /// Errors while returning a loan.
 public enum ReturnError: Error {
-    // Your publication could not be returned properly.
+    /// Your publication could not be returned properly.
     case returnFailed
-    // Your publication has already been returned before or is expired.
+    /// Your publication has already been returned before or is expired.
     case alreadyReturnedOrExpired
-    // An unexpected error has occurred on the licensing server.
+    /// An unexpected error has occurred on the licensing server.
     case unexpectedServerError(HTTPError)
 }
 
 /// Errors while parsing the License or Status JSON Documents.
 public enum ParsingError: Error {
-    // The JSON is malformed and can't be parsed.
+    /// The JSON is malformed and can't be parsed.
     case malformedJSON
-    // The JSON is not representing a valid License Document.
+    /// The JSON is not representing a valid License Document.
     case licenseDocument
-    // The JSON is not representing a valid Status Document.
+    /// The JSON is not representing a valid Status Document.
     case statusDocument
-    // Invalid Link.
+    /// Invalid Link.
     case link
-    // Invalid Encryption.
+    /// Invalid Encryption.
     case encryption
-    // Invalid License Document Signature.
+    /// Invalid License Document Signature.
     case signature
-    // Invalid URL for link with rel %@.
+    /// Invalid URL for link with rel %@.
     case url(rel: String)
 }
 
 /// Errors while reading or writing a LCP container (LCPL, EPUB, LCPDF, etc.)
 public enum ContainerError: Error {
-    // Can't access the container, it's format is wrong.
+    /// Can't access the container, it's format is wrong.
     case openFailed(Error?)
-    // The file at given relative path is not found in the Container.
+    /// The file at given relative path is not found in the Container.
     case fileNotFound(String)
-    // Can't read the file at given relative path in the Container.
+    /// Can't read the file at given relative path in the Container.
     case readFailed(path: String)
-    // Can't write the file at given relative path in the Container.
+    /// Can't write the file at given relative path in the Container.
     case writeFailed(path: String)
 }

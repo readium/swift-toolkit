@@ -84,7 +84,9 @@ public enum AnyURL: URLProtocol {
     }
 
     /// Returns a foundation URL for this ``AnyURL``.
-    public var url: URL { wrapped.url }
+    public var url: URL {
+        wrapped.url
+    }
 
     /// Resolves the `other` URL to this URL, if possible.
     ///
@@ -119,7 +121,9 @@ public enum AnyURL: URLProtocol {
 
 /// Implements `URLConvertible`.
 extension AnyURL: URLConvertible {
-    public var anyURL: AnyURL { self }
+    public var anyURL: AnyURL {
+        self
+    }
 }
 
 /// Implements `Hashable` and `Equatable`.

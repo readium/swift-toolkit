@@ -5,7 +5,6 @@
 //
 
 import Foundation
-
 import ReadiumShared
 
 public enum OPDS2ParserError: Error {

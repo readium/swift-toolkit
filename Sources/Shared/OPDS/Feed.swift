@@ -21,7 +21,7 @@ public class Feed {
     /// Return a String representing the URL of the searchLink of the feed.
     ///
     /// - Returns: The HREF value of the search link
-    internal func getSearchLinkHref() -> String? {
+    func getSearchLinkHref() -> String? {
         links.firstWithRel(.search)?.href
     }
 }

@@ -9,15 +9,15 @@ import Foundation
 /// Event related to the change in status of a License Document.
 public struct Event {
     public enum EventType: String {
-        // Signals a successful registration event by a device.
+        /// Signals a successful registration event by a device.
         case register
-        // Signals a successful renew event.
+        /// Signals a successful renew event.
         case renew
-        // Signals a successful return event.
+        /// Signals a successful return event.
         case `return`
-        // Signals a revocation event.
+        /// Signals a revocation event.
         case revoke
-        // Signals a cancellation event.
+        /// Signals a cancellation event.
         case cancel
     }
 

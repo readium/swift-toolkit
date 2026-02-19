@@ -17,7 +17,9 @@ public actor HTTPResource: Resource {
         self.client = client
     }
 
-    public nonisolated var sourceURL: AbsoluteURL? { url }
+    public nonisolated var sourceURL: AbsoluteURL? {
+        url
+    }
 
     public func properties() async -> ReadResult<ResourceProperties> {
         await headResponse()

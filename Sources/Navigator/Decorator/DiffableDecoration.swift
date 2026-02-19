@@ -10,7 +10,9 @@ import ReadiumShared
 
 struct DiffableDecoration: Hashable, Differentiable {
     let decoration: Decoration
-    var differenceIdentifier: Decoration.Id { decoration.id }
+    var differenceIdentifier: Decoration.Id {
+        decoration.id
+    }
 }
 
 enum DecorationChange {
