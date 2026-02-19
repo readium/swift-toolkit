@@ -7,7 +7,7 @@
 #    1. Cross-compiling the Swift package for the iOS Simulator.
 #    2. Generating symbol graphs (API metadata) for all modules.
 #    3. filtering out 3rd-party dependencies from the docs.
-#    4. Constructing a custom Landing Page with a sidebar structure.
+#    4. Assembling the DocC catalog from the 'docs/' folder.
 #    5. Converting everything into a static HTML website.
 # =============================================================================
 
@@ -51,7 +51,6 @@ done
 # -----------------------------------------------------------------------------
 # Remove previous outputs to ensure a clean build.
 # This prevents stale files or old symbols from appearing in the new site.
-# rm -rf "$OUTPUT_ROOT"
 rm -rf "$SITE_DIR"
 mkdir -p "$DOCC_CATALOG_DIR"
 mkdir -p "$SYMBOL_GRAPHS_DIR"
@@ -121,67 +120,31 @@ echo "🧹  Filtering dependencies..."
 # Find all .symbols.json files that do NOT start with "Readium" and delete them.
 find "$SYMBOL_GRAPHS_DIR" -type f -name "*.symbols.json" ! -name "Readium*" -delete
 
+# -----------------------------------------------------------------------------
+# 7. Prepare Documentation Catalog
+# -----------------------------------------------------------------------------
 echo "📄  Preparing documentation catalog..."
 
-# -----------------------------------------------------------------------------
-# 7. Construct Landing Page (Readium.md)
-# -----------------------------------------------------------------------------
-# DocC needs a root page. This is generated programmatically to ensure
-# the sidebar structure (Topic Groups) is perfect every time.
-
-ROOT_FILE="$DOCC_CATALOG_DIR/Readium.md"
-
-cat <<EOF > "$ROOT_FILE"
-# Readium
-
-@Metadata {
-    @TechnologyRoot
-}
-
-The Readium Swift Toolkit is a toolkit for ebooks, audiobooks, and comics written in Swift & Kotlin.
-
-## Topics
-
-### Guides
-
-- <doc:Getting-Started>
-- <doc:Migration-Guide>
-- <doc:Open-Publication>
-- <doc:Content>
-- <doc:TTS>
-- <doc:Accessibility>
-- <doc:Readium-LCP>
-
-### Navigator Overview
-
-- <doc:Navigator>
-- <doc:Preferences>
-- <doc:SwiftUI>
-- <doc:Input>
-- <doc:EPUB-Fonts>
-
-### API Reference
-
-- <doc:ReadiumShared>
-- <doc:ReadiumStreamer>
-- <doc:ReadiumNavigator>
-- <doc:ReadiumOPDS>
-- <doc:ReadiumLCP>
-EOF
-
-# -----------------------------------------------------------------------------
-# 8. Import Supplemental Docs
-# -----------------------------------------------------------------------------
-# Copy the markdown files from the 'docs/' folder into the DocC catalog.
-# DocC will automatically link <doc:Filename> to these files.
+# We create a temporary DocC bundle structure
+# and copy the contents of the 'docs' folder into it.
 if [ -d "docs" ]; then
     cp -R docs/* "$DOCC_CATALOG_DIR/"
+else
+    echo "⚠️  Warning: 'docs' folder not found. Site may be empty."
+fi
+
+# Validation: Ensure the root landing page exists.
+# Without this file, DocC will fail or produce an empty root.
+if [ ! -f "$DOCC_CATALOG_DIR/Readium.md" ]; then
+    echo "❌  Error: docs/Readium.md is missing."
+    echo "    Please create this file with @TechnologyRoot metadata."
+    exit 1
 fi
 
 echo "🚀  Generating site..."
 
 # -----------------------------------------------------------------------------
-# 9. DocC Conversion (Static Site Generation)
+# 8. DocC Conversion (Static Site Generation)
 # -----------------------------------------------------------------------------
 # Find the 'docc' tool inside Xcode.
 DOCC_EXEC=$(xcrun --find docc)
@@ -200,7 +163,7 @@ $DOCC_EXEC convert "$DOCC_CATALOG_DIR" \
 echo "✅  Documentation generated at: $SITE_DIR"
 
 # -----------------------------------------------------------------------------
-# 10. Add SPA Routing (Fixes Root & Deep Links)
+# 9. Add SPA Routing (Fixes Root & Deep Links)
 # -----------------------------------------------------------------------------
 echo "twisted_rightwards_arrows  Adding 404 redirect for SPA routing..."
 
@@ -230,10 +193,10 @@ EOF
 cp "$SITE_DIR/404.html" "$SITE_DIR/index.html"
 
 # -----------------------------------------------------------------------------
-# 11. Local Preview
+# 10. Local Preview
 # -----------------------------------------------------------------------------
 if [ "$SERVE_SITE" = true ]; then
-    URL="http://localhost:8080/$REPO_NAME/documentation/readium"
+    URL="http://localhost:8080/$REPO_NAME/$DOC_VERSION/documentation/readium"
     echo "🌍  Serving at $URL"
     
     # Open the browser
@@ -243,5 +206,5 @@ if [ "$SERVE_SITE" = true ]; then
     # Serve from OUTPUT_ROOT so the subdirectory /swift-toolkit/ exists.
     python3 -m http.server -d "$OUTPUT_ROOT" 8080
 else
-    echo "    Run './generate-docs.sh --serve' to preview."
+    echo "    Run 'BuildTools/Scripts/generate-docs.sh --serve' to preview."
 fi
