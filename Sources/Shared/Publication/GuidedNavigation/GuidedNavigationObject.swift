@@ -27,7 +27,7 @@ public struct GuidedNavigationObject: Hashable, Sendable {
     public let text: Text?
 
     /// Convey the structural semantics of a publication.
-    public let role: [Role]
+    public let roles: [Role]
 
     /// Text, audio or image description for the current Guided Navigation
     /// Object.
@@ -40,7 +40,7 @@ public struct GuidedNavigationObject: Hashable, Sendable {
         id: ID? = nil,
         refs: Refs? = nil,
         text: Text? = nil,
-        role: [Role] = [],
+        roles: [Role] = [],
         description: Description? = nil,
         children: [GuidedNavigationObject] = []
     ) {
@@ -50,7 +50,7 @@ public struct GuidedNavigationObject: Hashable, Sendable {
         self.id = id
         self.refs = refs
         self.text = text
-        self.role = role
+        self.roles = roles
         self.description = description
         self.children = children
     }
@@ -79,7 +79,7 @@ public struct GuidedNavigationObject: Hashable, Sendable {
             id: json["id"] as? String,
             refs: refs,
             text: text,
-            role: (json["role"] as? [String])?.map(Role.init) ?? [],
+            roles: (json["role"] as? [String])?.map(Role.init) ?? [],
             description: description,
             children: children
         )

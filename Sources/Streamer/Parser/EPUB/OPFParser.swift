@@ -201,7 +201,7 @@ final class OPFParser: Loggable {
 
         let duration = metas["duration", in: .media, refining: id]
             .first
-            .flatMap { parseSmilClockValue($0.content) }
+            .flatMap { SMILParser.parseClockValue($0.content) }
 
         let link = Link(
             href: href.string,
