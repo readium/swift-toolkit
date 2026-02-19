@@ -271,7 +271,6 @@ private struct SMILGuidedNavigationDocumentParsing {
         "errata": .errata,
         "example": .example,
         "footnote": .footnote,
-        "foreword": .foreword,
         "glossary": .glossary,
         "glossref": .glossref,
         "index": .index,
