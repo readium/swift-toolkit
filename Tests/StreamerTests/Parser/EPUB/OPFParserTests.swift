@@ -47,14 +47,19 @@ class OPFParserTests: XCTestCase {
         XCTAssertEqual(sut.links, [])
         XCTAssertEqual(sut.readingOrder, [
             link(href: "titlepage.xhtml", mediaType: .xhtml),
-            link(href: "EPUB/chapter01.xhtml", mediaType: .xhtml),
+            Link(
+                href: "EPUB/chapter01.xhtml",
+                mediaType: .xhtml,
+                alternates: [
+                    Link(href: "EPUB/chapter01.smil", mediaType: .smil),
+                ]
+            ),
         ])
         XCTAssertEqual(sut.resources, try [
             link(href: "EPUB/fonts/MinionPro.otf", mediaType: XCTUnwrap(MediaType("application/vnd.ms-opentype"))),
             link(href: "EPUB/nav.xhtml", mediaType: .xhtml, rels: [.contents]),
             link(href: "style.css", mediaType: .css),
             link(href: "EPUB/chapter02.xhtml", mediaType: .xhtml),
-            link(href: "EPUB/chapter01.smil", mediaType: .smil),
             Link(href: "EPUB/chapter02.smil", mediaType: .smil, duration: 1949.0),
             link(href: "EPUB/images/alice01a.png", mediaType: .png, rels: [.cover]),
             link(href: "EPUB/images/alice02a.gif", mediaType: .gif),
@@ -225,12 +230,19 @@ class OPFParserTests: XCTestCase {
 
     // MARK: - Media Overlays
 
-    func testParseMediaOverlaysDurationPerSpineItem() throws {
+    func testParseMediaOverlaysSmilAsAlternate() throws {
         let sut = try parseManifest("media-overlays", at: "EPUB/content.opf").manifest
-        // chapter01: 0:23:45 = 23*60 + 45 = 1425
-        XCTAssertEqual(sut.readingOrder[0].duration, 1425.0)
-        // chapter02: 0:08:44 = 8*60 + 44 = 524
-        XCTAssertEqual(sut.readingOrder[1].duration, 524.0)
+
+        // SMIL should be an alternate of each reading order item, not in resources
+        XCTAssertEqual(sut.readingOrder[0].href, "EPUB/chapter01.xhtml")
+        XCTAssertEqual(sut.readingOrder[0].alternates, [
+            Link(href: "EPUB/chapter01.smil", mediaType: .smil, duration: 1425.0),
+        ])
+        XCTAssertEqual(sut.readingOrder[1].href, "EPUB/chapter02.xhtml")
+        XCTAssertEqual(sut.readingOrder[1].alternates, [
+            Link(href: "EPUB/chapter02.smil", mediaType: .smil, duration: 524.0),
+        ])
+        XCTAssertTrue(sut.resources.isEmpty)
     }
 
     // MARK: - Helpers

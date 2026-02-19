@@ -44,7 +44,7 @@ import Testing
                     video: AnyURL(string: "video.mp4#t=10,30")
                 ),
                 text: .init(plain: "Hello", ssml: "<speak>Hello</speak>", language: Language(code: .bcp47("en"))),
-                role: [.chapter, .heading2],
+                roles: [.chapter, .heading2],
                 description: .init(refs: .init(text: AnyURL(string: "desc.html"))),
                 children: [
                     #require(GuidedNavigationObject(refs: .init(text: AnyURL(string: "child.html")))),
@@ -120,7 +120,7 @@ import Testing
                 "textref": "c.html",
                 "role": ["chapter", "custom-role"],
             ])
-            #expect(sut?.role == [.chapter, GuidedNavigationObject.Role("custom-role")])
+            #expect(sut?.roles == [.chapter, GuidedNavigationObject.Role("custom-role")])
         }
 
         @Test("nil JSON returns nil")

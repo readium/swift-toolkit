@@ -291,7 +291,7 @@ final class EPUBMetadataParser: Loggable {
     private lazy var mediaDuration: Double? =
         metas["duration", in: .media]
             .first(where: { $0.refines == nil })
-            .flatMap { parseSmilClockValue($0.content) }
+            .flatMap { SMILParser.parseClockValue($0.content) }
 
     /// Media overlay CSS class names.
     private func mediaOverlay() -> EPUBMediaOverlay? {

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<smil xmlns="http://www.w3.org/ns/SMIL" xmlns:epub="http://www.idpf.org/2007/ops" version="3.0">
+  <body>
+    <!-- No epub:type → sequence role -->
+    <seq id="s-no-type">
+      <par id="p1"><text src="chapter01.xhtml#id1"/></par>
+    </seq>
+    <!-- Known epub:type -->
+    <seq id="s-chapter" epub:type="chapter">
+      <par id="p2"><text src="chapter01.xhtml#id2"/></par>
+    </seq>
+    <!-- Multiple epub:type tokens -->
+    <seq id="s-multi" epub:type="chapter part">
+      <par id="p3"><text src="chapter01.xhtml#id3"/></par>
+    </seq>
+    <!-- Unknown epub:type -->
+    <seq id="s-unknown" epub:type="preamble">
+      <par id="p4"><text src="chapter01.xhtml#id4"/></par>
+    </seq>
+    <!-- page-list special case -->
+    <seq id="s-pagelist" epub:type="page-list">
+      <par id="p5"><text src="chapter01.xhtml#id5"/></par>
+    </seq>
+    <!-- listitem special case -->
+    <seq id="s-listitem" epub:type="list-item">
+      <par id="p6"><text src="chapter01.xhtml#id6"/></par>
+    </seq>
+  </body>
+</smil>

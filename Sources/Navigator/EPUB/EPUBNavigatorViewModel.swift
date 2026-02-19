@@ -352,7 +352,7 @@ enum EPUBScriptScope: Sendable {
         guard
             let link = publication.linkWithHREF(href),
             link.mediaType?.isHTML == true,
-            publication.metadata.layout == .reflowable
+            publication.metadata.epubLayout == .reflowable
         else {
             return resource
         }
