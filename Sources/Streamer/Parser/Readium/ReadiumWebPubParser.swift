@@ -40,7 +40,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         case let .resource(asset):
             return await parse(resource: asset.resource, format: asset.format.specifications, warnings: warnings)
         case let .container(asset):
-            return await parse(container: asset.container, format: asset.format.specifications, warnings: warnings)
+            return await parse(container: asset.container, isPackage: true, format: asset.format.specifications, warnings: warnings)
         }
     }
 
@@ -79,6 +79,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             .asyncFlatMap { container in
                 await parse(
                     container: container,
+                    isPackage: false,
                     format: FormatSpecifications(.rpf),
                     warnings: warnings
                 )
@@ -87,6 +88,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
 
     private func parse(
         container: Container,
+        isPackage: Bool,
         format: FormatSpecifications,
         warnings: WarningLogger?
     ) async -> Result<Publication.Builder, PublicationParseError> {
@@ -103,17 +105,25 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             .map { manifest in
                 var manifest = manifest
 
-                // Remove any self link as it is a packaged publication. It
-                // might be packaged from a streamed manifest which would cause
-                // issues when serving the relative reading order resources.
-                manifest.links = manifest.links.filter { !$0.rels.contains(.self) }
+                if isPackage {
+                    // Remove any self link as it is a packaged publication. It
+                    // might be packaged from a streamed manifest which would
+                    // cause issues when serving the relative reading order
+                    // resources.
+                    manifest.links = manifest.links.filter { !$0.rels.contains(.self) }
+                }
 
                 return Publication.Builder(
                     manifest: manifest,
                     container: container,
                     servicesBuilder: PublicationServicesBuilder(setup: {
                         if manifest.conforms(to: .epub) {
-                            $0.setPositionsServiceFactory(EPUBPositionsService.makeFactory(reflowableStrategy: epubReflowablePositionsStrategy))
+                            // We don't use the EPUBPositionsService with a
+                            // streamed manifest, because it will fetch all
+                            // the resources to compute the positions.
+                            if isPackage {
+                                $0.setPositionsServiceFactory(EPUBPositionsService.makeFactory(reflowableStrategy: epubReflowablePositionsStrategy))
+                            }
 
                         } else if manifest.conforms(to: .divina) {
                             $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: MediaType("image/*")!))
@@ -128,7 +138,10 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
 
                         // FIXME: WebPositionsService from Kotlin?
 
-                        if manifest.readingOrder.allAreHTML {
+                        // We don't use the search and content services with a
+                        // streamed manifest because it will fetch all the
+                        // resources on the server.
+                        if manifest.readingOrder.allAreHTML, isPackage {
                             $0.setSearchServiceFactory(StringSearchService.makeFactory())
                             $0.setContentServiceFactory(DefaultContentService.makeFactory(
                                 resourceContentIteratorFactories: [
