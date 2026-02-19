@@ -114,11 +114,11 @@ private struct SMILGuidedNavigationDocumentParsing {
         let id = element.attr("id")
         let epubType = element.attr("type", namespace: .epub)
 
-        let texttrefAttr = element.attr("textref", namespace: .epub)
-        if texttrefAttr == nil {
+        let textrefAttr = element.attr("textref", namespace: .epub)
+        if textrefAttr == nil {
             warnings?.log("<seq> is missing required epub:textref", model: GuidedNavigationObject.self, source: element, severity: .minor)
         }
-        let textref = texttrefAttr.flatMap { resolveURL($0) }
+        let textref = textrefAttr.flatMap { resolveURL($0) }
 
         let children = parseObjects(in: element)
 
