@@ -3,14 +3,16 @@
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
     <dc:title>Alice's Adventures in Wonderland</dc:title>
     <meta property="media:duration">1:32:29</meta>
-    <meta property="media:duration" refines="#chapter01">0:23:45</meta>
-    <meta property="media:duration" refines="#chapter02">0:08:44</meta>
+    <meta property="media:duration" refines="#chapter01_smil">0:23:45</meta>
+    <meta property="media:duration" refines="#chapter02_smil">0:08:44</meta>
     <meta property="media:active-class">-epub-media-overlay-active</meta>
     <meta property="media:playback-active-class">-epub-media-overlay-playing</meta>
   </metadata>
   <manifest>
-    <item id="chapter01" href="chapter01.xhtml" media-type="application/xhtml+xml"/>
-    <item id="chapter02" href="chapter02.xhtml" media-type="application/xhtml+xml"/>
+    <item id="chapter01" href="chapter01.xhtml" media-type="application/xhtml+xml" media-overlay="chapter01_smil"/>
+    <item id="chapter02" href="chapter02.xhtml" media-type="application/xhtml+xml" media-overlay="chapter02_smil"/>
+    <item id="chapter01_smil" href="chapter01.smil" media-type="application/smil+xml"/>
+    <item id="chapter02_smil" href="chapter02.smil" media-type="application/smil+xml"/>
   </manifest>
   <spine>
     <itemref idref="chapter01"/>

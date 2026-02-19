@@ -27,6 +27,7 @@ final class OPFParser: Loggable {
         let id: String
         let link: Link
         let fallbackId: String?
+        let mediaOverlayId: String?
     }
 
     /// Relative path to the OPF in the EPUB container
@@ -214,7 +215,8 @@ final class OPFParser: Loggable {
         return ManifestItem(
             id: id,
             link: link,
-            fallbackId: manifestItem.attr("fallback")
+            fallbackId: manifestItem.attr("fallback"),
+            mediaOverlayId: manifestItem.attr("media-overlay")
         )
     }
 
@@ -259,6 +261,15 @@ final class OPFParser: Loggable {
                     spineLink: spineLink,
                     fallbackLink: fallbackItem.link
                 )
+            }
+
+            // Attach the SMIL media overlay as an alternate.
+            if
+                let mediaOverlayId = item.mediaOverlayId,
+                let smilIndex = items.firstIndex(where: { $0.id == mediaOverlayId && $0.link.mediaType?.matches(.smil) == true })
+            {
+                let smilItem = items.remove(at: smilIndex)
+                spineLink.alternates.append(smilItem.link)
             }
 
             readingOrder.append(spineLink)
