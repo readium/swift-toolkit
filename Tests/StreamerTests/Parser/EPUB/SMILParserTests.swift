@@ -39,6 +39,15 @@ import Testing
             #expect(p1?.roles == [.term])
         }
 
+        @Test func parWithImage() throws {
+            let doc = try SMILParserTests.parse("par-image.smil")
+            let p1 = doc?.guided.first?.children.first
+            #expect(p1?.id == "p1")
+            #expect(p1?.refs?.text == AnyURL(string: "OEBPS/chapter01.xhtml#id1"))
+            #expect(p1?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=0,5"))
+            #expect(p1?.refs?.img == AnyURL(string: "OEBPS/figure1.jpg"))
+        }
+
         @Test func audioWithBothClipTimes() throws {
             let doc = try SMILParserTests.parse("audio-clip-times.smil")
             // s1/p1: clipBegin=0:00:00.000, clipEnd=0:00:05.123
@@ -71,13 +80,36 @@ import Testing
             #expect(p4?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3"))
         }
 
-        @Test func parWithImage() throws {
-            let doc = try SMILParserTests.parse("par-image.smil")
-            let p1 = doc?.guided.first?.children.first
+        @Test func videoWithBothClipTimes() throws {
+            let doc = try SMILParserTests.parse("video-clip-times.smil")
+            // s1/p1: clipBegin=0:00:00.000, clipEnd=0:00:05.123
+            let p1 = doc?.guided.first?.children[0]
             #expect(p1?.id == "p1")
-            #expect(p1?.refs?.text == AnyURL(string: "OEBPS/chapter01.xhtml#id1"))
-            #expect(p1?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=0,5"))
-            #expect(p1?.refs?.img == AnyURL(string: "OEBPS/figure1.jpg"))
+            #expect(p1?.refs?.video == AnyURL(string: "OEBPS/video.mp4#t=0,5.123"))
+        }
+
+        @Test func videoWithOnlyClipBegin() throws {
+            let doc = try SMILParserTests.parse("video-clip-times.smil")
+            // s1/p2: clipBegin=0:01:30.000
+            let p2 = doc?.guided.first?.children[1]
+            #expect(p2?.id == "p2")
+            #expect(p2?.refs?.video == AnyURL(string: "OEBPS/video.mp4#t=90,"))
+        }
+
+        @Test func videoWithOnlyClipEnd() throws {
+            let doc = try SMILParserTests.parse("video-clip-times.smil")
+            // s1/p3: clipEnd=0:00:11.000
+            let p3 = doc?.guided.first?.children[2]
+            #expect(p3?.id == "p3")
+            #expect(p3?.refs?.video == AnyURL(string: "OEBPS/video.mp4#t=,11"))
+        }
+
+        @Test func videoWithoutClipTimes() throws {
+            let doc = try SMILParserTests.parse("video-clip-times.smil")
+            // s1/p4: no clip attributes → plain URL
+            let p4 = doc?.guided.first?.children[3]
+            #expect(p4?.id == "p4")
+            #expect(p4?.refs?.video == AnyURL(string: "OEBPS/video.mp4"))
         }
 
         @Test func parWithoutTextIsSkipped() throws {

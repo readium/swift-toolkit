@@ -141,17 +141,8 @@ private struct SMILGuidedNavigationDocumentParsing {
 
         let textURL = textElement.attr("src").flatMap { resolveURL($0) }
 
-        let audioRef: AnyURL? = element.firstChild(xpath: "smil:audio")
-            .flatMap { audioElement in
-                guard let src = audioElement.attr("src") else {
-                    return nil
-                }
-                return audioURL(
-                    src: src,
-                    clipBegin: audioElement.attr("clipBegin"),
-                    clipEnd: audioElement.attr("clipEnd")
-                )
-            }
+        let audioRef: AnyURL? = element.firstChild(xpath: "smil:audio").flatMap(clipURL(from:))
+        let videoRef: AnyURL? = element.firstChild(xpath: "smil:video").flatMap(clipURL(from:))
 
         let imgRef: AnyURL? = element.firstChild(xpath: "smil:img")
             .flatMap { $0.attr("src").flatMap { resolveURL($0) } }
@@ -159,7 +150,8 @@ private struct SMILGuidedNavigationDocumentParsing {
         let refs = GuidedNavigationObject.Refs(
             text: textURL,
             img: imgRef,
-            audio: audioRef
+            audio: audioRef,
+            video: videoRef
         )
 
         return GuidedNavigationObject(
@@ -174,10 +166,22 @@ private struct SMILGuidedNavigationDocumentParsing {
         RelativeURL(epubHREF: src).flatMap { url.resolve($0) }
     }
 
-    /// Builds an audio URL with optional W3C Media Fragment times.
+    /// Extracts the clip URL from a `<smil:audio>` or `<smil:video>` element.
+    private func clipURL(from element: ReadiumFuzi.XMLElement) -> AnyURL? {
+        guard let src = element.attr("src") else {
+            return nil
+        }
+        return clipURL(
+            src: src,
+            clipBegin: element.attr("clipBegin"),
+            clipEnd: element.attr("clipEnd")
+        )
+    }
+
+    /// Builds a media URL with optional W3C Media Fragment times.
     ///
-    /// Format: `audio.mp3#t=begin,end`
-    private func audioURL(src: String, clipBegin: String?, clipEnd: String?) -> AnyURL? {
+    /// Format: `media.mp4#t=begin,end`
+    private func clipURL(src: String, clipBegin: String?, clipEnd: String?) -> AnyURL? {
         guard let base = resolveURL(src) else {
             return nil
         }
