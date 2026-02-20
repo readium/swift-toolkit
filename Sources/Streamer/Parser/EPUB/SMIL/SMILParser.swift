@@ -296,11 +296,16 @@ private struct SMILGuidedNavigationDocumentParsing {
 
         // EPUB 3 Structural Semantics Vocabulary 1.1
 
+        "balloon": .bubble,
+        "foreword": .foreword,
         "landmarks": .landmarks,
         "loa": .loa,
         "loi": .loi,
         "lot": .lot,
         "lov": .lov,
+        "panel": .panel,
+        "panel-group": .panelGroup,
+        "soundArea": .sound,
     ]
 }
 
