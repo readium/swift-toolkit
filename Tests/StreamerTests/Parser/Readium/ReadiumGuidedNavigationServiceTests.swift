@@ -65,6 +65,16 @@ import Testing
         #expect(service.hasGuidedNavigation(for: linkWithGN) == true)
     }
 
+    @Test func hasGuidedNavigationPublicationLevelTrueWhenAnyLinkHasGN() {
+        let service = makeService(readingOrder: [linkWithoutGN, linkWithGN])
+        #expect(service.hasGuidedNavigation == true)
+    }
+
+    @Test func hasGuidedNavigationPublicationLevelFalseWhenNoLinkHasGN() {
+        let service = makeService(readingOrder: [linkWithoutGN])
+        #expect(service.hasGuidedNavigation == false)
+    }
+
     // MARK: - guidedNavigationDocument(for:) — per-resource
 
     @Test func returnsNilForLinkWithoutGN() async throws {
@@ -92,7 +102,7 @@ import Testing
 
         let doc = try await service.guidedNavigationDocument(for: linkWithGN).get()
         #expect(try doc == GuidedNavigationDocument(guided: [
-            #require(GuidedNavigationObject(refs: .init(text: #require(AnyURL(string: "chapter01.xhtml#s1"))))),
+            #require(GuidedNavigationObject(refs: .init(text: AnyURL(string: "chapter01.xhtml#s1")))),
         ]))
     }
 }

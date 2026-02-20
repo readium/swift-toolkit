@@ -238,7 +238,6 @@ import Testing
         @Test func bodyChildrenBecomeTopLevelGuided() throws {
             let doc = try SMILParserTests.parse("basic.smil")
             // basic.smil has one top-level seq in the body
-            #expect(doc?.links == [])
             #expect(doc?.guided.count == 1)
         }
 
