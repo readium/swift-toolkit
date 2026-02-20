@@ -82,7 +82,8 @@ public struct PublicationCollection: JSONEquatable, Hashable, Sendable {
                 if let collection = try? PublicationCollection(json: json, warnings: warnings) {
                     return [collection]
                 } else if case let .array(arr) = json {
-                    return arr.compactMap { try? PublicationCollection(json: $0, warnings: warnings) }
+                    let collections = arr.compactMap { try? PublicationCollection(json: $0, warnings: warnings) }
+                    return collections.isEmpty ? nil : collections
                 } else {
                     return nil
                 }
@@ -100,9 +101,10 @@ public struct PublicationCollection: JSONEquatable, Hashable, Sendable {
 
                 // Parses list of collection objects.
             } else if let collections = json as? [Any] {
-                return collections.compactMap {
+                let collections = collections.compactMap {
                     try? PublicationCollection(json: $0, warnings: warnings)
                 }
+                return collections.isEmpty ? nil : collections
 
             } else {
                 return nil

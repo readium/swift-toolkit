@@ -28,6 +28,7 @@ final class OPFParser: Loggable {
         let id: String
         let link: Link
         let fallbackId: String?
+        let mediaOverlayId: String?
     }
 
     /// Relative path to the OPF in the EPUB container
@@ -215,7 +216,8 @@ final class OPFParser: Loggable {
         return ManifestItem(
             id: id,
             link: link,
-            fallbackId: manifestItem.attr("fallback")
+            fallbackId: manifestItem.attr("fallback"),
+            mediaOverlayId: manifestItem.attr("media-overlay")
         )
     }
 
@@ -260,6 +262,14 @@ final class OPFParser: Loggable {
                     spineLink: spineLink,
                     fallbackLink: fallbackItem.link
                 )
+            }
+
+            if
+                let mediaOverlayId = item.mediaOverlayId,
+                let mediaOverlayIndex = items.firstIndex(where: { $0.id == mediaOverlayId })
+            {
+                let mediaOverlayItem = items.remove(at: mediaOverlayIndex)
+                spineLink.alternates.append(mediaOverlayItem.link)
             }
 
             readingOrder.append(spineLink)

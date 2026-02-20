@@ -54,6 +54,7 @@ let package = Package(
         .testTarget(
             name: "ReadiumSharedTests",
             dependencies: [
+                "ReadiumInternal",
                 "ReadiumShared",
                 "TestPublications",
             ],
@@ -77,7 +78,10 @@ let package = Package(
         ),
         .testTarget(
             name: "ReadiumStreamerTests",
-            dependencies: ["ReadiumStreamer"],
+            dependencies: [
+                "ReadiumInternal",
+                "ReadiumStreamer",
+            ],
             path: "Tests/StreamerTests",
             resources: [
                 .copy("Fixtures"),

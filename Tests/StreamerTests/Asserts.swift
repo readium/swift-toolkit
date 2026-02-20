@@ -4,6 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+@testable import ReadiumInternal
+import ReadiumShared
 import XCTest
 
 func AssertJSONEqual(_ json1: Any?, _ json2: Any?, file: StaticString = #filePath, line: UInt = #line) {
@@ -14,10 +16,13 @@ func AssertJSONEqual(_ json1: Any?, _ json2: Any?, file: StaticString = #filePat
         return
     }
 
+    let normalized1 = JSONValue(j1)?.any ?? j1
+    let normalized2 = JSONValue(j2)?.any ?? j2
+
     do {
         // Wrap the objects in an array to allow JSON fragments comparisons
-        let d1 = try String(data: JSONSerialization.data(withJSONObject: [j1], options: .sortedKeys), encoding: .utf8)
-        let d2 = try String(data: JSONSerialization.data(withJSONObject: [j2], options: .sortedKeys), encoding: .utf8)
+        let d1 = try String(data: JSONSerialization.data(withJSONObject: [normalized1], options: .sortedKeys), encoding: .utf8)
+        let d2 = try String(data: JSONSerialization.data(withJSONObject: [normalized2], options: .sortedKeys), encoding: .utf8)
         XCTAssertEqual(d1, d2, file: file, line: line)
     } catch {
         XCTFail(error.localizedDescription)

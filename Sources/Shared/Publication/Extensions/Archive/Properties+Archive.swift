@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Archive Link Properties Extension
 public extension Properties {
@@ -25,10 +26,9 @@ public extension Properties {
                 return nil
             }
             guard
-                let jsonObject = json as? [String: Any],
-                let length: UInt64 = (jsonObject["entryLength"] as? NSNumber)?.uint64Value,
-                length >= 0,
-                let isCompressed = jsonObject["isEntryCompressed"] as? Bool
+                let jsonObject = JSONDictionary(json)?.json,
+                let length = jsonObject["entryLength"]?.integer.map(UInt64.init),
+                let isCompressed = jsonObject["isEntryCompressed"]?.bool
             else {
                 warnings?.log("`entryLength` and `isEntryCompressed` are required", model: Self.self, source: json)
                 throw JSONError.parsing(Self.self)
