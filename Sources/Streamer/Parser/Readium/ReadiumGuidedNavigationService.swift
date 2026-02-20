@@ -59,7 +59,11 @@ actor ReadiumGuidedNavigationService: GuidedNavigationService {
         }
         let result = await retrieve(gnURL)
         if case let .success(doc) = result {
-            gndCache[gnURL] = doc
+            // Use updateValue to properly store nil without removing the key.
+            // A nil doc is a valid cached result (document exists but has no
+            // guided content), and the dictionary subscript setter treats
+            // `= nil` as key removal, which would cause repeated re-parsing.
+            gndCache.updateValue(doc, forKey: gnURL)
         }
         return result
     }

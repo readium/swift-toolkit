@@ -59,7 +59,11 @@ actor SMILGuidedNavigationService: GuidedNavigationService {
         }
         let result = await retrieve(smilURL)
         if case let .success(doc) = result {
-            gndCache[smilURL] = doc
+            // Use updateValue to properly store nil without removing the key.
+            // A nil doc is a valid cached result (SMIL exists but has no guided
+            // content), and the dictionary subscript setter treats `= nil` as
+            // key removal, which would cause repeated re-parsing.
+            gndCache.updateValue(doc, forKey: smilURL)
         }
         return result
     }
