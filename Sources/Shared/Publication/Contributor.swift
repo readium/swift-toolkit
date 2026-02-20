@@ -46,6 +46,11 @@ public struct Contributor: Hashable, Sendable {
     }
 
     public init?(json: Any, warnings: WarningLogger? = nil) throws {
+        var json = json
+        if let j = json as? JSONValue {
+            json = j.any
+        }
+
         if let name = json as? String {
             self.init(name: name)
 
@@ -65,7 +70,7 @@ public struct Contributor: Hashable, Sendable {
         }
     }
 
-    public var json: [String: Any] {
+    public var json: [String: JSONValue] {
         makeJSON([
             "name": localizedName.json,
             "identifier": encodeIfNotNil(identifier),
@@ -73,7 +78,7 @@ public struct Contributor: Hashable, Sendable {
             "role": encodeIfNotEmpty(roles),
             "position": encodeIfNotNil(position),
             "links": encodeIfNotEmpty(links.json),
-        ])
+        ] as [String: JSONValue])
     }
 }
 
@@ -86,15 +91,22 @@ public extension Array where Element == Contributor {
             return
         }
 
-        if let json = json as? [Any] {
+        let rawJson: Any
+        if let j = json as? JSONValue {
+            rawJson = j.any
+        } else {
+            rawJson = json
+        }
+
+        if let json = rawJson as? [Any] {
             let contributors = json.compactMap { try? Contributor(json: $0, warnings: warnings) }
             append(contentsOf: contributors)
-        } else if let contributor = try? Contributor(json: json, warnings: warnings) {
+        } else if let contributor = try? Contributor(json: rawJson, warnings: warnings) {
             append(contributor)
         }
     }
 
-    var json: [[String: any Sendable]] {
+    var json: [[String: JSONValue]] {
         map(\.json)
     }
 }

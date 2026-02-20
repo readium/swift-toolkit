@@ -66,23 +66,23 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
     ///
     /// If a non-fatal parsing error occurs, it will be logged through `warnings`.
     public init(json: Any, warnings: WarningLogger? = nil) throws {
-        guard var json = JSONDictionary(json) else {
+        guard var jsonDict = JSONDictionary(json) else {
             throw JSONError.parsing(Publication.self)
         }
 
-        context = parseArray(json.pop("@context"), allowingSingle: true)
-        metadata = try Metadata(json: json.pop("metadata"), warnings: warnings)
+        context = parseArray(jsonDict.pop("@context"), allowingSingle: true)
+        metadata = try Metadata(json: jsonDict.pop("metadata"), warnings: warnings)
 
-        links = [Link](json: json.pop("links"), warnings: warnings)
+        links = [Link](json: jsonDict.pop("links"), warnings: warnings)
 
         // `readingOrder` used to be `spine`, so we parse `spine` as a fallback.
-        readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"), warnings: warnings)
+        readingOrder = [Link](json: jsonDict.pop("readingOrder") ?? jsonDict.pop("spine"), warnings: warnings)
             .filter { $0.mediaType != nil }
-        resources = [Link](json: json.pop("resources"), warnings: warnings)
+        resources = [Link](json: jsonDict.pop("resources"), warnings: warnings)
             .filter { $0.mediaType != nil }
 
         // Parses sub-collections from remaining JSON properties.
-        subcollections = PublicationCollection.makeCollections(json: json.json, warnings: warnings)
+        subcollections = PublicationCollection.makeCollections(json: jsonDict.json, warnings: warnings)
     }
 
     /// The URL where this publication is served, computed from the `Link` with
@@ -98,12 +98,12 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
     public var json: JSONDictionary.Wrapped {
         makeJSON([
             "@context": encodeIfNotEmpty(context),
-            "metadata": metadata.json,
-            "links": links.json,
-            "readingOrder": readingOrder.json,
+            "metadata": .object(metadata.json),
+            "links": encodeIfNotEmpty(links.json),
+            "readingOrder": encodeIfNotEmpty(readingOrder.json),
             "resources": encodeIfNotEmpty(resources.json),
             "toc": encodeIfNotEmpty(tableOfContents.json),
-        ], additional: PublicationCollection.serializeCollections(subcollections))
+        ] as [String: JSONValue], additional: PublicationCollection.serializeCollections(subcollections))
     }
 
     /// Returns whether this manifest conforms to the given Readium Web Publication Profile.

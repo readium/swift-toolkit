@@ -11,7 +11,7 @@ import ReadiumInternal
 /// https://readium.org/webpub-manifest/schema/subcollection.schema.json
 /// Can be used as extension point in the Readium Web Publication Manifest.
 public struct PublicationCollection: JSONEquatable, Hashable, Sendable {
-    public var metadata: [String: any Sendable] {
+    public var metadata: [String: JSONValue] {
         get { metadataJSON.json }
         set { metadataJSON = JSONDictionary(newValue) ?? JSONDictionary() }
     }
@@ -34,16 +34,22 @@ public struct PublicationCollection: JSONEquatable, Hashable, Sendable {
         json: Any,
         warnings: WarningLogger? = nil
     ) throws {
+        // Unwrap JSONValue
+        var json = json
+        if let j = json as? JSONValue {
+            json = j.any
+        }
+
         // Parses a list of links.
-        if let json = json as? [JSONDictionary.Wrapped] {
-            self.init(links: .init(json: json, warnings: warnings))
+        if let array = json as? [Any] {
+            self.init(links: .init(json: array, warnings: warnings))
 
             // Parses a Collection object.
-        } else if var json = JSONDictionary(json) {
+        } else if var jsonDict = JSONDictionary(json) {
             self.init(
-                metadata: json.pop("metadata") as? JSONDictionary.Wrapped ?? [:],
-                links: .init(json: json.pop("links")),
-                subcollections: Self.makeCollections(json: json.json)
+                metadata: (jsonDict.pop("metadata")?.object ?? [:]).mapValues { $0 as Any },
+                links: .init(json: jsonDict.pop("links")),
+                subcollections: Self.makeCollections(json: jsonDict.json)
             )
 
         } else {
@@ -59,19 +65,30 @@ public struct PublicationCollection: JSONEquatable, Hashable, Sendable {
     public var json: JSONDictionary.Wrapped {
         makeJSON([
             "metadata": encodeIfNotEmpty(metadata),
-            "links": links.json,
-        ], additional: Self.serializeCollections(subcollections))
-    }
-
-    public static func == (lhs: PublicationCollection, rhs: PublicationCollection) -> Bool {
-        let lMetadata = try? JSONSerialization.data(withJSONObject: lhs.metadata, options: [.sortedKeys])
-        let rMetadata = try? JSONSerialization.data(withJSONObject: rhs.metadata, options: [.sortedKeys])
-        return lMetadata == rMetadata
-            && lhs.links == rhs.links
-            && lhs.subcollections == rhs.subcollections
+            "links": encodeIfNotEmpty(links.json),
+        ] as [String: JSONValue], additional: Self.serializeCollections(subcollections))
     }
 
     static func makeCollections(json: Any?, warnings: WarningLogger? = nil) -> [String: [PublicationCollection]] {
+        // Handle JSONValue
+        var json = json
+        if let j = json as? JSONValue {
+            json = j.any
+        }
+
+        // Handle [String: JSONValue] explicitly
+        if let dict = json as? [String: JSONValue] {
+            return dict.compactMapValues { json in
+                if let collection = try? PublicationCollection(json: json, warnings: warnings) {
+                    return [collection]
+                } else if case let .array(arr) = json {
+                    return arr.compactMap { try? PublicationCollection(json: $0, warnings: warnings) }
+                } else {
+                    return nil
+                }
+            }
+        }
+
         guard let json = json as? [String: Any] else {
             return [:]
         }
@@ -82,7 +99,7 @@ public struct PublicationCollection: JSONEquatable, Hashable, Sendable {
                 return [collection]
 
                 // Parses list of collection objects.
-            } else if let collections = json as? [JSONDictionary.Wrapped] {
+            } else if let collections = json as? [Any] {
                 return collections.compactMap {
                     try? PublicationCollection(json: $0, warnings: warnings)
                 }
@@ -98,9 +115,9 @@ public struct PublicationCollection: JSONEquatable, Hashable, Sendable {
             if collections.isEmpty {
                 return nil
             } else if collections.count == 1 {
-                return collections[0].json
+                return .object(collections[0].json)
             } else {
-                return collections.map(\.json)
+                return .array(collections.map { .object($0.json) })
             }
         }
     }

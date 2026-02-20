@@ -391,8 +391,7 @@ extension LicenseValidation {
     }
 
     private func registerDevice(for license: LicenseDocument, at link: Link) async throws {
-        let uncheckedLink = Unchecked(value: link)
-        let data = try await device.registerLicense(license, at: uncheckedLink.value)
+        let data = try await device.registerLicense(license, at: link)
         try await raise(.registeredDevice(data))
     }
 

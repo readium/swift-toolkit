@@ -29,6 +29,11 @@ public struct Subject: Hashable, Sendable {
     }
 
     public init?(json: Any, warnings: WarningLogger? = nil) throws {
+        var json = json
+        if let j = json as? JSONValue {
+            json = j.any
+        }
+
         if let name = json as? String {
             self.init(name: name)
 
@@ -47,14 +52,14 @@ public struct Subject: Hashable, Sendable {
         }
     }
 
-    public var json: [String: Any] {
+    public var json: [String: JSONValue] {
         makeJSON([
             "name": localizedName.json,
             "sortAs": encodeIfNotNil(sortAs),
             "scheme": encodeIfNotNil(scheme),
             "code": encodeIfNotNil(code),
             "links": encodeIfNotEmpty(links.json),
-        ] as [String: any Sendable])
+        ] as [String: JSONValue])
     }
 }
 
@@ -67,15 +72,23 @@ public extension Array where Element == Subject {
             return
         }
 
-        if let json = json as? [Any] {
+        // Handle JSONValue array
+        let rawJson: Any
+        if let j = json as? JSONValue {
+            rawJson = j.any
+        } else {
+            rawJson = json
+        }
+
+        if let json = rawJson as? [Any] {
             let subjects = json.compactMap { try? Subject(json: $0, warnings: warnings) }
             append(contentsOf: subjects)
-        } else if let subject = try? Subject(json: json, warnings: warnings) {
+        } else if let subject = try? Subject(json: rawJson, warnings: warnings) {
             append(subject)
         }
     }
 
-    var json: [[String: any Sendable]] {
+    var json: [[String: JSONValue]] {
         map(\.json)
     }
 }

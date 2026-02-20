@@ -10,7 +10,7 @@ import Foundation
 /// This is a trick to keep the Web Publication structs equatable without having to override `==` and compare all the other properties.
 public struct JSONDictionary: Sendable {
     public typealias Key = String
-    public typealias Value = any Sendable
+    public typealias Value = JSONValue
     public typealias Wrapped = [Key: Value]
 
     public var json: Wrapped
@@ -20,54 +20,16 @@ public struct JSONDictionary: Sendable {
     }
 
     public init?(_ json: Any?) {
-        guard let json = JSONDictionary.makeSendable(json) as? Wrapped else {
+        guard let value = JSONValue(json),
+              case let .object(dict) = value
+        else {
             return nil
         }
-        self.json = json
+        self.json = dict
     }
 
     public mutating func pop(_ key: Key) -> Value? {
         json.removeValue(forKey: key)
-    }
-
-    private static func makeSendable(_ json: Any?) -> (any Sendable)? {
-        guard let json = json else {
-            return nil
-        }
-        if let jsonDict = json as? JSONDictionary {
-            return jsonDict.json
-        }
-        if let string = json as? String {
-            return string
-        }
-        if let number = json as? NSNumber {
-            return number
-        }
-        if let int = json as? Int {
-            return int
-        }
-        if let double = json as? Double {
-            return double
-        }
-        if let bool = json as? Bool {
-            return bool
-        }
-        if json is NSNull {
-            return NSNull()
-        }
-        if let array = json as? [Any] {
-            return array.compactMap { makeSendable($0) }
-        }
-        if let dict = json as? [String: Any] {
-            var result = [String: any Sendable]()
-            for (key, value) in dict {
-                if let sendableValue = makeSendable(value) {
-                    result[key] = sendableValue
-                }
-            }
-            return result
-        }
-        return nil
     }
 }
 
@@ -92,21 +54,9 @@ extension JSONDictionary: Collection {
     }
 }
 
-extension JSONDictionary: Equatable {
-    public static func == (lhs: JSONDictionary, rhs: JSONDictionary) -> Bool {
-        let l = try? JSONSerialization.data(withJSONObject: lhs.json, options: [.sortedKeys])
-        let r = try? JSONSerialization.data(withJSONObject: rhs.json, options: [.sortedKeys])
-        return l == r
-    }
-}
+extension JSONDictionary: Equatable {}
 
-extension JSONDictionary: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        let jsonString = (try? JSONSerialization.data(withJSONObject: json, options: [.sortedKeys]))
-            .map { String(data: $0, encoding: .utf8) }
-        hasher.combine(jsonString ?? "{}")
-    }
-}
+extension JSONDictionary: Hashable {}
 
 // MARK: - JSON Parsing
 
@@ -115,11 +65,15 @@ extension JSONDictionary: Hashable {
 /// }
 /// let json = ["key": "hello"]
 /// let value: Example? = parseRaw(json["key"])
-public func parseRaw<T: RawRepresentable>(_ json: Any?) -> T? {
-    guard let rawValue = json as? T.RawValue else {
+public func parseRaw<T: RawRepresentable>(_ json: JSONValue?) -> T? {
+    guard let json = json, let rawValue = json.any as? T.RawValue else {
         return nil
     }
     return T(rawValue: rawValue)
+}
+
+public func parseRaw<T: RawRepresentable>(_ json: Any?) -> T? {
+    parseRaw((json as? JSONValue) ?? JSONValue(json))
 }
 
 /// let json = [
@@ -130,24 +84,44 @@ public func parseRaw<T: RawRepresentable>(_ json: Any?) -> T? {
 /// let values2: [String] = parseArray(json["single"], allowingSingle: true)
 ///
 /// - Parameter allowingSingle: If true, then allows the parsing of both a single value and an array.
-public func parseArray<T>(_ json: Any?, allowingSingle: Bool = false) -> [T] {
-    if let values = json as? [T] {
-        return values
-    } else if allowingSingle, let value = json as? T {
-        return [value]
-    } else {
+public func parseArray<T>(_ json: JSONValue?, allowingSingle: Bool = false) -> [T] {
+    guard let json = json else {
+        return []
+    }
+
+    switch json {
+    case let .array(arr):
+        if T.self == JSONValue.self {
+            return arr as! [T]
+        }
+        return arr.compactMap { $0.any as? T }
+    default:
+        if allowingSingle {
+            if T.self == JSONValue.self {
+                return [json] as! [T]
+            }
+            if let val = json.any as? T {
+                return [val]
+            }
+        }
         return []
     }
 }
 
+public func parseArray<T>(_ json: Any?, allowingSingle: Bool = false) -> [T] {
+    parseArray((json as? JSONValue) ?? JSONValue(json), allowingSingle: allowingSingle)
+}
+
 /// Casting to Double loses precision and fails with integers, eg. json["key"] as? Double.
 public func parseDouble(_ json: Any?) -> Double? {
-    (json as? NSNumber)?.doubleValue
+    let json = (json as? JSONValue) ?? JSONValue(json)
+    return json?.double
 }
 
 /// Parses a numeric value, but returns nil if it is not a positive number.
 public func parsePositive<T: Comparable & Numeric>(_ json: Any?) -> T? {
-    guard let number = json as? T, number >= 0 else {
+    let json = (json as? JSONValue) ?? JSONValue(json)
+    guard let number = json?.any as? T, number >= 0 else {
         return nil
     }
     return number
@@ -161,31 +135,49 @@ public func parsePositiveDouble(_ json: Any?) -> Double? {
 }
 
 public func parseDate(_ json: Any?) -> Date? {
-    (json as? String)?.dateFromISO8601
+    let json = (json as? JSONValue) ?? JSONValue(json)
+    return json?.string?.dateFromISO8601
 }
 
-/// Returns the given JSON object after removing any key with NSNull value.
+/// Returns the given JSON object after removing any key with NSNull (or JSONValue.null) value.
 /// To be used with `encodeIfX` functions for more compact serialization code.
-public func makeJSON(_ object: JSONDictionary.Wrapped, additional: JSONDictionary.Wrapped = [:]) -> JSONDictionary.Wrapped {
+public func makeJSON(_ object: [String: JSONValue], additional: [String: JSONValue] = [:]) -> [String: JSONValue] {
     object.filter { _, value in
-        !(value is NSNull)
+        if case .null = value { return false }
+        return true
     }.merging(additional, uniquingKeysWith: { current, _ in current })
 }
 
-/// Returns the value if not nil, or NSNull.
-public func encodeIfNotNil(_ value: (any Sendable)?) -> any Sendable {
-    value ?? NSNull()
-}
-
-/// Returns the raw representable's raw value if not nil, or NSNull. To be used with optional Enum.
-public func encodeRawIfNotNil<T: RawRepresentable>(_ value: T?) -> any Sendable where T.RawValue: Sendable {
-    value?.rawValue ?? NSNull()
-}
-
-/// Returns the collection if not empty, or NSNull.
-public func encodeIfNotEmpty<T: Collection & Sendable>(_ collection: T?) -> any Sendable {
-    guard let collection = collection else {
-        return NSNull()
+/// Returns the value if not nil, or JSONValue.null.
+public func encodeIfNotNil(_ value: Any?) -> JSONValue {
+    guard let value = value, let json = JSONValue(value) else {
+        return .null
     }
-    return collection.isEmpty ? NSNull() : collection
+    return json
+}
+
+/// Returns the raw representable's raw value if not nil, or JSONValue.null. To be used with optional Enum.
+public func encodeRawIfNotNil<T: RawRepresentable>(_ value: T?) -> JSONValue {
+    guard let raw = value?.rawValue, let json = JSONValue(raw) else {
+        return .null
+    }
+    return json
+}
+
+/// Returns the collection if not empty, or JSONValue.null.
+public func encodeIfNotEmpty(_ value: Any?) -> JSONValue {
+    guard let value = value, let json = JSONValue(value) else {
+        return .null
+    }
+
+    switch json {
+    case let .array(arr):
+        return arr.isEmpty ? .null : json
+    case let .object(obj):
+        return obj.isEmpty ? .null : json
+    case let .string(s):
+        return s.isEmpty ? .null : json
+    default:
+        return json
+    }
 }

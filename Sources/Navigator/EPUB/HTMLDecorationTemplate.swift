@@ -6,6 +6,7 @@
 
 import Atomics
 import Foundation
+import ReadiumInternal
 import SwiftSoup
 import UIKit
 
@@ -47,11 +48,11 @@ public struct HTMLDecorationTemplate: Sendable {
         self.init(layout: layout, width: width, element: { _ in element }, stylesheet: stylesheet)
     }
 
-    public var json: [String: any Sendable] {
+    public var json: [String: JSONValue] {
         [
-            "layout": layout.rawValue,
-            "width": width.rawValue,
-            "stylesheet": stylesheet as (any Sendable),
+            "layout": .string(layout.rawValue),
+            "width": .string(width.rawValue),
+            "stylesheet": encodeIfNotNil(stylesheet),
         ]
     }
 

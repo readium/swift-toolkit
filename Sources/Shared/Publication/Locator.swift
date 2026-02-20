@@ -65,13 +65,15 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
         if json == nil {
             return nil
         }
-        guard let jsonObject = json as? JSONDictionary.Wrapped,
-              let hrefString = jsonObject["href"] as? String,
-              let typeString = jsonObject["type"] as? String
+        guard let jsonDict = JSONDictionary(json),
+              let hrefString = jsonDict.json["href"]?.string,
+              let typeString = jsonDict.json["type"]?.string
         else {
             warnings?.log("`href` and `type` required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
+
+        let jsonObject = jsonDict.json
 
         guard let type = MediaType(typeString) else {
             warnings?.log("`type` is not a valid media type", model: Self.self, source: json)
@@ -86,7 +88,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
         try self.init(
             href: href,
             mediaType: type,
-            title: jsonObject["title"] as? String,
+            title: jsonObject["title"]?.string,
             locations: Locations(json: jsonObject["locations"], warnings: warnings),
             text: Text(json: jsonObject["text"], warnings: warnings)
         )
@@ -94,12 +96,12 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
 
     public var json: JSONDictionary.Wrapped {
         makeJSON([
-            "href": href.string,
-            "type": mediaType.string,
+            "href": .string(href.string),
+            "type": .string(mediaType.string),
             "title": encodeIfNotNil(title),
             "locations": encodeIfNotEmpty(locations.json),
             "text": encodeIfNotEmpty(text.json),
-        ] as [String: any Sendable])
+        ] as [String: JSONValue])
     }
 
     public var jsonString: String? {
@@ -189,15 +191,15 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
                 warnings?.log("Invalid Locations object", model: Self.self, source: json)
                 throw JSONError.parsing(Self.self)
             }
-            var fragments = (jsonObject.pop("fragments") as? [String]) ?? []
-            if let fragment = jsonObject.pop("fragment") as? String {
+            var fragments = parseArray(jsonObject.pop("fragments")) as [String]
+            if let fragment = jsonObject.pop("fragment")?.string {
                 fragments.append(fragment)
             }
             self.init(
                 fragments: fragments,
-                progression: jsonObject.pop("progression") as? Double,
-                totalProgression: jsonObject.pop("totalProgression") as? Double,
-                position: jsonObject.pop("position") as? Int,
+                progression: parseDouble(jsonObject.pop("progression")),
+                totalProgression: parseDouble(jsonObject.pop("totalProgression")),
+                position: parsePositive(jsonObject.pop("position")),
                 otherLocations: jsonObject.json
             )
         }
@@ -222,7 +224,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
                 "progression": encodeIfNotNil(progression),
                 "totalProgression": encodeIfNotNil(totalProgression),
                 "position": encodeIfNotNil(position),
-            ] as [String: any Sendable], additional: otherLocations)
+            ] as [String: JSONValue], additional: otherLocations)
         }
 
         public var jsonString: String? {
@@ -231,7 +233,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
 
         /// Syntactic sugar to access the `otherLocations` values by subscripting `Locations` directly.
         /// locations["cssSelector"] == locations.otherLocations["cssSelector"]
-        public subscript(key: String) -> Any? {
+        public subscript(key: String) -> JSONValue? {
             otherLocations[key]
         }
     }
@@ -252,14 +254,15 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
                 self.init()
                 return
             }
-            guard let jsonObject = json as? JSONDictionary.Wrapped else {
+            guard let jsonDict = JSONDictionary(json) else {
                 warnings?.log("Invalid Text object", model: Self.self, source: json)
                 throw JSONError.parsing(Self.self)
             }
+            let jsonObject = jsonDict.json
             self.init(
-                after: jsonObject["after"] as? String,
-                before: jsonObject["before"] as? String,
-                highlight: jsonObject["highlight"] as? String
+                after: jsonObject["after"]?.string,
+                before: jsonObject["before"]?.string,
+                highlight: jsonObject["highlight"]?.string
             )
         }
 
@@ -278,7 +281,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
                 "after": encodeIfNotNil(after),
                 "before": encodeIfNotNil(before),
                 "highlight": encodeIfNotNil(highlight),
-            ] as [String: any Sendable])
+            ] as [String: JSONValue])
         }
 
         public var jsonString: String? {
@@ -331,11 +334,22 @@ public extension Array where Element == Locator {
     /// Parses multiple JSON locators into an array of `Locator`.
     init(json: Any?, warnings: WarningLogger? = nil) {
         self.init()
-        guard let json = json as? [JSONDictionary.Wrapped] else {
+        guard let json = json else {
             return
         }
 
-        let links = json.compactMap { try? Locator(json: $0, warnings: warnings) }
+        let rawJson: Any
+        if let j = json as? JSONValue {
+            rawJson = j.any
+        } else {
+            rawJson = json
+        }
+
+        guard let array = rawJson as? [Any] else {
+            return
+        }
+
+        let links = array.compactMap { try? Locator(json: $0, warnings: warnings) }
         append(contentsOf: links)
     }
 
@@ -362,10 +376,11 @@ public struct LocatorCollection: Hashable {
         if json == nil {
             return nil
         }
-        guard let jsonObject = json as? JSONDictionary.Wrapped else {
+        guard let jsonDict = JSONDictionary(json) else {
             warnings?.log("Not a JSON object", model: Self.self, source: json)
             return nil
         }
+        let jsonObject = jsonDict.json
         self.init(
             metadata: Metadata(json: jsonObject["metadata"], warnings: warnings),
             links: [Link](json: jsonObject["links"]),
@@ -377,8 +392,8 @@ public struct LocatorCollection: Hashable {
         makeJSON([
             "metadata": encodeIfNotEmpty(metadata.json),
             "links": encodeIfNotEmpty(links.json),
-            "locators": locators.json,
-        ] as [String: any Sendable])
+            "locators": encodeIfNotEmpty(locators.json), // Updated to encodeIfNotEmpty
+        ] as [String: JSONValue])
     }
 
     /// Holds the metadata of a `LocatorCollection`.
@@ -427,7 +442,7 @@ public struct LocatorCollection: Hashable {
             makeJSON([
                 "title": encodeIfNotNil(localizedTitle?.json),
                 "numberOfItems": encodeIfNotNil(numberOfItems),
-            ] as [String: any Sendable], additional: otherMetadata)
+            ] as [String: JSONValue], additional: otherMetadata)
         }
     }
 }

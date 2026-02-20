@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Represents a potentially localized string.
 /// Can be either:
@@ -32,11 +33,30 @@ public enum LocalizedString: Hashable, Sendable {
     ///     }
     ///   ]
     public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+        var json = json
+        if let j = json as? JSONValue {
+            json = j.any
+        }
+
         if json == nil {
             return nil
         } else if let string = json as? String {
             self = .nonlocalized(string)
         } else if let strings = json as? [String: String] {
+            self = .localized(strings)
+        } else if let dict = json as? [String: Any] {
+            var strings: [String: String] = [:]
+            for (key, value) in dict {
+                if let string = value as? String {
+                    strings[key] = string
+                } else {
+                    warnings?.log("Invalid value for LocalizedString in dictionary", model: Self.self, source: json, severity: .moderate)
+                }
+            }
+            if strings.isEmpty, !dict.isEmpty {
+                // Parsing failed completely or empty valid strings
+                throw JSONError.parsing(Self.self)
+            }
             self = .localized(strings)
         } else {
             warnings?.log("Invalid LocalizedString object", model: Self.self, source: json, severity: .moderate)
@@ -45,12 +65,12 @@ public enum LocalizedString: Hashable, Sendable {
     }
 
     /// Returns the JSON representation for this localized string.
-    public var json: any Sendable {
+    public var json: JSONValue {
         switch self {
         case let .nonlocalized(string):
-            return string
+            return .string(string)
         case let .localized(strings):
-            return strings
+            return .object(strings.mapValues { .string($0) })
         }
     }
 

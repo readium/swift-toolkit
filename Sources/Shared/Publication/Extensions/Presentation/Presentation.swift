@@ -54,18 +54,19 @@ public struct Presentation: Equatable {
     }
 
     public init(json: Any?, warnings: WarningLogger? = nil) throws {
-        guard json != nil else {
+        guard let json = json else {
             self.init()
             return
         }
-        guard let jsonObject = json as? [String: Any] else {
+        guard let jsonDict = JSONDictionary(json) else {
             warnings?.log("Invalid JSON object", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
+        let jsonObject = jsonDict.json
 
         self.init(
-            clipped: jsonObject["clipped"] as? Bool,
-            continuous: jsonObject["continuous"] as? Bool,
+            clipped: jsonObject["clipped"]?.bool,
+            continuous: jsonObject["continuous"]?.bool,
             fit: parseRaw(jsonObject["fit"]),
             orientation: parseRaw(jsonObject["orientation"]),
             overflow: parseRaw(jsonObject["overflow"]),
@@ -74,7 +75,7 @@ public struct Presentation: Equatable {
         )
     }
 
-    public var json: [String: Any] {
+    public var json: [String: JSONValue] {
         makeJSON([
             "clipped": encodeIfNotNil(clipped),
             "continuous": encodeIfNotNil(continuous),
@@ -83,7 +84,7 @@ public struct Presentation: Equatable {
             "overflow": encodeRawIfNotNil(overflow),
             "spread": encodeRawIfNotNil(spread),
             "layout": encodeRawIfNotNil(layout),
-        ] as [String: any Sendable])
+        ] as [String: JSONValue])
     }
 
     /// Suggested method for constraining a resource inside the viewport.

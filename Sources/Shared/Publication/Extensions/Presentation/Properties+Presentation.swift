@@ -13,7 +13,7 @@ public extension Properties {
     /// clipped.
     @available(*, unavailable, message: "This was removed from RWPM.")
     var clipped: Bool? {
-        otherProperties["clipped"] as? Bool
+        otherProperties["clipped"]?.bool
     }
 
     /// Suggested method for constraining a resource inside the viewport.

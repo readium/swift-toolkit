@@ -151,7 +151,7 @@ class HTMLResourceContentIteratorTest: XCTestCase {
             locations: {
                 $0.progression = progression
                 if let selector = selector {
-                    $0.otherLocations = ["cssSelector": selector]
+                    $0.otherLocations = ["cssSelector": .string(selector)]
                 }
             },
             text: {

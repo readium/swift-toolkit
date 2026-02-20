@@ -6,6 +6,7 @@
 
 import Foundation
 import ReadiumFuzi
+import ReadiumInternal
 import ReadiumShared
 
 /// Package vocabularies used for `property`, `properties`, `scheme` and `rel`.
@@ -255,7 +256,7 @@ struct OPFMetaList {
 
     /// Returns the JSON representation of the unknown metadata
     /// (for RWPM's `Metadata.otherMetadata`)
-    var otherMetadata: [String: any Sendable] {
+    var otherMetadata: [String: JSONValue] {
         var metadata: [String: NSMutableOrderedSet] = [:]
 
         for meta in metas {
@@ -269,20 +270,21 @@ struct OPFMetaList {
         }
 
         return metadata.compactMapValues { values in
-            func toSendable(_ value: Any) -> (any Sendable)? {
-                if let v = value as? String { return v }
-                if let v = value as? [String: any Sendable] { return v }
+            func toJSONValue(_ value: Any) -> JSONValue? {
+                if let v = value as? String { return .string(v) }
+                if let v = value as? [String: JSONValue] { return .object(v) }
                 return nil
             }
 
-            switch values.count {
-            case 0:
+            let jsonValues = values.array.compactMap(toJSONValue)
+
+            if jsonValues.isEmpty {
                 return nil
-            case 1:
-                return toSendable(values[0])
-            default:
-                return values.array.compactMap(toSendable)
             }
+            if jsonValues.count == 1 {
+                return jsonValues[0]
+            }
+            return .array(jsonValues)
         }
     }
 
@@ -295,9 +297,9 @@ struct OPFMetaList {
         if let id = meta.id {
             let refines = metas.filter { $0.refines == id }
             if !refines.isEmpty {
-                var value: [String: any Sendable] = ["@value": meta.content]
+                var value: [String: JSONValue] = ["@value": .string(meta.content)]
                 for refine in refines {
-                    value[refine.vocabularyURI + refine.property] = refine.content
+                    value[refine.vocabularyURI + refine.property] = .string(refine.content)
                 }
                 return value
             }

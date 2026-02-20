@@ -39,25 +39,25 @@ class EPUBMetadataParserTests: XCTestCase {
             description: "The book description.",
             numberOfPages: 42,
             otherMetadata: [
-                "http://purl.org/dc/terms/source": [
-                    "Feedbooks",
-                    [
-                        "@value": "Web",
-                        "http://my.url/#scheme": "http",
-                    ],
-                    "Internet",
-                ] as [any Sendable],
-                "http://purl.org/dc/terms/rights": "Public Domain",
-                "http://idpf.org/epub/vocab/package/#type": "article",
-                "http://my.url/#customProperty": [
-                    "@value": "Custom property",
-                    "http://my.url/#refine1": "Refine 1",
-                    "http://my.url/#refine2": "Refine 2",
-                ],
-                "http://purl.org/dc/terms/format": "application/epub+zip",
-                "http://www.idpf.org/vocab/rendition/#flow": "scrolled-doc",
-                "http://www.idpf.org/vocab/rendition/#orientation": "landscape",
-                "http://www.idpf.org/vocab/rendition/#spread": "both",
+                "http://purl.org/dc/terms/source": .array([
+                    .string("Feedbooks"),
+                    .object([
+                        "@value": .string("Web"),
+                        "http://my.url/#scheme": .string("http"),
+                    ]),
+                    .string("Internet"),
+                ]),
+                "http://purl.org/dc/terms/rights": .string("Public Domain"),
+                "http://idpf.org/epub/vocab/package/#type": .string("article"),
+                "http://my.url/#customProperty": .object([
+                    "@value": .string("Custom property"),
+                    "http://my.url/#refine1": .string("Refine 1"),
+                    "http://my.url/#refine2": .string("Refine 2"),
+                ]),
+                "http://purl.org/dc/terms/format": .string("application/epub+zip"),
+                "http://www.idpf.org/vocab/rendition/#flow": .string("scrolled-doc"),
+                "http://www.idpf.org/vocab/rendition/#orientation": .string("landscape"),
+                "http://www.idpf.org/vocab/rendition/#spread": .string("both"),
             ]
         ))
     }

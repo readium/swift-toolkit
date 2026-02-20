@@ -24,9 +24,9 @@ public struct OPDSPrice: Equatable, Sendable {
         if json == nil {
             return nil
         }
-        guard let jsonObject = json as? [String: Any],
-              let currency = jsonObject["currency"] as? String,
-              let value = parsePositiveDouble(jsonObject["value"])
+        guard let jsonDict = JSONDictionary(json),
+              let currency = jsonDict.json["currency"]?.string,
+              let value = parsePositiveDouble(jsonDict.json["value"])
         else {
             warnings?.log("`currency` and `value` are required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
@@ -36,10 +36,10 @@ public struct OPDSPrice: Equatable, Sendable {
         self.value = value
     }
 
-    public var json: [String: any Sendable] {
+    public var json: [String: JSONValue] {
         [
-            "currency": currency,
-            "value": value,
+            "currency": .string(currency),
+            "value": .double(value),
         ]
     }
 }

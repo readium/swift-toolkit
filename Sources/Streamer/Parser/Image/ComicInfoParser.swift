@@ -6,6 +6,7 @@
 
 import Foundation
 import ReadiumFuzi
+import ReadiumInternal
 import ReadiumShared
 
 /// Parses ComicInfo.xml metadata from CBZ archives.
@@ -209,9 +210,9 @@ struct ComicInfo {
         }
 
         // Build other metadata with specification URL prefix
-        var rwpmOtherMetadata: [String: any Sendable] = [:]
+        var rwpmOtherMetadata: [String: JSONValue] = [:]
         for (key, value) in otherMetadata {
-            rwpmOtherMetadata[Self.otherMetadataPrefix + key.lowercased()] = value
+            rwpmOtherMetadata[Self.otherMetadataPrefix + key.lowercased()] = .string(value)
         }
 
         return Metadata(

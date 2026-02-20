@@ -35,12 +35,12 @@ public struct Properties: Hashable, Loggable, WarningLogger, Sendable {
     }
 
     public var json: JSONDictionary.Wrapped {
-        makeJSON(otherProperties as [String: any Sendable])
+        makeJSON(otherProperties as [String: JSONValue])
     }
 
     /// Syntactic sugar to access the `otherProperties` values by subscripting `Properties` directly.
     /// properties["price"] == properties.otherProperties["price"]
-    public subscript(key: String) -> Any? {
+    public subscript(key: String) -> JSONValue? {
         otherProperties[key]
     }
 
@@ -64,7 +64,7 @@ public extension Properties {
         get { parseRaw(otherProperties[Self.pageKey]) }
         set {
             if let newValue = newValue {
-                otherProperties[Self.pageKey] = newValue.rawValue
+                otherProperties[Self.pageKey] = .string(newValue.rawValue)
             } else {
                 otherProperties.removeValue(forKey: Self.pageKey)
             }

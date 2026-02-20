@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 public typealias PositionsServiceFactory = @Sendable (PublicationServiceContext) -> PositionsService?
 
@@ -62,9 +63,9 @@ private class PositionsResource: Resource, @unchecked Sendable {
 
     func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         await positions().flatMap { positions in
-            let response: [String: any Sendable] = [
-                "total": positions.count,
-                "positions": positions.json,
+            let response: [String: JSONValue] = [
+                "total": .integer(positions.count),
+                "positions": .array(positions.json.map { .object($0) }),
             ]
 
             guard let jsonResponse = serializeJSONData(response) else {

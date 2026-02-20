@@ -6,6 +6,7 @@
 
 import Foundation
 import ReadiumFuzi
+import ReadiumInternal
 import ReadiumShared
 
 /// http://www.idpf.org/epub/30/spec/epub30-publications.html#title-type
@@ -27,7 +28,6 @@ final class OPFParser: Loggable {
         let id: String
         let link: Link
         let fallbackId: String?
-        let mediaOverlayId: String?
     }
 
     /// Relative path to the OPF in the EPUB container
@@ -197,13 +197,7 @@ final class OPFParser: Loggable {
         var properties = parseStringProperties(stringProperties)
 
         if let encryption = encryptions[href]?.json, !encryption.isEmpty {
-            properties["encrypted"] = encryption.compactMapValues { value -> (any Sendable)? in
-                if let v = value as? String { return v }
-                if let v = value as? Int { return v }
-                if let v = value as? Double { return v }
-                if let v = value as? Bool { return v }
-                return nil
-            }
+            properties["encrypted"] = .object(encryption)
         }
 
         let duration = metas["duration", in: .media, refining: id]
@@ -221,8 +215,7 @@ final class OPFParser: Loggable {
         return ManifestItem(
             id: id,
             link: link,
-            fallbackId: manifestItem.attr("fallback"),
-            mediaOverlayId: manifestItem.attr("media-overlay")
+            fallbackId: manifestItem.attr("fallback")
         )
     }
 
@@ -269,15 +262,6 @@ final class OPFParser: Loggable {
                 )
             }
 
-            // Attach the SMIL media overlay as an alternate.
-            if
-                let mediaOverlayId = item.mediaOverlayId,
-                let smilIndex = items.firstIndex(where: { $0.id == mediaOverlayId && $0.link.mediaType?.matches(.smil) == true })
-            {
-                let smilItem = items.remove(at: smilIndex)
-                spineLink.alternates.append(smilItem.link)
-            }
-
             readingOrder.append(spineLink)
         }
 
@@ -286,7 +270,7 @@ final class OPFParser: Loggable {
     }
 
     /// Parse string properties into an `otherProperties` dictionary.
-    private func parseStringProperties(_ properties: [String]) -> [String: any Sendable] {
+    private func parseStringProperties(_ properties: [String]) -> [String: JSONValue] {
         var contains: [String] = []
         var page: String?
 
@@ -317,12 +301,12 @@ final class OPFParser: Loggable {
             }
         }
 
-        var otherProperties: [String: any Sendable] = [:]
+        var otherProperties: [String: JSONValue] = [:]
         if !contains.isEmpty {
-            otherProperties["contains"] = contains
+            otherProperties["contains"] = .array(contains.map { .string($0) })
         }
         if let page = page {
-            otherProperties["page"] = page
+            otherProperties["page"] = .string(page)
         }
 
         return otherProperties

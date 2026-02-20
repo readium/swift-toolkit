@@ -4,6 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import ReadiumInternal
 import ReadiumShared
 @testable import ReadiumStreamer
 import XCTest
@@ -335,15 +336,15 @@ func makeService(layout: Layout? = nil, readingOrder: [(UInt64, Link, ArchivePro
 }
 
 private func makeProperties(layout: EPUBLayout? = nil, originalLength: Int? = nil) -> Properties {
-    var props: [String: any Sendable] = [:]
+    var props: [String: JSONValue] = [:]
     if let layout = layout {
-        props["layout"] = layout.rawValue
+        props["layout"] = .string(layout.rawValue)
     }
     if let originalLength = originalLength {
-        props["encrypted"] = [
-            "algorithm": "algo",
-            "originalLength": originalLength,
-        ] as [String: any Sendable]
+        props["encrypted"] = .object([
+            "algorithm": .string("algo"),
+            "originalLength": .integer(originalLength),
+        ])
     }
     return Properties(props)
 }

@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Holds information about how the resource is stored in the archive.
 public struct ArchiveProperties: Equatable, Sendable {
@@ -26,25 +27,25 @@ public struct ArchiveProperties: Equatable, Sendable {
             return nil
         }
         guard
-            let jsonObject = json as? [String: Any],
-            let length: UInt64 = (jsonObject["entryLength"] as? NSNumber)?.uint64Value,
+            let jsonObject = JSONDictionary(json)?.json,
+            let length = jsonObject["entryLength"]?.integer,
             length >= 0,
-            let isEntryCompressed = jsonObject["isEntryCompressed"] as? Bool
+            let isEntryCompressed = jsonObject["isEntryCompressed"]?.bool
         else {
             throw JSONError.parsing(Self.self)
         }
 
         self.init(
-            entryLength: length,
+            entryLength: UInt64(length),
             isEntryCompressed: isEntryCompressed
         )
     }
 
-    var json: [String: Any] {
+    var json: [String: JSONValue] {
         [
-            "entryLength": entryLength as NSNumber,
-            "isEntryCompressed": isEntryCompressed,
-        ] as [String: any Sendable]
+            "entryLength": .integer(Int(entryLength)),
+            "isEntryCompressed": .bool(isEntryCompressed),
+        ]
     }
 }
 

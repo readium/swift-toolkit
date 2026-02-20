@@ -23,20 +23,20 @@ public struct OPDSAcquisition: Equatable, Sendable {
     }
 
     public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        guard let jsonObject = json as? [String: Any],
-              let type = jsonObject["type"] as? String
+        guard let jsonDict = JSONDictionary(json),
+              let type = jsonDict.json["type"]?.string
         else {
             warnings?.log("`type` is required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
 
         self.type = type
-        children = [OPDSAcquisition](json: jsonObject["child"], warnings: warnings)
+        children = [OPDSAcquisition](json: jsonDict.json["child"], warnings: warnings)
     }
 
-    public var json: [String: any Sendable] {
+    public var json: [String: JSONValue] {
         makeJSON([
-            "type": type,
+            "type": .string(type),
             "child": encodeIfNotEmpty(children.json),
         ])
     }
@@ -47,15 +47,26 @@ public extension Array where Element == OPDSAcquisition {
     /// eg. let acquisitions = [OPDSAcquisition](json: [...])
     init(json: Any?, warnings: WarningLogger? = nil) {
         self.init()
-        guard let json = json as? [[String: Any]] else {
+        guard let json = json else {
             return
         }
 
-        let acquisitions = json.compactMap { try? OPDSAcquisition(json: $0, warnings: warnings) }
+        let rawJson: Any
+        if let j = json as? JSONValue {
+            rawJson = j.any
+        } else {
+            rawJson = json
+        }
+
+        guard let array = rawJson as? [[String: Any]] else {
+            return
+        }
+
+        let acquisitions = array.compactMap { try? OPDSAcquisition(json: $0, warnings: warnings) }
         append(contentsOf: acquisitions)
     }
 
-    var json: [[String: any Sendable]] {
+    var json: [[String: JSONValue]] {
         map(\.json)
     }
 }

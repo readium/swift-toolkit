@@ -39,20 +39,23 @@ public struct DOMRange: JSONEquatable {
         if json == nil {
             return nil
         }
-        guard let jsonObject = json as? [String: Any],
-              let start = try? Point(json: jsonObject["start"], warnings: warnings)
+        guard let jsonDict = JSONDictionary(json),
+              let start = try? Point(json: jsonDict.json["start"], warnings: warnings)
         else {
             warnings?.log("`start` is required", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
-        self.init(start: start, end: try? Point(json: jsonObject["end"], warnings: warnings))
+        self.init(
+            start: start,
+            end: try? Point(json: jsonDict.json["end"], warnings: warnings)
+        )
     }
 
-    public var json: [String: Any] {
+    public var json: [String: JSONValue] {
         makeJSON([
             "start": encodeIfNotEmpty(start.json),
             "end": encodeIfNotEmpty(end?.json),
-        ] as [String: any Sendable])
+        ] as [String: JSONValue])
     }
 
     /// A serializable representation of a boundary point in a DOM Range.
@@ -84,9 +87,9 @@ public struct DOMRange: JSONEquatable {
             if json == nil {
                 return nil
             }
-            guard let jsonObject = json as? [String: Any],
-                  let cssSelector = jsonObject["cssSelector"] as? String,
-                  let textNodeIndex: Int = parsePositive(jsonObject["textNodeIndex"])
+            guard let jsonDict = JSONDictionary(json),
+                  let cssSelector = jsonDict.json["cssSelector"]?.string,
+                  let textNodeIndex: Int = parsePositive(jsonDict.json["textNodeIndex"])
             else {
                 warnings?.log("`cssSelector` and `textNodeIndex` are required", model: Self.self, source: json, severity: .moderate)
                 throw JSONError.parsing(Self.self)
@@ -94,19 +97,19 @@ public struct DOMRange: JSONEquatable {
             self.init(
                 cssSelector: cssSelector,
                 textNodeIndex: textNodeIndex,
-                charOffset: parsePositive(jsonObject["charOffset"])
+                charOffset: parsePositive(jsonDict.json["charOffset"])
                     // The model was using `offset` before, so we still parse it to ensure backward-compatibility for
                     // reading apps having persisted legacy Locator models.
-                    ?? parsePositive(jsonObject["offset"])
+                    ?? parsePositive(jsonDict.json["offset"])
             )
         }
 
-        public var json: [String: any Sendable] {
+        public var json: [String: JSONValue] {
             makeJSON([
-                "cssSelector": cssSelector,
-                "textNodeIndex": textNodeIndex,
+                "cssSelector": .string(cssSelector),
+                "textNodeIndex": .integer(textNodeIndex),
                 "charOffset": encodeIfNotNil(charOffset),
-            ] as [String: any Sendable])
+            ] as [String: JSONValue])
         }
     }
 }

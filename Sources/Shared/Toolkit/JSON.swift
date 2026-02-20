@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 public enum JSONError: Error {
     case parsing(Any.Type)
@@ -14,6 +15,15 @@ public enum JSONError: Error {
 // MARK: - JSON Serialization
 
 public func serializeJSONString(_ object: Any) -> String? {
+    var object = object
+    if let dict = object as? [String: JSONValue] {
+        object = dict.mapValues { $0.any }
+    } else if let array = object as? [JSONValue] {
+        object = array.map(\.any)
+    } else if let val = object as? JSONValue {
+        object = val.any
+    }
+
     guard
         let data = try? JSONSerialization.data(withJSONObject: object, options: .sortedKeys),
         let string = String(data: data, encoding: .utf8)
@@ -45,6 +55,18 @@ public extension JSONEquatable {
     static func == (lhs: Self, rhs: Self) -> Bool {
         let ljson = lhs.json
         let rjson = rhs.json
+
+        // Fast path for JSONValue types which are Equatable
+        if let l = ljson as? JSONValue, let r = rjson as? JSONValue {
+            return l == r
+        }
+        if let l = ljson as? [String: JSONValue], let r = rjson as? [String: JSONValue] {
+            return l == r
+        }
+        if let l = ljson as? [JSONValue], let r = rjson as? [JSONValue] {
+            return l == r
+        }
+
         guard
             JSONSerialization.isValidJSONObject(ljson),
             JSONSerialization.isValidJSONObject(rjson)

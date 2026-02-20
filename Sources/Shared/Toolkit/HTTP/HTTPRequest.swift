@@ -117,18 +117,18 @@ public struct HTTPRequest: Equatable, @unchecked Sendable {
                 ?? ""
         }
     }
-    
+
     public static func == (lhs: HTTPRequest, rhs: HTTPRequest) -> Bool {
         lhs.url.string == rhs.url.string &&
-        lhs.method == rhs.method &&
-        lhs.headers == rhs.headers &&
-        lhs.body == rhs.body &&
-        lhs.timeoutInterval == rhs.timeoutInterval &&
-        lhs.allowUserInteraction == rhs.allowUserInteraction &&
-        // We use NSDictionary to compare the userInfo dictionaries.
-        // This relies on the values being bridgeable to Objective-C or wrapped in _SwiftValue,
-        // and correctly implementing isEqual.
-        NSDictionary(dictionary: lhs.userInfo).isEqual(to: rhs.userInfo)
+            lhs.method == rhs.method &&
+            lhs.headers == rhs.headers &&
+            lhs.body == rhs.body &&
+            lhs.timeoutInterval == rhs.timeoutInterval &&
+            lhs.allowUserInteraction == rhs.allowUserInteraction &&
+            // We use NSDictionary to compare the userInfo dictionaries.
+            // This relies on the values being bridgeable to Objective-C or wrapped in _SwiftValue,
+            // and correctly implementing isEqual.
+            NSDictionary(dictionary: lhs.userInfo).isEqual(to: rhs.userInfo)
     }
 }
 

@@ -17,7 +17,7 @@ class PropertiesArchiveTests: XCTestCase {
         let sut = Properties(["https://readium.org/webpub-manifest/properties#archive": [
             "entryLength": 8273,
             "isEntryCompressed": true,
-        ] as [String: any Sendable]])
+        ]])
 
         XCTAssertEqual(sut.archive, Properties.Archive(entryLength: 8273, isEntryCompressed: true))
     }

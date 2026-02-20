@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Link relations as defined in https://readium.org/webpub-manifest/relationships.html
 public struct LinkRelation: Sendable {
@@ -159,6 +160,11 @@ public extension Array where Element == LinkRelation {
     /// Parses multiple JSON relations into an array of `LinkRelation`.
     init(json: Any?) {
         self.init()
+
+        var json = json
+        if let j = json as? JSONValue {
+            json = j.any
+        }
 
         if let json = json as? String {
             append(LinkRelation(json))

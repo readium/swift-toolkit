@@ -38,28 +38,29 @@ public struct Encryption: Equatable, Sendable {
         if json == nil {
             return nil
         }
-        guard let jsonObject = json as? [String: Any],
-              let algorithm = jsonObject["algorithm"] as? String
+        guard let jsonDict = JSONDictionary(json),
+              let algorithm = jsonDict.json["algorithm"]?.string
         else {
             warnings?.log("`algorithm` is required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
+        let jsonObject = jsonDict.json
 
         self.init(
             algorithm: algorithm,
-            compression: jsonObject["compression"] as? String,
-            originalLength: jsonObject["originalLength"] as? Int
+            compression: jsonObject["compression"]?.string,
+            originalLength: jsonObject["originalLength"]?.integer
                 // Fallback on `original-length` for legacy reasons
                 // See https://github.com/readium/webpub-manifest/pull/43
-                ?? jsonObject["original-length"] as? Int,
-            profile: jsonObject["profile"] as? String,
-            scheme: jsonObject["scheme"] as? String
+                ?? jsonObject["original-length"]?.integer,
+            profile: jsonObject["profile"]?.string,
+            scheme: jsonObject["scheme"]?.string
         )
     }
 
-    public var json: [String: Any] {
+    public var json: [String: JSONValue] {
         makeJSON([
-            "algorithm": algorithm,
+            "algorithm": .string(algorithm),
             "compression": encodeIfNotNil(compression),
             "originalLength": encodeIfNotNil(originalLength),
             "profile": encodeIfNotNil(profile),

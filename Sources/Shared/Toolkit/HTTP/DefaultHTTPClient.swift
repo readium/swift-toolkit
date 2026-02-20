@@ -203,7 +203,7 @@ public final actor DefaultHTTPClient: HTTPClient, Loggable {
         case .failure:
             return result.map { _ in fatalError("unreachable") }
         }
-        
+
         let httpRequest: HTTPRequest
         switch result {
         case let .success(request):
@@ -213,13 +213,13 @@ public final actor DefaultHTTPClient: HTTPClient, Loggable {
         }
 
         let taskResult = await startTask(for: httpRequest, consume: consume)
-        
+
         switch taskResult {
         case .success:
             return taskResult
         case let .failure(error):
             let recoveryResult = await recover(httpRequest, from: error)
-            
+
             switch recoveryResult {
             case let .success(newRequest):
                 return await stream(request: newRequest, consume: consume)
@@ -242,26 +242,26 @@ public final actor DefaultHTTPClient: HTTPClient, Loggable {
             let stream = AsyncStream<HTTPTask.Event> { continuation in
                 let urlRequest = request.urlRequest
                 let task = session.dataTask(with: urlRequest)
-                
+
                 tasks.register(task, continuation: continuation)
-                
+
                 task.resume()
-                
+
                 continuation.onTermination = { [weak tasks] _ in
                     tasks?.unregister(task)
                     task.cancel()
                 }
             }
-            
+
             let task = HTTPTask(
                 request: request,
                 client: self,
                 delegate: delegate,
                 consume: consume
             )
-            
+
             return await task.run(with: stream)
-            
+
         } onCancel: {
             // Cancellation is handled by AsyncStream.onTermination
         }
@@ -304,7 +304,7 @@ public final actor DefaultHTTPClient: HTTPClient, Loggable {
         func unregister(_ task: URLSessionTask) {
             $continuations.write { $0.removeValue(forKey: task) }
         }
-        
+
         private func continuation(for task: URLSessionTask) -> AsyncStream<HTTPTask.Event>.Continuation? {
             continuations[task]
         }
@@ -358,7 +358,7 @@ public final actor DefaultHTTPClient: HTTPClient, Loggable {
         private unowned let client: DefaultHTTPClient
         private weak var delegate: DefaultHTTPClientDelegate?
         private let consume: Consume
-        
+
         private var response: HTTPResponse?
         private var readBytes: Int64 = 0
 
@@ -373,38 +373,38 @@ public final actor DefaultHTTPClient: HTTPClient, Loggable {
             self.delegate = delegate
             self.consume = consume
         }
-        
+
         func run(with stream: AsyncStream<Event>) async -> HTTPResult<HTTPResponse> {
             log(.info, request)
-            
+
             var result: HTTPResult<HTTPResponse>?
-            
+
             for await event in stream {
                 switch event {
                 case let .response(urlResponse, completion):
                     handleResponse(urlResponse, completion: completion.value)
-                    
+
                 case let .data(data):
                     if let error = await handleData(data) {
                         result = .failure(error)
                         return .failure(error)
                     }
-                    
+
                 case let .complete(error):
                     result = handleCompletion(error)
-                    
+
                 case let .challenge(challenge, completion):
                     await handleChallenge(challenge, completion: completion.value)
                 }
             }
-            
+
             if let result = result {
                 return result
             } else {
                 return .failure(.cancelled)
             }
         }
-        
+
         private func handleResponse(_ urlResponse: URLResponse, completion: (URLSession.ResponseDisposition) -> Void) {
             guard
                 let urlResponse = urlResponse as? HTTPURLResponse,
@@ -429,15 +429,15 @@ public final actor DefaultHTTPClient: HTTPClient, Loggable {
             }
 
             self.response = response
-            self.readBytes = 0
-            
+            readBytes = 0
+
             Task {
                 await delegate?.httpClient(client, request: request, didReceiveResponse: response)
             }
 
             completion(.allow)
         }
-        
+
         private func handleData(_ data: Data) async -> HTTPError? {
             if var response = self.response, !response.status.isSuccess {
                 var body = response.body ?? Data()
@@ -447,10 +447,10 @@ public final actor DefaultHTTPClient: HTTPClient, Loggable {
                 return nil
             }
 
-            guard let response = self.response else {
+            guard let response = response else {
                 return nil
             }
-            
+
             readBytes += Int64(data.count)
             var progress: Double? = nil
             if let expectedBytes = response.contentLength {
@@ -465,7 +465,7 @@ public final actor DefaultHTTPClient: HTTPClient, Loggable {
                 return error
             }
         }
-        
+
         private func handleCompletion(_ error: Error?) -> HTTPResult<HTTPResponse> {
             if let error = error {
                 let httpError = HTTPError(error: error)
@@ -485,7 +485,7 @@ public final actor DefaultHTTPClient: HTTPClient, Loggable {
                 return .failure(.cancelled)
             }
         }
-        
+
         private func handleChallenge(_ challenge: URLAuthenticationChallenge, completion: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) async {
             let response: URLAuthenticationChallengeResponse
             if let delegate = delegate {
@@ -493,7 +493,7 @@ public final actor DefaultHTTPClient: HTTPClient, Loggable {
             } else {
                 response = .performDefaultHandling
             }
-            
+
             switch response {
             case let .useCredential(credential):
                 completion(.useCredential, credential)
