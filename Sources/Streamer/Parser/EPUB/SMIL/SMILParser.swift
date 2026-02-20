@@ -19,7 +19,7 @@ enum SMILParser {
     /// content.
     static func parseGuidedNavigationDocument(
         smilData: Data,
-        at url: RelativeURL,
+        at url: AnyURL,
         warnings: WarningLogger? = nil
     ) throws -> GuidedNavigationDocument? {
         let document = try ReadiumFuzi.XMLDocument(data: smilData)
@@ -80,7 +80,7 @@ enum SMILParser {
 /// Holds the per-parse state, avoiding parameter threading through helpers.
 private struct SMILGuidedNavigationDocumentParsing {
     let document: ReadiumFuzi.XMLDocument
-    let url: RelativeURL
+    let url: AnyURL
     let warnings: WarningLogger?
 
     func parse() -> GuidedNavigationDocument? {
