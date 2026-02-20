@@ -16,6 +16,7 @@ public struct PublicationServicesBuilder {
         content: ContentServiceFactory? = nil,
         contentProtection: ContentProtectionServiceFactory? = nil,
         cover: CoverServiceFactory? = ResourceCoverService.makeFactory(),
+        guidedNavigation: GuidedNavigationServiceFactory? = nil,
         locator: LocatorServiceFactory? = { DefaultLocatorService(publication: $0.publication) },
         positions: PositionsServiceFactory? = nil,
         search: SearchServiceFactory? = nil,
@@ -24,6 +25,7 @@ public struct PublicationServicesBuilder {
         setContentServiceFactory(content)
         setContentProtectionServiceFactory(contentProtection)
         setCoverServiceFactory(cover)
+        setGuidedNavigationServiceFactory(guidedNavigation)
         setLocatorServiceFactory(locator)
         setPositionsServiceFactory(positions)
         setSearchServiceFactory(search)

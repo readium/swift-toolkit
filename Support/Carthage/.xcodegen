@@ -674,6 +674,8 @@
 ../../Sources/Shared/Publication/Services/Cover/CoverService.swift
 ../../Sources/Shared/Publication/Services/Cover/GeneratedCoverService.swift
 ../../Sources/Shared/Publication/Services/Cover/ResourceCoverService.swift
+../../Sources/Shared/Publication/Services/GuidedNavigation
+../../Sources/Shared/Publication/Services/GuidedNavigation/GuidedNavigationService.swift
 ../../Sources/Shared/Publication/Services/Locator
 ../../Sources/Shared/Publication/Services/Locator/DefaultLocatorService.swift
 ../../Sources/Shared/Publication/Services/Locator/LocatorService.swift
@@ -852,7 +854,9 @@
 ../../Sources/Streamer/Parser/EPUB/Resource Transformers/EPUBDeobfuscator.swift
 ../../Sources/Streamer/Parser/EPUB/Services
 ../../Sources/Streamer/Parser/EPUB/Services/EPUBPositionsService.swift
-../../Sources/Streamer/Parser/EPUB/SMILParser.swift
+../../Sources/Streamer/Parser/EPUB/SMIL
+../../Sources/Streamer/Parser/EPUB/SMIL/SMILGuidedNavigationService.swift
+../../Sources/Streamer/Parser/EPUB/SMIL/SMILParser.swift
 ../../Sources/Streamer/Parser/EPUB/XMLNamespace.swift
 ../../Sources/Streamer/Parser/Image
 ../../Sources/Streamer/Parser/Image/ComicInfoParser.swift
@@ -865,6 +869,7 @@
 ../../Sources/Streamer/Parser/PDF/Services/PDFPositionsService.swift
 ../../Sources/Streamer/Parser/PublicationParser.swift
 ../../Sources/Streamer/Parser/Readium
+../../Sources/Streamer/Parser/Readium/ReadiumGuidedNavigationService.swift
 ../../Sources/Streamer/Parser/Readium/ReadiumWebPubParser.swift
 ../../Sources/Streamer/PublicationOpener.swift
 ../../Sources/Streamer/Toolkit

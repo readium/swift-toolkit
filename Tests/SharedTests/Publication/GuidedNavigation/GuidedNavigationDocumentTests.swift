@@ -24,12 +24,9 @@ import Testing
             ))
         }
 
-        @Test("full JSON with links and guided")
+        @Test("full JSON with guided")
         func fullJSON() throws {
             let sut = try GuidedNavigationDocument(json: [
-                "links": [
-                    ["href": "https://example.com/manifest.json", "type": "application/webpub+json", "rel": "self"],
-                ],
                 "guided": [
                     ["textref": "chapter1.html"],
                     ["audioref": "track.mp3"],
@@ -37,15 +34,12 @@ import Testing
             ])
 
             #expect(sut?.guided.count == 2)
-            #expect(sut?.links.count == 1)
         }
 
         @Test("missing guided throws")
         func missingGuided() throws {
             #expect(throws: JSONError.self) {
-                try GuidedNavigationDocument(json: [
-                    "links": [],
-                ])
+                try GuidedNavigationDocument(json: [:])
             }
         }
 
