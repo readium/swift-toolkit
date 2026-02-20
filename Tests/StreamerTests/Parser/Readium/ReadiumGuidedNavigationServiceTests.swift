@@ -31,12 +31,10 @@ import Testing
 
     func makeService(
         readingOrder: [Link],
-        manifestLinks: [Link] = [],
         guided: [[String: Any]]? = nil
     ) -> ReadiumGuidedNavigationService {
         let manifest = Manifest(
             metadata: Metadata(title: "Test"),
-            links: manifestLinks,
             readingOrder: readingOrder
         )
 
@@ -73,6 +71,17 @@ import Testing
         let service = makeService(readingOrder: [linkWithoutGN])
         let result = await service.guidedNavigationDocument(for: linkWithoutGN)
         #expect(try result.get() == nil)
+    }
+
+    @Test func returnsFailureWhenGNDocumentMissingFromContainer() async {
+        let service = makeService(readingOrder: [linkWithGN])
+        let result = await service.guidedNavigationDocument(for: linkWithGN)
+        #expect {
+            try result.get()
+        } throws: { error in
+            guard let readError = error as? ReadError, case .decoding = readError else { return false }
+            return true
+        }
     }
 
     @Test func returnsDocumentFromPerResourceAlternate() async throws {

@@ -12,8 +12,8 @@ import ReadiumShared
 ///
 /// Discovers Guided Navigation Documents via `link.alternates` on reading order
 /// items.
-public actor ReadiumGuidedNavigationService: GuidedNavigationService {
-    public static func makeFactory() -> GuidedNavigationServiceFactory {
+actor ReadiumGuidedNavigationService: GuidedNavigationService {
+    static func makeFactory() -> GuidedNavigationServiceFactory {
         { context in
             ReadiumGuidedNavigationService(
                 manifest: context.manifest,
@@ -25,26 +25,26 @@ public actor ReadiumGuidedNavigationService: GuidedNavigationService {
     nonisolated let manifest: Manifest
     private let container: Container
     private var gndCache: [AnyURL: GuidedNavigationDocument?] = [:]
-    private var cachedGlobalDocument: ReadResult<GuidedNavigationDocument?>?
 
     init(manifest: Manifest, container: Container) {
         self.manifest = manifest
         self.container = container
     }
 
-    public nonisolated var hasGuidedNavigation: Bool {
-        manifest.links.anyMatchingMediaType(.readiumGuidedNavigationDocument)
-            || manifest.readingOrder.contains { $0.alternates.anyMatchingMediaType(.readiumGuidedNavigationDocument) }
+    nonisolated var hasGuidedNavigation: Bool {
+        manifest.readingOrder.contains {
+            $0.alternates.anyMatchingMediaType(.readiumGuidedNavigationDocument)
+        }
     }
 
-    public nonisolated func hasGuidedNavigation(for href: any URLConvertible) -> Bool {
+    nonisolated func hasGuidedNavigation(for href: any URLConvertible) -> Bool {
         manifest.readingOrder.firstWithHREF(href)?
             .alternates
             .anyMatchingMediaType(.readiumGuidedNavigationDocument)
             ?? false
     }
 
-    public func guidedNavigationDocument(
+    func guidedNavigationDocument(
         for href: any URLConvertible
     ) async -> ReadResult<GuidedNavigationDocument?> {
         guard
@@ -66,7 +66,7 @@ public actor ReadiumGuidedNavigationService: GuidedNavigationService {
 
     private func retrieve(_ gnURL: AnyURL) async -> ReadResult<GuidedNavigationDocument?> {
         guard let resource = container[gnURL] else {
-            return .success(nil)
+            return .failure(.decoding("Guided Navigation Document not found at \(gnURL)"))
         }
 
         return await resource.readAsJSONObject()

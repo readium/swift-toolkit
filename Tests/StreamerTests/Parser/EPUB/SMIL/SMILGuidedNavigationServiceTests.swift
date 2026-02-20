@@ -87,10 +87,15 @@ import Testing
         #expect(try result.get() == nil)
     }
 
-    @Test func returnsNilWhenResourceMissingFromContainer() async throws {
+    @Test func returnsFailureWhenSMILMissingFromContainer() async {
         let service = makeService(readingOrder: [linkWithSMIL], container: EmptyContainer())
         let result = await service.guidedNavigationDocument(for: linkWithSMIL)
-        #expect(try result.get() == nil)
+        #expect {
+            try result.get()
+        } throws: { error in
+            guard let readError = error as? ReadError, case .decoding = readError else { return false }
+            return true
+        }
     }
 
     @Test func returnsDocumentForLinkWithSMIL() async throws {

@@ -66,7 +66,7 @@ actor SMILGuidedNavigationService: GuidedNavigationService {
 
     private func retrieve(_ smilURL: AnyURL) async -> ReadResult<GuidedNavigationDocument?> {
         guard let resource = container[smilURL] else {
-            return .success(nil)
+            return .failure(.decoding("SMIL not found at \(smilURL)"))
         }
 
         return await resource.read()
