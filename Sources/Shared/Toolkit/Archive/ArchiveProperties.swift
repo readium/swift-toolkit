@@ -28,22 +28,21 @@ public struct ArchiveProperties: Equatable, Sendable {
         }
         guard
             let jsonObject = JSONDictionary(json)?.json,
-            let length = jsonObject["entryLength"]?.integer,
-            length >= 0,
+            let length = jsonObject["entryLength"]?.uint64,
             let isEntryCompressed = jsonObject["isEntryCompressed"]?.bool
         else {
             throw JSONError.parsing(Self.self)
         }
 
         self.init(
-            entryLength: UInt64(length),
+            entryLength: length,
             isEntryCompressed: isEntryCompressed
         )
     }
 
     var json: [String: JSONValue] {
         [
-            "entryLength": .integer(Int(entryLength)),
+            "entryLength": .uint64(entryLength),
             "isEntryCompressed": .bool(isEntryCompressed),
         ]
     }

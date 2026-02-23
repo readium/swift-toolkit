@@ -313,36 +313,44 @@ public class AVTTSEngine: NSObject, TTSEngine, Loggable {
 
 extension AVTTSEngine: @preconcurrency AVSpeechSynthesizerDelegate {
     public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
-        guard let task = (utterance as? TaskUtterance)?.task else {
-            return
+        Task { @MainActor in
+            guard let task = (utterance as? TaskUtterance)?.task else {
+                return
+            }
+            on(.didStart(task))
         }
-        on(.didStart(task))
     }
 
     public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
-        guard let task = (utterance as? TaskUtterance)?.task else {
-            return
+        Task { @MainActor in
+            guard let task = (utterance as? TaskUtterance)?.task else {
+                return
+            }
+            on(.didFinish(task))
         }
-        on(.didFinish(task))
     }
 
     public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        guard let task = (utterance as? TaskUtterance)?.task else {
-            return
+        Task { @MainActor in
+            guard let task = (utterance as? TaskUtterance)?.task else {
+                return
+            }
+            on(.didFinish(task))
         }
-        on(.didFinish(task))
     }
 
     public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance avUtterance: AVSpeechUtterance) {
-        guard
-            let task = (avUtterance as? TaskUtterance)?.task,
-            characterRange.upperBound <= task.utterance.text.count,
-            let range = Range(characterRange, in: task.utterance.text)
-        else {
-            return
-        }
+        Task { @MainActor in
+            guard
+                let task = (avUtterance as? TaskUtterance)?.task,
+                characterRange.upperBound <= task.utterance.text.count,
+                let range = Range(characterRange, in: task.utterance.text)
+            else {
+                return
+            }
 
-        on(.willSpeakRange(range, task: task))
+            on(.willSpeakRange(range, task: task))
+        }
     }
 }
 

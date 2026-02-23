@@ -775,7 +775,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     private lazy var updateCurrentLocation = execute(
         // If we're not in an `idle` state, we postpone the notification.
         when: { [weak self] in
-            DispatchQueue.main.sync {
+            await MainActor.run {
                 self?.state == .idle
             }
         },

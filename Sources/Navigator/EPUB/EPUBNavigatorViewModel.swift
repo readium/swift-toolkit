@@ -186,7 +186,7 @@ enum EPUBScriptScope: Sendable {
         let fontDeclarations = config.fontFamilyDeclarations
         let publication = publication
 
-        let serveFont: @Sendable (FileURL) throws -> AbsoluteURL = { file in
+        let serveFont: @Sendable (FileURL) async throws -> AbsoluteURL = { file in
             if let url = servedFontsAtomic.read()[file] {
                 return url
             }
@@ -198,7 +198,7 @@ enum EPUBScriptScope: Sendable {
 
             servedFontsAtomic.write { $0[file] = url }
 
-            Task { @MainActor in
+            _ = await MainActor.run {
                 server.serve(file: file, at: path)
             }
 
@@ -347,7 +347,7 @@ enum EPUBScriptScope: Sendable {
         publication: Publication,
         css: ReadiumCSS,
         fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration],
-        serveFont: @escaping @Sendable (FileURL) throws -> AbsoluteURL
+        serveFont: @escaping @Sendable (FileURL) async throws -> AbsoluteURL
     ) -> Resource {
         guard
             let link = publication.linkWithHREF(href),
@@ -361,7 +361,7 @@ enum EPUBScriptScope: Sendable {
             do {
                 var content = try css.inject(in: content)
                 for ff in fontFamilyDeclarations {
-                    content = try ff.inject(in: content, servingFile: serveFont)
+                    content = try await ff.inject(in: content, servingFile: serveFont)
                 }
                 return content
             } catch {

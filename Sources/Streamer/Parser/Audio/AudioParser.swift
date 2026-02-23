@@ -13,10 +13,6 @@ import ReadiumShared
 /// It can also work for a standalone audio file.
 public final class AudioParser: PublicationParser {
     private let assetRetriever: AssetRetriever
-    private struct UncheckedSendable<T>: @unchecked Sendable {
-        let value: T
-    }
-
     private let manifestAugmentor: UncheckedSendable<AudioPublicationManifestAugmentor>
 
     public init(
@@ -24,7 +20,7 @@ public final class AudioParser: PublicationParser {
         manifestAugmentor: AudioPublicationManifestAugmentor = AVAudioPublicationManifestAugmentor()
     ) {
         self.assetRetriever = assetRetriever
-        self.manifestAugmentor = UncheckedSendable(value: manifestAugmentor)
+        self.manifestAugmentor = UncheckedSendable(manifestAugmentor)
     }
 
     private let audioSpecifications: Set<FormatSpecification> = [

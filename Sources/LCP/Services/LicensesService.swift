@@ -23,10 +23,6 @@ final class LicensesService: Loggable, Sendable {
     private let httpClient: HTTPClient
     private let passphrases: PassphrasesService
 
-    struct Unchecked<T>: @unchecked Sendable {
-        let value: T
-    }
-
     init(
         isProduction: Bool,
         client: LCPClient,
@@ -89,7 +85,7 @@ final class LicensesService: Loggable, Sendable {
             }
         }
 
-        let uncheckedSender = Unchecked(value: sender)
+        let uncheckedSender = UncheckedSendable(sender)
         let validation = LicenseValidation(
             authentication: authentication,
             allowUserInteraction: allowUserInteraction,

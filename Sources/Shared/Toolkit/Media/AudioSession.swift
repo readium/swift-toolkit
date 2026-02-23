@@ -70,18 +70,14 @@ public final class AudioSession: Loggable {
         }
     }
 
-    private struct UncheckedSendableUser: @unchecked Sendable {
-        let user: AudioSessionUser
-    }
-
     /// Current user of the `AudioSession`.
     private var user: User?
 
     /// Starts a new audio session with the given `user`.
     public nonisolated func start(with user: AudioSessionUser, isPlaying: Bool) {
-        let capturedUser = UncheckedSendableUser(user: user)
+        let capturedUser = UncheckedSendable(user)
         Task {
-            await start(with: capturedUser.user, isPlaying: isPlaying)
+            await start(with: capturedUser.value, isPlaying: isPlaying)
         }
     }
 
@@ -123,9 +119,9 @@ public final class AudioSession: Loggable {
     private var isPlaying: Bool = false
 
     public nonisolated func user(_ user: AudioSessionUser, didChangePlaying isPlaying: Bool) {
-        let capturedUser = UncheckedSendableUser(user: user)
+        let capturedUser = UncheckedSendable(user)
         Task {
-            await self.user(capturedUser.user, didChangePlaying: isPlaying)
+            await self.user(capturedUser.value, didChangePlaying: isPlaying)
         }
     }
 

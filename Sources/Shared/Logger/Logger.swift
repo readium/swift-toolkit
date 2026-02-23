@@ -10,8 +10,13 @@ import Foundation
 /// Default logger is the `LoggerStub` class
 ///
 /// - Parameter customLogger: The Logger that will be used for printing logs.
+///
+/// **Warning**: This function is asynchronous, so the logger might not be fully
+/// set up when it returns.
 public func ReadiumEnableLog(withMinimumSeverityLevel level: SeverityLevel, customLogger: LoggerType = LoggerStub()) {
-    Logger.sharedInstance.setupLogger(logger: customLogger, withMinimumSeverityLevel: level)
+    Task {
+        await Logger.sharedInstance.setupLogger(logger: customLogger, withMinimumSeverityLevel: level)
+    }
 
     print("\(SeverityLevel.info.symbol) Readium 2 Log enabled with minimum severity level of [\(level)].")
 }
@@ -41,36 +46,23 @@ public actor Logger {
     /// - Parameters:
     ///   - logger: The logger to be used as the `activeLogger`.
     ///   - severityLevel: The minimum severity level of displayed logs.
-    public nonisolated func setupLogger(logger: LoggerType,
-                                        withMinimumSeverityLevel severityLevel: SeverityLevel? = .warning)
+    public func setupLogger(logger: LoggerType,
+                            withMinimumSeverityLevel severityLevel: SeverityLevel? = .warning)
     {
-        Task {
-            await updateState(logger: logger, level: severityLevel)
-        }
-    }
-
-    /// Internal helper to update state within the actor's isolation.
-    private func updateState(logger: LoggerType, level: SeverityLevel?) {
         activeLogger = logger
-        minimumSeverityLevel = level
+        minimumSeverityLevel = severityLevel
     }
 
     /// Allow the framework user to set the minimum severity level for the logs
     /// being displayed.
     ///
     /// - Parameter severityLevel: The value from the `SeverityLevel` enum.
-    public nonisolated func setMinimumSeverityLevel(at severityLevel: SeverityLevel?) {
+    public func setMinimumSeverityLevel(at severityLevel: SeverityLevel?) {
         guard let severityLevel = severityLevel else {
             return
         }
 
-        Task {
-            await updateLevel(severityLevel)
-        }
-    }
-
-    private func updateLevel(_ level: SeverityLevel) {
-        minimumSeverityLevel = level
+        minimumSeverityLevel = severityLevel
     }
 
     // MARK: - Internal methods.

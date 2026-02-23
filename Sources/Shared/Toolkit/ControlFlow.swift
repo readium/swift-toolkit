@@ -24,8 +24,8 @@ public func throttle(
 
             queue.asyncAfter(deadline: .now() + duration) {
                 Task {
-                    await self.reset()
                     block()
+                    await self.reset()
                 }
             }
         }
@@ -46,7 +46,7 @@ public func throttle(
 ///
 /// Additional calls are ignored while polling the condition.
 public func execute(
-    when condition: @escaping @Sendable () -> Bool,
+    when condition: @escaping @Sendable () async -> Bool,
     pollingInterval: TimeInterval = 0,
     on queue: DispatchQueue = .main,
     _ block: @escaping @Sendable () async -> Void
@@ -55,23 +55,23 @@ public func execute(
         var isPolling = false
 
         func run(
-            condition: @escaping @Sendable () -> Bool,
+            condition: @escaping @Sendable () async -> Bool,
             pollingInterval: TimeInterval,
             queue: DispatchQueue,
             block: @escaping @Sendable () async -> Void
-        ) {
+        ) async {
             if isPolling { return }
             isPolling = true
-            poll(condition: condition, pollingInterval: pollingInterval, queue: queue, block: block)
+            await poll(condition: condition, pollingInterval: pollingInterval, queue: queue, block: block)
         }
 
         private func poll(
-            condition: @escaping @Sendable () -> Bool,
+            condition: @escaping @Sendable () async -> Bool,
             pollingInterval: TimeInterval,
             queue: DispatchQueue,
             block: @escaping @Sendable () async -> Void
-        ) {
-            if condition() {
+        ) async {
+            if await condition() {
                 isPolling = false
                 Task { await block() }
             } else {

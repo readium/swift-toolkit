@@ -21,14 +21,14 @@ public protocol HTMLFontFamilyDeclaration {
     ///
     /// Use `servingFile` to convert a file URL into a URL accessible from the
     /// web views.
-    func inject(in html: String, servingFile: (FileURL) throws -> any AbsoluteURL) throws -> String
+    func inject(in html: String, servingFile: @escaping @Sendable (FileURL) async throws -> any AbsoluteURL) async throws -> String
 }
 
 /// A type-erasing `HTMLFontFamilyDeclaration` object
 public struct AnyHTMLFontFamilyDeclaration: HTMLFontFamilyDeclaration, Sendable {
     private let _fontFamily: @Sendable () -> FontFamily
     private let _alternates: @Sendable () -> [FontFamily]
-    private let _inject: @Sendable (String, (FileURL) throws -> any AbsoluteURL) throws -> String
+    private let _inject: @Sendable (String, @escaping @Sendable (FileURL) async throws -> any AbsoluteURL) async throws -> String
 
     public var fontFamily: FontFamily {
         _fontFamily()
@@ -41,11 +41,11 @@ public struct AnyHTMLFontFamilyDeclaration: HTMLFontFamilyDeclaration, Sendable 
     public init<T: HTMLFontFamilyDeclaration & Sendable>(_ declaration: T) {
         _fontFamily = { declaration.fontFamily }
         _alternates = { declaration.alternates }
-        _inject = { try declaration.inject(in: $0, servingFile: $1) }
+        _inject = { try await declaration.inject(in: $0, servingFile: $1) }
     }
 
-    public func inject(in html: String, servingFile: (FileURL) throws -> any AbsoluteURL) throws -> String {
-        try _inject(html, servingFile)
+    public func inject(in html: String, servingFile: @escaping @Sendable (FileURL) async throws -> any AbsoluteURL) async throws -> String {
+        try await _inject(html, servingFile)
     }
 }
 
@@ -70,15 +70,18 @@ public struct CSSFontFamilyDeclaration: HTMLFontFamilyDeclaration, Sendable {
         self.fontFaces = fontFaces
     }
 
-    public func inject(in html: String, servingFile: (FileURL) throws -> any AbsoluteURL) throws -> String {
-        var injections = try fontFaces.flatMap {
-            try $0.injections(for: html, servingFile: servingFile)
+    public func inject(in html: String, servingFile: @escaping @Sendable (FileURL) async throws -> any AbsoluteURL) async throws -> String {
+        var injections: [HTMLInjection] = []
+        for face in fontFaces {
+            try await injections.append(contentsOf: face.injections(for: html, servingFile: servingFile))
         }
 
-        let css = try fontFaces
-            .map { try $0.css(for: fontFamily.rawValue, servingFile: servingFile) }
-            .joined(separator: "\n")
-        injections.append(.style(css))
+        var css: [String] = []
+        for face in fontFaces {
+            try await css.append(face.css(for: fontFamily.rawValue, servingFile: servingFile))
+        }
+
+        injections.append(.style(css.joined(separator: "\n")))
 
         var html = html
         for injection in injections {
@@ -122,17 +125,21 @@ public struct CSSFontFace: Sendable {
         return copy
     }
 
-    func injections(for html: String, servingFile: (FileURL) throws -> any AbsoluteURL) throws -> [HTMLInjection] {
-        try sources
-            .filter(\.preload)
-            .map { source in
-                let file = try servingFile(source.file)
-                return .link(href: file.string, rel: "preload", as: "font", crossOrigin: "")
-            }
+    func injections(for html: String, servingFile: (FileURL) async throws -> any AbsoluteURL) async throws -> [HTMLInjection] {
+        var injections: [HTMLInjection] = []
+        for source in sources.filter(\.preload) {
+            let file = try await servingFile(source.file)
+            injections.append(.link(href: file.string, rel: "preload", as: "font", crossOrigin: ""))
+        }
+        return injections
     }
 
-    func css(for fontFamily: String, servingFile: (FileURL) throws -> any AbsoluteURL) throws -> String {
-        let urls = try sources.map { try servingFile($0.file) }
+    func css(for fontFamily: String, servingFile: (FileURL) async throws -> any AbsoluteURL) async throws -> String {
+        var urls: [any AbsoluteURL] = []
+        for source in sources {
+            try await urls.append(servingFile(source.file))
+        }
+
         var descriptors: [String: String] = [
             "font-family": "\"\(fontFamily)\"",
             "src": urls.map { "url(\"\($0.string)\")" }.joined(separator: ", "),

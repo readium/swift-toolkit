@@ -40,7 +40,7 @@ public struct StatusDocument: Sendable {
     public let licenseUpdated: Date
     /// Time and Date when the Status Document was last updated.
     public let updated: Date
-    public let links: [Link]
+    public let links: Links
     /// Potential changes allowed for a License Document.
     public let potentialRights: PotentialRights?
     /// Ordered list of events related to the change in status of a License Document.
@@ -69,7 +69,7 @@ public struct StatusDocument: Sendable {
         self.message = message
         self.licenseUpdated = licenseUpdated
         self.updated = statusUpdated
-        self.links = try links.map(Link.init)
+        self.links = try Links(json: links)
 
         if let potentialRights = json["potential_rights"] as? [String: Any] {
             self.potentialRights = try PotentialRights(json: potentialRights)
@@ -86,22 +86,16 @@ public struct StatusDocument: Sendable {
 
     /// Returns the first link containing the given rel.
     public func link(for rel: Rel, type: MediaType? = nil) -> Link? {
-        links.first {
-            $0.rel.contains(rel.rawValue) && (type?.matches($0.mediaType) ?? true)
-        }
+        links.firstWithRel(rel.rawValue, type: type)
     }
 
     /// Returns all the links containing the given rel.
     public func links(for rel: Rel, type: MediaType? = nil) -> [Link] {
-        links.filter {
-            $0.rel.contains(rel.rawValue) && (type?.matches($0.mediaType) ?? true)
-        }
+        links.filterWithRel(rel.rawValue, type: type)
     }
 
     func linkWithNoType(for rel: Rel) -> Link? {
-        links.first {
-            $0.rel.contains(rel.rawValue) && $0.mediaType == nil
-        }
+        links.firstWithRelAndNoType(rel.rawValue)
     }
 
     /// Gets and expands the URL for the given rel, if it exits.

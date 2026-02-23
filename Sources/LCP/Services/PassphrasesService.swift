@@ -13,10 +13,6 @@ final class PassphrasesService: Sendable {
     private let client: LCPClient
     private let repository: LCPPassphraseRepository
 
-    struct Unchecked<T>: @unchecked Sendable {
-        let value: T
-    }
-
     init(client: LCPClient, repository: LCPPassphraseRepository) {
         self.client = client
         self.repository = repository
@@ -93,7 +89,7 @@ final class PassphrasesService: Sendable {
         sender: Any?
     ) async throws -> LCPPassphraseHash? {
         let authenticatedLicense = LCPAuthenticatedLicense(document: license)
-        let uncheckedSender = Unchecked(value: sender)
+        let uncheckedSender = UncheckedSendable(sender)
         guard let clearPassphrase = await authentication.retrievePassphrase(
             for: authenticatedLicense,
             reason: reason,

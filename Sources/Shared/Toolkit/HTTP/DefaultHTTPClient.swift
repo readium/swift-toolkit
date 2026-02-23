@@ -89,7 +89,7 @@ public final actor DefaultHTTPClient: HTTPClient, Loggable {
     /// Returns the default user agent used when issuing requests.
     ///
     /// For example, TestApp/1.3 x86_64 iOS/15.0 CFNetwork/1312 Darwin/20.6.0
-    public nonisolated(unsafe) static var defaultUserAgent: String = {
+    public static let defaultUserAgent: String = {
         var sysinfo = utsname()
         uname(&sysinfo)
 
@@ -162,7 +162,12 @@ public final actor DefaultHTTPClient: HTTPClient, Loggable {
         self.init(configuration: config, userAgent: userAgent, delegate: delegate)
     }
 
-    public var delegate: DefaultHTTPClientDelegate?
+    public var delegate: DefaultHTTPClientDelegate? {
+        get { _delegate.ref as? DefaultHTTPClientDelegate }
+        set { _delegate.ref = newValue }
+    }
+
+    private let _delegate: Weak<AnyObject>
 
     private let tasks: HTTPTaskManager
     private let session: URLSession
@@ -180,7 +185,7 @@ public final actor DefaultHTTPClient: HTTPClient, Loggable {
         let tasks = HTTPTaskManager()
 
         self.userAgent = userAgent ?? DefaultHTTPClient.defaultUserAgent
-        self.delegate = delegate
+        _delegate = Weak(delegate as AnyObject?)
         self.tasks = tasks
         // Note that URLSession keeps a strong reference to its delegate, so we
         // don't use the DefaultHTTPClient itself as its delegate.
@@ -282,14 +287,6 @@ public final actor DefaultHTTPClient: HTTPClient, Loggable {
             return await delegate.httpClient(self, recoverRequest: request, fromError: error)
         } else {
             return .failure(error)
-        }
-    }
-
-    /// Internal helper to wrap non-Sendable items safely for use in Tasks
-    struct UncheckedSendable<T>: @unchecked Sendable {
-        let value: T
-        init(_ value: T) {
-            self.value = value
         }
     }
 

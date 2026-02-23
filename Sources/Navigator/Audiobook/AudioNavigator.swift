@@ -139,7 +139,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             defaults: config.defaults
         )
 
-        _player = Unchecked(value: AVPlayer())
+        _player = UncheckedSendable(AVPlayer())
         setupPlayer()
     }
 
@@ -193,7 +193,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         }
 
         NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: nil, queue: .main) { [weak self] notification in
-            let object = Unchecked(value: notification.object)
+            let object = UncheckedSendable(notification.object)
             MainActor.assumeIsolated {
                 guard let self = self else {
                     return
@@ -338,7 +338,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     private lazy var mediaLoader = PublicationMediaLoader(publication: publication)
 
-    private nonisolated let _player: Unchecked<AVPlayer>
+    private nonisolated let _player: UncheckedSendable<AVPlayer>
 
     private var player: AVPlayer {
         _player.value
@@ -369,12 +369,10 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         }
     }
 
-    private struct Unchecked<T>: @unchecked Sendable { let value: T }
-
     /// A deadlock can occur when loading HTTP assets and creating the playback info from the main thread.
     /// To fix this, this is an asynchronous operation.
     private func makePlaybackInfo(forTime time: Double? = nil, completion: @escaping @MainActor (MediaPlaybackInfo) -> Void) {
-        let player = Unchecked(value: player)
+        let player = UncheckedSendable(player)
         let resourceIndex = resourceIndex
         let publication = publication
 
@@ -433,7 +431,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     private var lastLoadedTimeRanges: [Range<Double>] = []
 
     private lazy var loadedTimeRangesTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] timer in
-        let timer = Unchecked(value: timer)
+        let timer = UncheckedSendable(timer)
         MainActor.assumeIsolated {
             guard let self = self else {
                 timer.value.invalidate()

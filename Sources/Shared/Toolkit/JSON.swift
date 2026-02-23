@@ -15,17 +15,11 @@ public enum JSONError: Error {
 // MARK: - JSON Serialization
 
 public func serializeJSONString(_ object: Any) -> String? {
-    var object = object
-    if let dict = object as? [String: JSONValue] {
-        object = dict.mapValues { $0.any }
-    } else if let array = object as? [JSONValue] {
-        object = array.map(\.any)
-    } else if let val = object as? JSONValue {
-        object = val.any
-    }
+    let unwrappedObject = JSONValue(object)?.any ?? object
 
     guard
-        let data = try? JSONSerialization.data(withJSONObject: object, options: .sortedKeys),
+        JSONSerialization.isValidJSONObject(unwrappedObject) || JSONSerialization.isValidJSONObject([unwrappedObject]),
+        let data = try? JSONSerialization.data(withJSONObject: unwrappedObject, options: .sortedKeys),
         let string = String(data: data, encoding: .utf8)
     else {
         return nil

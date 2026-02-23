@@ -19,6 +19,7 @@ public enum JSONValue: Equatable, Sendable, Hashable {
     case bool(Bool)
     case string(String)
     case integer(Int)
+    case uint64(UInt64)
     case double(Double)
     case array([JSONValue])
     case object([String: JSONValue])
@@ -64,7 +65,13 @@ public enum JSONValue: Equatable, Sendable, Hashable {
                     self = .double(number.doubleValue)
                     return
                 }
-                self = .integer(Int(truncating: number))
+                if let int = Int(exactly: number) {
+                    self = .integer(int)
+                } else if let uint = UInt64(exactly: number) {
+                    self = .uint64(uint)
+                } else {
+                    self = .integer(Int(truncating: number))
+                }
                 return
             }
         #endif
@@ -74,6 +81,8 @@ public enum JSONValue: Equatable, Sendable, Hashable {
             self = .bool(bool)
         } else if let int = value as? Int {
             self = .integer(int)
+        } else if let uint = value as? UInt64 {
+            self = .uint64(uint)
         } else if let double = value as? Double {
             self = .double(double)
         } else if let array = value as? [Any] {
@@ -107,6 +116,8 @@ public enum JSONValue: Equatable, Sendable, Hashable {
             return value
         case let .integer(value):
             return value
+        case let .uint64(value):
+            return value
         case let .double(value):
             return value
         case let .array(value):
@@ -128,12 +139,20 @@ public enum JSONValue: Equatable, Sendable, Hashable {
 
     public var integer: Int? {
         if case let .integer(v) = self { return v }
+        if case let .uint64(v) = self { return Int(exactly: v) }
+        return nil
+    }
+
+    public var uint64: UInt64? {
+        if case let .uint64(v) = self { return v }
+        if case let .integer(v) = self { return UInt64(exactly: v) }
         return nil
     }
 
     public var double: Double? {
         if case let .double(v) = self { return v }
         if case let .integer(v) = self { return Double(v) }
+        if case let .uint64(v) = self { return Double(v) }
         return nil
     }
 

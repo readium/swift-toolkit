@@ -49,11 +49,7 @@ final actor LicenseValidation: Loggable {
     fileprivate let authentication: LCPAuthenticating?
     fileprivate let allowUserInteraction: Bool
 
-    struct Unchecked<T>: @unchecked Sendable {
-        let value: T
-    }
-
-    fileprivate let uncheckedSender: Unchecked<Any?>
+    fileprivate let uncheckedSender: UncheckedSendable<Any?>
 
     fileprivate let crl: CRLService
     fileprivate let device: DeviceService
@@ -86,7 +82,7 @@ final actor LicenseValidation: Loggable {
     ) {
         self.authentication = authentication
         self.allowUserInteraction = allowUserInteraction
-        uncheckedSender = Unchecked(value: sender)
+        uncheckedSender = UncheckedSendable(sender)
         self.isProduction = isProduction
         self.client = client
         self.crl = crl
