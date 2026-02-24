@@ -17,7 +17,7 @@ podspecs:
 
 .PHONY: carthage-project
 carthage-project:
-	rm -rf **/.DS_Store
+	find . -name ".DS_Store" -delete
 	rm -rf $(SCRIPTS_PATH)/node_modules/
 	xcodegen -s Support/Carthage/project.yml --use-cache --cache-path Support/Carthage/.xcodegen
 
