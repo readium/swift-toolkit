@@ -19,7 +19,7 @@ public protocol LCPAuthenticating {
     ///   - reason: Reason why the passphrase is requested. It should be used to prompt the user.
     ///   - allowUserInteraction: Indicates whether the user can be prompted for their passphrase.
     ///     If your implementation requires it and `allowUserInteraction` is false, terminate
-    ///     quickly by sending `nil` to the completion block.
+    ///     quickly by returning `nil`.
     ///   - sender: Free object that can be used by reading apps to give some UX context when
     ///     presenting dialogs. For example, the host `UIViewController`.
     @MainActor

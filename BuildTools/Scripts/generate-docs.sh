@@ -190,7 +190,7 @@ cat <<EOF > "$SITE_DIR/404.html"
 </html>
 EOF
 
-cp "$SITE_DIR/404.html" "$SITE_DIR/index.html"
+cp "$SITE_DIR/index.html" "$SITE_DIR/404.html"
 
 # -----------------------------------------------------------------------------
 # 10. Local Preview

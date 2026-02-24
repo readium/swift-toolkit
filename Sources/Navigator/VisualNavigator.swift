@@ -20,9 +20,8 @@ public protocol VisualNavigator: Navigator, InputObservable {
     /// progression direction.
     ///
     /// - Parameter options: Options for moving the content to the left.
-    /// - Returns: Whether the navigator is able to move to the previous
-    ///   content portion. The completion block is only called if true was
-    ///   returned.
+    /// - Returns: Whether the navigator was able to move to the left content
+    ///   portion.
     @discardableResult
     func goLeft(options: NavigatorGoOptions) async -> Bool
 
@@ -30,9 +29,8 @@ public protocol VisualNavigator: Navigator, InputObservable {
     /// progression direction.
     ///
     /// - Parameter options: Options for moving the content to the right.
-    /// - Returns: Whether the navigator is able to move to the previous
-    ///   content portion. The completion block is only called if true was
-    ///   returned.
+    /// - Returns: Whether the navigator was able to move to the right content
+    ///   portion.
     @discardableResult
     func goRight(options: NavigatorGoOptions) async -> Bool
 

@@ -12,12 +12,12 @@ import Foundation
     /// Registers a new `InputObserver` for the observable receiver.
     ///
     /// - Returns: An opaque token which can be used to remove the observer with
-    ///   `removeInputObserver`.
+    ///   `removeObserver`.
     @discardableResult
     func addObserver(_ observer: InputObserving) -> InputObservableToken
 
     /// Unregisters an `InputObserver` from this receiver using the given
-    /// `token` returned by `addInputObserver`.
+    /// `token` returned by `addObserver`.
     func removeObserver(_ token: InputObservableToken)
 }
 
