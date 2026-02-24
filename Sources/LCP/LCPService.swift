@@ -36,6 +36,13 @@ public final class LCPService: Loggable, Sendable {
         deviceName: String? = nil,
         deviceId: String? = nil
     ) {
+        let resolvedDeviceName: String
+        if let deviceName {
+            resolvedDeviceName = deviceName
+        } else {
+            resolvedDeviceName = ProcessInfo.processInfo.hostName
+        }
+
         // Determine whether the embedded liblcp.a is in production mode, by attempting to open a production license.
         let isProduction: Bool = {
             guard
@@ -54,7 +61,7 @@ public final class LCPService: Loggable, Sendable {
             licenses: licenseRepository,
             crl: CRLService(httpClient: httpClient),
             device: DeviceService(
-                deviceName: deviceName ?? UIDevice.current.name,
+                deviceName: resolvedDeviceName,
                 deviceId: deviceId,
                 repository: licenseRepository,
                 httpClient: httpClient
