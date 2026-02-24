@@ -53,7 +53,8 @@ final class LCPContentProtection: ContentProtection, Loggable {
             return .failure(.assetNotSupported(DebugError("The asset does not appear to be an LCP License")))
         }
 
-        return await asset.resource.readAsLCPL()
+        return await asset.resource.read()
+            .asLCPL()
             .mapError { .reading($0) }
             .asyncFlatMap { licenseDocument in
                 await assetRetriever.retrieve(link: licenseDocument.publicationLink)

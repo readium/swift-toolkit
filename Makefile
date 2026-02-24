@@ -2,13 +2,18 @@ SCRIPTS_PATH := Sources/Navigator/EPUB/Scripts
 
 help:
 	@echo "Usage: make <target>\n\n\
-	  carthage-proj\t\tGenerate the Carthage Xcode project\n\
+	  carthage-project\tGenerate the Carthage Xcode project\n\
+	  podspecs\t\tGenerate the CocoaPods podspecs\n\
 	  scripts\t\tBundle the Navigator EPUB scripts\n\
 	  test\t\t\tRun unit tests\n\
 	  lint-format\t\tVerify formatting\n\
 	  format\t\tFormat sources\n\
 	  update-locales\tUpdate the localization files\n\
 	"
+
+.PHONY: podspecs
+podspecs:
+	swift run --package-path BuildTools GeneratePodspecs
 
 .PHONY: carthage-project
 carthage-project:

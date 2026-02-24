@@ -13,5 +13,11 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/nicklockwood/SwiftFormat", from: "0.59.1"),
     ],
-    targets: [.target(name: "BuildTools", path: "")]
+    targets: [
+        .target(name: "BuildTools", path: "", exclude: ["Sources"]),
+        .target(
+            name: "GeneratePodspecs",
+            path: "Sources/GeneratePodspecs"
+        ),
+    ]
 )
