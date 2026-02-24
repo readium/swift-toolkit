@@ -23,42 +23,31 @@ public extension ReadResult<Data> {
     }
 
     /// Decodes the data as a `String`.
-    func asString(encoding: String.Encoding = .utf8) async -> ReadResult<String> {
-        decode { data in
-            guard let string = String(data: data, encoding: encoding) else {
-                throw DebugError("Not a valid \(encoding) string")
-            }
-            return string
-        }
+    func asString(encoding: String.Encoding = .utf8) -> ReadResult<String> {
+        decode { try $0.asString(encoding: encoding) }
     }
 
     /// Decodes the data as a JSON value.
     func asJSON<T: Any>(options: JSONSerialization.ReadingOptions = []) -> ReadResult<T> {
-        decode { data in
-            guard let json = try JSONSerialization.jsonObject(with: data) as? T else {
-                throw JSONError.parsing(T.self)
-            }
-            return json
-        }
+        decode { try $0.asJSON(options: options) }
     }
 
     /// Decodes the data as a JSON object.
     func asJSONObject(options: JSONSerialization.ReadingOptions = []) -> ReadResult<[String: Any]> {
-        asJSON()
+        asJSON(options: options)
     }
 
     /// Decodes the data as an XML document.
-    func asXML(using factory: XMLDocumentFactory, namespaces: [XMLNamespace] = []) async -> ReadResult<XMLDocument> {
-        decode { data in
-            try factory.open(data: data, namespaces: [])
-        }
+    func asXML(using factory: XMLDocumentFactory, namespaces: [XMLNamespace] = []) -> ReadResult<XMLDocument> {
+        decode { try $0.asXML(using: factory, namespaces: namespaces) }
     }
 }
 
 public extension ReadResult<Data?> {
     /// Decodes the data as a `T` using the given `decoder`.
     ///
-    /// - Returns: The decoded `T`, or a `ReadError.decoding` error.
+    /// - Returns: `nil` if the data is absent, the decoded `T` if data is
+    ///   present, or a `ReadError.decoding` error if decoding fails.
     func decode<T>(_ decoder: (Data) throws -> T) -> ReadResult<T?> {
         flatMap { data in
             guard let data = data else {
@@ -72,25 +61,51 @@ public extension ReadResult<Data?> {
         }
     }
 
+    /// Decodes the data as a `String`.
+    func asString(encoding: String.Encoding = .utf8) -> ReadResult<String?> {
+        decode { try $0.asString(encoding: encoding) }
+    }
+
     /// Decodes the data as a JSON value.
     func asJSON<T: Any>(options: JSONSerialization.ReadingOptions = []) -> ReadResult<T?> {
-        decode { data in
-            guard let json = try JSONSerialization.jsonObject(with: data) as? T else {
-                throw JSONError.parsing(T.self)
-            }
-            return json
-        }
+        decode { try $0.asJSON(options: options) }
     }
 
     /// Decodes the data as a JSON object.
     func asJSONObject(options: JSONSerialization.ReadingOptions = []) -> ReadResult<[String: Any]?> {
-        asJSON()
+        asJSON(options: options)
     }
 
     /// Decodes the data as an XML document.
-    func asXML(using factory: XMLDocumentFactory, namespaces: [XMLNamespace] = []) async -> ReadResult<XMLDocument?> {
-        decode { data in
-            try factory.open(data: data, namespaces: [])
+    func asXML(using factory: XMLDocumentFactory, namespaces: [XMLNamespace] = []) -> ReadResult<XMLDocument?> {
+        decode { try $0.asXML(using: factory, namespaces: namespaces) }
+    }
+}
+
+private extension Data {
+    /// Decodes the data as a `String`.
+    func asString(encoding: String.Encoding = .utf8) throws -> String {
+        guard let string = String(data: self, encoding: encoding) else {
+            throw DebugError("Not a valid \(encoding) string")
         }
+        return string
+    }
+
+    /// Decodes the data as a JSON value.
+    func asJSON<T: Any>(options: JSONSerialization.ReadingOptions = []) throws -> T {
+        guard let json = try JSONSerialization.jsonObject(with: self, options: options) as? T else {
+            throw JSONError.parsing(T.self)
+        }
+        return json
+    }
+
+    /// Decodes the data as a JSON object.
+    func asJSONObject(options: JSONSerialization.ReadingOptions = []) throws -> [String: Any] {
+        try asJSON(options: options)
+    }
+
+    /// Decodes the data as an XML document.
+    func asXML(using factory: XMLDocumentFactory, namespaces: [XMLNamespace] = []) throws -> XMLDocument {
+        try factory.open(data: self, namespaces: namespaces)
     }
 }

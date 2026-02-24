@@ -91,8 +91,10 @@ public class DefaultXMLDocumentFactory: XMLDocumentFactory, Loggable {
     public init() {}
 
     public func open(file: FileURL, namespaces: [XMLNamespace]) async throws -> XMLDocument {
-        warnIfMainThread()
-        return try open(string: String(contentsOf: file.url), namespaces: namespaces)
+        let string = try await Task.detached(priority: Task.currentPriority) {
+            try String(contentsOf: file.url)
+        }.value
+        return try open(string: string, namespaces: namespaces)
     }
 
     public func open(string: String, namespaces: [XMLNamespace]) throws -> XMLDocument {
