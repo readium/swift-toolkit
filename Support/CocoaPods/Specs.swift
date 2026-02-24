@@ -93,6 +93,15 @@ let modules: [ModuleSpec] = [
         ]
     ),
     ModuleSpec(
+        name: "ReadiumAudioNavigator",
+        sourcePath: "Sources/AudioNavigator",
+        summary: "Readium Audio Navigator",
+        dependencies: [
+            .readium("ReadiumShared"),
+            .readium("ReadiumNavigator"),
+        ]
+    ),
+    ModuleSpec(
         name: "ReadiumOPDS",
         sourcePath: "Sources/OPDS",
         summary: "Readium OPDS",
