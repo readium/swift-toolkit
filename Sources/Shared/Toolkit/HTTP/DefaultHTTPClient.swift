@@ -7,7 +7,7 @@
 import Foundation
 import UIKit
 
-public enum URLAuthenticationChallengeResponse: Sendable     {
+public enum URLAuthenticationChallengeResponse: Sendable {
     /// Use the specified credential.
     case useCredential(URLCredential)
     /// Use the default handling for the challenge as though this delegate method were not implemented.
