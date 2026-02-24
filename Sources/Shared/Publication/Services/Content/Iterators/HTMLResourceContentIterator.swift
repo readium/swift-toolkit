@@ -101,7 +101,8 @@ public class HTMLResourceContentIterator: ContentIterator {
         let range = await totalProgressionRange.value
 
         let result = await resource
-            .readAsString()
+            .read()
+            .asString()
             .eraseToAnyError()
             .tryMap { try SwiftSoup.parse($0) }
             .tryMap { try HTMLResourceContentIterator.parse(document: $0, locator: locator, beforeMaxLength: beforeMaxLength) }

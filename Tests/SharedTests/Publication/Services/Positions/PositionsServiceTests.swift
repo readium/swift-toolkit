@@ -125,7 +125,7 @@ class PositionsServiceTests: XCTestCase {
 
         let resource = try service.get(XCTUnwrap(AnyURL(string: "~readium/positions")))
 
-        let result = try await resource?.readAsString().get()
+        let result = try await resource?.read().asString().get()
         XCTAssertEqual(
             result,
             """

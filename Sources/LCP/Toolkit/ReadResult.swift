@@ -7,10 +7,10 @@
 import Foundation
 import ReadiumShared
 
-extension Streamable {
-    /// Reads the whole content as a LCP License Document.
-    func readAsLCPL() async -> ReadResult<LicenseDocument> {
-        await read().flatMap { data in
+extension ReadResult<Data> {
+    /// Decodes the data as a LCP License Document.
+    func asLCPL() -> ReadResult<LicenseDocument> {
+        flatMap { data in
             do {
                 return try .success(LicenseDocument(data: data))
             } catch {

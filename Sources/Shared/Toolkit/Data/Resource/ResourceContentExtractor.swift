@@ -46,11 +46,12 @@ class _HTMLResourceContentExtractor: _ResourceContentExtractor {
     private let xmlFactory = DefaultXMLDocumentFactory()
 
     func extractText(of resource: Resource) async -> ReadResult<String> {
-        await resource.readAsString()
+        await resource.read()
+            .asString()
             .asyncFlatMap { content in
                 do {
                     // First try to parse a valid XML document, then fallback on SwiftSoup, which is slower.
-                    var text = await parse(xml: content)
+                    var text = parse(xml: content)
                         ?? parse(html: content)
                         ?? ""
 
@@ -69,8 +70,8 @@ class _HTMLResourceContentExtractor: _ResourceContentExtractor {
     ///
     /// This is much more efficient than using SwiftSoup, but will fail when encountering
     /// invalid HTML documents.
-    private func parse(xml: String) async -> String? {
-        guard let document = try? await xmlFactory.open(string: xml, namespaces: [.xhtml]) else {
+    private func parse(xml: String) -> String? {
+        guard let document = try? xmlFactory.open(string: xml, namespaces: [.xhtml]) else {
             return nil
         }
 

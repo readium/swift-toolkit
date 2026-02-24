@@ -73,22 +73,14 @@ actor ReadiumGuidedNavigationService: GuidedNavigationService {
             return .failure(.decoding("Guided Navigation Document not found at \(gnURL)"))
         }
 
-        let result = await resource.read()
-
-        switch result {
-        case let .success(data):
-            do {
-                guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                    return .failure(.decoding("Invalid JSON at \(gnURL)"))
+        return await resource.read()
+            .asJSONObject()
+            .flatMap { json in
+                do {
+                    return try .success(GuidedNavigationDocument(json: json))
+                } catch {
+                    return .failure(.decoding(error))
                 }
-
-                let doc = try GuidedNavigationDocument(json: json)
-                return .success(doc)
-            } catch {
-                return .failure(.decoding(error))
             }
-        case let .failure(error):
-            return .failure(error)
-        }
     }
 }

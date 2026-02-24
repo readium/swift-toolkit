@@ -78,17 +78,8 @@ public actor FormatSnifferBlob {
     /// Reads the whole content as an XML document.
     func readAsXML() async -> ReadResult<XMLDocument?> {
         if xml == nil {
-            let dataResult = await read()
-
-            switch dataResult {
-            case let .success(data):
-                if let data = data {
-                    xml = await .success(try? xmlDocumentFactory.open(data: data, namespaces: []))
-                } else {
-                    xml = .success(nil)
-                }
-            case let .failure(error):
-                xml = .failure(error)
+            xml = await read().map { data in
+                data.flatMap { try? xmlDocumentFactory.open(data: $0, namespaces: []) }
             }
         }
         return xml!

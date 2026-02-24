@@ -106,7 +106,8 @@ public extension Publication {
     private func positionsFromManifest() async -> ReadResult<[Locator]> {
         await links.firstWithMediaType(.readiumPositions)
             .flatMap { get($0) }?
-            .readAsJSONObject()
+            .read()
+            .asJSONObject()
             .map { [Locator](json: $0["positions"]) }
             ?? .success([])
     }
