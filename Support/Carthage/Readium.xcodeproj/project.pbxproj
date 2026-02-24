@@ -176,6 +176,7 @@
 		674BEEF110667C3051296E9B /* Double.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F3481F848A616A9A825A4BD /* Double.swift */; };
 		67F1C7C3D434D2AA542376E3 /* PublicationParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F609C27F073E40D662CFE093 /* PublicationParser.swift */; };
 		682DFC1AF2BD7CAE0862B331 /* CryptoSwift.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = E37F94C388A86CB8A34812A5 /* CryptoSwift.xcframework */; };
+		685388EA258ACA6C80979D85 /* UncheckedSendable.swift in Sources */ = {isa = PBXBuildFile; fileRef = E49029874507A91EA6141EDD /* UncheckedSendable.swift */; };
 		689BD78B3A08D8934F441033 /* FileSystemError.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96FD34093B3C3E83827B70C /* FileSystemError.swift */; };
 		694AAAD5C14BC33891458A4C /* DataCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB32E55E1F3CAF1737979CC /* DataCompression.swift */; };
 		69AA254E4A39D9B49FDFD648 /* UserKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC96A56AB406203898059B6C /* UserKey.swift */; };
@@ -375,6 +376,7 @@
 		E6554CEB01222DA2255163D5 /* AVTTSEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15C9123EA383ED81DE0393A /* AVTTSEngine.swift */; };
 		E6AC10CCF9711168BE2BE85C /* StringSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E3543F628B017E9BF65DD08 /* StringSearchService.swift */; };
 		E75D342B54BD25242A29B105 /* Publication+EPUB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 508E0CD4F9F02CC851E6D1E1 /* Publication+EPUB.swift */; };
+		E766A54C09294FDF5A827930 /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06D91EB0C7AC9E96019D36F0 /* JSONValue.swift */; };
 		E782980A49279BCB0C70C24C /* OPDSCopies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 819D931708B3EE95CF9ADFED /* OPDSCopies.swift */; };
 		E8293787CB5E5CECE38A63B2 /* Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54699BC0E00F327E67908F6A /* Encryption.swift */; };
 		E8C3B837B9FB2ABCB5F82380 /* Measure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FEE01FAD273864D0908C358 /* Measure.swift */; };
@@ -514,6 +516,7 @@
 		067E58BE65BCB4F8D1E8B911 /* Loggable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loggable.swift; sourceTree = "<group>"; };
 		06AD6A912937694B20AD54C9 /* Configurable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configurable.swift; sourceTree = "<group>"; };
 		06C4BDFF128C774BCD660419 /* ReadiumCSS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadiumCSS.swift; sourceTree = "<group>"; };
+		06D91EB0C7AC9E96019D36F0 /* JSONValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONValue.swift; sourceTree = "<group>"; };
 		07B5469E40752E598C070E5B /* OPDSParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSParser.swift; sourceTree = "<group>"; };
 		0812058DB4FBFDF0A862E57E /* KeyModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyModifiers.swift; sourceTree = "<group>"; };
 		0885992D0F70AD0B493985CE /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -849,6 +852,7 @@
 		E233289C75C9F73E6E28DDB4 /* EPUBSpreadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBSpreadView.swift; sourceTree = "<group>"; };
 		E2D5DCD95C7B908BB6CA77C8 /* ResourceLicenseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceLicenseContainer.swift; sourceTree = "<group>"; };
 		E37F94C388A86CB8A34812A5 /* CryptoSwift.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = CryptoSwift.xcframework; path = ../../Carthage/Build/CryptoSwift.xcframework; sourceTree = "<group>"; };
+		E49029874507A91EA6141EDD /* UncheckedSendable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UncheckedSendable.swift; sourceTree = "<group>"; };
 		E5D7B566F794F356878AE8E0 /* PDFOutlineNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFOutlineNode.swift; sourceTree = "<group>"; };
 		E5DF154DCC73CFBDB0F919DE /* AbsoluteURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbsoluteURL.swift; sourceTree = "<group>"; };
 		E6CB6D3B390CC927AE547A5C /* DebugError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugError.swift; sourceTree = "<group>"; };
@@ -1388,6 +1392,7 @@
 			isa = PBXGroup;
 			children = (
 				529B55BE6996FCDC1082BF0A /* JSON.swift */,
+				06D91EB0C7AC9E96019D36F0 /* JSONValue.swift */,
 				491E1402A31F88054442D58F /* Keychain.swift */,
 				4FEE01FAD273864D0908C358 /* Measure.swift */,
 				218BE3110D2886B252A769A2 /* UTI.swift */,
@@ -1881,6 +1886,7 @@
 				68FF131876FA3A63025F2662 /* Language.swift */,
 				5BC6AE42A31D77B548CB0BB4 /* Observable.swift */,
 				38984FD65CFF1D54FF7F794F /* ReadiumLocalizedString.swift */,
+				E49029874507A91EA6141EDD /* UncheckedSendable.swift */,
 				EE7B762C97CFC214997EC677 /* Weak.swift */,
 				371E5D46DEBBE58A793B2546 /* Archive */,
 				0B06420A6651D6D94BE937F3 /* Data */,
@@ -2169,6 +2175,13 @@
 				8456BF3665A9B9C0AE4CC158 /* Locator+HTML.swift */,
 			);
 			path = HTML;
+			sourceTree = "<group>";
+		};
+		"TEMP_B0BB4F0D-852F-4702-87AB-EA0B641B0DC4" /* Internal */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Internal;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -2554,6 +2567,7 @@
 				330690F62A5F240B77A14337 /* Date+ISO8601.swift in Sources */,
 				674BEEF110667C3051296E9B /* Double.swift in Sources */,
 				DDD0C8AC27EF8D1A893DF6CC /* JSON.swift in Sources */,
+				E766A54C09294FDF5A827930 /* JSONValue.swift in Sources */,
 				C5D80E7716B243980FD3DFE6 /* Keychain.swift in Sources */,
 				E8C3B837B9FB2ABCB5F82380 /* Measure.swift in Sources */,
 				F631EA324143E669070523F3 /* NSRegularExpression.swift in Sources */,
@@ -2815,6 +2829,7 @@
 				D4BBC0AD7652265497B5CD1C /* URLExtensions.swift in Sources */,
 				1600DB04CEACF97EE8AD9CEE /* URLProtocol.swift in Sources */,
 				222E5BC7A9E632DD6BB9A78E /* URLQuery.swift in Sources */,
+				685388EA258ACA6C80979D85 /* UncheckedSendable.swift in Sources */,
 				A1B834459A13B655624E6618 /* UnknownAbsoluteURL.swift in Sources */,
 				A25F76D41A944B81CB911A63 /* UserRights.swift in Sources */,
 				3ECB525CEB712CEC5EFCD26D /* WarningLogger.swift in Sources */,
