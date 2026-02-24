@@ -4,8 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import XCTest
-
 @testable import ReadiumAudioNavigator
+import XCTest
 
 class AudioNavigatorTests: XCTestCase {}
