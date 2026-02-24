@@ -228,7 +228,7 @@ import Testing
         @Test func unknownTypeGetsURIRole() throws {
             let doc = try SMILParserTests.parse("seq-types.smil")
             let unknown = doc?.guided.first { $0.id == "s-unknown" }
-            #expect(unknown?.roles == [.sequence, GuidedNavigationObject.Role("http://www.idpf.org/2007/ops/type#preamble")])
+            #expect(unknown?.roles == [.sequence, ContentRole("http://www.idpf.org/2007/ops/type#preamble")])
         }
     }
 

@@ -120,7 +120,7 @@ import Testing
                 "textref": "c.html",
                 "role": ["chapter", "custom-role"],
             ])
-            #expect(sut?.roles == [.chapter, GuidedNavigationObject.Role("custom-role")])
+            #expect(sut?.roles == [.chapter, ContentRole("custom-role")])
         }
 
         @Test("nil JSON returns nil")

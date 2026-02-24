@@ -220,7 +220,7 @@ private struct SMILGuidedNavigationDocumentParsing {
     }
 
     /// Maps an `epub:type` attribute (space-separated tokens) to roles.
-    private func roles(for epubType: String?) -> [GuidedNavigationObject.Role] {
+    private func roles(for epubType: String?) -> [ContentRole] {
         guard
             let epubType,
             !epubType.trimmingCharacters(in: .whitespaces).isEmpty
@@ -233,16 +233,16 @@ private struct SMILGuidedNavigationDocumentParsing {
             .map { role(for: String($0)) }
     }
 
-    private func role(for token: String) -> GuidedNavigationObject.Role {
+    private func role(for token: String) -> ContentRole {
         Self.epubTypeToRole[token]
             // Fall back to a full EPUB type URI role.
-            ?? GuidedNavigationObject.Role("http://www.idpf.org/2007/ops/type#\(token)")
+            ?? ContentRole("http://www.idpf.org/2007/ops/type#\(token)")
     }
 
     /// Mapping from EPUB type equivalent to Guided Navigation Roles.
     ///
     /// See https://readium.org/guided-navigation/roles
-    private static let epubTypeToRole: [String: GuidedNavigationObject.Role] = [
+    private static let epubTypeToRole: [String: ContentRole] = [
         // HTML and/or ARIA
 
         "aside": .aside,
