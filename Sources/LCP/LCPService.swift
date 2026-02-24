@@ -147,7 +147,7 @@ public final class LCPService: Loggable, Sendable {
 }
 
 /// Source of an LCP License Document (LCPL) file.
-public enum LicenseDocumentSource {
+public enum LicenseDocumentSource: Sendable {
     /// Raw bytes of the LCPL.
     case data(Data)
 

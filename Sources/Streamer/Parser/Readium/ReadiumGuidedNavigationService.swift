@@ -74,16 +74,16 @@ actor ReadiumGuidedNavigationService: GuidedNavigationService {
         }
 
         let result = await resource.readAsJSONObject()
-        
+
         switch result {
-        case .success(let json):
+        case let .success(json):
             do {
                 let doc = try GuidedNavigationDocument(json: json)
                 return .success(doc)
             } catch {
                 return .failure(.decoding(error))
             }
-        case .failure(let error):
+        case let .failure(error):
             return .failure(error)
         }
     }

@@ -15,7 +15,7 @@ import UIKit
 ///    document in memory.
 ///
 /// Use `CGPDFDocumentFactory` to create a `CGPDFDocument` from a `Resource`.
-extension CGPDFDocument: @unchecked Sendable {}
+extension CGPDFDocument: @unchecked @retroactive Sendable {}
 
 extension CGPDFDocument: PDFDocument {
     public func identifier() async throws -> String? {
