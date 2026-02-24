@@ -38,7 +38,7 @@ jobs:
           # Check that the podspecs are up to date.
           make podspecs
           git diff --exit-code Support/CocoaPods/
-          git ls-files --others --exclude-standard Support/CocoaPods/ | grep -q . && (echo "Untracked podspec files found. Run 'make podspecs' and commit the result."; exit 1) || true
+          if git ls-files --others --exclude-standard Support/CocoaPods/ | grep -q .; then echo "Untracked podspec files found. Run 'make podspecs' and commit the result."; exit 1; fi
       - name: Build
         run: |
           set -eo pipefail
