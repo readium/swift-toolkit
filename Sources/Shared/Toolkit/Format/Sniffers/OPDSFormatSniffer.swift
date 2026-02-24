@@ -49,12 +49,10 @@ public class OPDSFormatSniffer: FormatSniffer, @unchecked Sendable {
                 }
 
         } else if format.conformsTo(.json) {
-            return await blob.readAsJSON()
-                .map { data in
-                    guard
-                        let data = data,
-                        let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
-                    else {
+            return await blob.read()
+                .asJSONObject()
+                .map { json in
+                    guard let json = json else {
                         return nil
                     }
 

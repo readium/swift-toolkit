@@ -26,11 +26,11 @@ public struct LCPLicenseFormatSniffer: FormatSniffer {
             return .success(nil)
         }
 
-        return await blob.readAsJSON()
-            .map { data in
+        return await blob.read()
+            .asJSONObject()
+            .map { json in
                 guard
-                    let data = data,
-                    let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                    let json = json,
                     Set(json.keys).isSuperset(of: ["id", "issued", "provider", "encryption"])
                 else {
                     return nil
