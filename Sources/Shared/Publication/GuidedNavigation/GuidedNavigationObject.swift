@@ -27,7 +27,7 @@ public struct GuidedNavigationObject: Hashable, Sendable {
     public let text: Text?
 
     /// Convey the structural semantics of a publication.
-    public let role: [Role]
+    public let roles: [Role]
 
     /// Text, audio or image description for the current Guided Navigation
     /// Object.
@@ -40,7 +40,7 @@ public struct GuidedNavigationObject: Hashable, Sendable {
         id: ID? = nil,
         refs: Refs? = nil,
         text: Text? = nil,
-        role: [Role] = [],
+        roles: [Role] = [],
         description: Description? = nil,
         children: [GuidedNavigationObject] = []
     ) {
@@ -50,7 +50,7 @@ public struct GuidedNavigationObject: Hashable, Sendable {
         self.id = id
         self.refs = refs
         self.text = text
-        self.role = role
+        self.roles = roles
         self.description = description
         self.children = children
     }
@@ -79,7 +79,7 @@ public struct GuidedNavigationObject: Hashable, Sendable {
             id: json["id"] as? String,
             refs: refs,
             text: text,
-            role: (json["role"] as? [String])?.map(Role.init) ?? [],
+            roles: (json["role"] as? [String])?.map(Role.init) ?? [],
             description: description,
             children: children
         )
@@ -315,10 +315,6 @@ public struct GuidedNavigationObject: Hashable, Sendable {
         /// provides additional context to a referenced passage of text.
         public static let footnote = Role("footnote")
 
-        /// A preliminary section that typically introduces the scope or nature
-        /// of the work.
-        public static let foreword = Role("foreword")
-
         /// A brief dictionary of new, uncommon, or specialized terms used in
         /// the content.
         public static let glossary = Role("glossary")
@@ -516,6 +512,14 @@ public struct GuidedNavigationObject: Hashable, Sendable {
 
         // MARK: Inherited from EPUB SSV 1.1
 
+        /// An area in a comic panel that contains the words, spoken or thought,
+        /// of a character.
+        public static let bubble = Role("bubble")
+
+        /// An introductory section that precedes the work, typically not
+        /// written by the author of the work.
+        public static let foreword = Role("foreword")
+
         /// A collection of references to audio clips.
         public static let landmarks = Role("landmarks")
 
@@ -530,6 +534,15 @@ public struct GuidedNavigationObject: Hashable, Sendable {
 
         /// A listing of video clips included in the work.
         public static let lov = Role("lov")
+
+        /// An individual frame, or drawing.
+        public static let panel = Role("panel")
+
+        /// A group of panels (e.g., a strip).
+        public static let panelGroup = Role("panelGroup")
+
+        /// An area of text in a comic panel that represents a sound.
+        public static let sound = Role("sound")
     }
 }
 

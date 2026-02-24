@@ -139,6 +139,8 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
                                 ]
                             ))
                         }
+
+                        $0.setGuidedNavigationServiceFactory(ReadiumGuidedNavigationService.makeFactory())
                     })
                 )
             }

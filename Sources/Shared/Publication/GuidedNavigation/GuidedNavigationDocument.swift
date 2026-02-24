@@ -12,19 +12,11 @@ import ReadiumInternal
 ///
 /// https://readium.org/guided-navigation/
 public struct GuidedNavigationDocument: Hashable, Sendable {
-    /// References to other resources that are related to the current Guided
-    /// Navigation Document.
-    public var links: [Link]
-
     /// A sequence of resources and/or media fragments into these resources,
     /// meant to be presented sequentially to the user.
     public var guided: [GuidedNavigationObject]
 
-    public init(
-        links: [Link] = [],
-        guided: [GuidedNavigationObject]
-    ) {
-        self.links = links
+    public init(guided: [GuidedNavigationObject]) {
         self.guided = guided
     }
 
@@ -43,9 +35,6 @@ public struct GuidedNavigationDocument: Hashable, Sendable {
             throw JSONError.parsing(Self.self)
         }
 
-        self.init(
-            links: [Link](json: json["links"], warnings: warnings),
-            guided: guided
-        )
+        self.init(guided: guided)
     }
 }

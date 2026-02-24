@@ -21,7 +21,7 @@
     <item id="css" href="../style.css" media-type="text/css"/>
     <!-- Spine items -->
     <item id="titlepage" href="../titlepage.xhtml" media-type="application/xhtml+xml"/>
-    <item id="chapter01" href="chapter01.xhtml" media-type="application/xhtml+xml"/>
+    <item id="chapter01" href="chapter01.xhtml" media-type="application/xhtml+xml" media-overlay="chapter01_smil"/>
     <item id="chapter02" href="chapter02.xhtml" media-type="application/xhtml+xml"/>
     <!-- SMIL without duration -->
     <item id="chapter01_smil" href="chapter01.smil" media-type="application/smil+xml"/>
