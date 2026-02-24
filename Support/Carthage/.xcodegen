@@ -396,7 +396,7 @@
 ../../Sources/LCP/Toolkit/Bundle.swift
 ../../Sources/LCP/Toolkit/DataCompression.swift
 ../../Sources/LCP/Toolkit/ReadiumLCPLocalizedString.swift
-../../Sources/LCP/Toolkit/Streamable.swift
+../../Sources/LCP/Toolkit/ReadResult.swift
 ../../Sources/Navigator
 ../../Sources/Navigator/Audiobook
 ../../Sources/Navigator/Audiobook/AudioNavigator.swift
@@ -718,6 +718,7 @@
 ../../Sources/Shared/Toolkit/Data/Container/SingleResourceContainer.swift
 ../../Sources/Shared/Toolkit/Data/Container/TransformingContainer.swift
 ../../Sources/Shared/Toolkit/Data/ReadError.swift
+../../Sources/Shared/Toolkit/Data/ReadResult.swift
 ../../Sources/Shared/Toolkit/Data/Resource
 ../../Sources/Shared/Toolkit/Data/Resource/BorrowedResource.swift
 ../../Sources/Shared/Toolkit/Data/Resource/BufferingResource.swift

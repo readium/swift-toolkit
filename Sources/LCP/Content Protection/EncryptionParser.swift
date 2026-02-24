@@ -21,7 +21,8 @@ private func parseRPFEncryptionData(in container: Container) async -> ReadResult
     }
 
     return await manifestResource
-        .readAsJSONObject()
+        .read()
+        .asJSONObject()
         .flatMap { json in
             do {
                 return try .success(Manifest(json: json))

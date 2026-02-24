@@ -6,8 +6,6 @@
 
 import Foundation
 
-public typealias ReadResult<Success> = Result<Success, ReadError>
-
 /// Errors occurring while reading a resource.
 public enum ReadError: Error {
     /// An error occurred while trying to access the content.

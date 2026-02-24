@@ -74,7 +74,7 @@ public actor FormatSnifferBlob {
         if xml == nil {
             xml = await read().asyncMap {
                 await $0.asyncFlatMap {
-                    try? await xmlDocumentFactory.open(data: $0, namespaces: [])
+                    try? xmlDocumentFactory.open(data: $0, namespaces: [])
                 }
             }
         }

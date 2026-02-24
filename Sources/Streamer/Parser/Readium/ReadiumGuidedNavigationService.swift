@@ -73,7 +73,8 @@ actor ReadiumGuidedNavigationService: GuidedNavigationService {
             return .failure(.decoding("Guided Navigation Document not found at \(gnURL)"))
         }
 
-        return await resource.readAsJSONObject()
+        return await resource.read()
+            .asJSONObject()
             .flatMap { json in
                 do {
                     return try .success(GuidedNavigationDocument(json: json))
