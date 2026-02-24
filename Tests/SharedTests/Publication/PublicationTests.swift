@@ -241,7 +241,7 @@ class PublicationTests: XCTestCase {
             container: SingleResourceContainer(resource: DataResource(string: "hello"), at: link.url())
         )
 
-        let result = try await publication.get(link)?.readAsString().get()
+        let result = try await publication.get(link)?.read().asString().get()
         XCTAssertEqual(result, "hello")
     }
 

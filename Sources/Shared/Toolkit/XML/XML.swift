@@ -79,12 +79,12 @@ public protocol XMLDocumentFactory {
     /// Opens an XML document from its raw data content.
     ///
     /// - Parameter namespaces: List of namespace prefixes to declare in the document.
-    func open(data: Data, namespaces: [XMLNamespace]) async throws -> XMLDocument
+    func open(data: Data, namespaces: [XMLNamespace]) throws -> XMLDocument
 
     /// Opens an XML document from its raw string content.
     ///
     /// - Parameter namespaces: List of namespace prefixes to declare in the document.
-    func open(string: String, namespaces: [XMLNamespace]) async throws -> XMLDocument
+    func open(string: String, namespaces: [XMLNamespace]) throws -> XMLDocument
 }
 
 public class DefaultXMLDocumentFactory: XMLDocumentFactory, Loggable {
@@ -92,14 +92,14 @@ public class DefaultXMLDocumentFactory: XMLDocumentFactory, Loggable {
 
     public func open(file: FileURL, namespaces: [XMLNamespace]) async throws -> XMLDocument {
         warnIfMainThread()
-        return try await open(string: String(contentsOf: file.url), namespaces: namespaces)
+        return try open(string: String(contentsOf: file.url), namespaces: namespaces)
     }
 
-    public func open(string: String, namespaces: [XMLNamespace]) async throws -> XMLDocument {
+    public func open(string: String, namespaces: [XMLNamespace]) throws -> XMLDocument {
         try FuziXMLDocument(string: string, namespaces: namespaces)
     }
 
-    public func open(data: Data, namespaces: [XMLNamespace]) async throws -> XMLDocument {
+    public func open(data: Data, namespaces: [XMLNamespace]) throws -> XMLDocument {
         try FuziXMLDocument(data: data, namespaces: namespaces)
     }
 }

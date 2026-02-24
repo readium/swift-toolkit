@@ -36,7 +36,8 @@ public struct EPUBFormatSniffer: FormatSniffer {
             return .success(nil)
         }
 
-        return await resource.readAsString()
+        return await resource.read()
+            .asString()
             .asyncFlatMap { mimetype in
                 if MediaType.epub.matches(MediaType(mimetype.trimmingCharacters(in: .whitespacesAndNewlines))) {
                     var format = format
@@ -66,7 +67,7 @@ public struct EPUBFormatSniffer: FormatSniffer {
         }
 
         return await resource.read()
-            .asyncMap { try? await xmlDocumentFactory.open(data: $0, namespaces: []) }
+            .asyncMap { try? xmlDocumentFactory.open(data: $0, namespaces: []) }
             .map { document in
                 guard let document = document else {
                     return format
