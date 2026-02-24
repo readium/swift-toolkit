@@ -25,6 +25,13 @@
         }
       }
     },
+    "ReadiumAudioNavigator" : {
+      "build" : {
+        "targets" : {
+          "ReadiumAudioNavigator" : "all"
+        }
+      }
+    },
     "ReadiumInternal" : {
       "build" : {
         "targets" : {
@@ -115,6 +122,28 @@
       "sources" : [
         {
           "path" : "..\/..\/Sources\/Adapters\/LCPSQLite"
+        }
+      ],
+      "type" : "framework"
+    },
+    "ReadiumAudioNavigator" : {
+      "dependencies" : [
+        {
+          "target" : "ReadiumShared"
+        },
+        {
+          "target" : "ReadiumNavigator"
+        }
+      ],
+      "deploymentTarget" : "15.0",
+      "platform" : "iOS",
+      "settings" : {
+        "INFOPLIST_FILE" : "Info.plist",
+        "PRODUCT_BUNDLE_IDENTIFIER" : "org.readium.swift-toolkit.audio-navigator"
+      },
+      "sources" : [
+        {
+          "path" : "..\/..\/Sources\/AudioNavigator"
         }
       ],
       "type" : "framework"
@@ -308,6 +337,11 @@
 ../../Sources/Adapters/LCPSQLite/Database.swift
 ../../Sources/Adapters/LCPSQLite/SQLiteLCPLicenseRepository.swift
 ../../Sources/Adapters/LCPSQLite/SQLiteLCPPassphraseRepository.swift
+../../Sources/AudioNavigator
+../../Sources/AudioNavigator/AudioEngine.swift
+../../Sources/AudioNavigator/AudioPlayer.swift
+../../Sources/AudioNavigator/PlaybackCursor.swift
+../../Sources/AudioNavigator/PlaybackItem.swift
 ../../Sources/Internal
 ../../Sources/Internal/Extensions
 ../../Sources/Internal/Extensions/Array.swift
@@ -615,6 +649,7 @@
 ../../Sources/Shared/Publication/Accessibility/Accessibility.swift
 ../../Sources/Shared/Publication/Accessibility/AccessibilityDisplayString+Generated.swift
 ../../Sources/Shared/Publication/Accessibility/AccessibilityMetadataDisplayGuide.swift
+../../Sources/Shared/Publication/ContentRole.swift
 ../../Sources/Shared/Publication/Contributor.swift
 ../../Sources/Shared/Publication/Extensions
 ../../Sources/Shared/Publication/Extensions/Archive
@@ -659,6 +694,8 @@
 ../../Sources/Shared/Publication/Publication.swift
 ../../Sources/Shared/Publication/PublicationCollection.swift
 ../../Sources/Shared/Publication/ReadingProgression.swift
+../../Sources/Shared/Publication/Reference.swift
+../../Sources/Shared/Publication/Reference+Fragment.swift
 ../../Sources/Shared/Publication/Services
 ../../Sources/Shared/Publication/Services/Content
 ../../Sources/Shared/Publication/Services/Content Protection
@@ -797,6 +834,7 @@
 ../../Sources/Shared/Toolkit/PDF/PDFKit.swift
 ../../Sources/Shared/Toolkit/PDF/PDFOutlineNode.swift
 ../../Sources/Shared/Toolkit/ReadiumLocalizedString.swift
+../../Sources/Shared/Toolkit/SSML.swift
 ../../Sources/Shared/Toolkit/Tokenizer
 ../../Sources/Shared/Toolkit/Tokenizer/TextTokenizer.swift
 ../../Sources/Shared/Toolkit/Tokenizer/Tokenizer.swift
@@ -811,6 +849,7 @@
 ../../Sources/Shared/Toolkit/URL/URITemplate.swift
 ../../Sources/Shared/Toolkit/URL/URLConvertible.swift
 ../../Sources/Shared/Toolkit/URL/URLExtensions.swift
+../../Sources/Shared/Toolkit/URL/URLFragment.swift
 ../../Sources/Shared/Toolkit/URL/URLProtocol.swift
 ../../Sources/Shared/Toolkit/URL/URLQuery.swift
 ../../Sources/Shared/Toolkit/Weak.swift

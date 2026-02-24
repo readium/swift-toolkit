@@ -123,9 +123,6 @@ public struct MediaReference: ResourceReference {
     }
 }
 
-// Unit for a spatial
-// - https://www.w3.org/TR/media-frags/#naming-space
-
 /// Identifies a time instant or clip within a media resource.
 ///
 /// Follows the W3C Media Fragments URI specification for the temporal
@@ -265,20 +262,25 @@ public struct FixedWebReference: TextReference {
     /// URL of the HTML/XHTML resource within the publication.
     public var href: AnyURL
 
-    /// 1-based page number within the fixed layout publication.
-    public var page: PageNumber?
-
     /// Selector identifying the position or text range within the resource.
     public var text: TextSelector?
 
     public init(
         href: AnyURL,
-        page: PageNumber? = nil,
         text: TextSelector? = nil
     ) {
         self.href = href
-        self.page = page
         self.text = text
+    }
+}
+
+/// A CSS selector string targeting an element or range within an HTML/XHTML
+/// resource.
+public struct CSSSelector: Hashable, Sendable {
+    public var cssSelector: String
+
+    public init(cssSelector: String) {
+        self.cssSelector = cssSelector
     }
 }
 
@@ -296,14 +298,14 @@ public struct PDFReference: TextReference {
     /// Selector identifying the position or text range within the resource.
     public var text: TextSelector?
 
-    /// 1-based page number within the PDF resource.
-    public var page: PageNumber?
+    /// Identifies a page or an area in a page within the PDF document.
+    public var page: PDFSelector?
 
     public init(
         href: AnyURL,
         progression: Progression? = nil,
         text: TextSelector? = nil,
-        page: PageNumber? = nil
+        page: PDFSelector? = nil
     ) {
         self.href = href
         self.progression = progression
@@ -312,10 +314,48 @@ public struct PDFReference: TextReference {
     }
 }
 
-// MARK: - Value Types
+/// Identifies a page or an area in a page within a PDF document.
+///
+/// - https://www.rfc-editor.org/rfc/rfc8118
+public struct PDFSelector: Hashable, Sendable {
+    /// 1-based page number within the PDF resource.
+    public var page: Int
 
-/// 1-based page number within a page-based resource (e.g. PDF).
-public typealias PageNumber = Int
+    /// View rectangle in the page.
+    public var rect: Rect?
+
+    /// A rectangle within a PDF page.
+    ///
+    /// Coordinate values are expressed in the default user space coordinate
+    /// system of the document: 1/72 of an inch measured down and to the right
+    /// from the upper left corner of the (current) page ([ISOPDF2] 8.3.2.3
+    /// "User Space").
+    public struct Rect: Hashable, Sendable {
+        public var left: Double
+        public var top: Double
+        public var width: Double
+        public var height: Double
+
+        public init(
+            left: Double,
+            top: Double,
+            width: Double,
+            height: Double
+        ) {
+            self.left = left
+            self.top = top
+            self.width = width
+            self.height = height
+        }
+    }
+
+    public init(page: Int, rect: Rect? = nil) {
+        self.page = page
+        self.rect = rect
+    }
+}
+
+// MARK: - Value Types
 
 /// 1-based index of a pre-computed position within the publication reading
 /// order.
@@ -324,7 +364,3 @@ public typealias Position = Int
 /// Progression through a resource or the whole publication, expressed as a
 /// percentage between 0 and 1.
 public typealias Progression = Double
-
-/// A CSS selector string targeting an element or range within an HTML/XHTML
-/// resource.
-public typealias CSSSelector = String

@@ -122,8 +122,9 @@ public extension URLProtocol {
     }
 
     /// Returns the decoded fragment portion of this URL, if there's any.
-    var fragment: String? {
+    var fragment: URLFragment? {
         url.fragment?.orNilIfEmpty()?.removingPercentEncoding
+            .flatMap { URLFragment(rawValue: $0) }
     }
 
     /// Creates a copy of this URL after removing its fragment portion.
