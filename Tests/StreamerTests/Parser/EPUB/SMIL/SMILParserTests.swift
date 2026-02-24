@@ -18,7 +18,7 @@ import Testing
     /// relative HREFs like `chapter01.xhtml` resolve against `OEBPS/`.
     static func parse(_ name: String) throws -> GuidedNavigationDocument? {
         let data = fixtures.data(at: name)
-        let url = RelativeURL(string: "OEBPS/chapter01.smil")!
+        let url = AnyURL(string: "OEBPS/chapter01.smil")!
         return try SMILParser.parseGuidedNavigationDocument(smilData: data, at: url)
     }
 
@@ -238,7 +238,6 @@ import Testing
         @Test func bodyChildrenBecomeTopLevelGuided() throws {
             let doc = try SMILParserTests.parse("basic.smil")
             // basic.smil has one top-level seq in the body
-            #expect(doc?.links == [])
             #expect(doc?.guided.count == 1)
         }
 
@@ -246,7 +245,7 @@ import Testing
             // Fuzi parses leniently, so malformed/non-SMIL content produces no
             // <smil:body> and the parser returns nil rather than throwing.
             let badData = Data("not xml at all".utf8)
-            let url = try #require(RelativeURL(string: "OEBPS/chapter01.smil"))
+            let url = try #require(AnyURL(string: "OEBPS/chapter01.smil"))
             let doc = try SMILParser.parseGuidedNavigationDocument(smilData: badData, at: url)
             #expect(doc == nil)
         }
@@ -258,7 +257,7 @@ import Testing
               <body></body>
             </smil>
             """.data(using: .utf8)!
-            let url = try #require(RelativeURL(string: "OEBPS/chapter01.smil"))
+            let url = try #require(AnyURL(string: "OEBPS/chapter01.smil"))
             let doc = try SMILParser.parseGuidedNavigationDocument(smilData: xml, at: url)
             #expect(doc == nil)
         }

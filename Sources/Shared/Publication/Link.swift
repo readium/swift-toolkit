@@ -208,6 +208,12 @@ public struct Link: JSONEquatable, Hashable, Sendable {
     }
 }
 
+extension Link: URLConvertible {
+    public var anyURL: AnyURL {
+        url()
+    }
+}
+
 public extension Array where Element == Link {
     /// Parses multiple JSON links into an array of Link.
     /// eg. let links = [Link](json: [["href", "http://link1"], ["href", "http://link2"]])
@@ -298,6 +304,11 @@ public extension Array where Element == Link {
     /// Returns whether all the resources in the collection are HTML documents.
     var allAreHTML: Bool {
         allSatisfy { $0.mediaType?.isHTML == true }
+    }
+
+    /// Returns whether any resource in the collection matches the given media type.
+    func anyMatchingMediaType(_ mediaType: MediaType) -> Bool {
+        contains { mediaType.matches($0.mediaType) }
     }
 
     /// Returns whether all the resources in the collection are matching the given media type.

@@ -238,6 +238,31 @@ class LinkArrayTests: XCTestCase {
         XCTAssertFalse(links.allAreHTML)
     }
 
+    /// Checks if any link matches the given media type.
+    func testAnyMatchingMediaType() throws {
+        let links = try [
+            Link(href: "l1", mediaType: .css),
+            Link(href: "l2", mediaType: XCTUnwrap(MediaType("text/html;charset=utf-8"))),
+        ]
+
+        XCTAssertTrue(links.anyMatchingMediaType(.html))
+    }
+
+    /// Checks if any link matches the given media type, when it's not the case.
+    func testAnyMatchingMediaTypeFalse() {
+        let links = [
+            Link(href: "l1", mediaType: .css),
+            Link(href: "l2", mediaType: .text),
+        ]
+
+        XCTAssertFalse(links.anyMatchingMediaType(.html))
+    }
+
+    /// Checks if any link matches the given media type in an empty collection.
+    func testAnyMatchingMediaTypeEmpty() {
+        XCTAssertFalse([Link]().anyMatchingMediaType(.html))
+    }
+
     /// Checks if all the links match the given media type.
     func testAllMatchesMediaType() throws {
         let links = try [

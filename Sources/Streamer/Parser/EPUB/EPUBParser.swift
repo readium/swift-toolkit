@@ -71,6 +71,7 @@ public final class EPUBParser: PublicationParser {
                             HTMLResourceContentIterator.Factory(),
                         ]
                     ),
+                    guidedNavigation: SMILGuidedNavigationService.makeFactory(),
                     positions: EPUBPositionsService.makeFactory(reflowableStrategy: reflowablePositionsStrategy),
                     search: StringSearchService.makeFactory()
                 )
