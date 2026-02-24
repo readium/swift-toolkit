@@ -17,6 +17,8 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = "15.0"
   s.xcconfig      = { 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2' }
 
+  s.dependency 'ReadiumInternal', '~> 3.7.0'
+  s.dependency 'ReadiumShared', '~> 3.7.0'
   s.dependency 'ReadiumLCP', '~> 3.7.0'
   s.dependency 'SQLite.swift', '~> 0.15.0'
 

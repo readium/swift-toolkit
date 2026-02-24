@@ -53,11 +53,11 @@ let modules: [ModuleSpec] = [
         xcconfig: ["HEADER_SEARCH_PATHS": "$(SDKROOT)/usr/include/libxml2"],
         resourceBundles: ["ReadiumShared": ["Sources/Shared/Resources/**"]],
         dependencies: [
+            .readium("ReadiumInternal"),
             .pod("Minizip", "~> 1.0.0"),
             .pod("SwiftSoup", "~> 2.7.0"),
             .pod("ReadiumFuzi", "~> 4.0.0"),
             .pod("ReadiumZIPFoundation", "~> 3.0.1"),
-            .readium("ReadiumInternal"),
         ]
     ),
     ModuleSpec(
@@ -71,8 +71,9 @@ let modules: [ModuleSpec] = [
             "Sources/Streamer/Assets",
         ]],
         dependencies: [
-            .pod("ReadiumFuzi", "~> 4.0.0"),
+            .readium("ReadiumInternal"),
             .readium("ReadiumShared"),
+            .pod("ReadiumFuzi", "~> 4.0.0"),
             .pod("CryptoSwift", "~> 1.8.0"),
         ]
     ),
@@ -85,8 +86,8 @@ let modules: [ModuleSpec] = [
             "Sources/Navigator/EPUB/Assets",
         ]],
         dependencies: [
-            .readium("ReadiumShared"),
             .readium("ReadiumInternal"),
+            .readium("ReadiumShared"),
             .pod("DifferenceKit", "~> 1.0"),
             .pod("SwiftSoup", "~> 2.7.0"),
         ]
@@ -97,6 +98,7 @@ let modules: [ModuleSpec] = [
         summary: "Readium OPDS",
         xcconfig: ["HEADER_SEARCH_PATHS": "$(SDKROOT)/usr/include/libxml2"],
         dependencies: [
+            .readium("ReadiumInternal"),
             .readium("ReadiumShared"),
             .pod("ReadiumFuzi", "~> 4.0.0"),
         ]
@@ -111,8 +113,8 @@ let modules: [ModuleSpec] = [
             "Sources/LCP/**/*.xib",
         ]],
         dependencies: [
-            .readium("ReadiumShared"),
             .readium("ReadiumInternal"),
+            .readium("ReadiumShared"),
             .pod("ReadiumZIPFoundation", "~> 3.0.1"),
             .pod("CryptoSwift", "~> 1.8.0"),
         ]
@@ -123,6 +125,7 @@ let modules: [ModuleSpec] = [
         summary: "Adapter to use GCDWebServer as an HTTP server in Readium",
         xcconfig: ["HEADER_SEARCH_PATHS": "$(SDKROOT)/usr/include/libxml2"],
         dependencies: [
+            .readium("ReadiumInternal"),
             .readium("ReadiumShared"),
             .pod("ReadiumGCDWebServer", "~> 4.0.0"),
         ]
@@ -133,6 +136,8 @@ let modules: [ModuleSpec] = [
         summary: "Adapter to use SQLite.swift for the Readium LCP repositories",
         xcconfig: ["HEADER_SEARCH_PATHS": "$(SDKROOT)/usr/include/libxml2"],
         dependencies: [
+            .readium("ReadiumInternal"),
+            .readium("ReadiumShared"),
             .readium("ReadiumLCP"),
             .pod("SQLite.swift", "~> 0.15.0"),
         ]

@@ -24,8 +24,9 @@ Pod::Spec.new do |s|
   s.libraries     = 'z', 'xml2'
   s.xcconfig      = { 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2' }
 
-  s.dependency 'ReadiumFuzi', '~> 4.0.0'
+  s.dependency 'ReadiumInternal', '~> 3.7.0'
   s.dependency 'ReadiumShared', '~> 3.7.0'
+  s.dependency 'ReadiumFuzi', '~> 4.0.0'
   s.dependency 'CryptoSwift', '~> 1.8.0'
 
 end
