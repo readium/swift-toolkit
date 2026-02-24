@@ -309,7 +309,6 @@
 ../../Sources/Adapters/LCPSQLite/SQLiteLCPLicenseRepository.swift
 ../../Sources/Adapters/LCPSQLite/SQLiteLCPPassphraseRepository.swift
 ../../Sources/Internal
-../../Sources/Internal/.DS_Store
 ../../Sources/Internal/Extensions
 ../../Sources/Internal/Extensions/Array.swift
 ../../Sources/Internal/Extensions/Collection.swift
@@ -333,7 +332,6 @@
 ../../Sources/Internal/Measure.swift
 ../../Sources/Internal/UTI.swift
 ../../Sources/LCP
-../../Sources/LCP/.DS_Store
 ../../Sources/LCP/Authentications
 ../../Sources/LCP/Authentications/LCPAuthenticating.swift
 ../../Sources/LCP/Authentications/LCPDialog.swift
@@ -355,7 +353,6 @@
 ../../Sources/LCP/LCPRenewDelegate.swift
 ../../Sources/LCP/LCPService.swift
 ../../Sources/LCP/License
-../../Sources/LCP/License/.DS_Store
 ../../Sources/LCP/License/Container
 ../../Sources/LCP/License/Container/ContainerLicenseContainer.swift
 ../../Sources/LCP/License/Container/LicenseContainer.swift
@@ -402,7 +399,6 @@
 ../../Sources/LCP/Toolkit/ReadiumLCPLocalizedString.swift
 ../../Sources/LCP/Toolkit/Streamable.swift
 ../../Sources/Navigator
-../../Sources/Navigator/.DS_Store
 ../../Sources/Navigator/Audiobook
 ../../Sources/Navigator/Audiobook/AudioNavigator.swift
 ../../Sources/Navigator/Audiobook/Preferences
@@ -419,13 +415,10 @@
 ../../Sources/Navigator/DirectionalNavigationAdapter.swift
 ../../Sources/Navigator/EditingAction.swift
 ../../Sources/Navigator/EPUB
-../../Sources/Navigator/EPUB/.DS_Store
 ../../Sources/Navigator/EPUB/Assets
-../../Sources/Navigator/EPUB/Assets/.DS_Store
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-one.html
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-two.html
 ../../Sources/Navigator/EPUB/Assets/Static
-../../Sources/Navigator/EPUB/Assets/Static/.DS_Store
 ../../Sources/Navigator/EPUB/Assets/Static/fonts
 ../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-Bold.otf
 ../../Sources/Navigator/EPUB/Assets/Static/fonts/OpenDyslexic-BoldItalic.otf
@@ -484,7 +477,6 @@
 ../../Sources/Navigator/EPUB/Preferences/EPUBPreferencesEditor.swift
 ../../Sources/Navigator/EPUB/Preferences/EPUBSettings.swift
 ../../Sources/Navigator/EPUB/Scripts
-../../Sources/Navigator/EPUB/Scripts/.DS_Store
 ../../Sources/Navigator/EPUB/Scripts/.eslintrc.json
 ../../Sources/Navigator/EPUB/Scripts/.gitignore
 ../../Sources/Navigator/EPUB/Scripts/.prettierignore
@@ -537,7 +529,6 @@
 ../../Sources/Navigator/EPUB/Scripts/webpack.config.js
 ../../Sources/Navigator/EPUB/WebViewServer.swift
 ../../Sources/Navigator/Input
-../../Sources/Navigator/Input/.DS_Store
 ../../Sources/Navigator/Input/CompositeInputObserver.swift
 ../../Sources/Navigator/Input/InputObservable.swift
 ../../Sources/Navigator/Input/InputObservable+Legacy.swift
@@ -577,7 +568,6 @@
 ../../Sources/Navigator/Resources/en.lproj/Localizable.strings
 ../../Sources/Navigator/SelectableNavigator.swift
 ../../Sources/Navigator/Toolkit
-../../Sources/Navigator/Toolkit/.DS_Store
 ../../Sources/Navigator/Toolkit/CompletionList.swift
 ../../Sources/Navigator/Toolkit/CursorList.swift
 ../../Sources/Navigator/Toolkit/Extensions
@@ -607,7 +597,6 @@
 ../../Sources/OPDS/URLHelper.swift
 ../../Sources/OPDS/XMLNamespace.swift
 ../../Sources/Shared
-../../Sources/Shared/.DS_Store
 ../../Sources/Shared/Internal
 ../../Sources/Shared/Internal/Extensions
 ../../Sources/Shared/Logger
@@ -625,14 +614,12 @@
 ../../Sources/Shared/OPDS/OpdsMetadata.swift
 ../../Sources/Shared/OPDS/OPDSPrice.swift
 ../../Sources/Shared/Publication
-../../Sources/Shared/Publication/.DS_Store
 ../../Sources/Shared/Publication/Accessibility
 ../../Sources/Shared/Publication/Accessibility/Accessibility.swift
 ../../Sources/Shared/Publication/Accessibility/AccessibilityDisplayString+Generated.swift
 ../../Sources/Shared/Publication/Accessibility/AccessibilityMetadataDisplayGuide.swift
 ../../Sources/Shared/Publication/Contributor.swift
 ../../Sources/Shared/Publication/Extensions
-../../Sources/Shared/Publication/Extensions/.DS_Store
 ../../Sources/Shared/Publication/Extensions/Archive
 ../../Sources/Shared/Publication/Extensions/Archive/Properties+Archive.swift
 ../../Sources/Shared/Publication/Extensions/Audio
@@ -676,12 +663,10 @@
 ../../Sources/Shared/Publication/PublicationCollection.swift
 ../../Sources/Shared/Publication/ReadingProgression.swift
 ../../Sources/Shared/Publication/Services
-../../Sources/Shared/Publication/Services/.DS_Store
 ../../Sources/Shared/Publication/Services/Content
 ../../Sources/Shared/Publication/Services/Content Protection
 ../../Sources/Shared/Publication/Services/Content Protection/ContentProtectionService.swift
 ../../Sources/Shared/Publication/Services/Content Protection/UserRights.swift
-../../Sources/Shared/Publication/Services/Content/.DS_Store
 ../../Sources/Shared/Publication/Services/Content/Content.swift
 ../../Sources/Shared/Publication/Services/Content/ContentService.swift
 ../../Sources/Shared/Publication/Services/Content/ContentTokenizer.swift
@@ -711,7 +696,6 @@
 ../../Sources/Shared/Publication/Subject.swift
 ../../Sources/Shared/Publication/TDM.swift
 ../../Sources/Shared/Resources
-../../Sources/Shared/Resources/.DS_Store
 ../../Sources/Shared/Resources/en.lproj
 ../../Sources/Shared/Resources/en.lproj/W3CAccessibilityMetadataDisplayGuide.strings
 ../../Sources/Shared/Resources/fr.lproj
@@ -719,7 +703,6 @@
 ../../Sources/Shared/Resources/it.lproj
 ../../Sources/Shared/Resources/it.lproj/W3CAccessibilityMetadataDisplayGuide.strings
 ../../Sources/Shared/Toolkit
-../../Sources/Shared/Toolkit/.DS_Store
 ../../Sources/Shared/Toolkit/Archive
 ../../Sources/Shared/Toolkit/Archive/ArchiveOpener.swift
 ../../Sources/Shared/Toolkit/Archive/ArchiveProperties.swift
@@ -730,7 +713,6 @@
 ../../Sources/Shared/Toolkit/Closeable.swift
 ../../Sources/Shared/Toolkit/ControlFlow.swift
 ../../Sources/Shared/Toolkit/Data
-../../Sources/Shared/Toolkit/Data/.DS_Store
 ../../Sources/Shared/Toolkit/Data/Asset
 ../../Sources/Shared/Toolkit/Data/Asset/Asset.swift
 ../../Sources/Shared/Toolkit/Data/Asset/AssetRetriever.swift
@@ -770,7 +752,6 @@
 ../../Sources/Shared/Toolkit/File/FileSystemError.swift
 ../../Sources/Shared/Toolkit/FileExtension.swift
 ../../Sources/Shared/Toolkit/Format
-../../Sources/Shared/Toolkit/Format/.DS_Store
 ../../Sources/Shared/Toolkit/Format/Format.swift
 ../../Sources/Shared/Toolkit/Format/FormatSniffer.swift
 ../../Sources/Shared/Toolkit/Format/FormatSnifferBlob.swift
@@ -849,14 +830,11 @@
 ../../Sources/Shared/Toolkit/ZIP/ZIPFoundation/ZIPFoundationArchiveOpener.swift
 ../../Sources/Shared/Toolkit/ZIP/ZIPFoundation/ZIPFoundationContainer.swift
 ../../Sources/Streamer
-../../Sources/Streamer/.DS_Store
 ../../Sources/Streamer/Assets
 ../../Sources/Streamer/Assets/fonts
 ../../Sources/Streamer/Assets/fonts/OpenDyslexic-Regular.otf
 ../../Sources/Streamer/Parser
-../../Sources/Streamer/Parser/.DS_Store
 ../../Sources/Streamer/Parser/Audio
-../../Sources/Streamer/Parser/Audio/.DS_Store
 ../../Sources/Streamer/Parser/Audio/AudioParser.swift
 ../../Sources/Streamer/Parser/Audio/AudioPublicationManifestAugmentor.swift
 ../../Sources/Streamer/Parser/Audio/Services
@@ -864,7 +842,6 @@
 ../../Sources/Streamer/Parser/CompositePublicationParser.swift
 ../../Sources/Streamer/Parser/DefaultPublicationParser.swift
 ../../Sources/Streamer/Parser/EPUB
-../../Sources/Streamer/Parser/EPUB/.DS_Store
 ../../Sources/Streamer/Parser/EPUB/EPUBContainerParser.swift
 ../../Sources/Streamer/Parser/EPUB/EPUBEncryptionParser.swift
 ../../Sources/Streamer/Parser/EPUB/EPUBManifestParser.swift
