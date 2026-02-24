@@ -99,7 +99,8 @@ public class HTMLResourceContentIterator: ContentIterator {
 
     private lazy var elementsTask = Task {
         await resource
-            .readAsString()
+            .read()
+            .asString()
             .eraseToAnyError()
             .tryMap { try SwiftSoup.parse($0) }
             .tryMap { try parse(document: $0, locator: locator, beforeMaxLength: beforeMaxLength) }
