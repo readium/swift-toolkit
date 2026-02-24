@@ -6,7 +6,7 @@
 
 import Foundation
 
-public typealias GuidedNavigationServiceFactory = (PublicationServiceContext) -> GuidedNavigationService?
+public typealias GuidedNavigationServiceFactory = @Sendable (PublicationServiceContext) -> GuidedNavigationService?
 
 /// Provides pre-authored ``GuidedNavigationDocument`` objects for individual
 /// reading order resources.
