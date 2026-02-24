@@ -7,16 +7,11 @@
 import Foundation
 
 /// Initialize the Logger.
-/// Default logger is the `LoggerStub` class
+/// Default logger is the `LoggerStub` struct.
 ///
 /// - Parameter customLogger: The Logger that will be used for printing logs.
-///
-/// **Warning**: This function is asynchronous, so the logger might not be fully
-/// set up when it returns.
 public func ReadiumEnableLog(withMinimumSeverityLevel level: SeverityLevel, customLogger: LoggerType = LoggerStub()) {
-    Task {
-        await Logger.sharedInstance.setupLogger(logger: customLogger, withMinimumSeverityLevel: level)
-    }
+    Logger.sharedInstance.setupLogger(logger: customLogger, withMinimumSeverityLevel: level)
 
     print("\(SeverityLevel.info.symbol) Readium 2 Log enabled with minimum severity level of [\(level)].")
 }
@@ -30,10 +25,10 @@ public protocol LoggerType: Sendable {
 public actor Logger {
     /// The active logger is responsible for displaying the log message
     /// throughout the framework.
-    private var activeLogger: LoggerType?
+    private var activeLogger: LoggerType = LoggerStub()
 
     /// The minimum severity level for logs to be displayed.
-    private var minimumSeverityLevel: SeverityLevel?
+    private let minimumSeverityLevel = Atomic<Int>(wrappedValue: SeverityLevel.warning.numericValue)
 
     /// Singleton instance.
     public static let sharedInstance = Logger()
@@ -46,29 +41,43 @@ public actor Logger {
     /// - Parameters:
     ///   - logger: The logger to be used as the `activeLogger`.
     ///   - severityLevel: The minimum severity level of displayed logs.
-    public func setupLogger(logger: LoggerType,
-                            withMinimumSeverityLevel severityLevel: SeverityLevel? = .warning)
+    public nonisolated func setupLogger(logger: LoggerType,
+                                        withMinimumSeverityLevel severityLevel: SeverityLevel? = .warning)
     {
+        if let severityLevel = severityLevel {
+            minimumSeverityLevel.write { $0 = severityLevel.numericValue }
+        }
+
+        Task {
+            await setActiveLogger(logger)
+        }
+    }
+
+    private func setActiveLogger(_ logger: LoggerType) {
         activeLogger = logger
-        minimumSeverityLevel = severityLevel
     }
 
     /// Allow the framework user to set the minimum severity level for the logs
     /// being displayed.
     ///
     /// - Parameter severityLevel: The value from the `SeverityLevel` enum.
-    public func setMinimumSeverityLevel(at severityLevel: SeverityLevel?) {
+    public nonisolated func setMinimumSeverityLevel(at severityLevel: SeverityLevel?) {
         guard let severityLevel = severityLevel else {
             return
         }
 
-        minimumSeverityLevel = severityLevel
+        minimumSeverityLevel.write { $0 = severityLevel.numericValue }
     }
 
     // MARK: - Internal methods.
 
     /// Logs a value.
     nonisolated func log(_ value: Any?, at level: SeverityLevel, file: String, line: Int) {
+        // Fast path: check the severity level before creating a Task.
+        guard level.numericValue >= minimumSeverityLevel.read() else {
+            return
+        }
+
         let safeValue = String(describing: value ?? "")
 
         Task {
@@ -77,12 +86,6 @@ public actor Logger {
     }
 
     private func performLog(_ value: String, at level: SeverityLevel, file: String, line: Int) {
-        if let minimumSeverityLevel = minimumSeverityLevel {
-            guard level.numericValue >= minimumSeverityLevel.numericValue else {
-                return
-            }
-        }
-
-        activeLogger?.log(level: level, value: value, file: file, line: line)
+        activeLogger.log(level: level, value: value, file: file, line: line)
     }
 }

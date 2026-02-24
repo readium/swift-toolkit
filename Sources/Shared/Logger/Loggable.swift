@@ -50,24 +50,68 @@ public enum SeverityLevel: String, Sendable {
 }
 
 /// Loggable protocol, to be implemented by a custom Logging class.
-public protocol Loggable {
-    /// Log `message` with a severity of `level`.
-    func log(_ level: SeverityLevel, _ value: Any?, file: String, line: Int)
-
-    // FIXME: code smell... But can't find a workaround for now...
-    //       They used for logging in the initializer
-    /// Log `message` with a severity of `level`.
-    static func log(_ level: SeverityLevel, _ value: Any?, file: String, line: Int)
-}
+public protocol Loggable {}
 
 /// Default implementation
 public extension Loggable {
-    func log(_ level: SeverityLevel, _ value: Any?, file: String, line: Int) {
+    func log(_ level: SeverityLevel, _ value: Any?, file: String = #file, line: Int = #line) {
         Logger.sharedInstance.log(value, at: level, file: file, line: line)
     }
 
-    func log(_ level: SeverityLevel, _ value: Any?, defaultFile: String = #file, defaultLine: Int = #line) {
-        Logger.sharedInstance.log(value, at: level, file: defaultFile, line: defaultLine)
+    static func log(_ level: SeverityLevel, _ value: Any?, file: String = #file, line: Int = #line) {
+        Logger.sharedInstance.log(value, at: level, file: file, line: line)
+    }
+
+    func logTrace(_ value: Any?, file: String = #file, line: Int = #line) {
+        log(.trace, value, file: file, line: line)
+    }
+
+    static func logTrace(_ value: Any?, file: String = #file, line: Int = #line) {
+        log(.trace, value, file: file, line: line)
+    }
+
+    func trace(_ message: String = "", function: String = #function, file: String = #file, line: Int = #line) {
+        #if DEBUG
+            log(.trace, "\(type(of: self))::\(function) \(message)", file: file, line: line)
+        #endif
+    }
+
+    static func trace(_ message: String = "", function: String = #function, file: String = #file, line: Int = #line) {
+        #if DEBUG
+            log(.trace, "\(Self.self)::\(function) \(message)", file: file, line: line)
+        #endif
+    }
+
+    func logDebug(_ value: Any?, file: String = #file, line: Int = #line) {
+        log(.debug, value, file: file, line: line)
+    }
+
+    static func logDebug(_ value: Any?, file: String = #file, line: Int = #line) {
+        log(.debug, value, file: file, line: line)
+    }
+
+    func logInfo(_ value: Any?, file: String = #file, line: Int = #line) {
+        log(.info, value, file: file, line: line)
+    }
+
+    static func logInfo(_ value: Any?, file: String = #file, line: Int = #line) {
+        log(.info, value, file: file, line: line)
+    }
+
+    func logWarning(_ value: Any?, file: String = #file, line: Int = #line) {
+        log(.warning, value, file: file, line: line)
+    }
+
+    static func logWarning(_ value: Any?, file: String = #file, line: Int = #line) {
+        log(.warning, value, file: file, line: line)
+    }
+
+    func logError(_ value: Any?, file: String = #file, line: Int = #line) {
+        log(.error, value, file: file, line: line)
+    }
+
+    static func logError(_ value: Any?, file: String = #file, line: Int = #line) {
+        log(.error, value, file: file, line: line)
     }
 
     @discardableResult func logAndRethrow<T>(_ block: () throws -> T) rethrows -> T {
@@ -77,14 +121,6 @@ public extension Loggable {
             log(.error, error)
             throw error
         }
-    }
-
-    static func log(_ level: SeverityLevel, _ value: Any?, file: String, line: Int) {
-        Logger.sharedInstance.log(value, at: level, file: file, line: line)
-    }
-
-    static func log(_ level: SeverityLevel, _ value: Any?, defaultFile: String = #file, defaultLine: Int = #line) {
-        Logger.sharedInstance.log(value, at: level, file: defaultFile, line: defaultLine)
     }
 
     func warnIfMainThread(_ path: String = #file, _ function: String = #function, _ className: String = String(describing: Self.self), _ line: Int = #line) {
@@ -105,14 +141,6 @@ public extension Loggable {
             return NSClassFromString("XCTest") == nil && Thread.isMainThread
         #else
             return false
-        #endif
-    }
-}
-
-public extension Loggable {
-    func trace(_ message: String = "", function: String = #function, file: String = #file, line: Int = #line) {
-        #if DEBUG
-            log(.trace, "\(type(of: self))::\(function) \(message)", file: file, line: line)
         #endif
     }
 }
