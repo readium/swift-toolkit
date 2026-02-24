@@ -1,0 +1,19 @@
+Pod::Spec.new do |s|
+
+  s.name          = "ReadiumAudioNavigator"
+  s.version       = "3.7.0"
+  s.license       = "BSD 3-Clause License"
+  s.summary       = "Readium Audio Navigator"
+  s.homepage      = "http://readium.github.io"
+  s.author        = { "Readium" => "contact@readium.org" }
+  s.source        = { :git => "https://github.com/readium/swift-toolkit.git", :tag => s.version }
+  s.requires_arc  = true
+  s.source_files  = "Sources/AudioNavigator/**/*.{m,h,swift}"
+  s.swift_version = '5.10'
+  s.platform      = :ios
+  s.ios.deployment_target = "15.0"
+
+  s.dependency 'ReadiumShared', '~> 3.7.0'
+  s.dependency 'ReadiumNavigator', '~> 3.7.0'
+
+end

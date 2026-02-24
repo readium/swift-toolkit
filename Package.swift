@@ -15,6 +15,7 @@ let package = Package(
         .library(name: "ReadiumShared", targets: ["ReadiumShared"]),
         .library(name: "ReadiumStreamer", targets: ["ReadiumStreamer"]),
         .library(name: "ReadiumNavigator", targets: ["ReadiumNavigator"]),
+        .library(name: "ReadiumAudioNavigator", targets: ["ReadiumAudioNavigator"]),
         .library(name: "ReadiumOPDS", targets: ["ReadiumOPDS"]),
         .library(name: "ReadiumLCP", targets: ["ReadiumLCP"]),
 
@@ -108,6 +109,20 @@ let package = Package(
             exclude: [
                 "UITests",
             ]
+        ),
+
+        .target(
+            name: "ReadiumAudioNavigator",
+            dependencies: [
+                "ReadiumShared",
+                "ReadiumNavigator",
+            ],
+            path: "Sources/AudioNavigator"
+        ),
+        .testTarget(
+            name: "ReadiumAudioNavigatorTests",
+            dependencies: ["ReadiumAudioNavigator"],
+            path: "Tests/AudioNavigatorTests"
         ),
 
         .target(

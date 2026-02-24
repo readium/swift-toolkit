@@ -9,6 +9,77 @@ To bump the minimum required iOS version, update these files:
 - `Support/Carthage/project.yml`
 - `Support/CocoaPods/*.podspec`
 
+## Creating a New Package
+
+A new package is a separately distributable SPM library product. It requires updates to four places.
+
+### 1. `Package.swift`
+
+Add a new product and its source/test targets:
+
+```swift
+// products:
+.library(name: "Readium<ModuleName>", targets: ["Readium<ModuleName>"]),
+
+// targets:
+.target(
+    name: "Readium<ModuleName>",
+    dependencies: ["ReadiumShared", "ReadiumNavigator"],
+    path: "Sources/<ModuleName>"
+),
+.testTarget(
+    name: "Readium<ModuleName>Tests",
+    dependencies: ["Readium<ModuleName>"],
+    path: "Tests/<ModuleName>Tests"
+),
+```
+
+### 2. `Support/CocoaPods/Readium<ModuleName>.podspec`
+
+Create a new Podspec file modelled on the existing ones:
+
+```ruby
+Pod::Spec.new do |s|
+  s.name         = "Readium<ModuleName>"
+  s.version      = "3.7.0"   # keep in sync with other podspecs
+  s.source_files = "Sources/<ModuleName>/**/*.{m,h,swift}"
+  s.swift_version            = '5.10'
+  s.ios.deployment_target    = "15.0"
+  # ... standard header fields (license, homepage, author, source) ...
+  s.dependency 'ReadiumShared',    '~> 3.7.0'
+  s.dependency 'ReadiumNavigator', '~> 3.7.0'
+end
+```
+
+### 3. `Support/Carthage/project.yml`
+
+Add a new target and scheme:
+
+```yaml
+targets:
+  Readium<ModuleName>:
+    type: framework
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: ../../Sources/<ModuleName>
+    dependencies:
+      - target: ReadiumShared
+      - target: ReadiumNavigator
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.audio-navigator
+      INFOPLIST_FILE: Info.plist
+
+schemes:
+  Readium<ModuleName>:
+    build:
+      targets:
+        Readium<ModuleName>: all
+```
+
+> [!WARNING]
+> The module name must follow the `Readium<ModuleName>` convention, and the iOS deployment target / Swift version must match the values in all other packages.
+
 ## Releasing a New Version
 
 You are ready to release a new version of the Swift toolkit? Great, follow these steps:
@@ -46,6 +117,7 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
         
         pod repo push readium ReadiumStreamer.podspec
         pod repo push readium ReadiumNavigator.podspec
+        pod repo push readium ReadiumAudioNavigator.podspec
         pod repo push readium ReadiumOPDS.podspec
         pod repo push readium ReadiumLCP.podspec
         pod repo push readium ReadiumAdapterGCDWebServer.podspec
