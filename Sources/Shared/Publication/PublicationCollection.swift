@@ -24,32 +24,30 @@ public struct PublicationCollection: JSONEquatable, Hashable, Sendable {
     /// Trick to keep the struct hashable despite [String: Any]
     private var metadataJSON: JSONDictionary
 
-    public init(metadata: [String: Any] = [:], links: [Link], subcollections: [String: [PublicationCollection]] = [:]) {
+    public init(metadata: [String: JSONValue] = [:], links: [Link], subcollections: [String: [PublicationCollection]] = [:]) {
         metadataJSON = JSONDictionary(metadata) ?? JSONDictionary()
         self.links = links
         self.subcollections = subcollections
     }
 
     public init?(
-        json: Any,
+        json: JSONValue?,
         warnings: WarningLogger? = nil
     ) throws {
-        // Unwrap JSONValue
-        var json = json
-        if let j = json as? JSONValue {
-            json = j.any
+        guard let json = json else {
+            return nil
         }
 
         // Parses a list of links.
-        if let array = json as? [Any] {
-            self.init(links: .init(json: array, warnings: warnings))
+        if case let .array(array) = json {
+            self.init(links: .init(json: array.map(\.any), warnings: warnings))
 
             // Parses a Collection object.
         } else if var jsonDict = JSONDictionary(json) {
             self.init(
-                metadata: (jsonDict.pop("metadata")?.object ?? [:]).mapValues { $0 as Any },
+                metadata: jsonDict.pop("metadata")?.object ?? [:],
                 links: .init(json: jsonDict.pop("links")),
-                subcollections: Self.makeCollections(json: jsonDict.json)
+                subcollections: Self.makeCollections(json: .object(jsonDict.json))
             )
 
         } else {
@@ -57,9 +55,16 @@ public struct PublicationCollection: JSONEquatable, Hashable, Sendable {
         }
 
         guard !links.isEmpty else {
-            warnings?.log("`links` should not be empty", model: Self.self, source: json, severity: .moderate)
+            warnings?.log("`links` should not be empty", model: Self.self, source: json.any, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
+    }
+
+    public init?(
+        json: Any,
+        warnings: WarningLogger? = nil
+    ) throws {
+        try self.init(json: JSONValue(json), warnings: warnings)
     }
 
     public var json: JSONDictionary.Wrapped {
@@ -69,28 +74,8 @@ public struct PublicationCollection: JSONEquatable, Hashable, Sendable {
         ] as [String: JSONValue], additional: Self.serializeCollections(subcollections))
     }
 
-    static func makeCollections(json: Any?, warnings: WarningLogger? = nil) -> [String: [PublicationCollection]] {
-        // Handle JSONValue
-        var json = json
-        if let j = json as? JSONValue {
-            json = j.any
-        }
-
-        // Handle [String: JSONValue] explicitly
-        if let dict = json as? [String: JSONValue] {
-            return dict.compactMapValues { json in
-                if let collection = try? PublicationCollection(json: json, warnings: warnings) {
-                    return [collection]
-                } else if case let .array(arr) = json {
-                    let collections = arr.compactMap { try? PublicationCollection(json: $0, warnings: warnings) }
-                    return collections.isEmpty ? nil : collections
-                } else {
-                    return nil
-                }
-            }
-        }
-
-        guard let json = json as? [String: Any] else {
+    static func makeCollections(json: JSONValue?, warnings: WarningLogger? = nil) -> [String: [PublicationCollection]] {
+        guard let json = json?.object else {
             return [:]
         }
 
@@ -100,7 +85,7 @@ public struct PublicationCollection: JSONEquatable, Hashable, Sendable {
                 return [collection]
 
                 // Parses list of collection objects.
-            } else if let collections = json as? [Any] {
+            } else if case let .array(collections) = json {
                 let collections = collections.compactMap {
                     try? PublicationCollection(json: $0, warnings: warnings)
                 }
@@ -110,6 +95,10 @@ public struct PublicationCollection: JSONEquatable, Hashable, Sendable {
                 return nil
             }
         }
+    }
+
+    static func makeCollections(json: Any?, warnings: WarningLogger? = nil) -> [String: [PublicationCollection]] {
+        makeCollections(json: JSONValue(json), warnings: warnings)
     }
 
     static func serializeCollections(_ collections: [String: [PublicationCollection]]) -> JSONDictionary.Wrapped {

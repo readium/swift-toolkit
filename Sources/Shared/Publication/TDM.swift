@@ -40,15 +40,15 @@ public struct TDM: Hashable, Sendable {
         self.policy = policy
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
         guard let jsonDict = JSONDictionary(json) else {
-            warnings?.log("Invalid TDM object", model: Self.self, source: json, severity: .minor)
+            warnings?.log("Invalid TDM object", model: Self.self, source: json?.any, severity: .minor)
             throw JSONError.parsing(Self.self)
         }
         let jsonObject = jsonDict.json
 
         guard let reservation = jsonObject["reservation"]?.string.flatMap(Reservation.init(rawValue:)) else {
-            warnings?.log("Invalid TDM object", model: Self.self, source: json, severity: .minor)
+            warnings?.log("Invalid TDM object", model: Self.self, source: json?.any, severity: .minor)
             throw JSONError.parsing(Self.self)
         }
 
@@ -56,6 +56,10 @@ public struct TDM: Hashable, Sendable {
             reservation: reservation,
             policy: jsonObject["policy"]?.string.flatMap { HTTPURL(string: $0) }
         )
+    }
+
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+        try self.init(json: JSONValue(json), warnings: warnings)
     }
 
     public var json: [String: JSONValue] {

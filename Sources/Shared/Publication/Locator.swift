@@ -32,8 +32,12 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
         self.text = text
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
         try self.init(json: json, warnings: warnings, legacyHREF: false)
+    }
+
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+        try self.init(json: JSONValue(json), warnings: warnings)
     }
 
     public init?(jsonString: String, warnings: WarningLogger? = nil) throws {
@@ -50,9 +54,13 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
     }
 
     private init?(jsonString: String, warnings: WarningLogger?, legacyHREF: Bool) throws {
-        let json: Any
+        let json: JSONValue
         do {
-            json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
+            let any = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
+            guard let j = JSONValue(any) else {
+                throw JSONError.parsing(Self.self)
+            }
+            json = j
         } catch {
             warnings?.log("Invalid Locator object: \(error)", model: Self.self)
             throw JSONError.parsing(Self.self)
@@ -61,27 +69,27 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
         try self.init(json: json, warnings: warnings, legacyHREF: legacyHREF)
     }
 
-    private init?(json: Any?, warnings: WarningLogger?, legacyHREF: Bool) throws {
-        if json == nil {
+    private init?(json: JSONValue?, warnings: WarningLogger?, legacyHREF: Bool) throws {
+        guard let json = json else {
             return nil
         }
         guard let jsonDict = JSONDictionary(json),
               let hrefString = jsonDict.json["href"]?.string,
               let typeString = jsonDict.json["type"]?.string
         else {
-            warnings?.log("`href` and `type` required", model: Self.self, source: json)
+            warnings?.log("`href` and `type` required", model: Self.self, source: json.any)
             throw JSONError.parsing(Self.self)
         }
 
         let jsonObject = jsonDict.json
 
         guard let type = MediaType(typeString) else {
-            warnings?.log("`type` is not a valid media type", model: Self.self, source: json)
+            warnings?.log("`type` is not a valid media type", model: Self.self, source: json.any)
             throw JSONError.parsing(Self.self)
         }
 
         guard let href = legacyHREF ? AnyURL(legacyHREF: hrefString) : AnyURL(string: hrefString) else {
-            warnings?.log("`href` is not a valid URL", model: Self.self, source: json)
+            warnings?.log("`href` is not a valid URL", model: Self.self, source: json.any)
             throw JSONError.parsing(Self.self)
         }
 
@@ -182,13 +190,13 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
             otherLocationsJSON = JSONDictionary(otherLocations) ?? JSONDictionary()
         }
 
-        public init(json: Any?, warnings: WarningLogger? = nil) throws {
+        public init(json: JSONValue?, warnings: WarningLogger? = nil) throws {
             if json == nil {
                 self.init()
                 return
             }
             guard var jsonObject = JSONDictionary(json) else {
-                warnings?.log("Invalid Locations object", model: Self.self, source: json)
+                warnings?.log("Invalid Locations object", model: Self.self, source: json?.any)
                 throw JSONError.parsing(Self.self)
             }
             var fragments = parseArray(jsonObject.pop("fragments")) as [String]
@@ -204,10 +212,14 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
             )
         }
 
+        public init(json: Any?, warnings: WarningLogger? = nil) throws {
+            try self.init(json: JSONValue(json), warnings: warnings)
+        }
+
         public init(jsonString: String, warnings: WarningLogger? = nil) {
             do {
-                let json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
-                try self.init(json: json, warnings: warnings)
+                let any = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
+                try self.init(json: JSONValue(any), warnings: warnings)
             } catch {
                 warnings?.log("Invalid Locations object: \(error)", model: Self.self)
                 self.init()
@@ -249,13 +261,13 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
             self.highlight = highlight
         }
 
-        public init(json: Any?, warnings: WarningLogger? = nil) throws {
+        public init(json: JSONValue?, warnings: WarningLogger? = nil) throws {
             if json == nil {
                 self.init()
                 return
             }
             guard let jsonDict = JSONDictionary(json) else {
-                warnings?.log("Invalid Text object", model: Self.self, source: json)
+                warnings?.log("Invalid Text object", model: Self.self, source: json?.any)
                 throw JSONError.parsing(Self.self)
             }
             let jsonObject = jsonDict.json
@@ -266,10 +278,14 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
             )
         }
 
+        public init(json: Any?, warnings: WarningLogger? = nil) throws {
+            try self.init(json: JSONValue(json), warnings: warnings)
+        }
+
         public init(jsonString: String, warnings: WarningLogger? = nil) {
             do {
-                let json = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
-                try self.init(json: json, warnings: warnings)
+                let any = try JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!)
+                try self.init(json: JSONValue(any), warnings: warnings)
             } catch {
                 warnings?.log("Invalid Text object", model: Self.self)
                 self.init()
@@ -332,25 +348,23 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable {
 
 public extension Array where Element == Locator {
     /// Parses multiple JSON locators into an array of `Locator`.
-    init(json: Any?, warnings: WarningLogger? = nil) {
+    init(json: JSONValue?, warnings: WarningLogger? = nil) {
         self.init()
         guard let json = json else {
             return
         }
 
-        let rawJson: Any
-        if let j = json as? JSONValue {
-            rawJson = j.any
-        } else {
-            rawJson = json
+        switch json {
+        case let .array(array):
+            let links = array.compactMap { try? Locator(json: $0, warnings: warnings) }
+            append(contentsOf: links)
+        default:
+            break
         }
+    }
 
-        guard let array = rawJson as? [Any] else {
-            return
-        }
-
-        let links = array.compactMap { try? Locator(json: $0, warnings: warnings) }
-        append(contentsOf: links)
+    init(json: Any?, warnings: WarningLogger? = nil) {
+        self.init(json: JSONValue(json), warnings: warnings)
     }
 
     var json: [JSONDictionary.Wrapped] {
@@ -372,12 +386,12 @@ public struct LocatorCollection: Hashable {
         self.locators = locators
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) {
-        if json == nil {
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) {
+        guard let json = json else {
             return nil
         }
         guard let jsonDict = JSONDictionary(json) else {
-            warnings?.log("Not a JSON object", model: Self.self, source: json)
+            warnings?.log("Not a JSON object", model: Self.self, source: json.any)
             return nil
         }
         let jsonObject = jsonDict.json
@@ -386,6 +400,10 @@ public struct LocatorCollection: Hashable {
             links: [Link](json: jsonObject["links"]),
             locators: [Locator](json: jsonObject["locators"])
         )
+    }
+
+    public init?(json: Any?, warnings: WarningLogger? = nil) {
+        self.init(json: JSONValue(json), warnings: warnings)
     }
 
     public var json: JSONDictionary.Wrapped {
@@ -425,17 +443,21 @@ public struct LocatorCollection: Hashable {
             otherMetadataJSON = JSONDictionary(otherMetadata) ?? JSONDictionary()
         }
 
-        public init(json: Any?, warnings: WarningLogger? = nil) {
+        public init(json: JSONValue?, warnings: WarningLogger? = nil) {
             if var json = JSONDictionary(json) {
                 localizedTitle = try? LocalizedString(json: json.pop("title"), warnings: warnings)
                 numberOfItems = parsePositive(json.pop("numberOfItems"))
                 otherMetadataJSON = json
             } else {
-                warnings?.log("Not a JSON object", model: Self.self, source: json)
+                warnings?.log("Not a JSON object", model: Self.self, source: json?.any)
                 localizedTitle = nil
                 numberOfItems = nil
                 otherMetadataJSON = JSONDictionary()
             }
+        }
+
+        public init(json: Any?, warnings: WarningLogger? = nil) {
+            self.init(json: JSONValue(json), warnings: warnings)
         }
 
         public var json: JSONDictionary.Wrapped {

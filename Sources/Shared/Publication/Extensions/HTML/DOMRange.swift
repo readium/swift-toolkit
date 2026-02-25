@@ -34,21 +34,25 @@ public struct DOMRange: JSONEquatable {
         self.end = end
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
         // Convenience when parsing parent structures.
-        if json == nil {
+        guard let json = json else {
             return nil
         }
         guard let jsonDict = JSONDictionary(json),
               let start = try? Point(json: jsonDict.json["start"], warnings: warnings)
         else {
-            warnings?.log("`start` is required", model: Self.self, source: json, severity: .moderate)
+            warnings?.log("`start` is required", model: Self.self, source: json.any, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
         self.init(
             start: start,
             end: try? Point(json: jsonDict.json["end"], warnings: warnings)
         )
+    }
+
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+        try self.init(json: JSONValue(json), warnings: warnings)
     }
 
     public var json: [String: JSONValue] {
@@ -82,16 +86,16 @@ public struct DOMRange: JSONEquatable {
             self.charOffset = charOffset
         }
 
-        public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+        public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
             // Convenience when parsing parent structures.
-            if json == nil {
+            guard let json = json else {
                 return nil
             }
             guard let jsonDict = JSONDictionary(json),
                   let cssSelector = jsonDict.json["cssSelector"]?.string,
                   let textNodeIndex: Int = parsePositive(jsonDict.json["textNodeIndex"])
             else {
-                warnings?.log("`cssSelector` and `textNodeIndex` are required", model: Self.self, source: json, severity: .moderate)
+                warnings?.log("`cssSelector` and `textNodeIndex` are required", model: Self.self, source: json.any, severity: .moderate)
                 throw JSONError.parsing(Self.self)
             }
             self.init(
@@ -102,6 +106,10 @@ public struct DOMRange: JSONEquatable {
                     // reading apps having persisted legacy Locator models.
                     ?? parsePositive(jsonDict.json["offset"])
             )
+        }
+
+        public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+            try self.init(json: JSONValue(json), warnings: warnings)
         }
 
         public var json: [String: JSONValue] {

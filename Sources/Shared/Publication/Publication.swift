@@ -70,8 +70,15 @@ public class Publication: Closeable, Loggable, @unchecked Sendable {
 
     /// Parses a Readium Web Publication Manifest.
     /// https://readium.org/webpub-manifest/schema/publication.schema.json
-    public convenience init(json: Any, warnings: WarningLogger? = nil) throws {
+    public convenience init(json: JSONValue, warnings: WarningLogger? = nil) throws {
         try self.init(manifest: Manifest(json: json, warnings: warnings))
+    }
+
+    public convenience init(json: Any, warnings: WarningLogger? = nil) throws {
+        guard let jsonValue = JSONValue(json) else {
+            throw JSONError.parsing(Publication.self)
+        }
+        try self.init(json: jsonValue, warnings: warnings)
     }
 
     /// Returns the Readium Web Publication Manifest as JSON.

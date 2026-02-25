@@ -547,8 +547,8 @@ public struct Accessibility: Hashable, Sendable {
         self.exemptions = exemptions
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        guard json != nil else {
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let json = json else {
             return nil
         }
         guard let jsonDict = JSONDictionary(json) else {
@@ -560,12 +560,12 @@ public struct Accessibility: Hashable, Sendable {
         self.init(
             conformsTo: (parseArray(jsonObject["conformsTo"], allowingSingle: true) as [String])
                 .map(Profile.init),
-            certification: (JSONValue(jsonObject["certification"])?.object.map { $0.mapValues { $0.any } })
+            certification: jsonObject["certification"]?.object
                 .flatMap { dict in
                     Certification(
-                        certifiedBy: dict["certifiedBy"] as? String,
-                        credential: dict["credential"] as? String,
-                        report: dict["report"] as? String
+                        certifiedBy: dict["certifiedBy"]?.string,
+                        credential: dict["credential"]?.string,
+                        report: dict["report"]?.string
                     )
                 }
                 .takeIf { $0.certifiedBy != nil || $0.credential != nil || $0.report != nil },
@@ -586,6 +586,10 @@ public struct Accessibility: Hashable, Sendable {
             hazards: parseArray(jsonObject["hazard"]).map(Hazard.init),
             exemptions: parseArray(jsonObject["exemption"]).map(Exemption.init)
         )
+    }
+
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+        try self.init(json: JSONValue(json), warnings: warnings)
     }
 
     public var json: [String: JSONValue] {

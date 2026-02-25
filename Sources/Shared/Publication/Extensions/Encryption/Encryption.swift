@@ -33,15 +33,15 @@ public struct Encryption: Equatable, Sendable {
         self.scheme = scheme
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
         // Convenience when parsing parent structures.
-        if json == nil {
+        guard let json = json else {
             return nil
         }
         guard let jsonDict = JSONDictionary(json),
               let algorithm = jsonDict.json["algorithm"]?.string
         else {
-            warnings?.log("`algorithm` is required", model: Self.self, source: json)
+            warnings?.log("`algorithm` is required", model: Self.self, source: json.any)
             throw JSONError.parsing(Self.self)
         }
         let jsonObject = jsonDict.json
@@ -56,6 +56,10 @@ public struct Encryption: Equatable, Sendable {
             profile: jsonObject["profile"]?.string,
             scheme: jsonObject["scheme"]?.string
         )
+    }
+
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+        try self.init(json: JSONValue(json), warnings: warnings)
     }
 
     public var json: [String: JSONValue] {

@@ -20,21 +20,26 @@ public struct GuidedNavigationDocument: Hashable, Sendable {
         self.guided = guided
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        guard let json = json as? [String: Any] else {
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let jsonDict = JSONDictionary(json) else {
             if json == nil {
                 return nil
             }
-            warnings?.log("Invalid Guided Navigation Document", model: Self.self, source: json, severity: .moderate)
+            warnings?.log("Invalid Guided Navigation Document", model: Self.self, source: json?.any, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
+        let jsonObject = jsonDict.json
 
-        let guided = [GuidedNavigationObject](json: json["guided"], warnings: warnings)
+        let guided = [GuidedNavigationObject](json: jsonObject["guided"], warnings: warnings)
         guard !guided.isEmpty else {
-            warnings?.log("Guided Navigation Document requires a non-empty guided array", model: Self.self, source: json, severity: .moderate)
+            warnings?.log("Guided Navigation Document requires a non-empty guided array", model: Self.self, source: json?.any, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
 
         self.init(guided: guided)
+    }
+
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+        try self.init(json: JSONValue(json), warnings: warnings)
     }
 }

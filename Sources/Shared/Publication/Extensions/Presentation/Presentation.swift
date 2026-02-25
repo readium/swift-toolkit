@@ -53,13 +53,13 @@ public struct Presentation: Equatable {
         self.layout = layout
     }
 
-    public init(json: Any?, warnings: WarningLogger? = nil) throws {
+    public init(json: JSONValue?, warnings: WarningLogger? = nil) throws {
         guard let json = json else {
             self.init()
             return
         }
         guard let jsonDict = JSONDictionary(json) else {
-            warnings?.log("Invalid JSON object", model: Self.self, source: json)
+            warnings?.log("Invalid JSON object", model: Self.self, source: json.any)
             throw JSONError.parsing(Self.self)
         }
         let jsonObject = jsonDict.json
@@ -73,6 +73,10 @@ public struct Presentation: Equatable {
             spread: parseRaw(jsonObject["spread"]),
             layout: parseRaw(jsonObject["layout"])
         )
+    }
+
+    public init(json: Any?, warnings: WarningLogger? = nil) throws {
+        try self.init(json: JSONValue(json), warnings: warnings)
     }
 
     public var json: [String: JSONValue] {
