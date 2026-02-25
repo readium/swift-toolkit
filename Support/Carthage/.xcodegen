@@ -340,6 +340,7 @@
 ../../Sources/AudioNavigator
 ../../Sources/AudioNavigator/AudioEngine.swift
 ../../Sources/AudioNavigator/AudioPlayer.swift
+../../Sources/AudioNavigator/GuidedNavigationCursor.swift
 ../../Sources/AudioNavigator/PlaybackCursor.swift
 ../../Sources/AudioNavigator/PlaybackItem.swift
 ../../Sources/Internal
@@ -695,7 +696,6 @@
 ../../Sources/Shared/Publication/PublicationCollection.swift
 ../../Sources/Shared/Publication/ReadingProgression.swift
 ../../Sources/Shared/Publication/Reference.swift
-../../Sources/Shared/Publication/Reference+Fragment.swift
 ../../Sources/Shared/Publication/Services
 ../../Sources/Shared/Publication/Services/Content
 ../../Sources/Shared/Publication/Services/Content Protection
@@ -834,6 +834,12 @@
 ../../Sources/Shared/Toolkit/PDF/PDFKit.swift
 ../../Sources/Shared/Toolkit/PDF/PDFOutlineNode.swift
 ../../Sources/Shared/Toolkit/ReadiumLocalizedString.swift
+../../Sources/Shared/Toolkit/Selectors
+../../Sources/Shared/Toolkit/Selectors/CSSSelector.swift
+../../Sources/Shared/Toolkit/Selectors/PDFSelector.swift
+../../Sources/Shared/Toolkit/Selectors/SpatialSelector.swift
+../../Sources/Shared/Toolkit/Selectors/TemporalSelector.swift
+../../Sources/Shared/Toolkit/Selectors/TextSelector.swift
 ../../Sources/Shared/Toolkit/SSML.swift
 ../../Sources/Shared/Toolkit/Tokenizer
 ../../Sources/Shared/Toolkit/Tokenizer/TextTokenizer.swift
