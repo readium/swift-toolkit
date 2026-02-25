@@ -110,7 +110,9 @@ public func parseRaw<T: RawRepresentable>(_ json: Any?) -> T? {
 /// let values1: [String] = parseArray(json["multiple"])
 /// let values2: [String] = parseArray(json["single"], allowingSingle: true)
 ///
-/// - Parameter allowingSingle: If true, then allows the parsing of both a single value and an array.
+/// - Parameters:
+///   - json: The JSON object to parse.
+///   - allowingSingle: If true, then allows the parsing of both a single value and an array.
 public func parseArray<T>(_ json: JSONValue?, allowingSingle: Bool = false) -> [T] {
     guard let json = json else {
         return []
@@ -159,6 +161,7 @@ public func parseArray<T>(_ json: JSONValue?, allowingSingle: Bool = false) -> [
 public func parseArray<T>(_ json: Any?, allowingSingle: Bool = false) -> [T] {
     parseArray((json as? JSONValue) ?? JSONValue(json), allowingSingle: allowingSingle)
 }
+
 
 /// Casting to Double loses precision and fails with integers, eg. json["key"] as? Double.
 public func parseDouble(_ json: Any?) -> Double? {

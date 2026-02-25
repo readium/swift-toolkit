@@ -7,10 +7,10 @@
 import Foundation
 import ReadiumShared
 
-/// Opens a ``Publication`` from an ``Asset``.
+/// Opens a `Publication` from an `Asset`.
 ///
 /// - Parameters:
-///   - parser: Parses the content of a publication ``Asset``.
+///   - parser: Parses the content of a publication `Asset`.
 ///   - contentProtections: Opens DRM-protected publications.
 ///   - onCreatePublication: Called on every parsed `Publication.Builder`. It
 ///   can be used to modify the manifest, the root container or the list of
@@ -30,15 +30,15 @@ public class PublicationOpener: @unchecked Sendable {
         self.onCreatePublication = onCreatePublication
     }
 
-    /// Opens a ``Publication`` from the given asset.
+    /// Opens a `Publication` from the given asset.
     ///
     /// If you are opening the publication to render it in a Navigator, you
-    /// must set ``allowUserInteraction`` to true to prompt the user for its
+    /// must set `allowUserInteraction` to true to prompt the user for its
     /// credentials when the publication is protected. However, set it to false
-    /// if you just want to import the ``Publication`` without reading its
+    /// if you just want to import the `Publication` without reading its
     /// content, to avoid prompting the user.
     ///
-    /// The ``warnings`` logger can be used to observe non-fatal parsing
+    /// The `warnings` logger can be used to observe non-fatal parsing
     /// warnings, caused by publication authoring mistakes. This can be useful
     /// to warn users of potential rendering issues.
     ///
@@ -50,7 +50,7 @@ public class PublicationOpener: @unchecked Sendable {
     ///     attempt to unlock a publication, for example a password.
     ///   - onCreatePublication: Transformation which will be applied on the
     ///     Publication Builder. It can be used to modify the manifest, the root
-    ///     container or the list of service factories of the ``Publication``.
+    ///     container or the list of service factories of the `Publication`.
     ///   - warnings: Logger used to broadcast non-fatal parsing warnings.
     ///   - sender: Free object that can be used by reading apps to give some
     ///     UX context when presenting dialogs.

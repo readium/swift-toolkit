@@ -6,7 +6,7 @@
 
 import UIKit
 
-/// Base implementation of ``UIViewController`` which implements
+/// Base implementation of `UIViewController` which implements
 /// ``InputObservable`` to forward UIKit touches and presses events to
 /// observers.
 open class InputObservableViewController: UIViewController, InputObservable {
