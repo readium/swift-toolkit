@@ -50,6 +50,42 @@ import Testing
         #expect(TemporalSelector(fragment: "10,20") == nil)
     }
 
+    @Test("clock: MM:SS")
+    func clockMMSS() {
+        #expect(TemporalSelector(fragment: "t=1:30") == .position(TemporalPosition(time: 90)))
+    }
+
+    @Test("clock: HH:MM:SS")
+    func clockHHMMSS() {
+        #expect(TemporalSelector(fragment: "t=1:30:00") == .position(TemporalPosition(time: 5400)))
+    }
+
+    @Test("clock: npt: prefix with HH:MM:SS.sss")
+    func clockNptPrefix() {
+        #expect(
+            TemporalSelector(fragment: "t=npt:0:01:30.5") ==
+                .position(TemporalPosition(time: 90.5))
+        )
+    }
+
+    @Test("clock: clip with MM:SS bounds")
+    func clockClip() {
+        #expect(
+            TemporalSelector(fragment: "t=1:00,1:30") ==
+                .clip(TemporalClip(start: 60, end: 90))
+        )
+    }
+
+    @Test("invalid: seconds >= 60 in MM:SS")
+    func invalidSecondsMMSS() {
+        #expect(TemporalSelector(fragment: "t=1:60") == nil)
+    }
+
+    @Test("invalid: seconds >= 60 in HH:MM:SS")
+    func invalidSecondsHHMMSS() {
+        #expect(TemporalSelector(fragment: "t=1:30:60") == nil)
+    }
+
     @Test("fragment: position")
     func fragmentPosition() {
         #expect(TemporalSelector.position(TemporalPosition(time: 10)).fragment == "t=10.0")

@@ -80,15 +80,15 @@ public extension TemporalSelector {
 
         switch parts.count {
         case 1:
-            guard !parts[0].isEmpty, let t = TimeInterval(parts[0]) else { return nil }
+            guard !parts[0].isEmpty, let t = parseNPTTime(parts[0]) else { return nil }
             self = .position(TemporalPosition(time: t))
 
         case 2:
             let startStr = parts[0]
             let endStr = parts[1]
 
-            let start: TimeInterval? = startStr.isEmpty ? nil : TimeInterval(startStr)
-            let end: TimeInterval? = endStr.isEmpty ? nil : TimeInterval(endStr)
+            let start: TimeInterval? = startStr.isEmpty ? nil : parseNPTTime(startStr)
+            let end: TimeInterval? = endStr.isEmpty ? nil : parseNPTTime(endStr)
 
             if start == nil, end == nil { return nil }
 
@@ -118,6 +118,30 @@ public extension TemporalSelector {
             let end = c.end.map { "\($0)" } ?? ""
             return URLFragment(rawValue: "t=\(start),\(end)")!
         }
+    }
+}
+
+private func parseNPTTime(_ s: String) -> TimeInterval? {
+    if !s.contains(":") {
+        return TimeInterval(s)
+    }
+    let components = s.components(separatedBy: ":")
+    switch components.count {
+    case 2:
+        guard let mm = Double(components[0]),
+              let ss = Double(components[1]),
+              mm >= 0, ss >= 0, ss < 60
+        else { return nil }
+        return mm * 60 + ss
+    case 3:
+        guard let hh = Double(components[0]),
+              let mm = Double(components[1]),
+              let ss = Double(components[2]),
+              hh >= 0, mm >= 0, mm < 60, ss >= 0, ss < 60
+        else { return nil }
+        return hh * 3600 + mm * 60 + ss
+    default:
+        return nil
     }
 }
 
