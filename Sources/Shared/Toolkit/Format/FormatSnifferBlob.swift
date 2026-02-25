@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 public actor FormatSnifferBlob {
     private let source: Streamable
@@ -14,7 +15,7 @@ public actor FormatSnifferBlob {
     private var length: ReadResult<UInt64?>?
     private var bytes: ReadResult<Data?>?
     private var string: ReadResult<String?>?
-    private var json: ReadResult<Data?>?
+    private var json: ReadResult<JSONValue?>?
     private var xml: ReadResult<XMLDocument?>?
 
     public init(source: Streamable) {
@@ -61,15 +62,16 @@ public actor FormatSnifferBlob {
     }
 
     /// Reads the whole content as JSON.
-    func readAsJSON() async -> ReadResult<Data?> {
+    func readAsJSON() async -> ReadResult<JSONValue?> {
         if json == nil {
             json = await read().map { data in
                 guard let data = data,
-                      (try? JSONSerialization.jsonObject(with: data)) != nil
+                      let jsonObject = try? JSONSerialization.jsonObject(with: data),
+                      let value = JSONValue(jsonObject)
                 else {
                     return nil
                 }
-                return data
+                return value
             }
         }
         return json!

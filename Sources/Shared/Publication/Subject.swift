@@ -28,28 +28,34 @@ public struct Subject: Hashable, Sendable {
         self.links = links
     }
 
-    public init?(json: Any, warnings: WarningLogger? = nil) throws {
-        var json = json
-        if let j = json as? JSONValue {
-            json = j.any
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let json = json else {
+            return nil
         }
 
-        if let name = json as? String {
+        switch json {
+        case let .string(name):
             self.init(name: name)
-
-        } else if let json = json as? [String: Any], let name = try? LocalizedString(json: json["name"], warnings: warnings) {
+        case let .object(dict):
+            guard let name = try? LocalizedString(json: dict["name"], warnings: warnings) else {
+                warnings?.log("Invalid Subject object", model: Self.self, source: json, severity: .minor)
+                throw JSONError.parsing(Self.self)
+            }
             self.init(
                 name: name,
-                sortAs: json["sortAs"] as? String,
-                scheme: json["scheme"] as? String,
-                code: json["code"] as? String,
-                links: .init(json: json["links"])
+                sortAs: dict["sortAs"]?.string,
+                scheme: dict["scheme"]?.string,
+                code: dict["code"]?.string,
+                links: .init(json: dict["links"])
             )
-
-        } else {
+        default:
             warnings?.log("Invalid Subject object", model: Self.self, source: json, severity: .minor)
             throw JSONError.parsing(Self.self)
         }
+    }
+
+    public init?(json: Any, warnings: WarningLogger? = nil) throws {
+        try self.init(json: JSONValue(json), warnings: warnings)
     }
 
     public var json: [String: JSONValue] {
@@ -66,26 +72,25 @@ public struct Subject: Hashable, Sendable {
 public extension Array where Element == Subject {
     /// Parses multiple JSON subjects into an array of Subjects.
     /// eg. let subjects = [Subject](json: ["Apple", "Pear"])
-    init(json: Any?, warnings: WarningLogger? = nil) {
+    init(json: JSONValue?, warnings: WarningLogger? = nil) {
         self.init()
         guard let json = json else {
             return
         }
 
-        // Handle JSONValue array
-        let rawJson: Any
-        if let j = json as? JSONValue {
-            rawJson = j.any
-        } else {
-            rawJson = json
-        }
-
-        if let json = rawJson as? [Any] {
-            let subjects = json.compactMap { try? Subject(json: $0, warnings: warnings) }
+        switch json {
+        case let .array(array):
+            let subjects = array.compactMap { try? Subject(json: $0, warnings: warnings) }
             append(contentsOf: subjects)
-        } else if let subject = try? Subject(json: rawJson, warnings: warnings) {
-            append(subject)
+        default:
+            if let subject = try? Subject(json: json, warnings: warnings) {
+                append(subject)
+            }
         }
+    }
+
+    init(json: Any?, warnings: WarningLogger? = nil) {
+        self.init(json: JSONValue(json), warnings: warnings)
     }
 
     var json: [[String: JSONValue]] {

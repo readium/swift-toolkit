@@ -92,7 +92,7 @@ public struct Link: JSONEquatable, Hashable, Sendable {
     }
 
     public init(
-        json: Any,
+        json: JSONValue,
         warnings: WarningLogger? = nil
     ) throws {
         guard let jsonDict = JSONDictionary(json),
@@ -131,6 +131,16 @@ public struct Link: JSONEquatable, Hashable, Sendable {
             alternates: .init(json: jsonObject["alternate"], warnings: warnings),
             children: .init(json: jsonObject["children"], warnings: warnings)
         )
+    }
+
+    public init(
+        json: Any,
+        warnings: WarningLogger? = nil
+    ) throws {
+        guard let json = JSONValue(json) else {
+            throw JSONError.parsing(Self.self)
+        }
+        try self.init(json: json, warnings: warnings)
     }
 
     public var json: JSONDictionary.Wrapped {
@@ -218,7 +228,7 @@ public extension Array where Element == Link {
     /// Parses multiple JSON links into an array of Link.
     /// eg. let links = [Link](json: [["href", "http://link1"], ["href", "http://link2"]])
     init(
-        json: Any?,
+        json: JSONValue?,
         warnings: WarningLogger? = nil
     ) {
         self.init()
@@ -226,19 +236,20 @@ public extension Array where Element == Link {
             return
         }
 
-        let rawJson: Any
-        if let j = json as? JSONValue {
-            rawJson = j.any
-        } else {
-            rawJson = json
+        switch json {
+        case let .array(array):
+            let links = array.compactMap { try? Link(json: $0, warnings: warnings) }
+            append(contentsOf: links)
+        default:
+            break
         }
+    }
 
-        guard let array = rawJson as? [Any] else {
-            return
-        }
-
-        let links = array.compactMap { try? Link(json: $0, warnings: warnings) }
-        append(contentsOf: links)
+    init(
+        json: Any?,
+        warnings: WarningLogger? = nil
+    ) {
+        self.init(json: JSONValue(json), warnings: warnings)
     }
 
     var json: [JSONDictionary.Wrapped] {

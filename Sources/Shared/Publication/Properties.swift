@@ -23,7 +23,7 @@ public struct Properties: Hashable, Loggable, WarningLogger, Sendable {
         otherPropertiesJSON = JSONDictionary(otherProperties) ?? JSONDictionary()
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
         if json == nil {
             return nil
         }
@@ -32,6 +32,10 @@ public struct Properties: Hashable, Loggable, WarningLogger, Sendable {
             throw JSONError.parsing(Self.self)
         }
         otherPropertiesJSON = jsonDictionary
+    }
+
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+        try self.init(json: JSONValue(json), warnings: warnings)
     }
 
     public var json: JSONDictionary.Wrapped {

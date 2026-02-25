@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Sniffs a JSON document.
 public struct JSONFormatSniffer: FormatSniffer {
@@ -33,8 +34,8 @@ public struct JSONFormatSniffer: FormatSniffer {
         }
 
         return await blob.readAsJSON()
-            .map {
-                guard $0 != nil else {
+            .map { jsonValue in
+                guard jsonValue != nil else {
                     return nil
                 }
                 return json

@@ -158,20 +158,26 @@ extension LinkRelation: Hashable {
 
 public extension Array where Element == LinkRelation {
     /// Parses multiple JSON relations into an array of `LinkRelation`.
-    init(json: Any?) {
+    init(json: JSONValue?) {
         self.init()
+        guard let json = json else { return }
 
-        var json = json
-        if let j = json as? JSONValue {
-            json = j.any
-        }
-
-        if let json = json as? String {
-            append(LinkRelation(json))
-        } else if let json = json as? [String] {
-            let rels = json.compactMap { LinkRelation($0) }
+        switch json {
+        case let .string(s):
+            append(LinkRelation(s))
+        case let .array(arr):
+            let rels = arr.compactMap { (val: JSONValue) -> LinkRelation? in
+                guard let s = val.string else { return nil }
+                return LinkRelation(s)
+            }
             append(contentsOf: rels)
+        default:
+            break
         }
+    }
+
+    init(json: Any?) {
+        self.init(json: JSONValue(json))
     }
 
     var json: [String] {

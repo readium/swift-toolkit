@@ -65,7 +65,7 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
     /// https://readium.org/webpub-manifest/schema/publication.schema.json
     ///
     /// If a non-fatal parsing error occurs, it will be logged through `warnings`.
-    public init(json: Any, warnings: WarningLogger? = nil) throws {
+    public init(json: JSONValue, warnings: WarningLogger? = nil) throws {
         guard var jsonDict = JSONDictionary(json) else {
             throw JSONError.parsing(Publication.self)
         }
@@ -83,6 +83,13 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
 
         // Parses sub-collections from remaining JSON properties.
         subcollections = PublicationCollection.makeCollections(json: jsonDict.json, warnings: warnings)
+    }
+
+    public init(json: Any, warnings: WarningLogger? = nil) throws {
+        guard let jsonValue = JSONValue(json) else {
+            throw JSONError.parsing(Publication.self)
+        }
+        try self.init(json: jsonValue, warnings: warnings)
     }
 
     /// The URL where this publication is served, computed from the `Link` with

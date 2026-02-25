@@ -156,7 +156,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
     }
 
     public init(
-        json: Any?,
+        json: JSONValue?,
         warnings: WarningLogger? = nil
     ) throws {
         guard var json = JSONDictionary(json),
@@ -201,6 +201,13 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
             ?? [:]
         tdm = try? TDM(json: json.pop("tdm"), warnings: warnings)
         otherMetadataJSON = json
+    }
+
+    public init(
+        json: Any?,
+        warnings: WarningLogger? = nil
+    ) throws {
+        try self.init(json: JSONValue(json), warnings: warnings)
     }
 
     public var json: JSONDictionary.Wrapped {

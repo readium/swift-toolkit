@@ -19,6 +19,13 @@ public struct JSONDictionary: Sendable {
         json = [:]
     }
 
+    public init?(_ json: JSONValue?) {
+        guard let json = json, case let .object(dict) = json else {
+            return nil
+        }
+        self.json = dict
+    }
+
     public init?(_ json: Any?) {
         guard let value = JSONValue(json),
               case let .object(dict) = value
@@ -66,10 +73,26 @@ extension JSONDictionary: Hashable {}
 /// let json = ["key": "hello"]
 /// let value: Example? = parseRaw(json["key"])
 public func parseRaw<T: RawRepresentable>(_ json: JSONValue?) -> T? {
-    guard let json = json, let rawValue = json.any as? T.RawValue else {
+    guard let json = json else {
         return nil
     }
-    return T(rawValue: rawValue)
+
+    // Attempt to extract raw value from JSONValue
+    let rawValue: T.RawValue?
+    if let string = json.string as? T.RawValue {
+        rawValue = string
+    } else if let int = json.integer as? T.RawValue {
+        rawValue = int
+    } else if let double = json.double as? T.RawValue {
+        rawValue = double
+    } else {
+        rawValue = json.any as? T.RawValue
+    }
+
+    guard let raw = rawValue else {
+        return nil
+    }
+    return T(rawValue: raw)
 }
 
 public func parseRaw<T: RawRepresentable>(_ json: Any?) -> T? {
@@ -94,12 +117,33 @@ public func parseArray<T>(_ json: JSONValue?, allowingSingle: Bool = false) -> [
         if T.self == JSONValue.self {
             return arr as! [T]
         }
+
+        // Optimize for common types
+        if T.self == String.self {
+            return arr.compactMap(\.string) as! [T]
+        } else if T.self == Int.self {
+            return arr.compactMap(\.integer) as! [T]
+        } else if T.self == Double.self {
+            return arr.compactMap(\.double) as! [T]
+        }
+
         return arr.compactMap { $0.any as? T }
+
     default:
         if allowingSingle {
             if T.self == JSONValue.self {
                 return [json] as! [T]
             }
+
+            // Optimize for common types
+            if T.self == String.self, let val = json.string {
+                return [val] as! [T]
+            } else if T.self == Int.self, let val = json.integer {
+                return [val] as! [T]
+            } else if T.self == Double.self, let val = json.double {
+                return [val] as! [T]
+            }
+
             if let val = json.any as? T {
                 return [val]
             }
@@ -121,10 +165,23 @@ public func parseDouble(_ json: Any?) -> Double? {
 /// Parses a numeric value, but returns nil if it is not a positive number.
 public func parsePositive<T: Comparable & Numeric>(_ json: Any?) -> T? {
     let json = (json as? JSONValue) ?? JSONValue(json)
-    guard let number = json?.any as? T, number >= 0 else {
+
+    // Extract numeric value from JSONValue
+    var number: T?
+    if let int = json?.integer as? T {
+        number = int
+    } else if let double = json?.double as? T {
+        number = double
+    } else if let uint = json?.uint64 as? T {
+        number = uint
+    } else {
+        number = json?.any as? T
+    }
+
+    guard let num = number, num >= 0 else {
         return nil
     }
-    return number
+    return num
 }
 
 public func parsePositiveDouble(_ json: Any?) -> Double? {

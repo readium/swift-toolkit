@@ -32,36 +32,35 @@ public enum LocalizedString: Hashable, Sendable {
     ///       "minProperties": 1
     ///     }
     ///   ]
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        var json = json
-        if let j = json as? JSONValue {
-            json = j.any
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let json = json else {
+            return nil
         }
 
-        if json == nil {
-            return nil
-        } else if let string = json as? String {
+        switch json {
+        case let .string(string):
             self = .nonlocalized(string)
-        } else if let strings = json as? [String: String] {
-            self = .localized(strings)
-        } else if let dict = json as? [String: Any] {
+        case let .object(dict):
             var strings: [String: String] = [:]
             for (key, value) in dict {
-                if let string = value as? String {
+                if case let .string(string) = value {
                     strings[key] = string
                 } else {
                     warnings?.log("Invalid value for LocalizedString in dictionary", model: Self.self, source: json, severity: .moderate)
                 }
             }
             if strings.isEmpty, !dict.isEmpty {
-                // Parsing failed completely or empty valid strings
                 throw JSONError.parsing(Self.self)
             }
             self = .localized(strings)
-        } else {
+        default:
             warnings?.log("Invalid LocalizedString object", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
+    }
+
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+        try self.init(json: JSONValue(json), warnings: warnings)
     }
 
     /// Returns the JSON representation for this localized string.
