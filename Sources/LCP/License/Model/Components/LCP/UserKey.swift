@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 import ReadiumShared
 
 /// Used to encrypt the ContentKey.

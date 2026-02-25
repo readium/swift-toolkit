@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 import ReadiumShared
 
 /// Document that contains information about the history of a License Document, along with its current status and available interactions.
@@ -71,10 +72,10 @@ public struct StatusDocument: Sendable {
         self.message = message
         self.licenseUpdated = licenseUpdated
         self.updated = statusUpdated
-        self.links = try Links(json: linksValue)
+        links = try Links(json: linksValue)
 
-        self.potentialRights = try? PotentialRights(json: json.pop("potential_rights"))
-        self.events = parseArray(json.pop("events")).compactMap(Event.init)
+        potentialRights = try? PotentialRights(json: json.pop("potential_rights"))
+        events = parseArray(json.pop("events")).compactMap { ReadiumLCP.Event(json: $0 as JSONValue) }
     }
 
     /// Returns the first link containing the given rel.

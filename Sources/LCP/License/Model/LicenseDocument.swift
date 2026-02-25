@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 import ReadiumShared
 
 /// Document that contains references to the various keys, links to related external resources, rights and restrictions that are applied to the Protected Publication, and user information.
@@ -76,11 +77,11 @@ public struct LicenseDocument: Sendable {
         self.id = id
         self.issued = issued
         updated = parseDate(json.pop("updated")) ?? issued
-        self.encryption = try Encryption(json: encryptionValue)
-        self.links = try Links(json: linksValue)
+        encryption = try Encryption(json: encryptionValue)
+        links = try Links(json: linksValue)
         user = try User(json: json.pop("user"))
         rights = try Rights(json: json.pop("rights"))
-        self.signature = try Signature(json: signatureValue)
+        signature = try Signature(json: signatureValue)
         jsonData = data
         self.jsonString = jsonString
 

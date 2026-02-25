@@ -5,13 +5,14 @@
 //
 
 import Foundation
+import ReadiumInternal
 import ReadiumShared
 
 public struct Links: Sendable {
     private let links: [Link]
 
     init(json: JSONValue?) throws {
-        links = try parseArray(json).map(Link.init)
+        links = try parseArray(json).map { try ReadiumLCP.Link(json: $0 as JSONValue) }
     }
 
     init(json: [[String: Any]]) throws {

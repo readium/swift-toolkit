@@ -38,6 +38,10 @@ public struct JSONDictionary: Sendable {
     public mutating func pop(_ key: Key) -> Value? {
         json.removeValue(forKey: key)
     }
+
+    public subscript(key: Key) -> Value? {
+        json[key]
+    }
 }
 
 extension JSONDictionary: Collection {
