@@ -162,7 +162,6 @@ public func parseArray<T>(_ json: Any?, allowingSingle: Bool = false) -> [T] {
     parseArray((json as? JSONValue) ?? JSONValue(json), allowingSingle: allowingSingle)
 }
 
-
 /// Casting to Double loses precision and fails with integers, eg. json["key"] as? Double.
 public func parseDouble(_ json: Any?) -> Double? {
     let json = (json as? JSONValue) ?? JSONValue(json)
