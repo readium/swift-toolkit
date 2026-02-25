@@ -55,18 +55,48 @@ import Testing
         func invalidEmptyStart() {
             #expect(TextSelector(fragment: ":~:text=") == nil)
         }
+
+        @Test("fragment: simple quote")
+        func fragmentSimpleQuote() {
+            #expect(TextSelector.quote(TextQuote(start: "hello")).fragment == ":~:text=hello")
+        }
+
+        @Test("fragment: full quote")
+        func fragmentFullQuote() {
+            #expect(
+                TextSelector.quote(TextQuote(before: "before", start: "hello", end: "world", after: "after")).fragment ==
+                    ":~:text=before-,hello,world,-after"
+            )
+        }
+
+        @Test("fragment: position")
+        func fragmentPosition() {
+            #expect(TextSelector.position(TextPosition(before: "before", after: "after")).fragment == ":~:text=before-,,-after")
+        }
+
+        @Test("round-trip: simple quote")
+        func roundTripSimpleQuote() {
+            let selector = TextSelector.quote(TextQuote(start: "hello"))
+            #expect(TextSelector(fragment: selector.fragment) == selector)
+        }
+
+        @Test("round-trip: full quote")
+        func roundTripFullQuote() {
+            let selector = TextSelector.quote(TextQuote(before: "before", start: "hello", end: "world", after: "after"))
+            #expect(TextSelector(fragment: selector.fragment) == selector)
+        }
     }
 
     @Suite("TemporalSelector") struct TemporalSelectorTests {
         @Test("position: start only")
         func positionStartOnly() {
-            #expect(TemporalSelector(fragment: "t=10") == .position(TemporalPosition(time: 10)))
+            #expect(TemporalSelector(fragment: "t=10.0") == .position(TemporalPosition(time: 10)))
         }
 
         @Test("clip: start and end")
         func clipStartAndEnd() {
             #expect(
-                TemporalSelector(fragment: "t=10,20") ==
+                TemporalSelector(fragment: "t=10.0,20.0") ==
                     .clip(TemporalClip(start: 10, end: 20))
             )
         }
@@ -74,7 +104,7 @@ import Testing
         @Test("clip: end only")
         func clipEndOnly() {
             #expect(
-                TemporalSelector(fragment: "t=,20") ==
+                TemporalSelector(fragment: "t=,20.0") ==
                     .clip(TemporalClip(start: nil, end: 20))
             )
         }
@@ -82,7 +112,7 @@ import Testing
         @Test("npt: prefix stripped")
         func nptPrefixStripped() {
             #expect(
-                TemporalSelector(fragment: "t=npt:10,20") ==
+                TemporalSelector(fragment: "t=npt:10.0,20.0") ==
                     .clip(TemporalClip(start: 10, end: 20))
             )
         }
@@ -90,7 +120,7 @@ import Testing
         @Test("clip: start with trailing comma")
         func clipStartWithTrailingComma() {
             #expect(
-                TemporalSelector(fragment: "t=10,") ==
+                TemporalSelector(fragment: "t=10.0,") ==
                     .clip(TemporalClip(start: 10, end: nil))
             )
         }
@@ -99,13 +129,45 @@ import Testing
         func invalidMissingT() {
             #expect(TemporalSelector(fragment: "10,20") == nil)
         }
+
+        @Test("fragment: position")
+        func fragmentPosition() {
+            #expect(TemporalSelector.position(TemporalPosition(time: 10)).fragment == "t=10.0")
+        }
+
+        @Test("fragment: clip start and end")
+        func fragmentClipStartAndEnd() {
+            #expect(TemporalSelector.clip(TemporalClip(start: 10, end: 20)).fragment == "t=10.0,20.0")
+        }
+
+        @Test("fragment: clip start only")
+        func fragmentClipStartOnly() {
+            #expect(TemporalSelector.clip(TemporalClip(start: 10, end: nil)).fragment == "t=10.0,")
+        }
+
+        @Test("fragment: clip end only")
+        func fragmentClipEndOnly() {
+            #expect(TemporalSelector.clip(TemporalClip(start: nil, end: 20)).fragment == "t=,20.0")
+        }
+
+        @Test("round-trip: position")
+        func roundTripPosition() {
+            let selector = TemporalSelector.position(TemporalPosition(time: 10))
+            #expect(TemporalSelector(fragment: selector.fragment) == selector)
+        }
+
+        @Test("round-trip: clip")
+        func roundTripClip() {
+            let selector = TemporalSelector.clip(TemporalClip(start: 10, end: 20))
+            #expect(TemporalSelector(fragment: selector.fragment) == selector)
+        }
     }
 
     @Suite("SpatialSelector") struct SpatialSelectorTests {
         @Test("pixel default")
         func pixelDefault() {
             #expect(
-                SpatialSelector(fragment: "xywh=10,20,100,50") ==
+                SpatialSelector(fragment: "xywh=10.0,20.0,100.0,50.0") ==
                     SpatialSelector(x: 10, y: 20, width: 100, height: 50, unit: .pixel)
             )
         }
@@ -113,7 +175,7 @@ import Testing
         @Test("explicit pixel unit")
         func explicitPixelUnit() {
             #expect(
-                SpatialSelector(fragment: "xywh=pixel:10,20,100,50") ==
+                SpatialSelector(fragment: "xywh=pixel:10.0,20.0,100.0,50.0") ==
                     SpatialSelector(x: 10, y: 20, width: 100, height: 50, unit: .pixel)
             )
         }
@@ -121,7 +183,7 @@ import Testing
         @Test("percent unit")
         func percentUnit() {
             #expect(
-                SpatialSelector(fragment: "xywh=percent:10,20,50,50") ==
+                SpatialSelector(fragment: "xywh=percent:10.0,20.0,50.0,50.0") ==
                     SpatialSelector(x: 10, y: 20, width: 50, height: 50, unit: .percent)
             )
         }
@@ -135,6 +197,28 @@ import Testing
         func invalidWrongComponentCount() {
             #expect(SpatialSelector(fragment: "xywh=10,20,100") == nil)
         }
+
+        @Test("fragment: pixel")
+        func fragmentPixel() {
+            #expect(SpatialSelector(x: 10, y: 20, width: 100, height: 50, unit: .pixel).fragment == "xywh=10.0,20.0,100.0,50.0")
+        }
+
+        @Test("fragment: percent")
+        func fragmentPercent() {
+            #expect(SpatialSelector(x: 10, y: 20, width: 50, height: 50, unit: .percent).fragment == "xywh=percent:10.0,20.0,50.0,50.0")
+        }
+
+        @Test("round-trip: pixel")
+        func roundTripPixel() {
+            let selector = SpatialSelector(x: 10, y: 20, width: 100, height: 50, unit: .pixel)
+            #expect(SpatialSelector(fragment: selector.fragment) == selector)
+        }
+
+        @Test("round-trip: percent")
+        func roundTripPercent() {
+            let selector = SpatialSelector(x: 10, y: 20, width: 50, height: 50, unit: .percent)
+            #expect(SpatialSelector(fragment: selector.fragment) == selector)
+        }
     }
 
     @Suite("CSSSelector") struct CSSSelectorTests {
@@ -143,9 +227,9 @@ import Testing
             #expect(CSSSelector(fragment: "section1") == CSSSelector(cssSelector: "#section1"))
         }
 
-        @Test("empty returns nil")
-        func emptyReturnsNil() {
-            #expect(CSSSelector(fragment: "") == nil)
+        @Test("empty URLFragment cannot be constructed")
+        func emptyFragmentCannotBeConstructed() {
+            #expect(URLFragment(rawValue: "") == nil)
         }
     }
 
@@ -158,7 +242,7 @@ import Testing
         @Test("page with viewrect")
         func pageWithViewrect() {
             #expect(
-                PDFSelector(fragment: "page=3&viewrect=10,20,100,50") ==
+                PDFSelector(fragment: "page=3&viewrect=10.0,20.0,100.0,50.0") ==
                     PDFSelector(page: 3, rect: PDFSelector.Rect(left: 10, top: 20, width: 100, height: 50))
             )
         }
@@ -174,7 +258,7 @@ import Testing
         @Test("viewrect before page")
         func viewrectBeforePage() {
             #expect(
-                PDFSelector(fragment: "viewrect=10,20,100,50&page=3") ==
+                PDFSelector(fragment: "viewrect=10.0,20.0,100.0,50.0&page=3") ==
                     PDFSelector(page: 3, rect: PDFSelector.Rect(left: 10, top: 20, width: 100, height: 50))
             )
         }
@@ -187,6 +271,31 @@ import Testing
         @Test("invalid: page not integer")
         func invalidPageNotInteger() {
             #expect(PDFSelector(fragment: "page=abc") == nil)
+        }
+
+        @Test("fragment: page only")
+        func fragmentPageOnly() {
+            #expect(PDFSelector(page: 3).fragment == "page=3")
+        }
+
+        @Test("fragment: page with rect")
+        func fragmentPageWithRect() {
+            #expect(
+                PDFSelector(page: 3, rect: PDFSelector.Rect(left: 10, top: 20, width: 100, height: 50)).fragment ==
+                    "page=3&viewrect=10.0,20.0,100.0,50.0"
+            )
+        }
+
+        @Test("round-trip: page only")
+        func roundTripPageOnly() {
+            let selector = PDFSelector(page: 3)
+            #expect(PDFSelector(fragment: selector.fragment) == selector)
+        }
+
+        @Test("round-trip: page with rect")
+        func roundTripPageWithRect() {
+            let selector = PDFSelector(page: 3, rect: PDFSelector.Rect(left: 10, top: 20, width: 100, height: 50))
+            #expect(PDFSelector(fragment: selector.fragment) == selector)
         }
     }
 }

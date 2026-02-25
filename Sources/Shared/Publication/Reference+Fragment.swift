@@ -9,18 +9,17 @@ import Foundation
 // MARK: - TextSelector
 
 public extension TextSelector {
-    /// Creates a ``TextSelector`` from a URL fragment string following the WICG
+    /// Creates a ``TextSelector`` from a URL fragment following the WICG
     /// Scroll-to-Text Fragment specification.
-    ///
-    /// The `fragment` parameter must **not** include the leading `#`.
     ///
     /// Fragment format: `:~:text=[prefix-,]textStart[,textEnd][,-suffix]`
     ///
     /// - https://wicg.github.io/scroll-to-text-fragment/
-    init?(fragment: String) {
+    init?(fragment: URLFragment) {
+        let raw = fragment.rawValue
         let prefix = ":~:text="
-        guard fragment.hasPrefix(prefix) else { return nil }
-        let directive = String(fragment.dropFirst(prefix.count))
+        guard raw.hasPrefix(prefix) else { return nil }
+        let directive = String(raw.dropFirst(prefix.count))
         guard !directive.isEmpty else { return nil }
 
         var parts = directive.components(separatedBy: ",")
@@ -55,22 +54,57 @@ public extension TextSelector {
 
         self = .quote(TextQuote(before: before, start: start, end: end, after: after))
     }
+
+    /// Returns a URL fragment representation of this selector following the
+    /// WICG Scroll-to-Text Fragment specification.
+    ///
+    /// - https://wicg.github.io/scroll-to-text-fragment/
+    var fragment: URLFragment {
+        switch self {
+        case let .quote(q):
+            var parts: [String] = []
+            let allowed = CharacterSet.urlQueryAllowed
+            if !q.before.isEmpty {
+                parts.append((q.before.addingPercentEncoding(withAllowedCharacters: allowed) ?? q.before) + "-")
+            }
+            parts.append(q.start.addingPercentEncoding(withAllowedCharacters: allowed) ?? q.start)
+            if !q.end.isEmpty {
+                parts.append(q.end.addingPercentEncoding(withAllowedCharacters: allowed) ?? q.end)
+            }
+            if !q.after.isEmpty {
+                parts.append("-" + (q.after.addingPercentEncoding(withAllowedCharacters: allowed) ?? q.after))
+            }
+            return URLFragment(rawValue: ":~:text=" + parts.joined(separator: ","))!
+
+        case let .position(p):
+            var parts: [String] = []
+            let allowed = CharacterSet.urlQueryAllowed
+            if !p.before.isEmpty {
+                parts.append((p.before.addingPercentEncoding(withAllowedCharacters: allowed) ?? p.before) + "-")
+            }
+            // No start text for a pure position — emit an empty start segment
+            parts.append("")
+            if !p.after.isEmpty {
+                parts.append("-" + (p.after.addingPercentEncoding(withAllowedCharacters: allowed) ?? p.after))
+            }
+            return URLFragment(rawValue: ":~:text=" + parts.joined(separator: ","))!
+        }
+    }
 }
 
 // MARK: - TemporalSelector
 
 public extension TemporalSelector {
-    /// Creates a ``TemporalSelector`` from a URL fragment string following the
-    /// W3C Media Fragments URI specification (temporal dimension).
-    ///
-    /// The `fragment` parameter must **not** include the leading `#`.
+    /// Creates a ``TemporalSelector`` from a URL fragment following the W3C
+    /// Media Fragments URI specification (temporal dimension).
     ///
     /// Fragment format: `t=[npt:]start[,end]`
     ///
     /// - https://www.w3.org/TR/media-frags/#naming-time
-    init?(fragment: String) {
-        guard fragment.hasPrefix("t=") else { return nil }
-        var value = String(fragment.dropFirst(2))
+    init?(fragment: URLFragment) {
+        let raw = fragment.rawValue
+        guard raw.hasPrefix("t=") else { return nil }
+        var value = String(raw.dropFirst(2))
 
         // Strip optional `npt:` prefix
         if value.hasPrefix("npt:") {
@@ -93,10 +127,7 @@ public extension TemporalSelector {
 
             if start == nil, end == nil { return nil }
 
-            if start == nil, endStr.isEmpty {
-                // no start, no end → invalid (already caught above, but be explicit)
-                return nil
-            } else if !startStr.isEmpty, endStr.isEmpty {
+            if !startStr.isEmpty, endStr.isEmpty {
                 // `t=10,` — open-ended clip, not a point
                 guard let t = start else { return nil }
                 self = .clip(TemporalClip(start: t, end: nil))
@@ -108,22 +139,36 @@ public extension TemporalSelector {
             return nil
         }
     }
+
+    /// Returns a URL fragment representation of this selector following the
+    /// W3C Media Fragments URI specification (temporal dimension).
+    ///
+    /// - https://www.w3.org/TR/media-frags/#naming-time
+    var fragment: URLFragment {
+        switch self {
+        case let .position(p):
+            return URLFragment(rawValue: "t=\(p.time)")!
+        case let .clip(c):
+            let start = c.start.map { "\($0)" } ?? ""
+            let end = c.end.map { "\($0)" } ?? ""
+            return URLFragment(rawValue: "t=\(start),\(end)")!
+        }
+    }
 }
 
 // MARK: - SpatialSelector
 
 public extension SpatialSelector {
-    /// Creates a ``SpatialSelector`` from a URL fragment string following the
-    /// W3C Media Fragments URI specification (spatial dimension).
-    ///
-    /// The `fragment` parameter must **not** include the leading `#`.
+    /// Creates a ``SpatialSelector`` from a URL fragment following the W3C
+    /// Media Fragments URI specification (spatial dimension).
     ///
     /// Fragment format: `xywh=[unit:]x,y,w,h`
     ///
     /// - https://www.w3.org/TR/media-frags/#naming-space
-    init?(fragment: String) {
-        guard fragment.hasPrefix("xywh=") else { return nil }
-        var value = String(fragment.dropFirst(5))
+    init?(fragment: URLFragment) {
+        let raw = fragment.rawValue
+        guard raw.hasPrefix("xywh=") else { return nil }
+        var value = String(raw.dropFirst(5))
 
         let unit: Unit
         if value.hasPrefix("percent:") {
@@ -146,15 +191,26 @@ public extension SpatialSelector {
 
         self.init(x: x, y: y, width: w, height: h, unit: unit)
     }
+
+    /// Returns a URL fragment representation of this selector following the
+    /// W3C Media Fragments URI specification (spatial dimension).
+    ///
+    /// - https://www.w3.org/TR/media-frags/#naming-space
+    var fragment: URLFragment {
+        let unitPrefix: String
+        switch unit {
+        case .percent: unitPrefix = "percent:"
+        case .pixel: unitPrefix = ""
+        }
+        return URLFragment(rawValue: "xywh=\(unitPrefix)\(x),\(y),\(width),\(height)")!
+    }
 }
 
 // MARK: - CSSSelector
 
 public extension CSSSelector {
-    /// Creates a ``CSSSelector`` from a URL fragment string by treating it as
-    /// an HTML element ID.
-    ///
-    /// The `fragment` parameter must **not** include the leading `#`.
+    /// Creates a ``CSSSelector`` from a URL fragment by treating it as an HTML
+    /// element ID.
     ///
     /// A plain fragment (e.g. `section1`) is converted to a CSS ID selector
     /// (e.g. `#section1`).
@@ -163,24 +219,21 @@ public extension CSSSelector {
     ///   including structured directives such as `:~:text=…` or `t=…`. Callers
     ///   are responsible for trying more specific ``TextSelector`` or
     ///   ``TemporalSelector`` initializers first.
-    init?(fragment: String) {
-        guard !fragment.isEmpty else { return nil }
-        self.init(cssSelector: "#\(fragment)")
+    init(fragment: URLFragment) {
+        self.init(cssSelector: "#\(fragment.rawValue)")
     }
 }
 
 // MARK: - PDFSelector
 
 public extension PDFSelector {
-    /// Creates a ``PDFSelector`` from a URL fragment string following RFC 8118.
-    ///
-    /// The `fragment` parameter must **not** include the leading `#`.
+    /// Creates a ``PDFSelector`` from a URL fragment following RFC 8118.
     ///
     /// Fragment format: `page=N[&viewrect=left,top,width,height]`
     ///
     /// - https://www.rfc-editor.org/rfc/rfc8118
-    init?(fragment: String) {
-        let pairs = fragment.components(separatedBy: "&")
+    init?(fragment: URLFragment) {
+        let pairs = fragment.rawValue.components(separatedBy: "&")
         var pageValue: Int?
         var rectValue: Rect?
 
@@ -212,5 +265,50 @@ public extension PDFSelector {
 
         guard let page = pageValue else { return nil }
         self.init(page: page, rect: rectValue)
+    }
+
+    /// Returns a URL fragment representation of this selector following RFC
+    /// 8118.
+    ///
+    /// - https://www.rfc-editor.org/rfc/rfc8118
+    var fragment: URLFragment {
+        var raw = "page=\(page)"
+        if let r = rect {
+            raw += "&viewrect=\(r.left),\(r.top),\(r.width),\(r.height)"
+        }
+        return URLFragment(rawValue: raw)!
+    }
+}
+
+// MARK: - URLFragment Extensions
+
+public extension URLFragment {
+    /// Parses the fragment as a ``TextSelector`` following the WICG
+    /// Scroll-to-Text Fragment specification.
+    var textSelector: TextSelector? {
+        TextSelector(fragment: self)
+    }
+
+    /// Parses the fragment as a ``TemporalSelector`` following the W3C Media
+    /// Fragments URI specification.
+    var temporalSelector: TemporalSelector? {
+        TemporalSelector(fragment: self)
+    }
+
+    /// Parses the fragment as a ``SpatialSelector`` following the W3C Media
+    /// Fragments URI specification.
+    var spatialSelector: SpatialSelector? {
+        SpatialSelector(fragment: self)
+    }
+
+    /// Interprets the fragment as an HTML element ID and returns a
+    /// ``CSSSelector``.
+    var cssSelector: CSSSelector {
+        CSSSelector(fragment: self)
+    }
+
+    /// Parses the fragment as a ``PDFSelector`` following RFC 8118.
+    var pdfSelector: PDFSelector? {
+        PDFSelector(fragment: self)
     }
 }
