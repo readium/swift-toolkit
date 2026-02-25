@@ -55,18 +55,19 @@ public struct LicenseDocument: Sendable {
     public init(data: Data) throws {
         guard
             let jsonString = String(data: data, encoding: .utf8),
-            let deserializedJSON = try? JSONSerialization.jsonObject(with: data)
+            let deserializedJSON = try? JSONSerialization.jsonObject(with: data),
+            let jsonValue = JSONValue(deserializedJSON)
         else {
             throw ParsingError.malformedJSON
         }
 
-        guard let json = deserializedJSON as? [String: Any],
-              let provider = json["provider"] as? String,
-              let id = json["id"] as? String,
-              let issued = (json["issued"] as? String)?.dateFromISO8601,
-              let encryption = json["encryption"] as? [String: Any],
-              let links = json["links"] as? [[String: Any]],
-              let signature = json["signature"] as? [String: Any]
+        guard var json = JSONDictionary(jsonValue),
+              let provider = json.pop("provider")?.string,
+              let id = json.pop("id")?.string,
+              let issued = parseDate(json.pop("issued")),
+              let encryptionValue = json.pop("encryption"), encryptionValue.object != nil,
+              let linksValue = json.pop("links"), linksValue.array != nil,
+              let signatureValue = json.pop("signature"), signatureValue.object != nil
         else {
             throw ParsingError.licenseDocument
         }
@@ -74,12 +75,12 @@ public struct LicenseDocument: Sendable {
         self.provider = provider
         self.id = id
         self.issued = issued
-        updated = (json["updated"] as? String)?.dateFromISO8601 ?? issued
-        self.encryption = try Encryption(json: encryption)
-        self.links = try Links(json: links)
-        user = try User(json: json["user"] as? [String: Any])
-        rights = try Rights(json: json["rights"] as? [String: Any])
-        self.signature = try Signature(json: signature)
+        updated = parseDate(json.pop("updated")) ?? issued
+        self.encryption = try Encryption(json: encryptionValue)
+        self.links = try Links(json: linksValue)
+        user = try User(json: json.pop("user"))
+        rights = try Rights(json: json.pop("rights"))
+        self.signature = try Signature(json: signatureValue)
         jsonData = data
         self.jsonString = jsonString
 

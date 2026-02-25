@@ -26,26 +26,30 @@ public struct Link: Sendable {
     /// SHA-256 hash of the resource.
     public let hash: String?
 
-    init(json: [String: Any]) throws {
-        guard let href = json["href"] as? String else {
+    init(json: JSONValue?) throws {
+        guard var json = JSONDictionary(json),
+              let href = json.pop("href")?.string
+        else {
             throw ParsingError.link
         }
 
-        if let rel = json["rel"] as? String {
-            self.rel = [rel]
-        } else if let rel = json["rel"] as? [String], !rel.isEmpty {
-            self.rel = rel
-        } else {
+        let rel: [String] = parseArray(json.pop("rel"), allowingSingle: true)
+        guard !rel.isEmpty else {
             throw ParsingError.link
         }
 
         self.href = href
-        title = json["title"] as? String
-        type = json["type"] as? String
-        templated = (json["templated"] as? Bool) ?? false
-        profile = json["profile"] as? String
-        length = json["length"] as? Int
-        hash = json["hash"] as? String
+        self.rel = rel
+        title = json.pop("title")?.string
+        type = json.pop("type")?.string
+        templated = json.pop("templated")?.bool ?? false
+        profile = json.pop("profile")?.string
+        length = json.pop("length")?.integer
+        hash = json.pop("hash")?.string
+    }
+
+    init(json: [String: Any]) throws {
+        try self.init(json: JSONValue(json))
     }
 
     /// Gets the valid URL if possible, applying the given template context as query parameters if the link is templated.

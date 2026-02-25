@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumShared
 
 /// Signature allowing to certify the License Document integrity.
 public struct Signature: Sendable {
@@ -15,10 +16,11 @@ public struct Signature: Sendable {
     /// Value of the signature.
     public let value: String
 
-    init(json: [String: Any]) throws {
-        guard let algorithm = json["algorithm"] as? String,
-              let certificate = json["certificate"] as? String,
-              let value = json["value"] as? String
+    init(json: JSONValue?) throws {
+        guard var json = JSONDictionary(json),
+              let algorithm = json.pop("algorithm")?.string,
+              let certificate = json.pop("certificate")?.string,
+              let value = json.pop("value")?.string
         else {
             throw ParsingError.signature
         }
@@ -26,5 +28,9 @@ public struct Signature: Sendable {
         self.algorithm = algorithm
         self.certificate = certificate
         self.value = value
+    }
+
+    init(json: [String: Any]) throws {
+        try self.init(json: JSONValue(json))
     }
 }

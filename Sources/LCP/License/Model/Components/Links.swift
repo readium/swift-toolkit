@@ -10,8 +10,12 @@ import ReadiumShared
 public struct Links: Sendable {
     private let links: [Link]
 
+    init(json: JSONValue?) throws {
+        links = try parseArray(json).map(Link.init)
+    }
+
     init(json: [[String: Any]]) throws {
-        links = try json.map(Link.init)
+        try self.init(json: JSONValue(json))
     }
 
     /// Returns all the links with the given `rel`.

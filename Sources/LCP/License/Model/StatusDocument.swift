@@ -51,15 +51,17 @@ public struct StatusDocument: Sendable {
             throw ParsingError.malformedJSON
         }
 
-        guard let json = deserializedJSON as? [String: Any],
-              let id = json["id"] as? String,
-              let statusRaw = json["status"] as? String,
+        guard let jsonValue = JSONValue(deserializedJSON),
+              var json = JSONDictionary(jsonValue),
+              let id = json.pop("id")?.string,
+              let statusRaw = json.pop("status")?.string,
               let status = Status(rawValue: statusRaw),
-              let message = json["message"] as? String,
-              let updated = json["updated"] as? [String: Any],
-              let licenseUpdated = (updated["license"] as? String)?.dateFromISO8601,
-              let statusUpdated = (updated["status"] as? String)?.dateFromISO8601,
-              let links = json["links"] as? [[String: Any]]
+              let message = json.pop("message")?.string,
+              let updatedObject = json.pop("updated"),
+              let updated = JSONDictionary(updatedObject),
+              let licenseUpdated = parseDate(updated["license"]),
+              let statusUpdated = parseDate(updated["status"]),
+              let linksValue = json.pop("links"), linksValue.array != nil
         else {
             throw ParsingError.statusDocument
         }
@@ -69,19 +71,10 @@ public struct StatusDocument: Sendable {
         self.message = message
         self.licenseUpdated = licenseUpdated
         self.updated = statusUpdated
-        self.links = try Links(json: links)
+        self.links = try Links(json: linksValue)
 
-        if let potentialRights = json["potential_rights"] as? [String: Any] {
-            self.potentialRights = try PotentialRights(json: potentialRights)
-        } else {
-            potentialRights = nil
-        }
-
-        if let events = json["events"] as? [[String: Any]] {
-            self.events = events.compactMap(Event.init)
-        } else {
-            events = []
-        }
+        self.potentialRights = try? PotentialRights(json: json.pop("potential_rights"))
+        self.events = parseArray(json.pop("events")).compactMap(Event.init)
     }
 
     /// Returns the first link containing the given rel.
