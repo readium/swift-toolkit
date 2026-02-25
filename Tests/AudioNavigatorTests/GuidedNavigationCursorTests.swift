@@ -660,13 +660,13 @@ private final class MockGuidedNavigationService: GuidedNavigationService {
         gnds[href.anyURL.string] != nil
     }
 
-    func guidedNavigationDocument(for href: any URLConvertible) async -> ReadResult<GuidedNavigationDocument?> {
+    func guidedNavigationDocument(for href: any URLConvertible) async throws(ReadError) -> GuidedNavigationDocument? {
         let key = href.anyURL.removingFragment().string
         if failing.contains(key) {
-            return .failure(ReadError.access(AccessError.fileSystem(
+            throw ReadError.access(AccessError.fileSystem(
                 FileSystemError.fileNotFound(nil)
-            )))
+            ))
         }
-        return .success(gnds[key])
+        return gnds[key]
     }
 }

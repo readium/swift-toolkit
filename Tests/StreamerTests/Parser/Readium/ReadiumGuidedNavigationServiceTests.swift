@@ -79,18 +79,14 @@ import Testing
 
     @Test func returnsNilForLinkWithoutGN() async throws {
         let service = makeService(readingOrder: [linkWithoutGN])
-        let result = await service.guidedNavigationDocument(for: linkWithoutGN)
-        #expect(try result.get() == nil)
+        let result = try await service.guidedNavigationDocument(for: linkWithoutGN)
+        #expect(result == nil)
     }
 
     @Test func returnsFailureWhenGNDocumentMissingFromContainer() async {
         let service = makeService(readingOrder: [linkWithGN])
-        let result = await service.guidedNavigationDocument(for: linkWithGN)
-        #expect {
-            try result.get()
-        } throws: { error in
-            guard let readError = error as? ReadError, case .decoding = readError else { return false }
-            return true
+        await #expect(throws: ReadError.self) {
+            try await service.guidedNavigationDocument(for: linkWithGN)
         }
     }
 
@@ -100,7 +96,7 @@ import Testing
         ]
         let service = makeService(readingOrder: [linkWithGN], guided: guided)
 
-        let doc = try await service.guidedNavigationDocument(for: linkWithGN).get()
+        let doc = try await service.guidedNavigationDocument(for: linkWithGN)
         #expect(try doc == GuidedNavigationDocument(guided: [
             #require(GuidedNavigationObject(refs: .init(text: AnyURL(string: "chapter01.xhtml#s1")))),
         ]))

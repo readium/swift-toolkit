@@ -146,20 +146,15 @@ public struct GuidedNavigationCursor: PlaybackCursor, Sendable, Loggable {
         }
 
         let link = publication.readingOrder[index]
-        let result = await publication.guidedNavigationDocument(for: link.url())
+        do {
+            let items = try await publication.guidedNavigationDocument(for: link.url())
+                .map { makeItems(from: $0.guided) }
+                ?? []
 
-        switch result {
-        case let .success(document):
-            let items: [PlaybackItem]
-            if let document {
-                items = makeItems(from: document.guided)
-            } else {
-                items = []
-            }
             cachedItems[index] = items
             return items
 
-        case let .failure(error):
+        } catch {
             // Log but do not cache so the fetch can be retried on next traversal.
             log(.error, "Failed to fetch guided navigation document for \(link.href): \(error)")
             return []

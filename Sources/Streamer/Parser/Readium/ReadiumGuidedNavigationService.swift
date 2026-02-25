@@ -46,41 +46,36 @@ actor ReadiumGuidedNavigationService: GuidedNavigationService {
 
     func guidedNavigationDocument(
         for href: any URLConvertible
-    ) async -> ReadResult<GuidedNavigationDocument?> {
+    ) async throws(ReadError) -> GuidedNavigationDocument? {
         guard
             let readingOrderLink = manifest.readingOrder.firstWithHREF(href),
             let gnURL = readingOrderLink.alternates.firstWithMediaType(.readiumGuidedNavigationDocument)?.url()
         else {
-            return .success(nil)
+            return nil
         }
 
         if let cached = gndCache[gnURL] {
-            return .success(cached)
+            return cached
         }
-        let result = await retrieve(gnURL)
-        if case let .success(doc) = result {
-            // Use updateValue to properly store nil without removing the key.
-            // A nil doc is a valid cached result (document exists but has no
-            // guided content), and the dictionary subscript setter treats
-            // `= nil` as key removal, which would cause repeated re-parsing.
-            gndCache.updateValue(doc, forKey: gnURL)
-        }
-        return result
+        let doc = try await retrieve(gnURL)
+        // Use updateValue to properly store nil without removing the key.
+        // A nil doc is a valid cached result (document exists but has no
+        // guided content), and the dictionary subscript setter treats
+        // `= nil` as key removal, which would cause repeated re-parsing.
+        gndCache.updateValue(doc, forKey: gnURL)
+        return doc
     }
 
-    private func retrieve(_ gnURL: AnyURL) async -> ReadResult<GuidedNavigationDocument?> {
+    private func retrieve(_ gnURL: AnyURL) async throws(ReadError) -> GuidedNavigationDocument? {
         guard let resource = container[gnURL] else {
-            return .failure(.decoding("Guided Navigation Document not found at \(gnURL)"))
+            throw ReadError.decoding("Guided Navigation Document not found at \(gnURL)")
         }
 
-        return await resource.read()
-            .asJSONObject()
-            .flatMap { json in
-                do {
-                    return try .success(GuidedNavigationDocument(json: json))
-                } catch {
-                    return .failure(.decoding(error))
-                }
-            }
+        let json = try await resource.read().asJSONObject().get()
+        do {
+            return try GuidedNavigationDocument(json: json)
+        } catch {
+            throw ReadError.decoding(error)
+        }
     }
 }

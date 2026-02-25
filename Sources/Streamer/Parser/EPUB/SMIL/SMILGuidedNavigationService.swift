@@ -46,45 +46,39 @@ actor SMILGuidedNavigationService: GuidedNavigationService {
 
     func guidedNavigationDocument(
         for href: any URLConvertible
-    ) async -> ReadResult<GuidedNavigationDocument?> {
+    ) async throws(ReadError) -> GuidedNavigationDocument? {
         guard
             let link = readingOrder.firstWithHREF(href),
             let smilURL = link.alternates.firstWithMediaType(.smil)?.url()
         else {
-            return .success(nil)
+            return nil
         }
 
         if let cached = gndCache[smilURL] {
-            return .success(cached)
+            return cached
         }
-        let result = await retrieve(smilURL)
-        if case let .success(doc) = result {
-            // Use updateValue to properly store nil without removing the key.
-            // A nil doc is a valid cached result (SMIL exists but has no guided
-            // content), and the dictionary subscript setter treats `= nil` as
-            // key removal, which would cause repeated re-parsing.
-            gndCache.updateValue(doc, forKey: smilURL)
-        }
-        return result
+        let doc = try await retrieve(smilURL)
+        // Use updateValue to properly store nil without removing the key.
+        // A nil doc is a valid cached result (SMIL exists but has no guided
+        // content), and the dictionary subscript setter treats `= nil` as
+        // key removal, which would cause repeated re-parsing.
+        gndCache.updateValue(doc, forKey: smilURL)
+        return doc
     }
 
-    private func retrieve(_ smilURL: AnyURL) async -> ReadResult<GuidedNavigationDocument?> {
+    private func retrieve(_ smilURL: AnyURL) async throws(ReadError) -> GuidedNavigationDocument? {
         guard let resource = container[smilURL] else {
-            return .failure(.decoding("SMIL not found at \(smilURL)"))
+            throw ReadError.decoding("SMIL not found at \(smilURL)")
         }
 
-        return await resource.read()
-            .flatMap { data in
-                do {
-                    return try .success(
-                        SMILParser.parseGuidedNavigationDocument(
-                            smilData: data,
-                            at: smilURL
-                        )
-                    )
-                } catch {
-                    return .failure(.decoding(error))
-                }
-            }
+        let data = try await resource.read().get()
+        do {
+            return try SMILParser.parseGuidedNavigationDocument(
+                smilData: data,
+                at: smilURL
+            )
+        } catch {
+            throw ReadError.decoding(error)
+        }
     }
 }
