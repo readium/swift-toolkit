@@ -46,7 +46,9 @@ public class GCDHTTPServer: HTTPServer, Loggable {
 
     /// Creates a new instance of the HTTP server.
     ///
-    /// - Parameter logLevel: See `ReadiumGCDWebServer.setLogLevel`.
+    /// - Parameters:
+    ///   - assetRetriever: The retriever used to fetch assets for the server.
+    ///   - logLevel: See `ReadiumGCDWebServer.setLogLevel`.
     public init(
         assetRetriever: AssetRetriever,
         logLevel: Int = 3

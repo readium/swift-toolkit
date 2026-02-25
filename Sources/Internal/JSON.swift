@@ -89,7 +89,9 @@ public func parseRaw<T: RawRepresentable>(_ json: Any?) -> T? {
 /// let values1: [String] = parseArray(json["multiple"])
 /// let values2: [String] = parseArray(json["single"], allowingSingle: true)
 ///
-/// - Parameter allowingSingle: If true, then allows the parsing of both a single value and an array.
+/// - Parameters:
+///   - json: The JSON object to parse, typically an `Array` or a single value.
+///   - allowingSingle: If true, then allows the parsing of both a single value and an array.
 public func parseArray<T>(_ json: Any?, allowingSingle: Bool = false) -> [T] {
     if let values = json as? [T] {
         return values

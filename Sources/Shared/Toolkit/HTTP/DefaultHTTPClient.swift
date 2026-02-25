@@ -122,6 +122,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
     ///   - additionalHeaders: A dictionary of additional headers to send with requests. For example, `User-Agent`.
     ///   - requestTimeout: The timeout interval to use when waiting for additional data.
     ///   - resourceTimeout: The maximum amount of time that a resource request should be allowed to take.
+    ///   - delegate: An optional delegate to handle common HTTP events.
     ///   - configure: Callback used to configure further the `URLSessionConfiguration` object.
     public convenience init(
         userAgent: String? = nil,
@@ -160,7 +161,9 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
     /// Creates a `DefaultHTTPClient` with a custom configuration.
     ///
     /// - Parameters:
+    ///   - configuration: The `URLSessionConfiguration` to use for all requests.
     ///   - userAgent: Default user agent issued with requests.
+    ///   - delegate: An optional delegate to handle common HTTP events.
     public init(
         configuration: URLSessionConfiguration,
         userAgent: String? = nil,

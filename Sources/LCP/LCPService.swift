@@ -21,12 +21,18 @@ public final class LCPService: Loggable {
     private let licenses: LicensesService
     private let assetRetriever: AssetRetriever
 
-    /// - Parameter deviceName: Device name used when registering a license to an LSD server.
-    ///   If not provided, the device name will be the default `UIDevice.current.name`.
-    /// - Parameter deviceId: Device ID used when registering a license to an LSD server.
-    ///   You must ensure the identifier is unique and stable for the device (persist and
-    ///   reuse across app launches). If not provided, the device ID will be generated as
-    ///   a random UUID.
+    /// - Parameters:
+    ///   - client: The LCP client used for core license operations.
+    ///   - licenseRepository: Repository for managing stored licenses.
+    ///   - passphraseRepository: Repository for managing user passphrases.
+    ///   - assetRetriever: The retriever used to fetch protected assets.
+    ///   - httpClient: The HTTP client used for network requests to LSD/LCP servers.
+    ///   - deviceName: Device name used when registering a license to an LSD server.
+    ///     If not provided, the device name will be the default `UIDevice.current.name`.
+    ///   - deviceId: Device ID used when registering a license to an LSD server.
+    ///     You must ensure the identifier is unique and stable for the device (persist and
+    ///     reuse across app launches). If not provided, the device ID will be generated as
+    ///     a random UUID.
     public init(
         client: LCPClient,
         licenseRepository: LCPLicenseRepository,
@@ -95,14 +101,15 @@ public final class LCPService: Loggable {
     /// Opens the LCP license of a protected publication, to access its DRM
     /// metadata and decipher its content.
     ///
-    /// If the updated license cannot be stored into the ``Asset``, you'll get
+    /// If the updated license cannot be stored into the `Asset`, you'll get
     /// an exception if the license points to a LSD server that cannot be
     /// reached, for instance because no Internet gateway is available.
     ///
-    /// Updated licenses can currently be stored only into ``Asset``s whose
+    /// Updated licenses can currently be stored only into `Asset`s whose
     /// source property points to a `file://` URL.
     ///
     /// - Parameters:
+    ///   - asset: The asset whose license is to be retrieved.
     ///   - authentication: Used to retrieve the user passphrase if it is not
     ///     already known. The request will be cancelled if no passphrase is
     ///     found in the LCP passphrase storage and in the given

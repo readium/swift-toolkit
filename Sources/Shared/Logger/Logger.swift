@@ -9,7 +9,10 @@ import Foundation
 /// Initialize the Logger.
 /// Default logger is the `LoggerStub` class
 ///
-/// - Parameter customLogger: The Logger that will be used for printing logs.
+/// - Parameters:
+///   - level: The minimum severity level for logs to be processed.
+///   - customLogger: The Logger that will be used for printing logs.
+///     Defaults to a `LoggerStub` which may perform no-op logging.
 public func ReadiumEnableLog(withMinimumSeverityLevel level: SeverityLevel, customLogger: LoggerType = LoggerStub()) {
     Logger.sharedInstance.setupLogger(logger: customLogger)
     Logger.sharedInstance.setMinimumSeverityLevel(at: level)

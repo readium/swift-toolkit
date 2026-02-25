@@ -30,7 +30,10 @@ struct MimeTypeParameters {
 public class OPDS1Parser: Loggable {
     /// Parse an OPDS feed or publication.
     /// Feed can only be v1 (XML).
-    /// - parameter url: The feed URL
+    /// - Parameters:
+    ///   - url: The feed URL.
+    ///   - completion: A closure called when the parsing is complete, returning the parsed data
+    ///     or an error if the operation failed.
     public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, let response = response else {
@@ -219,8 +222,11 @@ public class OPDS1Parser: Loggable {
 
     /// Parse an OPDS publication.
     /// Publication can only be v1 (XML).
-    /// - parameter document: The XMLDocument data
-    /// - Returns: The resulting Publication
+    /// - Parameters:
+    ///   - document: The XMLDocument data.
+    ///   - feedURL: The base URL of the feed, used to resolve relative links.
+    /// - Returns: The resulting `Publication`, or `nil` if the entry couldn't be parsed.
+    /// - Throws: An error if the XML parsing or validation fails.
     public static func parseEntry(document: ReadiumFuzi.XMLDocument, feedURL: URL) throws -> Publication? {
         guard let root = document.root else {
             throw OPDS1ParserError.rootNotFound
@@ -229,7 +235,10 @@ public class OPDS1Parser: Loggable {
     }
 
     /// Fetch an Open Search template from an OPDS feed.
-    /// - parameter feed: The OPDS feed
+    /// - Parameters:
+    ///   - feed: The OPDS feed to search for the template.
+    ///   - completion: A closure called with the OpenSearch template as a `String` if found,
+    ///     or an `Error` if the fetch or parsing failed.
     public static func fetchOpenSearchTemplate(feed: Feed, completion: @escaping (String?, Error?) -> Void) {
         guard let openSearchHref = feed.links.firstWithRel(.search)?.href,
               let openSearchURL = URL(string: openSearchHref)

@@ -125,7 +125,7 @@ public class LCPSQLiteLicenseRepository: LCPLicenseRepository, Loggable {
     ///
     /// This migration transfers consumable rights (print/copy counts) and
     /// device registration status to the target repository. The full
-    /// ``LicenseDocument`` is not stored in SQLite and will be automatically
+    /// `LicenseDocument` is not stored in SQLite and will be automatically
     /// added to the target repository when each publication is opened
     /// for the first time after migration.
     ///
