@@ -26,7 +26,7 @@ public struct LCPLicenseFormatSniffer: FormatSniffer {
             return .success(nil)
         }
 
-        return await blob.read()
+        return await blob.readAsJSON()
             .asJSONObject()
             .map { json in
                 guard
