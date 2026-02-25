@@ -13,6 +13,23 @@ import Testing
         #expect(CSSSelector(fragment: "section1") == CSSSelector(cssSelector: "#section1"))
     }
 
+    @Suite("init(id:)") struct InitID {
+        @Test("produces hash-prefixed CSS selector")
+        func producesHashPrefixedSelector() {
+            #expect(CSSSelector(id: "section1") == CSSSelector(cssSelector: "#section1"))
+        }
+
+        @Test("id with hyphens and underscores")
+        func idWithHyphensAndUnderscores() {
+            #expect(CSSSelector(id: "my-id_1") == CSSSelector(cssSelector: "#my-id_1"))
+        }
+
+        @Test("round-trips through htmlID")
+        func roundTripsThroughHtmlID() {
+            #expect(CSSSelector(id: "section1").htmlID == "section1")
+        }
+    }
+
     @Test("empty URLFragment cannot be constructed")
     func emptyFragmentCannotBeConstructed() {
         #expect(URLFragment(rawValue: "") == nil)

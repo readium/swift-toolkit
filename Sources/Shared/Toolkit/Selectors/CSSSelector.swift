@@ -17,6 +17,11 @@ public struct CSSSelector: Hashable, Sendable {
         self.cssSelector = cssSelector
     }
 
+    /// Creates a ``CSSSelector`` from an HTML ``id``.
+    public init(id: String) {
+        self.init(cssSelector: "#\(id)")
+    }
+
     /// The HTML element ID targeted by this selector, if the rightmost simple
     /// selector is a plain ID selector (e.g. `#section1` or `.nav #section1`
     /// → `"section1"`).
