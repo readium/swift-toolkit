@@ -282,6 +282,25 @@ public struct CSSSelector: Hashable, Sendable {
     public init(cssSelector: String) {
         self.cssSelector = cssSelector
     }
+
+    /// The HTML element ID targeted by this selector, if the rightmost simple
+    /// selector is a plain ID selector (e.g. `#section1` or `.nav #section1`
+    /// → `"section1"`).
+    ///
+    /// Returns `nil` when the target element is not identified by a simple
+    /// `#id` form (e.g. `#foo .bar` targets `.bar`, so returns `nil`).
+    public var htmlID: String? {
+        // Split on CSS combinators (whitespace, >, +, ~) to isolate simple selectors.
+        let parts = cssSelector
+            .components(separatedBy: CharacterSet(charactersIn: ">+~").union(.whitespaces))
+            .filter { !$0.isEmpty }
+        guard let last = parts.last,
+              last.hasPrefix("#"),
+              last.count > 1,
+              !last.dropFirst().contains(where: { !$0.isLetter && !$0.isNumber && $0 != "-" && $0 != "_" })
+        else { return nil }
+        return String(last.dropFirst())
+    }
 }
 
 // MARK: - PDF Reference
