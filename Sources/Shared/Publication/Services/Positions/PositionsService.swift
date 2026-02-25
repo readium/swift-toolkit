@@ -107,8 +107,10 @@ public extension Publication {
         await links.firstWithMediaType(.readiumPositions)
             .flatMap { get($0) }?
             .read()
-            .asJSONObject()
-            .map { [Locator](json: $0["positions"]) }
+            .asJSONObjectValue()
+            .map { json in
+                [Locator](json: json["positions"])
+            }
             ?? .success([])
     }
 }

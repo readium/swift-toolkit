@@ -168,10 +168,10 @@ public final class ReadiumWebPubParser: PublicationParser, Loggable {
 private extension ReadResult<Data> {
     /// Decodes the data as a Readium Web Pub Manifest.
     func asRWPM(warnings: WarningLogger?) -> ReadResult<Manifest> {
-        asJSONObject()
+        asJSONObjectValue()
             .flatMap { data in
                 do {
-                    return try .success(Manifest(json: data, warnings: warnings))
+                    return try .success(Manifest(json: .object(data), warnings: warnings))
                 } catch {
                     return .failure(.decoding(error))
                 }

@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Sniffs a Readium Web Publication package.
 public struct RPFFormatSniffer: FormatSniffer {
@@ -32,9 +33,9 @@ public struct RPFFormatSniffer: FormatSniffer {
         }
 
         return await resource.read()
-            .asJSONObject()
-            .map {
-                guard let manifest = try? Manifest(json: $0) else {
+            .asJSONObjectValue()
+            .map { (json: [String: JSONValue]) -> Format? in
+                guard let manifest = try? Manifest(json: .object(json)) else {
                     return nil
                 }
 
