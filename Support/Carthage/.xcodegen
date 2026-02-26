@@ -327,6 +327,7 @@
 ../../Sources/Internal/Extensions/UInt64.swift
 ../../Sources/Internal/Extensions/URL.swift
 ../../Sources/Internal/JSON.swift
+../../Sources/Internal/JSONValue.swift
 ../../Sources/Internal/Keychain.swift
 ../../Sources/Internal/Measure.swift
 ../../Sources/Internal/UTI.swift
@@ -800,6 +801,7 @@
 ../../Sources/Shared/Toolkit/Tokenizer
 ../../Sources/Shared/Toolkit/Tokenizer/TextTokenizer.swift
 ../../Sources/Shared/Toolkit/Tokenizer/Tokenizer.swift
+../../Sources/Shared/Toolkit/UncheckedSendable.swift
 ../../Sources/Shared/Toolkit/URL
 ../../Sources/Shared/Toolkit/URL/Absolute URL
 ../../Sources/Shared/Toolkit/URL/Absolute URL/AbsoluteURL.swift
