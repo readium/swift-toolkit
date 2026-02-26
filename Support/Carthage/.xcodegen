@@ -339,7 +339,6 @@
 ../../Sources/Adapters/LCPSQLite/SQLiteLCPPassphraseRepository.swift
 ../../Sources/AudioNavigator
 ../../Sources/AudioNavigator/AudioEngine.swift
-../../Sources/AudioNavigator/AudioPlayer.swift
 ../../Sources/AudioNavigator/GuidedNavigationCursor.swift
 ../../Sources/AudioNavigator/PlaybackCursor.swift
 ../../Sources/AudioNavigator/PlaybackItem.swift
