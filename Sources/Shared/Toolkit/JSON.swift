@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 public enum JSONError: Error {
     case parsing(Any.Type)
@@ -59,5 +60,73 @@ public extension JSONEquatable {
 
     var debugDescription: String {
         serializeJSONString(json) ?? String(describing: self)
+    }
+}
+
+// MARK: - ReadResult Extensions
+
+public extension Result where Success == JSONValue, Failure == ReadError {
+    /// Decodes the JSON value as a JSON object.
+    func asJSONObject() -> ReadResult<[String: JSONValue]> {
+        flatMap {
+            guard case let .object(dict) = $0 else {
+                return .failure(.decoding(JSONError.parsing([String: JSONValue].self)))
+            }
+            return .success(dict)
+        }
+    }
+}
+
+public extension Result where Success == JSONValue?, Failure == ReadError {
+    /// Decodes the JSON value as a JSON object.
+    func asJSONObject() -> ReadResult<[String: JSONValue]?> {
+        map { $0?.object }
+    }
+}
+
+public extension Result where Success == Data, Failure == ReadError {
+    /// Decodes the data as a JSON value.
+    func asJSONValue(options: JSONSerialization.ReadingOptions = []) -> ReadResult<JSONValue> {
+        flatMap { data in
+            do {
+                let json = try JSONSerialization.jsonObject(with: data, options: options)
+                guard let value = JSONValue(json) else {
+                    return .failure(.decoding(JSONError.parsing(JSONValue.self)))
+                }
+                return .success(value)
+            } catch {
+                return .failure(.decoding(error))
+            }
+        }
+    }
+
+    /// Decodes the data as a JSON object.
+    func asJSONObjectValue(options: JSONSerialization.ReadingOptions = []) -> ReadResult<[String: JSONValue]> {
+        asJSONValue(options: options).asJSONObject()
+    }
+}
+
+public extension Result where Success == Data?, Failure == ReadError {
+    /// Decodes the data as a JSON value.
+    func asJSONValue(options: JSONSerialization.ReadingOptions = []) -> ReadResult<JSONValue?> {
+        flatMap { data in
+            guard let data = data else {
+                return .success(nil)
+            }
+            do {
+                let json = try JSONSerialization.jsonObject(with: data, options: options)
+                guard let value = JSONValue(json) else {
+                    return .failure(.decoding(JSONError.parsing(JSONValue.self)))
+                }
+                return .success(value)
+            } catch {
+                return .failure(.decoding(error))
+            }
+        }
+    }
+
+    /// Decodes the data as a JSON object.
+    func asJSONObjectValue(options: JSONSerialization.ReadingOptions = []) -> ReadResult<[String: JSONValue]?> {
+        asJSONValue(options: options).asJSONObject()
     }
 }
