@@ -338,8 +338,10 @@
 ../../Sources/Adapters/LCPSQLite/SQLiteLCPLicenseRepository.swift
 ../../Sources/Adapters/LCPSQLite/SQLiteLCPPassphraseRepository.swift
 ../../Sources/AudioNavigator
-../../Sources/AudioNavigator/AudioPlayer.swift
-../../Sources/AudioNavigator/DefaultAudioPlayer.swift
+../../Sources/AudioNavigator/AudioClip
+../../Sources/AudioNavigator/AudioClip/AudioClip.swift
+../../Sources/AudioNavigator/AudioClip/AudioClipPlayer.swift
+../../Sources/AudioNavigator/AudioClip/DefaultAudioClipPlayer.swift
 ../../Sources/AudioNavigator/GuidedNavigationCursor.swift
 ../../Sources/AudioNavigator/PlaybackCursor.swift
 ../../Sources/AudioNavigator/PlaybackItem.swift

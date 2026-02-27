@@ -8,20 +8,20 @@ import AVFoundation
 import Foundation
 @preconcurrency import ReadiumShared
 
-public enum DefaultAudioPlayerError: Error {
+public enum DefaultAudioClipPlayerError: Error {
     /// Failed to load the audio clip.
     case failedToLoadClip
 }
 
-/// An ``AudioPlayer`` implementation backed by `AVPlayer`.
+/// An ``AudioClipPlayer`` implementation backed by `AVPlayer`.
 @MainActor
-public final class DefaultAudioPlayer: NSObject, AudioPlayer, Loggable {
-    public weak var delegate: (any AudioPlayerDelegate)?
+public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
+    public weak var delegate: (any AudioClipPlayerDelegate)?
 
-    public private(set) var status: AudioPlayerStatus = .idle {
+    public private(set) var status: AudioClipPlayerStatus = .idle {
         didSet {
             if oldValue != status {
-                delegate?.audioPlayer(self, didChangeStatus: status)
+                delegate?.audioClipPlayer(self, didChangeStatus: status)
             }
         }
     }
@@ -80,7 +80,7 @@ public final class DefaultAudioPlayer: NSObject, AudioPlayer, Loggable {
     private var itemDidPlayToEndTimeObserver: NSObjectProtocol?
     private var playerTimeControlStatusObservation: NSKeyValueObservation?
 
-    // MARK: - AudioPlayer
+    // MARK: - AudioClipPlayer
 
     public func prepare(_ clip: AudioClip) {
         guard let item = makeItem(for: clip) else {
@@ -100,7 +100,7 @@ public final class DefaultAudioPlayer: NSObject, AudioPlayer, Loggable {
 
         guard let item else {
             replaceCurrentItem(nil)
-            delegate?.audioPlayer(self, didFailPlaying: clip, withError: DefaultAudioPlayerError.failedToLoadClip)
+            delegate?.audioClipPlayer(self, didFailPlaying: clip, withError: DefaultAudioClipPlayerError.failedToLoadClip)
             return
         }
 
@@ -210,7 +210,7 @@ public final class DefaultAudioPlayer: NSObject, AudioPlayer, Loggable {
             ) { [weak self] _ in
                 MainActor.assumeIsolated {
                     guard let self, self.currentItem != nil else { return }
-                    self.delegate?.audioPlayer(self, didUpdateTime: self.time)
+                    self.delegate?.audioClipPlayer(self, didUpdateTime: self.time)
                 }
             }
     }
@@ -221,7 +221,7 @@ public final class DefaultAudioPlayer: NSObject, AudioPlayer, Loggable {
         replaceCurrentItem(nil)
 
         if let item = finishedItem {
-            delegate?.audioPlayer(self, didFinishPlaying: item.clip)
+            delegate?.audioClipPlayer(self, didFinishPlaying: item.clip)
         }
     }
 
@@ -240,7 +240,7 @@ public final class DefaultAudioPlayer: NSObject, AudioPlayer, Loggable {
         }
     }
 
-    private func addMarkerObservers(for markers: [AudioMarker]) {
+    private func addMarkerObservers(for markers: [AudioClip.Marker]) {
         for marker in markers {
             // One observer per marker so the marker is captured directly,
             // avoiding an async time-proximity lookup that can miss under
@@ -249,7 +249,7 @@ public final class DefaultAudioPlayer: NSObject, AudioPlayer, Loggable {
             let token = player.addBoundaryTimeObserver(forTimes: [time], queue: .main) { [weak self, marker] in
                 MainActor.assumeIsolated {
                     guard let self else { return }
-                    self.delegate?.audioPlayer(self, didReachMarker: marker)
+                    self.delegate?.audioClipPlayer(self, didReachMarker: marker)
                 }
             }
             markerObservers.append(token)
@@ -293,7 +293,7 @@ public final class DefaultAudioPlayer: NSObject, AudioPlayer, Loggable {
 /// AVFoundation calls `shouldWaitForLoadingOfRequestedResource` on a private
 /// serial queue (`queue`) for every byte-range or content-info request it
 /// needs. Each request is fulfilled asynchronously via a Swift `Task` that:
-///   1. Hops to the main actor to ask the `AudioPlayerDelegate` for a
+///   1. Hops to the main actor to ask the `AudioClipPlayerDelegate` for a
 ///     `Resource`.
 ///   2. Optionally fills a `contentInformationRequest` (MIME type + length).
 ///   3. Streams the requested byte range back through
@@ -307,7 +307,7 @@ private final class ResourceLoaderDelegate: NSObject, AVAssetResourceLoaderDeleg
     private let schemePrefix = "readium"
     private let queue = DispatchQueue(label: "org.readium.swift-toolkit.audio-navigator.ResourceLoaderDelegate")
 
-    private weak var player: DefaultAudioPlayer?
+    private weak var player: DefaultAudioClipPlayer?
 
     /// Tasks are keyed by `ObjectIdentifier(loadingRequest)` so they can be
     /// cancelled if AVFoundation withdraws the request via `didCancel`.
@@ -316,7 +316,7 @@ private final class ResourceLoaderDelegate: NSObject, AVAssetResourceLoaderDeleg
     /// Links stored by normalized HREF so we can recover the media type.
     private var links: [AnyURL: Link] = [:]
 
-    init(player: DefaultAudioPlayer) {
+    init(player: DefaultAudioClipPlayer) {
         self.player = player
     }
 
@@ -426,9 +426,9 @@ private final class ResourceLoaderDelegate: NSObject, AVAssetResourceLoaderDeleg
     /// Asks the player delegate for the `Resource` backing `link`.
     @MainActor private func fetchResource(for link: Link) async throws -> Resource {
         guard let player, let delegate = player.delegate else {
-            throw DebugError("The DefaultAudioPlayer delegate is required to provide resources")
+            throw DebugError("The DefaultAudioClipPlayer delegate is required to provide resources")
         }
-        return try delegate.audioPlayer(player, resourceFor: link)
+        return try delegate.audioClipPlayer(player, resourceFor: link)
     }
 
     /// Populates `infoRequest` with the media type and byte length of
