@@ -36,21 +36,25 @@ public final class GuidedNavigationCursor: PlaybackCursor, Loggable {
     public func next() async -> PlaybackItem? {
         while true {
             guard let items = await currentItems() else {
+                print("[GuidedNavigationCursor] next() — currentItems() returned nil (out of bounds), resourceIndex=\(resourceIndex)")
                 return nil
             }
 
             if cursorIndex < items.count {
                 let item = items[cursorIndex]
                 cursorIndex += 1
+                print("[GuidedNavigationCursor] next() → item[\(cursorIndex - 1)] of resource[\(resourceIndex)]: \(item)")
                 return item
             }
 
             // Past the end of the current resource — advance to next.
             resourceIndex += 1
             if resourceIndex >= publication.readingOrder.count {
+                print("[GuidedNavigationCursor] next() — reached end of publication")
                 return nil
             }
             cursorIndex = 0
+            print("[GuidedNavigationCursor] next() — advancing to resource[\(resourceIndex)]")
         }
     }
 
@@ -147,9 +151,14 @@ public final class GuidedNavigationCursor: PlaybackCursor, Loggable {
         }
 
         let link = publication.readingOrder[index]
+        print("[GuidedNavigationCursor] fetching GND for resource[\(index)]: \(link.href)")
         do {
             let doc = try await publication.guidedNavigationDocument(for: link.url())
+            if doc == nil {
+                print("[GuidedNavigationCursor] no GND found for \(link.href)")
+            }
             let items = doc.map { makeItems(from: $0.guided) } ?? []
+            print("[GuidedNavigationCursor] resource[\(index)] \(link.href) → \(items.count) items")
 
             cachedItems[index] = items
             return items
@@ -157,6 +166,7 @@ public final class GuidedNavigationCursor: PlaybackCursor, Loggable {
         } catch {
             // Log but do not cache so the fetch can be retried on next traversal.
             log(.error, "Failed to fetch guided navigation document for \(link.href): \(error)")
+            print("[GuidedNavigationCursor] ERROR fetching GND for \(link.href): \(error)")
             return []
         }
     }
