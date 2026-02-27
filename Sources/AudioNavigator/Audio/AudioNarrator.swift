@@ -15,14 +15,21 @@ public final class AudioNarrator: Narrator {
     private let publication: Publication
     private let player: any AudioClipPlayer
 
-    /// The item consumed from the delegate that starts the next clip batch.
+    /// An item that was already fetched from the delegate (because it belongs
+    /// to this narrator) but not yet used as the start of a batch. Set by
+    /// `play(from:)` and consumed at the top of `startNextBatch()`.
     private var nextBatchStart: PlaybackItem?
 
-    /// The last item passed to `nextItemAfter:`, used to chain delegate calls.
+    /// The last item passed to `nextItemAfter:`, used to chain delegate calls
+    /// so the delegate knows which item to advance past.
     private var lastRequestedItem: PlaybackItem?
 
-    /// Items in the currently playing batch, index-mapped to markers.
+    /// Items in the currently playing batch, in playback order. Each item
+    /// corresponds to a time range within the single audio clip being played.
     private var activeItems: [PlaybackItem] = []
+
+    /// Index into `activeItems` for the item currently being narrated.
+    private var activeIndex: Int = 0
 
     public init(publication: Publication, player: any AudioClipPlayer) {
         self.publication = publication
@@ -31,6 +38,11 @@ public final class AudioNarrator: Narrator {
     }
 
     // MARK: - Narrator
+
+    public func supports(_ item: PlaybackItem) -> Bool {
+        if case .audio = item.content { return true }
+        return false
+    }
 
     public func play(from item: PlaybackItem) {
         print("[AudioNarrator] play(from:) called with item: \(item)")
@@ -52,11 +64,47 @@ public final class AudioNarrator: Narrator {
     public func stop() {
         player.stop()
         activeItems = []
+        activeIndex = 0
         nextBatchStart = nil
+    }
+
+    // MARK: - Within-batch navigation
+
+    public func goForward() -> Bool {
+        guard activeIndex + 1 < activeItems.count else { return false }
+        activeIndex += 1
+        let item = activeItems[activeIndex]
+        if case .audio(let ref) = item.content {
+            let (start, _) = times(for: ref.temporal)
+            player.seek(to: start)
+        }
+        delegate?.narrator(self, didActivateItem: item)
+        return true
+    }
+
+    public func goBackward() -> Bool {
+        guard activeIndex > 0 else { return false }
+        activeIndex -= 1
+        let item = activeItems[activeIndex]
+        if case .audio(let ref) = item.content {
+            let (start, _) = times(for: ref.temporal)
+            player.seek(to: start)
+        }
+        delegate?.narrator(self, didActivateItem: item)
+        return true
     }
 
     // MARK: - Batch loading
 
+    /// Loads the next group of consecutive items that all reference the same
+    /// audio resource, assembles them into a single ``AudioClip`` with per-item
+    /// markers, and starts playing it.
+    ///
+    /// A "batch" is the unit of work for one `player.play(_:)` call. All items
+    /// in the batch share the same audio file; item boundaries within the batch
+    /// are communicated to the player as time markers so it can fire
+    /// ``AudioClipPlayerDelegate/audioClipPlayer(_:didReachMarker:)`` callbacks
+    /// instead of stopping and restarting the file.
     private func startNextBatch() async {
         print("[AudioNarrator] startNextBatch() — nextBatchStart=\(nextBatchStart.map { "\($0)" } ?? "nil")")
 
@@ -78,6 +126,8 @@ public final class AudioNarrator: Narrator {
         }
 
         guard case .audio(let firstRef) = first.content else {
+            // Non-audio items are not supported by this narrator; return nil to
+            // the delegate so the navigator can route them elsewhere.
             print("[AudioNarrator] startNextBatch() — first item is not audio, skipping: \(first)")
             lastRequestedItem = first
             await startNextBatch()
@@ -89,6 +139,9 @@ public final class AudioNarrator: Narrator {
         var batch: [PlaybackItem] = [first]
 
         // Accumulate consecutive items that share the same audio resource.
+        // When the resource changes (or a non-audio item arrives), stash the
+        // item as `nextBatchStart` and end accumulation so the next call to
+        // `startNextBatch()` picks up where we left off.
         while true {
             let next = await delegate?.narrator(self, nextItemAfter: lastRequestedItem)
             lastRequestedItem = next
@@ -108,6 +161,8 @@ public final class AudioNarrator: Narrator {
         }
 
         // Build the clip spanning the batch.
+        // The clip starts at the first item's start time and ends at the last
+        // item's end time, so the player plays the full range in one shot.
         let link = publication.linkWithHREF(batchHref) ?? Link(href: batchHref.string)
         let firstTemporal: TemporalSelector? = {
             if case .audio(let r) = batch.first?.content { return r.temporal }
@@ -121,6 +176,8 @@ public final class AudioNarrator: Narrator {
         let (_, clipEnd) = times(for: lastTemporal)
 
         // Markers at the start of items[1...] within the batch.
+        // The player fires `didReachMarker` at each marker time so we can
+        // update `activeIndex` and notify the delegate without restarting playback.
         let markers: [AudioClip.Marker] = batch.dropFirst().compactMap { item in
             guard case .audio(let ref) = item.content else { return nil }
             let (start, _) = times(for: ref.temporal)
@@ -132,6 +189,7 @@ public final class AudioNarrator: Narrator {
         print("[AudioNarrator] startNextBatch() — link found in publication: \(publication.linkWithHREF(batchHref) != nil)")
 
         activeItems = batch
+        activeIndex = 0
         delegate?.narrator(self, didActivateItem: batch[0])
         player.play(clip)
     }
@@ -166,7 +224,8 @@ extension AudioNarrator: AudioClipPlayerDelegate {
             guard case .audio(let ref) = item.content else { continue }
             let (start, _) = times(for: ref.temporal)
             if abs(start - marker.time) < 0.001 {
-                delegate?.narrator(self, didActivateItem: activeItems[index + 1])
+                activeIndex = index + 1
+                delegate?.narrator(self, didActivateItem: activeItems[activeIndex])
                 return
             }
         }

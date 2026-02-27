@@ -31,8 +31,30 @@ public protocol Narrator: AnyObject {
     /// Resumes paused narration. Has no effect when not paused.
     func resume()
 
+    /// Returns whether this narrator can handle `item`.
+    ///
+    /// The ``AudioNavigator`` calls this to decide when to end the current
+    /// batch and switch narrators.
+    func supports(_ item: PlaybackItem) -> Bool
+
     /// Stops narration and discards any buffered items.
     func stop()
+
+    /// Attempts to activate the next item within the current batch.
+    ///
+    /// - Returns: `true` if successful, `false` when already at the last
+    /// item — the navigator should then stop this narrator and route the next
+    /// item (possibly from a different narrator type) itself.
+    @discardableResult
+    func goForward() -> Bool
+
+    /// Attempts to activate the previous item within the current batch.
+    ///
+    /// Returns `true` if successful. Returns `false` when already at the first
+    /// item — the navigator should then stop this narrator and route the previous
+    /// item (possibly from a different narrator type) itself.
+    @discardableResult
+    func goBackward() -> Bool
 }
 
 /// Receives narration events from a ``Narrator``.
@@ -41,9 +63,8 @@ public protocol NarratorDelegate: AnyObject {
     /// Called by the narrator to request the next item.
     ///
     /// The navigator advances the cursor and returns the next compatible item,
-    /// or `nil` when the sequence ends or the next item is incompatible with
-    /// this narrator (in which case the navigator holds it as `pendingItem`
-    /// for future narrator-switching).
+    /// or `nil` when the sequence ends or the next item belongs to a different
+    /// narrator type.
     func narrator(_ narrator: any Narrator, nextItemAfter item: PlaybackItem?) async -> PlaybackItem?
 
     /// Called when `item` becomes the actively narrated item within the current
@@ -51,9 +72,6 @@ public protocol NarratorDelegate: AnyObject {
     func narrator(_ narrator: any Narrator, didActivateItem item: PlaybackItem)
 
     /// Called when the narrator finishes all items in the batch.
-    ///
-    /// The ``AudioNavigator`` responds by pulling the next batch from the
-    /// cursor and dispatching it to the appropriate narrator.
     func narratorDidFinish(_ narrator: any Narrator)
 
     /// Called when an unrecoverable error occurs.
