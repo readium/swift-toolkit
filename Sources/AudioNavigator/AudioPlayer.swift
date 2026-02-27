@@ -11,12 +11,13 @@ import Foundation
 ///
 /// Implementations only need to play a bounded region of an audio file and
 /// fire delegate callbacks as playback progresses.
-public protocol AudioEngine: AnyObject, Sendable {
-    /// Delegate that receives playback events and requests from the engine.
-    var delegate: (any AudioEngineDelegate)? { get set }
+@MainActor
+public protocol AudioPlayer: AnyObject, Sendable {
+    /// Delegate that receives playback events and requests from the player.
+    var delegate: (any AudioPlayerDelegate)? { get set }
 
     /// Current playback status.
-    var status: AudioEngineStatus { get }
+    var status: AudioPlayerStatus { get }
 
     /// Current playback position within the current clip, in seconds.
     var time: TimeInterval { get }
@@ -35,9 +36,9 @@ public protocol AudioEngine: AnyObject, Sendable {
 
     /// Plays the given clip immediately, replacing any current playback.
     ///
-    /// The engine plays from `clip.start` to `clip.end` (or the end of the
+    /// The player plays from `clip.start` to `clip.end` (or the end of the
     /// file when `end` is `nil`), firing
-    /// ``AudioEngineDelegate/audioEngine(_:didReachMarker:)`` as each marker
+    /// ``AudioPlayerDelegate/audioPlayer(_:didReachMarker:)`` as each marker
     /// position is passed.
     func play(_ clip: AudioClip)
 
@@ -53,46 +54,49 @@ public protocol AudioEngine: AnyObject, Sendable {
     /// Seeks to the given position within the current clip, in seconds.
     ///
     /// Any markers between the current position and `time` are skipped without
-    /// firing. If `time` is past the clip's `end`, the engine behaves as if
+    /// firing. If `time` is past the clip's `end`, the player behaves as if
     /// the clip finished naturally and fires
-    /// ``AudioEngineDelegate/audioEngine(_:didFinishPlaying:)``.
+    /// ``AudioPlayerDelegate/audioPlayer(_:didFinishPlaying:)``.
     ///
     /// This may be called from within a
-    /// ``AudioEngineDelegate/audioEngine(_:didReachMarker:)`` callback, for
+    /// ``AudioPlayerDelegate/audioPlayer(_:didReachMarker:)`` callback, for
     /// example to skip a gap to the start of the next playback item.
     func seek(to time: TimeInterval)
 }
 
-/// Receives playback events from an ``AudioEngine``.
-@MainActor public protocol AudioEngineDelegate: AnyObject {
-    /// Returns a `Resource` providing access to the audio data at `href`.
+/// Receives playback events from an ``AudioPlayer``.
+@MainActor public protocol AudioPlayerDelegate: AnyObject {
+    /// Returns a `Resource` providing access to the audio data for `link`.
     ///
-    /// The engine calls this to open a publication resource by URL. Throwing
-    /// an error might transitions the engine to ``AudioEngineStatus/failed(_:)``.
-    func audioEngine(_ engine: any AudioEngine, resourceAt href: AnyURL) throws -> Resource
+    /// The player calls this to open a publication resource by link.
+    func audioPlayer(_ player: any AudioPlayer, resourceFor link: Link) throws -> Resource
 
-    /// Called when the engine finishes playing a clip, either because it
+    /// Called when the player finishes playing a clip, either because it
     /// reached `clip.end` or because `seek(to:)` was called past that point.
-    func audioEngine(_ engine: any AudioEngine, didFinishPlaying clip: AudioClip)
+    func audioPlayer(_ player: any AudioPlayer, didFinishPlaying clip: AudioClip)
 
     /// Called when playback reaches a marker position within the current clip.
-    func audioEngine(_ engine: any AudioEngine, didReachMarker marker: AudioMarker)
+    func audioPlayer(_ player: any AudioPlayer, didReachMarker marker: AudioMarker)
 
     /// Called periodically with the current playback position within the
     /// current clip, in seconds.
-    func audioEngine(_ engine: any AudioEngine, didUpdateTime time: TimeInterval)
+    func audioPlayer(_ player: any AudioPlayer, didUpdateTime time: TimeInterval)
 
-    /// Called when the engine's playback status changes.
-    func audioEngine(_ engine: any AudioEngine, didChangeStatus status: AudioEngineStatus)
+    /// Called when the player's playback status changes.
+    func audioPlayer(_ player: any AudioPlayer, didChangeStatus status: AudioPlayerStatus)
+
+    /// Called when an unrecoverable error occurs while playing `clip`.
+    /// The player transitions to `idle` status (as if `stop()` was called).
+    func audioPlayer(_ player: any AudioPlayer, didFailPlaying clip: AudioClip, withError error: Error)
 }
 
 /// A bounded region of an audio file to play, with optional markers.
 ///
-/// The engine plays from `start` to `end`, firing a delegate callback each
+/// The player plays from `start` to `end`, firing a delegate callback each
 /// time a marker position is reached.
 public struct AudioClip: Hashable, Sendable {
-    /// URL of the audio resource within the publication.
-    public var href: AnyURL
+    /// Publication link for the audio resource, carrying the URL and media type.
+    public var link: Link
 
     /// Start of the clip, in seconds from the beginning of the resource.
     public var start: TimeInterval
@@ -102,26 +106,26 @@ public struct AudioClip: Hashable, Sendable {
     /// When `nil`, the clip plays to the end of the audio resource.
     public var end: TimeInterval?
 
-    /// Markers at which the engine notifies the delegate.
+    /// Markers at which the player notifies the delegate.
     ///
     /// Positions are expressed in seconds from the beginning of the resource,
     /// within the start-end range.
     public var markers: [AudioMarker]
 
     public init(
-        href: AnyURL,
+        link: Link,
         start: TimeInterval,
         end: TimeInterval? = nil,
         markers: [AudioMarker] = []
     ) {
-        self.href = href
+        self.link = link
         self.start = start
         self.end = end
         self.markers = markers
     }
 }
 
-/// A labelled position within an ``AudioClip`` at which the engine notifies
+/// A labelled position within an ``AudioClip`` at which the player notifies
 /// its delegate.
 public struct AudioMarker: Hashable, Sendable {
     /// Unique identifier for this marker.
@@ -140,28 +144,25 @@ public struct AudioMarker: Hashable, Sendable {
     }
 }
 
-/// The playback status of an ``AudioEngine``.
+/// The playback status of an ``AudioPlayer``.
 ///
-/// Transitions typically follow: ``idle`` → ``buffering`` → ``playing``.
-/// Rebuffering mid-playback moves from ``playing`` back to ``buffering``.
-/// An explicit ``AudioEngine/pause()`` call moves to ``paused`` from any
+/// Transitions typically follow: ``idle`` → ``loading`` → ``playing``.
+/// Rebuffering mid-playback moves from ``playing`` back to ``loading``.
+/// An explicit ``AudioPlayer/pause()`` call moves to ``paused`` from any
 /// non-idle state.
-public enum AudioEngineStatus {
-    /// No clip is loaded. The engine is waiting for a ``AudioEngine/play(_:)``
+public enum AudioPlayerStatus: Hashable, Sendable {
+    /// No clip is loaded. The player is waiting for a ``AudioPlayer/play(_:)``
     /// call.
     case idle
 
-    /// A clip is loaded and the engine intends to play, but is waiting for
+    /// The player intends to play, but the clip is loading or waiting for
     /// enough data to start or resume.
-    case buffering
+    case loading
 
-    /// The engine is actively playing audio.
+    /// The player is actively playing audio.
     case playing
 
-    /// Playback is paused. The engine will resume from the current position
-    /// when ``AudioEngine/resume()`` is called.
+    /// Playback is paused. The player will resume from the current position
+    /// when ``AudioPlayer/resume()`` is called.
     case paused
-
-    /// The engine encountered an unrecoverable error and cannot continue.
-    case failed(Error)
 }
