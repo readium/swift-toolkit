@@ -13,17 +13,18 @@ import ReadiumShared
 /// rightward. `previous()` retreats the cursor leftward and returns the
 /// item now to the right. This means alternating `next()` / `previous()`
 /// always re-returns the same item.
-public protocol PlaybackCursor: Sendable {
+@MainActor
+public protocol PlaybackCursor: AnyObject {
     /// Returns the next item in the sequence, or `nil` at the end.
-    mutating func next() async -> PlaybackItem?
+    func next() async -> PlaybackItem?
 
     /// Returns the previous item in the sequence, or `nil` at the beginning.
-    mutating func previous() async -> PlaybackItem?
+    func previous() async -> PlaybackItem?
 
     /// Repositions the cursor to the nearest item at or after the given
     /// ``reference``.
     ///
     /// - Returns: Whether the reference could be resolved.
     @discardableResult
-    mutating func seek(to reference: any Reference) async -> Bool
+    func seek(to reference: any Reference) async -> Bool
 }

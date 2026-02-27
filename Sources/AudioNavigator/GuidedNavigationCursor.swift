@@ -12,7 +12,8 @@ import Foundation
 ///
 /// Fetches ``GuidedNavigationDocument`` objects per reading-order resource and
 /// converts them to flat ``PlaybackItem`` sequences.
-public struct GuidedNavigationCursor: PlaybackCursor, Sendable, Loggable {
+@MainActor
+public final class GuidedNavigationCursor: PlaybackCursor, Loggable {
     private let publication: Publication
 
     /// Current resource within the reading order.
@@ -32,7 +33,7 @@ public struct GuidedNavigationCursor: PlaybackCursor, Sendable, Loggable {
 
     // MARK: - PlaybackCursor
 
-    public mutating func next() async -> PlaybackItem? {
+    public func next() async -> PlaybackItem? {
         while true {
             guard let items = await currentItems() else {
                 return nil
@@ -53,7 +54,7 @@ public struct GuidedNavigationCursor: PlaybackCursor, Sendable, Loggable {
         }
     }
 
-    public mutating func previous() async -> PlaybackItem? {
+    public func previous() async -> PlaybackItem? {
         while true {
             if cursorIndex > 0 {
                 guard let items = await currentItems() else {
@@ -73,7 +74,7 @@ public struct GuidedNavigationCursor: PlaybackCursor, Sendable, Loggable {
     }
 
     @discardableResult
-    public mutating func seek(to reference: any Reference) async -> Bool {
+    public func seek(to reference: any Reference) async -> Bool {
         guard let ref = reference as? any ResourceReference else {
             return false
         }
@@ -126,7 +127,7 @@ public struct GuidedNavigationCursor: PlaybackCursor, Sendable, Loggable {
 
     /// Returns the items for the current cursor position, or `nil` if the
     /// cursor is out of bounds.
-    private mutating func currentItems() async -> [PlaybackItem]? {
+    private func currentItems() async -> [PlaybackItem]? {
         await loadedItems(at: resourceIndex)
     }
 
@@ -136,7 +137,7 @@ public struct GuidedNavigationCursor: PlaybackCursor, Sendable, Loggable {
     /// Fetch errors are logged and return an empty array so the caller can skip
     /// past the failing resource. Failures are intentionally not cached so that
     /// transient errors can be retried on the next traversal.
-    private mutating func loadedItems(at index: Int) async -> [PlaybackItem]? {
+    private func loadedItems(at index: Int) async -> [PlaybackItem]? {
         guard publication.readingOrder.indices.contains(index) else {
             return nil
         }
@@ -147,9 +148,8 @@ public struct GuidedNavigationCursor: PlaybackCursor, Sendable, Loggable {
 
         let link = publication.readingOrder[index]
         do {
-            let items = try await publication.guidedNavigationDocument(for: link.url())
-                .map { makeItems(from: $0.guided) }
-                ?? []
+            let doc = try await publication.guidedNavigationDocument(for: link.url())
+            let items = doc.map { makeItems(from: $0.guided) } ?? []
 
             cachedItems[index] = items
             return items
