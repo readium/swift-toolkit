@@ -79,38 +79,29 @@ public final class GuidedNavigationCursor: PlaybackCursor, Loggable {
 
     @discardableResult
     public func seek(to reference: any Reference) async -> Bool {
-        guard let ref = reference as? any ResourceReference else {
+        guard
+            let ref = reference as? any ResourceReference,
+            let targetIndex = publication.readingOrder.firstIndexWithHREF(ref.href)
+        else {
             return false
         }
 
-        // Find the reading-order resource whose URL matches the reference href.
-        guard let targetIndex = publication.readingOrder.firstIndex(where: {
-            $0.url().isEquivalentTo(ref.href)
-        }) else {
-            return false
-        }
-
-        // Case 1 – unrefined reference: seek to the start of the resource's GND.
-        if !ref.isRefined {
+        // Unrefined reference: jump to the start of the resource.
+        guard ref.isRefined else {
             resourceIndex = targetIndex
             cursorIndex = 0
             return true
         }
 
-        // Case 2 – WebReference with an HTML ID: find the first item whose
-        // textAlternate has a CSS selector with a matching HTML ID.
-        if let webRef = ref as? WebReference,
-           let targetID = webRef.cssSelector?.htmlID
-        {
-            guard let items = await loadedItems(at: targetIndex) else {
-                return false
-            }
-            guard let itemIndex = items.firstIndex(where: { item in
-                guard let alt = item.textAlternate as? WebReference,
-                      let altID = alt.cssSelector?.htmlID
-                else { return false }
-                return altID == targetID
-            }) else {
+        // Refined WebReference: find the item whose readingOrderReference
+        // shares the same HTML ID (e.g. EPUB Media Overlay sync point).
+        if let targetID = (ref as? WebReference)?.cssSelector?.htmlID {
+            guard
+                let items = await loadedItems(at: targetIndex),
+                let itemIndex = items.firstIndex(where: {
+                    ($0.readingOrderReference as? WebReference)?.cssSelector?.htmlID == targetID
+                })
+            else {
                 return false
             }
             resourceIndex = targetIndex
@@ -221,35 +212,38 @@ public final class GuidedNavigationCursor: PlaybackCursor, Loggable {
             content = .text(textContent)
 
         } else {
-            // Only refs.text with no inline text or audio — not playable at
+            // Only refs.text with no inline text or audio - not playable at
             // cursor level.
             return nil
+        }
+
+        let readingOrderReference: (any ResourceReference)?
+        if let textURL = object.refs?.text {
+            // EPUB with Media Overlays
+            readingOrderReference = WebReference(
+                href: textURL.removingFragment(),
+                text: textURL.fragment?.textSelector,
+                cssSelector: textURL.fragment?.cssSelector
+            )
+
+        } else if let imgURL = object.refs?.img {
+            // Divina with GND
+            readingOrderReference = ImageReference(
+                href: imgURL.removingFragment(),
+                spatial: imgURL.fragment?.spatialSelector
+            )
+        } else if case let .audio(audioRef) = content {
+            // Audiobook
+            readingOrderReference = audioRef
+        } else {
+            readingOrderReference = nil
         }
 
         return PlaybackItem(
             content: content,
             roles: object.roles,
             enclosingRoles: enclosingRoles,
-            text: object.text?.plain,
-            textAlternate: makeTextAlternate(from: object.refs?.text),
-            imageAlternate: makeImageAlternate(from: object.refs?.img)
-        )
-    }
-
-    private func makeTextAlternate(from url: AnyURL?) -> (any ResourceReference)? {
-        guard let url else { return nil }
-        return WebReference(
-            href: url.removingFragment(),
-            text: url.fragment?.textSelector,
-            cssSelector: url.fragment?.cssSelector
-        )
-    }
-
-    private func makeImageAlternate(from url: AnyURL?) -> (any ResourceReference)? {
-        guard let url else { return nil }
-        return ImageReference(
-            href: url.removingFragment(),
-            spatial: url.fragment?.spatialSelector
+            readingOrderReference: readingOrderReference
         )
     }
 }

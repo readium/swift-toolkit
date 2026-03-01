@@ -30,36 +30,26 @@ public struct PlaybackItem: Sendable {
     /// resources).
     public var enclosingRoles: [ContentRole]
 
-    /// Plain-text equivalent of the content, used for display or accessibility
-    /// purposes (e.g. as a caption while audio plays).
+    /// Reference to the reading order resource location this item belongs to.
     ///
-    /// Distinct from ``textAlternate``, which points to a full alternate
-    /// resource in the publication rather than an inline string.
-    public var text: String?
-
-    /// Reference to a textual alternate resource for this playback item
-    /// (e.g. a synchronized HTML transcript).
-    public var textAlternate: (any ResourceReference)?
-
-    /// Reference to an image alternate resource for this playback item
-    /// (e.g. a comic panel or illustration associated with the current
-    /// audio segment).
-    public var imageAlternate: (any ResourceReference)?
+    /// - EPUB Media Overlays: `WebReference` to the HTML spine item element.
+    /// - Divina + Guided Navigation: `ImageReference` to the image resource
+    ///   region.
+    /// - Audiobook: `AudioReference` to the audio file
+    /// - `nil` for pure-text (TTS) items with no associated reading-order
+    ///   resource.
+    public var readingOrderReference: (any ResourceReference)?
 
     public init(
         content: Content,
         roles: [ContentRole] = [],
         enclosingRoles: [ContentRole] = [],
-        text: String? = nil,
-        textAlternate: (any ResourceReference)? = nil,
-        imageAlternate: (any ResourceReference)? = nil
+        readingOrderReference: (any ResourceReference)? = nil
     ) {
         self.content = content
         self.roles = roles
         self.enclosingRoles = enclosingRoles
-        self.text = text
-        self.textAlternate = textAlternate
-        self.imageAlternate = imageAlternate
+        self.readingOrderReference = readingOrderReference
     }
 
     /// The content carried by a ``PlaybackItem``.

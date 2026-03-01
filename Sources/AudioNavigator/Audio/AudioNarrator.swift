@@ -74,7 +74,7 @@ public final class AudioNarrator: Narrator {
         guard activeIndex + 1 < activeItems.count else { return false }
         activeIndex += 1
         let item = activeItems[activeIndex]
-        if case .audio(let ref) = item.content {
+        if case let .audio(ref) = item.content {
             let (start, _) = times(for: ref.temporal)
             player.seek(to: start)
         }
@@ -86,7 +86,7 @@ public final class AudioNarrator: Narrator {
         guard activeIndex > 0 else { return false }
         activeIndex -= 1
         let item = activeItems[activeIndex]
-        if case .audio(let ref) = item.content {
+        if case let .audio(ref) = item.content {
             let (start, _) = times(for: ref.temporal)
             player.seek(to: start)
         }
@@ -125,7 +125,7 @@ public final class AudioNarrator: Narrator {
             return
         }
 
-        guard case .audio(let firstRef) = first.content else {
+        guard case let .audio(firstRef) = first.content else {
             // Non-audio items are not supported by this narrator; return nil to
             // the delegate so the navigator can route them elsewhere.
             print("[AudioNarrator] startNextBatch() — first item is not audio, skipping: \(first)")
@@ -151,7 +151,7 @@ public final class AudioNarrator: Narrator {
                 break
             }
 
-            guard case .audio(let ref) = next.content, ref.href.isEquivalentTo(batchHref) else {
+            guard case let .audio(ref) = next.content, ref.href.isEquivalentTo(batchHref) else {
                 print("[AudioNarrator] startNextBatch() — different resource or non-audio, ending batch at size=\(batch.count), holding: \(next)")
                 nextBatchStart = next
                 break
@@ -165,11 +165,11 @@ public final class AudioNarrator: Narrator {
         // item's end time, so the player plays the full range in one shot.
         let link = publication.linkWithHREF(batchHref) ?? Link(href: batchHref.string)
         let firstTemporal: TemporalSelector? = {
-            if case .audio(let r) = batch.first?.content { return r.temporal }
+            if case let .audio(r) = batch.first?.content { return r.temporal }
             return nil
         }()
         let lastTemporal: TemporalSelector? = {
-            if case .audio(let r) = batch.last?.content { return r.temporal }
+            if case let .audio(r) = batch.last?.content { return r.temporal }
             return nil
         }()
         let (clipStart, _) = times(for: firstTemporal)
@@ -179,7 +179,7 @@ public final class AudioNarrator: Narrator {
         // The player fires `didReachMarker` at each marker time so we can
         // update `activeIndex` and notify the delegate without restarting playback.
         let markers: [AudioClip.Marker] = batch.dropFirst().compactMap { item in
-            guard case .audio(let ref) = item.content else { return nil }
+            guard case let .audio(ref) = item.content else { return nil }
             let (start, _) = times(for: ref.temporal)
             return AudioClip.Marker(time: start)
         }
@@ -198,8 +198,8 @@ public final class AudioNarrator: Narrator {
 
     private func times(for temporal: TemporalSelector?) -> (start: TimeInterval, end: TimeInterval?) {
         switch temporal {
-        case .clip(let c): return (c.start ?? 0, c.end)
-        case .position(let p): return (p.time, nil)
+        case let .clip(c): return (c.start ?? 0, c.end)
+        case let .position(p): return (p.time, nil)
         case nil: return (0, nil)
         }
     }
@@ -221,7 +221,7 @@ extension AudioNarrator: AudioClipPlayerDelegate {
     public func audioClipPlayer(_ player: any AudioClipPlayer, didReachMarker marker: AudioClip.Marker) {
         // Markers correspond to items[1...] — find by matching marker time to batch start times.
         for (index, item) in activeItems.dropFirst().enumerated() {
-            guard case .audio(let ref) = item.content else { continue }
+            guard case let .audio(ref) = item.content else { continue }
             let (start, _) = times(for: ref.temporal)
             if abs(start - marker.time) < 0.001 {
                 activeIndex = index + 1

@@ -40,7 +40,9 @@ public final class AudioNavigator {
         self.narrators = narrators
         // Register self as the delegate for all narrators up front so that
         // whichever narrator becomes active later can already call back into us.
-        for narrator in narrators { narrator.delegate = self }
+        for narrator in narrators {
+            narrator.delegate = self
+        }
     }
 
     /// Returns the first narrator in `narrators` that can handle `item`, or
@@ -95,7 +97,7 @@ public final class AudioNavigator {
     public func goForward() async {
         guard !(activeNarrator?.goForward() ?? false) else { return }
         activeNarrator?.stop()
-        if let ref = currentItem?.textAlternate {
+        if let ref = currentItem?.readingOrderReference {
             await cursor.seek(to: ref)
             _ = await cursor.next()
         }
@@ -115,7 +117,7 @@ public final class AudioNavigator {
         // is the first item of the batch — seek the cursor back to it before
         // stepping to the previous batch.
         activeNarrator?.stop()
-        if let ref = currentItem?.textAlternate {
+        if let ref = currentItem?.readingOrderReference {
             await cursor.seek(to: ref)
         }
         guard let item = await previousSupportedItem() else { return }
@@ -143,17 +145,19 @@ public final class AudioNavigator {
     /// Returns the URL of the reading-order resource `offset` positions away
     /// from the one containing `currentItem`, or `nil` if out of bounds.
     ///
-    /// Uses `currentItem.textAlternate.href` to locate the current resource in
-    /// the reading order; the base href (fragment stripped) is compared against
-    /// each reading-order link URL.
+    /// Uses `currentItem.readingOrderReference.href` to locate the current
+    /// resource in the reading order; the base href (fragment stripped) is
+    /// compared against each reading-order link URL.
     private func adjacentResourceURL(offset: Int) -> AnyURL? {
-        guard let currentHref = currentItem?.textAlternate?.href else { return nil }
-        guard let idx = publication.readingOrder.firstIndex(where: {
-            $0.url().isEquivalentTo(currentHref)
-        }) else { return nil }
-        let targetIdx = idx + offset
-        guard publication.readingOrder.indices.contains(targetIdx) else { return nil }
-        return publication.readingOrder[targetIdx].url()
+        guard
+            let currentHref = currentItem?.readingOrderReference?.href,
+            let idx = publication.readingOrder.firstIndexWithHREF(currentHref),
+            let href = publication.readingOrder.getOrNil(idx + offset)?.url()
+        else {
+            return nil
+        }
+
+        return href
     }
 
     /// Advances the cursor until it finds an item that at least one narrator

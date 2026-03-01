@@ -56,7 +56,7 @@ public extension CSSSelector {
     ///   are responsible for trying more specific ``TextSelector`` or
     ///   ``TemporalSelector`` initializers first.
     init(fragment: URLFragment) {
-        self.init(cssSelector: "#\(fragment.rawValue)")
+        self.init(id: fragment.rawValue)
     }
 }
 
