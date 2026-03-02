@@ -38,13 +38,13 @@ public struct PlaybackItem: Sendable {
     /// - Audiobook: `AudioReference` to the audio file
     /// - `nil` for pure-text (TTS) items with no associated reading-order
     ///   resource.
-    public var readingOrderReference: (any ResourceReference)?
+    public var readingOrderReference: (any Reference)?
 
     public init(
         content: Content,
         roles: [ContentRole] = [],
         enclosingRoles: [ContentRole] = [],
-        readingOrderReference: (any ResourceReference)? = nil
+        readingOrderReference: (any Reference)? = nil
     ) {
         self.content = content
         self.roles = roles

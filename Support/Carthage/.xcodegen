@@ -338,11 +338,14 @@
 ../../Sources/Adapters/LCPSQLite/SQLiteLCPLicenseRepository.swift
 ../../Sources/Adapters/LCPSQLite/SQLiteLCPPassphraseRepository.swift
 ../../Sources/AudioNavigator
-../../Sources/AudioNavigator/AudioClip
-../../Sources/AudioNavigator/AudioClip/AudioClip.swift
-../../Sources/AudioNavigator/AudioClip/AudioClipPlayer.swift
-../../Sources/AudioNavigator/AudioClip/DefaultAudioClipPlayer.swift
+../../Sources/AudioNavigator/Audio
+../../Sources/AudioNavigator/Audio/AudioClip.swift
+../../Sources/AudioNavigator/Audio/AudioClipPlayer.swift
+../../Sources/AudioNavigator/Audio/AudioNarrator.swift
+../../Sources/AudioNavigator/Audio/DefaultAudioClipPlayer.swift
+../../Sources/AudioNavigator/AudioNavigator.swift
 ../../Sources/AudioNavigator/GuidedNavigationCursor.swift
+../../Sources/AudioNavigator/Narrator.swift
 ../../Sources/AudioNavigator/PlaybackCursor.swift
 ../../Sources/AudioNavigator/PlaybackItem.swift
 ../../Sources/Internal
@@ -686,6 +689,7 @@
 ../../Sources/Shared/Publication/Link.swift
 ../../Sources/Shared/Publication/LinkRelation.swift
 ../../Sources/Shared/Publication/LocalizedString.swift
+../../Sources/Shared/Publication/Location.swift
 ../../Sources/Shared/Publication/Locator.swift
 ../../Sources/Shared/Publication/Manifest.swift
 ../../Sources/Shared/Publication/ManifestTransformer.swift

@@ -6,24 +6,20 @@
 
 import Foundation
 
-/// A reference identifies a specific point or region within a publication.
-public protocol Reference: Hashable, Sendable {}
-
-/// A reference pointing to a specific resource within a publication, identified
-/// by its URL.
-public protocol ResourceReference: Reference {
+/// A reference pointing to a specific position in a resource.
+public protocol Reference: Hashable, Sendable {
     /// URL of the resource within the publication.
     var href: AnyURL { get }
 
     /// Returns `true` when this reference carries location information beyond
-    /// the resource URL – i.e. it targets a specific position, range, or region
+    /// the resource URL - i.e. it targets a specific position, range, or region
     /// rather than the start of the resource.
     var isRefined: Bool { get }
 }
 
 /// A reference within an HTML/XHTML resource, as used by the EPUB and web-based
 /// navigators.
-public struct WebReference: ResourceReference {
+public struct WebReference: Reference {
     /// URL of the HTML/XHTML resource within the publication.
     public var href: AnyURL
 
@@ -58,7 +54,7 @@ public struct WebReference: ResourceReference {
 ///
 /// An ``ImageReference`` can pinpoint a precise spatial clip within the image
 /// resource using a ``SpatialSelector``.
-public struct ImageReference: ResourceReference {
+public struct ImageReference: Reference {
     /// URL of the image resource within the publication.
     public var href: AnyURL
 
@@ -82,9 +78,13 @@ public struct ImageReference: ResourceReference {
 ///
 /// An ``AudioReference`` can pinpoint a precise time instant or clip within the
 /// audio resource using a ``TemporalSelector``.
-public struct AudioReference: ResourceReference {
+public struct AudioReference: Reference {
     /// URL of the audio resource within the publication.
     public var href: AnyURL
+
+    /// Progression within the resource, expressed as a percentage between 0 and
+    /// 1.
+    public var progression: Progression?
 
     /// Selector identifying the time position or clip within the resource, if
     /// any.
@@ -96,15 +96,17 @@ public struct AudioReference: ResourceReference {
 
     public init(
         href: AnyURL,
+        progression: Progression? = nil,
         temporal: TemporalSelector? = nil
     ) {
         self.href = href
+        self.progression = progression
         self.temporal = temporal
     }
 }
 
 /// A reference within a PDF resource.
-public struct PDFReference: ResourceReference {
+public struct PDFReference: Reference {
     /// URL of the PDF resource within the publication.
     public var href: AnyURL
 

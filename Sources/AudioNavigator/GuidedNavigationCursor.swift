@@ -80,14 +80,13 @@ public final class GuidedNavigationCursor: PlaybackCursor, Loggable {
     @discardableResult
     public func seek(to reference: any Reference) async -> Bool {
         guard
-            let ref = reference as? any ResourceReference,
-            let targetIndex = publication.readingOrder.firstIndexWithHREF(ref.href)
+            let targetIndex = publication.readingOrder.firstIndexWithHREF(reference.href)
         else {
             return false
         }
 
         // Unrefined reference: jump to the start of the resource.
-        guard ref.isRefined else {
+        guard reference.isRefined else {
             resourceIndex = targetIndex
             cursorIndex = 0
             return true
@@ -95,7 +94,7 @@ public final class GuidedNavigationCursor: PlaybackCursor, Loggable {
 
         // Refined WebReference: find the item whose readingOrderReference
         // shares the same HTML ID (e.g. EPUB Media Overlay sync point).
-        if let targetID = (ref as? WebReference)?.cssSelector?.htmlID {
+        if let targetID = (reference as? WebReference)?.cssSelector?.htmlID {
             guard
                 let items = await loadedItems(at: targetIndex),
                 let itemIndex = items.firstIndex(where: {
@@ -217,7 +216,7 @@ public final class GuidedNavigationCursor: PlaybackCursor, Loggable {
             return nil
         }
 
-        let readingOrderReference: (any ResourceReference)?
+        let readingOrderReference: (any Reference)?
         if let textURL = object.refs?.text {
             // EPUB with Media Overlays
             readingOrderReference = WebReference(
