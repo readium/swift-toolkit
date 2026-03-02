@@ -16,8 +16,7 @@ public protocol AudioClipPlayer: AnyObject, Sendable {
     /// Delegate that receives playback events and requests from the player.
     var delegate: (any AudioClipPlayerDelegate)? { get set }
 
-    /// Current playback status.
-    var status: AudioClipPlayerStatus { get }
+    // MARK: - Time
 
     /// Current playback position within the current clip, in seconds.
     var time: TimeInterval { get }
@@ -25,14 +24,24 @@ public protocol AudioClipPlayer: AnyObject, Sendable {
     /// Duration of the current clip in seconds, if known.
     var duration: TimeInterval? { get }
 
-    /// Best-effort hint to start buffering a clip before it is needed.
+    /// Registers a block to be called at regular intervals while playing.
     ///
-    /// Called while the current clip is playing so the next clip's asset is
-    /// ready when `play()` is called. Implementations that cannot benefit (e.g.
-    /// local files that load instantly) may ignore this.
-    ///
-    /// It is always possible to call `play()` on an unprepared clip.
-    func prepare(_ clip: AudioClip)
+    /// - Parameters:
+    ///   - interval: How often to fire the block, in seconds.
+    ///   - block: Called on each tick; read `time` and `duration` from the
+    ///     player directly (captured via `[weak self]` in the caller).
+    /// - Returns: An opaque token that must be retained for as long as the
+    ///   observation should remain active. Releasing the token cancels the
+    ///   observer.
+    func addPeriodicTimeObserver(
+        forInterval interval: TimeInterval,
+        using block: @escaping () -> Void
+    ) -> Any
+
+    // MARK: - Playback
+
+    /// Current playback status.
+    var status: AudioClipPlayerStatus { get }
 
     /// Plays the given clip immediately, replacing any current playback.
     ///
@@ -59,9 +68,20 @@ public protocol AudioClipPlayer: AnyObject, Sendable {
     /// ``AudioClipPlayerDelegate/audioClipPlayer(_:didFinishPlaying:)``.
     ///
     /// This may be called from within a
-    /// ``AudioClipPlayerDelegate/audioClipPlayer(_:didReachMarker:)`` callback, for
-    /// example to skip a gap to the start of the next playback item.
+    /// ``AudioClipPlayerDelegate/audioClipPlayer(_:didReachMarker:)`` callback,
+    /// for example to skip a gap to the start of the next playback item.
     func seek(to time: TimeInterval)
+
+    // MARK: - Preparation
+
+    /// Best-effort hint to start buffering a clip before it is needed.
+    ///
+    /// Called while the current clip is playing so the next clip's asset is
+    /// ready when `play()` is called. Implementations that cannot benefit (e.g.
+    /// local files that load instantly) may ignore this.
+    ///
+    /// It is always possible to call `play()` on an unprepared clip.
+    func prepare(_ clip: AudioClip)
 }
 
 /// Receives playback events from an ``AudioClipPlayer``.
@@ -77,10 +97,6 @@ public protocol AudioClipPlayer: AnyObject, Sendable {
 
     /// Called when playback reaches a marker position within the current clip.
     func audioClipPlayer(_ player: any AudioClipPlayer, didReachMarker marker: AudioClip.Marker)
-
-    /// Called periodically with the current playback position within the
-    /// current clip, in seconds.
-    func audioClipPlayer(_ player: any AudioClipPlayer, didUpdateTime time: TimeInterval)
 
     /// Called when the player's playback status changes.
     func audioClipPlayer(_ player: any AudioClipPlayer, didChangeStatus status: AudioClipPlayerStatus)

@@ -39,6 +39,27 @@ public final class AudioNarrator: Narrator {
 
     // MARK: - Narrator
 
+    public var status: NarratorStatus {
+        switch player.status {
+        case .idle: .idle
+        case .loading: .loading
+        case .playing: .playing
+        case .paused: .paused
+        }
+    }
+
+    public func addPeriodicTimeObserver(forInterval interval: TimeInterval, using block: @escaping () -> Void) -> Any {
+        player.addPeriodicTimeObserver(forInterval: interval, using: block)
+    }
+
+    public func time(in scope: TimeScope) -> TimeInterval? {
+        nil
+    }
+
+    public func duration(of scope: TimeScope) -> TimeInterval? {
+        nil
+    }
+
     public func supports(_ item: PlaybackItem) -> Bool {
         if case .audio = item.content { return true }
         return false
@@ -47,7 +68,7 @@ public final class AudioNarrator: Narrator {
     public func play(from item: PlaybackItem) {
         print("[AudioNarrator] play(from:) called with item: \(item)")
         nextBatchStart = item
-        lastRequestedItem = nil
+        lastRequestedItem = item
         Task { [weak self] in
             await self?.startNextBatch()
         }
@@ -74,11 +95,11 @@ public final class AudioNarrator: Narrator {
         guard activeIndex + 1 < activeItems.count else { return false }
         activeIndex += 1
         let item = activeItems[activeIndex]
+        delegate?.narrator(self, willPlayItem: item)
         if case let .audio(ref) = item.content {
             let (start, _) = times(for: ref.temporal)
             player.seek(to: start)
         }
-        delegate?.narrator(self, didActivateItem: item)
         return true
     }
 
@@ -86,11 +107,11 @@ public final class AudioNarrator: Narrator {
         guard activeIndex > 0 else { return false }
         activeIndex -= 1
         let item = activeItems[activeIndex]
+        delegate?.narrator(self, willPlayItem: item)
         if case let .audio(ref) = item.content {
             let (start, _) = times(for: ref.temporal)
             player.seek(to: start)
         }
-        delegate?.narrator(self, didActivateItem: item)
         return true
     }
 
@@ -115,7 +136,7 @@ public final class AudioNarrator: Narrator {
             firstItem = pending
             lastRequestedItem = pending
         } else {
-            firstItem = await delegate?.narrator(self, nextItemAfter: lastRequestedItem)
+            firstItem = await delegate?.narrator(self, nextItemAfter: lastRequestedItem!)
             lastRequestedItem = firstItem
         }
 
@@ -143,7 +164,7 @@ public final class AudioNarrator: Narrator {
         // item as `nextBatchStart` and end accumulation so the next call to
         // `startNextBatch()` picks up where we left off.
         while true {
-            let next = await delegate?.narrator(self, nextItemAfter: lastRequestedItem)
+            let next = await delegate?.narrator(self, nextItemAfter: lastRequestedItem!)
             lastRequestedItem = next
 
             guard let next else {
@@ -190,7 +211,7 @@ public final class AudioNarrator: Narrator {
 
         activeItems = batch
         activeIndex = 0
-        delegate?.narrator(self, didActivateItem: batch[0])
+        delegate?.narrator(self, willPlayItem: batch[0])
         player.play(clip)
     }
 
@@ -225,7 +246,7 @@ extension AudioNarrator: AudioClipPlayerDelegate {
             let (start, _) = times(for: ref.temporal)
             if abs(start - marker.time) < 0.001 {
                 activeIndex = index + 1
-                delegate?.narrator(self, didActivateItem: activeItems[activeIndex])
+                delegate?.narrator(self, willPlayItem: activeItems[activeIndex])
                 return
             }
         }
@@ -243,15 +264,15 @@ extension AudioNarrator: AudioClipPlayerDelegate {
         delegate?.narrator(self, didFailWithError: error)
     }
 
-    public func audioClipPlayer(_ player: any AudioClipPlayer, didUpdateTime time: TimeInterval) {}
-
     public func audioClipPlayer(_ player: any AudioClipPlayer, didChangeStatus status: AudioClipPlayerStatus) {
         print("[AudioNarrator] didChangeStatus: \(status)")
+        delegate?.narrator(self, didChangeStatus: self.status)
     }
 }
 
 // MARK: - Errors
 
 public enum AudioNarratorError: Error {
+    /// The publication does not contain a resource matching the given link.
     case resourceNotFound(Link)
 }
