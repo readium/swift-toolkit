@@ -15,19 +15,18 @@ class CSSUserPropertiesTests: XCTestCase {
             [
                 "--USER__view": nil,
                 "--USER__colCount": nil,
-                "--USER__pageMargins": nil,
                 "--USER__appearance": nil,
+                "--USER__blendImages": nil,
                 "--USER__darkenImages": nil,
                 "--USER__invertImages": nil,
+                "--USER__invertGaiji": nil,
                 "--USER__textColor": nil,
                 "--USER__backgroundColor": nil,
-                "--USER__fontOverride": nil,
                 "--USER__fontFamily": nil,
                 "--USER__fontSize": nil,
-                "--USER__advancedSettings": nil,
-                "--USER__typeScale": nil,
                 "--USER__textAlign": nil,
                 "--USER__lineHeight": nil,
+                "--USER__lineLength": nil,
                 "--USER__paraSpacing": nil,
                 "--USER__paraIndent": nil,
                 "--USER__wordSpacing": nil,
@@ -43,21 +42,20 @@ class CSSUserPropertiesTests: XCTestCase {
         XCTAssertEqual(
             CSSUserProperties(
                 view: .scroll,
-                colCount: .auto,
-                pageMargins: 1.2,
+                colCount: 2,
                 appearance: .night,
-                darkenImages: true,
-                invertImages: true,
+                blendImages: true,
+                darkenImages: CSSPercent(0.5),
+                invertImages: CSSPercent(0.5),
+                invertGaiji: CSSPercent(0.5),
                 textColor: CSSHexColor("#FF0000"),
                 backgroundColor: CSSHexColor("#00FF00"),
-                fontOverride: true,
                 fontFamily: ["Times New"],
-                fontSize: CSSVMaxLength(2.3),
-                advancedSettings: true,
-                typeScale: 3.4,
+                fontSize: CSSPxLength(12),
                 textAlign: .justify,
-                lineHeight: .length(CSSPtLength(4.5)),
-                paraSpacing: CSSPtLength(5.6),
+                lineLength: CSSPxLength(500),
+                lineHeight: .unitless(1.2),
+                paraSpacing: CSSPxLength(5.6),
                 paraIndent: CSSRemLength(6.7),
                 wordSpacing: CSSRemLength(7.8),
                 letterSpacing: CSSRemLength(8.9),
@@ -67,21 +65,20 @@ class CSSUserPropertiesTests: XCTestCase {
             ).cssProperties(),
             [
                 "--USER__view": "readium-scroll-on",
-                "--USER__colCount": "auto",
-                "--USER__pageMargins": "1.20000",
+                "--USER__colCount": "2",
                 "--USER__appearance": "readium-night-on",
-                "--USER__darkenImages": "readium-darken-on",
-                "--USER__invertImages": "readium-invert-on",
+                "--USER__blendImages": "readium-blend-on",
+                "--USER__darkenImages": "50.00000%",
+                "--USER__invertImages": "50.00000%",
+                "--USER__invertGaiji": "50.00000%",
                 "--USER__textColor": "#FF0000",
                 "--USER__backgroundColor": "#00FF00",
-                "--USER__fontOverride": "readium-font-on",
                 "--USER__fontFamily": "\"Times New\"",
-                "--USER__fontSize": "2.30000vmax",
-                "--USER__advancedSettings": "readium-advanced-on",
-                "--USER__typeScale": "3.40000",
+                "--USER__fontSize": "12.00000px",
                 "--USER__textAlign": "justify",
-                "--USER__lineHeight": "4.50000pt",
-                "--USER__paraSpacing": "5.60000pt",
+                "--USER__lineLength": "500.00000px",
+                "--USER__lineHeight": "1.20000",
+                "--USER__paraSpacing": "5.60000px",
                 "--USER__paraIndent": "6.70000rem",
                 "--USER__wordSpacing": "7.80000rem",
                 "--USER__letterSpacing": "8.90000rem",
@@ -94,7 +91,7 @@ class CSSUserPropertiesTests: XCTestCase {
 
     func testOverrideUserProperties() {
         let props = CSSUserProperties(
-            colCount: .one,
+            colCount: 1,
             overrides: [
                 "--USER__colCount": "2",
                 "--USER__custom": "value",
@@ -113,10 +110,10 @@ class CSSUserPropertiesTests: XCTestCase {
         XCTAssertEqual(
             CSSUserProperties(
                 view: .scroll,
-                colCount: .auto
+                colCount: 2
             ).css(),
             """
-            --USER__colCount: auto !important;
+            --USER__colCount: 2 !important;
             --USER__view: readium-scroll-on !important;
 
             """
@@ -127,21 +124,20 @@ class CSSUserPropertiesTests: XCTestCase {
         XCTAssertEqual(
             CSSUserProperties(
                 view: .scroll,
-                colCount: .auto,
-                pageMargins: 1.2,
+                colCount: 2,
                 appearance: .night,
-                darkenImages: true,
-                invertImages: true,
+                blendImages: true,
+                darkenImages: CSSPercent(0.5),
+                invertImages: CSSPercent(0.5),
+                invertGaiji: CSSPercent(0.5),
                 textColor: CSSHexColor("#FF0000"),
                 backgroundColor: CSSHexColor("#00FF00"),
-                fontOverride: true,
                 fontFamily: ["Times New", "Comic Sans"],
-                fontSize: CSSVMaxLength(2.3),
-                advancedSettings: true,
-                typeScale: 3.4,
+                fontSize: CSSPxLength(12),
                 textAlign: .justify,
-                lineHeight: .length(CSSPtLength(4.5)),
-                paraSpacing: CSSPtLength(5.6),
+                lineLength: CSSPxLength(500),
+                lineHeight: .unitless(1.2),
+                paraSpacing: CSSPxLength(5.6),
                 paraIndent: CSSRemLength(6.7),
                 wordSpacing: CSSRemLength(7.8),
                 letterSpacing: CSSRemLength(8.9),
@@ -151,25 +147,24 @@ class CSSUserPropertiesTests: XCTestCase {
             ).css(),
             """
             --USER__a11yNormalize: readium-a11y-on !important;
-            --USER__advancedSettings: readium-advanced-on !important;
             --USER__appearance: readium-night-on !important;
             --USER__backgroundColor: #00FF00 !important;
+            --USER__blendImages: readium-blend-on !important;
             --USER__bodyHyphens: auto !important;
-            --USER__colCount: auto !important;
-            --USER__darkenImages: readium-darken-on !important;
+            --USER__colCount: 2 !important;
+            --USER__darkenImages: 50.00000% !important;
             --USER__fontFamily: "Times New", "Comic Sans" !important;
-            --USER__fontOverride: readium-font-on !important;
-            --USER__fontSize: 2.30000vmax !important;
-            --USER__invertImages: readium-invert-on !important;
+            --USER__fontSize: 12.00000px !important;
+            --USER__invertGaiji: 50.00000% !important;
+            --USER__invertImages: 50.00000% !important;
             --USER__letterSpacing: 8.90000rem !important;
             --USER__ligatures: common-ligatures !important;
-            --USER__lineHeight: 4.50000pt !important;
-            --USER__pageMargins: 1.20000 !important;
+            --USER__lineHeight: 1.20000 !important;
+            --USER__lineLength: 500.00000px !important;
             --USER__paraIndent: 6.70000rem !important;
-            --USER__paraSpacing: 5.60000pt !important;
+            --USER__paraSpacing: 5.60000px !important;
             --USER__textAlign: justify !important;
             --USER__textColor: #FF0000 !important;
-            --USER__typeScale: 3.40000 !important;
             --USER__view: readium-scroll-on !important;
             --USER__wordSpacing: 7.80000rem !important;
 
