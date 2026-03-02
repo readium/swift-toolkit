@@ -27,10 +27,6 @@ Disabled user settings:
 - `hyphens`;
 - `letter-spacing`.
 
-Added user settings:
-
-- `font-variant-ligatures` (mapped to `--USER__ligatures` CSS variable).
-
 ## CJK
 
 Chinese, Japanese, Korean, and Mongolian can be either written `horizontal-tb` or `vertical-*`. Consequently, there are stylesheets for horizontal and vertical writing modes.
@@ -52,6 +48,7 @@ Disabled user settings:
 
 - `text-align`;
 - `hyphens`;
+- `ligatures`;
 - paragraphs’ indent;
 - `word-spacing`.
 
@@ -88,6 +85,7 @@ Disabled user settings:
 - `column-count` (number of columns);
 - `text-align`;
 - `hyphens`;
+- `ligatures`;
 - paragraphs’ indent;
 - `word-spacing`.
 

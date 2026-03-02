@@ -1,10 +1,17 @@
-/*
- * Readium CSS (v. 2.0.0-beta.18)
- * Developers: Jiminy Panoz 
- * Copyright (c) 2017. Readium Foundation. All rights reserved.
+/*!
+ * Readium CSS v.2.0.0
+ * Copyright (c) 2017–2026. Readium Foundation. All rights reserved.
  * Use of this source code is governed by a BSD-style license which is detailed in the
  * LICENSE file present in the project repository where this source code is maintained.
-*/
+ * Core maintainer: Jiminy Panoz <jiminy.panoz@edrlab.org> 
+ * Contributors: 
+ * Daniel Weck
+ * Hadrien Gardeur
+ * Innovimax
+ * L. Le Meur
+ * Mickaël Menu
+ * k_taka
+ */
 
 @namespace url("http://www.w3.org/1999/xhtml");
 
@@ -218,34 +225,6 @@ math{
   --RS__lineHeightCompensation:1.167;
 }
 
-@font-face{
-  font-family:AccessibleDfA;
-  font-style:normal;
-  font-weight:normal;
-  src:local("AccessibleDfA"), url("fonts/AccessibleDfA-Regular.woff2") format("woff2"), url("fonts/AccessibleDfA-Regular.woff") format("woff");
-}
-
-@font-face{
-  font-family:AccessibleDfA;
-  font-style:normal;
-  font-weight:bold;
-  src:local("AccessibleDfA"), url("fonts/AccessibleDfA-Bold.woff2") format("woff2");
-}
-
-@font-face{
-  font-family:AccessibleDfA;
-  font-style:italic;
-  font-weight:normal;
-  src:local("AccessibleDfA"), url("fonts/AccessibleDfA-Italic.woff2") format("woff2");
-}
-
-@font-face{
-  font-family:"IA Writer Duospace";
-  font-style:normal;
-  font-weight:normal;
-  src:local("iAWriterDuospace-Regular"), url("fonts/iAWriterDuospace-Regular.ttf") format("truetype");
-}
-
 body{
   widows:2;
   orphans:2;
@@ -419,6 +398,15 @@ img, svg|svg, video{
   -webkit-column-break-inside:avoid;
   page-break-inside:avoid;
   break-inside:avoid;
+}
+
+@supports (zoom: 1) and (not ((-webkit-column-axis: horizontal) and (-webkit-column-progression: normal))){
+
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] img,
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] svg|svg,
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] video{
+    zoom:calc(100% / var(--USER__fontSize));
+  }
 }
 
 audio{
