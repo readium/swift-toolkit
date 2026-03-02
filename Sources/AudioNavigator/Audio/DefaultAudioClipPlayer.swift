@@ -17,7 +17,7 @@ public enum DefaultAudioClipPlayerError: Error {
 @MainActor
 public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
     public weak var delegate: (any AudioClipPlayerDelegate)?
-    
+
     public private(set) var status: AudioClipPlayerStatus = .idle {
         didSet {
             if oldValue != status {
@@ -25,7 +25,7 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
             }
         }
     }
-    
+
     public var time: TimeInterval {
         let seconds = player.currentTime().seconds
         if seconds.isFinite {
@@ -36,7 +36,7 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
             return 0
         }
     }
-    
+
     public var duration: TimeInterval? {
         guard
             let duration = currentItem?.item.duration.seconds,
@@ -47,74 +47,74 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
         }
         return duration
     }
-    
+
     override public init() {
         super.init()
         player.automaticallyWaitsToMinimizeStalling = false
         addPlayerObservers(on: player)
     }
-    
+
     private let player = AVPlayer()
     private lazy var resourceLoader = ResourceLoaderDelegate(player: self)
-    
+
     private typealias Item = (clip: AudioClip, item: AVPlayerItem)
-    
+
     /// The item currently loaded into `player`, if any.
     private var currentItem: Item?
-    
+
     /// An asset pre-loaded by `prepare(_:)`, ready to be consumed by `play(_:)`
     /// if called for the same clip.
     private var preparedItem: Item?
-    
+
     /// Bridging intent across async gaps: `play()` sets this before kicking
     /// off an async seek. After the seek, we check it before calling
     /// `player.play()`, so a `pause()` or `stop()` issued during the seek is
     /// not overridden.
     private var playWhenReady = false
-    
+
     /// Opaque tokens returned by `addBoundaryTimeObserver`.
     private var markerObservers: [Any] = []
-    
+
     /// Blocks registered via `addPeriodicTimeObserver`, keyed by UUID so they
     /// can be removed when the token is released.
     private var periodicObservers: [UUID: () -> Void] = [:]
-    
+
     private var itemDidPlayToEndTimeObserver: NSObjectProtocol?
     private var playerTimeControlStatusObservation: NSKeyValueObservation?
-    
+
     // MARK: - AudioClipPlayer
-    
+
     public func prepare(_ clip: AudioClip) {
         guard let item = makeItem(for: clip) else {
             preparedItem = nil
             log(.warning, "Failed to prepare audio asset: \(clip.link.href)")
             return
         }
-        
+
         preparedItem = item
     }
-    
+
     public func play(_ clip: AudioClip) {
         let item: Item? = preparedItem.takeIf { $0.clip == clip }
-        ?? makeItem(for: clip)
-        
+            ?? makeItem(for: clip)
+
         preparedItem = nil
-        
+
         guard let item else {
             replaceCurrentItem(nil)
             delegate?.audioClipPlayer(self, didFailPlaying: clip, withError: DefaultAudioClipPlayerError.failedToLoadClip)
             return
         }
-        
+
         if let end = clip.end {
             // AVPlayer fires AVPlayerItemDidPlayToEndTime when this is reached.
             item.item.forwardPlaybackEndTime = makeTime(seconds: end)
         }
-        
+
         replaceCurrentItem(item)
-        
+
         playWhenReady = true
-        
+
         player.seek(
             to: makeTime(seconds: clip.start),
             toleranceBefore: .zero,
@@ -127,32 +127,32 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
             }
         }
     }
-    
+
     public func pause() {
         playWhenReady = false
         player.pause()
     }
-    
+
     public func resume() {
         guard currentItem != nil else { return }
         playWhenReady = true
         player.play()
     }
-    
+
     public func stop() {
         replaceCurrentItem(nil)
         preparedItem = nil
     }
-    
+
     public func seek(to time: TimeInterval) {
         guard let currentItem else { return }
-        
+
         // Treat a seek past the clip boundary as a natural end-of-clip.
         if let end = currentItem.clip.end, time >= end {
             didPlayToEndTime()
             return
         }
-        
+
         let time = max(time, currentItem.clip.start)
         player.seek(
             to: makeTime(seconds: time),
@@ -160,58 +160,58 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
             toleranceAfter: .zero
         )
     }
-    
+
     private func replaceCurrentItem(_ item: Item?) {
         // Pause immediately so no audio bleeds through while we swap items.
         player.pause()
         playWhenReady = false
-        
+
         removeMarkerObservers()
-        
+
         currentItem = item
         player.replaceCurrentItem(with: item?.item)
-        
+
         if let item = item {
             status = .paused
             addMarkerObservers(for: item.clip.markers)
         } else {
             status = .idle
         }
-        
+
         for block in periodicObservers.values {
             block()
         }
     }
-    
+
     // MARK: - KVO / Notifications
-    
+
     private func addPlayerObservers(on player: AVPlayer) {
         itemDidPlayToEndTimeObserver =
-        NotificationCenter.default.addObserver(
-            forName: .AVPlayerItemDidPlayToEndTime,
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            MainActor.assumeIsolated {
-                guard
-                    let self = self,
-                    let currentItem = self.currentItem,
-                    currentItem.item == notification.object as? AVPlayerItem
-                else {
-                    return
+            NotificationCenter.default.addObserver(
+                forName: .AVPlayerItemDidPlayToEndTime,
+                object: nil,
+                queue: .main
+            ) { [weak self] notification in
+                MainActor.assumeIsolated {
+                    guard
+                        let self = self,
+                        let currentItem = self.currentItem,
+                        currentItem.item == notification.object as? AVPlayerItem
+                    else {
+                        return
+                    }
+                    self.didPlayToEndTime()
                 }
-                self.didPlayToEndTime()
             }
-        }
-        
+
         playerTimeControlStatusObservation =
-        player.observe(\.timeControlStatus, options: [.new]) { [weak self] _, _ in
-            Task { @MainActor [weak self] in self?.playerTimeControlStatusDidChange() }
-        }
+            player.observe(\.timeControlStatus, options: [.new]) { [weak self] _, _ in
+                Task { @MainActor [weak self] in self?.playerTimeControlStatusDidChange() }
+            }
     }
-    
+
     // MARK: - AudioClipPlayer
-    
+
     public func addPeriodicTimeObserver(forInterval interval: TimeInterval, using block: @escaping () -> Void) -> Any {
         let avToken = player.addPeriodicTimeObserver(
             forInterval: makeTime(seconds: interval), queue: .main
@@ -221,33 +221,33 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
                 block()
             }
         }
-        
+
         let id = UUID()
         periodicObservers[id] = block
-        
+
         return ObserverToken { [weak self, weak player] in
             player?.removeTimeObserver(avToken)
             self?.periodicObservers.removeValue(forKey: id)
         }
     }
-    
+
     /// Called when the player notifies `AVPlayerItemDidPlayToEndTime`.
     private func didPlayToEndTime() {
         let finishedItem = currentItem
         replaceCurrentItem(nil)
-        
+
         if let item = finishedItem {
             delegate?.audioClipPlayer(self, didFinishPlaying: item.clip)
         }
     }
-    
+
     /// Called when the player changes its `timeControlStatus`.
     private func playerTimeControlStatusDidChange() {
         guard currentItem != nil else {
             status = .idle
             return
         }
-        
+
         status = switch player.timeControlStatus {
         case .paused: .paused
         case .waitingToPlayAtSpecifiedRate: .loading
@@ -255,7 +255,7 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
         @unknown default: .paused
         }
     }
-    
+
     private func addMarkerObservers(for markers: [AudioClip.Marker]) {
         for marker in markers {
             // One observer per marker so the marker is captured directly,
@@ -271,33 +271,33 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
             markerObservers.append(token)
         }
     }
-    
+
     private func removeMarkerObservers() {
         for observer in markerObservers {
             player.removeTimeObserver(observer)
         }
         markerObservers = []
     }
-    
+
     // MARK: - Helpers
-    
+
     private func makeItem(for clip: AudioClip) -> Item? {
         resourceLoader.makeAsset(for: clip.link)
             .map { (clip, AVPlayerItem(asset: $0)) }
     }
-    
+
     private func makeTime(seconds: TimeInterval) -> CMTime {
         // The standard for audio timescales is 44100 Hz (CD quality) or
         // 48000 Hz. 44100 is the safer cross-format default.
         CMTime(seconds: seconds, preferredTimescale: 44100)
     }
-    
+
     private final class ObserverToken {
         private let cancel: () -> Void
         init(cancel: @escaping () -> Void) {
             self.cancel = cancel
         }
-        
+
         deinit { cancel() }
     }
 }
