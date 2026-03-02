@@ -528,7 +528,9 @@ public struct CSSPercent: CSSConvertible {
         self.value = value
     }
 
-    public func css() -> String? { (value * 100).css(unit: "%") }
+    public func css() -> String? {
+        (value * 100).css(unit: "%")
+    }
 }
 
 public protocol CSSColor: CSSConvertible {}

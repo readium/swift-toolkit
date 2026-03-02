@@ -381,7 +381,7 @@ struct UserPreferences<
                 stepperRow(
                     title: "Columns",
                     preference: columnCount,
-                    commit: commit,
+                    commit: commit
                 )
             }
         }

@@ -483,14 +483,22 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         )
 
     @available(*, unavailable, renamed: "horizontalMargins")
-    public var pageMargins: AnyRangePreference<Double> { fatalError() }
+    public var pageMargins: AnyRangePreference<Double> {
+        fatalError()
+    }
 
     @available(*, unavailable, message: "Not available anymore")
-    public var typeScale: AnyRangePreference<Double> { fatalError() }
+    public var typeScale: AnyRangePreference<Double> {
+        fatalError()
+    }
 
     @available(*, unavailable, message: "Not needed anymore")
-    public var publisherStyles: AnyPreference<Bool> { fatalError() }
+    public var publisherStyles: AnyPreference<Bool> {
+        fatalError()
+    }
 
     @available(*, unavailable, message: "Use darkenImages and invertImages instead")
-    public var imageFilter: AnyEnumPreference<ImageFilter?> { fatalError() }
+    public var imageFilter: AnyEnumPreference<ImageFilter?> {
+        fatalError()
+    }
 }

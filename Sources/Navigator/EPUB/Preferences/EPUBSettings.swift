@@ -199,13 +199,19 @@ public struct EPUBSettings: ConfigurableSettings {
     }
 
     @available(*, unavailable, message: "Not supported anymore")
-    public var typeScale: Double? { nil }
+    public var typeScale: Double? {
+        nil
+    }
 
     @available(*, unavailable, message: "Use lineLength")
-    public var pageMargins: Double? { nil }
+    public var pageMargins: Double? {
+        nil
+    }
 
     @available(*, unavailable, message: "Not needed anymore")
-    public var publisherStyles: Bool? { nil }
+    public var publisherStyles: Bool? {
+        nil
+    }
 
     @available(*, unavailable, message: "Use the other initializer")
     public init(
@@ -234,7 +240,9 @@ public struct EPUBSettings: ConfigurableSettings {
         typeScale: Double?,
         verticalText: Bool,
         wordSpacing: Double?
-    ) { fatalError() }
+    ) {
+        fatalError()
+    }
 }
 
 /// Default setting values for the EPUB navigator.
@@ -307,16 +315,24 @@ public struct EPUBDefaults {
     }
 
     @available(*, unavailable, message: "Use lineLength instead")
-    public var pageMargins: Double? { nil }
+    public var pageMargins: Double? {
+        nil
+    }
 
     @available(*, unavailable, message: "Not supported anymore")
-    public var typeScale: Double? { nil }
+    public var typeScale: Double? {
+        nil
+    }
 
     @available(*, unavailable, message: "Not needed anymore")
-    public var publisherStyles: Bool? { nil }
+    public var publisherStyles: Bool? {
+        nil
+    }
 
     @available(*, unavailable, message: "Not supported anymore as a defaults")
-    public var imageFilter: ImageFilter? { nil }
+    public var imageFilter: ImageFilter? {
+        nil
+    }
 
     @available(*, unavailable, message: "Use the other initializer")
     public init(
@@ -342,7 +358,9 @@ public struct EPUBDefaults {
         textNormalization: Bool? = nil,
         typeScale: Double? = nil,
         wordSpacing: Double? = nil
-    ) { fatalError() }
+    ) {
+        fatalError()
+    }
 }
 
 private extension Language {

@@ -225,16 +225,24 @@ public struct EPUBPreferences: ConfigurablePreferences {
     }
 
     @available(*, unavailable, message: "Use lineLength instead")
-    public var pageMargins: Double? { nil }
+    public var pageMargins: Double? {
+        nil
+    }
 
     @available(*, unavailable, message: "Not available anymore")
-    public var typeScale: Double? { nil }
+    public var typeScale: Double? {
+        nil
+    }
 
     @available(*, unavailable, message: "Not needed anymore")
-    public var publisherStyles: Bool? { nil }
+    public var publisherStyles: Bool? {
+        nil
+    }
 
     @available(*, unavailable, message: "Use invertImages or darkenImages instead")
-    public var imageFilter: ImageFilter? { nil }
+    public var imageFilter: ImageFilter? {
+        nil
+    }
 
     @available(*, unavailable, message: "Use the other initializer")
     public init(
@@ -263,5 +271,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
         typeScale: Double? = nil,
         verticalText: Bool? = nil,
         wordSpacing: Double? = nil
-    ) { fatalError() }
+    ) {
+        fatalError()
+    }
 }
