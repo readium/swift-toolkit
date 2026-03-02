@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -37,9 +37,13 @@ public protocol PublicationService: Closeable {
 }
 
 public extension PublicationService {
-    var links: [Link] { [] }
+    var links: [Link] {
+        []
+    }
 
-    func get<T: URLConvertible>(_ href: T) -> Resource? { nil }
+    func get<T: URLConvertible>(_ href: T) -> Resource? {
+        nil
+    }
 }
 
 /// Factory used to create a `PublicationService`.

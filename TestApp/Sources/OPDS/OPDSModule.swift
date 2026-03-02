@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -46,21 +46,29 @@ final class OPDSModule: OPDSModuleAPI {
     private(set) lazy var rootViewController: UINavigationController = {
         let viewModel = OPDSCatalogsViewModel()
 
-        let catalogViewController = UIHostingController(
-            rootView: OPDSCatalogsView(viewModel: viewModel)
-        )
-
-        let navigationController = UINavigationController(
-            rootViewController: catalogViewController
-        )
-
-        viewModel.openCatalog = { [weak navigationController] url, indexPath in
-            let viewController = OPDSFactory.shared.make(
-                feedURL: url,
-                indexPath: indexPath
-            )
-            navigationController?.pushViewController(viewController, animated: true)
+        let rootView = NavigationStack {
+            OPDSCatalogsView(viewModel: viewModel, delegate: self.delegate)
+                .navigationDestination(for: OPDSCatalog.self) { catalog in
+                    OPDSFeedView(
+                        feedURL: catalog.url,
+                        delegate: self.delegate
+                    )
+                }
+                .navigationDestination(for: URL.self) { url in
+                    OPDSFeedView(feedURL: url, delegate: self.delegate)
+                }
+                .navigationDestination(for: OPDSFeedView.NavigablePublication.self) { navPublication in
+                    OPDSPublicationInfoView(publication: navPublication.publication)
+                }
         }
+
+        let catalogViewController = UIHostingController(rootView: rootView)
+
+        let navigationController = UINavigationController(rootViewController: catalogViewController)
+
+        navigationController.isNavigationBarHidden = true
+
+        viewModel.openCatalog = nil
 
         return navigationController
     }()

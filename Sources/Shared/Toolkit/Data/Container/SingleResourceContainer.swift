@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -11,8 +11,13 @@ public class SingleResourceContainer: Container {
     public let entry: AnyURL
     private let resource: Resource
 
-    public var sourceURL: AbsoluteURL? { resource.sourceURL }
-    public var entries: Set<AnyURL> { [entry] }
+    public var sourceURL: AbsoluteURL? {
+        resource.sourceURL
+    }
+
+    public var entries: Set<AnyURL> {
+        [entry]
+    }
 
     public init(resource: Resource, at entry: AnyURL) {
         self.resource = resource

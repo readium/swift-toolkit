@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -46,11 +46,12 @@ class _HTMLResourceContentExtractor: _ResourceContentExtractor {
     private let xmlFactory = DefaultXMLDocumentFactory()
 
     func extractText(of resource: Resource) async -> ReadResult<String> {
-        await resource.readAsString()
+        await resource.read()
+            .asString()
             .asyncFlatMap { content in
                 do {
                     // First try to parse a valid XML document, then fallback on SwiftSoup, which is slower.
-                    var text = await parse(xml: content)
+                    var text = parse(xml: content)
                         ?? parse(html: content)
                         ?? ""
 
@@ -65,21 +66,21 @@ class _HTMLResourceContentExtractor: _ResourceContentExtractor {
             }
     }
 
-    // Parse the HTML resource as a strict XML document.
-    //
-    // This is much more efficient than using SwiftSoup, but will fail when encountering
-    // invalid HTML documents.
-    private func parse(xml: String) async -> String? {
-        guard let document = try? await xmlFactory.open(string: xml, namespaces: [.xhtml]) else {
+    /// Parse the HTML resource as a strict XML document.
+    ///
+    /// This is much more efficient than using SwiftSoup, but will fail when encountering
+    /// invalid HTML documents.
+    private func parse(xml: String) -> String? {
+        guard let document = try? xmlFactory.open(string: xml, namespaces: [.xhtml]) else {
             return nil
         }
 
         return document.first("/xhtml:html/xhtml:body")?.textContent
     }
 
-    // Parse the HTML resource with SwiftSoup.
-    //
-    // This may be slow but will recover from broken HTML documents.
+    /// Parse the HTML resource with SwiftSoup.
+    ///
+    /// This may be slow but will recover from broken HTML documents.
     private func parse(html: String) -> String? {
         try? SwiftSoup.parse(html).body()?.text()
     }

@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -53,10 +53,10 @@ final class LCPContentProtection: ContentProtection, Loggable {
             return .failure(.assetNotSupported(DebugError("The asset does not appear to be an LCP License")))
         }
 
-        return await asset.resource.readAsLCPL()
+        return await asset.resource.read()
+            .asLCPL()
             .mapError { .reading($0) }
             .asyncFlatMap { licenseDocument in
-
                 await assetRetriever.retrieve(link: licenseDocument.publicationLink)
                     .flatMap { publicationAsset in
                         switch publicationAsset {

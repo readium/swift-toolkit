@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -21,11 +21,10 @@ final class EPUBManifestParser {
 
         // Extracts metadata and links from the OPF.
         let opfPackage = try await OPFParser(container: container, opfHREF: opfHREF, encryptions: encryptions).parsePublication()
-        let metadata = opfPackage.metadata
         let links = opfPackage.readingOrder + opfPackage.resources
 
         var manifest = await Manifest(
-            metadata: metadata,
+            metadata: opfPackage.metadata,
             readingOrder: opfPackage.readingOrder,
             resources: opfPackage.resources,
             subcollections: parseCollections(in: container, package: opfPackage, links: links)
@@ -152,51 +151,5 @@ final class EPUBManifestParser {
         addCollection(.pageList, role: "pageList")
 
         return collections
-    }
-
-    /// Parse the mediaOverlays informations contained in the ressources then
-    /// parse the associted SMIL files to populate the MediaOverlays objects
-    /// in each of the ReadingOrder's Links.
-    private func parseMediaOverlay(from container: Container, to publication: inout Publication) throws {
-        // FIXME: For now we don't fill the media-overlays anymore, since it was only half implemented and the API will change
-//        let mediaOverlays = publication.resources.filter(byType: .smil)
-//
-//        guard !mediaOverlays.isEmpty else {
-//            log(.info, "No media-overlays found in the Publication.")
-//            return
-//        }
-//        for mediaOverlayLink in mediaOverlays {
-//            let node = MediaOverlayNode()
-//
-//            guard let smilData = try? fetcher.data(at: mediaOverlayLink.href),
-//                let smilXml = try? XMLDocument(data: smilData) else
-//            {
-//                throw OPFParserError.invalidSmilResource
-//            }
-//
-//            smilXml.definePrefix("smil", forNamespace: "http://www.w3.org/ns/SMIL")
-//            smilXml.definePrefix("epub", forNamespace: "http://www.idpf.org/2007/ops")
-//            guard let body = smilXml.firstChild(xpath: "./smil:body") else {
-//                continue
-//            }
-//
-//            node.role.append("section")
-//            if let textRef = body.attr("textref") { // Prevent the crash on the japanese book
-//                node.text = HREF(textRef, relativeTo: mediaOverlayLink.href).string
-//            }
-//            // get body parameters <par>a
-//            let href = mediaOverlayLink.href
-//            SMILParser.parseParameters(in: body, withParent: node, base: href)
-//            SMILParser.parseSequences(in: body, withParent: node, publicationReadingOrder: &publication.readingOrder, base: href)
-        // "/??/xhtml/mo-002.xhtml#mo-1" => "/??/xhtml/mo-002.xhtml"
-
-//            guard let baseHref = node.text?.components(separatedBy: "#")[0],
-//                let link = publication.readingOrder.first(where: { baseHref.contains($0.href) }) else
-//            {
-//                continue
-//            }
-//            link.mediaOverlays.append(node)
-//            link.properties.mediaOverlay = EPUBConstant.mediaOverlayURL + link.href
-//        }
     }
 }

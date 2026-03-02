@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -124,7 +124,9 @@ public enum SearchError: Error {
 // MARK: Publication Helpers
 
 public extension Publication {
-    private var searchService: SearchService? { findService(SearchService.self) }
+    private var searchService: SearchService? {
+        findService(SearchService.self)
+    }
 
     /// Indicates whether the content of this publication can be searched.
     var isSearchable: Bool {

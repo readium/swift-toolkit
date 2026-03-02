@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -12,7 +12,7 @@ import UIKit
 import WebKit
 
 public extension FontFamily {
-    // Example of adding a custom font embedded in the application.
+    /// Example of adding a custom font embedded in the application.
     static let literata: FontFamily = "Literata"
 }
 
@@ -27,8 +27,7 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
         bookmarks: BookmarkRepository,
         highlights: HighlightRepository,
         initialPreferences: EPUBPreferences,
-        preferencesStore: AnyUserPreferencesStore<EPUBPreferences>,
-        httpServer: HTTPServer
+        preferencesStore: AnyUserPreferencesStore<EPUBPreferences>
     ) throws {
         var templates = HTMLDecorationTemplate.defaultTemplates()
         templates[.pageList] = .pageList
@@ -61,8 +60,7 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
                         ]
                     ).eraseToAnyHTMLFontFamilyDeclaration(),
                 ]
-            ),
-            httpServer: httpServer
+            )
         )
 
         self.preferencesStore = preferencesStore

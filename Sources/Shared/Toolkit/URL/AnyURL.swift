@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -17,7 +17,7 @@ public enum AnyURL: URLProtocol {
     /// A relative URL.
     case relative(RelativeURL)
 
-    /// Creates an ``AnyURL`` from a Foundation ``URL``.
+    /// Creates an ``AnyURL`` from a Foundation `URL`.
     public init(url: URL) {
         if let url = RelativeURL(url: url) {
             self = .relative(url)
@@ -84,7 +84,9 @@ public enum AnyURL: URLProtocol {
     }
 
     /// Returns a foundation URL for this ``AnyURL``.
-    public var url: URL { wrapped.url }
+    public var url: URL {
+        wrapped.url
+    }
 
     /// Resolves the `other` URL to this URL, if possible.
     ///
@@ -119,7 +121,9 @@ public enum AnyURL: URLProtocol {
 
 /// Implements `URLConvertible`.
 extension AnyURL: URLConvertible {
-    public var anyURL: AnyURL { self }
+    public var anyURL: AnyURL {
+        self
+    }
 }
 
 /// Implements `Hashable` and `Equatable`.

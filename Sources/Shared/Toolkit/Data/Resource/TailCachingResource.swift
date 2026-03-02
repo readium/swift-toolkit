@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -21,7 +21,9 @@ actor TailCachingResource: Resource, Loggable {
         self.cacheFromOffset = cacheFromOffset
     }
 
-    nonisolated var sourceURL: AbsoluteURL? { resource.sourceURL }
+    nonisolated var sourceURL: AbsoluteURL? {
+        resource.sourceURL
+    }
 
     func properties() async -> ReadResult<ResourceProperties> {
         await resource.properties()
@@ -61,7 +63,7 @@ actor TailCachingResource: Resource, Loggable {
             }
     }
 
-    private var cache: ReadResult<Data?>? = nil
+    private var cache: ReadResult<Data?>?
 
     private func cachedTail() async -> ReadResult<Data?> {
         if let cache = cache {

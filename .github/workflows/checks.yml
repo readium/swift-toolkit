@@ -7,14 +7,14 @@ on:
 
 env:
   platform: ${{ 'iOS Simulator' }}
-  device: ${{ 'iPhone SE (3rd generation)' }}
+  device: ${{ 'iPhone 16 Pro' }}
   commit_sha: ${{ github.sha }}
-  DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
+  DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
 
 jobs:
   build:
     name: Build
-    runs-on: macos-14
+    runs-on: macos-15
     if: ${{ !github.event.pull_request.draft }}
     env:
       scheme: ${{ 'Readium-Package' }}
@@ -26,11 +26,19 @@ jobs:
         run: |
           brew update
           brew install xcodegen
+          # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
+          xcrun simctl list
       - name: Check Carthage project
         run: |
           # Check that the Carthage project is up to date.
           make carthage-project
           git diff --exit-code Support/Carthage/Readium.xcodeproj
+      - name: Check CocoaPods podspecs
+        run: |
+          # Check that the podspecs are up to date.
+          make podspecs
+          git diff --exit-code Support/CocoaPods/
+          if git ls-files --others --exclude-standard Support/CocoaPods/ | grep -q .; then echo "Untracked podspec files found. Run 'make podspecs' and commit the result."; exit 1; fi
       - name: Build
         run: |
           set -eo pipefail
@@ -40,9 +48,28 @@ jobs:
           set -eo pipefail
           xcodebuild test-without-building -scheme "$scheme" -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
+  # navigator-ui-tests:
+  #   name: Navigator UI Tests
+  #   runs-on: macos-15
+  #   if: ${{ !github.event.pull_request.draft }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+  #     - name: Install dependencies
+  #       run: |
+  #         brew update
+  #         brew install xcodegen
+  #         # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
+  #         xcrun simctl list
+  #     - name: Test
+  #       run: |
+  #         set -eo pipefail
+  #         make navigator-ui-tests-project
+  #         xcodebuild test -project Tests/NavigatorTests/UITests/NavigatorUITests.xcodeproj -scheme NavigatorTestHost -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+
   lint:
     name: Lint
-    runs-on: macos-14
+    runs-on: macos-15
     if: ${{ !github.event.pull_request.draft }}
     env:
       scripts: ${{ 'Sources/Navigator/EPUB/Scripts' }}
@@ -76,7 +103,7 @@ jobs:
 
   int-dev:
     name: Integration (Local)
-    runs-on: macos-14
+    runs-on: macos-15
     if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
@@ -89,6 +116,8 @@ jobs:
         run: |
           brew update
           brew install xcodegen
+          # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
+          xcrun simctl list
       - name: Generate project
         run: make dev lcp=${{ secrets.LCP_URL_SPM }}
       - name: Build
@@ -98,7 +127,7 @@ jobs:
 
   int-spm:
     name: Integration (Swift Package Manager)
-    runs-on: macos-14
+    runs-on: macos-15
     if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
@@ -117,6 +146,8 @@ jobs:
         run: |
           brew update
           brew install xcodegen
+          # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
+          xcrun simctl list
       - name: Generate project
         run: make spm lcp=${{ secrets.LCP_URL_SPM }} commit=$commit_sha
       - name: Build
@@ -126,7 +157,7 @@ jobs:
 
   int-carthage:
     name: Integration (Carthage)
-    runs-on: macos-14
+    runs-on: macos-15
     if: ${{ !github.event.pull_request.draft && github.ref == 'refs/heads/main' }}
     defaults:
       run:
@@ -145,6 +176,8 @@ jobs:
         run: |
           brew update
           brew install xcodegen
+          # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
+          xcrun simctl list
       - name: Generate project
         run: make carthage lcp=${{ secrets.LCP_URL_CARTHAGE }} commit=$commit_sha
       - name: Build

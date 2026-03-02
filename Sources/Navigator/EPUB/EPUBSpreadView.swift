@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -51,7 +51,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     let webView: WebView
 
-    private var lastClick: ClickEvent? = nil
+    private var lastClick: ClickEvent?
 
     /// If YES, the content will be faded in once loaded.
     let animatedLoad: Bool
@@ -60,6 +60,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     private var activityIndicatorStopWorkItem: DispatchWorkItem?
 
     private(set) var isSpreadLoaded = false
+    private var spreadLoadTask: Task<Void, Never>?
 
     required init(
         viewModel: EPUBNavigatorViewModel,
@@ -70,7 +71,18 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         self.viewModel = viewModel
         self.spread = spread
         self.animatedLoad = animatedLoad
-        webView = WebView(editingActions: viewModel.editingActions)
+
+        let config = WKWebViewConfiguration()
+        config.setURLSchemeHandler(viewModel.server, forURLScheme: viewModel.server.scheme)
+        config.mediaTypesRequiringUserActionForPlayback = .all
+
+        // Disable the Apple Intelligence Writing tools in the web views.
+        // See https://github.com/readium/swift-toolkit/issues/509#issuecomment-2577780749
+        if #available(iOS 18.0, *) {
+            config.writingToolsBehavior = .none
+        }
+
+        webView = WebView(editingActions: viewModel.editingActions, configuration: config)
 
         super.init(frame: .zero)
 
@@ -95,6 +107,18 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     deinit {
         NotificationCenter.default.removeObserver(self)
+        clear()
+    }
+
+    /// Called when the spread view is removed from the view hierarchy, to
+    /// clear pending operations and retain cycles.
+    func clear() {
+        webView.stopLoading()
+
+        spreadLoadTask?.cancel()
+        spreadLoadTask = nil
+
+        // Disable JS messages to break WKUserContentController reference.
         disableJSMessages()
     }
 
@@ -126,14 +150,18 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         webView.scrollView
     }
 
+    override func willMove(toSuperview newSuperview: UIView?) {
+        super.willMove(toSuperview: newSuperview)
+
+        if newSuperview == nil {
+            clear()
+        }
+    }
+
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
 
-        if superview == nil {
-            disableJSMessages()
-            // Fixing an iOS 9 bug by explicitly clearing scrollView.delegate before deinitialization
-            scrollView.delegate = nil
-        } else {
+        if superview != nil {
             enableJSMessages()
             scrollView.delegate = self
         }
@@ -150,9 +178,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
         log(.trace, "Evaluate script: \(script)")
         return await withCheckedContinuation { continuation in
-            webView.evaluateJavaScript(script) { res, error in
+            webView.evaluateJavaScript(script) { [weak self] res, error in
                 if let error = error {
-                    self.log(.error, error)
+                    self?.log(.error, error)
                     continuation.resume(returning: .failure(error))
                 } else {
                     continuation.resume(returning: .success(res ?? ()))
@@ -266,7 +294,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     /// Called by the javascript code when the spread contents is fully loaded.
     /// The JS message `spreadLoaded` needs to be emitted by a subclass script, EPUBSpreadView's scripts don't.
     private func spreadDidLoad(_ body: Any) {
-        Task { @MainActor in
+        spreadLoadTask?.cancel()
+        spreadLoadTask = Task { @MainActor in
             isSpreadLoaded = true
             applySettings()
             await spreadDidLoad()
@@ -374,10 +403,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     func findFirstVisibleElementLocator() async -> Locator? {
         let result = await evaluateScript("readium.findFirstVisibleLocator()")
         do {
-            let resource = viewModel.readingOrder[spread.leading]
-            let locator = try Locator(json: result.get())?
-                .copy(href: resource.url(), mediaType: resource.mediaType ?? .xhtml)
-            return locator
+            let link = spread.first.link
+            return try Locator(json: result.get())?
+                .copy(href: link.url(), mediaType: link.mediaType ?? .xhtml)
         } catch {
             log(.error, error)
             return nil
@@ -426,7 +454,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
-    // Removes message handlers (preventing strong reference cycle).
+    /// Removes message handlers (preventing strong reference cycle).
     private func disableJSMessages() {
         guard JSMessagesEnabled else {
             return
@@ -515,12 +543,12 @@ extension EPUBSpreadView: WKNavigationDelegate {
         var policy: WKNavigationActionPolicy = .allow
 
         if navigationAction.navigationType == .linkActivated {
-            if let url = navigationAction.request.url?.httpURL {
+            if let url = navigationAction.request.url {
                 // Check if url is internal or external
                 if let relativeURL = viewModel.publicationBaseURL.relativize(url) {
                     delegate?.spreadView(self, didTapOnInternalLink: relativeURL.string, clickEvent: lastClick)
                 } else {
-                    delegate?.spreadView(self, didTapOnExternalURL: url.url)
+                    delegate?.spreadView(self, didTapOnExternalURL: url)
                 }
 
                 policy = .cancel
@@ -603,7 +631,7 @@ private extension EPUBSpreadView {
                 return
             }
 
-            trace("stopping activity indicator because spread \(viewModel.readingOrder[spread.leading].href) did not load")
+            trace("stopping activity indicator because spread \(spread.first.link.href) did not load")
             activityIndicatorView?.stopAnimating()
         }
 
@@ -745,7 +773,6 @@ private extension KeyEvent {
             key = .tab
         case "Space":
             key = .space
-
         case "ArrowDown":
             key = .arrowDown
         case "ArrowLeft":
@@ -754,7 +781,6 @@ private extension KeyEvent {
             key = .arrowRight
         case "ArrowUp":
             key = .arrowUp
-
         case "End":
             key = .end
         case "Home":
@@ -763,7 +789,6 @@ private extension KeyEvent {
             key = .pageDown
         case "PageUp":
             key = .pageUp
-
         case "MetaLeft", "MetaRight":
             key = .command
         case "ControlLeft", "ControlRight":
@@ -772,12 +797,10 @@ private extension KeyEvent {
             key = .option
         case "ShiftLeft", "ShiftRight":
             key = .shift
-
         case "Backspace":
             key = .backspace
         case "Escape":
             key = .escape
-
         default:
             guard let char = dict["key"] as? String else {
                 return nil

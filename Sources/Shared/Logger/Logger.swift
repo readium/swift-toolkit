@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -9,7 +9,10 @@ import Foundation
 /// Initialize the Logger.
 /// Default logger is the `LoggerStub` class
 ///
-/// - Parameter customLogger: The Logger that will be used for printing logs.
+/// - Parameters:
+///   - level: The minimum severity level for logs to be processed.
+///   - customLogger: The Logger that will be used for printing logs.
+///     Defaults to a `LoggerStub` which may perform no-op logging.
 public func ReadiumEnableLog(withMinimumSeverityLevel level: SeverityLevel, customLogger: LoggerType = LoggerStub()) {
     Logger.sharedInstance.setupLogger(logger: customLogger)
     Logger.sharedInstance.setMinimumSeverityLevel(at: level)
@@ -28,10 +31,10 @@ public final class Logger {
     /// throughout the framework. There is a default implementation `StubLogger`
     /// available. You can define your own implementation by applying the
     /// `Loggable` protocol to your xLogger class.
-    internal var activeLogger: LoggerType?
+    var activeLogger: LoggerType?
 
     /// The minimum severity level for logs to be displayed.
-    internal var minimumSeverityLevel: SeverityLevel?
+    var minimumSeverityLevel: SeverityLevel?
 
     private(set) static var sharedInstance = Logger()
 
@@ -63,7 +66,7 @@ public final class Logger {
 
     // MARK: - Internal methods.
 
-    internal func log(_ value: Any?, at level: SeverityLevel, file: String, line: Int) {
+    func log(_ value: Any?, at level: SeverityLevel, file: String, line: Int) {
         if let minimumSeverityLevel = minimumSeverityLevel {
             guard level.numericValue >= minimumSeverityLevel.numericValue else {
                 return

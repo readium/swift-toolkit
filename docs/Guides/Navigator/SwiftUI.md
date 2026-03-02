@@ -133,4 +133,14 @@ let view = ReaderView(
 
 ## Handling touch and keyboard events
 
-You still need to implement the `VisualNavigatorDelegate` protocol to handle gestures in the navigator. Avoid using SwiftUI touch modifiers, as they will prevent the user from interacting with the book.
+Use the navigator's input observer API to handle touch and keyboard events. Avoid using SwiftUI touch modifiers, as they will prevent the user from interacting with the book.
+
+```swift
+// Example: Toggle UI visibility when the user taps the navigator.
+navigator.addObserver(.tap { [weak viewModel] _ in
+    viewModel?.toggleUIVisibility()
+    return true
+})
+```
+
+See the [Input guide](Input.md) for more details on handling user input.

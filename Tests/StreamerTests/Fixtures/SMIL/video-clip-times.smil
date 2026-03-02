@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<smil xmlns="http://www.w3.org/ns/SMIL" xmlns:epub="http://www.idpf.org/2007/ops" version="3.0">
+  <body>
+    <seq id="s1">
+      <!-- Both clipBegin and clipEnd -->
+      <par id="p1">
+        <text src="chapter01.xhtml#id1"/>
+        <video src="video.mp4" clipBegin="0:00:00.000" clipEnd="0:00:05.123"/>
+      </par>
+      <!-- Only clipBegin -->
+      <par id="p2">
+        <text src="chapter01.xhtml#id2"/>
+        <video src="video.mp4" clipBegin="0:01:30.000"/>
+      </par>
+      <!-- Only clipEnd -->
+      <par id="p3">
+        <text src="chapter01.xhtml#id3"/>
+        <video src="video.mp4" clipEnd="0:00:11.000"/>
+      </par>
+      <!-- Neither clipBegin nor clipEnd -->
+      <par id="p4">
+        <text src="chapter01.xhtml#id4"/>
+        <video src="video.mp4"/>
+      </par>
+    </seq>
+  </body>
+</smil>

@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -8,9 +8,11 @@ import ReadiumInternal
 import ReadiumShared
 import UIKit
 
+@available(*, deprecated, message: "Open a CBZ publication with EPUBNavigatorViewController.")
 public protocol CBZNavigatorDelegate: VisualNavigatorDelegate {}
 
 /// A view controller used to render a CBZ `Publication`.
+@available(*, deprecated, message: "Open a CBZ publication with EPUBNavigatorViewController.")
 open class CBZNavigatorViewController:
     InputObservableViewController,
     VisualNavigator, Loggable
@@ -254,6 +256,7 @@ open class CBZNavigatorViewController:
     }
 }
 
+@available(*, deprecated, message: "Open a CBZ publication with EPUBNavigatorViewController.")
 extension CBZNavigatorViewController: UIPageViewControllerDataSource {
     public func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
         guard let imageVC = viewController as? ImageViewController else {
@@ -284,6 +287,7 @@ extension CBZNavigatorViewController: UIPageViewControllerDataSource {
     }
 }
 
+@available(*, deprecated, message: "Open a CBZ publication with EPUBNavigatorViewController.")
 extension CBZNavigatorViewController: UIPageViewControllerDelegate {
     public func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
         if completed, let position = currentLocation {

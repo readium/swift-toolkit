@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -122,6 +122,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
     ///   - additionalHeaders: A dictionary of additional headers to send with requests. For example, `User-Agent`.
     ///   - requestTimeout: The timeout interval to use when waiting for additional data.
     ///   - resourceTimeout: The maximum amount of time that a resource request should be allowed to take.
+    ///   - delegate: An optional delegate to handle common HTTP events.
     ///   - configure: Callback used to configure further the `URLSessionConfiguration` object.
     public convenience init(
         userAgent: String? = nil,
@@ -151,7 +152,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         self.init(configuration: config, userAgent: userAgent, delegate: delegate)
     }
 
-    public weak var delegate: DefaultHTTPClientDelegate? = nil
+    public weak var delegate: DefaultHTTPClientDelegate?
 
     private let tasks: HTTPTaskManager
     private let session: URLSession
@@ -160,7 +161,9 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
     /// Creates a `DefaultHTTPClient` with a custom configuration.
     ///
     /// - Parameters:
+    ///   - configuration: The `URLSessionConfiguration` to use for all requests.
     ///   - userAgent: Default user agent issued with requests.
+    ///   - delegate: An optional delegate to handle common HTTP events.
     public init(
         configuration: URLSessionConfiguration,
         userAgent: String? = nil,
@@ -290,7 +293,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
 
         // MARK: - URLSessionDataDelegate
 
-        public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+        func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
             guard let task = findTask(for: dataTask) else {
                 completionHandler(.cancel)
                 return
@@ -298,11 +301,11 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
             task.urlSession(session, didReceive: response, completionHandler: completionHandler)
         }
 
-        public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
             findTask(for: dataTask)?.urlSession(session, didReceive: data)
         }
 
-        public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
             findTask(for: task)?.urlSession(session, didCompleteWithError: error)
         }
 

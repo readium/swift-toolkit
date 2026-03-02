@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -17,7 +17,10 @@ public enum OPDSParser {
 
     /// Parse an OPDS feed or publication.
     /// Feed can be v1 (XML) or v2 (JSON).
-    /// - parameter url: The feed URL
+    /// - Parameters:
+    ///   - url: The feed URL.
+    ///   - completion: A closure called when the parsing is complete, returning the
+    ///     parsed `ParseData` on success, or an `Error` if the operation failed.
     public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
         feedURL = url
 

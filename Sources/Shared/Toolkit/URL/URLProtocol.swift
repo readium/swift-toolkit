@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -9,10 +9,10 @@ import ReadiumInternal
 
 /// A type that can represent a URL.
 public protocol URLProtocol: URLConvertible, Sendable, CustomStringConvertible {
-    /// Creates a new instance of this type from a Foundation ``URL``.
+    /// Creates a new instance of this type from a Foundation `URL`.
     init?(url: URL)
 
-    /// Returns a foundation ``URL`` for this URL representation.
+    /// Returns a foundation `URL` for this URL representation.
     var url: URL { get }
 }
 
@@ -25,7 +25,9 @@ public extension URLProtocol {
     }
 
     /// Returns the string representation for this URL.
-    var string: String { url.absoluteString }
+    var string: String {
+        url.absoluteString
+    }
 
     /// Normalizes the URL using a subset of the RFC-3986 rules.
     /// https://datatracker.ietf.org/doc/html/rfc3986#section-6
@@ -104,7 +106,9 @@ public extension URLProtocol {
 
     /// Returns the decoded query parameters present in this URL, in the order
     /// they appear.
-    var query: URLQuery? { URLQuery(url: url) }
+    var query: URLQuery? {
+        URLQuery(url: url)
+    }
 
     /// Creates a copy of this URL after removing its query portion.
     func removingQuery() -> Self {
@@ -140,7 +144,9 @@ public extension URLProtocol {
 
 /// Implements `CustomStringConvertible`
 public extension URLProtocol {
-    var description: String { string }
+    var description: String {
+        string
+    }
 }
 
 private extension String {

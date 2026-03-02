@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -14,7 +14,13 @@ public struct PDFPreferences: ConfigurablePreferences {
     /// Background color behind the document pages.
     public var backgroundColor: Color?
 
-    /// Indicates if the first page should be displayed in its own spread.
+    /// Method for fitting the pages within the viewport.
+    public var fit: Fit?
+
+    /// Indicates whether the first page should be displayed alone instead of
+    /// alongside the second page.
+    ///
+    /// This is only effective if spreads are enabled.
     public var offsetFirstPage: Bool?
 
     /// Spacing between pages in points.
@@ -41,6 +47,7 @@ public struct PDFPreferences: ConfigurablePreferences {
 
     public init(
         backgroundColor: Color? = nil,
+        fit: Fit? = nil,
         offsetFirstPage: Bool? = nil,
         pageSpacing: Double? = nil,
         readingProgression: ReadingProgression? = nil,
@@ -51,6 +58,7 @@ public struct PDFPreferences: ConfigurablePreferences {
     ) {
         precondition(pageSpacing == nil || pageSpacing! >= 0)
         self.backgroundColor = backgroundColor
+        self.fit = fit
         self.offsetFirstPage = offsetFirstPage
         self.pageSpacing = pageSpacing
         self.readingProgression = readingProgression
@@ -63,6 +71,7 @@ public struct PDFPreferences: ConfigurablePreferences {
     public func merging(_ other: PDFPreferences) -> PDFPreferences {
         PDFPreferences(
             backgroundColor: other.backgroundColor ?? backgroundColor,
+            fit: other.fit ?? fit,
             offsetFirstPage: other.offsetFirstPage ?? offsetFirstPage,
             pageSpacing: other.pageSpacing ?? pageSpacing,
             readingProgression: other.readingProgression ?? readingProgression,

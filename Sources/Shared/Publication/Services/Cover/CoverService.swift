@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -49,35 +49,18 @@ public extension CoverService {
 public extension Publication {
     /// Returns the publication cover as a bitmap at its maximum size.
     func cover() async -> ReadResult<UIImage?> {
-        if let service = findService(CoverService.self) {
-            return await service.cover()
-        } else {
-            return await coverFromManifest()
+        guard let service = findService(CoverService.self) else {
+            return .success(nil)
         }
+        return await service.cover()
     }
 
     /// Returns the publication cover as a bitmap, scaled down to fit the given `maxSize`.
     func coverFitting(maxSize: CGSize) async -> ReadResult<UIImage?> {
-        if let service = findService(CoverService.self) {
-            return await service.coverFitting(maxSize: maxSize)
-        } else {
-            return await coverFromManifest()
-                .map { $0?.scaleToFit(maxSize: maxSize) }
+        guard let service = findService(CoverService.self) else {
+            return .success(nil)
         }
-    }
-
-    /// Extracts the first valid cover from the manifest links with `cover` relation.
-    private func coverFromManifest() async -> ReadResult<UIImage?> {
-        for link in linksWithRel(.cover) {
-            guard let image = await get(link)?
-                .read().getOrNil()
-                .flatMap({ UIImage(data: $0) })
-            else {
-                continue
-            }
-            return .success(image)
-        }
-        return .success(nil)
+        return await service.coverFitting(maxSize: maxSize)
     }
 }
 

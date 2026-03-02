@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<smil xmlns="http://www.w3.org/ns/SMIL" xmlns:epub="http://www.idpf.org/2007/ops" version="3.0">
+  <body>
+    <!-- textref without fragment -->
+    <seq id="s1" epub:textref="chapter01.xhtml" epub:type="chapter">
+      <par id="p1"><text src="chapter01.xhtml#id1"/></par>
+    </seq>
+    <!-- textref with fragment -->
+    <seq id="s2" epub:textref="chapter01.xhtml#sec1" epub:type="section">
+      <par id="p2"><text src="chapter01.xhtml#id2"/></par>
+    </seq>
+  </body>
+</smil>

@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -357,7 +357,9 @@ private class MockContainer: Container {
 
     let sourceURL: AbsoluteURL? = nil
 
-    var entries: Set<AnyURL> { Set(readingOrder.map { $0.1.url() }) }
+    var entries: Set<AnyURL> {
+        Set(readingOrder.map { $0.1.url() })
+    }
 
     subscript(url: any URLConvertible) -> (any Resource)? {
         guard let (length, _, archiveProperties) = readingOrder.first(where: { _, link, _ in link.url().isEquivalentTo(url) }) else {

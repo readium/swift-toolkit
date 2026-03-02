@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -110,7 +110,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 
         public let id: AccessibilityDisplayString = .waysOfReadingTitle
 
-        public var localizedTitle: String { id.localized }
+        public var localizedTitle: String {
+            id.localized
+        }
 
         /// "Ways of reading" should be rendered even if there is no metadata.
         public let shouldDisplay: Bool = true
@@ -267,7 +269,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
     public struct Navigation: AccessibilityDisplayField {
         /// Indicates whether no information about navigation features is
         /// available.
-        public var noMetadata: Bool { !tableOfContents && !index && !headings && !page }
+        public var noMetadata: Bool {
+            !tableOfContents && !index && !headings && !page
+        }
 
         /// Table of contents to all chapters of the text via links.
         public var tableOfContents: Bool
@@ -283,9 +287,13 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 
         public let id: AccessibilityDisplayString = .navigationTitle
 
-        public var localizedTitle: String { id.localized }
+        public var localizedTitle: String {
+            id.localized
+        }
 
-        public var shouldDisplay: Bool { !noMetadata }
+        public var shouldDisplay: Bool {
+            !noMetadata
+        }
 
         public var statements: [AccessibilityDisplayStatement] {
             Array {
@@ -377,20 +385,24 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 
         public let id: AccessibilityDisplayString = .richContentTitle
 
-        public var localizedTitle: String { id.localized }
+        public var localizedTitle: String {
+            id.localized
+        }
 
-        public var shouldDisplay: Bool { !noMetadata }
+        public var shouldDisplay: Bool {
+            !noMetadata
+        }
 
         public var statements: [AccessibilityDisplayStatement] {
             Array {
                 if extendedAltTextDescriptions {
-                    $0.append(.richContentExtended)
+                    $0.append(.richContentExtendedDescriptions)
                 }
                 if mathFormula {
                     $0.append(.richContentAccessibleMathDescribed)
                 }
                 if mathFormulaAsMathML {
-                    $0.append(.richContentAccessibleMathAsMathml)
+                    $0.append(.richContentMathAsMathml)
                 }
                 if mathFormulaAsLaTeX {
                     $0.append(.richContentAccessibleMathAsLatex)
@@ -507,9 +519,13 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 
         public let id: AccessibilityDisplayString = .additionalAccessibilityInformationTitle
 
-        public var localizedTitle: String { id.localized }
+        public var localizedTitle: String {
+            id.localized
+        }
 
-        public var shouldDisplay: Bool { !noMetadata }
+        public var shouldDisplay: Bool {
+            !noMetadata
+        }
 
         public var statements: [AccessibilityDisplayStatement] {
             Array {
@@ -649,9 +665,13 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 
         public let id: AccessibilityDisplayString = .hazardsTitle
 
-        public var localizedTitle: String { id.localized }
+        public var localizedTitle: String {
+            id.localized
+        }
 
-        public var shouldDisplay: Bool { !noMetadata }
+        public var shouldDisplay: Bool {
+            !noMetadata
+        }
 
         public var statements: [AccessibilityDisplayStatement] {
             Array {
@@ -766,7 +786,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 
         public let id: AccessibilityDisplayString = .conformanceTitle
 
-        public var localizedTitle: String { id.localized }
+        public var localizedTitle: String {
+            id.localized
+        }
 
         /// "Conformance" should be rendered even if there is no metadata.
         public let shouldDisplay: Bool = true
@@ -818,7 +840,9 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
     /// https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/#legal-considerations
     public struct Legal: AccessibilityDisplayField {
         /// No information is available.
-        public var noMetadata: Bool { !exemption }
+        public var noMetadata: Bool {
+            !exemption
+        }
 
         /// This publication claims an accessibility exemption in some
         /// jurisdictions.
@@ -826,9 +850,13 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 
         public let id: AccessibilityDisplayString = .legalConsiderationsTitle
 
-        public var localizedTitle: String { id.localized }
+        public var localizedTitle: String {
+            id.localized
+        }
 
-        public var shouldDisplay: Bool { !noMetadata }
+        public var shouldDisplay: Bool {
+            !noMetadata
+        }
 
         public var statements: [AccessibilityDisplayStatement] {
             Array {
@@ -865,9 +893,13 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 
         public let id: AccessibilityDisplayString = .accessibilitySummaryTitle
 
-        public var localizedTitle: String { id.localized }
+        public var localizedTitle: String {
+            id.localized
+        }
 
-        public var shouldDisplay: Bool { summary != nil }
+        public var shouldDisplay: Bool {
+            summary != nil
+        }
 
         public var statements: [AccessibilityDisplayStatement] {
             Array {
@@ -930,7 +962,7 @@ public struct AccessibilityDisplayStatement: Sendable, Equatable, Identifiable {
     ///   family and font size, spaces between paragraphs, sentences, words, and
     ///   letters, as well as color of background and text)
     ///
-    /// Some statements contain HTTP links; so we use an ``NSAttributedString``.
+    /// Some statements contain HTTP links; so we use an `NSAttributedString`.
     ///
     /// - Parameter descriptive: When true, will return the long descriptive
     ///   statement.
@@ -966,7 +998,7 @@ public struct AccessibilityDisplayStatement: Sendable, Equatable, Identifiable {
 ///
 /// See https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/draft/localizations/
 public struct AccessibilityDisplayString: RawRepresentable, ExpressibleByStringLiteral, Sendable, Hashable {
-    // Special key for the provided summary, which is not localized.
+    /// Special key for the provided summary, which is not localized.
     static let accessibilitySummary: Self = "readium.a11y.accessibility-summary"
 
     public let rawValue: String
@@ -997,30 +1029,38 @@ public struct AccessibilityDisplayString: RawRepresentable, ExpressibleByStringL
     /// - Parameter descriptive: When true, will return the long descriptive
     ///   statement.
     public func localized(descriptive: Bool) -> NSAttributedString {
-        NSAttributedString(string: bundleString("\(rawValue)-\(descriptive ? "descriptive" : "compact")")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        )
+        // Try the suffixed key first, then fall back to the unsuffixed key
+        // for strings where compact and descriptive variants are identical.
+        let suffixedKey = "\(rawValue)-\(descriptive ? "descriptive" : "compact")"
+        var string = bundleString(suffixedKey)
+        if string == suffixedKey {
+            string = bundleString(rawValue)
+        }
+        return NSAttributedString(string: string.trimmingCharacters(in: .whitespacesAndNewlines))
     }
 
     private func bundleString(_ key: String, _ values: CVarArg...) -> String {
-        bundleString(key, in: Bundle.module, table: "W3CAccessibilityMetadataDisplayGuide", values)
-    }
-
-    /// Returns the localized string in the main bundle, or fallback on the given
-    /// bundle if not found.
-    private func bundleString(_ key: String, in bundle: Bundle, table: String? = nil, _ values: [CVarArg]) -> String {
-        let defaultValue = bundle.localizedString(forKey: key, value: nil, table: table)
-        var string = Bundle.main.localizedString(forKey: key, value: defaultValue, table: nil)
-        if !values.isEmpty {
-            string = String(format: string, locale: .current, arguments: values)
-        }
-        return string
+        ReadiumLocalizedString(key, in: Bundle.module, table: "W3CAccessibilityMetadataDisplayGuide", values)
     }
 }
 
-// Syntactic sugar
+/// Syntactic sugar
 private extension Array where Element == AccessibilityDisplayStatement {
     mutating func append(_ string: AccessibilityDisplayString) {
         append(AccessibilityDisplayStatement(string: string))
+    }
+}
+
+// MARK: - Deprecated Aliases
+
+public extension AccessibilityDisplayString {
+    @available(*, deprecated, renamed: "richContentExtendedDescriptions")
+    static var richContentExtended: Self {
+        richContentExtendedDescriptions
+    }
+
+    @available(*, deprecated, renamed: "richContentMathAsMathml")
+    static var richContentAccessibleMathAsMathml: Self {
+        richContentMathAsMathml
     }
 }

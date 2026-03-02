@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -72,13 +72,14 @@ struct UserPreferences<
         userPreferences(editor: model.editor, commit: model.commit)
     }
 
-    @ViewBuilder func userPreferences<PE: PreferencesEditor>(editor: PE, commit: @escaping () -> Void) -> some View {
+    func userPreferences<PE: PreferencesEditor>(editor: PE, commit: @escaping () -> Void) -> some View {
         NavigationView {
             List {
                 switch editor {
                 case let editor as PDFPreferencesEditor:
                     fixedLayoutUserPreferences(
                         commit: commit,
+                        fit: editor.fit,
                         offsetFirstPage: editor.offsetFirstPage,
                         pageSpacing: editor.pageSpacing,
                         readingProgression: editor.readingProgression,
@@ -123,7 +124,9 @@ struct UserPreferences<
                         fixedLayoutUserPreferences(
                             commit: commit,
                             backgroundColor: editor.backgroundColor,
+                            fit: editor.fit,
                             language: editor.language,
+                            nullableOffsetFirstPage: editor.offsetFirstPage,
                             readingProgression: editor.readingProgression,
                             spread: editor.spread
                         )
@@ -173,6 +176,7 @@ struct UserPreferences<
         fit: AnyEnumPreference<ReadiumNavigator.Fit>? = nil,
         language: AnyPreference<Language?>? = nil,
         offsetFirstPage: AnyPreference<Bool>? = nil,
+        nullableOffsetFirstPage: AnyPreference<Bool?>? = nil,
         pageSpacing: AnyRangePreference<Double>? = nil,
         readingProgression: AnyEnumPreference<ReadiumNavigator.ReadingProgression>? = nil,
         scroll: AnyPreference<Bool>? = nil,
@@ -254,14 +258,22 @@ struct UserPreferences<
                         }
                     }
                 )
-            }
 
-            if let offsetFirstPage = offsetFirstPage {
-                toggleRow(
-                    title: "Offset first page",
-                    preference: offsetFirstPage,
-                    commit: commit
-                )
+                if let offsetFirstPage = offsetFirstPage {
+                    toggleRow(
+                        title: "Offset first page",
+                        preference: offsetFirstPage,
+                        commit: commit
+                    )
+                }
+
+                if let nullableOffsetFirstPage = nullableOffsetFirstPage {
+                    nullableBoolPickerRow(
+                        title: "Offset first page",
+                        preference: nullableOffsetFirstPage,
+                        commit: commit
+                    )
+                }
             }
         }
 
@@ -273,10 +285,9 @@ struct UserPreferences<
                     commit: commit,
                     formatValue: { v in
                         switch v {
-                        case .cover: return "Cover"
-                        case .contain: return "Contain"
+                        case .auto: return "Auto"
+                        case .page: return "Page"
                         case .width: return "Width"
-                        case .height: return "Height"
                         }
                     }
                 )
@@ -584,7 +595,7 @@ struct UserPreferences<
     }
 
     /// User preferences screen for an audiobook.
-    @ViewBuilder func audioUserPreferences(
+    func audioUserPreferences(
         commit: @escaping () -> Void,
         volume: AnyRangePreference<Double>? = nil,
         speed: AnyRangePreference<Double>? = nil
@@ -609,7 +620,7 @@ struct UserPreferences<
     }
 
     /// Component for a boolean `Preference` switchable with a `Toggle` button.
-    @ViewBuilder func toggleRow(
+    func toggleRow(
         title: String,
         preference: AnyPreference<Bool>,
         commit: @escaping () -> Void
@@ -623,7 +634,7 @@ struct UserPreferences<
     }
 
     /// Component for a boolean `Preference` switchable with a `Toggle` button.
-    @ViewBuilder func toggleRow(
+    func toggleRow(
         title: String,
         value: Binding<Bool>,
         isActive: Bool,
@@ -637,8 +648,30 @@ struct UserPreferences<
         }
     }
 
+    /// Component for a nullable boolean `Preference` displayed in a `Picker` view
+    /// with three options: Auto, Yes, No.
+    func nullableBoolPickerRow(
+        title: String,
+        preference: AnyPreference<Bool?>,
+        commit: @escaping () -> Void
+    ) -> some View {
+        preferenceRow(
+            isActive: preference.isEffective,
+            onClear: { preference.clear(); commit() }
+        ) {
+            Picker(title, selection: Binding(
+                get: { preference.value ?? preference.effectiveValue },
+                set: { preference.set($0); commit() }
+            )) {
+                Text("Auto").tag(nil as Bool?)
+                Text("Yes").tag(true as Bool?)
+                Text("No").tag(false as Bool?)
+            }
+        }
+    }
+
     /// Component for an `EnumPreference` displayed in a `Picker` view.
-    @ViewBuilder func pickerRow<V: Hashable>(
+    func pickerRow<V: Hashable>(
         title: String,
         preference: AnyEnumPreference<V>,
         commit: @escaping () -> Void,
@@ -655,7 +688,7 @@ struct UserPreferences<
     }
 
     /// Component for an `EnumPreference` displayed in a `Picker` view.
-    @ViewBuilder func pickerRow<V: Hashable>(
+    func pickerRow<V: Hashable>(
         title: String,
         value: Binding<V>,
         values: [V],
@@ -676,7 +709,7 @@ struct UserPreferences<
     }
 
     /// Component for a `RangePreference` modifiable by a `Stepper` view.
-    @ViewBuilder func stepperRow<V: Comparable>(
+    func stepperRow<V: Comparable>(
         title: String,
         preference: AnyRangePreference<V>,
         commit: @escaping () -> Void
@@ -692,7 +725,7 @@ struct UserPreferences<
     }
 
     /// Component for a `RangePreference` modifiable by a `Stepper` view.
-    @ViewBuilder func stepperRow(
+    func stepperRow(
         title: String,
         value: String,
         isActive: Bool,
@@ -716,7 +749,7 @@ struct UserPreferences<
     }
 
     /// Component for a `Preference` holding a `Language` value.
-    @ViewBuilder func languageRow(
+    func languageRow(
         title: String,
         preference: AnyPreference<Language?>,
         commit: @escaping () -> Void
@@ -737,7 +770,7 @@ struct UserPreferences<
     }
 
     /// Component for a `Preference` holding a `Color` value.
-    @ViewBuilder func colorRow(
+    func colorRow(
         title: String,
         preference: AnyPreference<ReadiumNavigator.Color>,
         commit: @escaping () -> Void
@@ -757,7 +790,7 @@ struct UserPreferences<
     }
 
     /// Component for a `Preference` holding a `Color` value.
-    @ViewBuilder func colorRow(
+    func colorRow(
         title: String,
         value: Binding<SwiftUI.Color>,
         isActive: Bool,
@@ -774,7 +807,7 @@ struct UserPreferences<
     }
 
     /// Layout for a preference row.
-    @ViewBuilder func preferenceRow<V: View>(
+    func preferenceRow<V: View>(
         isActive: Bool,
         onClear: @escaping () -> Void,
         content: @escaping () -> V

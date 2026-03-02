@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<smil xmlns="http://www.w3.org/ns/SMIL" xmlns:epub="http://www.idpf.org/2007/ops" version="3.0">
+  <body>
+    <!-- Empty seq with no children and no textref — must be skipped -->
+    <seq id="s-empty">
+    </seq>
+    <!-- Non-empty seq that must be kept -->
+    <seq id="s-valid" epub:type="chapter">
+      <par id="p1"><text src="chapter01.xhtml#id1"/></par>
+    </seq>
+  </body>
+</smil>

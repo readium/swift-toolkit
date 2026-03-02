@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -96,12 +96,35 @@ class FuziTests: XCTestCase {
         try FuziXMLDocument(string: xml, namespaces: namespaces)
     }
 
-    func testParseInvalidXML() { tester.testParseValidXML() }
-    func testParseValidXML() { tester.testParseValidXML() }
-    func testParseHTML5() { tester.testParseHTML5() }
-    func testDocumentElement() throws { try tester.testDocumentElement() }
-    func testFirstElement() throws { try tester.testFirstElement() }
-    func testAllElements() throws { try tester.testAllElements() }
-    func testLocalName() throws { try tester.testLocalName() }
-    func testAttribute() throws { try tester.testAttribute() }
+    func testParseInvalidXML() {
+        tester.testParseInvalidXML()
+    }
+
+    func testParseValidXML() {
+        tester.testParseValidXML()
+    }
+
+    func testParseHTML5() {
+        tester.testParseHTML5()
+    }
+
+    func testDocumentElement() throws {
+        try tester.testDocumentElement()
+    }
+
+    func testFirstElement() throws {
+        try tester.testFirstElement()
+    }
+
+    func testAllElements() throws {
+        try tester.testAllElements()
+    }
+
+    func testLocalName() throws {
+        try tester.testLocalName()
+    }
+
+    func testAttribute() throws {
+        try tester.testAttribute()
+    }
 }

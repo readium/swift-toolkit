@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -27,7 +27,9 @@ public protocol DecorableNavigator {
 
     /// Registers new callbacks for decoration interactions in the given `group`.
     ///
-    /// - Parameter onActivated: Called when the user activates the decoration, e.g. with a click or tap.
+    /// - Parameters:
+    ///   - group: The name of the decoration group to observe.
+    ///   - onActivated: Called when the user activates the decoration, e.g. with a click or tap.
     func observeDecorationInteractions(inGroup group: String, onActivated: @escaping OnActivatedCallback)
 
     /// Called when the user activates a decoration, e.g. with a click or tap.

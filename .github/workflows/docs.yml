@@ -1,0 +1,78 @@
+name: Documentation
+
+on:
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Determine Version
+        id: versioning
+        run: |
+          git fetch --tags --force
+          VERSION=$(git describe --tag --match "[0-9]*" --abbrev=0)
+          echo "READIUM_VERSION=$VERSION" >> $GITHUB_OUTPUT
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+             echo "folder=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+             echo "folder=latest" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate Documentation
+        run: |
+          chmod +x BuildTools/Scripts/generate-docs.sh
+          ./BuildTools/Scripts/generate-docs.sh ${{ steps.versioning.outputs.READIUM_VERSION }}
+          ./BuildTools/Scripts/generate-docs.sh latest
+
+      - name: Setup Root Redirect
+        run: |
+          cat <<EOF > docs-site/swift-toolkit/index.html
+          <!DOCTYPE html>
+          <html>
+            <head>
+                <meta charset="utf-8">
+                <meta http-equiv="refresh" content="0; url=./latest/documentation/readium">
+                <script>window.location.replace("./latest/documentation/readium");</script>
+            </head>
+            <body><p>Redirecting to <a href="./latest/documentation/readium">latest documentation</a>...</p></body>
+          </html>
+          EOF
+
+      - name: Deploy Versioned Folder 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: docs-site/swift-toolkit/${{ steps.versioning.outputs.READIUM_VERSION }}
+          target-folder: ${{ steps.versioning.outputs.READIUM_VERSION }}
+          clean: true
+
+      - name: Deploy Latest Folder 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: docs-site/swift-toolkit/latest
+          target-folder: latest
+          clean: true
+
+      - name: Deploy Root Redirect 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: docs-site/swift-toolkit
+          target-folder: .
+          clean: false

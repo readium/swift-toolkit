@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -56,26 +56,5 @@ extension Container {
         }
 
         return .success(entries)
-    }
-
-    /// Guesses a publication title from a list of resource HREFs.
-    ///
-    /// If the HREFs contain a single root directory, we assume it is the
-    /// title. This is often the case for example with CBZ files.
-    func guessTitle(ignoring: (AnyURL) -> Bool = { _ in false }) -> String? {
-        var title: String?
-
-        for url in entries {
-            if ignoring(url) {
-                continue
-            }
-            let segments = url.pathSegments
-            guard segments.count > 1, title == nil || title == segments.first else {
-                return nil
-            }
-            title = segments.first
-        }
-
-        return title
     }
 }

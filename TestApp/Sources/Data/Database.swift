@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -76,12 +76,11 @@ final class Database {
     @discardableResult
     func write<T>(_ updates: @escaping (GRDB.Database) throws -> T) async throws -> T {
         try await withCheckedThrowingContinuation { cont in
-            writer.asyncWrite(
-                { try updates($0) },
-                completion: { _, result in
-                    cont.resume(with: result)
-                }
-            )
+            writer.asyncWrite {
+                try updates($0)
+            } completion: { _, result in
+                cont.resume(with: result)
+            }
         }
     }
 
@@ -137,7 +136,9 @@ extension EntityId {
 
     // MARK: - DatabaseValueConvertible
 
-    var databaseValue: DatabaseValue { rawValue.databaseValue }
+    var databaseValue: DatabaseValue {
+        rawValue.databaseValue
+    }
 
     static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
         Int64.fromDatabaseValue(dbValue).map(Self.init)

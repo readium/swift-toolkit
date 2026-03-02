@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -11,9 +11,9 @@ class FormatSniffersTests: XCTestCase {
     let fixtures = Fixtures(path: "Format")
     let sut = DefaultFormatSniffer()
 
-    func testSniffHintsUnknown() {
+    func testSniffHintsUnknown() throws {
         XCTAssertNil(sut.sniffHints(fileExtension: "unknown"))
-        XCTAssertNil(sut.sniffHints(mediaType: MediaType("application/unknown+zip")!))
+        XCTAssertNil(try sut.sniffHints(mediaType: XCTUnwrap(MediaType("application/unknown+zip"))))
     }
 
     func testSniffHintsIgnoresExtensionCase() {
@@ -157,6 +157,11 @@ class FormatSniffersTests: XCTestCase {
         XCTAssertEqual(sut.sniffHints(fileExtension: "jfi"), jpeg)
         XCTAssertEqual(sut.sniffHints(mediaType: "image/jpeg"), jpeg)
 
+        // JXL
+        let jxl = Format(specifications: .jxl, mediaType: .jxl, fileExtension: "jxl")
+        XCTAssertEqual(sut.sniffHints(fileExtension: "jxl"), jxl)
+        XCTAssertEqual(sut.sniffHints(mediaType: "image/jxl"), jxl)
+
         // PNG
         let png = Format(specifications: .png, mediaType: .png, fileExtension: "png")
         XCTAssertEqual(sut.sniffHints(fileExtension: "png"), png)
@@ -175,7 +180,7 @@ class FormatSniffersTests: XCTestCase {
         XCTAssertEqual(sut.sniffHints(mediaType: "image/webp"), webp)
     }
 
-    func testSniffCBR() async {
+    func testSniffCBR() {
         let cbr = Format(specifications: .rar, .informalComic, mediaType: .cbr, fileExtension: "cbr")
         XCTAssertEqual(sut.sniffHints(mediaType: "application/vnd.comicbook-rar"), cbr)
         XCTAssertEqual(sut.sniffHints(mediaType: "application/x-cbr"), cbr)
@@ -369,12 +374,12 @@ class FormatSniffersTests: XCTestCase {
         XCTAssertEqual(result, .success(.rwpmAudiobook))
     }
 
-    func testSniffRAR() async {
+    func testSniffRAR() throws {
         let rar = Format(specifications: .rar, mediaType: .rar, fileExtension: "rar")
 
         XCTAssertEqual(sut.sniffHints(mediaType: .rar), rar)
-        XCTAssertEqual(sut.sniffHints(mediaType: MediaType("application/x-rar")!), rar)
-        XCTAssertEqual(sut.sniffHints(mediaType: MediaType("application/x-rar-compressed")!), rar)
+        XCTAssertEqual(try sut.sniffHints(mediaType: XCTUnwrap(MediaType("application/x-rar"))), rar)
+        XCTAssertEqual(try sut.sniffHints(mediaType: XCTUnwrap(MediaType("application/x-rar-compressed"))), rar)
         XCTAssertEqual(sut.sniffHints(fileExtension: "rar"), rar)
     }
 
@@ -387,7 +392,7 @@ class FormatSniffersTests: XCTestCase {
         XCTAssertEqual(result, .success(.xhtml))
     }
 
-    func testSniffXML() async {
+    func testSniffXML() {
         XCTAssertEqual(sut.sniffHints(mediaType: .xml), .xml)
         XCTAssertEqual(sut.sniffHints(fileExtension: "xml"), .xml)
     }

@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -172,8 +172,8 @@ public struct Link: JSONEquatable, Hashable, Sendable {
     ///
     /// If the HREF is a template, the `parameters` are used to expand it
     /// according to RFC 6570.
-    public func url<T: URLConvertible>(
-        relativeTo baseURL: T?,
+    public func url(
+        relativeTo baseURL: URLConvertible?,
         parameters: [String: LosslessStringConvertible] = [:]
     ) -> AnyURL {
         let url = url(parameters: parameters)
@@ -204,6 +204,12 @@ public struct Link: JSONEquatable, Hashable, Sendable {
     ///  Merges in the given additional other `properties`.
     public mutating func addProperties(_ properties: JSONDictionary.Wrapped) {
         self.properties.add(properties)
+    }
+}
+
+extension Link: URLConvertible {
+    public var anyURL: AnyURL {
+        url()
     }
 }
 
@@ -286,6 +292,11 @@ public extension Array where Element == Link {
     /// Returns whether all the resources in the collection are HTML documents.
     var allAreHTML: Bool {
         allSatisfy { $0.mediaType?.isHTML == true }
+    }
+
+    /// Returns whether any resource in the collection matches the given media type.
+    func anyMatchingMediaType(_ mediaType: MediaType) -> Bool {
+        contains { mediaType.matches($0.mediaType) }
     }
 
     /// Returns whether all the resources in the collection are matching the given media type.

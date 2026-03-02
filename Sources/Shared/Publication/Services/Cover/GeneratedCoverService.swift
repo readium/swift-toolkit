@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -41,9 +41,11 @@ public final class GeneratedCoverService: CoverService {
         await cachedCover().map { $0 as UIImage? }
     }
 
-    public var links: [Link] { [coverLink] }
+    public var links: [Link] {
+        [coverLink]
+    }
 
-    public func get<T>(_ href: T) -> (any Resource)? where T: URLConvertible {
+    public func get<T: URLConvertible>(_ href: T) -> (any Resource)? {
         guard href.anyURL.isEquivalentTo(coverLink.url()) else {
             return nil
         }
@@ -62,7 +64,7 @@ public final class GeneratedCoverService: CoverService {
     private class CoverResource: Resource {
         private let cover: () async -> ReadResult<UIImage>
 
-        public init(cover: @escaping () async -> ReadResult<UIImage>) {
+        init(cover: @escaping () async -> ReadResult<UIImage>) {
             self.cover = cover
         }
 

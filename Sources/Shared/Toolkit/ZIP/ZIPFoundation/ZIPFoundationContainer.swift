@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -42,8 +42,11 @@ final class ZIPFoundationContainer: Container, Loggable {
     private let archiveFactory: ZIPFoundationArchiveFactory
     private let entriesByPath: [RelativeURL: Entry]
 
-    public var sourceURL: AbsoluteURL? { archiveFactory.sourceURL }
-    public let entries: Set<AnyURL>
+    var sourceURL: AbsoluteURL? {
+        archiveFactory.sourceURL
+    }
+
+    let entries: Set<AnyURL>
 
     private init(
         archiveFactory: ZIPFoundationArchiveFactory,
@@ -85,7 +88,7 @@ private actor ZIPFoundationResource: Resource, Loggable {
         self.entry = entry
     }
 
-    public let sourceURL: AbsoluteURL? = nil
+    let sourceURL: AbsoluteURL? = nil
 
     func estimatedLength() async -> ReadResult<UInt64?> {
         .success(entry.uncompressedSize)

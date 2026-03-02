@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -188,7 +188,7 @@ public struct MediaType: Hashable, Loggable, Sendable {
 
     /// Returns whether this media type is of a bitmap image, so excluding vectorial formats.
     public var isBitmap: Bool {
-        matchesAny(.bmp, .gif, .jpeg, .png, .tiff, .webp)
+        matchesAny(.avif, .bmp, .gif, .jpeg, .jxl, .png, .tiff, .webp)
     }
 
     /// Returns whether this media type is of an audio clip.
@@ -228,6 +228,7 @@ public struct MediaType: Hashable, Loggable, Sendable {
     public static let javascript = MediaType("text/javascript")!
     public static let jpeg = MediaType("image/jpeg")!
     public static let json = MediaType("application/json")!
+    public static let jxl = MediaType("image/jxl")!
     public static let lcpLicenseDocument = MediaType("application/vnd.readium.lcp.license.v1.0+json")!
     public static let lcpProtectedAudiobook = MediaType("application/audiobook+lcp")!
     public static let lcpProtectedPDF = MediaType("application/pdf+lcp")!
@@ -252,6 +253,7 @@ public struct MediaType: Hashable, Loggable, Sendable {
     public static let rar = MediaType("application/vnd.rar")!
     public static let readiumAudiobook = MediaType("application/audiobook+zip")!
     public static let readiumAudiobookManifest = MediaType("application/audiobook+json")!
+    public static let readiumGuidedNavigationDocument = MediaType("application/guided-navigation+json")!
     public static let readiumWebPub = MediaType("application/webpub+zip")!
     public static let readiumWebPubManifest = MediaType("application/webpub+json")!
     public static let smil = MediaType("application/smil+xml")!
@@ -292,7 +294,9 @@ public struct MediaType: Hashable, Loggable, Sendable {
 }
 
 extension MediaType: RawRepresentable {
-    public var rawValue: String { string }
+    public var rawValue: String {
+        string
+    }
 
     public init?(rawValue: String) {
         self.init(rawValue)

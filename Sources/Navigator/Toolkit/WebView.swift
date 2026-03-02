@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -12,21 +12,14 @@ import WebKit
 final class WebView: WKWebView {
     private let editingActions: EditingActionsController
 
-    init(editingActions: EditingActionsController) {
+    convenience init(editingActions: EditingActionsController) {
+        self.init(editingActions: editingActions, configuration: WKWebViewConfiguration())
+    }
+
+    init(editingActions: EditingActionsController, configuration: WKWebViewConfiguration) {
         self.editingActions = editingActions
 
-        let config = WKWebViewConfiguration()
-        config.mediaTypesRequiringUserActionForPlayback = .all
-
-        // Disable the Apple Intelligence Writing tools in the web views.
-        // See https://github.com/readium/swift-toolkit/issues/509#issuecomment-2577780749
-        #if compiler(>=6.0)
-            if #available(iOS 18.0, *) {
-                config.writingToolsBehavior = .none
-            }
-        #endif
-
-        super.init(frame: .zero, configuration: config)
+        super.init(frame: .zero, configuration: configuration)
 
         #if DEBUG && swift(>=5.8)
             if #available(macOS 13.3, iOS 16.4, *) {

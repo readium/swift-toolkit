@@ -3,18 +3,28 @@ CSS_PATH := Sources/Navigator/EPUB/Assets/Static/readium-css
 
 help:
 	@echo "Usage: make <target>\n\n\
-	  carthage-proj\t\tGenerate the Carthage Xcode project\n\
+	  carthage-project\tGenerate the Carthage Xcode project\n\
+	  podspecs\t\tGenerate the CocoaPods podspecs\n\
 	  scripts\t\tBundle the Navigator EPUB scripts\n\
 	  test\t\t\tRun unit tests\n\
 	  lint-format\t\tVerify formatting\n\
 	  format\t\tFormat sources\n\
-	  update-a11y-l10n\tUpdate the Accessibility Metadata Display Guide localization files\n\
+	  update-locales\tUpdate the localization files\n\
 	"
+
+.PHONY: podspecs
+podspecs:
+	swift run --package-path BuildTools GeneratePodspecs
 
 .PHONY: carthage-project
 carthage-project:
+	rm -rf **/.DS_Store
 	rm -rf $(SCRIPTS_PATH)/node_modules/
 	xcodegen -s Support/Carthage/project.yml --use-cache --cache-path Support/Carthage/.xcodegen
+
+.PHONY: navigator-ui-tests-project
+navigator-ui-tests-project:
+	xcodegen -s Tests/NavigatorTests/UITests/project.yml
 
 .PHONY: scripts
 scripts:
@@ -56,11 +66,17 @@ f: format
 format:
 	swift run --package-path BuildTools swiftformat .
 
-.PHONY: update-a11y-l10n
-update-a11y-l10n:
-	@which node >/dev/null 2>&1 || (echo "ERROR: node is required, please install it first"; exit 1)
-	rm -rf publ-a11y-display-guide-localizations
-	git clone https://github.com/w3c/publ-a11y-display-guide-localizations.git
-	node BuildTools/Scripts/convert-a11y-display-guide-localizations.js publ-a11y-display-guide-localizations apple Sources/Shared readium.a11y.
-	rm -rf publ-a11y-display-guide-localizations
+BRANCH ?= main
 
+.PHONY: update-locales
+update-locales:
+	@which node >/dev/null 2>&1 || (echo "ERROR: node is required, please install it first"; exit 1)
+ifndef DIR
+	rm -rf thorium-locales
+	git clone -b $(BRANCH) --single-branch --depth 1 https://github.com/edrlab/thorium-locales.git
+endif
+	node BuildTools/Scripts/convert-thorium-localizations.js thorium-locales
+ifndef DIR
+	rm -rf thorium-locales
+endif
+	make format

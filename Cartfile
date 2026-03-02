@@ -3,7 +3,7 @@ github "krzyzanowskim/CryptoSwift" ~> 1.8.0
 github "ra1028/DifferenceKit" ~> 1.3.0
 github "readium/Fuzi" ~> 4.0.0
 github "readium/GCDWebServer" ~> 4.0.0
-github "readium/ZIPFoundation" ~> 3.0.0
+github "readium/ZIPFoundation" ~> 3.0.1
 # There's a regression with 2.7.4 in SwiftSoup, because they used iOS 13 APIs without bumping the deployment target.
 github "scinfu/SwiftSoup" == 2.7.1
 github "stephencelis/SQLite.swift" ~> 0.15.0

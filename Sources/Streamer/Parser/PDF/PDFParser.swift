@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -10,13 +10,13 @@ import ReadiumShared
 
 /// Errors thrown during the parsing of the PDF.
 public enum PDFParserError: Error {
-    // The file at 'path' is missing from the container.
+    /// The file at 'path' is missing from the container.
     case missingFile(path: String)
-    // Failed to open the PDF
+    /// Failed to open the PDF
     case openFailed
-    // The PDF is encrypted with a password. This is not supported right now.
+    /// The PDF is encrypted with a password. This is not supported right now.
     case fileEncryptedWithPassword
-    // The LCP for PDF Package is malformed.
+    /// The LCP for PDF Package is malformed.
     case invalidLCPDF
 }
 

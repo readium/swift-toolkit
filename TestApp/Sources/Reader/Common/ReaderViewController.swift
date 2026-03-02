@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -227,7 +227,7 @@ class ReaderViewController<N: Navigator>: UIViewController,
 
     // MARK: - UIPopoverPresentationControllerDelegate
 
-    // Prevent the popOver to be presented fullscreen on iPhones.
+    /// Prevent the popOver to be presented fullscreen on iPhones.
     func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle {
         .none
     }

@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -46,7 +46,6 @@ import SwiftUI
 ///    }
 /// }
 /// ```
-@available(iOS 16.0, *)
 public struct LCPDialog: View {
     public enum ErrorMessage {
         case incorrectPassphrase
@@ -54,17 +53,20 @@ public struct LCPDialog: View {
         var string: String {
             switch self {
             case .incorrectPassphrase:
-                ReadiumLCPLocalizedString("dialog.error.incorrectPassphrase")
+                ReadiumLCPLocalizedString("dialog.errors.incorrectPassphrase")
             }
         }
     }
 
-    public var id: LCPDialog { self }
+    public var id: LCPDialog {
+        self
+    }
 
     private let hint: String?
     private let errorMessage: ErrorMessage?
     private let onSubmit: (String) -> Void
     private let onForgotPassphrase: (() -> Void)?
+    private let onCancel: (() -> Void)?
 
     private let openButtonId = "open"
 
@@ -72,12 +74,14 @@ public struct LCPDialog: View {
         hint: String?,
         errorMessage: ErrorMessage?,
         onSubmit: @escaping (String) -> Void,
-        onForgotPassphrase: (() -> Void)?
+        onForgotPassphrase: (() -> Void)?,
+        onCancel: (() -> Void)? = nil
     ) {
         self.hint = hint
         self.errorMessage = errorMessage
         self.onSubmit = onSubmit
         self.onForgotPassphrase = onForgotPassphrase
+        self.onCancel = onCancel
     }
 
     public init(
@@ -100,7 +104,7 @@ public struct LCPDialog: View {
     @State private var passphrase: String = ""
 
     public var body: some View {
-        NavigationStack {
+        NavigationView {
             ScrollViewReader { scrollProxy in
                 Form {
                     header
@@ -120,20 +124,22 @@ public struct LCPDialog: View {
                     }
                 }
             }
-            .scrollDismissesKeyboard(.interactively)
+            .scrollDismissesKeyboardIfAvailable()
             .navigationTitle(ReadiumLCPLocalizedStringKey("dialog.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(ReadiumLCPLocalizedStringKey("dialog.cancel"), role: .cancel) {
+                    Button(ReadiumLCPLocalizedStringKey("dialog.actions.cancel"), role: .cancel) {
+                        onCancel?()
                         dismiss()
                     }
                 }
             }
         }
+        .navigationViewStyle(.stack)
     }
 
-    @ViewBuilder private var header: some View {
+    private var header: some View {
         Section {
             HStack {
                 Spacer()
@@ -142,31 +148,29 @@ public struct LCPDialog: View {
                         .foregroundStyle(.blue)
                         .font(.system(size: 70))
 
-                    Text(ReadiumLCPLocalizedStringKey("dialog.header"))
+                    Text(ReadiumLCPLocalizedStringKey("dialog.message"))
                         .multilineTextAlignment(.center)
                         .padding(.bottom, 16)
                 }
                 Spacer()
             }
 
-            DisclosureGroup(ReadiumLCPLocalizedStringKey("dialog.details.title")) {
+            DisclosureGroup(ReadiumLCPLocalizedStringKey("dialog.info.title")) {
                 VStack {
-                    Text(ReadiumLCPLocalizedStringKey("dialog.details.body"))
+                    Text(ReadiumLCPLocalizedStringKey("dialog.info.body"))
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Text("[\(ReadiumLCPLocalizedString("dialog.details.more"))](https://www.edrlab.org/readium-lcp/)")
+                    Text("[\(ReadiumLCPLocalizedString("dialog.info.more"))](https://www.edrlab.org/readium-lcp/)")
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
         }
-        .alignmentGuide(.listRowSeparatorLeading) { _ in
-            0
-        }
+        .alignListRowSeparatorLeading()
         .font(.callout)
     }
 
-    @ViewBuilder private var input: some View {
+    private var input: some View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
                 TextField(text: $passphrase) {
@@ -188,16 +192,20 @@ public struct LCPDialog: View {
                     .font(.callout)
                 }
             }
+        } footer: {
+            if let hint = hint {
+                Text(ReadiumLCPLocalizedStringKey("dialog.passphrase.hint", hint))
+            }
         }
         .listRowSeparator(.hidden)
     }
 
     @ViewBuilder private var buttons: some View {
         Section {
-            Button(ReadiumLCPLocalizedStringKey("dialog.continue")) {
+            Button(ReadiumLCPLocalizedStringKey("dialog.actions.continue")) {
                 submit()
             }
-            .bold()
+            .boldIfAvailable()
             .id(openButtonId)
             .disabled(passphrase.isEmpty)
             .frame(maxWidth: .infinity, alignment: .center)
@@ -205,14 +213,10 @@ public struct LCPDialog: View {
 
         if let onForgotPassphrase = onForgotPassphrase {
             Section {
-                Button(ReadiumLCPLocalizedStringKey("dialog.forgotYourPassphrase"), role: .destructive) {
+                Button(ReadiumLCPLocalizedStringKey("dialog.actions.recoverPassphrase"), role: .destructive) {
                     onForgotPassphrase()
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
-            } footer: {
-                if let hint = hint {
-                    Text(ReadiumLCPLocalizedStringKey("dialog.hint", hint))
-                }
             }
         }
     }
@@ -224,6 +228,35 @@ public struct LCPDialog: View {
 
         onSubmit(passphrase)
         dismiss()
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func scrollDismissesKeyboardIfAvailable() -> some View {
+        if #available(iOS 16.0, *) {
+            scrollDismissesKeyboard(.interactively)
+        } else {
+            self
+        }
+    }
+
+    @ViewBuilder
+    func alignListRowSeparatorLeading() -> some View {
+        if #available(iOS 16.0, *) {
+            alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
+        } else {
+            self
+        }
+    }
+
+    @ViewBuilder
+    func boldIfAvailable() -> some View {
+        if #available(iOS 16.0, *) {
+            bold()
+        } else {
+            self
+        }
     }
 }
 
