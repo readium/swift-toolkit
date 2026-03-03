@@ -986,7 +986,14 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             return
         }
 
-        view.backgroundColor = settings.effectiveBackgroundColor.uiColor
+        // When transparent background mode is enabled (e.g. to show a background
+        // image behind the reader), skip setting the opaque theme color. The flag
+        // is set by the React Native ReadiumView wrapper via UserDefaults.
+        if UserDefaults.standard.bool(forKey: "enableTransparentBackground") {
+            view.backgroundColor = .clear
+        } else {
+            view.backgroundColor = settings.effectiveBackgroundColor.uiColor
+        }
         paginationView?.isScrollEnabled = isPaginationViewScrollingEnabled
     }
 
