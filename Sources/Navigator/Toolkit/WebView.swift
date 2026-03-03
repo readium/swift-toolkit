@@ -28,22 +28,22 @@ final class WebView: WKWebView {
 
         super.init(frame: .zero, configuration: config)
 
-        // Transparent background mode: mark as non-opaque BEFORE any content loads.
-        // Setting isOpaque after the first render is not reliable on WKWebView —
-        // the backing store is already committed as opaque and shows the system white fill.
-        if UserDefaults.standard.bool(forKey: "enableTransparentBackground") {
-            isOpaque = false
-            backgroundColor = .clear
-            scrollView.backgroundColor = .clear
-            if #available(iOS 15.0, *) {
-                underPageBackgroundColor = .clear
-            }
+        // ALWAYS mark non-opaque before any content loads.
+        // WKWebView's backing store is committed on first render — setting isOpaque=false
+        // after that point is unreliable. Dark/sepia themes still work because ReadiumCSS
+        // paints the correct background via CSS; the native backgroundColor is only a fallback.
+        isOpaque = false
+        backgroundColor = .clear
+        scrollView.backgroundColor = .clear
+        if #available(iOS 15.0, *) {
+            underPageBackgroundColor = .clear
+        }
 
-            // Inject a MutationObserver at document start so ReadiumCSS's inline
-            // style overrides (setCSSProperties) are intercepted before first paint.
-            // This runs for every page load for the lifetime of this WKWebView,
-            // including the initial loadSpread() which fires before any delegate
-            // user scripts can be added.
+        // For transparent mode only: inject a MutationObserver at document start so
+        // ReadiumCSS's inline style overrides (setCSSProperties) are intercepted before
+        // first paint. This runs for every page load for the lifetime of this WKWebView,
+        // including the initial loadSpread() which fires before any delegate user scripts.
+        if UserDefaults.standard.bool(forKey: "enableTransparentBackground") {
             let transparencyJS = """
             (function() {
               function fix(t) {
