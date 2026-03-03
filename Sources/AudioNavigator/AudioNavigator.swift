@@ -338,6 +338,18 @@ extension AudioNavigator: NarratorDelegate {
             pendingItem = next
             return nil
         }
+
+        // Stop batch accumulation at audio resource boundaries so the narrator
+        // finishes the current resource and the navigator re-routes the next one.
+        if case let .audio(currentRef) = item.content,
+           case let .audio(nextRef) = next.content,
+           !nextRef.href.isEquivalentTo(currentRef.href)
+        {
+            print("[AudioNavigator] nextItemAfter — different href, holding as pending: \(next)")
+            pendingItem = next
+            return nil
+        }
+
         print("[AudioNavigator] nextItemAfter — returning item: \(next)")
         return next
     }
@@ -353,11 +365,18 @@ extension AudioNavigator: NarratorDelegate {
         print("[AudioNavigator] narratorDidFinish")
         guard narrator === activeNarrator else { return }
         if let pending = pendingItem {
-            // A pending item was stashed because the previous narrator didn't
-            // support it. Route it to whichever narrator does (narrator switching).
+            // An item was stashed (different resource or unsupported narrator type).
+            // Route it to whichever narrator supports it.
             startNarrating(from: pending)
         } else {
-            // FIXME: UPDATE status
+            Task {
+                guard let item = await cursor.next() else {
+                    // Truly finished — update status
+                    delegate?.navigator(self, didChangeStatus: .paused)
+                    return
+                }
+                startNarrating(from: item)
+            }
         }
     }
 
