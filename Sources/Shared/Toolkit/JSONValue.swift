@@ -4,10 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import CoreFoundation
 import Foundation
-#if canImport(CoreFoundation)
-    import CoreFoundation
-#endif
 
 /// A type-safe JSON value.
 ///
@@ -19,7 +17,6 @@ import Foundation
     case bool(Bool)
     case string(String)
     case integer(Int)
-    case uint64(UInt64)
     case double(Double)
     case array([JSONValue])
     case object([String: JSONValue])
@@ -54,35 +51,35 @@ import Foundation
             return
         }
 
-        #if canImport(CoreFoundation)
-            // On platforms with CoreFoundation (Apple), NSNumber bridges from Bool, Int, Double.
-            if let number = value as? NSNumber {
-                if CFGetTypeID(number) == CFBooleanGetTypeID() {
-                    self = .bool(number.boolValue)
-                    return
-                }
-                if CFNumberIsFloatType(number) {
-                    self = .double(number.doubleValue)
-                    return
-                }
-                if let int = Int(exactly: number) {
-                    self = .integer(int)
-                } else if let uint = UInt64(exactly: number) {
-                    self = .uint64(uint)
-                } else {
-                    self = .integer(Int(truncating: number))
-                }
+        // On platforms with CoreFoundation (Apple), NSNumber bridges from Bool, Int, Double.
+        if let number = value as? NSNumber {
+            if CFGetTypeID(number) == CFBooleanGetTypeID() {
+                self = .bool(number.boolValue)
                 return
             }
-        #endif
+            if CFNumberIsFloatType(number) {
+                self = .double(number.doubleValue)
+                return
+            }
+            if let int = Int(exactly: number) {
+                self = .integer(int)
+            } else {
+                self = .double(number.doubleValue)
+            }
+            return
+        }
 
-        // Fallback for platforms without CoreFoundation or if value isn't NSNumber
+        // Fallback for if value isn't NSNumber
         if let bool = value as? Bool {
             self = .bool(bool)
         } else if let int = value as? Int {
             self = .integer(int)
         } else if let uint = value as? UInt64 {
-            self = .uint64(uint)
+            if let int = Int(exactly: uint) {
+                self = .integer(int)
+            } else {
+                self = .double(Double(uint))
+            }
         } else if let double = value as? Double {
             self = .double(double)
         } else if let array = value as? [Any] {
@@ -116,8 +113,6 @@ import Foundation
             return value
         case let .integer(value):
             return value
-        case let .uint64(value):
-            return value
         case let .double(value):
             return value
         case let .array(value):
@@ -139,20 +134,18 @@ import Foundation
 
     public var integer: Int? {
         if case let .integer(v) = self { return v }
-        if case let .uint64(v) = self { return Int(exactly: v) }
         return nil
     }
 
     public var uint64: UInt64? {
-        if case let .uint64(v) = self { return v }
         if case let .integer(v) = self { return UInt64(exactly: v) }
+        if case let .double(v) = self { return UInt64(exactly: v) }
         return nil
     }
 
     public var double: Double? {
         if case let .double(v) = self { return v }
         if case let .integer(v) = self { return Double(v) }
-        if case let .uint64(v) = self { return Double(v) }
         return nil
     }
 
@@ -235,12 +228,6 @@ import Foundation
             return
         }
 
-        // Attempt to decode UInt64
-        if let uint64Value = try? container.decode(UInt64.self) {
-            self = .uint64(uint64Value)
-            return
-        }
-
         // Attempt to decode floating point numbers
         if let doubleValue = try? container.decode(Double.self) {
             self = .double(doubleValue)
@@ -283,8 +270,6 @@ import Foundation
         case let .string(value):
             try container.encode(value)
         case let .integer(value):
-            try container.encode(value)
-        case let .uint64(value):
             try container.encode(value)
         case let .double(value):
             try container.encode(value)

@@ -28,9 +28,9 @@ class JSONValueTests: XCTestCase {
     func testInitializeFromUInt64() {
         // Small values are canonicalized to .integer if they fit.
         XCTAssertEqual(JSONValue(UInt64(42)), .integer(42))
-        // Large values that don't fit in Int (on the current platform) use .uint64.
+        // Large values that don't fit in Int (on the current platform) use .double.
         let largeValue = UInt64.max
-        XCTAssertEqual(JSONValue(largeValue), .uint64(largeValue))
+        XCTAssertEqual(JSONValue(largeValue), .double(Double(largeValue)))
     }
 
     func testInitializeFromDouble() {
@@ -62,7 +62,6 @@ class JSONValueTests: XCTestCase {
         XCTAssertEqual(JSONValue.bool(true).any as? Bool, true)
         XCTAssertEqual(JSONValue.string("hello").any as? String, "hello")
         XCTAssertEqual(JSONValue.integer(42).any as? Int, 42)
-        XCTAssertEqual(JSONValue.uint64(42).any as? UInt64, 42)
         XCTAssertEqual(JSONValue.double(3.14).any as? Double, 3.14)
         XCTAssertEqual((JSONValue.array([.integer(1)]).any as? [Int])?[0], 1)
         XCTAssertEqual((JSONValue.object(["k": .integer(1)]).any as? [String: Int])?["k"], 1)
@@ -119,13 +118,6 @@ class JSONValueTests: XCTestCase {
         XCTAssertEqual(original, decoded)
     }
 
-    func testCodableUInt64() throws {
-        let val: JSONValue = .uint64(UInt64.max)
-        let data = try JSONEncoder().encode(val)
-        let decoded = try JSONDecoder().decode(JSONValue.self, from: data)
-        XCTAssertEqual(decoded, .uint64(UInt64.max))
-    }
-
     func testAsJSONValue() {
         let data = #"{"foo": "bar"}"#.data(using: .utf8)!
         let result: ReadResult<Data> = .success(data)
@@ -159,13 +151,13 @@ class JSONValueTests: XCTestCase {
     func testInitializeFromNestedCollections() {
         let dict: [String: Any] = [
             "nested": [
-                "array": [1, 2, 3] as [Any]
-            ] as [String: Any]
+                "array": [1, 2, 3] as [Any],
+            ] as [String: Any],
         ]
         XCTAssertEqual(JSONValue(dict), .object([
             "nested": .object([
-                "array": .array([.integer(1), .integer(2), .integer(3)])
-            ])
+                "array": .array([.integer(1), .integer(2), .integer(3)]),
+            ]),
         ]))
     }
 
