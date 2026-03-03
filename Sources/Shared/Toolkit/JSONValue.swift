@@ -14,7 +14,7 @@ import Foundation
 /// This enum is used to represent JSON values in a type-safe way, avoiding the
 /// use of `any Sendable` or `Any`. It guarantees that the value is Sendable and
 /// Hashable.
-public enum JSONValue: Equatable, Sendable, Hashable {
+@_spi(Internal) public enum JSONValue: Sendable, Hashable {
     case null
     case bool(Bool)
     case string(String)
@@ -169,44 +169,45 @@ public enum JSONValue: Equatable, Sendable, Hashable {
 
 // MARK: - ExpressibleByLiteral Conformance
 
-extension JSONValue: ExpressibleByNilLiteral {
+@_spi(Internal) extension JSONValue: ExpressibleByNilLiteral {
     public init(nilLiteral: ()) {
         self = .null
     }
 }
 
-extension JSONValue: ExpressibleByBooleanLiteral {
+@_spi(Internal) extension JSONValue: ExpressibleByBooleanLiteral {
     public init(booleanLiteral value: Bool) {
         self = .bool(value)
     }
 }
 
-extension JSONValue: ExpressibleByStringLiteral {
+@_spi(Internal) extension JSONValue: ExpressibleByStringLiteral {
     public init(stringLiteral value: String) {
         self = .string(value)
     }
 }
 
-extension JSONValue: ExpressibleByIntegerLiteral {
+@_spi(Internal) extension JSONValue: ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int) {
         self = .integer(value)
     }
 }
 
-extension JSONValue: ExpressibleByFloatLiteral {
+@_spi(Internal) extension JSONValue: ExpressibleByFloatLiteral {
     public init(floatLiteral value: Double) {
         self = .double(value)
     }
 }
 
-extension JSONValue: ExpressibleByArrayLiteral {
+@_spi(Internal) extension JSONValue: ExpressibleByArrayLiteral {
     public init(arrayLiteral elements: JSONValue...) {
         self = .array(elements)
     }
 }
 
-extension JSONValue: ExpressibleByDictionaryLiteral {
+@_spi(Internal) extension JSONValue: ExpressibleByDictionaryLiteral {
     public init(dictionaryLiteral elements: (String, JSONValue)...) {
         self = .object(Dictionary(uniqueKeysWithValues: elements))
     }
 }
+
