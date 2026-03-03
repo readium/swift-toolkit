@@ -211,3 +211,87 @@ import Foundation
     }
 }
 
+// MARK: - Codable Conformance
+
+@_spi(Internal) extension JSONValue: Codable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+
+        // Always try to decode Nil first
+        if container.decodeNil() {
+            self = .null
+            return
+        }
+
+        // Attempt to decode boolean
+        if let boolValue = try? container.decode(Bool.self) {
+            self = .bool(boolValue)
+            return
+        }
+
+        // Attempt to decode Int
+        if let intValue = try? container.decode(Int.self) {
+            self = .integer(intValue)
+            return
+        }
+
+        // Attempt to decode UInt64
+        if let uint64Value = try? container.decode(UInt64.self) {
+            self = .uint64(uint64Value)
+            return
+        }
+
+        // Attempt to decode floating point numbers
+        if let doubleValue = try? container.decode(Double.self) {
+            self = .double(doubleValue)
+            return
+        }
+
+        // Attempt to decode string
+        if let stringValue = try? container.decode(String.self) {
+            self = .string(stringValue)
+            return
+        }
+
+        // Attempt to decode array
+        if let arrayValue = try? container.decode([JSONValue].self) {
+            self = .array(arrayValue)
+            return
+        }
+
+        // Attempt to decode object
+        if let objectValue = try? container.decode([String: JSONValue].self) {
+            self = .object(objectValue)
+            return
+        }
+
+        // If all attempts fail, throw an error
+        throw DecodingError.dataCorruptedError(
+            in: container,
+            debugDescription: "Data cannot be decoded as a valid JSONValue."
+        )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+
+        switch self {
+        case .null:
+            try container.encodeNil()
+        case let .bool(value):
+            try container.encode(value)
+        case let .string(value):
+            try container.encode(value)
+        case let .integer(value):
+            try container.encode(value)
+        case let .uint64(value):
+            try container.encode(value)
+        case let .double(value):
+            try container.encode(value)
+        case let .array(value):
+            try container.encode(value)
+        case let .object(value):
+            try container.encode(value)
+        }
+    }
+}
