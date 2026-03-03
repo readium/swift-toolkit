@@ -137,6 +137,7 @@
 		4DAD724BAB72A5C6D2473770 /* Collection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F89BC365BDD19BE84F4D3B5 /* Collection.swift */; };
 		4DB4C10CB9AB5D38C56C1609 /* StringEncoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB11EA964FBB42D44C3E4A50 /* StringEncoding.swift */; };
 		4E84353322A4CDBBCAD6C070 /* TailCachingResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571BBA35C6F496B007C5158C /* TailCachingResource.swift */; };
+		4F5523AB7E92BAA3AD01A88D /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC3487F36FB4BD0BDA0F12E1 /* JSONValue.swift */; };
 		4F9DAB2373AE0B6225D2C589 /* InputObserving.swift in Sources */ = {isa = PBXBuildFile; fileRef = 421AE163B6A0248637504A07 /* InputObserving.swift */; };
 		4FDA33D3776855A106D40A66 /* AudioPreferencesEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C32FDF5E2D35BE71E45ED0 /* AudioPreferencesEditor.swift */; };
 		50736D15B35B2C53140A9C14 /* ControlFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55BC4119B8937D17ED80B1AB /* ControlFlow.swift */; };
@@ -380,7 +381,6 @@
 		E6554CEB01222DA2255163D5 /* AVTTSEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15C9123EA383ED81DE0393A /* AVTTSEngine.swift */; };
 		E6AC10CCF9711168BE2BE85C /* StringSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E3543F628B017E9BF65DD08 /* StringSearchService.swift */; };
 		E75D342B54BD25242A29B105 /* Publication+EPUB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 508E0CD4F9F02CC851E6D1E1 /* Publication+EPUB.swift */; };
-		E766A54C09294FDF5A827930 /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06D91EB0C7AC9E96019D36F0 /* JSONValue.swift */; };
 		E782980A49279BCB0C70C24C /* OPDSCopies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 819D931708B3EE95CF9ADFED /* OPDSCopies.swift */; };
 		E8293787CB5E5CECE38A63B2 /* Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54699BC0E00F327E67908F6A /* Encryption.swift */; };
 		E8C3B837B9FB2ABCB5F82380 /* Measure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FEE01FAD273864D0908C358 /* Measure.swift */; };
@@ -520,7 +520,6 @@
 		067E58BE65BCB4F8D1E8B911 /* Loggable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loggable.swift; sourceTree = "<group>"; };
 		06AD6A912937694B20AD54C9 /* Configurable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configurable.swift; sourceTree = "<group>"; };
 		06C4BDFF128C774BCD660419 /* ReadiumCSS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadiumCSS.swift; sourceTree = "<group>"; };
-		06D91EB0C7AC9E96019D36F0 /* JSONValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONValue.swift; sourceTree = "<group>"; };
 		07B5469E40752E598C070E5B /* OPDSParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSParser.swift; sourceTree = "<group>"; };
 		0812058DB4FBFDF0A862E57E /* KeyModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyModifiers.swift; sourceTree = "<group>"; };
 		0885992D0F70AD0B493985CE /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -772,6 +771,7 @@
 		AB528B8FB604E0953E345D26 /* Range.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Range.swift; sourceTree = "<group>"; };
 		ABAF1D0444B94E2CDD80087D /* PDFKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFKit.swift; sourceTree = "<group>"; };
 		AC150FB45A4AB33AF516AE09 /* DefaultArchiveOpener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultArchiveOpener.swift; sourceTree = "<group>"; };
+		AC3487F36FB4BD0BDA0F12E1 /* JSONValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONValue.swift; sourceTree = "<group>"; };
 		AC811653B33761089E270C4A /* Asset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Asset.swift; sourceTree = "<group>"; };
 		AC8639886BD43362741AADD0 /* HREFNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HREFNormalizer.swift; sourceTree = "<group>"; };
 		ACB32E55E1F3CAF1737979CC /* DataCompression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataCompression.swift; sourceTree = "<group>"; };
@@ -1402,7 +1402,6 @@
 			isa = PBXGroup;
 			children = (
 				529B55BE6996FCDC1082BF0A /* JSON.swift */,
-				06D91EB0C7AC9E96019D36F0 /* JSONValue.swift */,
 				491E1402A31F88054442D58F /* Keychain.swift */,
 				4FEE01FAD273864D0908C358 /* Measure.swift */,
 				218BE3110D2886B252A769A2 /* UTI.swift */,
@@ -1911,6 +1910,7 @@
 				10FB29EDCCE5910C869295F1 /* Either.swift */,
 				D555435E2BADB2B877FD50C7 /* FileExtension.swift */,
 				EDA827FC94F5CB3F9032028F /* JSON.swift */,
+				AC3487F36FB4BD0BDA0F12E1 /* JSONValue.swift */,
 				68FF131876FA3A63025F2662 /* Language.swift */,
 				5BC6AE42A31D77B548CB0BB4 /* Observable.swift */,
 				38984FD65CFF1D54FF7F794F /* ReadiumLocalizedString.swift */,
@@ -2590,7 +2590,6 @@
 				330690F62A5F240B77A14337 /* Date+ISO8601.swift in Sources */,
 				674BEEF110667C3051296E9B /* Double.swift in Sources */,
 				DDD0C8AC27EF8D1A893DF6CC /* JSON.swift in Sources */,
-				E766A54C09294FDF5A827930 /* JSONValue.swift in Sources */,
 				C5D80E7716B243980FD3DFE6 /* Keychain.swift in Sources */,
 				E8C3B837B9FB2ABCB5F82380 /* Measure.swift in Sources */,
 				F631EA324143E669070523F3 /* NSRegularExpression.swift in Sources */,
@@ -2768,6 +2767,7 @@
 				5E7924342D113D94AE3A098C /* InMemoryPositionsService.swift in Sources */,
 				39B1DDE3571AB3F3CC6824F4 /* JSON.swift in Sources */,
 				D84BF71D6840FE62D7701073 /* JSONFormatSniffer.swift in Sources */,
+				4F5523AB7E92BAA3AD01A88D /* JSONValue.swift in Sources */,
 				4D4915BB3847EF285362CF50 /* LCPLicenseFormatSniffer.swift in Sources */,
 				56CB87DACCA10F737710BFF6 /* Language.swift in Sources */,
 				AD572C6A7AD031FEC40A0BD7 /* LanguageFormatSniffer.swift in Sources */,
