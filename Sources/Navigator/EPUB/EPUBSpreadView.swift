@@ -109,6 +109,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         scrollView.alpha = 0
 
         webView.backgroundColor = UIColor.clear
+        if UserDefaults.standard.bool(forKey: "enableTransparentBackground") {
+            webView.isOpaque = false
+        }
         scrollView.backgroundColor = UIColor.clear
 
         webView.allowsBackForwardNavigationGestures = false

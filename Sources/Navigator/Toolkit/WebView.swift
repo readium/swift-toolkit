@@ -28,6 +28,46 @@ final class WebView: WKWebView {
 
         super.init(frame: .zero, configuration: config)
 
+        // Transparent background mode: mark as non-opaque BEFORE any content loads.
+        // Setting isOpaque after the first render is not reliable on WKWebView —
+        // the backing store is already committed as opaque and shows the system white fill.
+        if UserDefaults.standard.bool(forKey: "enableTransparentBackground") {
+            isOpaque = false
+            backgroundColor = .clear
+            scrollView.backgroundColor = .clear
+            if #available(iOS 15.0, *) {
+                underPageBackgroundColor = .clear
+            }
+
+            // Inject a MutationObserver at document start so ReadiumCSS's inline
+            // style overrides (setCSSProperties) are intercepted before first paint.
+            // This runs for every page load for the lifetime of this WKWebView,
+            // including the initial loadSpread() which fires before any delegate
+            // user scripts can be added.
+            let transparencyJS = """
+            (function() {
+              function fix(t) {
+                if (!t || !t.style) return;
+                t.style.setProperty('background-color', 'transparent', 'important');
+                t.style.setProperty('background', 'transparent', 'important');
+                t.style.setProperty('--RS__backgroundColor', 'transparent', 'important');
+                t.style.setProperty('--USER__backgroundColor', 'transparent', 'important');
+              }
+              new MutationObserver(function(muts) {
+                muts.forEach(function(m) {
+                  if (m.attributeName === 'style' || m.attributeName === 'class') fix(m.target);
+                });
+              }).observe(document.documentElement, {attributes: true, attributeFilter: ['style', 'class']});
+              fix(document.documentElement);
+            })();
+            """
+            configuration.userContentController.addUserScript(WKUserScript(
+                source: transparencyJS,
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: true
+            ))
+        }
+
         #if DEBUG && swift(>=5.8)
             if #available(macOS 13.3, iOS 16.4, *) {
                 isInspectable = true
