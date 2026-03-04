@@ -25,7 +25,7 @@ public enum JSONValue: Sendable, Hashable, Loggable {
     ///
     /// This initializer attempts to convert the given value to a `JSONValue`.
     /// It handles nested arrays and dictionaries recursively.
-    package init?(_ value: Any?) {
+    public init?(_ value: Any?) {
         guard let value = value else {
             return nil
         }
