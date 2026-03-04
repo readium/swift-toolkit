@@ -69,16 +69,7 @@ public enum JSONValue: Sendable, Hashable {
             return
         }
 
-        // Fallback for if value isn't NSNumber
-        if let bool = value as? Bool {
-            self = .bool(bool)
-        } else if let int = value as? Int {
-            self = .integer(int)
-        } else if let uint = value as? UInt64 {
-            self = .integer(Int(clamping: uint))
-        } else if let double = value as? Double {
-            self = .double(double)
-        } else if let array = value as? [Any] {
+        if let array = value as? [Any] {
             self = .array(array.compactMap { JSONValue($0) })
         } else if let dict = value as? [String: Any] {
             var object: [String: JSONValue] = [:]
