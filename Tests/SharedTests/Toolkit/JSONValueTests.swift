@@ -4,174 +4,235 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import Foundation
 @testable import ReadiumShared
-import XCTest
+import Testing
 
-class JSONValueTests: XCTestCase {
-    func testInitializeFromNil() {
-        XCTAssertNil(JSONValue(nil as Any?))
+@Suite struct JSONValueTests {
+    @Suite struct Initialization {
+        @Test func fromNil() {
+            #expect(JSONValue(nil as Any?) == nil)
+        }
+
+        @Test func fromBool() {
+            #expect(JSONValue(true) == .bool(true))
+            #expect(JSONValue(false) == .bool(false))
+        }
+
+        @Test func fromString() {
+            #expect(JSONValue("hello") == .string("hello"))
+        }
+
+        @Test func fromInt() {
+            #expect(JSONValue(42) == .integer(42))
+            #expect(JSONValue(-42) == .integer(-42))
+        }
+
+        @Test func fromUInt64() {
+            #expect(JSONValue(UInt64(42)) == .integer(42))
+            #expect(JSONValue(UInt64.max) == .integer(Int.max))
+        }
+
+        @Test func fromDouble() {
+            #expect(JSONValue(3.14) == .double(3.14))
+        }
+
+        @Test func fromNSNull() {
+            #expect(JSONValue(NSNull()) == .null)
+        }
+
+        @Test func fromNSNumber() {
+            #expect(JSONValue(NSNumber(value: true)) == .bool(true))
+            #expect(JSONValue(NSNumber(value: 42)) == .integer(42))
+            #expect(JSONValue(NSNumber(value: -42)) == .integer(-42))
+            #expect(JSONValue(NSNumber(value: 3.14)) == .double(3.14))
+        }
+
+        @Test func fromNSNumberClamping() {
+            #expect(JSONValue(NSNumber(value: UInt64.max)) == .integer(Int.max))
+            #expect(JSONValue(NSNumber(value: Int64.min)) == .integer(Int.min))
+        }
+
+        @Test func fromArray() {
+            let array: [Any] = ["hello", 42, true]
+            #expect(JSONValue(array) == .array([.string("hello"), .integer(42), .bool(true)]))
+        }
+
+        @Test func fromObject() {
+            let dict: [String: Any] = ["key": "value", "count": 1]
+            #expect(JSONValue(dict) == .object(["key": .string("value"), "count": .integer(1)]))
+        }
+
+        @Test func fromNestedCollections() {
+            let dict: [String: Any] = [
+                "nested": [
+                    "array": [1, 2, 3] as [Any],
+                ] as [String: Any],
+            ]
+            #expect(JSONValue(dict) == .object([
+                "nested": .object([
+                    "array": .array([.integer(1), .integer(2), .integer(3)]),
+                ]),
+            ]))
+        }
+
+        @Test func fastPath() {
+            let original: JSONValue = .string("test")
+            #expect(JSONValue(original) == original)
+
+            let object: [String: JSONValue] = ["k": .integer(1)]
+            #expect(JSONValue(object) == .object(object))
+
+            let array: [JSONValue] = [.bool(true)]
+            #expect(JSONValue(array) == .array(array))
+        }
     }
 
-    func testInitializeFromBool() {
-        XCTAssertEqual(JSONValue(true), .bool(true))
-        XCTAssertEqual(JSONValue(false), .bool(false))
+    @Suite struct Accessors {
+        @Test func integerAccessors() {
+            let val: JSONValue = .integer(42)
+            #expect(val.integer == 42)
+            #expect(val.double == 42.0)
+            #expect(val.string == nil)
+        }
+
+        @Test func stringAccessors() {
+            let val: JSONValue = .string("test")
+            #expect(val.string == "test")
+            #expect(val.integer == nil)
+        }
     }
 
-    func testInitializeFromString() {
-        XCTAssertEqual(JSONValue("hello"), .string("hello"))
+    @Suite struct AnyConversion {
+        @Test func null() {
+            #expect(JSONValue.null.any is NSNull)
+        }
+
+        @Test func bool() {
+            #expect(JSONValue.bool(true).any as? Bool == true)
+        }
+
+        @Test func string() {
+            #expect(JSONValue.string("hello").any as? String == "hello")
+        }
+
+        @Test func integer() {
+            #expect(JSONValue.integer(42).any as? Int == 42)
+        }
+
+        @Test func double() {
+            #expect(JSONValue.double(3.14).any as? Double == 3.14)
+        }
+
+        @Test func array() {
+            #expect((JSONValue.array([.integer(1)]).any as? [Int])?[0] == 1)
+        }
+
+        @Test func object() {
+            #expect((JSONValue.object(["k": .integer(1)]).any as? [String: Int])?["k"] == 1)
+        }
     }
 
-    func testInitializeFromInt() {
-        XCTAssertEqual(JSONValue(42), .integer(42))
-        XCTAssertEqual(JSONValue(-42), .integer(-42))
+    @Suite struct LiteralConformance {
+        @Test func nilLiteral() {
+            let val: JSONValue = nil
+            #expect(val == .null)
+        }
+
+        @Test func boolLiteral() {
+            let val: JSONValue = true
+            #expect(val == .bool(true))
+        }
+
+        @Test func stringLiteral() {
+            let val: JSONValue = "hello"
+            #expect(val == .string("hello"))
+        }
+
+        @Test func integerLiteral() {
+            let val: JSONValue = 42
+            #expect(val == .integer(42))
+        }
+
+        @Test func floatLiteral() {
+            let val: JSONValue = 3.14
+            #expect(val == .double(3.14))
+        }
+
+        @Test func arrayLiteral() {
+            let val: JSONValue = ["a", 1]
+            #expect(val == .array([.string("a"), .integer(1)]))
+        }
+
+        @Test func dictionaryLiteral() {
+            let val: JSONValue = ["k": "v"]
+            #expect(val == .object(["k": .string("v")]))
+        }
     }
 
-    func testInitializeFromUInt64() {
-        XCTAssertEqual(JSONValue(UInt64(42)), .integer(42))
-        XCTAssertEqual(JSONValue(UInt64.max), .integer(Int.max))
+    @Suite struct Codable {
+        @Test func roundTrip() throws {
+            let original: JSONValue = [
+                "string": "value",
+                "int": 42,
+                "bool": true,
+                "null": nil,
+                "array": [1, 2, 3],
+                "object": ["k": "v"],
+            ]
+            let data = try JSONEncoder().encode(original)
+            let decoded = try JSONDecoder().decode(JSONValue.self, from: data)
+            #expect(original == decoded)
+        }
+
+        @Test func decodesIntegerNotBool() throws {
+            let data = #"{"zero": 0, "one": 1, "two": 2}"#.data(using: .utf8)!
+            let decoded = try JSONDecoder().decode(JSONValue.self, from: data)
+            #expect(decoded == .object([
+                "zero": .integer(0),
+                "one": .integer(1),
+                "two": .integer(2),
+            ]))
+        }
     }
 
-    func testInitializeFromNSNumberClamping() {
-        XCTAssertEqual(JSONValue(NSNumber(value: UInt64.max)), .integer(Int.max))
-        XCTAssertEqual(JSONValue(NSNumber(value: Int64.min)), .integer(Int.min))
-    }
+    @Suite struct ReadResultExtensions {
+        @Suite struct NonOptionalData {
+            @Test func asJSONValue() {
+                let data = #"{"foo": "bar"}"#.data(using: .utf8)!
+                let result: ReadResult<Data> = .success(data)
+                #expect(result.asJSONValue() == .success(.object(["foo": .string("bar")])))
+            }
 
-    func testInitializeFromDouble() {
-        XCTAssertEqual(JSONValue(3.14), .double(3.14))
-    }
+            @Test func asJSONObjectValue() {
+                let data = #"{"foo": "bar"}"#.data(using: .utf8)!
+                let result: ReadResult<Data> = .success(data)
+                #expect(result.asJSONObjectValue() == .success(["foo": .string("bar")]))
+            }
+        }
 
-    func testInitializeFromArray() {
-        let array: [Any] = ["hello", 42, true]
-        XCTAssertEqual(JSONValue(array), .array([.string("hello"), .integer(42), .bool(true)]))
-    }
+        @Suite struct OptionalData {
+            @Test func asJSONValue() {
+                let data = #"{"foo": "bar"}"#.data(using: .utf8)!
+                let result: ReadResult<Data?> = .success(data)
+                #expect(result.asJSONValue() == .success(.object(["foo": .string("bar")])))
+            }
 
-    func testInitializeFromObject() {
-        let dict: [String: Any] = ["key": "value", "count": 1]
-        XCTAssertEqual(JSONValue(dict), .object(["key": .string("value"), "count": .integer(1)]))
-    }
+            @Test func asJSONValueWithNilData() {
+                let result: ReadResult<Data?> = .success(nil)
+                #expect(result.asJSONValue() == .success(nil))
+            }
 
-    func testInitializeFromNSNull() {
-        XCTAssertEqual(JSONValue(NSNull()), .null)
-    }
+            @Test func asJSONObjectValue() {
+                let data = #"{"foo": "bar"}"#.data(using: .utf8)!
+                let result: ReadResult<Data?> = .success(data)
+                #expect(result.asJSONObjectValue() == .success(["foo": .string("bar")]))
+            }
 
-    func testInitializeFromNSNumber() {
-        XCTAssertEqual(JSONValue(NSNumber(value: true)), .bool(true))
-        XCTAssertEqual(JSONValue(NSNumber(value: 42)), .integer(42))
-        XCTAssertEqual(JSONValue(NSNumber(value: -42)), .integer(-42))
-        XCTAssertEqual(JSONValue(NSNumber(value: 3.14)), .double(3.14))
-    }
-
-    func testAnyProperty() {
-        XCTAssertTrue(JSONValue.null.any is NSNull)
-        XCTAssertEqual(JSONValue.bool(true).any as? Bool, true)
-        XCTAssertEqual(JSONValue.string("hello").any as? String, "hello")
-        XCTAssertEqual(JSONValue.integer(42).any as? Int, 42)
-        XCTAssertEqual(JSONValue.double(3.14).any as? Double, 3.14)
-        XCTAssertEqual((JSONValue.array([.integer(1)]).any as? [Int])?[0], 1)
-        XCTAssertEqual((JSONValue.object(["k": .integer(1)]).any as? [String: Int])?["k"], 1)
-    }
-
-    func testAccessors() {
-        let val: JSONValue = .integer(42)
-        XCTAssertEqual(val.integer, 42)
-        XCTAssertEqual(val.double, 42.0)
-        XCTAssertNil(val.string)
-
-        let stringVal: JSONValue = .string("test")
-        XCTAssertEqual(stringVal.string, "test")
-        XCTAssertNil(stringVal.integer)
-    }
-
-    func testLiteralConformance() {
-        let null: JSONValue = nil
-        XCTAssertEqual(null, .null)
-
-        let bool: JSONValue = true
-        XCTAssertEqual(bool, .bool(true))
-
-        let string: JSONValue = "hello"
-        XCTAssertEqual(string, .string("hello"))
-
-        let int: JSONValue = 42
-        XCTAssertEqual(int, .integer(42))
-
-        let double: JSONValue = 3.14
-        XCTAssertEqual(double, .double(3.14))
-
-        let array: JSONValue = ["a", 1]
-        XCTAssertEqual(array, .array([.string("a"), .integer(1)]))
-
-        let object: JSONValue = ["k": "v"]
-        XCTAssertEqual(object, .object(["k": .string("v")]))
-    }
-
-    func testCodable() throws {
-        let original: JSONValue = [
-            "string": "value",
-            "int": 42,
-            "bool": true,
-            "null": nil,
-            "array": [1, 2, 3],
-            "object": ["k": "v"],
-        ]
-
-        let data = try JSONEncoder().encode(original)
-        let decoded = try JSONDecoder().decode(JSONValue.self, from: data)
-
-        XCTAssertEqual(original, decoded)
-    }
-
-    func testAsJSONValue() {
-        let data = #"{"foo": "bar"}"#.data(using: .utf8)!
-        let result: ReadResult<Data> = .success(data)
-        XCTAssertEqual(result.asJSONValue(), .success(.object(["foo": .string("bar")])))
-    }
-
-    func testAsJSONObjectValue() {
-        let data = #"{"foo": "bar"}"#.data(using: .utf8)!
-        let result: ReadResult<Data> = .success(data)
-        XCTAssertEqual(result.asJSONObjectValue(), .success(["foo": .string("bar")]))
-    }
-
-    func testAsJSONValueOptional() {
-        let data = #"{"foo": "bar"}"#.data(using: .utf8)!
-        let result: ReadResult<Data?> = .success(data)
-        XCTAssertEqual(result.asJSONValue(), .success(.object(["foo": .string("bar")])))
-
-        let nilResult: ReadResult<Data?> = .success(nil)
-        XCTAssertEqual(nilResult.asJSONValue(), .success(nil))
-    }
-
-    func testAsJSONObjectValueOptional() {
-        let data = #"{"foo": "bar"}"#.data(using: .utf8)!
-        let result: ReadResult<Data?> = .success(data)
-        XCTAssertEqual(result.asJSONObjectValue(), .success(["foo": .string("bar")]))
-
-        let nilResult: ReadResult<Data?> = .success(nil)
-        XCTAssertEqual(nilResult.asJSONObjectValue(), .success(nil))
-    }
-
-    func testInitializeFromNestedCollections() {
-        let dict: [String: Any] = [
-            "nested": [
-                "array": [1, 2, 3] as [Any],
-            ] as [String: Any],
-        ]
-        XCTAssertEqual(JSONValue(dict), .object([
-            "nested": .object([
-                "array": .array([.integer(1), .integer(2), .integer(3)]),
-            ]),
-        ]))
-    }
-
-    func testInitializeFastPath() {
-        let original: JSONValue = .string("test")
-        XCTAssertEqual(JSONValue(original), original)
-
-        let object: [String: JSONValue] = ["k": .integer(1)]
-        XCTAssertEqual(JSONValue(object), .object(object))
-
-        let array: [JSONValue] = [.bool(true)]
-        XCTAssertEqual(JSONValue(array), .array(array))
+            @Test func asJSONObjectValueWithNilData() {
+                let result: ReadResult<Data?> = .success(nil)
+                #expect(result.asJSONObjectValue() == .success(nil))
+            }
+        }
     }
 }
