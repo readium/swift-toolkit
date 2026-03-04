@@ -25,15 +25,15 @@ public enum FileSystemError: Error {
     /// Returns `nil` if the error is not related to the file system.
     public static func wrap(_ error: Error) -> FileSystemError? {
         if let error = error as? CocoaError {
-            switch error.code {
+            return switch error.code {
             case .fileNoSuchFile, .fileReadNoSuchFile:
-                return .fileNotFound(error)
+                .fileNotFound(error)
 
             case .fileReadNoPermission, .fileWriteNoPermission:
-                return .forbidden(error)
+                .forbidden(error)
 
             case .fileWriteOutOfSpace:
-                return .outOfSpace(error)
+                .outOfSpace(error)
 
             case
                 .fileLocking,
@@ -48,10 +48,10 @@ public enum FileSystemError: Error {
                 .fileWriteUnknown,
                 .fileWriteUnsupportedScheme,
                 .fileWriteVolumeReadOnly:
-                return .io(error)
+                .io(error)
 
             default:
-                return nil
+                nil
             }
         } else if let error = error as? POSIXError {
             return switch error.code {
@@ -81,7 +81,7 @@ public enum FileSystemError: Error {
                 .ENOLCK:
                 .io(error)
             default:
-                return nil
+                nil
             }
         }
         return nil

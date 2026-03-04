@@ -129,6 +129,8 @@ extension ReadiumShared.FileSystemError: UserErrorConvertible {
                 return "error_not_found".localized
             case .forbidden:
                 return "error_forbidden".localized
+            case .outOfSpace:
+                return "error_out_of_space".localized
             case .io:
                 return "error_io".localized
             }
