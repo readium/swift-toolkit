@@ -67,7 +67,7 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
     /// If a non-fatal parsing error occurs, it will be logged through `warnings`.
     public init(json: JSONValue, warnings: WarningLogger? = nil) throws {
         guard var jsonDict = JSONDictionary(json) else {
-            throw JSONError.parsing(Publication.self)
+            throw JSONError.parsing(Manifest.self)
         }
 
         context = parseArray(jsonDict.pop("@context"), allowingSingle: true)
