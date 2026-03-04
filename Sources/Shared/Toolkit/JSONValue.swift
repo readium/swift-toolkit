@@ -61,10 +61,10 @@ public enum JSONValue: Sendable, Hashable {
                 self = .double(number.doubleValue)
                 return
             }
-            if let int = Int(exactly: number) {
-                self = .integer(int)
+            if number.compare(0) == .orderedAscending {
+                self = .integer(Int(clamping: number.int64Value))
             } else {
-                self = .double(number.doubleValue)
+                self = .integer(Int(clamping: number.uint64Value))
             }
             return
         }
@@ -75,11 +75,7 @@ public enum JSONValue: Sendable, Hashable {
         } else if let int = value as? Int {
             self = .integer(int)
         } else if let uint = value as? UInt64 {
-            if let int = Int(exactly: uint) {
-                self = .integer(int)
-            } else {
-                self = .double(Double(uint))
-            }
+            self = .integer(Int(clamping: uint))
         } else if let double = value as? Double {
             self = .double(double)
         } else if let array = value as? [Any] {
@@ -134,12 +130,6 @@ public enum JSONValue: Sendable, Hashable {
 
     public var integer: Int? {
         if case let .integer(v) = self { return v }
-        return nil
-    }
-
-    public var uint64: UInt64? {
-        if case let .integer(v) = self { return UInt64(exactly: v) }
-        if case let .double(v) = self { return UInt64(exactly: v) }
         return nil
     }
 

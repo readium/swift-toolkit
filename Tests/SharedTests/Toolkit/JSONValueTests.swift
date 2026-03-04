@@ -23,14 +23,17 @@ class JSONValueTests: XCTestCase {
 
     func testInitializeFromInt() {
         XCTAssertEqual(JSONValue(42), .integer(42))
+        XCTAssertEqual(JSONValue(-42), .integer(-42))
     }
 
     func testInitializeFromUInt64() {
-        // Small values are canonicalized to .integer if they fit.
         XCTAssertEqual(JSONValue(UInt64(42)), .integer(42))
-        // Large values that don't fit in Int (on the current platform) use .double.
-        let largeValue = UInt64.max
-        XCTAssertEqual(JSONValue(largeValue), .double(Double(largeValue)))
+        XCTAssertEqual(JSONValue(UInt64.max), .integer(Int.max))
+    }
+
+    func testInitializeFromNSNumberClamping() {
+        XCTAssertEqual(JSONValue(NSNumber(value: UInt64.max)), .integer(Int.max))
+        XCTAssertEqual(JSONValue(NSNumber(value: Int64.min)), .integer(Int.min))
     }
 
     func testInitializeFromDouble() {
@@ -54,6 +57,7 @@ class JSONValueTests: XCTestCase {
     func testInitializeFromNSNumber() {
         XCTAssertEqual(JSONValue(NSNumber(value: true)), .bool(true))
         XCTAssertEqual(JSONValue(NSNumber(value: 42)), .integer(42))
+        XCTAssertEqual(JSONValue(NSNumber(value: -42)), .integer(-42))
         XCTAssertEqual(JSONValue(NSNumber(value: 3.14)), .double(3.14))
     }
 
@@ -70,7 +74,6 @@ class JSONValueTests: XCTestCase {
     func testAccessors() {
         let val: JSONValue = .integer(42)
         XCTAssertEqual(val.integer, 42)
-        XCTAssertEqual(val.uint64, 42)
         XCTAssertEqual(val.double, 42.0)
         XCTAssertNil(val.string)
 
