@@ -27,8 +27,7 @@ public struct ArchiveProperties: Equatable {
         }
         guard
             let jsonObject = JSONDictionary(json)?.json,
-            let intLength = jsonObject["entryLength"]?.integer,
-            let length = UInt64(exactly: intLength),
+            let length = jsonObject["entryLength"]?.double.flatMap({ UInt64($0) }),
             let isEntryCompressed = jsonObject["isEntryCompressed"]?.bool
         else {
             throw JSONError.parsing(Self.self)
@@ -42,7 +41,7 @@ public struct ArchiveProperties: Equatable {
 
     var json: [String: JSONValue] {
         [
-            "entryLength": .integer(Int(entryLength)),
+            "entryLength": .double(Double(entryLength)),
             "isEntryCompressed": .bool(isEntryCompressed),
         ]
     }

@@ -26,8 +26,7 @@ public extension Properties {
             }
             guard
                 let jsonObject = JSONDictionary(json)?.json,
-                let intLength = jsonObject["entryLength"]?.integer,
-                let length = UInt64(exactly: intLength),
+                let length = jsonObject["entryLength"]?.double.flatMap({ UInt64($0) }),
                 let isCompressed = jsonObject["isEntryCompressed"]?.bool
             else {
                 warnings?.log("`entryLength` and `isEntryCompressed` are required", model: Self.self, source: json.any)
@@ -46,7 +45,7 @@ public extension Properties {
 
         public var json: [String: JSONValue] {
             [
-                "entryLength": .integer(Int(entryLength)),
+                "entryLength": .double(Double(entryLength)),
                 "isEntryCompressed": .bool(isEntryCompressed),
             ]
         }
