@@ -87,7 +87,7 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
 
     public init(json: Any, warnings: WarningLogger? = nil) throws {
         guard let jsonValue = JSONValue(json) else {
-            throw JSONError.parsing(Publication.self)
+            throw JSONError.parsing(Manifest.self)
         }
         try self.init(json: jsonValue, warnings: warnings)
     }
