@@ -51,14 +51,8 @@ public extension Array where Element == OPDSAcquisition {
             return
         }
 
-        let rawJson: Any
-        if let j = json as? JSONValue {
-            rawJson = j.any
-        } else {
-            rawJson = json
-        }
-
-        guard let array = rawJson as? [[String: Any]] else {
+        let jsonValue = (json as? JSONValue) ?? JSONValue(json)
+        guard let array = jsonValue?.array else {
             return
         }
 
