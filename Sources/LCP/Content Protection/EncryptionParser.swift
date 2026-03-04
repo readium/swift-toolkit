@@ -22,15 +22,15 @@ private func parseRPFEncryptionData(in container: Container) async -> ReadResult
 
     return await manifestResource
         .read()
-        .asJSONObject()
+        .asJSONObjectValue()
         .flatMap { json in
             do {
-                return try .success(Manifest(json: json))
+                return try .success(Manifest(json: .object(json)))
             } catch {
                 return .failure(.decoding(error))
             }
         }
-        .map { manifest in
+        .map { (manifest: Manifest) -> [AnyURL: ReadiumShared.Encryption] in
             (manifest.readingOrder + manifest.resources)
                 .reduce([:]) { data, link in
                     var data = data
@@ -50,7 +50,7 @@ private func parseEPUBEncryptionData(in container: Container) async -> ReadResul
     return await encryptionResource.read()
         .asyncFlatMap { data -> ReadResult<XMLDocument> in
             do {
-                let doc = try await DefaultXMLDocumentFactory().open(
+                let doc = try DefaultXMLDocumentFactory().open(
                     data: data,
                     namespaces: [.enc, .ds, .comp]
                 )

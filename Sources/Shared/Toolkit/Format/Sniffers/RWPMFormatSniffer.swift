@@ -27,11 +27,12 @@ public struct RWPMFormatSniffer: FormatSniffer {
             return .success(nil)
         }
 
-        return await blob.readAsJSON()
-            .map {
+        return await blob.read()
+            .asJSONObjectValue()
+            .map { json in
                 guard
-                    let json = $0,
-                    let manifest = try? Manifest(json: json)
+                    let json = json,
+                    let manifest = try? Manifest(json: .object(json))
                 else {
                     return nil
                 }

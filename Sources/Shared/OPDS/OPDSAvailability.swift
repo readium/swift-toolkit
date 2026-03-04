@@ -28,7 +28,7 @@ public struct OPDSAvailability: Equatable {
         if json == nil {
             return nil
         }
-        guard let jsonObject = json as? [String: Any],
+        guard let jsonObject = JSONDictionary(json)?.json,
               let state: State = parseRaw(jsonObject["state"])
         else {
             warnings?.log("`state` is required", model: Self.self, source: json)

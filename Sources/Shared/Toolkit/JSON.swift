@@ -14,8 +14,11 @@ public enum JSONError: Error {
 // MARK: - JSON Serialization
 
 public func serializeJSONString(_ object: Any) -> String? {
+    let unwrappedObject = JSONValue(object)?.any ?? object
+
     guard
-        let data = try? JSONSerialization.data(withJSONObject: object, options: .sortedKeys),
+        JSONSerialization.isValidJSONObject(unwrappedObject) || JSONSerialization.isValidJSONObject([unwrappedObject]),
+        let data = try? JSONSerialization.data(withJSONObject: unwrappedObject, options: .sortedKeys),
         let string = String(data: data, encoding: .utf8)
     else {
         return nil
@@ -45,6 +48,18 @@ public extension JSONEquatable {
     static func == (lhs: Self, rhs: Self) -> Bool {
         let ljson = lhs.json
         let rjson = rhs.json
+
+        // Fast path for JSONValue types which are Equatable
+        if let l = ljson as? JSONValue, let r = rjson as? JSONValue {
+            return l == r
+        }
+        if let l = ljson as? [String: JSONValue], let r = rjson as? [String: JSONValue] {
+            return l == r
+        }
+        if let l = ljson as? [JSONValue], let r = rjson as? [JSONValue] {
+            return l == r
+        }
+
         guard
             JSONSerialization.isValidJSONObject(ljson),
             JSONSerialization.isValidJSONObject(rjson)

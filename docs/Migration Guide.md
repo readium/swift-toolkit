@@ -4,6 +4,50 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ## Unreleased
 
+### Migrating to `JSONValue` for JSON Parsing
+
+The toolkit now uses a custom `JSONValue` enum instead of `Any` (usually `[String: Any]` or `[Any]`) for handling JSON data. This improves type safety and avoids many `as?` casts when working with manifest extensions or metadata.
+
+#### Updating Property Access
+
+If your code accesses raw JSON data from Readium models, you must update it to use the `JSONValue` helpers.
+
+For example, when accessing `Metadata.otherMetadata`:
+
+```diff
+-let customProperty = metadata.otherMetadata["custom"] as? String
++let customProperty = metadata.otherMetadata["custom"]?.string
+```
+
+Common `JSONValue` helpers include:
+* `.string`
+* `.integer`
+* `.double`
+* `.bool`
+* `.object` (returns `[String: JSONValue]`)
+* `.array` (returns `[JSONValue]`)
+
+#### Breaking Changes
+
+Several public properties and `json` serialization properties have been updated:
+
+* **Properties updated to `JSONValue` or `[String: JSONValue]`:**
+    * `PublicationCollection.metadata`
+    * `Properties.otherProperties` (and its subscript)
+    * `Metadata.otherMetadata`
+    * `Manifest.subcollections`
+* **`json` properties now return `JSONValue` or `[String: JSONValue]` instead of `Any`:**
+    * **Shared:** `Contributor`, `Subject`, `Link`, `Locator`, `Manifest`, `Metadata`, `Presentation`, `LocalizedString`, `TDM`, `Encryption`, `DOMRange`, `LocatorCollection`, `OPDSPrice`, `OPDSAcquisition`.
+    * **LCP:** `LCP.Link`, `Event`, `ContentKey`, `Encryption`, `Signature`, `UserKey`.
+* **Extensions updated to `[String: JSONValue]`:**
+    * **LCP:** `Rights.extensions`, `User.extensions`, `PotentialRights.extensions`.
+* **Type changes:**
+    * `Properties.Archive.entryLength` changed from `NSNumber` to `UInt64`.
+
+#### Updating Initializers
+
+While the original `init(json: Any?)` initializers are still available for backward compatibility, they are now wrappers around the new `init(json: JSONValue?)` overloads. If you were manually calling these initializers with `Any`, your code will continue to work, but it is recommended to migrate to `JSONValue` where possible.
+
 ### Removing the HTTP Server from the EPUB Navigator
 
 The EPUB navigator no longer requires an HTTP server. Publication resources are now served directly to the web views using a custom URL scheme handler.

@@ -40,25 +40,32 @@ public struct TDM: Hashable, Sendable {
         self.policy = policy
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        guard
-            let json = json as? [String: Any],
-            let reservation = (json["reservation"] as? String).flatMap(Reservation.init(rawValue:))
-        else {
-            warnings?.log("Invalid TDM object", model: Self.self, source: json, severity: .minor)
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let jsonDict = JSONDictionary(json) else {
+            warnings?.log("Invalid TDM object", model: Self.self, source: json?.any, severity: .minor)
+            throw JSONError.parsing(Self.self)
+        }
+        let jsonObject = jsonDict.json
+
+        guard let reservation = jsonObject["reservation"]?.string.flatMap(Reservation.init(rawValue:)) else {
+            warnings?.log("Invalid TDM object", model: Self.self, source: json?.any, severity: .minor)
             throw JSONError.parsing(Self.self)
         }
 
         self.init(
             reservation: reservation,
-            policy: (json["policy"] as? String).flatMap { HTTPURL(string: $0) }
+            policy: jsonObject["policy"]?.string.flatMap { HTTPURL(string: $0) }
         )
     }
 
-    public var json: [String: Any] {
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+        try self.init(json: JSONValue(json), warnings: warnings)
+    }
+
+    public var json: [String: JSONValue] {
         makeJSON([
-            "reservation": reservation.rawValue,
+            "reservation": .string(reservation.rawValue),
             "policy": encodeIfNotNil(policy?.string),
-        ])
+        ] as [String: JSONValue])
     }
 }

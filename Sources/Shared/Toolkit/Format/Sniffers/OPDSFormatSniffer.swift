@@ -49,13 +49,14 @@ public class OPDSFormatSniffer: FormatSniffer {
                 }
 
         } else if format.conformsTo(.json) {
-            return await blob.readAsJSON()
+            return await blob.read()
+                .asJSONObjectValue()
                 .map { json in
-                    guard let json = json as? [String: Any] else {
+                    guard let json = json else {
                         return nil
                     }
 
-                    if let rwpm = try? Manifest(json: json) {
+                    if let rwpm = try? Manifest(json: .object(json)) {
                         if rwpm.linkWithRel(.`self`)?.mediaType?.matches(.opds2) == true {
                             return opds2Catalog
                         }

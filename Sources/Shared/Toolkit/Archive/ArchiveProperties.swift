@@ -26,10 +26,10 @@ public struct ArchiveProperties: Equatable {
             return nil
         }
         guard
-            let jsonObject = json as? [String: Any],
-            let length: UInt64 = (jsonObject["entryLength"] as? NSNumber)?.uint64Value,
-            length >= 0,
-            let isEntryCompressed = jsonObject["isEntryCompressed"] as? Bool
+            let jsonObject = JSONDictionary(json)?.json,
+            let intLength = jsonObject["entryLength"]?.integer,
+            let length = UInt64(exactly: intLength),
+            let isEntryCompressed = jsonObject["isEntryCompressed"]?.bool
         else {
             throw JSONError.parsing(Self.self)
         }
@@ -40,10 +40,10 @@ public struct ArchiveProperties: Equatable {
         )
     }
 
-    var json: [String: Any] {
+    var json: [String: JSONValue] {
         [
-            "entryLength": entryLength as NSNumber,
-            "isEntryCompressed": isEntryCompressed,
+            "entryLength": .integer(Int(entryLength)),
+            "isEntryCompressed": .bool(isEntryCompressed),
         ]
     }
 }

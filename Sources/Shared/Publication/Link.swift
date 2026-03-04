@@ -92,17 +92,18 @@ public struct Link: JSONEquatable, Hashable, Sendable {
     }
 
     public init(
-        json: Any,
+        json: JSONValue,
         warnings: WarningLogger? = nil
     ) throws {
-        guard let jsonObject = json as? JSONDictionary.Wrapped,
-              var href = jsonObject["href"] as? String
+        guard let jsonDict = JSONDictionary(json),
+              var href = jsonDict.json["href"]?.string
         else {
             warnings?.log("`href` is required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
 
-        let templated = (jsonObject["templated"] as? Bool) ?? false
+        let jsonObject = jsonDict.json
+        let templated = jsonObject["templated"]?.bool ?? false
 
         // We support existing publications with incorrect HREFs (not valid percent-encoded
         // URIs). We try to parse them first as valid, but fall back on a percent-decoded
@@ -117,9 +118,9 @@ public struct Link: JSONEquatable, Hashable, Sendable {
 
         self.init(
             href: href,
-            mediaType: (jsonObject["type"] as? String).flatMap { MediaType($0) },
+            mediaType: jsonObject["type"]?.string.flatMap { MediaType($0) },
             templated: templated,
-            title: jsonObject["title"] as? String,
+            title: jsonObject["title"]?.string,
             rels: .init(json: jsonObject["rel"]),
             properties: (try? Properties(json: jsonObject["properties"], warnings: warnings)) ?? Properties(),
             height: parsePositive(jsonObject["height"]),
@@ -132,11 +133,21 @@ public struct Link: JSONEquatable, Hashable, Sendable {
         )
     }
 
+    public init(
+        json: Any,
+        warnings: WarningLogger? = nil
+    ) throws {
+        guard let json = JSONValue(json) else {
+            throw JSONError.parsing(Self.self)
+        }
+        try self.init(json: json, warnings: warnings)
+    }
+
     public var json: JSONDictionary.Wrapped {
         makeJSON([
-            "href": href,
+            "href": .string(href), // Explicit .string to avoid ambiguity or helper need
             "type": encodeIfNotNil(mediaType?.string),
-            "templated": templated,
+            "templated": .bool(templated),
             "title": encodeIfNotNil(title),
             "rel": encodeIfNotEmpty(rels.json),
             "properties": encodeIfNotEmpty(properties.json),
@@ -217,16 +228,28 @@ public extension Array where Element == Link {
     /// Parses multiple JSON links into an array of Link.
     /// eg. let links = [Link](json: [["href", "http://link1"], ["href", "http://link2"]])
     init(
-        json: Any?,
+        json: JSONValue?,
         warnings: WarningLogger? = nil
     ) {
         self.init()
-        guard let json = json as? [Any] else {
+        guard let json = json else {
             return
         }
 
-        let links = json.compactMap { try? Link(json: $0, warnings: warnings) }
-        append(contentsOf: links)
+        switch json {
+        case let .array(array):
+            let links = array.compactMap { try? Link(json: $0, warnings: warnings) }
+            append(contentsOf: links)
+        default:
+            break
+        }
+    }
+
+    init(
+        json: Any?,
+        warnings: WarningLogger? = nil
+    ) {
+        self.init(json: JSONValue(json), warnings: warnings)
     }
 
     var json: [JSONDictionary.Wrapped] {

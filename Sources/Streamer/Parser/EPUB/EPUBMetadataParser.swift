@@ -40,7 +40,7 @@ final class EPUBMetadataParser: Loggable {
         }
 
         var other = metas.otherMetadata
-        if let mo = mediaOverlay() { other["mediaOverlay"] = mo.json }
+        if let mo = mediaOverlay() { other["mediaOverlay"] = .object(mo.json) }
 
         return Metadata(
             identifier: uniqueIdentifier,

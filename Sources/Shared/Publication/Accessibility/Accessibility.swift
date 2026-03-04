@@ -547,35 +547,36 @@ public struct Accessibility: Hashable, Sendable {
         self.exemptions = exemptions
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        guard json != nil else {
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let json = json else {
             return nil
         }
-        guard let jsonObject = json as? [String: Any] else {
+        guard let jsonDict = JSONDictionary(json) else {
             warnings?.log("Invalid Accessibility object", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
+        let jsonObject = jsonDict.json
 
         self.init(
             conformsTo: (parseArray(jsonObject["conformsTo"], allowingSingle: true) as [String])
                 .map(Profile.init),
-            certification: (jsonObject["certification"] as? [String: Any])
-                .map {
+            certification: jsonObject["certification"]?.object
+                .flatMap { dict in
                     Certification(
-                        certifiedBy: $0["certifiedBy"] as? String,
-                        credential: $0["credential"] as? String,
-                        report: $0["report"] as? String
+                        certifiedBy: dict["certifiedBy"]?.string,
+                        credential: dict["credential"]?.string,
+                        report: dict["report"]?.string
                     )
                 }
                 .takeIf { $0.certifiedBy != nil || $0.credential != nil || $0.report != nil },
-            summary: jsonObject["summary"] as? String,
+            summary: jsonObject["summary"]?.string,
             accessModes: parseArray(jsonObject["accessMode"]).map(AccessMode.init),
-            accessModesSufficient: (jsonObject["accessModeSufficient"] as? [Any] ?? [])
+            accessModesSufficient: (jsonObject["accessModeSufficient"]?.array ?? [])
                 .map { json -> [Accessibility.PrimaryAccessMode] in
-                    if let str = json as? String, let value = PrimaryAccessMode(rawValue: str) {
+                    if let str = json.string, let value = PrimaryAccessMode(rawValue: str) {
                         return [value]
-                    } else if let strs = json as? [String] {
-                        return strs.compactMap(PrimaryAccessMode.init(rawValue:))
+                    } else if let strs = json.array {
+                        return strs.compactMap(\.string).compactMap(PrimaryAccessMode.init(rawValue:))
                     } else {
                         return []
                     }
@@ -587,15 +588,19 @@ public struct Accessibility: Hashable, Sendable {
         )
     }
 
-    public var json: [String: Any] {
+    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+        try self.init(json: JSONValue(json), warnings: warnings)
+    }
+
+    public var json: [String: JSONValue] {
         makeJSON([
             "conformsTo": encodeIfNotEmpty(conformsTo.map(\.uri)),
-            "certification": encodeIfNotEmpty(certification.map {
-                makeJSON([
-                    "certifiedBy": encodeIfNotNil($0.certifiedBy),
-                    "credential": encodeIfNotNil($0.credential),
-                    "report": encodeIfNotNil($0.report),
-                ])
+            "certification": encodeIfNotEmpty(certification.map { cert in
+                JSONValue.object(makeJSON([
+                    "certifiedBy": encodeIfNotNil(cert.certifiedBy),
+                    "credential": encodeIfNotNil(cert.credential),
+                    "report": encodeIfNotNil(cert.report),
+                ]))
             }),
             "summary": encodeIfNotNil(summary),
             "accessMode": encodeIfNotEmpty(accessModes.map(\.id)),

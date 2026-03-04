@@ -11,7 +11,7 @@ import Foundation
 public extension Locator.Locations {
     /// A CSS Selector.
     var cssSelector: String? {
-        otherLocations["cssSelector"] as? String
+        otherLocations["cssSelector"]?.string
     }
 
     /// `partialCFI` is an expression conforming to the "right-hand" side of the EPUB CFI syntax,
@@ -20,7 +20,7 @@ public extension Locator.Locations {
     /// that the wrapping `epubcfi(***)` syntax is not used for the `partialCFI` string, i.e.
     /// the "fragment" part of the CFI grammar is ignored.
     var partialCFI: String? {
-        otherLocations["partialCfi"] as? String
+        otherLocations["partialCfi"]?.string
     }
 
     /// An HTML DOM range.

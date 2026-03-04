@@ -53,19 +53,20 @@ public struct Presentation: Equatable {
         self.layout = layout
     }
 
-    public init(json: Any?, warnings: WarningLogger? = nil) throws {
-        guard json != nil else {
+    public init(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let json = json else {
             self.init()
             return
         }
-        guard let jsonObject = json as? [String: Any] else {
-            warnings?.log("Invalid JSON object", model: Self.self, source: json)
+        guard let jsonDict = JSONDictionary(json) else {
+            warnings?.log("Invalid JSON object", model: Self.self, source: json.any)
             throw JSONError.parsing(Self.self)
         }
+        let jsonObject = jsonDict.json
 
         self.init(
-            clipped: jsonObject["clipped"] as? Bool,
-            continuous: jsonObject["continuous"] as? Bool,
+            clipped: jsonObject["clipped"]?.bool,
+            continuous: jsonObject["continuous"]?.bool,
             fit: parseRaw(jsonObject["fit"]),
             orientation: parseRaw(jsonObject["orientation"]),
             overflow: parseRaw(jsonObject["overflow"]),
@@ -74,7 +75,11 @@ public struct Presentation: Equatable {
         )
     }
 
-    public var json: [String: Any] {
+    public init(json: Any?, warnings: WarningLogger? = nil) throws {
+        try self.init(json: JSONValue(json), warnings: warnings)
+    }
+
+    public var json: [String: JSONValue] {
         makeJSON([
             "clipped": encodeIfNotNil(clipped),
             "continuous": encodeIfNotNil(continuous),
@@ -83,7 +88,7 @@ public struct Presentation: Equatable {
             "overflow": encodeRawIfNotNil(overflow),
             "spread": encodeRawIfNotNil(spread),
             "layout": encodeRawIfNotNil(layout),
-        ])
+        ] as [String: JSONValue])
     }
 
     /// Suggested method for constraining a resource inside the viewport.

@@ -22,7 +22,7 @@ public struct OPDSHolds: Equatable {
         if json == nil {
             return nil
         }
-        guard let jsonObject = json as? [String: Any] else {
+        guard let jsonObject = JSONDictionary(json)?.json else {
             warnings?.log("Invalid Holds object", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }

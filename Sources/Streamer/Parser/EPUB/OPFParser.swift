@@ -197,7 +197,7 @@ final class OPFParser: Loggable {
         var properties = parseStringProperties(stringProperties)
 
         if let encryption = encryptions[href]?.json, !encryption.isEmpty {
-            properties["encrypted"] = encryption
+            properties["encrypted"] = .object(encryption)
         }
 
         let duration = metas["duration", in: .media, refining: id]
@@ -263,13 +263,12 @@ final class OPFParser: Loggable {
                 )
             }
 
-            // Attach the SMIL media overlay as an alternate.
             if
                 let mediaOverlayId = item.mediaOverlayId,
-                let smilIndex = items.firstIndex(where: { $0.id == mediaOverlayId && $0.link.mediaType?.matches(.smil) == true })
+                let mediaOverlayIndex = items.firstIndex(where: { $0.id == mediaOverlayId })
             {
-                let smilItem = items.remove(at: smilIndex)
-                spineLink.alternates.append(smilItem.link)
+                let mediaOverlayItem = items.remove(at: mediaOverlayIndex)
+                spineLink.alternates.append(mediaOverlayItem.link)
             }
 
             readingOrder.append(spineLink)
@@ -280,7 +279,7 @@ final class OPFParser: Loggable {
     }
 
     /// Parse string properties into an `otherProperties` dictionary.
-    private func parseStringProperties(_ properties: [String]) -> [String: Any] {
+    private func parseStringProperties(_ properties: [String]) -> [String: JSONValue] {
         var contains: [String] = []
         var page: Properties.Page?
 
@@ -311,12 +310,12 @@ final class OPFParser: Loggable {
             }
         }
 
-        var otherProperties: [String: Any] = [:]
+        var otherProperties: [String: JSONValue] = [:]
         if !contains.isEmpty {
-            otherProperties["contains"] = contains
+            otherProperties["contains"] = .array(contains.map { .string($0) })
         }
-        if let page = page {
-            otherProperties["page"] = page.rawValue
+        if let jsonPage = JSONValue(page?.rawValue) {
+            otherProperties["page"] = jsonPage
         }
 
         return otherProperties
