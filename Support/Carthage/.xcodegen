@@ -326,7 +326,6 @@
 ../../Sources/Internal/Extensions/Task.swift
 ../../Sources/Internal/Extensions/UInt64.swift
 ../../Sources/Internal/Extensions/URL.swift
-../../Sources/Internal/JSON.swift
 ../../Sources/Internal/Keychain.swift
 ../../Sources/Internal/Measure.swift
 ../../Sources/Internal/UTI.swift
@@ -784,6 +783,7 @@
 ../../Sources/Shared/Toolkit/HTTP/HTTPResourceFactory.swift
 ../../Sources/Shared/Toolkit/HTTP/HTTPServer.swift
 ../../Sources/Shared/Toolkit/JSON.swift
+../../Sources/Shared/Toolkit/JSONDictionary.swift
 ../../Sources/Shared/Toolkit/JSONValue.swift
 ../../Sources/Shared/Toolkit/Language.swift
 ../../Sources/Shared/Toolkit/Logging
