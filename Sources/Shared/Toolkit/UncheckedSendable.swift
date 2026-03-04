@@ -9,10 +9,10 @@ import Foundation
 /// A wrapper to force a value to be `Sendable`.
 ///
 /// **Warning**: Use this wrapper only if you are sure that the value is thread-safe.
-@_spi(Internal) public struct UncheckedSendable<T>: @unchecked Sendable {
-    public let value: T
+package struct UncheckedSendable<T>: @unchecked Sendable {
+    package let value: T
 
-    public init(_ value: T) {
+    package init(_ value: T) {
         self.value = value
     }
 }

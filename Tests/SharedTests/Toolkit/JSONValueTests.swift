@@ -4,8 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+@testable import ReadiumShared
 import XCTest
-@_spi(Internal) @testable import ReadiumShared
 
 class JSONValueTests: XCTestCase {
     func testInitializeFromNil() {

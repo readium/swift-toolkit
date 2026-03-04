@@ -66,7 +66,7 @@ public extension JSONEquatable {
 
 public extension Result where Success == Data, Failure == ReadError {
     /// Decodes the data as a JSON value.
-    @_spi(Internal) func asJSONValue(options: JSONSerialization.ReadingOptions = []) -> ReadResult<JSONValue> {
+    func asJSONValue(options: JSONSerialization.ReadingOptions = []) -> ReadResult<JSONValue> {
         flatMap { data in
             do {
                 let json = try JSONSerialization.jsonObject(with: data, options: options)
@@ -81,7 +81,7 @@ public extension Result where Success == Data, Failure == ReadError {
     }
 
     /// Decodes the data as a JSON object.
-    @_spi(Internal) func asJSONObjectValue(options: JSONSerialization.ReadingOptions = []) -> ReadResult<[String: JSONValue]> {
+    func asJSONObjectValue(options: JSONSerialization.ReadingOptions = []) -> ReadResult<[String: JSONValue]> {
         asJSONValue(options: options).flatMap {
             guard let dict = $0.object else {
                 return .failure(.decoding(JSONError.parsing([String: JSONValue].self)))
@@ -93,7 +93,7 @@ public extension Result where Success == Data, Failure == ReadError {
 
 public extension Result where Success == Data?, Failure == ReadError {
     /// Decodes the data as a JSON value.
-    @_spi(Internal) func asJSONValue(options: JSONSerialization.ReadingOptions = []) -> ReadResult<JSONValue?> {
+    func asJSONValue(options: JSONSerialization.ReadingOptions = []) -> ReadResult<JSONValue?> {
         flatMap { data in
             guard let data = data else {
                 return .success(nil)
@@ -111,7 +111,7 @@ public extension Result where Success == Data?, Failure == ReadError {
     }
 
     /// Decodes the data as a JSON object.
-    @_spi(Internal) func asJSONObjectValue(options: JSONSerialization.ReadingOptions = []) -> ReadResult<[String: JSONValue]?> {
+    func asJSONObjectValue(options: JSONSerialization.ReadingOptions = []) -> ReadResult<[String: JSONValue]?> {
         asJSONValue(options: options).map { $0?.object }
     }
 }

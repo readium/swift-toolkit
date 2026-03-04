@@ -12,7 +12,7 @@ import Foundation
 /// This enum is used to represent JSON values in a type-safe way, avoiding the
 /// use of `any Sendable` or `Any`. It guarantees that the value is Sendable and
 /// Hashable.
-@_spi(Internal) public enum JSONValue: Sendable, Hashable {
+public enum JSONValue: Sendable, Hashable {
     case null
     case bool(Bool)
     case string(String)
@@ -25,7 +25,7 @@ import Foundation
     ///
     /// This initializer attempts to convert the given value to a `JSONValue`.
     /// It handles nested arrays and dictionaries recursively.
-    public init?(_ value: Any?) {
+    package init?(_ value: Any?) {
         guard let value = value else {
             return nil
         }
@@ -162,43 +162,43 @@ import Foundation
 
 // MARK: - ExpressibleByLiteral Conformance
 
-@_spi(Internal) extension JSONValue: ExpressibleByNilLiteral {
+extension JSONValue: ExpressibleByNilLiteral {
     public init(nilLiteral: ()) {
         self = .null
     }
 }
 
-@_spi(Internal) extension JSONValue: ExpressibleByBooleanLiteral {
+extension JSONValue: ExpressibleByBooleanLiteral {
     public init(booleanLiteral value: Bool) {
         self = .bool(value)
     }
 }
 
-@_spi(Internal) extension JSONValue: ExpressibleByStringLiteral {
+extension JSONValue: ExpressibleByStringLiteral {
     public init(stringLiteral value: String) {
         self = .string(value)
     }
 }
 
-@_spi(Internal) extension JSONValue: ExpressibleByIntegerLiteral {
+extension JSONValue: ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int) {
         self = .integer(value)
     }
 }
 
-@_spi(Internal) extension JSONValue: ExpressibleByFloatLiteral {
+extension JSONValue: ExpressibleByFloatLiteral {
     public init(floatLiteral value: Double) {
         self = .double(value)
     }
 }
 
-@_spi(Internal) extension JSONValue: ExpressibleByArrayLiteral {
+extension JSONValue: ExpressibleByArrayLiteral {
     public init(arrayLiteral elements: JSONValue...) {
         self = .array(elements)
     }
 }
 
-@_spi(Internal) extension JSONValue: ExpressibleByDictionaryLiteral {
+extension JSONValue: ExpressibleByDictionaryLiteral {
     public init(dictionaryLiteral elements: (String, JSONValue)...) {
         self = .object(Dictionary(uniqueKeysWithValues: elements))
     }
@@ -206,7 +206,7 @@ import Foundation
 
 // MARK: - Codable Conformance
 
-@_spi(Internal) extension JSONValue: Codable {
+extension JSONValue: Codable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
 
