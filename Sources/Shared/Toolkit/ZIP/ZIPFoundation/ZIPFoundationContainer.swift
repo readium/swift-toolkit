@@ -35,7 +35,7 @@ final class ZIPFoundationContainer: Container, Loggable {
             return .success(Self(archiveFactory: archiveFactory, entries: entries))
 
         } catch {
-            return .failure(.reading(.decoding(error)))
+            return .failure(.reading(.wrap(error) ?? .decoding(error)))
         }
     }
 
@@ -120,7 +120,7 @@ private actor ZIPFoundationResource: Resource, Loggable {
                 }
                 return .success(())
             } catch {
-                return .failure(.decoding(error))
+                return .failure(.wrap(error) ?? .decoding(error))
             }
         }
     }
@@ -131,7 +131,7 @@ private actor ZIPFoundationResource: Resource, Loggable {
             do {
                 _archive = try await .success(archiveFactory.make())
             } catch {
-                _archive = .failure(.decoding(error))
+                _archive = .failure(.wrap(error) ?? .decoding(error))
             }
         }
         return _archive!

@@ -44,7 +44,7 @@ final class LCPDFTableOfContentsService: TableOfContentsService, PDFPublicationS
             let toc = try await pdfFactory.open(resource: resource, at: url, password: nil).tableOfContents()
             return .success(toc.linksWithDocumentHREF(url))
         } catch {
-            return .failure(.decoding(error))
+            return .failure(.wrap(error) ?? .decoding(error))
         }
     }
 

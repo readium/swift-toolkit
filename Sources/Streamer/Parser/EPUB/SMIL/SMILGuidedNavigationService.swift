@@ -83,7 +83,7 @@ actor SMILGuidedNavigationService: GuidedNavigationService {
                         )
                     )
                 } catch {
-                    return .failure(.decoding(error))
+                    return .failure(.wrap(error) ?? .decoding(error))
                 }
             }
     }

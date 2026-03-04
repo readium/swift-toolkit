@@ -73,7 +73,7 @@ public final class PDFParser: PublicationParser, Loggable {
                 )
             ))
         } catch {
-            return .failure(.reading(.decoding(error)))
+            return .failure(.reading(.wrap(error) ?? .decoding(error)))
         }
     }
 }
