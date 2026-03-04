@@ -265,7 +265,7 @@ final class OPFParser: Loggable {
 
             if
                 let mediaOverlayId = item.mediaOverlayId,
-                let mediaOverlayIndex = items.firstIndex(where: { $0.id == mediaOverlayId })
+                let mediaOverlayIndex = items.firstIndex(where: { $0.id == mediaOverlayId && $0.link.mediaType?.matches(.smil) == true })
             {
                 let mediaOverlayItem = items.remove(at: mediaOverlayIndex)
                 spineLink.alternates.append(mediaOverlayItem.link)
