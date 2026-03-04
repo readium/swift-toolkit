@@ -570,7 +570,9 @@ class LocatorCollectionTests: XCTestCase {
     func testGetMinimalJSON() {
         AssertJSONEqual(
             LocatorCollection().json as Any,
-            [:] as [String: Any]
+            [
+                "locators": [] as [Any],
+            ]
         )
     }
 

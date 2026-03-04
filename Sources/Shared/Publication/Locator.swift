@@ -410,7 +410,7 @@ public struct LocatorCollection: Hashable {
         makeJSON([
             "metadata": encodeIfNotEmpty(metadata.json),
             "links": encodeIfNotEmpty(links.json),
-            "locators": encodeIfNotEmpty(locators.json), // Updated to encodeIfNotEmpty
+            "locators": .array(locators.json.map { .object($0) }),
         ] as [String: JSONValue])
     }
 
