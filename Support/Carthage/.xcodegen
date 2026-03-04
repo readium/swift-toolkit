@@ -331,7 +331,6 @@
 ../../Sources/Internal/Measure.swift
 ../../Sources/Internal/UTI.swift
 ../../Sources/LCP
-../../Sources/LCP/.DS_Store
 ../../Sources/LCP/Authentications
 ../../Sources/LCP/Authentications/LCPAuthenticating.swift
 ../../Sources/LCP/Authentications/LCPDialog.swift
@@ -399,7 +398,6 @@
 ../../Sources/LCP/Toolkit/ReadiumLCPLocalizedString.swift
 ../../Sources/LCP/Toolkit/ReadResult.swift
 ../../Sources/Navigator
-../../Sources/Navigator/.DS_Store
 ../../Sources/Navigator/Audiobook
 ../../Sources/Navigator/Audiobook/AudioNavigator.swift
 ../../Sources/Navigator/Audiobook/Preferences
@@ -416,7 +414,6 @@
 ../../Sources/Navigator/DirectionalNavigationAdapter.swift
 ../../Sources/Navigator/EditingAction.swift
 ../../Sources/Navigator/EPUB
-../../Sources/Navigator/EPUB/.DS_Store
 ../../Sources/Navigator/EPUB/Assets
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-one.html
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-two.html
@@ -479,7 +476,6 @@
 ../../Sources/Navigator/EPUB/Preferences/EPUBPreferencesEditor.swift
 ../../Sources/Navigator/EPUB/Preferences/EPUBSettings.swift
 ../../Sources/Navigator/EPUB/Scripts
-../../Sources/Navigator/EPUB/Scripts/.DS_Store
 ../../Sources/Navigator/EPUB/Scripts/.eslintrc.json
 ../../Sources/Navigator/EPUB/Scripts/.gitignore
 ../../Sources/Navigator/EPUB/Scripts/.prettierignore
@@ -600,7 +596,6 @@
 ../../Sources/OPDS/URLHelper.swift
 ../../Sources/OPDS/XMLNamespace.swift
 ../../Sources/Shared
-../../Sources/Shared/.DS_Store
 ../../Sources/Shared/Logger
 ../../Sources/Shared/Logger/Loggable.swift
 ../../Sources/Shared/Logger/Logger.swift
@@ -834,7 +829,6 @@
 ../../Sources/Shared/Toolkit/ZIP/ZIPFoundation/ZIPFoundationArchiveOpener.swift
 ../../Sources/Shared/Toolkit/ZIP/ZIPFoundation/ZIPFoundationContainer.swift
 ../../Sources/Streamer
-../../Sources/Streamer/.DS_Store
 ../../Sources/Streamer/Assets
 ../../Sources/Streamer/Assets/fonts
 ../../Sources/Streamer/Assets/fonts/OpenDyslexic-Regular.otf
