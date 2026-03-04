@@ -44,21 +44,24 @@ final class WebView: WKWebView {
         // first paint. This runs for every page load for the lifetime of this WKWebView,
         // including the initial loadSpread() which fires before any delegate user scripts.
         if UserDefaults.standard.bool(forKey: "enableTransparentBackground") {
+            // Lightweight: watch <html> only, no CSS variables (avoid interfering with
+            // ReadiumCSS --RS__backgroundColor used during initialization).
             let transparencyJS = """
             (function() {
-              function fix(t) {
-                if (!t || !t.style) return;
-                t.style.setProperty('background-color', 'transparent', 'important');
-                t.style.setProperty('background', 'transparent', 'important');
-                t.style.setProperty('--RS__backgroundColor', 'transparent', 'important');
-                t.style.setProperty('--USER__backgroundColor', 'transparent', 'important');
-              }
+              var h = document.documentElement;
+              if (!h) return;
+              var fix = function() {
+                if (h.style.getPropertyValue('background-color') !== 'transparent') {
+                  h.style.setProperty('background-color', 'transparent', 'important');
+                  h.style.setProperty('background', 'transparent', 'important');
+                }
+              };
               new MutationObserver(function(muts) {
                 muts.forEach(function(m) {
-                  if (m.attributeName === 'style' || m.attributeName === 'class') fix(m.target);
+                  if (m.attributeName === 'style' || m.attributeName === 'class') fix();
                 });
-              }).observe(document.documentElement, {attributes: true, attributeFilter: ['style', 'class']});
-              fix(document.documentElement);
+              }).observe(h, {attributes: true, attributeFilter: ['style', 'class']});
+              fix();
             })();
             """
             configuration.userContentController.addUserScript(WKUserScript(
