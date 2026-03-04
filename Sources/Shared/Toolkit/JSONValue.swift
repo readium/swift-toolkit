@@ -12,7 +12,7 @@ import Foundation
 /// This enum is used to represent JSON values in a type-safe way, avoiding the
 /// use of `any Sendable` or `Any`. It guarantees that the value is Sendable and
 /// Hashable.
-public enum JSONValue: Sendable, Hashable {
+public enum JSONValue: Sendable, Hashable, Loggable {
     case null
     case bool(Bool)
     case string(String)
@@ -70,13 +70,21 @@ public enum JSONValue: Sendable, Hashable {
         }
 
         if let array = value as? [Any] {
-            self = .array(array.compactMap { JSONValue($0) })
+            self = .array(array.compactMap {
+                let element = JSONValue($0)
+                if element == nil {
+                    Self.log(.warning, "JSONValue: unsupported element type \(type(of: $0))")
+                }
+                return element
+            })
         } else if let dict = value as? [String: Any] {
             var object: [String: JSONValue] = [:]
             for (key, val) in dict {
-                if let jsonVal = JSONValue(val) {
-                    object[key] = jsonVal
+                guard let jsonVal = JSONValue(val) else {
+                    Self.log(.warning, "JSONValue: unsupported element type \(type(of: val))")
+                    continue
                 }
+                object[key] = jsonVal
             }
             self = .object(object)
         } else if value is NSNull {
