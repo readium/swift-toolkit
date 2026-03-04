@@ -50,7 +50,7 @@ private func parseEPUBEncryptionData(in container: Container) async -> ReadResul
     return await encryptionResource.read()
         .asyncFlatMap { data -> ReadResult<XMLDocument> in
             do {
-                let doc = try await DefaultXMLDocumentFactory().open(
+                let doc = try DefaultXMLDocumentFactory().open(
                     data: data,
                     namespaces: [.enc, .ds, .comp]
                 )

@@ -42,7 +42,7 @@ final class MinizipContainer: Container, Loggable {
             return .success(Self(file: file, entries: entries))
 
         } catch {
-            return .failure(.reading(.decoding(error)))
+            return .failure(.reading(.wrap(error) ?? .decoding(error)))
         }
     }
 
@@ -126,7 +126,7 @@ private actor MinizipResource: Resource, Loggable {
                 try consume(zipFile.readFromCurrentOffset(length: UInt64(range.count)))
                 return .success(())
             } catch {
-                return .failure(.decoding(error))
+                return .failure(.wrap(error) ?? .decoding(error))
             }
         }
     }
