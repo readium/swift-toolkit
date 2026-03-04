@@ -30,7 +30,7 @@ public actor FileResource: Resource, Loggable {
                     _length = .failure(.access(.fileSystem(.fileNotFound(nil))))
                 }
             } catch {
-                _length = .failure(.access(.fileSystem(.io(error))))
+                _length = .failure(.access(.fileSystem(.wrap(error) ?? .io(error))))
             }
         }
         return _length!

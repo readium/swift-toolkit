@@ -25,19 +25,16 @@ extension LCPError {
             return .parsing(error)
         }
 
-        if let error = error as? HTTPError {
+        if let error = (error as? HTTPError) ?? HTTPError.wrap(error) {
             return .network(error)
         }
 
         let nsError = error as NSError
-        switch nsError.domain {
-        case "R2LCPClient.LCPClientError":
+        if nsError.domain == "R2LCPClient.LCPClientError" {
             return .licenseIntegrity(LCPClientError(rawValue: nsError.code) ?? .unknown)
-        case NSURLErrorDomain:
-            return .network(nsError)
-        default:
-            return .unknown(error)
         }
+
+        return .unknown(error)
     }
 
     static func wrap<T>(_ completion: @escaping (Result<T, LCPError>) -> Void) -> (Result<T, Error>) -> Void {

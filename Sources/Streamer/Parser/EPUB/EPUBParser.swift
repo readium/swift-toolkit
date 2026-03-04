@@ -77,7 +77,7 @@ public final class EPUBParser: PublicationParser {
                 )
             ))
         } catch {
-            return .failure(.reading(.decoding(error)))
+            return .failure(.reading(.wrap(error) ?? .decoding(error)))
         }
     }
 }
