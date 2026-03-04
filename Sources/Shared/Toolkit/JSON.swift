@@ -17,7 +17,7 @@ public func serializeJSONString(_ object: Any) -> String? {
     let unwrappedObject = JSONValue(object)?.any ?? object
 
     guard
-        JSONSerialization.isValidJSONObject(unwrappedObject) || JSONSerialization.isValidJSONObject([unwrappedObject]),
+        JSONSerialization.isValidJSONObject(unwrappedObject),
         let data = try? JSONSerialization.data(withJSONObject: unwrappedObject, options: .sortedKeys),
         let string = String(data: data, encoding: .utf8)
     else {
