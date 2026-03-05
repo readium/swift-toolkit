@@ -168,4 +168,79 @@ class HTMLElementTests: XCTestCase {
 
         XCTAssertEqual(body.locate(.attributes, in: html), target)
     }
+
+    // MARK: - hasAttribute(anyOf:in:)
+
+    func testHasAttributeReturnsTrueForLang() {
+        let html = #"<html lang="fr"><body></body></html>"#
+        XCTAssertTrue(HTMLElement.html.hasAttribute(anyOf: ["xml:lang", "lang"], in: html))
+    }
+
+    func testHasAttributeReturnsTrueForXmlLang() {
+        let html = #"<html xml:lang="fr"><body></body></html>"#
+        XCTAssertTrue(HTMLElement.html.hasAttribute(anyOf: ["xml:lang", "lang"], in: html))
+    }
+
+    func testHasAttributeReturnsTrueWhenNotFirstAttribute() {
+        let html = #"<html xmlns="http://www.w3.org/1999/xhtml" class="foo" lang="fr"><body></body></html>"#
+        XCTAssertTrue(HTMLElement.html.hasAttribute(anyOf: ["xml:lang", "lang"], in: html))
+    }
+
+    func testHasAttributeReturnsFalseWhenAbsent() {
+        let html = #"<html xmlns="http://www.w3.org/1999/xhtml"><body></body></html>"#
+        XCTAssertFalse(HTMLElement.html.hasAttribute(anyOf: ["xml:lang", "lang"], in: html))
+    }
+
+    func testHasAttributeReturnsFalseForWrongElement() {
+        let html = #"<html><body lang="fr"></body></html>"#
+        XCTAssertFalse(HTMLElement.html.hasAttribute(anyOf: ["xml:lang", "lang"], in: html))
+    }
+
+    func testHasAttributeIsCaseInsensitive() {
+        let html = #"<HTML LANG="fr"><body></body></HTML>"#
+        XCTAssertTrue(HTMLElement.html.hasAttribute(anyOf: ["lang"], in: html))
+    }
+
+    func testHasAttributeHandlesMultilineTag() {
+        let html = "<html\n  xmlns=\"http://www.w3.org/1999/xhtml\"\n  lang=\"fr\">\n<body></body></html>"
+        XCTAssertTrue(HTMLElement.html.hasAttribute(anyOf: ["lang"], in: html))
+    }
+
+    // MARK: - attribute(firstOf:in:)
+
+    func testAttributeReturnsLangValue() {
+        let html = #"<html lang="fr"><body></body></html>"#
+        XCTAssertEqual(HTMLElement.html.attribute(firstOf: ["xml:lang", "lang"], in: html), "fr")
+    }
+
+    func testAttributePrefersXmlLangOverLang() {
+        let html = #"<html xml:lang="de" lang="fr"><body></body></html>"#
+        XCTAssertEqual(HTMLElement.html.attribute(firstOf: ["xml:lang", "lang"], in: html), "de")
+    }
+
+    func testAttributeFallsBackToLang() {
+        let html = #"<html lang="fr"><body></body></html>"#
+        XCTAssertEqual(HTMLElement.html.attribute(firstOf: ["xml:lang", "lang"], in: html), "fr")
+    }
+
+    func testAttributeReturnsNilWhenAbsent() {
+        let html = #"<html xmlns="http://www.w3.org/1999/xhtml"><body></body></html>"#
+        XCTAssertNil(HTMLElement.html.attribute(firstOf: ["xml:lang", "lang"], in: html))
+    }
+
+    func testAttributeReturnsNilForEmptyValue() {
+        let html = #"<html lang=""><body></body></html>"#
+        XCTAssertNil(HTMLElement.html.attribute(firstOf: ["xml:lang", "lang"], in: html))
+    }
+
+    func testAttributeScopedToCorrectElement() {
+        let html = #"<html><body lang="fr"></body></html>"#
+        XCTAssertNil(HTMLElement.html.attribute(firstOf: ["lang"], in: html))
+        XCTAssertEqual(HTMLElement.body.attribute(firstOf: ["lang"], in: html), "fr")
+    }
+
+    func testAttributeHandlesSpacesAroundEquals() {
+        let html = #"<html lang = "fr"><body></body></html>"#
+        XCTAssertEqual(HTMLElement.html.attribute(firstOf: ["lang"], in: html), "fr")
+    }
 }

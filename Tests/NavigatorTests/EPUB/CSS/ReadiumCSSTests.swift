@@ -303,6 +303,60 @@ class ReadiumCSSTests: XCTestCase {
         )
     }
 
+    // MARK: - langInjections(for:) via injections(for:)
+
+    func testNoLangInjectionWhenNoLanguageSet() {
+        let css = ReadiumCSS(
+            layout: CSSLayout(),
+            baseURL: baseURL
+        )
+
+        XCTAssertEqual(
+            try css.injections(for: html),
+            [
+                viewportMeta,
+                cssBefore(),
+                cssDefault(),
+                cssAfter(),
+                audioFix,
+                .styleAttribute(on: .html, css: ""),
+                .dirAttribute(on: .html, rtl: false),
+                .dirAttribute(on: .body, rtl: false),
+            ]
+        )
+    }
+
+    func testLangInjectionFallsBackToLayoutLangWhenBodyLangIsEmpty() {
+        let language = Language(code: .bcp47("en"))
+        let css = ReadiumCSS(
+            layout: CSSLayout(language: language),
+            baseURL: baseURL
+        )
+
+        XCTAssertEqual(
+            try css.injections(for: """
+            <?xml version="1.0" encoding="utf-8"?>
+            <html xmlns="http://www.w3.org/1999/xhtml">
+                <head>
+                    <title>Publication</title>
+                </head>
+                <body lang=""></body>
+            </html>
+            """),
+            [
+                viewportMeta,
+                cssBefore(),
+                cssDefault(),
+                cssAfter(),
+                audioFix,
+                .styleAttribute(on: .html, css: ""),
+                .dirAttribute(on: .html, rtl: false),
+                .dirAttribute(on: .body, rtl: false),
+                .langAttribute(on: .html, language: language),
+            ]
+        )
+    }
+
     func testInjectDirAttributeWhenAlreadyPresent() {
         let css = ReadiumCSS(
             layout: CSSLayout(language: Language(code: .bcp47("en"))),
